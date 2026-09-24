@@ -1,6 +1,10 @@
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
+import fs from "node:fs";
+import { randomUUID } from "node:crypto";
+import os from "node:os";
+import path from "node:path";
 import Log from "../Log.js";
-import { stamp } from "../home.js";
+import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 
@@ -13,7 +17,9 @@ import { defaults as role_defaults, opening } from "./roles.js";
  * talk to it mid-run, and stop it, by calling in here over MCP. */
 export class Agents {
 
-	constructor(...args){ this.assign({ live: new Map() }, ...args); }
+	/* `boot` names THIS host process — every registry row it writes carries it,
+	 * so the next boot can tell "alive a moment ago" from "long dead". */
+	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -28,7 +34,7 @@ export class Agents {
 	 * something outside this process (the dashboard's fast assistant, a fresh
 	 * `say.mjs state`) can still see who is alive after Servex restarts and the
 	 * `live` Map is empty again. */
-	reg(){ return this.registry ??= new this.constructor.Registry(); }
+	reg(){ return this.registry ??= new this.constructor.Registry({ dir: this.registry_dir }); }
 
 	register(agent){
 		const row = this.reg().write(agent);
@@ -36,7 +42,12 @@ export class Agents {
 		return row;
 	}
 
-	registry_list(){ return this.reg().list(); }
+	/* A row whose host process has died is marked `gone` before it is shown —
+	 * `list_agents` never calls a dead agent idle or working. */
+	registry_list(){
+		this.reg().sweep(this.live, this.boot);
+		return this.reg().list();
+	}
 
 	/* `role`'s defaults (model, effort, permission mode) fill in what the caller
 	 * left out, and its skill is loaded by putting "Load the `<skill>` skill,
@@ -50,18 +61,179 @@ export class Agents {
 	 * assistant (`Assistant.js`) is the one that does this today: telling it to
 	 * "load the every-prompt skill first" would spend its first turn failing to
 	 * read a file, and then hand it instructions written for an agent with a
-	 * terminal it does not have. */
+	 * terminal it does not have.
+	 *
+	 * RESUME AND FORK. `resume: <session uuid>` reopens an existing session —
+	 * its whole conversation — instead of starting a blank one; add `fork: true`
+	 * and it continues as a NEW session id, leaving the original untouched.
+	 * Both skip the skill-load preamble (the session already has its posture),
+	 * and a resume with no `prompt` sends nothing: it is held open, idle, until
+	 * someone talks to it. ⚠ A resume must run in the session's ORIGINAL `cwd`
+	 * — the SDK stores sessions per project directory and will not find it from
+	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it. */
 	spawn(spec){
+		const again = spec.resume;
+		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
+		const id = spec.id && !taken ? spec.id : this.name(spec);
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec,
-			prompt: spec.system ? spec.prompt : opening(spec.role, spec.prompt),
-			id: this.name(spec)
+			...role_defaults(spec.role), ...spec, id,
+			prompt: again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt),
+			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
 		agent.host = this;
 		this.live.set(agent.id, agent);
 		agent.start();
 		this.register(agent);
 		return agent;
+	}
+
+	/* An agent has to know its own id to pass it as `from` to fork_self or as
+	 * `parent` to spawn_agent — nothing else tells it. One line, first turn only. */
+	whoami(id){ return `[You are Servex agent ${id}.]\n`; }
+
+	/* FORK_SELF — a copy of a session, asked ONE question in the background.
+	 *
+	 * The fork resumes the caller's session with `forkSession: true`: a new
+	 * session id, the whole conversation so far, and — because the prefix is
+	 * byte-identical — the prompt cache. It answers once and stops itself; the
+	 * answer reaches the caller through the ordinary wake (`fork answer: …`),
+	 * queued behind whatever the caller is doing by then. The caller is usually
+	 * MID-TURN (its transcript ends in the unanswered fork_self call): measured
+	 * 2026-09-24, a plain resume+fork handles that — no `resumeSessionAt`.
+	 *
+	 * ⚠ THE CACHE NEEDS THE SAME TOOLS. The fork runs with the caller's own
+	 * model, effort, cwd, settings and MCP servers, because the tool list is the
+	 * first thing in the cached prefix: measured 2026-09-24, a fork passed
+	 * `tools: []` read 0 cached tokens and wrote 44,268; the same fork with the
+	 * caller's tools read 35,534 and wrote 3,550. So "no tools" is done by a
+	 * PreToolUse hook that REFUSES every call not in `tools` — the tools stay
+	 * in the prompt, unusable.
+	 *
+	 * Caller: `from` (a live agent here) or `session_id` (any Claude session on
+	 * this machine, e.g. a VS Code tab's `$CLAUDE_CODE_SESSION_ID`); the cwd and
+	 * model of an outside session are read from its own session file. */
+	async fork({ question, from, session_id, model, cwd, tools = [] }){
+		if (!question) throw new Error("fork needs a question.");
+		const caller = from ? this.get(from)
+			: [...this.live.values()].find(a => a.session_id && a.session_id === session_id && a.query);
+		const sid = caller?.session_id ?? session_id;
+		if (!sid) throw new Error(from
+			? `Agent ${from} has no session yet — it has not finished starting.`
+			: "fork needs `from` (a Servex agent id) or `session_id` (a Claude session uuid).");
+
+		const who = caller?.id ?? `session ${sid.slice(0, 8)}`;
+		const posture = caller ? this.posture(caller) : await this.outside(sid);
+		const prompt = `You are a fork of ${who}. Answer this one question and stop.`
+			+ " Do not take actions the original would take."
+			+ (tools.length ? ` You may use only these tools: ${tools.join(", ")}.`
+				: " You have no tools: decide from what you already know.")
+			+ `\n\nQuestion: ${question}`;
+
+		return this.spawn({
+			...posture,
+			...(model ? { model } : {}), ...(cwd ? { cwd } : {}),
+			role: "fork", name: caller?.id ?? `session-${sid.slice(0, 8)}`,
+			resume: sid, fork: true, one_shot: true, fork_tools: tools,
+			parent: caller?.id ?? null, prompt
+		});
+	}
+
+	/* Everything that shapes the cached prefix, copied off the caller. */
+	posture(agent){
+		const keys = ["model", "effort", "cwd", "permission_mode", "allowed_tools", "setting_sources",
+			"system", "mcp_servers", "sdk", "env", "mcp_url", "visibility"];
+		return strip(Object.fromEntries(keys.map(k => [k, agent[k]])));
+	}
+
+	/* A session Servex does not hold: the SDK finds its file under any project
+	 * dir, and records the cwd it ran in. Its model is the last one that
+	 * answered in it — the cache is per model. The CLI's own system prompt,
+	 * because a terminal or VS Code session ran with it. */
+	async outside(sid){
+		const info = await getSessionInfo(sid).catch(() => null);
+		if (!info?.cwd) throw new Error(`No Claude session ${sid} found on this machine.`);
+		let model;
+		try {
+			const messages = await getSessionMessages(sid, { dir: info.cwd });
+			model = messages.map(m => m.message?.model).filter(Boolean).pop();
+		} catch {}
+		return strip({ cwd: info.cwd, model, permission_mode: "default",
+			system: { type: "preset", preset: "claude_code" } });
+	}
+
+	/* WAIT_FOR_AGENT — resolves when the agent's current turn has ended and
+	 * nothing is queued behind it (idle), or it stopped. Already idle: at once.
+	 * No polling: `Agent.idle()` is a promise that `result()` and `stop()`
+	 * resolve. On timeout it answers anyway, marked `timed_out`. */
+	async wait(id, timeout_s = 600){
+		const agent = this.live.get(id);
+		if (!agent?.idle){
+			const row = this.registry_list().find(r => r.id === id);
+			if (!row) throw new Error(`No agent "${id}", live or in the registry.`);
+			return { id, state: row.state, words: null, note: "not held by this Servex process" };
+		}
+		const began = Date.now();
+		let timer;
+		const settled = await Promise.race([
+			agent.idle(),
+			new Promise(r => { timer = setTimeout(() => r(false), timeout_s * 1000); })
+		]);
+		clearTimeout(timer);
+		return { id, state: agent.state, timed_out: settled === false, waited_ms: Date.now() - began,
+			words: agent.words ?? agent.last_text ?? null, turns: agent.turns, cost: agent.cost };
+	}
+
+	/* SURVIVING A RESTART — called once at Servex boot, before anything reads
+	 * the registry. Every row the PREVIOUS boot left open (not stopped) and
+	 * touched in the last 30 minutes is reopened: the same id, parent, role,
+	 * model, effort, cwd and permission mode, `resume` = its own session, and
+	 * no skill-load preamble. One that was mid-turn is told so; an idle one is
+	 * just held open again. Everything else still open is dead: `gone`.
+	 *
+	 * Not revivable (so `gone`): a spawn that brought its own `system`, `sdk`
+	 * options or in-process MCP servers — those are code, not data, and their
+	 * owners (Assistant.js) spawn them again themselves — and a fork. */
+	revive({ window_min = 30 } = {}){
+		const reg = this.reg(), prev = reg.last_boot();
+		reg.mark_boot(this.boot);
+		const out = { revived: [], told: [], gone: [], legacy: [] };
+		for (const row of reg.list()){
+			if (this.live.has(row.id) || row.state === "stopped") continue;
+			if (self_restarted(row.id)){
+				if (row.state !== "gone") out.gone.push(row.id);
+				continue;
+			}
+			const swept = row.state === "gone" && row.ended === "host process exited";
+			if (row.state === "gone" && !(swept && prev?.boot && row.boot === prev.boot)) continue;
+			/* A LEGACY row — written by the code before this, with no host-process
+			 * fields at all — counts as the previous Servex's. The first restart
+			 * onto this code is the one with the most agents running, so it must
+			 * revive too: it does when the agent's own log was written in the
+			 * window, which is the only liveness the old code left behind. It
+			 * never recorded system/sdk/in-process servers either; the agents that
+			 * had them are the SELF_RESTARTED ones, already skipped above. */
+			const legacy = !row.boot && !row.pid;
+			const ours = legacy ? this.recent_log(row.id, window_min)
+				: !!prev?.boot && row.boot === prev.boot && Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000;
+			let agent = null;
+			if (ours && (legacy || row.revivable) && row.session_id)
+				try { agent = this.reopen(row); } catch {}
+			if (!agent){
+				if (row.state !== "gone") out.gone.push(row.id);
+				continue;
+			}
+			const id = row.id;
+			out.revived.push(id);
+			if (legacy) out.legacy.push(id);
+			if (row.state === "working"){
+				agent.send("Servex restarted mid-turn; your last tool call may not have finished. Check and continue.",
+					{ from: "servex" });
+				out.told.push(id);
+			}
+		}
+		reg.bury(out.gone, "servex restarted");
+		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
+		return out;
 	}
 
 	/* Human-readable, never a uuid: `<role>-<name>`, and a collision takes `-2`.
@@ -83,7 +255,42 @@ export class Agents {
 		throw new Error(`No agent "${id}". Live now: ${open}`);
 	}
 
-	send(id, text, note){ return this.get(id).send(text, note); }
+	/* WAKE ON MESSAGE — so an idle agent can be STOPPED at no cost (one held
+	 * open costs ~250 MB). A message to a stopped agent, or to one that exists
+	 * only in the registry, reopens it first: the same id, `resume` = its
+	 * session, its own recorded spec, no prompt — then delivers. A fork is never
+	 * re-woken. ⚠ `Agent.send()` on a stopped INSTANCE still throws: the live
+	 * card's route turns that throw into a 409. */
+	send(id, text, note){
+		const agent = this.live.get(id);
+		if (agent && agent.state !== "stopped") return agent.send(text, note);
+		return this.wake(id).send(text, note);
+	}
+
+	wake(id){
+		const live = this.live.get(id);
+		const row = this.reg().read()[id];
+		if (!live && !row) return this.get(id);          // throws, naming who IS live
+		if (live?.one_shot || (live?.role ?? row?.role) === "fork")
+			throw new Error(`Agent ${id} is a fork: it answered once and is not woken again.`);
+		if (!live?.session_id && !row?.session_id) throw new Error(`Agent ${id} never got a session, so there is nothing to wake.`);
+		return this.reopen({ ...row, ...(live ? { spec: live.recipe(), session_id: live.session_id } : {}), id });
+	}
+
+	/* Reopen a registry row's session as a live agent under the same id: its
+	 * recorded `spec` when it has one, else the row's own fields; where the
+	 * session ran and its model come from the session file when the row does
+	 * not say. Shared by `wake()` and `revive()`. */
+	reopen(row){
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources"];
+		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
+		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
+		const cwd = base.cwd ?? facts.cwd;
+		if (!cwd) throw new Error(`Cannot find where session ${row.session_id} ran, so it cannot be resumed.`);
+		return this.spawn(strip({ ...base, cwd, model: base.model ?? facts.model,
+			id: row.id, started_at: row.started_at, resume: row.session_id }));
+	}
 	interrupt(id){ return this.get(id).interrupt(); }
 	stop(id){ return this.get(id).stop(); }
 
@@ -94,10 +301,20 @@ export class Agents {
 	 * whole switchboard. */
 	watch(){}
 
+	/* Was this agent's own log written in the last `window_min` minutes? The only
+	 * liveness a legacy registry row has. Worked out from the path, never through
+	 * `Log.file()`, which would open a write stream on it. */
+	recent_log(id, window_min){
+		const dir = this.store().dir ?? path.dirname(place("logs", "any.jsonl"));
+		try { return Date.now() - fs.statSync(path.join(dir, `agent-${id}.jsonl`)).mtimeMs < window_min * 60000; }
+		catch { return false; }
+	}
+
 	/* THE WAKE — a child with a `parent` that just ended a turn, stopped, or
 	 * errored gets ONE message, so the parent's own turn ends on real news
 	 * instead of silence. `kind` is "done", "blocked" (the child's last words
-	 * started with that word) or "error"; the body is the child's own last
+	 * started with that word), "error", or "stopped" (stopped MID-TURN; an idle
+	 * child's stop wakes nobody); the body is the child's own last
 	 * words, first 300 chars — a parent reading its own log wants the
 	 * headline, not a replay. Queued behind whatever the parent is doing
 	 * (`Agent.send()`'s own default), never dropped. Off with
@@ -106,15 +323,58 @@ export class Agents {
 	wake_parent(child, kind){
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
+		if (child.one_shot && child.woke) return;
 		let parent;
 		try { parent = this.get(child.parent); }
 		catch { return; }
-		const text = kind === "error" ? child.last_error : child.last_text;
-		const body = `${kind}: ${(text ?? "").slice(0, 300)}`;
+		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
+		 * whole turn's text, not only its last block. Any other wake is a headline. */
+		const fork = child.one_shot && (kind === "done" || kind === "blocked");
+		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
+		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
+		child.woke = true;
 		try { parent.send(body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
 		catch {}
 	}
 }
+
+/* What a session's own file says about it — the `cwd` it ran in (a resume must
+ * run there) and the last `model` that answered in it — for a registry row too
+ * old to have recorded either. Synchronous on purpose: `revive()` runs inside
+ * Servex's constructor. Reads the first 64 KB and the last 256 KB, never the
+ * whole file. */
+export function session_facts(sid){
+	const root = path.join(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude"), "projects");
+	let file;
+	try {
+		for (const dir of fs.readdirSync(root)){
+			const f = path.join(root, dir, `${sid}.jsonl`);
+			if (fs.existsSync(f)){ file = f; break; }
+		}
+	} catch {}
+	if (!file) return {};
+	const slice = (from, size) => {
+		const fd = fs.openSync(file, "r");
+		try { const buf = Buffer.alloc(size); return buf.toString("utf8", 0, fs.readSync(fd, buf, 0, size, from)); }
+		finally { fs.closeSync(fd); }
+	};
+	const size = fs.statSync(file).size;
+	const head = slice(0, Math.min(size, 65536));
+	const tail = slice(Math.max(0, size - 262144), Math.min(size, 262144));
+	const cwd = head.match(/"cwd":"((?:[^"\\]|\\.)*)"/)?.[1];
+	const model = [...tail.matchAll(/"model":"(claude-[^"]+)"/g)].pop()?.[1];
+	return strip({ cwd: cwd && JSON.parse(`"${cwd}"`), model, file });
+}
+
+/* Agents whose owner (Layers.js, Assistant.js) spawns them again itself at
+ * boot — `revive()` never reopens these; it only marks the old row gone.
+ * Prefixes, plus exact ids. */
+export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-assistant"], ids: ["mastermind-servex"] };
+export const self_restarted = id =>
+	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix));
+
+/* Drop the undefined and null fields, so a role's defaults can fill them. */
+const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
 
 Agents.Registry = Registry;
 
@@ -142,15 +402,66 @@ Agents.Agent = class Agent {
 		};
 	}
 
+	/* A resume keeps its session id (the SDK appends to the same session); a
+	 * fork learns its new one from the first `system/init`. A resume with no
+	 * prompt sends nothing — it is held open, idle, until somebody talks. */
 	start(){
 		this.queue = new this.constructor.Queue();
 		this.aborter = new AbortController();
+		/* The session id is known AT SPAWN, not at the first `system/init`: a
+		 * fresh spawn or a fork mints one and hands it to the SDK as `sessionId`
+		 * (allowed beside `forkSession`), so the registry row can be resumed even
+		 * if the host dies during the first turn. A plain resume keeps its id. */
+		if (this.resume && !this.fork) this.session_id ??= this.resume;
+		else { this.session_id = randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
+		this.pump();
+		if (!this.prompt){ this.state = "idle"; return this; }
 		this.emit({ type: "agent_msg", from: "host", reply_to: null, text: this.prompt, first: true });
 		this.queue.push(this.turn(this.prompt));
 		this.state = "working";
-		this.pump();
 		return this;
+	}
+
+	/* Only a plain spawn can be reopened from its registry row after a
+	 * restart: `system`, `sdk` and in-process MCP servers are code, not data. */
+	revivable(){
+		return !!this.session_id && !this.system && !this.sdk && !this.mcp_servers && !this.one_shot;
+	}
+
+	/* The spawn spec minus the prompt — what `wake()` reopens it with, kept on
+	 * its registry row as `spec`. Data only: `sdk`, in-process `mcp_servers` and
+	 * `env` are code or secrets and are not kept; a fork keeps none. */
+	recipe(){
+		if (this.one_shot) return null;
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources", "system"];
+		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
+	}
+
+	/* Resolves when this agent is idle (turn over, nothing queued) or stopped
+	 * — at once if it already is. `settle()` is what resolves it. */
+	idle(){
+		if (this.state === "idle" || this.state === "stopped") return Promise.resolve(true);
+		return new Promise(resolve => (this.waiters ??= []).push(resolve));
+	}
+
+	settle(){
+		if (this.state !== "idle" && this.state !== "stopped") return;
+		(this.waiters ?? []).splice(0).forEach(resolve => resolve(true));
+	}
+
+	/* A fork's "no tools": every call not in `fork_tools` is refused before it
+	 * runs. The tools stay IN the prompt — removing them breaks the cache. */
+	refusal(){
+		const allowed = this.fork_tools ?? [];
+		const deny = async input => allowed.includes(input.tool_name) ? {} : {
+			hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny",
+				permissionDecisionReason: `You are a fork answering one question; ${input.tool_name} is not allowed.`
+					+ (allowed.length ? ` Only: ${allowed.join(", ")}.` : " Answer from what you already know.") }
+		};
+		const theirs = this.sdk?.hooks ?? {};
+		return { hooks: { ...theirs, PreToolUse: [...(theirs.PreToolUse ?? []), { hooks: [deny] }] } };
 	}
 
 	/* The SDK options, in one overridable place. `includePartialMessages` gives a
@@ -170,7 +481,11 @@ Agents.Agent = class Agent {
 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
 			...(this.system ? { systemPrompt: this.system } : {}),
-			...this.sdk
+			...(this.resume ? { resume: this.resume } : {}),
+			...(this.resume && this.fork ? { forkSession: true } : {}),
+			...(this.minted ? { sessionId: this.session_id } : {}),
+			...this.sdk,
+			...(this.one_shot ? this.refusal() : {})
 		};
 	}
 
@@ -189,10 +504,11 @@ Agents.Agent = class Agent {
 	 * agent may well need. Servex's door is added BESIDE whatever it already has. */
 	door(){
 		const url = this.mcp_url ?? this.host?.mcp_url;
-		if (!url) return {};
+		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers
+		if (!url) return this.mcp_servers ? { mcpServers: this.mcp_servers } : {};
 
 		return {
-			mcpServers: { servex: { type: "http", url }, ...this.mcp_servers },
+			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
 			env: { ...process.env, SERVEX_MCP: url, ...this.env }
 		};
 	}
@@ -229,6 +545,7 @@ Agents.Agent = class Agent {
 		catch (e){ this.emit({ type: "error", where: "interrupt", text: String(e.message || e) }); }
 		this.state = "idle";
 		this.host?.register?.(this);
+		this.settle();
 		return this;
 	}
 
@@ -240,15 +557,21 @@ Agents.Agent = class Agent {
 		this.queue.close();
 		try { this.query.close(); } catch {}
 		try { this.aborter.abort(); } catch {}
+		if (this.state === "stopped") return this;
+		const mid_turn = this.state === "working";
 		this.state = "stopped";
-		this.emit({ type: "result", stopped: true, turns: this.turns, cost: this.cost });
+		this.emit({ type: "result", stopped: true, mid_turn, turns: this.turns, cost: this.cost });
 		this.host?.register?.(this);
+		this.settle();
 		return this;
 	}
 
 	card(){
-		const { id, role, model, state, visibility, started_at, turns, session_id, cost, parent } = this;
-		return { id, role, model, state, visibility, started_at, turns, session_id, cost, parent: parent ?? null };
+		const { id, role, model, state, visibility, started_at, turns, session_id, cost, parent,
+			forked_from, resumed_from } = this;
+		return { id, role, model, state, visibility, started_at, turns, session_id, cost, parent: parent ?? null,
+			revivable: this.revivable(), forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
+			context: this.context ?? null };
 	}
 
 	/* The one seam every event goes through — one line in the agent's own JSONL,
@@ -269,11 +592,21 @@ Agents.Agent = class Agent {
 	 * in every other log this machine writes. */
 	emit(entry){
 		const event = { at: stamp(), agent: this.id, ...entry };
-		if (event.type === "transcript") this.last_text = event.text;
+		if (event.type === "transcript" && !event.meta){
+			this.last_text = event.text;
+			(this.said ??= []).push(event.text);
+		}
 		if (event.type === "error") this.last_error = event.text;
 		this.host?.watch(event, this);
 		this.log(event);
-		if (event.type === "result") this.host?.wake_parent?.(this, this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
+		/* Stopping an IDLE child is not news — its "done" already went out when
+		 * its turn ended. Only a child cut off mid-turn wakes the parent, as
+		 * `stopped: …` (2026-09-24: five finished minions, stopped, each re-sent
+		 * its old "done"). */
+		if (event.type === "result" && !(event.stopped && !event.mid_turn)) this.host?.wake_parent?.(this,
+			event.stopped ? "stopped"
+			: this.one_shot && event.ok === false ? "error"
+			: this.last_text?.startsWith("BLOCKED") ? "blocked" : "done");
 		if (event.type === "error") this.host?.wake_parent?.(this, "error");
 		return event;
 	}
@@ -282,9 +615,13 @@ Agents.Agent = class Agent {
 		try {
 			for await (const message of this.query) this.receive(message);
 		} catch (e){
-			this.emit({ type: "error", where: "session", text: String(e.message || e) });
+			// the abort that `stop()` itself fires is not news — and would wake a parent with a false "error"
+			if (this.state !== "stopped") this.emit({ type: "error", where: "session", text: String(e.message || e) });
 		}
-		if (this.state !== "stopped") this.state = "stopped";
+		if (this.state === "stopped") return;
+		this.state = "stopped";
+		this.host?.register?.(this);
+		this.settle();
 	}
 
 	/* Every SDK message becomes exactly one typed event — or none, for the kinds
@@ -303,6 +640,8 @@ Agents.Agent = class Agent {
 		if (this.session_id === message.session_id) return;
 		this.session_id = message.session_id;
 		this.emit({ type: "transcript", text: `session ${message.session_id} · ${message.model} · ${message.permissionMode}`, meta: true });
+		// the row needs the session id NOW: a host killed during this first turn must still be able to revive it
+		this.host?.register?.(this);
 	}
 
 	delta(message){
@@ -314,6 +653,7 @@ Agents.Agent = class Agent {
 
 	assistant(message){
 		const nested = !!message.parent_tool_use_id;
+		if (!nested && message.message?.usage) this.last_usage = message.message.usage;
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
@@ -340,6 +680,12 @@ Agents.Agent = class Agent {
 		this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
+		/* `words` = everything said this turn, which is what a fork's wake and
+		 * `wait_for_agent` hand back; `last_text` is only its final block. */
+		this.words = (this.said ?? []).join("\n\n") || null;
+		this.said = [];
+		if (message.is_error) this.last_error = (message.errors ?? []).join("; ") || message.subtype || "turn failed";
+		const u = message.usage ?? {};
 		this.emit({
 			type: "result",
 			ok: !message.is_error,
@@ -348,9 +694,24 @@ Agents.Agent = class Agent {
 			turns: this.turns,
 			api_turns: message.num_turns,
 			queued: this.queued,
-			text: message.result ?? null
+			text: message.result ?? null,
+			usage: { input_tokens: u.input_tokens ?? 0, cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
+				cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0, output_tokens: u.output_tokens ?? 0 }
 		});
+		this.usage = u;
+		/* CONTEXT — the tokens this agent holds now, i.e. what its next request
+		 * re-sends: the LAST main-thread response's input + cache_read +
+		 * cache_creation + output (the SDK's own definition of `context_tokens`,
+		 * which only hook inputs carry, never a result message). Not the result's
+		 * usage: that sums every API call in the turn and over-counts. */
+		const c = this.last_usage;
+		if (c) this.context = (c.input_tokens ?? 0) + (c.cache_read_input_tokens ?? 0)
+			+ (c.cache_creation_input_tokens ?? 0) + (c.output_tokens ?? 0);
 		this.host?.register?.(this);
+		this.settle();
+		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
+		 * already carried it to the parent — so it stops itself. */
+		if (this.one_shot) setImmediate(() => this.stop());
 	}
 };
 
