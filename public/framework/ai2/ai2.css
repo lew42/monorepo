@@ -1,5 +1,12 @@
 @layer theme {
 
+	/* The rail head's gap as a real length — see `.ai2-top` below for why. */
+	@property --ai2-head-gap {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
 	/* AI 2 — a rail of previews on the left, one card's own page on the right.
 	   Why any of it is the way it is: `doc/decisions.md`.
 
@@ -237,12 +244,26 @@
 	     is `@layer util` and beat that margin at any specificity. */
 	.ai2-top {
 		container: ai2-top / inline-size;
+		--ai2-head-gap: var(--gap-25);
+	}
+
+	/* ⚠ THE GAPS KEEP THE SIZE THEY HAD BEFORE `.ai2-top` BECAME A CONTAINER.
+	   `--gap` is declared on every element (framework.css's `:where(*)`) and
+	   its `cqi` measures the NEAREST container — so the container above
+	   re-based the `gap-25` of the three rows inside it onto the rail's width:
+	   6.18px → 3.4px at 1920, 3.84px → 3.2px at 1280 (caught 2026-09-24).
+	   `.ai2-top`'s OWN styles still measure the container above it, so the gap
+	   is computed there, frozen into a real length by the `@property` below
+	   (an unregistered property would inherit as unresolved text and re-base
+	   all over again), and handed to the three rows as their `--gap-25` — the
+	   `gap-25` word in the markup keeps working, at its old value. */
+	.ai2-top :is(.ai2-chrome, .ai2-auto, .ai2-count) {
+		--gap-25: var(--ai2-head-gap);
 	}
 
 	.ai2-chrome {
 		margin-block-start: 0.4em;
 		flex-wrap: wrap;
-		row-gap: 0.3em;
 	}
 
 	.ai2-chrome > * {
@@ -274,7 +295,9 @@
 	   the head stays two lines instead of four. */
 	@container ai2-top (width < 17em) {
 		.ai2-auto-tail { display: none; }
-		.ai2-chrome, .ai2-chrome > .ai2-count { column-gap: 0.25em; }
+		/* `--gap-25`, not `gap`: the `gap-25` utility is `@layer util` and beats
+		   a `gap` written here at any specificity. */
+		.ai2-top :is(.ai2-chrome, .ai2-count) { --gap-25: 0.25em; }
 		.ai2-chrome > .ai2-word { padding-inline: 0.3em; }
 	}
 
