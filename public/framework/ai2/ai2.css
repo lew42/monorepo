@@ -1219,6 +1219,28 @@
 		overflow: visible;
 	}
 
+	/* THE BOX ON TOP, THE NEWEST LINE UNDER IT (live-reply, 2026-09-24). The
+	   owner: "When I respond on that page … the usage meters disappear." The
+	   chat is the longest thing on the card, so with its box at the bottom,
+	   focusing it scrolled the whole page down to it and usage and running
+	   now went off the top. Box first, newest first: it sits near the top at
+	   every width, so typing and sending never scroll the page. */
+	.ai2-card-live .ai2-foot {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ai2-card-live .ai2-foot > .ai2-compose {
+		order: -1;
+		margin-block-end: 0.35em;
+	}
+
+	.ai2-card-live .ai2-script {
+		display: flex;
+		flex-direction: column-reverse;
+		justify-content: flex-end;
+	}
+
 	/* Every line of reading text holds the measure — the chat and its
 	   composer too, which used to run the whole width (2,622px at 3440). */
 	.ai2-card-live .ai2-foot > * {
