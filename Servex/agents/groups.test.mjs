@@ -73,4 +73,15 @@ const call = async (t, args) => JSON.parse(await t.handler(args));
 	ok(bad.groups().length === 0, "unreadable groups.json is []");
 }
 
+// the message itself says what to do: file in the lobby, card on a selected card
+{
+	const { a } = make();
+	const lobby = a.words({ id: "p-1", text: "share one brief" });
+	ok(/file_to_group/.test(lobby) && !/card the idea/.test(lobby), "no card selected: the message says to file");
+	const carded = a.words({ id: "p-2", text: "wider", selected: "fix-the-sidebar" });
+	ok(/card the idea/.test(carded) && !/file_to_group/.test(carded), "a selected card: the message says to card");
+	const none = make({ groups_file: path.join(HERE, "no-such.json") }).a.words({ id: "p-3", text: "x" });
+	ok(/card the idea/.test(none), "no groups to file into: the old instruction");
+}
+
 console.log(`groups: ${checks} checks passed`);

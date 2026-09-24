@@ -73,8 +73,11 @@ let child = null;
 async function boot(tag = "main", extra = {}){
 	for (const p of [8190, 8189, 8188]) if (!free(p)) throw new Error(`port ${p} is already taken; is an earlier proof still running?`);
 	const local = path.join(SCRATCH, `localappdata-${STAMP}-${tag}`);
-	fs.mkdirSync(local, { recursive: true });
+	fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
 	LOCALS.push(local);
+	/* Dispatch paused in the private Servex: a task the lobby queues is carded, not
+	 * built by a real task mastermind (run 5 spent on one, and it wrote in the tree). */
+	fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "layers proof\n");
 	const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188",
 		SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187", SERVEX_CARD_IDLE_MS: "90000", SERVEX_MASTER_BATCH_MS: "5000",
 		SERVEX_REAP_MS: "20000", SERVEX_REAP_EVERY_MS: "5000" };

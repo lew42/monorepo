@@ -114,7 +114,14 @@ export default class Assistant {
 	words(prompt){
 		const lines = (prompt.sentences ?? [prompt.text ?? ""]).map((s, i) => `${i}. ${s}`).join("\n");
 		const selected = prompt.selected ? `selected: ${prompt.selected}\n` : "";
-		return `${selected}${this.live_state(prompt)}prompt ${prompt.id}, just spoken:\n${lines}\n\nName what was named, card the idea, then one refined reading citing those sentence numbers.`;
+		/* ⚠ This last line is what the model obeys, over its brief: while it always
+		 * said "card the idea", the lobby carded and queued a task instead of filing
+		 * (layers proof run 5, 2026-09-24). With no card selected and groups to
+		 * file into, it says to file, and nothing else. */
+		const ask = !prompt.selected && this.groups().length
+			? "No card is selected: this is the lobby. Call file_to_group with the group these words belong to, then stop."
+			: "Name what was named, card the idea, then one refined reading citing those sentence numbers.";
+		return `${selected}${this.live_state(prompt)}prompt ${prompt.id}, just spoken:\n${lines}\n\n${ask}`;
 	}
 
 	/* Spoken into the Live card, the question is usually "what is running?" —
