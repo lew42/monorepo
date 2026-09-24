@@ -2,7 +2,11 @@
 /**
  * Migrate the old cards into one folder each.
  *
- *   node Servex/cards/migrate.mjs --out <dir> [--dry]
+ *   node Servex/cards/migrate.mjs --out <dir> [--dry] [--catch-up]
+ *
+ * --catch-up: run once after the Servex restart. Old-log lines newer than what a card's folder
+ *   already carries are appended (matched on id, so a second run adds nothing), and any board
+ *   card with no folder yet is migrated as in the first run.
  *
  * Reads  public/framework/ai/board.jsonl  (cards merged by id, newest fields win)
  *   and  %LOCALAPPDATA%/lew42/servex/logs/cards/<slug>.jsonl  (each card's own log).
@@ -19,6 +23,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..");
 const args = process.argv.slice(2);
 const dry = args.includes("--dry");
+const catchUp = args.includes("--catch-up");
 const oi = args.indexOf("--out");
 const out = path.resolve(oi >= 0 ? args[oi + 1] : path.join(root, "public/framework/ai"));
 
@@ -88,6 +93,65 @@ const j = o => JSON.stringify(o);
 const empty = v => v == null || v === "" || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
 const drop = o => Object.fromEntries(Object.entries(o).filter(([, v]) => !empty(v)));
 
+
+// ── old log lines -> new records. `since` (catch-up only) = what the folder already carries.
+let prompts = 0, messages = 0;
+const ms = at => at == null ? NaN : typeof at === "number" ? at : Date.parse(String(at));
+function convert(p, newId, since) {
+	const lines = [], emitted = new Set(); let np = 0, nm = 0;
+	const fresh = (o, id) => !since || (ms(o.at) > since.newest && !(id != null && since.ids.has(id)));
+	for (const l of p.log) {
+		const o = l.obj;
+		if (o?.type === "prompt" && o.by === "owner") {
+			const id = o.id ?? "p-" + new Date(o.at).getTime().toString(36);
+			if (!fresh(o, id)) continue;
+			emitted.add(id);
+			lines.push({ prompt: drop({ id, at: o.at, by: "owner", raw: o.text, text: o.text, via: o.via || "typed", on: newId, sentences: o.sentences }) });
+			np++;
+			// a `refined` line citing this prompt (assumed shape: {type:"refined", of|prompt|refines: <prompt id>, text|refined}) rewrites its text
+			for (const r of p.log) if (r.obj?.type === "refined" && (r.obj.of ?? r.obj.prompt ?? r.obj.refines) === id) { lines.push({ prompt: { id, text: r.obj.text ?? r.obj.refined } }); np++; }
+			continue;
+		}
+		if (o?.type === "refined") {
+			const pid = o.of ?? o.prompt ?? o.refines;
+			if (!since) { if (p.log.some(x => x.obj?.type === "prompt" && x.obj.by === "owner" && x.obj.id === pid)) continue; }
+			else {
+				const text = o.text ?? o.refined;
+				if (emitted.has(pid) || !(ms(o.at) > since.newest) || since.texts.get(pid) === text) continue;
+				lines.push({ prompt: { id: pid, text } }); np++; since.texts.set(pid, text); continue;
+			}
+		}
+		if (since && !(o && fresh(o, o.id))) continue;   // no usable `at`: cannot tell it is new
+		if (!o) { lines.push({ message: { raw: l.raw } }); nm++; continue; }
+		const { by, text, at, type, ...rest } = o;
+		lines.push({ message: drop({ by, text, at, kind: type, ...rest }) }); nm++;
+	}
+	return { lines, prompts: np, messages: nm };
+}
+
+// ── catch-up: append what the old log gained since the folder was made
+let caught = 0, caughtCards = 0, untouched = 0;
+function catchUpCard(p, dir) {
+	const file = path.join(dir, "page.jsonl");
+	if (!fs.existsSync(file)) { untouched++; return; }
+	const since = { newest: -Infinity, ids: new Set(), texts: new Map() };
+	const text = fs.readFileSync(file, "utf8");
+	for (const l of text.split(/\r?\n/).filter(Boolean)) {
+		let o; try { o = JSON.parse(l); } catch { continue; }
+		for (const r of [o.prompt, o.message]) {
+			if (!r) continue;
+			if (ms(r.at) > since.newest) since.newest = ms(r.at);
+			if (r.id != null) since.ids.add(r.id);
+		}
+		if (o.prompt?.id != null && o.prompt.text != null) since.texts.set(o.prompt.id, o.prompt.text);
+	}
+	if (since.newest === -Infinity) since.newest = ms(p.first) - 1;   // folder carries nothing dated: use the card's own start
+	const c = convert(p, `${p.date.y}/${p.date.m}/${p.date.d}/${p.slug}`, since);
+	if (!c.lines.length) { untouched++; return; }
+	prompts += c.prompts; messages += c.messages; caught += c.lines.length; caughtCards++;
+	if (!dry) fs.writeFileSync(file, text + (text.endsWith("\n") ? "" : "\n") + c.lines.map(j).join("\n") + "\n");
+}
+
 // ── plan every card
 const ids = new Set([...cards.keys(), ...[...logs].filter(([, l]) => l.length).map(([s]) => s)]);
 const plan = [];
@@ -103,7 +167,7 @@ for (const id of [...ids].sort()) {
 }
 
 // ── write
-let written = 0, messages = 0, prompts = 0, already = 0;
+let written = 0, already = 0;
 const daysTouched = new Set();
 const dirsToList = new Map(); // dir -> {title, children:Set}
 const note = (dir, title, child) => { if (!dirsToList.has(dir)) dirsToList.set(dir, { title, kids: [] }); const e = dirsToList.get(dir); if (!e.kids.includes(child)) e.kids.push(child); };
@@ -115,7 +179,7 @@ for (const p of plan) {
 	const dir = path.join(dayDir, p.slug);
 	if (seenTargets.has(dir)) { skipped.push(`${p.id}: sanitized slug "${p.slug}" collides with another card, not migrated`); continue; }
 	seenTargets.add(dir);
-	if (fs.existsSync(dir)) { already++; continue; }
+	if (fs.existsSync(dir)) { if (catchUp) catchUpCard(p, dir); else already++; continue; }
 
 	const f = p.card?.fields ?? {};
 	let title = f.title ?? p.log.find(l => l.obj?.title)?.obj.title ?? p.id;
@@ -132,21 +196,8 @@ for (const p of plan) {
 		lines.push({ [k]: v });
 	}
 	if (f.author && f.author !== lines[0].by) lines.push({ author: f.author });
-	for (const l of p.log) {
-		const o = l.obj;
-		if (o?.type === "prompt" && o.by === "owner") {
-			const id = o.id ?? "p-" + new Date(o.at).getTime().toString(36);
-			lines.push({ prompt: drop({ id, at: o.at, by: "owner", raw: o.text, text: o.text, via: o.via || "typed", on: newId, sentences: o.sentences }) });
-			prompts++;
-			// a `refined` line citing this prompt (assumed shape: {type:"refined", of|prompt|refines: <prompt id>, text|refined}) rewrites its text
-			for (const r of p.log) if (r.obj?.type === "refined" && (r.obj.of ?? r.obj.prompt ?? r.obj.refines) === id) { lines.push({ prompt: { id, text: r.obj.text ?? r.obj.refined } }); prompts++; }
-			continue;
-		}
-		if (o?.type === "refined" && p.log.some(x => x.obj?.type === "prompt" && x.obj.by === "owner" && x.obj.id === (o.of ?? o.prompt ?? o.refines))) continue;
-		if (!l.obj) { lines.push({ message: { raw: l.raw } }); messages++; continue; }
-		const { by, text, at, type, ...rest } = l.obj;
-		lines.push({ message: drop({ by, text, at, kind: type, ...rest }) }); messages++;
-	}
+	const conv = convert(p, newId);
+	lines.push(...conv.lines); prompts += conv.prompts; messages += conv.messages;
 	written++;
 	daysTouched.add(`${y}-${m}-${d}`);
 	note(dayDir, `${DAYS[new Date(+y, +m - 1, +d).getDay()]} ${+d} ${MONTHS[+m - 1]}`, p.slug);
@@ -175,5 +226,6 @@ console.log(`  messages carried     : ${messages}`);
 console.log(`  titles fixed         : ${retitled}`);
 console.log(`  days                 : ${daysTouched.size}`);
 if (already) console.log(`  already migrated     : ${already} (left alone)`);
+if (catchUp) console.log(`  caught up            : ${caughtCards} existing cards gained ${caught} lines; ${untouched} had nothing new`);
 console.log(`  skipped              : ${skipped.length}`);
 for (const s of skipped) console.log(`    - ${s}`);

@@ -35,6 +35,10 @@ export default class Cards {
 		this.queues = new Map();          // file path -> promise chain: one writer per file
 		this.legacies = null;             // legacy id -> card id, built on first use
 		this.listeners = new Set();       // fn(cardId, line, info), told after every write
+		// "This Servex has the card routes." AI 2 reads `/log/features` once and
+		// only calls a card route when it finds `cards` there — an older Servex
+		// answers that log with `[]`, so the page falls back without an error.
+		if (this.log) this.log.append("features", { cards: 1 }).catch(() => {});
 	}
 
 	/* Hear every line written to ANY card. Returns a function that stops listening. */
