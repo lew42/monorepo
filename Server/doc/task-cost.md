@@ -35,7 +35,7 @@ has never heard of, it prints one line to stderr and exits 0.
 
 A task with no Servex agent behind it gets **no line at all**. That covers a browser tab or a
 plain CLI session. The board shows such a task as "not tracked", never as $0, because $0 would
-be a lie.
+be a lie. The same goes for an agent tree that has billed nothing yet (no result line, or only a $0 stop marker): no line, and an old $0 line is cleared once with `{"assign":{"cost_usd":null,"cost":null}}`.
 
 ## How a task finds its agent
 
