@@ -217,9 +217,62 @@
 		pointer-events: auto;
 	}
 
-	/* The one line of words under the composer: New card, the count, notes. */
+	/* THE WORDS UNDER THE COMPOSER — one line when the rail is wide enough, else
+	   a tidy two: the ACTIONS (+ New card, auto-transcribe) on the first, the
+	   VIEWS (overview … the count, notes) on the second. Before (2026-09-24) it
+	   was one unwrapping row that could not fit at any default rail width:
+	   "notes" ran out of the rail into the detail pane and "auto-transcribe"
+	   broke onto two lines at 1280 and 1920.
+	   ⚠ No label ever breaks: every word is `nowrap` + `flex: none`, and the row
+	     wraps between whole words instead (`flex-wrap`, written here because the
+	     `.flex` utility sets only `display`).
+	   ⚠ The second line is FORCED by `::before`, a full-width empty flex item
+	     placed by `order` between the two groups — CSS only, so page.js's markup
+	     (and the `+ New card` handler inside it) keeps its order.
+	   ⚠ The count pushes itself and "notes" to the right with `flex-grow`, NOT
+	     `margin-inline-start: auto` — framework.css's `.flex > * { margin: 0 }`
+	     is `@layer util` and beat that margin at any specificity. */
+	.ai2-top {
+		container: ai2-top / inline-size;
+	}
+
 	.ai2-chrome {
 		margin-block-start: 0.4em;
+		flex-wrap: wrap;
+		row-gap: 0.3em;
+	}
+
+	.ai2-chrome > * {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.ai2-chrome::before {
+		content: "";
+		flex-basis: 100%;
+		order: 1;
+	}
+
+	.ai2-chrome > :is(.ai2-ov-back, .ai2-count, .ai2-word) {
+		order: 2;
+	}
+
+	/* Wide enough for all five words on one line (measured: they need ~28em of
+	   `.ai2-top`'s own text) — the forced break goes and the words take their
+	   markup order again. */
+	@container ai2-top (width >= 30em) {
+		.ai2-chrome::before { display: none; }
+		.ai2-chrome > :is(.ai2-ov-back, .ai2-count, .ai2-word) { order: 0; }
+	}
+
+	/* Dragged narrow (the grip's floor is 200px): "+ New card" and the whole
+	   "auto-transcribe" no longer fit side by side, so the label says "auto" —
+	   its `title` still says what it does — and the gaps tighten a little, so
+	   the head stays two lines instead of four. */
+	@container ai2-top (width < 17em) {
+		.ai2-auto-tail { display: none; }
+		.ai2-chrome, .ai2-chrome > .ai2-count { column-gap: 0.25em; }
+		.ai2-chrome > .ai2-word { padding-inline: 0.3em; }
 	}
 
 	.ai2-newcard,
@@ -244,8 +297,9 @@
 		color: var(--prim-ink);
 	}
 
-	.ai2-count {
-		margin-inline-start: auto;
+	.ai2-chrome > .ai2-count {
+		flex-grow: 1;
+		justify-content: flex-end;
 	}
 
 	.ai2-unread-count {
@@ -771,9 +825,32 @@
 	.ai2:has(.ai2-overview-page.active-page) :is(.ai2-rail, .ai2-sub) {
 		display: none;
 	}
-	.ai2-overview-page {
+	/* ⚠ A FLEX COLUMN, NOT THE PAGE GRID (2026-09-24). As a `.page` this box is
+	   a prose grid — a `--measure` track and a leftover track — whose children
+	   are content-sized rows, so the four columns grew to 4800px tall inside a
+	   1000px screen and nothing scrolled. A column of two children (the head
+	   line, the four columns) says "full height" directly. (0,2,0) so it beats
+	   core's `.page { display: grid }` whatever the load order; the arrangement
+	   contract that hides an inactive page is `@layer util` and still wins. */
+	.page.ai2-overview-page {
+		display: flex;
+		flex-direction: column;
 		height: 100%;
 		padding: 0;
+	}
+
+	/* The h1 "Overview" was ~130px of dead space above the columns; the rail's
+	   own `overview` word already names this view. */
+	.ai2-overview-page > .page-title {
+		display: none;
+	}
+
+	/* `margin: 0` — the page is `.flow`, whose `* + *` rhythm would put
+	   `--flow` above this box (the hidden h1 still counts as a sibling). */
+	.ai2-overview-page > .ai2-overview {
+		flex: 1 1 0;
+		min-height: 0;
+		margin: 0;
 	}
 
 	.ai2-overview {
@@ -888,8 +965,13 @@
 		font-size: 0.8em;
 	}
 
+	/* `min-width: 0` + `overflow-wrap: anywhere` — one long unbroken path in a
+	   report ("%LOCALAPPDATA%/lew42/servex/…") set the row's min-content width
+	   and ran its text under the next column (2026-09-24). */
 	.ai2-ov-row-line {
 		flex-basis: 100%;
+		min-width: 0;
+		overflow-wrap: anywhere;
 		font-size: 0.85em;
 	}
 
@@ -965,10 +1047,12 @@
 		padding-block: 0.1em;
 	}
 
+	/* The head line: one small link, its text on the same left edge as the
+	   columns' text below it (both pad by `--ai2-ov-pad`). */
 	.ai2-ov-open {
 		flex: none;
 		padding: 0.5em var(--ai2-ov-pad);
-		border-block-start: 1px solid var(--line);
+		border-block-end: 1px solid var(--line);
 	}
 
 	/* The overview stacks in importance order on a phone (deliverable 7: "at
