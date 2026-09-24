@@ -2,6 +2,7 @@
  *
  *   node Servex/sustain.mjs            start Servex and keep it up
  *   node Servex/sustain.mjs --status   is it up? which pids?
+ *   node Servex/sustain.mjs --restart  load new Servex code: check it, restart, confirm it came back
  *   node Servex/sustain.mjs --stop     stop both, and the port-80 gate, for good
  *
  * Servex supervises everything else on this machine and, until now, nothing
@@ -99,6 +100,50 @@ function keep(){
     start(WAIT);
 }
 
+/* A RESTART ANYONE CAN RUN — an agent that changed Servex code, with nobody at
+ * the keyboard (the owner, 2026-09-24: "I'd prefer not to have to manually
+ * restart the server every time you change something"). It kills only the
+ * Servex tree; the keeper sees the exit and starts the new code a second later.
+ * Three guards, because a bad restart takes the MCP down for every session:
+ *   1. every Servex .js must pass `node --check` first, or nothing is killed;
+ *   2. an agent mid-turn (`working`) dies with the tree — refuse, name it, and
+ *      let `--force` override;
+ *   3. afterwards, wait for /api/agents to answer, and say so if it does not. */
+const API = "http://127.0.0.1:8090/api/agents";
+
+function sources(dir = HERE){
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
+        e.name === "node_modules" || e.name.startsWith(".") ? []
+        : e.isDirectory() ? sources(path.join(dir, e.name))
+        : /\.(m?js)$/.test(e.name) ? [path.join(dir, e.name)] : []);
+}
+
+async function restart(force){
+    const pids = read();
+    if (!pids || !alive(pids.keeper))
+        return console.log("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
+
+    const bad = sources().filter(f => spawnSync(process.execPath, ["--check", f]).status !== 0);
+    if (bad.length) return console.log(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
+
+    const agents = await fetch(API).then(r => r.json()).catch(() => []);
+    const busy = agents.filter(a => a.state === "working").map(a => a.id);
+    if (busy.length && !force)
+        return console.log(`Not restarting — these agents are mid-turn and would die: ${busy.join(", ")}.`
+            + ` Wait for them, or add --force.`);
+
+    note(`restart asked for${busy.length ? ` (forced past ${busy.join(", ")})` : ""} — killing Servex ${pids.servex}`);
+    kill(pids.servex);
+
+    for (let i = 0; i < 30; i++){
+        await new Promise(r => setTimeout(r, 1000));
+        const now = read();
+        if (now?.servex !== pids.servex && await fetch(API).then(r => r.ok).catch(() => false))
+            return console.log(`Servex is back as pid ${now.servex}, running the new code.`);
+    }
+    console.log(`Servex did not answer within 30s. The keeper keeps retrying; see ${OUT}.`);
+}
+
 /* One generation of Servex. The backoff doubles only while it keeps dying
  * quickly; a child that stayed up past HEALTHY resets it, because one crash
  * after an hour of work is not a loop. */
@@ -138,4 +183,5 @@ for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
 const verb = process.argv[2];
 if (verb === "--stop") stop();
 else if (verb === "--status") status();
+else if (verb === "--restart") restart(process.argv.includes("--force"));
 else keep();
