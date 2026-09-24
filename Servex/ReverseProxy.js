@@ -57,7 +57,7 @@ export default class ReverseProxy extends Events {
         this.bare ??= null;         // the project a nameless `localhost` reaches
         this.site ??= null;         // where a nameless `localhost` PAGE link is sent — see handle()
         this.ports ??= {};
-        this.wait ??= 15000;        // how long a page load waits for a starting project — failed()
+        this.wait ??= 15000;        // how long a request waits for a starting project — ready(), failed()
 
         this.proxy = http_proxy.createProxyServer({});
         this.proxy.on("error", (err, req, res) => this.failed(err, req, res));
@@ -104,7 +104,37 @@ export default class ReverseProxy extends Events {
         const target = this.target(req);
         if (!target) return res.writeHead(404, { "Content-Type": "text/html" })
             .end(no_route_page(req.headers.host, this.dashboard ?? "/"));
-        this.proxy.web(req, res, { target });
+        this.ready(req, res, () => this.proxy.web(req, res, { target }));
+    }
+
+    /* Hold a request until its project can take it. A request whose body cannot
+     * be sent twice — a POST, a websocket — must not reach a port that is still
+     * down: failed() would find the body already spent. So when the project is
+     * `starting`, or the request is anything but GET/HEAD, the port is knocked
+     * on first (every 250 ms, up to `wait`), and a refusal starts the project
+     * (`missing`). The body is still unread while it waits, so nothing is lost.
+     * 2026-09-24: right after a Servex restart, the `site` MCP's POST /mcp got
+     * the HTML Starting page and every session failed "Unexpected content type".
+     * A GET for a running project goes straight through, as always. */
+    ready(req, socket, go){
+        const name = this.name(req), port = this.ports[name];
+        const upgrade = !socket.writeHead;
+        if (!port || (!upgrade && /^(GET|HEAD)$/.test(req.method) && !this.starting?.(name))) return go();
+
+        const deadline = Date.now() + this.wait;
+        let asked = false;
+        const knock = () => {
+            if (socket.destroyed) return;
+            const probe = net.connect(port, "127.0.0.1");
+            probe.once("connect", () => { probe.destroy(); go(); });
+            probe.once("error", () => {
+                probe.destroy();
+                if (!asked){ asked = true; if (!this.missing?.(name)) return go(); }   // not startable — let failed() say so
+                if (Date.now() < deadline) setTimeout(knock, 250);
+                else go();                                                           // failed() answers
+            });
+        };
+        knock();
     }
 
     /* ⚠ The visitor's socket gets its own error listener. An open tab's
@@ -116,7 +146,7 @@ export default class ReverseProxy extends Events {
         socket.on("error", () => socket.destroy());
         const target = this.target(req);
         if (!target) return socket.destroy();
-        this.proxy.ws(req, socket, head, { target });
+        this.ready(req, socket, () => this.proxy.ws(req, socket, head, { target }));
     }
 
     /* The target port did not answer — almost always because the project is not
@@ -127,7 +157,8 @@ export default class ReverseProxy extends Events {
      * "Starting…" page. Right after Servex itself restarts, the dev server is
      * always down (it died with Servex), so this is what makes a reload in that
      * moment look like nothing happened. Only if the project never answers does
-     * the visitor get the polling page, as before. */
+     * a page NAVIGATION get the polling page; anything else (a fetch, an MCP
+     * call) gets a plain 503 + Retry-After, never HTML it cannot parse. */
     failed(err, req, res){
         if (!res?.writeHead || res.headersSent || res.destroyed) return;
         const name = this.name(req);
@@ -137,7 +168,10 @@ export default class ReverseProxy extends Events {
             req.servex_deadline ??= Date.now() + this.wait;
             if (port && /^(GET|HEAD)$/.test(req.method) && Date.now() < req.servex_deadline)
                 return this.retry(req, res, port);
-            return res.writeHead(200, { "Content-Type": "text/html", "X-Servex-Starting": "1" }).end(starting_page(name));
+            if (req.headers["sec-fetch-mode"] === "navigate" || /text\/html/.test(req.headers.accept || ""))
+                return res.writeHead(200, { "Content-Type": "text/html", "X-Servex-Starting": "1" }).end(starting_page(name));
+            return res.writeHead(503, { "Content-Type": "text/plain", "Retry-After": "1", "X-Servex-Starting": "1" })
+                .end(`${name} is starting — try again in a second.\n`);
         }
         res.writeHead(502, { "Content-Type": "text/html" }).end(no_route_page(req.headers.host, this.dashboard ?? "/"));
     }

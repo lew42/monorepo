@@ -170,7 +170,8 @@ export default class Servex extends Events {
             site: "monorepo",
             ports: this.ports.ports,
             dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
-            missing: name => this.autostart(name)
+            missing: name => this.autostart(name),
+            starting: name => ["launching", "restarting"].includes(this.processes.get(name)?.status)
         });
 
         this.gate();
