@@ -29,6 +29,8 @@ Answer with anything `children:` already takes — a string of names, an array, 
 
 The file is the route: `./x/` renders `./x.md` as markdown when no `page.js` claims `x` — write a `.md` beside a page, link to it, and it is a page. Nothing crawls; the **link** is the naming.
 
+**A page can be a log file instead of code.** Put a `page.jsonl` in a folder where you would put a `page.js`. Its first line builds the page; each later line calls one method on it, so `{"place": "note.md"}` calls `place()` and draws `note.md`. The dev server adds a line for every file it sees, but a file shows on the page only once a `place` line puts it there. See it running at [/framework/core/Page/jsonl/](/framework/core/Page/jsonl/); the rules are in [`doc/jsonl.md`](./doc/jsonl.md).
+
 **A right aside of related links is one more line.** `related: "/a/ /b/"` draws a small "Related" list beside the page — each row's icon and title read live off the target, so a renamed target updates itself: [`doc/property/related.md`](./doc/property/related.md)
 
 ## Watch out

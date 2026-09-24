@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"2. Changes, like commits","type":"card","id":"2026/09/19/change-shots-2","created":"2026-09-19T16:35:17-05:00","by":"mastermind","tags":[]}
+{"legacy":"change-shots-2"}
+{"icon":"history"}
+{"parent":"change-shots"}
+{"text":"Every landed task becomes one change record: who, which files, a before and after picture, one sentence. A Changes page lists them newest first, each with an undo. The record is written when a task lands."}

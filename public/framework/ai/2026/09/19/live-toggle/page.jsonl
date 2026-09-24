@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Live looks live now","type":"card","id":"2026/09/19/live-toggle","created":"2026-09-19T21:22:28-05:00","by":"mastermind","tags":[]}
+{"legacy":"live-toggle"}
+{"status":"done"}
+{"icon":"toggle_on"}
+{"text":"Solid primary fill when on, dimmed when off. It switches itself off the moment you scroll or click a card - both actually driven, not just coded."}

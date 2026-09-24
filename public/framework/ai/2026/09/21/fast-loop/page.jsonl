@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Your architecture: per-task mastermind, a live Playwright monitor","type":"card","id":"2026/09/21/fast-loop","created":"2026-09-21T11:22:07-05:00","by":"mastermind","tags":[]}
+{"legacy":"fast-loop"}
+{"status":"needs-you"}
+{"icon":"speed"}
+{"text":"You described this before and I have not built it. Writing it up as a proposal you can click into and mark up, rather than guessing. The open question you raised - one shared Playwright context or a separate monitor minion - is the part I want your steer on."}
+{"links":[{"url":"/framework/ai/2026-09-21/safe-rollout/","label":"Nearest work in flight"}]}

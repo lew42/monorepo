@@ -102,7 +102,11 @@ export async function say(id, word, { note, quote } = {}){
  * `prompts.jsonl` the dictation box falls back to writing, `ok` stays false,
  * and the page says the assistant is off instead of throwing anything.
  */
-export const servex_base = () => new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090";
+/* ⚠ `?servex=` IS READ ONCE, when this module loads, and kept: the first click
+   on a card drops the query string, and a test page pointed at a scratch Servex
+   would then silently post the next sentence into the REAL one. */
+const PINNED_SERVEX = new URLSearchParams(location.search).get("servex");
+export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || "http://127.0.0.1:8090";
 
 /**
  * ONE EVENTSOURCE PER BASE, DEMUXED BY LOG NAME. `prompts` was the only log
@@ -275,6 +279,141 @@ export async function archive_card(id){
 	await Socket.singleton().async_rpc("append", BOARD_URL, [JSON.stringify(line)]).catch(() => null);
 }
 
+/* ── card folders: one folder per card (Servex/cards) ─────────────────────
+ *
+ * A card is a folder under `ai/`, and its id is its path there:
+ * `2026/09/24/fix-the-sidebar`, a sub-card one segment deeper. Servex's
+ * `Cards` is the only writer; this page asks it through four routes and never
+ * builds a folder itself. A card's own page reads its `page.jsonl` straight
+ * off the dev server (`card.js`), so only the LIST and the WRITES go through
+ * Servex. */
+
+/** A folder card's id always starts with its four-digit year; an old board id never does. */
+export const is_folder_id = id => /^\d{4}\//.test(String(id ?? ""));
+
+const TYPE_ICON = { card: "forum", question: "help", request: "assignment", "sub-question": "contact_support", note: "sticky_note_2", task: "task_alt" };
+export const type_icon = type => TYPE_ICON[type] ?? "forum";
+
+/**
+ * DOES THIS SERVEX HAVE THE CARD ROUTES? Asked once per page: a Servex running
+ * the card code appends `{"cards": 1}` to its `features` log when it boots.
+ * An older Servex answers `/log/features` with `[]` (and a CORS header, so no
+ * console error) — then every card call below returns null WITHOUT a request,
+ * because an old Servex answers `/cards` with no CORS header and the browser
+ * logs that as an error nothing can hide. `cards_ready.known` is the answer
+ * once it is in, for code that draws synchronously.
+ */
+let ready = null;
+export function cards_ready(){
+	return ready ??= fetch(servex_base() + "/log/features?n=20")
+		.then(r => (r.ok ? r.json() : []))
+		.then(list => Array.isArray(list) && list.some(e => e?.cards))
+		.catch(() => false)
+		.then(ok => (cards_ready.known = ok));
+}
+cards_ready.known = false;
+
+/* ⚠ Servex answers an unknown route with its dashboard's HTML at 200, so
+ * `r.ok` is not enough — the content-type is the 404, as everywhere here. */
+async function servex_json(path, body){
+	if (!(await cards_ready())) return null;
+	const init = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
+	const r = await fetch(servex_base() + path, init).catch(() => null);
+	if (!r || !(r.headers.get("content-type") ?? "").includes("json")) return null;
+	return r.json().catch(() => null);
+}
+
+/** `POST /card/create` — `{ok, id, url}`, or null when Servex has no card routes. */
+export const create_card = ({ parent, title = "New card", type = "card" } = {}) =>
+	servex_json("/card/create", { parent, title, type, by: "owner" });
+
+/** `POST /card/append?id=` — one line onto a card, `{"type": …}`, `{"status": …}`, `{"prompt": …}`. */
+export const append_card = (id, line) => servex_json("/card/append?id=" + encodeURIComponent(id), line);
+
+/** `GET /card?id=` — the card's folded state, or null. An OLD id resolves too:
+ *  the answer's `id` is then the card's canonical folder id. */
+export const resolve_card = id => servex_json("/card?id=" + encodeURIComponent(id)).then(s => (s?.id ? s : null));
+
+/**
+ * THE OWNER'S WORDS, AS A RECORD OF THEIR OWN (the owner, 2026-09-24: "Every
+ * prompt that I make is very tangible. It's a quotation"). One `prompt` line
+ * on the card, `raw` verbatim; Servex stamps its `id` and `at`, and a later
+ * line with the same id is the cleaned reading. `Servex/cards/readme.md`
+ * defines the shape.
+ */
+export const card_prompt = (id, words, via) => append_card(id, {
+	prompt: { raw: words, text: words, via, on: id, url: location.pathname },
+});
+
+/**
+ * EVERY FOLDER CARD, as Servex's short summaries — `GET /cards?view=all`,
+ * `{id, title, type, status, tags, created, last}` each. `ok` stays false when
+ * Servex is down or has no card routes; the page then reads `board.jsonl` as
+ * it always did.
+ *
+ * It POLLS, gently: a card's own page streams its own log live, but a line
+ * written into some OTHER card (a reply, a new sub-card) only moves that card
+ * in the list, and nothing streams the list itself. `refresh()` after this
+ * page's own writes makes those appear at once.
+ */
+export class CardList {
+	static every = 20000;
+
+	constructor(...args){ this.assign(...args); this.initialize(); }
+	assign(...args){ return Object.assign(this, ...args); }
+
+	initialize(){
+		this.cards ??= [];
+		this.ok ??= false;
+		this.by_id = new Map();
+		this.readers = new Set();
+	}
+
+	on(fn){ this.readers.add(fn); return () => this.readers.delete(fn); }
+
+	card(id){ return this.by_id.get(id) ?? null; }
+
+	async refresh(){
+		const list = await servex_json("/cards?view=all");
+		const ok = Array.isArray(list);
+		const next = ok ? list : [];
+		if (ok === this.ok && JSON.stringify(next) === JSON.stringify(this.cards)) return this;
+		this.ok = ok;
+		this.cards = next;
+		this.by_id = new Map(next.map(c => [c.id, c]));
+		this.readers.forEach(fn => fn(this));
+		return this;
+	}
+
+	/** Several writes in a row ask for one refresh, not one each. */
+	soon(){
+		clearTimeout(this.timer);
+		this.timer = setTimeout(() => this.refresh(), 300);
+	}
+
+	start(){
+		this.poll ??= setInterval(() => { if (!document.hidden) this.refresh(); }, this.constructor.every);
+		return this.refresh();
+	}
+}
+
+/** One card's summary as a row of the list `items()` returns. */
+export function folder_item(c){
+	return {
+		id: c.id,
+		kind: c.type === "note" ? "note" : "card",
+		folder: true,
+		type: c.type,
+		at: c.last ?? c.created,
+		icon: type_icon(c.type),
+		title: c.title || c.id.split("/").at(-1),
+		text: "",
+		tags: c.tags ?? [],
+		status: c.status,
+		links: [],
+	};
+}
+
 /* Everything one prompt turned into, gathered off the fold's own `children` —
    every line the assistant appends carries `re` pointing back at the prompt it
    answers, which is why this is a few lines and not a search. */
@@ -313,11 +452,19 @@ function threads(entries){
  * tasks" and the two agree: every source contributes an id, and an id that two
  * sources share contributes it once.
  */
-export function items({ board, prompts, landed, says }){
+export function items({ board, folders, prompts, landed, says }){
 	const by_id = new Map();
 	const add = item => { by_id.set(item.id, item); return item; };
 
-	board.forEach(c => add({
+	/* THE CARD FOLDERS REPLACE THE BOARD when Servex answers — every board card
+	   was migrated into a folder (`Servex/cards/migrate.mjs`), so reading both
+	   would show each one twice. Servex down: the board, exactly as before. */
+	const from_folders = !!folders?.ok;
+	// Top-level cards only: a sub-card is listed inside its own card, and a
+	// view (`view/all/`) lists every one.
+	if (from_folders) folders.cards.filter(c => c.id.split("/").length === 4).forEach(c => add(folder_item(c)));
+
+	if (!from_folders) board.forEach(c => add({
 		id: c.id,
 		kind: /^Note:/.test(c.title ?? "") ? "note" : "card",
 		at: c.updated_at ?? c.at,
@@ -343,6 +490,11 @@ export function items({ board, prompts, landed, says }){
 		// one spoken into the Live card lives in the Live card's own chat.
 		const roots = refs(prompt).map(r => String(r).split("/")[0]);
 		if (roots.includes("live")) return;
+		// ⚠ With folders, a sentence said INTO a card is already that card's
+		// own `prompt` line — and the old board ids its `re` may name are not in
+		// this list any more, so "unknown host → a card of its own" would turn
+		// every old sentence into a card. Said into anything: never its own card.
+		if (from_folders && roots.length) return;
 		const host = roots.find(id => known.has(id));
 		if (host){
 			const into = by_id.get(host);

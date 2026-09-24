@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Twenty traps moved where agents read them","type":"card","id":"2026/09/21/traps-consolidate","created":"2026-09-21T13:32:22-05:00","by":"mastermind","tags":[]}
+{"legacy":"traps-consolidate"}
+{"status":"done"}
+{"icon":"menu_book"}
+{"text":"Every hard-won trap in the code skill was filed in a backlog nobody loads - twenty entries since 2026-09-04, none ever applied. Now folded into the skill itself, grouped by how they actually fail rather than listed one by one: 41 lines in, 31 lines of backlog out.\n\nThree of them are from today, including the one that cost you a broken page: a `@layer util` class beats a component stylesheet no matter the specificity.\n\nNothing on your screen changed. This is the file agents load before they touch your site."}
+{"links":[{"url":"/framework/ai/2026-09-21/traps-consolidate/","label":"What moved, and the two numbers"}]}

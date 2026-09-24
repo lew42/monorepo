@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"The padding law is a check now","type":"card","id":"2026/09/22/padding-law","created":"2026-09-22T18:09:26-05:00","by":"padding-law","tags":[]}
+{"legacy":"padding-law"}
+{"icon":"straighten"}
+{"text":"Sixty-eight pages had text touching an edge at some width; four do now. The cause was one rule (a page's inset was a grid column, and the table-of-contents rail replaced the grid above 1312px) plus three of the same shape, each fixed once. Any minion can run node Server/padding-check.mjs on its page before landing, and the health watcher now measures at 3440 too — it had only ever looked at 1280, just under where the bug began."}
+{"status":"done"}
+{"links":[{"url":"/framework/ai/2026-09-22/padding-law/","label":"before and after"},{"url":"/framework/ai/2026-09-22/layout-analysis/","label":"the analysis"}]}

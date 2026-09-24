@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Landed: the background layer, ten kinds, each behind real content","type":"card","id":"2026/09/19/background-layer","created":"2026-09-19T15:12:49-05:00","by":"mastermind","tags":[]}
+{"legacy":"background-layer"}
+{"status":"done"}
+{"text":"One line puts a swappable background behind any box: a ground, a gradient, dots, a grid, stripes, one icon tiled as texture, a seeded scatter of icons, blobs, a wave, and a spotlight that can follow the pointer. No images. Every example on the wall sits behind a heading, a sentence and a button, with its contrast measured; all ten pass, from 7.8 to 1 up to 17.4 to 1. Your wrapper question got a measured answer: wrap the content. Without a wrapper, plain content paints behind the background every time, so the content wrapper is the habit. One loose end: nothing on the UI page links to it yet; open it by its address."}

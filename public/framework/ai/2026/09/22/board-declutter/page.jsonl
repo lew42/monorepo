@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Fixed: clicking a view word no longer blanks the page.","type":"card","id":"2026/09/22/board-declutter","created":"2026-09-22T17:38:04-05:00","by":"board-declutter","tags":[]}
+{"legacy":"board-declutter"}
+{"status":"done"}
+{"text":"That was mine — the router pushes the new URL only after the page has already drawn itself, so the board thought it was still on the old one. The grid is hidden behind one flag and its URL lands on days, the sorted-by line now stands on the same gutter as the cards, and the gap above the chrome line went from 62 pixels at 3440 down to 11."}

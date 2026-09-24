@@ -62,6 +62,10 @@ export default class MCP extends Events {
         this.router.all("/mcp", (req, res) => res.status(405).end());
     }
 
+    /* `?as=<agent id>` on the url is WHO is calling: Servex puts it on the door it
+     * hands every agent it spawns (Agents.door()), so a tool knows its caller without
+     * the agent having to say. No `as` = a session outside Servex, e.g. a VS Code tab.
+     * Handlers get it as their second argument: `handler(args, { caller })`. */
     async post(req, res){
         const from = req.socket.remoteAddress;
         if (!loopback(from)){
@@ -73,13 +77,13 @@ export default class MCP extends Events {
         if (id == null) return res.status(202).end();      // a notification wants no answer
 
         try {
-            res.json({ jsonrpc: "2.0", id, result: await this.result(method, params) });
+            res.json({ jsonrpc: "2.0", id, result: await this.result(method, params, { caller: req.query?.as ?? null }) });
         } catch (e){
             res.json({ jsonrpc: "2.0", id, error: { code: e.code ?? -32603, message: String(e.message || e) } });
         }
     }
 
-    result(method, params){
+    result(method, params, ctx = { caller: null }){
         if (method === "initialize") return {
             protocolVersion: VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : VERSIONS[0],
             capabilities: { tools: {} },
@@ -88,16 +92,16 @@ export default class MCP extends Events {
         };
         if (method === "ping") return {};
         if (method === "tools/list") return { tools: this.tools };
-        if (method === "tools/call") return this.call(params.name, params.arguments ?? {});
+        if (method === "tools/call") return this.call(params.name, params.arguments ?? {}, ctx);
         throw Object.assign(new Error(`Unknown method: ${method}`), { code: -32601 });
     }
 
-    async call(name, args){
+    async call(name, args, ctx = { caller: null }){
         const handler = this.handlers.get(name);
         if (!handler) throw Object.assign(new Error(`Unknown tool: ${name}`), { code: -32602 });
 
         try {
-            return this.text(await handler(args));
+            return this.text(await handler(args, ctx));
         } catch (e){
             return { content: [{ type: "text", text: String(e.message || e) }], isError: true };
         }

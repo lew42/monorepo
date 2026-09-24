@@ -527,3 +527,7 @@ heavy load from dozens of sequential headless browser launches earlier in the sa
 identical assertion at 1280px, and a final clean single-pass smoke test on a fresh scratch server
 and a fresh port, both passed; the flake is logged as a test-infrastructure finding, not a
 product one.
+
+## A card is a folder, written only by Servex (2026-09-24)
+
+Each card is a folder dated by the day it was created, `ai/2026/MM/DD/<slug>/page.jsonl`, and only Servex (`Servex/cards/Cards.js`) writes into it, so two writers can never tear a line. The alternative was one index file per day, `ai/2026/MM/DD.jsonl`; it was rejected because a card can then never own attachments or sub-files beside its log. The design is in [`Servex/cards/readme.md`](/Servex/cards/readme.md).

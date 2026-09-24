@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"The board data is out of V3","type":"card","id":"2026/09/19/v3-data","created":"2026-09-19T18:42:18-05:00","by":"mastermind","tags":[]}
+{"legacy":"v3-data"}
+{"status":"done"}
+{"icon":"database"}
+{"text":"Your words now live at ai/board.jsonl, outside every version, and V3 reads them from there. I checked the move myself: 308 lines before, 308 after, nothing lost while cards were still arriving. The version cloning tool no longer copies the data either, so V4 cannot repeat the bug."}
+{"focus":true}
+{"links":[{"url":"/framework/ai/2026-09-19/v3-data/","label":"what moved and what stayed"}]}

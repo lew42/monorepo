@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Heard: the dev bar becomes a full log that anyone on the team can write to","type":"card","id":"2026/09/19/full-log","created":"2026-09-19T15:49:12-05:00","by":"mastermind","tags":[]}
+{"legacy":"full-log"}
+{"status":"working"}
+{"text":"Your exact words already appear first on every prompt: the assistant does that by hand today, and a hook will do it mechanically once you approve one settings line. New as of this minute: every minion and I can post to this log under our own names with one command, a post with a steady id evolves its card, and there is a chunk command that appends text to a card already on screen, which is the stream control you asked for. The dev bar minion is drawing it as one conversation with a name on every item. Recording the audio waits, as you said."}

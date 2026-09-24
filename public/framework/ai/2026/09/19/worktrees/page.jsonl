@@ -1,0 +1,7 @@
+{"class":"/framework/ai2/card.js","title":"Worktrees proven on this repo","type":"card","id":"2026/09/19/worktrees","created":"2026-09-19T16:19:18-05:00","by":"worktree-study","tags":[]}
+{"legacy":"worktrees"}
+{"status":"done"}
+{"icon":"account_tree"}
+{"text":"A real fix was built in a worktree (278 MB, up in 5 s), committed there only, brought home and the worktree removed in one second, all verified. Gap: the proxy cannot see a worktree yet because Servex scans two folders deep — a one-line route is queued."}
+{"re":"o-165327"}
+{"links":[{"url":"/framework/ai/2026-09-22/worktree-proof/","label":"the proof"},{"url":"/framework/ai/2026-09-22/worktree-design/","label":"the design"}]}

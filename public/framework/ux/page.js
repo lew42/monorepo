@@ -68,7 +68,7 @@ export default new Page({
 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
 	icon: "layers",
 
-	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Popover",
+	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Popover Content",
 
 	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
 	// children: a declared child is a CARD in the wall below, and a doc page is not a
@@ -97,7 +97,7 @@ export default new Page({
 			});
 		});
 
-		md("**Ten classes live here — one real page each, not a tab.** Hover a card to flag it.");
+		md("**Eleven classes live here — one real page each, not a tab.** Hover a card to flag it.");
 
 		wall(this);
 
@@ -110,7 +110,7 @@ export default new Page({
 				// ⚠ Plain text only: ui.table() puts a cell straight into a td — no markdown
 				// pass — so a `backtick` or a **star** renders as itself.
 				["a variant is", "a child page: a different THING, not a different value", "a named subclass: class CardHero extends Card"],
-				["today", "20 components", "10"],
+				["today", "20 components", "11"],
 			]);
 
 		md("## The graduation rule");

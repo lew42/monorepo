@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Note: the overview - four columns by importance","type":"card","id":"2026/09/22/dashboard","created":"2026-09-22T15:25:11-05:00","by":"","tags":[]}
+{"legacy":"dashboard"}
+{"icon":"dashboard"}
+{"text":"Heard, and it is the right shape. The default AI 2 view becomes four columns that are lists by importance, not by time: needs-you (clearable; the column vanishes when empty), reports (where a night's report lives and nothing pushes it down), landed (recent work, one line each, a bit more verbose), live (what is running, what is queued, the usage windows). A new arrival never moves the top of a column. Written as the first item of tomorrow's AI 2 brief."}
+{"status":"working"}
+{"links":[{"url":"/framework/ai/2026-09-22/ai2-nested/requirements.md","label":"tomorrow's brief"}]}

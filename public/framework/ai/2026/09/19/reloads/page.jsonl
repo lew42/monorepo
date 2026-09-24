@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Pages reloading themselves","type":"card","id":"2026/09/19/reloads","created":"2026-09-19T15:05:16-05:00","by":"","tags":[]}
+{"legacy":"reloads"}
+{"status":"needs-you"}
+{"text":"Fixed and proven. On Windows, just reading a file counted as a change, so loading a page reloaded it.\nRestart node server.js once (1 minute). After that the server restarts itself whenever its own code changes."}
+{"links":[{"url":"/framework/ai/2026-09-19/server-self/","label":"the fix and its proofs"}]}

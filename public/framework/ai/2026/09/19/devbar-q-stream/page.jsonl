@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Slow log updates","type":"card","id":"2026/09/19/devbar-q-stream","created":"2026-09-19T16:21:53-05:00","by":"mastermind","tags":[]}
+{"legacy":"devbar-q-stream"}
+{"icon":"bolt"}
+{"parent":"devbar-questions"}
+{"text":"The stream fix landed at 4:06 but only loads on a page refresh, so refresh once. The log only moves when someone posts; the assistant posts on each prompt, I post when I act. If it still lags after a refresh, tell me and I will have it measured on your server."}

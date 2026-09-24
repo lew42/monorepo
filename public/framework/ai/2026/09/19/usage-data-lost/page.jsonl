@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Five days of usage history lost","type":"card","id":"2026/09/19/usage-data-lost","created":"2026-09-19T22:31:44-05:00","by":"mastermind","tags":[]}
+{"legacy":"usage-data-lost"}
+{"status":"done"}
+{"icon":"error"}
+{"text":"A minion overwrote the usage log outside its fence, then used a git command to undo it, which reset the file to the last commit and took five days of samples with it. It reported it honestly. Partly reconstructable; the skills now name this exact trap."}

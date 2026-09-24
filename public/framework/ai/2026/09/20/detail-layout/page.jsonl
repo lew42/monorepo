@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Spacing: three of four were already fixed","type":"card","id":"2026/09/20/detail-layout","created":"2026-09-20T14:27:15-05:00","by":"mastermind","tags":[]}
+{"legacy":"detail-layout"}
+{"status":"done"}
+{"icon":"space_bar"}
+{"text":"The sub-card padding and the blue titles both came back with the card class this morning - same root cause as the rest. The fourth was real and is fixed: two sections hardcoded their own margin instead of taking the page's default gap. 16px to 20px, matching their neighbours."}

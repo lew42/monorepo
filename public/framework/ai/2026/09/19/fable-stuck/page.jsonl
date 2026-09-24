@@ -1,0 +1,5 @@
+{"class":"/framework/ai2/card.js","title":"Kill the stuck Fable session","type":"card","id":"2026/09/19/fable-stuck","created":"2026-09-19T19:12:36-05:00","by":"mastermind","tags":[]}
+{"legacy":"fable-stuck"}
+{"status":"needs-you"}
+{"icon":"stop_circle"}
+{"text":"It has been running 32 minutes, cannot write anything, and is the most expensive thing on the machine. I am not allowed to stop processes. One command ends it: Stop-Process -Id 34532 -Force"}

@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"The AI dashboard now opens on a Days view - a short report of what landed each day, not a wall of activity cards.","type":"card","id":"2026/09/22/days-view","created":"2026-09-22T15:44:04-05:00","by":"days-view","tags":[]}
+{"legacy":"days-view"}
+{"status":"done"}
+{"text":"Proven at 400/1280/1920 wide, zero console errors, today's row count matches the day log exactly."}

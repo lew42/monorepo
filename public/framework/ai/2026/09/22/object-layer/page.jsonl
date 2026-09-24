@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"The object layer, designed and proven","type":"card","id":"2026/09/22/object-layer","created":"2026-09-22T17:30:03-05:00","by":"object-layer","tags":[]}
+{"legacy":"object-layer"}
+{"status":"done"}
+{"text":"One envelope — target, method, args — on every wire, and three tools that reach any live object: list, describe, call. Docs come from the code's own JSDoc; only @public methods are reachable. A prototype passes six checks; the build is four briefs for phase 3."}
+{"icon":"hub"}
+{"links":[{"url":"/framework/ai/2026-09-22/object-layer/","label":"the design"}]}
