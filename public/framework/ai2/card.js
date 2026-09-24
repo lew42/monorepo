@@ -8,7 +8,7 @@ import { clock, flag_box } from "./faces.js";
 export { clock, row, full, flag_box, toc, sub_full, who, is_you } from "./faces.js";
 import chat from "./chat.js";
 import composer from "./compose.js";
-import { author_word, type_icon, create_card, append_card } from "./inbox.js";
+import { author_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -182,12 +182,14 @@ export default class Card extends Page {
 		div.c("ai2-full-head flex v-center gap-25", () => {
 			icon(this.icon ?? type_icon(f.type));
 			span.c("ai2-full-title").md(this.title ?? this.name);
-			this.type_picker();
+			// The picker, "clear" and "+ sub-card" write through Servex's card
+			// routes; a Servex without them (not restarted yet) shows none of the three.
+			if (cards_ready.known) this.type_picker();
 			const flag = this.flag_note;
 			button.c("ai2-flag" + (flag ? " on" : "")).attr("type", "button")
 				.attr("title", flag ? "flagged — press to withdraw" : "not this — say why")
 				.text("⚑").click(() => (flag ? this.face().unflag() : this.$box.append(() => { flag_box(this.face()); })));
-			if (this.shell) button.c("ai2-clear").attr("type", "button")
+			if (this.shell && cards_ready.known) button.c("ai2-clear").attr("type", "button")
 				.attr("title", "archive this card — nothing is deleted").text("clear").click(() => this.clear());
 		});
 
@@ -232,7 +234,7 @@ export default class Card extends Page {
 		div.c("ai2-toc ai2-card-toc", () => {
 			div.c("ai2-toc-head flex v-center gap-25", () => {
 				small.c("muted").text(subs.length ? subs.length + (subs.length === 1 ? " sub-card" : " sub-cards") : "no sub-cards yet");
-				this.sub_adder();
+				if (cards_ready.known) this.sub_adder();
 			});
 			if (subs.length) div.c("ai2-toc-rows", () => {
 				subs.forEach(slug => {
@@ -326,6 +328,7 @@ export default class Card extends Page {
 		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
 		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
 		this.redraw();
+		if (!cards_ready.known) cards_ready().then(ok => ok && this.redraw());
 	}
 
 	/* ⚠ AND THE MICROPHONE STOPS — a cached page stays in the DOM with its own
