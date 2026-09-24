@@ -40,7 +40,12 @@ export default class Layers {
 			state: null, touched: new Map(), recycling: new Set(), timer: null };
 	}
 
-	install(){ this.load(); this.listen(); this.tools(); this.route(); this.watch(); return this; }
+	/* `features` says "this Servex has card agents": the card view shows its agent panel only then. */
+	install(){
+		this.load(); this.listen(); this.tools(); this.route(); this.watch();
+		this.servex.log?.append?.("features", { card_agents: 1 })?.catch?.(() => {});
+		return this;
+	}
 
 	// ── state ────────────────────────────────────────────────────────────────
 
