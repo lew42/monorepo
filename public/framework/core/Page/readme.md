@@ -25,6 +25,8 @@ Answer with anything `children:` already takes — a string of names, an array, 
 
 The file is the route: `./x/` renders `./x.md` as markdown when no `page.js` claims `x` — write a `.md` beside a page, link to it, and it is a page. Nothing crawls; the **link** is the naming.
 
+**A folder can hold a `page.jsonl` instead of a `page.js`** — a log where line 1 builds the page and every later line is one `set()` call (a key that names a method calls it). A file line says a file exists, a child's `page.jsonl` is linked automatically, and only a `place` line draws anything. Live, with its own listing: [/framework/core/Page/jsonl/](/framework/core/Page/jsonl/) · [`doc/jsonl.md`](./doc/jsonl.md)
+
 **A right aside of related links is one more line.** `related: "/a/ /b/"` draws a small "Related" list beside the page — each row's icon and title read live off the target, so a renamed target updates itself: [`doc/property/related.md`](./doc/property/related.md)
 
 ## Watch out
