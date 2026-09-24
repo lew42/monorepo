@@ -1,3 +1,5 @@
+import PageMarkdown from "../Page/Markdown.js";
+
 export class Router {
 
 	constructor(...args){
@@ -20,7 +22,12 @@ export class Router {
 
 		// ⚠ The whole url — `pathname` alone silently ATE the fragment on a
 		// cross-page link. Where it LANDS is still the top; readme.md's Open list.
-		this.go(link.pathname + link.search + link.hash);
+		this.go(this.markdown(link) + link.search + link.hash);
+	}
+
+	// A link to a `.md` file opens its rendered page — core/Page/Markdown.js.
+	markdown(link){
+		return /\.md$/i.test(link.pathname) ? PageMarkdown.url(link.pathname) : link.pathname;
 	}
 
 	// the anchor this click should navigate — or null, meaning "not ours"
@@ -32,7 +39,8 @@ export class Router {
 		if (!link || link.target || link.hasAttribute("download")) return null;
 		if (link.origin !== location.origin) return null;                   // external
 		if (link.hash && link.pathname === location.pathname) return null;  // #section
-		if (/\.\w+$/.test(link.pathname)) return null;                      // /readme.md
+		if (/\.md$/i.test(link.pathname)) return link.search ? null : link; // x.md opens its page; x.md?raw the file
+		if (/\.\w+$/.test(link.pathname)) return null;                      // /style.css
 
 		return link;
 	}
