@@ -133,6 +133,7 @@ export default class Servex extends Events {
          * nothing here costs anything until a task actually queues. */
         this.dispatcher = new this.constructor.Dispatcher({ servex: this }).install();
 
+        this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
         this.tools();
 

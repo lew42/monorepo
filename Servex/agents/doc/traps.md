@@ -92,3 +92,34 @@ Spawn to first token, Haiku at low effort with no settings loaded: **2.2s – 3.
 five runs. One run on a heavily loaded machine (fourteen other `claude.exe` processes) took
 **47 seconds** — the number is machine load, not a constant. Plan for seconds, not
 milliseconds, and never gate on a stopwatch.
+
+## Forks, resumes and restarts (measured 2026-09-24, Haiku 4.5, SDK 0.3.280)
+
+Proofs: `fork-proof.mjs` and `revive-proof.mjs`, beside `Agents.js`.
+
+- **A session can be forked mid-turn.** Its transcript ends in the unanswered `tool_use` of
+  the very call that forks it; plain `resume` + `forkSession: true` handles that. No
+  `resumeSessionAt`, no standalone `forkSession()` needed.
+- **The fork's tool list must match the parent's, or the cache misses completely.** Same
+  tools: 35,534 tokens read from cache, 3,550 written. `tools: []`: 0 read, 44,268 written.
+  Tools sit at the front of the cached prefix. So a fork keeps every tool and a PreToolUse
+  hook refuses the calls, which works even under `bypassPermissions`.
+- **A fork is cheap.** It reads about 98% of its input from the parent's cache. The cost is
+  its own output.
+- **In-process MCP tools are deferred behind ToolSearch by default.** A Haiku agent then
+  says the tool is "not available". Pass `alwaysLoad: true` to `createSdkMcpServer`.
+- **`Agent.door()` used to drop `mcp_servers` when the host had no HTTP url.** A standalone
+  host's in-process servers never reached the agent. Fixed.
+- **A resume without `fork` keeps the same session id.** The SDK appends to the same file.
+- **Killing the host kills its `claude` child too.** Its stdin closes, so no orphan is
+  left, but the tool call that was running is lost. The resumed session copes with the
+  unanswered `tool_use`; told to "check and continue", the agent simply ran the command
+  again.
+- **A registry row written before `system/init` has no session id,** so it cannot be
+  revived. `began()` now re-registers the moment the id arrives.
+- **`context_tokens` is carried only by hook inputs** (SessionStart, model switch), never by
+  a result. And `result.usage` sums every API call in the turn, so it over-counts. The
+  honest context size is the LAST main-thread assistant message's usage: input +
+  cache_read + cache_creation + output.
+- **claude.ai connectors load even with `settingSources: []`.** They show as `pending` in
+  `system/init`, and their tools are deferred.
