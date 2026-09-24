@@ -1,7 +1,9 @@
+import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
+import { z } from "zod";
 import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 
-/* The five verbs, as MCP tools. This is the whole point of the host: a normal
+/* The seven verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
  * process's stdin, so it cannot steer a running agent. It can call a tool.
  * The handlers run inside Servex, where the sessions actually live.
@@ -48,14 +50,61 @@ return [
 			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
 			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
 			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
-			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." }
+			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
+			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
+			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." }
 		},
-		["prompt"],
+		[],
 		(args, ctx = {}) => {
+			if (!args.prompt && !args.resume) throw new Error("spawn_agent needs a `prompt` (or a `resume` to reopen).");
 			const ruling = policy.spawn(ctx.caller ?? null, args.role);
-			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			if (!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			return card(agents.spawn(args));
 		}),
+
+	tool("fork_self",
+		"Ask a COPY of yourself one question, in the background, and keep working. The fork has your"
+		+ " whole conversation up to now (it reuses your prompt cache, so it is cheap) and runs in"
+		+ " its own session, so you stay free to answer messages while it thinks. This call returns"
+		+ " at once with the fork's id. The answer arrives later as a message to you, starting"
+		+ " `fork answer:`. Outside Servex (e.g. a VS Code tab), nothing can message you, so call"
+		+ " `wait_for_agent` with the fork's id to collect it. By default the fork has NO tools: it"
+		+ " decides from what it already knows. Give it `allowed_tools` like [\"Read\",\"Grep\",\"Glob\"]"
+		+ " for \"look at these three files, then decide\". It answers once and stops itself.",
+		{
+			question: { type: "string", description: "The one question or decision, in full. The fork sees your whole context, so you can refer to it." },
+			from: { type: "string", description: "Your own Servex agent id. Usually leave it out: Servex already knows which of its agents is calling. The answer wakes you." },
+			session_id: { type: "string", description: "Instead of `from`, for a session Servex does not hold: your Claude session uuid (in a shell, `$CLAUDE_CODE_SESSION_ID`). Its cwd and model are read from the session file." },
+			model: { type: "string", description: "Override the model. Leave it out: a different model cannot reuse your cache and pays for your whole context again." },
+			cwd: { type: "string", description: "Override the working directory. Leave it out: a fork must run where the session ran." },
+			allowed_tools: { type: "array", items: { type: "string" }, description: "Tools the fork may use, e.g. [\"Read\",\"Grep\",\"Glob\"]. Default none. (They stay listed either way — removing them would break the cache — every call outside this list is refused.)" }
+		},
+		["question"],
+		async ({ allowed_tools, ...args }, ctx = {}) => {
+			const from = args.from ?? ctx.caller ?? undefined;
+			const fork = await agents.fork({ ...args, from, tools: allowed_tools ?? [] });
+			return JSON.stringify({
+				id: fork.id, parent: fork.parent ?? null, forked_from: fork.forked_from,
+				note: fork.parent
+					? `Keep working. The answer arrives as a message from ${fork.id}, starting "fork answer:".`
+					: `Collect the answer with wait_for_agent({id: "${fork.id}"}).`
+			}, null, 2);
+		}),
+
+	tool("wait_for_agent",
+		"Wait until an agent finishes its current turn (nothing left queued) or stops, then return its"
+		+ " state and everything it said that turn. Returns at once if it is already idle. Blocks your"
+		+ " own turn while it waits — from a terminal or VS Code tab, run it in the BACKGROUND instead:"
+		+ " POST {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"wait_for_agent\","
+		+ "\"arguments\":{\"id\":\"<id>\"}}} to Servex's /mcp url with curl in a background shell, and you"
+		+ " are told when it answers. A Servex agent with a `parent` wakes that parent anyway; this is for"
+		+ " everyone else.",
+		{
+			id: ID,
+			timeout_s: { type: "number", description: "Give up after this many seconds and say `timed_out: true`. Default 600." }
+		},
+		["id"],
+		async ({ id, timeout_s }) => JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2)),
 
 	tool("send_to_agent",
 		"Say something to a running agent. It arrives wrapped so the agent can see who asked and"
@@ -90,7 +139,8 @@ return [
 		"Every agent Servex has ever registered: its id, role, name, topics, page, state, who can"
 		+ " see it, its session uuid for `claude --resume`, when it started and its parent — the"
 		+ " same rows `GET /agents` returns, so this survives a Servex restart the in-memory list"
-		+ " does not.",
+		+ " does not. A row whose host process died (a Servex restart it did not survive) reads"
+		+ " `gone`, never idle or working.",
 		{},
 		[],
 		() => JSON.stringify(agents.registry_list(), null, 2)),
@@ -103,5 +153,24 @@ return [
 		["id"],
 		({ id }) => card(agents.stop(id)))
 ]; }
+
+/* The same tools IN-PROCESS, for a host with no HTTP `/mcp` (fork-proof.mjs,
+ * a test): an SDK MCP server whose handlers are the functions above. Hand it
+ * to a spawn as `mcp_servers: { servex: server(host) }` and the agent calls
+ * `mcp__servex__fork_self` straight into this process. `ctx.caller` is who the
+ * handlers are told is calling — what `?as=` is on the HTTP door. JSON Schema → zod for
+ * the property kinds the tools use. `alwaysLoad`: otherwise the CLI defers them
+ * behind ToolSearch and a small model reports the tool "not available". */
+export function server(agents = singleton, ctx = { caller: null }){
+	const zod = ({ type, items }) => type === "number" ? z.number() : type === "boolean" ? z.boolean()
+		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
+	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: tools(agents).map(t => sdk_tool(t.name, t.description,
+		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
+			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
+		async args => {
+			try { return { content: [{ type: "text", text: String(await t.handler(args, ctx)) }] }; }
+			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
+		})) });
+}
 
 export default tools;
