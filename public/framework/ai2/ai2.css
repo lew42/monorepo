@@ -87,8 +87,11 @@
 	   (`.ai2-full` below), so the outer region showing a second, empty
 	   scrollbar track was never anything but the "two scrollbars" the owner
 	   saw. Scoped to this page only — nothing else on the site loses its own
-	   gutter. */
-	.pages:has(> .page--ai2) {
+	   gutter.
+	   ⚠ ONLY WHILE AI 2 IS SHOWING. A page you have left stays in the DOM, hidden,
+	     so a bare `:has(> .page--ai2)` kept matching, and every page opened after
+	     AI 2 in the same tab could not scroll (2026-09-24, the owner on an md/ page). */
+	.pages:has(> .page--ai2.active-page, > .page--ai2.active-ancestor) {
 		overflow-y: hidden;
 	}
 
