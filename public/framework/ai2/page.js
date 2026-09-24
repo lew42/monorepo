@@ -139,7 +139,9 @@ function board(page){
 						const $auto = input().attr("type", "checkbox");
 						$auto.el.checked = auto_transcribe();
 						$auto.on("change", e => localStorage.setItem(AUTO_KEY, e.target.checked ? "on" : "off"));
-						span("auto-transcribe");
+						// "-transcribe" is its own span so a rail dragged narrow can say just
+						// "auto" and keep the head at two lines (ai2.css, `.ai2-auto-tail`).
+						span(() => { span("auto"); span.c("ai2-auto-tail").text("-transcribe"); });
 					});
 					$count = div.c("ai2-count flex v-center gap-25");
 					$notes = button.c("ai2-word").attr("type", "button")
