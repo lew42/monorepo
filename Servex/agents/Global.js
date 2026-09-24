@@ -7,6 +7,7 @@ import Registry from "./registry.js";
 import { Claims } from "./claims.js";
 import { brief, remember_focus } from "./brief.js";
 import { model } from "./tiers.js";
+import { Policy } from "./policy.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
@@ -269,7 +270,11 @@ export default class Global {
 
 	/* Every refused message is logged, and the live rules are one GET away. */
 	policy(){
-		const p = this.agents.policy;
+		/* ⚠ Global installs BEFORE Servex.tools() runs tools.js, which is what used to
+		 * create `agents.policy` — so the hook landed on nothing and no refused message
+		 * was ever logged (layers proof, 2026-09-24). Create it here; tools.js's `??=`
+		 * then keeps this same object. */
+		const p = this.agents && (this.agents.policy ??= new Policy({ agents: this.agents }));
 		if (p) p.onrefuse = e => this.servex.log.append("policy", e)?.catch?.(() => {});
 	}
 

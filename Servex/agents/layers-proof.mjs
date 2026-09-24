@@ -87,6 +87,15 @@ async function boot(){
 // ── cleanup ──────────────────────────────────────────────────────────────
 const before_year = fs.existsSync(path.join(AI, "2026"));
 const made_cards = [];
+/* The day's index page (tracked since the card-folders merge) gains a line per
+ * card; it is put back byte for byte at cleanup. `dirty()` lists what the agents
+ * edited in the tree, as evidence — the proof never reverts their work itself. */
+const today = new Date(), pad = n => String(n).padStart(2, "0");   // LOCAL date, as the card ids use
+const DAY = path.join(AI, String(today.getFullYear()), pad(today.getMonth() + 1), pad(today.getDate()), "page.jsonl");
+const day_before = fs.existsSync(DAY) ? fs.readFileSync(DAY) : null;
+const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).split("\n").filter(Boolean); } catch { return []; } };
+const dirty_before = new Set(dirty());
+let touched = [];
 async function cleanup(){
 	try {
 		const live = await get("/api/agents");
@@ -97,6 +106,9 @@ async function cleanup(){
 	await sleep(500);
 	if (!before_year) fs.rmSync(path.join(AI, "2026"), { recursive: true, force: true });
 	else for (const id of made_cards) fs.rmSync(path.join(AI, ...id.split("/")), { recursive: true, force: true });
+	if (day_before) fs.writeFileSync(DAY, day_before);
+	touched = dirty().filter(l => !dirty_before.has(l) && !l.includes("assistant-layers/proof.json"));
+	if (touched.length) say(`the agents changed these files in the tree (left for a person to review): ${touched.join(", ")}`);
 	say(`cleaned up: agents stopped, pid ${child?.pid} killed, ${before_year ? made_cards.length + " card folders" : "public/framework/ai/2026/"} removed`);
 }
 
@@ -161,20 +173,38 @@ async function run(){
 	await post(`/card/append?id=${encodeURIComponent(B)}`, { prompt: { text: WORK } });
 	const hadB = await until(async () => (await rowsOf(mgrB)).length ? await rowsOf(mgrB) : null, 180000);
 	const collision = await until(async () => {
+		/* A REAL collision is a refused claim_topic (Global logs it to `policy`). A
+		 * manager that notices the clash on its own and tells mastermind-servex is a
+		 * finding, not a pass: the claims did not catch it. */
+		const refused = (await servex_log("policy")).find(e => String(e.to ?? "").startsWith("claim ") && [mgrA, mgrB].includes(e.from));
+		if (refused) return { refused_claim: refused };
 		const told = (await agent_log("mastermind-servex")).filter(e => e.type === "agent_msg" && /^(manager|assistant|master)/.test(e.from ?? ""));
-		const hit = told.find(e => /claim|already|collid|same|both|duplicate/i.test(e.text ?? ""));
-		if (hit) return { to: "mastermind-servex", from: hit.from, text: clip(hit.text, 300) };
-		const refused = (await servex_log("policy")).find(e => String(e.to ?? "").startsWith("claim ") && e.from === mgrB);
-		return refused ? { policy_log: refused } : null;
+		const hit = told.find(e => /claim|already|collid|same|both|duplicate|conflict/i.test(e.text ?? ""));
+		return hit ? { noticed_not_refused: true, to: "mastermind-servex", from: hit.from, text: clip(hit.text, 300) } : null;
 	}, 240000, 5000);
 	const claims = await tool("list_claims");
 	const toolsA = (await agent_log(mgrA)).filter(e => e.type === "tool" && /claim_topic/.test(e.name)).map(e => e.input);
 	const toolsB = (await agent_log(mgrB)).filter(e => e.type === "tool" && /claim_topic/.test(e.name)).map(e => e.input);
 	record("6. the second card's manager collides with the first, and mastermind-servex hears of it",
-		collision ? true : false,
+		collision?.refused_claim ? true : collision ? "finding" : false,
 		{ manager_B: hadB?.map(r => r.id) ?? null, collision: collision ?? "no message about it reached mastermind-servex within 240 s",
 			claims: Array.isArray(claims) ? claims.map(c => ({ key: c.key, agent: c.agent, card: c.card, stale: !!c.stale })) : claims,
 			claim_calls: { [mgrA]: toolsA, [mgrB]: toolsB } });
+
+	// identity (i): the policy reads the STAMPED caller. assistant-A may not message card B's manager.
+	const idA = pair?.A.id ?? `assistant-${A.split("/").pop()}`;
+	const cross = await tool("send_to_agent", { id: mgrB, text: "layers proof: this message must be refused.", from: "owner" }, idA);
+	const refused_line = (await servex_log("policy")).find(e => e.from === idA && e.to === mgrB);
+	record("identity (i): assistant-A -> send_to_agent manager-B is refused with the policy's reason, even typing from: owner",
+		cross?.ok === false && /may not message/.test(cross.why ?? "") && !!refused_line,
+		{ caller: idA, to: mgrB, answer: cross, policy_log: refused_line ?? null });
+
+	// identity (ii): `from` comes from the connection (?as=), not from what the agent types.
+	const marker = `layers proof identity ${Date.now()}`;
+	const typed = await tool("card_reply", { card: A, text: marker, from: "owner" }, idA);
+	const signed = (await card_log(A)).messages?.find(m => m.text === marker);
+	record("identity (ii): a card_reply typed as from: owner lands signed by the connection's own id",
+		signed?.by === idA, { caller: idA, typed_from: "owner", answer: typed, landed_by: signed?.by ?? null });
 
 	// 7a. a lost session: stop B's assistant, delete its session file, speak again
 	const rowB = (await get(`/api/card-agents?card=${encodeURIComponent(B)}`)).find(r => r.role === "assistant");
@@ -236,9 +266,21 @@ async function run(){
 	record("identity: every line on the two cards is signed by its own agent id, never a generic 'agent'",
 		![...speakers].some(s => !s || s === "agent"), { speakers: [...speakers] });
 
-	// cost, from the agents' own cards
+	// cost, from the agents' own logs: `cost` is cumulative per running instance and
+	// restarts at 0 when an agent is respawned, so add each run's last value.
 	const agents = await get("/agents");
-	const cost = agents.reduce((sum, a) => sum + (Number(a.cost) || 0), 0);
+	let cost = 0;
+	const logs = path.join(LOCAL, "lew42", "servex", "logs");
+	for (const f of fs.readdirSync(logs).filter(f => f.startsWith("agent-"))){
+		let prev = 0;
+		for (const line of fs.readFileSync(path.join(logs, f), "utf8").split("\n")){
+			let c; try { c = JSON.parse(line).cost; } catch { continue; }
+			if (typeof c !== "number") continue;
+			if (c < prev) cost += prev;
+			prev = c;
+		}
+		cost += prev;
+	}
 	return { cards: { A, B }, agents: agents.map(a => ({ id: a.id, role: a.role, model: a.model, state: a.state, session_id: a.session_id, cost: a.cost ?? null })), cost_usd: Math.round(cost * 10000) / 10000 };
 }
 
@@ -248,7 +290,7 @@ catch (e){ error = String(e.stack || e); say(`ERROR ${e.message}`); }
 finally { await cleanup(); }
 
 const summary = { at: new Date().toISOString(), seconds: secs(), scratch: SCRATCH, localappdata: LOCAL,
-	passed: results.filter(r => r.pass === true).length, of: results.length, error, results, ...extra };
+	passed: results.filter(r => r.pass === true).length, of: results.length, error, results, files_changed_by_agents: touched, ...extra };
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(summary, null, 2) + "\n");
 console.log("\n── layers proof ──────────────────────────────────────────────");
