@@ -1104,6 +1104,136 @@
 		max-height: none;
 		overflow: visible;
 	}
+
+	/* Every line of reading text holds the measure — the chat and its
+	   composer too, which used to run the whole width (2,622px at 3440). */
+	.ai2-card-live .ai2-foot > * {
+		max-width: var(--measure);
+	}
+}
+
+/* ── the Live card in columns on a wide screen (live-card-wide, 2026-09-24) ──
+   The owner: "Take a screenshot at 3440 and you'll see that 50% of the page
+   is just empty space… I think we want to rely on columns more."
+
+   The card's parts become columns as its OWN width allows — measured on the
+   detail region it sits in, not the window, because the sidebar and the rail
+   (which you can drag wider) eat into the window first:
+
+     narrower than 60em   one column, as before; an agent opens under its row
+     60em                 two:   usage, tasks, chat  |  running now
+     95em                 three: usage, tasks, chat  |  running now  |  agent
+     130em                four:  usage, tasks  |  running now  |  agent  |  chat
+
+   The agent column is RESERVED once it exists (a hint until you pick one), so
+   opening an agent never moves or resizes anything else. The columns are
+   equal `1fr` tracks; the text inside each still stops at `--measure`.
+   Every row the short columns sit in is `auto`, and the last row is `1fr`
+   that only the long columns span, so a long "Running now" never pulls gaps
+   open between usage and tasks. The page is still the ONE scroll box.
+   Rules, numbers and screenshots: doc/columns.md. */
+@layer theme {
+	.ai2-detail:has(> .ai2-card-live) {
+		container: ai2-live / inline-size;
+	}
+
+	.ai2-live-talk-col {
+		display: none;
+		min-width: 0;
+	}
+
+	.ai2-talk-title {
+		display: none;
+	}
+
+	@container ai2-live (min-width: 60em) {
+		.page.ai2-card-page.ai2-card-live {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-rows: auto auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head  head"
+				"use   run"
+				"tasks run"
+				"chat  run"
+				".     run";
+			align-content: start;
+			align-items: start;
+			column-gap: var(--gap);
+			padding: var(--pad);
+		}
+
+		.ai2-card-live .ai2-full { display: contents; }
+		.ai2-card-live .ai2-full-head { grid-area: head; margin-block-end: var(--gap-50); }
+		.ai2-card-live .ai2-live-usage { grid-area: use; margin-block-start: 0; }
+		.ai2-card-live .ai2-live-running { grid-area: run; margin-block-start: 0; }
+		.ai2-card-live .ai2-live-tasks { grid-area: tasks; }
+		.ai2-card-live .ai2-live-talk-col { grid-area: agent; }
+
+		/* The chat is a box of its own among the columns: its tinted ground
+		   keeps its padding, all the way round. */
+		.ai2-card-live .ai2-foot {
+			grid-area: chat;
+			margin-block-start: 1em;
+			border: 1px solid var(--line);
+			border-radius: 0.4em;
+		}
+
+		.ai2-card-live .ai2-live-section > h3:first-child { margin-block-start: 0; }
+	}
+
+	@container ai2-live (min-width: 95em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-areas:
+				"head  head head"
+				"use   run  agent"
+				"tasks run  agent"
+				"chat  run  agent"
+				".     run  agent";
+		}
+
+		.ai2-card-live .ai2-live-talk-col { display: block; }
+	}
+
+	@container ai2-live (min-width: 130em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			grid-template-rows: auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head  head head  head"
+				"use   run  agent chat"
+				"tasks run  agent chat"
+				".     run  agent chat";
+		}
+
+		.ai2-card-live .ai2-foot { margin-block-start: 0; }
+	}
+
+	/* In the column, the conversation says whose it is — its row may be far
+	   from it — and the hint stands down once one is open. */
+	.ai2-live-talk-col .ai2-talk-title {
+		display: block;
+		font-weight: 600;
+		margin-block-end: 0.35em;
+	}
+
+	.ai2-live-talk-col .ai2-talk {
+		border: 1px solid var(--line);
+		border-inline-start: 2px solid var(--prim);
+		border-radius: 0.4em;
+	}
+
+	.ai2-live-talk-col:has(.ai2-talk) > .ai2-live-talk-hint {
+		display: none;
+	}
+
+	.ai2-live-talk-hint {
+		margin: 0;
+		padding: 0.75em;
+		border: 1px dashed var(--line);
+		border-radius: 0.4em;
+	}
 }
 
 /* ── talking to one agent from the Live card (agent-chat, 2026-09-24) ─────

@@ -29,7 +29,7 @@ import { clock } from "./card.js";
  * "Running now" lie.
  *
  * TALKING TO AN AGENT: click a row in "Running now" and its conversation opens
- * right under it — its own log, live, and a box that sends it a message
+ * beside the list (a wide card) or right under it — its own log, live, and a box that sends it a message
  * (`AgentTalk`, below; `POST /api/agents/<id>/message` in Servex.js). Click the
  * row again to close it. The composer at the bottom of the page still talks to
  * the assistant, as before.
@@ -187,25 +187,33 @@ export function live_row(it){
 	});
 }
 
-/** THE PAGE — one column that scrolls as one: usage (three pace meters),
+/** THE PAGE — scrolls as one; ai2.css splits it into columns when wide: usage (three pace meters),
  *  who is running, the tasks, then the chat. A task has a ✕ that clears it;
  *  the chat says who cleared what. A running agent's row opens its own
- *  conversation inline (`AgentTalk`). */
+ *  conversation in the agent column, or inline (`AgentTalk`). */
 export function live_full(it, model){
 	div.c("ai2-full-head flex v-center gap-25", () => {
 		icon(it.icon);
 		span.c("ai2-full-title").text("Live");
 	});
 
-	div.c("ai2-live-section", () => {
+	div.c("ai2-live-section ai2-live-usage", () => {
 		h3("Usage");
 		usage_rail(it.usage, LABELS);
 	});
 
-	/* An agent row is a toggle: its conversation opens INLINE, right under it.
-	   The open ones live in `model.talks`, so a redraw puts the SAME panel back
-	   (half-typed text and all) instead of building a new one. */
-	const list = (title, items, empty, { clearable, talkable } = {}) => div.c("ai2-live-section", $sec => {
+	/* THE AGENT COLUMN — where an opened conversation goes when the card is
+	   wide enough (ai2.css decides: it is `display: none` until then, and the
+	   conversation opens under its row instead). Doc: doc/columns.md. */
+	const $col = div.c("ai2-live-talk-col", () => {
+		p.c("ai2-live-talk-hint muted").text("Click an agent in Running now. Its conversation opens here, beside the list.");
+	});
+
+	/* An agent row is a toggle: its conversation opens beside the list when
+	   there is a column for it, under the row when there is not. The open ones
+	   live in `model.talks`, so a redraw puts the SAME panel back (half-typed
+	   text and all) instead of building a new one. */
+	const list = (title, items, empty, { clearable, talkable, cls = "" } = {}) => div.c("ai2-live-section " + cls, $sec => {
 		h3(title);
 		if (!items.length) small.c("muted").text(empty);
 		items.forEach(x => {
@@ -219,7 +227,7 @@ export function live_full(it, model){
 			});
 			if (!talks) return;
 			$row.attr("title", "click to talk to " + x.id);
-			if (open) model.talks.get(x.id).attach($sec, $row);
+			if (open) model.talks.get(x.id).attach($sec, $row, $col);
 			$row.click(() => {
 				if (model.talks.has(x.id)){
 					model.talks.get(x.id).close();
@@ -227,15 +235,21 @@ export function live_full(it, model){
 					$row.rc("ai2-live-open");
 					return;
 				}
+				// The column shows ONE conversation, like any list beside its detail.
+				if (AgentTalk.columned($col)){
+					model.talks.forEach(t => t.close());
+					model.talks.clear();
+					$sec.el.querySelectorAll(".ai2-live-open").forEach(el => el.classList.remove("ai2-live-open"));
+				}
 				$sec.append(() => { model.talks.set(x.id, new AgentTalk({ id: x.id })); });
-				model.talks.get(x.id).attach($sec, $row);
+				model.talks.get(x.id).attach($sec, $row, $col);
 				$row.ac("ai2-live-open");
 			});
 		});
 	});
 
-	list("Running now", it.agents, "nothing is running", { talkable: true });
-	list("Tasks", it.tasks, "no task in progress", { clearable: true });
+	list("Running now", it.agents, "nothing is running", { talkable: true, cls: "ai2-live-running" });
+	list("Tasks", it.tasks, "no task in progress", { clearable: true, cls: "ai2-live-tasks" });
 }
 
 /**
@@ -267,6 +281,7 @@ export class AgentTalk {
 		this.focused = false;
 		this.pending = [];
 		this.view = div.c("ai2-talk", () => {
+			span.c("ai2-talk-title").text(this.id);   // shown only in the column, away from its row
 			this.$lines = div.c("ai2-talk-lines");
 			form.c("ai2-talk-form", () => {
 				this.$input = input.c("ai2-talk-input").attr("type", "text").attr("placeholder", "say something to " + this.id);
@@ -332,14 +347,49 @@ export class AgentTalk {
 				e => this.$status.text("Not sent — " + (e.message === "Failed to fetch" ? "Servex is not answering." : e.message)));
 	}
 
-	/** Put the panel right under its row — the first time, and after every redraw. */
-	attach($sec, $row){
-		$sec.el.insertBefore(this.view.el, $row.el.nextSibling);
-		if (this.focused) this.$input.el.focus();
+	/** Is the agent column showing? ai2.css hides it on a card too narrow for it. */
+	static columned($col){
+		return !!$col?.el.isConnected && getComputedStyle($col.el).display !== "none";
+	}
+
+	/** Put the panel in the agent column, level with its row — or, with no
+	 *  column, right under the row. The first time, after every redraw, and
+	 *  whenever the card's width changes (the column can appear or go). */
+	attach($sec, $row, $col){
+		Object.assign(this, { $sec, $row, $col });
+		const el = this.view.el;
+		if (this.constructor.columned($col)){
+			if (el.parentNode !== $col.el) $col.el.append(el);
+			// Level with the row it belongs to, so the eye does not have to hunt.
+			// Both boxes start on the same grid row, so the difference is stable.
+			el.style.marginBlockStart = "0px";
+			const dy = $row.el.getBoundingClientRect().top - el.getBoundingClientRect().top;
+			el.style.marginBlockStart = Math.max(0, Math.round(dy)) + "px";
+		} else {
+			el.style.marginBlockStart = "";
+			if (el.previousSibling !== $row.el) $sec.el.insertBefore(el, $row.el.nextSibling);
+		}
+		if (this.focused && document.activeElement !== this.$input.el) this.$input.el.focus();
+		this.watch();
+	}
+
+	/** Re-place on a width change. Observes the column, which goes from
+	 *  `display: none` to a real box and back as the card crosses the width. */
+	watch(){
+		this.ro ??= new ResizeObserver(() => {
+			const mode = this.constructor.columned(this.$col);
+			if (mode !== this.mode || mode){ this.mode = mode; this.attach(this.$sec, this.$row, this.$col); }
+		});
+		if (this.observed === this.$col?.el) return;
+		this.ro.disconnect();
+		this.observed = this.$col?.el;
+		if (this.observed) this.ro.observe(this.observed);
+		this.mode = this.constructor.columned(this.$col);
 	}
 
 	close(){
 		this.off?.();
+		this.ro?.disconnect();
 		this.view.el.remove();
 	}
 }

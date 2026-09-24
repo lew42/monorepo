@@ -23,12 +23,12 @@ working on it. Only one microphone is on at a time; pressing one stops the other
 
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
-agent Servex is running, and today's open tasks, all in one column that scrolls as one. It rises
+agent Servex is running, and today's open tasks, in one page that scrolls as one — split into columns on a wide screen ([`doc/columns.md`](./doc/columns.md)). It rises
 to the top of the rail whenever any of that changes. Its chat is the log of those changes, and
 anything you say there reaches the assistant along with the list of what is running. The ✕ on a
 task clears it until it changes again; running agents have none. A task spoken while dispatch was
 paused shows "not started": the Dispatcher never replays it, so say it again. **Click a running
-agent** and its conversation opens right under its row — what it said, live — with a box that
+agent** and its conversation opens beside the list when the card is wide enough, or right under its row when it is not — what it said, live — with a box that
 sends it a message (`POST /api/agents/<id>/message` on Servex); click the row again to close it.
 
 **Nothing jumps**, and that is three mechanisms, not one:
@@ -109,6 +109,8 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
 - [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
+- [`doc/columns.md`](./doc/columns.md) — how the Live card splits into columns on a wide
+  screen, and how many levels of navigation fit at each width
 - [`doc/persistence.md`](./doc/persistence.md) — the survey: what each persistence system on this
   site saves and where, and which one a nested card page uses
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
