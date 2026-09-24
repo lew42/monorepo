@@ -1,0 +1,74 @@
+@layer theme {
+
+	/* The plan page. Every rule is prefixed ux-content-plan- so nothing here can
+	   restyle a box it is only showing. */
+	.ux-content-plan-lede { font-size: 1.15em; max-width: var(--measure); }
+
+	.ux-content-plan-nums { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--gap) var(--flow); }
+	.ux-content-plan-num { display: flex; flex-direction: column; }
+	.ux-content-plan-big { font-size: 3em; font-weight: 800; line-height: 1; white-space: nowrap; }
+	.ux-content-plan-num > span:last-child { color: var(--subtle); }
+	.ux-content-plan-sum { flex-basis: 100%; margin: 0; max-width: var(--measure); }
+
+	/* Eight targets, a count known in advance: 1, 2 or 4 across, never 5 + 3. */
+	.ux-content-plan-wall { display: grid; gap: var(--gap-50); grid-template-columns: minmax(0, 1fr); }
+	@media (min-width: 40em) { .ux-content-plan-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	@media (min-width: 90em) { .ux-content-plan-wall { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+	.ux-content-plan-stage {
+		display: block; min-height: 4em; padding: var(--gap-50); overflow: auto; contain: paint;
+		border: 1px dashed var(--line); border-radius: var(--radius);
+	}
+	/* A link tile always sits in a wall, where it is a block; the stage stands in for the wall. */
+	.ux-content-plan-stage > :is(a.card, a.decks-card, a.blogx-card) { display: block; }
+	.ux-content-plan-undrawn { margin: 0; color: var(--subtle); font-size: .85em; font-style: italic; }
+
+	.ux-content-plan-rest > ul { margin-block: var(--gap-50) 0; }
+
+	.ux-content-plan-merges { display: flex; flex-direction: column; gap: var(--flow); }
+	.ux-content-plan-merge {
+		display: flex; flex-direction: column; gap: var(--gap-70);
+		padding-block-start: var(--gap-70); border-top: 1px solid var(--line);
+	}
+	.ux-content-plan-merge-head { display: flex; flex-direction: column; gap: var(--gap-35); max-width: var(--measure); }
+	.ux-content-plan-merge-head > * { margin: 0; }
+
+	/* Before and after side by side, each capped at a real card's width so --pad-card
+	   (a percentage of the box it sits in) is measured at a width a card really has. */
+	.ux-content-plan-pair { display: grid; gap: var(--gap-35) var(--gap-50); grid-template-columns: repeat(2, minmax(0, 30rem)); }
+	@media (max-width: 40em) { .ux-content-plan-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-35); } }
+	.ux-content-plan-pair-name { grid-column: 1 / -1; margin: 0; }
+	.ux-content-plan-side { display: flex; flex-direction: column; gap: var(--gap-25); min-width: 0; }
+	.ux-content-plan-label, .ux-content-plan-inset { font-size: .85em; }
+
+	.ux-content-plan-risk-low { background: none; border: 1px solid var(--line); }
+	.ux-content-plan-risk-med { background: none; border: 1px solid currentColor; font-weight: 700; }
+	.ux-content-plan-risk-high { background: none; border: 1px solid var(--error); color: var(--error); font-weight: 700; }
+
+	.ux-content-plan-table { overflow-x: auto; }
+	.ux-content-plan-table table { inline-size: 100%; border-collapse: collapse; }
+	.ux-content-plan-table :is(th, td) { text-align: start; vertical-align: top; padding: 0.5em 0.8em; border-bottom: 1px solid var(--line); }
+	.ux-content-plan-table td:first-child { white-space: nowrap; }
+	.ux-content-plan-table td:last-child { min-inline-size: 16em; max-inline-size: var(--measure); }
+
+	.ux-content-plan-order { display: flex; flex-direction: column; gap: var(--gap-50); }
+	.ux-content-plan-pages > summary { cursor: pointer; color: var(--subtle); font-size: .9em; }
+	.ux-content-plan-pages ul { columns: 16rem; margin: var(--gap-25) 0 0; }
+
+	/* ── The PROPOSED rules: drawn inside the "after" stages and the target tiles only.
+	   Step 2 moves each into the module named in plan.json (ui/row, ui/panel, ui/accordion). */
+	.ux-content-plan-proposed .ui-row {
+		display: flex; align-items: center; gap: 0.6em; min-width: 0;
+		padding: 0.45em 0.6em; border-radius: var(--radius);
+	}
+	.ux-content-plan-proposed .ui-row:hover, .ux-content-plan-proposed .ui-row.selected { background: var(--wash); }
+	.ux-content-plan-proposed .ui-panel-body { padding: var(--pad-card); }
+	.ux-content-plan-proposed :is(.ui-panel-head, .ui-panel-foot) { padding: 0.6em var(--pad-card); }
+	.ux-content-plan-proposed .ui-accordion-item > summary { padding: 0.45em 0.6em; cursor: pointer; }
+	.ux-content-plan-proposed .ui-accordion-item > :not(summary) { margin: 0; padding: 0 0.6em 0.6em; }
+
+	/* A popover floats; here it is drawn in place so it can be compared. */
+	.ux-content-plan-proposed .ux-popover { position: static; box-shadow: none; inline-size: fit-content; }
+	.ux-content-plan-proposed .ux-popover-text { padding: 0.35em 0.6em; flex: none; }
+	.ux-content-plan-shot { aspect-ratio: 4 / 3; }
+}
