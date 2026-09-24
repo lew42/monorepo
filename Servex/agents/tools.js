@@ -1,4 +1,5 @@
 import { agents as singleton } from "./Agents.js";
+import { Policy } from "./policy.js";
 
 /* The five verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
@@ -29,7 +30,9 @@ const tool = (name, description, properties, required, handler) => {
  * — spawn names the agent, the caller does not. */
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
-export function tools(agents = singleton){ return [
+export function tools(agents = singleton){
+const policy = agents.policy ??= new Policy({ agents });
+return [
 
 	tool("spawn_agent",
 		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
@@ -48,7 +51,11 @@ export function tools(agents = singleton){ return [
 			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." }
 		},
 		["prompt"],
-		args => card(agents.spawn(args))),
+		(args, ctx = {}) => {
+			const ruling = policy.spawn(ctx.caller ?? null, args.role);
+			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			return card(agents.spawn(args));
+		}),
 
 	tool("send_to_agent",
 		"Say something to a running agent. It arrives wrapped so the agent can see who asked and"
@@ -63,7 +70,13 @@ export function tools(agents = singleton){ return [
 			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." }
 		},
 		["id", "text"],
-		({ id, text, ...note }) => card(agents.send(id, text, note))),
+		({ id, text, ...note }, ctx = {}) => {
+			const ruling = policy.message(ctx.caller ?? null, id);
+			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			const from = ctx.caller ?? note.from;
+			policy.heard(from ?? "owner", id);
+			return card(agents.send(id, text, { ...note, from }));
+		}),
 
 	tool("interrupt_agent",
 		"Stop an agent mid-sentence, keeping the session alive. It goes idle with everything it has"
