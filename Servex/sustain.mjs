@@ -2,7 +2,7 @@
  *
  *   node Servex/sustain.mjs            start Servex and keep it up
  *   node Servex/sustain.mjs --status   is it up? which pids?
- *   node Servex/sustain.mjs --stop     stop both, for good
+ *   node Servex/sustain.mjs --stop     stop both, and the port-80 gate, for good
  *
  * Servex supervises everything else on this machine and, until now, nothing
  * supervised Servex: when it died — a crash, an `unhandledRejection`, a stray
@@ -46,7 +46,10 @@ const HEALTHY = 30000;      // stayed up this long? the next crash starts over
 const stamp = () => new Date().toISOString().slice(11, 19);
 const note = msg => { const line = `${stamp()} sustain: ${msg}\n`; process.stdout.write(line); try { fs.appendFileSync(OUT, line); } catch {} };
 
-const read = () => { try { return JSON.parse(fs.readFileSync(PIDS, "utf8")); } catch { return null; } };
+const GATE = place("gate.pid.json");                                     // gate.mjs writes it
+const REPORTS = path.dirname(place("logs", "reports", "report.json"));   // a native crash's report lands here
+
+const read = (file = PIDS) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } };
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
 /* ⚠ `child.kill()` on Windows leaves the GRANDCHILDREN — and Servex's
@@ -59,7 +62,8 @@ const kill = pid => process.platform === "win32"
 /* ── the three commands ─────────────────────────────────────────────────── */
 
 function status(){
-    const pids = read();
+    const pids = read(), gate = read(GATE);
+    if (gate) console.log(`gate    pid ${gate.pid}  ${alive(gate.pid) ? "alive" : "GONE"}  (${gate.listen} -> ${gate.target})`);
     if (!pids) return console.log(`Servex is not running under a keeper — no ${PIDS}.`);
 
     console.log(`keeper  pid ${pids.keeper}  ${alive(pids.keeper) ? "alive" : "GONE"}`);
@@ -69,12 +73,20 @@ function status(){
 
 function stop(){
     const pids = read();
-    if (!pids) return console.log("Nothing to stop.");
+    if (pids){
+        kill(pids.keeper);             // the keeper FIRST, or it restarts what we just killed
+        kill(pids.servex);
+        try { fs.unlinkSync(PIDS); } catch {}
+        console.log(`Stopped keeper ${pids.keeper} and Servex ${pids.servex}.`);
+    }
 
-    kill(pids.keeper);                 // the keeper FIRST, or it restarts what we just killed
-    kill(pids.servex);
-    try { fs.unlinkSync(PIDS); } catch {}
-    console.log(`Stopped keeper ${pids.keeper} and Servex ${pids.servex}.`);
+    /* The gate (gate.mjs) holds port 80 and outlives Servex on purpose, so the
+     * tree kill above never reaches it. It goes LAST, once nothing is left that
+     * could launch it again. */
+    const gate = read(GATE);
+    if (gate && alive(gate.pid)){ kill(gate.pid); console.log(`Stopped the gate ${gate.pid}.`); }
+    try { fs.unlinkSync(GATE); } catch {}
+    if (!pids && !gate) console.log("Nothing to stop.");
 }
 
 function keep(){
@@ -94,7 +106,7 @@ function start(backoff){
     const began = Date.now();
     const out = fs.openSync(OUT, "a");
 
-    const child = spawn(process.execPath, [ENTRY], {
+    const child = spawn(process.execPath, ["--report-on-fatalerror", `--report-directory=${REPORTS}`, ENTRY], {
         cwd: path.join(HERE, ".."),
         stdio: ["ignore", out, out]
         // ⚠ no windowsHide: Servex spawns agents and servers, and a process with no console makes
