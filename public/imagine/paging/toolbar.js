@@ -189,7 +189,7 @@ export class PagingToolbar extends View {
 			span.c("paging-pick-label", heading);
 
 			div.c("paging-pick", () => {
-				if (COLOURS.includes(axis)) this.dots.set(axis, span.c("paging-dot"));
+				if (COLOURS.includes(axis)) this.dots.set(axis, { $dot: span.c("paging-dot"), label });
 
 				const $select = select(() => {
 					values.forEach(value => option(value.title).attr("value", value.id).attr("title", value.means));

@@ -146,8 +146,8 @@ class BrowseItem extends Page {
 		});
 	}
 
-	// LEVEL 2 — this item's own page: the pictures at three widths, then the verdict,
-	// then everything one click down.
+	// LEVEL 2 — this item's own page: the way back and the one line, the verdict, then
+	// the pictures at three widths, then everything one click down.
 	content(){
 		item_page(this);
 	}
@@ -294,17 +294,20 @@ function from(item){
      screen, and `wide` gave a one-line `<summary>` a 1,766px grey bar at 1920 and a
      3,260px paragraph at 3440 (measured 2026-09-17). */
 function item_page(item){
-	// 1 · THE PICTURES. `redraw`, not a plain append, because the arrangement below
-	//     40rem is a different one and no CSS can open a `<details>` — see `pictures()`.
-	//     The item's own data is already in hand (a real page, not a route() guess),
-	//     so only the layout standard's own drawings need a fetch.
+	// 1 · THE WAY BACK and the one line; 2 · THE DECISION, above the pictures, because an
+	//     item page is for the verdict (the owner, 2026-09-24); 3 · THE PICTURES;
+	//     4 · everything one click down.
+	div.c("std-browse-lede", () => { lede(item); });
+	live(div.c("std-browse-seat"), () => { decide(item); });
+
+	// `redraw`, not a plain append, because the arrangement below 40rem is a different
+	// one and no CSS can open a `<details>` — see `pictures()`. The item's own data is
+	// already in hand, so only the layout standard's own drawings need a fetch.
 	div.c("std-shots std-browse-shots wide", $shots => {
 		load_layouts().then(layouts => { redraw($shots, () => { pictures(item, layouts); }); });
 	});
 
-	div.c("std-browse-lede", () => { lede(item); });           // 2 · the way back, and the one line
-	live(div.c("std-browse-seat"), () => { decide(item); });   // 3 · the decision — the box a phone hoists
-	live(div.c("flow std-browse-rest"), () => { rest(item); }); // 4 · everything one click down
+	live(div.c("flow std-browse-rest"), () => { rest(item); });
 }
 
 /* A BOX THAT REBUILDS WHEN THE WIDTH CROSSES THE PHONE LINE. One arrangement of the
