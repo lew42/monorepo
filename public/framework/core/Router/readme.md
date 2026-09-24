@@ -7,6 +7,7 @@
 That is the whole API. Each url segment is one `page.child(name)`, a miss is an `import`, and a url the Router can't resolve is handed to the browser. It writes four classes — `.active-page`, `.active-ancestor`, `a.active`, `a.in-path` — and CSS does the rest.
 
 ## Watch out
+- A click on a link to a `.md` file opens its rendered page (`<module>/md/…/`), not the raw file; `x.md?raw` still opens the file: [/framework/core/Page/doc/markdown.md](/framework/core/Page/doc/markdown.md)
 - Anchors rendered *after* a navigation never get `.active`/`.in-path` on their own — call `app.router.mark_links()` bare, as `ext/tabs` and `ext/catalog` do: [doc/marking.md](./doc/marking.md)
 - Removing the scroll reset in `activate()` looks safe (`scrollTop` clamps); it isn't: [doc/scroll-reset.md](./doc/scroll-reset.md)
 - A cross-page `#fragment` lands at the top — the target does not exist yet when `activate()` scrolls: [doc/fragment.md](./doc/fragment.md)
