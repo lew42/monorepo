@@ -1,7 +1,7 @@
 import { div, span, small, button, h3 } from "/app.js";
-import { icon } from "/framework/core/View/View.js";
+import { View, icon } from "/framework/core/View/View.js";
+import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, card_stream, agent_frames } from "./inbox.js";
-import { usage_bars, usage_bar } from "./overview.js";
 import { clock } from "./card.js";
 
 /**
@@ -12,7 +12,9 @@ import { clock } from "./card.js";
  * its page ends in a chat — every update, one line, and anything you say.
  *
  * Where each part comes from:
- *   usage   — `/framework/ai/usage.json`, the same snapshot the overview reads
+ *   usage   — `/framework/ai/usage.json`, the same snapshot the overview reads;
+ *             the page draws it with the first dashboard's pace meters
+ *             (`ext/AITask/usage.js`), all three limits, always
  *   agents  — Servex's live map (`GET /api/agents`), then every agent moment
  *             it pushes over the page's one `EventSource`
  *   tasks   — today's `day.jsonl` (opened, not yet landed) and the `task`
@@ -23,8 +25,22 @@ import { clock } from "./card.js";
  * CLEARING is one line on that same log, `{type: "clear", ref: <id>}`, which you
  * or any agent can write (`POST /log/cards/live`). It hides the item until
  * something new happens to it — a cleared task that moves again comes back.
+ * Only TASKS carry a ✕: hiding an agent that is still running would make
+ * "Running now" lie.
+ *
+ * A NOT STARTED task was spoken while `dispatch.off` existed. The Dispatcher
+ * answers it with "dispatch is paused…" and never replays it (Servex/agents/
+ * Dispatcher.js), so it is not queued — it will never run unless said again.
  */
 export const LIVE = "live";
+
+// The pace meters' own stylesheet — `usage_rail` alone does not load it.
+View.stylesheet("/framework/ext/AITask/ai.css");
+
+// The three limits, in the words the owner reads them by.
+const LABELS = { session: "5-hour", weekly_scoped: "weekly Fable", weekly_all: "weekly all" };
+const ORDER = ["session", "weekly_scoped", "weekly_all"];
+const PAUSED = "dispatch is paused";
 
 // The always-on sessions: running, but their every sentence is not news.
 const QUIET = new Set(["assistant-fast", "master-assistant-master", "dispatcher"]);
@@ -33,7 +49,7 @@ const newer = (a, b) => (Date.parse(a ?? 0) > Date.parse(b ?? 0) ? a : b);
 export function live_model({ prompts, day }){
 	const log = card_stream(LIVE);
 	const readers = new Set();
-	let agents = [], bars = [], moment = null;
+	let agents = [], usage = null, moment = null;
 
 	const changed = () => readers.forEach(fn => fn());
 
@@ -42,7 +58,18 @@ export function live_model({ prompts, day }){
 		catch { agents = []; }
 		changed();
 	}
-	async function poll_usage(){ bars = await usage_bars(); changed(); }
+	/* The raw snapshot: the meters need each limit's `group` and `resets_at`. */
+	async function poll_usage(){
+		try { usage = await (await fetch("/framework/ai/usage.json", { cache: "no-store" })).json(); }
+		catch { usage = null; }
+		changed();
+	}
+
+	/** All three limits, in the owner's order — weekly Fable too, even at 0%. */
+	function limits(){
+		const all = usage?.utilization?.limits ?? [];
+		return [...all].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
+	}
 
 	/* A token is not a moment; a start, a finished turn, a stop or an error is. */
 	agent_frames(event => {
@@ -78,8 +105,10 @@ export function live_model({ prompts, day }){
 			if (e.type !== "task" || !e.id) return;
 			const was = by_id.get(e.id) ?? {};
 			by_id.set(e.id, { ...was, id: e.id, title: e.title ?? was.title ?? e.id, state: e.state ?? was.state,
-				line: e.now ?? was.line ?? e.brief ?? "", at: e.at });
+				line: e.now ?? was.line ?? e.brief ?? "", at: e.at, paused: String(e.now ?? "").startsWith(PAUSED) });
 		});
+		by_id.forEach(t => { if (t.paused && t.state !== "landed") Object.assign(t, { state: "not-started",
+			line: "never started — spoken while dispatch was paused; say it again to start it" }); });
 		return [...by_id.values()].filter(t => t.state !== "landed");
 	}
 
@@ -103,8 +132,10 @@ export function live_model({ prompts, day }){
 			log.entries.forEach(e => { at = newer(e.at, at); });
 			t.forEach(x => { at = newer(x.at, at); });
 			const last = [...log.entries].reverse().find(e => e.type === "update" || e.type === "reply");
-			return { id: LIVE, kind: "live", icon: "monitoring", title: "Live", author: "servex", at,
-				bars, agents: a, tasks: t, last: last?.text ?? "", links: [], transcript: [] };
+			const lim = limits();
+			const bars = lim.map(l => ({ kind: l.kind, label: LABELS[l.kind] ?? l.kind, percent: l.percent, severity: l.severity }));
+			return { id: LIVE, kind: "live", icon: "speed", title: "Live", author: "servex", at,
+				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, last: last?.text ?? "", links: [], transcript: [] };
 		},
 
 		/** Everything the Live card's chat shows: its own log, plus today's task
@@ -136,7 +167,7 @@ export function live_row(it){
 	});
 	div.c("ai2-live-bars", () => {
 		it.bars.forEach(b => {
-			span.c("ai2-live-bar" + (b.severity === "critical" ? " crit" : "")).attr("title", b.kind.replace("_", " ") + " " + b.percent + "%")
+			span.c("ai2-live-bar" + (b.severity === "critical" ? " crit" : "")).attr("title", b.label + " " + b.percent + "%")
 				.append(() => { span().style({ width: Math.min(100, b.percent) + "%" }); });
 		});
 	});
@@ -146,8 +177,9 @@ export function live_row(it){
 	});
 }
 
-/** THE PAGE — usage, who is running, the tasks. Each item has a ✕ that clears
- *  it; the chat below the page says who cleared what. */
+/** THE PAGE — one column that scrolls as one: usage (three pace meters),
+ *  who is running, the tasks, then the chat. A task has a ✕ that clears it;
+ *  the chat says who cleared what. */
 export function live_full(it, model){
 	div.c("ai2-full-head flex v-center gap-25", () => {
 		icon(it.icon);
@@ -156,24 +188,23 @@ export function live_full(it, model){
 
 	div.c("ai2-live-section", () => {
 		h3("Usage");
-		if (!it.bars.length) small.c("muted").text("no usage snapshot yet");
-		it.bars.forEach(usage_bar);
+		usage_rail(it.usage, LABELS);
 	});
 
-	const list = (title, items, empty) => div.c("ai2-live-section", () => {
+	const list = (title, items, empty, clearable) => div.c("ai2-live-section", () => {
 		h3(title);
 		if (!items.length) small.c("muted").text(empty);
 		items.forEach(x => {
-			div.c("ai2-live-item flex v-center gap-25", () => {
-				span.c("ai2-live-state ai2-live-" + x.state).text(x.state);
+			div.c("ai2-live-item", () => {
+				span.c("ai2-live-state ai2-live-" + x.state).text(x.state.replace("-", " "));
 				span.c("ai2-live-name").text(x.title);
 				if (x.line) small.c("ai2-live-line muted").text(x.line);
-				button.c("ai2-clear").attr("type", "button").attr("title", "clear — it comes back if it changes again")
+				if (clearable) button.c("ai2-clear").attr("type", "button").attr("title", "clear — it comes back if it changes again")
 					.text("✕").click(() => model.clear(x.id));
 			});
 		});
 	});
 
-	list("Running now", it.agents, "nothing is running");
-	list("Tasks", it.tasks, "no task in progress");
+	list("Running now", it.agents, "nothing is running", false);
+	list("Tasks", it.tasks, "no task in progress", true);
 }

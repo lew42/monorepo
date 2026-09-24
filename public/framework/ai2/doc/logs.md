@@ -96,7 +96,7 @@ there has to be written there. Four writers do:
 | Servex's agent host (`moment()`) | `{type: "update", ref, text}` on `cards/live` only | an agent (not the two always-on assistants) starts, ends a turn, stops, errors |
 
 **`cards/live` is the Live card's log**, and it also takes `{type: "clear", ref: <item id>}` from
-the page's ✕ or from any agent (`POST /log/cards/live`). A clear hides that item until its own
+a task's ✕ or from any agent (`POST /log/cards/live`). A clear hides that item until its own
 timestamp moves past the clear's. The Live card's chat adds today's `task opened` and `landed`
 lines from `day.jsonl`, which Servex cannot see, so those are read by the page, not copied.
 

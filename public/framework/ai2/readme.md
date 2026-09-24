@@ -22,10 +22,12 @@ every reply — from the fast assistant, from a helper it started, or from a tas
 working on it. Only one microphone is on at a time; pressing one stops the other.
 
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
-usage limits, every agent Servex is running, and today's open tasks. It rises to the top of the
-rail whenever any of that changes. Its chat is the log of those changes, and anything you say
-there reaches the assistant along with the list of what is running. The ✕ on an item clears it
-until it changes again.
+usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
+agent Servex is running, and today's open tasks, all in one column that scrolls as one. It rises
+to the top of the rail whenever any of that changes. Its chat is the log of those changes, and
+anything you say there reaches the assistant along with the list of what is running. The ✕ on a
+task clears it until it changes again; running agents have none. A task spoken while dispatch was
+paused shows "not started": the Dispatcher never replays it, so say it again.
 
 **Nothing jumps**, and that is three mechanisms, not one:
 

@@ -36,12 +36,12 @@ export function pace(limit, now = Date.now()){
 			: projected <= 125 ? "warm" : projected <= 175 ? "hot" : "burning" };
 }
 
-function meter(limit){
+function meter(limit, labels = {}){
 	let $fill, $mark, $note;
 
 	const $m = div.c("ai-meter", () => {
 		div.c("flex split v-baseline", () => {
-			span.c("muted", label_of(limit));
+			span.c("muted", labels[limit.kind] ?? label_of(limit));
 			span.c("ai-pct", limit.percent + "%");
 		});
 		div.c("ai-gauge", () => {
@@ -67,14 +67,15 @@ function meter(limit){
 /**
  * usage_rail(u) — one meter per limit in a `usage.json` snapshot. Returns the
  * element synchronously; a 60s tick walks the clock forward in place so the
- * marker doesn't go stale between snapshot refreshes.
+ * marker doesn't go stale between snapshot refreshes. `labels` optionally
+ * renames a kind (`{ session: "5-hour" }`); unnamed kinds keep the default.
  */
-export function usage_rail(u){
+export function usage_rail(u, labels){
 	const limits = u?.utilization?.limits;
 	if (!limits?.length) return p.c("muted", "No usage.json yet — the check-claude-usage skill writes it.");
 
 	const paints = [];
-	const $u = div.c("ai-usage", () => limits.forEach(l => paints.push(meter(l))));
+	const $u = div.c("ai-usage", () => limits.forEach(l => paints.push(meter(l, labels))));
 
 	const id = setInterval(() => $u.el.isConnected ? paints.forEach(fn => fn()) : clearInterval(id), 60e3);
 	return $u;

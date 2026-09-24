@@ -1032,14 +1032,18 @@
 		margin-block-start: 1em;
 	}
 
+	/* A GRID, not a flex row: the ✕ names its own column, so it sits at the
+	   right edge even when the item has no line to push it there. */
 	.ai2-live-item {
+		display: grid;
+		grid-template-columns: 5.5em minmax(0, max-content) minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.5em;
 		padding-block: 0.3em;
 		border-block-end: 1px solid var(--line);
 	}
 
 	.ai2-live-state {
-		flex: none;
-		width: 5.5em;
 		font-size: 0.8em;
 		opacity: 0.7;
 	}
@@ -1050,25 +1054,54 @@
 		opacity: 1;
 	}
 
+	/* Spoken while dispatch was paused — it will never run, so it is not
+	   dressed as work in progress. */
+	.ai2-live-state.ai2-live-not-started {
+		opacity: 0.5;
+		font-style: italic;
+	}
+
 	.ai2-live-state.ai2-live-blocked {
 		color: var(--error);
 		opacity: 1;
 	}
 
 	.ai2-live-name {
-		flex: none;
+		grid-column: 2;
 		font-weight: 600;
+		overflow-wrap: anywhere;
 	}
 
 	.ai2-live-item .ai2-clear {
-		margin-inline-start: auto;
+		grid-column: 4;
+		margin: 0;
 	}
 
 	.ai2-live-line {
-		flex: 1;
-		min-width: 0;
+		grid-column: 3;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+}
+
+/* ── the Live card scrolls as one (live-card, 2026-09-24) ─────────────────
+   The owner: "I don't like these independently scrollable areas… it's a
+   pretty narrow column." Every other card keeps its pinned chat footer; on
+   the Live card the PAGE is the one scroll box and the usage, the lists and
+   the chat flow down it in one column. */
+@layer theme {
+	.page.ai2-card-page.ai2-card-live {
+		display: block;
+		overflow-y: auto;
+	}
+
+	.ai2-card-live .ai2-full {
+		overflow: visible;
+	}
+
+	.ai2-card-live .ai2-script {
+		max-height: none;
+		overflow: visible;
 	}
 }

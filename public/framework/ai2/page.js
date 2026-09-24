@@ -487,7 +487,7 @@ function card_page(root, id){
 	return new Page({
 		title: id,
 		url: root.url + id + "/",
-		classes: "ai2-card-page",
+		classes: "ai2-card-page" + (id === LIVE ? " ai2-card-live" : ""),
 
 		content(){
 			// THE THIRD COLUMN belongs to THIS card, not to AI 2's own shell — a
