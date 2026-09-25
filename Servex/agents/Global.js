@@ -105,7 +105,7 @@ export default class Global {
 		let agent = this.live(id);
 		if (agent && started === day) return this.touch(id, agent);
 		if (agent){ try { agent.stop(); } catch {} this.agents.live.delete(id); }   // a new day: recycled
-		const spec = { id, role: "master-assistant", name: "", model: model("fast"), effort: "medium",
+		const spec = { id, role: "master-assistant", name: "", model: model("architect"), effort: "medium",
 			permission_mode: "bypassPermissions", system: this.system("master-assistant.md"),
 			allowed_tools: ["mcp__servex__card_reply", "mcp__servex__send_to_agent", "mcp__servex__list_claims"] };
 		this.master_day = day;
