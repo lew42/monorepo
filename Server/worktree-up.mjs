@@ -103,7 +103,7 @@ fs.mkdirSync(WORKTREES_ROOT, { recursive: true });
 
 console.log(`worktree-up: creating ${target} on branch ${branch} off HEAD…`);
 try {
-	execFileSync("git", ["worktree", "add", "-b", branch, target, "HEAD"], { cwd: ROOT, stdio: "inherit" });
+	execFileSync("git", ["worktree", "add", "-b", branch, target, "HEAD"], { cwd: ROOT, stdio: "inherit", windowsHide: true });
 } catch (e) {
 	console.error("worktree-up: `git worktree add` failed — nothing else was touched.");
 	process.exit(1);
@@ -132,7 +132,7 @@ try {
 	   (found live, worktree-proof 2026-09-22 — npm never even started, so
 	   node_modules was never created and the server then died on
 	   `Cannot find package 'express'`). */
-	execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: target, stdio: "inherit", shell: true });
+	execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: target, stdio: "inherit", shell: true, windowsHide: true });
 } catch (e) {
 	console.error("worktree-up: `npm ci` failed — the server will probably fail to boot.");
 }
@@ -145,15 +145,22 @@ const port = await free_port();
 const LOGS_ROOT = path.join(ROOT, ".worktree-logs");
 fs.mkdirSync(LOGS_ROOT, { recursive: true });
 const log_path = path.join(LOGS_ROOT, `${name}.log`);
-const log_fd = fs.openSync(log_path, "a");
+fs.closeSync(fs.openSync(log_path, "a"));   // just make the file: a handle held open here makes cmd's own >> redirect fail (sharing violation), and the server then never starts
 
 console.log(`worktree-up: booting node server.js in ${target} on PORT ${port}…`);
 /* ⚠ Launched through PowerShell so the server gets a HIDDEN console that its children
  * inherit. A `detached` node with `windowsHide` has NO console, and then every child it
  * forks (run.js, boot-test candidates, claude turns, hooks) opens a VISIBLE window — the
  * 2026-09-22 node-window storm on the owner's desktop. */
-const ps = `$env:PORT='${port}'; $p = Start-Process -FilePath '${process.execPath.replaceAll("'", "''")}' -ArgumentList 'server.js' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -RedirectStandardOutput '${log_path.replaceAll("'", "''")}' -RedirectStandardError '${(log_path + ".err").replaceAll("'", "''")}' -PassThru; $p.Id`;
+/* ⚠ Start-Process must NOT get -RedirectStandardOutput/-RedirectStandardError: with a redirect it
+ * cannot use ShellExecute, ignores -WindowStyle and the child gets a fresh console (a conhost per
+ * launch, 2026-09-24). So the redirect happens inside a cmd wrapper instead, and Start-Process
+ * stays a plain hidden launch. (-NoNewWindow is no way out: the child keeps the launcher's stdout
+ * pipe, so spawnSync below would wait until the server exits.) The pid is cmd's; taskkill /T takes the tree. */
+const cmdline = `/d /c ""${process.execPath}" server.js >>"${log_path}" 2>>"${log_path}.err""`;
+const ps = `$env:PORT='${port}'; $p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
 const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+if (started.stderr?.trim()) console.error("worktree-up: launcher said:", started.stderr.trim());
 const child = { pid: Number(String(started.stdout).trim()) || null };
 
 const ok = await wait_for_boot(port);
