@@ -39,7 +39,8 @@ export function row(it){
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
 		span.c("ai2-row-title").text(it.title);
-		small.c("ai2-row-when muted").text(clock(it.at));
+		// `it.cost` — its task's dollars, set by AI 2's `paint()`; absent when nothing measured it.
+		small.c("ai2-row-when muted").text([it.cost, clock(it.at)].filter(Boolean).join(" · "));
 	});
 	div.c("ai2-row-foot flex v-center gap-25", () => {
 		// A card folder's summary names no author; it says what KIND of card it is.

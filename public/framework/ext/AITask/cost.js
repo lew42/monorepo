@@ -1,4 +1,4 @@
-import { div, span, a } from "../../core/View/View.js";
+import { div, span, a, small, table, thead, tbody, tr, th, td } from "../../core/View/View.js";
 
 /* What a task cost, in dollars — the `cost_usd` a task's log carries once
    `Server/task-cost.mjs` has summed its Servex agent and every agent under it.
@@ -80,21 +80,66 @@ export const day_costs = rows => div.c("flex v", () => {
 	}).style("--gap", ".5em");
 });
 
-/** The task page's breakdown: the root agent, its own cost, its minions', how many agents. */
+/** A model id as a person says it: `claude-opus-5-5` → `Opus 5.5`. Anything else as it is. */
+export const model_name = id => {
+	const m = /(opus|sonnet|haiku|fable)(?:-(\d+)-(\d+))?/i.exec(String(id ?? ""));
+	if (!m) return id || "model unknown";
+	return m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() + (m[2] ? " " + m[2] + "." + m[3] : "");
+};
+
+/* ⚠ `cost.agents` WAS A COUNT and is now the list itself — `[{ id, model, role, usd }]`,
+   the root first (Server/task-cost.mjs, 2026-09-24). A line written before then still
+   carries the number, so both shapes are read here and nowhere else. */
+/** The agents a task paid for, root first — `[]` on an older line that only counted them. */
+export const agents_of = m => Array.isArray(m?.cost?.agents) ? m.cost.agents : [];
+const agent_count = c => Array.isArray(c.agents) ? c.agents.length : c.agents;
+
+const at_time = at => new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+/** One line: `$3.92+ so far · mastermind $1.38 · minions $2.54`. What a card's preview and head show. */
+export const summary_line = m => {
+	const c = cost_of(m);
+	if (!c) return null;
+	const { own_usd, minions_usd } = c.cost;
+	return [money(c.usd) + (c.open ? "+ so far" : ""),
+		own_usd != null && "mastermind " + money(own_usd),
+		minions_usd != null && "minions " + money(minions_usd)].filter(Boolean).join(" · ");
+};
+
+/** The task page's breakdown: the total, then who spent it — the mastermind and each
+    minion, with its model — and the time the root's share was counted over. */
 export function breakdown(m){
 	const c = cost_of(m);
 	if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
-	const { root, agents, own_usd, minions_usd, parent_task, at } = c.cost;
-	return div(() => {
-		span(money(c.usd) + (c.open ? "+ so far" : ""));
-		span.c("muted", " — " + [
-			root && "root " + root,
-			own_usd != null && "own " + money(own_usd),
-			minions_usd != null && "minions " + money(minions_usd),
-			agents != null && agents + " agent" + (agents === 1 ? "" : "s"),
-			c.open && c.open + " still open",
-			parent_task && "counted in " + parent_task,
-			at && "as of " + new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-		].filter(Boolean).join(" · "));
+	const { root, own_usd, minions_usd, parent_task, at, window: win } = c.cost;
+	const agents = agent_count(c.cost);
+	const list = agents_of(m);
+	return div.c("ai-cost", () => {
+		div(() => {
+			span(money(c.usd) + (c.open ? "+ so far" : ""));
+			span.c("muted", " — " + [
+				!list.length && root && "root " + root,
+				own_usd != null && "mastermind " + money(own_usd),
+				minions_usd != null && "minions " + money(minions_usd),
+				agents != null && agents + " agent" + (agents === 1 ? "" : "s"),
+				c.open && c.open + " still open",
+				parent_task && "counted in " + parent_task,
+				at && "as of " + at_time(at),
+			].filter(Boolean).join(" · "));
+		});
+		if (!list.length) return;
+		table(() => {
+			thead(() => tr(() => { th("who"); th("agent"); th("model"); th("cost"); }));
+			tbody(() => list.forEach((x, i) => tr(() => {
+				td(i === 0 ? "mastermind" : "minion");
+				td(x.id);
+				td(model_name(x.model));
+				td(x.usd == null ? "not measured" : money(x.usd));
+			})));
+		});
+		// The root is shared by every task it ran; this one's share is its time.
+		if (win?.from) small.c("muted", "The mastermind's share is what it spent from " + at_time(win.from)
+			+ (win.to ? " to " + at_time(win.to) : " until now")
+			+ "; a minion counts whole, toward the task open when it was spawned.");
 	});
 }

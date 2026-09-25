@@ -580,6 +580,12 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 2026-09-22 · [task](/framework/ai/2026-09-22/mastermind-servex/) · [task](/framework/ai/2026-09-22/days-view/) · ◐ — the "never jumps" rules are written down ([decisions](./decisions.md)), and the days view landed on the old board; AI 2 has only today's landings, with no daily summary and no token breakdown (✗ for that part).
 
+<a id="cost-fill"></a>
+#### What took so many tokens? Cost on previews and detail pages; detail pages fill the page
+> What took so many tokens? I want to see token cost on the AI dashboard previews and detail pages. The detail pages are still too small: they should fill the rest of the page area, and only content/flow should use --measure.
+
+2026-09-24 · [task](/framework/ai/2026-09-24/ai2-cost-fill/) · ✅ — every group row and task row shows its dollars; a group's card lists each task's mastermind / minions split; each task page names every agent with its model. Shared masterminds are split by time, so no dollar is counted twice. A card's page fills its column, and only its text holds the measure ([decision](./decisions.md#cost-and-fill)).
+
 #### A prioritised list: do this first
 > There's been a lot of stuff done in the past day, I'm not sure where everything is, not clear what I should look at or where to start. So prioritize the list - number one, do this first.
 

@@ -1,6 +1,7 @@
 import { Page, View, div, p, span, small, a, button, input, select, option } from "/app.js";
-import { icon } from "/framework/core/View/View.js";
+import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 import { clock, flag_box, when } from "./faces.js";
+import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
 import { task_of, task_region } from "./tasks.js";
 
 /* The old board-card faces (the rail row, the whole board card) live in
@@ -238,6 +239,7 @@ export default class Card extends Page {
 			if (on) small.c("muted").text(on === 1 ? "an agent is on it" : on + " agents are on it");
 		});
 		agents_panel(this.id);
+		this.cost_block(g);
 
 		// A group says what belongs in it; its members' task pages follow below.
 		if (g) p.c("ai2-text").text(g.about);
@@ -253,6 +255,48 @@ export default class Card extends Page {
 		if (docs.length) this.md_files(docs);
 
 		this.contents();
+	}
+
+	/* WHAT THIS CARD COST (the owner, 2026-09-24: "What took so many tokens?").
+	   A group: one row per member task — its mastermind, its minions, its total —
+	   and the group's sum, each dollar once. A task card: its one line. Who spent
+	   it, agent by agent with each model, is the task page's own Report tab just
+	   below (`ext/AITask/cost.js` `breakdown()`), so it is drawn once, not twice.
+	   A card with no task shows nothing: nothing measured it. */
+	cost_block(g){
+		const groups = this.shell?.ai2?.groups;
+		if (!groups) return;
+		if (!g){
+			const line = cost_line(groups.task_member(task_of(this)));
+			if (line) div.c("ai2-cost").text(line);
+			return;
+		}
+		const tasks = groups.members(g.id).filter(m => m.kind === "task");
+		const sum = groups.cost(g.id);
+		if (!tasks.length) return;
+		div.c("ai2-cost", () => {
+			table(() => {
+				// TWO COLUMNS, so it fits a half column at 1280: four made the
+				// task names one word per line. The split sits under each name.
+				thead(() => tr(() => { th("task"); th("cost"); }));
+				tbody(() => {
+					tasks.forEach(m => {
+						const c = cost_of(groups.task_member(m.base));
+						tr(() => {
+							td(() => {
+								div(m.title || "A task");
+								if (c) small.c("muted").text("mastermind " + money(c.cost.own_usd ?? c.usd) + " · minions " + money(c.cost.minions_usd ?? 0));
+							});
+							td(c ? money(c.usd) + (c.open ? "+" : "") : "not tracked");
+						});
+					});
+					tr.c("ai2-cost-sum", () => {
+						td(sum.untracked ? "this group · " + sum.untracked + " not tracked" : "this group");
+						td(sum.tracked ? money(sum.usd) + (sum.open ? "+" : "") : "not tracked");
+					});
+				});
+			});
+		});
 	}
 
 	/** Turn this card into another kind: one `{"type": …}` line, and the latest wins. */
