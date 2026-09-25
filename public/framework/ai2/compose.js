@@ -52,7 +52,35 @@ class ComposerMic extends Dictate {
 
 	// No `at` sent to Servex — see Dictate.js's own `log_prompt` for why a
 	// client clock must never override Servex's local-offset stamp.
-	async log_prompt(text){
+	// Hold each finished segment; post them as ONE prompt once the owner has been quiet for send_after_ms.
+	log_prompt(text){
+		(this.held ??= []).push(text);
+		clearTimeout(this.held_timer);
+		this.held_timer = setTimeout(() => this.flush_when_quiet(), this.send_after_ms);
+	}
+
+	// Still talking? Wait out the rest of the quiet time instead of sending mid-sentence.
+	flush_when_quiet(){
+		const quiet = performance.now() - (this.last_loud_at ?? 0);
+		if (this.state === "listening" && quiet < this.send_after_ms)
+			return void (this.held_timer = setTimeout(() => this.flush_when_quiet(), this.send_after_ms - quiet));
+		return this.flush_held();
+	}
+
+	// Stopping the mic never loses words: whatever is held goes out now.
+	async stop(){
+		try { return await super.stop(); }
+		finally { this.flush_held(); }
+	}
+
+	flush_held(){
+		clearTimeout(this.held_timer);
+		const text = (this.held ?? []).join(" ").trim();
+		this.held = [];
+		if (text) return this.post_held(text);
+	}
+
+	async post_held(text){
 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
 		const re = this.re?.();
 		// `re` still pins the sentence to the open card (unchanged); `selected`
@@ -74,6 +102,7 @@ class ComposerMic extends Dictate {
 		catch (e){ console.warn("ai2: could not log this utterance", e); }
 	}
 }
+ComposerMic.prototype.send_after_ms = 2500;   // quiet time before held segments post as one prompt
 ComposerMic.prototype.mode = "open";   // the mic stays on; the box is single-line and never written into
 
 /**

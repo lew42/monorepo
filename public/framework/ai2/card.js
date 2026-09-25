@@ -184,9 +184,23 @@ export default class Card extends Page {
 		this.shell?.ai2?.cards_changed?.();
 	}
 
+	/** Everything `draw()` reads — a redraw with the same signature would paint the
+	 *  same pixels, so it is skipped: a live batch that changed nothing here (another
+	 *  card's line, a task's `now`, a list poll) no longer tears the card down. */
+	draw_sig(){
+		const cards = this.shell?.ai2?.cards;
+		return JSON.stringify([this.facts(), this.title, this.name, this.icon, this.by, this.created, this.text,
+			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), cards_ready.known,
+			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s)]);
+	}
+
 	redraw(){
 		if (this.held) return;
-		this.$box?.empty(() => { this.draw(); });
+		const sig = this.draw_sig();
+		if (sig !== this.drawn_sig){
+			this.drawn_sig = sig;
+			this.$box?.empty(() => { this.draw(); });
+		}
 		this.talk?.sync();
 		this.fill_tasks();
 	}
@@ -421,7 +435,35 @@ Card.Folder = class CardFolder extends Page {
 
 	content(){
 		div.c("ai2-index", $box => {
-			const draw = () => $box.empty(() => { this.folder_rows(); });
+			// A day's cards are KEYED rows: a card whose summary changed is replaced
+			// alone, one that is gone is removed, the rest are never touched. The
+			// coarser levels (month, year) are a few count rows, redrawn whole — but
+			// only when their own cards changed.
+			let sig;
+			const rows = new Map();
+			const draw = () => {
+				const mine = (this.shell?.ai2?.cards?.cards ?? []).filter(c => c.id.startsWith(this.id + "/"));
+				// month and year rows only show counts, so only the ids matter there
+				const next = this.level() < 3 ? mine.map(c => c.id).join() : JSON.stringify(mine);
+				if (next === sig) return;
+				sig = next;
+				if (this.level() < 3 || !mine.length){ rows.clear(); return void $box.empty(() => { this.folder_rows(); }); }
+				const want = mine.filter(c => c.id.split("/").length === 4);
+				if (!rows.size) $box.empty();
+				const ids = new Set(want.map(c => c.id));
+				rows.forEach((rec, id) => { if (!ids.has(id)){ rec.el.remove(); rows.delete(id); } });
+				want.forEach(c => {
+					const s = JSON.stringify(c), old = rows.get(c.id);
+					if (old?.sig === s) return;
+					$box.append(() => { card_link(c, this.url + c.id.split("/").at(-1) + "/"); });
+					const el = $box.el.lastElementChild;
+					if (old) old.el.replaceWith(el);
+					rows.set(c.id, { sig: s, el });
+				});
+				const have = [...$box.el.children];
+				const order = want.map(c => rows.get(c.id).el);
+				if (have.length !== order.length || order.some((el, i) => el !== have[i])) order.forEach(el => $box.el.appendChild(el));
+			};
 			draw();
 			this.shell?.ai2?.cards?.on(draw);
 		});

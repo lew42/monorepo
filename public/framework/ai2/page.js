@@ -322,7 +322,15 @@ function board(page){
 		// sort applied to the DOM that already exists, with nothing rebuilt. The
 		// Live card sits under the groups, in sight; the rest inside the fold.
 		shown = here.map(it => it.id);
-		shown.forEach(id => (id === LIVE ? $pinned : $list).el.appendChild(rows.get(id).$row.el));
+		// A box whose rows already stand in this order is left alone: re-appending
+		// an in-place row still removes and re-adds it, dropping hover, focus and
+		// a text selection, and each one is a mutation for nothing.
+		[[$pinned, id => id === LIVE], [$list, id => id !== LIVE]].forEach(([$box, mine]) => {
+			const want = shown.filter(mine).map(id => rows.get(id).$row.el);
+			const have = [...$box.el.children].filter(c => c.classList.contains("ai2-row"));
+			if (want.length === have.length && want.every((el, i) => el === have[i])) return;
+			want.forEach(el => $box.el.appendChild(el));
+		});
 		draw_groups(true);
 
 		pill();
@@ -392,11 +400,13 @@ function board(page){
 
 	function count(){
 		const n = visible().length;
-		$count.empty(() => {
+		const count_sig = n + "|" + only_notes + "|" + stream.ok;
+		if (count_sig !== count.sig) $count.empty(() => {
 			span.c("ai2-unread-count").text(String(n));
 			span.c("muted").text(only_notes ? "notes" : "cards");
 			if (!stream.ok) span.c("ai2-off muted").text("· the assistant is off");
 		});
+		count.sig = count_sig;
 		document.title = n ? "(" + n + ") AI 2" : "AI 2";
 
 		const loose = visible().filter(it => it.id !== LIVE).length;

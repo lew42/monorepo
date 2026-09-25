@@ -116,6 +116,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   `group()` on a card or a task reader gets overwritten by that data — [`doc/groups.md`](./doc/groups.md).
 - **A card's task page lives outside the box the card redraws** — rebuilt, it refetches and
   closes the tab you had open. `tasks.js`.
+- **Every redraw compares before it draws** — a live batch that changed nothing here must mutate nothing (a flicker that "returns to the way it was"). `Card.draw_sig()`, `agents.js`, the index rows and the rail's `flush()`/`count()` each skip on an equal signature; [`task card-page-flicker`](/framework/ai/2026-09-24/card-page-flicker/) has the MutationObserver probe.
 - **`refill()` compares the card's WHOLE record**, not a hand-written list of the fields the face
   draws — the first build listed them, forgot one, and the feature silently never rendered.
 - **Servex may be down.** Then the prompt backlog comes from the static `prompts.jsonl`, and the
