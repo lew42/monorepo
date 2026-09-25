@@ -505,6 +505,29 @@
 		max-width: none;
 	}
 
+	/* ⚠ A TAB STRIP MUST NOT CATCH THE WHEEL (the owner, 2026-09-24: "this page
+	     doesn't scroll", on the AI dashboard group card). `ext/tabs` gives every
+	     `.tab-bar` `overflow: auto` on BOTH axes, and the -1px margin that seats a
+	     tab on the strip's rule makes it 1px taller inside than out — so each strip
+	     is a vertical scroller with 1px of room. Chrome hands a whole wheel gesture
+	     to the scroller under the pointer, so a gesture that starts over a strip
+	     moves it 1px and the page not at all. AI dashboard stacks eight embedded
+	     task pages, eight strips (System design has four), and one sits a third of
+	     the way down the column, right where a resting pointer is. A strip only
+	     ever scrolls sideways; `hidden` on the other axis still clips the same
+	     pixel, so nothing looks different.
+	   ⚠ An embedded task page is content, never a scroll region of its own: it
+	     cannot set a height or an overflow that would give it one. */
+	.ai2 .tab-bar {
+		overflow-y: hidden;
+	}
+
+	.ai2-task-body > * {
+		height: auto;
+		max-height: none;
+		overflow: visible;
+	}
+
 	.ai2-task {
 		margin-block-start: var(--gap);
 		padding-block-start: var(--gap-50);
