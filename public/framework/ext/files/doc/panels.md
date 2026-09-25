@@ -98,3 +98,8 @@ The tree's first row is a click target, so it says so. The prose and the source
 abstain, for the reason `ext/editor`'s canvas does: they are documents, read
 with the pointer somewhere else. This was found by driving the thing, not by
 reading it — the bar sat on `Doc.js`, the first file in every module's list.
+
+
+## Columns and the url
+
+The bar above the panels adds or closes ONE extra leaf (`source2` or `render`); the tree and first source never move. `render` shows a `.md` through `md.file` and an `.html` in an iframe. The selection is written with `history.pushState` as `?file=&file2=&cols=` (the default first file writes nothing, so a plain load adds no history entry) and read again on `popstate`. Only the first `files()` on a page owns the query, until it leaves the DOM; `route: false` opts out. ext/Panel's own seams are unchanged.

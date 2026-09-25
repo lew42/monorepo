@@ -54,4 +54,16 @@
 	.file-about { padding: 0 1.1em; font-size: 0.9em; }
 
 	.file-blank { font-size: 0.85em; }
+
+	/* The bar above the panels: one code column, two, or code + rendered. */
+	.files-bar { display: flex; align-items: center; gap: calc(var(--gap) * 0.45); padding: 0.35em 0.6em; border-bottom: 1px solid var(--line); font-size: 0.8em; }
+	.files-mode { display: inline-flex; align-items: center; gap: 0.35em; padding: 0.2em 0.7em; }
+	.files-mode.selected { color: var(--prim); background: var(--wash); }
+	.files-hint { margin-inline-start: auto; }
+
+	/* The second file, in 2-column mode. */
+	.file-name.pinned { color: var(--prim); background: var(--wash); font-style: italic; }
+
+	.file-rendered { inline-size: 100%; block-size: 100%; padding: 0 1.1em; font-size: 0.9em; }
+	.file-frame { inline-size: 100%; block-size: 100%; min-block-size: 20em; border: none; }
 }

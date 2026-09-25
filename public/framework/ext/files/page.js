@@ -27,6 +27,18 @@ export default new Doc({
 				md("Pass `about` and the browser is **three** regions instead of two. It is called once per shown path with a view — or a promise of one — and its return fills the `about` panel. [About](/framework/ext/files/doc/about/) has the full contract and the capture trap.");
 			},
 		},
+		{
+			title: "Columns",
+			icon: "vertical_split",
+			description: "Code beside code, or code beside its rendered page — and the url remembers.",
+			content(){
+				code.js(`files(meta, "readme.md page.js files.js", { columns: "render" })`);
+
+				md("Click **2 columns** for two files side by side (shift-click a file to fill the right one), or **code + rendered** to see a `.md` as prose or an `.html` as a live page. Look at the address bar: the choice is in the url, so a reload or the back button returns to it.");
+
+				files(import.meta, "readme.md page.js files.js panels.js", { columns: "render", route: false }).ac("wide");
+			},
+		},
 	],
 
 	content(){

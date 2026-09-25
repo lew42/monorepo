@@ -7,6 +7,8 @@ files(import.meta, "example/index.html example/app.js example/page.js")
 files(import.meta, names, { about: path => md.file(import.meta, `doc/file/${path}.md`) })
 ```
 
+Options: `columns: 2` or `"render"` opens a second column; `route: false` keeps the url alone. A bar above the panels toggles 1 column / 2 columns / code + rendered; shift-click fills the second column.
+
 Two panels (tree, source); pass `about` and it is three (tree, prose, source) — how `ext/Doc`'s Files tab works.
 
 ## Watch out
@@ -17,6 +19,8 @@ Two panels (tree, source); pass `about` and it is three (tree, prose, source) �
 - Without `ext/highlight`, the plain-text fallback never checks `resp.ok` — a missing file renders `index.html` as source. [doc/file/files.js.md](./doc/file/files.js.md)
 - `about` must *return* its view (or a promise); calling a factory instead renders nothing, silently. [doc/about.md](./doc/about.md)
 - The split axis is seeded once — column below 640px, row above — and dragging narrow never re-rolls it. [doc/panels.md](./doc/panels.md)
+
+- The first `files()` on a page owns the url query (`?file=a.js&file2=b.js&cols=2`); later ones keep their choice private. [doc/panels.md](./doc/panels.md)
 
 ## More
 
