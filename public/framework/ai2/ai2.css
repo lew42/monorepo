@@ -1199,11 +1199,29 @@
 
 	/* The head line: one small link, its text on the same left edge as the
 	   columns' text below it (both pad by `--ai2-ov-pad`). */
-	.ai2-ov-open {
+	.ai2-ov-top {
 		flex: none;
 		padding: 0.5em var(--ai2-ov-pad);
 		border-block-end: 1px solid var(--line);
 	}
+	.ai2-ov-group {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3em;
+		font-size: 0.85em;
+		text-decoration: none;
+	}
+	.ai2-ov-folded { display: block; padding-block: 0.6em; }
+
+	/* A long list is CSS columns, never one thin strip down a wide screen: as many
+	   ~16rem columns as the column can hold (1 at 1280, 2-3 at 3440). A row never splits. */
+	.ai2-ov-rows {
+		column-width: 16rem;
+		column-gap: var(--ai2-ov-pad);
+	}
+	.ai2-ov-rows > .ai2-ov-row { break-inside: avoid; }
+	/* a headline is a sentence: it wraps, it is not cut with an ellipsis */
+	:is(.ai2-ov-landed, .ai2-ov-reports) .ai2-ov-row-title { white-space: normal; }
 
 	/* The overview stacks in importance order on a phone (deliverable 7: "at
 	   400 they stack in that order") — the DOM order already IS that order.

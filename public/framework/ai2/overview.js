@@ -2,6 +2,7 @@ import { div, span, small, a, button, p } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { servex_base, say, author_word } from "./inbox.js";
 import { clock } from "./faces.js";
+import { task_words } from "./groups.js";
 
 /**
  * THE OVERVIEW — four columns by importance, not one feed by time (the owner,
@@ -208,7 +209,7 @@ export function usage_bar(l){
 /* ── the whole overview ───────────────────────────────────────────────────── */
 
 export function overview(page, ai2){
-	let $ov, $live_agents, $live_usage, $live_stream;
+	let $ov, $groups, $live_agents, $live_usage, $live_stream;
 	const stream_lines = [];   // last few agent events, newest last, capped
 	let needs, reports, landed;
 
@@ -221,7 +222,10 @@ export function overview(page, ai2){
 		// The one small head line: the way back. A real link to the inbox, which
 		// is AI 2's own address — never a class flipped in place (the owner,
 		// 2026-09-23). It replaces the page's own giant "Overview" h1.
-		a.c("ai2-ov-open page-link").href(page.url).text("← Open the inbox");
+		div.c("ai2-ov-top flex v-center wrap gap-50", () => {
+			a.c("ai2-ov-open page-link").href(page.url).text("← Open the inbox");
+			$groups = div.c("ai2-ov-groups flex v-center wrap gap-35");
+		});
 		div.c("ai2-ov-cols", () => {
 			// ⚠ Built HERE, inside this callback, not before it — `column()`'s own
 			// `div.c(...)` calls auto-append to whatever the CURRENT CAPTOR is at
@@ -244,10 +248,33 @@ export function overview(page, ai2){
 		});
 	});
 
+	/* The groups: one chip each, a link to the group's own card. */
+	fetch(new URL("./groups.json", import.meta.url)).then(r => r.json()).then(gs => {
+		$groups.empty(() => gs.forEach(g => a.c("ai2-ov-group page-link").href(page.url + g.card + "/").attr("title", g.about).append(() => {
+			if (g.icon) icon(g.icon);
+			span.c("ai2-ov-group-name").text(g.name);
+		})));
+	}).catch(() => {});
+
 	/* ── needs-you + reports + landed, off the SAME list the rail already
 	   computes — one data pipeline, two views (`page.js`'s `board()` calls
 	   every registered watcher on each paint via `ai2.on_list()`). */
-	let last_list = [];
+	let last_list = [], list_landed = [], task_landed = [];
+
+	/* Landed = today's landing lines PLUS the task records that landed (today and
+	   yesterday), newest first — the task records are what fills it on a quiet day. */
+	function refresh_landed(){
+		const seen = new Set(), all = [];
+		[...list_landed, ...task_landed].forEach(it => { if (!seen.has(it.url)){ seen.add(it.url); all.push(it); } });
+		landed.set(all.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0)).slice(0, 40));
+	}
+	ai2.on_tasks?.(ts => {
+		task_landed = ts.filter(m => m.landed_at && m.outcome).map(m => {
+			const w = task_words(m), key = m.date + "/" + m.slug;
+			return { id: "task-" + key, url: "/framework/ai/" + key + "/", title: w.title, line: m.member_of ?? "", at: m.landed_at };
+		});
+		refresh_landed();
+	});
 
 	function refresh_needs(){
 		const dis = dismissed();
@@ -274,26 +301,29 @@ export function overview(page, ai2){
 			title: it.title, line: it.text || it.landed || "", at: it.at,
 		})).sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0)));
 
-		landed.set(list.filter(it => it.landed).map(it => ({
+		list_landed = list.filter(it => it.landed).map(it => ({
 			id: it.id, url: it.links?.[0]?.url ?? (page.url + it.id + "/"),
 			title: it.title === it.id ? it.id : it.title, line: it.landed, at: it.at,
-		})).sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0)));
+		}));
+		refresh_landed();
 	});
 
 	/* ── live: agents (polled), usage (polled), the stream (pushed) ────── */
 	async function refresh_live(){
 		const base = servex_base();
 		const list = await agents_now(base);
+		/* Dead and test agents are noise: only the ones alive are rows, the rest are one folded count. */
+		const dead = a2 => a2.state === "stopped" || a2.state === "gone";
+		const alive = list.filter(a2 => !dead(a2)), gone = list.length - alive.length;
 		$live_agents.empty(() => {
-			if (!list.length){ small.c("muted").text("nothing running"); return; }
-			list.forEach(a2 => {
+			if (!alive.length) small.c("muted").text("nothing running");
+			alive.forEach(a2 => {
 				div.c("ai2-ov-row", () => {
 					span.c("ai2-ov-row-title").text(a2.name || a2.role || a2.id);
-					small.c("ai2-ov-row-line muted").text(
-						[a2.state, a2.topics].filter(Boolean).join(" — ")
-					);
+					small.c("ai2-ov-row-line muted").text([a2.state, a2.topics].filter(Boolean).join(" — "));
 				});
 			});
+			if (gone) small.c("ai2-ov-folded muted").text(gone + " stopped or finished agents, not shown");
 		});
 
 		const bars = await usage_bars();

@@ -554,7 +554,8 @@ function board(page){
 		// this shell, always before the first `paint()` (which only ever fires
 		// later, off an async fetch or a live subscription) — so there is no
 		// "already missed the first list" case to special-case here.
-		on_list(fn){ list_watchers.add(fn); return () => list_watchers.delete(fn); },
+		on_tasks(fn){ const go = () => fn([...groups.tasks.values()]); go(); return groups.on(go); },
+		on_list(fn){ list_watchers.add(fn); if (list?.length) fn(list); return () => list_watchers.delete(fn); },
 	};
 }
 
