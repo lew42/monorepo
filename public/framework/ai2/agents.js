@@ -32,7 +32,9 @@ export default function agents_panel(card_id){
 	const path = "/api/card-agents?card=" + encodeURIComponent(card_id);
 
 	// `$box` is captured now, synchronously: after an await the "current box" is gone.
-	const paint = list => $box.empty(() => {
+	let drawn;
+	const paint = list => { const sig = JSON.stringify(list); if (sig === drawn) return; drawn = sig; draw(list); };
+	const draw = list => $box.empty(() => {
 		list.forEach(a => {
 			div.c("ai2-agent flex v-center wrap gap-25", () => {
 				span.c("ai2-agent-id").text(a.id);

@@ -365,6 +365,7 @@ export class AgentTalk {
 	/** Who said it and what, or nothing for a line that is not conversation. */
 	said(e){
 		const clip = t => (t.length > 400 ? t.slice(0, 400) + "…" : t);
+		if (e.type === "agent_msg" && e.from === "owner" && String(e.reply_to ?? "").startsWith("card ")) return;   // a card-relayed copy: the words are already on the card as prompt lines
 		if (e.type === "agent_msg" && e.from === "owner") return { cls: "ai2-chat-you", who: "you", text: e.text };
 		if (e.type === "agent_msg") return { cls: "ai2-chat-update", who: e.first ? "brief" : (e.from ?? "message"), text: clip(e.text ?? "") };
 		if (e.type === "transcript" && !e.meta) return { cls: "ai2-chat-reply", who: this.id, text: e.text };
