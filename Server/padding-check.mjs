@@ -126,6 +126,16 @@ export const MEASURE = function (opts) {
 	const skipped = el => { const m = el.closest(SKIP); return !!m && root.contains(m); };
 	/** The element that paints the ground at `el`: itself or its first opaque ancestor. */
 	const painter = el => { for (; el; el = el.parentElement) if (opaque(getComputedStyle(el).backgroundColor)) return el; return null; };
+	/** A positioned element that paints nothing of its own: no ground, no border,
+	 *  no text — a grip, a hit-area, a drop zone. Invisible, so never an edge. */
+	const overlay = el => {
+		const cs = getComputedStyle(el);
+		if (!/^(absolute|fixed)$/.test(cs.position) && !/resize$/.test(cs.cursor)) return false;
+		if (opaque(cs.backgroundColor) || cs.backgroundImage !== "none") return false;
+		const sides = ["Left", "Right", "Top", "Bottom"];
+		if (sides.some(s => cs[`border${s}Style`] !== "none" && parseFloat(cs[`border${s}Width`]) > 0)) return false;
+		return !el.textContent.trim();
+	};
 	const label = el => (el.tagName.toLowerCase() + (el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : "")).slice(0, 70);
 
 	/** Does `el` actually scroll sideways? `overflow-x: auto` alone is not enough —
@@ -243,7 +253,10 @@ export const MEASURE = function (opts) {
 		if (x < 0 || x >= vw) return "the viewport edge";
 		const rr = rootRect();
 		if (x < rr.left || x >= rr.right) return "the page's own edge";
-		const hit = document.elementFromPoint(x, y);
+		// Look THROUGH transparent overlays — a resize grip laid over a column's
+		// edge (/blog/'s 12px `.grip`) paints nothing, so it is not an edge; judge
+		// by what is painted underneath it.
+		const hit = document.elementsFromPoint(x, y).find(el => !overlay(el)) || null;
 		if (!hit) return "the viewport edge";
 		if (hit.closest(".dev-bar")) return "the dev bar";
 		if (self.contains(hit)) return null;
