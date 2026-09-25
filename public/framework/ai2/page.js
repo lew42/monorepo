@@ -263,7 +263,9 @@ function board(page){
 	     called "notes". The url-backed views are item 14, deferred. */
 	const visible = () => {
 		// A thing filed in a group is shown THROUGH its group, never twice.
-		const pool = list.filter(it => !groups.filed(it));
+		// ...EXCEPT one active in the last half hour: a card the owner just made must be in sight at the top, as its own row, even when it is filed in a group (the group row rises too).
+		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
+		const pool = list.filter(it => !groups.filed(it) || fresh(it));
 		const base = only_notes ? pool.filter(it => it.kind === "note") : pool;
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
