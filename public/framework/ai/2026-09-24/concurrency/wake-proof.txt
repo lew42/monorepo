@@ -1,0 +1,12 @@
+wake-proof — 2026-09-24T22:59:46.589Z — claude-haiku-4-5-20251001
+
+[0.0s] spawned proof-sleeper; registry session_id before its first turn: 3666c819-214b-4501-bd86-5d77cfd27a64
+[3.3s] it said: OK · session from the SDK: 3666c819-214b-4501-bd86-5d77cfd27a64 (the one we minted)
+[3.3s] stopped it. state: stopped
+  agent.send() on the stopped instance still throws: "Agent proof-sleeper has stopped."
+[5.4s] host A sent it a message → woken as proof-sleeper (resumed_from 3666c819-214b-4501-bd86-5d77cfd27a64); it answered: ZEBRA-42
+
+[5.4s] host B: a new host, nothing live, registry row state "stopped", spec {"role":"proof","name":"sleeper","visibility":"team","model":"claude-haiku-4-5-20251001","effort":"low","cwd":"C:\\Code\\lew42\\worktrees\\concurrency","permission_mode":"acceptEdits","allowed_tools":[],"setting_sources":[]}
+[6.9s] host B woke proof-sleeper from the registry row alone; it answered: ZEBRA-42
+
+both answers name the word: host A true, host B true · total 6.9s

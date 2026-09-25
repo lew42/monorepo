@@ -1,0 +1,47 @@
+fork-proof — 2026-09-24T23:05:16.836Z — model claude-haiku-4-5-20251001, effort low, no settings loaded
+A's context: the default system prompt + tools, and 9668 characters of made-up facts.
+
+[2.9s] proof-a called mcp__servex__fork_self
+[2.9s] fork_self returned in 8 ms → fork-proof-a
+[3.3s] → proof-a got a message from owner: Quick one: what is the secret word?…
+[3.3s] owner asked A a question while the fork is still working
+[45.6s] → proof-a got a message from fork-proof-a: fork answer: **Five towns holding the most crates:**  1. Town 40 (Duneford): 96 crates of …
+
+=== what happened ===
+A spawned                         at 0.0s
+A called fork_self                at 2.9s; the call returned in 8 ms
+owner asked A the secret word     at 3.3s
+A answered the owner              at 5.4s: PELICAN.
+the fork finished its answer      at 45.6s (wait_for_agent on it returned at 45.6s, state idle)
+A reacted to the fork answer      at 47.5s: Town 40 and Town 137 tie for the most, each holding 96 crates.
+order: A answered the owner BEFORE the fork finished — it was never blocked
+
+=== the fork's answer (what reached A, first 600 chars) ===
+**Five towns holding the most crates:**
+
+1. Town 40 (Duneford): 96 crates of flax
+2. Town 137 (Elmford): 96 crates of rope
+3. Town 19 (Ashford): 95 crates of wool
+4. Town 116 (Birchford): 95 crates of salt
+5. Town 95 (Elmford): 94 crates of flax
+
+**Total crates across all 150 towns, by steps of 25:**
+
+- After 25 towns: 1,190
+- After 50 towns: 2,421
+- After 75 towns: 3,592
+- After 100 towns: 4,802
+- After 125 towns: 5,954
+- After 150 towns: **7,242 total crates**
+
+=== the fork's usage (its one result message) ===
+input_tokens (uncached)       10
+cache_read_input_tokens       42767  (98.0% of the fork's input came from A's cache)
+cache_creation_input_tokens   852
+output_tokens                 5571
+fork cost                     $0.0338   (A's whole session: $0.1064)
+fork duration                 41970 ms
+
+fork state now: stopped (one-shot: it stopped itself) · forked_from bd0b9e2f-a935-4cc0-9785-8bd167ef6b95 · its own session c720a183-4324-4677-85bc-3182c945cbe2
+A's session bd0b9e2f-a935-4cc0-9785-8bd167ef6b95 — a different id, untouched by the fork. A holds 43230 tokens of context now.
+total run: 47.6s

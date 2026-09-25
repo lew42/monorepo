@@ -1,0 +1,17 @@
+jobs-proof 2026-09-24T22:40:01.089Z — Servex/agents/jobs-proof.mjs
+
+kind    return_ms  done_ms
+read            2       46
+grep            2       46
+watch           0     1023
+check           0       69
+decide          0     2645
+
+decide model: claude-sonnet-5, no tools, settingSources []
+decide question: In one sentence: what does wake_parent do, and when is it called?
+decide answer: `Agents.wake_parent(child, kind)` sends a parent agent one queued message (`done:`, `blocked:`, or `error:` plus the child's last words) when a child with a `parent` finishes a turn, is stopped, or errors. It is called from `Agent.emit()` on every `result` and `error` event, and can be disabled with `SERVEX_DISABLE_WAKE=1` or `{ no_wake: true }`.
+decide tokens: input 2 · output 145 · cache_read 0 · cache_write 11443
+decide cost: $0.051276999999999996 · wall 2616 ms · sdk 1513 ms
+
+not-live caller: done, 40 ms — read 2 file(s), 15448 bytes
+result: PASS
