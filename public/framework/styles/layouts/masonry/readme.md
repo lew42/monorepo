@@ -1,5 +1,9 @@
 # Masonry — a ragged wall with no gaps at the column bottoms, for anyone laying out cards, notes or screenshots: `masonry` reads down each column for free; `packed` keeps DOM order for one `ResizeObserver`.
 
+## Index
+
+- [packed](./packed/) — the same wall, reading left to right (no readme yet)
+
 ## Use
 ```js
 div.c("masonry", () => site.notes(24)).style("--column", "15em");         // CSS columns, no JS — the default

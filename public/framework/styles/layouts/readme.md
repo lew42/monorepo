@@ -1,5 +1,41 @@
 # Layouts — every whole-page layout as a class string, on one filterable wall; for anyone building a page
 
+## Index
+
+- [400](./400/) — five class strings, one column at 400px
+- [anatomy](./anatomy/) — seven generic layouts and the two strings behind them
+- [apidoc](./apidoc/) — API-documentation page layouts (no readme yet)
+- [bold-editorial](./bold-editorial/) — a row-heading strip over an editorial band (no readme yet)
+- [carousel](./carousel/) — a rail that scrolls sideways and snaps (no readme yet)
+- [chat](./chat/) — conversation list, transcript, composer (no readme yet)
+- [cols](./cols/) — six words for 2- or 3-column rows
+- [dashboard](./dashboard/) — number strip over a wall of panels (no readme yet)
+- [docs](./docs/) — menu, article and table of contents (no readme yet)
+- [document](./document/) — header, one reading column, footer (no readme yet)
+- [feed](./feed/) — a centred column of posts, two sticky rails (no readme yet)
+- [fit](./fit/) — how a page holds a layout, and four words to change it (no readme yet)
+- [flex](./flex/) — a row and its eight one-word variations (no readme yet)
+- [gallery](./gallery/) — filter rail beside a wall of tiles (no readme yet)
+- [grid](./grid/) — a wall that counts its own columns (no readme yet)
+- [hero](./hero/) — copy beside a picture, or over it (no readme yet)
+- [home](./home/) — a real homepage in ten bands
+- [landing](./landing/) — stacked full-bleed bands (no readme yet)
+- [mail](./mail/) — folders, list and message panes (no readme yet)
+- [masonry](./masonry/) — a ragged wall with no column gaps
+- [model](./model/) — the whole system in seven sentences (no readme yet)
+- [overlay](./overlay/) — a sheet or menu that covers the page (no readme yet)
+- [pricing](./pricing/) — three tiers on one token (no readme yet)
+- [screens](./screens/) — seven Figma frames, four already ours
+- [set](./set/) — Figma frames built as class strings (no readme yet)
+- [shell](./shell/) — header, rail, work area, inspector, status bar (no readme yet)
+- [sidebar](./sidebar/) — a fixed panel beside fluid content (no readme yet)
+- [space](./space/) — type a layout string, see it on five screens
+- [spec](./spec/) — the Figma layout-documentation frame at full width (no readme yet)
+- [split](./split/) — a list beside what it selects (no readme yet)
+- [stack](./stack/) — vertical rhythm and a form with no CSS (no readme yet)
+- [toc-studio](./toc-studio/) — a category strip over a scanned contents list (no readme yet)
+- [wire](./wire/) — eight generic page skeletons
+
 ## Use
 
 A layout is a page: config over `ext/demo`'s exhibit, then its name in `BANDS` (`page.js`) — `children:` derives from it.

@@ -3,6 +3,10 @@
 Rows from a plain array, or straight from a `Page`'s children. The keyboard is always on.
 Drag, the drill-down and the row buttons are properties you set.
 
+## Index
+
+[drag](./drag/) — the three drop targets on every row: above, inside, below
+
 ## Use
 ```js
 import Tree from "/framework/ux/Tree/Tree.js";

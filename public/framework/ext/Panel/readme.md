@@ -1,5 +1,10 @@
 # Panel — chrome for arranging: divide, drag, align, fill and persist any region; for wireframing pages, not shipping them
 
+## Index
+
+[Workspace](./Workspace/) — holds a Panel root, with documents as files and a bar above it  
+[playground](./playground/) — one document shown whole-window, with its viewport set and the drawer as the responsive handle
+
 ## Use
 ```js
 import panel, { workspace } from "/framework/ext/Panel/workspace.js";

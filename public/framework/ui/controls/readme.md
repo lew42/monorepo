@@ -5,6 +5,10 @@ disclosure summary and a tab are the same rectangle: one height, one padding, on
 hairline, one corner, one fill, one hover. The rules live in `framework.css`, in the
 block marked **THE CONTROL GRAMMAR** — this directory is the page that shows them.
 
+## Index
+
+[study](./study/) — the design record of one crawl asking if the site has one button or five
+
 ## Use
 
 - Type nothing. A bare `button`, `input`, `select`, `textarea`, `summary` or

@@ -1,5 +1,22 @@
 # UX — the behavior tier: `ui/` hands you markup, `ux/` hands you a class you can extend
 
+## Index
+
+Every module here, and what you would use it for.
+
+- [Auth](./Auth/) — login, signup, password reset and a social-login row, as one class you can extend.
+- [Content](./Content/) — cards that read and append to a `.jsonl` log: Question, Decision, Quotation, Spend.
+- [Course](./Course/) — chapters of lessons with a side rail, a reading column and a next-up card.
+- [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard.
+- [Filter](./Filter/) — a segment row plus a search box that filters several regions at once.
+- [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
+- [Pagination](./Pagination/) — a row of page buttons that remembers the current page and drives real content.
+- [Popover](./Popover/) — one popup anchored to a trigger, in the browser's top layer so no z-index fights it.
+- [Tags](./Tags/) — a chip row where you add and remove tags.
+- [Tree](./Tree/) — nested rows you can open, drag and drill into, from an array or a `Page`'s children.
+- [Wizard](./Wizard/) — the generic multi-step engine that lessons, courses and signup extend.
+- [doc](./doc/) — the tier's written rules: [system.md](./doc/system/) and [decisions.md](./doc/decisions/) (a docs folder, no readme).
+
 A **ux** is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from
 `ui/` templates and responsive from a phone to 3440. It is a class so that the next case is
 a subclass, not a fork. Eleven live today, each its own real page under `/framework/ux/` — the

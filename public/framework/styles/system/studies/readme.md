@@ -1,5 +1,18 @@
 # Studies — the evidence behind the design system's numbers
 
+## Index
+
+- [color](./color/) — lighten and darken on five grounds (no readme yet)
+- [lists](./lists/) — six ways to show one group → member → detail list
+- [padding](./padding/) — the padding ladder, with screenshots (no readme yet)
+- [scale](./scale/) — when the site goes small and when it goes big (no readme yet)
+- [size](./size/) — the five sizing questions, measured (no readme yet)
+- [spacing](./spacing/) — vertical spacing measured box by box (no readme yet)
+- [system](./system/) — what a page holds, declared in one word (no readme yet)
+- [themes](./themes/) — everything a theme declares, side by side (no readme yet)
+- [type](./type/) — the type scale as it ships (no readme yet)
+- [vocabulary](./vocabulary/) — a tag vocabulary for describing site structure (no readme yet)
+
 **What.** Ten finished studies, each answering one design question with real screenshots
 from the site — not opinions: `size/`, `spacing/` (plus `audit/`, `ceilings/`, `nesting/`),
 `padding/` (plus `one-rule/`), `scale/`, `type/` (plus `anchors/`), `color/` (plus `palette/`,

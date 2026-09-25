@@ -1,5 +1,11 @@
 # Dev — the local-only tier: live reload, the DevBar rail, tab claims. For whoever runs `node server.js`.
 
+## Index
+[Claim](./Claim/) — a ring and label around a browser tab an agent has claimed, so you can see which tab is theirs
+[DevBar](./DevBar/) — the right-hand rail of dev chrome (log, history, hold, ask), opened with Ctrl + backslash
+[Socket](./Socket/) — the one WebSocket to the dev server that live reload and every dev-only feature ride on
+
+
 ## Use
 
 ```js /app.js

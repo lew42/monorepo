@@ -1,5 +1,13 @@
 # Page — a folder with a `page.js` or `page.jsonl` is a page: a url, some content, and children.
 
+## Index
+[generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
+[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js` (no readme yet)
+[overview](./overview/) — the wall of one picture card per page building block; start here to see what a page can be made of
+[old](./old/) — the first Page docs, kept as reference while the Overview replaces them
+[tools](./tools/) — a small link-checking script (`links.mjs`), not a page (no readme yet)
+
+
 ## Use
 A `page.js` is one file. The folder is the route, and `children:` names the folders beneath it, in menu order:
 

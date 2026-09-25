@@ -1,5 +1,9 @@
 # Markdown — `md()` for prose and `md.file()` for a whole `.md`, as a View addon; already re-exported from `/app.js` for every page
 
+## Index
+
+[open](./open/) — the same markdown link opened three ways, to show the page decides where a link opens
+
 ## Use
 ```js
 import { md } from "/app.js";           // md.js directly only for .file / .details / .resolve

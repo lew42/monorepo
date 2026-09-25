@@ -1,6 +1,16 @@
-# Content — cards that remember: Question, Decision, Quotation
+# Content — cards that remember: Question, Decision, Quotation, Disclosure
 
 Each one is a `ux/` class that reads one `.jsonl` log and appends to it. The data shapes come first; the look is a template on top.
+
+## Index
+
+[Decision](./Decision/) — an ask with options, one chosen and changeable  
+[Disclosure](./Disclosure/) — a title that opens into a section, built on native details  
+[Question](./Question/) — an ask, a text field, and the latest answer beneath  
+[Quotation](./Quotation/) — one owner prompt with its words, time and a link  
+[Spend](./Spend/) — dollars over time drawn as SVG, no library  
+[catalog](./catalog/) — every kind of box drawn live, grouped by family  
+[plan](./plan/) — how the 75 kinds of box shrink to 36, drawn live
 
 ## Use
 ```js

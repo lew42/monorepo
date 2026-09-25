@@ -1,5 +1,24 @@
 # Framework — everything it offers is organized, visual, browsable: find any thing by clicking through previews, and every layout works from mobile to 3440
 
+## Index
+
+- [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
+- [ext](./ext/) — opt-in addons; core never imports them
+- [ui](./ui/) — the template tier: components, one page each
+- [ux](./ux/) — the behavior tier: classes you can extend
+- [styles](./styles/) — the CSS strategy: four layers, one vocabulary
+- [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)
+- [start](./start/) — three files, no build step, a working site (no readme yet)
+- [faq](./faq/) — short answers, code first (no readme yet)
+- [versus](./versus/) — how this compares with other choices (no readme yet)
+- [util](./util/) — small plain helper functions (no readme yet)
+- [dev](./dev/) — local-only live reload and the dev bar
+- [research](./research/) — research programs shown live (no readme yet)
+- [ai](./ai/) — the daily working log and task board
+- [ai2](./ai2/) — the dictation timeline: cards left, one card right
+- [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
+- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes (docs only)
+
 ## Use
 ```js /path/page.js
 import { p } from "/app.js";

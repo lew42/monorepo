@@ -1,4 +1,33 @@
 # Ext — opt-in addons for the framework: an ext may patch core, vendor a dependency, ship its own CSS; core never imports an ext, and this site opts in once, in `app.js`
+
+## Index
+- [AITask](./AITask/) — the AI working log, rendered: one task, a day, the highlights wall, the board — use it to show task logs
+- [Ask](./Ask/) — talk to a Claude Code session from the browser (dev server, localhost only)
+- [CSSDoc](./CSSDoc/) — every CSS rule that lands on one element, read live from the CSSOM — use it to see why an element looks as it does
+- [Chat](./Chat/) — a chat log that follows new messages only while you are at the bottom
+- [DesignTool](./DesignTool/) — measures a layout numerically: what is broken, off or good; no AI at runtime
+- [Doc](./Doc/) — document a module as a page (Overview, API, Docs, Files) — use it in a module's `page.js`
+- [Draggable](./Draggable/) — grab-and-move for any View; `Sortable` reorders, crosses lists and nests
+- [Dropdown](./Dropdown/) — pick one choice from a list; the list opens in the top layer so nothing clips it
+- [JSONL](./JSONL/) — append-only `.jsonl` logs replayed into object state — what the task and day logs use
+- [Omnibox](./Omnibox/) — moved into core on 2026-09-06; this directory is only a pointer
+- [Panel](./Panel/) — chrome for arranging a region: divide, drag, align, fill, persist — for wireframing pages
+- [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
+- [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
+- [Timeline](./Timeline/) — horizontal or vertical timeline for dated items
+- [catalog](./catalog/) — `catalog()` rail and `browse()` wall of `previews()` — use it for an index page
+- [demo](./demo/) — show the code and run it from one source — the site's example mechanism
+- [depth](./depth/) — turn a page into a 3D scene: layers drift on scroll and lean with the pointer
+- [drawer](./drawer/) — the right rail beside the page; it pushes the page, never covers it
+- [editor](./editor/) — drag-and-drop block builder prototype — a page you visit, not a module you import
+- [files](./files/) — a tree of real files on disk, with the one you clicked shown beside it
+- [grip](./grip/) — a rail's resize edge (strip plus a pill on the pointer), shared by drawer, DevBar and Sidebar
+- [highlight](./highlight/) — syntax highlighting on the `code` factory
+- [layout](./layout/) — a toolbar over anything, and a right-hand drawer that pushes the page
+- [markdown](./markdown/) — `md()` for prose and `md.file()` for a whole `.md`
+- [tabs](./tabs/) — a bar of links and the panel its children mount into
+- [toc](./toc/) — this page's own headings as a right-hand nav
+
 ## Use
 ```js
 import { md, demo } from "/app.js";  // opted in by app.js — anything else, import its module: "/framework/ext/Panel/Panel.js"
@@ -8,25 +37,3 @@ import { md, demo } from "/app.js";  // opted in by app.js — anything else, im
 - `markdown/marked.esm.js` and `highlight/hljs/` are vendored third-party code — a fix goes upstream or in the wrapper (`md.js`, `highlight.js`), not inside them — [`decisions.md`](./decisions.md)
 - Before deleting an ext, know who leans on it — a soft lean degrades (`demo` → `highlight`), a hard one throws (`Doc` → `tabs`, `files`) — [`decisions.md`](./decisions.md)
 ## More — [Overview](/framework/ext/) · [`decisions.md`](./decisions.md): the rule in full, cross-module traps, what's open (`editor` in use? `DesignTool` under `dev/`?)
-- [markdown](/framework/ext/markdown/) — `md()`, vendored marked
-- [demo](/framework/ext/demo/) — show code, run
-- [highlight](/framework/ext/highlight/) — vendored hljs highlighting
-- [files](/framework/ext/files/) — file tree panels
-- [toc](/framework/ext/toc/) — headings as nav
-- [Doc](/framework/ext/Doc/) — module as page
-- [tabs](/framework/ext/tabs/) — link bar, panel
-- [catalog](/framework/ext/catalog/) — previews as rail
-- [layout](/framework/ext/layout/) — toolbar, push drawer
-- [drawer](/framework/ext/drawer/) — the right rail
-- [depth](/framework/ext/depth/) — 3D scroll scene
-- [DesignTool](/framework/ext/DesignTool/) — measures, scores layouts
-- [Saver](/framework/ext/Saver/) — document write queue
-- [Draggable](/framework/ext/Draggable/) — drag, reorder, nest
-- [editor](/framework/ext/editor/) — drag-drop builder prototype
-- [Panel](/framework/ext/Panel/) — arrange regions, persist
-- [Timeline](/framework/ext/Timeline/) — h/v zoomable timeline
-- [AITask](/framework/ext/AITask/) — task log, rendered
-- [JSONL](/framework/ext/JSONL/) — append-only log replay
-- [Research](/framework/ext/Research/) — a live research report
-- [Ask](/framework/ext/Ask/) — browser to Claude
-- [CSSDoc](/framework/ext/CSSDoc/readme.md) — every rule that lands on one element, read live from the CSSOM (no page of its own yet; it runs on [styles/elements/code](/framework/styles/elements/code/))

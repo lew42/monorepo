@@ -1,5 +1,15 @@
 # Elements — the reference for every element `framework.css` styles (and the ones it doesn't), for anyone writing plain HTML with the factories
 
+## Index
+
+- [code](./code/) — inline `code` and `pre` blocks, and how long lines behave (no readme yet)
+- [forms](./forms/) — buttons, inputs, sliders, meters and other form controls (no readme yet)
+- [lists](./lists/) — ordered, unordered and definition lists (no readme yet)
+- [media](./media/) — images, video and other embedded media (no readme yet)
+- [misc](./misc/) — the small elements that fit nowhere else (no readme yet)
+- [table](./table/) — tables and how they scroll or wrap (no readme yet)
+- [text](./text/) — headings, paragraphs and inline text styles (no readme yet)
+
 ## Use
 
 ```js

@@ -1,5 +1,9 @@
 # System — the one page that says what the design system is, painted at your window's width
 
+## Index
+
+- [studies](./studies/) — the evidence behind the design system's numbers
+
 ## Use
 Need a space? Type the class, never the number.
 

@@ -1,5 +1,35 @@
 # UI — the template tier: twenty components in four bands, one page each. Three are functions, seventeen are copy-paste markup
 
+## Index
+
+Every component here, and what you would use it for. Only `table`, `kbd` and `timeline` are functions; the rest are markup you copy.
+
+- [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
+- [alert](./alert/) — a callout box with a coloured left edge.
+- [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
+- [background](./background/) — a div behind your content: colour, pattern, tiled icons or a glow.
+- [badge](./badge/) — a small pill label.
+- [card](./card/) — a padded surface with a heading and text (no readme yet).
+- [controls](./controls/) — buttons, selects, fields and tabs drawn as one matching box.
+- [crumbs](./crumbs/) — the trail of links above a page.
+- [decision](./decision/) — a question, its options as cards, and the chosen one marked.
+- [dialog](./dialog/) — a modal popup using the browser's own `<dialog>`.
+- [field](./field/) — a label, an input and a hint (no readme yet).
+- [kbd](./kbd/) — keyboard-shortcut chips like Ctrl + K.
+- [menu](./menu/) — a dropdown menu; for close-on-pick use [`ux/Menu`](/framework/ux/Menu/).
+- [pagination](./pagination/) — a row of page buttons (no readme yet).
+- [panel](./panel/) — a titled box with a header and close button (no readme yet).
+- [progress](./progress/) — progress and meter bars (no readme yet).
+- [stats](./stats/) — a grid of label-and-number tiles (no readme yet).
+- [table](./table/) — a head row and body built from arrays.
+- [tags](./tags/) — chips with a remove mark and an input (no readme yet).
+- [timeline](./timeline/) — a dated list of events (no readme yet).
+- [toolbar](./toolbar/) — a row of buttons and a search box (no readme yet).
+- [tooltip](./tooltip/) — a hover bubble, CSS only.
+- [tree](./tree/) — icon-and-text rows indented by depth; the behaviour lives in [`ux/Tree`](/framework/ux/Tree/).
+- [words](./words/) — `ui-contrast` and `ui-compact`, classes that re-skin a whole section.
+- [doc](./doc/) — the tier's written record: [decisions.md](./doc/decisions.md), [record.md](./doc/record.md) (a docs folder, no readme).
+
 No listeners, no state, no lifecycle — that is [`ux/`](/framework/ux/). A component here is
 markup you copy, plus a small stylesheet where a rule was about a relationship or a state.
 

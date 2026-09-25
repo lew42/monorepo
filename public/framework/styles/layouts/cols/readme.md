@@ -1,5 +1,9 @@
 # Columns
 
+## Index
+
+- [matrix](./matrix/) — a lab of the six column words at faked screen widths (no readme yet)
+
 Six words for a 2- or 3-column row, and the measurements that argue for them.
 
 The claim: **`.flex.auto` is a wrap threshold and a column layout is a ratio.** Different

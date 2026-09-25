@@ -1,5 +1,9 @@
 # Doc — a module documented as a page (Overview · API · Docs · Files), each member a real url backed by a `.md` beside it; for anyone writing a module's `page.js`
 
+## Index
+
+[overview](./overview/) — the urls the Overview tab uses
+
 ## Use
 ```js
 export default new Doc({

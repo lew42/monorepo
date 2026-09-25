@@ -1,5 +1,9 @@
 # core/new — one sketch kept for the record; two deleted 2026-08-30
 
+## Index
+[1](./1/) — the sketch where the shipping design (Router, lazy children, regions) was proved; read it, never import it
+
+
 **Don't import anything in here.** `public/` is the deploy artifact, so a stray
 `../new/1/Page.class.js` resolves to a real file and yields a *second, different*
 `Page` class — same name, silently wrong instance. `core/` is the live framework;

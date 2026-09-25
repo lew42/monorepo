@@ -1,5 +1,11 @@
 # Layout space — a layout is a string: type one and see it on five screens at once, or give `gen()` an integer and get one. The sampler and search behind the layouts rail, for anyone authoring a layout.
 
+## Index
+
+- [compose](./compose/) — the generated layouts as real panels (no readme yet)
+- [hunt](./hunt/) — the generator searched, not sampled (no readme yet)
+- [words](./words/) — every word the layout format accepts, pictured (no readme yet)
+
 ## Use
 ```js
 import { render } from "./spec.js";

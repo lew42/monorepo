@@ -1,5 +1,17 @@
 # DesignTool — measures a layout numerically: what is BROKEN, what is OFF, what is GOOD. For pages, the layout generator, and the site audit — no AI at runtime.
 
+## Index
+
+[audit](./audit/) — the whole site measured and ranked worst-first; use it to pick which layout to fix next  
+[diff](./diff/) — one command showing what changed on the site since the last landing  
+[journey](./journey/) — every reachable page screenshotted headless; use it to look over the whole site at once  
+[knowledge](./knowledge/) — what the tool has learned about layout and about its own false positives  
+[library](./library/) — eleven live arrangements the site is built from, beside ten ways to get them wrong  
+[taste](./taste/) — the third tier: weighted ideal ranges that rank two clean layouts  
+[tests](./tests/) — twenty-three layouts with a declared verdict, to score the analyzer against  
+[vision](./vision/) — screenshots run through a model and a prompt; the AI half of the tool  
+[widths](./widths/) — checks ten urls at four widths to prove the width tier holds
+
 ## Use
 ```js
 import { analyze, frame, rate } from "/framework/ext/DesignTool/DesignTool.js";

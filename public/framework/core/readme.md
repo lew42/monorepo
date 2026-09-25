@@ -1,5 +1,20 @@
 # Core — the seven classes under every page: four are elements, one owns the url, two are the DOM-free data tier
 
+## Index
+
+- [App](./App/) — boot and the one container pages mount into; you construct it once in `/app.js`
+- [Item](./Item/) — one node of a persistent document tree, no DOM; base for anything that nests and saves
+- [Layout](./Layout/) — thirty browsable page arrangements, each proven at seven widths
+- [List](./List/) — the ordered collection behind `item.items`; an Item detail
+- [Page](./Page/) — a folder with `page.js`: a url, content and children
+- [Router](./Router/) — turns a url change into the DOM state; for anyone building pages or links
+- [Search](./Search/) — the site's search corpus, ranking and search box
+- [Section](./Section/) — a page you put inside a page
+- [Sidebar](./Sidebar/) — brand over a tree of links, resizable, for site nav
+- [View](./View/) — chainable wrapper over one DOM element; every HTML tag is a function
+- [new](./new/) — one kept sketch; never import from it
+- [doc](./doc/decisions.md) — what belongs in core and the cross-tier traps (no readme; docs only)
+
 ## Use
 ```js
 // app.js

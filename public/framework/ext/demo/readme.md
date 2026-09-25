@@ -1,5 +1,9 @@
 # demo — show the code and run it from one source; the site's one example mechanism, for any page that shows a thing
 
+## Index
+
+[shell](./shell/) — the page.demo() shell that every demo page on the site wears
+
 ## Use
 ```js
 import { demo } from "/app.js";
