@@ -51,3 +51,7 @@ description: Run every time you create a page.js — the blessed shape, the pare
 6. Log the url in your task's `links`. Then `documentation` and `finish-task` when done.
 
 Improve this skill: append to [`improvements.md`](improvements.md).
+
+## How an agent makes a page
+
+Use the page tools (Servex MCP), not hand edits: `create_page` makes the folder and links it from its parent, `place` adds a .md or module to a `page.jsonl` page, `set_layout` picks a name from `core/Layout/layouts.js`, and `list_pages` / `read_page` show what is there. Each write is one appended line. A `page.js` page still takes hand edits.
