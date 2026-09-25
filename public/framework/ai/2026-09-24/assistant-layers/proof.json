@@ -1,0 +1,373 @@
+{
+  "at": "2026-09-25T00:06:07.959Z",
+  "seconds": 49,
+  "scratch": "C:\\Users\\mike\\AppData\\Local\\Temp\\claude\\C--Code-lew42-worktrees-assistant-layers\\7eca430a-88fd-4594-a2a2-4ea556caa985\\scratchpad\\run7",
+  "localappdata": [
+    "C:\\Users\\mike\\AppData\\Local\\Temp\\claude\\C--Code-lew42-worktrees-assistant-layers\\7eca430a-88fd-4594-a2a2-4ea556caa985\\scratchpad\\run7\\localappdata-mug7922l-main",
+    "C:\\Users\\mike\\AppData\\Local\\Temp\\claude\\C--Code-lew42-worktrees-assistant-layers\\7eca430a-88fd-4594-a2a2-4ea556caa985\\scratchpad\\run7\\localappdata-mug7922l-cap",
+    "C:\\Users\\mike\\AppData\\Local\\Temp\\claude\\C--Code-lew42-worktrees-assistant-layers\\7eca430a-88fd-4594-a2a2-4ea556caa985\\scratchpad\\run7\\localappdata-mug7922l-memory"
+  ],
+  "passed": 12,
+  "of": 12,
+  "error": null,
+  "results": [
+    {
+      "name": "3. two cards -> two separate assistants, each answering on its own card",
+      "pass": true,
+      "evidence": {
+        "A": {
+          "id": "assistant-proof-header-blue",
+          "session_id": "70ccf2cc-def3-4490-9636-29db97c939f1",
+          "reply": "I've passed this to the manager as a new request card. It will change the site header to blue and report back here."
+        },
+        "B": {
+          "id": "assistant-proof-header-red",
+          "session_id": "bdd81944-dbea-481b-8bea-d0e68a987912",
+          "reply": "I passed this to the manager, who will make the header red. I'll tell you when it's done."
+        }
+      }
+    },
+    {
+      "name": "4. the master assistant says something across both cards",
+      "pass": true,
+      "evidence": {
+        "on": "2026/09/24/proof-header-blue",
+        "text": "Heads up: the card \"proof-header-red\" asks for the same header to be red. Blue and red conflict, so whichever lands last wins.",
+        "names_both": true
+      }
+    },
+    {
+      "name": "5. a work request on card A starts exactly one manager",
+      "pass": true,
+      "evidence": {
+        "manager": "manager-proof-header-blue",
+        "rows": [
+          {
+            "id": "manager-proof-header-blue",
+            "session_id": "a91c7210-382b-4a17-bab8-6c3d9ca2ab79",
+            "state": "working"
+          }
+        ]
+      }
+    },
+    {
+      "name": "6. the second card's manager collides with the first, and mastermind-servex hears of it",
+      "pass": true,
+      "evidence": {
+        "manager_B": [
+          "manager-proof-header-red"
+        ],
+        "collision": {
+          "refused_claim": {
+            "at": "2026-09-25T00:05:31.295Z",
+            "from": "manager-proof-header-blue",
+            "to": "claim the site header",
+            "holder": "manager-proof-header-red",
+            "card": "2026/09/24/proof-header-blue",
+            "why": "the site header is already being changed by manager-proof-header-red on card 2026/09/24/proof-header-red (make it red). Ask mastermind-servex before starting."
+          }
+        },
+        "claims": [
+          {
+            "key": "the-site-header",
+            "agent": "manager-proof-header-red",
+            "card": "2026/09/24/proof-header-red",
+            "stale": false
+          }
+        ],
+        "claim_calls": {
+          "manager-proof-header-blue": [
+            "thing=the site header change=make it blue card=2026/09/24/proof-header-blue"
+          ],
+          "manager-proof-header-red": [
+            "thing=the site header change=make it red card=2026/09/24/proof-header-red"
+          ]
+        }
+      }
+    },
+    {
+      "name": "identity (i): assistant-A -> send_to_agent manager-B is refused with the policy's reason, even typing from: owner",
+      "pass": true,
+      "evidence": {
+        "caller": "assistant-proof-header-blue",
+        "to": "manager-proof-header-red",
+        "answer": {
+          "ok": false,
+          "why": "assistant-proof-header-blue may not message manager-proof-header-red: it may message its own manager, master-assistant or mastermind-servex."
+        },
+        "policy_log": {
+          "at": "2026-09-25T00:05:38.692Z",
+          "from": "assistant-proof-header-blue",
+          "to": "manager-proof-header-red",
+          "why": "assistant-proof-header-blue may not message manager-proof-header-red: it may message its own manager, master-assistant or mastermind-servex."
+        }
+      }
+    },
+    {
+      "name": "identity (ii): a card_reply typed as from: owner lands signed by the connection's own id",
+      "pass": true,
+      "evidence": {
+        "caller": "assistant-proof-header-blue",
+        "typed_from": "owner",
+        "answer": {
+          "ok": true,
+          "id": "2026/09/24/proof-header-blue",
+          "shown": true
+        },
+        "landed_by": "assistant-proof-header-blue"
+      }
+    },
+    {
+      "name": "7a. a deleted session: the same id starts fresh, answers, and the failure is logged",
+      "pass": true,
+      "evidence": {
+        "deleted": [
+          "C:\\Users\\mike\\.claude\\projects\\C--Code-lew42-worktrees-assistant-layers\\bdd81944-dbea-481b-8bea-d0e68a987912.jsonl"
+        ],
+        "asked_at": "2026-09-25T00:05:40.713Z",
+        "id": "assistant-proof-header-red",
+        "old_session": "bdd81944-dbea-481b-8bea-d0e68a987912",
+        "new_session": "4891f4d2-7b2a-4353-aa91-27b6552764b1",
+        "reply": "Servex/agents/policy.js has 88 lines.",
+        "logged": "assistant-proof-header-red's session bdd81944-dbea-481b-8bea-d0e68a987912 is gone; starting it fresh from the card's log"
+      }
+    },
+    {
+      "name": "7b. two claims on one topic at once: exactly one wins",
+      "pass": true,
+      "evidence": {
+        "callers": [
+          "manager-proof-header-blue",
+          "manager-proof-header-red"
+        ],
+        "managers": true,
+        "results": [
+          {
+            "ok": true,
+            "key": "layers-proof-race-1790294743734"
+          },
+          {
+            "ok": false,
+            "holder": "manager-proof-header-blue",
+            "card": "2026/09/24/proof-header-blue",
+            "change": "race A",
+            "why": "layers proof race 1790294743734 is already being changed by manager-proof-header-blue on card 2026/09/24/proof-header-blue (race A). Ask mastermind-servex before starting."
+          }
+        ]
+      }
+    },
+    {
+      "name": "7d. a finished helper, idle past 20 s, is stopped by the reaper",
+      "pass": true,
+      "evidence": {
+        "id": "helper-reap-proof",
+        "state": "stopped",
+        "line": {
+          "at": "2026-09-24T19:05:44-05:00",
+          "type": "reaped",
+          "id": "helper-reap-proof"
+        }
+      }
+    },
+    {
+      "name": "8. words with no card are filed onto the system-design group card, and assistant-system-design answers there",
+      "pass": true,
+      "evidence": {
+        "group_card_made": "2026/09/24/system-design",
+        "groups_json_card": "2026/09/24/system-design",
+        "lobby_calls": [
+          "",
+          "group=system-design"
+        ],
+        "card": "2026/09/24/system-design",
+        "prompt": {
+          "text": "The per-card assistants should share one brief about system design",
+          "via": "lobby"
+        },
+        "reply": {
+          "by": "assistant-system-design",
+          "text": "I made a request card for one shared system-design brief that every card assistant reads, and passed it to the manager to build."
+        }
+      }
+    },
+    {
+      "name": "identity: every line on the two cards is signed by its own agent id, never a generic 'agent'",
+      "pass": true,
+      "evidence": {
+        "speakers": [
+          "assistant-proof-header-blue",
+          "master-assistant",
+          "assistant-proof-header-red",
+          "manager-proof-header-red"
+        ]
+      }
+    },
+    {
+      "name": "7c. the real spawn gate: queued at the ceiling with its reason, started when a slot frees, a live parent's child admitted, low memory refused",
+      "pass": true,
+      "evidence": {
+        "live_at_boot": [
+          "dispatcher"
+        ],
+        "filled": [
+          "minion-cap-1",
+          "minion-cap-2"
+        ],
+        "queued_at_cap": {
+          "id": null,
+          "state": "queued",
+          "queued": true,
+          "position": 1,
+          "reason": "3 agents are running, the ceiling is 3",
+          "note": "Not started: 3 agents are running, the ceiling is 3. Servex will start it as soon as that clears; its parent is woken as usual once it runs."
+        },
+        "queue_seen": "\"No sample yet: the monitor takes its first one 5 seconds after Servex starts.\\n\\n{\\n \\\"verdict\\\": \\\"No sample yet: the monitor takes its first one 5 seconds after Servex starts.\\\",\\n \\\"flag\\\": null,\\n \\\"thresholds\\\": {\\n \\\"hot_cpu\\\": 90,\\n \\\"hot_seconds\\\": 60,\\n \\\"low_ram_gb\\\": 3\\n },\\n \\\"sensors\\\"",
+        "child_of_live_parent": {
+          "id": "minion-cap-child",
+          "role": "minion",
+          "model": "claude-haiku-4-5-20251001",
+          "state": "working",
+          "visibility": "team",
+          "started_at": "2026-09-25T00:05:58.064Z",
+          "turns": 0,
+          "session_id": "3faaaed7-bc4d-4f9d-bef3-76daef1f9f44",
+          "cost": 0,
+          "parent": "minion-cap-1",
+          "revivable": true,
+          "forked_from": null,
+          "resumed_from": null,
+          "context": null
+        },
+        "started_when_freed": {
+          "line": {
+            "at": "2026-09-24T19:06:02-05:00",
+            "type": "gate",
+            "state": "started",
+            "id": "minion-cap-3",
+            "queued_at": "2026-09-24T19:05:58-05:00"
+          },
+          "agent": {
+            "id": "minion-cap-3",
+            "state": "working"
+          }
+        },
+        "low_memory": {
+          "free_mb": 18006,
+          "floor_mb": 118006,
+          "answer": {
+            "id": null,
+            "state": "queued",
+            "queued": true,
+            "position": 1,
+            "reason": "only 17873 MB of memory is free; waiting for 118006 MB",
+            "note": "Not started: only 17873 MB of memory is free; waiting for 118006 MB. Servex will start it as soon as that clears; its parent is woken as usual once it runs."
+          }
+        }
+      }
+    }
+  ],
+  "files_changed_by_agents": [],
+  "cards": {
+    "A": "2026/09/24/proof-header-blue",
+    "B": "2026/09/24/proof-header-red"
+  },
+  "agents": [
+    {
+      "id": "dispatcher",
+      "role": "dispatcher",
+      "model": null,
+      "state": "idle",
+      "session_id": null,
+      "cost": null
+    },
+    {
+      "id": "assistant-fast",
+      "role": "assistant",
+      "model": "claude-sonnet-5",
+      "state": "idle",
+      "session_id": "e75e4a90-7987-4329-8ae8-c09a1c9db007",
+      "cost": null
+    },
+    {
+      "id": "master-assistant",
+      "role": "master-assistant",
+      "model": "claude-sonnet-5",
+      "state": "idle",
+      "session_id": "11ba4ed6-23df-4048-ab45-d30d35c3fe2d",
+      "cost": null
+    },
+    {
+      "id": "mastermind-servex",
+      "role": "mastermind",
+      "model": "claude-opus-5-5",
+      "state": "idle",
+      "session_id": "7b3c50a4-58cf-4357-950f-5ea178fa991f",
+      "cost": null
+    },
+    {
+      "id": "helper-reap-proof",
+      "role": "helper",
+      "model": "claude-haiku-4-5-20251001",
+      "state": "stopped",
+      "session_id": "6e89bb80-d30e-4bff-8088-199043c28669",
+      "cost": null
+    },
+    {
+      "id": "assistant-proof-header-blue",
+      "role": "card-assistant",
+      "model": "claude-sonnet-5",
+      "state": "idle",
+      "session_id": "70ccf2cc-def3-4490-9636-29db97c939f1",
+      "cost": null
+    },
+    {
+      "id": "assistant-proof-header-red",
+      "role": "card-assistant",
+      "model": "claude-sonnet-5",
+      "state": "idle",
+      "session_id": "4891f4d2-7b2a-4353-aa91-27b6552764b1",
+      "cost": null
+    },
+    {
+      "id": "manager-proof-header-blue",
+      "role": "card-manager",
+      "model": "claude-opus-5-5",
+      "state": "idle",
+      "session_id": "a91c7210-382b-4a17-bab8-6c3d9ca2ab79",
+      "cost": null
+    },
+    {
+      "id": "manager-proof-header-red",
+      "role": "card-manager",
+      "model": "claude-opus-5-5",
+      "state": "working",
+      "session_id": "db7fb9c5-ec95-421a-b5df-02248e11af19",
+      "cost": null
+    },
+    {
+      "id": "minion-proof-header-red",
+      "role": "minion",
+      "model": "claude-sonnet-5",
+      "state": "working",
+      "session_id": "df29a801-2e98-4b4e-bf3d-6286d32bcfd1",
+      "cost": null
+    },
+    {
+      "id": "assistant-system-design",
+      "role": "card-assistant",
+      "model": "claude-sonnet-5",
+      "state": "idle",
+      "session_id": "1b342577-6bf0-499e-b328-b3aa96603cd5",
+      "cost": null
+    },
+    {
+      "id": "manager-system-design",
+      "role": "card-manager",
+      "model": "claude-opus-5-5",
+      "state": "working",
+      "session_id": "6348e8ef-d50f-43cd-9bc2-e5496cdb90d1",
+      "cost": null
+    }
+  ],
+  "cost_usd": 1.5888
+}
