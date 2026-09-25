@@ -96,10 +96,16 @@ export default new Doc({
 		+ "overview/labels/page.js overview/render/page.js",
 
 	content(){
-		md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card is one block, shown running. Start with [navigation](/framework/core/Page/doc/navigation/) or [layout](/framework/core/Page/doc/layout-overview/); every method is in the [API](/framework/core/Page/doc/api/).");
-		code.js(`export default new Page({ meta: import.meta, title: "Docs", children: "intro guide" });`, "page.js");
-		code.json(`{"title": "Docs"}
-{"place": "note.md"}`, "page.jsonl");
+		div.c("wide grid three gap", () => {
+			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card is one block, shown running. Start with [navigation](/framework/core/Page/doc/navigation/) or [layout](/framework/core/Page/doc/layout-overview/); every method is in the [API](/framework/core/Page/doc/api/).");
+			code.js(`export default new Page({
+  meta: import.meta,
+  title: "Docs",
+  children: "intro guide",
+});`, "page.js");
+			code.json(`{"title": "Docs"}
+	{"place": "note.md"}`, "page.jsonl");
+		}).style("--column", "16em");
 
 		this.browse(BANDS, { "--column": "22em", "--gap": "2em", "--stage-max": "14em" });
 	},
