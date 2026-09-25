@@ -13,6 +13,7 @@
  * one back, and a slot freeing up (a child's wake) starts the next one queued. */
 import fs from "node:fs";
 import path from "node:path";
+import { model } from "./tiers.js";
 
 /* The pause switch — a file, so the owner can flip it with no restart and see it in a
  * directory listing: `%LOCALAPPDATA%/lew42/servex/dispatch.off`. While it exists a
@@ -126,7 +127,7 @@ export default class Dispatcher {
 		const agent = this.servex.agents.spawn({
 			role: "task-mastermind",
 			name: task.id.replace(/^t-/, ""),
-			model: "claude-opus-5-5", effort: "medium",
+			model: model("manager"), effort: "medium",
 			prompt: `${task.brief}\n\n${opening}`,
 			parent: this.id,
 			topics, page
