@@ -17,7 +17,7 @@ A link that isn't to a `.md` navigates as it always did.
 ## The pieces
 
 - `open_link(link)`: the one seam. Override it on any page.
-- `swap_link(link)`: draws the doc inside this page, over what it was showing, with Back.
+- `swap_link(link)`: draws the doc inside this page, over what it was showing, with Back, and gives it the url `md/<doc>/`.
 - `md_files(names)`: this page's own `.md` files as a list of links. Pass `names` if you
   know them (a card's own file lines); otherwise it reads the dev server's file list,
   which production doesn't have.
@@ -34,8 +34,10 @@ correctly in all three places.
 
 ## Watch out
 
-- **A swap has no url.** Back, reload and the site nav don't know about it. That is the
-  price of "swap in place". A view worth returning to should be a page.
+- **A swap has a url — `<page>/md/<doc>/`.** `swap_link` pushes it with `history.pushState`, so the
+  address bar is honest, Back closes the swap, and a reload lands on that doc (as the page's `md/`
+  child, shown beside its parent in columns). Forward does not re-open the swap. Any new in-place
+  view should get its address the same way: route everything.
 - **In columns, a doc opens headed by its file name** (`alpha`), and keeps its own `# Alpha`
   heading underneath. A doc in a subfolder opens through the page's `md/` column.
 - **A deep reload of a column doc** (`…/columns/alpha/`) probes `alpha/page.js` first and

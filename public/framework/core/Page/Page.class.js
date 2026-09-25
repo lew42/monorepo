@@ -263,26 +263,48 @@ export class Page extends PageLog {
 
 	// Draw the doc INSIDE me, over what I was showing, with a way back. A card or any
 	// small box says `open_link(link){ return this.swap_link(link); }`.
+	// ROUTE EVERYTHING: the swap gets its own address, `<my url>md/<doc>/` — the md/
+	// route every page already has — so a reload lands on the same doc and Back closes
+	// it. doc/open.md.
 	swap_link(link){
 		const file = Page.md_file(link);
 		if (!file) return link.pathname;
 
+		this.swap_close?.();
 		const shown = [...this.view.el.children].filter(el => !el.matches(".page-swap"));
 		shown.forEach(el => el.style.display = "none");
-		this.view.el.querySelector(":scope > .page-swap")?.remove();
+
+		const url = this.swap_url(file);
+		const back = () => location.pathname === url ? history.back() : close();
+		const on_pop = () => { if (location.pathname !== url) close(); };
+		let $shell;
+		const close = () => {
+			$shell?.el.remove();
+			shown.forEach(el => el.style.display = "");
+			removeEventListener("popstate", on_pop);
+			this.swap_close = null;
+		};
 
 		this.view.append(() => {
-			div.c("page-swap", $swap => {
-				button.c("page-swap-back", () => { icon("arrow_back"); span("Back"); }).on("click", () => {
-					$swap.el.remove();
-					shown.forEach(el => el.style.display = "");
-				});
+			div.c("page-swap pad", $swap => {
+				$shell = $swap;
+				button.c("page-swap-back flex v-center gap", () => { icon("arrow_back"); span("Back"); }).on("click", back);
 				Page.file(file).then(doc => {
 					$swap.append(() => { doc ? doc.title && h2(doc.title) : p.c("muted", "Nothing could be read at " + file + "."); });
 					if (doc) $swap.append(doc.content());
 				});
 			});
 		});
+
+		this.swap_close = close;
+		if (location.pathname !== url) history.pushState({}, "", url + link.hash);
+		addEventListener("popstate", on_pop);
+	}
+
+	// Where a swapped doc lives: my own md/ when the doc is in my folder, else its module's.
+	swap_url(file){
+		const dir = this.md_dir();
+		return dir && file.startsWith(dir) ? this.url + "md/" + file.slice(dir.length).replace(/\.md$/i, "/") : Page.md_url(file);
 	}
 
 	// My own folder's .md files, as links — the Router hands each click back to me.

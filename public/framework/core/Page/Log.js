@@ -95,10 +95,32 @@ export class PageLog {
 	// What a page.jsonl page draws when it has no `content()` of its own: its placed
 	// files, in order. The box is kept so a line appended later can redraw it.
 	log_view(){
-		return this.$log = div.c("page-log flow", () => { this.log_draw(); });
+		return div.c("flow", () => {
+			this.$log = div.c("page-log flow", () => { this.log_draw(); });
+			this.draw_folder();
+		});
+	}
+
+	// THE PAGE SHOWS ITS OWN FOLDER: page.jsonl and every file its lines name, as
+	// ext/files draws them — a tree, and the one you click as highlighted source. A
+	// reader sees where things are and reads the real thing. `file` lines that name
+	// a child (`kid/page.jsonl`) are pages, not files, and are left out.
+	// ⚠ core does not import ext: the import is dynamic, as in draw_md().
+	draw_folder(){
+		const url = location.origin + this.log_folder();
+		const names = new Set(["page.jsonl", ...[...this.listed?.values() ?? []].filter(name => !CHILD.test(name))]);
+
+		return div.c("page-log-files", $box => {
+			import("../../ext/files/files.js")
+				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
+		});
 	}
 
 	log_draw(){ (this.placed ?? []).forEach(entry => this.draw_placed(entry)); }
+
+	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at
+	// another address (AI 2) still keeps its files in its own folder.
+	log_folder(){ return String(this.jsonl_url ?? this.url).replace(/page\.jsonl$/, ""); }
 
 	log_redraw(){ this.$log?.empty(() => { this.log_draw(); }); }
 
@@ -107,7 +129,7 @@ export class PageLog {
 	// called as `fn(page, box, data)`. A child's name draws nothing — it is linked.
 	draw_placed(entry){
 		const { module, ...data } = is.str(entry) ? { module: entry } : entry;
-		const url = new URL(module, location.origin + this.url).href;
+		const url = new URL(module, location.origin + this.log_folder()).href;
 
 		if (/\.md$/i.test(module)) return this.draw_md(url);
 		if (/\.m?js$/i.test(module)) return this.draw_module(url, data);

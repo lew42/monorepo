@@ -23,6 +23,8 @@ A `page.jsonl` is the same thing as a log. Line 1 builds the page; every later l
 
 Nothing crawls: a page exists once its parent's `children:` (or a `file` line) names it. A `.md` beside a page is a page too, once something links to it.
 
+**Route everything.** Anything a reader can see should have its own url, so reload and Back land where they were. A doc swapped in place (`swap_link`) already does: it pushes `<page>/md/<doc>/`. [doc/open.md](./doc/open.md)
+
 ## Read next
 - [`doc/navigation.md`](./doc/navigation.md) — children, menus, where links open
 - [`doc/layout-overview.md`](./doc/layout-overview.md) — the page grid, columns, containers, padding

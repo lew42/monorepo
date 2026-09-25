@@ -21,6 +21,7 @@ description: Run every time you create a page.js — the blessed shape, the pare
    ```
    A module index is `new Doc({ … })` instead (`documentation` skill). Never name a page
    method `render()` — it collides with core; `draw()`, `report()` are free.
+2b. **Route everything.** Anything a reader can see or open on the page — a doc swapped in place, a tab, a detail — has its own url (a child page, or `history.pushState` to one that reloads to the same view). A view with no address loses the reader's place on reload. `swap_link` does it for docs; core/Page's readme.
 3. **Add its name to the parent's `children:`.** Nothing crawls; an unlinked page does not
    exist. ⚠ `children:` makes it ROUTABLE, not linked: a parent whose `content()` draws its own
    thing instead of calling `previews()` shows zero links to the new child (`/layouts/` → `browse`,
