@@ -1,4 +1,4 @@
-import { Page, Doc, md, div } from "/app.js";
+import { Page, Doc, md, div, code } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
 
 /**
@@ -44,7 +44,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth related",
 
-	notes: "jsonl declaring labels css layout columns roles panels previews findings markdown open decisions",
+	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns roles panels previews findings markdown open decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -96,7 +96,10 @@ export default new Doc({
 		+ "overview/labels/page.js overview/render/page.js",
 
 	content(){
-		md("A page is a url, some content, and children — and **pages are navigation**: you navigate children. Every card below is a picture of one block; click it to see the block running, with the code.");
+		md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card is one block, shown running. Start with [navigation](/framework/core/Page/doc/navigation/) or [layout](/framework/core/Page/doc/layout-overview/); every method is in the [API](/framework/core/Page/doc/api/).");
+		code.js(`export default new Page({ meta: import.meta, title: "Docs", children: "intro guide" });`, "page.js");
+		code.json(`{"title": "Docs"}
+{"place": "note.md"}`, "page.jsonl");
 
 		this.browse(BANDS, { "--column": "22em", "--gap": "2em", "--stage-max": "14em" });
 	},
