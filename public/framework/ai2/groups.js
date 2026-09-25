@@ -1,5 +1,6 @@
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { resolve_card, today_str, plain, headline, first_sentence } from "./inbox.js";
+import { total } from "/framework/ext/AITask/cost.js";
 
 /**
  * THE GROUPS — a few familiar names the work is filed under (the owner,
@@ -190,6 +191,21 @@ export class Groups {
 		const [date, slug] = base.split("/").filter(Boolean).slice(-2);
 		const files = this.dir.find(d => d.name === date)?.children?.find(k => k.name === slug)?.children?.map(k => k.name);
 		return [{ base, files: files ?? [] }];
+	}
+
+	/** The loaded task a task-page url (`/framework/ai/<date>/<slug>/`) points at, or null —
+	    null too for a task older than `days`, which is never read. */
+	task_member(url){
+		const [date, slug] = String(url ?? "").split("/").filter(Boolean).slice(-2);
+		return this.tasks.get(date + "/" + slug) ?? null;
+	}
+
+	/** What a group cost: its member TASKS summed, each dollar once — `total()` is the
+	    board's own sum (ext/AITask/cost.js), so AI 2 and the day page agree. Cards
+	    carry no cost of their own; nothing measures them. */
+	cost(gid){
+		return total(this.members(gid).filter(m => m.kind === "task")
+			.map(m => ({ url: m.base, m: this.task_member(m.base) })));
 	}
 
 	/** One group's newest member — its time and its own words — or null. */

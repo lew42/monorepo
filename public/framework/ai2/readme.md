@@ -31,6 +31,14 @@ as before. Every row says who it came from; `you` is marked.
 every reply — from the fast assistant, from a helper it started, or from a task mastermind
 working on it. Only one microphone is on at a time; pressing one stops the other.
 
+**What it cost.** Every group row shows what its tasks cost together, and every row that points
+at a task shows that task's dollars (a "+" means an agent on it is still running). A group's
+card opens with a table of its tasks, each split into mastermind and minions, and each task page
+inside it says who spent it, agent by agent, with each model. The figures come from
+`Server/task-cost.mjs`, which splits a shared mastermind by time so no dollar is counted twice
+([`ext/AITask/doc/cost.md`](/framework/ext/AITask/doc/cost.md)). A card's page fills the whole
+column; only its text keeps the reading width ([`doc/decisions.md`](./doc/decisions.md#cost-and-fill)).
+
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
 agent Servex is running, and today's open tasks, in one page that scrolls as one — split into columns on a wide screen ([`doc/columns.md`](./doc/columns.md)). It rises

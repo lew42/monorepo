@@ -62,14 +62,19 @@
 	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
 	   space "generally... in two: the preview column resizable, the detail
 	   page taking the rest, with a measure" (the owner, 2026-09-22); a
-	   sub-card opening is what makes it three. The detail column CLAMPS to
-	   roughly its own prose measure once a third column needs room, rather
-	   than the sub column fighting it for whatever is left over.
+	   sub-card opening is what makes it three, and the card and the sub-card
+	   then share what the rail leaves, half each (2026-09-24; until then the
+	   card clamped to its measure and the sub-card took the rest).
 	   ⚠ `:has(.ai2-sub > .page.active-page)` reads the framework's own mark —
 	     no state of this page's own has to agree with the Router about
 	     whether a sub-card is open. */
+	/* ⚠ Both columns FILL now, half each (the owner, 2026-09-24: detail pages
+	     "should fill the rest of the page area"). The card column used to clamp
+	     to its measure and hand the sub-card everything else; both hold their
+	     own prose at the measure on the text itself (`.ai2-full-card > *`), so
+	     neither needs the column to do it. */
 	.ai2:has(.ai2-sub > .page.active-page) {
-		grid-template-columns: var(--ai2-rail) minmax(20em, var(--measure, 40em)) minmax(0, 1fr);
+		grid-template-columns: var(--ai2-rail) minmax(0, 1fr) minmax(0, 1fr);
 	}
 
 	.ai2-sub {
@@ -621,8 +626,15 @@
 	   inherits the `1fr` — it measured 749px tall starting a third of the way
 	   down the column, while every number in the proof still read "unchanged"
 	   because it genuinely never moved. Only the screenshot showed it. */
+	/* ⚠ ONE COLUMN, THE WHOLE WIDTH (the owner, 2026-09-24: "they should fill
+	     the rest of the page area, and only content/flow should use --measure").
+	     A card page is a `.page`, and a `.page` is core's page GRID, whose main
+	     track is the measure — so the card, its task pages and its chat all
+	     stood in a 640px strip at the left of a 1,312px column (measured, 1920).
+	     One track, and every region spans it; the measure moves onto the text. */
 	.page.ai2-card-page {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto minmax(0, 1fr) auto;
 		height: 100%;
 		min-height: 0;
@@ -634,6 +646,10 @@
 	.ai2-full { grid-row: 2; }
 	.ai2-foot { grid-row: 3; }
 
+	.page.ai2-card-page > * {
+		grid-column: 1 / -1;
+	}
+
 	.ai2-full {
 		min-height: 0;
 		overflow-y: auto;
@@ -641,9 +657,40 @@
 		max-width: none;
 	}
 
-	/* Prose holds a measure even when the column is 2,800px wide — on the text,
-	   not on the scrolling box, so the scrollbar stays at the column's edge. */
-	.ai2-full > * {
+	/* The card's own words hold the measure; its cost table does not. The task
+	   pages below it (`.ai2-tasks`) run the full width and cap their own prose
+	   (ext/AITask's ai.css), so their tables, steps bar and shots are wide.
+	   On the text, never on the scrolling box, so the scrollbar stays at the
+	   column's edge. */
+	.ai2-full-card > * {
+		max-width: var(--measure);
+	}
+
+	.ai2-full-card > .ai2-cost {
+		max-width: none;
+	}
+
+	/* A GROUP'S COST TABLE (card.js `cost_block()`): the task names wrap, the
+	   dollars never do, and a column too narrow for it (a half column at 1280)
+	   scrolls the table sideways instead of clipping the totals off its edge.
+	   ⚠ `overflow-y: hidden`, never `auto` on both axes: a box that scrolls
+	     vertically by even 1px catches the wheel (see `.ai2 .tab-bar`). */
+	.ai2-cost {
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	.ai2-cost :is(th, td):not(:first-child) {
+		white-space: nowrap;
+	}
+
+	.ai2-cost-sum {
+		font-weight: 600;
+	}
+
+	/* The chat is running text too: its lines and its box keep the measure,
+	   while its grey ground runs the width of the column. */
+	.ai2-foot > * {
 		max-width: var(--measure);
 	}
 

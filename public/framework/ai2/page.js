@@ -11,6 +11,7 @@ import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full } from "./live.js";
+import { money, cost_of } from "/framework/ext/AITask/cost.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -285,6 +286,7 @@ function board(page){
 		it.unread = true;
 		list.push(it);
 		list.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
 		// Archived cards are findable too — a card page left open on one the
 		// owner just cleared should still draw it (greyed, via `full()`), not
 		// suddenly say "no card by that name".
@@ -305,6 +307,18 @@ function board(page){
 		// two views — rather than opening its own copy of every log this page
 		// already streams.
 		list_watchers.forEach(fn => fn(list));
+	}
+
+	/* WHAT A ROW COST — the dollars of the task it points at (a landed task, or a
+	   card whose `task` or link names one), as `$4.74`, or `$4.74+` while an agent
+	   on it still runs. Written onto the item itself, so the whole-record
+	   signature in `refill()` redraws the row when the figure moves. A card with
+	   no task has no cost anyone measured, so it shows none — never `$0`. */
+	function row_cost(it){
+		if (it.kind === "live") return null;
+		const url = task_of(it) ?? task_of(groups.folds.get(it.id)?.fold);
+		const c = cost_of(groups.task_member(url));
+		return c ? money(c.usd) + (c.open ? "+" : "") : null;
 	}
 
 	/* Let the waiting cards in, and apply the sort — which is the ONLY moment
@@ -358,10 +372,11 @@ function board(page){
 			}
 			const latest = groups.latest(g.id);
 			const size = groups.members(g.id).filter(m => m.kind !== "said");
-			const sig = JSON.stringify([g, latest, size.length]);
+			const spent = groups.cost(g.id);
+			const sig = JSON.stringify([g, latest, size.length, spent]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
-			rec.$row.empty(() => { group_face(g, latest, size); });
+			rec.$row.empty(() => { group_face(g, latest, size, spent); });
 		});
 		const next = order.map(g => g.id);
 		if (next.join() !== group_order.join() && (force || quiet() || !group_order.length)){
@@ -378,13 +393,20 @@ function board(page){
 	   one row 319px and pushed two groups off screen (measured, 1920). The
 	   update is the `now` alone — the task's own sentence heads its section on
 	   the group's card, one click away. */
-	function group_face(g, latest, members){
+	/* Its dollars sit in the same quiet line as its time: the member tasks
+	   summed, each once, with a "+" while one of them still runs.
+	   ⚠ The dollars TAKE THE PLACE of the "2 tasks" count, not a seat beside it:
+	     all three words made the line wide enough to wrap three group titles
+	     and push the Live card below the fold at 1920×1080. The count is still
+	     one click away — the group's card lists every task and its cost. */
+	function group_face(g, latest, members, spent){
 		const tasks = members.filter(m => m.kind === "task").length, cards = members.length - tasks;
 		const size = [tasks && tasks + (tasks === 1 ? " task" : " tasks"), cards && cards + (cards === 1 ? " card" : " cards")];
+		const usd = spent?.tracked && money(spent.usd) + (spent.open ? "+" : "");
 		div.c("ai2-row-head flex v-center gap-25", () => {
 			icon(g.icon);
 			span.c("ai2-row-title").text(g.name);
-			small.c("ai2-row-when muted").text([...size, latest && when(latest.at)].filter(Boolean).join(" · "));
+			small.c("ai2-row-when muted").text([...(usd ? [usd] : size), latest && when(latest.at)].filter(Boolean).join(" · "));
 		});
 		if (!latest) return void small.c("ai2-group-line muted").text("Nothing yet.");
 		const words = latest.kind === "said" ? "You said: " + latest.words

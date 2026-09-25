@@ -1,4 +1,5 @@
-// task-cost.mjs — the dollar cost of a task: its Servex root agent plus every agent it spawned.
+// task-cost.mjs — the dollar cost of a task: its share of its Servex root agent's time, plus every
+// agent that root spawned while the task was open.
 // Appends one `assign` line with `cost_usd` to the task's task.jsonl (only when the figure changed).
 // Read the doc first: Server/doc/task-cost.md
 //
@@ -56,11 +57,14 @@ const children = new Map();
 for (const r of rows) if (r.parent) (children.get(r.parent) || children.set(r.parent, []).get(r.parent)).push(r.id);
 
 // Line 1's session_id → the registry row with that session_id; else line 1's tab === row id.
+// The window: line 1's `requested_at` → the last `landed_at` (none yet = still open).
 function rootOf(dir){
-	let first = {};
-	try { first = JSON.parse(readFileSync(join(dir, "task.jsonl"), "utf8").replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0]).assign || {}; } catch {}
+	let first = {}, landed = "";
+	const all = lines(join(dir, "task.jsonl"));
+	first = all[0]?.assign || {};
+	for (const o of all) if (o.assign?.landed_at) landed = o.assign.landed_at;
 	const row = (first.session_id && rows.find(r => r.session_id === first.session_id)) || (first.tab && byId.get(first.tab));
-	return { root: row?.id || null, requested_at: first.requested_at || "" };
+	return { root: row?.id || null, requested_at: first.requested_at || "", landed_at: landed || null };
 }
 
 // The root plus every descendant (parent links), each once.
@@ -76,14 +80,18 @@ function ancestors(id){
 	return out;
 }
 
-// An agent's cost. A result line's `cost` is the RUNNING total of one process, so the last value
-// is the cost — unless a value drops, which means the process restarted: bank what came before.
-function agentCost(id){
-	// A result line seen twice (same time, same cost — a replay) counts once; a resumed session
-	// whose total CONTINUES just keeps growing, so it is never banked twice.
-	// No billed result line (none, or only a $0 stop marker) = nothing billed yet: null (NOT MEASURED), never 0.
-	let banked = 0, last = 0, any = false;
-	const seen = new Set();
+// An agent's spend, as the steps its result lines record: `[{ t, usd }]`. A result line's
+// `cost` is the RUNNING total of one process, so each step is the rise since the line before —
+// unless a value drops, which means the process restarted and began again at 0, so the whole
+// new value is the step (the old "banking").
+// A result line seen twice (same time, same cost — a replay) counts once; a resumed session
+// whose total CONTINUES just keeps growing, so it is never counted twice.
+// No billed result line (none, or only a $0 stop marker) = nothing billed yet: null (NOT MEASURED), never 0.
+const stepsCache = new Map();
+function agentSteps(id){
+	if (stepsCache.has(id)) return stepsCache.get(id);
+	let last = 0, any = false;
+	const seen = new Set(), steps = [];
 	for (const o of lines(join(SERVEX, "logs", `agent-${id}.jsonl`))) {
 		if (o.type !== "result" || typeof o.cost !== "number") continue;
 		const k = `${o.at}|${o.cost}`;
@@ -91,44 +99,90 @@ function agentCost(id){
 		seen.add(k);
 		// A stop marker (`stopped`, 0 turns, $0) is not a measurement: recipe-lab's only result line.
 		if (o.cost > 0 || o.turns > 0) any = true;
-		if (o.cost < last) banked += last;
+		const usd = o.cost < last ? o.cost : o.cost - last;
 		last = o.cost;
+		// Dated by when the TURN STARTED, not when its result line was written: an agent writes
+		// `landed_at` and only then ends its turn, so the end time falls just after the window it paid for.
+		if (usd > 0) steps.push({ t: Date.parse(o.at) - (o.duration_ms || 0), usd });
 	}
-	return any ? banked + last : null;
+	const out = any ? steps : null;
+	stepsCache.set(id, out);
+	return out;
+}
+const agentCost = id => { const s = agentSteps(id); return s ? s.reduce((n, x) => n + x.usd, 0) : null; };
+
+// ---- which task owns a moment of a root's time ----
+// Every task that shares a root splits that root's time, so each dollar lands in exactly one
+// task (Server/doc/task-cost.md, "One agent, several tasks: split by time"). At moment t:
+//   1. a task OPEN at t (requested_at <= t < landed_at, or not landed yet) — the latest-started
+//      one if several are open;
+//   2. else the NEXT task to start: the reading and the brief before a task's line 1 is written
+//      are that task's work, and a log opened at landing (requested_at = landed_at) still gets
+//      the work that led up to it;
+//   3. else, after every task has landed, the last one to land (its wrap-up).
+const mapped = allTasks().map(dir => ({ dir, key: taskKey(dir), ...rootOf(dir) })).filter(t => t.root)
+	.map(t => ({ ...t, s: Date.parse(t.requested_at) || 0, e: t.landed_at ? Date.parse(t.landed_at) : Infinity }));
+const tasksOf = root => mapped.filter(t => t.root === root);
+function owner(root, t){
+	const list = tasksOf(root);
+	if (!list.length) return null;
+	const later = (a, b) => (b.s - a.s) || b.key.localeCompare(a.key);
+	const open = list.filter(x => x.s <= t && t < x.e).sort(later);
+	if (open.length) return open[0];
+	const next = list.filter(x => x.s >= t).sort((a, b) => (a.s - b.s) || a.key.localeCompare(b.key));
+	if (next.length) return next[0];
+	return [...list].sort((a, b) => (b.e - a.e) || later(a, b))[0];
 }
 
-// ---- which task already counts this one (parent_task) ----
-// Another task whose root is an ANCESTOR of mine already includes me. Two tasks with the SAME root:
-// the earlier (by line-1 requested_at, then key) owns it; the later points at it.
-const mapped = allTasks().map(dir => ({ dir, key: taskKey(dir), ...rootOf(dir) })).filter(t => t.root);
+// When an agent was spawned (its registry `started_at`), in ms.
+const bornAt = id => Date.parse(byId.get(id)?.started_at || "") || 0;
+
+// ---- a true sub-tree: `parent_task` ----
+// A task whose root was SPAWNED by another task's root is already inside that task's figure:
+// `parent_task` names the task that was open on the ancestor when this branch was spawned.
+// Two tasks on the SAME root no longer get it — they split the root by time instead.
 function parentTask(me){
-	const same = mapped.filter(t => t.root === me.root && t.key !== me.key)
-		.filter(t => t.requested_at < me.requested_at || (t.requested_at === me.requested_at && t.key < me.key))
-		.sort((a, b) => a.requested_at.localeCompare(b.requested_at) || a.key.localeCompare(b.key));
-	if (same.length) return same[0].key;
+	let child = me.root;
 	for (const a of ancestors(me.root)) {
-		const hit = mapped.filter(t => t.root === a).sort((x, y) => x.requested_at.localeCompare(y.requested_at) || x.key.localeCompare(y.key))[0];
-		if (hit) return hit.key;
+		if (tasksOf(a).length) return owner(a, bornAt(child))?.key ?? null;
+		child = a;
 	}
 	return null;
 }
 
 const r2 = n => Math.round(n * 100) / 100, r4 = n => Math.round(n * 10000) / 10000;
+const closed = id => /^(stopped|gone)$/.test(byId.get(id)?.state || "stopped");
 
 function cost(dir){
-	const me = { dir, key: taskKey(dir), ...rootOf(dir) };
+	const me = mapped.find(t => t.dir === dir) ?? { dir, key: taskKey(dir), ...rootOf(dir) };
 	if (!me.root) return { key: me.key, tracked: false };
-	const ids = tree(me.root);
-	const each = ids.map(agentCost);
+	const mine = t => owner(me.root, t)?.key === me.key;
+
+	// The root: only the steps that fall in this task's share of its time.
+	const rootSteps = agentSteps(me.root);
+	const own = rootSteps ? rootSteps.filter(x => mine(x.t)).reduce((n, x) => n + x.usd, 0) : null;
+
+	// Its minions: each branch under the root goes WHOLE to the task open when it was spawned.
+	const branch = [];
+	for (const c of children.get(me.root) || []) if (mine(bornAt(c))) branch.push(...tree(c));
+
+	const row = id => byId.get(id) ?? {};
+	const agents = [
+		{ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) },
+		...branch.map(id => { const u = agentCost(id); return { id, model: row(id).model ?? null, role: row(id).role ?? null, usd: u == null ? null : r4(u) }; })
+			.sort((a, b) => (b.usd ?? -1) - (a.usd ?? -1)),
+	];
 	// A tree with no result line anywhere has billed nothing yet: not measured, never $0.
-	if (each.every(c => c === null)) return { key: me.key, dir, tracked: false, unmeasured: true, root: me.root };
-	const own = agentCost(me.root) ?? 0;
-	const total = each.reduce((s, c) => s + (c ?? 0), 0);
+	if (agents.every(a => a.usd === null)) return { key: me.key, dir, tracked: false, unmeasured: true, root: me.root };
+	const minions = agents.slice(1).reduce((n, a) => n + (a.usd ?? 0), 0);
+	// Can still grow: a minion that has not stopped, or the root while this task owns its "now".
+	const open = agents.slice(1).filter(a => !closed(a.id)).length + (!closed(me.root) && mine(Date.now()) ? 1 : 0);
 	return {
 		key: me.key, dir, tracked: true,
-		cost_usd: r4(total),
-		cost: { root: me.root, agents: ids.length, own_usd: r2(own), minions_usd: r2(total - own),
-			parent_task: parentTask(me), open: ids.filter(id => byId.get(id)?.state !== "stopped").length, at: "NOW" },
+		cost_usd: r4((own ?? 0) + minions),
+		cost: { root: me.root, agents, own_usd: r2(own ?? 0), minions_usd: r2(minions),
+			parent_task: parentTask(me), open,
+			window: { from: me.requested_at || null, to: me.landed_at || null }, at: "NOW" },
 	};
 }
 
@@ -141,7 +195,8 @@ function current(dir){
 
 function append(c){
 	const was = current(c.dir);
-	if (was.cost_usd === c.cost_usd && was.cost?.open === c.cost.open && was.cost?.parent_task === c.cost.parent_task) return "unchanged";
+	if (was.cost_usd === c.cost_usd && was.cost?.open === c.cost.open && was.cost?.parent_task === c.cost.parent_task
+		&& JSON.stringify(was.cost?.agents) === JSON.stringify(c.cost.agents)) return "unchanged";
 	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");
 	writeFileSync(tmp, JSON.stringify([{ assign: { cost_usd: c.cost_usd, cost: c.cost } }]));
 	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe", windowsHide: true });
@@ -178,7 +233,7 @@ for (const dir of dirs) {
 	if (c.unmeasured) { table.push([c.key, c.root, "", "", "", "not measured", "", "", dry ? (typeof current(c.dir).cost_usd === "number" ? "dry: would clear" : "dry") : clearZero(c)]); continue; }
 	if (!c.tracked) { table.push([c.key, "not tracked", "", "", "", "", "", "", ""]); continue; }
 	const action = dry ? "dry" : append(c);
-	table.push([c.key, c.cost.root, String(c.cost.agents), $(c.cost.own_usd), $(c.cost.minions_usd), $(c.cost_usd), String(c.cost.open), c.cost.parent_task || "", action]);
+	table.push([c.key, c.cost.root, String(c.cost.agents.length), $(c.cost.own_usd), $(c.cost.minions_usd), $(c.cost_usd), String(c.cost.open), c.cost.parent_task || "", action]);
 }
 if (agent && !dry) process.exit(0); // quiet on success
 const w = table[0].map((_, i) => Math.max(...table.map(r => r[i].length)));
