@@ -593,15 +593,23 @@ export default class Servex extends Events {
     }
 
     hold(spec, reason){
-        const entry = { spec, reason, at: stamp() };
+        const entry = { spec, reason, at: stamp(), inbox: [] };
         this.queue.push(entry);
         this.log.append("system", { type: "gate", state: "queued", role: spec.role ?? null, name: spec.name ?? null,
             reason, position: this.queue.length }).catch(() => {});
         const note = `Not started: ${reason}. Servex will start it as soon as that clears; its parent is woken as usual once it runs.`;
-        return {
-            id: null, queued: true, spec,
-            card: () => ({ id: null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1, reason, note })
+
+        /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
+         * agent through spawn and then sends to whatever comes back, so a held
+         * resume must not lose the message that woke it (found by assistant-layers,
+         * 2026-09-24). drain() delivers the inbox the moment the agent really runs. */
+        const stand_in = {
+            id: spec.id ?? null, queued: true, spec,
+            send: (text, extra) => { entry.inbox.push([text, extra]); return stand_in; },
+            card: () => ({ id: spec.id ?? null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1,
+                reason, note, held_messages: entry.inbox.length })
         };
+        return stand_in;
     }
 
     queued(){
@@ -612,10 +620,11 @@ export default class Servex extends Events {
     /* Every monitor tick: start what the gate now admits, oldest first. */
     drain(){
         while (this.queue.length && !this.admit(this.queue[0].spec)){
-            const { spec, at } = this.queue.shift();
+            const { spec, at, inbox } = this.queue.shift();
             try {
                 const agent = this.agents.spawn_now(spec);
-                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at }).catch(() => {});
+                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
+                for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
                 this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
             } catch (e){
                 this.log.append("system", { type: "gate", state: "failed", role: spec.role ?? null, name: spec.name ?? null,
