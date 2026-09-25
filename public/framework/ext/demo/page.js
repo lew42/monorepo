@@ -1,4 +1,4 @@
-import { Doc, md, demo, h2, p, div, code, toc } from "/app.js";
+import { Doc, md, demo, h2, p, div, code, toc, files } from "/app.js";
 import { sample } from "./sample.js";
 
 /* Patches demo.steps() on — a page-local side effect, the way this file's own
@@ -181,6 +181,14 @@ demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep r
 		md("**The shape a title and an intro paragraph used to be, replaced.** A numbered list of minimal steps — a verb phrase each, eight at most — beside whatever `stage:` builds. The reader does step one *in the demo*, right there, and the checkmark lands on its own: a step with `when` finishes itself the moment the demo fires that event anywhere inside itself (`$tree.el.dispatchEvent(new CustomEvent(\"move\", { bubbles: true }))` is the whole wiring on the demo's side); a step with none — like the three above, which have nothing to listen for — finishes on a click, same as every step can. The one above you has no events wired at all: click each line to see it happen.");
 
 		md("**The collapse at a narrow width is the `.rail` word's, not a new one** — the steps column already knows how to stack itself to a full-width top strip below 38em, reordering itself first, so `demo.steps()` writes zero new breakpoints. `side: \"left\"`/`\"right\"` only changes which one is built first; the [full record](/framework/ext/demo/api/steps/) has the why, the one-cue rule for the current step, and where a task hit a wall trying to wrap a page's OWN fixed-height layout in this.");
+
+		h2("The code beside the render");
+
+		code.js(`files(import.meta, "readme.md demo.js stage.js exhibit.js", { columns: "render" })`);
+
+		files(import.meta, "readme.md demo.js stage.js exhibit.js", { columns: "render" }).ac("wide");
+
+		md("A demo shows the result; `files()` shows the **files behind it** — the real ones, on disk. Click a file: its source on the left, and its rendered page on the right when it is a `.md` or `.html`. Choose **2 columns** in the bar to read two files side by side, and shift-click to fill the second. The chosen files live in the url, so a reload or the back button lands here again. [Files](/framework/ext/files/) has the rest.");
 
 		h2("Why");
 

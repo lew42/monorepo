@@ -9,6 +9,10 @@ View.stylesheet(import.meta, "files.css");
  *   files(import.meta, "example/index.html example/app.js example/page.js")
  *   files(import.meta, names, { about: path => md.file(meta, `doc/file/${path}.md`) })
  *
+ * Options: `columns: 2` or `"render"` opens with a second column (a second file, or the
+ * rendered .md / .html); `route: false` (or another key name) controls the url query.
+ * The selection lives in the url — ?file=a.js&file2=b.js&cols=2 — for the first files() on a page.
+ *
  * The files are FETCHED, so what you read is what is on disk. The longest common
  * directory is stripped for display, so a doc folder reads as a project.
  *
@@ -19,7 +23,7 @@ View.stylesheet(import.meta, "files.css");
  * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
  * the document url a route. Design record: framework/ext/files/readme.md.
  */
-export default function files(meta, names, { about } = {}){
+export default function files(meta, names, { about, columns, route } = {}){
 	const paths = names.trim().split(/\s+/).filter(Boolean);
 	const cut = common_dir(paths);
 
@@ -27,7 +31,7 @@ export default function files(meta, names, { about } = {}){
 	// after the await appends wherever the captor has since drifted. Lazy because the
 	// Panel stack is a dozen modules and app.js re-exports this door on every page.
 	return div.c("files", () =>
-		import("./panels.js").then(m => () => m.panels({ meta, paths, cut, about })));
+		import("./panels.js").then(m => () => m.panels({ meta, paths, cut, about, columns, route })));
 }
 
 /* The tree, marked with the file that is showing. A row carries the DECLARED path
