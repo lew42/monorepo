@@ -74,8 +74,11 @@ export default new Doc({
 			},
 
 			render(){
-				return this.view ??= div.c("page doc-section", () => this.content())
-					.ac("page--" + this.name);
+				// `flow` = the site's page rhythm between blocks (the row of three, then the wall);
+				// a bare `.page` grid has no row-gap, so without it they touch. `--pad-y: 0`: the tab
+				// panel already pays 3em of air above the first block, `.doc-section` added 1.5em more.
+				return this.view ??= div.c("page doc-section flow", () => this.content())
+					.ac("page--" + this.name).style("--pad-y", "0px");
 			},
 		});
 	},
