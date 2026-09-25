@@ -41,7 +41,7 @@ export function task_section(m, { head = true } = {}){
 		});
 		else a.c("ai2-link page-link").href(m.base).text("open the task page");
 		div.c("ai2-task-body", $body => {
-			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { listing: m.files } : {}); }))
+			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { known_files: m.files } : {}); }))
 				.catch(() => $body.append(() => { small.c("muted").text("The task page could not be drawn here — open it instead."); }));
 		});
 	});
