@@ -102,8 +102,8 @@ Design record and the phase-2b deferrals:
 
 ## prompt-relay.mjs — the `UserPromptSubmit` hook
 
-**Not wired yet.** The snippet below is for the owner to paste into `.claude/settings.json`
-themselves — no agent edits that file.
+**Wired 2026-09-25** (the owner asked for every prompt to be passed on). The snippet below is what `.claude/settings.json`
+now holds.
 
 Fires on every prompt, in every session, and does two separate jobs:
 
