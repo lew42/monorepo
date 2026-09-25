@@ -284,7 +284,8 @@ export default class Layers {
 		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
 		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
 			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
-			+ " First call `claim_topic({topic, card})` for the topic you are about to work on; if it is refused, message mastermind-servex instead of starting."
+			+ " First call `claim_topic({thing, change, card})`: `thing` is what you will change, as a short noun anyone would use (the site header, policy.js, the AI 2 rail), never the change itself."
+			+ " If it is refused, message mastermind-servex instead of starting."
 			+ ` Start minions with spawn_agent({parent: "${slot.id}"}). Report on the card with card_reply. Keep your own turns short.\n\n`
 			+ this.transcript(root) + "\n\n" + request);
 		const note = { from, reply_to: `card ${sub}` };

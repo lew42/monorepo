@@ -259,11 +259,11 @@ async function run(){
 	const managers = live.filter(a => a.id.startsWith("manager-")).map(a => a.id);
 	const [c1, c2] = managers.length >= 2 ? managers : [live[0]?.id, live[1]?.id];
 	const topic = `layers proof race ${Date.now()}`;
-	const race = await Promise.all([tool("claim_topic", { topic, card: A }, c1), tool("claim_topic", { topic, card: B }, c2)]);
+	const race = await Promise.all([tool("claim_topic", { thing: topic, change: "race A", card: A }, c1), tool("claim_topic", { thing: topic, change: "race B", card: B }, c2)]);
 	const winners = race.filter(r => r?.ok).length;
 	record("7b. two claims on one topic at once: exactly one wins", winners === 1,
 		{ callers: [c1, c2], managers: managers.length >= 2, results: race });
-	await tool("release_topic", { topic }, race[0]?.ok ? c1 : c2);
+	await tool("release_topic", { thing: topic }, race[0]?.ok ? c1 : c2);
 
 	// 7c runs after this, on two boots of its own: see gate()
 

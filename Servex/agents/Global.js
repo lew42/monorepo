@@ -295,7 +295,7 @@ export default class Global {
 			try {
 				const r = JSON.parse(out);
 				if (r && r.ok === false && r.holder) this.servex.log.append("policy", { at: new Date().toISOString(), from: ctx?.caller ?? "owner",
-					to: `claim ${args.topic}`, holder: r.holder, card: args.card ?? null, why: r.why })?.catch?.(() => {});
+					to: `claim ${args.thing ?? args.topic}`, holder: r.holder, card: args.card ?? null, why: r.why })?.catch?.(() => {});
 			} catch {}
 			return out;
 		} };

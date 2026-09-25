@@ -14,7 +14,7 @@ export function brief(servex){
 	try {
 		const claims = (servex?.claims?.list?.() ?? []).filter(c => !c.stale);
 		out.push("Being worked on:");
-		for (const c of claims.slice(0, 6)) out.push(`- ${c.topic}: ${c.agent} on ${c.card ?? "no card"}`);
+		for (const c of claims.slice(0, 6)) out.push(`- ${c.thing}${c.change ? ` (${c.change})` : ""}: ${c.agent} on ${c.card ?? "no card"}`);
 		if (claims.length > 6) out.push(`- and ${claims.length - 6} more (list_claims)`);
 		if (!claims.length) out.push("- nothing claimed");
 

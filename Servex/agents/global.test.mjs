@@ -48,15 +48,31 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	reset();
 	const agents = { live: new Map([["manager-a", { state: "idle" }], ["manager-b", { state: "idle" }]]) };
 	const c = new Claims({ agents, file: path.join(HOME, "claims.json") });
-	t(c.claim({ topic: "Sidebar width", agent: "manager-a", card: "a" }).ok, "first claim");
+	t(c.claim({ thing: "Sidebar width", agent: "manager-a", card: "a" }).ok, "first claim");
 	const no = c.claim({ topic: "sidebar  WIDTH", agent: "manager-b", card: "b" });
-	t(!no.ok && no.holder === "manager-a" && no.card === "a", "second agent refused");
-	t(no.why === "Sidebar width is already being worked on by manager-a on card a. Ask mastermind-servex before starting.", "refusal wording");
+	t(!no.ok && no.holder === "manager-a" && no.card === "a", "second agent refused (topic still accepted as the thing)");
+	t(no.why === "Sidebar width is already being changed by manager-a on card a. Ask mastermind-servex before starting.", "refusal wording");
 	agents.live.get("manager-a").state = "stopped";
 	t(c.list()[0].stale === true, "stopped holder is stale");
 	t(c.claim({ topic: "sidebar width", agent: "manager-b", card: "b" }).ok, "stale claim taken over");
 	c.claim({ topic: "other", agent: "manager-b", card: "b" });
 	t(c.release_all("manager-b").released === 2 && c.list().length === 0, "release_all");
+}
+
+// a claim names the THING: blue and red on the site header are one key
+{
+	reset();
+	const agents = { live: new Map([["manager-blue", { state: "idle" }], ["manager-red", { state: "idle" }]]) };
+	const c = new Claims({ agents, file: path.join(HOME, "claims.json") });
+	const blue = c.claim({ thing: "site header", change: "blue", agent: "manager-blue", card: "2026/09/24/blue" });
+	t(blue.ok && blue.key === "site-header", "the key is the thing only");
+	const red = c.claim({ thing: "Site Header", change: "red", agent: "manager-red", card: "2026/09/24/red" });
+	t(!red.ok && red.holder === "manager-blue" && red.change === "blue", "another change to the same thing is refused");
+	t(red.why === "site header is already being changed by manager-blue on card 2026/09/24/blue (blue). Ask mastermind-servex before starting.", "refusal names the holder's change");
+	const row = c.list()[0];
+	t(row.thing === "site header" && row.change === "blue" && !("topic" in row), "list shows thing and change");
+	fs.writeFileSync(path.join(HOME, "claims.json"), JSON.stringify({ "old-row": { topic: "old row", agent: "manager-blue", card: "x" } }));
+	t(c.list()[0].thing === "old row" && c.claim({ thing: "old row", agent: "manager-red" }).ok === false, "an old topic row still reads as its thing");
 }
 
 // brief() stays one screen
