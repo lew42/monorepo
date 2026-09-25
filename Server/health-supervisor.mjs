@@ -133,7 +133,7 @@ function kill_and_wait(c, deadline_ms = KILL_DEADLINE_MS){
 		try { c.kill(); } catch {}
 		const timer = setTimeout(() => {
 			if (done) return;
-			try { spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"]); } catch {}
+			try { spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { windowsHide: true }); } catch {}
 			setTimeout(finish, 300);
 		}, deadline_ms);
 	});
@@ -218,7 +218,7 @@ function queue_reload(){
 
 function reload_for_change(){
 	if (shutting_down) return;
-	const check = spawnSync(process.execPath, ["--check", HEALTH_SCRIPT], { encoding: "utf8" });
+	const check = spawnSync(process.execPath, ["--check", HEALTH_SCRIPT], { encoding: "utf8", windowsHide: true });
 	if (check.status !== 0) {
 		console.error(`[health-supervisor] health.mjs — syntax error, NOT cycling (the old, still-parsing code keeps running):\n${check.stderr}`);
 		return;

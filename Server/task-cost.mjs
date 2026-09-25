@@ -144,7 +144,7 @@ function append(c){
 	if (was.cost_usd === c.cost_usd && was.cost?.open === c.cost.open && was.cost?.parent_task === c.cost.parent_task) return "unchanged";
 	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");
 	writeFileSync(tmp, JSON.stringify([{ assign: { cost_usd: c.cost_usd, cost: c.cost } }]));
-	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe" });
+	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe", windowsHide: true });
 	return "appended";
 }
 
@@ -154,7 +154,7 @@ function clearZero(c){
 	if (typeof current(c.dir).cost_usd !== "number") return "not measured";
 	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");
 	writeFileSync(tmp, JSON.stringify([{ assign: { cost_usd: null, cost: null } }]));
-	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe" });
+	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe", windowsHide: true });
 	return "cleared";
 }
 

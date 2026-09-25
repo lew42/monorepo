@@ -42,7 +42,7 @@ if (!entry) {
 // the grandchild running; `taskkill /T /F` takes the whole tree at once.
 if (entry.pid) {
 	console.log(`worktree-down: stopping server pid ${entry.pid}…`);
-	const result = spawnSync("taskkill", ["/PID", String(entry.pid), "/T", "/F"], { encoding: "utf8" });
+	const result = spawnSync("taskkill", ["/PID", String(entry.pid), "/T", "/F"], { encoding: "utf8", windowsHide: true });
 	if (result.status !== 0 && !/not found/i.test(result.stdout || "")) {
 		console.log(`worktree-down: taskkill said: ${(result.stdout || result.stderr || "").trim()}`);
 	}
@@ -58,7 +58,7 @@ try {
 
 let status = "";
 try {
-	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8" });
+	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
 } catch (e) {
 	console.error(`worktree-down: could not read git status for ${entry.path} (${e.message}) — leaving the worktree in place. Remove the registry entry by hand if it's actually gone.`);
 	process.exit(1);

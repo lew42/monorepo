@@ -11,7 +11,7 @@ let driver;
 function chromium(){
     if (driver !== undefined) return driver;
     try {
-        const root = execSync("npm root -g", { encoding: "utf8" }).trim();
+        const root = execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim();
         driver = createRequire(path.join(root, "index.js"))("playwright").chromium;
     } catch {
         driver = null;

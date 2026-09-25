@@ -132,7 +132,7 @@ function supervise(){
 			try { child.kill(); } catch {}
 			const timer = setTimeout(() => {
 				if (done) return;
-				try { spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"]); } catch {}
+				try { spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true }); } catch {}
 				setTimeout(finish, 300);   // give the OS a beat to actually reap it, then move on regardless
 			}, deadline_ms);
 		});

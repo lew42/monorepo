@@ -283,7 +283,7 @@ function archive_sweep(){
 /* ── Playwright, resolved from the GLOBAL install, never hard-coded ──────── */
 
 function resolve_playwright(){
-	let g; try { g = execSync("npm root -g", { encoding: "utf8" }).trim(); } catch { return null; }
+	let g; try { g = execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim(); } catch { return null; }
 	const entry = path.join(g, "playwright", "index.mjs");
 	return fs.existsSync(entry) ? entry : null;
 }
@@ -589,7 +589,7 @@ function notify_out_of_band(url, error_findings){
 	const text = first ? `${first.kind}: ${first.text}`.slice(0, 300) : "";
 	const id = "health-" + url.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 	try {
-		execFileSync(process.execPath, [SAY_SCRIPT, "say", title, text, "--as", "health-watch", "--id", id, "--status", "needs-you", "--icon", "bug_report"], { cwd: ROOT, stdio: "ignore" });
+		execFileSync(process.execPath, [SAY_SCRIPT, "say", title, text, "--as", "health-watch", "--id", id, "--status", "needs-you", "--icon", "bug_report"], { cwd: ROOT, stdio: "ignore", windowsHide: true });
 	} catch (e) {
 		console.error("health.mjs: could not post the out-of-band notice —", e?.message || e);
 	}
