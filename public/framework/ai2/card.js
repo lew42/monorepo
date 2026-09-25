@@ -192,7 +192,7 @@ export default class Card extends Page {
 		const cards = this.shell?.ai2?.cards;
 		return JSON.stringify([this.facts(), this.title, this.name, this.icon, this.by, this.created, this.text,
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), cards_ready.known,
-			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s)]);
+			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info())]);
 	}
 
 	redraw(){
@@ -277,29 +277,44 @@ export default class Card extends Page {
 	   it, agent by agent with each model, is the task page's own Report tab just
 	   below (`ext/AITask/cost.js` `breakdown()`), so it is drawn once, not twice.
 	   A card with no task shows nothing: nothing measured it. */
-	cost_block(g){
+	/* ⚠ WHAT THE COST BLOCK DRAWS, AS DATA — and `draw_sig()` reads it too. The
+	     signature skips a redraw that would paint the same pixels, and it did not
+	     list cost: the card drew once before the group's task logs had loaded (no
+	     rows, so no table), and when the cost lines arrived the signature said
+	     "unchanged" and the table never appeared (live, 2026-09-24).
+	   Rows sort by cost, largest first: that answers the question, and a task's
+	   `now` moving (which reorders `members()`) is no reason to redraw. */
+	cost_model(g){
 		const groups = this.shell?.ai2?.groups;
-		if (!groups) return;
+		if (!groups) return null;
+		if (!g) return { line: cost_line(groups.task_member(task_of(this))) };
+		const rows = groups.members(g.id).filter(m => m.kind === "task")
+			.map(m => { const c = cost_of(groups.task_member(m.base)); return { title: m.title || "A task", c: c && { usd: c.usd, open: !!c.open, own: c.cost.own_usd ?? c.usd, minions: c.cost.minions_usd ?? 0 } }; })
+			.sort((a, b) => (b.c?.usd ?? -1) - (a.c?.usd ?? -1) || a.title.localeCompare(b.title));
+		const s = groups.cost(g.id);
+		return { rows, sum: { usd: s.usd, tracked: s.tracked, untracked: s.untracked, open: !!s.open } };
+	}
+
+	cost_block(g){
+		const model = this.cost_model(g);
+		if (!model) return;
 		if (!g){
-			const line = cost_line(groups.task_member(task_of(this)));
-			if (line) div.c("ai2-cost").text(line);
+			if (model.line) div.c("ai2-cost").text(model.line);
 			return;
 		}
-		const tasks = groups.members(g.id).filter(m => m.kind === "task");
-		const sum = groups.cost(g.id);
-		if (!tasks.length) return;
+		const { rows, sum } = model;
+		if (!rows.length) return;
 		div.c("ai2-cost", () => {
 			table(() => {
 				// TWO COLUMNS, so it fits a half column at 1280: four made the
 				// task names one word per line. The split sits under each name.
 				thead(() => tr(() => { th("task"); th("cost"); }));
 				tbody(() => {
-					tasks.forEach(m => {
-						const c = cost_of(groups.task_member(m.base));
+					rows.forEach(({ title, c }) => {
 						tr(() => {
 							td(() => {
-								div(m.title || "A task");
-								if (c) small.c("muted").text("mastermind " + money(c.cost.own_usd ?? c.usd) + " · minions " + money(c.cost.minions_usd ?? 0));
+								div(title);
+								if (c) small.c("muted").text("mastermind " + money(c.own) + " · minions " + money(c.minions));
 							});
 							td(c ? money(c.usd) + (c.open ? "+" : "") : "not tracked");
 						});
