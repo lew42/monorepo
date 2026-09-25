@@ -1,6 +1,7 @@
 import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
 import { agents as singleton } from "./Agents.js";
+import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { job_tools } from "./jobs.js";
 
@@ -46,7 +47,9 @@ export function tools(agents = singleton){
 const caller_is_from = t => t.name !== "start_job" ? t
 	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
 
-function own(agents){ return [
+function own(agents){
+const policy = agents.policy ??= new Policy({ agents });
+return [
 
 	tool("spawn_agent",
 		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
@@ -67,8 +70,10 @@ function own(agents){ return [
 			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." }
 		},
 		[],
-		args => {
+		(args, ctx = {}) => {
 			if (!args.prompt && !args.resume) throw new Error("spawn_agent needs a `prompt` (or a `resume` to reopen).");
+			const ruling = policy.spawn(ctx.caller ?? null, args.role);
+			if (!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			return card(agents.spawn(args));
 		}),
 
@@ -129,7 +134,13 @@ function own(agents){ return [
 			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." }
 		},
 		["id", "text"],
-		({ id, text, ...note }) => card(agents.send(id, text, note))),
+		({ id, text, ...note }, ctx = {}) => {
+			const ruling = policy.message(ctx.caller ?? null, id);
+			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
+			const from = ctx.caller ?? note.from;
+			policy.heard(from ?? "owner", id);
+			return card(agents.send(id, text, { ...note, from }));
+		}),
 
 	tool("interrupt_agent",
 		"Stop an agent mid-sentence, keeping the session alive. It goes idle with everything it has"

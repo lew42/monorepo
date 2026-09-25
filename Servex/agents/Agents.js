@@ -370,8 +370,10 @@ export function session_facts(sid){
  * boot — `revive()` never reopens these; it only marks the old row gone.
  * Prefixes, plus exact ids. */
 export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-assistant"], ids: ["mastermind-servex"] };
-export const self_restarted = id =>
-	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix));
+/* Only while the layers run: with `SERVEX_NO_LAYERS` set nothing respawns them,
+ * so revive() treats them like any other agent. */
+export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
+	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));

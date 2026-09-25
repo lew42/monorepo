@@ -20,6 +20,8 @@ import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
+import Layers from "./agents/Layers.js";
+import Global from "./agents/Global.js";
 import agent_tools from "./agents/tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -163,6 +165,14 @@ export default class Servex extends Events {
             this.monitor = new this.constructor.Monitor({ servex: this }).start();
             this.checks.push(spec => this.monitor.flag ? this.monitor.flag.reason : null);
             this.monitor.on("tick", () => this.drain());
+        }
+
+        /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
+         * manager on every card, and the master assistant + mastermind-servex across
+         * them all. `SERVEX_NO_LAYERS=1` boots without them. */
+        if (!process.env.SERVEX_NO_LAYERS){
+            this.layers = new this.constructor.Layers({ servex: this }).install();
+            this.global = new this.constructor.Global({ servex: this }).install();
         }
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
@@ -819,6 +829,8 @@ Servex.Log = class ServexLog extends Log {
 Servex.Assistant = Assistant;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
+Servex.Layers = Layers;
+Servex.Global = Global;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.PortRegistry = PortRegistry;

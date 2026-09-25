@@ -102,6 +102,14 @@ export default class Dispatcher {
 	 * `bypassPermissions` — nobody is there to approve a tool call on a
 	 * non-interactive session. */
 	async dispatch(task){
+		/* A task spoken on a card goes to THAT card's manager (Layers.js), whose
+		 * session is kept for the card's whole life, instead of a fresh task
+		 * mastermind that knows nothing the card already knows. It does not hold
+		 * a slot here: the manager reports on the card, not to us. */
+		if (task.card && this.servex.layers){
+			const { manager } = this.servex.layers.ask_manager({ card: task.card, text: task.brief, from: this.id, task: task.id });
+			return this.progress(task.id, "working", `handed to ${manager}`);
+		}
 		const { topics, page } = await this.context(task);
 		const post = (state, now) => `append_log({name: "prompts", entry: {type: "task", id: "${task.id}",`
 			+ ` state: "${state}", now: "${now}"}})`;

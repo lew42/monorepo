@@ -10,19 +10,29 @@
  * differ, `alias` is the other word, and either is accepted as a role. Renaming the
  * skill dirs would touch a dozen callers, so the mismatches are listed in doc/names.md.
  * `prefix` is the id's first half (`<prefix>-<name>`, built by Agents.name()). */
+import { model } from "./tiers.js";
+
+/* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
+ * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
+ * ⚠ 2026-09-24: `mastermind` and `master-assistant` were Fable rows; the tier table has
+ * no Fable tier, so they now run on the architect and fast tiers. */
 export const ROLES = {
-	minion:             { skill: "minion",           prefix: "minion",           model: "claude-sonnet-5",  effort: "high", permission_mode: "acceptEdits" },
+	minion:             { skill: "minion",           prefix: "minion",           tier: "fast",      model: model("fast"),       effort: "high", permission_mode: "acceptEdits" },
 	/* bypassPermissions, not acceptEdits: this role's whole job is calling
 	 * spawn_agent/send_to_agent/list_agents, and an MCP tool call needs the same
 	 * approval a Bash command would under acceptEdits — approval nobody can give
 	 * a non-interactive SDK session. Found 2026-09-22 (sub-mastermind-live run 1):
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
-	"task-mastermind":  { skill: "sub-mastermind",   prefix: "task-mastermind",  alias: "sub-mastermind", model: "claude-opus-5-5",  effort: "medium", permission_mode: "bypassPermissions" },
-	mastermind:         { skill: "mastermind",       prefix: "mastermind",       model: "claude-fable-5-1", effort: "high", permission_mode: "acceptEdits" },
-	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   model: "claude-sonnet-5",  effort: "low",  permission_mode: "acceptEdits" },
-	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", model: "claude-fable-5-1", effort: "high", permission_mode: "plan" },
-	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    model: "claude-sonnet-5",  effort: "low",  permission_mode: "acceptEdits" }
+	"task-mastermind":  { skill: "sub-mastermind",   prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
+	mastermind:         { skill: "mastermind",       prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
+	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
+	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "fast",      model: model("fast"), effort: "high", permission_mode: "plan" },
+	/* The card layers (Layers.js): a card's manager loads sub-mastermind and is recycled for the
+	 * card's whole life; a card's assistant brings its own system brief (card-assistant.md). */
+	manager:            { skill: "sub-mastermind",   prefix: "manager",          tier: "manager",   model: model("manager"),   effort: "medium", permission_mode: "bypassPermissions" },
+	"card-assistant":   { skill: null,                prefix: "assistant",        tier: "fast",      model: model("fast"),      effort: "low",    permission_mode: "bypassPermissions" },
+	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 
 /* A role word or its alias -> the row's canonical role. */

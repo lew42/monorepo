@@ -148,25 +148,16 @@ session_id, started_at, parent}` to `registry.json` next to the logs — `GET /a
 still sees an agent after Servex restarts and its in-memory `live` Map is empty again — and
 appends the same row to `servex.jsonl`.
 
-## The fast assistant — the one agent that is always up
+## The assistant layers — every card has its own agents
 
-`Assistant.js` is a role played by one long-lived Sonnet session, `assistant-fast`, spawned at
-Servex boot (and on demand at `GET /api/assistant/start`). Every `prompt` line appended to the
-`prompts` log is sent to it; it answers within about two seconds with a `name` for each thing
-you named, a `card` for the idea, and a `refined` reading citing the sentence numbers it came
-from. Median measured over five real utterances: **2.05 s**
-([`prompt-lifecycle`](/framework/ai/2026-09-22/prompt-lifecycle/)).
+Each card gets its own **assistant** (`assistant-<card>`, answers in seconds) and its own
+**manager** (`manager-<card>`, plans the work and starts minions). A **master assistant** and
+`mastermind-servex` watch across all cards. Every agent speaks under its own id, and
+`send_to_agent` and `spawn_agent` check [`policy.js`](./policy.js) for who may message or spawn
+whom. Everything about it: [`doc/layers.md`](./doc/layers.md).
 
-It is the first spawn here that brings its **own system brief** ([`assistant.md`](./assistant.md),
-thirty lines) instead of loading a role skill — `Agents.spawn()` skips the skill load whenever
-`system` is given, because a session with a replacement system prompt usually has no file tools
-to read a skill with, and this one has none at all. Its only tool is `append_prompt_event`, whose
-handler stamps `by` and `re` itself: the model says what the event IS and can neither claim to be
-the owner nor point an answer at the wrong prompt.
-
-`SERVEX_NO_ASSISTANT=1` boots Servex without it. `POST /api/assistant/message {text, from, re}`
-is how a page asks it for one specific thing — the AI board's ✓ on a card uses it to ask for a
-pre-proposal.
+`assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
+card. `SERVEX_NO_ASSISTANT=1` boots without it.
 
 ## The Dispatcher — a card becomes a task mastermind
 
@@ -203,6 +194,8 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) ·
+`Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
+`policy.js` · `claims.js` · `brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
 `demo.mjs` · `fork-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
