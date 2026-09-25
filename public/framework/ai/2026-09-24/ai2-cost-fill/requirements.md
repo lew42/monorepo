@@ -12,6 +12,15 @@ Never write the owner's name.
 
 ## Deliverables
 
+0. **FIRST — a bug the owner hit:** "http://monorepo.localhost/framework/ai2/2026/09/24/ai-dashboard/
+   — this page doesn't scroll." (the AI dashboard group card as a detail page, long content).
+   Reproduce headless at 1920: wheel, keyboard (PageDown/Space after a click in the column), and
+   `scrollHeight` vs `clientHeight` + computed `overflow`/`height` on EVERY ancestor. Name the
+   container that clips it (an `overflow: hidden`, a fixed height, or ai2.css's scrollbar-hiding
+   rule — md-open hit the same class of bug today). Fix it, check EVERY group card and a few task
+   cards the same way, commit it ALONE, and reply to your mastermind right then (hash + cause in
+   two sentences) so it can merge the fix before the rest. Then carry on with 1–3.
+
 1. **Cost on AI 2.** Every group preview and every card preview on `/framework/ai2/` shows its
    dollar cost (a group = the sum of its member tasks, each counted once). A card's detail page
    shows the breakdown: mastermind vs minions, **per agent, with its model**. Numbers come from
