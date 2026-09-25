@@ -1,6 +1,6 @@
 import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { author_word } from "./inbox.js";
+import { author_word, plain } from "./inbox.js";
 
 /**
  * THE TWO FACES OF A CARD — the preview in the rail, and the whole thing on the
@@ -10,6 +10,14 @@ import { author_word } from "./inbox.js";
 
 export const clock = at =>
 	at ? new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+
+/** Today's time alone; any other day with its date — a list spans weeks. */
+export const when = at => {
+	if (!at) return "";
+	const d = new Date(at);
+	if (d.toDateString() === new Date().toDateString()) return clock(at);
+	return d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + clock(at);
+};
 
 /** EVERY ROW SAYS WHO (the owner, 2026-09-22: "the items in the inbox need an
     author so I know who it's coming from, whether it's something I said"). One
@@ -22,9 +30,10 @@ export function who(it){
 	span.c("ai2-who" + (is_you(it) ? " ai2-who-you" : "")).text(author_word(it.author));
 }
 
-/** ONE LINE, AND IT IS ALWAYS THE SAME HEIGHT. The preview is the thing that
-    must not move when the list repaints, so it is exactly two rows of text: the
-    title row, and one clamped line of whatever the card is about. */
+/** A PREVIEW, WHOLE — the title row, and whatever the card is about, as tall as
+    it needs (the owner, 2026-09-24: "I don't like the truncated preview. If it's
+    worth putting in the preview, render the whole thing"). Nothing jumps
+    because a new row still only enters when the list is quiet. */
 export function row(it){
 	div.c("ai2-row-head flex v-center gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
@@ -39,8 +48,9 @@ export function row(it){
 		// The card's CURRENT state, not its first sentence — the last thing said
 		// into it if it is a card you talk to, otherwise what it is about.
 		const last = it.transcript?.length && it.transcript[it.transcript.length - 1].said.filter(Boolean).at(-1);
-		const line = last || it.refined || it.text || it.landed || it.said?.find(Boolean) || "";
-		if (line) small.c("ai2-row-line muted").text(line);
+		// A landed task's headline is already its title; only the rest is a line.
+		const line = last || it.refined || it.text || (it.kind === "landed" ? "" : it.landed) || it.said?.find(Boolean) || "";
+		if (line) small.c("ai2-row-line muted").text(plain(line));
 	});
 }
 

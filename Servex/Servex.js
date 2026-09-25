@@ -186,6 +186,7 @@ export default class Servex extends Events {
          * at a second copy trying to bind this very port. */
         this.projects.push(new Project({ dir: HERE.split(path.sep).join("/"), name: "servex", port: this.dashboard_port, self: true }));
         this.scan(this.root);
+        this.adopt();
 
         this.proxy = new ReverseProxy({
             port: this.gated ? this.proxy_internal : this.proxy_port,
@@ -193,8 +194,10 @@ export default class Servex extends Events {
             site: "monorepo",
             ports: this.ports.ports,
             dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
-            missing: name => this.autostart(name)
+            missing: name => this.autostart(name),
+            starting: name => ["launching", "restarting"].includes(this.processes.get(name)?.status)
         });
+        this.proxy.on("proxy_error", e => this.say(`proxy error ${e.code} — ${e.method} ${e.host}${e.path}`, { event: "proxy_error", ...e }));
 
         this.gate();
         this.whisper();
@@ -254,7 +257,8 @@ export default class Servex extends Events {
         const runner = new Process({
             name, log: this.log, port: project.port, cwd: project.dir,
             command: start.command, args: start.args, shell: start.shell,
-            env: { NO_WHISPER: "1", HOST: "127.0.0.1" }
+            env: { NO_WHISPER: "1", HOST: "127.0.0.1" },
+            detach: true                  // outlives Servex; the next Servex adopts it — Process.js
         });
         this.processes.set(name, runner);
         return runner;
@@ -293,6 +297,15 @@ export default class Servex extends Events {
                 ? { status: "online", pid: process.pid, said: "this dashboard" }
                 : this.processes.get(p.name)?.toJSON() ?? { status: "stopped", pid: null })
         }));
+    }
+
+    /* Every dev server the LAST Servex started and that is still running is
+     * picked back up — the same pid, no restart (Process.adopt). Its record in
+     * procs/<name>.json is what makes it ours. */
+    adopt(){
+        let names = [];
+        try { names = fs.readdirSync(path.dirname(place("procs", "x.json"))).filter(f => f.endsWith(".json")).map(f => f.slice(0, -5)); } catch {}
+        for (const name of names) this.runner(name)?.adopt().catch(e => this.say(`adopt ${name} failed: ${e.message}`));
     }
 
     /* Whisper is one of these too — same supervision, same log file, four boot
@@ -590,15 +603,23 @@ export default class Servex extends Events {
     }
 
     hold(spec, reason){
-        const entry = { spec, reason, at: stamp() };
+        const entry = { spec, reason, at: stamp(), inbox: [] };
         this.queue.push(entry);
         this.log.append("system", { type: "gate", state: "queued", role: spec.role ?? null, name: spec.name ?? null,
             reason, position: this.queue.length }).catch(() => {});
         const note = `Not started: ${reason}. Servex will start it as soon as that clears; its parent is woken as usual once it runs.`;
-        return {
-            id: null, queued: true, spec,
-            card: () => ({ id: null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1, reason, note })
+
+        /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
+         * agent through spawn and then sends to whatever comes back, so a held
+         * resume must not lose the message that woke it (found by assistant-layers,
+         * 2026-09-24). drain() delivers the inbox the moment the agent really runs. */
+        const stand_in = {
+            id: spec.id ?? null, queued: true, spec,
+            send: (text, extra) => { entry.inbox.push([text, extra]); return stand_in; },
+            card: () => ({ id: spec.id ?? null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1,
+                reason, note, held_messages: entry.inbox.length })
         };
+        return stand_in;
     }
 
     queued(){
@@ -609,10 +630,11 @@ export default class Servex extends Events {
     /* Every monitor tick: start what the gate now admits, oldest first. */
     drain(){
         while (this.queue.length && !this.admit(this.queue[0].spec)){
-            const { spec, at } = this.queue.shift();
+            const { spec, at, inbox } = this.queue.shift();
             try {
                 const agent = this.agents.spawn_now(spec);
-                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at }).catch(() => {});
+                this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
+                for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
                 this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
             } catch (e){
                 this.log.append("system", { type: "gate", state: "failed", role: spec.role ?? null, name: spec.name ?? null,
@@ -626,10 +648,6 @@ export default class Servex extends Events {
         this.log.append("servex", { msg, ...extra }).catch(() => {});
     }
 
-    /* Every child Servex started dies with it. `terminate()` is synchronous on
-     * purpose — `process.on("exit")` is the only hook Node guarantees, and it
-     * cannot await. A whisper-server that was ALREADY running when Servex
-     * started has no child here, so it is never touched. */
     /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
      * proxy, so a Servex restart is a slow page, not an error page.
      * Servex keeps the gate alive: it launches it at boot and relaunches it
@@ -647,11 +665,16 @@ export default class Servex extends Events {
         setInterval(check, 5000).unref();
     }
 
+    /* Every attached child Servex started dies with it; the detached dev
+     * servers do not — the next Servex adopts them. `terminate()` is
+     * synchronous on purpose — `process.on("exit")` is the only hook Node
+     * guarantees, and it cannot await. A whisper-server that was ALREADY
+     * running when Servex started has no child here, so it is never touched. */
     shutdown(){
         const down = () => {
             try { this.monitor?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
-            for (const runner of this.processes.values()) runner.terminate();
+            for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
         };
         process.on("SIGINT", () => { down(); process.exit(0); });

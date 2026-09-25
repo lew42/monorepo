@@ -13,34 +13,25 @@
  * so there is nearly nothing in it that can crash, and it never needs a
  * restart when Servex changes.
  *
- * ⚠ It must outlive Servex, and `taskkill /pid <servex> /t /f` walks the tree
- * by PARENT pid, so a detached child alone would still die with it. `launch()`
- * spawns a middleman (`--orphan`) that starts the real gate and exits at once:
- * the gate's parent pid is then dead, and no tree walk can reach it. `detached`
- * also takes it out of libuv's job object, which kills every other child.
+ * ⚠ It must outlive Servex, so `launch()` starts it through orphan.mjs — the
+ * same launcher the dev servers use, which says why a plain child would die
+ * with Servex.
  *
  * Launching twice is safe: a second gate finds the port taken and exits 0. */
 
 import net from "node:net";
 import fs from "node:fs";
-import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { place } from "./home.js";
+import { orphan } from "./orphan.mjs";
 
 const SELF = fileURLToPath(import.meta.url);
 const RETRY = 200, GIVE_UP = 20000;
 
 /* Start a gate that survives whatever started it. */
 export function launch(listen = 80, target = 8079){
-    spawn(process.execPath, [SELF, "--orphan", String(listen), String(target)],
-        { detached: true, stdio: "ignore", windowsHide: true }).unref();
-}
-
-function orphan(listen, target){
-    const out = fs.openSync(place("logs", "gate.log"), "a");
-    spawn(process.execPath, [SELF, String(listen), String(target)],
-        { detached: true, stdio: ["ignore", out, out], windowsHide: true }).unref();
-    process.exit(0);
+    return orphan({ command: process.execPath, args: [SELF, String(listen), String(target)], out: place("logs", "gate.log") })
+        .catch(e => console.error(`gate: launch failed — ${e.message}`));
 }
 
 /* One visitor. Its bytes wait (paused) until the proxy answers, then flow both
@@ -91,7 +82,6 @@ function gate(listen, target){
 if (process.argv[1] && fs.realpathSync(process.argv[1]).toLowerCase() === SELF.toLowerCase()){   // run, not imported
     const [mode, ...rest] = process.argv[2]?.startsWith("--") ? process.argv.slice(2) : [null, ...process.argv.slice(2)];
     const [listen = 80, target = 8079] = rest.map(Number);
-    if (mode === "--orphan") orphan(listen, target);
-    else if (mode === "--launch") launch(listen, target);      // the same launch, from a shell
+    if (mode === "--launch") launch(listen, target);            // the same launch, from a shell
     else gate(listen, target);
 }

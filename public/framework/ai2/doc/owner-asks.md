@@ -10,9 +10,9 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 1. ~~[The overview's four columns don't fit the screen](#overview-fit)~~ — fixed 24 Sep.
 2. ~~[The rail's top row overflows](#rail-head)~~ — fixed 24 Sep.
-3. [Cards in sizes: big for the topics you keep coming back to](#sizes) — every row is the same size today.
-4. [Cards named well, with big familiar icons](#names-icons) — many rows are titled "New card" with a 20px icon.
-5. [A read/unread you control, not a 354-card wall](#unread-wall) — every card is unread, so the orange dot is on every row and means nothing.
+3. [Cards in sizes: big for the topics you keep coming back to](#sizes) — partly, 24 Sep: [seven groups](./groups.md) lead the rail and previews are whole now, so a busy group reads bigger; there are no small, medium and large sizes yet.
+4. [Cards named well, with big familiar icons](#names-icons) — partly, 24 Sep: [seven named groups with familiar icons](./groups.md) lead the rail; the icons are still 20px.
+5. [A read/unread you control, not a 354-card wall](#unread-wall) — partly, 24 Sep: the wall is folded away under "Not filed yet", below [the groups](./groups.md); read and unread are still not yours to control.
 6. [A dark card for a mastermind or minion session](#dark-card) — no such card exists.
 7. [Add sub-cards anywhere, and turn a card into another type](#sub-cards-anywhere) — sub-cards only come from a card's own log.
 8. [Flagging a second time takes two clicks](#flag-twice) — the ⚑ still toggles off first.
@@ -263,7 +263,7 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 > […] Prioritize: small, medium, large cards; topics I keep referring to become a big thing that stays on screen.
 
-2026-09-17 · 2026-09-22 · [task](/framework/ai/2026-09-17/mastermind-layout-browser/) · [task](/framework/ai/2026-09-22/mastermind-servex/) · ✗ — every row is the same height by design ("the rows must not change height", readme). The crash card part is ✅: health-watch posts cards with a bug icon and a time.
+2026-09-17 · 2026-09-22 · [task](/framework/ai/2026-09-17/mastermind-layout-browser/) · [task](/framework/ai/2026-09-22/mastermind-servex/) · ◐ — 24 Sep: the "rows must not change height" rule is retired; a preview is whole and as tall as it needs, and the [groups](./groups.md) are the big topics at the top. No small/medium/large yet. The crash card part is ✅: health-watch posts cards with a bug icon and a time.
 
 <a id="names-icons"></a>
 #### Big, familiar icons; every card named well
@@ -271,7 +271,7 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 > […] I need it digestible: each card named really well with an icon, a small preview of the current state; the orange dot seems redundant unless it's a status indicator […]
 
-2026-09-17 · 2026-09-22 · [task](/framework/ai/2026-09-17/mastermind-layout-browser/) · [task](/framework/ai/2026-09-22/mastermind-servex/) · ✗ — icons are 20px, and five of the first twelve rows today are titled "New card" or "You said…". The one-line current state is ✅.
+2026-09-17 · 2026-09-22 · [task](/framework/ai/2026-09-17/mastermind-layout-browser/) · [task](/framework/ai/2026-09-22/mastermind-servex/) · ◐ — 24 Sep: the rail leads with [seven named groups](./groups.md), each with a familiar icon and its newest update in plain words, never a slug. Icons are still 20px.
 
 <a id="dark-card"></a>
 #### A dark card for a mastermind or minion session

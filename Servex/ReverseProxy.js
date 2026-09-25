@@ -57,10 +57,19 @@ export default class ReverseProxy extends Events {
         this.bare ??= null;         // the project a nameless `localhost` reaches
         this.site ??= null;         // where a nameless `localhost` PAGE link is sent — see handle()
         this.ports ??= {};
-        this.wait ??= 15000;        // how long a page load waits for a starting project — failed()
+        this.wait ??= 15000;        // how long a request waits for a starting project — ready(), failed()
 
-        this.proxy = http_proxy.createProxyServer({});
+        /* ⚠ A KEEP-ALIVE agent. Without one, http-proxy opens a fresh connection
+         * to the project for every request and closes it; each close leaves a
+         * port in TIME_WAIT for two minutes. A page importing ~100 modules,
+         * reloaded a few times, used up Windows' 16,384 outgoing ports and the
+         * next connect failed EADDRINUSE (servex-crash, 2026-09-24: 24,907
+         * TIME_WAIT sockets, most of them to the dev server). */
+        this.proxy = http_proxy.createProxyServer({ agent: new http.Agent({ keepAlive: true, maxSockets: 64 }) });
         this.proxy.on("error", (err, req, res) => this.failed(err, req, res));
+        this.seen = {};             // name -> when it last answered; ready() skips the knock while this is fresh
+        this.knocking = {};         // port -> the one shared wait-for-it loop — answers()
+        this.proxy.on("proxyRes", (res, req) => this.seen[this.name(req)] = Date.now());
 
         /* ⚠ BOTH loopbacks, IPv4 and IPv6. Chrome tries `[::1]` first for every
          * `*.localhost` name; with nothing there, Windows takes ~2 s to refuse
@@ -104,7 +113,59 @@ export default class ReverseProxy extends Events {
         const target = this.target(req);
         if (!target) return res.writeHead(404, { "Content-Type": "text/html" })
             .end(no_route_page(req.headers.host, this.dashboard ?? "/"));
-        this.proxy.web(req, res, { target });
+        this.ready(req, res, () => this.proxy.web(req, res, { target }));
+    }
+
+    /* Hold a request until its project can take it. A request whose body cannot
+     * be sent twice — a POST, a websocket — must not reach a port that is still
+     * down: failed() would find the body already spent. So when the project is
+     * `starting`, or the request is anything but GET/HEAD, the port is knocked
+     * on first (every 250 ms, up to `wait`), and a refusal starts the project
+     * (`missing`). The body is still unread while it waits, so nothing is lost.
+     * A project that answered in the last 5 s is not knocked on — every knock
+     * is one more connection, and connections are what ran out (see above).
+     * 2026-09-24: right after a Servex restart, the `site` MCP's POST /mcp got
+     * the HTML Starting page and every session failed "Unexpected content type".
+     * A GET for a running project goes straight through, as always. */
+    ready(req, socket, go){
+        const name = this.name(req), port = this.ports[name];
+        const upgrade = !socket.writeHead;
+        const fresh = Date.now() - (this.seen[name] ?? 0) < 5000;    // it answered moments ago — a knock would only cost a port
+        const unsafe = upgrade || !/^(GET|HEAD)$/.test(req.method);  // a body or a socket that cannot be sent twice
+        const hold = port && (this.starting?.(name) || (unsafe && !fresh));
+        if (!hold) return go();
+
+        const first = this.starting?.(name) ? Promise.resolve(false) : this.knock(port);   // starting: straight to the shared wait
+        first.then(up => {
+            if (up || !this.missing?.(name)) return go();          // up, or not startable — failed() says so
+            return this.answers(port).then(() => socket.destroyed || go());   // down after `wait`: failed() answers
+        });
+    }
+
+    /* One knock: does the port take a connection right now? */
+    knock(port){
+        return new Promise(done => {
+            const probe = net.connect(port, "127.0.0.1");
+            probe.once("connect", () => { probe.destroy(); done(true); });
+            probe.once("error", () => { probe.destroy(); done(false); });
+        });
+    }
+
+    /* Knock every 250 ms until the port answers or `wait` runs out. ⚠ SHARED:
+     * every request waiting on one port awaits the same loop. A page's hundred
+     * module requests each knocking on their own was 400 connections a second,
+     * and those ran the machine out of ports too (servex-crash, 2026-09-24). */
+    answers(port){
+        return this.knocking[port] ??= (async () => {
+            const until = Date.now() + this.wait;
+            try {
+                while (Date.now() < until){
+                    if (await this.knock(port)) return true;
+                    await new Promise(r => setTimeout(r, 250));
+                }
+                return false;
+            } finally { delete this.knocking[port]; }
+        })();
     }
 
     /* ⚠ The visitor's socket gets its own error listener. An open tab's
@@ -116,45 +177,63 @@ export default class ReverseProxy extends Events {
         socket.on("error", () => socket.destroy());
         const target = this.target(req);
         if (!target) return socket.destroy();
-        this.proxy.ws(req, socket, head, { target });
+        this.ready(req, socket, () => this.proxy.ws(req, socket, head, { target }));
     }
 
-    /* The target port did not answer — almost always because the project is not
-     * running. `missing` is Servex's auto-start; if it says it is starting one,
-     * a page load (GET or HEAD, safe to send twice) simply WAITS: the port is
-     * tried every 250 ms, for up to `wait`, and the request is sent again the
-     * moment it answers — the visitor sees the page, late, instead of a
-     * "Starting…" page. Right after Servex itself restarts, the dev server is
-     * always down (it died with Servex), so this is what makes a reload in that
-     * moment look like nothing happened. Only if the project never answers does
-     * the visitor get the polling page, as before. */
+    /* The proxy could not reach the target. Every error is announced first
+     * (`proxy_error` — Servex writes it to the `servex` log), so an intermittent
+     * failure names itself.
+     *
+     * ONLY a refused connection means "the project is not running" (2026-09-24:
+     * treating a reset or a "socket hang up" as that answered 1 POST in 6 with
+     * the Starting page while the dev server was up, and once autostarted a
+     * second dev server that died with EADDRINUSE). A refusal goes to
+     * `missing`, Servex's auto-start; a page load (GET or HEAD, safe to send
+     * twice) then WAITS — the port is tried every 250 ms, for up to `wait`, and
+     * the request is sent again the moment it answers. Right after Servex
+     * restarts, the dev server is always down (it died with Servex), so this is
+     * what makes a reload in that moment look like nothing happened. Only if the
+     * project never answers does a page NAVIGATION get the polling page;
+     * anything else (a fetch, an MCP call) gets a plain 503 + Retry-After.
+     *
+     * Any other error: a GET/HEAD is sent once more straight away; everything
+     * else gets a plain-text 502 naming the error. Never HTML a fetch cannot
+     * parse, never an autostart. */
     failed(err, req, res){
-        if (!res?.writeHead || res.headersSent || res.destroyed) return;
-        const name = this.name(req);
+        const code = err ? (err.code || err.message) : "TIMEOUT";
+        this.emit("proxy_error", { code, method: req.method, host: req.headers?.host, path: req.url });
+        if (!res?.writeHead) return res?.destroy?.();          // a websocket: nothing to answer with
+        if (res.headersSent || res.destroyed) return;
+        const name = this.name(req), port = this.ports[name];
+        const page = req.headers["sec-fetch-mode"] === "navigate" || /text\/html/.test(req.headers.accept || "");
+        const plain = (status, text, extra = {}) => res.writeHead(status, { "Content-Type": "text/plain", ...extra }).end(text + "\n");
+
+        if (err && err.code !== "ECONNREFUSED"){
+            if (port && /^(GET|HEAD)$/.test(req.method) && !req.servex_again){
+                req.servex_again = true;
+                return this.proxy.web(req, res, { target: `http://127.0.0.1:${port}` });
+            }
+            return plain(502, `Servex could not reach ${name}: ${code}`);
+        }
 
         if (this.missing?.(name)){
-            const port = this.ports[name];
             req.servex_deadline ??= Date.now() + this.wait;
             if (port && /^(GET|HEAD)$/.test(req.method) && Date.now() < req.servex_deadline)
                 return this.retry(req, res, port);
-            return res.writeHead(200, { "Content-Type": "text/html", "X-Servex-Starting": "1" }).end(starting_page(name));
+            if (page) return res.writeHead(200, { "Content-Type": "text/html", "X-Servex-Starting": "1" }).end(starting_page(name));
+            return plain(503, `${name} is starting — try again in a second.`, { "Retry-After": "1", "X-Servex-Starting": "1" });
         }
-        res.writeHead(502, { "Content-Type": "text/html" }).end(no_route_page(req.headers.host, this.dashboard ?? "/"));
+        if (page) return res.writeHead(502, { "Content-Type": "text/html" }).end(no_route_page(req.headers.host, this.dashboard ?? "/"));
+        plain(502, `Servex could not reach ${name}: ${code}`);
     }
 
-    /* Knock on the port until it answers, then send the request again. A second
-     * refusal lands back in failed(), which knows the deadline from the first. */
+    /* Wait for the port (the shared knock), then send the request again. A
+     * second refusal lands back in failed(), which knows the deadline from the first. */
     retry(req, res, port){
-        const knock = () => {
+        this.answers(port).then(up => {
             if (res.headersSent || res.destroyed) return;
-            const socket = net.connect(port, "127.0.0.1");
-            socket.once("connect", () => { socket.destroy(); this.proxy.web(req, res, { target: `http://127.0.0.1:${port}` }); });
-            socket.once("error", () => {
-                socket.destroy();
-                if (Date.now() < req.servex_deadline) setTimeout(knock, 250);
-                else this.failed(null, req, res);
-            });
-        };
-        setTimeout(knock, 250);
+            if (up) this.proxy.web(req, res, { target: `http://127.0.0.1:${port}` });
+            else this.failed(null, req, res);
+        });
     }
 }

@@ -69,6 +69,11 @@ Servex *is* the always-on process, and a second daemon under it is one too many.
 Whisper is one of these (`Process.Whisper`), with the same four boot cases the
 dev server's own plugin handles.
 
+A project's dev server **outlives Servex**: it is started through `orphan.mjs`
+(hidden, and out of reach of a tree kill), and when Servex comes back it
+*adopts* the same process instead of starting a new one. So a Servex restart
+never restarts your site. `sustain.mjs --stop` stops them too.
+
 **Assistant** — `agents/Assistant.js`, one Sonnet session that is always up,
 inside this process, holding no file tools at all. `ux/Dictate` posts every
 sentence the owner speaks to `/log/prompts`; within a few seconds the assistant
@@ -111,6 +116,9 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
 - `ports.json` — name → port
 - `logs/<name>.jsonl` — one file per supervised thing, plus `servex.jsonl` for
   Servex's own events
+- `procs/<name>.json` — the pid of each dev server Servex started, so the next
+  Servex can adopt it; its output goes to `logs/<name>.out` and `.err`, and
+  from there into `logs/<name>.jsonl` as before
 - `logs/reports/` — Node's crash report, if Servex ever dies natively again
   (the 0xC0000409 exits left no trace before); `logs/gate.log` is the gate's
 

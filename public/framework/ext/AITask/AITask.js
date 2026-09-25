@@ -98,6 +98,19 @@ function tab_bar(sections, active){
  */
 export class AITask extends Page {
 
+	/** THE TASK PAGE, DRAWN INTO WHATEVER BOX IS CAPTURING NOW — the seam for a
+	    page that shows a task without navigating to it (AI 2's card column).
+	    `base` is the task dir's url, `/framework/ai/<date>/<slug>/`; it builds
+	    the same page the day's `route()` builds, and runs its own `content()`,
+	    so nothing here is a copy of the view. Pass `{ listing }` (the dir's file
+	    names) when you have them, and a missing `requirements.md` is never
+	    fetched. Returns the page. */
+	static into(base, ...args){
+		const task = new this({ title: base.split("/").filter(Boolean).at(-1), url: base, src: base + "session.json" }, ...args);
+		task.content();
+		return task;
+	}
+
 	/* ⚠ `wide`, not the default `main` track. A task page is not prose: it is a
 	   wall of ask cards, a conversation with a rail beside it, and four tables of
 	   figures, and at 1280 the reading column gave all of that 602px — two of the
@@ -137,6 +150,9 @@ export class AITask extends Page {
 	base(){ return this.src ? this.src.replace(/[^/]*$/, "") : new URL(".", this.meta.url).pathname; }
 
 	async requirements(){
+		// `listing`, when the caller knows the dir's listing (`into()`'s callers
+		// do): no fetch for a file that is not there, so no 404 in the console.
+		if (this.listing && !this.listing.includes("requirements.md")) return null;
 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
 	}

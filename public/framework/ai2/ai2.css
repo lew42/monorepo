@@ -444,15 +444,15 @@
 		visibility: visible;
 	}
 
-	/* ONE LINE EACH, CLIPPED — a preview whose height cannot change cannot push
-	   its neighbours around. */
+	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "I don't like the truncated
+	   preview… render the whole thing as tall as it needs to be"). The old
+	   "a row's height cannot change" rule is retired; a new row still only
+	   enters when the list is quiet, which is what keeps it from jumping. */
 	.ai2-row-title {
 		flex: 1;
 		min-width: 0;
 		font-weight: 600;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		overflow-wrap: anywhere;
 	}
 
 	.ai2-row-when {
@@ -468,9 +468,59 @@
 		flex: 1;
 		min-width: 0;
 		font-size: 0.9em;
+		overflow-wrap: anywhere;
+	}
+
+	/* ── the groups, at the top of the rail ──
+	   A group row is a preview like any other, a little heavier: the name, then
+	   the newest member's own words, whole. */
+	.ai2-group-row .ai2-row-title {
+		font-size: 1.05em;
+	}
+
+	.ai2-group-row .ai2-row-when {
 		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	}
+
+	.ai2-group-what,
+	.ai2-group-line {
+		display: block;
+		margin-block-start: 0.15em;
+		font-size: 0.88em;
+		line-height: 1.4;
+		overflow-wrap: anywhere;
+	}
+
+	/* Everything no group holds yet: one quiet word that opens the old list. */
+	.ai2-unfiled-head {
+		padding: 0.55em 0.7em;
+		cursor: pointer;
+		font-size: 0.9em;
+	}
+
+	/* ── the task pages inside a card ──
+	   Wider than the card's own prose: a task page is tabs, tables and a wall
+	   of asks, and it keeps its own paragraphs on the measure itself (ai.css). */
+	.ai2-full > .ai2-tasks {
+		max-width: none;
+	}
+
+	.ai2-task {
+		margin-block-start: var(--gap);
+		padding-block-start: var(--gap-50);
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-task-head {
+		margin-block-end: var(--gap-50);
+	}
+
+	/* Grows beside its icon, so a long title wraps under itself, not below the icon. */
+	.ai2-task-title {
+		flex: 1 1 12em;
+		min-width: 0;
+		font-weight: 600;
+		overflow-wrap: anywhere;
 	}
 
 	/* WHO SAID IT — one word on every row and every page (the owner: "the items
@@ -827,7 +877,9 @@
 		.ai2-detail:has(.ai2-card-page.active-ancestor) { display: none; }
 		.ai2:has(.ai2-detail .ai2-card-page.active-ancestor) .ai2-sub { display: block; }
 
-		.ai2-back { display: inline-block; }
+		/* The card page has no padding of its own, so the link carries its own
+		   inset — it sat at 0px from the screen's edge (padding check, 2026-09-24). */
+		.ai2-back { display: inline-block; padding: 0.5em 1em; }
 
 	}
 }
