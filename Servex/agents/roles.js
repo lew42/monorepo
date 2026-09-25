@@ -25,7 +25,7 @@ export const ROLES = {
 	 * a task mastermind spawned under the old default had both its spawn_agent
 	 * calls refused, said so, and stopped — no files written, no wake to prove. */
 	"task-mastermind":  { skill: "sub-mastermind",   prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
-	mastermind:         { skill: "mastermind",       prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
+	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
 	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "fast",      model: model("fast"), effort: "high", permission_mode: "plan" },
 	/* The card layers (Layers.js): a card's manager loads sub-mastermind and is recycled for the
