@@ -41,6 +41,23 @@ standpoint, in terms of revising the skills."
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 
+## A VS Code tab is an agent you can message
+
+Register once, near the start: `register_session({id, session_id})` — `id` is a short word you
+pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid
+(`$CLAUDE_CODE_SESSION_ID`). After that, `list_agents` lists you, `send_to_agent` reaches you, and
+the owner's words on any card you create go to you too — all as lines appended to your own inbox
+file, `logs/inbox/<id>.jsonl` under Servex's home. You are not a live agent Servex holds open, so
+nothing pushes those lines to you: watch for them yourself, with one `Monitor` call tailing that
+file, re-armed at the start of every turn (a Monitor expires — 30 minutes at most — so treat "still
+watching" as a habit, not a one-time setup):
+
+```
+tail -f <SERVEX_HOME>/logs/inbox/<your id>.jsonl
+```
+
+Full design: `Servex/agents/doc/external.md`.
+
 ## Where you write
 
 One task per day, `public/framework/ai/<date>/servex-mastermind/`, landed at the end of that
