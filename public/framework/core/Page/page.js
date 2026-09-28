@@ -61,16 +61,17 @@ export default new Doc({
 	// render() to draw the card first — same seam core/Page/page.js already uses on
 	// overview_section() below.
 	api_section(){
-		const section = super.api_section();
-		if (!section) return section;
+		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
 
-		section.render = function(){
-			return this.view ??= div.c("page doc-section", () => {
-				object(Page, { doc: "/framework/core/Page/" });
-				this.tabs().ac("vertical");
-			}).ac("page--" + this.name);
-		};
-		return section;
+		return this.section("api", "API", {
+			initialize(){ this.parent.api(this); },
+			render(){
+				return this.view ??= div.c("page doc-section", () => {
+					object(Page, { doc: "/framework/core/Page/" });
+					this.tabs().ac("vertical");
+				}).ac("page--" + this.name);
+			},
+		});
 	},
 
 	overview_section(){
