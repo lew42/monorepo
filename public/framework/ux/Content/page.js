@@ -17,7 +17,7 @@ export default new Page({
 
 		// SEAM: the census. `catalog/` is built by another team; this card is the only
 		// thing this page says about it, so it can grow into a full wall without a rewrite.
-		a.c("card").attr("href", "catalog/").append(() => {
+		a.c("card").attr("href", "/framework/ux/Content/catalog/").append(() => {
 			div.c("h4 muted", "Catalog");
 			p("Every card kind on the site — see each one, where it is used, and which are duplicates.");
 		});
