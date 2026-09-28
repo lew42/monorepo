@@ -24,6 +24,11 @@ then `"done"`), with one small verb line per item inside it: `{"finding":...}`,
 `{"answer":...}`, `{"reply":...}`, `{"ruling":...}`. A later line for the same finding number
 wins, the same merge rule every JSONL log in this repo uses.
 
+This is the same one-verb-per-line phase/kind JSONL convention `collab.jsonl` uses, not the same
+code: `ext/Collab`'s `Phase`/`Member`/`Vote` classes are a browser-side REPLAY of that file (fetch
+by URL, render); `review.mjs` is a Node writer with no browser, so it follows the convention
+without importing those classes.
+
 ```
 {"phase":{"n":1,"kind":"findings","status":"start"}}
 {"finding":{"n":2,"kind":"fix","text":"..."}}
@@ -61,15 +66,26 @@ The task mastermind may lower the size only with `--why "self-evident: <one line
 
 ## Answering a finding (turn 2)
 
-The author answers every finding in `task.jsonl`, never argues with it in chat:
+The author answers every finding in `task.jsonl`, never argues with it in chat. A `[fix]` finding
+always needs `fixed` or `declined`; a `[note]` finding may use either of those too, or the lighter
+`noted` when there is nothing to change but the finding is still worth acknowledging:
 
 ```json
 {"review":{"answer":{"n":2,"reply":"fixed"}}}
 {"review":{"answer":{"n":3,"reply":"declined: <why>"}}}
+{"review":{"answer":{"n":4,"reply":"noted: <why nothing changes>"}}}
 ```
 
 Then run `node Server/review.mjs --turns <taskdir>` to mirror the answer into `review.jsonl` and,
 for any decline, get a second fresh reviewer's read (turn 3, above) — accept, or hold.
+
+⚠ **Answer lines are keyed only by finding number, flat across the whole `task.jsonl`** — before
+appending an answer for a SECOND review pass on the same task, make sure that pass's own
+`{"review":{verdict,findings}}` entry has already been appended (the one `review.mjs` writes when
+it runs). Otherwise `status()` and `--score` are still reading the FIRST pass's findings list, and
+an answer meant for the second pass's finding 3 silently overwrites the first pass's own finding
+3's answer, by number — a real trap, not a theoretical one (`review-turns`, 2026-09-28, minion C's
+own mistake mid-task; caught and corrected the same way, an appended corrective answer line).
 
 ## The merge gate
 
@@ -78,8 +94,10 @@ commit, or has a `[fix]` finding with no answer yet. The refusal names the one c
 run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`.
 
 `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
-board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 1 unanswered`, or
-`not reviewed`. The `finish-task` skill pastes this phrase into the landing report by hand, so it
+board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or
+`not reviewed` — an unanswered count always names which findings, so a reader never has to go
+hunting through `task.jsonl` for them. `merge.mjs`'s own refusal at the review gate names them
+the same way. The `finish-task` skill pastes this phrase into the landing report by hand, so it
 can go stale if a finding is answered after landing — the card does not read task.jsonl live yet.
 
 ## Why an old review can still be current

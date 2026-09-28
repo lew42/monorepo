@@ -164,13 +164,19 @@ export function status(taskDir) {
 	// a verdict of "fix" with nothing parsed (an unusual "1) [fix] ..." numbering, say) is not a pass
 	if (!findings.length) return latest.verdict === "pass" ? "reviewed: pass" : "reviewed: 1 unanswered (verdict fix, no findings parsed)";
 	const answers = entries.filter(e => e.review?.answer).map(e => e.review.answer);
-	let fixed = 0, declined = 0, unanswered = 0;
+	// A [note] finding may be answered "noted: ..." instead of fixed/declined — a [fix] finding
+	// still needs fixed/declined, "noted" never counts for one.
+	let fixed = 0, declined = 0, noted = 0, unansweredNums = [];
 	for (const f of findings) {
 		const a = answers.filter(x => x.n === f.n).at(-1);
-		if (!a) unanswered++; else if (/^fixed\b/i.test(a.reply)) fixed++; else if (/^declined\b/i.test(a.reply)) declined++; else unanswered++;
+		if (!a) { unansweredNums.push(f.n); continue; }
+		if (/^fixed\b/i.test(a.reply)) fixed++;
+		else if (/^declined\b/i.test(a.reply)) declined++;
+		else if (f.kind === "note" && /^noted\b/i.test(a.reply)) noted++;
+		else unansweredNums.push(f.n);
 	}
-	if (unanswered) return `reviewed: ${unanswered} unanswered`;
-	return `reviewed: ${[fixed && `${fixed} fixed`, declined && `${declined} declined`].filter(Boolean).join(", ")}`;
+	if (unansweredNums.length) return `reviewed: ${unansweredNums.length} unanswered: #${unansweredNums.join(", #")}`;
+	return `reviewed: ${[fixed && `${fixed} fixed`, declined && `${declined} declined`, noted && `${noted} noted`].filter(Boolean).join(", ")}`;
 }
 
 // The TOP of whichever checkout `cwd` actually lives in — `--show-toplevel`, never
@@ -291,12 +297,12 @@ function scoreRow(root, taskDir) {
 	const findings = review.findings || [];
 	const answers = new Map();
 	for (const e of entries) if (e.review?.answer) answers.set(e.review.answer.n, e.review.answer.reply);
-	let fixed = 0, unanswered = 0;
+	let fixed = 0, unansweredNums = [];
 	for (const f of findings) {
 		const a = answers.get(f.n);
-		if (!a) unanswered++; else if (/^fixed\b/i.test(a)) fixed++;
+		if (!a) unansweredNums.push(f.n); else if (/^fixed\b/i.test(a)) fixed++;
 	}
-	if (unanswered) return { error: `${unanswered} finding(s) unanswered` };
+	if (unansweredNums.length) return { error: `${unansweredNums.length} unanswered: #${unansweredNums.join(", #")}` };
 	const turns = readTurns(taskDir);
 	for (const [n, r] of turns.replies) if (r.stance === "hold" && !turns.rulings.has(n)) return { error: `finding ${n} is held with no ruling yet` };
 	const collab = collabIdFor(root, taskDir), decision = decisionIdFor(taskDir, review);
@@ -417,7 +423,11 @@ async function main() {
 		const already = pages.length && pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(taskDir, "layout-check", slug(HOST + p), `${w}.png`))));
 		if (pages.length && already) shotFiles = pages.map(p => path.join(taskDir, "layout-check", slug(HOST + p), "sheet.png"));
 		else if (pages.length) {
-			const base = worktreeBase(root, worktreeDir) ?? HOST;
+			const found = worktreeBase(root, worktreeDir);
+			// Falling back to the MAIN site's URL when this worktree has no .worktrees.json entry
+			// would screenshot the wrong tree with no sign of it — say so instead of staying silent.
+			if (!found) console.log(`review.mjs: no worktree entry for ${worktreeDir} in .worktrees.json — screenshotting the MAIN site instead, not this worktree's own copy`);
+			const base = found ?? HOST;
 			const shots = path.join(taskDir, "review", "shots");
 			fs.mkdirSync(shots, { recursive: true });
 			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--out", shots]);
