@@ -1,5 +1,6 @@
 import { Page, Doc, md, div, code } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
+import { object } from "../../ux/Content/Object/Object.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
@@ -54,6 +55,36 @@ export default new Doc({
 	// would also mean `this.browse()` inside `content()` searches MY children, not the
 	// section's. Called as `this.content()` from render() below, unbound resolves `this`
 	// to the section — whose children the list above just populated.
+	// The API tab OPENS with a card, not a wall of words: "oh, this is a Page and it has
+	// a property of this that equals this" (the owner, 2026-09-28), before the member
+	// rail even loads. Doc's own api_section() builds the rail; this only swaps its
+	// render() to draw the card first — same seam core/Page/page.js already uses on
+	// overview_section() below.
+	api_section(){
+		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
+
+		const doc = this;
+
+		// A small, unmounted example — nothing here is added to the real tree or
+		// fetched, `declare()` only records the two names — so the card can show real
+		// VALUES ("title = Intro"), which a bare `Page` class never has (the owner's own
+		// ask: "this is a Page, and its property X = Y").
+		const example = new Page({ title: "Intro", children: "setup usage" });
+
+		return this.section("api", "API", {
+			initialize(){ this.parent.api(this); },
+			render(){
+				return this.view ??= div.c("page doc-section", () => {
+					// `api`, not `doc`: this card sits right above the rail below it, and that
+					// rail already answers `api/<name>/` for every one of these names — a
+					// second address at `doc/method/<name>/` would be two urls for one member.
+					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
+					this.tabs().ac("vertical");
+				}).ac("page--" + this.name);
+			},
+		});
+	},
+
 	overview_section(){
 		return this.section("overview", "Overview", {
 			title: this.title,
