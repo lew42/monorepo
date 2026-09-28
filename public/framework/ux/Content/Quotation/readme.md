@@ -1,6 +1,6 @@
 # Quotation — one owner prompt: words, time, how, and a link
 
-A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: prompt — [shapes](/framework/ux/Content/doc/shapes/).
+A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: prompt — [shapes](/framework/ux/Content/doc/shapes.md).
 
 ## Use
 ```js
