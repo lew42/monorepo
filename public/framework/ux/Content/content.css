@@ -77,6 +77,15 @@
 	.ux-content-object-eq { color: var(--subtle); flex: none; }
 	.ux-content-object-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
+	/* `.chips`: no value was ever read off any of them (a bare class, mostly) — a
+	   wrapping row of chips, same look as the methods row below, reads better than
+	   13 single-word lines. */
+	.ux-content-object-properties.chips { flex-direction: row; flex-wrap: wrap; gap: .3em; }
+	.ux-content-object-properties.chips .ux-content-object-name {
+		display: inline-block; background: var(--wash); border-radius: .3em; padding: .1em .5em;
+	}
+	.ux-content-object-properties.chips a.ux-content-object-name:hover { background: color-mix(in srgb, var(--prim) 15%, var(--wash)); }
+
 	/* Methods read best as a wrapping row of chips — a card with 40 of them is still a
 	   few lines tall, not one name per row. */
 	.ux-content-object-methods { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3em; }

@@ -2,6 +2,15 @@ import { Doc, md, div } from "/app.js";
 import Page from "../../../core/Page/Page.class.js";
 import { object } from "./Object.js";
 
+// The same names core/Page/page.js's own Doc declares and links to real doc pages —
+// duplicated here on purpose: this demo shows a real class, so it should show what
+// that class's own docs actually list, not a shorter stand-in.
+const PAGE_PROPERTIES = "meta title children content url name label icon card classes description parent app view loading route regions depth related";
+const PAGE_METHODS = "child add move previews walls preview preview_card preview_link link crumbs "
+	+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden store "
+	+ "naming declare source_children load_all_children deactivate "
+	+ "mounts_in log_label assign load missing slug";
+
 export default new Doc({
 	meta: import.meta,
 	title: "Object",
@@ -17,7 +26,7 @@ export default new Doc({
 
 		div.c("ux-content-wall wide", () => {
 			div.c("flex v gap", () => { md("### The page you're reading, as an instance"); object(this); });
-			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/" }); });
+			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS }); });
 			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
 		});
 

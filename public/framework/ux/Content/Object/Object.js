@@ -75,8 +75,13 @@ export default class ObjectCard extends View {
 			if (label) span.c("ux-content-object-label", String(label));
 		});
 
+		// A names-only list (almost nothing on it has a value worth reading — a bare
+		// class, mostly, maybe one stray own field like a function's own `.name`) reads
+		// better as a wrapping row of chips than 13 tall single-word rows.
 		const props = this.own_properties();
-		if (props.length) this.group("Properties", "ux-content-object-properties", props, name => this.property_row(name));
+		const with_value = props.filter(name => this.value_for(name) !== undefined).length;
+		const bare = props.length && with_value / props.length <= .25;
+		if (props.length) this.group("Properties", `ux-content-object-properties${bare ? " chips" : ""}`, props, name => this.property_row(name));
 
 		const methods = this.own_methods();
 		if (methods.length) this.group("Methods", "ux-content-object-methods", methods, name => this.method_row(name));
