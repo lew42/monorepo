@@ -58,16 +58,21 @@ export default class ObjectCard extends View {
 		return undefined;
 	}
 
-	/* Method names live on the prototype: the instance's, or — for a bare class — its
-	 * own. Stops at Object.prototype so a plain `{}` shows no Methods at all instead of
-	 * hasOwnProperty / __defineGetter__ and the rest of the furniture nobody asked for. */
+	/* Method names live up the WHOLE prototype chain — the instance's class, then
+	 * every class it extends — stopping before Object.prototype so a plain `{}` shows
+	 * no Methods at all instead of hasOwnProperty / __defineGetter__ and the rest of
+	 * the furniture nobody asked for. Nearest class first, so a reader sees what the
+	 * subject itself adds before what it inherited. */
 	own_methods(){
 		if (this.methods) return Array.isArray(this.methods) ? this.methods : String(this.methods).trim().split(/\s+/).filter(Boolean);
 
-		const proto = typeof this.subject === "function" ? this.subject.prototype : Object.getPrototypeOf(this.subject ?? {});
-		if (!proto || proto === Object.prototype) return [];
+		const start = typeof this.subject === "function" ? this.subject.prototype : Object.getPrototypeOf(this.subject ?? {});
+		const names = new Set();
+		for (let proto = start; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+			for (const name of Object.getOwnPropertyNames(proto))
+				if (name !== "constructor" && typeof proto[name] === "function") names.add(name);
 
-		return Object.getOwnPropertyNames(proto).filter(name => name !== "constructor" && typeof proto[name] === "function");
+		return [...names];
 	}
 
 	render(){

@@ -65,6 +65,12 @@ export default new Doc({
 
 		const doc = this;
 
+		// A small, unmounted example — nothing here is added to the real tree or
+		// fetched, `declare()` only records the two names — so the card can show real
+		// VALUES ("title = Intro"), which a bare `Page` class never has (the owner's own
+		// ask: "this is a Page, and its property X = Y").
+		const example = new Page({ title: "Intro", children: "setup usage" });
+
 		return this.section("api", "API", {
 			initialize(){ this.parent.api(this); },
 			render(){
@@ -72,7 +78,7 @@ export default new Doc({
 					// `api`, not `doc`: this card sits right above the rail below it, and that
 					// rail already answers `api/<name>/` for every one of these names — a
 					// second address at `doc/method/<name>/` would be two urls for one member.
-					object(Page, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
+					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
 					this.tabs().ac("vertical");
 				}).ac("page--" + this.name);
 			},
