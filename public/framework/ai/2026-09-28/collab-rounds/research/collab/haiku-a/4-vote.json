@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Add mention of semantic self-consistency (grouping by answer similarity, not exact-match voting) as an optional mitigation for the backfire risk when all agents agree on a wrong answer on hard problems."
+}

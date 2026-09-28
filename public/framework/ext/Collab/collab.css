@@ -1,0 +1,51 @@
+/* ext/Collab's own look — everything framework.css doesn't already give the
+   utility classes used in view.js (flex, gap, wrap, split, v-baseline, v-center,
+   muted, card, grid, flow). See css skill: status colour comes from the same
+   token ramp the usage rail uses (--ok → --warn → --error), never a hand-picked one. */
+@layer theme {
+
+	.collab-phase {
+		display: flex; align-items: baseline; gap: .35em;
+		padding: .3em .7em; border-radius: 999px; border: 1px solid var(--line);
+	}
+	.collab-phase.done { border-color: var(--ok); color: var(--ok); }
+	.collab-phase.now { border-color: var(--warn); color: var(--warn); }
+	.collab-phase-n { font-weight: 600; }
+
+	.collab-dot { width: .7em; height: .7em; border-radius: 50%; background: var(--line); }
+	.collab-dot.done { background: var(--ok); }
+	.collab-dot.start, .collab-dot.running { background: var(--warn); }
+	.collab-dot.error { background: var(--error); }
+
+	.collab-member-files { display: flex; flex-direction: column; gap: .2em; }
+	.collab-member-cost { font-weight: 600; }
+
+	.collab-vote { padding-block: .15em; }
+	.collab-vote-who, .collab-vote-pick { font-weight: 600; }
+	.collab-member-vote { font-weight: 600; }
+
+	/* The vote count and the winner, at a glance — right on the decision card, not
+	   hidden behind the "every option, by votes" disclosure below it. */
+	.collab-decision-badges { margin-block-start: .4em; }
+	.collab-decision-badge {
+		padding: .15em .6em; border-radius: 999px; border: 1px solid var(--line); font-size: .9em;
+	}
+	.collab-decision-badge.winner { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+
+	.collab-decision-id { font-family: var(--mono, monospace); }
+	.collab-decision-alts { margin-block-start: .4em; }
+	.collab-decision-alt { padding-block: .1em; }
+	.collab-decision-children { margin-inline-start: var(--gap); border-inline-start: 2px solid var(--line); padding-inline-start: var(--gap); }
+	.collab-overruled { color: var(--warn); font-weight: 600; }
+
+	/* ?src=…#d-1 scrolls here — a brief ring, not a permanent mark, so the anchor
+	   reads as "you arrived" rather than "this one is special forever." */
+	.collab-highlight { outline: 2px solid var(--warn); outline-offset: 2px; }
+
+	.collab-winner { --card-edge: var(--ok); }
+	.collab-winner-title { color: var(--ok); }
+
+	.collab-score-table { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: .3em .8em; }
+	.collab-score-row { display: contents; }
+	.collab-score-row.retired { color: var(--error); }
+}

@@ -89,4 +89,14 @@
 	   ⚠ `min-height: 0` on the flex child, or the <pre> inside refuses to scroll. */
 	.doc-files { display: flex; padding-block: 1em; }
 	.doc-files > .files { flex: 1 1 auto; min-height: 0; --panel-height: min(74vh, 42em); }
+
+	/* The ⋯ that shows up only when a design collab named this member (ext/Doc/decisions.js).
+	   `.doc-decision-wrap` is the FIRST thing content() draws, right after the page's own
+	   `h1.page-title` (core/Page's default render) — as close to "right after the name" as
+	   this module can reach without editing core. */
+	.doc-decision-wrap { display: block; margin-block-end: 1em; }
+	.doc-decision-btn { cursor: pointer; display: inline-block; opacity: 0.6; }
+	.doc-decision-btn:hover { opacity: 1; }
+	.doc-decision-pop { max-width: 32em; padding-block-start: 0.5em; }
+	.doc-decision-link { display: inline-block; }
 }
