@@ -1,5 +1,6 @@
 import { Page, Doc, md, div, code } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
+import { object } from "../../ux/Content/Object/Object.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
@@ -54,6 +55,24 @@ export default new Doc({
 	// would also mean `this.browse()` inside `content()` searches MY children, not the
 	// section's. Called as `this.content()` from render() below, unbound resolves `this`
 	// to the section — whose children the list above just populated.
+	// The API tab OPENS with a card, not a wall of words: "oh, this is a Page and it has
+	// a property of this that equals this" (the owner, 2026-09-28), before the member
+	// rail even loads. Doc's own api_section() builds the rail; this only swaps its
+	// render() to draw the card first — same seam core/Page/page.js already uses on
+	// overview_section() below.
+	api_section(){
+		const section = super.api_section();
+		if (!section) return section;
+
+		section.render = function(){
+			return this.view ??= div.c("page doc-section", () => {
+				object(Page, { doc: "/framework/core/Page/" });
+				this.tabs().ac("vertical");
+			}).ac("page--" + this.name);
+		};
+		return section;
+	},
+
 	overview_section(){
 		return this.section("overview", "Overview", {
 			title: this.title,

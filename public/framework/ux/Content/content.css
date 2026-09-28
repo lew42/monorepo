@@ -47,6 +47,39 @@
 	.ux-content-quotation details summary { cursor: pointer; color: var(--subtle); }
 }
 
+/* Object: "oh, this is a Page and it has a property of this that equals this" —
+   one small box, full width by default; `inline` shrinks it to fit its content instead
+   of filling the grid track (a card row beside prose, not a whole wall cell). */
+@layer theme {
+	.ux-content-object {
+		display: block; width: 100%; min-width: 0; max-width: 32em;
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad-card); font-size: .95em;
+	}
+	.ux-content-object.inline { width: max-content; max-width: 100%; }
+
+	.ux-content-object-head { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; margin-block-end: var(--gap-50); }
+	.ux-content-object-class { font-weight: 700; font-size: 1.1em; }
+	.ux-content-object-label { color: var(--subtle); font-family: var(--mono, monospace); }
+
+	.ux-content-object-properties, .ux-content-object-methods {
+		list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .2em;
+	}
+	.ux-content-object-properties + .ux-content-object-methods { margin-block-start: var(--gap-50); }
+	.ux-content-object-properties::before { content: "Properties"; display: block; color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; margin-block-end: .3em; }
+	.ux-content-object-methods::before { content: "Methods"; display: block; color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; margin-block-start: 0; margin-block-end: .3em; }
+
+	.ux-content-object-property { display: flex; gap: .4em; font-family: var(--mono, monospace); align-items: baseline; min-width: 0; }
+	.ux-content-object-name { color: var(--prim); flex: none; }
+	.ux-content-object-eq { color: var(--subtle); flex: none; }
+	.ux-content-object-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+	.ux-content-object-method { font-family: var(--mono, monospace); }
+	.ux-content-object-link { color: inherit; text-decoration: none; }
+	a.ux-content-object-link { color: var(--prim); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prim) 40%, transparent); }
+	a.ux-content-object-link:hover { text-decoration-color: var(--prim); }
+}
+
 @layer theme {
 	.ux-content-spend { display: block; width: 100%; min-width: 0; }
 	.ux-content-spend svg { display: block; width: 100%; height: auto; }
