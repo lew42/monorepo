@@ -79,7 +79,7 @@ async function boot(tag = "main", extra = {}){
 	 * built by a real task mastermind (run 5 spent on one, and it wrote in the tree). */
 	fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "layers proof\n");
 	const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: "8190", SERVEX_PROXY_PORT: "8189", SERVEX_PROXY_INTERNAL: "8188",
-		SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187", SERVEX_CARD_IDLE_MS: "90000", SERVEX_MASTER_BATCH_MS: "5000",
+		SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: "8187", SERVEX_CARD_IDLE_MS: "90000", SERVEX_MANAGER_IDLE_MS: "90000", SERVEX_MASTER_BATCH_MS: "5000",
 		SERVEX_REAP_MS: "20000", SERVEX_REAP_EVERY_MS: "5000" };
 	for (const k of ["SERVEX_HOME", "SERVEX_NO_ASSISTANT", "SERVEX_NO_LAYERS", "SERVEX_NO_MONITOR", "SERVEX_POLICY", "SERVEX_AGENT_CAP", "SERVEX_MIN_FREE_MB", "PORT"]) delete env[k];
 	Object.assign(env, extra);
