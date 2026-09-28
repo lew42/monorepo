@@ -672,6 +672,3 @@
 {"card":{"at":"2026-09-23T15:12:19-05:00","id":"health-framework-ai2","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai2/ is not loading","text":"request: net::ERR_CONNECTION_RESET http://monorepo.localhost/framework/util/is/page.js"}}
 {"card":{"id":"topic-muejmkvj","title":"New card","at":"2026-09-23T15:16:12-05:00","icon":"forum","author":"owner","text":""}}
 {"card":{"id":"topic-mufuomsy","title":"New card","at":"2026-09-24T13:13:30-05:00","icon":"forum","author":"owner","text":""}}
-{"card":{"at":"2026-09-28T11:17:46-05:00","id":"health-framework-ai-v-3","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/v/3/ is not loading","text":"status: 404 http://127.0.0.1:61834/framework/ai/usage.json"}}
-{"card":{"at":"2026-09-28T11:17:49-05:00","id":"health-framework-core-page","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/core/Page/ is not loading","text":"blank: no .page element is drawing more than 50px tall"}}
-{"card":{"at":"2026-09-28T12:07:13-05:00","id":"health-framework-ux-content-structure","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ux/Content/structure/ is not loading","text":"status: 404 http://127.0.0.1:61834/framework/ux/Content/structure/doc/guide.md"}}
