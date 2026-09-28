@@ -311,14 +311,31 @@ export default class Layers {
 	 * architect tier (the owner: "the root assistant runs on Opus"). */
 	spec(key, role){
 		const rec = this.record(key);
-		if (role === "assistant") return {
-			role: "card-assistant", model: model(key === "/" ? "architect" : "fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
-			system: this.system(),
-			setting_sources: [],
-			sdk: { tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash"] },
-			allowed_tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash", ...["card_reply", "page_reply", "create_card", "card_set", "add_item", "amend_bubble", "ask_manager", "send_to_agent", "card_summary",
-				"take_worktree", "return_worktree", "list_claims"].map(t => `mcp__servex__${t}`)]
-		};
+		if (role === "assistant"){
+			/* Every tool schema rides in every request; a fresh assistant's whole context is
+			 * mostly these (measured: Bash alone is about 5k tokens). Bash stays because a
+			 * quick edit must commit, smoke-test and merge in its worktree; Grep and Glob go
+			 * (Bash has rg). SERVEX_ASSISTANT_BASH=0 drops it too: no quick edits, ~5k fewer. */
+			const bash = process.env.SERVEX_ASSISTANT_BASH !== "0";
+			const builtin = ["Read", "Edit", "Write", ...(bash ? ["Bash"] : [])];
+			const card_only = is_page(key) && key !== "/" ? [] : ["card_reply", "card_set", "add_item", "amend_bubble"];
+			const servex = [...card_only, "page_reply", "create_card", "ask_manager", "send_to_agent", "card_summary",
+				"list_claims", ...(bash ? ["take_worktree", "return_worktree"] : [])].map(t => `mcp__servex__${t}`);
+			/* Every other Servex tool is DENIED, which takes it out of the tool list the
+			 * model is sent: about 70 tool schemas it would carry in every request. */
+			const deny = (this.servex.mcp?.tools ?? []).map(t => `mcp__servex__${t.name}`).filter(t => !servex.includes(t));
+			return {
+				role: "card-assistant", model: model(key === "/" ? "architect" : "fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
+				system: this.system(),
+				setting_sources: [],
+				/* Measured 2026-09-28 (pairs/proof.txt): without these two a fresh assistant
+				 * began at 60k tokens: the account's claude.ai connectors (Figma, Drive, Docs:
+				 * about 40k) and the auto-memory file (about 4k) load even with no settings. */
+				env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+				sdk: { tools: builtin, ...(deny.length ? { disallowedTools: deny } : {}) },
+				allowed_tools: [...builtin, ...servex]
+			};
+		}
 		return { role: "card-manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions", parent: rec.assistant.id };
 	}
 
@@ -695,7 +712,7 @@ export default class Layers {
 			{ card: str, text: str }, ["card", "text"],
 			({ card, text }, caller) => { this.allowed(caller, card); return this.ask_manager({ card, text, from: caller ?? "owner" }); });
 
-		tool("page_reply", "Say something into a page's chat: the AI tab of the drawer on that page. `page` is the site path with a trailing slash (`/` is the root); on a card's page it lands in the card. Two or three plain sentences. Only your own page or a page under it.",
+		tool("page_reply", "Say something into a page's chat: the AI tab of the drawer on that page. `page` is the site path with a trailing slash (`/` is the root), or a card id; on a card it lands in the card. Two or three plain sentences. Only your own page or a page under it.",
 			{ page: str, text: str }, ["page", "text"],
 			({ page, text }, caller) => {
 				const key = this.allowed(caller, page);
