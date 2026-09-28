@@ -1,6 +1,6 @@
 # Question — an ask, a text field, the latest answer beneath
 
-A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: question / answer — [shapes](/framework/ux/Content/doc/shapes/).
+A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: question / answer — [shapes](/framework/ux/Content/doc/shapes.md).
 
 ## Use
 ```js

@@ -1,6 +1,6 @@
 # Decision — an ask, options with caveats, one chosen and changeable
 
-A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: decision / chose (and old task.jsonl decisions) — [shapes](/framework/ux/Content/doc/shapes/).
+A [Content](/framework/ux/Content/) module: reads its log once, writes one line per action. Records: decision / chose (and old task.jsonl decisions) — [shapes](/framework/ux/Content/doc/shapes.md).
 
 ## Use
 ```js
