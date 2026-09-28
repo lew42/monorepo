@@ -37,7 +37,7 @@ const agents = {
 	live: new Map(),
 	spawn(spec){
 		calls.push({ verb: "spawn", spec });
-		const agent = { id: spec.id, model: spec.model, state: "working", session_id: spec.resume ?? `sess-${++sid}`, context: 50000 };
+		const agent = { id: spec.id, model: spec.model, state: "working", session_id: spec.resume ?? `sess-${++sid}`, context: 5000, turns: 0 };
 		agents.live.set(spec.id, agent);
 		return agent;
 	},
@@ -200,7 +200,7 @@ check("/api/card-agents shape", () => {
 	routes.get("GET /api/card-agents")({ query: { card: A_SUB } }, { json: b => { body = b; } });
 	assert.equal(body.length, 2);
 	assert.deepEqual(Object.keys(body[0]), ["id", "role", "state", "model", "session_id", "context", "window", "pct"]);
-	assert.deepEqual([body[0].id, body[0].role, body[0].window, body[0].pct], ["assistant-fix-the-sidebar", "assistant", 200000, 25]);
+	assert.deepEqual([body[0].id, body[0].role, body[0].window, body[0].pct], ["assistant-fix-the-sidebar", "assistant", 200000, 3]);
 	assert.equal(body[1].role, "manager");
 	let out;
 	routes.get("POST /api/agent/:id/recycle")({ params: { id: "nobody" } }, { status(){ return this; }, json: b => { out = b; } });
@@ -234,8 +234,8 @@ check("a deleted session -> logged, and the same id starts fresh from the card's
 	assert.deepEqual([s.id, s.resume], [id, undefined]);
 	assert.match(s.prompt, /still there\?[\s\S]*Answer them\.$/);
 	assert.notEqual(calls.at(-1).verb, "send");
-	assert.equal(logged.at(-1).event, "session-missing");
-	assert.equal(logged.at(-1).id, id);
+	const miss = logged.findLast(e => e.event === "session-missing");
+	assert.equal(miss?.id, id);
 });
 
 /* THE SPAWN GATE (Servex.admission()) returns a stand-in for a held spawn: no id,
@@ -279,6 +279,205 @@ check("a manager held at the spawn gate: one spawn, a queued answer, and every w
 	assert.equal(L.pending.size, 0);
 	assert.equal(real.layers_fresh, true);
 });
+
+/* PAGE PAIRS AND THE LIFECYCLE (recursive-pairs, 2026-09-28): a third Layers on
+ * a scratch repo with two real page dirs, a fresh fake agent host, and the
+ * lifecycle numbers shrunk so one sweep crosses them. */
+const repo = path.join(dir, "repo");
+fs.mkdirSync(path.join(repo, "public/framework/ux/Dictate"), { recursive: true });
+fs.mkdirSync(path.join(repo, "public/notes"), { recursive: true });
+const pcalls = [];
+let psid = 0;
+const pagents = {
+	live: new Map(),
+	spawn(spec){
+		pcalls.push({ verb: "spawn", spec });
+		const agent = { id: spec.id, model: spec.model, state: "working", session_id: spec.resume ?? `psess-${++psid}`, context: 5000, turns: 0 };
+		pagents.live.set(spec.id, agent);
+		return agent;
+	},
+	send(id, text, note){ pcalls.push({ verb: "send", id, text, note }); },
+	stop(id){ pcalls.push({ verb: "stop", id }); pagents.live.get(id).state = "stopped"; }
+};
+const ptools = new Map(), proutes = new Map();
+const pservex = { cards, agents: pagents, log, mcp: { tool(def){ ptools.set(def.name, def); } },
+	dashboard: { router: { get(p, ...h){ proutes.set("GET " + p, h.at(-1)); }, post(p, ...h){ proutes.set("POST " + p, h.at(-1)); }, options(){} } } };
+const pfile = path.join(dir, "pages.json");
+fs.writeFileSync(pfile, JSON.stringify({ cards: { [A]: { assistant: { id: "assistant-fix-the-sidebar", session_id: "old", cwd: repo }, manager: { id: "manager-fix-the-sidebar", session_id: null, cwd: repo } } } }));
+const P = new Layers({ servex: pservex, file: pfile, repo, idle_ms: 1000, manager_idle_ms: 3000, max_assistants: 2,
+	system(){ return "SYSTEM"; }, watch(){}, session_exists: () => true }).install();
+const pspawns = () => pcalls.filter(c => c.verb === "spawn");
+const pcall = (name, args, caller) => ptools.get(name).handler(args, { caller }).then(JSON.parse);
+const chat = page => fs.readFileSync(path.join(repo, "public", page, "ai/chat.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
+const get_agents = page => { let b; proutes.get("GET /api/page-agents")({ query: { page } }, { json: x => { b = x; } }); return b; };
+const DICT = "/framework/ux/Dictate/";
+
+check("a pair for any page: ids from the last segment, root for /, each records its parent's manager", () => {
+	const rec = P.record(DICT);
+	assert.deepEqual([rec.assistant.id, rec.manager.id, rec.parent], ["assistant-dictate", "manager-dictate", "manager-ux"]);
+	assert.equal(P.state.cards["/framework/ux/"].parent, "manager-framework");
+	assert.equal(P.state.cards["/framework/"].parent, "manager-root");
+	assert.deepEqual([P.state.cards["/"].assistant.id, P.state.cards["/"].manager.id, P.state.cards["/"].parent], ["assistant-root", "manager-root", null]);
+	assert.equal(pspawns().length, 0, "recording a pair spawns nothing");
+});
+
+check("an existing card record keeps its ids and session, and gains parent manager-root", () => {
+	const rec = P.record(A);
+	assert.deepEqual([rec.assistant.id, rec.assistant.session_id, rec.parent], ["assistant-fix-the-sidebar", "old", "manager-root"]);
+	assert.equal(P.context(`/framework/ai/${A_SUB}/`), A, "a card's own page is that card");
+});
+
+check("opening a page spawns nothing: /api/page-agents answers [] before the first send", () => {
+	assert.deepEqual(get_agents("/notes/"), []);
+	assert.equal(pspawns().length, 0);
+});
+
+check("POST /api/page-ai refuses a bad path, an empty text and a page that does not exist", () => {
+	assert.equal(P.page_ai({ page: "../etc/", text: "x" }).status, 400);
+	assert.equal(P.page_ai({ page: "/notes/../../x/", text: "x" }).status, 400);
+	assert.equal(P.page_ai({ page: "/notes/", text: " " }).status, 400);
+	assert.equal(P.page_ai({ page: "/no/such/page/", text: "hi" }).status, 404);
+	assert.equal(pspawns().length, 0);
+});
+
+const sent = P.page_ai({ page: "/framework/ux/Dictate", text: "make the mic button bigger", from: "owner" });
+check("the first send on a plain page: the prompt lands in its chat and spawns its assistant, lean, with page_reply", () => {
+	assert.deepEqual(sent, { ok: true, page: DICT, assistant: "assistant-dictate", manager: "manager-dictate" });
+	const line = chat(DICT)[0].prompt;
+	assert.deepEqual([line.text, line.by, typeof line.at], ["make the mic button bigger", "owner", "string"]);
+	const s = pspawns().at(-1).spec;
+	assert.equal(s.id, "assistant-dictate");
+	assert.match(s.prompt, /make the mic button bigger[\s\S]*page_reply\(\{page: "\/framework\/ux\/Dictate\/"[\s\S]*Answer them\.$/);
+	assert.deepEqual(s.setting_sources, []);
+	for (const t of ["take_worktree", "return_worktree", "list_claims", "page_reply"]) assert.ok(s.allowed_tools.includes(`mcp__servex__${t}`), t);
+	assert.equal(s.model, "claude-sonnet-5");
+	assert.equal(pcalls.filter(c => c.verb === "send").length, 0, "a fresh spawn is not also sent the prompt");
+});
+
+const reply = await pcall("page_reply", { page: DICT, text: "Bigger it is." }, "assistant-dictate");
+const stray = await pcall("page_reply", { page: "/notes/", text: "hello" }, "assistant-dictate");
+check("page_reply lands in the page's chat; another page is refused", () => {
+	assert.equal(reply.ok, true);
+	assert.deepEqual([chat(DICT).at(-1).message.by, chat(DICT).at(-1).message.text], ["assistant-dictate", "Bigger it is."]);
+	assert.equal(stray.ok, false);
+	assert.match(stray.error, /own card or page/);
+});
+
+check("/api/page-agents: the card-agents row shape for the page", () => {
+	const rows = get_agents(DICT);
+	assert.deepEqual(rows.map(r => [r.id, r.role, r.state]), [["assistant-dictate", "assistant", "working"], ["manager-dictate", "manager", "none"]]);
+	assert.deepEqual(Object.keys(rows[0]), ["id", "role", "state", "model", "session_id", "context", "window", "pct"]);
+});
+
+P.page_ai({ page: "/", text: "what is running?" });
+check("the root pair: assistant-root on the architect tier (Opus)", () => {
+	const s = pspawns().at(-1).spec;
+	assert.deepEqual([s.id, s.model], ["assistant-root", "claude-opus-5-5"]);
+	assert.ok(fs.existsSync(path.join(repo, "public/ai/chat.jsonl")));
+});
+
+const root_reply = await pcall("page_reply", { page: "/notes/", text: "from the root" }, "assistant-root");
+check("the root assistant may reply anywhere", () => assert.equal(root_reply.ok, true));
+
+check("at most max_assistants live: the least recently used idle one is stopped first", () => {
+	pagents.live.get("assistant-dictate").state = "idle";
+	pagents.live.get("assistant-root").state = "idle";
+	P.touched.set("assistant-dictate", Date.now() - 5000);   // older
+	P.page_ai({ page: "/notes/", text: "a note" });
+	assert.ok(pcalls.some(c => c.verb === "stop" && c.id === "assistant-dictate"));
+	assert.ok(!pcalls.some(c => c.verb === "stop" && c.id === "assistant-root"));
+	assert.equal(pspawns().at(-1).spec.id, "assistant-notes");
+});
+
+check("resumed on next use when under 30k and used within the hour", () => {
+	P.page_ai({ page: DICT, text: "and blue" });
+	const s = pspawns().at(-1).spec;
+	assert.deepEqual([s.id, s.resume, s.prompt], ["assistant-dictate", "psess-1", undefined]);
+	assert.equal(pcalls.at(-1).verb, "send");
+	assert.equal(pcalls.at(-1).text, "and blue");
+	assert.equal(pcalls.at(-1).note.reply_to, `page ${DICT}`);
+});
+
+check("fresh on next use when last used over an hour ago: the page's log, not a resume", () => {
+	P.stop("assistant-dictate");
+	P.state.cards[DICT].assistant.used_at = new Date(Date.now() - 2 * 3600e3).toISOString();
+	P.page_ai({ page: DICT, text: "still there" });
+	const s = pspawns().at(-1).spec;
+	assert.equal(s.resume, undefined);
+	assert.match(s.prompt, /^Page \/framework\/ux\/Dictate\/ — its chat log[\s\S]*make the mic button bigger[\s\S]*still there/);
+	assert.ok(logged.some(e => e.event === "fresh" && e.id === "assistant-dictate" && /minutes ago/.test(e.reason)));
+});
+
+check("fresh on next use when its context was 30k or more", () => {
+	pagents.live.get("assistant-dictate").context = 31000;
+	P.sync(DICT);
+	P.stop("assistant-dictate");
+	P.page_ai({ page: DICT, text: "again" });
+	assert.equal(pspawns().at(-1).spec.resume, undefined);
+	assert.ok(logged.some(e => e.event === "fresh" && /31000 tokens/.test(e.reason)));
+});
+
+check("idle: an assistant stops after its limit, a manager only after its own longer one", () => {
+	P.ask_manager({ card: DICT, text: "do it", from: "assistant-dictate" });
+	const m = pspawns().at(-1).spec;
+	assert.deepEqual([m.id, m.parent], ["manager-dictate", "assistant-dictate"]);
+	assert.match(m.prompt, /You are manager-dictate, the manager of page \/framework\/ux\/Dictate\/\. Your parent is manager-ux/);
+	for (const id of ["assistant-dictate", "manager-dictate"]) pagents.live.get(id).state = "idle";
+	const t = Date.now();
+	P.touched.set("assistant-dictate", t); P.touched.set("manager-dictate", t);
+	const before = pcalls.length;
+	P.sweep(t + 1500);
+	const stopped = pcalls.slice(before).filter(c => c.verb === "stop").map(c => c.id);
+	assert.ok(stopped.includes("assistant-dictate") && !stopped.includes("manager-dictate"));
+	P.sweep(t + 3500);
+	assert.ok(pcalls.some(c => c.verb === "stop" && c.id === "manager-dictate"));
+});
+
+check("past the fresh line: one checkpoint request, then recycled once that turn ends, then fresh from the summary", () => {
+	P.page_ai({ page: "/notes/", text: "long talk" });
+	const a = pagents.live.get("assistant-notes");
+	a.state = "idle"; a.context = 45000; a.turns = 3;
+	P.sweep();
+	const ask = pcalls.at(-1);
+	assert.deepEqual([ask.id, ask.note.priority], ["assistant-notes", "next"]);
+	assert.match(ask.text, /^Checkpoint: your context is 45000 tokens/);
+	const asks = pcalls.length;
+	P.sweep();
+	assert.equal(pcalls.length, asks, "asked once, not every sweep");
+	assert.ok(P.state.cards["/notes/"].assistant.session_id, "not recycled before the checkpoint turn ends");
+});
+{
+	const a = pagents.live.get("assistant-notes");
+	await pcall("card_summary", { text: "CHECKPOINT: notes are about X" }, "assistant-notes");
+	P.recycling.delete("assistant-notes");   // prove the turn count alone recycles it
+	a.turns = 4; a.state = "idle";
+	P.sweep();
+	check("the checkpointed assistant is recycled and restarts fresh from its checkpoint line", () => {
+		assert.equal(P.state.cards["/notes/"].assistant.session_id, null);
+		assert.equal(chat("/notes/").at(-1).summary.text, "CHECKPOINT: notes are about X");
+		P.page_ai({ page: "/notes/", text: "next thing" });
+		const s = pspawns().at(-1).spec;
+		assert.equal(s.resume, undefined);
+		assert.match(s.prompt, /^\{"summary"[\s\S]*next thing/);
+		assert.doesNotMatch(s.prompt, /long talk/);
+	});
+}
+
+check("a send on a card's page goes into the card", () => {
+	const before = logs.get(A).length;
+	P.page_ai({ page: `/framework/ai/${A}/`, text: "via the drawer" });
+	assert.equal(logs.get(A).length, before + 1);
+	assert.equal(logs.get(A).at(-1).prompt.text, "via the drawer");
+});
+
+{
+	const { execFileSync } = await import("node:child_process");
+	const alt = path.join(dir, "alt-layers.json");
+	const out = execFileSync(process.execPath, ["--input-type=module", "-e",
+		`import L from ${JSON.stringify(new URL("./Layers.js", import.meta.url).href)}; console.log(new L().file)`],
+		{ env: { ...process.env, SERVEX_LAYERS_FILE: alt }, encoding: "utf8", windowsHide: true }).trim();
+	check("SERVEX_LAYERS_FILE moves the state file", () => assert.equal(out, alt));
+}
 
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);

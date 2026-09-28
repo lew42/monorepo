@@ -7,25 +7,57 @@ import { brief } from "./brief.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
-const STATE = path.join(process.env.LOCALAPPDATA || "", "lew42", "servex", "layers.json");
+/* SERVEX_LAYERS_FILE moves the state file: a private Servex (a proof, a test)
+ * must never read or write the live one, which the live Servex rewrites. */
+const STATE = process.env.SERVEX_LAYERS_FILE || path.join(process.env.LOCALAPPDATA || "", "lew42", "servex", "layers.json");
+const env = (name, dflt) => { const n = Number(process.env[name]); return Number.isFinite(n) && process.env[name] !== "" && process.env[name] != null ? n : dflt; };
+const MIN = 60 * 1000;
 
 /* A card id is a path: `2026/09/24/fix-the-sidebar`, a sub-card deeper. The ROOT
  * card is the first four segments; anything shorter (a day's own page) has none. */
 const root_of = id => { const parts = String(id ?? "").split("/"); return parts.length >= 4 ? parts.slice(0, 4).join("/") : null; };
-const within = (id, root) => id === root || String(id).startsWith(root + "/");
 const json = value => JSON.stringify(value);
 
-/* THE ASSISTANT LAYERS — two agents on every card (design:
- * public/framework/ai/2026-09-24/assistant-layers/doc/design.md).
+/* A PAGE is a site path with a trailing slash: `/framework/ux/Dictate/`; `/` is
+ * the root. Anything else (`..`, a backslash, no leading slash) is not a page. */
+export const page_path = value => {
+	let s = String(value ?? "").trim();
+	try { s = decodeURIComponent(s.split(/[?#]/)[0]); } catch { return null; }
+	if (!s.startsWith("/") || s.includes("\\") || s.includes("\0")) return null;
+	s = s.replace(/\/+/g, "/");
+	if (!s.endsWith("/")) s += "/";
+	if (s.split("/").some(seg => seg === ".." || seg === ".")) return null;
+	return s;
+};
+const is_page = key => String(key ?? "").startsWith("/");
+/* Where cards live on the site: a card `2026/09/24/x` is the page `/framework/ai/2026/09/24/x/`. */
+const CARDS_AT = "/framework/ai/";
+const now_iso = () => {
+	const d = new Date(), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
+	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19) + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
+};
+
+/* THE PAGE PAIRS — two agents on every page, and a card is a page (designs:
+ * public/framework/ai/2026-09-24/assistant-layers/doc/design.md, then
+ * public/framework/ai/2026-09-25/recursive-pairs/).
  *
- * The card's ASSISTANT is fast and small: it hears every owner prompt on its
- * card and turns it into UI. The card's MANAGER is started by the assistant
- * (`ask_manager`) the moment something needs doing, and its session is kept for
- * the card's whole life: stopped when quiet, resumed by its session id, so every
- * earlier request on the card is still in its context.
+ * A CONTEXT is a root card id (`2026/09/24/fix-the-sidebar`) or a page path
+ * (`/framework/ux/Dictate/`); `/` is the root pair. Its ASSISTANT is fast and
+ * small: it hears every owner prompt there and turns it into UI. Its MANAGER is
+ * started by the assistant (`ask_manager`) the moment something needs doing.
+ * Each context records its `parent`: the parent page's manager (a top-level
+ * card's parent is `manager-root`).
+ *
+ * THE LIFECYCLE (the owner, 2026-09-28): an assistant is created on the first
+ * prompt, never on page open; stopped after 5 idle minutes, and at most 4 run at
+ * once (the least recently used is stopped first); on the next prompt it is
+ * resumed when its context is under 30k tokens and it was used within the hour,
+ * otherwise started fresh from the page's own log. A manager stops after 15
+ * idle minutes. Past 40k (assistant) or 150k (manager) an agent is asked for one
+ * checkpoint line and restarted fresh from it. Every number has an env override.
  *
  * Plain code, no Claude session of its own. Its only memory is one small file,
- * `layers.json`, which says which agent id and session id belong to which card.
+ * `layers.json`, which says which agent id and session id belong to which context.
  *
  * ⚠ Never `attach` these agents to their card: Cards forwards every new prompt
  * to attached agents, and `heard()` below already delivers it, so each prompt
@@ -34,14 +66,22 @@ const json = value => JSON.stringify(value);
  * state only through `card()`. Nothing else may be read off it. */
 export const queued = agent => !!agent && (agent.queued === true || agent.card?.()?.state === "queued");
 
+const ROLES = ["assistant", "manager"];
+
 export default class Layers {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	defaults(){
-		return { file: STATE, repo: REPO, idle_ms: Number(process.env.SERVEX_CARD_IDLE_MS) || 10 * 60 * 1000,
-			state: null, touched: new Map(), recycling: new Set(), timer: null, pending: new Map() };
+		return { file: STATE, repo: REPO,
+			idle_ms: env("SERVEX_ASSISTANT_IDLE_MS", env("SERVEX_CARD_IDLE_MS", 5 * MIN)),
+			manager_idle_ms: env("SERVEX_MANAGER_IDLE_MS", 15 * MIN),
+			max_assistants: env("SERVEX_MAX_ASSISTANTS", 4),
+			resume_max_tokens: env("SERVEX_RESUME_MAX_TOKENS", 30000),
+			resume_max_age_ms: env("SERVEX_RESUME_MAX_AGE_MS", 60 * MIN),
+			fresh_at: { assistant: env("SERVEX_ASSISTANT_FRESH_AT", 40000), manager: env("SERVEX_MANAGER_FRESH_AT", 150000) },
+			state: null, touched: new Map(), recycling: new Set(), checkpoint: new Map(), timer: null, pending: new Map() };
 	}
 
 	/* `features` says "this Servex has card agents": the card view shows its agent panel only then. */
@@ -49,7 +89,7 @@ export default class Layers {
 		this.load(); this.listen(); this.tools(); this.route(); this.watch();
 		this.servex.on?.("admitted", (spec, agent) => this.admitted(spec, agent));
 		this.wakes();
-		this.servex.log?.append?.("features", { card_agents: 1 })?.catch?.(() => {});
+		this.servex.log?.append?.("features", { card_agents: 1, page_agents: 1 })?.catch?.(() => {});
 		return this;
 	}
 
@@ -58,7 +98,7 @@ export default class Layers {
 	load(){
 		try { this.state = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.state = null; }
 		this.state ??= {};
-		this.state.cards ??= {};
+		this.state.cards ??= {};   // every context, cards and pages alike; the name is kept for the live file
 		return this.state;
 	}
 
@@ -67,39 +107,101 @@ export default class Layers {
 		fs.writeFileSync(this.file, JSON.stringify(this.state, null, 2));
 	}
 
-	/* Ids are minted ONCE per card, from its last segment; a name already
-	 * recorded for a different card takes `-2`, `-3`. */
-	record(card){
+	/* The context a card id, sub-card id or page path belongs to: a ROOT card id,
+	 * or a page path. A card's own page (`/framework/ai/<card>/`) is that card. */
+	context(target){
+		const page = page_path(target);
+		if (!page) return this.root(target);
+		const card = this.card_of(page);
+		return card ? root_of(card) : page;
+	}
+
+	/* `/framework/ai/2026/09/24/x/wider/` -> `2026/09/24/x/wider`, when that card exists. */
+	card_of(page){
+		if (!page?.startsWith(CARDS_AT)) return null;
+		const id = page.slice(CARDS_AT.length).replace(/\/$/, "");
+		const canonical = id && this.servex.cards.canonical(id);
+		return canonical && root_of(canonical) ? canonical : null;
+	}
+
+	/* A target's site path: a page as it is, a card as `/framework/ai/<card>/`. */
+	path_of(target){
+		const page = page_path(target);
+		if (page) return page;
+		const card = this.servex.cards.canonical(target);
+		return card ? `${CARDS_AT}${card}/` : null;
+	}
+
+	/* The ids' second half: a card's last segment, a page's last segment made
+	 * lower-case and dashed, and `root` for `/`. */
+	base_of(key){
+		if (key === "/") return "root";
+		if (!is_page(key)) return key.split("/").pop();
+		return key.split("/").filter(Boolean).pop().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "page";
+	}
+
+	/* The parent page of a context: `/` for a card and for a top-level page. */
+	parent_key(key){
+		if (key === "/") return null;
+		if (!is_page(key)) return "/";
+		return key.replace(/[^/]+\/$/, "");
+	}
+
+	/* Ids are minted ONCE per context, from `base_of()`; a name already recorded
+	 * for a different context takes `-2`, `-3`, and `root` belongs to `/` alone.
+	 * The parent is recorded first, so the tree always exists up to `/`. A record
+	 * written before pages existed gains its `parent` the first time it is read. */
+	record(key){
 		const cards = this.state.cards;
-		if (cards[card]) return cards[card];
+		if (cards[key]){
+			if (cards[key].parent === undefined){ cards[key].parent = this.parent_id(key); this.save(); }
+			return cards[key];
+		}
+		const parent = this.parent_id(key);
 		const taken = new Set(Object.values(cards).flatMap(r => [r.assistant.id, r.manager.id]));
-		const base = card.split("/").pop();
-		let n = 1, suffix = "";
+		const base = this.base_of(key);
+		let n = 1, suffix = key !== "/" && base === "root" ? "-2" : "";
+		if (suffix) n = 2;
 		while (taken.has(`assistant-${base}${suffix}`) || taken.has(`manager-${base}${suffix}`)) suffix = `-${++n}`;
-		cards[card] = {
+		cards[key] = {
+			parent,
 			assistant: { id: `assistant-${base}${suffix}`, session_id: null, cwd: this.repo },
 			manager: { id: `manager-${base}${suffix}`, session_id: null, cwd: this.repo }
 		};
 		this.save();
-		return cards[card];
+		return cards[key];
 	}
 
-	/* Which card and role an agent id belongs to — `{card, role, slot}` or null. */
+	parent_id(key){
+		const up = this.parent_key(key);
+		return up == null ? null : this.record(up).manager.id;
+	}
+
+	/* Which context and role an agent id belongs to — `{card, role, slot}` or null.
+	 * `card` is the context key (a card id or a page path); the name is kept for callers. */
 	owner(id){
 		if (!id) return null;
 		for (const [card, rec] of Object.entries(this.state.cards))
-			for (const role of ["assistant", "manager"])
+			for (const role of ROLES)
 				if (rec[role].id === id) return { card, role, slot: rec[role] };
 		return null;
 	}
 
-	/* A session id appears on the agent a moment after it starts; copy it into the file. */
-	sync(card){
-		const rec = this.state.cards[card];
+	/* Copy what a RUNNING agent knows into the file: its session id, its context
+	 * size and when it was last used — what the resume-or-fresh rule reads after
+	 * the process is gone. A stopped agent is never copied: a recycle has just
+	 * forgotten its session on purpose. */
+	sync(key){
+		const rec = this.state.cards[key];
+		if (!rec) return;
 		let changed = false;
-		for (const role of ["assistant", "manager"]){
-			const sid = this.servex.agents.live.get(rec[role].id)?.session_id;
-			if (sid && sid !== rec[role].session_id){ rec[role].session_id = sid; changed = true; }
+		for (const role of ROLES){
+			const slot = rec[role], a = this.live(slot.id);
+			if (!a) continue;
+			if (a.session_id && a.session_id !== slot.session_id){ slot.session_id = a.session_id; changed = true; }
+			if (a.context != null && a.context !== slot.context){ slot.context = a.context; changed = true; }
+			const t = this.touched.get(slot.id);
+			if (t && !(Date.parse(slot.used_at ?? "") >= t)){ slot.used_at = new Date(t).toISOString(); changed = true; }
 		}
 		if (changed) this.save();
 	}
@@ -110,55 +212,112 @@ export default class Layers {
 
 	touch(id){ this.touched.set(id, Date.now()); }
 
+	where(key){ return key === "/" ? "the root page / (the whole repo)" : is_page(key) ? `page ${key}` : `card ${key}`; }
+	reply_to(key, sub){ return is_page(key) ? `page ${key}` : `card ${sub ?? key}`; }
+
+	// ── a page's own chat log ────────────────────────────────────────────────
+
+	/* A plain page's chat: `public<page>ai/chat.jsonl`, the same lines as a card's
+	 * page.jsonl (`{"prompt":…}` from the owner, `{"message":…}` from agents).
+	 * Written only here: the page-ai route and `page_reply`. */
+	chat_file(key){ return path.join(this.repo, "public", ...key.split("/").filter(Boolean), "ai", "chat.jsonl"); }
+
+	page_exists(key){ try { return fs.statSync(path.join(this.repo, "public", ...key.split("/").filter(Boolean))).isDirectory(); } catch { return false; } }
+
+	append_chat(key, line){
+		const file = this.chat_file(key);
+		fs.mkdirSync(path.dirname(file), { recursive: true });
+		let lead = "";
+		try { const size = fs.statSync(file).size; if (size){ const fd = fs.openSync(file, "r"), b = Buffer.alloc(1); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
+		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
+		return { ok: true };
+	}
+
+	/* One line into a context's log: a card's page.jsonl, or a page's chat. */
+	write(key, line, sub){
+		if (is_page(key)) return this.append_chat(key, line);
+		return this.servex.cards.append(this.servex.cards.canonical(sub ?? key) ?? key, line);
+	}
+
 	// ── hearing the owner ────────────────────────────────────────────────────
 
 	/* Dictation arrives in fragments: one spoken thought can land as several
 	 * prompt lines a second or two apart, and the assistant used to answer each
-	 * one (2026-09-24, card layout-columns). So a card's prompts wait until the
+	 * one (2026-09-24, card layout-columns). So a context's prompts wait until the
 	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 4 s), then go out
 	 * joined as one. 0 sends each one at once, as before. */
 	listen(){
-		const quiet = Number(process.env.SERVEX_PROMPT_QUIET_MS ?? 4000);
-		const waiting = new Map();   // card → { prompt, texts, timer }
-		const flush = card => {
-			const w = waiting.get(card); waiting.delete(card);
-			if (w) this.heard(card, { ...w.prompt, text: w.texts.join(" "), raw: undefined });
-		};
+		this.waiting = new Map();   // context → { prompt, texts, timer }
 		this.servex.cards.on((id, line, info) => {
 			if (!line?.prompt || !info?.fresh) return;
 			const card = this.root(id);
-			if (!card) return;
-			if (!(quiet > 0)) return void this.heard(card, line.prompt);
-			const w = waiting.get(card) ?? { prompt: line.prompt, texts: [] };
-			w.texts.push(line.prompt.text ?? line.prompt.raw ?? "");
-			clearTimeout(w.timer);
-			w.timer = setTimeout(() => flush(card), quiet);
-			waiting.set(card, w);
+			if (card) this.hear(card, line.prompt);
 		});
+	}
+
+	hear(key, prompt){
+		const quiet = env("SERVEX_PROMPT_QUIET_MS", 4000);
+		if (!(quiet > 0)) return void this.heard(key, prompt);
+		const w = this.waiting.get(key) ?? { prompt, texts: [] };
+		w.texts.push(prompt.text ?? prompt.raw ?? "");
+		clearTimeout(w.timer);
+		w.timer = setTimeout(() => {
+			this.waiting.delete(key);
+			this.heard(key, { ...w.prompt, text: w.texts.join(" "), raw: undefined });
+		}, quiet);
+		this.waiting.set(key, w);
 	}
 
 	/* A fresh assistant already read the prompt in its first message, so only a
 	 * live or resumed one is sent it. A prompt spoken on a sub-card says which. */
-	heard(card, prompt){
-		const slot = this.record(card).assistant;
+	heard(key, prompt){
+		const slot = this.record(key).assistant;
 		const was = this.live(slot.id);
 		const held = this.pending.has(slot.id);
-		const agent = this.assistant(card);
+		const agent = this.assistant(key);
 		if (!was && !held && (agent.layers_fresh || (queued(agent) && this.pending.get(slot.id)?.fresh))) return agent;
-		const on = prompt.on && prompt.on !== card ? `(on ${prompt.on}) ` : "";
-		this.deliver(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
+		const on = prompt.on && prompt.on !== key ? `(on ${prompt.on}) ` : "";
+		this.deliver(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: this.reply_to(key) });
 		this.touch(slot.id);
 		return agent;
 	}
 
+	/* THE DRAWER'S SEND (interface: ai/2026-09-25/recursive-pairs/interface.md).
+	 * On a card's page the prompt goes into the card, where the card listener
+	 * hears it; on a plain page it goes into the page's chat and straight to its
+	 * assistant. The first send creates the assistant; opening a page never does. */
+	page_ai({ page, text, from = "owner" } = {}){
+		const p = page_path(page);
+		if (!p) return { ok: false, status: 400, error: `"${page}" is not a page path (a site path with a trailing slash; / is the root)` };
+		if (!String(text ?? "").trim()) return { ok: false, status: 400, error: "text is required" };
+		const key = this.context(p);
+		if (!is_page(key)){
+			this.servex.cards.append(this.card_of(p) ?? key, { prompt: { text, raw: text, by: from, via: "page-ai" } });
+		} else {
+			if (!this.page_exists(key)) return { ok: false, status: 404, error: `no page at ${key} (public${key} is not a directory)` };
+			const prompt = { id: "p-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, at: now_iso(), by: from };
+			this.append_chat(key, { prompt });
+			this.hear(key, prompt);
+		}
+		const rec = this.record(key);
+		return { ok: true, page: key, assistant: rec.assistant.id, manager: rec.manager.id };
+	}
+
 	// ── the two agents ───────────────────────────────────────────────────────
 
-	spec(card, role){
-		const rec = this.record(card);
+	/* An assistant runs LEAN: no settings files (so no CLAUDE.md, memory, skills,
+	 * hooks or user MCP servers in its context) and only the built-in tools a
+	 * quick edit needs; its brief is its system prompt. The root's runs on the
+	 * architect tier (the owner: "the root assistant runs on Opus"). */
+	spec(key, role){
+		const rec = this.record(key);
 		if (role === "assistant") return {
-			role: "card-assistant", model: model("fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
+			role: "card-assistant", model: model(key === "/" ? "architect" : "fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
 			system: this.system(),
-			allowed_tools: ["card_reply", "create_card", "card_set", "add_item", "amend_bubble", "ask_manager", "send_to_agent", "card_summary"].map(t => `mcp__servex__${t}`)
+			setting_sources: [],
+			sdk: { tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash"] },
+			allowed_tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash", ...["card_reply", "page_reply", "create_card", "card_set", "add_item", "amend_bubble", "ask_manager", "send_to_agent", "card_summary",
+				"take_worktree", "return_worktree", "list_claims"].map(t => `mcp__servex__${t}`)]
 		};
 		return { role: "card-manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions", parent: rec.assistant.id };
 	}
@@ -170,32 +329,88 @@ export default class Layers {
 		return fs.readFileSync(path.join(HERE, "card-assistant.md"), "utf8") + "\n\n" + screen;
 	}
 
+	/* Who this agent is and how it answers, for a fresh start. A card assistant's
+	 * brief already says it; a page's needs its tools named. */
+	scope(key, role){
+		const rec = this.record(key), slot = rec[role];
+		const answer = is_page(key)
+			? `Answer the owner with page_reply({page: "${key}", text}); it lands in ${path.relative(this.repo, this.chat_file(key)).replace(/\\/g, "/")}, the chat the owner reads. The page's files are under public${key}.`
+			: `Answer the owner with card_reply({card: "${key}", text}).`;
+		if (role === "assistant") return `You are ${slot.id}, the assistant of ${this.where(key)}. Your manager is ${rec.manager.id}: hand it work with ask_manager({card: "${key}", text}). ${answer}`;
+		return `You are ${slot.id}, the manager of ${this.where(key)}.${rec.parent ? ` Your parent is ${rec.parent}: tell it, with send_to_agent, what crosses your page.` : ""} ${answer}`;
+	}
+
+	/* How far a slot may be from its last use and still be RESUMED (the owner,
+	 * 2026-09-28): an assistant under 30k tokens and used within the hour; a
+	 * manager under its 150k fresh line. Returns why it must start fresh, or null. */
+	stale(role, slot, now = Date.now()){
+		const tokens = slot.context ?? 0;
+		if (role === "manager") return tokens >= this.fresh_at.manager ? `its context is ${tokens} tokens, at or over ${this.fresh_at.manager}` : null;
+		if (tokens >= this.resume_max_tokens) return `its context is ${tokens} tokens, at or over ${this.resume_max_tokens}`;
+		const used = Date.parse(slot.used_at ?? "");
+		if (!(now - used < this.resume_max_age_ms)) return used ? `last used ${Math.round((now - used) / MIN)} minutes ago, over ${Math.round(this.resume_max_age_ms / MIN)}` : "no record of its last use";
+		return null;
+	}
+
 	/* The live agent, else resume it under its kept id and cwd (held open, idle,
-	 * no prompt), else spawn it fresh with `prompt()`. A stopped corpse is cleared
-	 * out of `live` first so the id is free to reuse. */
-	open(card, role, prompt){
-		const slot = this.record(card)[role];
+	 * no prompt) when `stale()` allows, else spawn it fresh with `prompt()` (by
+	 * default `first()`: the context's log). A stopped corpse is cleared out of
+	 * `live` first so the id is free to reuse. An assistant first makes room
+	 * under the cap. */
+	open(key, role, prompt){
+		const slot = this.record(key)[role];
 		const live = this.live(slot.id);
 		if (live) return live;
 		const waiting = this.pending.get(slot.id);
 		if (waiting) return waiting.agent;   // already queued at the gate: never a second spawn
 		this.servex.agents.live.delete(slot.id);
-		if (slot.session_id && !this.session_exists(slot)) this.lost(card, slot);
-		const how = slot.session_id ? { resume: slot.session_id } : { prompt: prompt() };
-		const spec = { ...this.spec(card, role), id: slot.id, cwd: slot.cwd, ...how };
+		if (slot.session_id && !this.session_exists(slot)) this.lost(key, slot);
+		const why = slot.session_id && this.stale(role, slot);
+		if (why) this.forget(key, slot, why);
+		if (role === "assistant") this.make_room(slot.id);
+		const how = slot.session_id ? { resume: slot.session_id } : { prompt: (prompt ?? (() => this.first(key, role)))() || this.first(key, role) };
+		const spec = { ...this.spec(key, role), id: slot.id, cwd: slot.cwd, ...how };
+		this.log_gate(slot.id, "start", how.resume ? "resume" : why ? `fresh: ${why}` : "fresh");
 		const agent = this.servex.agents.spawn(spec);
 		if (queued(agent)){
 			/* THE SPAWN GATE held it (Servex.admission()): the caller got a stand-in
 			 * with no session and no `.send`. Remember it by its spec OBJECT — that
 			 * same object comes back on `admitted` — and deliver later words then. */
-			this.pending.set(slot.id, { spec: agent.spec ?? spec, agent, card, role, fresh: !how.resume, texts: [] });
+			this.pending.set(slot.id, { spec: agent.spec ?? spec, agent, card: key, role, fresh: !how.resume, texts: [] });
 			this.log_gate(slot.id, "queued", agent.card?.().reason);
 			return agent;
 		}
-		agent.layers_fresh = !how.resume;   // it read the card's log in its first message: nothing more to send it
+		agent.layers_fresh = !how.resume;   // it read the context's log in its first message: nothing more to send it
 		this.touch(slot.id);
-		this.sync(card);
+		this.sync(key);
 		return agent;
+	}
+
+	/* A fresh start's first message: the context's log, then who it is. */
+	first(key, role){
+		if (role === "manager") return this.manager_prompt(key);
+		return this.transcript(key) + "\n\n" + this.scope(key, "assistant") + " A message follows.";
+	}
+
+	/* Too old or too full to resume: its session is forgotten, its id kept. */
+	forget(key, slot, why){
+		try { this.servex.log?.append?.("servex", { type: "layers", event: "fresh", card: key, id: slot.id, session_id: slot.session_id, reason: why })?.catch?.(() => {}); } catch {}
+		slot.session_id = null;
+		slot.context = null;
+		this.save();
+	}
+
+	/* THE CAP: at most `max_assistants` assistants run at once. Before one more
+	 * starts, the least recently used idle ones are stopped (session kept). One
+	 * that is mid-turn is never stopped; if all are, the cap is exceeded and logged. */
+	make_room(except){
+		const running = Object.values(this.state.cards).map(r => this.live(r.assistant.id)).filter(a => a && a.id !== except);
+		const over = running.length - (this.max_assistants - 1);
+		if (over <= 0) return;
+		const idle = running.filter(a => a.state !== "working" && a.state !== "starting")
+			.sort((a, b) => (this.touched.get(a.id) ?? 0) - (this.touched.get(b.id) ?? 0));
+		for (const a of idle.slice(0, over)){ this.log_gate(a.id, "lru-stop", `the cap is ${this.max_assistants} live assistants`); this.stop(a.id); }
+		if (idle.length < over) this.log_gate(except, "over-cap", `${running.length + 1} assistants live, cap ${this.max_assistants}: the rest are mid-turn`);
 	}
 
 	/* The gate started a spec we were holding: the real agent is here now, so the
@@ -218,16 +433,17 @@ export default class Layers {
 		try { this.servex.log?.append?.("servex", { type: "layers", event, id, reason })?.catch?.(() => {}); } catch {}
 	}
 
-	/* `Agents.send` to a stopped card agent goes through `wake`, which reopens it
-	 * through the gated spawn. For our own ids it goes through `open()` instead,
-	 * so a held one is spawned once and its messages wait for `admitted`. */
+	/* `Agents.send` to a stopped pair agent goes through `wake`, which reopens it
+	 * through the gated spawn. For our own ids it goes through `open()` instead:
+	 * resumed or fresh by the same rule as a prompt, and a held one is spawned
+	 * once and its messages wait for `admitted`. */
 	wakes(){
 		const agents = this.servex.agents, wake = agents.wake?.bind(agents);
 		if (!wake) return;
 		agents.wake = id => {
 			const who = this.owner(id);
-			if (!who || this.live(id) || !(who.slot.session_id || this.pending.has(id))) return wake(id);
-			const agent = this.open(who.card, who.role, () => "");
+			if (!who || this.live(id)) return wake(id);
+			const agent = this.open(who.card, who.role);
 			return queued(agent) ? this.door(id) : agent;
 		};
 	}
@@ -257,55 +473,66 @@ export default class Layers {
 	session_exists(slot){ try { return fs.existsSync(this.session_file(slot)); } catch { return true; } }
 
 	/* The session is gone (deleted, or another machine's): say so in the log and
-	 * start the same id fresh from the card's log, never throw. */
-	lost(card, slot){
-		const entry = { type: "layers", event: "session-missing", card, id: slot.id, session_id: slot.session_id,
-			file: this.session_file(slot), text: `${slot.id}'s session ${slot.session_id} is gone; starting it fresh from the card's log` };
+	 * start the same id fresh from the context's log, never throw. */
+	lost(key, slot){
+		const entry = { type: "layers", event: "session-missing", card: key, id: slot.id, session_id: slot.session_id,
+			file: this.session_file(slot), text: `${slot.id}'s session ${slot.session_id} is gone; starting it fresh from the log` };
 		try { this.servex.log?.append?.("servex", entry)?.catch?.(() => {}); } catch {}
 		slot.session_id = null;
 		this.save();
 	}
 
-	assistant(card){
-		return this.open(card, "assistant", () => this.transcript(card) + "\n\nThe owner's newest words are the last prompt line. Answer them.");
+	assistant(key){
+		return this.open(key, "assistant", () => this.transcript(key) + "\n\n" + this.scope(key, "assistant")
+			+ " The owner's newest words are the last prompt line. Answer them.");
 	}
 
-	/* The card's log, from its LAST `summary` line onward when there is one —
+	/* The context's log, from its LAST `summary` line onward when there is one —
 	 * that is what a compacted or recycled agent restarts from. */
-	transcript(card){
-		const lines = this.log_text(card).split("\n");
+	transcript(key){
+		const lines = this.log_text(key).split("\n");
 		const at = lines.findLastIndex(l => { try { return !!JSON.parse(l).summary; } catch { return false; } });
 		return (at > 0 ? lines.slice(at) : lines).join("\n");
 	}
 
-	/* The card's log as text, read SYNCHRONOUSLY. ⚠ `Cards.transcript()` is async
+	/* The context's log as text, read SYNCHRONOUSLY. ⚠ `Cards.transcript()` is async
 	 * and `open()` is not, so calling it here handed a fresh agent "[object Promise]"
 	 * instead of the log (found by the layers proof, 2026-09-24). A card host with
 	 * no `file`/`parse` (the unit test's fake) still answers through `transcript`. */
-	log_text(card){
-		const cards = this.servex.cards, id = cards.canonical(card);
-		if (!id || !cards.file || !cards.parse) return String(cards.transcript(card) ?? "");
+	log_text(key){
+		if (is_page(key)){
+			let lines = [];
+			try { lines = fs.readFileSync(this.chat_file(key), "utf8").split("\n").filter(l => l.trim()); } catch {}
+			return `Page ${key} — its chat log, ${lines.length} lines, oldest first:\n` + lines.join("\n");
+		}
+		const cards = this.servex.cards, id = cards.canonical(key);
+		if (!id || !cards.file || !cards.parse) return String(cards.transcript(key) ?? "");
 		const lines = cards.parse(fs.readFileSync(cards.file(id), "utf8"));
 		return `Card ${id} — its whole log, ${lines.length} lines, oldest first:\n` + lines.map(l => JSON.stringify(l)).join("\n");
 	}
 
-	/* The door to a card's manager, for the assistant's tool and for code (the
-	 * Dispatcher). The first ask spawns it with the card's log; every later ask
-	 * is a message into the same, recycled session. */
-	ask_manager({ card, text, from = "owner", task }){
-		const sub = this.servex.cards.canonical(card) ?? card;
-		const root = root_of(sub);
-		if (!root) throw new Error(`"${card}" is not a card; a card id has at least four segments`);
-		const slot = this.record(root).manager;
-		const was = this.live(slot.id), held = this.pending.has(slot.id);
-		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
-		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
-			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
+	manager_prompt(key, request = ""){
+		const rec = this.record(key), slot = rec.manager;
+		return `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of ${this.where(key)}.`
+			+ " Your session is kept for this context's whole life: every later request here comes to you, so keep what you learn."
 			+ " First call `claim_topic({thing, change, card})`: `thing` is what you will change, as a short noun anyone would use (the site header, policy.js, the AI 2 rail), never the change itself."
 			+ " If it is refused, message mastermind-servex instead of starting."
-			+ ` Start minions with spawn_agent({parent: "${slot.id}"}). Report on the card with card_reply. Keep your own turns short.\n\n`
-			+ this.transcript(root) + "\n\n" + request);
-		const note = { from, reply_to: `card ${sub}` };
+			+ ` Start minions with spawn_agent({parent: "${slot.id}"}). ${this.scope(key, "manager")} Keep your own turns short.\n\n`
+			+ this.transcript(key) + (request ? "\n\n" + request : "");
+	}
+
+	/* The door to a context's manager, for the assistant's tool and for code (the
+	 * Dispatcher). The first ask spawns it with the log; every later ask is a
+	 * message into the same, recycled session. */
+	ask_manager({ card, text, from = "owner", task }){
+		const key = this.context(card);
+		if (!key) throw new Error(`"${card}" is neither a card (at least four segments) nor a page path`);
+		const sub = is_page(key) ? key : this.servex.cards.canonical(this.card_of(page_path(card)) ?? card) ?? card;
+		const slot = this.record(key).manager;
+		const was = this.live(slot.id), held = this.pending.has(slot.id);
+		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
+		const agent = this.open(key, "manager", () => this.manager_prompt(key, request));
+		const note = { from, reply_to: this.reply_to(key, sub) };
 		if (queued(agent)){
 			// a fresh spec already carries this request in its prompt; a resume, or a later ask, is kept for `admitted`
 			if (held || !this.pending.get(slot.id)?.fresh) this.deliver(slot.id, request, note);
@@ -317,29 +544,46 @@ export default class Layers {
 		return { ok: true, manager: slot.id, state: agent.state };
 	}
 
-	// ── idle stop, recycle, compact ──────────────────────────────────────────
+	// ── idle stop, recycle, checkpoint ───────────────────────────────────────
 
-	/* One cheap timer: a working agent is active; a quiet one past the limit
-	 * (10 minutes: an idle session holds about 250 MB) is stopped, session id kept, except an assistant whose manager is working;
-	 * an agent that called `card_summary` is recycled once its turn has ended. */
+	/* One cheap timer. A working agent is active. A quiet one past its limit (an
+	 * assistant 5 minutes, a manager 15: an idle session holds about 300 MB) is
+	 * stopped, session id kept, except an assistant whose manager is working.
+	 * One past its fresh line is asked for a checkpoint, then recycled once that
+	 * turn ends; one that called `card_summary` is recycled once its turn ends. */
 	watch(){
 		this.timer = setInterval(() => this.sweep(), Math.max(250, Math.min(2000, this.idle_ms / 4)));
 		this.timer.unref?.();
 	}
 
 	sweep(now = Date.now()){
-		for (const [card, rec] of Object.entries(this.state.cards)){
-			this.sync(card);
-			for (const role of ["assistant", "manager"]){
+		for (const [key, rec] of Object.entries(this.state.cards)){
+			this.sync(key);
+			for (const role of ROLES){
 				const agent = this.live(rec[role].id);
 				if (!agent) continue;
 				if (agent.state === "working" || agent.state === "starting"){ this.touched.set(agent.id, now); continue; }
 				if (this.recycling.has(agent.id)){ this.recycle(agent.id); continue; }
+				if (this.checkpoint.has(agent.id)){
+					if ((agent.turns ?? 0) > this.checkpoint.get(agent.id)) this.recycle(agent.id);
+					continue;
+				}
+				if ((agent.context ?? 0) >= this.fresh_at[role]){ this.ask_checkpoint(agent, role); continue; }
 				if (role === "assistant" && this.live(rec.manager.id)?.state === "working") continue;
 				if (!this.touched.has(agent.id)) this.touched.set(agent.id, now);
-				if (now - this.touched.get(agent.id) >= this.idle_ms) this.stop(agent.id);
+				if (now - this.touched.get(agent.id) >= (role === "manager" ? this.manager_idle_ms : this.idle_ms)) this.stop(agent.id);
 			}
 		}
+	}
+
+	/* FRESH, NOT COMPACTED (the owner): one checkpoint line, then the same id
+	 * restarts fresh from it on its next use. */
+	ask_checkpoint(agent, role){
+		this.checkpoint.set(agent.id, agent.turns ?? 0);
+		this.log_gate(agent.id, "checkpoint", `context ${agent.context} tokens, fresh line ${this.fresh_at[role]}`);
+		this.deliver(agent.id, `Checkpoint: your context is ${agent.context} tokens, past this role's ${this.fresh_at[role]}, so you will restart fresh.`
+			+ " Call card_summary once, with one line holding what is not already in the log: decisions, open questions, and what you were in the middle of. Then stop.",
+			{ from: "servex", priority: "next" });
 	}
 
 	stop(id){
@@ -352,11 +596,14 @@ export default class Layers {
 	/* Stop it and forget its session; its id is kept, and it restarts fresh. */
 	recycle(id){
 		const who = this.owner(id);
-		if (!who) return { ok: false, error: `${id} is not a card agent` };
+		if (!who) return { ok: false, error: `${id} is not a page or card agent` };
 		this.recycling.delete(id);
+		this.checkpoint.delete(id);
 		try { if (this.live(id)) this.servex.agents.stop(id); } catch {}
 		who.slot.session_id = null;
+		who.slot.context = null;
 		this.save();
+		this.log_gate(id, "recycled");
 		return { ok: true };
 	}
 
@@ -364,7 +611,7 @@ export default class Layers {
 	 * `card_summary` marks it for recycling. A stopped agent is resumed first. */
 	compact(id){
 		const who = this.owner(id);
-		if (!who) return { ok: false, error: `${id} is not a card agent` };
+		if (!who) return { ok: false, error: `${id} is not a page or card agent` };
 		if (!this.live(id) && !who.slot.session_id) return { ok: true, note: "not running and no session: nothing to compact" };
 		if (!this.live(id)) this.open(who.card, who.role, () => "");
 		this.deliver(id, "Compact now: call card_summary with everything important about this card that is not already in its log:"
@@ -376,14 +623,22 @@ export default class Layers {
 	// ── tools ────────────────────────────────────────────────────────────────
 
 	/* `ctx.caller` is the calling agent's id, stamped by Servex (null from a tab,
-	 * which is the owner and may act anywhere). A card agent acts only inside
-	 * its own root card. */
-	allowed(caller, card){
-		if (!caller) return this.root(card);
+	 * which is the owner and may act anywhere). A pair agent acts only inside its
+	 * own context: its card and sub-cards, or its page and the pages under it;
+	 * the root pair acts anywhere. Returns the target's context key. */
+	allowed(caller, target){
+		const key = this.context(target);
+		if (!caller) return key;
 		const who = this.owner(caller);
-		const target = this.servex.cards.canonical(card);
-		if (!who || !target || !within(target, who.card)) throw new Error(`${caller} may act only on its own card and its sub-cards, not "${card}"`);
-		return who.card;
+		if (!key || !who || !this.inside(target, who.card)) throw new Error(`${caller} may act only on its own card or page and what is under it, not "${target}"`);
+		return key;
+	}
+
+	inside(target, key){
+		if (key === "/") return true;
+		const at = this.path_of(target);
+		if (!at) return false;
+		return at.startsWith(is_page(key) ? key : `${CARDS_AT}${key}/`);
 	}
 
 	tools(){
@@ -436,16 +691,26 @@ export default class Layers {
 				return { ok: true, card: id };
 			});
 
-		tool("ask_manager", "Hand work to this card's manager. Make a request, question or task sub-card first with create_card, holding the owner's own words, and pass its id as `card`. Pass the path to the card's directory so the manager can read the whole chat, raw words included; your summary may follow, never replace it.",
+		tool("ask_manager", "Hand work to this card's or page's manager. On a card, make a request, question or task sub-card first with create_card, holding the owner's own words, and pass its id as `card`; on a page, pass the page path. Pass the path to the card's directory so the manager can read the whole chat, raw words included; your summary may follow, never replace it.",
 			{ card: str, text: str }, ["card", "text"],
 			({ card, text }, caller) => { this.allowed(caller, card); return this.ask_manager({ card, text, from: caller ?? "owner" }); });
 
-		tool("card_summary", "Write everything important about this card that is not already in its log as one summary line. You are restarted from it once this turn ends.",
+		tool("page_reply", "Say something into a page's chat: the AI tab of the drawer on that page. `page` is the site path with a trailing slash (`/` is the root); on a card's page it lands in the card. Two or three plain sentences. Only your own page or a page under it.",
+			{ page: str, text: str }, ["page", "text"],
+			({ page, text }, caller) => {
+				const key = this.allowed(caller, page);
+				if (!key) throw new Error(`"${page}" is not a page path`);
+				const line = { message: { by: caller ?? "owner", text, at: now_iso(), kind: "reply" } };
+				this.write(key, line, is_page(key) ? null : this.card_of(page_path(page)));
+				return { ok: true, page: key };
+			});
+
+		tool("card_summary", "Write everything important about this card or page that is not already in its log as one summary line. You are restarted from it once this turn ends.",
 			{ text: str }, ["text"],
 			({ text }, caller) => {
 				const who = this.owner(caller);
-				if (!who) throw new Error("card_summary is only for a card's assistant or manager");
-				this.servex.cards.append(who.card, { summary: { by: caller, text } });
+				if (!who) throw new Error("card_summary is only for a card's or page's assistant or manager");
+				this.write(who.card, { summary: { by: caller, text, ...(is_page(who.card) ? { at: now_iso() } : {}) } });
 				this.recycling.add(caller);
 				return { ok: true, card: who.card };
 			});
@@ -461,6 +726,15 @@ export default class Layers {
 			next();
 		};
 		router.get("/api/card-agents", cors, (req, res) => res.json(this.agents_of(req.query.card)));
+		router.get("/api/page-agents", cors, (req, res) => res.json(this.agents_of(page_path(req.query.page) ?? req.query.page)));
+		router.options("/api/page-ai", cors, (req, res) => res.status(204).end());
+		router.post("/api/page-ai", cors, async (req, res) => {
+			try {
+				const out = this.page_ai(await body(req));
+				const { status, ...rest } = out;
+				res.status(out.ok ? 200 : status ?? 400).json(rest);
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
 		router.options("/api/agent/:id/:verb", cors, (req, res) => res.status(204).end());
 		for (const verb of ["compact", "recycle"])
 			router.post(`/api/agent/:id/${verb}`, cors, (req, res) => {
@@ -469,18 +743,30 @@ export default class Layers {
 			});
 	}
 
-	/* What each of a card's agents holds: tokens in context and the share of its window. */
-	agents_of(card){
-		const root = card && this.root(card);
-		const rec = root && this.state.cards[root];
+	/* What each of a context's agents holds: tokens in context and the share of
+	 * its window. A context nobody has spoken in has no pair yet: `[]`. */
+	agents_of(target){
+		const key = target && this.context(target);
+		const rec = key && this.state.cards[key];
 		if (!rec) return [];
-		this.sync(root);
-		return ["assistant", "manager"].map(role => {
-			const slot = rec[role], a = this.servex.agents.live.get(slot.id);
-			const model_id = a?.model ?? null, context = a?.context ?? null;
+		this.sync(key);
+		return ROLES.map(role => {
+			const slot = rec[role], a = this.live(slot.id) ?? this.servex.agents.live.get(slot.id);
+			const model_id = a?.model ?? null, context = a?.state === "stopped" ? slot.context ?? a.context ?? null : a?.context ?? slot.context ?? null;
 			const window = String(model_id).includes("[1m]") ? 1000000 : 200000;
 			return { id: slot.id, role, state: a?.state ?? (slot.session_id ? "stopped" : "none"), model: model_id,
 				session_id: slot.session_id, context, window, pct: context == null ? null : Math.round(100 * context / window) };
 		});
 	}
+}
+
+/* A JSON body: the one express already parsed, else read here (64 kB at most). */
+function body(req){
+	if (req.body && typeof req.body === "object") return Promise.resolve(req.body);
+	return new Promise((resolve, reject) => {
+		let text = "";
+		req.on("data", chunk => { text += chunk; if (text.length > 65536){ reject(new Error("body over 64 kB")); req.destroy(); } });
+		req.on("end", () => { try { resolve(text ? JSON.parse(text) : {}); } catch (e){ reject(e); } });
+		req.on("error", reject);
+	});
 }
