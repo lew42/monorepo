@@ -63,7 +63,7 @@ const measure = () => {
 };
 
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
-const b = await chromium.launch();
+const b = await chromium.launch({ channel: "chromium" });
 const t0 = Date.now();
 const contexts = await Promise.all(widths.map(w => b.newContext({ viewport: { width: w, height } })));
 let bad = 0;

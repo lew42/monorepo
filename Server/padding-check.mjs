@@ -409,7 +409,7 @@ export async function check_page(page, width, floor = FLOOR){
    injected after load (a way to reproduce a bug: strip a padding and look). */
 export async function edges(urls, { base = process.env.PADDING_BASE || "http://monorepo.localhost", widths = [1280, 3440], floor = FLOOR, style = null } = {}){
 	const { chromium } = await import(PLAYWRIGHT);
-	const browser = await chromium.launch();
+	const browser = await chromium.launch({ channel: "chromium" });
 	const rows = [];
 	try {
 		for (const url of urls) {
@@ -469,7 +469,7 @@ async function main(){
 	const all    = argv.includes("--all");
 
 	const { chromium } = await import(PLAYWRIGHT);
-	const browser = await chromium.launch();
+	const browser = await chromium.launch({ channel: "chromium" });
 	const page = await browser.newPage({ viewport: { width: widths[0], height: 1200 } });
 
 	let failed = 0;

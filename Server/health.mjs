@@ -298,7 +298,7 @@ const { chromium } = await import(pathToFileURL(pw_entry).href);
 
 let browser = null;
 async function ensure_browser(){
-	if (!browser) browser = await chromium.launch({ headless: true });
+	if (!browser) browser = await chromium.launch({ headless: true, channel: "chromium" });
 	return browser;
 }
 
