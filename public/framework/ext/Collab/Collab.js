@@ -15,7 +15,7 @@ import { JSONL } from "../JSONL/JSONL.js";
  *     collab.winner              // {pick, file, caveats, cost} — the run's own conclusion
  */
 export class Collab extends JSONL {
-	static verbs = ["collab", "phase", "member", "vote", "tally", "winner", "decision", "chose"];
+	static verbs = ["collab", "phase", "member", "vote", "tally", "winner", "decision", "chose", "fact", "dispute"];
 
 	// One entry per verb above, in the SAME order — apply() below reads this
 	// instead of calling `this[verb]` the way JSONL.apply() does, because the
@@ -24,12 +24,14 @@ export class Collab extends JSONL {
 	static handlers = {
 		collab: "start", phase: "on_phase", member: "on_member", vote: "on_vote",
 		tally: "on_tally", winner: "on_winner", decision: "on_decision", chose: "on_chose",
+		fact: "on_fact", dispute: "on_dispute",
 	};
 
 	members = [];
 	phases = [];
 	votes = [];
 	decisions = [];
+	facts = [];
 	tallies = {};
 	cost = 0;
 
@@ -84,12 +86,30 @@ export class Collab extends JSONL {
 	// widget than the vote's own winner. See Collab.Decision.override().
 	on_chose(v){ this.decision(v.decision)?.override(v); }
 
+	// {id, text, certainty} — the runner's own merged read of the `facts` phase (or a later
+	// rewrite: same id, later line wins, same rule as `decision`). Upsert by id.
+	on_fact(v){
+		const f = this.fact(v.id) ?? this.facts[this.facts.push(new this.constructor.Fact({ id: v.id })) - 1];
+		f.apply(v);
+	}
+
+	// {at, fact, member, why} — any member, any later phase. Pushes onto the named fact's
+	// `disputes` and drops a `settled` fact to `likely` (never touches an `open` fact — it
+	// was already the least certain there is).
+	on_dispute(v){
+		const f = this.fact(v.fact);
+		if (!f) return;
+		f.disputes.push({ member: v.member, why: v.why });
+		if (f.certainty === "settled") f.certainty = "likely";
+	}
+
 	/** The vote counts a `tally` line gave phase `n` — `{}` before one has arrived. */
 	tally(n){ return this.tallies[n]?.counts ?? {}; }
 
 	member(id){ return this.members.find(m => m.id === id); }
 	phase(n){ return this.phases.find(p => p.n === n); }
 	decision(id){ return this.decisions.find(d => d.id === id); }
+	fact(id){ return this.facts.find(f => f.id === id); }
 
 	/** Decisions with no `parent` — the roots of the decision tree the view nests under. */
 	root_decisions(){ return this.decisions.filter(d => !d.parent); }
@@ -122,10 +142,26 @@ Collab.Phase = class Phase {
 	assign(...args){ return Object.assign(this, ...args); }
 };
 
-/** One member's pick for one phase, plus the one improvement it would add. */
+/** One member's pick for one phase, plus the one improvement it would add. `abstain` is
+ *  true only for an EXPLICIT "no opinion" vote (collab-format.md) — a member who never
+ *  weighed in at all doesn't get a Vote at all, it just shows up in a phase's `abstained` list. */
 Collab.Vote = class Vote {
+	abstain = false;
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
+};
+
+/** One simple, foundational truth the members agreed on in the `facts` phase (or added
+ *  later): "always X", "never Y", "one A per B", "before X, do Y". `certainty` is
+ *  `settled` (every member agreed), `likely` (most did, or a settled fact got disputed)
+ *  or `open` (real disagreement — the next phase's own digging point). `disputes` is
+ *  every `{member, why}` any member has raised against it, oldest first. */
+Collab.Fact = class Fact {
+	certainty = "likely";
+	disputes = [];
+	constructor(...args){ this.assign(...args); }
+	assign(...args){ return Object.assign(this, ...args); }
+	apply(v){ Object.assign(this, v); }
 };
 
 /**

@@ -2,14 +2,18 @@
 
 ## What
 One collaboration run — a mastermind fans a question out to a few cheap members, they work
-through ordered phases (brief, read peers, revise, vote — or names, vote, implement,
-cross-review, vote for an object-oriented design), and the run ends in a winner with the
-caveats it should absorb. `Collab` replays the run's own `collab.jsonl` into plain objects —
-`members[]`, `phases[]`, `votes[]`, `decisions[]`, `winner` — the way the owner asked for
-("almost everything should just be an object with properties and methods … the more of the
-internal structure we can see via UI"). `view.js` draws one run whole; `page.js` is the live
-page. The runner that actually spawns the members and writes the log is a sibling task
-(`Server/collab.mjs`) — this module only reads and draws what it writes.
+through ordered phases (facts, then brief, read peers, revise, vote — or facts, then names,
+vote, implement, cross-review, vote for an object-oriented design), and the run ends in a
+winner with the caveats it should absorb. Every run starts with `facts`: the members list the
+simple, foundational truths together, each with a certainty (`settled`/`likely`/`open`), and any
+member may dispute one later, dropping it from `settled` to `likely`. A vote may also be
+`{"abstain": true}` — a member weighing in with "no opinion", not silence. `Collab` replays the
+run's own `collab.jsonl` into plain objects — `members[]`, `phases[]`, `votes[]`, `decisions[]`,
+`facts[]`, `winner` — the way the owner asked for ("almost everything should just be an object
+with properties and methods … the more of the internal structure we can see via UI"). `view.js`
+draws one run whole; `page.js` is the live page. The runner that actually spawns the members and
+writes the log is a sibling task (`Server/collab.mjs`) — this module only reads and draws what
+it writes.
 
 ## Use
 ```js
@@ -30,9 +34,14 @@ the link for a name a design run actually decided — it reads the shared
 or `undefined` when nothing named it yet.
 
 ## Watch out
-- The wire verbs (`collab phase member vote tally winner decision chose`) are a contract shared
-  with the runner minion — don't change the shape without saying so in both tasks' logs. The
-  contract itself: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+- The wire verbs (`collab phase member vote tally winner decision chose fact dispute`) are a
+  contract shared with the runner minion — don't change the shape without saying so in both
+  tasks' logs. The contract itself: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
+- `Collab.Fact.disputes[]` only ever grows — a dispute is never removed, even once the fact it
+  named has dropped from `settled` to `likely`; the disputes stay as the reason why.
+- `on_fact` upserts by `id` (later line wins), the same rule `decision` already uses — a dispute
+  that drops a `settled` fact writes a FRESH `fact` line with the same id, it never edits the one
+  already in memory in place.
 - `member(id)` and `phase(n)` are LOOKUP methods, not the wire verbs of the same name — `apply()`
   routes verbs through `static handlers` instead of calling `this[verb]` the way plain `JSONL`
   does, exactly to avoid that collision. [doc/collab.md](./doc/collab.md)

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "read-a-member-s-own-context-file-before-",
+    "text": "Read a member's own context file before writing its own answer.",
+    "certainty": "settled"
+  },
+  {
+    "id": "a-member-never-votes-for-itself",
+    "text": "A member never votes for itself.",
+    "certainty": "likely"
+  },
+  {
+    "id": "whether-cost-per-phase-is-comparable-acr",
+    "text": "Whether cost per phase is comparable across differently-priced models",
+    "certainty": "open"
+  }
+]

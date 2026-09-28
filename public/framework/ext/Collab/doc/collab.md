@@ -5,9 +5,10 @@
 Collab              one run: question, kind, cost, winner
   .members[]        Collab.Member — id, model, files{phase → {file, cost, status}}, cost, status
   .phases[]         Collab.Phase — n, kind, status, cost, votes[]
-  .votes[]          Collab.Vote — phase, member, pick, caveat
+  .votes[]          Collab.Vote — phase, member, pick, caveat, abstain
   .decisions[]       Collab.Decision — id, phase, parent, ask, package, options[], counts,
                      chosen (the vote's own winner), runner_up, overruled, final (owner's pick)
+  .facts[]          Collab.Fact — id, text, certainty (settled/likely/open), disputes[] ({member, why})
 Collab.Scoreboard    the shared public/framework/ai/collab/scoreboard.jsonl — per-model
                      decisions/wins/win_rate/cost/cost_per_win, and retire()
 ```
@@ -18,12 +19,31 @@ replays it exactly the way `JSONL`/`TaskJSONL` always have: one line, one verb, 
 the same id merge onto the earlier one instead of replacing the object.
 
 ## The two phase lists
-- **research** (the default `kind`): `brief` → `read-peers` → `revise` → `vote`. Everyone
-  answers, reads 1–2 peers, rewrites their own, votes with a caveat.
-- **design**: `names` → `vote` → `implement` → `cross-review` → `vote`. Names first (so the
-  class, its properties and methods are agreed before anyone writes code), then everyone
-  implements the winning names, reads a couple of peers' code, and votes again on the
-  implementation.
+- **research** (the default `kind`): `facts` → `brief` → `read-peers` → `revise` → `vote`.
+  Everyone lists the foundational truths first, answers, reads 1–2 peers, rewrites their own,
+  votes with a caveat (or abstains).
+- **design**: `facts` → `names` → `vote` → `implement` → `cross-review` → `vote`. Facts, then
+  names first (so the class, its properties and methods are agreed before anyone writes code),
+  then everyone implements the winning names, reads a couple of peers' code, and votes again on
+  the implementation.
+
+## Facts, disputes, and abstaining (2026-09-28)
+Every run's very first phase is `facts`: each member writes its own list of simple, foundational
+truths — "always X", "never Y" — each with a certainty. The runner merges every member's list by
+normalized text into one canonical `Collab.Fact` per idea: `settled` only if every member who
+listed that fact called it settled, `open` if any member called it open, `likely` otherwise. An
+`open` fact is named in the very next phase's prompt as what to dig into — the least certain
+things get the most attention, not the least.
+
+Any member, in any phase AFTER `facts`, may dispute one — `on_dispute` pushes `{member, why}`
+onto that fact's `disputes[]` and drops it from `settled` to `likely` (an `open` fact is left
+alone; it was already the least certain there is). Disputes only ever accumulate — nothing here
+ever removes one.
+
+A vote's JSON file may be `{"abstain": true}` instead of `{"pick": …}` — `Collab.Vote.abstain`
+(default `false`) is how the replay tells a member who explicitly weighed in with "no opinion"
+apart from one who simply never voted; both still count toward a phase's `abstained` list and
+its `thin` flag exactly as before.
 
 ## The decision tree
 Every vote phase produces exactly one `decision` — the runner itemizes each member's output as

@@ -4,6 +4,19 @@
    token ramp the usage rail uses (--ok → --warn → --error), never a hand-picked one. */
 @layer theme {
 
+	/* Facts come first (collab-format.md "facts first") — the certainty chip uses the same
+	   --ok/--warn/--error ramp as everything else on this page: settled is the safest, open
+	   is the one still worth digging into. */
+	.collab-fact { padding-block: .15em; }
+	.collab-fact-chip {
+		padding: .1em .6em; border-radius: 999px; border: 1px solid var(--line);
+		font-size: .8em; font-weight: 600; text-transform: uppercase;
+	}
+	.collab-fact-chip.settled { border-color: var(--ok); color: var(--ok); }
+	.collab-fact-chip.likely { border-color: var(--warn); color: var(--warn); }
+	.collab-fact-chip.open { border-color: var(--error); color: var(--error); }
+	.collab-fact-dispute { margin-inline-start: 1.5em; }
+
 	.collab-phase {
 		display: flex; align-items: baseline; gap: .35em;
 		padding: .3em .7em; border-radius: 999px; border: 1px solid var(--line);

@@ -21,6 +21,7 @@ export function view(collab, scoreboard, reviews){
 	div.c("collab", () => {
 		head(collab);
 		if (reviews) reviews_table(reviews);
+		facts_block(collab);
 		phase_track(collab);
 		div.c("collab-members grid auto", () => collab.members.forEach(m => member_col(m, collab.phases, collab.votes, files)));
 		decision_wall(collab);
@@ -34,6 +35,24 @@ function head(collab){
 	div.c("collab-head flex split v-baseline", () => {
 		h3(collab.question ?? "Collaboration run");
 		span.c("muted", [collab.kind, money(collab.cost)].filter(Boolean).join(" · "));
+	});
+}
+
+// The simple, foundational truths the members agreed on before anything else ran — first on
+// the page because they come first in the run (collab-format.md "facts first"). One line per
+// fact: a certainty chip (`collab.css` colors settled/likely/open off the same status ramp the
+// rest of this page uses), the text, then any disputes raised against it, oldest first.
+function facts_block(collab){
+	if (!collab.facts.length) return;
+	div.c("collab-facts flow", () => {
+		h4("Facts");
+		collab.facts.forEach(f => div.c("collab-fact", () => {
+			div.c("collab-fact-row flex gap v-baseline wrap", () => {
+				span.c("collab-fact-chip").ac(f.certainty).append(f.certainty);
+				span(f.text);
+			});
+			f.disputes.forEach(d => p.c("collab-fact-dispute muted", `${d.member}: ${d.why}`));
+		}));
 	});
 }
 
@@ -64,7 +83,8 @@ function member_col(m, phases, votes, files){
 			const vote = ph.kind === "vote" && votes?.find(v => v.member === m.id && v.phase === ph.n);
 			div.c("collab-member-file flex gap v-center", () => {
 				span.c("muted", ph.kind);
-				if (vote) span.c("collab-member-vote", "→ " + vote.pick);
+				if (vote?.abstain) span.c("collab-member-vote muted", "abstained");
+				else if (vote) span.c("collab-member-vote", "→ " + vote.pick);
 				else if (f?.file) a.c("collab-file-link", "file").href(files + f.file);
 				else span.c("muted", "—");
 			});
@@ -80,6 +100,7 @@ function vote_list(collab){
 		h4("Votes");
 		collab.votes.forEach(v => div.c("collab-vote flex gap v-center", () => {
 			span.c("collab-vote-who", v.member);
+			if (v.abstain) return span.c("muted", "abstained");
 			span.c("muted", "→");
 			span.c("collab-vote-pick", v.pick);
 			if (v.caveat) span.c("collab-vote-caveat muted", v.caveat);

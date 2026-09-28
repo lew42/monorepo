@@ -5,10 +5,18 @@
  * the members WITHIN a phase run in parallel. Every step appends one line to `<taskdir>/collab.jsonl`
  * (the contract both this runner and the live page share: `collab-format.md` beside this doc).
  *
- * research: brief (answer + rough web search, sources listed) -> read-peers (read 1-2 peers' briefs)
- * -> revise (rewrite your own) -> vote.
- * design: names (class, properties, methods+args) -> vote (on names) -> implement (everyone builds
- * the WINNING names) -> cross-review (read peers' code) -> vote (on implementations).
+ * research: facts (the simple, foundational truths, together) -> brief (answer + rough web search,
+ * sources listed) -> read-peers (read 1-2 peers' briefs) -> revise (rewrite your own) -> vote.
+ * design: facts -> names (class, properties, methods+args) -> vote (on names) -> implement
+ * (everyone builds the WINNING names) -> cross-review (read peers' code) -> vote (on implementations).
+ *
+ * 2026-09-28 (collab-format.md "facts first, disputes, and abstaining"): `facts` always runs
+ * first — every member lists simple, foundational truths ("always X", "never Y") with a
+ * certainty (settled/likely/open); the runner merges them by normalized text into one canonical
+ * list. `open` facts are named in the NEXT phase's prompt as what to dig into. Any member, in
+ * any LATER phase, may drop `<its dir>/dispute.json` to challenge a fact — a disputed `settled`
+ * fact drops to `likely`. A vote may also be `{"abstain": true}` instead of a pick: a member who
+ * has no opinion says so explicitly, rather than being silently read as "didn't vote".
  *
  * Members are Servex agents, spawned with `role: "minion"` — a worker may only spawn a minion or a
  * helper (`spawn_agent` refuses `role: "member"`, proven live before writing this). One `spawn_agent`
@@ -39,9 +47,12 @@ import { fileURLToPath } from "node:url";
 const MCP = "http://127.0.0.1:8090/mcp";
 const DEFAULT_TIMEOUT_S = 600; // 10 minutes per member per phase
 
+// 2026-09-28: a `facts` phase always runs first — the members list the simple, foundational
+// truths together before any drafting starts, so `open` ones can steer where the digging goes
+// (collab-format.md's new "facts first" section).
 const DEFAULT_PHASES = {
-	research: [{ n: 1, kind: "brief" }, { n: 2, kind: "read-peers" }, { n: 3, kind: "revise" }, { n: 4, kind: "vote" }],
-	design: [{ n: 1, kind: "names" }, { n: 2, kind: "vote" }, { n: 3, kind: "implement" }, { n: 4, kind: "cross-review" }, { n: 5, kind: "vote" }],
+	research: [{ n: 1, kind: "facts" }, { n: 2, kind: "brief" }, { n: 3, kind: "read-peers" }, { n: 4, kind: "revise" }, { n: 5, kind: "vote" }],
+	design: [{ n: 1, kind: "facts" }, { n: 2, kind: "names" }, { n: 3, kind: "vote" }, { n: 4, kind: "implement" }, { n: 5, kind: "cross-review" }, { n: 6, kind: "vote" }],
 };
 
 const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
@@ -66,12 +77,22 @@ function peersFor(ids, i) {
 	return out;
 }
 
-const fileFor = (taskDir, id, phase) => path.join(taskDir, "collab", id, `${phase.n}-${phase.kind}.${phase.kind === "vote" ? "json" : "md"}`);
+const fileFor = (taskDir, id, phase) => path.join(taskDir, "collab", id, `${phase.n}-${phase.kind}.${phase.kind === "vote" || phase.kind === "facts" ? "json" : "md"}`);
+const disputeFileFor = (taskDir, id) => path.join(taskDir, "collab", id, "dispute.json");
+// The runner's own canonical facts list, written once the `facts` phase has merged (real bug,
+// found running a real collab — real-run-2 — not by review: a member disputing a fact had no
+// way to know the REAL id to name, so it invented one that matched nothing and its dispute
+// silently did nothing). `header()` points every later phase's prompt at this file.
+const factsFileFor = taskDir => path.join(taskDir, "collab", "facts.json");
 // Added 14:25: with collab.json's `target`, the names phase also asks for a sidecar names.json.
 const namesJsonFor = (taskDir, id, phase) => path.join(taskDir, "collab", id, `${phase.n}-names.json`);
 
 // Everything every prompt repeats: the question, the context, the member's own write-only dir.
-function header(spec, root, taskDir, member) {
+// `mentionDispute`: false only for the `facts` phase's own prompt — before that phase has run,
+// there are no canonical fact ids yet for a member to reference in a dispute (review finding 3:
+// harmless either way, since `checkDisputes` silently no-ops on an unknown id, but the line is
+// premature there and every OTHER phase does have facts to point at).
+function header(spec, root, taskDir, member, mentionDispute = true) {
 	const ctx = (spec.context || []).map(f => rel(root, path.join(root, f)));
 	const dir = rel(root, path.join(taskDir, "collab", member.id));
 	return `You are "${member.id}", one member of a collaboration. Repo root: ${root.replaceAll("\\", "/")}.\n`
@@ -79,22 +100,30 @@ function header(spec, root, taskDir, member) {
 		+(ctx.length ? `Context to read first: ${ctx.join(", ")}\n` : "")
 		+ `Write ONLY inside your own directory, ${dir}/ — never anywhere else, and never write to `
 		+ `collab.jsonl yourself: the runner is its only writer, and a stray line from you corrupts `
-		+ `the whole run's log for every reader.\n\n`;
+		+ `the whole run's log for every reader.\n`
+		+ (mentionDispute ? `If a fact looks wrong, write one line to ${rel(root, disputeFileFor(taskDir, member.id))}: {"fact": "<fact id>", "why": "<one line>"} — the current facts, WITH THE REAL IDS TO USE, are listed in ${rel(root, factsFileFor(taskDir))}.\n` : "")
+		+ `\n`;
 }
 
-function promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner) {
-	const h = header(spec, root, taskDir, member);
+// `openFacts`: the texts of every `open` fact once the `facts` phase has merged and run —
+// `[]` before then. Only `brief`/`names` (the phase right after `facts`) surface it, per
+// collab-format.md: "Open facts to dig into: <text> (<text>)…".
+function promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner, openFacts) {
+	const h = header(spec, root, taskDir, member, phase.kind !== "facts");
 	const out = rel(root, fileFor(taskDir, member.id, phase));
 	const peers = peersFor(ids, ids.indexOf(member.id)).map(p => rel(root, fileFor(taskDir, p, lastContentPhase)));
+	const openLine = (openFacts && openFacts.length) ? `Open facts to dig into: ${openFacts.map(t => `(${t})`).join(" ")}\n` : "";
 	switch (phase.kind) {
+		case "facts":
+			return h + `List simple, foundational truths about this question: "always X", "never Y", "one A per B", "before X, do Y". Write "never"/"always" only for what actually breaks; anything else is "likely". Write ${out} as JSON: an array of {"id": "<your own short id>", "text": "<the fact>", "certainty": "settled" | "likely" | "open"}.`;
 		case "brief":
-			return h + `Answer the question with a rough web search (WebSearch/WebFetch) — a few searches, not exhaustive. Write ${out}: your answer, then a short "Sources" list of the pages you used.`;
+			return h + openLine + `Answer the question with a rough web search (WebSearch/WebFetch) — a few searches, not exhaustive. Write ${out}: your answer, then a short "Sources" list of the pages you used.`;
 		case "read-peers":
 			return h + `Read these peers' briefs: ${peers.join(", ")}. Write ${out}: one or two plain sentences per peer on what they found that you missed, or "nothing new" if so.`;
 		case "revise":
 			return h + `Using what you read from peers, rewrite your own answer. Write ${out}: the improved answer.`;
 		case "names":
-			return h + `Propose an object-oriented design for this: the class name, its properties, its methods and each method's arguments — no implementation yet. Write ${out}.`
+			return h + openLine + `Propose an object-oriented design for this: the class name, its properties, its methods and each method's arguments — no implementation yet. Write ${out}.`
 				+ (spec.target ? ` Also write ${rel(root, namesJsonFor(taskDir, member.id, phase))} as JSON, matching your prose exactly: {"class": "<class name>", "properties": ["<name>", ...], "methods": [{"name": "<name>", "args": ["<arg>", ...]}, ...]}.` : "");
 		case "implement":
 			return h + (namesWinner ? `The group voted on names; the winner is ${namesWinner.id}'s proposal:\n\n${namesWinner.text}\n\nImplement exactly these names (JS).` : `Implement your own names proposal (JS).`) + ` Write ${out} as a fenced code block plus one sentence on any judgment call you made.`;
@@ -103,7 +132,7 @@ function promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, na
 		case "vote": {
 			const candidates = ids.filter(id => id !== member.id);
 			const files = candidates.map(id => rel(root, fileFor(taskDir, id, lastContentPhase)));
-			return h + `Read the ${lastContentPhase.kind} files of: ${candidates.map((id, i) => `${id} (${files[i]})`).join(", ")}. Pick the one you think is best — never yourself. Write ${out} as JSON: {"pick": "<member id>", "caveat": "<the one improvement you would make, or empty string if none>"}.`;
+			return h + `Read the ${lastContentPhase.kind} files of: ${candidates.map((id, i) => `${id} (${files[i]})`).join(", ")}. Pick the one you think is best — never yourself. Write ${out} as JSON: {"pick": "<member id>", "caveat": "<the one improvement you would make, or empty string if none>"}. If you have no opinion, write {"abstain": true} instead — a member weighs in only where something looks false, misleading or easy to get wrong.`;
 		}
 	}
 }
@@ -129,6 +158,94 @@ function tallyVotes(votes, costs) {
 function mockContent(phase, member) {
 	if (phase.kind === "vote") return null; // votes are computed separately below
 	return `# ${member.id} — phase ${phase.n} (${phase.kind})\n\nMock content, no agent ran.\n`;
+}
+
+// Deterministic canned facts for `--mock`: every member lists roughly the same three. Merging
+// requires EVERY member who listed a fact to call it settled before the fact itself is settled
+// (mergeFacts, below), so: f1 is settled by all three members and merges to `settled`; f2 is
+// called settled by only ONE member (index 1) and likely by the other two, so it merges to
+// `likely` — one dissenter is enough to keep a fact off `settled`; f3 is called open by all
+// three and merges to `open` (feeds the next phase's "open facts to dig into" line). `index` is
+// the member's position in `ids`, just so the mock isn't three byte-identical files.
+function mockFacts(member, index) {
+	return [
+		{ id: "f1", text: "Read a member's own context file before writing its own answer.", certainty: "settled" },
+		{ id: "f2", text: "A member never votes for itself.", certainty: index === 1 ? "settled" : "likely" },
+		{ id: "f3", text: "Whether cost per phase is comparable across differently-priced models", certainty: "open" },
+	];
+}
+
+// Deliverable 2: merge every active member's own `<n>-facts.json` by normalized text
+// (case/whitespace-insensitive) into one canonical list. Settled only if EVERY member who
+// listed a fact called it settled; open if ANY member called it open; likely otherwise.
+const normFact = t => String(t || "").trim().toLowerCase().replace(/\s+/g, " ");
+// The canonical id is a short slug of the fact's own TEXT, not a member's own `id` field —
+// members don't coordinate ids with each other, so two members' ids for the same fact could
+// disagree or collide. (Deliverable 2: "your call, document it in a comment.")
+function factSlug(text, used) {
+	let s = String(text || "fact").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "fact";
+	let id = s, n = 2;
+	while (used.has(id)) id = `${s}-${n++}`;
+	used.add(id);
+	return id;
+}
+function mergeFacts(taskDir, ids, phase, errored) {
+	const groups = new Map();
+	for (const id of ids) {
+		if (errored.has(id)) continue;
+		let arr;
+		try { arr = JSON.parse(fs.readFileSync(fileFor(taskDir, id, phase), "utf8")); } catch { continue; }
+		if (!Array.isArray(arr)) continue;
+		for (const f of arr) {
+			if (!f?.text) continue;
+			const key = normFact(f.text);
+			const g = groups.get(key) ?? groups.set(key, { text: String(f.text).trim(), certainties: [] }).get(key);
+			g.certainties.push(f.certainty === "settled" || f.certainty === "open" ? f.certainty : "likely");
+		}
+	}
+	const used = new Set();
+	return [...groups.values()].map(g => ({
+		id: factSlug(g.text, used),
+		text: g.text,
+		certainty: g.certainties.some(c => c === "open") ? "open" : g.certainties.every(c => c === "settled") ? "settled" : "likely",
+		// Filled in by `checkDisputes` as the run goes — kept on the SAME object main() holds
+		// in `factsState.byId`/`.list`, so `tally.md`'s own "## Facts" section can read every
+		// fact's disputes back at the end without re-reading `collab.jsonl` (review finding 1).
+		disputes: [],
+	}));
+}
+
+// Deliverable 3: any member may drop `<dir>/dispute.json` in any phase after `facts`. Called
+// after EVERY phase (not just `facts`) — collab-format.md's "simplest is fine": just re-read
+// every active member's dir each time, and consume (delete) the file once read so the same
+// dispute is never logged twice. A disputed `settled` fact drops to `likely`, written as a
+// fresh `fact` line (same id, later line wins — Collab.js's on_fact upserts, same rule as
+// `decision`); an `open` fact is never touched by a dispute (already the least certain there is).
+function checkDisputes(taskJsonl, taskDir, ids, errored, factsById) {
+	for (const id of ids) {
+		if (errored.has(id)) continue;
+		const f = disputeFileFor(taskDir, id);
+		let d;
+		// A malformed dispute.json is deleted too, not just an ENOENT (the common case,
+		// nothing to delete either way) — otherwise a member's typo keeps failing to parse
+		// and never gets a second chance to write a good one (review finding 4).
+		try { d = JSON.parse(fs.readFileSync(f, "utf8")); } catch { try { fs.unlinkSync(f); } catch {} continue; }
+		if (d?.fact && d?.why) {
+			appendJSON(taskJsonl, { dispute: { at: now(), fact: d.fact, member: id, why: d.why } });
+			const fact = factsById.get(d.fact);
+			if (fact) {
+				// Every dispute is kept, even one that doesn't move the certainty (Collab.js's
+				// own on_dispute does the same) — so `tally.md` can list WHY a fact was
+				// questioned, not just whether it survived settled.
+				fact.disputes.push({ member: id, why: d.why });
+				if (fact.certainty === "settled") {
+					fact.certainty = "likely";
+					appendJSON(taskJsonl, { fact: { at: now(), id: fact.id, text: fact.text, certainty: "likely" } });
+				}
+			}
+		}
+		try { fs.unlinkSync(f); } catch {}
+	}
 }
 
 /* Added 14:15 (collab-format.md): every vote phase is one decision — written "open" (itemizing the
@@ -209,7 +326,7 @@ async function spawnMember(name, model, prompt, root, timeoutS) {
 	throw new Error(`spawn_agent: "${name}" still queued after ${timeoutS}s (${spawned.reason || "no memory"})`);
 }
 
-async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS) {
+async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS, openFacts, factsState) {
 	appendJSON(taskJsonl, { phase: { at: now(), n: phase.n, kind: phase.kind, status: "start" } });
 	const active = members.filter(m => !errored.has(m.id));
 	const results = await Promise.all(active.map(async member => {
@@ -218,16 +335,34 @@ async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, las
 		if (mock) {
 			if (phase.kind === "vote") {
 				const candidates = ids.filter(id => id !== member.id && !errored.has(id));
-				const pick = candidates[(ids.indexOf(member.id) + 1) % candidates.length] || candidates[0];
-				fs.writeFileSync(file, JSON.stringify({ pick, caveat: "mock: no real caveat" }));
+				// Proof deliverable: exactly one member abstains, on the first vote phase a mock
+				// run reaches — so `--mock` always demonstrates `{"abstain": true}` for $0.
+				if (!factsState.abstainUsed && candidates.length) {
+					factsState.abstainUsed = true;
+					fs.writeFileSync(file, JSON.stringify({ abstain: true }));
+				} else {
+					const pick = candidates[(ids.indexOf(member.id) + 1) % candidates.length] || candidates[0];
+					fs.writeFileSync(file, JSON.stringify({ pick, caveat: "mock: no real caveat" }));
+				}
+			} else if (phase.kind === "facts") {
+				fs.writeFileSync(file, JSON.stringify(mockFacts(member, ids.indexOf(member.id))));
 			} else {
 				fs.writeFileSync(file, mockContent(phase, member));
 				if (phase.kind === "names" && spec.target) fs.writeFileSync(namesJsonFor(taskDir, member.id, phase), JSON.stringify({ class: spec.target.class, properties: ["value"], methods: [{ name: "get", args: [] }] }));
+				// Proof deliverable: the first phase after `facts`, one member disputes the
+				// settled fact — so `--mock` always demonstrates a settled→likely drop for $0.
+				if (!factsState.disputeUsed && ids.indexOf(member.id) === 0) {
+					const settled = factsState.list.find(f => f.certainty === "settled");
+					if (settled) {
+						factsState.disputeUsed = true;
+						fs.writeFileSync(disputeFileFor(taskDir, member.id), JSON.stringify({ fact: settled.id, why: "mock: worth a second look" }));
+					}
+				}
 			}
 			return { id: member.id, status: "done", file: rel(root, file), cost: 0, agent: "mock" };
 		}
 		try {
-			const prompt = promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner);
+			const prompt = promptFor(spec, root, taskDir, member, phase, ids, lastContentPhase, namesWinner, openFacts);
 			if (!agents[member.id]) {
 				agents[member.id] = await spawnMember(`collab-${spec.id}-${member.id}`, member.model, prompt, root, timeoutS);
 			} else {
@@ -267,11 +402,18 @@ async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, las
 		// the ground truth, checked for every spec member, not just the ones this phase
 		// actually ran. No file (never ran, or never wrote one) = abstained, not silently
 		// dropped, and a vote where fewer than half the members voted is flagged `thin`.
+		// Deliverable 4: an EXPLICIT `{"abstain": true}` file is a member who weighed in and
+		// chose not to pick — it lands in the same `abstained` bucket as "no file"/"invalid
+		// pick" (below), so the tally's count keeps working exactly as before, but it ALSO
+		// gets its own `vote` line (`abstain: true`, no `pick`) so the log shows it was a real,
+		// deliberate answer, not silence. "No file" / "picked self or someone invalid" still
+		// abstain the same as ever, just without that extra line.
 		const votes = [], abstained = [];
 		for (const id of ids) {
 			try {
 				const v = JSON.parse(fs.readFileSync(fileFor(taskDir, id, phase), "utf8"));
-				if (v.pick && v.pick !== id) { votes.push({ member: id, pick: v.pick, caveat: v.caveat || "" }); appendJSON(taskJsonl, { vote: { at: now(), phase: phase.n, member: id, pick: v.pick, caveat: v.caveat || "" } }); }
+				if (v.abstain === true) { abstained.push(id); appendJSON(taskJsonl, { vote: { at: now(), phase: phase.n, member: id, abstain: true } }); }
+				else if (v.pick && v.pick !== id) { votes.push({ member: id, pick: v.pick, caveat: v.caveat || "" }); appendJSON(taskJsonl, { vote: { at: now(), phase: phase.n, member: id, pick: v.pick, caveat: v.caveat || "" } }); }
 				else abstained.push(id);
 			} catch { abstained.push(id); }
 		}
@@ -279,6 +421,14 @@ async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, las
 		const thin = votes.length < ids.length / 2;
 		appendJSON(taskJsonl, { tally: { at: now(), phase: phase.n, counts: t.counts, winner: t.winner, caveats: votes.map(v => v.caveat).filter(Boolean), rule: t.rule, abstained, thin } });
 		return { results, vote: { votes, abstained, thin, ...t } };
+	}
+
+	// Deliverable 2: once every active member's own facts are in, merge them into one
+	// canonical list and append one `fact` line per merged fact.
+	if (phase.kind === "facts") {
+		const merged = mergeFacts(taskDir, ids, phase, errored);
+		for (const f of merged) appendJSON(taskJsonl, { fact: { at: now(), id: f.id, text: f.text, certainty: f.certainty } });
+		return { results, facts: merged };
 	}
 	return { results };
 }
@@ -346,6 +496,11 @@ async function main() {
 
 	const agents = {}, memberCost = {}, errored = new Set(), costByPhase = {};
 	let lastContentPhase = phases[0], namesWinner = null, finalVote = null, decisionN = 0, failReason = null;
+	// `facts` phase 2026-09-28: `openFacts` (the open facts' own text) feeds the very next
+	// phase's prompt; `factsState` carries the canonical facts (keyed by id, for dispute
+	// look-up) and the two "do this once" flags `--mock` uses to prove abstain/dispute for $0.
+	let openFacts = [];
+	const factsState = { list: [], byId: new Map(), abstainUsed: false, disputeUsed: false };
 	try {
 		for (const phase of phases) {
 			// Deliverable 1b: never march on with nobody left to run a phase.
@@ -359,12 +514,26 @@ async function main() {
 				appendJSON(taskJsonl, { decision: { at: now(), id: decisionId, phase: phase.n, parent: cfg.parent, ask: cfg.ask, package: cfg.package, options, status: "open" } });
 			}
 			const votedOnPhase = lastContentPhase; // the phase whose files this vote (if any) is about
-			const r = await runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS);
+			const r = await runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, lastContentPhase, namesWinner, agents, memberCost, errored, mock, timeoutS, openFacts, factsState);
 			costByPhase[phase.n] = Object.fromEntries(r.results.map(x => [x.id, x.cost]));
 			// Deliverable 1b: every member of THIS phase erroring is a stop, not a shrug —
 			// a vote phase where nobody produced anything is not a vote, it is a failure.
 			if (!r.results.some(x => x.status === "done")) { failReason = `every member errored in phase ${phase.n} (${phase.kind})`; break; }
-			if (phase.kind !== "vote") lastContentPhase = phase;
+			if (phase.kind === "facts" && r.facts) {
+				factsState.list = r.facts;
+				for (const f of r.facts) factsState.byId.set(f.id, f);
+				openFacts = r.facts.filter(f => f.certainty === "open").map(f => f.text);
+				// Real bug, found running a real collab (real-run-2), not by review: with
+				// nowhere to LOOK UP a fact's real id, a real member (sonnet-z) invented one
+				// for its dispute and it matched nothing, so the dispute logged but never
+				// actually moved the fact. Written BEFORE any later phase's prompt goes out —
+				// this is the very next line after the facts phase's own runPhase() returns.
+				fs.writeFileSync(factsFileFor(taskDir), JSON.stringify(r.facts.map(f => ({ id: f.id, text: f.text, certainty: f.certainty })), null, 2));
+			}
+			// Deliverable 3: any member's dispute.json from THIS phase, checked after every
+			// phase — not just `facts` — per collab-format.md.
+			checkDisputes(taskJsonl, taskDir, ids, errored, factsState.byId);
+			if (phase.kind !== "vote" && phase.kind !== "facts") lastContentPhase = phase;
 			if (phase.kind === "vote") {
 				finalVote = r.vote;
 				const t = r.vote;
@@ -411,7 +580,37 @@ async function main() {
 	const winnerFile = winnerId ? rel(root, fileFor(taskDir, winnerId, winnerPhase)) : null;
 	if (finalVote) appendJSON(taskJsonl, { winner: { at: now(), pick: winnerId, file: winnerFile, caveats: finalVote.votes.map(v => v.caveat).filter(Boolean), cost: Number(runCost.toFixed(6)) } });
 
-	const md = [`# ${spec.question}`, "", `**Winner:** ${winnerId || "(no vote reached)"}${winnerFile ? ` — \`${winnerFile}\`` : ""}`, `**Rule:** ${finalVote?.rule || "n/a"}`, finalVote?.thin ? "**⚠ thin: fewer than half the members voted**" : null, `**Run cost:** $${runCost.toFixed(4)}`, "", "## Votes", ...(finalVote ? Object.entries(finalVote.counts).map(([id, n]) => `- ${id}: ${n} vote(s), $${(memberCost[id] || 0).toFixed(4)}`) : ["(none)"]), ...(finalVote?.abstained?.length ? ["", "## Abstained (no vote file)", ...finalVote.abstained.map(id => `- ${id}`)] : []), "", "## Caveats", ...(finalVote?.votes.filter(v => v.caveat).map(v => `- ${v.member}: ${v.caveat}`) || ["(none)"])].filter(l => l !== null).join("\n") + "\n";
+	// Review finding 1: the mastermind reads `tally.md`, not the live page — facts and their
+	// disputes need to show up here too, not only in `view.js`'s draw. Each fact's own
+	// `disputes[]` was collected in place as the run went (`checkDisputes`, above), on the
+	// SAME objects `factsState.list` still holds, so no re-read of `collab.jsonl` is needed.
+	const factsLines = factsState.list.length
+		? ["", "## Facts", ...factsState.list.flatMap(f => [
+			`- **${f.certainty}** ${f.text}`,
+			...f.disputes.map(d => `  - disputed by ${d.member}: ${d.why}`),
+		])]
+		: [];
+	// "Abstained" covers two different reasons (collab-format.md "Added 14:50"): an explicit
+	// `{"abstain": true}` file (a real, deliberate non-pick) and no file / an invalid pick
+	// (never weighed in at all) — the count in the heading is every reason together; a reader
+	// wanting the split reads the phase's own `vote` lines.
+	const abstainedLines = finalVote?.abstained?.length
+		? ["", `## Abstained (${finalVote.abstained.length})`, ...finalVote.abstained.map(id => `- ${id}`)]
+		: [];
+	const md = [
+		`# ${spec.question}`,
+		"",
+		`**Winner:** ${winnerId || "(no vote reached)"}${winnerFile ? ` — \`${winnerFile}\`` : ""}`,
+		`**Rule:** ${finalVote?.rule || "n/a"}`,
+		finalVote?.thin ? "**⚠ thin: fewer than half the members voted**" : null,
+		`**Run cost:** $${runCost.toFixed(4)}`,
+		...factsLines,
+		"", "## Votes",
+		...(finalVote ? Object.entries(finalVote.counts).map(([id, n]) => `- ${id}: ${n} vote(s), $${(memberCost[id] || 0).toFixed(4)}`) : ["(none)"]),
+		...abstainedLines,
+		"", "## Caveats",
+		...(finalVote?.votes.filter(v => v.caveat).map(v => `- ${v.member}: ${v.caveat}`) || ["(none)"]),
+	].filter(l => l !== null).join("\n") + "\n";
 	fs.writeFileSync(path.join(taskDir, "collab", "tally.md"), md);
 	console.log(`collab.mjs: ${spec.kind} "${spec.id}" — winner ${winnerId || "none"}, $${runCost.toFixed(4)}`);
 }

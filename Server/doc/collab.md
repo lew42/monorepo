@@ -21,9 +21,10 @@ Put this next to where you want the run's files (`<taskdir>/collab.json`):
 }
 ```
 
-- `kind: "research"` — brief (answer + a rough web search, sources listed) → read-peers → revise →
-  vote. `kind: "design"` — names (the class, its properties, its methods and their arguments) →
-  vote (on names) → implement (everyone builds the WINNING names) → cross-review → vote.
+- `kind: "research"` — facts → brief (answer + a rough web search, sources listed) → read-peers →
+  revise → vote. `kind: "design"` — facts → names (the class, its properties, its methods and
+  their arguments) → vote (on names) → implement (everyone builds the WINNING names) →
+  cross-review → vote. Both kinds now start with `facts` (below) before anything else.
 - `context` is optional: files every member reads before its first phase.
 - `members[].model` is a plain string, so a Haiku/Sonnet mix, or later an OpenRouter id, all work.
 - `decisions` (optional): `[{"phase": 2, "ask": "...", "package": true, "parent": "d-1"}]` to name a
@@ -71,6 +72,36 @@ name it finds there, linking to `/framework/ext/Collab/?src=/framework/ai/<colla
 — so a class page can point back to the vote that named it, without an AI remembering to wire the
 link by hand. A missing or malformed `names.json` from the winner is logged to the console and
 skipped: no `decisions.jsonl` lines, nothing else stops.
+
+## Facts first, disputes, and abstaining (2026-09-28)
+
+Every run's phase 1 is always `facts` — each member writes `<n>-facts.json`, an array of
+`{id, text, certainty}`: simple, foundational truths ("always X", "never Y", "one A per B",
+"before X, do Y"), `certainty` one of `settled`/`likely`/`open` (write "never"/"always" only for
+what actually breaks; anything else is `likely`). The runner merges every member's list by
+normalized text (case/whitespace-insensitive) into one canonical list — settled only if EVERY
+member who listed a fact called it settled, open if ANY member called it open, likely otherwise
+— and appends one `{"fact": {id, text, certainty}}` line per merged fact. The canonical `id` is a
+short slug of the fact's own text, not a member's own id (members don't coordinate ids with each
+other). Every `open` fact is named in the NEXT phase's prompt: "Open facts to dig into: …" — the
+least certain things get the most attention.
+
+**Any member, in any phase after `facts`, may dispute one**: write `<its own dir>/dispute.json`,
+`{"fact": "<fact id>", "why": "…"}`. The runner checks every active member's own dir after EVERY
+phase (not just `facts`) and, for each dispute found, appends `{"dispute": {at, fact, member,
+why}}` and deletes the file (so it is never read twice). A disputed `settled` fact drops to
+`likely` — written as a fresh `{"fact": {...}}` line, same id (later line wins, same rule
+`decision` already uses). An `open` fact is untouched by a dispute — it was already the least
+certain there is.
+
+**A vote may abstain.** The vote JSON a member writes may be `{"abstain": true}` instead of
+`{"pick": …}` — "I have no opinion", said explicitly. It lands in the same `abstained` list as
+"no file" or "an invalid pick" (so the tally's count and `thin` flag are unchanged), but it also
+gets its own `{"vote": {..., "abstain": true}}` line in `collab.jsonl`, so a reader can tell a
+real, considered non-pick apart from a member who simply never answered.
+
+`--mock` proves all three for $0: canned facts (one settled, one likely, one open), one canned
+dispute against the settled fact (settled → likely), and one canned abstain vote.
 
 ## Watch out
 
