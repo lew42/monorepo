@@ -92,3 +92,34 @@
 @layer theme {
 	.ux-content-tile { display: inline-flex; align-items: center; gap: .5em; text-decoration: none; }
 }
+
+/* Structure: icon cards, groups, panels, outlines. A background brings padding; none brings none. */
+@layer theme {
+	.ux-content-icard {
+		display: flex; flex-direction: column; align-items: center; justify-content: center;
+		gap: .4em; text-align: center; text-decoration: none; color: var(--ink);
+		background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+		padding: 1em .75em; min-width: 0;
+	}
+	a.ux-content-icard:hover { border-color: var(--ink); }
+	.ux-content-icard .icon { line-height: 1; }
+	.ux-content-icard.w1 { --icard: 5.5rem; }
+	.ux-content-icard.w1 .icon { font-size: 1.75rem; }
+	.ux-content-icard.w2 { --icard: 7rem; }
+	.ux-content-icard.w2 .icon { font-size: 2.75rem; }
+	.ux-content-icard.w3 { --icard: 10rem; font-weight: 600; }
+	.ux-content-icard.w3 .icon { font-size: 4rem; }
+	.ux-content-icards { display: flex; flex-wrap: wrap; gap: var(--gap-50); align-items: stretch; }
+	.ux-content-icards > .ux-content-icard { flex: 1 1 var(--icard); max-width: calc(var(--icard) * 1.6); }
+	.ux-content-group, .ux-content-panel { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
+	.ux-content-group > *, .ux-content-panel > * { margin: 0; }
+	/* A panel is the white ground; its cards turn to wash so the two grounds read apart. */
+	.ux-content-panel { background: var(--surface); }
+	.ux-content-panel .ux-content-icard { background: var(--wash); border-color: transparent; }
+	.ux-content-outline ul { margin: 0; padding-inline-start: 1.25em; }
+	.ux-content-outline > ul { padding-inline-start: 0; list-style: none; }
+	.ux-content-outline li { margin-block: .2em; }
+	.ux-content-outline-name { display: inline-flex; align-items: center; gap: .4em; font-weight: 600; }
+	.ux-content-outline-name .icon { font-size: 1.2em; }
+	.ux-content-outline li li .ux-content-outline-name { font-weight: 500; }
+}

@@ -11,7 +11,7 @@ export default new Page({
 	description: "The kinds of card a page is built from — ask a question, make a decision, quote a prompt.",
 	icon: "dashboard_customize",
 
-	children: "catalog plan Question Decision Quotation Disclosure Concepts Spend built/page.jsonl",
+	children: "catalog plan Question Decision Quotation Disclosure Concepts structure Spend built/page.jsonl",
 
 	content(){
 
