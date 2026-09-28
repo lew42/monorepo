@@ -8,12 +8,18 @@ import View, { div, span, a, ul, li, details, summary } from "../../../core/View
  *   object(page)                          // an instance — header shows its name too
  *   object(Page)                          // a class itself — no instance name
  *   object(Page, { doc: "/framework/core/Page/", properties: "title children url" })
+ *   object(Page, { api: "/framework/core/Page/api/" })   // link the rail's own pages
  *   object(plain, { inline: true })       // the compact, inline-width look
  *
  * `doc` is the module's own Doc base url (the page that owns `doc/property/<name>.md`
  * and `doc/method/<name>.md`) — with it, every name links to its doc page; without it
  * the names still show, just as plain text, because this card cannot guess where
  * another module's docs live.
+ *
+ * `api` is for a card drawn ON a module's own API tab, beside the tab's own left rail —
+ * pass the rail's own base url (`<module>/api/`) and every name links there instead, so
+ * a method has ONE address on that screen, not a second one at `doc/method/<name>/`.
+ * `api` wins over `doc` when both are given.
  *
  * `properties` and `methods` override which names to show — a space-separated string or
  * an array — for the case a bare class has no own values to discover (its properties
@@ -120,9 +126,12 @@ export default class ObjectCard extends View {
 		return li.c("ux-content-object-method", () => this.name_span("ux-content-object-link", name, "method"));
 	}
 
-	/* A name, linked to its doc page when this card knows where the module's docs are. */
+	/* A name, linked to wherever this card knows the member's real page lives: the
+	 * rail's own address (`api`) when this card sits on that rail's own tab, else the
+	 * module's Docs tab (`doc`), else nowhere — plain text. */
 	name_span(cls, name, kind){
-		if (this.doc) return a.c(cls).attr("href", `${this.doc}doc/${kind}/${name}/`).append(name);
+		const href = this.api ? `${this.api}${name}/` : this.doc ? `${this.doc}doc/${kind}/${name}/` : null;
+		if (href) return a.c(cls).attr("href", href).append(name);
 		return span.c(cls, name);
 	}
 

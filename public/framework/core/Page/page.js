@@ -69,7 +69,10 @@ export default new Doc({
 			initialize(){ this.parent.api(this); },
 			render(){
 				return this.view ??= div.c("page doc-section", () => {
-					object(Page, { doc: "/framework/core/Page/", properties: doc.properties, methods: doc.methods });
+					// `api`, not `doc`: this card sits right above the rail below it, and that
+					// rail already answers `api/<name>/` for every one of these names — a
+					// second address at `doc/method/<name>/` would be two urls for one member.
+					object(Page, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
 					this.tabs().ac("vertical");
 				}).ac("page--" + this.name);
 			},

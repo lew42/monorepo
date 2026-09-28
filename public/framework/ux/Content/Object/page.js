@@ -25,7 +25,10 @@ export default new Doc({
 		md("**One call, one look, from a real object.** `object(this)` on a live `Page` instance, `object(Page)` on the class itself, and `object(anything)` on a plain object — same card every time, so once it looks right it looks right everywhere.");
 
 		div.c("ux-content-wall wide", () => {
-			div.c("flex v gap", () => { md("### The page you're reading, as an instance"); object(this); });
+			// `this` here is a `Doc` — a `Page` subclass — so the heading says that, and a
+			// hand-picked property list keeps the takeaway obvious: "this is a Page with
+			// title = X", not a wall of `Doc`-only internals like `column_floor`.
+			div.c("flex v gap", () => { md("### This page, as an instance (`Doc`, a `Page` subclass)"); object(this, { properties: "title url children icon parent" }); });
 			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS }); });
 			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
 		});
