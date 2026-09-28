@@ -15,6 +15,6 @@ Alternative considered: computing weight from the page (child count, visits). Re
 
 ## Can a page wrap a small unit with no wrapper of its own?
 
-**Yes, and Page already does it once.** In the columns shape, every nested page is `display: contents` ([Page.css](/framework/core/Page/Page.css), the COLUMNS block): its box is removed from layout, so only its content is laid out. The same idea as a word would be `new Page({ bare: true })` → `.page.bare { display: contents }`. A list would then be a real page (its own URL, title, weight, comments) while its `ul` is the only box on screen, so the default page padding and grid never fight it.
+**Yes, and Page already does it once.** In the columns shape, every nested page is `display: contents` ([core/Page](/framework/core/Page/), the COLUMNS block of Page.css): its box is removed from layout, so only its content is laid out. The same idea as a word would be `new Page({ bare: true })` → `.page.bare { display: contents }`. A list would then be a real page (its own URL, title, weight, comments) while its `ul` is the only box on screen, so the default page padding and grid never fight it.
 
 The price, measured by the columns work: a `display: contents` element has no box, so it cannot carry a background, padding, a border, or a pointer event (Page.class.js puts the column seam beside it for exactly this reason). A bare page therefore always has **no background**, which is the right answer for a small unit anyway. Not built: it is a core Page change, so it waits for the owner's yes.
