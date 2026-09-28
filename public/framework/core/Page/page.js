@@ -63,11 +63,13 @@ export default new Doc({
 	api_section(){
 		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
 
+		const doc = this;
+
 		return this.section("api", "API", {
 			initialize(){ this.parent.api(this); },
 			render(){
 				return this.view ??= div.c("page doc-section", () => {
-					object(Page, { doc: "/framework/core/Page/" });
+					object(Page, { doc: "/framework/core/Page/", properties: doc.properties, methods: doc.methods });
 					this.tabs().ac("vertical");
 				}).ac("page--" + this.name);
 			},
