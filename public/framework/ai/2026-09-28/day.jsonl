@@ -1,0 +1,37 @@
+{"log":{"at":"2026-09-28T10:59:41-05:00","task":"concept-links-fix","msg":"task opened — concept tile links 404 (folder_url vs page.url)"}}
+{"log":{"at":"2026-09-28T10:59:44-05:00","task":"smoke-links","msg":"task opened — merge.mjs finds changed pages, smoke.mjs follows links one level deep; also added missing public/framework/ai/2026-09-28/page.js + day.jsonl (the day was declared but had no page, 404ing every task under it)"}}
+{"log":{"at":"2026-09-28T11:00:08-05:00","task":"hidden-windows","msg":"task opened — enforce hidden-window rule for every spawned process (owner hit a terminal popup again)"}}
+{"log":{"at":"2026-09-28T11:04:02-05:00","task":"ai2-row-vanish","msg":"task opened — System design row drops out of the AI 2 rail for seconds"}}
+{"log":{"at":"2026-09-28T11:04:13-05:00","task":"concept-links-fix","msg":"landed — Concepts.js href() uses the page's address, not its files' folder; 7/7 tiles proven clean headless"}}
+{"log":{"at":"2026-09-28T11:17:51-05:00","task":"ai2-row-vanish","msg":"landed: group rows keep their place after a reload"}}
+{"log":{"at":"2026-09-28T11:18:47-05:00","task":"smoke-links","msg":"landed — merge.mjs finds changed pages and smoke.mjs follows their links one level deep, catching 404s a plain page-load check missed"}}
+{"log":{"at":"2026-09-28T11:19:57-05:00","task":"hidden-windows","msg":"landed — found the real popup source (the Servex logon task's powershell -WindowStyle Hidden flash, proven with EnumWindows), fixed it with a wscript wrapper, swept 17 files missing windowsHide, and made the syntax-guard's hidden_guard a per-call check instead of a rough file-wide count"}}
+{"log":{"at":"2026-09-28T12:06:57-05:00","task":"harness-research","msg":"task opened — research topic on our own AI harness (OpenRouter or direct), two scouts in round 1"}}
+{"log":{"at":"2026-09-28T12:08:07-05:00","task":"fresh-eyes-review","msg":"task opened — fresh-eyes review built into every task"}}
+{"log":{"at":"2026-09-28T12:22:57-05:00","task":"harness-research","msg":"landed — harness research: 2 rounds, verdicts, 6-step plan (first: OpenRouter proxy spike), architect-reviewed; Research pages now show the tree first"}}
+{"log":{"at":"2026-09-28T12:26:09-05:00","task":"dictation-playground/playground","msg":"task opened — the dictation playground (mic session, raw whisper view, fast-assistant diff, Raw/Corrections/Live tabs, Sample button)"}}
+{"log":{"at":"2026-09-28T12:46:38-05:00","task":"fresh-eyes-review","msg":"landed — Server/review.mjs + merge.mjs review gate; reviewed: 10 fixed, 2 declined; applied to the working tree, owner commits"}}
+{"log":{"at":"2026-09-28T12:50:02-05:00","task":"dictation-playground/playground","msg":"landed — the dictation playground: mic + audio source panel + Raw/Corrections/Live tabs + Sample button, plus the same live toolbar embedded at the top of the plain Dictate page"}}
+{"log":{"at":"2026-09-28T13:07:41-05:00","task":"dictation-playground/fixes","msg":"task opened — fixing the 12 review findings on the dictation playground"}}
+{"log":{"at":"2026-09-28T13:20:05-05:00","task":"dictation-playground/fixes","msg":"landed — all 12 review.md fixes on the dictation playground: fillers, stale-session cleanup, a real level meter, empty-panel copy, one mic control, page wording, a longer /api/tidy timeout, decisions.md cleanup, dead-widget pruning, a router check, a wider widget"}}
+{"log":{"at":"2026-09-28T13:23:01-05:00","task":"organization","msg":"task opened — organization mastermind: one prioritized card, paging docs first"}}
+{"log":{"at":"2026-09-28T13:29:03-05:00","task":"organization/card","msg":"task opened — building the organization card as structured content"}}
+{"log":{"at":"2026-09-28T13:35:03-05:00","task":"walkthrough","msg":"task opened — the playground Next/Next walkthrough (6 steps, real screenshots)"}}
+{"log":{"at":"2026-09-28T13:43:36-05:00","task":"walkthrough","msg":"landed — the Next/Next walkthrough of the dictation playground, 6 real screenshots, real fast-assistant output"}}
+{"log":{"at":"2026-09-28T13:44:24-05:00","task":"dictation-playground","msg":"landed — the dictation playground (raw Whisper, fast-assistant corrections, live fade) on /framework/ux/Dictate/, with a Next/Next walkthrough"}}
+{"log":{"at":"2026-09-28T13:58:13-05:00","task":"source-library","msg":"task opened — source library, web fan-out, doc/docs convention"}}
+{"log":{"at":"2026-09-28T13:58:46-05:00","task":"ai2-workspace","msg":"task opened — AI 2 card as a workspace (Floating page), behind a toggle; content.js per card"}}
+{"log":{"at":"2026-09-28T14:10:27-05:00","task":"organization/rewrite","msg":"task opened — rewrite core/Page docs, step 6a (readme Use, Layout tab, Make a page tab, tab order)"}}
+{"log":{"at":"2026-09-28T14:13:10-05:00","task":"ai2-workspace","msg":"landed: AI 2 workspace view behind ?view=workspace; floating.js; content.js example card"}}
+{"log":{"at":"2026-09-28T14:14:47-05:00","task":"task-loop/loop","msg":"task opened — the task loop in Servex: chase quiet tasks, escalate to Waiting-on-you, close_task tool"}}
+{"log":{"at":"2026-09-28T14:16:43-05:00","task":"file-explorer-fs/minion-b","msg":"task opened -- building <any path>/fs/, the full-screen file view, in the file-explorer-fs worktree"}}
+{"log":{"at":"2026-09-28T14:17:35-05:00","task":"landing-checks","msg":"task opened — doc check on landing + outcome required to land"}}
+{"log":{"at":"2026-09-28T14:23:37-05:00","task":"organization/rewrite","msg":"landed — core/Page: Make a page + Layout tabs, tab order fixed, jsonl trimmed"}}
+{"log":{"at":"2026-09-28T14:24:07-05:00","task":"landing-checks","msg":"landed — doc-check.mjs wired into on-landing.mjs with a card nag, and the ledger now refuses a landed_at with no outcome"}}
+{"log":{"at":"2026-09-28T14:25:06-05:00","task":"task-loop/loop","msg":"landed — Servex/TaskLoop.js chases quiet or agent-gone tasks, escalates via card_ask/card_reply after 2 chases, close_task + task_loop_status tools, doc/task-loop.md; proved live on a private Servex"}}
+{"log":{"at":"2026-09-28T14:30:00-05:00","task":"ai2-real-pages","msg":"task opened — an inbox row that is the real /framework/core/Page/ page"}}
+{"log":{"at":"2026-09-28T14:39:36-05:00","task":"organization","msg":"landed — core/Page Make a page + Layout tabs, the object card, the organization card; next pass briefed, not started ($36 spent)"}}
+{"log":{"at":"2026-09-28T14:42:48-05:00","task":"collab-rounds","msg":"landed — ext/Collab + Server/collab.mjs: rounds, votes with caveats, staged design votes, scoreboard, ⋯ decision link on doc pages; 3 real runs ($1.92, $1.56, $2.03); merged into the main tree's working files, uncommitted"}}
+{"log":{"at":"2026-09-28T14:46:54-05:00","task":"ai2-real-pages","msg":"landed: inbox rows can be real pages (Page, Servex)"}}
+{"log":{"at":"2026-09-28T15:09:44-05:00","task":"source-library","msg":"landed — the source library, web fan-out, research-skill lesson rule, and /docs/->/doc/ + nested doc tree, all four merged onto michael/dev"}}
+{"log":{"at":"2026-09-28T15:11:09-05:00","task":"review-turns","msg":"landed — review.mjs runs four logged turns (findings/answers/replies/rulings) with a usefulness score on the Collab scoreboard and a live Reviews view; built on collab-rounds, landed the same session"}}
