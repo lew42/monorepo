@@ -15,16 +15,39 @@
 	.research-status { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.1em 0.6em; font-size: 0.85em; }
 	.research-status.open { border-color: var(--prim); color: var(--prim-ink); }
 
-	/* ── the minions strip ── */
-	.research-running { color: var(--prim-ink); font-weight: 600; }
-	.research-minion { --gap: 0.5em; border: 1px solid var(--line); border-radius: 2em; padding: 0.15em 0.8em; font-size: 0.85em; }
-	.research-minion.done { opacity: 0.55; }
-	.research-minion-doing { max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	/* ── the topic tree — deliverable 1, the shape of the dig, above the fold ──
+	   A grid of icon items, one per root, so the whole topic reads as shapes
+	   before any sentence. `--column` picks the track width; `.grid.auto`
+	   elsewhere floors it at `min(--column, 100%)` — here it's a plain wrapping
+	   flex instead, because a root can be one name or three lines and a strict
+	   grid track would either clip the long one or waste the short one. */
+	.research-tree { --gap: 0.75em; }
+	.research-branch {
+		--flow: 0.2em; flex: 1 1 11em; max-width: 16em;
+		border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+		padding: 0.9em 1em; color: inherit; text-decoration: none;
+	}
+	.research-branch:hover { background: var(--tint); border-color: var(--prim); }
+	.research-branch .research-icon { font-size: 1.8em; }
+	.research-branch-name { font-weight: 600; text-transform: capitalize; }
+	.research-branch-count, .research-tally-line { font-size: 0.85em; }
 
-	/* ── conclusions — first under the header, and the biggest type on the page ── */
-	.research-summary { --flow: 0.6em; max-width: var(--measure); }
-	.research-conclusion, .research-digging { font-size: 1.35em; line-height: 1.35; }
-	.research-conclusion { font-weight: 500; }
+	/* ── deliverable 2 — where the topic stands: a tally, then a short list of
+	   plain sentences at normal reading size. This used to be the biggest type
+	   on the page; the owner asked for structure, not paragraphs shouting. */
+	.research-verdicts { --flow: 0.5em; max-width: var(--measure); }
+	.research-digging { color: var(--subtle); }
+	.research-summary-list { --flow: 0.3em; padding-left: 1.2em; }
+	.research-summary-line { line-height: 1.4; }
+
+	/* ── deliverable 3/4 — the one sub-area a grid item routed to ── */
+	.research-detail { --flow: 0.8em; max-width: min(100%, calc(var(--measure) + 10em)); }
+	.research-detail-close { font-size: 0.85em; text-decoration: none; }
+	.research-detail-close:hover { text-decoration: underline; }
+
+	/* ── the minions strip — collapsed to one line, moved below the tree and
+	   the verdicts: who is digging matters less than what they have found. ── */
+	.research-minions-line { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 	/* ── a node ──
 	   `<details>` lays its summary out as a list-item and draws its own triangle;
@@ -35,13 +58,6 @@
 	.research-node { --research-indent: 4.4em; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 	.research-node > summary:hover { background: var(--tint); }
 	.research-row { padding: 0.9em 1em; align-items: start; }
-
-	/* ⚠ Measured at 3440: the block is `.wide`, so an uncapped card was 2986px and
-	   its one-sentence claim ran the whole way. A card needs MORE than the reading
-	   measure — a glyph on the left and a score on the right — and nothing beyond
-	   that, so the cap is the measure plus exactly those two. The text column keeps
-	   the measure itself; the dots sit out at the right edge, in a column. */
-	.research-claims { max-width: min(100%, calc(var(--measure) + 10em)); }
 
 	/* ⚠ A basis, not `flex: 1` — the row WRAPS, and at 400 the score column was
 	   taking 76 of the 262px left for the text. Below 14em of text the dots drop to
@@ -58,6 +74,12 @@
 	.research-badge.rejected { color: var(--error); }
 	.research-badge.parked { color: var(--warn); }
 
+	/* ── deliverable 5 — the topic's own confidence, read before the card opens ── */
+	.research-credence {
+		text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700;
+		color: var(--prim-ink); background: var(--tint); border-radius: var(--radius); padding: 0.05em 0.5em;
+	}
+
 	/* A score as a shape, not a number to read. */
 	.research-dots { gap: calc(var(--gap) * 0.25); padding-top: 0.6em; margin-left: auto; }   /* was gap 0.25em - 2026-09-05 ramps */
 	.research-dot { flex: 0 0 auto; width: 0.5em; height: 0.5em; border-radius: 50%; border: 1px solid var(--line); }
@@ -73,7 +95,15 @@
 
 	/* ── the drilled-down half ── */
 	.research-body { --flow: 0.8em; padding: 0 1em 1em var(--research-indent); }
-	.research-why, .research-refs { max-width: var(--measure); }
+	.research-why, .research-refs, .research-judgements { max-width: var(--measure); }
+
+	/* ── deliverable 5 — a support/dissent's three judgements, each its own
+	   line instead of one paragraph running true/logic/useful together. ── */
+	.research-judgements { --flow: 0.3em; }
+	.research-judgement-label {
+		text-transform: uppercase; font-size: 0.75em; font-weight: 700;
+		color: var(--subtle); margin-right: 0.5em;
+	}
 	.research-ref { font-family: var(--mono); font-size: 0.85em; background: var(--wash); border-radius: var(--radius); padding: 0.05em 0.4em; }
 	/* ⚠ A bare `<a>` outside prose keeps the UA blue — the framework's link look is
 	   scoped to `p, li, td…`. A ref is a chip, so it takes the accent, not the blue. */

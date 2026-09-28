@@ -25,6 +25,7 @@ The pages: `/framework/research/<slug>/` for a topic; a `Program({ topics: "a b 
 - Only the orchestrator writes `verdict` and `summary`; nothing is deleted — a low score sinks, `parked` says when it would rise: [`doc/decisions.md`](./doc/decisions.md)
 - A `Page` subclass here may not name a method `card()` or `topics()` — core reads the first, the config field overwrites the second, and neither throws where you are looking: [`doc/program.md`](./doc/program.md)
 - No owner input box yet: the only browser write RPC rewrites whole files, which would clobber concurrent appends: [`doc/decisions.md`](./doc/decisions.md)
+- `credence: X` and a support/dissent's `true:`/`logic:`/`useful:` judgements are not real fields — `verbs.js` has nowhere to put them, so a writer rides them as a prefix inside `why` and the page parses them back out: [`doc/render.md`](./doc/render.md)
 
 ## More
 - [Overview](/framework/ext/Research/) · [`doc/program.md`](./doc/program.md) the program · [`doc/decisions.md`](./doc/decisions.md) the record · [`doc/process.md`](./doc/process.md) the rounds · [`doc/verbs.md`](./doc/verbs.md) the topic schema · [`doc/writers.md`](./doc/writers.md) CLI + MCP · [`doc/render.md`](./doc/render.md) the page
