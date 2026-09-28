@@ -47,6 +47,10 @@ or `undefined` when nothing named it yet.
 - `Collab.Scoreboard` keys its rows by `collab + decision + member`, not `decision + member`
   alone — a decision id like `"d-1"` is reused by every run, and a key without `collab` collapses
   six different runs' rows for one member into one.
+- The page's **Reviews** table always reads the real, shared
+  `/framework/ai/collab/scoreboard.jsonl` — never the demo file, never whatever `?src=` points
+  the rest of the page at. It's a sitewide rollup, not one run's own numbers, so it draws first,
+  above the fold, ahead of the collab-run replay (`Server/doc/review.md`, the review system's own doc).
 - Every option of a decision stays visible with its own vote count, zeros included, ranked —
   `runner_up` is shown too but is never the only alternative. The winner leads (seeded onto the
   `Decision` widget as its own `chose` prop so it doesn't wait on the widget's separate read of

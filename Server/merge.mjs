@@ -126,7 +126,10 @@ function reviewGate(branch, head){
 	const cmd = `node Server/review.mjs ${best ? path.relative(MAIN, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
 	if (!best) return `refused: ${branch} is size ${sizeOf(nameStatus, numstat)} and has no review; run: ${cmd}`;
 	const current = best.e.review.head === head || git(MAIN, "merge-base", "--is-ancestor", best.e.review.head, head).status === 0;
-	if (!current || /unanswered/.test(reviewStatus(best.td))) return `refused: ${branch}'s review is stale or has an unanswered finding; run: ${cmd}`;
+	if (!current) return `refused: ${branch}'s review is stale; run: ${cmd}`;
+	const rs = reviewStatus(best.td);
+	// Name which findings, not just how many — so whoever reads the refusal doesn't have to go hunting.
+	if (/unanswered/.test(rs)) return `refused: ${branch}'s review has an unanswered finding (${rs}); run: ${cmd}`;
 	return null;
 }
 

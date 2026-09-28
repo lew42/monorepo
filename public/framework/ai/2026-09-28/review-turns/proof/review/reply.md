@@ -1,0 +1,1 @@
+1. [hold] "Don't care" isn't a reason to leave a false, misleading instruction in the file. The sentence tells readers to run `npm install`, which contradicts the repo's no-build-step rule and would send a new coder down a dead end, so it should still be fixed.

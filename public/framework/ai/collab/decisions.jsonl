@@ -1,3 +1,6 @@
+{"named":{"at":"2026-09-28T14:05:31-05:00","module":"ext/Stopwatch","class":"Stopwatch","member":"Stopwatch","kind":"class","collab":"2026-09-28/collab-rounds/test-mock-target","decision":"d-1"}}
+{"named":{"at":"2026-09-28T14:05:31-05:00","module":"ext/Stopwatch","class":"Stopwatch","member":"value","kind":"property","collab":"2026-09-28/collab-rounds/test-mock-target","decision":"d-1"}}
+{"named":{"at":"2026-09-28T14:05:31-05:00","module":"ext/Stopwatch","class":"Stopwatch","member":"get","kind":"method","collab":"2026-09-28/collab-rounds/test-mock-target","decision":"d-1"}}
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"Scoreboard","kind":"class","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"rows","kind":"property","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"apply","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}

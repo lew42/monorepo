@@ -11,12 +11,16 @@ const money = n => n == null ? "—" : "$" + Number(n).toFixed(3).replace(/0+$/,
 const base = url => (url ?? "").replace(/[^/]*$/, "");
 
 /** Draw `collab` (a Collab, already loaded or `live()`-streaming) into the current
- *  captor. `scoreboard`, when given, is a Collab.Scoreboard — the model table. */
-export function view(collab, scoreboard){
+ *  captor. `scoreboard`, when given, is a Collab.Scoreboard — the model table for
+ *  THIS run (demo data in demo mode). `reviews`, when given, is always the real
+ *  shared scoreboard — reviews are a sitewide rollup, not one run's own numbers,
+ *  so they draw first, above the fold, regardless of what `scoreboard` is. */
+export function view(collab, scoreboard, reviews){
 	const files = base(collab.url);
 
 	div.c("collab", () => {
 		head(collab);
+		if (reviews) reviews_table(reviews);
 		phase_track(collab);
 		div.c("collab-members grid auto", () => collab.members.forEach(m => member_col(m, collab.phases, collab.votes, files)));
 		decision_wall(collab);
@@ -179,6 +183,42 @@ function scoreboard_table(sb){
 				span(Math.round(m.win_rate * 100) + "%");
 				span(money(m.cost));
 				span(money(m.cost_per_win));
+			}));
+		});
+	});
+}
+
+// Review rows share the same scoreboard file, tagged `kind: "review"` instead of
+// a vote row — read `.rows` straight, never `.models()` (that method assumes a
+// vote row's `won`/`votes` fields and would mix reviews into the vote table).
+// A review is "useful" when `changed_outcome: true` — a real fix landed because
+// of it, not just a rubber stamp (Server/doc/review.md).
+function reviews_table(sb){
+	const rows = sb.rows.filter(r => r.kind === "review");
+
+	div.c("collab-reviews flow measure start", () => {
+		h4("Reviews");
+		if (!rows.length) return p.c("muted", "no reviews scored yet");
+
+		const by = new Map();
+		for (const r of rows){
+			const g = by.get(r.model) ?? by.set(r.model, { model: r.model, reviews: 0, useful: 0, useful_cost: 0 }).get(r.model);
+			g.reviews++;
+			if (r.changed_outcome){ g.useful++; g.useful_cost += r.cost ?? 0; }
+		}
+		const models = [...by.values()]
+			.map(g => ({ ...g, pct: g.reviews ? g.useful / g.reviews : 0, per_useful: g.useful ? g.useful_cost / g.useful : null }))
+			.sort((a, b) => b.reviews - a.reviews);
+
+		div.c("collab-score-table", () => {
+			div.c("collab-score-row collab-score-head", () =>
+				["model", "reviews", "% useful", "$/useful review"].forEach(t => span.c("muted", t)));
+
+			models.forEach(m => div.c("collab-score-row", () => {
+				span(m.model);
+				span(String(m.reviews));
+				span(Math.round(m.pct * 100) + "%");
+				span(money(m.per_useful));
 			}));
 		});
 	});

@@ -57,14 +57,17 @@ export default new Doc({
 		div.c("collab-page flow wide", async $page => {
 			const collab = new Collab({ url: src || DEMO });
 			const scoreboard = new Collab.Scoreboard({ url: demo ? DEMO_SCORE : SCOREBOARD });
+			// Reviews are a sitewide rollup, not this one run's own numbers — always the real
+			// shared scoreboard, even in demo mode or behind a ?src= pointing somewhere else.
+			const reviews = new Collab.Scoreboard({ url: SCOREBOARD });
 
 			const draw = () => $page.empty(() => {
 				if (demo) p.c("muted", "A sample run below — add ?src=<url of a real collab.jsonl> to draw that run instead.");
 				if (!collab.loaded) return p.c("muted", "collab.jsonl not found at " + collab.url);
-				view(collab, scoreboard.loaded ? scoreboard : null);
+				view(collab, scoreboard.loaded ? scoreboard : null, reviews.loaded ? reviews : null);
 			});
 
-			await Promise.all([collab.live(draw), scoreboard.live(draw)]);
+			await Promise.all([collab.live(draw), scoreboard.live(draw), reviews.live(draw)]);
 			draw();
 			open_hash();
 		});

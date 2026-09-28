@@ -48,4 +48,8 @@
 	.collab-score-table { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: .3em .8em; }
 	.collab-score-row { display: contents; }
 	.collab-score-row.retired { color: var(--error); }
+
+	/* The reviews table has 4 columns, not the model scoreboard's 6 — same grid
+	   recipe, narrower column count, so its rows don't bleed across the wider one. */
+	.collab-reviews .collab-score-table { grid-template-columns: 2fr repeat(3, 1fr); }
 }
