@@ -5,6 +5,7 @@ Each one is a `ux/` class that reads one `.jsonl` log and appends to it. The dat
 ## Index
 
 [Decision](./Decision/) — an ask with options, one chosen and changeable  
+[Concepts](./Concepts/) — what a page is made of, as linked icon tiles  
 [Disclosure](./Disclosure/) — a title that opens into a section, built on native details  
 [Question](./Question/) — an ask, a text field, and the latest answer beneath  
 [Quotation](./Quotation/) — one owner prompt with its words, time and a link  

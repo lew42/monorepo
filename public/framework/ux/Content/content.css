@@ -46,3 +46,49 @@
 	}
 	.ux-content-quotation details summary { cursor: pointer; color: var(--subtle); }
 }
+
+@layer theme {
+	.ux-content-spend { display: block; width: 100%; min-width: 0; }
+	.ux-content-spend svg { display: block; width: 100%; height: auto; }
+	.ux-content-spend rect { fill: var(--accent, #4a7bd0); }
+	.ux-content-spend .g { stroke: var(--subtle, #888); stroke-opacity: .3; }
+	.ux-content-spend .t { fill: var(--subtle, #888); font-size: 11px; }
+	.ux-content-spend .total { fill: currentColor; font-size: 14px; font-weight: 700; }
+}
+
+/* Disclosure: native <details> in a stack. The stack word decides gap, corners, dividers. */
+@layer theme {
+	.ux-content-stack { display: flex; flex-direction: column; width: 100%; min-width: 0; }
+	.ux-content-stack .ux-content-disclosure { background: light-dark(#fff, var(--surface)); min-width: 0; }
+	.ux-content-stack .ux-content-disclosure > summary {
+		display: flex; align-items: center; gap: var(--gap-50); width: 100%;
+		min-height: 0; padding: var(--pad-card, 1em); border: 0; border-radius: 0; background: none;
+		font-size: 1.15em; font-weight: 700; list-style: none;
+	}
+	.ux-content-stack .ux-content-disclosure > summary::-webkit-details-marker { display: none; }
+	.ux-content-stack .ux-content-disclosure > summary::after { content: "+"; margin-inline-start: auto; font-weight: 400; color: var(--subtle); }
+	.ux-content-stack .ux-content-disclosure[open] > summary::after { content: "\2212"; }
+	.ux-content-stack .ux-content-body { padding: 0 var(--pad-card, 1em) var(--pad-card, 1em); }
+	.ux-content-stack .ux-content-body > :first-child { margin-top: 0; }
+	.ux-content-stack .ux-content-body > :last-child { margin-bottom: 0; }
+
+	/* (a) FAQ — separate cards, a gap, each rounded. */
+	.ux-content-faq { gap: var(--gap-50); }
+	.ux-content-faq .ux-content-disclosure { border: 1px solid var(--line); border-radius: .6em; overflow: hidden; }
+
+	/* (b) Flush — one rounded box; the rows are square, dividers between. */
+	.ux-content-flush { gap: 0; border: 1px solid var(--line); border-radius: .6em; overflow: hidden; }
+	.ux-content-flush .ux-content-disclosure + .ux-content-disclosure { border-top: 1px solid var(--line); }
+
+	/* (c) Lines — no boxes; just a rule under each row. */
+	.ux-content-lines { gap: 0; }
+	.ux-content-lines .ux-content-disclosure { background: none; border-bottom: 1px solid var(--line); }
+	.ux-content-lines .ux-content-disclosure:first-child { border-top: 1px solid var(--line); }
+	.ux-content-lines .ux-content-disclosure > summary { padding-inline: 0; }
+	.ux-content-lines .ux-content-body { padding-inline: 0; }
+}
+
+/* Concepts: tiles are the theme's .btn; only the icon-to-name gap is set here. */
+@layer theme {
+	.ux-content-tile { display: inline-flex; align-items: center; gap: .5em; text-decoration: none; }
+}

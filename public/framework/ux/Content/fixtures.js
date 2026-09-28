@@ -48,3 +48,21 @@ export const quotation = () => ({
 	by: "owner",
 	url: "/framework/ux/Content/",
 });
+
+/* Bursts over two days — the shape real task spend has. */
+export const spend = () => {
+	const t0 = Date.parse("2026-09-24T14:00:00Z"), pts = [];
+	for (const [h, n, u] of [[0, 14, .6], [1, 10, .9], [20, 20, 1.2], [21, 12, .5], [44, 8, 2.1]])
+		for (let i = 0; i < n; i++) pts.push({ t: new Date(t0 + h * 36e5 + i * 4 * 6e4).toISOString(), usd: +(u * (.4 + (i * 7 % 5) / 5)).toFixed(3) });
+	return { points: pts };
+};
+
+/* Disclosure: three rows, one with an icon, one open, one drawing its own content. */
+export const disclosure = (stack = "faq") => ({
+	stack,
+	items: [
+		{ title: "What is a content module?", icon: "help", open: true, body: "One card that remembers something. A page places it with **one line**." },
+		{ title: "Does it need JavaScript to open?", body: "No. It is a native `<details>`, so the browser opens and closes it." },
+		{ title: "Can the body be anything?", icon: "widgets", body: "Yes: markdown text, or a function that draws any content." },
+	],
+});
