@@ -4,8 +4,8 @@ import { div, a, span, h4, ul, li, icon } from "../../../core/View/View.js";
  * Structured content: four pieces, each one decision.
  *
  *   iconCard({ name, icon, weight, href })   a big icon with its name below. weight 1 | 2 | 3
- *   group({ title, items, bg })              a titled row of 3–5 icon cards, heaviest first.
- *                                            bg: true → a background, so padding (a panel);
+ *   section({ title, items, bg })            a titled row of 3–5 icon cards, heaviest first.
+ *                                            bg: true → a background, so padding;
  *                                            bg: false → no background, no padding.
  *   outline(items, { bg })                   a nested list; an item is "text" or
  *                                            { name, icon?, children: [...] }
@@ -22,8 +22,8 @@ export function iconCard({ name, icon: ic, weight = 2, href }){
 	return card;
 }
 
-export function group({ title, items = [], bg = false }){
-	return div.c(bg ? "card ux-content-panel" : "ux-content-group", () => {
+export function section({ title, items = [], bg = false }){
+	return div.c(bg ? "card ux-content-section" : "ux-content-section", () => {
 		if (title) h4(title);
 		div.c("ux-content-icards", () => [...items].sort(by_weight).forEach(iconCard));
 	});
@@ -40,4 +40,4 @@ export function outline(items = [], { bg = false } = {}){
 	return div.c(bg ? "card ux-content-outline" : "ux-content-outline", () => list(items));
 }
 
-export default { iconCard, group, outline };
+export default { iconCard, section, outline };

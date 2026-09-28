@@ -1,5 +1,5 @@
 import { Page, md, div, h3, p } from "/app.js";
-import { iconCard, group, outline } from "./Structure.js";
+import { iconCard, section, outline } from "./Structure.js";
 
 // Real words: the owner's harness brief (ai/2026-09-28/harness-research/owner-words.md), drawn.
 const harness = [
@@ -14,11 +14,11 @@ const box = (title, fn) => div.c("flex v gap-50", () => { h3(title); fn(); });
 export default new Page({
 	meta: import.meta,
 	title: "Structure",
-	description: "Icon cards, groups and outlines: words drawn as a picture.",
+	description: "Icon cards, sections and outlines: words drawn as a picture.",
 	icon: "account_tree",
 
 	content(){
-		p("Content is structure first: a few named things per section, sections nested like an outline. Every block makes one choice — a background (and so padding), or neither.");
+		p("Content is structure first: a few named things per section, sections nested like an outline. Every block makes one choice: a background (and so padding), or neither. The pieces are the icon card, the section and the outline.");
 
 		div.c("ux-content-wall wide", () => {
 			box("Icon card, three weights", () => div.c("ux-content-icards", () => {
@@ -27,15 +27,15 @@ export default new Page({
 				iconCard({ name: "Light", icon: "bolt", weight: 1 });
 			}));
 			box("Background, or not", () => div.c("flex v gap", () => {
-				group({ title: "With a background: padded", bg: true, items: [{ name: "Plan", icon: "map" }, { name: "Build", icon: "construction" }, { name: "Review", icon: "rate_review" }] });
-				group({ title: "Without: no padding, sits on the margin", items: [{ name: "Plan", icon: "map" }, { name: "Build", icon: "construction" }, { name: "Review", icon: "rate_review" }] });
+				section({ title: "With a background: padded", bg: true, items: [{ name: "Plan", icon: "map" }, { name: "Build", icon: "construction" }, { name: "Review", icon: "rate_review" }] });
+				section({ title: "Without: no padding, sits on the margin", items: [{ name: "Plan", icon: "map" }, { name: "Build", icon: "construction" }, { name: "Review", icon: "rate_review" }] });
 			}));
-			box("Titled panel of 3 = labelled navigation", () => group({ title: "Servex", bg: true, items: [
+			box("A section of 3 on a background = labelled navigation", () => section({ title: "Servex", bg: true, items: [
 				{ name: "Servers", icon: "dns", href: "#" }, { name: "Agents", icon: "smart_toy", href: "#" }, { name: "Cards", icon: "dashboard", href: "#" }] }));
-			box("A section of 3–5, heaviest first", () => group({ title: "Research", items: [
+			box("A section of 3–5, heaviest first", () => section({ title: "Research", items: [
 				{ name: "Sources", icon: "menu_book", weight: 1 }, { name: "Question", icon: "help", weight: 3 },
 				{ name: "Claims", icon: "fact_check", weight: 2 }, { name: "Verdict", icon: "gavel", weight: 3 }, { name: "Skeptic", icon: "psychology_alt", weight: 1 }] }));
-			box("Nested outline — a list is a card with no background", () => outline([
+			box("Outline: a list is a card with no background", () => outline([
 				{ name: "Page", icon: "article", children: [
 					{ name: "Sections", children: ["3–5 per page", "each titled"] },
 					{ name: "Items", children: ["3–5 per section", "named, with an icon"] },
@@ -43,7 +43,7 @@ export default new Page({
 		});
 
 		md("## A real one: the harness research, drawn");
-		div.c("ux-content-wall wide", () => harness.forEach(s => group({ ...s, bg: true })));
+		div.c("ux-content-wall wide", () => harness.forEach(s => section({ ...s, bg: true })));
 		div.c("ux-content-wall wide", () => {
 			box("The same topic as an outline", () => outline([
 				{ name: "Build our own harness", icon: "construction", children: [
@@ -52,7 +52,7 @@ export default new Page({
 					{ name: "Sessions", children: ["ids", "resume days later", "fork"] },
 					{ name: "Safety", children: ["worktree + own server", "node wraps bash"] }] }]));
 			box("Which piece when", () => div.c("flow").append(md.file(import.meta, "doc/guide.md", { h1: false })));
-			box("Proposal: a page declares its weight", () => div.c("flow").append(md.file(import.meta, "doc/weight.md", { h1: false })));
+			box("Proposal: page weight, and a page with no wrapper", () => div.c("flow").append(md.file(import.meta, "doc/weight.md", { h1: false })));
 		});
 
 		md.details(import.meta, "readme.md", "Readme");
