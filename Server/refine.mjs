@@ -306,21 +306,12 @@ function parseAsks(briefMd) {
 }
 
 const citationsIn = text => [...text.matchAll(/\bS(\d+)\b/g)].map(m => Number(m[1]));
-
 const STRENGTH_WORDS = ["must", "never", "always", "only"];
-function strengthFlags(ask, sentenceText) {
-	const askLower = ask.text.toLowerCase();
-	const cited = citationsIn(ask.text);
-	const citedText = cited.map(n => (sentenceText.get(n) || "")).join(" ").toLowerCase();
-	const flags = [];
-	for (const w of STRENGTH_WORDS) {
-		const re = new RegExp(`\\b${w}\\b`, "i");
-		if (re.test(askLower) && !re.test(citedText)) flags.push(w);
-	}
-	return flags;
-}
 
 async function classifyUncited(uncited, cwd, mock) {
+	// --mock is canned test data, not a real classification gap, so it can safely default to
+	// "context only" — the fix below (an honest "unclassified" verdict) is only for the REAL
+	// path, where the model itself might skip a line and a silent default would hide that.
 	if (mock || !uncited.length) {
 		return new Map(uncited.map(s => [s.n, { verdict: "context only", why: "" }]));
 	}
@@ -341,40 +332,78 @@ async function classifyUncited(uncited, cwd, mock) {
 		if (/^dropped/i.test(rest)) out.set(n, { verdict: "dropped", why: rest.replace(/^dropped,?\s*(because\s*)?/i, "").trim() });
 		else out.set(n, { verdict: "context only", why: "" });
 	}
-	for (const s of uncited) if (!out.has(s.n)) out.set(s.n, { verdict: "context only", why: "" }); // model skipped a line — default, never silently drop the row
+	// Fix (2026-09-29, review before this file's first commit): a line the model skipped used to
+	// fall back to "context only" — a SILENT default, exactly the failure mode this whole tool
+	// exists to catch (the owner: "sometimes the LLM will leave out important details ... and we
+	// need to make sure we don't do that"). It now falls back to an explicit "unclassified" verdict
+	// instead, so a reader sees "the model never answered for this one" rather than a false all-clear.
+	for (const s of uncited) if (!out.has(s.n)) out.set(s.n, { verdict: "unclassified", why: "" });
 	return { classified: out, cost_usd: r.cost_usd };
 }
 
 async function buildCoverage(sentences, asks, cwd, mock) {
 	const sentenceText = new Map(sentences.map(s => [s.n, s.text]));
-	const citedBy = new Map(); // sentence n -> [ask n, ...]
-	for (const ask of asks) for (const n of citationsIn(ask.text)) {
-		if (!citedBy.has(n)) citedBy.set(n, []);
-		citedBy.get(n).push(ask.n);
+	// The whole transcript's own vocabulary — used by the "new words" flag below so a legitimate
+	// paraphrase (reusing a word from elsewhere in the SAME dictation) is never flagged, only a
+	// word that appears nowhere the owner actually said.
+	const fullWords = new Set(sentences.flatMap(s => contentWords(s.text)));
+	const citedBy = new Map(); // sentence n -> [{ask, thin}, ...]
+	const flagRows = [];
+
+	for (const ask of asks) {
+		const cited = citationsIn(ask.text);
+		const askWords = new Set(contentWords(ask.text));
+
+		// Fix: "cited-but-thin" — an ask CITES a sentence (so the mechanical count above would
+		// have called it covered) but shares no content word with it at all, meaning the citation
+		// is there in form only and the ask may not actually reflect what that sentence said.
+		for (const n of cited) {
+			const sWords = contentWords(sentenceText.get(n) || "");
+			const thin = sWords.length > 0 && sWords.every(w => !askWords.has(w));
+			if (!citedBy.has(n)) citedBy.set(n, []);
+			citedBy.get(n).push({ ask: ask.n, thin });
+			if (thin) flagRows.push({ ask: ask.n, kind: "thin citation", detail: `cites S${n} but shares no wording with it — the citation may not reflect what S${n} actually says` });
+		}
+
+		// A strength word (must/never/always/only) the ask uses but its own cited sentence(s)
+		// don't contain — the sharpest, narrowest sign of a suggestion turned into a rule.
+		const citedText = cited.map(n => sentenceText.get(n) || "").join(" ").toLowerCase();
+		for (const w of STRENGTH_WORDS) {
+			const re = new RegExp(`\\b${w}\\b`, "i");
+			if (re.test(ask.text) && !re.test(citedText)) flagRows.push({ ask: ask.n, kind: "strength word", detail: `uses "${w}", not found in the cited sentence(s)` });
+		}
+
+		// Fix: "new words" — a content word in the ask that appears NOWHERE in the whole
+		// transcript, not just outside its own cited sentence(s). Checked against the FULL
+		// transcript (not only what's cited) on purpose: reusing a word the owner said somewhere
+		// else in the same dictation is normal paraphrase, not a problem; a word that was never
+		// said at all is the owner's exact worry — "choosing different words ... when I haven't
+		// said it explicitly that way."
+		const novel = [...askWords].filter(w => !fullWords.has(w));
+		if (novel.length) flagRows.push({ ask: ask.n, kind: "new words", detail: `"${novel.join('", "')}" — not in the transcript at all` });
 	}
+
 	const uncited = sentences.filter(s => !citedBy.has(s.n));
 	const classResult = await classifyUncited(uncited, cwd, mock);
 	const classified = classResult instanceof Map ? classResult : classResult.classified;
 	const classifyCost = classResult instanceof Map ? 0 : classResult.cost_usd;
 
 	const rows = sentences.map(s => {
-		if (citedBy.has(s.n)) return { n: s.n, text: s.text, dest: `ask ${citedBy.get(s.n).map(a => `#${a}`).join(", ")}` };
-		const c = classified.get(s.n) || { verdict: "context only", why: "" };
-		return { n: s.n, text: s.text, dest: c.verdict === "dropped" ? `dropped, because ${c.why || "unclear"}` : "context only" };
+		const citing = citedBy.get(s.n);
+		if (citing) return { n: s.n, text: s.text, dest: citing.map(c => `ask #${c.ask}${c.thin ? " (thin)" : ""}`).join(", ") };
+		const c = classified.get(s.n) || { verdict: "unclassified", why: "" };
+		if (c.verdict === "dropped") return { n: s.n, text: s.text, dest: `dropped, because ${c.why || "unclear"}` };
+		if (c.verdict === "unclassified") return { n: s.n, text: s.text, dest: "unclassified — the model gave no answer for this sentence" };
+		return { n: s.n, text: s.text, dest: "context only" };
 	});
-
-	const flagRows = [];
-	for (const ask of asks) {
-		const flags = strengthFlags(ask, sentenceText);
-		if (flags.length) flagRows.push({ ask: ask.n, words: flags, cited: citationsIn(ask.text) });
-	}
 
 	const md = [
 		`# Coverage`,
 		"",
 		"One row per clean sentence, built mechanically from the citations `structured.md` and `brief.md`",
-		"already carry — only the *uncited* rows below (\"context only\" / \"dropped, because …\") came from",
-		"a model classification pass; every other row is a plain citation count.",
+		"already carry — only the *uncited* rows below (\"context only\" / \"dropped, because …\" /",
+		"\"unclassified\") came from a model classification pass; every other row, and every flag, is a",
+		"plain word count against the transcript, no model call.",
 		"",
 		"## Sentence coverage",
 		"",
@@ -384,16 +413,26 @@ async function buildCoverage(sentences, asks, cwd, mock) {
 		"",
 		"## Flags",
 		"",
-		"An ask that uses a strength word (must / never / always / only) its own cited sentences don't contain.",
+		"Three mechanical checks: a **strength word** (must / never / always / only) the cited",
+		"sentence(s) don't contain; **new words** — a word in the ask that is nowhere in the whole",
+		"transcript; a **thin citation** — an ask cites a sentence but shares no wording with it",
+		"(also marked \"(thin)\" right in the table above).",
 		"",
-		flagRows.length ? "| ask | word(s) | cited | note |" : "(none)",
-		...(flagRows.length ? ["|---|---|---|---|", ...flagRows.map(f => `| #${f.ask} | ${f.words.join(", ")} | ${f.cited.map(n => `S${n}`).join(", ") || "(none)"} | not found in the cited sentence(s) |`)] : []),
+		flagRows.length ? "| ask | flag | detail |" : "(none)",
+		...(flagRows.length ? ["|---|---|---|", ...flagRows.map(f => `| #${f.ask} | ${f.kind} | ${f.detail} |`)] : []),
 	].join("\n") + "\n";
 
 	const dropped = rows.filter(r => r.dest.startsWith("dropped")).length;
+	const unclassified = rows.filter(r => r.dest.startsWith("unclassified")).length;
 	const contextOnly = rows.filter(r => r.dest === "context only").length;
-	const cited = rows.length - dropped - contextOnly;
-	return { md, cost_usd: classifyCost, numbers: { sentences: rows.length, cited, context_only: contextOnly, dropped, flags: flagRows.length } };
+	const cited = rows.length - dropped - contextOnly - unclassified;
+	return {
+		md, cost_usd: classifyCost,
+		numbers: {
+			sentences: rows.length, cited, context_only: contextOnly, dropped, unclassified,
+			flags: flagRows.length, thin_citations: flagRows.filter(f => f.kind === "thin citation").length,
+		},
+	};
 }
 
 // ---- main ---------------------------------------------------------------------------------
