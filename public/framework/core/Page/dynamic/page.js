@@ -1,0 +1,52 @@
+import { Page, md, h2 } from "/app.js";
+import { section } from "/framework/ux/Content/structure/Structure.js";
+
+/* Dynamic pages — the owner's own words, 2026-09-29 (4:20 PM): "each path in and
+   of itself is sort of like a page and we can have these kind of like arbitrary
+   page, dynamic pages essentially is the name for pages that don't really exist
+   ... we can still put data that gets fetched when a dynamic route loads and then
+   looks at an index and realizes there's data there to be loaded ... it sort of
+   kind of falls back to a templating thing."
+
+   This page names the IDEA. The method it runs on — `route()` — already has its
+   own doc page; this one is deliberately separate (`doc/property/route.md`).
+
+   1 CONTAINER  the standard column — a README, not a demo.
+   2 SIZE       standard width.
+   3 OWN LAYOUT tile wall (one icon, one name, one meaning, each), then one short
+                paragraph per idea, in the order that matters: what it IS, then
+                the powerful part (data + one template), then where it already runs.
+   4 REGIONS    none.
+   5 PREVIEW    core's default card off `description` below. */
+
+export default new Page({
+	meta: import.meta,
+	title: "Dynamic pages",
+	description: "A url with no page.js and no folder saved for it, that still opens — because an ancestor page answered the name itself.",
+	icon: "dynamic_feed",
+
+	content(){
+		md("**A dynamic page is a url nobody saved.** No `page.js`, no folder on disk — and it still opens, because the PARENT page catches the name the moment it's asked for and hands back a real page. Three ideas, in the order that matters:");
+
+		section({
+			bg: true, items: [
+				{ name: "The idea: a path is a page", icon: "route", weight: 3, href: "/framework/core/Page/dynamic/doc/idea.md" },
+				{ name: "Data on disk + a template", icon: "widgets", weight: 3, href: "/framework/core/Page/dynamic/example/" },
+				{ name: "Where it is used", icon: "smart_toy", weight: 2, href: "/framework/core/Page/dynamic/doc/uses.md" },
+			],
+		});
+
+		h2("1. The idea: a path is a page");
+		md("Every url segment is answered by one method, `child(name)`, in this order: a page already **remembered**, then this page's own **`route(name)`** hook, then, only if neither answers, a real `page.js` probed off the **filesystem**. `route()` runs only for a name nobody declared, so it can never hide a real `page.js` — and whatever it returns is a real `Page` instance, same class, same methods, as if a file had built it. Two small working demos, hard-coded, show it plainly: [`overview/route/`](/framework/core/Page/overview/route/) (three urls from one object) and [`overview/folders/`](/framework/core/Page/overview/folders/) (a page built the moment you ask for it — the same way AI 2's own day and card pages are). Detail, and the method's own doc: [`doc/idea.md`](/framework/core/Page/dynamic/doc/idea.md).");
+
+		h2("2. Data on disk + a template — the powerful part");
+		md("`route()`/`child()` don't have to invent a page out of thin air. They can read a real file off disk — an `index.json` naming a few items, one small file per item — and hand each one to a **single template function** that draws every page the same way. A folder full of plain data, no `page.js` anywhere in it, and one function upstream doing the drawing: that is the whole trick. Live, working example, code beside the result, below: [`dynamic/example/`](/framework/core/Page/dynamic/example/).");
+
+		md("A related, even simpler built-in version of the same idea already ships: a child named in `page.jsonl` builds a whole page from log lines alone, no `page.js` and no `route()` either. [`core/Page/jsonl/`](/framework/core/Page/jsonl/) is that page, live.");
+
+		h2("3. Where it is used");
+		md("Two real, already-running systems build their pages exactly this way — the file each one reads, and the template that draws it: [`doc/uses.md`](/framework/core/Page/dynamic/doc/uses.md).");
+
+		md("How `route()` itself works, as a method — separate from this idea, and worth its own read: [`doc/property/route.md`](/framework/core/Page/doc/property/route.md).");
+	},
+});
