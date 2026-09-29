@@ -167,9 +167,18 @@ export class Sidebar extends View {
 	}
 
 	// The live-update half of nav() above: same tree, redrawn in place, no reload.
+	// ⚠ `draw()` throws every row away and rebuilds closed — reveal() after it is not
+	// optional, or a redraw that lands mid-cold-load silently erases whatever the
+	// COLD LOAD's own reveal() had already opened, with nothing to put it back
+	// (2026-09-29 fix round part 2, regression: a page whose tab strip corrects
+	// itself on first paint — core/Page/'s own "old" tab, weight-demoted below 1 —
+	// fires exactly this redraw while Sidebar is still walking down to the active
+	// page, so `/framework/core/Page/` cold-loaded with Core shut and Page nowhere
+	// in the tree). Same two-step nav() itself always takes: draw, THEN reveal.
 	refresh_nav(){
 		if (!this.$tree) return;
-		Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes));
+		Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+			.then(() => this.reveal());
 	}
 
 	// "Appears in navigation" (core/Page/settings/) means the RAIL too, not only
