@@ -58,78 +58,45 @@ assigned. `Card.jsonl(url)` does the same without the line, because the loader b
 
 ## Who writes the file lines
 
-Nobody has to remember them. The dev server's `Server/plugins/PageFiles.js` watches `public/`,
-and **every folder it covers has its own `page.jsonl`** — not just the folders someone hand-made
-one for. Loading any page's own log gets that page's whole listing for free, with no separate
-`directory.json` fetch. When a file or folder appears in, or disappears from, a covered folder,
-the plugin appends one line to that folder's log:
+Nobody has to remember them. The dev server's `Server/plugins/PageFiles.js` watches `public/`
+and keeps every folder's file list current, one line per change:
 
 ```
 {"file": "photo.png"}                  a file appeared
-{"file": "kid/page.jsonl"}             a subfolder that is itself a real page (see below)
-{"file": "kid/page.js"}                a subfolder with a page.js (still wins as the page)
-{"file": "kid/"}                       a plain subfolder: listed, not a page
+{"file": "kid/page.jsonl"}             a subfolder that is a jsonl page
+{"file": "kid/page.js"}                a subfolder with a page.js
+{"file": "kid/"}                       a plain subfolder
 {"file": "photo.png", "gone": true}    it disappeared
 ```
 
-**Which folders are covered.** Every folder under `public/` gets one, except `node_modules`, a
-dot-folder, and anything *inside* a task's own working folder under `public/framework/ai/YYYY-MM-DD/<task>/`
-— a minion's `task.jsonl`, its `requirements.md`, its scratch files. The task folder itself and
-the day folder above it still get one; only what nests inside the task does not. That's the *only*
-folder shape this applies to — `public/framework/ai/2026/09/29/...` (year, month and day as three
-nested folders) is a different tree, the card/AI2 dashboard system, where a card can nest cards
-inside cards to any depth and every one of them is real, hand-written content, not a minion's
-scratch — so every folder there is covered, at every depth, same as anywhere else in the site.
+**Which file holds a folder's list.** A **jsonl page** (a folder with no `page.js`, whose
+`page.jsonl` line 1 sets a page up: every AI card, `core/Page/jsonl/`) keeps its list in its own
+`page.jsonl`, so loading the page brings its listing for free. **Every other folder** (it has a
+`page.js`, or it is a plain folder like `doc/`) keeps its list in **`files.jsonl`**, in the same
+line format, and never gets a `page.jsonl` from the plugin: a `page.jsonl` means "this folder is
+a jsonl page" to the loader ([writers.md](/framework/core/Page/jsonl/md/doc/writers/)). An
+**empty folder gets no list at all**; the first file put inside it creates one. `PageFiles.log_of()`
+is the one place that decides, and when a folder changes kind (a hand-written `page.jsonl`
+appears, or a `page.js` is added or removed) the list moves to the right file.
 
-**A folder with a `page.js` is no longer skipped.** It used to be — the thinking was "that folder
-already has a page, so its `page.jsonl` isn't ours to fill." Now it gets a listing log too, kept
-current the same as any other folder's. The `page.js` still wins as the page (nothing about
-*loading* a page changed) — the log is just an honest listing of what's on disk beside it. A
-folder that holds both today, `imagine/cms/json/`, still renders exactly as before; its own
-`page.jsonl` happens to *also* hold that page's real data (deltas the CMS editor appends), and the
-two coexist because the CMS's own reader only recognizes its own line shape and ignores anything
-else, exactly like every other reader here ignores lines it doesn't recognize.
+**Reading it.** `Page.listing(url)` answers from the loaded jsonl page with no fetch, else from
+`files.jsonl`, else from `page.jsonl`, else `null` (the caller then reads `directory.json`).
 
-**A subfolder is only listed as a linked child page (`kid/page.jsonl`) when its own log really is
-one** — when its first line sets the page up (a title, a class, ...), the way "Line 1 may name a
-class" above describes. A log this plugin filled in on its own never has that: its first line is
-a plain `{"file": ...}` entry, same as every other line in it. So a folder that has nothing but an
-auto-filled listing stays `kid/`, a plain subfolder — it doesn't turn every `doc/` folder in the
-site into a page just because it now has a `page.jsonl`.
+**Which folders are covered.** Every folder under `public/`, except `node_modules`, a dot-folder,
+and anything *inside* a flat task folder `public/framework/ai/YYYY-MM-DD/<task>/` (a minion's
+scratch). The day and task folders themselves are covered. The card tree
+`public/framework/ai/YYYY/MM/DD/…` is covered at every depth: a card there is a real page.
 
-Before each append the plugin replays the log and writes only if the answer would change, so the
-Windows watcher's extra events (even a plain read fires one) add nothing. It skips dot-files,
-`node_modules`, the log itself, and `directory.json` (the other plugin's own generated file) —
-every other file, `.json` included, belongs in the listing. You can still write a file line by
-hand; the plugin will agree with it.
+**Repeat-safe.** Before each append the plugin replays the log and writes only if the answer
+would change, so the Windows watcher's extra events (even a read fires one) add nothing. The two
+logs are never listed as entries, and neither is `directory.json`. On boot the server catches up
+every existing log in the background. `node Server/page-files-backfill.mjs` runs the same walk
+with creation turned on (a second run prints 0 created, 0 appended), and
+`node Server/page-files-migrate.mjs` moved the old list-only `page.jsonl` files to `files.jsonl`
+(2026-09-29; `--dry` shows what it would do).
 
-**On boot**, the server catches up every *existing* `page.jsonl`, in the background — it no
-longer holds up the server's first request while it walks the whole tree (measured at ~2.2
-seconds over the ~2,800 logs this repo has; the fix was one `setImmediate`, so the walk itself is
-unchanged, it just no longer runs before the port opens).
-
-**The backfill.** Rolling this out on an existing site meant thousands of folders needed a first
-`page.jsonl` all at once — that's `Server/page-files-backfill.mjs`, a one-time script that runs
-the exact same walk as the boot catch-up, with folder *creation* turned on. Run it after any
-change to the covered-folder rule or to what a listing line should say, so every existing log
-catches up to the new answer:
-
-```
-node Server/page-files-backfill.mjs
-```
-
-It's safe to run again — a second run visits the same folders but creates nothing and appends
-nothing, because every log already agrees with what's on disk. It prints how many folders it
-visited, how many logs it created, how many lines it appended, and how long it took.
-
-**Merging two branches that both touched a `page.jsonl`.** Two people (or two agents) working in
-different branches often both add a file under the same folder, which means two branches both
-append a line to that folder's log. Since every append-only `*.jsonl` file in this repo carries
-`merge=union` in `.gitattributes`, git merges those two additions by keeping both lines — in the
-order each branch had them — instead of stopping to ask a person to pick a side. This is safe
-specifically *because* these logs are append-only and read as "the latest line per name wins": two
-lines about two different names never disagree, and even two lines about the *same* name just
-leave the later one as the answer, whichever branch's line a merge happens to put second.
+**Merging.** Every `*.jsonl` carries `merge=union` in `.gitattributes`, so two branches that both
+appended to one folder's list merge by keeping both lines; the latest line per name still wins.
 
 ## Live on localhost — `log_draw()` and `log_redraw()`
 
