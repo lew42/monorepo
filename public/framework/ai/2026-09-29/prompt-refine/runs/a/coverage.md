@@ -57,7 +57,7 @@ plain word count against the transcript, no model call.
 | S46 | And then, the other topics that don't really fit into explicitly within the paging system, we can still work on those later, but let's set those aside for now. | ask #9 |
 | S47 | Make sure this new mastermind task references those older tasks, these other audits, any audit that we have that we find, you could put a link to it on this new organization mastermind page. | ask #5 |
 | S48 | I'm gonna send this off so you can get working on it. | context only |
-| S49 | I'm gonna keep transcribing in a minute, though. | context only |
+| S49 | I'm gonna keep transcribing in a minute, though. | dropped, because states intent to keep transcribing after this send-off — a follow-up action never captured as its own ask |
 | S50 | Okay, yeah, so the organization mastermind, it's sort of this task audit, but we're going to approach it in a prioritized way. | ask #20 |
 | S51 | We're going to start with the paging system. | ask #20 |
 | S52 | It's the page class. | ask #20 |
