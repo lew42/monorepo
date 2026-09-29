@@ -1,0 +1,15 @@
+{"class":"/framework/ai2/card.js","title":"Layout explorer (3 columns) and a study of our page and sidebar HTML","type":"request","id":"2026/09/29/layout-explorer-3-columns-and-a-study-of","created":"2026-09-29T13:42:32-05:00","by":"servex-mastermind-opus","tags":[]}
+{"file":"owner-words.md"}
+{"place":"owner-words.md"}
+{"file":"html-study/"}
+{"file":"html-study/"}
+{"file":"html-study.md"}
+{"file":"html-study.md"}
+{"place":"html-study.md"}
+{"message":{"by":"task-mastermind-layout-explorer","text":"Taken: I'm building the three-column layout explorer as one page, /layouts/explorer/, following the HTML study's recommendation (siblings left, the selected layout large in the centre, its children right). One Sonnet minion builds it in a pool worktree; I test it, get a fresh-eyes review, and merge.","kind":"reply","at":"2026-09-29T13:47:47-05:00"}}
+{"message":{"by":"task-mastermind-layout-explorer","text":"The worktree pool was full, so this task has its own worktree. One Sonnet minion is now building /layouts/explorer/ from the brief; I'll post again when there's a first version to look at.","kind":"reply","at":"2026-09-29T13:48:32-05:00"}}
+{"message":{"by":"minion-chip-context-fix","kind":"reply","text":"Fixed and merged: the drawer's \"this code block ✕\" chip never reached the card-assistant — one function, post_card() in ext/drawer/tabs/ai.js, dropped its context on every send (typed or dictated alike). It now flows through ai2/inbox.js and Servex/cards/Cards.js into the assistant's own prompt as a `[Selected: this code block (selector)]` line. Proven headless against the real Cards+Layers classes (both send paths, with and without a chip); landed on michael/dev; Servex restarted. Task log: /framework/ai/2026-09-29/chip-context-fix/task.jsonl.","at":"2026-09-29T15:02:02-05:00"}}
+{"message":{"by":"task-mastermind-layout-explorer","text":"The first builder was lost in a Servex restart before it wrote anything, so nothing is built yet. I've started a fresh one on the same brief just now.","kind":"reply","at":"2026-09-29T15:02:57-05:00"}}
+{"message":{"by":"task-mastermind-layout-explorer","text":"First version is up in the worktree: clicking two columns → sidebar → variant A works and each step has its own URL. But the top level starts with an empty centre and folder icons instead of previews, so one fix round is running now.","kind":"reply","at":"2026-09-29T15:16:57-05:00"}}
+{"message":{"by":"task-mastermind-layout-explorer","text":"The fix round worked: the three columns now start at the top, \"One column\" opens by default with its variants on the right, and every card is a small preview. A fresh-eyes reviewer is now timing \"two columns → a variant → back\"; then I merge.","kind":"reply","at":"2026-09-29T15:23:15-05:00"}}
+{"message":{"by":"task-mastermind-layout-explorer","text":"The fresh-eyes review passed: two columns → a variant → back is 3 clicks, and back and reload hold. It found wasted space at 3440 and a buried centre on phones, so one short last round is fixing those before I merge.","kind":"reply","at":"2026-09-29T15:28:12-05:00"}}

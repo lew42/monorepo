@@ -1,8 +1,9 @@
-import { div, span, small, button, h3, p, a, form, input } from "/app.js";
+import { div, span, small, button, h3, p, a, form, input, details, summary } from "/app.js";
 import { View, icon } from "/framework/core/View/View.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
-import { servex_base, card_stream, agent_frames } from "./inbox.js";
+import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
 import { clock } from "./card.js";
+import { md_into, who_label, speak } from "./chat.js";
 
 /**
  * THE LIVE CARD — `/framework/ai2/live/`, the first card that does not come
@@ -51,23 +52,41 @@ const PAUSED = "dispatch is paused";
 
 // The always-on sessions: running, but their every sentence is not news.
 const QUIET = new Set(["assistant-fast", "master-assistant-master", "dispatcher"]);
+/** "task-mastermind-live-v3" -> "Live v3": the topic, in words. The role is the small line. */
+const KNOWN = { "assistant-fast": ["Fast assistant", "answers you"], "master-assistant-master": ["Master assistant", "keeps watch"], dispatcher: ["Dispatcher", "starts tasks"] };
+const ROLES = { "task-mastermind": "runs this task", minion: "builds a piece", mastermind: "runs the whole system" };
+const plain_name = a => {
+	if (KNOWN[a.id]) return KNOWN[a.id][0];
+	const role = String(a.role ?? ""), id = String(a.id);
+	const topic = (role && id.startsWith(role + "-") ? id.slice(role.length + 1) : id).replace(/^(task-)?(mastermind|minion)-/, "").replace(/-/g, " ");
+	return topic[0].toUpperCase() + topic.slice(1);
+};
 const newer = (a, b) => (Date.parse(a ?? 0) > Date.parse(b ?? 0) ? a : b);
 
 export function live_model({ prompts, day }){
 	const log = card_stream(LIVE);
 	const readers = new Set();
-	let agents = [], usage = null, moment = null;
+	let agents = [], usage = null, moment = null, pool = [];
 
 	const changed = () => readers.forEach(fn => fn());
 
 	async function poll_agents(){
-		try { const list = await (await fetch(servex_base() + "/api/agents")).json(); agents = Array.isArray(list) ? list : []; }
+		try { const list = await (await servex_fetch(servex_base() + "/api/agents")).json(); agents = Array.isArray(list) ? list : []; }
 		catch { agents = []; }
+		changed();
+	}
+	/* The worktree pool. A Servex without the route answers 404: show nothing. */
+	async function poll_pool(){
+		try {
+			const res = await fetch(servex_base() + "/api/worktrees");
+			const body = res.ok ? await res.json() : null;
+			pool = Array.isArray(body?.slots) ? body.slots : [];
+		} catch { pool = []; }
 		changed();
 	}
 	/* The raw snapshot: the meters need each limit's `group` and `resets_at`. */
 	async function poll_usage(){
-		try { usage = await (await fetch("/framework/ai/usage.json", { cache: "no-store" })).json(); }
+		try { usage = await (await servex_fetch("/framework/ai/usage.json", { cache: "no-store" })).json(); }
 		catch { usage = null; }
 		changed();
 	}
@@ -87,9 +106,10 @@ export function live_model({ prompts, day }){
 		changed();
 	});
 
-	poll_agents(); poll_usage();
+	poll_agents(); poll_usage(); poll_pool();
 	setInterval(poll_agents, 30000);
 	setInterval(poll_usage, 60000);
+	setInterval(poll_pool, 30000);
 	log.on(changed);
 	log.ready.then(changed);
 	prompts.on(changed);
@@ -122,9 +142,22 @@ export function live_model({ prompts, day }){
 	function running(){
 		// `talkable`: a real Claude session has a model; the Dispatcher (a fake
 		// agent in the same map) has none, and Servex refuses a message to it.
-		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: a.id, talkable: !!a.model,
-			state: a.state, line: [a.model, a.turns ? a.turns + " turns" : ""].filter(Boolean).join(" · "),
-			at: a.started_at }));
+		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: plain_name(a), talkable: !!a.model,
+			state: a.state, line: a.state === "working" ? (KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? "working") + " — now" : (KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? ""),
+			at: a.started_at })).sort((x, y) => (y.state === "working") - (x.state === "working"));
+	}
+
+	/** One row per slot: ready, preparing, or taken by whom — and for how long. */
+	function pool_rows(slots){
+		const ago = at => { const m = Math.max(0, Math.round((Date.now() - Date.parse(at)) / 60000));
+			return m < 60 ? m + " min" : Math.round(m / 6) / 10 + " h"; };
+		return slots.map(s => {
+			const taken = s.state === "taken";
+			const since = taken ? s.taken_at : s.idle_since;
+			return { id: s.id, title: s.id, state: s.state,
+				line: (taken ? "taken by " + (s.taken_by ?? "?") : s.state === "ready" ? "free" : "getting ready")
+					+ (since ? " · " + (taken ? "" : "idle ") + ago(since) : "") };
+		});
 	}
 
 	const hide = list => { const c = cleared(); return list.filter(it => !c.has(it.id) || newer(it.at, c.get(it.id)) !== c.get(it.id)); };
@@ -138,7 +171,7 @@ export function live_model({ prompts, day }){
 		talk(id, $col){
 			if (this.current?.id !== id){
 				this.current?.close();
-				$col.append(() => { this.current = new AgentTalk({ id }); });
+				$col.append(() => { this.current = new AgentTalk({ id, name: agents.find(a => a.id === id) ? plain_name(agents.find(a => a.id === id)) : id }); });
 			}
 			return this.current;
 		},
@@ -157,8 +190,9 @@ export function live_model({ prompts, day }){
 			const last = [...log.entries].reverse().find(e => e.type === "reply");
 			const lim = limits();
 			const bars = lim.map(l => ({ kind: l.kind, label: LABELS[l.kind] ?? l.kind, percent: l.percent, severity: l.severity }));
-			return { id: LIVE, kind: "live", icon: "speed", title: "Live", author: "servex", at,
-				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, last: last?.text ?? "", links: [], transcript: [] };
+			const landed = day.landings.slice(-5).reverse().map(l => ({ id: l.task, title: l.task.replace(/-/g, " "), line: l.sentence, at: l.at, url: `/framework/ai/${day.date}/${l.task}/` }));
+			return { id: LIVE, kind: "live", landed, icon: "speed", title: "Live", author: "servex", at,
+				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, pool: pool_rows(pool), last: last?.text ?? "", links: [], transcript: [] };
 		},
 
 		/** Everything the Live card's chat shows: its own log, plus today's task
@@ -168,11 +202,13 @@ export function live_model({ prompts, day }){
 				...day.opened.map(o => ({ type: "update", at: o.at, ref: o.task, text: `${o.task} opened — ${o.sentence}` })),
 				...day.landings.map(l => ({ type: "update", at: l.at, ref: l.task, text: `${l.task} landed — ${l.sentence}` })),
 			];
-			return [...log.entries, ...day_lines];
+			// "<agent> finished a turn" / "started" lines are noise in a chat you read.
+			// A `focus` line is an instruction to the page (page.js), not something said.
+			return [...log.entries.filter(e => e.type !== "focus" && !(e.type === "update" && /( finished a turn| started| stopped)$/.test(e.text ?? ""))), ...day_lines];
 		},
 
 		clear(id){
-			return fetch(servex_base() + "/log/cards/" + LIVE, { method: "POST", headers: { "content-type": "application/json" },
+			return servex_fetch(servex_base() + "/log/cards/" + LIVE, { method: "POST", headers: { "content-type": "application/json" },
 				body: JSON.stringify({ type: "clear", ref: id, by: "owner" }) }).catch(() => null);
 		},
 	};
@@ -182,21 +218,19 @@ export function live_model({ prompts, day }){
  *  much is running. A FIXED height like every other row, so it can rise to the
  *  top without anything below it changing size. */
 export function live_row(it){
-	div.c("ai2-row-head flex v-center gap-25", () => {
+	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");
 		icon(it.icon);
 		span.c("ai2-row-title").text(it.title);
 		small.c("ai2-row-when muted").text(clock(it.at));
 	});
-	div.c("ai2-live-bars", () => {
-		it.bars.forEach(b => {
-			span.c("ai2-live-bar" + (b.severity === "critical" ? " crit" : "")).attr("title", b.label + " " + b.percent + "%")
-				.append(() => { span().style({ width: Math.min(100, b.percent) + "%" }); });
-		});
-	});
+	// No usage bars here (ai2-lead audit, 2026-09-25): the same three already sit,
+	// labelled, at the top of the rail, and three unlabelled thin bars read as nothing.
 	div.c("ai2-row-foot flex v-center gap-25", () => {
-		const n = it.agents.length, t = it.tasks.length, w = it.agents.filter(a => a.state === "working").length;
-		small.c("ai2-row-line muted").text(`${n} running (${w} working) · ${t} ${t === 1 ? "task" : "tasks"}` + (it.last ? " · " + it.last : ""));
+		const t = it.tasks.length, w = it.agents.filter(a => a.state === "working").length;
+		// One short line, built from state — never an agent's words.
+		const parts = [w ? `${w} working` : "none working", t ? `${t} ${t === 1 ? "task" : "tasks"} running` : ""].filter(Boolean);
+		small.c("ai2-row-line muted").text(parts.join(" · "));
 	});
 }
 
@@ -220,16 +254,11 @@ export function live_full(it, model){
 		span.c("ai2-full-title").text("Live");
 	});
 
-	div.c("ai2-live-section ai2-live-usage", () => {
-		h3("Usage");
-		usage_rail(it.usage, LABELS);
-	});
 
-	const talkable = it.agents.filter(x => x.talkable);
-	if (!model.sel && talkable.length){
-		const first = talkable.find(x => x.id === "assistant-fast") ?? talkable.find(x => x.state === "working") ?? talkable[0];
-		model.sel = { id: first.id, clicked: false };
-	}
+	/* NOTHING OPENS UNTIL YOU CLICK (ai2-lead audit, 2026-09-25; the owner: "don't render the
+	   fast assistant's chat messages inline, taking space"). The agent column used to open
+	   assistant-fast by default; with nothing selected it is now left out of the grid
+	   (`.ai2-live-nosel`, ai2.css) and the other columns share the width. */
 
 	const $col = div.c("ai2-live-talk-col", () => {
 		a.c("ai2-live-back").attr("tabindex", "0").text("← Live").click(() => {
@@ -239,10 +268,10 @@ export function live_full(it, model){
 	});
 
 	const rows = new Map();
-	const list = (title, items, empty, { clearable, talkable, cls = "" } = {}) => div.c("ai2-live-section " + cls, $sec => {
+	const list = (title, items, empty, { clearable, talkable, fold, cls = "" } = {}) => div.c("ai2-live-section " + cls, $sec => {
 		h3(title);
 		if (!items.length) small.c("muted").text(empty);
-		items.forEach(x => {
+		const item = x => {
 			const talks = talkable && x.talkable;
 			const $row = div.c("ai2-live-item" + (talks ? " ai2-live-talkable" : ""), () => {
 				span.c("ai2-live-state ai2-live-" + x.state).text(x.state.replace("-", " "));
@@ -258,11 +287,26 @@ export function live_full(it, model){
 				model.sel = { id: x.id, clicked: true };
 				place(model, $col, rows);
 			});
-		});
+		};
+		const idle = fold ? items.filter(x => x.state === "idle") : [];
+		items.filter(x => !idle.includes(x)).forEach(item);
+		if (idle.length) details.c("ai2-live-idle", () => { summary(idle.length + " idle"); idle.forEach(item); });
 	});
 
-	list("Running now", it.agents, "nothing is running", { talkable: true, cls: "ai2-live-running" });
-	list("Tasks", it.tasks, "no task in progress", { clearable: true, cls: "ai2-live-tasks" });
+	if (it.pool?.length) list("Worktrees", it.pool, "", { cls: "ai2-live-pool" });
+	list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running" });
+	div.c("ai2-live-tasks", () => {
+		list("Working on", it.tasks, "nothing in progress", { clearable: true });
+		div.c("ai2-live-section", () => {
+			h3("Just landed");
+			if (!it.landed.length) small.c("muted").text("nothing yet today");
+			it.landed.forEach(x => div.c("ai2-live-item", () => {
+				span.c("ai2-live-state").text(clock(x.at));
+				a.c("ai2-live-name").href(x.url).text(x.title);
+				if (x.line) small.c("ai2-live-line muted").text(x.line);
+			}));
+		});
+	});
 	place(model, $col, rows);
 }
 
@@ -284,6 +328,7 @@ function place(model, $col, rows){
 	}
 
 	const sel = model.sel, is_wide = wide($col);
+	card.classList.toggle("ai2-live-nosel", !sel);
 	const take = !is_wide && !!sel?.clicked;
 	if (take !== card.classList.contains("ai2-live-takeover")){
 		if (take){ model.scroll = card.scrollTop; card.classList.add("ai2-live-takeover"); card.scrollTop = 0; }
@@ -296,16 +341,8 @@ function place(model, $col, rows){
 	if (talk.view.el.parentNode !== $col.el) $col.el.append(talk.view.el);
 	if (talk.focused && document.activeElement !== talk.$input.el) talk.$input.el.focus();
 
-	// Level with its row when beside the list — measured after the draw has
-	// finished, so no layout is forced half-way through building the page.
-	const $row = rows.get(sel.id);
-	requestAnimationFrame(() => {
-		const el = talk.view.el;
-		if (!is_wide || !$row?.el.isConnected || !el.isConnected){ el.style.marginBlockStart = ""; return; }
-		const now = parseFloat(el.style.marginBlockStart) || 0;
-		const dy = $row.el.getBoundingClientRect().top - (el.getBoundingClientRect().top - now);
-		el.style.marginBlockStart = Math.max(0, Math.round(dy)) + "px";
-	});
+
+	talk.view.el.style.marginBlockStart = "";   // top-aligned: never level with its row
 }
 
 /**
@@ -337,10 +374,10 @@ export class AgentTalk {
 		this.focused = false;
 		this.pending = [];
 		this.view = div.c("ai2-talk", () => {
-			span.c("ai2-talk-title").text(this.id);   // whose conversation this is
+			span.c("ai2-talk-title").text(this.name ?? this.id);   // whose conversation this is
 			this.$lines = div.c("ai2-talk-lines");
 			form.c("ai2-talk-form", () => {
-				this.$input = input.c("ai2-talk-input").attr("type", "text").attr("placeholder", "say something to " + this.id);
+				this.$input = input.c("ai2-talk-input").attr("type", "text").attr("placeholder", "say something to " + (this.name ?? this.id));
 				button.c("ai2-talk-send prim").attr("type", "submit").text("Send");
 			}).on("submit", e => { e.preventDefault(); this.send(); });
 			this.$status = small.c("ai2-talk-status");
@@ -353,7 +390,7 @@ export class AgentTalk {
 	}
 
 	backlog(){
-		fetch(servex_base() + "/log/agent-" + encodeURIComponent(this.id) + "?n=" + this.constructor.BACKLOG)
+		servex_fetch(servex_base() + "/log/agent-" + encodeURIComponent(this.id) + "?n=" + this.constructor.BACKLOG)
 			.then(r => (r.ok ? r.json() : [])).catch(() => [])
 			.then(list => {
 				(Array.isArray(list) ? list : []).forEach(e => this.line(e));
@@ -366,12 +403,12 @@ export class AgentTalk {
 	said(e){
 		const clip = t => (t.length > 400 ? t.slice(0, 400) + "…" : t);
 		if (e.type === "agent_msg" && e.from === "owner" && String(e.reply_to ?? "").startsWith("card ")) return;   // a card-relayed copy: the words are already on the card as prompt lines
-		if (e.type === "agent_msg" && e.from === "owner") return { cls: "ai2-chat-you", who: "you", text: e.text };
-		if (e.type === "agent_msg") return { cls: "ai2-chat-update", who: e.first ? "brief" : (e.from ?? "message"), text: clip(e.text ?? "") };
-		if (e.type === "transcript" && !e.meta) return { cls: "ai2-chat-reply", who: this.id, text: e.text };
-		if (e.type === "tool" && !e.nested) return { cls: "ai2-chat-update", who: "", text: "used " + e.name };
-		if (e.type === "error") return { cls: "ai2-chat-update", who: "error", text: e.text };
-		if (e.type === "result" && e.stopped) return { cls: "ai2-chat-update", who: "", text: "stopped" };
+		if (e.type === "agent_msg" && e.from === "owner") return { cls: "chatbox-you", who: "owner", label: 1, text: e.text };
+		if (e.type === "agent_msg") return { cls: "chatbox-update", who: e.first ? "brief" : (e.from ?? "message"), text: clip(e.text ?? "") };
+		if (e.type === "transcript" && !e.meta) return { cls: "chatbox-reply", who: this.id, label: 1, text: e.text };
+		if (e.type === "tool" && !e.nested) return { cls: "chatbox-update", who: "", text: "used " + e.name };
+		if (e.type === "error") return { cls: "chatbox-update", who: "error", text: e.text };
+		if (e.type === "result" && e.stopped) return { cls: "chatbox-update", who: "", text: "stopped" };
 	}
 
 	line(e){
@@ -380,21 +417,27 @@ export class AgentTalk {
 		const key = [e.at, e.type, e.text ?? e.name].join("|");
 		if (this.seen.has(key)) return;
 		this.seen.add(key);
-		this.$lines.append(() => {
-			p.c("ai2-chat " + s.cls, () => {
-				if (s.who) span.c("ai2-chat-who").text(s.who);
-				span.c("ai2-chat-text").text(s.text);
-			});
-		});
+		speak(this.$lines, { cls: s.cls, who: s.who, text: s.text, sender: s.label ? s.who : "", at: e.at });
 		const el = this.$lines.el;
 		while (el.children.length > this.constructor.KEEP) el.firstElementChild.remove();
+		this.fold();
+	}
+
+	/** Only the latest few lines show; the older ones fold behind one button. */
+	fold(){
+		const kids = [...this.$lines.el.children], keep = this.constructor.SHOWN;
+		kids.forEach((c, i) => { c.style.display = this.open || i >= kids.length - keep ? "" : "none"; });
+		if (!this.$more) this.$more = button.c("ai2-talk-more ai2-word").attr("type", "button").click(() => { this.open = !this.open; this.fold(); });
+		if (this.$more.el.nextSibling !== this.$lines.el) this.$lines.el.before(this.$more.el);
+		this.$more.el.style.display = kids.length > keep ? "" : "none";
+		this.$more.text(this.open ? "Hide earlier messages" : "Show earlier messages");
 	}
 
 	send(){
 		const text = this.$input.el.value.trim();
 		if (!text) return;
 		this.$status.text("sending…");
-		fetch(servex_base() + "/api/agents/" + encodeURIComponent(this.id) + "/message", {
+		servex_fetch(servex_base() + "/api/agents/" + encodeURIComponent(this.id) + "/message", {
 			method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }),
 		})
 			.then(r => r.json().catch(() => ({})).then(body => {
@@ -410,4 +453,24 @@ export class AgentTalk {
 	}
 }
 AgentTalk.BACKLOG = 300;   // log lines read (most are token deltas, skipped)
+AgentTalk.SHOWN = 6;      // lines shown; the rest fold
 AgentTalk.KEEP = 60;       // conversation lines kept on screen
+
+/** THE USAGE STRIP — three bars with the pace marker, at the top of the rail, always visible. */
+export function usage_head(model){
+	const $box = div.c("ai2-usage-top");
+	let drawn = "";
+	const paint = () => {
+		const it = model.item(), sig = JSON.stringify(it.usage);
+		if (sig === drawn) return;
+		drawn = sig;
+		$box.empty(() => {
+			if (!it.usage) return;
+			usage_rail(it.usage, LABELS);
+			// Which mark is which, said once (the owner, 2026-09-25: "make it obvious which is which").
+			small.c("ai2-usage-key muted").text("% = share used · ▼ = time passed · a bar short of its ▼ is on pace");
+		});
+	};
+	model.on(paint); paint();
+	return $box;
+}

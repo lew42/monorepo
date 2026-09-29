@@ -1,55 +1,44 @@
 # `files.css`
 
-The frame and the two payloads — what a tree row looks like, and how the source
-and the prose sit inside a panel body. One theme layer, no queries: since the
-regions became [ext/Panel](/framework/ext/Panel/) leaves, every question this
-file used to answer with a breakpoint is answered by a grip.
+The frame, the flex columns, the tree rows, and the two payloads (source, about). One
+theme layer, no container or media queries — since 2026-09-28 the columns are plain
+flex, sized by `clamp()` and moved by [`ext/grip`](/framework/ext/grip/), not
+[`ext/Panel`](/framework/ext/Panel/) leaves.
 
-## `.files` is a frame around a token
+## `.files` is a frame around a token, `.files-fill` overrides it
 
 ```css
-.files {
-	--panel-height: min(70vh, 30em);
-	border: 1px solid var(--line);
-	border-radius: var(--radius);
-	overflow: hidden;
-	background: var(--surface);
-}
+.files { --files-height: min(70vh, 30em); display: flex; flex-direction: column; block-size: var(--files-height); … }
+.files-fill { block-size: 100%; }
 ```
 
-`.panel-workspace` is `height: var(--panel-height, 34em)` and every region
-inside it is `flex: 1 1 0`, so the browser needs a box with a real height to
-scroll in and this is it. A host wanting a taller browser **retunes the token
-and nothing else** — `ext/Doc`'s `.doc-files > .files` does exactly that for
-the Files tab, which is the whole tab rather than a figure inside a page.
+A plain caller gets a bounded box with its own scroll (the default `--files-height`);
+`fill: true` — minion B's full-screen `/fs` route — makes the box claim its parent's
+whole height instead, so the *columns* scroll and the page never does. `ext/Doc`'s Files
+tab retunes `--files-height` the same way it always did.
 
-`overflow: hidden` clips to the radius. It also clips a bar's popover at the
-outermost edge, which is the same trade `.editor` makes and the same one
-`.panel` itself makes one level down.
+## The columns: one row, `clamp()` widths, a written variable
 
-## `inline-size: 100%` on all three payloads
+```css
+.files-col-tree { flex: 0 1 clamp(10em, var(--files-col-w, 16em), 60%); }
+.files-col-source { flex: 1 1 0; }
+```
 
-A panel body is a grid that **centres what it is handed** (`justify-items: safe
-var(--panel-x)`), so a payload shrink-wraps unless it says otherwise. The three
-region roots claim the full column and let the panel's own `align` — seeded
-`tl` — do the positioning. This is the one line `ext/editor`'s `.editor-region`
-carries too, for the identical reason.
+The tree (and the `about` column, when it exists) has a seeded width via `clamp()`'s
+middle argument; dragging its grip writes `--files-col-w` on that column and nothing
+else, which is `ext/grip`'s whole contract — only the dragged column changes, whatever
+is to its right just slides over. The source column is `flex: 1 1 0`: it always takes
+whatever is left. Nothing is saved past the visit — same trade the deleted
+`MemorySaver` made.
 
 ## What went, and what replaced it
 
 | gone | replaced by |
 |---|---|
-| `container-type: inline-size` on `.files` | the panel body's own containment |
-| `@container (max-width: 56em)` stacking `about` under the source | a grip the reader drags |
-| `@media (max-width: 40em)` stacking the tree above the pane | the axis seeded at roll time (`panels.js`) |
-| `.file-tree { --basis: clamp(9em, 26%, 15em) }` and its `.basis` util | `grow: 1.5` on the tree's pane |
-| `max-height: 26em` on the source and the prose | `--panel-height` on the frame |
-| four `min-width: 0` resets | `panel.css`'s `min-width: 0` on every level |
-
-That is roughly 40 lines of layout, and none of it was wrong — it was all
-answering questions a panel answers by construction. The border between the
-tree and the source is gone too: the seam is `grip.css`'s `box-shadow` now, so
-two panels sit at a measured 0px and one declaration draws both axes.
+| `ext/Panel`'s workspace bar (add / fullscreen / zoom / presets) | nothing — it was never this module's own UI |
+| the `files-bar` mode switcher (1 column / 2 columns / code + rendered) | nothing — the owner called it cluttered; the columns are just always tree(+about)+source now |
+| the seeded row/column axis (a phone got a stacked tree) | nothing stacks now — the row scrolls sideways once the columns' floors stop fitting, the same trade `core/Page`'s own `.page-columns-row` makes |
+| `panel.css`'s grip-and-seam CSS | `ext/grip`, mounted directly inside `.files-col` |
 
 ## The source block is flush and has no end
 
@@ -58,21 +47,28 @@ two panels sit at a measured 0px and one declaration draws both axes.
 .file-source > pre { margin: 0; border: none; border-radius: 0; font-size: 0.85em; }
 ```
 
-The panel body is the scroller, so the block inside it neither draws its own
-frame nor caps its own height — the `max-height: 26em` this rule used to carry
-was the flex arrangement's only way of giving the pane an end.
+Unchanged: `.files-col` is the scroller now (`overflow-y: auto`), so the block inside it
+neither draws its own frame nor caps its own height.
+
+## The folder body: closed by default, one glyph that turns
+
+```css
+.file-dir-body { display: none; }
+.file-dir.open > .file-dir-body { display: block; }
+.file-dir.open > .file-dir-name .icon { transform: rotate(90deg); }
+```
+
+New in this pass. A closed folder's body is hidden, not removed, so reopening one that
+was already built (past `open`'s depth, or an ancestor of the selected file) doesn't
+rebuild it. The chevron rotates rather than swapping glyphs — one `<span>`, one
+`transform`.
 
 ## Improvements
 
-1. **`--panel-height: min(70vh, 30em)` is a guess with one override already.**
-   `ext/Doc` immediately wanted `min(74vh, 42em)`, which is a signal that the
-   default is tuned for the *smaller* caller. Nothing is wrong today — both
-   values were checked at 1440 and 390 — but two callers and two heights is how
-   a third arrives at a third. *(simple, speculative)*
-2. **`.file-blank` styles a payload that only exists because `Panel.defaults`
-   says `"blank"`.** One declaration for a region nobody chooses on purpose. It
-   earns its place while the alternative is a silent void; delete it the day
-   ext/Panel lets a vocabulary name its own default. *(simple, speculative)*
-3. **Nothing here says which classes `panels.js` emits and which `files.js`
-   does.** The `css:` comments in both JS files carry it; a reader arriving at
-   this sheet first has to open two files to find out. *(simple, useful)*
+1. **`--files-height`'s default is still the same guess (`min(70vh, 30em)`) with one
+   known override (`ext/Doc`).** Carried over from before this rewrite, unchanged.
+   *(simple, speculative)*
+2. **The sideways scroll on a narrow screen has not been driven with a pointer, only
+   read from the CSS.** `core/Page`'s own columns do the identical thing, so the
+   mechanism is proven elsewhere; this module's own narrow-width behaviour wants a
+   headless check before it ships somewhere phone-first. *(simple, needs a check)*

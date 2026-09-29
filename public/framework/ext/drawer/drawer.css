@@ -67,4 +67,137 @@
 		cursor: pointer;
 	}
 	.drawer .drawer-x:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* THE ☰ (menu.js) — top right of the page, on every page. Fixed, and inset by the
+	   same '--rail-push' the page yields to the rails (above), so it sits at the PAGE's
+	   corner beside an open drawer or dev bar, never on top of either. Small and quiet:
+	   page heads keep their title on the left, and this corner is empty on every layout
+	   measured (1280, 1920, 3440). z-index 39 — just under the drawer (40). */
+	.app .drawer-menu {   /* two classes: clears the theme's :is(button, .btn) padding at 0-2-0 */
+		position: fixed; z-index: 39;
+		inset-block-start: 0.5rem;
+		inset-inline-end: calc(var(--rail-push, 0px) + 0.5rem);
+		display: flex; align-items: center; justify-content: center;
+		inline-size: 2.2rem; block-size: 2.2rem;
+		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
+		padding: 0;
+		font-size: 1.15rem; line-height: 1;
+		color: var(--subtle);
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+		transition: inset-inline-end 0.18s;
+	}
+	.app .drawer-menu:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* Below 52em, a page with its own `.sidebar` (core/Sidebar) draws a NATIVE ☰ of
+	   its own — `.sidebar-toggle`, top right of the sticky bar, same corner as this
+	   fixed one. They fought for every tap: this button sits on top (z-index 39,
+	   fixed to the viewport corner) and the sidebar's own nav could never be reached
+	   on mobile (mobile-nav, 2026-09-29 — the owner: "every time I click that top
+	   right hamburger icon on mobile, it opens the kind of like AI settings"). Below
+	   the breakpoint, when the page has a `.sidebar` anywhere in it, this corner
+	   button steps aside so the tap reaches the sidebar's own toggle underneath; the
+	   mobile bottom rail (ext/drawer/rail.js) is the other way into these tabs there.
+	   v1 — this button, unconditional, in this same corner — is NOT deleted: it is
+	   still exactly what desktop gets (no `.sidebar` below 52em means nothing here
+	   changes either), and `.drawer-menu-v1` on `.app` brings the old placement back
+	   even over a mobile sidebar, for anyone who wants to compare or revert. doc/decisions.md. */
+	@media (max-width: 52em) {
+		.app:has(.sidebar) .drawer-menu { display: none; }
+		.app.drawer-menu-v1:has(.sidebar) .drawer-menu { display: flex; }
+	}
+
+	/* The tab strip, in the drawer's pinned head beside the ✕ (tabs.js). */
+	/* Every tab always visible: the strip WRAPS onto a second row when the rail is too
+	   narrow (dragged to 200px, or a big screen's larger type at 19rem), never scrolls a
+	   tab out of sight. The slot takes the room left of the ✕, so the ✕ stays top right. */
+	.drawer-slot:has(> .drawer-tabs) { flex: 1 1 auto; }
+	.drawer-tabs { flex-wrap: wrap; gap: 0.1em; min-inline-size: 0; }
+	.drawer .drawer-tab {
+		min-block-size: 0;
+		padding: 0.25em 0.3em;
+		font: inherit; font-size: 0.9em;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-tab:hover { color: var(--ink); background: var(--fill-a08); }
+	.drawer .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
+
+	/* One list of rows (Sessions), one conversation (AI). */
+	.drawer-ai, .drawer-sessions, .drawer-settings, .drawer-admin, .drawer-dictation { gap: calc(var(--gap) * 0.8); }
+	.drawer-ai-head { gap: 0.5em; }
+	.drawer-model { gap: 0.4em; }
+	.drawer-ai-list { gap: 0.6em; }
+	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
+	.drawer-turn-who { font-size: 0.85em; }
+	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
+	.drawer-rows { gap: 0.35em; }
+	.drawer .drawer-row {
+		display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em;
+		padding: 0.5em 0.6em;
+		font: inherit; text-align: start;
+		color: var(--ink);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-row:hover, .drawer .drawer-row.on { background: var(--fill-a08); }
+	.drawer-row-title { font-weight: 600; }
+	.drawer-acts { gap: 0.5em; }
+
+	/* SELECTING (select.js), only while the drawer is open on its tabs. Hover brightens the
+	   element's ground one 'lighten' rung; selected takes the next rung and a hairline
+	   ring, so it still reads on a white card where lighten alone is invisible. The glow is
+	   a box-shadow of the same colour, so the element never moves by a pixel.
+	   '.pages' in front (0-2-0), so a card's own background cannot win the tie. */
+	.pages [data-drawer-hover] {
+		background-color: var(--lighten-2);
+		box-shadow: 0 0 0 0.3em var(--lighten-2);
+		cursor: pointer;
+	}
+	.pages [data-drawer-selected] {
+		background-color: var(--lighten-3);
+		box-shadow: 0 0 0 0.3em var(--lighten-3), 0 0 0 calc(0.3em + 1px) var(--fill-a16);
+	}
+
+	/* The chips above the AI tab's input: what the next message is about. */
+	.drawer-chips { gap: 0.3em; }
+	.drawer-chips:empty { display: none; }
+	.drawer-chip {
+		gap: 0.2em;
+		max-inline-size: 100%;
+		padding: 0.1em 0.2em 0.1em 0.55em;
+		font-size: 0.9em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: 1em;
+	}
+	.drawer-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.drawer .drawer-chip-x {
+		min-block-size: 0;
+		padding: 0 0.3em;
+		font: inherit; line-height: 1.4;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: 1em;
+		cursor: pointer;
+	}
+	.drawer .drawer-chip-x:hover { color: var(--ink); background: var(--fill-a08); }
+
+	/* The Element tab. */
+	.drawer-props { gap: calc(var(--gap) * 0.8); }
+	.drawer-props-head { gap: 0.5em; }
+	.drawer .drawer-ask { white-space: nowrap; }
+	/* The dev bar's key column is 3.6em, sized for its own short keys; "module" needs more. */
+	.drawer-props .dev-row { grid-template-columns: 4.8em 1fr; }
+	.drawer-props-title { margin: 0; }
+	.drawer-props-where { gap: 0.35em; }
+	.drawer-props-link { overflow-wrap: anywhere; }
 }

@@ -1,6 +1,9 @@
 # Nested or full — and why alternating between them is tricky
 
-**Open. We need a strong, simple strategy for robust page layouts and we do not
+> **Open question — not settled guidance.** This note states a problem the owner has not
+> resolved. Read it as evidence, not as a rule to follow.
+
+**We need a strong, simple strategy for robust page layouts and we do not
 have one yet.** (the owner, 2026-08-17.) This note states the problem and the evidence;
 the answer is not written.
 

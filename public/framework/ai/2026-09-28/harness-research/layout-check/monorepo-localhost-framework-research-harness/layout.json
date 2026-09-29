@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/research/harness/",
+ "widths": {
+  "1280": {
+   "empty": 0.616,
+   "widest_text": 956,
+   "widest_text_sample": "0 running · minion-harness-opus-scout: 2",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 0.281
+  },
+  "1920": {
+   "empty": 0.651,
+   "widest_text": 1531,
+   "widest_text_sample": "0 running · minion-harness-opus-scout: 2",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 0.781
+  },
+  "2560": {
+   "empty": 0.681,
+   "widest_text": 2092,
+   "widest_text_sample": "0 running · minion-harness-opus-scout: 2",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 0.781
+  },
+  "3440": {
+   "empty": 0.753,
+   "widest_text": 2972,
+   "widest_text_sample": "0 running · minion-harness-opus-scout: 2",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 0.781
+  }
+ },
+ "errors": []
+}

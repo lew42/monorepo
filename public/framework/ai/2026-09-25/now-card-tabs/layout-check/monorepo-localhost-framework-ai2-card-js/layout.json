@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/card.js",
+ "widths": {
+  "1280": {
+   "empty": 0.486,
+   "widest_text": 879,
+   "widest_text_sample": "import { Page, View, div, p, span, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.653,
+   "widest_text": 879,
+   "widest_text_sample": "import { Page, View, div, p, span, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.735,
+   "widest_text": 879,
+   "widest_text_sample": "import { Page, View, div, p, span, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.802,
+   "widest_text": 879,
+   "widest_text_sample": "import { Page, View, div, p, span, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

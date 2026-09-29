@@ -1,0 +1,4 @@
+{
+  "pick": "haiku-c",
+  "caveat": "_model_cache is an implementation detail (memoization) — make it private with #model_cache syntax or omit from the public design spec."
+}

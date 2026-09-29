@@ -55,6 +55,51 @@ export default class Whisper {
         this.restarts = 0;
         this.stopping = false;
         server.on("listening", () => this.start());
+        server.on("express", () => this.route());
+    }
+
+    /* A dev-only, same-origin PROXY onto whisper-server — added for
+     * `ai/2026-09-29/mobile-nav/`. `ux/Dictate` hard-codes `http://127.0.0.1:8178` as
+     * its DEFAULT, and that is exactly right on THIS machine — but "127.0.0.1" means a
+     * different machine on every device, so a phone on the LAN can never reach it that
+     * way, no matter how the phone got its microphone permission. `Dictate.js`'s
+     * `default_whisper_url()` already points a non-localhost page at `<origin>/whisper`
+     * instead; these two routes are the other end of that same wire. Loopback-only guards
+     * (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this route exists
+     * so a LAN client can reach it.
+     *
+     * Forwards the request bytes and its `content-type` untouched — a whisper `/inference`
+     * POST is `multipart/form-data` with a boundary in that header, and re-building the
+     * multipart body instead of forwarding it verbatim would be strictly more code for no
+     * reason. A dead or missing whisper-server answers 502 with a plain JSON reason, which
+     * `Dictate.detect_engine()` already reads as "not reachable" (it only checks `r.ok`)
+     * and falls back to the browser's own engine — nothing new for that caller to learn. */
+    route() {
+        this.server.router.post("/whisper/inference", this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
+            try {
+                const r = await fetch(`http://127.0.0.1:${PORT}/inference`, {
+                    method: "POST",
+                    headers: { "content-type": req.headers["content-type"] || "application/octet-stream" },
+                    body: req.body,
+                    signal: AbortSignal.timeout(20000),
+                });
+                res.status(r.status);
+                const ct = r.headers.get("content-type");
+                if (ct) res.set("content-type", ct);
+                res.send(Buffer.from(await r.arrayBuffer()));
+            } catch (e) {
+                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
+            }
+        });
+
+        this.server.router.get("/whisper/", async (req, res) => {
+            try {
+                const r = await fetch(`http://127.0.0.1:${PORT}/`, { signal: AbortSignal.timeout(1500) });
+                res.status(r.status).send(await r.text());
+            } catch (e) {
+                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
+            }
+        });
     }
 
     async start() {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 170" font-family="system-ui, sans-serif" font-size="14">
+<style>.b{fill:#8881;stroke:#888;stroke-width:1.5}.t{fill:#666;font-size:12px}.h{font-weight:600}.a{stroke:#888;stroke-width:1.5;fill:none;marker-end:url(#m)}</style>
+<defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#888"/></marker></defs>
+<rect class="b" x="10" y="20" width="130" height="56" rx="6"/><text x="22" y="44" class="h">open</text><text x="22" y="64" class="t">no landed_at yet</text>
+<rect class="b" x="180" y="20" width="130" height="56" rx="6"/><text x="192" y="44" class="h">quiet 20 min</text><text x="192" y="64" class="t">or agent stopped</text>
+<rect class="b" x="350" y="20" width="130" height="56" rx="6"/><text x="362" y="44" class="h">chase 1</text><text x="362" y="64" class="t">"status check"</text>
+<rect class="b" x="520" y="20" width="130" height="56" rx="6"/><text x="532" y="44" class="h">chase 2</text><text x="532" y="64" class="t">30 min after chase 1</text>
+<rect class="b" x="690" y="20" width="190" height="56" rx="6"/><text x="702" y="44" class="h">Waiting on you</text><text x="702" y="64" class="t">30 min after chase 2</text>
+<path class="a" d="M140,48H178"/><path class="a" d="M310,48H348"/><path class="a" d="M480,48H518"/><path class="a" d="M650,48H688"/>
+<text x="10" y="118" class="t">A landing, or close_task, ends the chase from any box — nothing else does.</text>
+<text x="10" y="138" class="t">A reply after a chase does not stop it: only landed_at + outcome, or closed_by, removes a task from this loop.</text>
+<text x="10" y="158" class="t">Escalating twice more in the same tick is capped at 5; the rest wait for the next tick.</text>
+</svg>

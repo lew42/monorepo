@@ -10,7 +10,9 @@ let focus = null;
 export function remember_focus(text){ focus = text ? String(text) : null; }
 
 export function brief(servex){
-	const out = ["# Servex right now"];
+	const out = ["# Servex right now",
+		"Who launched a task: the first line of its public/framework/ai/<date>/<slug>/task.jsonl (session_id, tab). The owner's VS Code tab dispatches work, and it is not in the list below. mastermind-servex audits and launches nothing.",
+		"If you don't know who did something, say you don't know. Never guess."];
 	try {
 		const claims = (servex?.claims?.list?.() ?? []).filter(c => !c.stale);
 		out.push("Being worked on:");
@@ -21,8 +23,8 @@ export function brief(servex){
 		const running = [...(servex?.agents?.live?.values?.() ?? [])]
 			.filter(a => a.state !== "stopped" && !WORKERS.test(a.role ?? "") && !WORKERS.test(a.id ?? ""));
 		out.push("Running now:");
-		for (const a of running.slice(0, 12)) out.push(`- ${a.id}: ${a.state}`);
-		if (running.length > 12) out.push(`- and ${running.length - 12} more`);
+		for (const a of running.slice(0, 10)) out.push(`- ${a.id}: ${a.state}`);
+		if (running.length > 10) out.push(`- and ${running.length - 10} more`);   // 10, not 12: the two lines added to the header pushed the focus past the 25-line cut
 		if (!running.length) out.push("- nothing");
 
 		out.push("Today's focus:", focus ? `- ${focus.split("\n")[0].slice(0, 200)}` : "- none set");

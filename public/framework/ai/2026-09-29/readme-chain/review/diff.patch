@@ -1,0 +1,1021 @@
+diff --git a/.claude/skills/minion/SKILL.md b/.claude/skills/minion/SKILL.md
+index 1226f3d4..28b3a789 100644
+--- a/.claude/skills/minion/SKILL.md
++++ b/.claude/skills/minion/SKILL.md
+@@ -27,6 +27,8 @@ going until you have landed. Follow-ups arrive as new prompts on your own sessio
+ 
+ Read the `requirements.md` you were given first, start to finish, before you edit anything. Its deliverables are numbered; each one gets checked against the owner's own sentence at harvest — a smaller, easier version you built instead counts as a miss, not a partial win. The brief links the owner's full, original prompt; read that too whenever a deliverable is unclear, rather than guessing what was meant.
+ 
++If you were opened by `spawn_agent`'s `task: {dir}` option, your first message already starts with the readme chain for that directory (root down to it, first screen of each) — read deeper docs it names on demand, don't re-read them yourself. A minion started as a plain `claude --session-id` CLI session gets none of that automatically, so name your directory in your own first read (`Servex/agents/readme-chain.js`, `Servex/doc/readme-chain.md`).
++
+ **Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+ 
+ ## The three laws, and who you are writing for
+diff --git a/.claude/skills/sub-mastermind/SKILL.md b/.claude/skills/sub-mastermind/SKILL.md
+index d2e17f08..89e2e693 100644
+--- a/.claude/skills/sub-mastermind/SKILL.md
++++ b/.claude/skills/sub-mastermind/SKILL.md
+@@ -51,6 +51,10 @@ rather than relying on your summary, and you don't need to paste the words (the
+ **One task, and only one.** If more work arrives for this task, it goes in the next brief. A
+ mastermind that has taken five additions has stopped being able to land anything.
+ 
++You already started with the readme chain for your card's own directory (root down to it, the
++first screen of each) — read deeper docs it names on demand, and don't re-read them yourself
++(`Servex/agents/readme-chain.js`, `Servex/doc/readme-chain.md`).
++
+ When you split the task, decide its review size (none/light/full — `Server/doc/review.md`): the computed size is the default, you may only set `none` with `--size none --why "self-evident: <one line>"`, and you may always raise it. After the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>`, answer every finding, then `--turns` to run the reviewer's reply on any decline, and rule yourself (`--rule`) on anything still held after that one round.
+ 
+ ## Decide the worktree first
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 026261e3..f3cafc9e 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -7,6 +7,7 @@ import Log from "../Log.js";
+ import { stamp, place } from "../home.js";
+ import Registry from "./registry.js";
+ import { defaults as role_defaults, opening } from "./roles.js";
++import { first_prompt } from "./readme-chain.js";
+ 
+ /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
+  * What lands here is the PROJECTION: one typed event per SDK message, written
+@@ -77,7 +78,18 @@ export class Agents {
+ 	 * nothing to do. This needs the session id before the SDK has even started,
+ 	 * which the SDK's `sessionId` option allows (start() already uses it, the
+ 	 * same thing `claude --session-id` does from a terminal): mint it here,
+-	 * write the task file, then hand the agent that same id to use. */
++	 * write the task file, then hand the agent that same id to use.
++	 *
++	 * README CHAIN. A FRESH spawn (never a resume — a resumed session already
++	 * has it, and one bringing its own `system` brief is code, not this path)
++	 * whose directory we can name gets the readme chain from the repo root down
++	 * to that directory prepended, ahead of everything else, so it knows "where
++	 * it is" before its first turn: `spec.task.dir` (a task mastermind, or any
++	 * agent opened with `task: {dir, ...}`) or `spec.page` (a page-bound agent;
++	 * a URL path like `/framework/ux/Dictate/`, mapped onto the matching repo
++	 * dir under `public/`). A plain minion with neither carries its directory
++	 * in its own brief text instead, so it is deliberately left untouched here
++	 * — `directory_of` returns null for it and nothing is added. */
+ 	spawn(spec){
+ 		const again = spec.resume;
+ 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
+@@ -85,7 +97,10 @@ export class Agents {
+ 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+ 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+ 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
+-		const base = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
++		const fresh = !again && !spec.system;
++		const dir = fresh ? directory_of(spec) : null;
++		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
++		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
+ 		const prompt = spec.task
+ 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
+ 			: base;
+@@ -382,6 +397,18 @@ export class Agents {
+ 	}
+ }
+ 
++/* The directory a fresh spawn is FOR, if it names one — `spec.task.dir` as-is
++ * (repo-relative or absolute, same as `open_task` accepts), or `spec.page`
++ * (a site URL path, e.g. `/framework/ux/Dictate/`) mapped onto the repo dir
++ * that URL is served from, `public/<page, leading slash stripped>`. Neither
++ * present (a plain minion, most forks, the fast assistant) -> null, and
++ * `spawn()` adds nothing. */
++function directory_of(spec){
++	if (spec.task?.dir) return spec.task.dir;
++	if (spec.page) return path.join("public", String(spec.page).replace(/^\/+/, ""));
++	return null;
++}
++
+ /* OPEN BY NODE — `spawn({task: {dir, card, brief}}, ...)` calls this before
+  * `agent.start()`, so the task's task.jsonl carries its owning agent from the
+  * first line, and the agent's own first turn never has to run new-task.
+diff --git a/Servex/agents/Layers.js b/Servex/agents/Layers.js
+index cd9640ca..4c10f343 100644
+--- a/Servex/agents/Layers.js
++++ b/Servex/agents/Layers.js
+@@ -4,6 +4,7 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { model } from "./tiers.js";
+ import { brief } from "./brief.js";
++import { first_prompt } from "./readme-chain.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.join(HERE, "../..");
+@@ -282,8 +283,14 @@ export default class Layers {
+ 		this.save();
+ 	}
+ 
++	/* A fresh assistant gets the readme chain for its card's own dir (`public/
++	 * framework/ai/<card>`, the sub-mastermind convention that a card's dir IS
++	 * its task dir) ahead of the card's transcript, so it knows where it is
++	 * before it reads a word the owner said. A resumed one already has it —
++	 * `open()`'s `prompt()` closure only runs on the fresh path. */
+ 	assistant(card){
+-		return this.open(card, "assistant", () => this.transcript(card) + "\n\nThe owner's newest words are the last prompt line. Answer them.");
++		return this.open(card, "assistant", () => first_prompt(`public/framework/ai/${card}`)
++			+ "\n\n" + this.transcript(card) + "\n\nThe owner's newest words are the last prompt line. Answer them.");
+ 	}
+ 
+ 	/* The card's log, from its LAST `summary` line onward when there is one —
+@@ -315,7 +322,9 @@ export default class Layers {
+ 		const slot = this.record(root).manager;
+ 		const was = this.live(slot.id), held = this.pending.has(slot.id);
+ 		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
+-		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
++		// same readme-chain treatment as the assistant: only the FRESH prompt() closure runs it.
++		const agent = this.open(root, "manager", () => first_prompt(`public/framework/ai/${root}`) + "\n\n"
++			+ `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
+ 			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
+ 			+ " First call `claim_topic({thing, change, card})`: `thing` is what you will change, as a short noun anyone would use (the site header, policy.js, the AI 2 rail), never the change itself."
+ 			+ " If it is refused, message mastermind-servex instead of starting."
+diff --git a/Servex/agents/layers.test.mjs b/Servex/agents/layers.test.mjs
+index 599abe43..2aa6471e 100644
+--- a/Servex/agents/layers.test.mjs
++++ b/Servex/agents/layers.test.mjs
+@@ -124,7 +124,8 @@ check("ask_manager twice -> one spawn then one send, same manager", () => {
+ 	assert.equal(spawns().length, before + 1);
+ 	const s = spawns().at(-1).spec;
+ 	assert.deepEqual([s.id, s.effort, s.parent, s.urgent], ["manager-fix-the-sidebar", "medium", "assistant-fix-the-sidebar", undefined]);
+-	assert.match(s.prompt, /^Load the `sub-mastermind` skill\. You are manager-fix-the-sidebar[\s\S]*widen it to 320px$/);
++	// no longer anchored at `^`: a fresh manager's prompt now opens with its readme chain first (readme-chain.js).
++	assert.match(s.prompt, /Load the `sub-mastermind` skill\. You are manager-fix-the-sidebar[\s\S]*widen it to 320px$/);
+ 	assert.deepEqual([first.ok, first.manager, second.manager], [true, "manager-fix-the-sidebar", "manager-fix-the-sidebar"]);
+ 	assert.equal(calls.at(-1).verb, "send");
+ 	assert.match(calls.at(-1).text, /Request from assistant-fix-the-sidebar on 2026\/09\/24\/fix-the-sidebar: and the footer/);
+@@ -175,7 +176,8 @@ check("recycle -> next spawn has no resume, starts from the last summary", () =>
+ 	prompt(A, "fresh start");
+ 	const s = spawns().at(-1).spec;
+ 	assert.equal(s.resume, undefined);
+-	assert.match(s.prompt, /^\{"summary"[\s\S]*fresh start/);
++	// no longer anchored at `^`: same readme-chain prefix as above.
++	assert.match(s.prompt, /\{"summary"[\s\S]*fresh start/);
+ 	assert.doesNotMatch(s.prompt, /make the sidebar wider/);
+ });
+ 
+diff --git a/Servex/agents/readme-chain.js b/Servex/agents/readme-chain.js
+new file mode 100644
+index 00000000..35a3d119
+--- /dev/null
++++ b/Servex/agents/readme-chain.js
+@@ -0,0 +1,112 @@
++/* README CHAIN — what a fresh agent starts already knowing about "where it is".
++ *
++ * `readme_chain(dir)` walks from the repo root down to `dir`, one path segment
++ * at a time (root, then `public/`, then `public/framework/`, …), and collects
++ * the `readme.md` (or `README.md`) at every level that has one. It never opens
++ * the root `CLAUDE.md` — that file is already injected into every agent's
++ * context separately (Agents.js / the SDK's own project-instructions load), so
++ * repeating it here would just be the same words twice.
++ *
++ * Each readme is cut to its FIRST SCREEN: up to its own `## More` heading, or
++ * its first 40 lines, whichever comes first. Below that a reader is expected
++ * to open the file itself — this only tells it that file exists and where.
++ *
++ * `first_prompt(dir, extras)` is the seam another program (task-placement's
++ * "Recent sessions" block, or anything else that wants to prepend context to a
++ * fresh agent's first message) is meant to call: it formats the chain as one
++ * block, applies a rough 3,000-token cap (cutting the MOST GENERAL readmes —
++ * root, then `public/`, then … — first, so what's closest to `dir` survives
++ * longest), then appends each of `extras` as its own `## <label>` section.
++ *
++ * Plain functions, no class, never throw: a readme this can't read (permissions,
++ * a symlink loop, whatever) is just skipped, the same as a level with no readme
++ * at all. Matches brief.js's own shape and promise. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++export const REPO = path.resolve(HERE, "../..");
++
++const FIRST_SCREEN_LINES = 40;
++const TOKEN_CAP = 3000;
++const CHAR_CAP = TOKEN_CAP * 4;   // the brief's own rule of thumb: chars/4 ~= tokens
++
++/* The readme at exactly this directory, or null. Case-insensitive on the two
++ * spellings this codebase actually uses; never throws on a missing dir. */
++function readme_file(dir){
++	for (const name of ["readme.md", "README.md"]){
++		const p = path.join(dir, name);
++		try { if (fs.statSync(p).isFile()) return p; } catch {}
++	}
++	return null;
++}
++
++/* Cut a readme's text to its first screen. `truncated` is true whenever there
++ * is more content below the cut, whether that's because `## More` fired or
++ * because the file just ran past 40 lines. */
++function first_screen(text){
++	const lines = text.split(/\r?\n/);
++	const more_at = lines.findIndex(l => /^##\s+More\b/i.test(l.trim()));
++	const limit = more_at >= 0 ? Math.min(more_at, FIRST_SCREEN_LINES) : FIRST_SCREEN_LINES;
++	return { text: lines.slice(0, limit).join("\n").replace(/\s+$/, ""), truncated: lines.length > limit };
++}
++
++/* `dir` -> its readme entry, or null if there is none / it can't be read. */
++function level(dir){
++	try {
++		const file = readme_file(dir);
++		if (!file) return null;
++		const raw = fs.readFileSync(file, "utf8");
++		const { text, truncated } = first_screen(raw);
++		return { path: path.relative(REPO, file).split(path.sep).join("/"), text, truncated };
++	} catch { return null; }
++}
++
++/* readme_chain(dir) — the raw data: [{path, text, truncated}], root to leaf,
++ * for every level under and including `dir` that has a readme. `dir` may be
++ * repo-relative or absolute; a `dir` outside the repo returns []. Skips the
++ * root CLAUDE.md on purpose (never looked for) and skips any level with no
++ * readme.md/README.md, rather than putting a gap in the list. */
++export function readme_chain(dir){
++	if (!dir) return [];
++	try {
++		const abs = path.isAbsolute(dir) ? dir : path.join(REPO, dir);
++		const rel = path.relative(REPO, abs);
++		if (rel.startsWith("..")) return [];
++		const segments = rel === "" ? [] : rel.split(path.sep).filter(Boolean);
++		const out = [];
++		let cur = REPO;
++		const add = d => { const l = level(d); if (l) out.push(l); };
++		add(cur);
++		for (const seg of segments){ cur = path.join(cur, seg); add(cur); }
++		return out;
++	} catch { return []; }
++}
++
++/* Cut the chain to roughly CHAR_CAP characters, dropping from the TOP (the most
++ * general readme) first, and always keeping at least the last one — `dir`'s own
++ * readme, when it has one — even if that alone is still over the cap. */
++function within_cap(header, blocks){
++	const size = list => (header + "\n\n" + list.join("\n\n")).length;
++	let list = blocks.slice();
++	while (list.length > 1 && size(list) > CHAR_CAP) list.shift();
++	return list;
++}
++
++/* first_prompt(dir, extras) — the formatted block a fresh agent's first message
++ * gets prepended with. `extras` is `[{label, text}]`, appended AFTER the capped
++ * readme chain (so a caller like task-placement's "Recent sessions" list never
++ * has to fight the cap or touch this file's formatting). Never throws: an
++ * unreadable readme chain just yields the header and no readmes. */
++export function first_prompt(dir, extras = []){
++	const chain = readme_chain(dir);
++	const header = `Where you are: readmes from the root down to ${dir}`;
++	const blocks = chain.map(r => `${r.path}${r.truncated ? " (truncated — read the rest at this path)" : ""}\n${r.text}`);
++	const kept = within_cap(header, blocks);
++	let out = kept.length ? `${header}\n\n${kept.join("\n\n")}` : header;
++	for (const e of (extras ?? [])) if (e?.label && e?.text != null) out += `\n\n## ${e.label}\n${e.text}`;
++	return out;
++}
++
++export default { readme_chain, first_prompt };
+diff --git a/Servex/agents/readme-chain.test.mjs b/Servex/agents/readme-chain.test.mjs
+new file mode 100644
+index 00000000..ad35ed0b
+--- /dev/null
++++ b/Servex/agents/readme-chain.test.mjs
+@@ -0,0 +1,78 @@
++// The readme chain a fresh agent starts with. Plain node: `node Servex/agents/readme-chain.test.mjs`
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { readme_chain, first_prompt } from "./readme-chain.js";
++
++let checks = 0;
++const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
++
++// readme_chain on a real directory in THIS repo: public/framework/ux/Dictate
++// has its own readme.md, and so does the repo root and public/framework and
++// public/framework/ux — public/ itself does not, so it should be skipped, not
++// leave a gap or throw.
++{
++	const chain = readme_chain("public/framework/ux/Dictate");
++	ok(Array.isArray(chain) && chain.length >= 2, "returns a non-trivial chain for a real dir");
++	ok(chain[0].path === "readme.md", "root readme is first");
++	ok(chain.every(r => typeof r.text === "string" && typeof r.truncated === "boolean"), "every entry has {path, text, truncated}");
++	ok(chain.at(-1).path.endsWith("Dictate/readme.md"), "dir's own readme is last");
++	ok(!chain.some(r => r.path === "public/readme.md"), "a level with no readme is skipped, not gapped");
++}
++
++// a directory that does not exist: no throw, just no readme found there (its
++// ancestors that DO have one still come back).
++{
++	const chain = readme_chain("public/framework/does-not-exist-xyz");
++	ok(Array.isArray(chain), "never throws on a missing dir");
++	ok(!chain.some(r => r.path.includes("does-not-exist-xyz")), "the missing dir contributes nothing");
++}
++
++// outside the repo: refused quietly.
++{
++	const chain = readme_chain(path.join(os.tmpdir(), "not-the-repo-" + Date.now()));
++	assert.deepStrictEqual(chain, [], "a dir outside the repo returns []");
++}
++
++// first-screen trimming: a readme with a `## More` heading is cut there, not
++// at 40 lines, and is marked truncated. The fixture has to live INSIDE the
++// repo (readme_chain refuses anything outside it), so this uses a scratch
++// dir under the repo's own os.tmpdir()-style scratch area instead — here,
++// a throwaway folder under this task's own dir, removed right after.
++{
++	const dir = path.join(process.cwd(), "public/framework/ai/2026-09-29/readme-chain/.test-fixture-" + Date.now());
++	fs.mkdirSync(dir, { recursive: true });
++	fs.writeFileSync(path.join(dir, "readme.md"), "# Title\n\nOne line.\n\n## More\n\nEverything below this never ships.\n");
++	const chain = readme_chain(dir);
++	ok(chain.length >= 1, "a fixture readme with `## More` is found");
++	const leaf = chain.at(-1);
++	ok(leaf.truncated === true, "cut at `## More` is marked truncated");
++	ok(!leaf.text.includes("never ships"), "text below `## More` is not included");
++	ok(leaf.text.includes("One line."), "text above `## More` is kept");
++	fs.rmSync(dir, { recursive: true, force: true });
++}
++
++// first_prompt: header, in-order readmes, extras appended after the chain.
++{
++	const prompt = first_prompt("public/framework/ux/Dictate", [{ label: "Recent sessions", text: "- none yet" }]);
++	ok(prompt.startsWith("Where you are: readmes from the root down to public/framework/ux/Dictate"), "opens with the where-you-are line");
++	ok(/^readme\.md/m.test(prompt), "the root readme's path appears");
++	ok(prompt.includes("Dictate/readme.md"), "the leaf readme's path appears");
++	ok(prompt.indexOf("Recent sessions") > prompt.indexOf("Dictate/readme.md"), "extras land after the chain");
++	ok(prompt.includes("## Recent sessions\n- none yet"), "an extra is formatted as ## label + text");
++}
++
++// first_prompt with no extras still works and never throws.
++{
++	const prompt = first_prompt("public/framework/ux/Dictate");
++	ok(typeof prompt === "string" && prompt.length > 0, "first_prompt with no extras returns a string");
++}
++
++// a dir with nothing at all: still returns the header, never throws.
++{
++	const prompt = first_prompt(path.join(os.tmpdir(), "nope-" + Date.now()));
++	ok(prompt.startsWith("Where you are:"), "even an empty chain keeps the header");
++}
++
++console.log(`readme-chain.test.mjs: ${checks} checks passed`);
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index ab1c2f9c..8b2fb950 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -159,6 +159,14 @@ whom. Everything about it: [`doc/layers.md`](./doc/layers.md).
+ `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
+ card. `SERVEX_NO_ASSISTANT=1` boots without it.
+ 
++## A fresh, directory-bound agent starts with its readme chain
++
++A FRESH spawn whose directory is named (`task: {dir}`, or `page`) gets the
++readme.md chain from the repo root down to that directory prepended to its
++first message, so it knows "where it is" before it does anything — the owner's
++own ask, 2026-09-29. `readme-chain.js`; the seam, the token cap, where it's
++wired in and left out: [`doc/readme-chain.md`](../doc/readme-chain.md).
++
+ ## The Dispatcher — a card becomes a task mastermind
+ 
+ When the assistant decides a sentence asked for something built, fixed, changed or looked
+@@ -198,6 +206,8 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
+ `policy.js` · `claims.js` · `brief.js` · `tiers.js` ·
+ `roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
+ `ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
++`readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
++[`doc/readme-chain.md`](../doc/readme-chain.md)) ·
+ `demo.mjs` · `fork-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+ `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
+ 
+diff --git a/Servex/doc/readme-chain.md b/Servex/doc/readme-chain.md
+new file mode 100644
+index 00000000..b0f71554
+--- /dev/null
++++ b/Servex/doc/readme-chain.md
+@@ -0,0 +1,95 @@
++# The readme chain
++
++**A fresh agent Servex spawns FOR a directory or a page opens already having
++read the readme.md chain from the repo root down to that directory, in order**
++— the owner's own ask, 2026-09-29 — so it knows "where it is" before it does
++anything. `Servex/agents/readme-chain.js` builds that chain; `Servex/agents/Agents.js`
++and `Servex/agents/Layers.js` prepend it to a fresh agent's first message.
++
++## What it does
++
++`readme_chain(dir)` walks from the repo root down to `dir`, one path segment at
++a time (root, then `public/`, then `public/framework/`, …), and collects the
++`readme.md` (or `README.md`) at every level that has one. A level with no
++readme is skipped, not left as a gap. Each readme is cut to its **first
++screen**: up to its own `## More` heading, or its first 40 lines, whichever
++comes first — the rest is left for the agent to read on demand, at the path
++the entry names. It never reads the root `CLAUDE.md`: that file is already in
++every agent's context a different way (the SDK's own project-instructions
++load), so this would just say it twice.
++
++`readme_chain(dir)` returns the raw data — `[{path, text, truncated}]`, root
++to leaf — for a caller who wants the list itself, not formatted words.
++
++`first_prompt(dir, extras = [])` is the seam: it formats the chain as one
++block starting `Where you are: readmes from the root down to <dir>`, applies a
++rough **3,000-token cap** (chars/4; cutting whole readmes from the **top** —
++the most general one, root first — so what is closest to `dir` survives
++longest, and always keeping at least `dir`'s own readme if it has one), then
++appends each of `extras` (`{label, text}`) as its own `## <label>` section
++after the chain. `task-placement`'s "Recent sessions" block, or anything else
++that wants to add its own section to a fresh agent's opening context, calls
++`first_prompt(dir, [{label: "Recent sessions", text: "…"}])` and never has to
++touch this file's formatting or the token cap.
++
++Both are plain functions, no class, and never throw — a readme this can't
++read (permissions, a race, whatever) is just skipped, same as a level with no
++readme at all.
++
++## Where it's wired in
++
++- **`Agents.spawn(spec)`** (`Servex/agents/Agents.js`) — a FRESH spawn (never a
++  `resume`, never one bringing its own `spec.system`) whose directory it can
++  name gets `first_prompt(dir)` prepended, ahead of the skill-load preamble
++  and the caller's own prompt. The directory comes from `spec.task.dir` (a
++  task mastermind, or any agent opened with `task: {dir, card, brief}` —
++  `spawn_agent`'s `task` option and `Dispatcher.js`'s carded tasks both work
++  this way) or `spec.page` (a page-bound agent; a site URL path like
++  `/framework/ux/Dictate/`, mapped onto the matching repo dir under `public/`).
++  Neither present — a plain minion, most forks, the fast assistant, a master/
++  sub-mastermind revival — and `directory_of()` returns `null`: nothing is
++  added, on purpose (see "Left out" below).
++- **`Layers.js`'s card assistant and manager** — `assistant(card)` and
++  `ask_manager(...)` build their FRESH-spawn prompt as a closure
++  (`open(card, role, prompt)` only ever calls that closure on the fresh path;
++  a resume skips it entirely, because a resumed session already has this).
++  Both now open with `first_prompt(\`public/framework/ai/${card}\`)` — the
++  sub-mastermind convention that a card's id IS its directory under
++  `public/framework/ai/` — before their existing text (the card's transcript
++  for the assistant; the sub-mastermind skill-load line for the manager).
++
++## Left out, on purpose
++
++- **A plain minion** (`role: "minion"` with no `task.dir` and no `page`)
++  carries its own directory in its brief text already — that is the whole
++  point of a brief — so `directory_of()` returns `null` for it and this chain
++  adds nothing. Wiring it in anyway would just repeat what the brief already
++  says.
++- **The mastermind and master-assistant revival spawns** (`Global.js`,
++  `master()` / `mastermind()`) have no directory to name — they are "on duty,
++  answer nothing now" sessions, not bound to any one place — so they are left
++  alone.
++- **The ☰ drawer's page AI** (`ext/drawer/tabs/ai.js`'s `send()`, for a plain
++  page rather than a card) posts to `POST /api/page-ai` — but that route does
++  not exist anywhere in `Servex/` today (checked: no match for `page-ai` under
++  `Servex/`). The client's fetch simply fails and falls back to `ext/Ask`'s
++  dev-server bridge, a separate mechanism entirely (a headless `claude -p`
++  turn run by the dev server, not `Agents.spawn`/`Layers.js`) that this task's
++  fence does not reach. **There is nothing to wire today.** When `/api/page-ai`
++  is built, it should open its fresh agent the same way the card assistant
++  does: `first_prompt(page)` (the page's own URL path — `directory_of()`
++  already maps that shape onto a repo dir) prepended to its first message.
++
++## The proof
++
++A private Servex, a test agent spawned with
++`task: {dir: "public/framework/ux/Dictate"}`: its captured first message opens
++with the root readme, then `public/framework/readme.md`, then
++`public/framework/ux/readme.md`, then `public/framework/ux/Dictate/readme.md`
++— in that order (`public/` itself has no readme, so it is skipped). See
++`public/framework/ai/2026-09-29/readme-chain/proof/`.
++
++## Tests
++
++`node Servex/agents/readme-chain.test.mjs` — plain node, no framework, matching
++`groups.test.mjs`'s house pattern.
+diff --git a/public/framework/ai/2026-09-29/readme-chain/proof/proof.md b/public/framework/ai/2026-09-29/readme-chain/proof/proof.md
+new file mode 100644
+index 00000000..faa4c33e
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/readme-chain/proof/proof.md
+@@ -0,0 +1,184 @@
++# readme-chain proof
++
++Run at 2026-09-29T20:27:02.046Z, private Servex on port 8196 (proxy 8195, internal 8194), scratch `C:\Users\mike\AppData\Local\Temp\readme-chain-proof-UNU9pc`.
++
++**PASS** — the test agent (`minion`, spawned with `task: {dir: "public/framework/ux/Dictate"}`, the same way a task mastermind names its own directory) received its readme chain, in order: root -> public/framework/ -> public/framework/ux/ -> public/framework/ux/Dictate/.
++
++## What was expected, from disk
++
++- root: found at character 74
++- public/framework/: found at character 2265
++- public/framework/ux/: found at character 4812
++- public/framework/ux/Dictate/: found at character 7624
++
++## The agent's actual first message
++
++```
++Where you are: readmes from the root down to public/framework/ux/Dictate
++
++readme.md (truncated — read the rest at this path)
++# Lew42.com Framework Site
++
++`npm install`, then `node Servex/sustain.mjs` and open `http://monorepo.localhost/` —
++Servex holds port 80 and starts the site the first time you visit it (`Servex/readme.md`).
++
++- Maintain static compatibility (server is just for local dev)
++- No bundler or build (pure static hosting)
++- Native ESM `imports`
++- Simple `div()` view system with capturing
++- No new npm dependencies (`chokidar`, `express`, `ws` are the dev server); `npx` and globally-installed tools are fine
++
++## Cloudflare Previews
++
++The current `main` branch is deployed at: https://monorepo.lew42.workers.dev/
++
++Branches will be deployed at https://branch-name-monorepo.lew42.workers.dev/
++
++Git branch names will have `/` converted to `-` for preview URLs, which is important here.  I want git branch names to be of the form `<yourname>/<branch-name>`, such as `michael/fix-whatever`, which will translate to `michael-fix-whatever-monorepo.lew42.workers.dev` (whew, yea, it's long).
++
++## New Dev Onboarding:
++
++My team has been invited to this repo as Collaborators.  If you accept, you should be able to:
++
++1. Clone this repo (no need to fork).
++2. You **cannot** push to `main` branch.
++3. **Always** `git switch main` and `git pull` before creating a new branch.
++4. Make a branch (`git switch -c <yourname>/<branch-name>`), use your name, like `michael/fix-whatever`.
++5. Make a change, add, commit, and `git push`.  You should have push privilege, so it should work.
++6. Cloudflare will automatically build your branch, and convert the branch name from `michael/fix-whatever` to `michael-fix-whatever` (notice `/` becomes `-`) and publish it at `michael-fix-whatever-monorepo.lew42.workers.dev`
++
++## Again:
++
++For every new task, we make a new `<yourname>/<branch-name>` git branch.  But first, we:
++- `git switch main`
++- `git pull`
++- `git switch -c <yourname>/<branch-name>` to create a new branch
++- `git add .` and `git commit -m "whatever"` and `git push`
++- Cloudflare auto-builds the preview URL based on the branch name, send me the link.
++
++Note, you'll either need to `git push -u origin <yourname>/<branch-name>` the first time, or you can set this:
++
++public/framework/readme.md (truncated — read the rest at this path)
++# Framework — everything it offers is organized, visual, browsable: find any thing by clicking through previews, and every layout works from mobile to 3440
++
++## Index
++
++- [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
++- [ext](./ext/) — opt-in addons; core never imports them
++- [ui](./ui/) — the template tier: components, one page each
++- [ux](./ux/) — the behavior tier: classes you can extend
++- [styles](./styles/) — the CSS strategy: four layers, one vocabulary
++- [web](/web/) — the guide tier, live (it lives at `public/web/`, not in this folder; no readme here)
++- [start](./start/) — three files, no build step, a working site (no readme yet)
++- [faq](./faq/) — short answers, code first (no readme yet)
++- [versus](./versus/) — how this compares with other choices (no readme yet)
++- [util](./util/) — small plain helper functions (no readme yet)
++- [dev](./dev/) — local-only live reload and the dev bar
++- [research](./research/) — research programs shown live (no readme yet)
++- [ai](./ai/) — the daily working log and task board
++- [ai2](./ai2/) — the dictation timeline: cards left, one card right
++- [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
++- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes (docs only)
++
++## Use
++```js /path/page.js
++import { p } from "/app.js";
++p("Hello world.");
++```
++
++## Watch out
++- Capturing is synchronous: a factory call textually after an `await` appends to the wrong captor — capture the container first, fill it in a callback: [`core/View/doc/capturing.md`](/framework/core/View/doc/capturing.md)
++- Every stylesheet restates the full `@layer base, theme, site, util;` and every rule sits in a layer — one short list silently reorders the cascade: [`styles/doc/cascade.md`](/framework/styles/doc/cascade.md)
++- `core/` and `core/new/` both ship — a typo'd import path resolves to a same-named *different* class; `instanceof` fails, nothing throws: [`doc/decisions.md`](./doc/decisions.md)
++- A POJO page whose key collides with a `Page` method (`render`) shadows it and returns nothing — `content()` is the seam: [`doc/decisions.md`](./doc/decisions.md)
++- `instantiate()` is unawaited in the App constructor — a throw outside `load()` is a silent unhandled rejection: [`doc/decisions.md`](./doc/decisions.md)
++- Rename freely inside `framework/`, alias on the way out — the sandboxes' `lib/` are downstream packages: [`doc/decisions.md`](./doc/decisions.md)
++
++public/framework/ux/readme.md (truncated — read the rest at this path)
++# UX — the behavior tier: `ui/` hands you markup, `ux/` hands you a class you can extend
++
++## Index
++
++Every module here, and what you would use it for.
++
++- [Auth](./Auth/) — login, signup, password reset and a social-login row, as one class you can extend.
++- [Content](./Content/) — cards that read and append to a `.jsonl` log: Question, Decision, Quotation, Spend.
++- [Course](./Course/) — chapters of lessons with a side rail, a reading column and a next-up card.
++- [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard.
++- [Filter](./Filter/) — a segment row plus a search box that filters several regions at once.
++- [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
++- [Pagination](./Pagination/) — a row of page buttons that remembers the current page and drives real content.
++- [Popover](./Popover/) — one popup anchored to a trigger, in the browser's top layer so no z-index fights it.
++- [Tags](./Tags/) — a chip row where you add and remove tags.
++- [Tree](./Tree/) — nested rows you can open, drag and drill into, from an array or a `Page`'s children.
++- [Wizard](./Wizard/) — the generic multi-step engine that lessons, courses and signup extend.
++- [doc](./doc/) — the tier's written rules: [system.md](./doc/system/) and [decisions.md](./doc/decisions/) (a docs folder, no readme).
++
++A **ux** is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from
++`ui/` templates and responsive from a phone to 3440. It is a class so that the next case is
++a subclass, not a fork. Eleven live today, each its own real page under `/framework/ux/` — the
++index is a wall of cards, never a tab strip (2026-09-22).
++
++|  | [`ui/`](/framework/ui/) | `ux/` |
++|---|---|---|
++| is | html + css templates | classes |
++| has | no listener, no state, no lifecycle | all three |
++| you get | markup, with a copy button | an instance, and every method is a seam |
++| a variant is | a child page — a different **thing**, not a different value | a named subclass — `class CardHero extends Card` |
++| today | 20 components | 11 — [Auth](/framework/ux/Auth/) · [Wizard](/framework/ux/Wizard/) · [Tree](/framework/ux/Tree/) · [Course](/framework/ux/Course/) · [Filter](/framework/ux/Filter/) · [Menu](/framework/ux/Menu/) · [Pagination](/framework/ux/Pagination/) · [Tags](/framework/ux/Tags/) · [Dictate](/framework/ux/Dictate/) · [Popover](/framework/ux/Popover/) · [Content](/framework/ux/Content/) |
++
++## Use
++
++The graduation rule, in one line: **a template graduates when something has to be remembered
++between renders.**
++
++```js
++// ui/  — a template. A handler at the CALL SITE does not make it behavioral.
++div.c("surface pad flex v gap", () => { h3("View"); p("…"); });
++
++public/framework/ux/Dictate/readme.md (truncated — read the rest at this path)
++# Dictate — a mic button that always shows what is happening
++
++State = which engine is listening and what it has heard so far, remembered between
++renders — the graduation rule `Filter` and `Tags` already followed, applied to a
++microphone. Built 2026-09-19 to replace `ext/Ask/mic.js`'s button, whose failures were
++silent: the owner pressed 🎤, the browser's own recording light came on, and nothing
++ever appeared — no error, no clue why.
++
++## Use
++
++```js
++import Dictate, { dictate } from "/framework/ux/Dictate/Dictate.js";
++
++new Dictate({ $input: () => this.$box, on_error: e => this.say(e) });
++// or the drop-in shape ext/Ask/mic.js's mic() used:
++dictate(() => this.$box, { on_start: () => this.open() });
++
++// no box at all — just the finished words, one segment/result at a time:
++new Dictate({ on_text: text => … });
++```
++
++`$input` may be a function (the box may not exist yet when the button is built — a
++control usually draws its buttons above its box) or the box itself. Whatever was
++already typed stays put; dictation lands after it.
++
++**`mode: "open"`** — the live open mic (`talk`, AI 2's composer): the mic stays on
++indefinitely, `on_text` fires once per finished sentence with nothing ever written into
++`$input`, and "stop after a pause" is hidden since nothing should stop it. See "Open mic"
++in [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
++
++## Voice → log
++
++Every finished utterance also becomes a log entry, not just words on screen —
++`{at, type: "prompt", by: "owner", text, via: "whisper"}` posted to Servex
++(`http://127.0.0.1:8090/log/prompts`), falling back to the dev server's own append route
++when Servex isn't up yet. See "Voice → log" in
++[`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
++
++## Watch out
++
++[You are Servex agent minion.]
++Load the `minion` skill, then: Reply with the single word: done. Use no tools.
++
++Your task is already open at public/framework/ux/Dictate/task.jsonl; don't run new-task, log there.
++```
+diff --git a/public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs b/public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs
+new file mode 100644
+index 00000000..e36ef660
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs
+@@ -0,0 +1,177 @@
++/* node public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs
++ *
++ * THE README CHAIN, PROVED against a PRIVATE Servex booted from this checkout
++ * in a child process: its own LOCALAPPDATA (a fresh scratch folder), its own
++ * ports (8196 dashboard, 8195 proxy, 8194 internal proxy, no gate, no whisper,
++ * dispatch paused, no fast assistant / master assistant / mastermind-servex —
++ * this proof needs exactly one agent), so nothing it does reaches the live
++ * Servex on 8090 or port 80.
++ *
++ * It spawns ONE cheap agent (Haiku, low effort) the same way a task
++ * mastermind would ask for one bound to a directory — `spawn_agent({role:
++ * "minion", task: {dir: "public/framework/ux/Dictate", ...}, prompt: "..."})`
++ * — and reads that agent's OWN first-turn log line (`agent_msg`, `first:
++ * true`, written by `Agent.start()` before the SDK even answers) to see
++ * exactly what its first message contained: the readme chain, prepended by
++ * `Agents.spawn()` (Servex/agents/Agents.js), built by `first_prompt()`
++ * (Servex/agents/readme-chain.js). It never has to wait for or judge the
++ * model's own reply — the thing being proved is what the agent received, not
++ * what it said back — so this is a ~30-second, near-zero-cost proof (one
++ * Haiku turn, stopped as soon as it answers).
++ *
++ * Writes this transcript to proof.md beside this file and exits. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const REPO = path.resolve(HERE, "../../../../../..");
++const SCRATCH = fs.mkdtempSync(path.join(os.tmpdir(), "readme-chain-proof-"));
++const PORT = 8196, PROXY = 8195, INTERNAL = 8194, WHISPER = 8193;
++const BASE = `http://127.0.0.1:${PORT}`;
++const OUT = path.join(HERE, "proof.md");
++const DIR = "public/framework/ux/Dictate";
++
++const sleep = ms => new Promise(r => setTimeout(r, ms));
++const t0 = Date.now(), secs = () => Math.round((Date.now() - t0) / 1000);
++const say = text => console.log(`[${String(secs()).padStart(4)}s] ${text}`);
++
++function free(port){
++	try { return !execFileSync("netstat", ["-ano"], { encoding: "utf8", windowsHide: true }).split("\n").some(l => l.includes(`:${port} `) && /LISTEN/.test(l)); }
++	catch { return true; }
++}
++
++async function http(method, url, body){
++	const res = await fetch(BASE + url, { method, headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
++	const text = await res.text();
++	try { return JSON.parse(text); } catch { return text; }
++}
++const get = url => http("GET", url);
++const post = (url, body) => http("POST", url, body);
++let rpc = 0;
++async function tool(name, args = {}){
++	const out = await post("/mcp", { jsonrpc: "2.0", id: ++rpc, method: "tools/call", params: { name, arguments: args } });
++	const text = out?.result?.content?.[0]?.text ?? JSON.stringify(out);
++	try { return JSON.parse(text); } catch { return text; }
++}
++async function until(fn, ms, every = 1000){
++	const end = Date.now() + ms;
++	while (Date.now() < end){
++		try { const v = await fn(); if (v) return v; } catch {}
++		await sleep(every);
++	}
++	return null;
++}
++
++let child = null;
++async function boot(){
++	for (const p of [PORT, PROXY, INTERNAL]) if (!free(p)) throw new Error(`port ${p} is already taken; is another proof or Servex already using it?`);
++	const local = path.join(SCRATCH, "localappdata");
++	fs.mkdirSync(path.join(local, "lew42", "servex"), { recursive: true });
++	fs.writeFileSync(path.join(local, "lew42", "servex", "dispatch.off"), "readme-chain proof\n");
++	const env = { ...process.env, LOCALAPPDATA: local, SERVEX_PORT: String(PORT), SERVEX_PROXY_PORT: String(PROXY),
++		SERVEX_PROXY_INTERNAL: String(INTERNAL), SERVEX_NO_GATE: "1", NO_WHISPER: "1", WHISPER_PORT: String(WHISPER),
++		SERVEX_NO_ASSISTANT: "1" };
++	for (const k of ["SERVEX_HOME", "SERVEX_NO_LAYERS", "SERVEX_MONITOR", "SERVEX_POLICY", "PORT"]) delete env[k];
++	const log = fs.openSync(path.join(SCRATCH, "servex-child.log"), "a");
++	child = spawn(process.execPath, ["Servex/index.js"], { cwd: REPO, env, stdio: ["ignore", log, log], windowsHide: true });
++	say(`private Servex pid ${child.pid}, port ${PORT}, LOCALAPPDATA ${local}`);
++	const up = await until(async () => Array.isArray(await get("/api/agents")), 30000, 500);
++	if (!up) throw new Error(`the private Servex did not answer on :${PORT} within 30 s; see ${path.join(SCRATCH, "servex-child.log")}`);
++}
++
++async function shutdown(){
++	if (!child) return;
++	try {
++		const live = await get("/api/agents");
++		for (const a of Array.isArray(live) ? live : []) if (a.state !== "stopped") await tool("stop_agent", { id: a.id }).catch(() => {});
++	} catch {}
++	await sleep(1000);
++	try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {}
++	say(`private Servex pid ${child.pid} stopped`);
++	child = null;
++	await until(async () => free(PORT) && free(PROXY) && free(INTERNAL), 15000, 500);
++}
++
++async function run(){
++	// confirm on disk, before spawning anything, which levels actually have a readme —
++	// what the agent's first message SHOULD contain, so the proof checks the real chain.
++	const levels = [
++		{ label: "root", dir: REPO },
++		{ label: "public/", dir: path.join(REPO, "public") },
++		{ label: "public/framework/", dir: path.join(REPO, "public/framework") },
++		{ label: "public/framework/ux/", dir: path.join(REPO, "public/framework/ux") },
++		{ label: "public/framework/ux/Dictate/", dir: path.join(REPO, DIR) }
++	];
++	const expected = levels.filter(l => fs.existsSync(path.join(l.dir, "readme.md")) || fs.existsSync(path.join(l.dir, "README.md")));
++	say(`on disk, these levels have a readme: ${expected.map(l => l.label).join(", ")}`);
++
++	await boot();
++
++	const spawned = await tool("spawn_agent", {
++		role: "minion", model: "claude-haiku-4-5-20251001", effort: "low", permission_mode: "plan",
++		task: { dir: DIR, brief: "readme-chain proof: reply with the single word done." },
++		prompt: "Reply with the single word: done. Use no tools."
++	});
++	say(`spawned ${spawned.id ?? JSON.stringify(spawned)}`);
++	if (!spawned?.id) throw new Error(`spawn_agent did not return an id: ${JSON.stringify(spawned)}`);
++
++	// the FIRST message the agent's own log recorded — written by Agent.start()
++	// before the SDK has answered at all, so this needs no wait for a real reply.
++	const first = await until(async () => {
++		const rows = await get(`/log/agent-${spawned.id}?n=20`);
++		return Array.isArray(rows) ? rows.find(e => e.type === "agent_msg" && e.first === true) : null;
++	}, 15000, 500);
++	if (!first) throw new Error("the agent's first agent_msg line never appeared within 15 s");
++	const text = first.text ?? "";
++
++	// order check: every readme this repo actually has, in the order it appears in `text`.
++	const order = [];
++	for (const l of expected){
++		const marker = l.label === "root" ? /^readme\.md/m : new RegExp(l.dir.slice(REPO.length + 1).split(path.sep).join("/") + "/readme\\.md", "i");
++		const at = text.search(marker);
++		order.push({ label: l.label, found_at: at });
++	}
++	const in_order = order.every(o => o.found_at >= 0) && order.every((o, i) => i === 0 || o.found_at > order[i - 1].found_at);
++
++	// let the cheap turn actually finish, then stop it — proof only needs the prompt, not the reply.
++	await until(async () => {
++		const row = (await get("/api/agents")).find(a => a.id === spawned.id);
++		return row && row.state !== "working" ? row : null;
++	}, 30000, 1000);
++	await tool("stop_agent", { id: spawned.id }).catch(() => {});
++
++	return { spawned, first_message: text, expected: expected.map(l => l.label), order, in_order };
++}
++
++let result = null, error = null;
++try { result = await run(); }
++catch (e){ error = String(e.stack || e); say(`ERROR ${e.message}`); }
++finally { await shutdown(); }
++
++const pass = !!result?.in_order;
++const md = [
++	"# readme-chain proof",
++	"",
++	`Run at ${new Date().toISOString()}, private Servex on port ${PORT} (proxy ${PROXY}, internal ${INTERNAL}), scratch \`${SCRATCH}\`.`,
++	"",
++	`**${pass ? "PASS" : "FAIL"}** — the test agent (\`${result?.spawned?.id ?? "?"}\`, spawned with \`task: {dir: "${DIR}"}\`, the same way a task mastermind names its own directory) received its readme chain, in order: ${result?.expected?.join(" -> ") ?? "?"}.`,
++	"",
++	"## What was expected, from disk",
++	"",
++	...(result?.order?.map(o => `- ${o.label}: ${o.found_at >= 0 ? `found at character ${o.found_at}` : "NOT FOUND"}`) ?? [`(error before this point: ${error})`]),
++	"",
++	"## The agent's actual first message",
++	"",
++	"```",
++	result?.first_message ?? "(none — see error below)",
++	"```",
++	...(error ? ["", "## Error", "", "```", error, "```"] : [])
++].join("\n") + "\n";
++fs.mkdirSync(path.dirname(OUT), { recursive: true });
++fs.writeFileSync(OUT, md);
++say(`wrote ${OUT}`);
++console.log(`\n${pass ? "PASS" : "FAIL"} — see ${OUT}`);
++process.exit(pass ? 0 : 1);
+diff --git a/public/framework/ai/2026-09-29/readme-chain/requirements-minion-1.md b/public/framework/ai/2026-09-29/readme-chain/requirements-minion-1.md
+new file mode 100644
+index 00000000..266b0d88
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/readme-chain/requirements-minion-1.md
+@@ -0,0 +1,121 @@
++# Minion 1 — readme_chain(dir) + wiring + docs + proof
++
++Load the `minion` skill first. Your brief's folder (raw owner words, task log):
++`public/framework/ai/2026-09-29/readme-chain/` (also see `requirements.md` there).
++
++You are working in worktree `C:\Code\lew42\worktrees\readme-chain` (branch `worktree/readme-chain`,
++already checked out, dev server already running — don't start or restart anything).
++Its own task log for YOUR steps: append to `public/framework/ai/2026-09-29/readme-chain/task.jsonl`
++with `node .claude/hooks/append.mjs` (write the JSON array with the Write tool first, per the
++new-task skill), same session id conventions as any minion.
++
++## The owner's ask (verbatim, from the task's requirements.md — read that file, it has the full
++quote). Short version: every agent Servex spawns FOR a directory or a page should open already
++having read the readme.md chain from the repo root down to that directory, in order, so it knows
++"where it is" before it does anything.
++
++## Architect's constraints (mastermind-servex-4, binding — read these before you build)
++
++- **Skip the root `CLAUDE.md`** — it's already injected into every agent's context separately;
++  don't duplicate it.
++- **Trim each readme to its first screen**: up to the first `## More` heading, or its first
++  **40 lines**, whichever comes first. Below that, just give the file's path so the agent can
++  read the rest itself on demand.
++- **Cap the whole chain at about 3,000 tokens** (rough: chars/4). If it's over, cut from the
++  **top** first — the most general readme (root, then `public/`, then …) gets dropped before
++  anything closer to `dir`. Always keep at least the readme for `dir` itself, if one exists.
++- **Export a `first_prompt(dir, extras = [])` seam**, not just `readme_chain(dir)`. Another
++  program (`task-placement`, building a "Recent sessions" block) will call
++  `first_prompt(dir, [{label: "Recent sessions", text: "..."}])` and get the readme-chain block
++  plus each extra's `label`/`text` appended, so it never has to touch your formatting code.
++  `readme_chain(dir)` alone should return the raw list `[{path, text, truncated}]` (so callers
++  who just want the data, not the formatted prompt, can use it too).
++
++## 1. Build `Servex/agents/readme-chain.js` (next to `brief.js`)
++
++- `readme_chain(dir)` — `dir` is a repo-relative or absolute path. Walk from the repo root down
++  to `dir`, segment by segment (root, then each path segment: e.g. for
++  `public/framework/ux/Dictate` → root, `public/`, `public/framework/`, `public/framework/ux/`,
++  `public/framework/ux/Dictate/`). At each level, look for `readme.md` or `README.md`
++  (case-insensitive — check both spellings) and include it if it exists. Skip levels with no
++  readme. Return `[{path, text, truncated}]` in root-to-leaf order, each `text` trimmed per the
++  constraints above, `truncated: true` if you cut it short.
++- `first_prompt(dir, extras = [])` — formats the chain as one labelled block: start with
++  `Where you are: readmes from the root down to <dir>`, then each readme as its path + trimmed
++  text (mark truncated ones so the agent knows to read more), then apply the ~3k token cap
++  (cut from the top), then append each of `extras` (`## <label>\n<text>`) after the chain.
++  Return the whole string.
++- Plain functions, no class needed (match `brief.js`'s style: small, pure, never throws — wrap
++  file reads in try/catch and just skip a readme it can't read).
++- A short unit-style check is enough (a `.mjs` you run by hand and delete, or add a
++  `readme-chain.test.mjs` beside `brief.js`'s siblings if you see a test pattern to match —
++  check `layers.test.mjs`/`groups.test.mjs` for the house pattern first).
++
++## 2. Wire it into the spawn paths that are FOR a directory or page
++
++Read `Servex/agents/Agents.js` around `spawn(spec)` (~line 81-102) — this is the one true spawn
++path everything else calls. The prompt is built at line 88: `this.whoami(id) + opening(spec.role,
++spec.prompt)` (fresh) or `spec.prompt` (resume/system). Add the readme chain there for a FRESH
++spawn (never a `resume` — a resumed session already has it) whose directory we can name:
++  - `spec.task?.dir` (a task mastermind, or any agent opened with `task: {dir, card, brief}` —
++    this is how `spawn_agent`'s `task` option and Dispatcher.js's dispatched tasks both work).
++  - `spec.page` if present (a page-bound agent — check `Dispatcher.js` and `Layers.js` for where
++    `page` or a page path is passed; wire it wherever a page path reaches `spawn()`).
++- Also check `Servex/agents/Layers.js` — `spec(card, role)` and `open(card, role, prompt)`
++  (~line 172-215): the card assistant/manager `prompt()` closures build the first message for a
++  FRESH card agent (`!how.resume` — check `agent.layers_fresh` at line 211). Their directory is
++  the card's own task dir, `public/framework/ai/<card>` (repo-relative) — per the sub-mastermind
++  skill's convention that a card's directory IS its task dir. Prepend the readme chain (via
++  `first_prompt`) to the `assistant(card)` and manager prompts, ONLY on a fresh spawn.
++- The ☰ **drawer's page AI**: confirm whether it's this same Layers.js assistant/manager
++  mechanism bound to a non-`ai/` page path, or something separate — grep `ext/drawer` and
++  `ext/Chat` for where it calls `spawn_agent` or talks to Layers. If it's the same mechanism,
++  no extra work; document which it is. If it's separate, wire it the same way (fresh spawn only,
++  directory = the page it's open on).
++- **Keep it OUT of plain minions** (`role: "minion"` with no `task.dir`/`page`) — a minion whose
++  brief already names a directory gets that directory named IN the brief text, not this chain;
++  don't touch the plain-minion path.
++- Read `Global.js` too (master/sub-mastermind revival spawns, ~line 115, 150) — these resume an
++  existing session or say "You are on duty. Answer nothing now." with no directory; leave them
++  alone unless you find a directory-bound fresh spawn there.
++
++## 3. Document it
++
++- `Servex/doc/readme-chain.md` (or add a section to an existing doc file if one already covers
++  Agents.js/spawn — check `Servex/doc/` first): one screen — what it does, the seam
++  (`first_prompt`), the token cap, where it's wired in, where it's deliberately left out.
++- One line each, appended (don't rewrite the file) to:
++  - `.claude/skills/sub-mastermind/SKILL.md`
++  - `.claude/skills/minion/SKILL.md`
++  Something like: "You start with the readme chain for your directory (root down to it, first
++  screen of each); read deeper docs on demand." — adjust to fit each skill's own voice and place
++  it near where the agent's opening context is already described. Ask first if a skill file says
++  not to edit it without asking (SKILL.md files don't — only the root CLAUDE.md does).
++
++## 4. Prove it
++
++Spawn a **private Servex** (don't touch the live one) and, on it, spawn a test agent bound to
++`/framework/ux/Dictate/`'s directory (`public/framework/ux/Dictate`) the same way a task
++mastermind would (`task: {dir: "public/framework/ux/Dictate", ...}` or however your wiring keys
++off a directory). Capture its actual first prompt (from the agent's own session transcript, or
++by having it echo back what it received) and confirm it contains, IN ORDER: the root readme,
++`public/`, `framework/`, `ux/`, `Dictate/` readmes (whichever of those exist — check with `ls`
++first, some levels may have none). Save the transcript/proof under
++`public/framework/ai/2026-09-29/readme-chain/proof/` (a short .md or .txt is fine) and note the
++private Servex's port so it can be checked. Stop the private Servex when done (don't leave it
++running as a hidden process — no popup windows, `windowsHide: true` on anything you spawn).
++
++## Land
++
++- Commit inside this worktree branch (`worktree/readme-chain`).
++- Log each step in the task's `task.jsonl` as you go (`decision`, `log`, not just at the end).
++- Do NOT run `Server/merge.mjs` or touch the live Servex — the mastermind (me) does the merge and
++  the one restart at the end.
++- When done, `card_reply` isn't yours to send — tell me (send_to_agent to
++  `task-mastermind-readme-chain`) that it's ready, with the commit and the proof file path.
++
++## Never
++
++No pop-up windows from any spawned process. Don't edit files outside
++`Servex/agents/`, `Servex/doc/`, `.claude/skills/sub-mastermind/`, `.claude/skills/minion/`, and
++your own task dir under `public/framework/ai/2026-09-29/readme-chain/`.
+diff --git a/public/framework/ai/2026-09-29/readme-chain/task.jsonl b/public/framework/ai/2026-09-29/readme-chain/task.jsonl
+new file mode 100644
+index 00000000..59140269
+--- /dev/null
++++ b/public/framework/ai/2026-09-29/readme-chain/task.jsonl
+@@ -0,0 +1,30 @@
++{"assign":{"session_id":"a83daa74-e2d2-40e3-90bc-8c9dbcdbffcb","tab":"minion-readme-chain-build","group":"readme-chain","request":"Build Servex/agents/readme-chain.js (readme_chain(dir) + first_prompt(dir, extras)), wire it into fresh spawns bound to a directory or page (Agents.spawn, Layers.js card assistant/manager, checked the drawer page-AI path), document it, and prove it on a private Servex spawning a test agent bound to public/framework/ux/Dictate.","requested_at":"2026-09-29T15:20:29-05:00","model":"claude-sonnet-5","window":{"before":0},"now":"reading brief and source files","steps":["read brief + Agents.js/Layers.js/Dispatcher.js/Global.js/roles.js","build Servex/agents/readme-chain.js (readme_chain + first_prompt)","write readme-chain.test.mjs, run it","wire into Agents.spawn() for fresh spawns with spec.task.dir or spec.page","wire into Layers.js assistant()/ask_manager() fresh-spawn prompts","check drawer page-AI path (ext/drawer, ext/Chat) for a separate mechanism","write Servex/doc/readme-chain.md + one-line additions to sub-mastermind and minion SKILL.md","prove it: private Servex, test agent bound to public/framework/ux/Dictate, capture transcript","commit on worktree/readme-chain and message task-mastermind-readme-chain"],"step":1}}
++{"action":{"at":"2026-09-29T15:20:48-05:00","did":"edit","files":["Servex/agents/readme-chain.js"]}}
++{"action":{"at":"2026-09-29T15:21:03-05:00","did":"edit","files":["Servex/agents/readme-chain.test.mjs"]}}
++{"assign":{"step":2,"now":"readme-chain.js + test built and passing"}}
++{"log":{"at":"2026-09-29T15:21:24-05:00","msg":"Servex/agents/readme-chain.js built: readme_chain(dir) and first_prompt(dir, extras). readme-chain.test.mjs (18 checks) passes with `node Servex/agents/readme-chain.test.mjs`, matching groups.test.mjs's house pattern."}}
++{"decision":{"at":"2026-09-29T15:21:24-05:00","question":"how to cap the whole chain at ~3k tokens, cutting the most general readme first","options":["drop whole readme entries from the top until under the char cap","trim each entry proportionally"],"chose":"drop whole readme entries from the top, always keeping at least the last (dir's own, if any)","why":"matches the architect's constraint literally and is simplest; per-entry trimming would blur which readme survives"}}
++{"action":{"at":"2026-09-29T15:21:42-05:00","did":"edit","files":["Servex/agents/Agents.js"]}}
++{"assign":{"step":4,"now":"wired into Agents.spawn(); starting Layers.js"}}
++{"log":{"at":"2026-09-29T15:22:42-05:00","msg":"Servex/agents/Agents.js: fresh spawns (not resume, not spec.system) whose spec.task.dir or spec.page names a directory now get first_prompt(dir) prepended, before whoami/opening. spec.page (a URL path like /framework/ai2/) maps to public/<page>. Plain minions with neither carry nothing extra. node --check clean; groups.test.mjs (20), layers.test.mjs (20), policy.test.mjs (35), readme-chain.test.mjs (18) all still pass. global.test.mjs's one failing assertion ('brief skips minions, shows focus') is PRE-EXISTING — reproduced with my Agents.js change stashed out, unrelated to readme-chain."}}
++{"log":{"at":"2026-09-29T15:22:42-05:00","msg":"Caveat: while checking this, a `git stash push -u` with an explicit pathspec (only my 3 files) was used twice to isolate the change for a clean before/after test, each time captured by sha via `git stash list --format`, restored with `git stash apply <sha>` (never pop), then dropped by re-finding stash@{0} by tag right after. Other files (public/framework/ai/2026/09/... page.jsonl, core/Page/jsonl/page.jsonl) show as modified in git status but were never touched by my stash or my edits — they are the live site's own concurrent writes in this worktree, left alone."}}
++{"action":{"at":"2026-09-29T15:22:47-05:00","did":"edit","files":["Servex/agents/Layers.js"]}}
++{"action":{"at":"2026-09-29T15:23:27-05:00","did":"edit","files":["Servex/agents/layers.test.mjs"]}}
++{"assign":{"step":5,"now":"checking the drawer's page-AI path"}}
++{"log":{"at":"2026-09-29T15:23:40-05:00","msg":"Servex/agents/Layers.js: the card assistant() and ask_manager() prompt closures (only ever called on the FRESH path — open()'s prompt() argument is never called on a resume) now prepend first_prompt(`public/framework/ai/${card}`) before their existing text. layers.test.mjs had two assertions anchored with `^Load the ...` and `^{\"summary\"` that broke because of the new prefix; updated both to drop the `^` anchor (content-presence check, not literal-start check) since the readme chain rightfully now comes first. All 20 layers checks pass, plus groups (20), policy (35), readme-chain (18)."}}
++{"action":{"at":"2026-09-29T15:24:11-05:00","did":"edit","files":["Servex/doc/readme-chain.md"]}}
++{"action":{"at":"2026-09-29T15:24:19-05:00","did":"edit","files":[".claude/skills/sub-mastermind/SKILL.md"]}}
++{"action":{"at":"2026-09-29T15:24:30-05:00","did":"edit","files":[".claude/skills/minion/SKILL.md"]}}
++{"assign":{"step":6,"now":"docs written; setting up the proof (private Servex)"}}
++{"decision":{"at":"2026-09-29T15:24:41-05:00","question":"the drawer's page AI (a non-card page) — same mechanism as Layers.js, or separate, or wire it fresh","options":["build a new /api/page-ai route so it can be wired","confirm it's the same mechanism and do nothing more","document that the route doesn't exist yet and leave it for whoever builds it"],"chose":"document that the route doesn't exist yet and leave it for whoever builds it","why":"grepped `page-ai` across Servex/ — zero matches; ext/drawer/tabs/ai.js's fetch to POST /api/page-ai has nothing on the server side to answer it, so it silently fails and falls back to ext/Ask's dev-server CLI bridge (a different mechanism, outside this task's fence). Building that route from scratch is a bigger feature than 'wire in the readme chain' and wasn't asked for; documented in Servex/doc/readme-chain.md under 'Left out' with the exact call the future route should make (first_prompt(page))."}}
++{"log":{"at":"2026-09-29T15:24:41-05:00","msg":"Wrote Servex/doc/readme-chain.md (what it does, the seam, the cap, where wired, what's left out) and one line each in .claude/skills/sub-mastermind/SKILL.md (after 'You were handed two things') and .claude/skills/minion/SKILL.md (after the requirements.md paragraph, distinguishing spawn_agent's task option from a plain CLI-started minion)."}}
++{"action":{"at":"2026-09-29T15:25:39-05:00","did":"edit","files":["public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs"]}}
++{"assign":{"step":8,"now":"proved it; committing"}}
++{"log":{"at":"2026-09-29T15:27:34-05:00","msg":"Servex/node_modules was missing in this worktree (only Servex/'s own package.json, npm install never run there); ran `npm install --no-audit --no-fund` inside Servex/ so the private Servex could boot (git-ignored, nothing to commit)."}}
++{"log":{"at":"2026-09-29T15:27:34-05:00","msg":"public/framework/ai/2026-09-29/readme-chain/proof/proof.mjs: boots a private Servex (port 8196, proxy 8195, internal 8194, dispatch paused, no fast assistant), spawns one Haiku minion the same way a task mastermind would (spawn_agent({role: 'minion', task: {dir: 'public/framework/ux/Dictate', ...}, ...})), and reads that agent's own first agent_msg log line (written by Agent.start() before the SDK even answers, so no need to wait for or judge a real reply). Result: PASS — the first message opened with the readme chain in order (root, public/framework/, public/framework/ux/, public/framework/ux/Dictate/; public/ itself has no readme.md so it was correctly skipped), full transcript saved at proof/proof.md. Ran it, confirmed PASS, then deleted the stray public/framework/ux/Dictate/task.jsonl the proof's own task:{dir} spawn wrote there (open_task() always writes one) — that path is outside my file fence, so it does not land."}}
++{"log":{"at":"2026-09-29T15:27:34-05:00","msg":"git status showed several public/framework/ai/2026/... page.jsonl files and core/Page/jsonl/page.jsonl modified in this worktree that I never touched — the live dev server / other concurrent activity in this shared worktree, not mine. Staged and committing only my own files (the skill lines, Agents.js, Layers.js, layers.test.mjs, readme-chain.js + its test, Servex/doc/readme-chain.md, and my own task dir), leaving those alone."}}
++{"assign":{"now":"landed","step":9}}
++{"log":{"at":"2026-09-29T15:27:37-05:00","msg":"skill: documentation"}}
++{"action":{"at":"2026-09-29T15:27:47-05:00","did":"edit","files":["Servex/agents/readme.md"]}}
++{"log":{"at":"2026-09-29T15:27:55-05:00","msg":"skill: finish-task"}}
++{"log":{"at":"2026-09-29T15:28:18-05:00","msg":"Committed a2293cef on worktree/readme-chain (13 files, +853/-6): Servex/agents/readme-chain.js + test, wired into Agents.spawn() and Layers.js, Servex/agents/readme.md + Servex/doc/readme-chain.md, one line each in .claude/skills/minion/SKILL.md and .claude/skills/sub-mastermind/SKILL.md, layers.test.mjs's two prompt assertions un-anchored, and the proof (public/framework/ai/2026-09-29/readme-chain/proof/). Reporting to task-mastermind-readme-chain, not landing this task myself (I'm minion-1; landed_at is the mastermind's own call per the minion skill)."}}

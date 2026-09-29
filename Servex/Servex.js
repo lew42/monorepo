@@ -8,6 +8,10 @@ import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
 import Monitor from "./Monitor.js";
+import TaskLoop from "./TaskLoop.js";
+import Heartbeat from "./Heartbeat.js";
+import Usage from "./Usage.js";
+import Pool from "./Pool.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
@@ -24,6 +28,8 @@ import Layers from "./agents/Layers.js";
 import Global from "./agents/Global.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
+import tidy from "./agents/tidy.js";
+import { docs_list, docs_read_file } from "./pages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -173,6 +179,25 @@ export default class Servex extends Events {
             this.monitor.on("tick", () => this.drain());
         }
 
+        /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
+         * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
+         * owning agent stopped or is gone; escalate to its card after 2 chases
+         * SERVEX_TASKLOOP_GAP_MIN apart. `root: REPO`, not process.cwd(), so a
+         * worktree's Servex chases the worktree's own tasks, never the live site's.
+         * Built always (close_task and task_loop_status stay callable either way);
+         * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
+        this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
+        if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+
+        /* THE HEARTBEAT (task-loop/heartbeat, 2026-09-29): a task owner silent
+         * SERVEX_HEARTBEAT_SILENT_MIN (5) gets a neutral status check; one that died
+         * is triaged and revived; the card hears only when that fails. A minion stuck
+         * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
+        this.heartbeat = new this.constructor.Heartbeat({ servex: this });
+        if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
+        /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
+        if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
+
         /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
          * them all. `SERVEX_NO_LAYERS=1` boots without them. */
@@ -180,6 +205,10 @@ export default class Servex extends Events {
             this.layers = new this.constructor.Layers({ servex: this }).install();
             this.global = new this.constructor.Global({ servex: this }).install();
         }
+
+        /* THE WORKTREE POOL (quickfix-worktrees, 2026-09-25): one warm worktree any agent
+         * takes with take_worktree. Pool.js and doc/pool.md. `SERVEX_NO_POOL=1` boots without it. */
+        if (!process.env.SERVEX_NO_POOL) this.pool = new this.constructor.Pool({ servex: this }).start();
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
@@ -324,7 +353,8 @@ export default class Servex extends Events {
         const runner = new Process.Whisper({
             name: "whisper", log: this.log, model, port,
             command: path.join(home, "bin", "whisper-server.exe"),
-            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port)]
+            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port),
+                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin")]
         });
 
         this.processes.set("whisper", runner);
@@ -448,6 +478,18 @@ export default class Servex extends Events {
 
         this.cards.routes(router, cors);
 
+        /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
+         * model call that cleans up a chunk of dictated text near-verbatim
+         * (typos, capitalization, punctuation, fillers only — never a
+         * rewrite). See Servex/agents/tidy.js for the prompt and options. */
+        router.options("/api/tidy", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/tidy", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
+            res.json(await tidy(body));
+        });
+
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
 
         /* The dashboard's first paint. After this it hears about every change on
@@ -488,6 +530,27 @@ export default class Servex extends Events {
 
         /* The machine monitor's latest sample, verdict, flag and spawn queue. */
         router.get("/api/system", cors, (req, res) => res.json(this.health()));
+
+        /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
+        router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+
+        /* THE DOCS TAB (servex-docs-tab, 2026-09-29) — read-only, loopback-only
+         * (guard() above already refuses non-loopback callers). `/api/docs` lists
+         * every module under Servex/ or Server/ with its own readme.md;
+         * `/api/docs/file` reads one file out of one module. All the validation
+         * (path shape, no `..`, resolved-path-stays-inside-root) lives in
+         * `docs_read_file()` in pages.js, which throws `.status` 400 or 404. */
+        router.get("/api/docs", (req, res) => {
+            try { res.json(docs_list()); }
+            catch (e){ res.status(500).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/api/docs/file", (req, res) => {
+            try {
+                const text = docs_read_file(req.query.path, req.query.file);
+                res.type(req.query.file === "demo.js" ? "text/javascript" : "text/plain").send(text);
+            } catch (e){ res.status(e.status || 400).json({ error: String(e.message || e) }); }
+        });
     }
 
     tools(){
@@ -523,6 +586,7 @@ export default class Servex extends Events {
          * tools on one door; nothing about them is special-cased here. */
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
+        for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
 
 
         this.mcp.tool("system_health", {
@@ -541,6 +605,26 @@ export default class Servex extends Events {
             const health = this.health();
             return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
         });
+
+        /* The task loop's own two tools (Servex/doc/task-loop.md). */
+        this.mcp.tool("close_task", {
+            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
+                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
+            inputSchema: { type: "object", required: ["dir"], properties: {
+                dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
+                why: { type: "string", description: "One line: why it is being closed without landing." }
+            } }
+        }, async args => JSON.stringify(await this.task_loop.close_task(args)));
+
+        this.mcp.tool("task_loop_status", {
+            description: "The task loop's latest tick: how many tasks are open today, how many are quiet, and running"
+                + " totals chased/escalated since this Servex started."
+        }, () => JSON.stringify(this.task_loop.status()));
+
+        this.mcp.tool("heartbeat_status", {
+            description: "The heartbeat: every watched task owner, how long it has been silent, whether a status check is"
+                + " waiting on an answer or it is mid-tool; minions held at the spawn gate; revives queued."
+        }, () => JSON.stringify(this.heartbeat.status(), null, 1));
     }
 
     health(){
@@ -678,7 +762,10 @@ export default class Servex extends Events {
      * running when Servex started has no child here, so it is never touched. */
     shutdown(){
         const down = () => {
+            this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
             try { this.monitor?.stop(); } catch {}
+            try { this.task_loop?.stop(); } catch {}
+            try { this.heartbeat?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
@@ -840,6 +927,9 @@ Servex.Global = Global;
 Servex.External = External;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
+Servex.TaskLoop = TaskLoop;
+Servex.Heartbeat = Heartbeat;
+Servex.Pool = Pool;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;

@@ -12,9 +12,9 @@ files(meta, names, { about: path => view | Promise<view> })
 
 `about` is called once per shown path, with the **declared** path — the same
 string that appeared in `names` — never the shortened display name. Its return
-fills a `div.c("file-about")` inside the `about` panel. It is optional:
+fills the `div.c("file-about")` column. It is optional:
 `{ about } = {}` is the whole default, and a caller that omits it gets a
-two-region browser rather than a third region drawing an empty box.
+two-column browser rather than a third column drawing an empty box.
 
 ## Placement is the reader's, not a breakpoint's
 
@@ -23,37 +23,35 @@ The pane used to be `flex: 0 1 24em` beside the source, dropping under it at
 because a `files()` call is as likely to sit inside a demo stage or a split
 pane as directly on a page, and the window's width says nothing about either.
 
-That argument was right and the mechanism is gone: `about` is an
-[ext/Panel](/framework/ext/Panel/) leaf now, seeded at two shares to the
-source's four and a half, with a **grip** between them. A reader who wants more
-prose drags for it, at any box width, without anyone having guessed a
-breakpoint. The one thing seeded rather than dragged is the axis — a column
-below 640px, a row above — because a split holds its axis at every width:
-[panels](/framework/ext/files/doc/panels/).
+That argument was right and the mechanism has changed twice since: an
+`ext/Panel` leaf briefly (2026-08-16), and as of 2026-09-28 a plain flex
+column with an [`ext/grip`](/framework/ext/grip/) strip on its right edge. A
+reader who wants more prose drags for it, at any box width, without anyone
+having guessed a breakpoint. What did NOT carry over from the panel version is
+the seeded row/column axis for a narrow screen — a narrow box now scrolls the
+whole row sideways instead of stacking the about column above the source;
+[columns](./columns.md) has the open item.
 
-The old reasoning for `flex: 0 1 24em` survives as the seed's proportions. The
-extra room on a wide screen still goes to the *source*, not the prose: a
-paragraph stretched to fill 60% of a 3440 screen is unreadable regardless of
-measure.
+The old `flex: 0 1 24em` reasoning survives as the seeded `clamp()` width in
+`files.css`. The extra room on a wide screen still goes to the *source*, not
+the prose: a paragraph stretched to fill 60% of a 3440 screen is unreadable
+regardless of measure.
 
 ## The capture trap
 
 ```js
-about: { icon: "notes", draw(){ div.c("file-about", () => about(state.path)); } }
+$about = div.c("file-about", () => about(state.path));
+// later, on a new selection:
+$about.empty(() => about(state.path));
 ```
 
-`draw` runs with the captor already on the panel's `$body`, so `div.c(…)`
-places itself. The **callback form** is what makes the fill correct either way:
-`append_fn` re-establishes the captor inside it and appends whatever the hook
-returns, so `about(path)` may hand back a view it built or a promise of one
-(`md.file()` is the second shape) and both land in the same place.
-
-The earlier flex version made the same trap twice in nine lines — the `about`
-div placed itself while the source pane had to be **returned** from an
-`.empty()` callback, because it captures nothing. Both regions are written the
-same way now, and the rule underneath is unchanged: build synchronously, or
-return what will fill in later. Calling instead of returning renders nothing,
-silently.
+Both calls hand `about(path)`'s return value to a captor that is already
+placed — `div.c`'s callback form on the way in, `.empty()`'s on every redraw
+after. `append_fn` re-establishes the captor inside either one and appends
+whatever the hook returns, so `about(path)` may hand back a view it built or a
+promise of one (`md.file()` is the second shape) and both land in the same
+place. Calling `about(path)` and dropping the return value, instead of
+returning it from the callback, renders nothing — silently.
 
 ## Who calls it
 

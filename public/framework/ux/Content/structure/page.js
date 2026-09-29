@@ -18,7 +18,7 @@ export default new Page({
 	icon: "account_tree",
 
 	content(){
-		p("Content is structure first: a few named things per section, sections nested like an outline. Every block makes one choice: a background (and so padding), or neither. The pieces are the icon card, the section and the outline.");
+		p("Content is structure first: named things in small sections, nested like an outline. The pieces are the icon card, the section and the outline; each block chooses a background (and so padding), or neither. The test is always: what is the best way to show this?");
 
 		div.c("ux-content-wall wide", () => {
 			box("Icon card, three weights", () => div.c("ux-content-icards", () => {
@@ -32,13 +32,13 @@ export default new Page({
 			}));
 			box("A section of 3 on a background = labelled navigation", () => section({ title: "Servex", bg: true, items: [
 				{ name: "Servers", icon: "dns", href: "#" }, { name: "Agents", icon: "smart_toy", href: "#" }, { name: "Cards", icon: "dashboard", href: "#" }] }));
-			box("A section of 3–5, heaviest first", () => section({ title: "Research", items: [
+			box("A section, heaviest first", () => section({ title: "Research", items: [
 				{ name: "Sources", icon: "menu_book", weight: 1 }, { name: "Question", icon: "help", weight: 3 },
 				{ name: "Claims", icon: "fact_check", weight: 2 }, { name: "Verdict", icon: "gavel", weight: 3 }, { name: "Skeptic", icon: "psychology_alt", weight: 1 }] }));
 			box("Outline: a list is a card with no background", () => outline([
 				{ name: "Page", icon: "article", children: [
-					{ name: "Sections", children: ["3–5 per page", "each titled"] },
-					{ name: "Items", children: ["3–5 per section", "named, with an icon"] },
+					{ name: "Sections", children: ["as many as it has", "each titled"] },
+					{ name: "Items", children: ["a few, named", "with an icon"] },
 					{ name: "Detail", children: ["one click down"] }] }]));
 		});
 

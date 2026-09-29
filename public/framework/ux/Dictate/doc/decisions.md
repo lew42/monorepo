@@ -300,3 +300,54 @@ stop), and `draw_caption()` keeps every settled sentence as its own line, append
 one string capped at 240 characters. Proven against a private Servex + a concatenated 3x `jfk.wav`
 clip on both `talk` and AI 2's composer: three real whisper segments, the box's `value` stayed
 `""` throughout, "stop after a pause" was absent, zero console errors — `ai/2026-09-22/open-mic/`.
+
+## The dictation box: growth, jumping, breaks and delay (2026-09-24)
+
+- **Height.** The composer box grows with the words up to `min(40vh, 12lh)` (about twelve lines), then scrolls inside itself with the newest words in view (`ext/Chat/Chat.css`, `Mic.js`).
+- **Why it jumped.** Dictate's `close_segment()` blanked the guess the instant a pause closed a segment, then waited for Whisper's final (100–300 ms): the box emptied, shrank to two lines, and grew back. `ComposerMic` now keeps the guess in `pending` until its final arrives, and never lets the box shrink while dictating (`floor_h`, released on Send). The old italic caption line sat in a fixed row, so nothing below it could move.
+- **Odd breaks.** Whisper puts `\n` between its own segments mid-speech; `transcribe()` now collapses all whitespace. A paragraph break needs a 1.5 s pause **and** a finished sentence before it.
+- **Delay.** Whisper's answer reaches the box in about 4 ms; the time is Whisper itself (~100 ms warm, ~300 ms first request) plus the final queueing behind an in-flight guess (whisper-server is one request at a time). No guess is now started once the speaker has been quiet 300 ms (`skip_partial_after_ms`).
+
+## Send modes and the delay (2026-09-24)
+
+`ComposerMic.send_mode` (in `ext/Chat/Mic.js`) decides when finished sentences leave the box: `manual` (default — only Send, so nothing can go early), `pause` (4 s of silence, only if the last sentence is finished), `sentences` (every 3 finished sentences). Send never cuts the live guess: the moving sentence is kept out of what Send reads, then redrawn into the emptied box. Try all three at [`/framework/ux/Dictate/demo/`](/framework/ux/Dictate/demo/).
+
+Delay, measured over 20 updates: Whisper answers in about 67 ms (max 283 ms); everything after the answer — filler filter, paragraphing, setting the box — is under 0.5 ms in total. The felt delay was the wait between guesses, so `resend_ms` went from 1500 to 900. Paragraph breaks need a pause of 1.5 s AND a finished sentence before it; Whisper's own newlines are collapsed to spaces.
+
+## Mic feedback, the "connecting" state, and a testing note (2026-09-29)
+
+The owner's phone (`http://10.0.0.135:8137`, plain http) played the start sound with no
+mic ever really on, and no error. Traced headless: off a secure context (https, or
+`localhost`/`127.0.0.1`/`*.localhost`), `navigator.mediaDevices` is `undefined`, but
+`window.webkitSpeechRecognition`'s CONSTRUCTOR still exists — so `detect_engine()` still
+picked `"browser"`, and `Dictate.start()` was marking state `"listening"` (which is what
+played the sound, in `ext/Chat/Mic.js`) **before** the engine had actually connected, not
+after. Fixed: a new `"connecting"` state is set first; `set_state("listening")` — and
+therefore `ext/Chat/Mic.js`'s `on_listening()` hook the start sound is wired to — now only
+fires on the REAL transition, once whisper's own `capture.start()` resolves or the browser
+engine's own `rec.onstart` fires. An instant, first-line `insecure_context_message()` check
+in `start()` also means the insecure-LAN case now errors immediately with a plain fix,
+before any engine is even asked for. Proof and every case's exact wording:
+`ai/2026-09-29/mobile-nav/`.
+
+**A real, previously-silent bug this surfaced:** `Dictate`'s own audio-capture object was
+held in `this.capture` — the same name `View.prototype.capture` already uses for an
+unrelated auto-append-to-captor flag (`core/View/View.js`). Any error path that ran BEFORE
+`start_whisper()` had assigned a real `Capture` instance (which is exactly what the new
+up-front insecure-context check does) hit `this.capture === true` (View's own default) and
+`true.stop()` threw, silently eating the error message before its text ever reached
+`$status`. Renamed the field to `this.mic` throughout `Dictate.js` and `ext/Chat/Mic.js`.
+
+**Testing note — "Not supported" in a screenshot is very likely a plain-headless artefact,
+not a mic bug.** A `NotSupportedError` (shown as "This browser can't run the audio pipeline
+dictation needs here…") is the shape Chromium gives when `AudioContext.audioWorklet` (or
+the fake/real audio backend behind it) is not usable at all — exactly what a Playwright
+run WITHOUT any fake-media flags tends to hit, since default headless Chromium has no real
+microphone and no synthetic one either. A proof that needs the mic to genuinely open —
+reaching real `"listening"`, seeing the start sound fire, exercising a mid-session failure —
+needs `chromium.launch({ args: ["--use-fake-device-for-media-stream",
+"--use-fake-ui-for-media-stream", "--use-file-for-fake-audio-capture=<abs path to a real
+wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
+(`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
+device's default tone may or may not cross the speech-loudness floor, so a real recorded
+clip (`ai/2026-09-22/whisper-servex/clip.wav` was used here) is the reliable choice.

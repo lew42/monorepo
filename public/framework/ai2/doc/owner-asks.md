@@ -161,6 +161,8 @@ boards that a later ask, or the AI 2 rebuild, replaced).
 
 2026-09-17 · [task](/framework/ai/2026-09-17/mastermind-layout-browser/) · ◐ — every AI 2 row and page is padded, but by hand in `ai2.css` (`.ai2-row` 0.55em 0.7em, `ai2.css:300`), not by one shared card word.
 
+2026-09-28 · [task](/framework/ai/2026-09-28/ai2-rail-rhythm/) · ● — every rail row now takes the site's default card padding, `--pad-card` (16px in the rail, was 8.8 × 11.2px), and one step between its parts. Why it was missing: [`why.md`](/framework/ai/2026-09-28/ai2-rail-rhythm/why.md).
+
 #### "This v3-tile should just be a card"
 > So this v3-tile should just be a card. […] The card class now exists in framework.css. The card should have that radius token built into it. We shouldn't need a new v3-tile.
 

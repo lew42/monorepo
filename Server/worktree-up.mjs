@@ -37,6 +37,7 @@ import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = path.join(ROOT, ".worktrees.json");
@@ -109,6 +110,16 @@ try {
 	process.exit(1);
 }
 
+/* Sweep every worktree for links into the main checkout (Server/junction-check.mjs) while npm ci
+   runs, and print its warning after. It never fails the up: it only tells you. */
+const junction_check = new Promise(resolve => {
+	let out = "";
+	const c = spawn(process.execPath, [path.join(ROOT, "Server", "junction-check.mjs")], { cwd: ROOT, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+	c.stdout.on("data", d => out += d); c.stderr.on("data", d => out += d);
+	c.on("error", () => resolve(null));
+	c.on("exit", code => resolve({ code, out }));
+});
+
 /* `node_modules` IS NOT IN THE WORKTREE. `git worktree add` checks out tracked
    files only, and `node_modules` is gitignored, so the fresh tree's
    `node server.js` dies on `Cannot find package 'express'` unless something
@@ -124,6 +135,11 @@ try {
    `npm ci` instead: it needs no network for packages already in the local
    npm cache from the main checkout's own install, and it cannot ever reach
    back and delete the main tree's copy. Measured 5s for these 68 packages. */
+/* GUARD (2026-09-29): npm ci empties node_modules first. If this tree's node_modules (or anything
+   in it) were a link into the main checkout, that would empty the MAIN tree's copy. Refuse. */
+try { refuse_links_into_main(target, "npm ci"); }
+catch (e) { console.error(e.message); process.exit(1); }
+
 console.log("worktree-up: running npm ci in the worktree…");
 try {
 	/* `shell: true` — without it, `npm.cmd` throws `spawnSync npm.cmd EINVAL` on
@@ -136,6 +152,9 @@ try {
 } catch (e) {
 	console.error("worktree-up: `npm ci` failed — the server will probably fail to boot.");
 }
+
+const jc = await junction_check;
+if (jc?.code === 1) console.warn(`worktree-up: WARNING — some worktree holds a link into the main checkout (not this one's fault; the up goes on):\n${jc.out.trim()}`);
 
 const port = await free_port();
 /* The log lives OUTSIDE the worktree, beside the registry — never inside

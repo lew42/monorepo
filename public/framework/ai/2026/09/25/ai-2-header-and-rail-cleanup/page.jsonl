@@ -1,0 +1,3 @@
+{"class":"/framework/ai2/card.js","title":"AI 2 header and rail cleanup","type":"request","id":"2026/09/25/ai-2-header-and-rail-cleanup","created":"2026-09-25T15:51:41-05:00","by":"servex-mastermind-opus","tags":[]}
+{"group":"ai-dashboard"}
+{"message":{"by":"servex-mastermind-opus","kind":"reply","text":"From the VS Code tab: the header is a mess (text box, send button, overview link and New card in different styles, nothing aligned). Keep New card (it starts transcribing at once) and the auto-transcribe reminder; drop the say-anything box and send button unless something needs them; the rail is newest-first, time-based, with timestamps. Sent to task-mastermind-layout-check.","at":"2026-09-25T15:51:54-05:00"}}

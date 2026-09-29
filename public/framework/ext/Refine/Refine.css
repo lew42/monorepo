@@ -1,0 +1,180 @@
+/* Refine — the four-column ladder (raw | clean | structured | brief), stacked
+   tabs under 640px, and the coverage table underneath. Structure and tokens
+   only; framework.css's ramp (--ok → --warn → --hot → --error) supplies the
+   one colour this needs. */
+
+@layer util {
+
+	.refine-picker { margin-block-end: var(--gap); }
+
+	.refine-state {
+		font-weight: 600;
+		margin-block-end: var(--gap);
+	}
+
+	/* The tab strip only shows once the ladder itself has switched to one
+	   column at a time — see the @media block below. */
+	.refine-tabs { display: none; }
+
+	/* Raw and Clean's shared wrapper (see Refine.js): a plain pass-through at
+	   1600px+ (4 real columns) and under 640px (the top tab strip drives all
+	   four the same way), a real boxed column with its own mini tabs between. */
+	.refine-rawclean { display: contents; min-width: 0; }
+	.refine-rawclean-tabs { display: none; }
+
+	.refine-ladder {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--gap);
+		align-items: start;
+	}
+
+	.refine-col {
+		min-width: 0;
+		border-inline-start: 1px solid var(--line);
+		padding-inline-start: var(--gap);
+	}
+	/* Raw is always the leftmost thing on screen, at every width — a fixed
+	   selector rather than :first-child, because between 640 and 1600px it
+	   sits one level deeper inside .refine-rawclean (behind that wrapper's own
+	   tab strip in the DOM) and would no longer count as one. */
+	.refine-col-raw, .refine-rawclean { border-inline-start: none; padding-inline-start: 0; }
+
+	.refine-col-title {
+		margin-block-start: 0;
+		text-transform: uppercase;
+		font-size: 0.85em;
+		letter-spacing: 0.04em;
+		color: var(--muted, currentColor);
+	}
+
+	/* Structured's own sub-headings ("The worry: …") sit inside a narrow column —
+	   the page's own h3 size (1.5em here, from the page's heading scale) is too
+	   big for that, so this brings it back down near body text, just bold. */
+	.refine-sec-title {
+		font-size: 1em;
+		margin-block: 0.8em 0.3em;
+	}
+	.refine-sec-title:first-child { margin-block-start: 0; }
+
+	.refine-col-body { max-height: 60vh; overflow: auto; }
+
+	.refine-raw-text { white-space: pre-wrap; }
+
+	.refine-sentence-p { margin-block: 0.4em; }
+	.refine-s-num { color: var(--muted, currentColor); font-size: 0.85em; }
+
+	.refine-sentence, .refine-raw-seg, .refine-bullet, .refine-ask { cursor: pointer; border-radius: 0.2em; }
+	/* No negative margin here: it used to pull the LI left into the space the
+	   list reserves for its own number/bullet marker, clipping "10." to "0.". */
+	.refine-bullet, .refine-ask { padding: 0.15em 0.3em; }
+
+	.refine-hit { background: color-mix(in srgb, var(--ok) 28%, transparent); }
+	.refine-selected { outline: 2px solid var(--ok); outline-offset: 1px; }
+
+	.refine-cite { color: var(--muted, currentColor); font-size: 0.85em; }
+	.refine-flag-badge { color: var(--warn); font-weight: 600; margin-inline-start: 0.4em; }
+
+	.refine-empty { color: var(--muted, currentColor); font-style: italic; }
+
+	.refine-coverage { margin-block-start: calc(var(--gap) * 2); }
+	.refine-coverage-title:not(:first-child) { margin-block-start: var(--gap); }
+
+	.refine-coverage-table, .refine-flags-table { width: 100%; border-collapse: collapse; }
+	.refine-coverage-table :is(th, td), .refine-flags-table :is(th, td) {
+		text-align: start;
+		vertical-align: top;
+		padding: 0.3em 0.6em 0.3em 0;
+		border-block-end: 1px solid var(--line);
+	}
+	.refine-coverage-table tr:hover, .refine-flags-table tr:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+
+	/* Dropped rows: warm, not an alarm — one rung of the same ramp
+	   --card-edge draws with (framework.css). Never --error/--hot: dropped is
+	   worth a look, not a failure. */
+	.refine-coverage-table tr.refine-dropped {
+		border-inline-start: 3px solid var(--warn);
+		background: color-mix(in srgb, var(--warn) 10%, transparent);
+	}
+
+	.refine-json-note { color: var(--muted, currentColor); font-size: 0.85em; margin-block-start: var(--gap); }
+
+	/* The "Dropped & flagged" strip — one truncated line per row, above the
+	   ladder, so the coverage table's own worst news doesn't wait below the
+	   fold. Empty (nothing dropped, thin or flagged) draws nothing at all. */
+	/* Capped and scrollable on purpose — a run with three dozen flags would
+	   otherwise push the whole ladder off the first screen, which is exactly
+	   the problem this strip exists to fix. */
+	.refine-strip { margin-block-end: var(--gap); max-height: 11em; overflow: auto; }
+	.refine-strip-title {
+		margin-block: 0 0.3em;
+		text-transform: uppercase;
+		font-size: 0.85em;
+		letter-spacing: 0.04em;
+		color: var(--muted, currentColor);
+	}
+	.refine-strip-row {
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		padding: 0.15em 0.3em;
+		margin-inline: -0.3em;
+		cursor: pointer;
+		border-radius: 0.2em;
+	}
+	.refine-strip-row:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+	.refine-strip-s { font-weight: 600; color: var(--muted, currentColor); }
+	.refine-strip-reason { color: var(--warn); }
+
+	/* Three columns between 640 and 1600px: Raw/Clean share one (its own mini
+	   tabs), Structured and Brief keep their own. At four full columns, the
+	   raw/clean tracks got squeezed to a few words a line as low as 1280px —
+	   measured on the real runs, not a guess. */
+	@media (max-width: 1599.98px) {
+		.refine-ladder { grid-template-columns: 1fr 1fr 1fr; }
+
+		.refine-rawclean { display: block; }
+		.refine-rawclean-tabs {
+			display: flex; gap: 0.2em;
+			border-bottom: 1px solid var(--line);
+			margin-block-end: 0.5em;
+		}
+		.refine-rawclean .refine-tab {
+			padding: 0.3em 0.6em;
+			cursor: pointer;
+			border-bottom: 2px solid transparent;
+			font-size: 0.9em;
+		}
+		.refine-rawclean .refine-tab-active { border-block-end-color: var(--ok); font-weight: 600; }
+
+		.refine-col-rc { display: none; }
+		.refine-col-rc.refine-col-active { display: block; }
+	}
+
+	@media (max-width: 640px) {
+		.refine-tabs {
+			display: flex; flex-wrap: nowrap; overflow: auto; scrollbar-width: none;
+			gap: 0.2em;
+			border-bottom: 1px solid var(--line);
+			margin-block-end: var(--gap);
+		}
+		.refine-tab {
+			padding: 0.5em 0.8em;
+			cursor: pointer;
+			white-space: nowrap;
+			border-bottom: 2px solid transparent;
+		}
+		.refine-tab-active { border-block-end-color: var(--ok); font-weight: 600; }
+
+		.refine-ladder { display: block; }
+		.refine-col { display: none; border-inline-start: none; padding-inline-start: 0; }
+		.refine-col-active { display: block; }
+
+		/* Pass-through again: the top four-way strip above drives raw and clean
+		   the same as structured and brief, so the mid-tier's own boxed wrapper
+		   and its mini Raw/Clean tabs stand down. */
+		.refine-rawclean { display: contents; }
+		.refine-rawclean-tabs { display: none; }
+	}
+}

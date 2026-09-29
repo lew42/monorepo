@@ -11,6 +11,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = path.join(ROOT, ".worktrees.json");
@@ -56,6 +57,25 @@ try {
 	});
 } catch {}
 
+// The directory itself is already gone (removed by hand, or its disk cleaned up some other
+// way) — worktree-sweep.mjs hits this whenever a registered worktree's dir vanished. There is
+// nothing dirty to protect, so skip straight to clearing git's own record of it (`worktree
+// remove` when it still lists the path, else `prune` for the leftover admin files) and the
+// registry entry, rather than the "could not read git status" refusal below, which would
+// otherwise leave a dead entry in .worktrees.json forever.
+if (!fs.existsSync(entry.path)) {
+	console.log(`worktree-down: ${entry.path} no longer exists on disk — clearing its record only.`);
+	try { execFileSync("git", ["worktree", "remove", "--force", entry.path], { cwd: ROOT, windowsHide: true }); } catch {}
+	try { execFileSync("git", ["worktree", "prune"], { cwd: ROOT, windowsHide: true }); } catch {}
+	try { execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, windowsHide: true }); }
+	catch (e) { console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`); }
+	if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
+	delete registry[name];
+	write_registry(registry);
+	console.log(`worktree-down: done.`);
+	process.exit(0);
+}
+
 let status = "";
 try {
 	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
@@ -73,8 +93,15 @@ if (status.trim()) {
 	process.exit(0);
 }
 
+/* GUARD (2026-09-29): `git worktree remove` deletes THROUGH a junction. A worktree whose
+   node_modules is a link into the main checkout would take the main tree's copy with it (how
+   the main node_modules was emptied on 09-22 and 09-29). Refuse, and keep the registry entry so
+   the sweep keeps saying so until someone removes the link. */
+try { refuse_links_into_main(entry.path, "git worktree remove"); }
+catch (e) { console.error(e.message); console.error(`worktree-down: server stopped; the worktree is left in place at ${entry.path}.`); process.exit(1); }
+
 try {
-	execFileSync("git", ["worktree", "remove", entry.path], { cwd: ROOT, stdio: "inherit" });
+	execFileSync("git", ["worktree", "remove", entry.path], { cwd: ROOT, stdio: "inherit", windowsHide: true });
 	console.log(`worktree-down: removed ${entry.path}.`);
 } catch (e) {
 	console.error(`worktree-down: \`git worktree remove\` failed — the worktree is left in place at ${entry.path}. Server is already stopped.`);
@@ -87,7 +114,7 @@ try {
 // now that the worktree using it is gone, so worktree-up.mjs can reuse the
 // same name later without `-B`.
 try {
-	execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, stdio: "inherit" });
+	execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, stdio: "inherit", windowsHide: true });
 } catch (e) {
 	console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`);
 }

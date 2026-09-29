@@ -1,0 +1,9 @@
+{
+	"input": "fixture — hand-built from owner-words.md (2026-09-29), for the view's own development",
+	"at": "2026-09-29T14:00:00-05:00",
+	"note": "Hand-written, not produced by Server/refine.mjs — minion-refine-view built this small fixture to develop the ext/Refine view before the real tool landed. Formats follow minion-a.md exactly. Replace with a real run once Server/refine.mjs has produced one.",
+	"models": { "clean": "hand", "structured": "hand", "brief": "hand", "coverage": "hand" },
+	"cost_usd": 0,
+	"words": { "raw": 310, "clean": 249, "structured": 112, "brief": 87 },
+	"coverage": { "sentences": 10, "asks": 6, "context": 3, "dropped": 1, "flags": 1 }
+}

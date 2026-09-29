@@ -1,0 +1,1 @@
+12. [accept] Standard page width is a real site-wide convention, not something this task introduced, so it's fair to leave alone here; the icon-grid width is fairly called out as a page-system concern rather than this task's to fix.

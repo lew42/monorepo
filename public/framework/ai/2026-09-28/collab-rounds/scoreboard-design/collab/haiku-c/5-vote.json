@@ -1,0 +1,4 @@
+{
+  "pick": "haiku-a",
+  "caveat": "Adopt sonnet-b's static median() method to extract and document the algorithm; haiku-a's inline calculation works but sonnet-b's static method is more maintainable and clarifies the intent."
+}

@@ -5,7 +5,26 @@ description: Run every time a task lands — the closing report the /framework/a
 
 # Finish a task
 
-Run `documentation` first if the task touched a module. Then, in order:
+Run `documentation` first if the task touched a module. Then run `node Server/review.mjs <taskdir> <worktree>` (sizes none/light/full, see `Server/doc/review.md`), answer every finding, and put `node Server/review.mjs --status <taskdir>`'s phrase ("reviewed: pass" / "reviewed: 2 fixed, 1 declined") and a link to `review.md` in the outcome. Then, in order:
+
+**Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai2/doc/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
+
+**A change the owner can see lands with a walkthrough** (the owner, 2026-09-25: "demos so simple
+and self-evident that I literally just click Next"). It's a Next / Next page, one small screen per
+step: what it is, what was done, and how to use it. Each step shows the real thing (the live element
+or a screenshot) with a one-line caption. Link it first in the outcome. A backend-only change can
+skip it.
+
+**Before you land a change anyone can see, look at the whole page at 1920, reached the way the owner reaches it (from the rail, not a direct crop).** Answer from the picture alone: what is its status, what was asked, what was delivered? A screenshot you took but didn't judge proves nothing.
+
+**The outcome is a checklist of the owner's asks, each with its proof.** One line per ask, in the owner's own words, ticked only when the proof sits beside it **At most 120 words, no paragraph over 60**: the rest goes one click down, in a linked file. After writing the landing line, run `node Server/text-check.mjs <task dir>`; if it flags the outcome, append a shorter landing line (the latest one wins). Every landing on 09-29 failed this check, because this skill never said the number.
+
+```
+- [x] newest card on top: shot rail-1920.png, the new card at row 1
+- [ ] segmented progress bar: bars are still one solid line
+```
+
+An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (The feedback council, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
 
 ## 1. Link the deliverables where a reader already is
 
@@ -32,6 +51,8 @@ board renders it in place of the generic viewer.
 {"assign": {"step": <last>, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …", "links": [{"url": "/…/", "label": "…"}], "window": {"before": <carried>, "after": <5h fraction now>}, "tokens": <total>, "usage": {"input": …, "cache_write": …, "cache_read": …, "output": …, "calls": …}}}
 ```
 
+**Give the task a plain `title`** in the same landing line (`"title": "Live card: replying hid the usage bars"`): the part it is about, then what changed, in a few words. AI 2 lists a task by it; without one it shows the request cut short, and "When I respond on that page" means nothing to the owner (2026-09-25).
+
 Optional, and only when this landing produced something the owner will go looking for later — a tier, a realm, a system, a class, a standard, a post, a tool, a study with a page — append one more line so it draws a card on the front of `/framework/ai/`: `{"assign": {"highlight": {"icon": "<one of layers explore science article build straighten>", "title": "<five words or fewer>", "line": "<one plain sentence>", "url": "<THE THING, never this task page>"}}}` — what earns one and what the six icons mean: [`ext/AITask/doc/highlights.md`](/framework/ext/AITask/doc/highlights.md).
 
 **Append the landing line with the helper.** Write it to `<scratchpad>/landing-<your-slug>.json`
@@ -48,10 +69,7 @@ one as a command substitution, the append succeeds and nothing complains (a 74-l
 `doc/decisions.md` addition landed with every code word blank, 2026-09-19). Write it to a file
 with the Write tool and append that file's bytes, whatever the extension.
 
-`window.after` from `check-claude-usage`; `tokens`/`usage` summed from
-`~/.claude/projects/<cwd-slug>/<session_id>.jsonl` (assistant lines' `message.usage`, deduped by
-`message.id`). A subagent cannot sum its own tokens (its turns are not in that file) — write
-`"tokens": null` and let the parent log the cost. `landed_at` and `outcome` go **inside** `assign`.
+`window.after` from `check-claude-usage`. Token cost is written by Servex; write `"tokens": null` if you cannot sum it. `landed_at` and `outcome` go **inside** `assign`.
 
 ## 4. Close the day
 
@@ -61,6 +79,8 @@ with the Write tool and append that file's bytes, whatever the extension.
 appended to `public/framework/ai/<date>/day.jsonl`.
 
 ## What the hooks already do
+
+`layout-check` runs by itself on landing (the ledger hook spawns `Server/on-landing.mjs`) and logs a line to your task — a flagged landing is a thing to fix, not to ignore.
 
 `.claude/hooks/ledger.mjs` logs the first edit of each file (`action`), every skill call
 (`log: skill: …`), session resume/end, and **blocks a stop** while `step < steps.length`

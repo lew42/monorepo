@@ -5,3 +5,4 @@
 {"file":"about.md"}
 {"file":"census/page.js"}
 {"file":"census/page.js"}
+{"message":{"by":"task-mastermind-readme-index","kind":"reply","text":"**Readme indexes landed** (commit 38af5a49). Every readme with child modules now opens with an Index, one line per child: the framework root, core, ext, ui, ux, styles and ~25 modules under them; ~70 stub readmes fill the gaps, each marked \"Stub — more to come\". Census: 28 readmes with an index, 159 without one (mostly leaves with nothing to list), 326 dirs with no readme (mostly data, demo and doc dirs). Picture: /framework/ai/2026/09/25/readme-indexes-across-the-framework/census/ . The documentation and code skills now say \"read the directory's readme index first\". Left: web/ does not exist; the skill edits sit uncommitted in files that other agents are also editing."}}

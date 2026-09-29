@@ -16,6 +16,17 @@ the MAIN session, never back to you, so you park forever waiting on silence.
 Both researchers who tried it stalled and needed a nudge (2026-08-30, twice in
 one day).
 
+## 0. Research must outlive your session (the owner, 2026-09-29)
+
+The research is paid for once and read many times, by agents that were never in your session. So leave four things behind:
+
+- **Save every source you cite.** Save a markdown copy, with its domain, author, date and url, in the source library at `public/framework/sources/` (its readme names the writer). A url alone rots.
+- **Cite, then conclude.** Every conclusion names the source ids it rests on, and says how sure you are (§3).
+- **Leave a snapshot.** Before your context fills, write the topic's `readme.md` as an iceberg: the core concepts first, each with a simple name and one sentence, then a link down to the detail. A fresh mastermind starts from that snapshot, never from your transcript. (Example: `Servex/ext/openrouter/`.)
+- **The owner's questions are research questions.** A question in the owner's words gets researched to a definite answer, even when it was asked in passing, out loud.
+
+Web search is cheap, so search whenever a claim could be checked, rather than reasoning from memory. A decision you reach goes through the `decide` skill: it's ranked, nested under the decision it depends on, and given a confidence.
+
 ## 1. Pick the shape
 
 | | **A topic** | **A program** |
@@ -104,6 +115,19 @@ fringe claim cannot be read as a fact. See `/imagine/research/`.
   curated pages, the legend and every entry, rendered.
 - **The front lists your `.md` pages until you write a `page.js`**, then links
   the page instead. Both come from `directory.json`, so neither needs an edit.
+
+## 6. A lesson goes where the next reader will find it
+
+A lesson worth remembering — not just a source to cite — goes in the `doc/` of the module
+it's about, as a normal doc page, citing where it came from (link to
+`public/framework/sources/<topic>/<slug>.md` when the source is saved there; a plain url
+otherwise). Only a lesson with no module to belong to — a cross-cutting finding, a fact about
+the world rather than this codebase — goes to `public/framework/sources/<topic>/lessons.md`
+(append; one lesson per heading, don't rewrite the file for one addition).
+
+Why: a lesson buried in a research log is read once, by whoever wrote it. One in the module's
+own `doc/` is read by the next agent who touches that module — the actual point of writing it
+down.
 
 ## Traps
 

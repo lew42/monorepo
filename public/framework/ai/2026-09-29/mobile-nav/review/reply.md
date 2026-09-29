@@ -1,0 +1,1 @@
+4. [accept] Rebuilding the sheet on `CardsDictate` is a real improvement but a bigger change than this pass needs — it touches a working design for a v2-shaped payoff (merging the two card styles), not a bug. Fixing the duplicate caption directly (finding 5) covers the actual defect; the rebuild is fine to leave as a named follow-up rather than doing it now.

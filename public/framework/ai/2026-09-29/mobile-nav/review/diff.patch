@@ -1,0 +1,1562 @@
+diff --git a/Server/plugins/Whisper.js b/Server/plugins/Whisper.js
+index 0a71776a..2ef97e51 100644
+--- a/Server/plugins/Whisper.js
++++ b/Server/plugins/Whisper.js
+@@ -55,6 +55,51 @@ export default class Whisper {
+         this.restarts = 0;
+         this.stopping = false;
+         server.on("listening", () => this.start());
++        server.on("express", () => this.route());
++    }
++
++    /* A dev-only, same-origin PROXY onto whisper-server — added for
++     * `ai/2026-09-29/mobile-nav/`. `ux/Dictate` hard-codes `http://127.0.0.1:8178` as
++     * its DEFAULT, and that is exactly right on THIS machine — but "127.0.0.1" means a
++     * different machine on every device, so a phone on the LAN can never reach it that
++     * way, no matter how the phone got its microphone permission. `Dictate.js`'s
++     * `default_whisper_url()` already points a non-localhost page at `<origin>/whisper`
++     * instead; these two routes are the other end of that same wire. Loopback-only guards
++     * (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this route exists
++     * so a LAN client can reach it.
++     *
++     * Forwards the request bytes and its `content-type` untouched — a whisper `/inference`
++     * POST is `multipart/form-data` with a boundary in that header, and re-building the
++     * multipart body instead of forwarding it verbatim would be strictly more code for no
++     * reason. A dead or missing whisper-server answers 502 with a plain JSON reason, which
++     * `Dictate.detect_engine()` already reads as "not reachable" (it only checks `r.ok`)
++     * and falls back to the browser's own engine — nothing new for that caller to learn. */
++    route() {
++        this.server.router.post("/whisper/inference", this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
++            try {
++                const r = await fetch(`http://127.0.0.1:${PORT}/inference`, {
++                    method: "POST",
++                    headers: { "content-type": req.headers["content-type"] || "application/octet-stream" },
++                    body: req.body,
++                    signal: AbortSignal.timeout(20000),
++                });
++                res.status(r.status);
++                const ct = r.headers.get("content-type");
++                if (ct) res.set("content-type", ct);
++                res.send(Buffer.from(await r.arrayBuffer()));
++            } catch (e) {
++                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
++            }
++        });
++
++        this.server.router.get("/whisper/", async (req, res) => {
++            try {
++                const r = await fetch(`http://127.0.0.1:${PORT}/`, { signal: AbortSignal.timeout(1500) });
++                res.status(r.status).send(await r.text());
++            } catch (e) {
++                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
++            }
++        });
+     }
+ 
+     async start() {
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 91b74b99..5de10d42 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -123,7 +123,7 @@ export class ComposerMic extends Dictate {
+ 		let mine;
+ 		try {
+ 			const gap = this.gap_before ?? 0;
+-			if (this.capture && this.worth_sending(this.capture.snapshot())){
++			if (this.mic && this.worth_sending(this.mic.snapshot())){
+ 				(this.gaps ??= []).push(gap); this.gap_before = 0;
+ 				let guess = unfill(this.partial_text ?? "");
+ 				const sent = this.dropped && this.dropped.epoch === this.segment_epoch ? this.dropped.text : "";
+@@ -152,7 +152,7 @@ export class ComposerMic extends Dictate {
+ 	}
+ 
+ 	active(){
+-		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing");
++		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing" || this.state === "connecting");
+ 	}
+ 
+ 	/* THE BOX IS WHERE THE WORDS APPEAR. Each Whisper update — the still-moving
+@@ -320,11 +320,22 @@ export class ComposerMic extends Dictate {
+ 			this.resend_ms = SETTINGS.guess_ms;
+ 			await super.start();
+ 		} finally { this.starting = false; }
+-		if (this.state === "listening"){
+-			beep("start"); this.watch_capture();
+-			clearInterval(this.auto_timer);
+-			this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
+-		}
++	}
++
++	/* THE START SOUND — moved here from the end of `start()`. `Dictate` now calls this
++	 * the INSTANT the mic is genuinely open (whisper's own `capture.start()` resolved, or
++	 * the browser engine's `rec.onstart` fired), never merely because `start()` was asked
++	 * to run. Before this, `start()` returning was treated as "it's on" — but for the
++	 * browser engine `start()` returns before Chrome has done anything at all, and on an
++	 * insecure LAN page Chrome can go on "trying" for a long time with no error, so the
++	 * chime played while nothing was actually listening (the owner's own phone report,
++	 * `ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
++	 * fires this twice for one press — Chrome's own silent mid-session restarts (still
++	 * "listening" throughout) do not replay the chime. */
++	on_listening(){
++		beep("start"); this.watch_capture();
++		clearInterval(this.auto_timer);
++		this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
+ 	}
+ 
+ 	/* WHY THE MIC "TURNED ITSELF OFF": a Windows sleep, a Bluetooth switch or an
+@@ -333,12 +344,12 @@ export class ComposerMic extends Dictate {
+ 	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
+ 	   suspended audio engine is woken the same way. */
+ 	watch_capture(){
+-		const cap = this.capture, track = cap?.stream?.getAudioTracks()[0];
++		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
+ 		if (cap?.ctx) cap.ctx.onstatechange = () => {
+ 			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
+ 		};
+ 		track?.addEventListener("ended", async () => {
+-			if (this.capture !== cap || this.state !== "listening") return;
++			if (this.mic !== cap || this.state !== "listening") return;
+ 			await this.stop();
+ 			const now = performance.now();
+ 			if (now - (this.last_revive ?? -1e9) < 5000) return this.set_error("The microphone was disconnected.");
+diff --git a/public/framework/ext/drawer/doc/decisions.md b/public/framework/ext/drawer/doc/decisions.md
+index 105ee6cb..02de1ef9 100644
+--- a/public/framework/ext/drawer/doc/decisions.md
++++ b/public/framework/ext/drawer/doc/decisions.md
+@@ -79,6 +79,60 @@ do.
+   rather than being retyped by every caller. Handing back the two views keeps
+   `empty(fn)`, the blessed re-capture form, at the call site.
+ 
++## The mobile bottom rail (2026-09-29)
++
++`rail.js`/`rail.css` — below 52em, an ✦ button (a listening sheet) and a second
++button (this same drawer's tabs), pinned to the bottom of the screen. The side
++drawer above was not a template to copy for this: it is `position: fixed`, so
++it has to restate its own width as a `padding-inline-end` reservation on
++`.app` (`--rail-push`) to keep the page from sitting behind it — two numbers,
++kept in sync by hand.
++
++- **The second button reads ⋯ "More", not ☰ "Menu" (the task mastermind,
++  2026-09-29, judging the first shots).** It launched as a second ☰, copying
++  menu.js's own glyph and label — but deliverable 1 (this same day) moved the
++  page's OWN ☰ to the top of the screen on mobile, so a second ☰ down here at
++  the bottom read as "press this again," not "here's something else," even
++  though it opens a different thing (the drawer, not the page's nav). `⋯
++  "More"` names what it actually is: a way to reach everything that doesn't
++  fit as its own button. The old glyph/label/title are prototype fields
++  (`menu_icon`, `menu_label`, `menu_title`), not hard-coded in `menu_button()`,
++  so nothing was deleted — `DrawerRail.V1` (a two-line subclass, `rail.js`)
++  restores the ☰ "Menu" look verbatim for anyone who wants it back.
++
++- **A plain, non-fixed flex child of `.app`, not `position: fixed` (the
++  option actually chosen).** `.app` is already `height: 100%; display: flex;
++  flex-direction: column` with `.pages` as its one growing row
++  (`framework.css`) — so a bar that is simply the LAST child of that column,
++  `flex: 0 0 auto`, already takes its own space and `.pages` shrinks to fit
++  above it. One layout fact (the column has three rows now, not two), nothing
++  to compute, nothing that can drift out of sync the way `--rail-push` can.
++- **The alternative the brief asked to weigh: full-height, independently-
++  scrolling sections for the whole page (rejected).** This would mean giving
++  every page a snap-scrolling, fixed-viewport-height section model instead of
++  the one long scrolling column `.pages` already is — a rewrite of how every
++  page on the site scrolls, to solve a problem ("reserve one bar's height")
++  that flexbox already solves for free. Only worth it if the rail needed to be
++  full-screen or independently scrollable itself, which it does not: it is a
++  few centimetres tall and fixed in height.
++- **A near-alternative also considered and rejected: `position: fixed` with a
++  manual `padding-block-end` reservation on `.pages`, mirroring the side
++  drawer's own `--rail-push` token.** Works, but only by re-deriving the exact
++  bookkeeping problem the flex-child answer skips entirely — a token to write,
++  a token to read, and a media query in two files that have to agree on the
++  bar's height. Chosen only when a bar needs to float OVER content on
++  purpose (the side drawer does, this one does not).
++- **The sheet itself IS `position: fixed`** (`.drawer-rail-sheet`), because it
++  is a modal-style overlay that is meant to cover content, including the rail
++  itself, while it is open — the one place in this pair where "cover, don't
++  reserve" is the right call.
++- **No error banner of its own in the sheet.** `ux/Dictate` already shows an
++  honest, specific message beside its own mic button — no device, no
++  permission, no engine reachable — and a second sentence here said the exact
++  same thing a few lines down. Mic feedback (the sound only once the mic is
++  truly on, the wording of each message) is `ux/Dictate`'s job; this sheet
++  only supplies where its widget lives and what a finished sentence becomes.
++
+ ## What will bite you
+ 
+ - **⚠ The rail mounts inside `.app`, never on `<body>`.** `color-scheme` is forced
+diff --git a/public/framework/ext/drawer/menu.js b/public/framework/ext/drawer/menu.js
+index 7617b065..647e0194 100644
+--- a/public/framework/ext/drawer/menu.js
++++ b/public/framework/ext/drawer/menu.js
+@@ -1,6 +1,7 @@
+ import { button } from "/framework/core/View/View.js";
+ import tabs from "./tabs.js";
+ import select from "./select.js";
++import rail from "./rail.js";
+ 
+ /* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
+    page could have like a little menu button in the top right… that kind of makes it
+@@ -31,6 +32,12 @@ export default function menu(app){
+ 	const routed = tabs.routed();
+ 	if (routed) app.styles_loaded().then(() => tabs.open(routed));
+ 
++	// The mobile bottom rail (rail.js) — the drawer's other way in below 52em, on
++	// every page. Hidden entirely above that breakpoint (rail.css), so this is
++	// free to call here unconditionally rather than app.js needing to know about
++	// a second piece of drawer chrome.
++	rail(app);
++
+ 	return $menu;
+ }
+ 
+diff --git a/public/framework/ext/drawer/page.js b/public/framework/ext/drawer/page.js
+index 80e9cc8a..7b27b915 100644
+--- a/public/framework/ext/drawer/page.js
++++ b/public/framework/ext/drawer/page.js
+@@ -10,9 +10,9 @@ export default new Doc({
+ 	// framework sidebar from 231px to 344px through `min-width: auto`.
+ 	icon: "view_sidebar",
+ 
+-	files: "drawer.js drawer.css menu.js tabs.js select.js page.js readme.md",
++	files: "drawer.js drawer.css menu.js tabs.js select.js rail.js rail.css page.js readme.md",
+ 	notes: "tabs select decisions",
+-	children: ["walkthrough"],
++	children: ["walkthrough", "rail"],
+ 
+ 	content(){
+ 
+@@ -28,6 +28,10 @@ export default new Doc({
+ 
+ 		md("**With the drawer open, click any paragraph on this page.** It is selected, the Element tab shows what it is, and *Ask about this* puts it in the AI tab's input as a chip: [doc/select.md](/framework/ext/drawer/doc/select/).");
+ 
++		h2("On a phone");
++
++		md("Below 52em the ☰ in the corner steps aside — a page with its own left-side sidebar draws its own ☰ there instead, so mobile nav and this drawer stop fighting for the same corner. A small bar at the bottom of the screen is the drawer's other way in: [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, a voice-to-cards sheet, screenshots and the layout decision behind it.");
++
+ 		h2("Fill it yourself");
+ 
+ 		code.js(`import { drawer } from "/app.js";
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+new file mode 100644
+index 00000000..cdefc390
+--- /dev/null
++++ b/public/framework/ext/drawer/rail.css
+@@ -0,0 +1,79 @@
++/* The mobile bottom rail (rail.js) — below 52em only, hidden entirely above it.
++   A normal flex child of `.app`, not `position: fixed`: `.app` is a 100%-height
++   column with `.pages` as its one growing row (framework.css), so this bar being
++   the LAST child of that column already takes its own space and `.pages` shrinks
++   to fit above it — no separate token to keep in sync. doc/decisions.md. */
++@layer theme {
++
++	.drawer-rail { display: none; }
++
++	@media (max-width: 52em) {
++		.drawer-rail {
++			display: flex; flex: 0 0 auto;
++			gap: 0.4em;
++			/* `env()`'s own fallback, not `max()` alone — a browser that has never
++			   heard of `env()` reads the second argument as invalid and drops the
++			   WHOLE declaration, leaving no bottom padding at all on a phone with
++			   a home-indicator strip. */
++			padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px));
++			background: var(--surface);
++			border-top: 1px solid var(--line);
++		}
++	}
++
++	.drawer-rail-ai, .drawer-rail-menu {
++		flex: 1 1 0;
++		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
++		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
++		padding: 0.3em 0.5em;
++		font: inherit; font-size: 0.7em; line-height: 1.2;
++		color: var(--subtle);
++		background: none;
++		border: 0;
++		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
++	}
++	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
++	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
++	.drawer-rail-ai { color: var(--prim); }
++	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
++
++	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
++	   too (a bottom sheet that left the tab bar showing under it would read as
++	   two floors) — closing it (✕) is the only way back to the rail. */
++	.drawer-rail-sheet {
++		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
++		display: none; flex-direction: column;
++		max-block-size: 70vh;
++		gap: calc(var(--gap) * 0.6);
++		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
++		background: var(--surface);
++		color: var(--ink);
++		border-top: 1px solid var(--line);
++		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
++		box-shadow: 0 -0.3em 1em var(--fill-a16);
++		transform: translateY(100%);
++		transition: transform 0.18s;
++	}
++	@media (max-width: 52em) {
++		.drawer-rail-sheet.on { display: flex; transform: none; }
++	}
++
++	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
++	.drawer-rail-sheet-title { font-weight: 600; }
++
++	.drawer-rail-sheet-mic { flex: 0 0 auto; }
++
++	.drawer-rail-sheet-cards {
++		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;
++		gap: 0.4em;
++	}
++	.drawer-rail-sheet-card {
++		flex: 0 0 auto;
++		padding: 0.5em 0.6em;
++		font-size: 0.9em;
++		background: var(--fill-a08);
++		border: 1px solid var(--line);
++		border-radius: calc(var(--radius) / 2);
++	}
++}
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+new file mode 100644
+index 00000000..596beae1
+--- /dev/null
++++ b/public/framework/ext/drawer/rail.js
+@@ -0,0 +1,184 @@
++import { View, div, span, button } from "/framework/core/View/View.js";
++import Dictate from "/framework/ux/Dictate/Dictate.js";
++import tabs from "./tabs.js";
++
++View.stylesheet(import.meta, "rail.css");
++
++/* THE MOBILE BOTTOM RAIL — below 52em only, the drawer's other way in (mobile-nav,
++   2026-09-29). Two controls: ✦ opens a small listening sheet (below), ⋯ opens the
++   same right-side drawer every page already has (menu.js's own button, reachable
++   here because that fixed corner button now steps aside for the page's own ☰ on a
++   page with a sidebar — drawer.css, `.app:has(.sidebar) .drawer-menu`).
++
++   ⚠ `⋯ "More"`, not a second `☰ "Menu"` (the task mastermind, 2026-09-29): the
++   page's own ☰ is now the thing at the top of the screen on mobile (deliverable
++   1), so a SECOND ☰ down here read as "do this again" rather than "here's
++   something else." `menu_icon`/`menu_label`/`menu_title` are prototype fields,
++   not hard-coded in `menu_button()`, so the ☰/"Menu" look is not deleted — it
++   is `DrawerRail.V1` below, one subclass away.
++
++   ⚠ A NORMAL flex child of `.app`, never `position: fixed` — `.app` is a
++   `height: 100%; flex-direction: column` box with `.pages` as its one growing
++   child (framework.css), so this bar sitting last in that column already takes
++   its own row and `.pages` shrinks to fit above it, with NO separate "reserve
++   this much space" token to keep in sync (the mistake the side drawer's own
++   `--rail-push` exists to fix, because THAT rail is `position: fixed` and has to
++   restate the reservation by hand). See rail.css's own note and doc/decisions.md
++   for the alternative this ruled out (full-height, independently-scrolling
++   sections) and why.
++
++   Built as a class so a later variant can subclass one method — `Sheet.card()`
++   decides what a finished utterance becomes; a variant only has to override that
++   one. css: .drawer-rail, .drawer-rail-ai, .drawer-rail-menu, .drawer-rail-sheet
++   (rail.css). Record: readme.md, doc/decisions.md. */
++export class DrawerRail extends View {
++
++	// ⚠ No `.flex` utility class here — `@layer util` beats `@layer theme`
++	// regardless of specificity, so a `.flex { display: flex }` utility would
++	// have permanently out-ranked this component's own `.drawer-rail { display:
++	// none }` above 52em (measured: the bar showed at 1920 too, css skill's own
++	// warning about this exact trap). The component owns its display; rail.css
++	// says `flex` only inside the media query that is allowed to say so.
++	render(){
++		this.ai_button();
++		this.menu_button();
++	}
++
++	// ✦ — opens the listening sheet. Built lazily (below), on the FIRST tap: a
++	// page nobody taps this on never constructs a Dictate, never checks whether
++	// an engine is reachable (code skill's own rule for the drawer's tabs, same
++	// reasoning here — this bar is on every page below 52em, so "every page pays
++	// for it" would be the wrong default).
++	ai_button(){
++		return button.c("drawer-rail-ai").attr("type", "button")
++			.attr("aria-label", "Ask, by voice — opens a listening sheet")
++			.append(() => {
++				span.c("drawer-rail-ai-icon", "✦");
++				span.c("drawer-rail-ai-label", "AI");
++			})
++			.click(() => this.open_sheet());
++	}
++
++	// The drawer's own tabs (AI, Sessions, Dictation, Settings, Admin), the exact
++	// button menu.js already draws; this is just another way to reach it. The
++	// icon/label/title are prototype fields (below), not written here, so a
++	// variant (`DrawerRail.V1`) can restore the old ☰ "Menu" look by overriding
++	// three values instead of this whole method.
++	menu_button(){
++		return button.c("drawer-rail-menu").attr("type", "button")
++			.attr("title", this.menu_title).attr("aria-label", this.menu_title)
++			.append(() => {
++				span.c("drawer-rail-menu-icon", this.menu_icon);
++				span.c("drawer-rail-menu-label", this.menu_label);
++			})
++			.click(() => tabs.toggle());
++	}
++
++	// The sheet is built once, the first time it is opened, and kept — closing it
++	// only hides it (`rc("on")`), so the second tap does not re-detect the engine
++	// or lose the transcript so far. `this.constructor.Sheet` (not `DrawerRail.Sheet`
++	// directly), so a subclass that swaps in its own Sheet is honoured.
++	open_sheet(){
++		if (!this.$sheet) this.append(() => { this.$sheet = new this.constructor.Sheet({ rail: this }); });
++		this.$sheet.open();
++		return this.$sheet;
++	}
++}
++
++/** THE SHEET — a small panel that slides up from the bottom, starts listening the
++ *  moment it opens (`mode: "open"`, ux/Dictate's own live-open-mic mode: the mic
++ *  stays on, nothing is ever written into a box, every finished sentence reaches
++ *  `on_text` instead), and turns each one into its own little card.
++ *
++ *  Dictate is used only through its public API — `new Dictate({...})` — never
++ *  its internals; this module owns none of the microphone, the engine choice or
++ *  the error wording (ux/Dictate/readme.md is the one place for that).
++ *
++ *  THE SEAM: override `card(text)` for a variant that wants a different shape
++ *  for a finished utterance (a checkbox item, a chip, a row with a delete
++ *  button) — everything else here (opening, closing, wiring the mic, showing
++ *  an error) stays the same. */
++export class DrawerRailSheet extends View {
++
++	// ⚠ No error UI of its own — `ux/Dictate` already shows an honest, specific
++	// message beside its own mic button the moment something goes wrong (no
++	// device, no permission, no engine reachable), and a second banner saying
++	// the same thing here read as a duplicate, not a help (measured 2026-09-29:
++	// the exact same sentence painted twice a few lines apart). Mic feedback
++	// itself — the sound only once the mic is truly on, the wording of each
++	// message — is `ux/Dictate`'s own job, not this sheet's.
++	render(){
++		this.head();
++		this.$mic = div.c("drawer-rail-sheet-mic");
++		this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
++		this.$cards = div.c("drawer-rail-sheet-cards flex v");
++	}
++
++	head(){
++		return div.c("drawer-rail-sheet-head flex v-center split", () => {
++			span.c("drawer-rail-sheet-title", "Ask, by voice");
++			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
++		});
++	}
++
++	// First open: build the Dictate widget INSIDE this sheet (`code` skill §1 —
++	// captured now, in a real callback, never as a bare statement left to
++	// whatever captor happens to be current at click time) and start it right
++	// away. A later open just restarts listening on the widget already here.
++	open(){
++		this.ac("on");
++		this.dictate ? this.dictate.start() : this.listen();
++		return this;
++	}
++
++	close(){
++		this.dictate?.stop();
++		this.rc("on");
++		return this;
++	}
++
++	listen(){
++		this.$mic.append(() => {
++			this.dictate = new Dictate({ mode: "open", on_text: text => this.card(text) });
++		});
++		this.dictate.start();
++	}
++
++	// THE ONE METHOD a variant overrides. Default: one small "prompt item" card
++	// per finished utterance, newest at the bottom, the list growing as the
++	// owner keeps talking (the owner's own words, 2026-09-29: "little prompt
++	// cards"). Never wipes `$cards` — each call only adds one.
++	card(text){
++		this.$empty.hide();
++		this.$cards.append(() => { div.c("drawer-rail-sheet-card").text(text); });
++	}
++}
++
++DrawerRail.Sheet = DrawerRailSheet;
++
++// ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
++// rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
++// the look by overriding three values instead of copying the whole method.
++DrawerRail.prototype.menu_icon = "⋯";
++DrawerRail.prototype.menu_label = "More";
++DrawerRail.prototype.menu_title = "AI sessions, dictation, settings, admin";
++
++/* v1 — the ☰ "Menu" button this replaced (the task mastermind, 2026-09-29: a
++   second ☰ down here, once the page's own ☰ moved to the top for deliverable 1,
++   read as "the same button twice"). Not deleted — `new DrawerRail.V1({ app })`
++   in place of `rail(app)`'s `new DrawerRail({ app })` brings it back verbatim. */
++export class DrawerRailV1 extends DrawerRail {}
++DrawerRailV1.prototype.menu_icon = "☰";
++DrawerRailV1.prototype.menu_label = "Menu";
++DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";
++DrawerRail.V1 = DrawerRailV1;
++
++// One rail per document, built the first time a page asks for it — same shape as
++// drawer.js's own singleton. Called from menu.js, so app.js needs no change: the
++// site already calls `menu(app)` once, and that is this module's only caller.
++let $rail;
++export default function rail(app){
++	return $rail ??= new DrawerRail({ app });
++}
++
++export { rail };
+diff --git a/public/framework/ext/drawer/rail/page.js b/public/framework/ext/drawer/rail/page.js
+new file mode 100644
+index 00000000..69626530
+--- /dev/null
++++ b/public/framework/ext/drawer/rail/page.js
+@@ -0,0 +1,65 @@
++import { Page, md, h2, img, code } from "/app.js";
++
++const shot = name => new URL("shots/" + name, import.meta.url).href;
++
++/* THE MOBILE BOTTOM RAIL — real screenshots, not a live embed: `rail.css` is
++ * gated by an actual VIEWPORT media query (`@media (max-width: 52em)`), which a
++ * narrow box on a wide desktop screen never trips — a container query would,
++ * but the rest of this component's chrome (`.sidebar`, the side drawer) is
++ * built the same viewport-query way, so a container query here would be one
++ * rule that behaves differently from everything around it for no real gain.
++ * Shrink this browser window below 52em (about 832px) — or open it on a phone
++ * — to see it for real. */
++export default new Page({
++	meta: import.meta,
++	title: "Mobile bottom rail",
++	description: "Below 52em: an ✦ AI button that opens a listening sheet, and an ⋯ More that reaches the drawer's tabs — the two ways into ext/drawer on a phone.",
++	icon: "smartphone",
++
++	content(){
++
++		h2("What it is");
++
++		md("Below 52em (about 832px), every page grows a small bar pinned to the bottom of the screen — two buttons: **✦** opens a listening sheet, **⋯ More** opens this same drawer on its tabs. Not a second ☰: the page's own ☰ already lives at the top of the screen there (deliverable 1's fix), so this button names what it actually is instead of repeating that glyph. Above 52em neither button exists; the side drawer's own ☰ (top right) is the whole story there.");
++
++		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ⋯ More buttons, page content unobstructed above them")
++			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
++
++		md("**Tap ✦** and a small sheet slides up: it starts listening right away ([`ux/Dictate`](/framework/ux/Dictate/), its own `mode: \"open\"`), and every finished sentence becomes its own card — the list grows as you keep talking.");
++
++		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open, showing ux/Dictate's own mic status and two prompt-item cards")
++			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
++
++		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **injected two finished utterances** straight through the sheet's public `card()` method — the same one a real dictation calls. `ux/Dictate` is used only through its own public API (`new Dictate({ mode: \"open\", on_text })`) — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
++
++		md("**Desktop is untouched.** At 1920 the rail simply does not exist — no reserved space, no hidden bar, nothing to undo:");
++
++		img().attr("src", shot("desktop-1920-no-rail.png")).attr("alt", "The same page at 1920px: no rail, no reserved space, the side drawer's own ☰ top right")
++			.style({ maxWidth: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
++
++		h2("The one seam");
++
++		md("Built as a class (`DrawerRail`, `DrawerRail.Sheet`) so a later variant only has to override **one** method — `Sheet.card(text)`, what a finished utterance becomes. Everything else (opening, closing, wiring the microphone) stays exactly the same:");
++
++		code.js(`import { DrawerRailSheet } from "/framework/ext/drawer/rail.js";
++
++class MyChecklistSheet extends DrawerRailSheet {
++    card(text){
++        // a checkbox row instead of a plain card — nothing else in the
++        // rail or the sheet needs to know this happened
++    }
++}`);
++
++		md("The rail's own second button changed once already — it launched as a second ☰ \"Menu,\" and the task mastermind judged that a repeated glyph reads as \"do this again,\" not \"here's something else,\" now that the page's own ☰ lives at the top. Nothing was deleted: `menu_icon`/`menu_label`/`menu_title` are prototype fields, and `DrawerRail.V1` is the old look, kept as a subclass rather than a comment saying what used to be here:");
++
++		code.js(`import { DrawerRail } from "/framework/ext/drawer/rail.js";
++
++// menu.js calls \`rail(app)\`, which builds \`new DrawerRail({ app })\`.
++// A caller that wants the old look builds the variant class instead:
++new DrawerRail.V1({ app });   // ☰ "Menu", verbatim`);
++
++		h2("Why a normal flex row, not position: fixed");
++
++		md("The side drawer is `position: fixed` and has to restate its own width as a `padding-inline-end` reservation on `.app` (`--rail-push`) so the page never sits behind it — two numbers that have to be kept in sync by hand. This rail skips that entirely: it is a plain, non-fixed last child of `.app`'s own `height: 100%; flex-direction: column` box, so it just takes its own row and `.pages` shrinks to fit above it — one layout fact, nothing to keep in sync. The alternative this ruled out — full-height, independently-scrolling sections for the whole page — would have meant rebuilding how every page scrolls, for a bar that only needed its own height reserved. [doc/decisions.md](/framework/ext/drawer/doc/decisions/) has the fuller record.");
++	},
++});
+diff --git a/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png b/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png
+new file mode 100644
+index 00000000..c767c408
+Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png differ
+diff --git a/public/framework/ext/drawer/rail/shots/rail-400.png b/public/framework/ext/drawer/rail/shots/rail-400.png
+new file mode 100644
+index 00000000..1bc04c33
+Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/rail-400.png differ
+diff --git a/public/framework/ext/drawer/rail/shots/sheet-cards-400.png b/public/framework/ext/drawer/rail/shots/sheet-cards-400.png
+new file mode 100644
+index 00000000..36a1cf78
+Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/sheet-cards-400.png differ
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 5a415b54..e6f63ee6 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -21,6 +21,10 @@ Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It o
+ 
+ While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+ 
++## On a phone
++
++Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet that starts listening (`ux/Dictate`, used only through its public API) and turns each finished sentence into its own card, and an **⋯ "More"** button opens this same drawer on its tabs — not a second ☰, since the page's own ☰ already lives at the top of the screen there. Built as a class so a later variant only overrides one method (`Sheet.card()`), and the old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/).
++
+ ## Sharing it
+ 
+ One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
+@@ -45,6 +49,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
+ ## More
+ 
+ - [Walkthrough](/framework/ext/drawer/walkthrough/) — seven screenshots, click Next through the whole rail
++- [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, the listening sheet, and why it's a plain flex row instead of `position: fixed`
+ - [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [Files](/framework/ext/drawer/files/) — one note per file
+-- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `page.js` (live demo)
++- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `rail.js` + `rail.css` (the mobile bottom rail and its sheet), `page.js` (live demo)
+ - The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it
+diff --git a/public/framework/ux/Dictate/Dictate.css b/public/framework/ux/Dictate/Dictate.css
+index a09965cd..0066ef77 100644
+--- a/public/framework/ux/Dictate/Dictate.css
++++ b/public/framework/ux/Dictate/Dictate.css
+@@ -28,6 +28,12 @@
+ 	/* the last segment is still in flight after the owner pressed stop. */
+ 	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+ 
++	/* asked for, not yet on — a permission prompt or a device still opening. Same pulse
++	 * as "transcribing" (both mean "wait, something is happening"), never the solid
++	 * "listening" look, which the owner's own bug report is why this state exists at all:
++	 * the mic must never LOOK live before it really is. */
++	.ux-dictate-btn.connecting { animation: ux-dictate-pulse .8s ease-in-out infinite; }
++
+ 	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
+ 
+ 	.ux-dictate-status.error { color: var(--error); }
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index a7d8c6d0..de871394 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -150,7 +150,7 @@ export default class Dictate extends View {
+ 					span("stop after a pause");
+ 				}).style("--gap", "0.3em");
+ 			}).style("--gap", "0.6em");
+-			this.$caption = div.c("ux-dictate-caption muted");
++			this.build_output();
+ 		}).style("--gap", "0.15em");
+ 
+ 		if (this.$send_on_pause) this.$send_on_pause.el.checked = !!this.send_on_pause;
+@@ -172,7 +172,7 @@ export default class Dictate extends View {
+ 		if (!this.el.isConnected) return document.removeEventListener("keydown", this.hotkey_bound);
+ 		if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== "m") return;
+ 
+-		const engaged = this.state === "listening" || this.state === "transcribing";
++		const engaged = this.state === "listening" || this.state === "transcribing" || this.state === "connecting";
+ 		const focused_here = this.el.contains(document.activeElement) || this.input()?.el === document.activeElement;
+ 		if (!engaged && !focused_here) return;
+ 
+@@ -218,20 +218,51 @@ export default class Dictate extends View {
+ 	}
+ 
+ 	name_engine(){
+-		const name = this.engine === "whisper" ? "whisper (local)" : "Chrome's built-in recognition";
+-		this.$engine.text(name + " · Ctrl+Shift+M stops");
++		const name = this.engine === "whisper" ? "Whisper on the PC" : "the browser's recognizer";
++		this.$engine.text(name + this.keyboard_hint());
++	}
++
++	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
++	 * `(pointer: coarse)` is true on a phone or tablet (the primary pointer is a finger),
++	 * false on a desktop or laptop with a mouse/trackpad — the standard, no-dependency
++	 * way to ask "is this mainly a touch device" (found from a mobile screenshot showing
++	 * the hint on a phone's own bottom sheet: `ai/2026-09-29/mobile-nav/`). */
++	keyboard_hint(){
++		try { if (globalThis.matchMedia?.("(pointer: coarse)").matches) return ""; } catch {}
++		return " · Ctrl+Shift+M stops";
+ 	}
+ 
+ 	// ---- the button ---------------------------------------------------------
+ 
+ 	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
+ 
++	/** An INSTANT, one-line check, before anything else is even tried. A browser only
++	 *  hands out a real microphone on a secure context — https, or the special-cased
++	 *  `localhost` / `127.0.0.1` / `*.localhost` — and off that, `navigator.mediaDevices`
++	 *  is simply `undefined`. But the Web Speech API's own CONSTRUCTOR still exists on an
++	 *  insecure page and quietly does nothing useful, so without this check the code would
++	 *  sail past `detect_engine()`, pick `"browser"`, and `start()` would return having
++	 *  asked Chrome to listen — with no error ever arriving. Proved headless, on a page
++	 *  loaded over this machine's own LAN address: `isSecureContext` was `false`,
++	 *  `navigator.mediaDevices` was `undefined`, and the state stayed `"listening"` for
++	 *  1.5s with no error — while the START SOUND had already played
++	 *  (`ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). */
++	insecure_context_message(){
++		if (globalThis.isSecureContext) return null;
++		const port = globalThis.location?.port ? ":" + globalThis.location.port : "";
++		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
++	}
++
+ 	async start(){
++		const insecure = this.insecure_context_message();
++		if (insecure){ this.set_error(insecure); return; }
++
+ 		this.settled = "";
+ 		this.partial_text = "";
+ 		this.segment_epoch = 0;
+ 		this.inflight = null;
+ 		this.skipped_silent = false;
++		this.cancel_connect = false;
+ 		this.on_start?.();
+ 
+ 		this.engine = await this.detect_engine();
+@@ -241,35 +272,76 @@ export default class Dictate extends View {
+ 		}
+ 		this.name_engine();
+ 		this.$button.el.dataset.engine = this.engine;
+-		this.set_state("listening");
++		// "connecting", not "listening" — the mic may still need a permission prompt
++		// answered or a device opened. `set_state("listening")` below only runs once the
++		// mic is REALLY on: after whisper's own `capture.start()` resolves, or (for the
++		// browser engine) from `rec.onstart`, never merely because we asked for it. A
++		// caller's "start sound" (`ext/Chat/Mic.js`'s `on_listening()`) is wired to that
++		// same real transition, not to this call returning.
++		this.set_state("connecting");
+ 
+ 		// One shared clock for both engines: whisper's own segment/resend timing
+ 		// (heartbeat(), whisper-only) AND the "stop after a pause" countdown
+ 		// (either engine, only when the owner has turned it on).
+ 		this.last_loud_at = performance.now();
+ 		this.timer = setInterval(() => this.heartbeat(), 200);
++		// Nothing genuinely started within a few seconds — a permission dialog nobody
++		// answered, or (should the up-front secure-context check above ever miss a case)
++		// a browser that fails this quietly. Never leaves the owner without a reason.
++		this.connect_watchdog = setTimeout(() => {
++			if (this.state === "connecting")
++				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
++		}, 8000);
+ 
+ 		try {
+ 			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
+ 		} catch (e){
+ 			this.set_error(this.explain(e));
++			return;
++		}
++		if (this.cancel_connect){   // stopped while still connecting — release what opened late
++			this.mic?.stop();
++			try { this.rec?.stop(); } catch {}
++			return;
+ 		}
++		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
++		// own `.start()` call returns long before recognition is actually live.
++		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
+ 	}
+ 
+ 	async stop(){
++		if (this.state === "connecting"){
++			// Cancel an attempt still in flight (a permission prompt the owner gave up
++			// on) instead of only ever handling "listening" — the button must still work
++			// as a stop button in the gap the owner's own bug lived in.
++			this.cancel_connect = true;
++			clearTimeout(this.connect_watchdog);
++			clearInterval(this.timer);
++			this.hide_countdown();
++			this.mic?.stop();
++			try { this.rec?.stop(); } catch {}
++			this.set_state("idle");
++			this.on_stop?.();
++			return;
++		}
+ 		if (this.state !== "listening") return;
++		clearTimeout(this.connect_watchdog);
+ 		clearInterval(this.timer);
+ 		this.hide_countdown();
+ 		this.set_state("transcribing");
+ 
+ 		if (this.engine === "whisper"){
+ 			await this.close_segment();
+-			this.capture?.stop();
+-			this.set_state("idle");
+-			// Never silence about silence: a dictation that heard nothing loud
+-			// enough to send now SAYS so, instead of just ending with an empty box.
+-			if (!this.settled && this.skipped_silent)
+-				this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
++			this.mic?.stop();
++			// close_segment() may itself have set_error()'d (whisper stopped answering
++			// mid-session) — never stamp that back to "idle" as if nothing happened.
++			if (this.state !== "error"){
++				this.set_state("idle");
++				// Never silence about silence: a dictation that heard nothing loud
++				// enough to send now SAYS so, instead of just ending with an empty box.
++				if (!this.settled && this.skipped_silent)
++					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
++			}
+ 		} else {
+ 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
+ 		}
+@@ -280,21 +352,37 @@ export default class Dictate extends View {
+ 		if (e?.name === "NotAllowedError")
+ 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
+ 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
+-		return "The microphone stopped: " + (e?.message ?? e);
++		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
++			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
++		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
++		if (e?.name === "NotSupportedError")
++			return "This browser can't run the audio pipeline dictation needs here — try Chrome, or use the browser's own speech recognition instead of Whisper.";
++		// Never just echo a raw browser message with no next step — the owner's own
++		// complaint was exactly that: an error nobody could act on. Every OTHER case
++		// above says what to check; this last resort still says what to try.
++		return `The microphone stopped (${e?.name ? e.name + ": " : ""}${e?.message ?? e}) — press 🎤 again, or reload the page if it keeps happening.`;
+ 	}
+ 
++	/* `"connecting"` is new: set the instant `start()` decides to try, before the mic
++	 * is really open — asked-for, not yet on. Only a genuine transition INTO
++	 * `"listening"` (never a same-state restatement, which Chrome's own silent
++	 * mid-session restarts would otherwise cause) fires `on_listening()` — the hook
++	 * `ext/Chat/Mic.js` plays the start sound from. */
+ 	set_state(state){
++		const was_listening = this.state === "listening";
+ 		this.state = state;
+-		this.$button.rc("listening transcribing").ac(state === "listening" || state === "transcribing" ? state : "");
+-		this.$status.rc("error").text(state === "listening" ? "listening…" : state === "transcribing" ? "finishing…" : "");
++		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
++		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
++		if (state === "listening" && !was_listening) this.on_listening?.();
+ 	}
+ 
+ 	set_error(msg){
++		clearTimeout(this.connect_watchdog);
+ 		clearInterval(this.timer);
+ 		this.hide_countdown();
+-		this.capture?.stop();
++		this.mic?.stop();
+ 		this.state = "error";
+-		this.$button.rc("listening transcribing");
++		this.$button.rc("listening transcribing connecting");
+ 		this.$status.ac("error").text(msg);
+ 		console.error("ux/Dictate:", msg);
+ 		this.on_error?.(msg);
+@@ -311,11 +399,11 @@ export default class Dictate extends View {
+ 
+ 	async start_whisper(){
+ 		const { id, label } = this.device();
+-		this.capture = new Capture({ device_id: id, device_label: label });
++		this.mic = new Capture({ device_id: id, device_label: label });
+ 		this.level = 0;
+ 		this.has_speech = false;
+ 		this.segment_started_at = this.last_partial_at = performance.now();
+-		await this.capture.start(level => this.on_level(level));
++		await this.mic.start(level => this.on_level(level));
+ 	}
+ 
+ 	/* A rough, un-calibrated loudness -> `--ux-dictate-level` (0..1), read by
+@@ -369,7 +457,7 @@ export default class Dictate extends View {
+ 		   (measured 68 ms of a 167 ms wait, about half of all segment ends). */
+ 		if (this.has_speech && performance.now() - this.last_loud_at > this.skip_partial_after_ms) return;
+ 		const epoch = this.segment_epoch;
+-		const samples = this.capture.snapshot();
++		const samples = this.mic.snapshot();
+ 		if (!this.worth_sending(samples)) return;
+ 
+ 		this.inflight = this.transcribe(samples);
+@@ -381,8 +469,8 @@ export default class Dictate extends View {
+ 	}
+ 
+ 	async close_segment(){
+-		const samples = this.capture.snapshot();
+-		this.capture.cut();
++		const samples = this.mic.snapshot();
++		this.mic.cut();
+ 		this.segment_epoch++;
+ 		this.has_speech = false;
+ 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
+@@ -399,7 +487,15 @@ export default class Dictate extends View {
+ 		this.inflight = this.transcribe(samples);
+ 		let text;
+ 		try { text = await this.inflight; }
+-		catch (e){ console.error("ux/Dictate: whisper-server did not answer for a segment:", e); return; }
++		catch (e){
++			// This is the "Whisper server unreachable" case, surfaced where it was only
++			// ever a console.error before — the owner's own words: "we don't want users
++			// to just have it not work and not know why". Ends the dictation rather than
++			// silently dropping every segment from here on.
++			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
++			this.set_error("Whisper stopped answering — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.");
++			return;
++		}
+ 		finally { this.inflight = null; }
+ 		this.commit(text);
+ 	}
+@@ -417,14 +513,14 @@ export default class Dictate extends View {
+ 	 *  220ms, so `min_speech_ms` at 120 sits in a gap with nothing in it. */
+ 	worth_sending(samples){
+ 		if (!samples.length) return false;
+-		const loud = this.last_loudness = this.capture.loudness(samples, this.speech_floor);
++		const loud = this.last_loudness = this.mic.loudness(samples, this.speech_floor);
+ 		if (loud.loud_ms >= this.min_speech_ms) return true;
+ 		this.skipped_silent = true;
+ 		return false;
+ 	}
+ 
+ 	async transcribe(samples){
+-		const wav = this.capture.wav(samples);
++		const wav = this.mic.wav(samples);
+ 		this.dump(wav, samples);
+ 		const form = new FormData();
+ 		form.append("file", wav, "segment.wav");
+@@ -461,9 +557,9 @@ export default class Dictate extends View {
+ 			let binary = "";
+ 			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
+ 				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+-			const loud = this.capture.loudness(samples, this.speech_floor);
++			const loud = this.mic.loudness(samples, this.speech_floor);
+ 			return Socket.singleton().async_rpc("append", file, { dump: {
+-				at: new Date().toISOString(), rate: this.capture.rate(), seconds: +loud.seconds.toFixed(3),
++				at: new Date().toISOString(), rate: this.mic.rate(), seconds: +loud.seconds.toFixed(3),
+ 				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
+ 				wav_base64: btoa(binary),
+ 			} });
+@@ -485,13 +581,22 @@ export default class Dictate extends View {
+ 		rec.lang = this.lang;
+ 		rec.continuous = true;
+ 		rec.interimResults = true;
++		// The ONLY place the browser engine is really live — `rec.start()` below returns
++		// long before this fires. This is what `set_state("listening")` (and therefore
++		// the start SOUND, via `on_listening()`) now waits for, instead of firing the
++		// instant `.start()` was merely called.
++		rec.onstart = () => {
++			clearTimeout(this.connect_watchdog);
++			if (this.cancel_connect){ try { rec.stop(); } catch {} return; }
++			this.set_state("listening");
++		};
+ 		rec.onresult = e => this.heard_browser(e);
+ 		rec.onerror = e => { console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error); };
+ 		// Chrome stops on its own after a few seconds of silence even with
+ 		// `continuous` — restart unless a real press asked to stop (`this.stopping`).
+ 		rec.onend = () => {
+ 			if (this.stopping){ this.stopping = false; this.set_state("idle"); }
+-			else if (this.state === "listening") rec.start();
++			else if (this.state === "listening" || this.state === "connecting") rec.start();
+ 		};
+ 		rec.start();
+ 	}
+@@ -510,8 +615,10 @@ export default class Dictate extends View {
+ 	}
+ 
+ 	browser_error(error){
++		if (error === "service-not-allowed" && this.insecure_context_message()) return this.set_error(this.insecure_context_message());
+ 		this.set_error({
+ 			"not-allowed": "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.",
++			"service-not-allowed": "Chrome's speech recognition service refused this page — allow microphone access for this site and press 🎤 again.",
+ 			"network": "Chrome's speech recognition needs the internet and that failed — try again, or start whisper for a local, offline path.",
+ 			"no-speech": "No speech was heard — try again, closer to the microphone.",
+ 			"audio-capture": "No microphone could be read — check it is plugged in and not used by another app.",
+@@ -547,7 +654,16 @@ export default class Dictate extends View {
+ 	 * (`Server/plugins/SocketServer/Append.js`, `rpc:append`) so a dictation
+ 	 * during today's setup still lands somewhere real instead of vanishing
+ 	 * once it scrolls off screen. Never throws into the caller — a log write
+-	 * failing must not break the dictation the owner is mid-sentence in. */
++	 * failing must not break the dictation the owner is mid-sentence in.
++	 *
++	 * ⚠ Neither path can reach anywhere from a LAN client that is not itself
++	 * `localhost`/`127.0.0.1`: `log_url` is `127.0.0.1:8090`, which on a phone
++	 * means the PHONE, and `Socket` — the dev-server fallback — refuses to even
++	 * open a connection off `localhost` by design (`dev/Socket/Socket.js`, "LOCALHOST
++	 * ONLY — production is static hosting with nothing to connect to"). Both
++	 * failures are already silent-safe (this `catch` only warns), so a dictation
++	 * from the phone still shows its words live; they are just never logged.
++	 * Left as-is on purpose — see "Voice → log from the LAN" in `doc/https-lan.md`. */
+ 	async log_prompt(text){
+ 		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
+ 		// clock only when the entry arrives without one; a client-side `new Date()` used
+@@ -585,6 +701,17 @@ export default class Dictate extends View {
+ 		this.on_text?.(chunk);
+ 	}
+ 
++	/** **The variant seam.** `build_output()` builds whatever holds the transcript
++	 *  (here, one muted line — `this.$caption`); `draw_caption()` repaints it every
++	 *  time a segment settles or the live guess changes. A variant with a genuinely
++	 *  different user experience — a wall of "prompt item" cards instead of one
++	 *  running line, a single-line compact strip for a toolbar — overrides ONLY
++	 *  these two methods; the whole state machine above (engines, errors, the start
++	 *  sound's real timing) is untouched and every variant inherits it for free. See
++	 *  `ux/Dictate/variants/` for the built ones, and `doc/variants.md` for how to
++	 *  write another. */
++	build_output(){ this.$caption = div.c("ux-dictate-caption muted"); }
++
+ 	/* Settled text in the page's own ink, the still-moving guess grey after it —
+ 	 * capped so a long dictation does not grow the caption without bound. Open
+ 	 * mode never runs for long unwatched (a mic left on indefinitely), so instead
+@@ -606,7 +733,22 @@ export default class Dictate extends View {
+ 	}
+ }
+ 
+-Dictate.prototype.whisper_url = "http://127.0.0.1:8178";
++/** Where to reach `whisper-server`. On this machine (`localhost`/`127.0.0.1`/`*.localhost`)
++ *  that is the direct port, unchanged. From anywhere else — a phone on the LAN — `127.0.0.1`
++ *  would mean the PHONE, so the page's own origin is used instead, and
++ *  `Server/plugins/Whisper.js`'s `/whisper/inference` + `/whisper/` proxy that same-origin
++ *  request on to the real `127.0.0.1:8178` on the machine actually running whisper-server.
++ *  This does NOT open the microphone on an insecure LAN page — that is a separate, harder
++ *  browser rule `insecure_context_message()` catches — it only means that once the mic
++ *  IS open (secure context reached some other way), reaching whisper does not require
++ *  hard-coding a loopback address that means a different machine on every device. */
++function default_whisper_url(){
++	const h = globalThis.location?.hostname;
++	const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
++	return local || !globalThis.location ? "http://127.0.0.1:8178" : globalThis.location.origin + "/whisper";
++}
++
++Dictate.prototype.whisper_url = default_whisper_url();
+ Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
+ Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
+ Dictate.prototype.lang = "en-US";
+diff --git a/public/framework/ux/Dictate/doc/decisions.md b/public/framework/ux/Dictate/doc/decisions.md
+index d858914c..e2494055 100644
+--- a/public/framework/ux/Dictate/doc/decisions.md
++++ b/public/framework/ux/Dictate/doc/decisions.md
+@@ -313,3 +313,41 @@ clip on both `talk` and AI 2's composer: three real whisper segments, the box's
+ `ComposerMic.send_mode` (in `ext/Chat/Mic.js`) decides when finished sentences leave the box: `manual` (default — only Send, so nothing can go early), `pause` (4 s of silence, only if the last sentence is finished), `sentences` (every 3 finished sentences). Send never cuts the live guess: the moving sentence is kept out of what Send reads, then redrawn into the emptied box. Try all three at [`/framework/ux/Dictate/demo/`](/framework/ux/Dictate/demo/).
+ 
+ Delay, measured over 20 updates: Whisper answers in about 67 ms (max 283 ms); everything after the answer — filler filter, paragraphing, setting the box — is under 0.5 ms in total. The felt delay was the wait between guesses, so `resend_ms` went from 1500 to 900. Paragraph breaks need a pause of 1.5 s AND a finished sentence before it; Whisper's own newlines are collapsed to spaces.
++
++## Mic feedback, the "connecting" state, and a testing note (2026-09-29)
++
++The owner's phone (`http://10.0.0.135:8137`, plain http) played the start sound with no
++mic ever really on, and no error. Traced headless: off a secure context (https, or
++`localhost`/`127.0.0.1`/`*.localhost`), `navigator.mediaDevices` is `undefined`, but
++`window.webkitSpeechRecognition`'s CONSTRUCTOR still exists — so `detect_engine()` still
++picked `"browser"`, and `Dictate.start()` was marking state `"listening"` (which is what
++played the sound, in `ext/Chat/Mic.js`) **before** the engine had actually connected, not
++after. Fixed: a new `"connecting"` state is set first; `set_state("listening")` — and
++therefore `ext/Chat/Mic.js`'s `on_listening()` hook the start sound is wired to — now only
++fires on the REAL transition, once whisper's own `capture.start()` resolves or the browser
++engine's own `rec.onstart` fires. An instant, first-line `insecure_context_message()` check
++in `start()` also means the insecure-LAN case now errors immediately with a plain fix,
++before any engine is even asked for. Proof and every case's exact wording:
++`ai/2026-09-29/mobile-nav/`.
++
++**A real, previously-silent bug this surfaced:** `Dictate`'s own audio-capture object was
++held in `this.capture` — the same name `View.prototype.capture` already uses for an
++unrelated auto-append-to-captor flag (`core/View/View.js`). Any error path that ran BEFORE
++`start_whisper()` had assigned a real `Capture` instance (which is exactly what the new
++up-front insecure-context check does) hit `this.capture === true` (View's own default) and
++`true.stop()` threw, silently eating the error message before its text ever reached
++`$status`. Renamed the field to `this.mic` throughout `Dictate.js` and `ext/Chat/Mic.js`.
++
++**Testing note — "Not supported" in a screenshot is very likely a plain-headless artefact,
++not a mic bug.** A `NotSupportedError` (shown as "This browser can't run the audio pipeline
++dictation needs here…") is the shape Chromium gives when `AudioContext.audioWorklet` (or
++the fake/real audio backend behind it) is not usable at all — exactly what a Playwright
++run WITHOUT any fake-media flags tends to hit, since default headless Chromium has no real
++microphone and no synthetic one either. A proof that needs the mic to genuinely open —
++reaching real `"listening"`, seeing the start sound fire, exercising a mid-session failure —
++needs `chromium.launch({ args: ["--use-fake-device-for-media-stream",
++"--use-fake-ui-for-media-stream", "--use-file-for-fake-audio-capture=<abs path to a real
++wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
++(`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
++device's default tone may or may not cross the speech-loudness floor, so a real recorded
++clip (`ai/2026-09-22/whisper-servex/clip.wav` was used here) is the reliable choice.
+diff --git a/public/framework/ux/Dictate/doc/https-lan.md b/public/framework/ux/Dictate/doc/https-lan.md
+new file mode 100644
+index 00000000..8de86f3c
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/https-lan.md
+@@ -0,0 +1,109 @@
++# Getting https on the LAN, so a phone's microphone works
++
++**Nothing on this machine was installed to write this page.** This is a proposal — three
++ways to do it, the recommended one first, with the exact commands for when the owner
++decides to run one. All three need the owner's own choice before anything changes.
++
++## Why this is needed at all
++
++A browser only ever hands a page the microphone on a **secure context**. That means
++either a real `https://` address, or one of a short, fixed list of addresses every
++browser treats as secure even over plain `http://`: `localhost`, `127.0.0.1`, and any
++name ending in `.localhost`. A phone opening this site by its LAN address — something
++like `http://10.0.0.135:8137` — is on NONE of those, so the browser makes
++`navigator.mediaDevices` simply not exist, silently. That is exactly what caused the
++owner's bug: the "listening" sound played, but nothing was really listening, and no
++error explained why (traced and fixed in `ai/2026-09-29/mobile-nav/` — see this
++module's own `Dictate.js`, `insecure_context_message()`). Getting an address the phone's
++browser will call secure is the only real fix; nothing in the app's own code can work
++around a rule the browser enforces before any of this app's code even runs.
++
++## Recommended: `mkcert` — a private certificate authority for this LAN
++
++**What it is, in plain words.** A real `https://` certificate normally has to be signed
++by an authority every browser already trusts (that's what costs money and needs a real
++domain name). `mkcert` is a small, free, open-source tool that makes your OWN
++computer into a trusted authority, just for your own devices — one command creates the
++authority, one more command creates a certificate for this machine's LAN address, and
++then you tell your phone to trust that authority too. After that one-time setup, this
++address is `https://` for every device you trusted it on, for as long as this machine
++keeps that same LAN address (which a home network almost always does).
++
++**Why this one, over the other two below:** it is the only option that (a) needs no
++re-setup when the dev server's PORT changes (a cert covers the whole address, any port),
++(b) works in every browser on the phone, not just one, and (c) never depends on an
++outside service being up. The one-time cost is trusting one certificate on the phone,
++which takes about a minute.
++
++**Exact steps:**
++
++1. Install `mkcert` on this Windows machine — a global tool, not an npm package, so it
++   does not touch this repo at all:
++   ```
++   winget install FiloSottile.mkcert
++   ```
++   (or `choco install mkcert` with Chocolatey, or download the `.exe` directly from
++   <https://github.com/FiloSottile/mkcert/releases> if neither is set up.)
++
++2. Create the local authority once, and a certificate for this machine's LAN address
++   (replace `10.0.0.135` with whatever `ipconfig` shows for this machine's Wi-Fi
++   adapter — it is usually stable on a home network):
++   ```
++   mkcert -install
++   mkcert 10.0.0.135 localhost 127.0.0.1
++   ```
++   This writes two files, `10.0.0.135+2.pem` (the certificate) and
++   `10.0.0.135+2-key.pem` (its private key), in the folder you ran it from.
++
++3. Point the dev server at those two files so it serves `https://` instead of `http://`.
++   This repo's `Server/` does not do this today — that is a separate, small change
++   (reading an `HTTPS_CERT`/`HTTPS_KEY` env var and calling Node's `https.createServer`
++   instead of `http.createServer` when they are set) left for whoever picks this up,
++   since it touches `Server/` and this task's fence does not include it.
++
++4. Trust the SAME authority on the phone. `mkcert -install` (step 2) printed where its
++   root certificate file is (a `rootCA.pem`, under a folder `mkcert -CAROOT` prints) —
++   send that one file to the phone (AirDrop, a USB cable, or a private link) and open
++   it there; Android and iOS both ask "install this certificate?" and walk through it.
++   This step is the only one that touches the phone at all, and it is a one-time thing
++   per phone.
++
++Once steps 3 and 4 are done, `https://10.0.0.135:<port>` opens on the phone with no
++warning, and the microphone works exactly as it does on this machine.
++
++## Alternative: a Chrome flag, zero setup, zero certificate
++
++Chrome has a flag that tells it "treat this one address as secure even over plain
++http" — perfect for a quick test, with no certificate and nothing to install:
++
++1. On the PHONE, open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
++2. Type the exact address, including the port, e.g. `http://10.0.0.135:8137`
++   (comma-separate more than one if several ports are used).
++3. Set the flag to **Enabled**, then tap **Relaunch** at the bottom of the screen.
++
++**Trade-offs against `mkcert`:** this only affects Chrome on that one phone (Safari,
++Firefox, or a second phone would each need their own flag set); the exact address —
++including the PORT — has to be re-typed every time the dev server's port changes, which
++happens whenever this repo's tasks use a different private worktree port; and it is a
++setting on that one phone's Chrome, easy to lose track of. Fastest to try RIGHT NOW,
++worst to depend on for the long run.
++
++## Alternative: a tunnel (Cloudflare Tunnel, ngrok, Tailscale)
++
++A tunnel service gives this dev server a real public (or private-network-only, for
++Tailscale) `https://` address with a certificate signed by an authority every browser
++already trusts — no flag, no certificate to install on the phone at all. The trade-off
++is a new account and a new tool to run (`cloudflared`, `ngrok`, or the Tailscale client),
++and — for the fully public tunnels (Cloudflare, ngrok) — the dev server becomes reachable
++from the whole internet, not just this LAN, while the tunnel is running. Tailscale avoids
++that specific trade-off (its addresses only work between devices on the same private
++"tailnet"), at the cost of installing the Tailscale client on both this machine and the
++phone. Reach for this option only if testing from OUTSIDE the home LAN is ever needed;
++for "my phone, my own Wi-Fi", it is more moving parts than `mkcert` for no real gain.
++
++## What this page does NOT cover
++
++Wiring the dev server itself to actually serve `https://` (step 3 above) — that is a
++`Server/` change, outside `ux/Dictate`'s own fence for this task, and belongs to whoever
++next works on `Server/`. This page is the research and the recommendation; the wiring is
++the next, separate piece of work.
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index 65d2cc07..b9c79a4c 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -31,13 +31,14 @@ export default new Doc({
+ 	icon: "mic",
+ 
+ 	files: "Dictate.js capture.js pcm-worklet.js Dictate.css page.js readme.md",
+-	notes: "handover decisions silence",
++	notes: "handover decisions silence https-lan",
+ 
+ 	children: [
+ 		"demo",
+ 		demo.page("words", words, {
+ 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
+ 		"playground",
++		"variants",
+ 	],
+ 
+ 	content(){
+@@ -45,9 +46,9 @@ export default new Doc({
+ 		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
+ 		pg.widget();
+ 
+-		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `whisper (local)` when `whisper-server` is running on this machine, `Chrome's built-in recognition` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
++		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `Whisper on the PC` when `whisper-server` is running on this machine, `the browser's recognizer` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
+ 
+-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline.");
++		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
+ 
+ 		demo.exhibit({
+ 			page: this,
+diff --git a/public/framework/ux/Dictate/playground/page.js b/public/framework/ux/Dictate/playground/page.js
+index 2558a3ca..c89741a5 100644
+--- a/public/framework/ux/Dictate/playground/page.js
++++ b/public/framework/ux/Dictate/playground/page.js
+@@ -19,6 +19,7 @@ export default new Page({
+ 		a.c("page-link").href("/framework/ux/Dictate/playground/walkthrough/").text("New here? Next / Next through it, one screen at a time →");
+ 		md("Press 🎤, or ▶ Sample for a scripted fake session — no mic needed.");
+ 		pg.widget();
++		md("Want a different LOOK on top of this same mic — mobile prompt cards, a compact toolbar line? See [Variants](/framework/ux/Dictate/variants/).");
+ 		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ });
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 854e9c68..443466fa 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -82,12 +82,28 @@ Only needed with `NO_WHISPER=1` (turns the auto-start off), or when running
+ 
+ Leave that window open; the component finds it on the next 🎤 press.
+ 
++## Variants — the same mic, a different look
++
++**A variant is a `Dictate` subclass that overrides one or two methods** — `build_output()`
++(what holds the transcript) and/or `draw_caption()` (how a settled sentence and the live guess
++are drawn). Everything else — the engines, every error message, the start sound's real timing —
++is inherited untouched. Today's box is `v1`, kept on its own url forever so a newer variant can
++never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
++
++- **v1** — today's box, unchanged.
++- **Cards** — the mobile "prompt cards" flow: each finished sentence becomes its own card.
++- **Compact** — one short line for a toolbar, never a growing block.
++
+ ## More
+ 
+ - **Starting a new round? Read [`doc/handover.md`](/framework/ux/Dictate/doc/handover/) first** — where the pieces live (`ext/Chat/Mic.js`
+   is Dictate's too), every setting, the rules learned the hard way, how to test, what is open
++- **Mic feedback and https on the LAN:** [`doc/https-lan.md`](/framework/ux/Dictate/doc/https-lan/) —
++  why the start sound could play with no error on a phone over plain http, and the cleanest way
++  to get https on the LAN so a phone's mic works at all
+ - [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
+-  the same box under `ui-contrast ui-compact`
++  the same box under `ui-contrast ui-compact` · [variants](/framework/ux/Dictate/variants/) —
++  the same mic, three different looks
+ - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the
+   segment/resend mechanics, the RMS numbers, who starts `whisper-server`
+ - [`doc/silence.md`](/framework/ux/Dictate/doc/silence/) — why whisper said "Thank you", the
+diff --git a/public/framework/ux/Dictate/variants/cards/Cards.js b/public/framework/ux/Dictate/variants/cards/Cards.js
+new file mode 100644
+index 00000000..ef7c882c
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/cards/Cards.js
+@@ -0,0 +1,43 @@
++import { div } from "../../../../core/View/View.js";
++import Dictate from "../../Dictate.js";
++
++/**
++ * **The mobile "prompt cards" flow** the owner asked for: "it just, maybe it opens up
++ * like a little transcription window, and as you start saying things, it converts that
++ * prompt into little cards — that's really what it should be, a prompt item." Every
++ * finished utterance becomes its own small card in a stack, instead of one running line
++ * of text — the shape `ext/drawer/rail.js`'s bottom sheet already builds by hand; this is
++ * the same idea turned into a genuine `Dictate` variant, so any other page can use it with
++ * one `new CardsDictate({...})` instead of copying that sheet's own drawing code.
++ *
++ * Overrides exactly two methods, per the owner's own rule ("extending the classes...
++ * cherry pick a specific method") — everything else (engines, errors, the start sound's
++ * real timing fixed in `ai/2026-09-29/mobile-nav/`) is inherited from `Dictate` untouched:
++ *
++ * - `build_output()` — a vertical card list instead of one caption line.
++ * - `draw_caption()` — repaints the WHOLE list from `this.settled_lines` (every commit()
++ *   already pushes here, in both modes) each time a segment settles or the live guess
++ *   changes; the still-moving guess is its own last, muted card.
++ *
++ * Defaults to `mode: "open"` (the mic stays on, nothing is ever written into a box) —
++ * exactly the "start listening, cards keep appearing" flow being asked for. A caller can
++ * still pass `mode: null` and a `$input` to use it as a plain dictation box with cards
++ * instead of a caption, since nothing here reads `mode` directly.
++ */
++export default class CardsDictate extends Dictate {
++
++	build_output(){
++		this.$cards = div.c("ux-dictate-cards flex v gap");
++	}
++
++	draw_caption(){
++		// `.card` is framework.css's own framed-box utility (background, border,
++		// padding, radius, all for free) — a new stylesheet here would only repeat it.
++		this.$cards.empty(() => {
++			for (const line of this.settled_lines ?? []) div.c("ux-dictate-card card", line);
++			if (this.partial_text) div.c("ux-dictate-card card muted", this.partial_text);
++		});
++	}
++}
++
++CardsDictate.prototype.mode = "open";
+diff --git a/public/framework/ux/Dictate/variants/cards/page.js b/public/framework/ux/Dictate/variants/cards/page.js
+new file mode 100644
+index 00000000..dbf5e3ac
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/cards/page.js
+@@ -0,0 +1,26 @@
++import { Page, p, div } from "/app.js";
++import CardsDictate from "./Cards.js";
++
++/* Mobile "prompt cards" — the owner's own words: "it converts that prompt into little
++ * cards — that's really what it should be, a prompt item." Press 🎤 once; it keeps
++ * listening (mode: "open") and every finished sentence becomes its own card below,
++ * instead of one growing line of text. `ext/drawer/rail.js`'s bottom sheet draws the
++ * same idea on mobile; this page is the reusable class it could be built from. */
++export default new Page({
++	meta: import.meta,
++	title: "Cards",
++	description: "Each finished sentence becomes its own card — the mobile \"prompt item\" flow.",
++	icon: "view_agenda",
++
++	files: "Cards.js",
++
++	content(){
++		p("Press 🎤 and talk. The mic stays on; each finished sentence becomes its own card below, in order, instead of one line that keeps growing. This is `CardsDictate` — a `Dictate` subclass that overrides two methods, `build_output()` and `draw_caption()` — see the file below for the whole class, about 15 lines.");
++
++		div.c("pad card flex v gap", () => { new CardsDictate({}); }).style("max-width", "32em");
++
++		p.c("muted", "Where this fits: any page that wants a running list of what was said — a voice note taker, a meeting log, the mobile AI rail's own sheet — can use this class directly instead of redrawing the same list by hand.");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new CardsDictate({}); })); },
++});
+diff --git a/public/framework/ux/Dictate/variants/compact/Compact.css b/public/framework/ux/Dictate/variants/compact/Compact.css
+new file mode 100644
+index 00000000..caeeea88
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/compact/Compact.css
+@@ -0,0 +1,30 @@
++/* Compact.js's own look: one short line, never a growing block. `css` skill: every
++ * rule lives in a layer, `theme` is the right one for a component's own look (the same
++ * layer Dictate.css itself uses). */
++@layer theme {
++
++	/* Small text, no wrap, no growth — the whole point of "compact" is that this
++	 * widget never gets taller or wider than a single toolbar row. `text-overflow:
++	 * ellipsis` is the safety net if `compact_chars` (Compact.js) still overflows this
++	 * width at a given font size — a soft cutoff, never a hard clip mid-letter. */
++	.ux-dictate-caption-compact {
++		font-size: 0.85em;
++		white-space: nowrap;
++		overflow: hidden;
++		text-overflow: ellipsis;
++		max-width: 20em;
++	}
++
++}
++
++/* `@layer util` BEATS `@layer theme` regardless of selector specificity (`code` skill,
++ * "layout and CSS that never throw") — and the checkbox row also wears the `flex`
++ * utility class (`ux-dictate-pause-opt flex v-center muted` in Dictate.js's own
++ * `render()`), which sets `display: flex` in that same util layer. A `display: none`
++ * living in `theme` above would silently lose to it, so this one rule lives in `util`
++ * instead — the one place that can actually win against a utility class. */
++@layer util {
++	/* The "stop after a pause" checkbox is a real option, but real bulk a one-line
++	 * toolbar mic can't afford — hidden here only, never on the full-size widget. */
++	.ux-dictate-compact .ux-dictate-pause-opt { display: none; }
++}
+diff --git a/public/framework/ux/Dictate/variants/compact/Compact.js b/public/framework/ux/Dictate/variants/compact/Compact.js
+new file mode 100644
+index 00000000..b7696cc3
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/compact/Compact.js
+@@ -0,0 +1,39 @@
++import { View, div } from "../../../../core/View/View.js";
++import Dictate from "../../Dictate.js";
++
++View.stylesheet(import.meta, "Compact.css");
++
++/**
++ * **The compact desktop inline variant.** Meant to sit inside a toolbar or a single
++ * form row — never a growing block of history, only ONE short line: the live guess
++ * while talking, or the last finished sentence once it settles, truncated from the
++ * front so the newest words are always the ones still visible.
++ *
++ * Overrides two methods — everything else (the button, the engine name, every error
++ * message, the start sound's real timing) is the same `Dictate` as the full-size widget:
++ *
++ * - `build_output()` — the same one `$caption` line, wearing an extra class so the
++ *   compact CSS (below) applies from the very first render, not only once something has
++ *   actually been said.
++ * - `draw_caption()` — shows only the LAST piece of text, truncated from the front,
++ *   instead of the base class's whole capped history.
++ */
++export default class CompactDictate extends Dictate {
++
++	build_output(){
++		this.ac("ux-dictate-compact");   // marks the ROOT — Compact.css uses it to hide the "stop after a
++		                                  // pause" checkbox row too: a real option, but real bulk a one-line
++		                                  // toolbar mic can't afford. `mode: "open"` would hide it for free,
++		                                  // but would also stop this variant writing into a target `$input`,
++		                                  // which its own page explicitly offers it for ("a single-line
++		                                  // quick note field") — so this hides ONLY the extra row instead.
++		this.$caption = div.c("ux-dictate-caption ux-dictate-caption-compact muted");
++	}
++
++	draw_caption(){
++		const shown = this.partial_text || this.settled_lines?.at(-1) || "";
++		this.$caption.text(shown.length > this.compact_chars ? "…" + shown.slice(-this.compact_chars) : shown);
++	}
++}
++
++CompactDictate.prototype.compact_chars = 60;   // how much of the last sentence stays visible; CSS ellipsis catches the rest
+diff --git a/public/framework/ux/Dictate/variants/compact/page.js b/public/framework/ux/Dictate/variants/compact/page.js
+new file mode 100644
+index 00000000..268c0216
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/compact/page.js
+@@ -0,0 +1,27 @@
++import { Page, p, div, span } from "/app.js";
++import CompactDictate from "./Compact.js";
++
++/* The desktop compact inline variant — meant to sit in a toolbar or a single form row,
++ * never grow. Overrides ONE method (`draw_caption()`) — the smallest possible variant,
++ * proving the seam works for a tiny change too, not only a whole new layout like Cards. */
++export default new Page({
++	meta: import.meta,
++	title: "Compact",
++	description: "One short line, never a growing block — for a toolbar or a single form row.",
++	icon: "unfold_less",
++
++	files: "Compact.js Compact.css",
++
++	content(){
++		p("Press 🎤 and talk. Only ONE short line ever shows — the live guess while you talk, or the last finished sentence once it settles, truncated from the front so the newest words stay visible. This is `CompactDictate` — a `Dictate` subclass overriding two small methods, `build_output()` and `draw_caption()`.");
++
++		div.c("pad card flex gap v-center", () => {
++			span.c("muted", "Ask something:");
++			new CompactDictate({});
++		}).style("max-width", "32em");
++
++		p.c("muted", "Where this fits: a toolbar mic that must never push its neighbours around, or a single-line \"quick note\" field.");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new CompactDictate({}); })); },
++});
+diff --git a/public/framework/ux/Dictate/variants/page.js b/public/framework/ux/Dictate/variants/page.js
+new file mode 100644
+index 00000000..2d91d038
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/page.js
+@@ -0,0 +1,25 @@
++import { Page, p } from "/app.js";
++
++/**
++ * A wall of every `Dictate` VARIANT — a variant is a subclass that overrides one or two
++ * of its methods (which one is named in the class's own doc comment: `build_output()` for
++ * the container shape, `draw_caption()` for how a settled sentence and the live guess are
++ * drawn). Nothing about the engines, the errors, or the start sound's real timing ever
++ * needs restating — every variant inherits all of that from `Dictate` untouched.
++ *
++ * **v1 is kept here on purpose, unchanged** — the owner's own rule: a new idea never
++ * deletes a working one; it becomes a sibling, reachable on its own url forever.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "Variants",
++	description: "Today's box (v1), the mobile prompt-cards flow, and a compact one-line toolbar mic — three ways of drawing the same dictation, each its own subclass.",
++	icon: "grid_view",
++
++	children: ["v1", "cards", "compact"],
++
++	content(){
++		p("Each card below is a real, working `Dictate` — press its 🎤 right on the card. Open any one for its own page: what it overrides, why, and where it fits.");
++		this.previews();
++	},
++});
+diff --git a/public/framework/ux/Dictate/variants/readme.md b/public/framework/ux/Dictate/variants/readme.md
+new file mode 100644
+index 00000000..d7a28f1d
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/readme.md
+@@ -0,0 +1,42 @@
++# Dictate variants — the same mic, a different look
++
++**What:** three working `Dictate` widgets, side by side — [v1](/framework/ux/Dictate/variants/v1/)
++(today's box, unchanged), [Cards](/framework/ux/Dictate/variants/cards/) (each finished
++sentence becomes its own card — the mobile "prompt cards" flow), and
++[Compact](/framework/ux/Dictate/variants/compact/) (one short line for a toolbar). Each is a
++plain subclass of [`Dictate`](/framework/ux/Dictate/) overriding one or two methods; none of
++them touch the mic pipeline itself — the engines, every error message, and the start sound's
++real timing (fixed in `ai/2026-09-29/mobile-nav/`) are inherited by every variant, for free.
++
++**Use:** `import CardsDictate from "/framework/ux/Dictate/variants/cards/Cards.js"; new
++CardsDictate({...});` — the exact same constructor shape as plain `Dictate`
++(`$input`, `on_text`, `on_error`, `mode`, all still work).
++
++## Write your own variant
++
++Pick the ONE thing that should look different, then override the smallest method that draws
++it:
++
++- **A different container for the transcript** (a card list, a sidebar panel, …) →
++  override `build_output()`. It runs inside `render()`'s own captor, so a bare factory call
++  (`div.c(...)`) works exactly as it would in `render()` itself.
++- **A different way of drawing a settled sentence or the live guess** → override
++  `draw_caption()`. Read `this.settled_lines` (every commit, in order, both modes) and
++  `this.partial_text` (the still-moving guess); write into whatever `build_output()` built.
++
++Never override `start()`, `stop()`, or anything else in `Dictate.js` for a look-only
++variant — those run the actual microphone and are the same for every variant on purpose.
++
++## Watch out
++
++- **`build_output()` runs ONCE, inside `render()`'s captor** — build a container there and
++  keep a reference (`this.$cards = div.c(...)`); `draw_caption()` then repaints INTO that
++  same reference every time, never rebuilds it.
++- **`this.settled_lines` already exists on the base class**, pushed by `commit()` in BOTH
++  modes — a variant never needs its own bookkeeping just to get "every sentence, in order".
++
++## More
++
++- [`Dictate`](/framework/ux/Dictate/) — the class every variant extends
++- [Playground](/framework/ux/Dictate/playground/) — the full raw/corrections/live pipeline,
++  built on plain `Dictate`
+diff --git a/public/framework/ux/Dictate/variants/v1/page.js b/public/framework/ux/Dictate/variants/v1/page.js
+new file mode 100644
+index 00000000..9645d818
+--- /dev/null
++++ b/public/framework/ux/Dictate/variants/v1/page.js
+@@ -0,0 +1,28 @@
++import { Page, p, div, textarea, span } from "/app.js";
++import Dictate from "../../Dictate.js";
++
++/* Today's UI, kept reachable on its OWN url. Nothing here changes as new variants are
++ * added — the owner's own rule: "even if the AI deems it not useful... we want at least
++ * to save the snapshot of version one so I could click back to the first version" — this
++ * page IS that snapshot. Same widget the plain `ux/Dictate` demo shows. */
++export default new Page({
++	meta: import.meta,
++	title: "v1 — today's box",
++	description: "The dictation box exactly as it has always worked: one caption line, growing settled text, a grey guess.",
++	icon: "mic",
++
++	content(){
++		p("This is the ORIGINAL `Dictate` widget, unchanged — one caption line under the button, the settled text growing in the page's own ink, the still-moving guess shown grey. Every other variant on this site is a subclass that overrides one or two of its methods; this page exists so this exact look never quietly disappears while that happens.");
++
++		let $ta, $out;
++		div.c("flex v gap", () => {
++			new Dictate({ $input: () => $ta });
++			$ta = textarea.c("ux-dictate-demo-box").attr("rows", "3")
++				.attr("placeholder", "click 🎤 and talk — or type here")
++				.on("input", () => $out.text($ta.el.value || "(empty)"));
++			$out = span.c("muted", "(empty)");
++		}).style("--gap", "calc(var(--gap) * 0.5)");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new Dictate({}); })); },
++});

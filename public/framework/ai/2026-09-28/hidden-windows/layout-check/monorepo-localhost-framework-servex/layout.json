@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/servex/",
+ "widths": {
+  "1280": {
+   "empty": 0.73,
+   "widest_text": 597,
+   "widest_text_sample": "(port 80). It runs the Claude agents, st",
+   "overflow_x": false,
+   "items": 23,
+   "narrow_share": 0.174
+  },
+  "1920": {
+   "empty": 0.791,
+   "widest_text": 635,
+   "widest_text_sample": "(port 80). It runs the Claude agents, st",
+   "overflow_x": false,
+   "items": 23,
+   "narrow_share": 0.783
+  },
+  "2560": {
+   "empty": 0.791,
+   "widest_text": 715,
+   "widest_text_sample": "(port 80). It runs the Claude agents, st",
+   "overflow_x": false,
+   "items": 23,
+   "narrow_share": 0.783
+  },
+  "3440": {
+   "empty": 0.836,
+   "widest_text": 715,
+   "widest_text_sample": "(port 80). It runs the Claude agents, st",
+   "overflow_x": false,
+   "items": 23,
+   "narrow_share": 0.783
+  }
+ },
+ "errors": []
+}

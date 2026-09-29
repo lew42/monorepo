@@ -15,6 +15,16 @@ drawer.close();       // what the ✕ calls
 drawer.showing();     // is it open
 ```
 
+## The ☰ and its tabs
+
+Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on five routed tabs — AI, Sessions, Dictation, Settings, Admin (`tabs.js`, `tabs/*.js`), plus Element while something is selected; off the dev server only AI, Sessions and Dictation show; `?drawer=sessions` opens on Sessions. The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
+
+While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+
+## On a phone
+
+Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet that starts listening (`ux/Dictate`, used only through its public API) and turns each finished sentence into its own card, and an **⋯ "More"** button opens this same drawer on its tabs — not a second ☰, since the page's own ☰ already lives at the top of the screen there. Built as a class so a later variant only overrides one method (`Sheet.card()`), and the old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/).
+
 ## Sharing it
 
 One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
@@ -34,9 +44,12 @@ One box, any number of callers — `ext/layout` fills it with a selected element
 - Below `26rem` the rail is the whole sheet; that breakpoint mirrors `--rail-floor`'s default by hand · [doc/decisions.md](./doc/decisions.md)
 - `drawer()` runs on every redraw — a listener on the returned rail is wired once, behind a flag · [doc/decisions.md](./doc/decisions.md)
 - `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside DevBar (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)
+- Below 52em, the ☰ hides itself when the page has its own `.sidebar` (`core/Sidebar`) — that panel draws a native ☰ in the same corner, and the two used to fight for every tap. `.drawer-menu-v1` on `.app` brings this one back there too · [doc/decisions.md](./doc/decisions.md)
 
 ## More
 
-- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [doc/file/](./doc/file/) — one note per file
-- Files that matter: `drawer.js` (shell, push, ✕, the width), `drawer.css` (strip, sheet, z-index), `page.js` (live demo)
+- [Walkthrough](/framework/ext/drawer/walkthrough/) — seven screenshots, click Next through the whole rail
+- [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, the listening sheet, and why it's a plain flex row instead of `position: fixed`
+- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [Files](/framework/ext/drawer/files/) — one note per file
+- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `rail.js` + `rail.css` (the mobile bottom rail and its sheet), `page.js` (live demo)
 - The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it

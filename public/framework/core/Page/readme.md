@@ -1,47 +1,36 @@
 # Page — a folder with a `page.js` or `page.jsonl` is a page: a url, some content, and children.
 
+This module has an expert: ask it with `ask_expert core/Page …` (Servex).
+
 ## Index
+
+[make](./make/) — five ways to make a page, each with its code and its live result — start here
+[layout](./layout/) — the layout hub: the five shapes, how to choose one, and every layout page on the site
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
-[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js` (no readme yet)
-[overview](./overview/) — the wall of one picture card per page building block; start here to see what a page can be made of
-[old](./old/) — the first Page docs, kept as reference while the Overview replaces them
-[tools](./tools/) — a small link-checking script (`links.mjs`), not a page (no readme yet)
+[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js`, trimmed to the two-line case
+[overview](./overview/) — the wall of one picture card per page building block
+[old](./old/) — the first Page docs, kept as reference
+`tools/links.mjs` — a link-checking script, not a page
+[doc](./doc/) — every method, property and topic in full
 
+## Five ways to make a page
 
-## Use
-A `page.js` is one file. The folder is the route, and `children:` names the folders beneath it, in menu order:
+All five are on the **[Make a page](./make/)** tab, each with its code and its live result.
 
-```js
-import { Page, md } from "/app.js";
+1. **`page.js`** — one file. The folder is the url, `children:` is the menu. [overview/page](./overview/page/)
+2. **`page.jsonl`** — the same page, as a log; line 1 builds it, later lines call one method each. [jsonl](./jsonl/)
+3. **`route(name)`** — a url nobody declared, resolved the moment it's asked for; no `children:` at all. [overview/route](./overview/route/)
+4. **Folders, with no `children:` list** — a child built from a name read straight off disk. [overview/folders](./overview/folders/)
+5. **A readme as the page** — the content is the module's own `readme.md`. [make/readme-page](./make/readme-page/)
 
-export default new Page({
-    meta: import.meta,
-    title: "Docs",
-    children: "intro guide api",
-    content(){ md("Hello."); this.previews(); },
-});
-```
-
-A `page.jsonl` is the same thing as a log. Line 1 builds the page; every later line calls one method on it:
-
-```
-{"title": "Notes", "icon": "description"}
-{"place": "note.md"}
-```
-
-Nothing crawls: a page exists once its parent's `children:` (or a `file` line) names it. A `.md` beside a page is a page too, once something links to it.
-
-**Route everything.** Anything a reader can see should have its own url, so reload and Back land where they were. A doc swapped in place (`swap_link`) already does: it pushes `<page>/md/<doc>/`. [doc/open.md](./doc/open.md)
+Nothing crawls: a page exists once its parent's `children:` (or a `file` line, or `route()`/`child()`) names it.
 
 ## Read next
-- [`doc/navigation.md`](./doc/navigation.md) — children, menus, where links open
-- [`doc/layout-overview.md`](./doc/layout-overview.md) — the page grid, columns, containers, padding
-- [`doc/columns.md`](./doc/columns.md) — `columns()` in full
-- [`doc/jsonl.md`](./doc/jsonl.md) — pages that are log files
-- [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) — `.md` files as pages, and where a click opens
-- [`doc/words.md`](./doc/words.md) — the six page words (`width`, `content`, `surface`, …)
-- [`doc/api.md`](./doc/api.md) — every method and property
-- [`doc/watch-out.md`](./doc/watch-out.md) — the traps, one line each
-- [`doc/more-features.md`](./doc/more-features.md) — children from data, `related:`, `md/`
-- [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) — the record
-- Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)
+
+**Layout** — [layout](./layout/), the hub: the five shapes, how to choose one, and every layout page on the site.
+
+**Navigation** — [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
+
+**Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
+
+**Reference** — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)

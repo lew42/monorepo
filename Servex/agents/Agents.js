@@ -7,6 +7,7 @@ import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
+import { first_prompt } from "./readme-chain.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -70,14 +71,42 @@ export class Agents {
 	 * and a resume with no `prompt` sends nothing: it is held open, idle, until
 	 * someone talks to it. ⚠ A resume must run in the session's ORIGINAL `cwd`
 	 * — the SDK stores sessions per project directory and will not find it from
-	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it. */
+	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it.
+	 *
+	 * OPEN BY NODE. `task: {dir, card, brief}` opens the task's own task.jsonl
+	 * ITSELF, before the agent's first turn — the new-task skill then has
+	 * nothing to do. This needs the session id before the SDK has even started,
+	 * which the SDK's `sessionId` option allows (start() already uses it, the
+	 * same thing `claude --session-id` does from a terminal): mint it here,
+	 * write the task file, then hand the agent that same id to use.
+	 *
+	 * README CHAIN. A FRESH spawn (never a resume — a resumed session already
+	 * has it, and one bringing its own `system` brief is code, not this path)
+	 * whose directory we can name gets the readme chain from the repo root down
+	 * to that directory prepended, ahead of everything else, so it knows "where
+	 * it is" before its first turn: `spec.task.dir` (a task mastermind, or any
+	 * agent opened with `task: {dir, ...}`) or `spec.page` (a page-bound agent;
+	 * a URL path like `/framework/ux/Dictate/`, mapped onto the matching repo
+	 * dir under `public/`). A plain minion with neither carries its directory
+	 * in its own brief text instead, so it is deliberately left untouched here
+	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
+		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
+		const fresh = !again && !spec.system;
+		const dir = fresh ? directory_of(spec) : null;
+		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
+		const prompt = spec.task
+			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
+			: base;
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec, id,
-			prompt: again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt),
+			...role_defaults(spec.role), ...spec, id, prompt,
+			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
 		agent.host = this;
@@ -269,10 +298,21 @@ export class Agents {
 	 * stand-in, the same trick the spawn gate's `hold()` stand-in already
 	 * uses elsewhere in this file. */
 	send(id, text, note){
+		id = this.holder(id);
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
 		if (this.external?.has?.(id)) return this.external.deliver(id, text, note);
 		return this.wake(id).send(text, note);
+	}
+
+	/* "mastermind-servex" is a ROLE: when a fresh session holds it as
+	 * mastermind-servex-N (the old one stood down at a full context), a message
+	 * to the role goes to the newest live holder instead of waking the old one. */
+	holder(id){
+		if (id !== "mastermind-servex") return id;
+		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
+		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
+		return best?.id ?? id;
 	}
 
 	wake(id){
@@ -332,18 +372,72 @@ export class Agents {
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
 		if (child.one_shot && child.woke) return;
-		let parent;
-		try { parent = this.get(child.parent); }
-		catch { return; }
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
 		child.woke = true;
-		try { parent.send(body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
-		catch {}
+		this.inbox(child, kind, text);
+		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent);
+		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child
+			this.store().append("servex", { type: "wake-skipped", child: child.id, parent: child.parent, stopped_by: by.by }).catch(() => {});
+			return;
+		}
+		/* Through the HOST's send(), which revives a stopped parent — `get(parent).send()`
+		 * threw "has stopped" into an empty catch, and results were lost (task-loop, 09-29). */
+		try { this.send(child.parent, body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
+		catch (e){ this.store().append("servex", { type: "wake-failed", child: child.id, parent: child.parent, error: String(e.message || e) }).catch(() => {}); }
 	}
+
+	/* A child's result also lands in its parent's task dir as inbox.jsonl
+	 * ({at, from, kind, text}), so a stop, a restart or the reaper cannot lose it.
+	 * The parent's dir: the heartbeat's owner map, the live parent's own task, or
+	 * the directory above the child's own task dir when that holds a task.jsonl. */
+	inbox(child, kind, text){
+		try {
+			const up = child.task?.dir && path.dirname(path.resolve(child.task.dir));
+			const dir = this.task_dir_of?.(child.parent) ?? this.live.get(child.parent)?.task?.dir
+				?? (up && fs.existsSync(path.join(up, "task.jsonl")) ? up : null);
+			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
+		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
+	}
+}
+
+/* The directory a fresh spawn is FOR, if it names one — `spec.task.dir` as-is
+ * (repo-relative or absolute, same as `open_task` accepts), or `spec.page`
+ * (a site URL path, e.g. `/framework/ux/Dictate/`) mapped onto the repo dir
+ * that URL is served from, `public/<page, leading slash stripped>`. Neither
+ * present (a plain minion, most forks, the fast assistant) -> null, and
+ * `spawn()` adds nothing. */
+function directory_of(spec){
+	if (spec.task?.dir) return spec.task.dir;
+	// forward slashes always, even on Windows (path.join would use `\`), so the
+	// "Where you are" line reads the same as a repo-relative task.dir does.
+	if (spec.page) return path.posix.join("public", String(spec.page).replace(/^\/+/, ""));
+	return null;
+}
+
+/* OPEN BY NODE — `spawn({task: {dir, card, brief}}, ...)` calls this before
+ * `agent.start()`, so the task's task.jsonl carries its owning agent from the
+ * first line, and the agent's own first turn never has to run new-task.
+ * `dir` may be a path relative to this process's own cwd (Servex always runs
+ * from the repo root) or absolute; it is created if it does not exist yet.
+ * Synchronous — this must be finished before the agent's first turn starts.
+ *
+ * One assign line, always appended, never rewritten: for a brand-new file
+ * `appendFileSync` both creates it and writes this as line 1; for a task dir
+ * a caller opened earlier (or a sibling agent shares), it just adds one more
+ * assign line with the same facts, exactly like every other `assign` a task
+ * log collects over its life — never touching what came before it. */
+function open_task(task, { session_id, agent, model }){
+	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
+	fs.mkdirSync(dir, { recursive: true });
+	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
+		model, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
+	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
+	return dir;
 }
 
 /* What a session's own file says about it — the `cwd` it ran in (a resume must
@@ -381,7 +475,7 @@ export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-ass
 /* Only while the layers run: with `SERVEX_NO_LAYERS` set nothing respawns them,
  * so revive() treats them like any other agent. */
 export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
-	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
+	SELF_RESTARTED.ids.includes(id) || /^mastermind-servex-\d+$/.test(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
@@ -421,9 +515,12 @@ Agents.Agent = class Agent {
 		/* The session id is known AT SPAWN, not at the first `system/init`: a
 		 * fresh spawn or a fork mints one and hands it to the SDK as `sessionId`
 		 * (allowed beside `forkSession`), so the registry row can be resumed even
-		 * if the host dies during the first turn. A plain resume keeps its id. */
+		 * if the host dies during the first turn. A plain resume keeps its id;
+		 * `spawn()` may also hand in a session id it minted itself (a `task`
+		 * spawn, so it can write that same id into task.jsonl before this
+		 * runs) — `??=` keeps that one instead of minting a second. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
-		else { this.session_id = randomUUID(); this.minted = true; }
+		else { this.session_id ??= randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump();
 		if (!this.prompt){ this.state = "idle"; return this; }

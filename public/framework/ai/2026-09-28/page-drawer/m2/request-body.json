@@ -1,0 +1,13 @@
+{
+  "page": "/framework/ext/drawer/",
+  "text": "Is this sentence right?",
+  "from": "owner",
+  "context": [
+    {
+      "kind": "p",
+      "label": "this paragraph",
+      "text": "It pushes rather than covers — --drawer is the inline-end strip .app yields, written onto the same element the rail inherits its width from, so the reserved strip and the rail are one number. A properties panel that covers what you're editing is the one thing this widget must never do.",
+      "selector": ".page--intro > p:nth-of-type(5)"
+    }
+  ]
+}

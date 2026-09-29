@@ -172,7 +172,7 @@ export default class Process extends Events {
         if (this.detach) return this.spawn_detached(env);
 
         try {
-            this.child = spawn(this.command, this.args, { cwd: this.cwd, env, shell: !!this.shell });   // inherit Servex's hidden console — see sustain.mjs
+            this.child = spawn(this.command, this.args, { cwd: this.cwd, env, shell: !!this.shell, windowsHide: true });   // inherit Servex's hidden console — see sustain.mjs
         } catch (e){
             return this.settle("errored", `spawn failed: ${e.message}`);
         }

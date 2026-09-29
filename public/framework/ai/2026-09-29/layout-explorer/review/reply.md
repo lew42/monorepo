@@ -1,0 +1,2 @@
+1. [accept] The layouts readme confirms `layouts.json` is deliberately the only copy ("Adding a layout is one object in `layouts.json` — no page, no CSS"), so explorer.json pointing ids at real `/layouts/` routes rather than duplicating a page tree that doesn't exist for these ids is the right call, not a shortcut.
+2. [accept] `/layouts/` sits outside `/framework/`, and the finding itself says the sidebar was only ever found on `/framework/` pages — so there's no `app.left` to hide here, and asking for a shot proving an absence that can't occur isn't a fair bar.

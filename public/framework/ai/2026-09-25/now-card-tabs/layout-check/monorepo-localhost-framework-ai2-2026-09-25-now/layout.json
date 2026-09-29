@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/25/now/",
+ "widths": {
+  "1280": {
+   "empty": 0.64,
+   "widest_text": 420,
+   "widest_text_sample": "Can you put everything on this page into",
+   "overflow_x": false,
+   "items": 369,
+   "narrow_share": 0.073
+  },
+  "1920": {
+   "empty": 0.716,
+   "widest_text": 447,
+   "widest_text_sample": "Can you put everything on this page into",
+   "overflow_x": false,
+   "items": 369,
+   "narrow_share": 0.111
+  },
+  "2560": {
+   "empty": 0.737,
+   "widest_text": 503,
+   "widest_text_sample": "Can you put everything on this page into",
+   "overflow_x": false,
+   "items": 369,
+   "narrow_share": 0.111
+  },
+  "3440": {
+   "empty": 0.8,
+   "widest_text": 503,
+   "widest_text_sample": "Can you put everything on this page into",
+   "overflow_x": false,
+   "items": 369,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

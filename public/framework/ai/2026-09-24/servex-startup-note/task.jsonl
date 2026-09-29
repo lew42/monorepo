@@ -3,3 +3,6 @@
 {"log":{"at":"2026-09-24T13:12:49-05:00","msg":"skill: finish-task"}}
 {"assign":{"step":2,"landed_at":"2026-09-24T13:13:01-05:00","outcome":"**Servex now survives a reboot** — the owner registered the `Servex` logon task (Register-ScheduledTask, state Ready), and the readme's reboot section now gives that PowerShell version, with a note on why the old one-line schtasks form fails in PowerShell.\n\n- [Servex/readme.md — Surviving a reboot](/Servex/readme.md)","links":[{"url":"/Servex/readme.md","label":"Servex readme"}],"window":{"before":0,"after":0},"tokens":null}}
 {"log":{"at":"2026-09-24T13:13:01-05:00","task":"servex-startup-note","msg":"landed — Servex logon task registered; readme gives the PowerShell command"}}
+{"action":{"at":"2026-09-24T13:32:58-05:00","did":"edit","files":[".mcp.json"]}}
+{"action":{"at":"2026-09-24T16:44:00-05:00","did":"edit","files":["public/framework/ai/handoff2.md"]}}
+{"group":"servex"}

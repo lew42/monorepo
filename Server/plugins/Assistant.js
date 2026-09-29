@@ -122,7 +122,7 @@ export default class Assistant {
             return;
         }
         const say = path.resolve(".claude/skills/every-prompt/say.mjs");
-        const child = spawn(process.execPath, [say, "relay", text ?? ""], );   // inherit the console (2026-09-22)
+        const child = spawn(process.execPath, [say, "relay", text ?? ""], { windowsHide: true });   // inherit the console (2026-09-22)
         child.on("error", e => console.warn("Assistant: relay spawn failed —", e.message));
     }
 }

@@ -1,0 +1,185 @@
+{
+ "res": {
+  "ai2-1280-now": {
+   "pad": 15,
+   "cw": 1039,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1280-A": {
+   "pad": 26,
+   "cw": 1039,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1280-B": {
+   "pad": 28.5,
+   "cw": 1039,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1280-C": {
+   "pad": 33.3,
+   "cw": 1039,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1920-now": {
+   "pad": 25.7,
+   "cw": 1664,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1920-A": {
+   "pad": 41.6,
+   "cw": 1664,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1920-B": {
+   "pad": 36,
+   "cw": 1664,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-1920-C": {
+   "pad": 53.2,
+   "cw": 1664,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-3440-now": {
+   "pad": 62.1,
+   "cw": 3152,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-3440-A": {
+   "pad": 64,
+   "cw": 3152,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-3440-B": {
+   "pad": 53.8,
+   "cw": 3152,
+   "el": "page flow page--ai2 "
+  },
+  "ai2-3440-C": {
+   "pad": 80,
+   "cw": 3152,
+   "el": "page flow page--ai2 "
+  },
+  "doc-1280-now": {
+   "pad": 15,
+   "cw": 1039,
+   "el": "page doc-section pag"
+  },
+  "doc-1280-A": {
+   "pad": 26,
+   "cw": 1039,
+   "el": "page doc-section pag"
+  },
+  "doc-1280-B": {
+   "pad": 28.5,
+   "cw": 1039,
+   "el": "page doc-section pag"
+  },
+  "doc-1280-C": {
+   "pad": 33.3,
+   "cw": 1039,
+   "el": "page doc-section pag"
+  },
+  "doc-1920-now": {
+   "pad": 25.7,
+   "cw": 1664,
+   "el": "page doc-section pag"
+  },
+  "doc-1920-A": {
+   "pad": 41.6,
+   "cw": 1664,
+   "el": "page doc-section pag"
+  },
+  "doc-1920-B": {
+   "pad": 36,
+   "cw": 1664,
+   "el": "page doc-section pag"
+  },
+  "doc-1920-C": {
+   "pad": 53.2,
+   "cw": 1664,
+   "el": "page doc-section pag"
+  },
+  "doc-3440-now": {
+   "pad": 62.1,
+   "cw": 3152,
+   "el": "page doc-section pag"
+  },
+  "doc-3440-A": {
+   "pad": 64,
+   "cw": 3152,
+   "el": "page doc-section pag"
+  },
+  "doc-3440-B": {
+   "pad": 53.8,
+   "cw": 3152,
+   "el": "page doc-section pag"
+  },
+  "doc-3440-C": {
+   "pad": 80,
+   "cw": 3152,
+   "el": "page doc-section pag"
+  },
+  "fw-1280-now": {
+   "pad": 16.7,
+   "cw": 1280,
+   "el": "page page--framework"
+  },
+  "fw-1280-A": {
+   "pad": 32,
+   "cw": 1280,
+   "el": "page page--framework"
+  },
+  "fw-1280-B": {
+   "pad": 31.4,
+   "cw": 1280,
+   "el": "page page--framework"
+  },
+  "fw-1280-C": {
+   "pad": 41,
+   "cw": 1280,
+   "el": "page page--framework"
+  },
+  "fw-1920-now": {
+   "pad": 32.3,
+   "cw": 1920,
+   "el": "page page--framework"
+  },
+  "fw-1920-A": {
+   "pad": 48,
+   "cw": 1920,
+   "el": "page page--framework"
+  },
+  "fw-1920-B": {
+   "pad": 39,
+   "cw": 1920,
+   "el": "page page--framework"
+  },
+  "fw-1920-C": {
+   "pad": 61.4,
+   "cw": 1920,
+   "el": "page page--framework"
+  },
+  "fw-3440-now": {
+   "pad": 69.6,
+   "cw": 3440,
+   "el": "page page--framework"
+  },
+  "fw-3440-A": {
+   "pad": 64,
+   "cw": 3440,
+   "el": "page page--framework"
+  },
+  "fw-3440-B": {
+   "pad": 56,
+   "cw": 3440,
+   "el": "page page--framework"
+  },
+  "fw-3440-C": {
+   "pad": 80,
+   "cw": 3440,
+   "el": "page page--framework"
+  }
+ },
+ "errs": []
+}

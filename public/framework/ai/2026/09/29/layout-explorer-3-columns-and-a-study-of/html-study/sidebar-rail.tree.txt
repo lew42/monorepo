@@ -1,0 +1,272 @@
+body  [block 1920x1080@0,0]
+  div.dev-bar.flex.v  [flex 272x1080@1936,0]  ⚑ fixed
+    div.dev-tabs.flex  [flex 271x6@1937,112]
+    div.dev-body.flex.v  [flex 271x961@1937,119]
+    … 2 more (content)
+  div.app.theme-lew42  [flex 1920x1080@0,0]
+    div.pages  [flex 1920x1080@0,0]
+      div.page.topic.flex.fill.page-homepage.hides-nav.active-ancestor  [none]  ⚑ NONE
+        div.sidebar  [flex 0x0@0,0]
+          div.sidebar-rail  [flex 0x0@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 0x0@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 0x0@0,0]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-nav  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-footer  [flex 0x0@0,0]
+                div.sidebar-avatar  [block 0x0@0,0]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 0x0@0,0]
+          … 1 more (content)
+      div.page.page--framework.topic.flex.fill.hides-nav.active-ancestor  [flex 1920x1080@0,0]
+        div.sidebar  [flex 256x1080@0,0]
+          div.sidebar-rail  [flex 255x1080@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 255x57@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 255x1023@0,57]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 255x46@0,57]
+                … 1 more (content)
+              div.sidebar-nav  [flex 255x942@0,103]
+                ul.ui-tree.tree  [block 255x1171@0,108]
+                  li.ui-tree-item.tree-item.ui-tree-open  [list-item 255x696@0,298]
+                    ul.ui-tree-children  [block 255x665@0,330]
+                      … 10 more (content)
+                    … 1 more (content)
+                  … 15 more (content)
+              div.sidebar-footer  [flex 255x34@0,1046]
+                div.sidebar-avatar  [block 24x24@215,1051]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 1664x1080@256,0]
+          div.page.flow.page--core.standard.active-ancestor  [none]  ⚑ NONE
+            h1.page-title  [block 0x0@0,0]
+            a.page-fs-link  [inline-flex 0x0@0,0]
+              … 2 more (content)
+            div.page-previews.bleed  [grid 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link.in-path  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+                  … 2 more (content)
+              div.page-preview  [flex 0x0@0,0]
+                a.page-preview-link  [flex 0x0@0,0]
+                  span.page-preview-title  [block 0x0@0,0]
+                  … 1 more (content)
+                p.page-preview-desc  [flow-root 0x0@0,0]
+                  … 1 more (content)
+            … 12 more (content)
+          div.page.doc-page.page--Sidebar.active-ancestor  [none]  ⚑ NONE
+            div.tabs.block  [contents 0x0@0,0]  ⚑ CONTENTS
+              div.tab-bar  [flex 0x0@0,0]
+                a.tab.tab-default.in-path  [flex 0x0@0,0]
+                a.tab.in-path  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+                a.tab  [flex 0x0@0,0]
+              div.tab-panel  [block 0x0@0,0]
+                div.page.flow.page--variants.standard.active-ancestor  [grid 0x0@0,0]
+                  h1.page-title  [block 0x0@0,0]
+                  a.page-fs-link  [flex 0x0@0,0]
+                    … 2 more (content)
+                  a.page-link  [block 0x0@0,0]
+                  div.page-previews.bleed  [grid 0x0@0,0]
+                    div.page-preview  [flex 0x0@0,0]
+                      div.page-preview-thumb  [block 0x0@0,0]
+                        div.sidebar.variant-thumb  [flex 0x0@0,0]
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 5 more (content)
+                          … 1 more (content)
+                      a.page-preview-link  [flex 0x0@0,0]
+                        span.page-preview-title  [block 0x0@0,0]
+                        … 1 more (content)
+                    div.page-preview  [flex 0x0@0,0]
+                      div.page-preview-thumb  [block 0x0@0,0]
+                        div.sidebar.variant-thumb  [flex 0x0@0,0]
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 5 more (content)
+                          … 1 more (content)
+                      a.page-preview-link  [flex 0x0@0,0]
+                        span.page-preview-title  [block 0x0@0,0]
+                        … 1 more (content)
+                    div.page-preview  [flex 0x0@0,0]
+                      div.page-preview-thumb  [block 0x0@0,0]
+                        div.sidebar.variant-thumb  [flex 0x0@0,0]
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 1 more (content)
+                          … 1 more (content)
+                      a.page-preview-link  [flex 0x0@0,0]
+                        span.page-preview-title  [block 0x0@0,0]
+                        … 1 more (content)
+                    div.page-preview  [flex 0x0@0,0]
+                      div.page-preview-thumb  [block 0x0@0,0]
+                        div.sidebar.variant-thumb  [flex 0x0@0,0]
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 5 more (content)
+                          … 1 more (content)
+                      a.page-preview-link  [flex 0x0@0,0]
+                        span.page-preview-title  [block 0x0@0,0]
+                        … 1 more (content)
+                  div.page-previews.bleed  [grid 0x0@0,0]
+                    div.page-preview  [flex 0x0@0,0]
+                      a.page-preview-link.active  [flex 0x0@0,0]
+                        span.page-preview-title  [block 0x0@0,0]
+                        … 1 more (content)
+                      p.page-preview-desc  [flow-root 0x0@0,0]
+                  … 5 more (content)
+                div.page.doc-section.page--overview.default  [none]  ⚑ NONE
+                  div.page-catalog.wide  [flex 0x0@0,0]
+                    div.page-previews.bleed  [none]  ⚑ NONE sticky
+                      div.page-preview  [flex 0x0@0,0]
+                        a.page-preview-link  [flex 0x0@0,0]
+                          span.page-preview-title  [block 0x0@0,0]
+                          … 1 more (content)
+                    div.page-catalog-pages  [block 0x0@0,0]
+                      div.page.flow.page--intro.standard.default  [grid 0x0@0,0]
+                        h1.page-title  [none]  ⚑ NONE
+                        a.page-fs-link  [flex 0x0@0,0]
+                          … 2 more (content)
+                        … 16 more (content)
+            … 1 more (content)
+          div.page.sidebar-variant-rail.flow.pad.active-page  [grid 1664x1572@256,0]
+            div.variant-rail-pair.wide  [flex 1613x720@282,428]
+              div.variant-rail-stage  [block 794x647@282,428]
+                div.variant-rail-tabs  [flex 794x38@282,485]
+                  … 3 more (content)
+                div.variant-rail-box  [flex 794x384@282,537]  ⚑ WRAPPER(same box as only child)
+                  div.variant-rail-slot  [flex 794x384@282,537]
+                    div.sidebar  [flex 558x384@282,537]
+                      div.sidebar-rail  [flex 557x384@282,537]
+                        div.sidebar-bar  [flex 557x52@282,537]
+                          button.sidebar-toggle  [none]  ⚑ NONE
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                          … 1 more (content)
+                        div.sidebar-menu  [flex 557x332@282,589]
+                          div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 557x46@282,589]
+                            … 1 more (content)
+                          div.sidebar-nav  [flex 557x252@282,635]
+                            ul.ui-tree.tree  [block 557x1171@282,640]
+                              li.ui-tree-item.tree-item.ui-tree-open  [list-item 557x696@282,830]
+                              … 15 more (content)
+                          div.sidebar-footer  [flex 557x34@282,886]
+                            div.sidebar-avatar  [block 24x24@799,892]
+                            … 1 more (content)
+                      … 1 more (content)
+                … 3 more (content)
+              div.variant-rail-stage  [block 794x720@1100,428]
+                div.variant-rail-tabs  [flex 794x38@1100,485]
+                  … 3 more (content)
+                div.variant-rail-box  [flex 794x384@1100,537]
+                  div.variant-rail-page.active  [flex 794x384@1100,537]  ⚑ absolute
+                    div.sidebar.variant-rail  [flex 558x384@1100,537]
+                      div.sidebar-rail  [flex 557x384@1100,537]
+                        div.sidebar-bar  [flex 557x52@1100,537]
+                          button.sidebar-toggle  [none]  ⚑ NONE
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                          … 1 more (content)
+                        div.sidebar-menu  [flex 557x332@1100,589]
+                          div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 557x46@1100,589]
+                            … 1 more (content)
+                          div.sidebar-nav  [flex 557x252@1100,635]
+                            ul.ui-tree.tree  [block 557x1171@1100,640]
+                              li.ui-tree-item.tree-item.ui-tree-open  [list-item 557x696@1100,830]
+                              … 15 more (content)
+                          div.sidebar-footer  [flex 557x34@1100,886]
+                            div.sidebar-avatar  [block 24x24@1617,892]
+                            … 1 more (content)
+                      … 1 more (content)
+                  div.variant-rail-page  [none]  ⚑ NONE absolute
+                    div.sidebar.variant-rail  [flex 0x0@0,0]
+                      div.sidebar-rail  [flex 0x0@0,0]
+                        div.sidebar-bar  [flex 0x0@0,0]
+                          button.sidebar-toggle  [none]  ⚑ NONE
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                          … 1 more (content)
+                        div.sidebar-menu  [flex 0x0@0,0]
+                          div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 0x0@0,0]
+                            … 1 more (content)
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 1 more (content)
+                          div.sidebar-footer  [flex 0x0@0,0]
+                            div.sidebar-avatar  [block 0x0@0,0]
+                            … 1 more (content)
+                      … 1 more (content)
+                  div.variant-rail-page  [none]  ⚑ NONE absolute
+                    div.sidebar.variant-rail  [flex 0x0@0,0]
+                      div.sidebar-rail  [flex 0x0@0,0]
+                        div.sidebar-bar  [flex 0x0@0,0]
+                          button.sidebar-toggle  [none]  ⚑ NONE
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                            span.sidebar-toggle-bar  [inline 0x0@0,0]
+                          … 1 more (content)
+                        div.sidebar-menu  [flex 0x0@0,0]
+                          div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 0x0@0,0]
+                            … 1 more (content)
+                          div.sidebar-nav  [flex 0x0@0,0]
+                            … 1 more (content)
+                          div.sidebar-footer  [flex 0x0@0,0]
+                            div.sidebar-avatar  [block 0x0@0,0]
+                            … 1 more (content)
+                      … 1 more (content)
+                … 4 more (content)
+            … 6 more (content)
+          … 1 more (content)
+    button.drawer-menu  [flex 35x35@1877,8]  ⚑ fixed

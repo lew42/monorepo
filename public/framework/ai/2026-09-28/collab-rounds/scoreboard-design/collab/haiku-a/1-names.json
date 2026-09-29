@@ -1,0 +1,78 @@
+{
+  "class": "Scoreboard",
+  "extends": "JSONL",
+  "properties": [
+    "rows"
+  ],
+  "methods": [
+    {
+      "name": "apply",
+      "args": ["entry"]
+    },
+    {
+      "name": "models",
+      "args": []
+    },
+    {
+      "name": "retire",
+      "args": ["opts"]
+    },
+    {
+      "name": "countOverrules",
+      "args": ["modelId"]
+    },
+    {
+      "name": "forDecision",
+      "args": ["decisionId"]
+    }
+  ],
+  "subclasses": [
+    {
+      "class": "Scoreboard.Row",
+      "properties": [
+        "at",
+        "collab",
+        "decision",
+        "member",
+        "model",
+        "votes",
+        "won",
+        "cost",
+        "overrule"
+      ],
+      "methods": [
+        {
+          "name": "constructor",
+          "args": ["...args"]
+        },
+        {
+          "name": "assign",
+          "args": ["...args"]
+        }
+      ]
+    },
+    {
+      "class": "Scoreboard.Model",
+      "properties": [
+        "model",
+        "decisions",
+        "wins",
+        "votes",
+        "cost",
+        "win_rate",
+        "cost_per_decision",
+        "cost_per_win"
+      ],
+      "methods": [
+        {
+          "name": "constructor",
+          "args": ["...args"]
+        },
+        {
+          "name": "assign",
+          "args": ["...args"]
+        }
+      ]
+    }
+  ]
+}

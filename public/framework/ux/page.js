@@ -80,6 +80,16 @@ export default new Page({
 		return name === "doc" && {
 			title: `${this.title} Docs`,
 			content(){ return md("Two long-form pages: [System](system/) — the tier boundary argued, the config-word contract, the naming rules. [Decisions](decisions/) — every call made and rejected on 2026-08-21."); },
+			// The two pages themselves, one level further — same lever again, so
+			// `/framework/ux/doc/system/` and `.../decisions/` actually resolve
+			// instead of 404ing (found while landing an unrelated task: every
+			// module readme links `doc/system/`, and it never worked). 2026-09-29.
+			route(sub){
+				return (sub === "system" || sub === "decisions") && {
+					title: `${this.title} — ${sub === "system" ? "System" : "Decisions"}`,
+					content(){ return md.file(import.meta, `doc/${sub}.md`); },
+				};
+			},
 		};
 	},
 

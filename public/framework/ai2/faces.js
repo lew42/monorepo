@@ -1,6 +1,8 @@
 import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { author_word, plain } from "./inbox.js";
+import { md_into } from "./chat.js";
+import { meter } from "./meter.js";
 
 /**
  * THE TWO FACES OF A CARD — the preview in the rail, and the whole thing on the
@@ -30,29 +32,29 @@ export function who(it){
 	span.c("ai2-who" + (is_you(it) ? " ai2-who-you" : "")).text(author_word(it.author));
 }
 
-/** A PREVIEW, WHOLE — the title row, and whatever the card is about, as tall as
-    it needs (the owner, 2026-09-24: "I don't like the truncated preview. If it's
-    worth putting in the preview, render the whole thing"). Nothing jumps
-    because a new row still only enters when the list is quiet. */
+/** A PREVIEW: the title, a progress bar and the money — nothing else (the owner,
+    2026-09-24: "way too much summary on the cards"). The words a card used to
+    show live one click down, on its page. `it.progress` and `it.usd` are set by
+    AI 2's `paint()`. */
 export function row(it){
-	div.c("ai2-row-head flex v-center gap-25", () => {
+	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
 		span.c("ai2-row-title").text(it.title);
-		// `it.cost` — its task's dollars, set by AI 2's `paint()`; absent when nothing measured it.
-		small.c("ai2-row-when muted").text([it.cost, clock(it.at)].filter(Boolean).join(" · "));
+		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
 	});
-	div.c("ai2-row-foot flex v-center gap-25", () => {
-		// A card folder's summary names no author; it says what KIND of card it is.
-		if (it.folder) return void small.c("ai2-row-line muted").text([it.type, it.status !== "open" && it.status, ...(it.tags ?? []).map(t => "#" + t)].filter(Boolean).join(" · "));
-		who(it);
-		// The card's CURRENT state, not its first sentence — the last thing said
-		// into it if it is a card you talk to, otherwise what it is about.
-		const last = it.transcript?.length && it.transcript[it.transcript.length - 1].said.filter(Boolean).at(-1);
-		// A landed task's headline is already its title; only the rest is a line.
-		const line = last || it.refined || it.text || (it.kind === "landed" ? "" : it.landed) || it.said?.find(Boolean) || "";
-		if (line) small.c("ai2-row-line muted").text(plain(line));
-	});
+	meter(it.progress, it.usd, it.usd_open);
+	if (it.news) news_bar(it.news);
+}
+
+/** WHAT HAPPENED, ONE LINE (activity.js `news_of()`): who, then what, from the newest
+    line that bumped this row. Only while it is new to you. Clicking it opens the
+    card's Activity tab — page.js catches the click, since the row is itself a link. */
+export function news_bar(n){
+	div.c("ai2-news", () => {
+		if (n.who) span.c("ai2-news-who").text(n.who + ": ");
+		span.c("ai2-news-what").text(n.what);
+	}).attr("title", "what happened — click to see it in Activity").attr("role", "link");
 }
 
 /**
@@ -80,8 +82,8 @@ export function full(it, on){
 	});
 
 	if (it.refined) p.c("ai2-refined").md(it.refined);
-	if (it.text) p.c("ai2-text").text(it.text);
-	if (it.landed && it.landed !== it.text) p.c("ai2-landed").text(it.landed);
+	if (it.text) div.c("ai2-text md", $t => { md_into($t.el, it.text); });
+	if (it.landed && it.landed !== it.text) div.c("ai2-landed md", $t => { md_into($t.el, it.landed); });
 
 	if (it.kind === "prompt"){
 		if (it.names.length) div.c("ai2-chips flex wrap gap-25", () => {
@@ -93,7 +95,7 @@ export function full(it, on){
 		// instant you stop speaking, and it is already the right card.
 		details.c("ai2-said", $d => {
 			summary.c("ai2-said-head muted").text(it.refined ? "your words" : "just now, in your words");
-			it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence").text(s); });
+			it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence md", $t => { md_into($t.el, s, true); }); });
 			if (!it.refined) $d.el.open = true;
 		});
 
@@ -101,7 +103,7 @@ export function full(it, on){
 			div.c("ai2-proposal", () => {
 				small.c("muted").text("first sketch");
 				span.c("ai2-proposal-title").text(pr.title);
-				pr.shape.forEach(s => { p.c("ai2-sentence").text(s); });
+				pr.shape.forEach(s => { p.c("ai2-sentence md", $t => { md_into($t.el, s, true); }); });
 			});
 		});
 	}
@@ -153,13 +155,13 @@ export function sub_full(it){
 		span.c("ai2-full-title").text(it.title ?? it.kind);
 	});
 
-	if (it.kind === "said") it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence").text(s); });
+	if (it.kind === "said") it.said.filter(Boolean).forEach(s => { p.c("ai2-sentence md", $t => { md_into($t.el, s, true); }); });
 	else if (it.kind === "task") {
 		if (it.state) small.c("muted").text("state: " + it.state);
-		if (it.now) p.c("ai2-refined").text(it.now);
-		if (it.brief) p.c("ai2-text").text(it.brief);
+		if (it.now) div.c("ai2-refined md", $t => { md_into($t.el, it.now); });
+		if (it.brief) div.c("ai2-text md", $t => { md_into($t.el, it.brief); });
 	} else if (it.kind === "proposal") {
-		(it.shape ?? []).forEach(s => { p.c("ai2-sentence").text(s); });
+		(it.shape ?? []).forEach(s => { p.c("ai2-sentence md", $t => { md_into($t.el, s, true); }); });
 	} else if (it.kind === "refined") {
 		if (it.text) p.c("ai2-refined").md(it.text);
 	}

@@ -5,6 +5,17 @@ description: Invoke before writing any substantial CSS in this repo — it has y
 
 # CSS
 
+**Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
+
+**Start from this: write as little new CSS as you can** (the owner, 2026-09-25: "we want to
+minimize the amount of CSS drastically; we want to reuse classes"). Reach for an existing class,
+token or layout first. If something you need doesn't exist yet and would be useful elsewhere
+(a progress bar, a dictate widget), build it once as a general component rather than styling it
+for this one page. Page-specific selectors that customise an existing layout are fine when they
+really are specific. Aim for sensible defaults, not a class for every property (this isn't
+Tailwind). `.pad` means `padding: var(--pad)`: add it to a box when you want padding in it, and
+leave it off for a full-bleed box whose columns carry their own padding.
+
 **1. Read the CSS that will actually cascade onto your element — exact definitions,
 not summaries; this skill restates none of them.** Always `public/framework/framework.css`
 (utilities, tokens, reset, base theme — most "new" needs are already a word). Then, only

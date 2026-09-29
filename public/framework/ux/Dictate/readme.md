@@ -82,10 +82,28 @@ Only needed with `NO_WHISPER=1` (turns the auto-start off), or when running
 
 Leave that window open; the component finds it on the next 🎤 press.
 
+## Variants — the same mic, a different look
+
+**A variant is a `Dictate` subclass that overrides one or two methods** — `build_output()`
+(what holds the transcript) and/or `draw_caption()` (how a settled sentence and the live guess
+are drawn). Everything else — the engines, every error message, the start sound's real timing —
+is inherited untouched. Today's box is `v1`, kept on its own url forever so a newer variant can
+never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
+
+- **v1** — today's box, unchanged.
+- **Cards** — the mobile "prompt cards" flow: each finished sentence becomes its own card.
+- **Compact** — one short line for a toolbar, never a growing block.
+
 ## More
 
+- **Starting a new round? Read [`doc/handover.md`](/framework/ux/Dictate/doc/handover/) first** — where the pieces live (`ext/Chat/Mic.js`
+  is Dictate's too), every setting, the rules learned the hard way, how to test, what is open
+- **Mic feedback and https on the LAN:** [`doc/https-lan.md`](/framework/ux/Dictate/doc/https-lan/) —
+  why the start sound could play with no error on a phone over plain http, and the cleanest way
+  to get https on the LAN so a phone's mic works at all
 - [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
-  the same box under `ui-contrast ui-compact`
+  the same box under `ui-contrast ui-compact` · [variants](/framework/ux/Dictate/variants/) —
+  the same mic, three different looks
 - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the
   segment/resend mechanics, the RMS numbers, who starts `whisper-server`
 - [`doc/silence.md`](/framework/ux/Dictate/doc/silence/) — why whisper said "Thank you", the

@@ -10,10 +10,12 @@ const label_of = l => KINDS[l.kind]
 
 const LENGTH = { session: 5 * 3600e3, weekly: 7 * 86400e3 };
 
+/* The time left in plain words (the owner, 2026-09-25: "always show the time remaining:
+   '10 min left', '4 days left'"). */
 const left = ms => ms <= 0 ? "resetting"
-	: ms < 3600e3 ? Math.round(ms / 60e3) + "m left"
-	: ms < 86400e3 ? Math.floor(ms / 3600e3) + "h " + Math.round(ms % 3600e3 / 60e3) + "m left"
-	: Math.floor(ms / 86400e3) + "d " + Math.floor(ms % 86400e3 / 3600e3) + "h left";
+	: ms < 3600e3 ? Math.round(ms / 60e3) + " min left"
+	: ms < 86400e3 ? Math.floor(ms / 3600e3) + " h " + Math.round(ms % 3600e3 / 60e3) + " min left"
+	: (ms / 86400e3).toFixed(1).replace(/.0$/, "") + " days left";
 
 const TONES = "calm warm hot burning";
 
@@ -37,18 +39,19 @@ export function pace(limit, now = Date.now()){
 }
 
 function meter(limit, labels = {}){
-	let $fill, $mark, $note;
+	let $fill, $mark, $left, $proj;
 
 	const $m = div.c("ai-meter", () => {
 		div.c("flex split v-baseline", () => {
 			span.c("muted", labels[limit.kind] ?? label_of(limit));
-			span.c("ai-pct", limit.percent + "%");
+			span.c("ai-pct", limit.percent + "%").attr("title", "the share of this window already used");
 		});
 		div.c("ai-gauge", () => {
-			$mark = span.c("ai-mark");
+			// The ▼ is the clock: how far into the window we are. The bar behind it is under pace.
+			$mark = span.c("ai-mark").attr("title", "how much of the window has passed — spend behind this mark is under pace");
 			div.c("ai-track", () => { $fill = div.c("ai-fill"); });
 		});
-		$note = div.c("muted ai-note");
+		div.c("muted ai-note", () => { $left = span.c("ai-left"); $proj = span.c("ai-proj"); });
 	});
 
 	// ⚠ Properties and classes only — never rebuild DOM here; the captor is long gone.
@@ -56,8 +59,8 @@ function meter(limit, labels = {}){
 		const s = pace(limit);
 		$fill.style("--pct", limit.percent + "%").rc(TONES).ac(s.tone);
 		$mark.style("--at", (s.elapsed ?? 0) * 100 + "%").ac(s.elapsed == null && "hidden");
-		$note.text([s.remaining != null && left(s.remaining),
-			s.projected > 100 && "on pace for " + Math.round(s.projected) + "%"].filter(Boolean).join(" · "));
+		$left.text(s.remaining != null ? left(s.remaining) : "");
+		$proj.text(s.projected > 100 ? " · on pace for " + Math.round(s.projected) + "%" : "");
 	};
 
 	paint();

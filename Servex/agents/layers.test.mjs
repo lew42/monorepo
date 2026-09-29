@@ -124,7 +124,8 @@ check("ask_manager twice -> one spawn then one send, same manager", () => {
 	assert.equal(spawns().length, before + 1);
 	const s = spawns().at(-1).spec;
 	assert.deepEqual([s.id, s.effort, s.parent, s.urgent], ["manager-fix-the-sidebar", "medium", "assistant-fix-the-sidebar", undefined]);
-	assert.match(s.prompt, /^Load the `sub-mastermind` skill\. You are manager-fix-the-sidebar[\s\S]*widen it to 320px$/);
+	// no longer anchored at `^`: a fresh manager's prompt now opens with its readme chain first (readme-chain.js).
+	assert.match(s.prompt, /Load the `sub-mastermind` skill\. You are manager-fix-the-sidebar[\s\S]*widen it to 320px$/);
 	assert.deepEqual([first.ok, first.manager, second.manager], [true, "manager-fix-the-sidebar", "manager-fix-the-sidebar"]);
 	assert.equal(calls.at(-1).verb, "send");
 	assert.match(calls.at(-1).text, /Request from assistant-fix-the-sidebar on 2026\/09\/24\/fix-the-sidebar: and the footer/);
@@ -175,7 +176,8 @@ check("recycle -> next spawn has no resume, starts from the last summary", () =>
 	prompt(A, "fresh start");
 	const s = spawns().at(-1).spec;
 	assert.equal(s.resume, undefined);
-	assert.match(s.prompt, /^\{"summary"[\s\S]*fresh start/);
+	// no longer anchored at `^`: same readme-chain prefix as above.
+	assert.match(s.prompt, /\{"summary"[\s\S]*fresh start/);
 	assert.doesNotMatch(s.prompt, /make the sidebar wider/);
 });
 
@@ -404,7 +406,8 @@ check("fresh on next use when last used over an hour ago: the page's log, not a 
 	P.page_ai({ page: DICT, text: "still there" });
 	const s = pspawns().at(-1).spec;
 	assert.equal(s.resume, undefined);
-	assert.match(s.prompt, /^Page \/framework\/ux\/Dictate\/ — its chat log[\s\S]*make the mic button bigger[\s\S]*still there/);
+	// no longer anchored at `^`: a fresh page assistant now opens with its readme chain first (readme-chain.js).
+	assert.match(s.prompt, /Page \/framework\/ux\/Dictate\/ — its chat log[\s\S]*make the mic button bigger[\s\S]*still there/);
 	assert.ok(logged.some(e => e.event === "fresh" && e.id === "assistant-dictate" && /minutes ago/.test(e.reason)));
 });
 
@@ -458,7 +461,8 @@ check("past the fresh line: one checkpoint request, then recycled once that turn
 		P.page_ai({ page: "/notes/", text: "next thing" });
 		const s = pspawns().at(-1).spec;
 		assert.equal(s.resume, undefined);
-		assert.match(s.prompt, /^\{"summary"[\s\S]*next thing/);
+		// no longer anchored at `^`: the recycled assistant now opens with its readme chain first (readme-chain.js).
+		assert.match(s.prompt, /\{"summary"[\s\S]*next thing/);
 		assert.doesNotMatch(s.prompt, /long talk/);
 	});
 }

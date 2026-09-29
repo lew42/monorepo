@@ -180,3 +180,5 @@ through at the bottom; the corrected list, with what proved it, is also on
   `ai/2026-09-17/mastermind-layout-browser/handover.md`, with `asks.md` beside it.
 - The roles: `.claude/skills/every-prompt/tiers.md`. How the process is going:
   [`/framework/ai/process/`](process/).
+
+- Owner items and every decided loose end since 2026-08-08: [/framework/ai/2026-09-24/loose-ends/](/framework/ai/2026-09-24/loose-ends/) (2026-09-24).

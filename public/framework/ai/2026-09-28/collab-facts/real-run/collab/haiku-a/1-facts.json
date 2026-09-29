@@ -1,0 +1,62 @@
+[
+  {
+    "id": "framework-reserved",
+    "text": "Never use a bare class name from framework.css's reserved list (flex, btn, card, page, etc.). The framework block is off-limits for anything new.",
+    "certainty": "settled"
+  },
+  {
+    "id": "collision-check",
+    "text": "Always census the live CSS with grep before naming: grep -rhoE '\\.<name>[a-z0-9-]*' public --include=*.css --include=*.js. A hit elsewhere is a collision and vetos the name.",
+    "certainty": "settled"
+  },
+  {
+    "id": "module-prefix",
+    "text": "Always prefix with the owning module (e.g., .panel-grip, not .grip) unless the selector already starts with the module's own class. This is the core collision-avoidance mechanism.",
+    "certainty": "settled"
+  },
+  {
+    "id": "view-class-names",
+    "text": "View class names ARE CSS class names—View.classify() kebab-cases every constructor in the chain. A bare class name like .stage needs the module prefix (.paging-stage, not just .stage).",
+    "certainty": "settled"
+  },
+  {
+    "id": "namespace-reservation",
+    "text": "A trailing dash in css-scopes.txt (e.g., ui-) reserves that namespace. Never create .ui-<thing> without owning ui- in the scopes file.",
+    "certainty": "settled"
+  },
+  {
+    "id": "page-double-dash",
+    "text": "Page instance stamps use two dashes: .page--<slug>. Never start a new module class with page- (single dash) unless you ARE core/Page, to avoid collision with instance stamps.",
+    "certainty": "settled"
+  },
+  {
+    "id": "concatenated-strings",
+    "text": "When building a class name by concatenating data (e.g., '.module-' + variant.key), the module prefix goes INSIDE the string, and every possible value of the variable must pass the census, not just the literal in the source.",
+    "certainty": "settled"
+  },
+  {
+    "id": "new-namespace-scopes",
+    "text": "When opening a new namespace (a module's first class), add its prefix to css-scopes.txt. If you cannot write css-scopes.txt, record the reservation in the module's own doc/decisions.md under Open.",
+    "certainty": "likely"
+  },
+  {
+    "id": "double-extend-page",
+    "text": "A core module that extends Page (not just core/Page itself) may take page-<module>- as a sub-namespace, declared in css-scopes.txt. This avoids collision with ext/layout's layout- and other realms' section-.",
+    "certainty": "likely"
+  },
+  {
+    "id": "bare-vs-prefixed-coexist",
+    "text": "A bare word like .card (framework.css's padded surface) can coexist with many .card-* variants elsewhere, but framework.css is off-limits for new bare words—check it existed before naming anything -card or -tile.",
+    "certainty": "likely"
+  },
+  {
+    "id": "selector-already-module",
+    "text": "If the CSS selector already starts with the module's class (e.g., .panel { ... .grip { } }), re-prefixing to .panel-grip is optional (the nesting provides the namespace). This is a guideline, not a rule.",
+    "certainty": "open"
+  },
+  {
+    "id": "census-interprets-vendored",
+    "text": "The CSS census includes vendored bundles (e.g., minified three.js), so a grep hit does not always mean a collision. Look at WHERE the hit is and read the line; vendored code is no veto.",
+    "certainty": "likely"
+  }
+]

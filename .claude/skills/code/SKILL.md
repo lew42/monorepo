@@ -5,9 +5,16 @@ description: Load once per session before writing or editing JS under public/ �
 
 # Code
 
+Read the directory's readme index first — it lists what exists — before working with anything in that directory.
+
 No bundler, no build, no transpile — `public/` runs in the browser as native ESM, and the
 thesis is that you can read a class top to bottom and know what happens. Three laws
 (CLAUDE.md): less is more, clarity is the exception, prioritize.
+
+**Every process you start is hidden.** Node: `windowsHide: true` on every `spawn`, `exec`,
+`execFile` and `fork`, detached included. PowerShell: `Start-Process -WindowStyle Hidden`, with no
+`-Redirect…` flags. Check that `MainWindowHandle` is `0`. Visible windows popping up in front of the
+owner broke his work three times in four days.
 
 ## The lifecycle — and when each skill loads
 
@@ -98,6 +105,12 @@ row(item){ return new this.constructor.View({ item }); }   // a SortableList bui
 - If it does work, it's a method: `page.chain()`, not a getter. A getter only aliases state.
 - Say a new name out loud first. Short and exactly right beats long and complete. Propose
   before adding a name to `View`/`Page`/`App`/`Router`/`Sidebar`.
+- **A new class or public method gets its name recorded**, so the ⋯ beside it on the Docs API tab
+  shows how the name was chosen. If the name is still open, run a names vote
+  (`node Server/collab.mjs <taskdir>` with `target: {module, class}`). If the name was given,
+  append one `{"named":{module, class, member, kind, decision: "owner"}}` line to
+  `public/framework/ai/collab/decisions.jsonl`. The format is in
+  `ai/2026-09-28/collab-rounds/collab-format.md`.
 - A dir and file named after the class they export are PascalCase (`ext/Panel/Panel.js`,
   `core/Page/Page.css`); everything else lowercase. `$prop` after the class it carries
   (`this.$sidebar_inner` ↔ `.sidebar-inner`).

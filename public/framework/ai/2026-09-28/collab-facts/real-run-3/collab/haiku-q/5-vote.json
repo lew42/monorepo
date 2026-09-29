@@ -1,0 +1,1 @@
+{"pick": "sonnet-r", "caveat": "haiku-p's table format is clearer, but it incorrectly names `merge.mjs` for the --why flag; lowering size happens via `review.mjs`, not `merge.mjs`. sonnet-r avoids this error by not specifying the command, but should name it explicitly: 'the mastermind lowers size by running `review.mjs` with `--why`'"}

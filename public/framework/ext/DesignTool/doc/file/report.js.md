@@ -53,7 +53,7 @@ report(data, { root });      // the element analyze() walked, if you still have 
 
 A finding's address is a `:nth-child()` path **from the analysis root**, so
 before/after can only resolve it against that same root — see
-[Addressing](../../docs/addressing/). `data` is plain JSON and cannot carry an
+[Addressing](../../doc/addressing/). `data` is plain JSON and cannot carry an
 element, so a caller measuring the live document (`dev/DevBar/layout.js`) hands
 the element over beside it. Without it the mirror falls back to `data.url`,
 reloads the page in a hidden frame and reconstructs the root from `root_path` —

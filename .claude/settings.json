@@ -2,10 +2,28 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "env": {
+    "MAX_MCP_OUTPUT_TOKENS": "150000"
+  },
   "enabledMcpjsonServers": [
     "site"
   ],
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/junction-guard.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "resume",

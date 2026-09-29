@@ -28,7 +28,7 @@
  * the files that matter; a missing data file such as usage.json is not a crash).
  * The port comes from .worktrees.json at the main repo root, or --port / --base.
  * Exit 0 = all clean, 1 = an error was seen, 2 = bad usage or no server answering. */
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -67,7 +67,7 @@ const SKIP_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "pd
 	"md", "json", "jsonl", "mp4", "mp3", "wav", "woff", "woff2", "ttf", "otf", "css", "js", "map"]);
 
 let browser;
-try { browser = await chromium.launch({ channel: "chromium" }); } catch (e) { usage("cannot start Playwright: " + e.message); }
+try { browser = await launch(); } catch (e) { usage("cannot start Playwright: " + e.message); }
 const context = await browser.newContext();
 let bad = 0;
 const loaded = new Set();   // normalized pathnames already loaded or queued this run, seeds and followed alike
@@ -91,7 +91,12 @@ async function links_on(page){
 	const out = [];
 	for (const href of hrefs) {
 		if (!href || href.startsWith("#") || /^(mailto|tel|javascript):/i.test(href)) continue;
-		let u; try { u = new URL(href, base); } catch { continue; }
+		// Resolve against the PAGE the link was found on, not the bare server origin: a
+		// relative href ("./floating/") still raw at crawl time (md.resolve() rewrites
+		// readme links async, and this snapshot can beat it) must resolve the same way a
+		// real browser resolves it — against the current url, not the site root, or a
+		// perfectly working link false-fails as a 404 at the wrong path.
+		let u; try { u = new URL(href, page.url()); } catch { continue; }
 		if (u.origin !== new URL(base).origin) continue;
 		const ext = (u.pathname.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
 		if (SKIP_EXT.has(ext)) continue;

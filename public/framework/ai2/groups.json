@@ -47,5 +47,12 @@
 		"icon": "fact_check",
 		"about": "Looking back over what was built: inventories, task audits, loose ends, reviews.",
 		"card": "2026/09/24/audits"
+	},
+	{
+		"id": "prompt-mechanics",
+		"name": "Prompt mechanics",
+		"icon": "mic",
+		"about": "How your spoken words become prompts: transcription chunking, grouping, capitals, titles, summaries.",
+		"card": "2026/09/24/prompt-mechanics-2"
 	}
 ]

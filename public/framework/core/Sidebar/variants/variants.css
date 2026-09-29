@@ -1,0 +1,100 @@
+@layer theme {
+
+	/* Variant D only. The breadcrumb sits IN `.sidebar .brand`'s own row,
+	   beside the logo — not a second line under it — so it only ever costs
+	   the rail the room a normal word already costs. If "Framework › Core"
+	   is too long for what's left after the logo, it truncates instead of
+	   wrapping or pushing the toggle button off the edge. */
+	.variant-crumbs {
+		display: flex;
+		align-items: baseline;
+		gap: 0.3em;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	/* Same family as `.brand-title` (Sidebar.css) — inherits the rail's own
+	   ink, no default blue-link colour, no underline until hover — just a
+	   little smaller, since there are two of these instead of one word. */
+	.variant-crumb {
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.85em;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.variant-crumb:hover { text-decoration: underline; }
+
+	.variant-crumb-sep { opacity: 0.55; font-size: 0.85em; flex: 0 0 auto; }
+
+	/* rail/page.js (E and F). `.wide` (Page.css) is what lets this row escape the
+	   page's own narrow `main` reading column and actually use a 1920-wide
+	   screen — without it, two 32em stages have nowhere near enough room and
+	   stack even though the screen has 1300px sitting empty beside them. Two
+	   equal columns above ~1100px; below that there isn't room for even one
+	   stage at a readable width, so they stack. */
+	.variant-rail-pair {
+		display: flex;
+		gap: 1.5em;
+		align-items: flex-start;
+	}
+
+	.variant-rail-stage {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	@media (max-width: 1100px) {
+		.variant-rail-pair { flex-direction: column; }
+		.variant-rail-stage { flex: 1 1 auto; width: 100%; }
+	}
+
+	.variant-rail-tabs {
+		display: flex;
+		gap: 0.5em;
+		margin: 0.6em 0 0.8em;
+	}
+
+	/* THE BOX every rail lives in. Fixed height because this demo has no page
+	   content beside the rail to stretch it — the real Sidebar (both stages)
+	   normally gets its height from a full-screen stage (a/b/c/d do exactly
+	   that); here the box itself hands out the height instead. `position:
+	   relative` is what lets F stack three rails on top of each other and show
+	   only one. */
+	.variant-rail-box {
+		position: relative;
+		height: 24rem;
+		display: flex;
+		overflow: hidden;
+	}
+
+	.variant-rail-slot { flex: 1 1 auto; min-width: 0; display: flex; }
+
+	/* F only: all three rails exist at once, stacked exactly on top of each
+	   other; `.active` is the only one CSS shows. This is the whole hide/show
+	   this variant is about — nothing in the JS decides what's visible. */
+	.variant-rail-page {
+		position: absolute;
+		inset: 0;
+		display: none;
+	}
+	.variant-rail-page.active { display: flex; }
+
+	/* Both stages: the Sidebar here is not inside a full-screen `.topic` stage
+	   (a/b/c/d's own trick), so it never gets `.topic > .sidebar`'s width rule
+	   or a real viewport to be `100dvh` tall against. These two lines are that
+	   same sizing, given to a boxed rail instead of a full screen one — the
+	   resize handle (`Sidebar.grab()`) does not care which. */
+	.variant-rail-slot > .sidebar,
+	.variant-rail-page > .sidebar {
+		flex: 0 0 var(--sidebar);
+		height: 100%;
+	}
+	.variant-rail-slot .sidebar-rail,
+	.variant-rail-page .sidebar-rail {
+		position: static;
+		height: 100%;
+	}
+}

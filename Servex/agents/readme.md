@@ -66,6 +66,14 @@ message **waits its turn** by default; `{priority: "now"}` cancels what the agen
 and lands immediately. `interrupt` stops it mid-sentence and leaves the session idle and
 alive. `stop` ends it, and it stays listed as `stopped`.
 
+## Module experts — ask the agent that has already read it
+
+A module with an `expert.json` has an **expert**: a session that read the module once (its readme
+chain and key files) and is kept as a checkpoint. `ask_expert({module, question})` forks it, so the
+answer comes from a clean, cached context in seconds, and rebuilds it first if a file it read has
+changed. `load_module({modules})` returns the same reading for any session to load in one call.
+[`doc/experts.md`](./doc/experts.md) has the recipe, the verbs and the measurements.
+
 ## Ids are words, never uuids
 
 `<role>-<name>` — `minion-servex-port`, `mastermind-servex` — with `-2` for a collision. That
@@ -98,8 +106,8 @@ the repo. This is the projection a dashboard reads.
   (`new Agents({ log: servex.log })`) so every agent line joins the single writer; a host built
   without one makes its own, which is what `demo.mjs` does.
 - **`Agent.log(entry)`** is still the only thing that writes — one line, through `store()`.
-- **`tools(host)`** in `tools.js` builds all twelve agent tools (its own seven, plus `ops.js` and
-  `jobs.js`) against the host you give it,
+- **`tools(host)`** in `tools.js` builds all sixteen agent tools (its own seven, plus `ops.js`,
+  `jobs.js` and the four module-expert tools in `experts.js`) against the host you give it,
   `{name, description, inputSchema, schema, handler}` — what `servex.mcp.tool(tool)` takes.
   It is a function, not a constant, so the handlers close over the host that is really running:
   `for (const tool of tools(servex.agents)) servex.mcp.tool(tool);`
@@ -159,6 +167,14 @@ whom. Everything about it: [`doc/layers.md`](./doc/layers.md).
 `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
 card. `SERVEX_NO_ASSISTANT=1` boots without it.
 
+## A fresh, directory-bound agent starts with its readme chain
+
+A FRESH spawn whose directory is named (`task: {dir}`, or `page`) gets the
+readme.md chain from the repo root down to that directory prepended to its
+first message, so it knows "where it is" before it does anything — the owner's
+own ask, 2026-09-29. `readme-chain.js`; the seam, the token cap, where it's
+wired in and left out: [`doc/readme-chain.md`](../doc/readme-chain.md).
+
 ## The Dispatcher — a card becomes a task mastermind
 
 When the assistant decides a sentence asked for something built, fixed, changed or looked
@@ -198,7 +214,10 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `policy.js` · `claims.js` · `brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
-`demo.mjs` · `fork-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+`experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
+`readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
+[`doc/readme-chain.md`](../doc/readme-chain.md)) ·
+`demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
 `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
 
 How agents should work together (the design, with a picture):

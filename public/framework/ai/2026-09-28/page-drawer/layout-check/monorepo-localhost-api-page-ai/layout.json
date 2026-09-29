@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/api/page-ai",
+ "widths": {
+  "1280": {
+   "empty": 0.952,
+   "widest_text": 379,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.973,
+   "widest_text": 403,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.97,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.978,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 4,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Error: 404 — nothing matches \"/api/page-ai\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.j",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Error: 404 — nothing matches \"/api/page-ai\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.j",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Error: 404 — nothing matches \"/api/page-ai\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.j",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Error: 404 — nothing matches \"/api/page-ai\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework/core/App/App.j"
+ ]
+}

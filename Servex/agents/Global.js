@@ -19,7 +19,9 @@ const REPO = path.join(HERE, "../..");
  * (D3, doc/page-roles.md) — "task" (a queued-state change) is noise at this
  * level and is dropped; a deeper page's own assistant hears its own "task". */
 const HEARD = ["landed", "blocked", "error"];
-const WORKER = /^(minion|helper|fork)/;
+/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. `page-` covers the recursive-pairs role words (page-assistant, page-mastermind); their ids already start with assistant-/manager-. */
+const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-)/;
+const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
 const TASK_MASTERMIND = /^task-mastermind-/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
@@ -27,7 +29,7 @@ const today = () => new Date().toLocaleDateString("en-CA");
 /* THE TWO ROOT AGENTS (design: ai/2026-09-24/assistant-layers/doc/design.md;
  * narrowed 2026-09-25/28 by the recursive-pairs work, doc/page-roles.md).
  *
- * - `master-assistant` (fast tier, medium effort) is the root page's own
+ * - `master-assistant` (architect tier, medium effort) is the root page's own
  *   assistant — `page-assistant.md`'s root case. It no longer hears every
  *   card: only a landing, block or error from a DIRECT CHILD of the root is
  *   batched to it, at most one message every 20 seconds, and it stays silent
@@ -124,7 +126,25 @@ export default class Global {
 		return this.touch(id, this.remember(agent, "master"));
 	}
 
+	/* THE HOLDER. "mastermind-servex" is a role: when the owner starts a fresh
+	 * session for it as mastermind-servex-N (the old one stood down at a full
+	 * context), the highest N in the registry holds it, and a boot or a wake
+	 * resumes THAT session, never the retired one. */
+	holder(){
+		const n = id => +(/^mastermind-servex-(\d+)$/.exec(id)?.[1] ?? -1);
+		let ids = [...this.agents.live.keys()];
+		try { ids = ids.concat(Object.keys((this.agents.reg?.() ?? new Registry()).read())); } catch {}
+		return ids.filter(id => n(id) >= 0).sort((x, y) => n(y) - n(x))[0] ?? this.mastermind_id;
+	}
+
 	mastermind(){
+		const h = this.holder();
+		if (h !== this.mastermind_id){
+			const live = this.live(h);
+			if (live) return live;
+			const row = this.registry_row(h);
+			if (row?.session_id) return this.touch(h, this.agents.reopen(row));
+		}
 		const id = this.mastermind_id;
 		const live = this.live(id);
 		if (live) return live;
@@ -214,9 +234,9 @@ export default class Global {
 	sweep(now = Date.now()){
 		for (const agent of [...this.agents.live.values()]){
 			if (agent.state !== "idle") continue;
-			const worker = WORKER.test(agent.role ?? "") || WORKER.test(agent.id ?? "");
-			const global = agent.id === this.master_id || agent.id === this.mastermind_id;
-			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");
+			const worker = is_worker(agent);
+			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id ?? "");   // 15 min idle; a message wakes them
+			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // D5: the same 15 minutes, and its reap is logged
 			if (!worker && !global && !task_mastermind) continue;
 			if (worker && !(agent.turns >= 1)) continue;
 			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : this.idle_ms)) continue;

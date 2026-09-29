@@ -1,0 +1,326 @@
+ M .claude/hooks/ledger.mjs
+ M .claude/hooks/syntax-guard.mjs
+ M .claude/skills/code/SKILL.md
+ M .claude/skills/css/SKILL.md
+ M .claude/skills/documentation/SKILL.md
+ M .claude/skills/documentation/improvements.md
+ M .claude/skills/every-prompt/SKILL.md
+ M .claude/skills/finish-task/SKILL.md
+ M .claude/skills/layout/SKILL.md
+ M .claude/skills/layout/improvements.md
+ M .claude/skills/mastermind/SKILL.md
+ M .claude/skills/minion/SKILL.md
+ M .claude/skills/minion/improvements.md
+ M .claude/skills/new-page/SKILL.md
+ M .claude/skills/new-task/SKILL.md
+ M .claude/skills/research/SKILL.md
+ M .claude/skills/servex-mastermind/SKILL.md
+ M .claude/skills/sub-mastermind/SKILL.md
+ M .claude/skills/sub-mastermind/improvements.md
+ M .gitignore
+ M .mcp.json
+ M CLAUDE.md
+ M Server/README.md
+ M Server/health-supervisor.mjs
+ M Server/plugins/Ask.js
+ M Server/plugins/Assistant.js
+ M Server/plugins/CardAnswer.js
+ M Server/plugins/SocketServer/Runtime.js
+ M Server/task-cost.mjs
+ M Server/worktree-down.mjs
+ M Servex/Process.js
+ M Servex/Servex.js
+ M Servex/agents/Agents.js
+ M Servex/agents/Global.js
+ M Servex/agents/Layers.js
+ M Servex/agents/assistant.md
+ M Servex/agents/brief.js
+ M Servex/agents/card-assistant.md
+ M Servex/agents/layers-proof.mjs
+ M Servex/agents/layers.test.mjs
+ M Servex/agents/master-assistant.md
+ M Servex/agents/policy.js
+ M Servex/agents/revive-proof.mjs
+ M Servex/agents/roles.js
+ M Servex/agents/tools.js
+ M Servex/cards/Cards.js
+ M Servex/proof/proof.mjs
+ M Servex/readme.md
+ M Servex/sustain.mjs
+ M dev.mjs
+ M public/app.js
+ M public/framework/ai/2026-08-12/apps/task.jsonl
+ M public/framework/ai/2026-08-12/layouts/task.jsonl
+ M public/framework/ai/2026-08-12/stage/task.jsonl
+ M public/framework/ai/2026-08-12/strategy/task.jsonl
+ M public/framework/ai/2026-08-12/unify/task.jsonl
+ M public/framework/ai/2026-08-13/persistence/task.jsonl
+ M public/framework/ai/2026-09-24/ai2-cost-fill/task.jsonl
+ M public/framework/ai/2026-09-24/ai2-dashboard/task.jsonl
+ M public/framework/ai/2026-09-24/ai2-groups/task.jsonl
+ M public/framework/ai/2026-09-24/assistant-layers/task.jsonl
+ M public/framework/ai/2026-09-24/card-folders/task.jsonl
+ M public/framework/ai/2026-09-24/concurrency/task.jsonl
+ M public/framework/ai/2026-09-24/day.jsonl
+ M public/framework/ai/2026-09-24/page.js
+ M public/framework/ai/2026-09-24/servex-startup-note/task.jsonl
+ M public/framework/ai/2026-09-24/task-cost/task.jsonl
+ M public/framework/ai/2026-09-28/collab-facts/spend.json
+ M public/framework/ai/2026-09-28/collab-facts/task.jsonl
+ M public/framework/ai/2026-09-28/day.jsonl
+ M public/framework/ai/2026/09/22/reuse-audit/page.jsonl
+ M public/framework/ai/2026/09/24/page.jsonl
+ M public/framework/ai/2026/09/25/readme-indexes-across-the-framework/page.jsonl
+ M public/framework/ai/2026/09/page.jsonl
+ M public/framework/ai/board.jsonl
+ M public/framework/ai/handover.md
+ M public/framework/ai/page.js
+ M public/framework/ai/usage.jsonl
+ M public/framework/ai/v/3/board.jsonl
+ M public/framework/ai2/agents.js
+ M public/framework/ai2/ai2.css
+ M public/framework/ai2/card.js
+ M public/framework/ai2/chat.js
+ M public/framework/ai2/compose.js
+ M public/framework/ai2/doc/cards.md
+ M public/framework/ai2/doc/decisions.md
+ M public/framework/ai2/faces.js
+ M public/framework/ai2/groups.js
+ M public/framework/ai2/groups.json
+ M public/framework/ai2/inbox.js
+ M public/framework/ai2/live.js
+ M public/framework/ai2/overview.js
+ M public/framework/ai2/page.js
+ M public/framework/ai2/readme.md
+ M public/framework/ai2/tasks.js
+ M public/framework/core/Page/doc/layout.md
+ D public/framework/core/Page/jsonl/child/page.jsonl
+ D public/framework/core/Page/jsonl/content.js
+ M public/framework/core/Page/jsonl/page.jsonl
+ M public/framework/core/Page/jsonl/readme.md
+ D public/framework/core/Page/jsonl/unplaced.md
+ M public/framework/core/Page/page.js
+ M public/framework/core/Page/readme.md
+ M public/framework/dev/Socket/Socket.js
+ M public/framework/dev/Socket/readme.md
+ M public/framework/ext/AITask/usage.js
+ M public/framework/ext/Ask/pick.js
+ M public/framework/ext/DesignTool/doc/file/live.js.md
+ M public/framework/ext/DesignTool/doc/file/mirror.js.md
+ M public/framework/ext/DesignTool/doc/file/probe.js.md
+ M public/framework/ext/DesignTool/doc/file/report.js.md
+ M public/framework/ext/Doc/Doc.js
+ M public/framework/ext/Doc/page.js
+ M public/framework/ext/Doc/readme.md
+ M public/framework/ext/demo/demo.js
+ M public/framework/ext/drawer/drawer.css
+ M public/framework/ext/drawer/drawer.js
+ M public/framework/ext/drawer/page.js
+ M public/framework/ext/drawer/readme.md
+ M public/framework/ext/files/files.js
+ M public/framework/ext/layout/panel.js
+ M public/framework/ext/page.js
+ M public/framework/page.js
+ M public/framework/ux/Content/structure/Structure.js
+ M public/framework/ux/Content/structure/doc/guide.md
+ M public/framework/ux/Content/structure/page.js
+ M public/framework/ux/Dictate/Dictate.js
+ M public/framework/ux/Dictate/doc/decisions.md
+ M public/framework/ux/Dictate/page.js
+ M public/framework/ux/Dictate/readme.md
+ M server.js
+?? .claude/skills/clarity/
+?? .claude/skills/content/
+?? .claude/skills/page/
+?? .merge-landed.json
+?? Server/clarity.mjs
+?? Server/on-landing.mjs
+?? Server/sources.mjs
+?? Server/text-check.mjs
+?? Server/window-lint.mjs
+?? Server/window-watch.mjs
+?? Servex/Pool.js
+?? Servex/Usage.js
+?? Servex/agents/tidy.js
+?? Servex/doc/
+?? Servex/hidden-launch.vbs
+?? Servex/proof/tidy-proof.mjs
+?? layout-check-out/
+?? public/framework/ai/2026-09-24/agent-chat/
+?? public/framework/ai/2026-09-24/ai2-cost-fill/spend.json
+?? public/framework/ai/2026-09-24/ai2-dashboard/spend.json
+?? public/framework/ai/2026-09-24/ai2-groups/spend.json
+?? public/framework/ai/2026-09-24/assistant-layers/spend.json
+?? public/framework/ai/2026-09-24/card-consolidation/
+?? public/framework/ai/2026-09-24/card-folders/spend.json
+?? public/framework/ai/2026-09-24/card-page-flicker/
+?? public/framework/ai/2026-09-24/chat-ext-extract/
+?? public/framework/ai/2026-09-24/chat-ext-scroll/
+?? public/framework/ai/2026-09-24/concurrency/spend.json
+?? public/framework/ai/2026-09-24/content-modules/
+?? public/framework/ai/2026-09-24/core-columns/requirements.md
+?? public/framework/ai/2026-09-24/core-columns/spend.json
+?? public/framework/ai/2026-09-24/core-columns/task.jsonl
+?? public/framework/ai/2026-09-24/helper-fixes/
+?? public/framework/ai/2026-09-24/inventory/
+?? public/framework/ai/2026-09-24/layout-names/
+?? public/framework/ai/2026-09-24/layout-unify/
+?? public/framework/ai/2026-09-24/live-card-wide/
+?? public/framework/ai/2026-09-24/live-card/
+?? public/framework/ai/2026-09-24/live-preview/
+?? public/framework/ai/2026-09-24/live-reply/
+?? public/framework/ai/2026-09-24/loose-ends/
+?? public/framework/ai/2026-09-24/md-open/
+?? public/framework/ai/2026-09-24/md-pages/
+?? public/framework/ai/2026-09-24/page-jsonl/
+?? public/framework/ai/2026-09-24/popups/
+?? public/framework/ai/2026-09-24/recipe-lab/
+?? public/framework/ai/2026-09-24/servex-crash/
+?? public/framework/ai/2026-09-24/servex-mastermind-opus/
+?? public/framework/ai/2026-09-24/servex-mastermind/
+?? public/framework/ai/2026-09-24/servex-monitor/
+?? public/framework/ai/2026-09-24/task-audit/
+?? public/framework/ai/2026-09-24/task-cost/spend.json
+?? public/framework/ai/2026-09-24/voice-double-post/
+?? public/framework/ai/2026-09-24/voice-wait-for-pause/
+?? public/framework/ai/2026-09-25/ai2-lead/
+?? public/framework/ai/2026-09-25/ai2-resurface-bar/
+?? public/framework/ai/2026-09-25/chat-merge/
+?? public/framework/ai/2026-09-25/css-audit/
+?? public/framework/ai/2026-09-25/day.jsonl
+?? public/framework/ai/2026-09-25/feedback-council/
+?? public/framework/ai/2026-09-25/layout-check/
+?? public/framework/ai/2026-09-25/live-v3/
+?? public/framework/ai/2026-09-25/now-card-tabs/
+?? public/framework/ai/2026-09-25/overview-fix/
+?? public/framework/ai/2026-09-25/padding-system/
+?? public/framework/ai/2026-09-25/page-audit/
+?? public/framework/ai/2026-09-25/page-system/
+?? public/framework/ai/2026-09-25/page.js
+?? public/framework/ai/2026-09-25/quickfix-worktrees/landing/
+?? public/framework/ai/2026-09-25/quickfix-worktrees/live-1920.png
+?? public/framework/ai/2026-09-25/quickfix-worktrees/live/
+?? public/framework/ai/2026-09-25/quickfix-worktrees/pool/
+?? public/framework/ai/2026-09-25/quickfix-worktrees/requirements.md
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/broken.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/clean.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/merge-reset-incident.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/merge.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/refused-msys.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/proof/skills.txt
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/report.md
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/requirements.md
+?? public/framework/ai/2026-09-25/quickfix-worktrees/smoke/task.jsonl
+?? public/framework/ai/2026-09-25/quickfix-worktrees/task.jsonl
+?? public/framework/ai/2026-09-25/recursive-pairs/
+?? public/framework/ai/2026-09-25/servex-mastermind/
+?? public/framework/ai/2026-09-25/tabbed-card/
+?? public/framework/ai/2026-09-28/ai2-real-pages/
+?? public/framework/ai/2026-09-28/ai2-row-vanish/
+?? public/framework/ai/2026-09-28/ai2-workspace/
+?? public/framework/ai/2026-09-28/check-consensus/
+?? public/framework/ai/2026-09-28/collab-rounds/requirements-doc-link.md
+?? public/framework/ai/2026-09-28/collab-rounds/requirements-objects.md
+?? public/framework/ai/2026-09-28/collab-rounds/requirements-runner.md
+?? public/framework/ai/2026-09-28/collab-rounds/requirements.md
+?? public/framework/ai/2026-09-28/collab-rounds/review.md
+?? public/framework/ai/2026-09-28/collab-rounds/review/
+?? public/framework/ai/2026-09-28/collab-rounds/spend.json
+?? public/framework/ai/2026-09-28/collab-rounds/task.jsonl
+?? public/framework/ai/2026-09-28/commit-live-system/
+?? public/framework/ai/2026-09-28/concept-links-fix/
+?? public/framework/ai/2026-09-28/content-cards-audit/
+?? public/framework/ai/2026-09-28/dictation-playground/
+?? public/framework/ai/2026-09-28/figma-sept-frame/
+?? public/framework/ai/2026-09-28/file-explorer-fs/
+?? public/framework/ai/2026-09-28/fresh-eyes-review/
+?? public/framework/ai/2026-09-28/harness-research/
+?? public/framework/ai/2026-09-28/hidden-windows/
+?? public/framework/ai/2026-09-28/organization/
+?? public/framework/ai/2026-09-28/page-drawer/
+?? public/framework/ai/2026-09-28/page.js
+?? public/framework/ai/2026-09-28/servex-mastermind/
+?? public/framework/ai/2026-09-28/shared-browser/
+?? public/framework/ai/2026-09-28/smoke-links/
+?? public/framework/ai/2026-09-28/source-library/
+?? public/framework/ai/2026-09-28/task-loop/
+?? public/framework/ai/2026-09-28/task-placement/
+?? public/framework/ai/2026-09-28/tooling-gaps/
+?? public/framework/ai/2026-09-28/waiting-on-you/
+?? public/framework/ai/2026/09/24/ai-dashboard/
+?? public/framework/ai/2026/09/24/audits/
+?? public/framework/ai/2026/09/24/cards-content/
+?? public/framework/ai/2026/09/24/chat-demo/
+?? public/framework/ai/2026/09/24/layout-columns/
+?? public/framework/ai/2026/09/24/new-card/
+?? public/framework/ai/2026/09/24/pages-markdown/
+?? public/framework/ai/2026/09/24/prompt-mechanics-2/
+?? public/framework/ai/2026/09/24/prompt-mechanics/
+?? public/framework/ai/2026/09/24/servex/
+?? public/framework/ai/2026/09/24/system-design/
+?? public/framework/ai/2026/09/25/ai-2-header-and-rail-cleanup/
+?? public/framework/ai/2026/09/25/ai-2-works-without-servex/
+?? public/framework/ai/2026/09/25/an-assistant-on-every-page/
+?? public/framework/ai/2026/09/25/cards-that-show-the-thing/
+?? public/framework/ai/2026/09/25/classify-see-the-css-classes-on-the-page/
+?? public/framework/ai/2026/09/25/core-concepts-first-icon-pages-for-every/
+?? public/framework/ai/2026/09/25/disclosure-and-stacks-content-ui/
+?? public/framework/ai/2026/09/25/feedback-council/
+?? public/framework/ai/2026/09/25/file-explorer-see-the-code/page.jsonl
+?? public/framework/ai/2026/09/25/fresh-sessions-instead-of-context-drift/
+?? public/framework/ai/2026/09/25/inbox-show-what-changed-when-a-card-resu/
+?? public/framework/ai/2026/09/25/new-card-2/
+?? public/framework/ai/2026/09/25/new-card-3/
+?? public/framework/ai/2026/09/25/new-card-4/
+?? public/framework/ai/2026/09/25/new-card-5/
+?? public/framework/ai/2026/09/25/new-card/
+?? public/framework/ai/2026/09/25/now/
+?? public/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/
+?? public/framework/ai/2026/09/25/open-tasks-where-each-one-is-and-what-ne/
+?? public/framework/ai/2026/09/25/page.jsonl
+?? public/framework/ai/2026/09/25/quick-fix-worktrees-smoke-test-then-merg/
+?? public/framework/ai/2026/09/25/review-what-changed-accept-improve-rejec/
+?? public/framework/ai/2026/09/25/spend-over-time-graph/
+?? public/framework/ai/2026/09/25/who-is-who-every-agent-role/
+?? public/framework/ai/2026/09/25/why-padding-keeps-going-missing/
+?? public/framework/ai/2026/09/28/
+?? public/framework/ai/audits/
+?? public/framework/ai/cand.txt
+?? public/framework/ai/cards.jsonl
+?? public/framework/ai/council/
+?? public/framework/ai/handoff2-owner-words.md
+?? public/framework/ai/handoff2.md
+?? public/framework/ai/todo.md
+?? public/framework/ai2/activity.js
+?? public/framework/ai2/doc/card-standard.md
+?? public/framework/ai2/doc/columns-seams.md
+?? public/framework/ai2/floating.js
+?? public/framework/ai2/fold.js
+?? public/framework/ai2/meter.js
+?? public/framework/ai2/outline.js
+?? public/framework/ai2/real.js
+?? public/framework/ai2/workspace.js
+?? public/framework/core/Page/jsonl/full/
+?? public/framework/core/Page/layout/
+?? public/framework/core/Page/make/
+?? public/framework/core/Page/overview/folders/
+?? public/framework/ext/Chat/
+?? public/framework/ext/Classify/
+?? public/framework/ext/Doc/doc/tree/
+?? public/framework/ext/drawer/doc/file/menu.js.md
+?? public/framework/ext/drawer/doc/file/select.js.md
+?? public/framework/ext/drawer/doc/file/tabs.js.md
+?? public/framework/ext/drawer/doc/select.md
+?? public/framework/ext/drawer/doc/select.png
+?? public/framework/ext/drawer/doc/tabs.md
+?? public/framework/ext/drawer/doc/tabs.png
+?? public/framework/ext/drawer/menu.js
+?? public/framework/ext/drawer/select.js
+?? public/framework/ext/drawer/tabs.js
+?? public/framework/ext/drawer/tabs/
+?? public/framework/ext/drawer/walkthrough/
+?? public/framework/research/harness/
+?? public/framework/sources/
+?? public/framework/ux/Dictate/demo/
+?? public/framework/ux/Dictate/doc/handover.md
+?? public/framework/ux/Dictate/playground/

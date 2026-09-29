@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Adopt haiku-a's title extraction fallbacks (og:title, h1 tag) into Source.Markdown.titleOf() to recover titles from more pages in production."
+}

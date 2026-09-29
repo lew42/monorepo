@@ -9,7 +9,11 @@ export default new Doc({
 	subject: Doc,
 	properties: "intrinsic",
 	methods:    "sections section api members member_page bar wall is_class declaration",
-	notes:      "rail reflection files decisions",
+	// tree/* proves the 2026-09-28 nested-note tree: a note name may nest ("guide/setup"),
+	// and the Docs tab switches from its tab bar to a folder tree the moment any note
+	// does. "tree" and "tree/redirect" are never bare notes themselves, only prefixes —
+	// so the tree here never has to be both a leaf and a folder at once.
+	notes:      "rail reflection files decisions tree/nesting tree/redirect/docs tree/redirect/history",
 	overview:   "urls",
 	files:      "Doc.js Doc.css page.js readme.md overview/urls/page.js",
 

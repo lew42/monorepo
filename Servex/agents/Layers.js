@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
 import { brief } from "./brief.js";
+import { first_prompt } from "./readme-chain.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -244,8 +245,13 @@ export default class Layers {
 	/* Dictation arrives in fragments: one spoken thought can land as several
 	 * prompt lines a second or two apart, and the assistant used to answer each
 	 * one (2026-09-24, card layout-columns). So a context's prompts wait until the
-	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 4 s), then go out
-	 * joined as one. 0 sends each one at once, as before. */
+	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 1.5 s), then go out
+	 * joined as one. 0 sends each one at once, as before.
+	 * ⚠ It was 4 s, and every reply started 4 s late (measured 2026-09-29, card
+	 * new-card: prompt logged 00:00:59, the assistant heard it 00:01:03). Since
+	 * 2026-09-25 the microphone itself joins a thought into one message before it
+	 * sends (ext/Chat/Mic.js, `paragraph_pause_ms`), so this only has to catch the
+	 * lines one send writes together — they land in the same second. */
 	listen(){
 		this.waiting = new Map();   // context → { prompt, texts, timer }
 		this.servex.cards.on((id, line, info) => {
@@ -255,9 +261,11 @@ export default class Layers {
 		});
 	}
 
+	/* A card's listener and a plain page's send (page_ai) both come through here. */
 	hear(key, prompt){
-		const quiet = env("SERVEX_PROMPT_QUIET_MS", 4000);
+		const quiet = env("SERVEX_PROMPT_QUIET_MS", 1500);
 		if (!(quiet > 0)) return void this.heard(key, prompt);
+		this.waiting ??= new Map();
 		const w = this.waiting.get(key) ?? { prompt, texts: [] };
 		w.texts.push(prompt.text ?? prompt.raw ?? "");
 		clearTimeout(w.timer);
@@ -266,6 +274,16 @@ export default class Layers {
 			this.heard(key, { ...w.prompt, text: w.texts.join(" "), raw: undefined });
 		}, quiet);
 		this.waiting.set(key, w);
+	}
+
+	/* THE DRAWER'S CHIP, IN WORDS — the elements picked on the page before this
+	 * prompt was sent (ext/drawer/select.js's `item()`: `{kind, label, text,
+	 * selector}`), as one short labelled block per element. Without this the
+	 * assistant sees only the sentence and not what it was about — the chip
+	 * showed on screen, but the words alone reached here (2026-09-29). */
+	selected_block(context){
+		if (!Array.isArray(context) || !context.length) return "";
+		return context.map(c => `[Selected: ${c.label ?? c.kind ?? "element"} (${c.selector ?? "?"})]\n${String(c.text ?? "").trim()}`).join("\n\n") + "\n\n";
 	}
 
 	/* A fresh assistant already read the prompt in its first message, so only a
@@ -277,7 +295,8 @@ export default class Layers {
 		const agent = this.assistant(key);
 		if (!was && !held && (agent.layers_fresh || (queued(agent) && this.pending.get(slot.id)?.fresh))) return agent;
 		const on = prompt.on && prompt.on !== key ? `(on ${prompt.on}) ` : "";
-		this.deliver(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: this.reply_to(key) });
+		const selected = this.selected_block(prompt.context);
+		this.deliver(slot.id, selected + on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: this.reply_to(key) });
 		this.touch(slot.id);
 		return agent;
 	}
@@ -406,7 +425,7 @@ export default class Layers {
 	/* A fresh start's first message: the context's log, then who it is. */
 	first(key, role){
 		if (role === "manager") return this.manager_prompt(key);
-		return this.transcript(key) + "\n\n" + this.scope(key, "assistant") + " A message follows.";
+		return this.where_you_are(key) + "\n\n" + this.transcript(key) + "\n\n" + this.scope(key, "assistant") + " A message follows.";
 	}
 
 	/* Too old or too full to resume: its session is forgotten, its id kept. */
@@ -499,9 +518,25 @@ export default class Layers {
 		this.save();
 	}
 
+	/* A fresh assistant gets the readme chain for its context's own dir (`dir_of`:
+	 * a card's `public/framework/ai/<card>`, the sub-mastermind convention that a
+	 * card's dir IS its task dir; a page's `public<page>`) ahead of the transcript,
+	 * so it knows where it is before it reads a word the owner said. A resumed one
+	 * already has it — `open()`'s `prompt()` closure only runs on the fresh path. */
 	assistant(key){
-		return this.open(key, "assistant", () => this.transcript(key) + "\n\n" + this.scope(key, "assistant")
+		return this.open(key, "assistant", () => this.where_you_are(key) + "\n\n" + this.transcript(key) + "\n\n" + this.scope(key, "assistant")
 			+ " The owner's newest words are the last prompt line. Answer them.");
+	}
+
+	/* The directory a context's files live in, repo-relative: a card's task dir, or a page's own dir. */
+	dir_of(key){
+		if (!is_page(key)) return `public/framework/ai/${key}`;
+		return ("public" + key).replace(/\/$/, "");
+	}
+
+	/* The readme chain (readme-chain.js) for a context's dir — the top of a fresh agent's first message. */
+	where_you_are(key){
+		return first_prompt(this.dir_of(key));
 	}
 
 	/* The context's log, from its LAST `summary` line onward when there is one —
@@ -528,9 +563,12 @@ export default class Layers {
 		return `Card ${id} — its whole log, ${lines.length} lines, oldest first:\n` + lines.map(l => JSON.stringify(l)).join("\n");
 	}
 
+	/* A fresh manager's first message. Same readme-chain treatment as the
+	 * assistant: only the FRESH prompt() closure (or `first()`) runs it. */
 	manager_prompt(key, request = ""){
 		const rec = this.record(key), slot = rec.manager;
-		return `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of ${this.where(key)}.`
+		return this.where_you_are(key) + "\n\n"
+			+ `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of ${this.where(key)}.`
 			+ " Your session is kept for this context's whole life: every later request here comes to you, so keep what you learn."
 			+ " First call `claim_topic({thing, change, card})`: `thing` is what you will change, as a short noun anyone would use (the site header, policy.js, the AI 2 rail), never the change itself."
 			+ " If it is refused, message mastermind-servex instead of starting."

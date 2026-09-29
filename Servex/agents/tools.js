@@ -4,6 +4,7 @@ import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { job_tools } from "./jobs.js";
+import { expert_tools } from "./experts.js";
 
 /* The seven verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
@@ -35,11 +36,12 @@ const tool = (name, description, properties, required, handler) => {
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
 /* Everything an agent can call: the seven agent verbs below, the three
- * operator tools (ops.js) and the two job tools (jobs.js) — so one line in
+ * operator tools (ops.js), the two job tools (jobs.js) and the four module-expert
+ * tools (experts.js: ask_expert, list_experts, load_module, readme_modules) — so one line in
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from)];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents)];
 }
 
 /* start_job's answer comes to `from` — which defaults to whoever is calling
@@ -67,7 +69,8 @@ return [
 			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
 			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
 			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
-			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." }
+			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
+			task: { type: "object", description: "Open this agent's task.jsonl for it, before its first turn: `{dir, card, brief}`. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is." }
 		},
 		[],
 		(args, ctx = {}) => {
@@ -135,6 +138,7 @@ return [
 		},
 		["id", "text"],
 		({ id, text, ...note }, ctx = {}) => {
+			id = agents.holder?.(id) ?? id;
 			const ruling = policy.message(ctx.caller ?? null, id);
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			const from = ctx.caller ?? note.from;
@@ -174,14 +178,15 @@ return [
  * to a spawn as `mcp_servers: { servex: server(host) }` and the agent calls
  * `mcp__servex__fork_self` straight into this process. `ctx.caller` is who the
  * handlers are told is calling — what `?as=` is on the HTTP door. JSON Schema → zod for
- * the property kinds the tools use. `alwaysLoad`: otherwise the CLI defers them
+ * the property kinds the tools use. `list` narrows it: `server(host, ctx, loader_tools())`
+ * gives a session only `load_module` and `readme_modules` (experts-proof.mjs, way b). `alwaysLoad`: otherwise the CLI defers them
  * behind ToolSearch and a small model reports the tool "not available". */
-export function server(agents = singleton, ctx = { caller: null }){
+export function server(agents = singleton, ctx = { caller: null }, list = tools(agents)){
 	const zod = ({ type, items, enum: one_of }) => one_of ? z.enum(one_of)
 		: type === "number" ? z.number() : type === "boolean" ? z.boolean()
 		: type === "object" ? z.looseObject({})   // NOT z.record(): one record breaks the SDK server's whole tools/list
 		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
-	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: tools(agents).map(t => sdk_tool(t.name, t.description,
+	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: list.map(t => sdk_tool(t.name, t.description,
 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
 			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
 		async args => {

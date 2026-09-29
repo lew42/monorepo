@@ -3,7 +3,7 @@
 ## Index
 - [AITask](./AITask/) — the AI working log, rendered: one task, a day, the highlights wall, the board — use it to show task logs
 - [Ask](./Ask/) — talk to a Claude Code session from the browser (dev server, localhost only)
-- [CSSDoc](./CSSDoc/) — every CSS rule that lands on one element, read live from the CSSOM — use it to see why an element looks as it does
+- **CSSDoc** (`ext/CSSDoc/`, no page yet) — every CSS rule that lands on one element, read live from the CSSOM — use it to see why an element looks as it does
 - [Chat](./Chat/) — a chat log that follows new messages only while you are at the bottom
 - [DesignTool](./DesignTool/) — measures a layout numerically: what is broken, off or good; no AI at runtime
 - [Doc](./Doc/) — document a module as a page (Overview, API, Docs, Files) — use it in a module's `page.js`

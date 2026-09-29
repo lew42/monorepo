@@ -7,7 +7,7 @@
  * console errors since the last step, the watched rects before/after, and layout flags.
  * The json is the evidence; the pngs are the picture. SKILL.md has the verbs. */
 
-import pw from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.js";
+import { browser as launch } from "../../../Server/browser.mjs";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import os from "node:os";
@@ -28,7 +28,7 @@ function parse(step){
 	return [verb, ...(tail.match(/"[^"]*"|\S+/g) ?? []).map(a => a.replace(/^"|"$/g, ""))];
 }
 
-const browser = await pw.chromium.launch();
+const browser = await launch();
 const page = await (await browser.newContext({ viewport: vp })).newPage();
 
 const errs = [];
