@@ -1,0 +1,2832 @@
+diff --git a/Server/browser.mjs b/Server/browser.mjs
+index 238c0b5e..3b0c0d3d 100644
+--- a/Server/browser.mjs
++++ b/Server/browser.mjs
+@@ -47,5 +47,20 @@ function get_chromium(){
+  * changing that reason belongs here, not at each call site. */
+ export async function browser(opts = {}){
+ 	const chromium = await get_chromium();
+-	return chromium.launch({ headless: true, channel: "chromium", ...opts });
++	const b = await chromium.launch({ headless: true, channel: "chromium", ...opts });
++	log_browser(b);
++	return b;
++}
++
++/* The creation log (lifecycle, 2026-09-29): a start line with the browser's pid and owner task,
++ * an end line when it closes. A script that forgets close() leaves a start with no end, and
++ * the reaper's sweep closes it. Never throws. Servex/Lifecycle.js. */
++async function log_browser(b){
++	try {
++		const m = await import("../Servex/Lifecycle.js");
++		const pid = b.process?.()?.pid ?? null;
++		const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: path.basename(process.argv[1] || "") };
++		m.record({ ...base, event: "start" });
++		b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
++	} catch {}
+ }
+diff --git a/Server/clarity.mjs b/Server/clarity.mjs
+index f35a15bc..1a39e55f 100644
+--- a/Server/clarity.mjs
++++ b/Server/clarity.mjs
+@@ -30,7 +30,23 @@ async function main(){
+ 		try { const e = JSON.parse(l); return e.target === target && Date.now() - Date.parse(e.at) < (kind === "look" ? 10 : 30) * 60000; } catch { return false; }
+ 	});
+ 	if (recent && process.env.CLARITY_FORCE !== "1") return;   // CLARITY_FORCE=1: re-check while refining the skill
++	// ONCE PER TASK (lifecycle, 2026-09-29): a clarity agent used to be spawned for every minion
++	// landing, which multiplied agents under memory pressure. A sub-task (its parent dir has a
++	// task.jsonl) is checked with its parent; a task whose log already has a clarity line is skipped.
++	if (kind === "landing") {
++		const own = path.join(arg, "task.jsonl");
++		if (fs.existsSync(path.join(path.dirname(path.resolve(arg)), "task.jsonl"))) return note({ target, verdict: "skipped", what: "a sub-task: its parent task gets the one check" });
++		try { if (fs.readFileSync(own, "utf8").includes('"clarity: ')) return note({ target, verdict: "skipped", what: "this task already had its clarity check" }); } catch {}
++		try { fs.appendFileSync(own, JSON.stringify({ log: { at: new Date().toISOString(), msg: "clarity: queued (once per task)" } }) + "\n"); } catch {}
++	}
+ 	note({ target, verdict: "queued", kind });
++	// Wait while the machine is under strain (Servex's monitor flag), at most an hour.
++	for (let i = 0; i < 60; i++) {
++		let flag = null;
++		try { flag = (await (await fetch(MCP.replace("/mcp", "/api/system"), { signal: AbortSignal.timeout(3000) })).json()).flag; } catch {}
++		if (!flag) break;
++		await sleep(60000);
++	}
+ 	if (kind === "proposal") {                                   // let the writer finish
+ 		for (let i = 0; i < 10; i++) {
+ 			const age = Date.now() - fs.statSync(arg).mtimeMs;
+diff --git a/Server/doc/worktrees.md b/Server/doc/worktrees.md
+index f7c26251..00f11e0a 100644
+--- a/Server/doc/worktrees.md
++++ b/Server/doc/worktrees.md
+@@ -39,3 +39,7 @@ In PowerShell, run `(Get-Item <link>).Delete()`. In cmd, run `rmdir <link>` with
+ prints a warning.
+ 
+ The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/2026-09-29/node-modules-guard/guards/proof.md).
++
++## Tell the worktree which task it is for
++
++`node Server/worktree-up.mjs <slug> --task <task dir>` (or `LEW_TASK=<task dir>`) writes `worktree` into that task's `task.jsonl`. When the task lands, `Server/on-landing.mjs` uses it to stop the worktree's server. Without it, the landing matches the task's folder name or branch against `.worktrees.json`. Everything a worktree starts is also recorded in Servex's creation log: [Servex/doc/lifecycle.md](../../Servex/doc/lifecycle.md).
+diff --git a/Server/health-supervisor.mjs b/Server/health-supervisor.mjs
+index 88115e8d..5eb7e8c9 100644
+--- a/Server/health-supervisor.mjs
++++ b/Server/health-supervisor.mjs
+@@ -90,6 +90,10 @@ const HEARTBEAT_PATH = path.join(ROOT, "public", "framework", "ai", "health", "h
+ // command lines too, not just as an invisible fallback inside health.mjs.
+ const HEALTH_BASE = process.env.HEALTH_BASE || "http://monorepo.localhost";
+ 
++// The creation log (lifecycle, 2026-09-29): its own start and end in Servex's lifecycle.jsonl,
++// so the reaper can find it by pid and owner. Never blocks. Servex/Lifecycle.js.
++import("../Servex/Lifecycle.js").then(m => m.track("health", `health-supervisor:${process.pid}`, { base: HEALTH_BASE, path: ROOT })).catch(() => {});
++
+ const HEARTBEAT_MS = 10_000;      // how often the heartbeat file is refreshed while a child is up
+ const BOOT_GRACE_MS = 1500;       // dying before this counts as "never really up" — same idea as server.js's BOOT_GRACE_MS
+ const KILL_DEADLINE_MS = 3000;    // same bounded-kill deadline as server.js's supervisor
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index 548bb0ea..2b0c1087 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -108,6 +108,17 @@ try {
+ 	} catch (e) {
+ 		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
+ 	}
++	// THE REAPER (lifecycle, 2026-09-29): everything else this task still owns — a server started
++	// by hand, its health watcher, headless browsers, idle reviewers and minions — is closed now,
++	// in node, instead of trusting an agent to remember. Each close is an end line in Servex's
++	// lifecycle.jsonl. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
++	try {
++		const { default: Lifecycle } = await import("../Servex/Lifecycle.js");
++		const rows = await new Lifecycle().reap(dir);
++		append(task, `lifecycle: ${rows.length ? `closed ${rows.map(r => `${r.kind} ${r.id}`).join(", ")}` : "nothing of this task's was left running"}`);
++	} catch (e) {
++		try { append(task, "lifecycle: reap not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
++	}
+ 	const paths = [...String(landing.outcome || "").matchAll(/\]\((\/[^)\s]*)\)|(?:^|[\s"'(])(\/[\w./~%-]+)/g)].map(m => m[1] || m[2])
+ 		.map(p => p.split(/[#?]/)[0]).filter(p => p && !/\.(png|jpe?g|gif|webp|svg|md|mp4|json|jsonl)$/i.test(p));
+ 	const out = path.join(dir, "layout-check");
+diff --git a/Server/run.js b/Server/run.js
+index 965e3a1a..69d0ee5c 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -40,3 +40,7 @@ Server.use(Screenshots);
+ Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
+ 
+ new Server();
++
++// The creation log (lifecycle, 2026-09-29): this child's own start and end, beside its
++// server.js wrapper's. Never blocks or fails the boot. Servex/Lifecycle.js.
++import("../Servex/Lifecycle.js").then(m => m.track("server", `run.js:${process.pid}`, { port: Number(process.env.PORT) || null })).catch(() => {});
+diff --git a/Server/worktree-down.mjs b/Server/worktree-down.mjs
+index 85589c07..e6e08574 100644
+--- a/Server/worktree-down.mjs
++++ b/Server/worktree-down.mjs
+@@ -49,6 +49,12 @@ if (entry.pid) {
+ 	}
+ }
+ 
++// The creation log (lifecycle, 2026-09-29): this worktree's processes are gone as of now.
++try {
++	const lc = await import("../Servex/Lifecycle.js");
++	await lc.record({ kind: "worktree", id: name, path: entry.path, port: entry.port, pid: entry.pid, event: "end", why: process.env.LIFECYCLE_WHY || "worktree-down" });
++} catch {}
++
+ // Servex is optional, always — stays silent and succeeds whether or not it's
+ // answering. Removes the name from the proxy's map the same instant it stops.
+ try {
+diff --git a/Server/worktree-sweep.mjs b/Server/worktree-sweep.mjs
+index 8770982c..27d6f99a 100644
+--- a/Server/worktree-sweep.mjs
++++ b/Server/worktree-sweep.mjs
+@@ -29,7 +29,7 @@ import { links_into_main } from "./junction-guard.mjs";
+ // there yet — without changing what an import (`on-landing.mjs`, `TaskLoop.js`) ever sees.
+ let ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const registry_file = () => path.join(ROOT, ".worktrees.json");
+-const ai_dir = () => path.join(ROOT, "public", "framework", "ai");
++const ai_dir = (root = ROOT) => path.join(root, "public", "framework", "ai");
+ 
+ const norm = p => path.resolve(String(p || "")).replace(/\\/g, "/").toLowerCase();
+ 
+@@ -40,7 +40,7 @@ function read_registry(){
+ /* Every task.jsonl under public/framework/ai/, any depth (a sub-task's own dir included) —
+  * there are only a few hundred, so a full walk once per tick is cheap. Dot-dirs and
+  * node_modules skipped, same as TaskLoop.js's own walk(). */
+-function all_task_files(){
++function all_task_files(root = ROOT){
+ 	const out = [];
+ 	(function walk(dir){
+ 		let entries;
+@@ -51,7 +51,7 @@ function all_task_files(){
+ 			if (e.isDirectory()) walk(p);
+ 			else if (e.name === "task.jsonl") out.push(p);
+ 		}
+-	})(ai_dir());
++	})(ai_dir(root));
+ 	return out;
+ }
+ 
+@@ -67,26 +67,41 @@ export function task_state(dir){
+ 	return state;
+ }
+ 
+-const task_key = dir => path.relative(ai_dir(), dir).split(path.sep).join("/");
++const task_key = (dir, root = ROOT) => path.relative(ai_dir(root), dir).split(path.sep).join("/");
+ 
+-/** The task whose line-1 `worktree` names this exact worktree path, or null. */
+-function find_task_for_worktree(wtPath){
+-	const target = norm(wtPath);
+-	for (const file of all_task_files()){
++/** The task that owns this worktree, or null: the one whose `worktree` names this exact path; else
++ *  (lifecycle, 2026-09-29: only 1 of about 20 task logs that day carried `worktree`, so no teardown
++ *  ever ran) the newest task whose `branch` is worktree/<slug> or whose own dir is named <slug>.
++ *  `root` is the checkout whose task logs to read (Servex/Lifecycle.js passes the main one). */
++export function task_for_worktree(wtPath, root = ROOT){
++	const target = norm(wtPath), slug = path.basename(path.resolve(String(wtPath)));
++	let best = null, best_t = -1;
++	for (const file of all_task_files(root)){
+ 		const dir = path.dirname(file);
+ 		const state = task_state(dir);
+-		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir), ...state };
++		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir, root), ...state };
++		if (state?.worktree) continue;
++		if (state?.branch === `worktree/${slug}` || path.basename(dir) === slug){
++			let t = 0; try { t = fs.statSync(file).mtimeMs; } catch {}
++			if (t > best_t){ best_t = t; best = { dir, key: task_key(dir, root), ...state }; }
++		}
+ 	}
+-	return null;
++	return best;
+ }
++const find_task_for_worktree = wtPath => task_for_worktree(wtPath);
+ 
+ /** The registry entry (from .worktrees.json) whose path is this task's own `worktree` field. */
+ export function entry_for_task_dir(dir){
+ 	const state = task_state(dir);
+-	if (!state?.worktree) return null;
+-	const target = norm(state.worktree);
+-	for (const entry of Object.values(read_registry())) if (norm(entry.path) === target) return entry;
+-	return null;
++	if (!state) return null;
++	const registry = Object.values(read_registry());
++	if (state.worktree){
++		const target = norm(state.worktree);
++		return registry.find(entry => norm(entry.path) === target) ?? null;
++	}
++	// no `worktree` on the log: match the task's own slug or branch against the registry
++	const slug = path.basename(path.resolve(dir));
++	return registry.find(entry => entry.branch === (state.branch ?? `worktree/${slug}`) || entry.name === slug) ?? null;
+ }
+ 
+ function is_merged(branch){
+diff --git a/Server/worktree-up.mjs b/Server/worktree-up.mjs
+index 40b9899a..c4deb963 100644
+--- a/Server/worktree-up.mjs
++++ b/Server/worktree-up.mjs
+@@ -44,6 +44,9 @@ const REGISTRY = path.join(ROOT, ".worktrees.json");
+ const WORKTREES_ROOT = path.resolve(ROOT, "..", "worktrees");
+ 
+ const name = process.argv[2];
++// `--task <dir>` (or LEW_TASK): the task this worktree is for. Its task.jsonl gets
++// {worktree, branch}, so on-landing.mjs can find and tear down this worktree (lifecycle, 2026-09-29).
++const task_arg = process.argv.includes("--task") ? process.argv[process.argv.indexOf("--task") + 1] : process.env.LEW_TASK;
+ if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
+ 	console.error("usage: node Server/worktree-up.mjs <name>   (lowercase letters, digits, hyphens — becomes branch worktree/<name>)");
+ 	process.exit(1);
+@@ -193,6 +196,18 @@ if (!ok) {
+ registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: true };
+ write_registry(registry);
+ 
++/* THE CREATION LOG (lifecycle, 2026-09-29): one start line in Servex's lifecycle.jsonl, and the
++ * task's own log learns its worktree. Never fails the up. Servex/Lifecycle.js. */
++try {
++	const lc = await import("../Servex/Lifecycle.js");
++	if (task_arg) {
++		const dir = path.isAbsolute(task_arg) ? task_arg : path.join(ROOT, task_arg);
++		fs.mkdirSync(dir, { recursive: true });
++		fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
++	}
++	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
++} catch {}
++
+ /* Servex is optional, always — a worktree must work with it stopped, so this
+    stays silent and succeeds either way. When it answers, it learns the name
+    and port so `<name>.localhost` reaches this worktree through the
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+new file mode 100644
+index 00000000..686aed86
+--- /dev/null
++++ b/Servex/Lifecycle.js
+@@ -0,0 +1,357 @@
++/* LIFECYCLE — every resource the system makes is written down when it starts and when it ends,
++ * and a reaper closes whatever a finished task still owns. Node does this, not an agent's memory
++ * (the owner, 2026-09-29, after 22 dev servers were left running: "we don't want to rely on the
++ * AIs to remember").
++ *
++ *   record({kind, id, event, ...})   one line in lifecycle.jsonl (Servex's single writer; a
++ *                                    direct append when Servex is down). kind: agent task
++ *                                    worktree server health browser.
++ *   track(kind, id, extra)           a process logs its own start now and its own end on exit.
++ *   new Lifecycle().reap(task)       close everything one task owns (on-landing.mjs calls it).
++ *   new Lifecycle().sweep()          close what a landed / long-dead task still owns, and idle
++ *                                    one-pass agents; Servex runs it on the heartbeat tick.
++ *
++ *   node Servex/Lifecycle.js --dry            what the sweep would close, and why
++ *   node Servex/Lifecycle.js --reap <dir> [--dry]
++ *   node Servex/Lifecycle.js --stop <pid>     stop one process you started (wrapper first) and log its end
++ *
++ * Never touched: the main site (:3104, the main checkout's own server), Servex, the gate, whisper,
++ * and every port in Servex/keep.json. A worktree keeps its files; only its processes stop.
++ * Doc: Servex/doc/lifecycle.md. */
++import fs from "node:fs";
++import path from "node:path";
++import { execFileSync, spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import { place, stamp } from "./home.js";
++import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
++const inside = (p, root) => !!p && !!root && (norm(p) + "/").startsWith(norm(root) + "/");
++const hours = ms => Math.round(ms / 360000) / 10;
++const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
++export const ONE_PASS = /^(reviewer|clarity|checker|critic|fork)$/;
++export const DEAD_MS = 2 * 3600 * 1000;
++
++let main_cache;
++export function main_repo(){
++	if (main_cache) return main_cache;
++	try {
++		const common = execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: HERE, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "ignore"] }).trim();
++		return main_cache = path.resolve(HERE, common, "..");
++	} catch { return main_cache = path.resolve(HERE, ".."); }
++}
++const ai_dir = () => path.join(main_repo(), "public", "framework", "ai");
++
++/** A task's key: its dir relative to public/framework/ai/ ("2026-09-29/lifecycle/build"). */
++export function task_key(dir){
++	if (!dir) return null;
++	const abs = path.isAbsolute(dir) ? dir : path.join(main_repo(), dir);
++	const rel = path.relative(ai_dir(), abs);
++	return rel.startsWith("..") ? String(dir).replace(/\\/g, "/") : rel.split(path.sep).join("/");
++}
++
++/** Who owns a process started here: LEW_TASK, else the task of the worktree the cwd is in, else null. */
++export function owner_task(cwd = process.cwd()){
++	if (process.env.LEW_TASK) return task_key(process.env.LEW_TASK);
++	const wt = norm(cwd).match(/^(.*\/worktrees\/[^/]+)/)?.[1];
++	if (!wt) return null;
++	try { return task_for_worktree(wt, main_repo())?.key ?? null; } catch { return null; }
++}
++
++const line = e => JSON.stringify({ at: stamp(), owner_task: null, owner_agent: null, ...e }) + "\n";
++export function record_sync(e){ try { fs.appendFileSync(place("logs", "lifecycle.jsonl"), line(e)); } catch {} }
++
++/** One line in lifecycle.jsonl: through `log` (Servex's own Log) when given, else Servex's HTTP door, else directly. */
++export async function record(e, log){
++	if (log) return log.append("lifecycle", { owner_task: null, owner_agent: null, ...e }).catch(() => record_sync(e));
++	try {
++		const r = await fetch(`${SERVEX()}/log/lifecycle`, { method: "POST", headers: { "content-type": "application/json" },
++			body: JSON.stringify({ owner_task: null, owner_agent: null, ...e }), signal: AbortSignal.timeout(1500) });
++		if (r.ok) return;
++	} catch {}
++	record_sync(e);
++}
++
++/** A process writes its own start now and its own end when it exits (a hard kill is caught by the sweep instead). */
++export function track(kind, id, extra = {}){
++	const base = { kind, id, pid: process.pid, path: process.cwd(), owner_task: owner_task(), owner_agent: process.env.LEW_AGENT || null, ...extra };
++	record({ ...base, event: "start" });
++	process.once("exit", code => record_sync({ ...base, event: "end", why: `exited (code ${code})` }));
++	return base;
++}
++
++export function keep_ports(){
++	let extra = [];
++	try { extra = JSON.parse(fs.readFileSync(path.join(HERE, "keep.json"), "utf8")); } catch {}
++	return new Set([80, 3104, 8079, 8090, Number(process.env.SERVEX_PORT) || 8090, ...extra].map(Number));
++}
++
++export default class Lifecycle {
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	/* ── the hooks Servex calls (Agents.js, Pool.js) ─────────────────── */
++
++	record(e){ return record(e, this.servex?.log); }
++
++	agent_started(a, spec = {}){
++		const owner_task = spec.task?.dir ? task_key(spec.task.dir) : null;
++		this.record({ kind: "agent", id: a.id, role: a.role ?? null, path: a.cwd ?? null, owner_task, owner_agent: a.parent ?? null, event: "start" });
++		if (owner_task && !spec.resume) this.record({ kind: "task", id: owner_task, owner_task, owner_agent: a.id, event: "start" });
++	}
++
++	agent_ended(a){
++		if (a.lifecycle_ended) return;
++		a.lifecycle_ended = true;
++		this.record({ kind: "agent", id: a.id, role: a.role ?? null, owner_agent: a.parent ?? null, event: "end", why: a.reaped_why ?? (this.servex?.agents?.closing ? "Servex shut down" : "stopped") });
++	}
++
++	/** take_worktree: the taker's task log learns its worktree, and the log a start line. */
++	took(slot, caller){
++		const t = task_of_agent(caller);
++		if (t) try { fs.appendFileSync(path.join(t.dir, "task.jsonl"), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
++		this.record({ kind: "worktree", id: slot.id, path: slot.path, port: slot.port, owner_task: t?.key ?? null, owner_agent: caller ?? null, event: "start" });
++	}
++
++	/** A pool slot salvaged: one end line naming the branch, and one line on the holder's card. */
++	async salvaged(slot, holder, branch, what){
++		const t = task_of_agent(holder);
++		await this.record({ kind: "worktree", id: slot.id, path: slot.path, port: slot.port, owner_task: t?.key ?? null, owner_agent: holder, event: "end", why: what, branch });
++		const text = `Worktree ${slot.id} was held by ${holder}, which has stopped. Its work is ${what}.`;
++		if (t?.card) try { this.servex?.assistant ? this.servex.assistant.card_reply({ card: t.card, from: "lifecycle", text }) : await this.tool("card_reply", { card: t.card, from: "lifecycle", text }); } catch {}
++	}
++
++	/* ── what exists ─────────────────────────────────────────────────── */
++
++	/** node/cmd/chrome processes with their parents and command lines, one PowerShell call. */
++	processes(){
++		const ps = "Get-CimInstance Win32_Process -Filter \"Name='node.exe' or Name='cmd.exe' or Name='chrome.exe' or Name='bash.exe'\" | ForEach-Object { [pscustomobject]@{pid=$_.ProcessId;ppid=$_.ParentProcessId;name=$_.Name;cmd=$_.CommandLine;born=$_.CreationDate.ToString('o')} } | ConvertTo-Json -Compress";
++		const r = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { encoding: "utf8", windowsHide: true, maxBuffer: 32 << 20 });
++		let rows = []; try { rows = [].concat(JSON.parse(r.stdout || "[]")); } catch {}
++		const ports = new Map();
++		const ns = spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8", windowsHide: true }).stdout || "";
++		for (const m of ns.matchAll(/TCP\s+\S+:(\d+)\s+\S+\s+LISTENING\s+(\d+)/g)) (ports.get(+m[2]) ?? ports.set(+m[2], []).get(+m[2])).push(+m[1]);
++		return new Map(rows.map(p => [p.pid, { ...p, cmd: p.cmd || "", born: Date.parse(p.born) || null, ports: ports.get(p.pid) ?? [] }]));
++	}
++
++	/** The logged process is still the one running: same pid AND born no later than its start line (Windows reuses pids). */
++	alive(e){
++		const p = e.pid && this.procs?.get(e.pid);
++		return !!p && (!p.born || !e.at || p.born <= Date.parse(e.at) + 5000);
++	}
++
++	/** Every start line with no end line after it, keyed kind:id. */
++	open(){
++		let text = ""; try { text = fs.readFileSync(place("logs", "lifecycle.jsonl"), "utf8"); } catch {}
++		const open = new Map();
++		for (const raw of text.split("\n")) { let e; try { e = JSON.parse(raw); } catch { continue; }
++			const k = `${e.kind}:${e.id}`; if (e.event === "start") open.set(k, e); else if (e.event === "end") open.delete(k); }
++		return [...open.values()];
++	}
++
++	async agents(){
++		if (this.servex?.agents) return this.servex.agents.registry_list().map(r => ({ ...r, turns: this.servex.agents.live.get(r.id)?.turns ?? r.turns }));
++		try { return await (await fetch(`${SERVEX()}/agents`, { signal: AbortSignal.timeout(3000) })).json(); } catch { return []; }
++	}
++
++	task(key){
++		if (!key) return null;
++		return (this.tasks ??= new Map()).get(key) ?? this.tasks.set(key, (() => {
++			const dir = path.join(ai_dir(), key), state = task_state(dir);
++			if (!state) return null;
++			let mtime = 0; try { mtime = fs.statSync(path.join(dir, "task.jsonl")).mtimeMs; } catch {}
++			return { key, dir, ...state, landed: !!(state.landed_at && String(state.outcome ?? "").trim()), mtime };
++		})()).get(key);
++	}
++
++	/** Everything that is running and who owns it: the log's open lines, the worktree registry, the process list, the agents. */
++	async resources(){
++		const procs = this.procs = this.processes(), rows = [], seen = new Set(), main = main_repo();
++		// one row per process TREE: claiming a row claims its wrapper and everything under it
++		const kids = new Map();
++		for (const p of procs.values()) (kids.get(p.ppid) ?? kids.set(p.ppid, []).get(p.ppid)).push(p.pid);
++		const claim = pid => { for (const stack = [pid]; stack.length;) { const x = stack.pop(); if (!seen.has(x)) { seen.add(x); stack.push(...(kids.get(x) ?? [])); } } };
++		const add = r => { if (r.pid && seen.has(r.pid)) return; if (r.pid) claim(r.pid); rows.push(r); };
++		for (const e of this.open()) if (this.alive(e) && ["server", "health", "browser"].includes(e.kind)) {
++			const top = this.wrapper(procs.get(e.pid));
++			add({ kind: e.kind, id: e.id, pid: top.pid, child: top.pid !== e.pid ? e.pid : null, port: e.port, path: e.path, owner_task: e.owner_task, owner_agent: e.owner_agent, born: Date.parse(e.at), logged: true });
++		}
++		let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.join(main, ".worktrees.json"), "utf8")); } catch {}
++		for (const w of Object.values(reg)) if (this.alive({ pid: w.pid, at: w.created_at }))
++			add({ kind: "server", id: `worktree:${w.name}`, pid: w.pid, port: w.port, path: w.path, owner_task: task_for_worktree(w.path, main)?.key ?? null, born: Date.parse(w.created_at) });
++		// a run.js / health.mjs child names its checkout in its own command line; a wrapper whose child
++		// died names it only in the cmd that launched it (worktree-up's `>> .worktree-logs\<name>.log`)
++		const from_log = p => p?.cmd.match(/\.worktree-logs[\\/]([a-z0-9-]+)\.log/i)?.[1];
++		const scan = (p, dir, kind) => {
++			const top = this.wrapper(p);
++			if (seen.has(top.pid) || seen.has(p.pid)) return;
++			add({ kind, id: `${kind === "health" ? "health" : /run.js/i.test(p.cmd) ? "run" : "wrapper"}:${p.pid}`, pid: top.pid, child: p.pid !== top.pid ? p.pid : null, path: dir,
++				port: [...p.ports, ...top.ports][0], owner_task: dir ? task_for_worktree(dir, main)?.key ?? null : null, born: top.born });
++		};
++		for (const p of procs.values()) {
++			const m = p.cmd.match(/"?([A-Za-z]:[^"]*?)[\\/]Server[\\/](run\.js|health\.mjs)/i);
++			if (m) scan(p, m[1], /health/i.test(m[2]) ? "health" : "server");
++		}
++		// a wrapper with no live child: its checkout is in worktree-up's log name, or in the
++		// `cd <dir> && PORT=<n> node server.js` of the agent shell that started it by hand
++		for (const p of procs.values()) if (p.name === "node.exe" && /\sserver\.js"?\s*$/i.test(p.cmd) && !seen.has(p.pid)) {
++			const name = from_log(this.wrapper(p)) ?? from_log(procs.get(p.ppid));
++			if (name) { scan(p, path.join(path.dirname(main), "worktrees", name), "server"); continue; }
++			const sh = procs.get(p.ppid)?.cmd ?? "", cd = sh.match(/cd\s+([^\s&;'"]+)\s*&&[^]*?node server\.js/)?.[1];
++			const dir = cd && cd.replace(/^\/([a-z])\//i, "$1:/");
++			add({ kind: "server", id: `wrapper:${p.pid}`, pid: p.pid, path: dir || null, port: p.ports[0] ?? (Number(sh.match(/PORT=(\d+)/)?.[1]) || undefined),
++				owner_task: dir ? task_for_worktree(dir, main)?.key ?? null : null, born: p.born });
++		}
++		const agents = this.all_agents = await this.agents();
++		for (const a of agents) if (a.state === "idle")
++			rows.push({ kind: "agent", id: a.id, role: a.role, parent: a.parent ?? null, turns: a.turns, path: a.cwd, owner_agent: a.parent ?? null });
++		return rows;
++	}
++
++	/** Walk up from run.js to the supervisor that respawns it (server.js), and to the cmd that launched that. */
++	wrapper(p){
++		let top = p;
++		for (let up = this.procs.get(p.ppid); up && /^(node|cmd)\.exe$/i.test(up.name) && /server\.js|health-supervisor|\/d \/c/i.test(up.cmd) && !/Servex/i.test(up.cmd); up = this.procs.get(up.ppid)) top = up;
++		return top;
++	}
++
++	/* ── what to close ───────────────────────────────────────────────── */
++
++	/** A plain sentence when this must be kept no matter what, else null. */
++	kept(r){
++		if (r.kind === "agent") return /^(assistant-|manager-|master-assistant|mastermind-servex|dispatcher$)/.test(r.id) ? "one of Servex's own standing agents" : null;
++		const ports = keep_ports();
++		if (r.port && ports.has(Number(r.port))) return `port ${r.port} is on the keep list`;
++		if (r.path && norm(r.path) === norm(main_repo())) return "the main checkout's own server";
++		// itself Servex, the gate or whisper, or started by one of them (3 node/cmd parents up; an agent's bash is never read)
++		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
++			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
++		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
++		const busy = (this.all_agents ?? []).find(a => (a.state === "working" || a.state === "starting") && inside(a.cwd, r.path));
++		if (r.kind !== "agent" && busy) return `${busy.id} is working there`;
++		return null;
++	}
++
++	/** Why this should close now, or null. `only` narrows it to one task (reap). */
++	why(r, only){
++		if (this.kept(r)) return null;
++		if (r.kind === "agent") {
++			const rows = (this.all_agents ?? []).filter(a => a.id === r.parent);
++			const owner = r.parent && (rows.find(a => a.state !== "stopped" && a.state !== "gone") ?? rows[0]);
++			const task = [...(this.tasks?.values() ?? [])].find(t => t && t.agent && t.agent === r.parent);
++			if (only) return task?.key === only || r.owner_task === only ? `idle, and its task ${only} has landed` : null;
++			if (ONE_PASS.test(r.role ?? "") && (r.turns ?? 1) > 0) return `one-pass ${r.role}, its result is written`;
++			if (task?.landed) return `idle, and its task ${task.key} has landed`;
++			if (owner && (owner.state === "stopped" || owner.state === "gone") && r.role === "minion") return `idle, and its parent ${owner.id} has stopped`;
++			return null;
++		}
++		if (only) return r.owner_task === only ? `its task ${only} has landed` : null;
++		const t = this.task(r.owner_task), age = r.born ? Date.now() - r.born : 0;
++		if (t?.landed) return `its task ${t.key} has landed`;
++		if (t && Date.now() - t.mtime > DEAD_MS) return `its task ${t.key} has been silent for ${hours(Date.now() - t.mtime)} h`;
++		if (!t && age > DEAD_MS) return `no owning task, running ${hours(age)} h`;
++		return null;
++	}
++
++	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
++	kill(r){
++		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++	}
++
++	/** One Servex tool, over its door (a CLI run has no Servex in-process). */
++	tool(name, args){
++		return fetch(`${SERVEX()}/mcp?as=lifecycle`, { method: "POST", headers: { "content-type": "application/json" },
++			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(20000) }).catch(() => {});
++	}
++
++	async close(r, why){
++		const live = r.kind === "agent" && this.servex?.agents?.live?.get(r.id);
++		if (live) { live.reaped_why = `reaped: ${why}`; return this.servex.agents.stop(r.id); }   // agent_ended() writes its end line
++		if (r.kind === "agent") await this.tool("stop_agent", { id: r.id }); else this.kill(r);
++		await record({ kind: r.kind, id: r.id, pid: r.pid, port: r.port, path: r.path, owner_task: r.owner_task ?? null, owner_agent: r.owner_agent ?? null, event: "end", why: `reaped: ${why}` }, this.servex?.log);
++	}
++
++	async plan(only){
++		const rows = await this.resources();
++		for (const r of rows) this.task(r.owner_task);
++		for (const t of fsTasks(this)) this.task(t);
++		return rows.map(r => ({ ...r, why: this.why(r, only), keep: this.kept(r) }));
++	}
++
++	/** Close everything task `dir` owns — on-landing.mjs calls this. */
++	async reap(dir, { dry = false } = {}){
++		const key = task_key(dir), rows = (await this.plan(key)).filter(r => r.why);
++		if (!dry) for (const r of rows) await this.close(r, r.why);
++		if (!dry) await record({ kind: "task", id: key, owner_task: key, event: "end", why: `landed; ${rows.length} resource(s) closed` }, this.servex?.log);
++		return rows;
++	}
++
++	/** The heartbeat's sweep: close what a landed / dead task still owns, end the log lines of what already died, reclaim dead pool holders. */
++	async sweep({ dry = false } = {}){
++		const rows = await this.plan(null), close = rows.filter(r => r.why), gone = [];
++		for (const e of this.open()) if (e.pid && e.kind !== "agent" && e.kind !== "worktree" && !this.alive(e)) gone.push(e);
++		if (!dry) {
++			for (const r of close) await this.close(r, r.why);
++			for (const { at, ...e } of gone) await record({ ...e, event: "end", why: "found gone (killed without a goodbye)" }, this.servex?.log);
++			try { await this.servex?.pool?.reclaim(); } catch {}
++		}
++		return { close, gone, kept: rows.filter(r => !r.why) };
++	}
++}
++
++/** Task dirs of the last two days (both folder styles), newest first. */
++function recent_tasks(){
++	const out = [], day = d => { const x = new Date(Date.now() - d * 864e5); return [String(x.getFullYear()), String(x.getMonth() + 1).padStart(2, "0"), String(x.getDate()).padStart(2, "0")]; };
++	const walk = (dir, depth) => {
++		let list; try { list = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
++		for (const e of list) if (e.isDirectory() && !e.name.startsWith(".") && depth < 4) walk(path.join(dir, e.name), depth + 1);
++			else if (e.name === "task.jsonl") try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
++	};
++	for (const d of [0, 1]) { const [y, m, dd] = day(d); walk(path.join(ai_dir(), `${y}-${m}-${dd}`), 0); walk(path.join(ai_dir(), y, m, dd), 0); }
++	return out.sort((a, b) => b.mtime - a.mtime);
++}
++
++/** The newest recent task whose log names this agent as its owner, or null. */
++export function task_of_agent(id){
++	if (!id) return null;
++	for (const t of recent_tasks()) { const s = task_state(t.dir); if (s?.agent === id) return { ...s, dir: t.dir, key: task_key(t.dir) }; }
++	return null;
++}
++
++/** The task keys the idle agents' parents answer for, so why() can map an agent to its task. */
++function fsTasks(lc){
++	const want = new Set((lc.all_agents ?? []).filter(a => a.state === "idle").map(a => a.parent).filter(Boolean));
++	return want.size ? recent_tasks().filter(t => want.has(task_state(t.dir)?.agent)).map(t => task_key(t.dir)) : [];
++}
++
++if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
++	const argv = process.argv.slice(2), dry = argv.includes("--dry"), lc = new Lifecycle();
++	const show = r => `  ${r.kind.padEnd(7)} ${String(r.id).padEnd(34)} pid ${r.pid ?? "-"} port ${r.port ?? "-"} task ${r.owner_task ?? "-"}\n          ${r.why ?? r.keep ?? "still in use"}`;
++	if (argv.includes("--stop")) {
++		const pid = Number(argv[argv.indexOf("--stop") + 1]);
++		const procs = lc.procs = lc.processes(), p = procs.get(pid);
++		if (!p) { console.log(`no process ${pid}`); process.exit(1); }
++		const top = lc.wrapper(p), r = { kind: "server", id: `pid:${pid}`, pid: top.pid, child: pid !== top.pid ? pid : null, path: process.cwd() };
++		for (const e of lc.open()) if (e.pid === top.pid || e.pid === pid) Object.assign(r, { kind: e.kind, id: e.id, port: e.port, path: e.path, owner_task: e.owner_task });
++		if (lc.kept(r)) { console.log(`kept: ${lc.kept(r)}`); process.exit(1); }
++		await lc.close(r, "stopped by hand (--stop)");
++		for (const e of lc.open()) if ((e.pid === top.pid || e.pid === pid) && e.id !== r.id) { const { at, ...rest } = e; await record({ ...rest, event: "end", why: "reaped: stopped by hand (--stop)" }); }
++		console.log(`stopped ${r.kind} ${r.id} (pid ${top.pid}${r.child ? `, child ${r.child}` : ""})`);
++	} else if (argv.includes("--salvage")) {   // a stuck pool slot, by hand: node Servex/Lifecycle.js --salvage qf-2 [--dry]
++		const { default: Pool } = await import("./Pool.js");
++		const pool = new Pool({ servex: { lifecycle: lc, say: m => console.log(m) } }), id = argv[argv.indexOf("--salvage") + 1], slot = pool.slots.find(x => x.id === id);
++		if (!slot) { console.log(`no pool slot ${id}`); process.exit(1); }
++		if (dry) console.log(`would stop pid ${slot.watcher_pid} and ${slot.server_pid}, then salvage ${slot.path} (held by ${slot.taken_by})`);
++		else console.log((await pool.salvage(slot, slot.taken_by)).what);
++	} else if (argv.includes("--reap")) {
++		const rows = await lc.reap(argv[argv.indexOf("--reap") + 1], { dry });
++		console.log(`lifecycle reap: ${rows.length} ${dry ? "would close" : "closed"}`); rows.forEach(r => console.log(show(r)));
++	} else {
++		const { close, gone, kept } = await lc.sweep({ dry });
++		console.log(`lifecycle sweep ${dry ? "(dry — nothing touched)" : ""}: ${close.length} to close, ${gone.length} dead log lines to end, ${kept.length} kept`);
++		console.log(`\n${dry ? "WOULD CLOSE" : "CLOSED"}`); close.forEach(r => console.log(show(r)));
++		console.log(`\nLOG LINES WHOSE PROCESS IS GONE`); gone.forEach(e => console.log(`  ${e.kind} ${e.id} pid ${e.pid}`));
++		console.log(`\nKEPT`); kept.forEach(r => console.log(show(r)));
++	}
++}
+diff --git a/Servex/Monitor.js b/Servex/Monitor.js
+index a2d1d4e9..18c3c565 100644
+--- a/Servex/Monitor.js
++++ b/Servex/Monitor.js
+@@ -185,15 +185,27 @@ export default class Monitor extends Events {
+         else if (this.flag) this.clear();
+     }
+ 
++    /* NEWS ONLY (lifecycle, 2026-09-29): "stop the finished ones" went out about every 3 minutes
++     * from 16:40 to 17:45, usually with nothing left to stop. Now the message goes only when the
++     * set of stoppable agents (idle ones the reaper would close) differs from the last one sent,
++     * and it names them. The flag itself is still logged and shown on the card every time. */
++    stoppable(){
++        const live = [...(this.servex?.agents?.live?.values() ?? [])].filter(a => a.state === "idle");
++        const one_pass = /^(reviewer|clarity|checker|critic|fork)$/;
++        return live.filter(a => one_pass.test(a.role ?? "") || (a.role === "minion" && a.parent && this.servex.agents.live.get(a.parent)?.state === "stopped")).map(a => a.id).sort();
++    }
++
+     up(reason){
+         this.flag = { reason, since: stamp() };
+-        const idle = this.sample?.agents?.idle_holding_claude ?? 0;
+-        const text = `Servex monitor: the machine is under strain — ${reason}. New agent spawns are queued until it clears.`
+-            + ` ${idle} idle agent${idle === 1 ? "" : "s"} still hold a claude process; stopping the finished ones frees memory.`
+-            + " Call system_health for the full sample.";
++        const names = this.stoppable(), key = names.join(",");
+         let sent = null;
+-        try {
++        if (!names.length || key === this.last_nag) sent = names.length ? "not sent: the same stoppable agents as last time" : "not sent: nothing to stop";
++        else try {
++            const text = `Servex monitor: the machine is under strain — ${reason}. New agent spawns are queued until it clears.`
++                + ` These ${names.length} finished agent${names.length === 1 ? " is" : "s are"} idle and can be stopped: ${names.join(", ")}.`
++                + " Call system_health for the full sample.";
+             this.servex.agents.send(this.notify, text, { from: "servex-monitor" });
++            this.last_nag = key;
+             sent = `sent to ${this.notify}`;
+         } catch (e){ sent = `not sent: ${e.message || e}`; }
+         this.log({ type: "flag", state: "up", reason, message: sent });
+diff --git a/Servex/Pool.js b/Servex/Pool.js
+index 314a4b50..8d7cd4aa 100644
+--- a/Servex/Pool.js
++++ b/Servex/Pool.js
+@@ -128,6 +128,7 @@ export default class Pool extends Events {
+                 continue;
+             }
+             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
++            try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
+             this.top_up();
+             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+         }
+@@ -158,6 +159,7 @@ export default class Pool extends Events {
+         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
+         this.save();
+         this.say(`pool: ${id} returned and ready`, { id });
++        try { this.servex?.lifecycle?.record({ kind: "worktree", id, path: slot.path, port: slot.port, event: "end", why: "returned to the pool" }); } catch {}
+ 
+         for (const extra of this.slots.filter(s => s.state === "ready" && s !== slot)) this.remove(extra);   // one ready is enough
+         return this.list();
+@@ -182,17 +184,58 @@ export default class Pool extends Events {
+             const holder = slot.taken_by;
+             try {
+                 await this.give_back(slot.id);
++                if (!(await this.answers(slot.url))){ this.remove(slot); this.top_up(); }   // handed back, but its server is dead: make a fresh one
+                 reclaimed.push(slot.id);
+                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
+             } catch (e) {
+-                const why = String(e.message).split("\n")[0].replace(/^Refused: /, "");
+-                kept.push({ id: slot.id, holder, why });
+-                this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
++                // SALVAGE (lifecycle, 2026-09-29): the work is committed to a salvage/ branch that is never
++                // merged or deleted, the slot is reset to the base, then removed and replaced. Nothing is lost.
++                try {
++                    const s = await this.salvage(slot, holder);
++                    this.remove(slot);
++                    this.top_up();
++                    reclaimed.push(slot.id);
++                    this.say(`pool: ${slot.id} reclaimed from stopped ${holder}; ${s.what}`, { id: slot.id, from: holder, salvage: s.branch });
++                } catch (e2) {
++                    const why = String(e2.message || e.message).split("\n")[0].replace(/^Refused: /, "");
++                    kept.push({ id: slot.id, holder, why });
++                    this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
++                }
+             }
+         }
+         return { reclaimed, kept };
+     }
+ 
++    /* A dead holder's slot, emptied without losing anything: its server is stopped FIRST (the
++     * wrapper, whose /T takes run.js with it — a running server keeps appending page.jsonl lines,
++     * so the tree went dirty again seconds after a hand reset on 09-29), then its uncommitted
++     * files and unmerged commits go to `salvage/<slot>-<date>`, never merged, never deleted,
++     * and the slot's own branch is moved back to the base. A diff of only appended page.jsonl
++     * lines is the server's noise: salvaged anyway, and said so. Returns {branch, what}. */
++    async salvage(slot, holder){
++        this.kill(slot.watcher_pid, /health-supervisor/i);
++        this.kill(slot.server_pid, this.server_cmd(slot));
++        const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
++        const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
++        if (!status && !commits) return { branch: null, what: "nothing to salvage" };
++        const files = status ? status.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
++        const numstat = (await this.git(slot.path, ["diff", "--numstat"])).out;
++        const noise = files.length > 0 && files.every(f => f.endsWith("page.jsonl")) && !/^\d+\t[1-9]/m.test(numstat) && !commits;
++        const day = stamp().slice(0, 10);
++        let branch = `salvage/${slot.id}-${day}`;
++        for (let i = 2; (await this.git(slot.path, ["rev-parse", "--verify", "--quiet", `refs/heads/${branch}`])).ok; i++) branch = `salvage/${slot.id}-${day}-${i}`;
++        const step = async args => { const r = await this.git(slot.path, args); if (!r.ok) throw new Error(`salvage of ${slot.id} stopped at git ${args[0]}: ${r.out}`); };
++        await step(["checkout", "-b", branch]);
++        if (status){
++            await step(["add", "-A"]);
++            await step(["commit", "-m", `salvage: ${slot.id}, held by ${holder} (stopped) — kept here, never merged`]);
++        }
++        await step(["checkout", "-B", slot.branch, this.base]);
++        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}`;
++        try { await this.servex?.lifecycle?.salvaged(slot, holder, branch, what); } catch {}
++        return { branch, what, noise };
++    }
++
+     /* The Servex agent registry's rows ({ id, name, state }), or none without a Servex. A seam for tests. */
+     holders(){
+         try { return this.servex?.agents?.registry_list() ?? []; } catch { return []; }
+@@ -258,8 +301,8 @@ export default class Pool extends Events {
+         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
+         this.save();
+         return this.chain = this.chain.then(async () => {
+-            this.kill(slot.watcher_pid);
+-            this.kill(slot.server_pid);
++            this.kill(slot.watcher_pid, /health-supervisor/i);
++            this.kill(slot.server_pid, this.server_cmd(slot));
+             const own = await this.own_dirt(slot);
+             const ancestor = (await this.git(slot.path, ["merge-base", "--is-ancestor", "HEAD", this.base])).ok || await this.landed(slot);
+             if (own.length || !ancestor){
+@@ -392,10 +435,26 @@ export default class Pool extends Events {
+         }));
+     }
+ 
+-    kill(pid){
+-        if (pid) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++    /* Kill a pid only while it is still the process we started. Windows reuses pids: on 2026-09-29
++     * qf-4's recorded watcher pid (25792) had become whisper-server, and a blind taskkill /T would
++     * have taken the owner's dictation down. `expect` is matched against its command line. */
++    kill(pid, expect){
++        if (!pid) return;
++        if (expect){
++            const cmd = this.cmdline(pid);
++            if (!cmd || !expect.test(cmd)) return cmd && this.say(`pool: pid ${pid} is no longer ours (${cmd.slice(0, 80)}) — not killed`);
++        }
++        try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++    }
++
++    cmdline(pid){
++        try { return execFileSync("powershell.exe", ["-NoProfile", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}").CommandLine`], { encoding: "utf8", windowsHide: true }).trim(); }
++        catch { return ""; }
+     }
+ 
++    /* A slot's server is the cmd wrapper worktree-up.mjs launched, writing to .worktree-logs/<id>.log. */
++    server_cmd(slot){ return new RegExp(String.raw`worktree-logs[\\/]` + slot.id + String.raw`\.log`, "i"); }
++
+     alive(pid){
+         try { return !!pid && process.kill(pid, 0); } catch { return false; }
+     }
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index ab3fc282..5873a455 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -12,6 +12,7 @@ import TaskLoop from "./TaskLoop.js";
+ import Heartbeat from "./Heartbeat.js";
+ import Usage from "./Usage.js";
+ import Pool from "./Pool.js";
++import Lifecycle from "./Lifecycle.js";
+ import MCP, { loopback } from "./MCP.js";
+ import PortRegistry from "./PortRegistry.js";
+ import Process from "./Process.js";
+@@ -81,6 +82,9 @@ export default class Servex extends Events {
+         this.processes = new Map();
+ 
+         this.log = new this.constructor.Log();
++        /* THE CREATION LOG AND THE REAPER (lifecycle, 2026-09-29): Agents and Pool call its hooks,
++         * the heartbeat's tick runs its sweep (below). Servex/Lifecycle.js, Servex/doc/lifecycle.md. */
++        this.lifecycle = new this.constructor.Lifecycle({ servex: this });
+         this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port, this.proxy_internal] });
+         this.ports.pin("servex", this.dashboard_port);
+ 
+@@ -195,6 +199,7 @@ export default class Servex extends Events {
+          * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
+         this.heartbeat = new this.constructor.Heartbeat({ servex: this });
+         if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
++        this.reaper();
+         /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
+         if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
+ 
+@@ -760,6 +765,27 @@ export default class Servex extends Events {
+      * synchronous on purpose — `process.on("exit")` is the only hook Node
+      * guarantees, and it cannot await. A whisper-server that was ALREADY
+      * running when Servex started has no child here, so it is never touched. */
++    /* THE REAPER'S SWEEP rides the heartbeat's tick — wrapped on the instance, Heartbeat.js
++     * itself unchanged — at most once every 5 minutes (a sweep reads the process list: about
++     * 1 s of PowerShell). With the heartbeat off, the same sweep runs on its own minute timer.
++     * `SERVEX_NO_REAPER=1` boots without it; `SERVEX_REAPER_DRY=1` only says what it would close. */
++    reaper(){
++        if (process.env.SERVEX_NO_REAPER) return;
++        let last = 0;
++        const sweep = () => {
++            if (this.reaping || Date.now() - last < 5 * 60000) return;
++            last = Date.now();
++            const dry = !!process.env.SERVEX_REAPER_DRY;
++            this.reaping = this.lifecycle.sweep({ dry })
++                .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
++                .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
++                .finally(() => { this.reaping = null; });
++        };
++        if (process.env.SERVEX_NO_HEARTBEAT){ this.reaper_timer = setInterval(sweep, 60000); this.reaper_timer.unref(); return; }
++        const beat = this.heartbeat, tick = beat.tick.bind(beat);
++        beat.tick = async (...args) => { try { return await tick(...args); } finally { sweep(); } };
++    }
++
+     shutdown(){
+         const down = () => {
+             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
+@@ -930,6 +956,7 @@ Servex.Monitor = Monitor;
+ Servex.TaskLoop = TaskLoop;
+ Servex.Heartbeat = Heartbeat;
+ Servex.Pool = Pool;
++Servex.Lifecycle = Lifecycle;
+ Servex.PortRegistry = PortRegistry;
+ Servex.Process = Process;
+ Servex.Project = Project;
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 9349482c..38a97060 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -38,6 +38,7 @@ export class Agents {
+ 	reg(){ return this.registry ??= new this.constructor.Registry({ dir: this.registry_dir }); }
+ 
+ 	register(agent){
++		if (agent.state === "stopped") try { this.servex?.lifecycle?.agent_ended(agent); } catch {}
+ 		const row = this.reg().write(agent);
+ 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
+ 		return row;
+@@ -96,7 +97,7 @@ export class Agents {
+ 		const id = spec.id && !taken ? spec.id : this.name(spec);
+ 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+ 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
++		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd) });
+ 		const fresh = !again && !spec.system;
+ 		const dir = fresh ? directory_of(spec) : null;
+ 		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+@@ -113,6 +114,7 @@ export class Agents {
+ 		this.live.set(agent.id, agent);
+ 		agent.start();
+ 		this.register(agent);
++		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
+ 		return agent;
+ 	}
+ 
+@@ -431,15 +433,23 @@ function directory_of(spec){
+  * a caller opened earlier (or a sibling agent shares), it just adds one more
+  * assign line with the same facts, exactly like every other `assign` a task
+  * log collects over its life — never touching what came before it. */
+-function open_task(task, { session_id, agent, model }){
++function open_task(task, { session_id, agent, model, worktree }){
+ 	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
+ 	fs.mkdirSync(dir, { recursive: true });
++	// `worktree` (lifecycle, 2026-09-29): on-landing.mjs finds the task's worktree through it — only
++	// 1 of about 20 task logs on 09-29 had one, so no worktree was ever torn down on landing.
+ 	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
+-		model, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
++		model, worktree: task.worktree ?? worktree, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
+ 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
+ 	return dir;
+ }
+ 
++/* The worktree a cwd sits in (C:/Code/lew42/worktrees/<slug>/...), or undefined. */
++function worktree_of(cwd){
++	const m = String(cwd ?? "").match(/^(.*[\\/]worktrees[\\/][^\\/]+)/);
++	return m ? m[1] : undefined;
++}
++
+ /* What a session's own file says about it — the `cwd` it ran in (a resume must
+  * run there) and the last `model` that answered in it — for a registry row too
+  * old to have recorded either. Synchronous on purpose: `revive()` runs inside
+diff --git a/Servex/doc/lifecycle.md b/Servex/doc/lifecycle.md
+new file mode 100644
+index 00000000..a602bfad
+--- /dev/null
++++ b/Servex/doc/lifecycle.md
+@@ -0,0 +1,57 @@
++# Lifecycle: nothing is left running
++
++**Everything the system starts is written down, and a finished task's leftovers are closed by node code, not by an agent remembering to.** On 2026-09-29 the owner found 22 dev servers still running for tasks that had finished: "we don't want to rely on the AIs to remember". This is the fix. It lives in one file, [`Servex/Lifecycle.js`](../Lifecycle.js).
++
++## 1. The creation log
++
++Every server, health watcher, headless browser, worktree, agent and task writes one `start` line when it begins and one `end` line when it stops. The lines go into `lifecycle.jsonl` in Servex's log folder (`%LOCALAPPDATA%/lew42/servex/logs/`), through Servex's single writer:
++
++```json
++{"at":"2026-09-29T17:50:44-05:00","kind":"server","id":"server.js:51996","pid":51996,"port":54991,"path":"C:\\Code\\lew42\\worktrees\\lifecycle","owner_task":"2026-09-29/lifecycle","owner_agent":null,"event":"start"}
++```
++
++| kind | who writes the line |
++|---|---|
++| `server` | `server.js` and `Server/run.js` write their own lines, so a server started by hand (`PORT=… node server.js`) is logged too |
++| `health` | `Server/health-supervisor.mjs`, about itself |
++| `browser` | `Server/browser.mjs`, at launch and on close |
++| `worktree` | `worktree-up.mjs`, `worktree-down.mjs`, and the pool's `take_worktree` / return |
++| `agent`, `task` | Servex's `spawn_agent` (start) and the agent's stop (end) |
++
++**Who owns it** (`owner_task`) comes from the env var `LEW_TASK` when it is set; otherwise from the worktree the process runs in (the task whose log names that worktree, or whose folder has the worktree's name).
++
++A process that is killed hard (`taskkill /F`) cannot write its own end line. The sweep notices the pid is gone and writes it.
++
++## 2. The reaper
++
++- **On landing.** `Server/on-landing.mjs` calls `reap(task)`: everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
++- **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped.
++
++Every close writes an `end` line whose `why` says the reason in plain words.
++
++## 3. What is never touched
++
++The main site (port 3104, and anything running from the main checkout), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone. A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
++
++**Windows reuses process ids.** A pid is killed only while it is still the same process: the reaper checks its birth time against the log line, and the pool checks its command line (on 09-29 a pool slot's old watcher pid had become `whisper-server.exe`).
++
++## 4. Commands
++
++```
++node Servex/Lifecycle.js --dry               what the sweep would close, and why (touches nothing)
++node Servex/Lifecycle.js --reap <task dir>   close what one task owns (add --dry to preview)
++node Servex/Lifecycle.js --stop <pid>        stop a server you started, wrapper first, and log its end
++node Servex/Lifecycle.js --salvage qf-2      empty a stuck pool slot into a salvage/ branch
++```
++
++Switches for Servex: `SERVEX_NO_REAPER=1` turns the sweep off; `SERVEX_REAPER_DRY=1` makes it only say what it would close (use this for any test Servex, so it cannot stop the machine's real servers).
++
++## 5. Stuck pool worktrees (salvage)
++
++When a pool slot's holder has stopped and the slot still holds work, the pool stops the slot's server first (a running server keeps appending `page.jsonl` lines, so the folder gets dirty again seconds after any reset). Then it commits everything to a branch named `salvage/<slot>-<date>`, which is never merged and never deleted. Then it moves the slot back to `michael/dev`, removes it and prepares a fresh one. The holder's card gets one line naming the branch. Details: [pool.md](pool.md).
++
++## Also in this change
++
++- **A clarity check runs once per task**, not once per minion landing, and waits while the machine monitor's flag is up (`Server/clarity.mjs`).
++- **The monitor's "stop the finished ones" message goes out only when the list of stoppable agents has changed**, and it names them (`Servex/Monitor.js`).
++- **A task log learns its worktree.** `spawn_agent` with a `task` and a worktree `cwd`, `take_worktree`, and `worktree-up.mjs --task <dir>` all write `worktree` into the task's log. `entry_for_task_dir` also matches by the task's slug or branch when that line is missing, so on-landing can find the worktree to tear down.
+diff --git a/Servex/doc/pool.md b/Servex/doc/pool.md
+index 24223727..903db4b1 100644
+--- a/Servex/doc/pool.md
++++ b/Servex/doc/pool.md
+@@ -82,3 +82,9 @@ answers `{ K, N_hours, slots: [...] }`. The AI 2 Live card reads it.
+ 
+ 
+ **Known limit.** A pool worktree is branched from *committed* `michael/dev`. Work that sits uncommitted in the main tree is not in it, so a quick fix to an uncommitted file cannot be made there. Commit `michael/dev` often. (2026-09-25: `Pool.js` and `merge.mjs` themselves were not yet in `qf-1`.)
++
++## A holder that stopped (salvage)
++
++When the pool needs a slot and its holder has stopped, the slot is handed back if it is clean. If it still holds work, `salvage()` stops the slot's server and watcher first, then commits the work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev`, and removes it so a fresh one is made. The holder's card gets one line naming the branch. A slot whose diff is only appended `page.jsonl` lines (its own server's noise) is salvaged the same way, and the line says so. The reaper's sweep runs this check every 5 minutes, so a full pool no longer waits for someone to ask. By hand: `node Servex/Lifecycle.js --salvage qf-2`. Why and how: [lifecycle.md](lifecycle.md).
++
++**A recorded pid is checked before it is killed.** Windows reuses pids; on 2026-09-29 qf-4's old watcher pid belonged to `whisper-server.exe`. `kill()` now reads the process's command line first and skips it unless it is the slot's own server (`.worktree-logs/<slot>.log`) or a health watcher.
+diff --git a/Servex/keep.json b/Servex/keep.json
+new file mode 100644
+index 00000000..f9e7a9a3
+--- /dev/null
++++ b/Servex/keep.json
+@@ -0,0 +1 @@
++[8137]
+diff --git a/public/framework/servex/lifecycle/data.json b/public/framework/servex/lifecycle/data.json
+new file mode 100644
+index 00000000..b57c1bd5
+--- /dev/null
++++ b/public/framework/servex/lifecycle/data.json
+@@ -0,0 +1,1611 @@
++{
++  "generated_at": "2026-09-29T22:56:00.518Z",
++  "counts": {
++    "tasks_unlanded": 29,
++    "tasks_total": 531,
++    "servers_running": 35,
++    "servers_total_mb": 3629,
++    "servers_matched_to_worktree": 7,
++    "servers_not_listening": 21,
++    "worktrees_orphaned": 40,
++    "worktrees_total": 70,
++    "agents_idle": 16,
++    "agents_total": 958
++  },
++  "tasks_by_day": {
++    "2026-09-01": {
++      "total": 13,
++      "landed": 13,
++      "unlanded": 0
++    },
++    "2026-09-04": {
++      "total": 47,
++      "landed": 47,
++      "unlanded": 0
++    },
++    "2026-09-05": {
++      "total": 69,
++      "landed": 69,
++      "unlanded": 0
++    },
++    "2026-09-06": {
++      "total": 34,
++      "landed": 34,
++      "unlanded": 0
++    },
++    "2026-09-08": {
++      "total": 26,
++      "landed": 26,
++      "unlanded": 0
++    },
++    "2026-09-13": {
++      "total": 13,
++      "landed": 13,
++      "unlanded": 0
++    },
++    "2026-09-14": {
++      "total": 1,
++      "landed": 1,
++      "unlanded": 0
++    },
++    "2026-09-17": {
++      "total": 31,
++      "landed": 31,
++      "unlanded": 0
++    },
++    "2026-09-18": {
++      "total": 27,
++      "landed": 27,
++      "unlanded": 0
++    },
++    "2026-09-19": {
++      "total": 47,
++      "landed": 47,
++      "unlanded": 0
++    },
++    "2026-09-20": {
++      "total": 7,
++      "landed": 7,
++      "unlanded": 0
++    },
++    "2026-09-21": {
++      "total": 8,
++      "landed": 8,
++      "unlanded": 0
++    },
++    "2026-09-22": {
++      "total": 40,
++      "landed": 40,
++      "unlanded": 0
++    },
++    "2026-09-23": {
++      "total": 4,
++      "landed": 4,
++      "unlanded": 0
++    },
++    "2026-09-24": {
++      "total": 36,
++      "landed": 35,
++      "unlanded": 1
++    },
++    "2026-09-25": {
++      "total": 24,
++      "landed": 22,
++      "unlanded": 2
++    },
++    "2026-09-28": {
++      "total": 61,
++      "landed": 49,
++      "unlanded": 12
++    },
++    "2026-09-29": {
++      "total": 43,
++      "landed": 29,
++      "unlanded": 14
++    }
++  },
++  "unlanded_tasks": [
++    {
++      "task": "public/framework/ai/2026-09-24/chat-ext-extract",
++      "day": "2026-09-24",
++      "agent": null,
++      "requested_at": "2026-09-24T21:48:09-05:00",
++      "lines": 4
++    },
++    {
++      "task": "public/framework/ai/2026-09-25/quickfix-worktrees/smoke",
++      "day": "2026-09-25",
++      "agent": null,
++      "requested_at": null,
++      "lines": 2
++    },
++    {
++      "task": "public/framework/ai/2026-09-25/recursive-pairs/merge",
++      "day": "2026-09-25",
++      "agent": null,
++      "requested_at": "2026-09-29T16:46:36-05:00",
++      "lines": 11
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/check-consensus",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 8
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/collab-rounds/scoreboard-design",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": "2026-09-28T14:31:03-05:00",
++      "lines": 30
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/dictation-playground/tidy",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 3
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/file-explorer-fs/minion-b",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": "2026-09-28T14:16:38-05:00",
++      "lines": 12
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/file-explorer-fs/minion-c",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": "2026-09-29T13:00:00-05:00",
++      "lines": 20
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/full-task-cost",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 4
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/gate-proof",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 1
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/light-task-page-fix",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 1
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/fresh-eyes-review/proof/none-ai2-dashboard",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 1
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/organization/card",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": "2026-09-28T13:28:56-05:00",
++      "lines": 8
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/review-turns/proof",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": null,
++      "lines": 5
++    },
++    {
++      "task": "public/framework/ai/2026-09-28/source-library/sources-lib",
++      "day": "2026-09-28",
++      "agent": null,
++      "requested_at": "2026-09-28T19:12:35Z",
++      "lines": 7
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/file-system",
++      "day": "2026-09-29",
++      "agent": null,
++      "requested_at": "2026-09-29T16:25:17-05:00",
++      "lines": 70
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/item-ui/a-item",
++      "day": "2026-09-29",
++      "agent": "minion-item-ui-a",
++      "requested_at": "2026-09-29T16:02:25-05:00",
++      "lines": 40
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/lifecycle/build",
++      "day": "2026-09-29",
++      "agent": "minion-lifecycle-build",
++      "requested_at": "2026-09-29T17:40:09-05:00",
++      "lines": 8
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/lifecycle/study",
++      "day": "2026-09-29",
++      "agent": "minion-lifecycle-study",
++      "requested_at": "2026-09-29T17:40:12-05:00",
++      "lines": 7
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/lifecycle",
++      "day": "2026-09-29",
++      "agent": "task-mastermind-lifecycle",
++      "requested_at": "2026-09-29T17:38:21-05:00",
++      "lines": 12
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/nested-tasks/minion-view",
++      "day": "2026-09-29",
++      "agent": "minion-nested-view",
++      "requested_at": "2026-09-29T17:45:35-05:00",
++      "lines": 8
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/nested-tasks",
++      "day": "2026-09-29",
++      "agent": "task-mastermind-nested-tasks",
++      "requested_at": "2026-09-29T17:42:35-05:00",
++      "lines": 16
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/page-files-log/measure",
++      "day": "2026-09-29",
++      "agent": "minion-pf-measure",
++      "requested_at": "2026-09-29T17:08:31-05:00",
++      "lines": 26
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/page-files-log/merge-union",
++      "day": "2026-09-29",
++      "agent": "minion-pf-merge-union",
++      "requested_at": "2026-09-29T17:53:45-05:00",
++      "lines": 1
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/page-files-log",
++      "day": "2026-09-29",
++      "agent": null,
++      "requested_at": "2026-09-29T17:02:10-05:00",
++      "lines": 75
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/page-system",
++      "day": "2026-09-29",
++      "agent": "task-mastermind-page-system",
++      "requested_at": "2026-09-29T15:51:07-05:00",
++      "lines": 225
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/servex-docs-tab/minion-a-routes",
++      "day": "2026-09-29",
++      "agent": null,
++      "requested_at": "2026-09-29T00:00:00-05:00",
++      "lines": 3
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/servex-docs-tab/minion-b-ui",
++      "day": "2026-09-29",
++      "agent": null,
++      "requested_at": "2026-09-29T13:34:00-05:00",
++      "lines": 22
++    },
++    {
++      "task": "public/framework/ai/2026-09-29/servex-mastermind",
++      "day": "2026-09-29",
++      "agent": null,
++      "requested_at": "2026-09-29T08:00:00-05:00",
++      "lines": 132
++    }
++  ],
++  "servers": [
++    {
++      "pid": 36312,
++      "ppid": 55604,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 49.6,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 31188,
++      "ppid": 50884,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 58.7,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 49268,
++      "ppid": 33436,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 59.2,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 40548,
++      "ppid": 48064,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 49.3,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 30432,
++      "ppid": 7376,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 49.9,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 14368,
++      "ppid": 35412,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 50,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 43836,
++      "ppid": 51520,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 64.3,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 39060,
++      "ppid": 37432,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 49.9,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 31800,
++      "ppid": 39060,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-3\\Server\\run.js",
++      "mb": 94.8,
++      "port": "62967",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 47824,
++      "ppid": 54696,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 63.4,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 51912,
++      "ppid": 32004,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 49.1,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 24200,
++      "ppid": 27548,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 49.3,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 36116,
++      "ppid": 24200,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\waiting-on-you\\Server\\run.js",
++      "mb": 59.6,
++      "port": "59512",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 35464,
++      "ppid": 54924,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 49.7,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 19888,
++      "ppid": 35048,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 50.2,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 47336,
++      "ppid": 19888,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-4\\Server\\run.js",
++      "mb": 93.8,
++      "port": "60064",
++      "worktree": "qf-4",
++      "listening": true
++    },
++    {
++      "pid": 18960,
++      "ppid": 45988,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 49.6,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 53752,
++      "ppid": 43836,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\qf-2\\Server\\run.js",
++      "mb": 123.1,
++      "port": "60969",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 9836,
++      "ppid": 49216,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 69.3,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 5996,
++      "ppid": 1736,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 69.5,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 42480,
++      "ppid": 5996,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-system-929\\Server\\run.js",
++      "mb": 225.6,
++      "port": "51061",
++      "worktree": "page-system-929",
++      "listening": true
++    },
++    {
++      "pid": 31900,
++      "ppid": 30220,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 70.9,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 20292,
++      "ppid": 9836,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\needs-you\\Server\\run.js",
++      "mb": 226.5,
++      "port": "53478",
++      "worktree": "needs-you",
++      "listening": true
++    },
++    {
++      "pid": 10552,
++      "ppid": 47824,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\recursive-pairs\\Server\\run.js",
++      "mb": 212.9,
++      "port": "61452",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 47860,
++      "ppid": 44852,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 71.8,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 50832,
++      "ppid": 49268,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\run.js",
++      "mb": 231.7,
++      "port": "8137",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 49316,
++      "ppid": 31188,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\monorepo\\Server\\run.js",
++      "mb": 408,
++      "port": "3104",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 41980,
++      "ppid": 51504,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 60.9,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 34228,
++      "ppid": 41980,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-switcher\\Server\\run.js",
++      "mb": 214.8,
++      "port": "59934",
++      "worktree": "page-switcher",
++      "listening": true
++    },
++    {
++      "pid": 34152,
++      "ppid": 31900,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\file-system\\Server\\run.js",
++      "mb": 228.2,
++      "port": "55895",
++      "worktree": "file-system",
++      "listening": true
++    },
++    {
++      "pid": 45020,
++      "ppid": 47860,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\page-files-log\\Server\\run.js",
++      "mb": 151.5,
++      "port": "53780",
++      "worktree": "page-files-log",
++      "listening": true
++    },
++    {
++      "pid": 33040,
++      "ppid": 23684,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
++      "mb": 60.7,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 30704,
++      "ppid": 33040,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\mobile-nav\\Server\\run.js",
++      "mb": 81.3,
++      "port": "59637",
++      "worktree": null,
++      "listening": true
++    },
++    {
++      "pid": 9860,
++      "ppid": 42032,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\"  server.js",
++      "mb": 60.3,
++      "port": null,
++      "worktree": null,
++      "listening": false
++    },
++    {
++      "pid": 33612,
++      "ppid": 9860,
++      "cmd": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Code\\lew42\\worktrees\\lifecycle\\Server\\run.js",
++      "mb": 72,
++      "port": "54967",
++      "worktree": "lifecycle",
++      "listening": true
++    }
++  ],
++  "worktrees": [
++    {
++      "name": "agent-chat",
++      "branch": "worktree/agent-chat",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 521.3
++    },
++    {
++      "name": "ai2-cost-fill",
++      "branch": "worktree/ai2-cost-fill",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 269.1
++    },
++    {
++      "name": "ai2-dashboard",
++      "branch": "worktree/ai2-dashboard",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.9
++    },
++    {
++      "name": "ai2-groups",
++      "branch": "worktree/ai2-groups",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 266.9
++    },
++    {
++      "name": "ai2-overview",
++      "branch": "worktree/ai2-overview",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 328
++    },
++    {
++      "name": "ai2-real-pages",
++      "branch": "worktree/ai2-real-pages",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 0
++    },
++    {
++      "name": "ai2-resurface",
++      "branch": "worktree/ai2-resurface",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 294.4
++    },
++    {
++      "name": "ai2-rhythm",
++      "branch": "worktree/ai2-rhythm",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 329.3
++    },
++    {
++      "name": "ai2-row-vanish",
++      "branch": "worktree/ai2-row-vanish",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 0
++    },
++    {
++      "name": "ai2-static",
++      "branch": "worktree/ai2-static",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 269.1
++    },
++    {
++      "name": "ai2-workspace",
++      "branch": "worktree/ai2-workspace",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 310.8
++    },
++    {
++      "name": "assistant-layers",
++      "branch": "worktree/assistant-layers",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 267.4
++    },
++    {
++      "name": "check-consensus",
++      "branch": "worktree/check-consensus",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 270.1
++    },
++    {
++      "name": "chip-fix",
++      "branch": "worktree/chip-fix",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 332.6
++    },
++    {
++      "name": "collab-rounds",
++      "branch": "worktree/collab-rounds",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 270.9
++    },
++    {
++      "name": "concurrency",
++      "branch": "worktree/concurrency",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.1
++    },
++    {
++      "name": "core-columns",
++      "branch": "worktree/core-columns",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 0
++    },
++    {
++      "name": "file-explorer-fs",
++      "branch": "worktree/file-explorer-fs",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 331.8
++    },
++    {
++      "name": "file-system",
++      "branch": "worktree/file-system",
++      "merged": false,
++      "stillServing": true,
++      "port": 55895,
++      "created_at": "2026-09-29T21:24:47.612Z",
++      "orphaned": false,
++      "mb": 338.9
++    },
++    {
++      "name": "fresh-eyes-review",
++      "branch": "worktree/fresh-eyes-review",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 270
++    },
++    {
++      "name": "helper-fixes",
++      "branch": "worktree/helper-fixes",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264
++    },
++    {
++      "name": "item-ui",
++      "branch": "worktree/item-ui",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 336.5
++    },
++    {
++      "name": "layout-check",
++      "branch": "worktree/layout-check",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 269
++    },
++    {
++      "name": "layout-explorer",
++      "branch": "worktree/layout-explorer",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 332.6
++    },
++    {
++      "name": "layout-names",
++      "branch": "worktree/layout-names",
++      "merged": true,
++      "stillServing": false,
++      "port": 52651,
++      "created_at": "2026-09-24T22:56:57.158Z",
++      "orphaned": true,
++      "mb": 264
++    },
++    {
++      "name": "layout-system",
++      "branch": "worktree/layout-system",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 328.7
++    },
++    {
++      "name": "lifecycle",
++      "branch": "worktree/lifecycle",
++      "merged": true,
++      "stillServing": true,
++      "port": 54967,
++      "created_at": "2026-09-29T22:39:21.486Z",
++      "orphaned": true,
++      "mb": 596.6
++    },
++    {
++      "name": "live-card",
++      "branch": "worktree/live-card",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264
++    },
++    {
++      "name": "live-card-wide",
++      "branch": "worktree/live-card-wide",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 262.5
++    },
++    {
++      "name": "live-preview",
++      "branch": "worktree/live-preview",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.5
++    },
++    {
++      "name": "live-reply",
++      "branch": "worktree/live-reply",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264
++    },
++    {
++      "name": "loose-ends",
++      "branch": "worktree/loose-ends",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.1
++    },
++    {
++      "name": "md-pages",
++      "branch": "worktree/md-pages",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.1
++    },
++    {
++      "name": "mobile-nav",
++      "branch": "worktree/mobile-nav",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 338.8
++    },
++    {
++      "name": "mobile-nav-live",
++      "branch": "worktree/mobile-nav-live",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 338.7
++    },
++    {
++      "name": "module-experts",
++      "branch": "worktree/module-experts",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 592.7
++    },
++    {
++      "name": "needs-you",
++      "branch": "worktree/needs-you",
++      "merged": true,
++      "stillServing": true,
++      "port": 53478,
++      "created_at": "2026-09-29T18:25:16.658Z",
++      "orphaned": true,
++      "mb": 596.1
++    },
++    {
++      "name": "node-modules-guard",
++      "branch": "worktree/node-modules-guard",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 338.7
++    },
++    {
++      "name": "padding-system",
++      "branch": "worktree/padding-system",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 270
++    },
++    {
++      "name": "page-cards",
++      "branch": "worktree/page-cards",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 266.3
++    },
++    {
++      "name": "page-drawer",
++      "branch": "worktree/page-drawer",
++      "merged": false,
++      "stillServing": false,
++      "port": 62178,
++      "created_at": "2026-09-28T19:24:28.601Z",
++      "orphaned": false,
++      "mb": 276.5
++    },
++    {
++      "name": "page-files-log",
++      "branch": "worktree/page-files-log",
++      "merged": false,
++      "stillServing": true,
++      "port": 53780,
++      "created_at": "2026-09-29T22:02:30.499Z",
++      "orphaned": false,
++      "mb": 340
++    },
++    {
++      "name": "page-switcher",
++      "branch": "worktree/page-switcher",
++      "merged": false,
++      "stillServing": true,
++      "port": 59934,
++      "created_at": "2026-09-29T22:10:31.707Z",
++      "orphaned": false,
++      "mb": 338.8
++    },
++    {
++      "name": "page-system",
++      "branch": "worktree/page-system",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 270.3
++    },
++    {
++      "name": "page-system-929",
++      "branch": "worktree/page-system-929",
++      "merged": false,
++      "stillServing": true,
++      "port": 51061,
++      "created_at": "2026-09-29T20:55:33.642Z",
++      "orphaned": false,
++      "mb": 340.6
++    },
++    {
++      "name": "prompt-refine",
++      "branch": "worktree/prompt-refine",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 590.3
++    },
++    {
++      "name": "qf-1",
++      "branch": "worktree/qf-1",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 270.3
++    },
++    {
++      "name": "qf-2",
++      "branch": "worktree/qf-2",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 339.3
++    },
++    {
++      "name": "qf-3",
++      "branch": "worktree/qf-3",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 527.5
++    },
++    {
++      "name": "qf-4",
++      "branch": "worktree/qf-4",
++      "merged": false,
++      "stillServing": true,
++      "port": 60064,
++      "created_at": "2026-09-28T19:38:55.505Z",
++      "orphaned": false,
++      "mb": 338.4
++    },
++    {
++      "name": "qf-5",
++      "branch": "worktree/qf-5",
++      "merged": false,
++      "stillServing": false,
++      "port": 52847,
++      "created_at": "2026-09-29T22:44:12.051Z",
++      "orphaned": false,
++      "mb": 339.4
++    },
++    {
++      "name": "quickfix-worktrees",
++      "branch": "worktree/quickfix-worktrees",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 527.5
++    },
++    {
++      "name": "recipe-a",
++      "branch": "worktree/recipe-a",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 265.4
++    },
++    {
++      "name": "recipe-b",
++      "branch": "worktree/recipe-b",
++      "merged": true,
++      "stillServing": false,
++      "port": 61142,
++      "created_at": "2026-09-28T19:19:26.290Z",
++      "orphaned": true,
++      "mb": 270
++    },
++    {
++      "name": "recipe-c",
++      "branch": "worktree/recipe-c",
++      "merged": true,
++      "stillServing": false,
++      "port": 51615,
++      "created_at": "2026-09-28T19:19:32.330Z",
++      "orphaned": true,
++      "mb": 270
++    },
++    {
++      "name": "recursive-pairs",
++      "branch": "worktree/recursive-pairs",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 596
++    },
++    {
++      "name": "restart-outside-tree",
++      "branch": "worktree/restart-outside-tree",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 0
++    },
++    {
++      "name": "review-turns",
++      "branch": "worktree/review-turns",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 4.8
++    },
++    {
++      "name": "section-variants",
++      "branch": "worktree/section-variants",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 330.2
++    },
++    {
++      "name": "servex-crash",
++      "branch": "worktree/servex-crash",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 264.9
++    },
++    {
++      "name": "servex-docs-tab",
++      "branch": "worktree/servex-docs-tab",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 0
++    },
++    {
++      "name": "servex-monitor",
++      "branch": "worktree/servex-monitor",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 261
++    },
++    {
++      "name": "slow-card-fix",
++      "branch": "worktree/slow-card-fix",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 338.8
++    },
++    {
++      "name": "smoke-proof",
++      "branch": "worktree/smoke-proof",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 270
++    },
++    {
++      "name": "source-library",
++      "branch": "worktree/source-library",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 4.8
++    },
++    {
++      "name": "task-cost",
++      "branch": "worktree/task-cost",
++      "merged": true,
++      "stillServing": false,
++      "port": 62634,
++      "created_at": "2026-09-28T19:19:18.556Z",
++      "orphaned": true,
++      "mb": 266.3
++    },
++    {
++      "name": "task-loop",
++      "branch": "worktree/task-loop",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 331.3
++    },
++    {
++      "name": "waiting-on-you",
++      "branch": "worktree/waiting-on-you",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 527.4
++    },
++    {
++      "name": "worktree-watch",
++      "branch": "worktree/worktree-watch",
++      "merged": true,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": true,
++      "mb": 265.6
++    },
++    {
++      "name": "worktrees",
++      "branch": "worktree/worktrees",
++      "merged": false,
++      "stillServing": false,
++      "port": null,
++      "created_at": null,
++      "orphaned": false,
++      "mb": 0
++    }
++  ],
++  "idle_agents": [
++    {
++      "id": "assistant-fast",
++      "role": "assistant",
++      "name": "fast",
++      "parent": null,
++      "started_at": "2026-09-29T22:34:46.441Z",
++      "page": null
++    },
++    {
++      "id": "dispatcher",
++      "role": "dispatcher",
++      "name": null,
++      "parent": null,
++      "started_at": "2026-09-29T22:34:44.471Z",
++      "page": null
++    },
++    {
++      "id": "master-assistant",
++      "role": "master-assistant",
++      "name": "",
++      "parent": null,
++      "started_at": "2026-09-29T22:34:46.788Z",
++      "page": null
++    },
++    {
++      "id": "task-mastermind-mobile-nav",
++      "role": "task-mastermind",
++      "name": "mobile-nav",
++      "parent": null,
++      "started_at": "2026-09-29T20:02:26.960Z",
++      "page": null
++    },
++    {
++      "id": "reviewer-reply-mobile-nav",
++      "role": "reviewer",
++      "name": "reply-mobile-nav",
++      "parent": null,
++      "started_at": "2026-09-29T22:33:20.941Z",
++      "page": null
++    },
++    {
++      "id": "task-mastermind-file-system",
++      "role": "task-mastermind",
++      "name": "file-system",
++      "parent": null,
++      "started_at": "2026-09-29T21:23:46.308Z",
++      "page": null
++    },
++    {
++      "id": "mastermind-servex-5",
++      "role": "mastermind",
++      "name": "servex-5",
++      "parent": null,
++      "started_at": "2026-09-29T21:24:02.957Z",
++      "page": null
++    },
++    {
++      "id": "task-mastermind-page-files-log",
++      "role": "task-mastermind",
++      "name": "page-files-log",
++      "parent": null,
++      "started_at": "2026-09-29T22:00:34.176Z",
++      "page": null
++    },
++    {
++      "id": "task-mastermind-page-system-2",
++      "role": "task-mastermind",
++      "name": "page-system-2",
++      "parent": null,
++      "started_at": "2026-09-29T22:00:50.620Z",
++      "page": null
++    },
++    {
++      "id": "minion-pf-measure",
++      "role": "minion",
++      "name": "pf-measure",
++      "parent": "task-mastermind-page-files-log",
++      "started_at": "2026-09-29T22:08:31.010Z",
++      "page": null
++    },
++    {
++      "id": "minion-lan-guard",
++      "role": "minion",
++      "name": "lan-guard",
++      "parent": "task-mastermind-mobile-nav",
++      "started_at": "2026-09-29T22:26:00.486Z",
++      "page": null
++    },
++    {
++      "id": "reviewer-writer",
++      "role": "reviewer",
++      "name": "writer",
++      "parent": null,
++      "started_at": "2026-09-29T22:33:20.993Z",
++      "page": null
++    },
++    {
++      "id": "reviewer-writer-2",
++      "role": "reviewer",
++      "name": "writer",
++      "parent": null,
++      "started_at": "2026-09-29T22:34:25.978Z",
++      "page": null
++    },
++    {
++      "id": "reviewer-reply-writer",
++      "role": "reviewer",
++      "name": "reply-writer",
++      "parent": null,
++      "started_at": "2026-09-29T22:34:25.992Z",
++      "page": null
++    },
++    {
++      "id": "task-mastermind-lifecycle",
++      "role": "task-mastermind",
++      "name": "lifecycle",
++      "parent": "mastermind-servex-5",
++      "started_at": "2026-09-29T22:38:21.778Z",
++      "page": null
++    },
++    {
++      "id": "reviewer-file-system",
++      "role": "reviewer",
++      "name": "file-system",
++      "parent": null,
++      "started_at": "2026-09-29T22:39:04.897Z",
++      "page": null
++    }
++  ],
++  "quickfix_worktrees_blocked": [
++    {
++      "worktree": "qf-2",
++      "holder": null,
++      "state": "unknown"
++    },
++    {
++      "worktree": "qf-3",
++      "holder": null,
++      "state": "unknown"
++    },
++    {
++      "worktree": "qf-4",
++      "holder": null,
++      "state": "unknown"
++    }
++  ],
++  "worst_ten": [
++    {
++      "kind": "worktree",
++      "name": "lifecycle",
++      "mb": 596.6,
++      "age_days": 0,
++      "owner_task": "lifecycle",
++      "why": "branch merged, dir not removed; server still running"
++    },
++    {
++      "kind": "worktree",
++      "name": "needs-you",
++      "mb": 596.1,
++      "age_days": 0,
++      "owner_task": "needs-you",
++      "why": "branch merged, dir not removed; server still running"
++    },
++    {
++      "kind": "worktree",
++      "name": "recursive-pairs",
++      "mb": 596,
++      "age_days": null,
++      "owner_task": "recursive-pairs",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "worktree",
++      "name": "module-experts",
++      "mb": 592.7,
++      "age_days": null,
++      "owner_task": "module-experts",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "worktree",
++      "name": "prompt-refine",
++      "mb": 590.3,
++      "age_days": null,
++      "owner_task": "prompt-refine",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "worktree",
++      "name": "agent-chat",
++      "mb": 521.3,
++      "age_days": null,
++      "owner_task": "agent-chat",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "server",
++      "name": "unassigned server.js (pid 49316)",
++      "mb": 408,
++      "age_days": null,
++      "owner_task": null,
++      "why": "no matching worktree port — main server or hand-started"
++    },
++    {
++      "kind": "worktree",
++      "name": "node-modules-guard",
++      "mb": 338.7,
++      "age_days": null,
++      "owner_task": "node-modules-guard",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "worktree",
++      "name": "item-ui",
++      "mb": 336.5,
++      "age_days": null,
++      "owner_task": "item-ui",
++      "why": "branch merged, dir not removed"
++    },
++    {
++      "kind": "worktree",
++      "name": "chip-fix",
++      "mb": 332.6,
++      "age_days": null,
++      "owner_task": "chip-fix",
++      "why": "branch merged, dir not removed"
++    }
++  ],
++  "by_kind_mb": {
++    "servers": 3629,
++    "worktrees_disk": 12865,
++    "agents": 4800
++  },
++  "salvage": {
++    "slots": [
++      {
++        "slot": "qf-2",
++        "branch": "salvage/qf-2-2026-09-29",
++        "files": [
++          "public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl    | 1 +",
++          ".../framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl | 1 +",
++          "public/framework/ai/2026/09/28/figma-sept-2026/1-typography/page.jsonl | 3 +++",
++          "public/framework/core/Page/jsonl/page.jsonl                            | 1 +"
++        ],
++        "only_page_jsonl": true
++      },
++      {
++        "slot": "qf-3",
++        "branch": "salvage/qf-3-2026-09-29",
++        "files": [
++          "public/framework/ai/2026/09/page.jsonl      | 1 +",
++          "public/framework/ai/board.jsonl             | 2 ++",
++          "public/framework/core/Page/jsonl/page.jsonl | 1 +"
++        ],
++        "only_page_jsonl": false
++      },
++      {
++        "slot": "qf-4",
++        "branch": "salvage/qf-4-2026-09-29",
++        "files": [
++          "public/framework/ai/2026/09/page.jsonl      |  1 +",
++          "public/framework/ai/board.jsonl             | 10 ++++++++++",
++          "public/framework/core/Page/jsonl/page.jsonl |  1 +"
++        ],
++        "only_page_jsonl": false
++      }
++    ],
++    "cause": "Server/plugins/PageFiles.js watches every folder with a page.jsonl and appends a line the moment a file appears, disappears or changes underneath it, for as long as that worktree's own dev server (server.js) is running. Each qf-N's server is still up, so its page.jsonl keeps changing after the salvage commit, git status --porcelain sees a real diff every time, and Servex/Pool.js's dirt() check (git status --porcelain, called from reclaim() -> give_back()) refuses the slot again. The server, not the agent, is the one re-dirtying the tree.",
++    "writer": {
++      "file": "Server/plugins/PageFiles.js",
++      "class_method": "PageFiles.event() -> PageFiles.sync() -> PageFiles.append()/write to page.jsonl",
++      "when": "on every fs.watch change under public/, while a server.js process is running and has this plugin loaded (continuous, not on a schedule)"
++    },
++    "fix_options": {
++      "picked": "a",
++      "a": "Servex/Pool.js dirt() ignores files named page.jsonl when it walks git status --porcelain. page.jsonl is checked into git as real site content (confirmed: not in .gitignore, has its own commit history), so it cannot simply stop being tracked without risking the static build losing it. Excluding it from the DIRT CHECK (not from git) fixes the false refusal without touching what ships.",
++      "b": "page.jsonl leaves git's tracking (adds it to .gitignore, git rm --cached). Rejected as the pick because page.jsonl is real, committed site data today (core/Page/jsonl/page.jsonl has prior commits from real page-system work), and untracking it repo-wide is a bigger, riskier change than the reclaim bug needs — and it is the owner's data to decide on, not a minion's."
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/public/framework/servex/lifecycle/doc/counting.md b/public/framework/servex/lifecycle/doc/counting.md
+new file mode 100644
+index 00000000..4e7b5bdf
+--- /dev/null
++++ b/public/framework/servex/lifecycle/doc/counting.md
+@@ -0,0 +1,39 @@
++# How each number was counted
++
++Read only — nothing on this list stops or changes anything. The script is
++[`ai/2026-09-29/lifecycle/study/count.mjs`](/framework/ai/2026-09-29/lifecycle/study/); it writes
++`counts.json`, which this page's `data.json` is a copy of.
++
++1. **Tasks never landed.** Every `task.jsonl` found under
++   `public/framework/ai/2026-09-*/` (any depth, so a nested minion's task counts too) is
++   "landed" if any line has a `landed_at` field. Everything else is unlanded. 528 task logs
++   found on the day of this count; 28 had no `landed_at`.
++
++2. **Servers never stopped.** `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` for
++   every live process whose command line runs `server.js` or `run.js`, with its memory (working
++   set) in MB. Each one is matched to a worktree by its **listening port** (from
++   `netstat -ano`), looked up against `.worktrees.json`'s own port list — the command line
++   itself has no working directory in it, so port is the only reliable link. Only 7 of 35 could
++   be matched to a live worktree; the rest are the main site's server, a hand-started one, or a
++   worktree whose port has since changed.
++
++3. **Worktrees orphaned.** Every directory under `C:\Code\lew42\worktrees\`, checked against
++   `git branch --merged michael/dev` for its branch. "Orphaned" means the branch is already
++   merged — its work is already in `michael/dev` — but the worktree folder is still sitting on
++   disk. Disk size is a recursive byte count via PowerShell (`Get-ChildItem -Recurse -File`),
++   shown in MB. 40 of 70 worktree directories were orphaned this way, using roughly 13 GB.
++
++4. **Agents left idle.** `GET http://127.0.0.1:8090/agents` (the Servex registry), filtered to
++   `state: "idle"`. Each one still holds a live `claude` process; the minion skill's own
++   measured estimate (~300 MB per idle one-pass agent such as a reviewer, clarity pass or
++   checker) is used for the MB in the chart and the worst-cases table, since the process list
++   itself does not name which `claude.exe` belongs to which agent id.
++
++**The bar chart** mixes two different kinds of MB on purpose: servers and idle agents are live
++RAM (their Working Set right now); worktrees is disk space held by an orphaned copy of the repo.
++They are shown on the same chart because the owner's question was "how much is left running or
++sitting there", not "how much RAM" specifically — the label on each bar says which kind of MB it
++is.
++
++**The worst-ten table** pools all four kinds into one list, sorted by MB (falling back to age in
++days when MB ties or is unknown, as it is for a task), and keeps the top 10.
+diff --git a/public/framework/servex/lifecycle/page.js b/public/framework/servex/lifecycle/page.js
+new file mode 100644
+index 00000000..aae4ac5a
+--- /dev/null
++++ b/public/framework/servex/lifecycle/page.js
+@@ -0,0 +1,111 @@
++import { Doc, md, h2, div, span, ui } from "/app.js";
++
++/* Read only. The four numbers and the raw evidence come from
++   public/framework/ai/2026-09-29/lifecycle/study/count.mjs, which walks the live
++   process list, the worktree registry and the Servex agent registry — nothing here
++   re-counts anything. `data.json` is a copy of that script's `counts.json`, taken at
++   the moment this page's data was last refreshed; how each number is counted is in
++   the Docs tab (doc/counting.md). */
++async function load(){
++	const res = await fetch(new URL("data.json", import.meta.url).href);
++	return res.ok ? res.json() : null;
++}
++
++// One big number: a stat tile, the same shape ui/stats documents (a card with a
++// muted label over a big h2 value) — no new component, just that template inline.
++function stat(label, value){
++	return div.c("surface pad flex v gap", () => {
++		div.c("h4 muted", label);
++		div.c("h2", String(value));
++	}).style("--gap", "calc(var(--gap) * 0.1)");
++}
++
++// A CSS bar chart: one row per kind, a filled bar sized by its share of the widest
++// one. No chart library — just a div whose width is a percentage.
++function bar_chart(rows){
++	const max = Math.max(1, ...rows.map(r => r.mb));
++	return div.c("flow", () => rows.forEach(r => {
++		div.c("flex gap v-center", () => {
++			span.c("muted", r.label).style({ minWidth: "9em", display: "inline-block" });
++			div.c("surface", () => {
++				div().style({
++					width: `${Math.max(2, Math.round((r.mb / max) * 100))}%`,
++					background: "var(--prim)",
++					height: "1.4em",
++					borderRadius: "var(--radius, 4px)",
++				});
++			}).style({ flex: "1", padding: "2px" });
++			span.c("muted", `${r.mb.toLocaleString()} MB`).style({ minWidth: "6em", textAlign: "right", display: "inline-block" });
++		});
++	}));
++}
++
++function worst_table(rows){
++	const head = ["kind", "name", "MB", "age (days)", "owner task", "why orphaned"];
++	const body = rows.map(r => [r.kind, r.name, r.mb ? String(Math.round(r.mb)) : "—", r.age_days ?? "—", r.owner_task || "—", r.why]);
++	return ui.table(head, body);
++}
++
++export default new Doc({
++	meta: import.meta,
++	title: "Lifecycle",
++	description: "How much of what the system starts — tasks, servers, worktrees, agents — is left running instead of shut down.",
++	icon: "hourglass_bottom",
++
++	notes: "counting",
++
++	content(){
++		// The container is what `append_promise` needs "placed synchronously" — everything
++		// below runs inside ITS OWN callback, so every factory call has a real captor even
++		// though the whole thing only starts once `load()` resolves
++		// (core/View/doc/capturing.md: "returning a promise is the other blessed shape").
++		return load().then(data => div.c("flow", () => {
++			if (!data) { md("*data.json did not load — run `node public/framework/ai/2026-09-29/lifecycle/study/count.mjs` from the repo root and copy counts.json here as data.json.*"); return; }
++
++			const c = data.counts;
++
++			md(`As of **${new Date(data.generated_at).toLocaleString()}**, read once and not live — a real snapshot of a system that keeps changing under it.`);
++
++			h2("Four numbers");
++			div.c("grid gap auto", () => {
++				stat("tasks never landed", c.tasks_unlanded + " of " + c.tasks_total);
++				stat("servers never stopped", c.servers_running + " (~" + c.servers_total_mb.toLocaleString() + " MB)");
++				stat("worktrees orphaned", c.worktrees_orphaned + " of " + c.worktrees_total);
++				stat("agents left idle", c.agents_idle + " of " + c.agents_total);
++			}).style("--column", "14em");
++
++			md(`Only **${c.servers_matched_to_worktree}** of the ${c.servers_running} running \`server.js\`/\`run.js\` processes could be matched to a live worktree port — the rest (${c.servers_not_listening} not even listening on any port right now) are the main site's server, hand-started ones, or ones whose worktree already vanished.`);
++
++			h2("What's left running, by kind");
++			md("Servers and agents are live memory (their Working Set right now); worktrees is disk space held by orphaned copies of the repo — different units, same chart, so the worst offender is obvious at a glance.");
++			bar_chart([
++				{ label: "servers (RAM)", mb: data.by_kind_mb.servers },
++				{ label: "worktrees (disk)", mb: data.by_kind_mb.worktrees_disk },
++				{ label: "idle agents (RAM, est.)", mb: data.by_kind_mb.agents },
++			]);
++
++			h2("The 10 worst cases");
++			worst_table(data.worst_ten);
++
++			md("**One line on the fix:** a task that lands now closes its own servers, watchers, browsers and idle helpers — that reaper is a separate, later piece of this same brief; this page is only the count of what it will find, before and after.");
++
++			if (data.salvage) {
++				h2("The stuck quick-fix pool");
++				md(`Three quick-fix worktree slots (\`qf-2\`, \`qf-3\`, \`qf-4\`) have been stuck since 2026-09-28: each was held by an agent that stopped, and Servex's Pool refused to reclaim the slot because it still had uncommitted changes. The owner rescued each slot's uncommitted work by hand into a throwaway branch (\`salvage/qf-N-2026-09-29\`) — but the slot is still stuck.`);
++
++				md(`**What each salvage branch holds** (\`git show --stat\`):`);
++				data.salvage.slots.forEach(slot => {
++					md(`- **${slot.slot}** (\`${slot.branch}\`): ${slot.files.length} file(s) changed — ${slot.only_page_jsonl ? "all of them are `page.jsonl` append lines" : "mostly `page.jsonl`, plus a few lines in `ai/board.jsonl`"}.`);
++				});
++
++				md(`**Why it stays stuck:** ${data.salvage.cause}`);
++
++				md(`Written by \`${data.salvage.writer.file}\` (\`${data.salvage.writer.class_method}\`), ${data.salvage.writer.when}.`);
++
++				md(`**The fix** (not applied — read only): **(${data.salvage.fix_options.picked}) ${data.salvage.fix_options.a}**\n\nThe alternative: **(b) ${data.salvage.fix_options.b}**`);
++			}
++
++			md("Raw data and the counting script: [`ai/2026-09-29/lifecycle/study/`](/framework/ai/2026-09-29/lifecycle/study/).");
++		}));
++	},
++});
+diff --git a/public/framework/servex/lifecycle/readme.md b/public/framework/servex/lifecycle/readme.md
+new file mode 100644
+index 00000000..b4c4363f
+--- /dev/null
++++ b/public/framework/servex/lifecycle/readme.md
+@@ -0,0 +1,31 @@
++# Lifecycle — how much is left running
++
++The owner asked: *"How many things are created that are never finished, how many servers are
++started that are never shut down properly, and how many worktrees get orphaned and are just
++sitting there?"* This page is the count.
++
++## What it shows
++
++- Four numbers, top of the page: tasks never landed, servers never stopped, worktrees orphaned,
++  agents left idle.
++- A bar chart of what's left running, by kind, in MB.
++- A table of the 10 worst cases.
++- The stuck quick-fix pool (`qf-2`, `qf-3`, `qf-4`): why three worktree slots stay stuck even
++  after the owner rescued their uncommitted work by hand.
++
++## Use
++
++`data.json` next to this page is a copy of
++[`ai/2026-09-29/lifecycle/study/counts.json`](/framework/ai/2026-09-29/lifecycle/study/); refresh
++it by re-running `node public/framework/ai/2026-09-29/lifecycle/study/count.mjs` from the repo
++root and copying `counts.json` here as `data.json` again. How each number is counted:
++[Docs → counting](/framework/servex/lifecycle/doc/counting/).
++
++## Watch out
++
++- This is a **snapshot, not a live view** — the system keeps starting and stopping things while
++  you read it, so a re-run a minute later gives slightly different numbers. That is expected,
++  not a bug in the count.
++- The reaper that would close all this automatically is a separate, later piece of the same
++  brief ([`ai/2026-09-29/lifecycle/`](/framework/ai/2026-09-29/lifecycle/)) — this page only
++  counts, it does not stop anything.
+diff --git a/public/framework/servex/page.js b/public/framework/servex/page.js
+index 193e4bbd..6cc3d6c3 100644
+--- a/public/framework/servex/page.js
++++ b/public/framework/servex/page.js
+@@ -8,6 +8,8 @@ export default new Doc({
+ 
+ 	notes: "roles",
+ 
++	children: "lifecycle",
++
+ 	content(){
+ 		md("**Servex is the one process on this machine that stays up** (port 80). It runs the Claude agents, starts and watches the dev servers, and owns every log file. It is not the [dev server](/framework/dev/) — that only reloads this site's pages.");
+ 
+@@ -20,5 +22,9 @@ export default new Doc({
+ - **MCP tools** — the door every Claude session uses, at \`http://127.0.0.1:8090/mcp\`.`);
+ 
+ 		md("Detail for every part: `Servex/readme.md` and `Servex/agents/readme.md`.");
++
++		h2("How much is left running");
++
++		md("A count of what the system starts and never shuts down — tasks, servers, worktrees, agents: [Lifecycle](/framework/servex/lifecycle/)");
+ 	},
+ });
+diff --git a/server.js b/server.js
+index 5914661e..404fd1e9 100644
+--- a/server.js
++++ b/server.js
+@@ -68,6 +68,11 @@ const BOOT_FAILED_FILE = path.join(__dirname, ".server-boot-failed.json");
+ // one true home (server.js at the repo root) __dirname IS this file's own
+ // folder, so this resolves to the exact same module either way.
+ const { default: MtimeFilter } = await import(pathToFileURL(path.join(__dirname, "Server", "MtimeFilter.js")).href);
++// THE CREATION LOG (lifecycle, 2026-09-29): every server writes its own start line, and its end
++// line on exit, into Servex's lifecycle.jsonl — so a hand-started PORT=... node server.js is
++// never invisible again. Never blocks or fails the boot. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
++import(pathToFileURL(path.join(__dirname, "Servex", "Lifecycle.js")).href)
++	.then(m => m.track("server", `server.js:${process.pid}`, { port: Number(process.env.PORT) || null, path: __dirname })).catch(() => {});
+ 
+ // How long a candidate gets to answer a real 200 before it's called a failure,
+ // and how long a kill gets before it's escalated — both overridable for a proof
