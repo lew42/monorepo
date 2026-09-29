@@ -74,7 +74,7 @@ if (status.trim()) {
 }
 
 try {
-	execFileSync("git", ["worktree", "remove", entry.path], { cwd: ROOT, stdio: "inherit" });
+	execFileSync("git", ["worktree", "remove", entry.path], { cwd: ROOT, stdio: "inherit", windowsHide: true });
 	console.log(`worktree-down: removed ${entry.path}.`);
 } catch (e) {
 	console.error(`worktree-down: \`git worktree remove\` failed — the worktree is left in place at ${entry.path}. Server is already stopped.`);
@@ -87,7 +87,7 @@ try {
 // now that the worktree using it is gone, so worktree-up.mjs can reuse the
 // same name later without `-B`.
 try {
-	execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, stdio: "inherit" });
+	execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, stdio: "inherit", windowsHide: true });
 } catch (e) {
 	console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`);
 }

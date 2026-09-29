@@ -132,7 +132,7 @@ export default class Runtime {
     answer(index, response) { this.socket.send({ index, response }); return response; }
 
     cmd(command) {
-        exec(command, (error, stdout, stderr) => {
+        exec(command, { windowsHide: true }, (error, stdout, stderr) => {
             this.socket.rpc("cmd", stdout || stderr);
         });
     }

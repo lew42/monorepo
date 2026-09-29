@@ -256,7 +256,7 @@ export default class CardAnswer {
 			const args = ["-p", "--output-format", "stream-json", "--verbose",
 				"--model", CardAnswer.MODEL, "--tools", "SendMessage", "--effort", "low",
 				"--strict-mcp-config", "--session-id", randomUUID()];
-			const child = spawn(process.env.CLAUDE_BIN || "claude", args);   // inherit the server's console: claude runs hooks, and a console-less claude pops a window per hook (2026-09-22)
+			const child = spawn(process.env.CLAUDE_BIN || "claude", args, { windowsHide: true });   // inherit the server's console: claude runs hooks, and a console-less claude pops a window per hook (2026-09-22)
 			const prompt = `Call the SendMessage tool exactly once: to: ${JSON.stringify(ask_to)}, message: ${JSON.stringify(text)}. Do nothing else -- no other tool, no extra reply.`;
 			child.stdin.end(prompt);
 
