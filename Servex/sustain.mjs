@@ -163,7 +163,9 @@ function keep(){
  * called BY the WMI provider host (WmiPrvSE.exe), so the process it creates is
  * WmiPrvSE's child, never ours — a `taskkill /t` on Servex can never reach it,
  * no matter who called `--restart` or how deep. */
-const API = "http://127.0.0.1:8090/api/agents";
+// SERVEX_API_PORT is the same idea as SERVEX_HOME: a private proof (or a private Servex on
+// another port) points this here instead of guessing whether 8090 is the real one or a stand-in.
+const API = `http://127.0.0.1:${process.env.SERVEX_API_PORT || 8090}/api/agents`;
 
 /* Launch `sustain.mjs --restart-detached [extra...]` via WMI so it lands
  * outside whatever tree called us, wait for CIM to hand back its new pid
@@ -182,9 +184,19 @@ const API = "http://127.0.0.1:8090/api/agents";
  * that one variable and leaves every other env var (PATH, etc.) as WmiPrvSE
  * would have given it — `taskkill` and friends still resolve normally. */
 function relaunch_detached(extra){
+    // `set "SERVEX_HOME=...">` sits on a cmd.exe command line, unquoted from cmd's own point of
+    // view (only the value after `=` is quoted, not the whole `set` statement) — `&`, `|`, `^` or
+    // a stray `%` in HOME would be read as cmd syntax, not text. HOME is always a fixed,
+    // machine-chosen path (SERVEX_HOME or %LOCALAPPDATA%\lew42\servex), never anything typed
+    // in this session, but this still fails loudly instead of silently mis-launching Servex.
+    if (/[&|^%<>]/.test(HOME)) throw new Error(`HOME contains a cmd.exe metacharacter, refusing to relaunch: ${HOME}`);
+    if (/[&|^%<>]/.test(process.env.SERVEX_API_PORT || "")) throw new Error(`SERVEX_API_PORT contains a cmd.exe metacharacter, refusing to relaunch: ${process.env.SERVEX_API_PORT}`);
     const inner = [process.execPath, path.join(HERE, "sustain.mjs"), "--restart-detached", ...extra]
         .map(a => `"${a}"`).join(" ");
-    const cmdline = `cmd.exe /c set "SERVEX_HOME=${HOME}"&& ${inner}`.replace(/'/g, "''");
+    // Same reasoning for SERVEX_API_PORT as for SERVEX_HOME just above — it is also only an env
+    // var, so it is also invisible to WmiPrvSE unless pinned the same way.
+    const port = process.env.SERVEX_API_PORT ? ` "SERVEX_API_PORT=${process.env.SERVEX_API_PORT}"&& set` : "";
+    const cmdline = `cmd.exe /c set${port} "SERVEX_HOME=${HOME}"&& ${inner}`.replace(/'/g, "''");
     // ShowWindow must be typed [uint16] — CIM infers a type for every property
     // in -Property, and a bare `0` there fails with "Could not infer CimType".
     const ps = `$ErrorActionPreference='Stop'; `
@@ -209,7 +221,14 @@ function restart_outside_tree(){
         return restart(process.argv.includes("--force")); // nothing gets killed, no need to leave the tree
 
     const extra = process.argv.slice(3); // pass --force / --dry-run / anything else through unchanged
-    const pid = relaunch_detached(extra);
+    let pid;
+    try { pid = relaunch_detached(extra); }
+    catch (e){
+        note(`restart: refusing to relaunch — ${e.message}`);
+        console.log(String(e.message));
+        process.exitCode = 1;
+        return;
+    }
     if (!pid){
         note("restart: WMI relaunch failed — see the console output above");
         console.log("Could not relaunch outside the process tree (Win32_Process.Create failed); nothing was touched.");
@@ -227,25 +246,34 @@ function sources(dir = HERE){
         : /\.(m?js)$/.test(e.name) ? [path.join(dir, e.name)] : []);
 }
 
+/* ⚠ Every message below is `note()`, never a bare `console.log`. On win32 this
+ * whole function usually runs in the WMI-detached copy (see
+ * `restart_outside_tree` above), which has no console at all — `console.log`
+ * there is not "quiet", it is GONE, along with every refusal reason
+ * (`restart_servex`'s own description used to promise "a refusal is written
+ * in that log", which was false for exactly this reason; found in review).
+ * `note()` always also writes to `sustain.log`, so every caller — a console,
+ * this file's own OUT, or `ops.js`'s spawn (whose fd redirection only
+ * captures the in-tree hop's few lines, not this) — can read what happened. */
 async function restart(force){
     const pids = read();
     if (!pids || !alive(pids.keeper))
-        return console.log("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
+        return note("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
 
     const bad = sources().filter(f => spawnSync(process.execPath, ["--check", f], { windowsHide: true }).status !== 0);
-    if (bad.length) return console.log(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
+    if (bad.length) return note(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
 
     const agents = await fetch(API).then(r => r.json()).catch(() => []);
     const working = agents.filter(a => a.state === "working");
     const comesBack = a => !!a.session_id && a.role !== "fork" && a.revivable !== false;
     const revived = working.filter(comesBack).map(a => a.id);
     const busy = working.filter(a => !comesBack(a)).map(a => a.id);
-    if (revived.length) console.log(`Mid-turn, will be revived after the restart: ${revived.join(", ")}.`);
-    if (busy.length) console.log(`Mid-turn, would NOT come back: ${busy.join(", ")}.`);
+    if (revived.length) note(`Mid-turn, will be revived after the restart: ${revived.join(", ")}.`);
+    if (busy.length) note(`Mid-turn, would NOT come back: ${busy.join(", ")}.`);
     if (busy.length && !force)
-        return console.log(`Not restarting — wait for those, or add --force.`);
+        return note(`Not restarting — wait for those, or add --force.`);
     if (process.argv.includes("--dry-run"))
-        return console.log(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
+        return note(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
 
     note(`restart asked for${busy.length ? ` (forced past ${busy.join(", ")})` : ""} — killing Servex ${pids.servex}`);
     kill(pids.servex);
@@ -254,9 +282,9 @@ async function restart(force){
         await new Promise(r => setTimeout(r, 1000));
         const now = read();
         if (now?.servex !== pids.servex && await fetch(API).then(r => r.ok).catch(() => false))
-            return console.log(`Servex is back as pid ${now.servex}, running the new code.`);
+            return note(`Servex is back as pid ${now.servex}, running the new code.`);
     }
-    console.log(`Servex did not answer within 30s. The keeper keeps retrying; see ${OUT}.`);
+    note(`Servex did not answer within 30s. The keeper keeps retrying; see ${OUT}.`);
 }
 
 /* One generation of Servex. The backoff doubles only while it keeps dying

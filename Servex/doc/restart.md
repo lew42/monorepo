@@ -1,38 +1,28 @@
 # `--restart` runs outside Servex's own process tree
 
-**The bug (09-28, 09-29):** an agent ran `node Servex/sustain.mjs --restart` from its own shell.
-The chain was `Servex → claude → bash → node sustain`. `--restart`'s `taskkill /pid <servex> /t
-/f` is a *tree* kill, and that agent's whole chain sat inside the tree rooted at Servex — so it
-killed the caller before the caller finished restarting anything. Servex kept running the old
-code; nothing came back. `spawn(..., {detached:true})` does **not** fix this on Windows: a child's
-parent pid is recorded once, at creation, and never updated, so `taskkill /t` still finds it by
-walking that recorded lineage even after the real parent is long gone.
+**The bug (09-28, 09-29):** an agent ran `--restart` from inside Servex's own tree (`Servex →
+claude → bash → node sustain`). `--restart`'s `taskkill /t /f` is a *tree* kill, so it killed the
+caller before the caller finished restarting anything — Servex kept running the old code.
+`spawn(..., {detached:true})` does not fix this: Windows records a child's parent once, at
+creation, and `taskkill /t` still finds it by that recorded lineage even after the real parent
+is gone.
 
-**The fix:** on win32, `--restart` re-launches itself as `--restart-detached` through WMI
-(`Invoke-CimMethod -ClassName Win32_Process -MethodName Create`, `ShowWindow=0`) instead of
-running the kill itself. A process WMI creates is a child of `WmiPrvSE.exe`, the WMI provider
-host — never of the caller, no matter how deep that caller sits inside Servex's tree. The
-in-tree hop does nothing but launch that copy and exit; the detached copy (parented to
-`WmiPrvSE`, immune to any `taskkill /t` on Servex) does the actual check-parse / kill / wait /
-confirm work `restart()` always did. `Servex/agents/ops.js`'s `restart_servex` tool needs no
-change — it already just runs `sustain.mjs --restart`, so it gets the same hop for free.
+**The fix:** on win32, `--restart` relaunches itself as `--restart-detached` through WMI
+(`Invoke-CimMethod Win32_Process.Create`), which parents the new process to `WmiPrvSE.exe`, never
+to the caller. The in-tree hop only launches that copy and exits; the detached copy does the
+actual kill/wait/confirm. `ops.js`'s `restart_servex` needs no change — it already just runs
+`sustain.mjs --restart`.
 
-**One thing that will bite the next test of this:** `Win32_Process.Create` hands the new process
-`WmiPrvSE`'s own environment, not the caller's — so it does **not** see `SERVEX_HOME` (or
-anything else the caller had set). The relaunch pins `SERVEX_HOME` explicitly on the command line
-(`cmd.exe /c set "SERVEX_HOME=..."&& node ...`) so the detached copy always resolves the exact
-same `servex.pid.json` / `sustain.log` the caller did — in production (where nothing sets
-`SERVEX_HOME`, so this pins it to the real `%LOCALAPPDATA%\lew42\servex` regardless of whatever
-WmiPrvSE's own profile happens to be) and in a private test alike. Found the hard way: an early
-version of this fix's own proof — a private, `SERVEX_HOME`-scoped fake Servex — leaked past its
-sandbox and restarted the real one, because the pinning wasn't there yet.
+**The trap for the next test of this:** `Win32_Process.Create` hands the new process WmiPrvSE's
+own environment, not the caller's, so `SERVEX_HOME` (and a test's `SERVEX_API_PORT`) would
+otherwise vanish — the relaunch pins both explicitly on the command line
+(`cmd.exe /c set "SERVEX_HOME=..."&& ...`). Found the hard way: an early version of this fix's own
+private-Servex proof leaked past its sandbox and restarted the real Servex, before the pinning
+was added.
 
-`kill()` also no longer trusts a `taskkill` exit code by itself: it polls the pid for up to 5s
-afterward, and only if it is *still* alive does it log loudly and try one more plain (non-tree)
-`taskkill /pid /f` on the root.
+`kill()` also no longer trusts `taskkill`'s exit code alone: it polls for up to 5s afterward and,
+if the pid is still alive, logs loudly and retries with a plain (non-tree) kill.
 
-Proved on a private stand-in Servex (`SERVEX_HOME` pointed at a scratch folder, a stub entry
-script instead of `index.js`, a private API port): a caller nested inside that fake Servex's own
-tree — `fake-entry → cmd → node sustain.mjs --restart` — asked for a restart, and the fake
-Servex's pid changed (old pid gone, a new one serving `/api/agents`) even though the caller itself
-died along with the rest of that tree. No window ever appeared.
+Proved on a private stand-in Servex (own `SERVEX_HOME`, stub entry script, own API port): a
+caller nested inside that fake Servex's own tree asked for a restart, and its pid changed even
+though the caller died along with the rest of that tree. No window ever appeared.
