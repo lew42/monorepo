@@ -17,7 +17,7 @@ skip it.
 
 **Before you land a change anyone can see, look at the whole page at 1920, reached the way the owner reaches it (from the rail, not a direct crop).** Answer from the picture alone: what is its status, what was asked, what was delivered? A screenshot you took but didn't judge proves nothing.
 
-**The outcome is a checklist of the owner's asks, each with its proof.** One line per ask, in the owner's own words, ticked only when the proof sits beside it:
+**The outcome is a checklist of the owner's asks, each with its proof.** One line per ask, in the owner's own words, ticked only when the proof sits beside it **At most 120 words, no paragraph over 60**: the rest goes one click down, in a linked file. After writing the landing line, run `node Server/text-check.mjs <task dir>`; if it flags the outcome, append a shorter landing line (the latest one wins). Every landing on 09-29 failed this check, because this skill never said the number.
 
 ```
 - [x] newest card on top: shot rail-1920.png, the new card at row 1

@@ -1,6 +1,7 @@
 import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import PageLog from "./Log.js";
+import { track } from "../track/track.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -28,6 +29,7 @@ export class Page extends PageLog {
 	constructor(...args){
 		super();
 		this.assign(...args);
+		Page.track(this);
 		this.naming();
 		this.declare();
 		this.initialize?.();
@@ -1134,6 +1136,14 @@ export class Page extends PageLog {
 //   every constructor name in the chain, and `.stage` is a framework layout word that
 //   would shrink-wrap the frame with nothing thrown. Frame.js says it at length.
 Page.Frame = PageFrame;
+
+// `track()` installs `Page.track(instance)` / `Page.instances()` — opt-in instance
+// tracking, installed once here so every Page (and every subclass that doesn't
+// override the constructor — `Section`, `Doc`, …) shares ONE list. Called from the
+// constructor above; the owner asked for exactly this by name (2026-09-29): "every
+// class can easily track its new instances by just in the constructor calling the
+// class dot track". core/track/track.js.
+track(Page);
 
 // Where a save goes when localStorage will not take it — private mode, a full
 // quota, a blocked third-party frame. It throws WHOLE, and a UI that loses its

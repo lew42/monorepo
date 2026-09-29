@@ -4,6 +4,7 @@ import path from "path";
 import { execFile, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import Events from "../Server/Events.js";
+import { refuse_links_into_main } from "../Server/junction-guard.mjs";
 import { stamp } from "./home.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -105,9 +106,14 @@ export default class Pool extends Events {
             if (!slot){
                 const pending = this.slots.find(s => s.state === "preparing" && s.ready);
                 if (pending){ await pending.ready; continue; }
-                if (this.slots.length >= this.K) throw new Error(`All ${this.K} worktrees are taken: `
-                    + this.slots.map(s => `${s.id} by ${s.taken_by ?? "?"} since ${s.taken_at ?? "?"}`).join("; ")
-                    + ". Ask a holder to return_worktree, or wait.");
+                if (this.slots.length >= this.K){
+                    const { reclaimed, kept } = await this.reclaim();
+                    if (reclaimed.length) continue;
+                    throw new Error(`All ${this.K} worktrees are taken: `
+                        + this.slots.map(s => `${s.id} by ${s.taken_by ?? "?"} since ${s.taken_at ?? "?"}`).join("; ")
+                        + (kept.length ? `. Held by a stopped agent but NOT reclaimed, because they hold work (nothing is ever discarded): ${kept.map(k => `${k.id} (${k.why})`).join("; ")}` : "")
+                        + ". Ask a holder to return_worktree, or wait. Or make your own: node Server/worktree-up.mjs <slug> (it runs npm ci); never link node_modules.");
+                }
                 await this.prepare()?.ready;
                 continue;
             }
@@ -155,6 +161,41 @@ export default class Pool extends Events {
 
         for (const extra of this.slots.filter(s => s.state === "ready" && s !== slot)) this.remove(extra);   // one ready is enough
         return this.list();
+    }
+
+    /* A slot whose holder has died is handed back, as if it had called return_worktree.
+     *
+     * Why (2026-09-29, 13:25): take_worktree failed because all 3 slots were held since
+     * 09-28 by agents that had since stopped, so the pool was full of dead holders, and the
+     * agent that could not get one made its own worktree by hand, with node_modules junctions
+     * into the main tree. That is what emptied the main node_modules at 13:46.
+     *
+     * A holder is dead only when the Servex agent registry says "stopped" or "gone". A holder
+     * the registry does not know (a CLI session, a person) is left alone. The hand-back is
+     * give_back() itself, so the check is exactly return_worktree's: a slot with uncommitted
+     * changes or unmerged commits is refused, kept, and named, never discarded. */
+    async reclaim(){
+        const rows = this.holders();
+        const dead = id => { const r = rows.find(r => r.id === id || r.name === id); return !!r && (r.state === "stopped" || r.state === "gone"); };
+        const reclaimed = [], kept = [];
+        for (const slot of this.slots.filter(s => s.state === "taken" && dead(s.taken_by))){
+            const holder = slot.taken_by;
+            try {
+                await this.give_back(slot.id);
+                reclaimed.push(slot.id);
+                this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
+            } catch (e) {
+                const why = String(e.message).split("\n")[0].replace(/^Refused: /, "");
+                kept.push({ id: slot.id, holder, why });
+                this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
+            }
+        }
+        return { reclaimed, kept };
+    }
+
+    /* The Servex agent registry's rows ({ id, name, state }), or none without a Servex. A seam for tests. */
+    holders(){
+        try { return this.servex?.agents?.registry_list() ?? []; } catch { return []; }
     }
 
     /* ── making and removing slots ────────────────────────────────────── */
@@ -228,7 +269,9 @@ export default class Pool extends Events {
             for (const d of await this.dirt(slot)) this.restore(slot, d.file);
             await this.script("worktree-down.mjs", slot.id);
             fs.rmSync(path.join(this.main, ".worktree-logs", `${slot.id}.log.err`), { force: true });   // worktree-down deletes only the .log
-            fs.rmSync(path.join(os.tmpdir(), `lew42-pool-${slot.id}`), { recursive: true, force: true });   // the watcher's temp dir (watch())
+            const tmp = path.join(os.tmpdir(), `lew42-pool-${slot.id}`);
+            refuse_links_into_main(tmp, "removing the watcher's temp dir", this.main);   // guard: never a recursive delete through a link into main
+            fs.rmSync(tmp, { recursive: true, force: true });   // the watcher's temp dir (watch())
             this.say(`pool: ${slot.id} removed`, { id: slot.id });
         }).catch(e => this.say(`pool: removing ${slot.id} failed: ${e.message}`, { id: slot.id }))
           .finally(() => { this.leaving = this.leaving.filter(s => s !== slot); this.save(); });

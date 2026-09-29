@@ -19,7 +19,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
 export default new Doc({
 	meta: import.meta,
 	title: "UI",
-	description: "Twenty-two in four bands — the control grammar, three functions, eighteen copy-paste templates.",
+	description: "Twenty-two in four bands — the control grammar, four functions, eighteen copy-paste templates.",
 	icon: "widgets",
 
 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
@@ -34,8 +34,11 @@ export default new Doc({
 	// nav — background-layer task, 2026-09-19, ai/2026-09-19/background-layer/.
 	// `section` is appended the same way, for the same reason — section-variants task,
 	// 2026-09-28. `scale` too: a config word, not a component that belongs in a
-	// band's own grid — 2026-09-28.
-	children: names.join(" ") + " background scale section",
+	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real
+	// component with its own band-worthy card, but it landed the same day the bands
+	// were declared even and adding a fifth to any of them breaks that — item-ui
+	// task, 2026-09-29.
+	children: names.join(" ") + " background scale section item",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right
@@ -60,7 +63,7 @@ export default new Doc({
 	},
 
 	subject: ui,
-	methods: "table timeline keys",
+	methods: "table timeline keys item",
 	notes: "record decisions",
 	files: "ui.js parts.js page.js readme.md "
 		+ "table/table.js table/page.js field/page.js crumbs/crumbs.js crumbs/page.js "
@@ -87,14 +90,17 @@ export default new Doc({
 		   and a dialog on ~580px, which is the width each of them is actually used at. */
 		this.browse(BANDS, { "--column": "18em", "--gap": "var(--flow)" }).ac("bleed");
 
-		md("## Three functions, sixteen templates");
+		md("## Four functions, sixteen templates");
 
-		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/) and `keys()` on [Keys](/framework/ui/kbd/) are functions, and each is a **loop** — the one thing markup cannot express. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
+		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/), `keys()` on [Keys](/framework/ui/kbd/) and [Item](/framework/ui/item/) are functions, and each is a **loop** — the one thing markup cannot express. `item()`'s loop is the recursion down a tree of children. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
 
 		code.js(`import { ui } from "/app.js";
 
 ui.table(["module", "lines"], [["View", "641"], ["Page", "363"]]);
-ui.keys("Ctrl", "K");`);
+ui.keys("Ctrl", "K");
+ui.item({ icon: "folder", name: "core", children: [
+	{ icon: "description", name: "View.js", href: "/framework/core/View/" },
+] });`);
 
 		md("The bar for exporting a function is **logic a user shouldn't have to carry**: a loop over rows, a listener, a name that has to be unique, a trap that costs an afternoon. Everything else is markup, and markup is better handed over than hidden — see [`ui.table`](/framework/ui/api/table/) in the API tab for the source these three carry.");
 
