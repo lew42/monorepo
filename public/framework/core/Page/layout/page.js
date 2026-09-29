@@ -21,7 +21,7 @@ export default new Page({
 				{ name: "Standard", icon: "view_agenda", weight: 3, href: "/framework/core/Page/doc/words/" },
 				{ name: "Split", icon: "vertical_split", weight: 3, href: "/framework/core/Layout/main-aside/" },
 				{ name: "Columns", icon: "view_column", weight: 3, href: "/framework/core/Page/doc/columns/" },
-				{ name: "Floating page", icon: "flip_to_front", weight: 2, href: "./floating/" },
+				{ name: "Floating page", icon: "flip_to_front", weight: 2, href: "/framework/core/Page/layout/floating/" },
 				{ name: "Top-down shape", icon: "layers", weight: 2, href: "/framework/core/Page/doc/words/" },
 			],
 		});
