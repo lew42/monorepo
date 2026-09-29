@@ -13,9 +13,9 @@ right order. Answer these in order, one line each, before you build.
 
 1. **What is it, and who is it for?** One sentence. That sentence becomes the page's title or
    first line. If you can't write it, don't build yet.
-2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), and its
-   place in the navigation. The mechanics (the folder, page.jsonl or page.js, the parent link, and
-   the page tools that do it for you) are in the `new-page` skill.
+2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), its
+   place in the navigation, and the mechanics — all in the `new-page` skill. **A child starts
+   from its parent:** read what `create_page` hands back (its layout, visual hierarchy) first.
 3. **Its properties:** title, icon, one-line description. The description is what its preview
    shows elsewhere, so make it self-evident.
 4. **Layout: for the page and for every region or box on it, answer three questions, one line each.**

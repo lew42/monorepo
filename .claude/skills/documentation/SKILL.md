@@ -12,7 +12,7 @@ skill. Load it first.
 
 Decisions, caveats and measurements were already written while you worked (`decision` and `log` lines in `task.jsonl`; a `doc/<topic>.md` when a trap earned its own page). This pass **reviews that the touched module's docs are current — it adds nothing new.** Fix what is stale, delete what is wrong, move deliberation to `doc/decisions.md`, then run **`finish-task`**. The laws apply: less is more, clarity first, prioritize.
 
-Everything here is writing files: no registration, no build. `./doc/` stands on its own; `ext/Doc` makes it browsable when the module has a `page.js`.
+Everything here is writing files: no registration, no build. `./doc/` stands on its own; `ext/Doc` makes it browsable when the module has a `page.js`. **The README is the text version; the page is the navigational, structured version** (clickable modules), designed FROM the readme, not the reverse — short-term duplication between them is fine. Example: [`core/Page/make/readme-page/`](/framework/core/Page/make/readme-page/).
 
 ## 1. `readme.md` — the reader's index
 
