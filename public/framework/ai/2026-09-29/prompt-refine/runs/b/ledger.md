@@ -80,3 +80,51 @@
 - **Items in the ledger:** 38.
 - **The tab's result:** 28 kept, 5 changed, 2 stricter, 3 dropped.
 - **Raw words passed along:** yes, word for word.
+
+## The tool's brief, scored against the same ledger
+
+- **The run:** `node Server/refine.mjs` with `--collab`, $0.97 in total, of which the collab vote was $0.31.
+- **Files:** [`brief.md`](brief.md) (27 asks), [`coverage.md`](coverage.md), and the vote in [`collab-structured/collab.jsonl`](collab-structured/collab.jsonl).
+- **What is listed:** only the ledger items the tool did not keep. Every other item is `kept`.
+
+| # | Ledger item | Tool status | The tool's words |
+|---|---|---|---|
+| 4 | "what other kinds of consensus-based systems we can use … multi-agent reasoning" | changed | #3 "look at consensus-based systems for web searching". Two separate asks are fused into one that the owner didn't make. |
+| 5 | "in terms of the actual web searching … look into that, see how that works" | changed | The same fusion as #4. How web search works is no longer its own question. |
+| 8 | "creating a new research project for every new task isn't necessarily … the goal" | dropped | Not in the brief. coverage.md cites S11 for #6, but #6 doesn't say it (flagged "thin", which is correct). |
+| 12 | "… and to have a folder of MD files is the best way" | changed | #8 "fix the … inconsistency". The owner's deeper doubt is lost, the same miss the tab made. |
+| 13 | "we don't have to do it for every single decision … do more web searches for specific things" | changed | #9 keeps "for architecture". It loses "not every decision" and the follow-up searches. |
+| 14 | "summarizes the landscape of what exists on the internet" | changed | #9 keeps "authoritative sources" but loses "summarizes the landscape", the same miss the tab made. |
+| 24 | "Identify three different ways to solve it and then tell everyone else" | changed | #14 "identify multiple ways … write the solutions to the filesystem". "Three" became "multiple", and "tell everyone else" is lost. The tab dropped this item entirely. |
+| 27 | "each minion create their own directory in that … work folder" | changed | #17 "write it to directories". "Their own", "one worktree" and "the same initial prompt" are lost. |
+| 31 | "a dozen minions building the same thing … refine the potential into the actual outcome" | changed | #22 "with multiple minions". The framing is lost. |
+| 35 | "Are these like functionally identical and are there any improvements" | changed | #25 "review each other's code and vote on which is best". "Functionally identical?" and "improvements" are lost. |
+
+**Where the tool did better than the tab:**
+
+- It kept both goals the tab dropped:
+  - #6, "collaborative benefit rather than bickering and analysis paralysis";
+  - #34, "learn through implementation".
+- It kept #24 in part, which the tab dropped entirely.
+- It kept "ONE" and "never" out of the brief. #2 is "flexible systems", and #16 is "guard against".
+- It kept the owner's open question open: #18, "The owner is unsure whether…".
+
+**Where it did worse:** the brief is 509 words from 1,664. The drafts compress hard, so nine items lost a part (as `changed`), against the tab's five.
+
+**`coverage.md` is badly wrong on this run, because of a bug:**
+
+- **The bug:** the brief cites in ranges (`[S15-S21]`), and `citationsIn` (refine.mjs line 333) reads only the two endpoints. Every sentence in the middle of a range counts as uncited, and then gets marked "context only" or "dropped".
+- **The result:** 4 of its 6 "dropped" rows are false. S12, S18, S35 and S36 are all inside a cited range.
+  - S18 (doc/docs) is in #8.
+  - S35 and S36 (the nested-docs navigation) are in #13.
+- **Its 2 real "dropped" rows:**
+  - S30, lessons learned as its own system. This is arguable, because #11 has it.
+  - S61, "each minion votes". This is also arguable, because #25 has the vote.
+- **So on this run:** the coverage table caught none of the ten items above.
+
+**The `--collab` vote added nothing:**
+
+- Two voters each picked the other's draft. The 1-to-1 tie went to the cheaper model (Haiku).
+- Neither caveat was applied to the winner. One of them ("pull the exact phrases") would have fixed #6's paraphrase.
+
+**Tally:** 28 kept, 9 changed, 0 stricter, 1 dropped.
