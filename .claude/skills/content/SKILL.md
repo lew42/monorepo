@@ -45,6 +45,18 @@ The same goes everywhere:
 - The one sentence that the picture can't say.
 - Name each concept once, the same way every time, and link it.
 
+## Connect the dots
+
+Clarity comes from familiar structure (the owner, 2026-09-29). When a text mentions a concept that
+has its own page (a class, a method, a named system), link it there, so simple statements connect
+familiar concepts rather than re-explaining them. Link where the link helps the reader, not every
+mention.
+
+- **Document where the code lives.** A method is explained on its class's page; a Servex system on
+  the Servex page. Other pages state the fact in one line and link.
+- **The tip of the iceberg comes first.** The most important thing leads, and very often that's the
+  list of subtopics: what is this made of, as linked items. Detail sits one click down.
+
 ## The length check
 
 Before sending, ask: could the owner get this in ten seconds? If not, cut it until they can, and
