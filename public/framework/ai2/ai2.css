@@ -43,6 +43,21 @@
 		display: none;
 	}
 
+	/* NO STRAY "FOLDER" LABEL ANYWHERE IN AI 2 (brief D, brief E — the owner, 2026-09-29: "the
+	   folder icon at the top above the AI2 page just looks way out of place and takes up a
+	   bunch of space"). Every page with a real address gets one free, straight from core
+	   (`Page.class.js`'s own "any path slash fs" link) — right, for a plain content page; wrong
+	   here, where it sits above the AI 2 title, above the Overview's grid, and above every card
+	   (including the Live card), doing nothing anyone asked for. Every one of this module's own
+	   pages carries "ai2" somewhere in its class list (the root shell, the overview, a card, a
+	   card's own tab pages), so one attribute selector covers all of them at once instead of a
+	   separate rule per page shape; every other page on the site keeps its link.
+	   ⚠ `!important`: `Page.class.js` writes this link's `display: inline-flex` as an INLINE
+	   style, which beats a plain rule at any specificity or layer order. */
+	.page[class*="ai2"] > .page-fs-link {
+		display: none !important;
+	}
+
 	/* `--ai2-rail` is the grip's px override; `em` is the default because a rail
 	   is sized by its own text (331px at 1280).
 	   ⚠ `grid-template-rows: minmax(0, 1fr)` — WITHOUT IT NOTHING SCROLLS. A
@@ -349,6 +364,12 @@
 	/* Beside "+ New card" — a checkbox, not a button, so its own state reads at
 	   a glance without a click (item 10). */
 	.ai2-auto {
+		gap: 0.3em;
+	}
+
+	/* THE "NEEDS REVIEW" FILTER (brief E) — a checkbox beside "+ New card", same shape as
+	   the auto-transcribe one right above it, so the toolbar reads as one row of controls. */
+	.ai2-review {
 		gap: 0.3em;
 	}
 
@@ -815,6 +836,27 @@
 		color: var(--error);
 	}
 
+	/* "REVIEWED ✓" (brief E, §5) — an OBVIOUS control, on purpose (contract-v2: "an obvious
+	   'Reviewed ✓' control that clears the flag"), so it wears the site's own filled-button
+	   look rather than sitting quiet like the flag glyph beside it. Pushed to the far end of
+	   the head row so it never crowds the title. */
+	.ai2-reviewed {
+		flex: none;
+		padding: 0.15em 0.7em;
+		border: 1px solid var(--prim);
+		border-radius: 0.3em;
+		background: none;
+		color: var(--prim);
+		font: inherit;
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	.ai2-reviewed:hover {
+		background: var(--prim);
+		color: white;
+	}
+
 	.ai2-sentence {
 		margin-block: 0.2em;
 		color: color-mix(in srgb, currentColor 80%, transparent);
@@ -1019,6 +1061,15 @@
 	/* two tabs is a rail: ext/tabs hides a bar of ONE, never ours */
 	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
 
+	/* THE TAB ORDER READS "Needs you · Inbox · Overview" (2026-09-29), but Inbox stays FIRST
+	   in the MARKUP on purpose — `page.js`'s own comment on `route()` says why: ext/tabs'
+	   fallback rule lights whichever tab is the bar's DOM `:first-child` once nothing else
+	   matches (a card url matches no tab's own href), so keeping Inbox first in the markup is
+	   what makes a card page light Inbox. `order` only changes where each one PAINTS. */
+	.ai2-tab-needs { order: 1; }
+	.ai2-tab-inbox { order: 2; }
+	.ai2-tab-overview { order: 3; }
+
 	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
 	   card; while it is the active page it takes the whole shell and scrolls by itself. */
 	.ai2:has(.ai2-overview-page.active-page) { grid-template-columns: minmax(0, 1fr); }
@@ -1031,7 +1082,22 @@
 	}
 	/* the tab already names this view */
 	.ai2-overview-page > .page-title { display: none; }
+	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
 	.ai2-overview-page > .ai2-overview { margin: 0; }
+
+	/* NEEDS YOU — NOT a routed child (it lives AT the bare root url, not one click in), so it
+	   cannot use the `.active-page` trick on a CHILD the way Overview does above. It is a
+	   plain sibling of `.ai2-shell`, shown only while the ROOT page itself is the active leaf
+	   (bare url, nothing routed under it) and hidden — along with the whole rail — the moment
+	   any child route (Inbox, Overview, a card) takes over. Same `:has()` engine, one level up. */
+	.ai2-needs { display: none; }
+	.page:has(> .ai2-shell).active-page > .ai2-needs {
+		display: block;
+		height: 100%;
+		overflow-y: auto;
+		padding: var(--pad);
+	}
+	.page:has(> .ai2-shell).active-page > .ai2-shell { display: none; }
 
 	.ai2-overview {
 		padding: var(--pad);
@@ -1070,6 +1136,17 @@
 		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
 	}
 	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prim); }
+	/* THE OWNER'S OWN RAW WORDS — one click away (brief D), never the headline: a quiet
+	   `<summary>` line, not the boxed `<details>` look `.ai2-ov-done` wears below, so it
+	   reads as "more detail" rather than a second collapsible section on the card. */
+	.ai2-ov-quote-full > summary {
+		cursor: pointer; font-size: 0.78em;
+		background: none; border: 0; padding: 0; min-height: 0;
+	}
+	.ai2-ov-quote-text {
+		margin: 0.3em 0 0; font-size: 0.85em; font-style: italic;
+		color: var(--subtle); overflow-wrap: anywhere;
+	}
 	.ai2-ov-line {
 		display: none;
 		font-size: 0.8em; color: var(--subtle); text-decoration: none;
@@ -1088,6 +1165,178 @@
 	.ai2-ov-done[open] > summary { margin-block-end: 0.6em; }
 	.ai2-ov-top { gap: 1.5em; }
 	.ai2-ov-toggle { cursor: pointer; font-size: 0.85em; }
+}
+
+/* ── the Needs you tab (ai2-needs-row, 2026-09-29) ─────────────────────────
+   ONE BIG PLAIN LINE PER ITEM (brief D). Before this block existed, `.ai2-need*` had NO
+   rules of its own, so every row fell back to a bare `<a>` and `<div>`: default link-blue
+   underline, the icon on its own line, the title running straight into the meta text — the
+   mastermind's own judged miss. The row is icon, then a title/question/meta column that
+   grows, then the control (buttons or a reply box) at the right WHEN IT FITS — `flex-wrap`
+   drops the control to its own line once the row is too narrow for both. */
+@layer theme {
+	.ai2-needs-list { max-width: 56em; }
+
+	/* Padding is tighter than the module's usual `--gap-50` rows (mastermind's judged fix,
+	   2026-09-29: "aim for 8-10 items above the fold at 1920") — this list is read top to
+	   bottom in one sitting, not browsed like the rail, so a shorter row that still reads
+	   clearly beats spacing tuned for a different kind of list. */
+	.ai2-need {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: var(--gap-35);
+		padding-block: 0.6em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-need:first-child { padding-block-start: 0; }
+
+	/* The whole icon + title + question + meta column is ONE link to the card — plain, not
+	   the site's default blue-underline prose link (this is not `p`/`li` text, so nothing
+	   restyles it without this rule). */
+	.ai2-need-head {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--gap-25);
+		flex: 1 1 24em;
+		min-width: 0;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.ai2-need-head:hover .ai2-need-title { text-decoration: underline; }
+
+	.ai2-need-head > .icon {
+		flex: none;
+		margin-block-start: 0.15em;
+		opacity: 0.7;
+	}
+
+	.ai2-need-body { flex: 1; min-width: 0; }
+
+	/* THE HEADLINE — the card's own SHORT title, big and plain (brief D: "a short title...
+	   not raw dictation"). A visible "Blocker" flag sits beside it only for that one kind;
+	   every kind still says its word once more, quietly, in the meta line below. */
+	.ai2-need-title {
+		font-weight: 600;
+		font-size: 1.1em;
+		line-height: 1.3;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-need-blocker-flag {
+		flex: none;
+		padding: 0.05em 0.5em;
+		border-radius: 1em;
+		background: var(--error);
+		color: white;
+		font-size: 0.75em;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+
+	/* THE FULL ASK, AS ONE QUIET LINE under the title — CSS-ellipsised (never `short_title()`'s
+	   word-cut), so a long dictated question never wraps to three or four lines and pushes the
+	   next item off the fold; the whole sentence survives in `title=` (a hover) and, unabridged,
+	   as the row's own link text one click into the card. */
+	.ai2-need-question {
+		display: block;
+		margin-block-start: 0.2em;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-need-meta {
+		display: block;
+		margin-block-start: 0.25em;
+		font-size: 0.8em;
+	}
+
+	/* THE CONTROL — buttons or a one-line reply box, at the right of the same row when the
+	   row is wide enough for both (`flex-wrap` on `.ai2-need` above drops it to its own full
+	   line otherwise, e.g. a narrow phone width). */
+	.ai2-need-control {
+		flex: 1 1 18em;
+		min-width: 14em;
+		max-width: 22em;
+	}
+
+	.ai2-need-options {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+
+	.ai2-need-opt {
+		flex: none;
+		padding: 0.3em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		background: var(--surface);
+		color: inherit;
+		font: inherit;
+		font-size: 0.9em;
+		cursor: pointer;
+	}
+
+	.ai2-need-opt:hover {
+		border-color: var(--prim);
+		color: var(--prim);
+	}
+
+	/* WRAPPED, not one tight row — a fixed-width control column (22em) left the field only
+	   ~8em beside the "Answer" button, showing just "Your" of "Your answer…" (mastermind's
+	   judged fix, 2026-09-29). The field takes the control's full width on its own line;
+	   "Answer" sits under it. */
+	.ai2-need-reply {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+
+	.ai2-need-field {
+		flex: 1 1 100%;
+		min-width: 10em;
+		height: 2.2em;
+		padding: 0.3em 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		background: var(--surface);
+		color: inherit;
+		font: inherit;
+		font-size: 0.9em;
+		resize: none;
+		overflow: hidden;
+	}
+
+	.ai2-need-send {
+		flex: none;
+	}
+
+	/* ⚠ `:not([hidden])`, not a bare `display: block` — a plain `.ai2-need-err { display:
+	   block }` beats the browser's own `[hidden] { display: none }` (equal specificity,
+	   author beats UA regardless of layers), so every error line showed at rest — exactly
+	   the "`display: none` cannot hide a utility class" trap this module's own readme warns
+	   about, just with an attribute instead of a class. */
+	.ai2-need-err {
+		margin-block-start: 0.3em;
+		color: var(--error);
+		font-size: 0.8em;
+	}
+	.ai2-need-err:not([hidden]) { display: block; }
+
+	.ai2-needs-empty {
+		display: block;
+		padding-block: var(--gap-50);
+	}
+
+	/* Too narrow for the control beside the text (a phone, or the rail's own width if this
+	   tab is ever embedded narrower): the control takes the row's full width on its own line. */
+	@media (width < 34em) {
+		.ai2-need-control { flex-basis: 100%; max-width: none; }
+	}
 }
 
 /* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */

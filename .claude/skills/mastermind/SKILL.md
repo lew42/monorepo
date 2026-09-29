@@ -29,7 +29,7 @@ mastermind report on that card. **Answer the owner on the card too, not in chat*
 short: `card_reply`, or `POST /card/append?id=<id>` with a `message` line. The chat reply is one
 line pointing at the card.
 
-**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_ask`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
 
 **Work the owner didn't ask for goes to [`ai/todo.md`](/framework/ai/todo.md), not into a
 spawn** (the owner, 2026-09-24: "we need to prioritize; anything not specifically requested

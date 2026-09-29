@@ -15,6 +15,7 @@ import composer from "./compose.js";
 import agents_panel, { agent_cost } from "./agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
+import { watch_needs, needs_for, needs_soon } from "./needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { seen, mark_seen, card_events, activity_list } from "./activity.js";
 import floating from "./floating.js";
@@ -68,6 +69,14 @@ export const summary_line = s => [s.type, s.status && s.status !== "open" && s.s
 
 const ASKS = new Set(["question", "request", "sub-question", "task"]);
 const DONE = new Set(["done", "closed", "resolved", "answered", "landed", "complete", "completed"]);
+
+/* Local time with its offset — the same shape every other write in this file's own family
+   uses (`needs.js`'s controls, `inbox.js`'s `stamp()`), so a "Reviewed ✓" line's clock reads
+   like every other line on the card instead of a bare `.toISOString()`'s UTC "Z" standing out. */
+const stamp = () => {
+	const d = new Date(), off = -d.getTimezoneOffset(), p = n => String(Math.abs(n)).padStart(2, "0");
+	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19) + (off < 0 ? "-" : "+") + p(Math.trunc(off / 60)) + ":" + p(off % 60);
+};
 
 export function card_link(s, href){
 	const done = DONE.has(s.status);
@@ -284,6 +293,10 @@ export default class Card extends Page {
 	draw_sig(){
 		const cards = this.shell?.ai2?.cards;
 		return JSON.stringify([this.layout, this.facts(), this.title, this.name, this.icon, this.by, this.created, this.text,
+			// `needs_for(this.id)`'s asks, so the "Reviewed ✓" button (`reviewed_control()`) appears
+			// or disappears the moment the shared scan says so, not only when something else on the
+			// card changes.
+			needs_for(this.id).map(n => n.ask).join(","),
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
 			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
@@ -570,10 +583,31 @@ export default class Card extends Page {
 				const { usd, open } = this.cost_now(g);
 				state_span(items, usd, open);
 			});
+			this.reviewed_control();
 			// The picker, "clear" and "+ sub-card" write through Servex's card
 			// routes; a Servex without them (not restarted yet) shows none of the three.
 			this.actions();
 		});
+	}
+
+	/** BRIEF E's "Reviewed ✓" (contract-v2 §5) — shown only while THIS card carries one of the
+	 *  two HEURISTIC needs (a card typed "question", or one whose own last message ends in "?").
+	 *  A placed Decision or Question never gets this button: contract-v2 says those clear only
+	 *  by being answered, and `needs-rule.js` (minion F) is what actually enforces that — this
+	 *  is just the one control that writes the line. One `{"reviewed": …}` line through the same
+	 *  `/card/append` path every other write on this page uses; `needs_soon()` wakes the shared
+	 *  scan so the row leaves the rail's "Needs review" filter and the Needs you tab at once,
+	 *  instead of waiting for the next poll. */
+	reviewed_control(){
+		if (!needs_for(this.id).some(n => n.ask === "card" || n.ask === "last")) return;
+		button.c("ai2-reviewed").attr("type", "button")
+			.attr("title", "clear this — it no longer needs your review")
+			.text("Reviewed ✓")
+			.click(async () => {
+				await append_card(this.id, { reviewed: { at: stamp(), by: "owner" } });
+				await needs_soon();
+				this.redraw();
+			});
 	}
 
 	/* ONE MENU FOR WHAT YOU CAN DO TO A CARD (ai2-lead audit, 2026-09-25). The owner, on the
@@ -967,6 +1001,10 @@ export default class Card extends Page {
 		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box, top: this.tabbed(), ws: this.tabbed() });
 		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
 		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
+		// The "Reviewed ✓" button's own visibility (`reviewed_control()`) reads the SAME shared
+		// scan the Needs you tab and the rail's filter do; when it refreshes, redraw so the
+		// button appears or disappears in step with them, not on this card's own clock.
+		this.stop_needs = watch_needs(() => this.redraw());
 		// A member landing, or a task's `now` moving, reorders a group's sections.
 		this.stop_groups = this.shell?.ai2?.groups?.on(() => this.redraw());
 		if (this.tabbed()) this.load_groups(this.subs(), true);
@@ -980,6 +1018,7 @@ export default class Card extends Page {
 		this.shell?.ai2?.close(this.handle);
 		this.stop_list?.();
 		this.stop_groups?.();
+		this.stop_needs?.();
 		const mic = this.$composer?.mic;
 		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
 	}
