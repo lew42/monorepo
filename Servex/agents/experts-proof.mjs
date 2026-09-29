@@ -195,6 +195,7 @@ md.push("# Page expert — four ways to answer a page question, measured", "",
 	"|---|---|---|---|---|---|");
 for (const w of ONLY){ const l = by(w);
 	md.push(`| **${w}** ${WAYS[w]} | ${avg(l, "first_s").toFixed(1)} | ${avg(l, "full_s").toFixed(1)} | ${$(avg(l, "cost"))} | ${avg(l, "score").toFixed(1)} | ${w === "a" && out.build ? `${$(out.build.cost)} build (${out.build.full_s}s)` : "—"} |`); }
+/* A placeholder: the recommendation is written by hand after reading the numbers (a script cannot judge them). */
 md.push("", "**Recommendation:** _(written after reading the numbers — see below)_", "");
 md.push("## Per question", "", "| # | way | first s | full s | input | cache read | cache write | output | cost | score | reason |", "|---|---|---|---|---|---|---|---|---|---|---|");
 for (const r of out.runs) md.push(`| ${r.q} | ${r.way} | ${r.first_s ?? "—"} | ${r.full_s ?? "—"} | ${r.input ?? ""} | ${r.cache_read ?? ""} | ${r.cache_write ?? ""} | ${r.output ?? ""} | ${$(r.cost)} | ${r.score ?? "—"} | ${(r.error ?? r.reason ?? "").replace(/\|/g, "/")} |`);

@@ -59,6 +59,16 @@ changes, or the recipe grows a file, the row reads **stale** and the next `ask` 
 
 ## Measured
 
+| way (Sonnet, 5 page questions) | first answer | cost a question | judge score /3 |
+|---|---|---|---|
+| **fork the checkpoint** | 3.1 s | $0.03 | 2.6 |
+| `load_module` tool, then answer | 25.5 s | $0.20 | 2.6 |
+| bundle preloaded in the first prompt | 2.8 s | $0.38 | 3.0 |
+| cold: reads the repo itself | 13.4 s | $0.16 | 2.2 |
+
+The checkpoint costs about $0.32–0.45 once. A preload cannot cache across sessions (the question shares
+its message with the bundle), so it pays the whole bundle every time; a fork does not.
+
 [The four-way proof](/framework/ai/2026-09-29/module-experts/proof.md) — fork vs `load_module` vs a
 preloaded prompt vs a cold agent, five page questions, a blind Opus judge. Run it:
 `node Servex/agents/experts-proof.mjs` (private host, own index in the temp dir).
