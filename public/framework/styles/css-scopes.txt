@@ -125,6 +125,11 @@ background   ui/background (bare, not ui-background- — the owner's own word fo
              .has-background the host's explicit opt-in (:has(> .background) is the
              automatic one), .background-<kind> each of the ten fills)
 
+item         ui/item (bare, not ui-item- — the owner's own word, 2026-09-29: "we have
+             an item class." .item is the row (icon, name, right end), .item.inline
+             the chip-like variant, .item-node/-children/-icon/-caret/-name/-end its
+             parts, each with the item- prefix like any other module's own words)
+
 # styles
 cols-        styles/layouts/cols, the lab's remaining local words (thirds/golden/two-one/rail-main-aside)
              (bare `.cols`, `.half`, `.main-aside` promoted to framework.css 2026-08-31 — core/new/1/site/styles.css's `.cols` is unreachable, no live conflict)
