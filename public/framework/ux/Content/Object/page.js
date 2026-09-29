@@ -1,5 +1,7 @@
 import { Doc, md, div } from "/app.js";
 import Page from "../../../core/Page/Page.class.js";
+import PageOverview from "../../../core/Page/page.js";
+import { page_object } from "../../../core/Page/object.js";
 import { object } from "./Object.js";
 import { view, DefaultView } from "./DefaultView.js";
 import { item } from "../../../ui/item/item.js";
@@ -35,7 +37,35 @@ export default new Doc({
 
 	content(){
 
-		md("**One call, one look, from a real object.** `object(this)` on a live `Page` instance, `object(Page)` on the class itself, and `object(anything)` on a plain object — same card every time, so once it looks right it looks right everywhere.");
+		md("**Two ways to look at a real object.** `object()` is one small card — class, `name = value`, method names. `view()` is a tree instead: a header row, then one `.item` row per property, opening deeper the same way a file tree does. Both take the same thing: a live instance, a class, or a plain object.");
+
+		md("### `view()` — three real, live ones, full width");
+
+		div.c("ux-content-wall wide", () => {
+			div.c("flex v gap", $box => {
+				md("#### The Page object");
+				// `.children` starts as declared-but-not-fetched (`null` for each name) on a
+				// fresh import — the SAME cost a real visit to /framework/core/Page/ pays, paid
+				// here instead, so `.children` opens onto real Page objects, not a wall of
+				// "null". No DOM after the await: the box is captured now, filled once the
+				// fetch settles.
+				PageOverview.load_all_children(1).loading.then(() => $box.append(() => page_object(PageOverview)));
+				md("[Open it on its own page →](page/)");
+			});
+			div.c("flex v gap", () => {
+				md("#### The App object");
+				md(`**Right now:** on \`${this.app.router?.active?.url ?? location.pathname}\` — **${this.app.loaders.length}** loader(s) tracked.`);
+				view(this.app);
+				md("[Open it on its own page →](app/)");
+			});
+			div.c("flex v gap", () => {
+				md("#### A `Widget`, both ways — the override");
+				md("`DefaultView`'s own best guess:"); new DefaultView({ subject: new Widget("demo") });
+				md("Its own hand-written `Widget.View`:"); view(new Widget("demo"));
+			});
+		});
+
+		md("### `object()` — the small card (the first version, still here)");
 
 		div.c("ux-content-wall wide", () => {
 			// `this` here is a `Doc` — a `Page` subclass — so the heading says that, and a
@@ -45,17 +75,6 @@ export default new Doc({
 			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS }); });
 			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
 		});
-
-		md("### `DefaultView` — the automatic version\n\n`object()` above is one small card; `view()` is the other shape — a tree of `.item` rows, one per property, that opens deeper the same way a file tree does. Give it any real object and, unless its class says otherwise, `DefaultView` draws its own best guess: a header row for the class, then one row per own property. Click a row open and it draws ITS properties, lazily, the same trick one level deeper — a `Page`'s `.children`, each holding more `Page`s, costs nothing until you actually go looking.");
-
-		div.c("ux-content-wall wide", () => {
-			div.c("flex v gap", () => { md("### A `Widget`, the automatic way"); new DefaultView({ subject: new Widget("demo") }); });
-			div.c("flex v gap", () => { md("### The same `Widget`, its own `Widget.View`"); view(new Widget("demo")); });
-		});
-
-		md("Two real, live ones — click through for the whole tree, `.children` and all:");
-		item({ icon: "description", name: "The Page object — a live Page, open its .children", href: "page/" });
-		item({ icon: "apps", name: "The App object — the running app's route and settings", href: "app/" });
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

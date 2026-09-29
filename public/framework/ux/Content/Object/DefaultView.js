@@ -122,15 +122,23 @@ export default class DefaultView extends View {
 		return this.cut(String(value));
 	}
 
-	cut(text, max = 40){ return text.length <= max ? text : text.slice(0, max - 1) + "…"; }
+	cut(text, max = 64){ return text.length <= max ? text : text.slice(0, max - 1) + "…"; }
 }
 
 /* `view(thing)` — the one call most code should use instead of `new DefaultView(…)`
  * directly: it picks `thing.constructor.View` when that class (or one it extends)
- * declares one, else falls back to this plain, best-guess tree. */
+ * declares one, else falls back to this plain, best-guess tree.
+ *
+ * ⚠ `Viewer.prototype instanceof View`, not just "is it truthy" — `View` (this
+ * codebase's own base class) is imported above already, so this costs nothing
+ * extra. A bare `Klass.View` check would also fire for some OTHER static
+ * someone names `View` for an unrelated job (this framework's own "parts are
+ * static subclasses" pattern makes that a real, if unlikely, future collision)
+ * and try to instantiate it as a `subject`-taking view, which it isn't. */
 export function view(thing){
 	const Klass = thing?.constructor;
-	return Klass?.View ? new Klass.View({ subject: thing }) : new DefaultView({ subject: thing });
+	const Viewer = Klass?.View;
+	return Viewer?.prototype instanceof View ? new Viewer({ subject: thing }) : new DefaultView({ subject: thing });
 }
 
 export { DefaultView };
