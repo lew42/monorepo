@@ -1,0 +1,52 @@
+{
+	"module": "core/Page",
+	"title": "Page expert",
+	"covers": "the Page class and pages as a concept: urls, paths, routing, page.js / page.jsonl, children, route() and child(), .md docs as pages, layouts, columns",
+	"chain": true,
+	"load": [
+		"readme.md",
+		"doc/declaring.md",
+		"doc/jsonl.md",
+		"doc/open.md",
+		"doc/navigation.md",
+		"doc/layout-overview.md",
+		"doc/columns.md",
+		"doc/watch-out.md",
+		"Page.class.js",
+		"words.js",
+		"Log.js",
+		"jsonl/page.jsonl"
+	],
+	"also": [
+		"../Router/readme.md",
+		"../Router/Router.js"
+	],
+	"on_demand": [
+		"doc/data-children.md",
+		"Frame.js",
+		"doc/layout.md",
+		"Markdown.js",
+		"doc/words.md",
+		"doc/api.md",
+		"doc/roles.md",
+		"doc/markdown.md",
+		"doc/css.md",
+		"doc/decisions.md",
+		"doc/findings.md",
+		"doc/data.md",
+		"doc/labels.md",
+		"doc/panels.md",
+		"doc/previews.md",
+		"doc/more-features.md",
+		"doc/method/",
+		"doc/property/",
+		"Page.css",
+		"page.js",
+		"generator/readme.md",
+		"overview/readme.md",
+		"make/page.js",
+		"../Router/doc/decisions.md"
+	],
+	"model": "claude-sonnet-5",
+	"deep_model": "claude-opus-5-5"
+}

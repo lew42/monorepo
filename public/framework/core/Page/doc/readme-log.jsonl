@@ -1,0 +1,19 @@
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/Log.js"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/Page.class.js"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/doc/jsonl.md"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/doc/declaring.md"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/doc/columns.md"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Router/Router.js"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"helped","text":"public/framework/core/Page/doc/open.md"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/readme.md: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/doc/navigation.md: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/doc/layout-overview.md: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/doc/watch-out.md: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/words.js: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Page/jsonl/page.jsonl: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"too-much","text":"public/framework/core/Router/readme.md: loaded, no answer in the proof drew on it"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"missing","text":"The CSS rules that apply display: contents to .page.column and .page-column-pages, and the arrangement contract (.active-page/.active-ancestor) (lives in public/framework/core/Page/Page.css and public/framework/core/Page/doc/css.md)"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"missing","text":"md_folder(): how the md/ child that a swap url and a reload resolve through is built (lives in public/framework/core/Markdown/ (Markdown.js))"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"missing","text":"fs_folder(), the fs/ door checked before route() (lives in ext (imported dynamically from Page.class.js; the module is not in the list))"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"missing","text":"PageLog.Reader live streaming vs a one-shot fetch (lives in public/framework/ext/JSONL/live.js)"}
+{"at":"2026-09-29T15:39:52-05:00","task":"module-experts","kind":"missing","text":"The levels budget when the Router walks into child() (lives in public/framework/core/Page/doc/method/child.md)"}

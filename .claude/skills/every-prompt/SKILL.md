@@ -34,6 +34,8 @@ always; if the mastermind (or you, writing a brief) needs a clean, audited versi
 
 ## Routing
 
+A question about one module goes to its expert if `list_experts` has one (`ask_expert`). For several modules, spawn a mastermind with `readme_modules`.
+
 Relay to the mastermind that owns the topic. **Today there is exactly one**, and `say.mjs state`
 prints its session name — use that. When there are several, `state` is still where you will look:
 the smallest extension is a `masterminds` list in the ledger (session name + the topics it owns)

@@ -113,6 +113,8 @@ at the top, its numbered deliverables, its fence and its length budget, and is t
 **Run any command you put in a brief once yourself first** — an import path, a route pattern, a
 port. Thirty seconds of yours saves a retry apiece across every minion.
 
+A question about one module goes to its expert if `list_experts` has one (`ask_expert`). For several modules, spawn a mastermind with `readme_modules`.
+
 Pick the model per piece: **Haiku** scans, **Sonnet** builds, **Opus** judges. Under budget
 pressure step down the ladder, not the work, and say in the log how it went.
 
