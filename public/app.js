@@ -1,3 +1,4 @@
+import "./framework/core/App/uuid.js";   // first: LAN http has no crypto.randomUUID
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
