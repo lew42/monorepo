@@ -40,8 +40,9 @@ One command, five files, each rung of a ladder written beside the one before it 
 diffed:
 
 ```
-node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock]
+node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair]
 node Server/refine.mjs --coverage-only <dir> [--mock]
+node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]
 ```
 
 - `<raw.txt | date:line>` — either a plain text file, or `<date>:<line>` (0-based) into
@@ -60,7 +61,9 @@ node Server/refine.mjs --coverage-only <dir> [--mock]
   (real Servex agents, real cost — see "Reuse, not a third engine" below). Without it, one cheap
   judge call (Haiku) picks or merges.
 - `--mock` — every step is deterministic and model-free; the whole pipeline, including the
-  `--collab` hand-off, can be proven for $0 before spending anything real.
+  `--collab` hand-off and the repair round, can be proven for $0 before spending anything real.
+- `--repair-rounds N` / `--no-repair` — the repair round (below) runs once by default; raise it to
+  chase down multiple waves of drops, or turn it off entirely.
 
 ### The five files
 
@@ -71,7 +74,8 @@ node Server/refine.mjs --coverage-only <dir> [--mock]
 | `structured-<model>.md` (one per model) then `structured.md` (the winner) | the owner's ideas as an outline, in the owner's own words, every bullet citing its sentences `[S3, S7]` |
 | `brief.md` | numbered asks for a mastermind, each citing its source sentences; a hedge ("maybe") becomes "the owner suggests", never a flat rule |
 | `coverage.md` | **the audit — the actual point of the tool.** Every clean sentence traced to an ask, "context only", "dropped, because …", or (if the model never answered for it) "unclassified" |
-| `refine.json` | models used, cost per step, word counts at each rung, the coverage numbers |
+| `brief-v1.md` (only if the repair round changed anything) | the brief exactly as first drafted, kept so it can be diffed against the repaired `brief.md` |
+| `refine.json` | models used, cost per step, word counts at each rung, the coverage numbers, the repair round's before/after |
 
 ### `coverage.md`, in miniature (a 4-sentence `--mock` run)
 
@@ -98,6 +102,24 @@ model's opinion. Three flags, all mechanical:
   is there in form, but the ask may not actually reflect what that sentence said. Marked inline,
   right in the sentence-coverage row (`ask #2 (thin)`), as well as listed in the Flags table.
 
+Every citation is a single sentence number — `citationsIn()` also expands a written range like
+`[S6-S9]` or `[S6–S9]` to every number inside it, so a model that writes a range doesn't make its
+own sentences look uncited, but every prompt that produces a citation is told not to write one
+(a range hides which specific sentence backs which part of an ask).
+
+## The repair round: coverage catches a drop, this closes it
+
+Catching a drop isn't the same as fixing it. After `coverage.md` is built, if anything came back
+**dropped** or **thin**, one more Sonnet call reads the current `brief.md` plus just those
+sentences and returns ONLY the new or amended asks needed — each still citing its sentences, in
+the owner's own words, a hedge still a hedge. The asks are merged into `brief.md` (the original is
+kept as `brief-v1.md`), and coverage is rebuilt against the repaired brief. On by default, one
+round (`--repair-rounds N` for more, `--no-repair` for none); `refine.json`'s `repair` block
+records `dropped_before`/`dropped_after` and `thin_before`/`thin_after` so the fix is provable, not
+just claimed. A round that finds nothing to fix costs $0 (the classifier only ever runs on
+something uncited). `--repair-only <dir>` runs just this round against a run dir that already has
+a `brief.md` — no need to redraft `clean.md`/`structured.md`/`brief.md` to fix a coverage gap.
+
 ## Multi-model structured drafting, and the scoreboard
 
 Each model in `--models` drafts `structured-<name>.md` independently from the same numbered
@@ -120,6 +142,15 @@ Each model in `--models` drafts `structured-<name>.md` independently from the sa
   itself. Every existing `collab.json` (research, design) is unaffected — `given` is
   undefined/falsy unless a phase sets it, so this is the smallest change that made the reuse
   possible rather than writing collab's vote logic a second time inside `refine.mjs`.
+
+  **A tie is not a quality signal.** `runs/b` hit a real 1-1 vote, and collab's own tie-break
+  ("cheaper member" — price, not quality) picked one arbitrarily and spent real money doing it. On
+  a tie (the decision line's `tie_rule` is set), `refine.mjs` now ignores that pick and falls back
+  to the same cheap judge call the non-collab path uses, so the tied vote's spend at least buys a
+  real decision. And **on a clean win, the vote's caveats are now actually applied** — one more
+  small judge call (`applyCaveats`, $0 when there's nothing to apply) revises the winning draft to
+  address them, instead of the old behavior of just listing them under it as a footnote nobody
+  read.
 
 Either way, one line is appended to `Server/refine-scoreboard.jsonl`
 (`{at, input, models, winner, costs}`) per run, so over many runs it can say which model actually
@@ -176,18 +207,46 @@ for catching.
    one model call left, so a coverage-only fix like #1 above can refresh other run dirs without
    paying for the whole ladder again.
 
+## Real fixes, proven on the real runs that found the bugs
+
+- **`runs/b`** (a real `--collab` run) hit both the citation-range bug and the tie-break-by-price
+  problem. After the fixes, `node Server/refine.mjs --coverage-only runs/b`: dropped 6 → 0 (the
+  range bug was the entire cause — see below), flags 20 → 22, thin 5 → 7 (two of the
+  now-correctly-cited sentences turned out to be genuinely thin once the mechanical check could
+  see them at all), classify cost $0.0945.
+- **`runs/c`** (121 sentences) is what the repair round exists for. Its ORIGINAL numbers (before
+  either fix) were 23 dropped, 7 thin — mostly the range bug again, the same as `runs/b`: once
+  `--repair-only runs/c` rebuilt coverage with the range fix already in place, the true starting
+  point was 8 dropped, 24 thin (many of the 23 were really cited via a range; several of those
+  turned out to be thin). One repair round on top of that: **9 new asks (#36-#44) + 10 amended
+  asks, dropped 8 → 1, thin 24 → 5, cost $0.2566.** The one sentence still dropped (S95, "And we
+  need to work on how that works") is a real, if small, gap — a genuine follow-up need that has no
+  ask of its own yet; worth a second repair round or a manual add. `brief-v1.md` (35 asks) vs.
+  `brief.md` (44 asks) is the diff.
+
 ## Costs measured
 
-- `--mock` (both with and without `--collab`, and `--coverage-only --mock`): $0, proven.
+- `--mock` (plain, `--collab`, `--no-repair`, `--coverage-only`, `--repair-only`, and a fabricated
+  thin-citation fixture proving the repair merge targets the actual problem ask, not just "the
+  last one"): $0, proven throughout.
 - The required real sample run: $0.4158 (above).
 - The real `--coverage-only` re-run on `runs/sample` after the stemmer fix: $0 (nothing was
   uncited, so the classifier never ran).
+- A fabricated real repair test (one dropped sentence, one Sonnet repair call): $0.0965 — dropped
+  1 → 0, the new ask worded straight from the source sentence.
+- `runs/b`'s real `--coverage-only` re-run: $0.0945.
+- `runs/c`'s real `--repair-only` run: $0.2566 (one round, 19 asks touched).
 - Ask-1's own check: $0 (read-only, no model calls).
 
 ## What's left, honestly
 
-- `--collab`'s real (non-mock) path is wired and `--mock`-proven, but not yet proven with a real
-  paid run — the brief's own budget note for the required sample explicitly said to run it
-  *without* `--collab`, so this is a known, sanctioned gap, not an oversight.
+- `--collab`'s real (non-mock) path is wired, `--mock`-proven, and now also proven for real on
+  `runs/b` (including the tie-break fallback path, which is exactly what that run hit) — no longer
+  an open gap.
 - The historical viewer question above (does `ai/v/3/prompts.js` read the dev-server fallback
   log too, or only Servex's own) — flagged, not chased down; ask-1 was scoped to 10 minutes.
+- The repair round runs one Sonnet call with EVERY dropped/thin sentence in it at once; a run with
+  a very large number of gaps (`runs/c`'s 23 dropped + 7 thin, in one call) is untested at a larger
+  scale than that — if a future run has far more gaps than fit comfortably in one prompt,
+  `--repair-rounds` already supports more than one pass, but nothing currently SPLITS one huge
+  round into smaller batches automatically.
