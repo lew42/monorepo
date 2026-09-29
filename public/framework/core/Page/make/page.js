@@ -1,4 +1,4 @@
-import { Page, md, code, h3, h4, div, demo } from "/app.js";
+import { Page, md, code, h3, h4, div, demo, icon, span, small } from "/app.js";
 
 // Reused by two of the four demos below, so the code shown and the code that ran
 // are the same object — demo()/demo.app() print fn.toString(), so writing it twice
@@ -55,6 +55,16 @@ export default new Page({
 
 	content(){
 		md("Five ways to make a page. Each one below shows the smallest real code for it, then the real thing running.");
+
+		// [fix-2026-09-29 finding 8] This page never named the tool an AGENT actually
+		// calls to make a page, or the rule that comes with it — the review's own
+		// words: "the split is built, but the reasoning is written only inside the
+		// new-page skill." One tile, naming both.
+		div.c("ux-content-icard w2", () => {
+			icon("smart_toy");
+			span("Agents: create_page");
+			small.c("muted", "The Servex tool an agent calls to make a page — it reads the parent's layout, title and siblings first. The new-page skill (.claude/skills/new-page/SKILL.md) has the mechanics.");
+		});
 
 		h3("1. page.js — one file");
 		md("The folder is the url. `children:` is the menu, in order:");

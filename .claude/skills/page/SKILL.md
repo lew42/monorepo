@@ -13,9 +13,9 @@ right order. Answer these in order, one line each, before you build.
 
 1. **What is it, and who is it for?** One sentence. That sentence becomes the page's title or
    first line. If you can't write it, don't build yet.
-2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), and its
-   place in the navigation. The mechanics (the folder, page.jsonl or page.js, the parent link, and
-   the page tools that do it for you) are in the `new-page` skill.
+2. **Where does it live, and how is it reached?** Its parent, its URL (route everything), its
+   place in the navigation, and the mechanics — all in the `new-page` skill. **A child starts
+   from its parent:** read what `create_page` hands back (its layout, visual hierarchy) first.
 3. **Its properties:** title, icon, one-line description. The description is what its preview
    shows elsewhere, so make it self-evident.
 4. **Layout: for the page and for every region or box on it, answer three questions, one line each.**
@@ -58,7 +58,9 @@ law: no fixed number of items, no fixed depth. Drawn live at
 - **An outline often beats paragraphs.** Text that goes "first… then… also…" usually wants to be
   a nested list.
 - **Weight, when one thing matters more.** A bigger icon card for the idea the eye should land
-  on first, sorted to the top.
+  on first, sorted to the top. Real system: [core/Page/weight](/framework/core/Page/weight/).
+- **An icon isn't required.** It adds visual weight — reach for one when the concept needs to
+  be spotted at a glance; a plain named topic link is enough for a quieter one.
 
 | For example, you have… | Often reads best as |
 |---|---|

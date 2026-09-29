@@ -1,6 +1,6 @@
 ---
 name: new-page
-description: Run every time you create a page.js — the blessed shape, the parent `children:` line that makes it exist, the doc/ dir, and the one-line sizing check. Trigger skill; thirty seconds.
+description: Run every time you create a page — the `create_page` tool that does the mechanics reliably, the blessed page.js shape for when you write one by hand, and the traps that still apply. Trigger skill; thirty seconds.
 ---
 
 # New page
@@ -10,7 +10,16 @@ These are the mechanics. What the page is, where it goes and what goes on it, to
 
 1. **Answer `layout`'s five questions in one line** — container, size, own layout, regions,
    preview — before writing the file.
-2. **The file:**
+2. **Call `create_page`** (Servex MCP tool), never the hand steps. One call makes the folder,
+   `page.jsonl` line 1 (title, icon, `description`, optional `layout`), a `readme.md` stub, and
+   links it from the parent — the parent link is the step an agent most often forgets by hand.
+   `description` is required, one sentence; a clear error names the field if you skip it. No
+   empty `doc/` is made — one appears only once there is a real doc. Its return value hands you
+   the **parent's own context** (title, layout words, sibling names, readme url) — read that
+   before choosing this page's own layout (`page` skill, step 2). `place`, `set_layout`,
+   `list_pages`, `read_page` (same MCP tools) add more to a `page.jsonl` page afterward.
+3. **Want a hand-written `page.js` instead of the jsonl stub?** Write it in the same folder and
+   delete the stub `page.jsonl` — a folder with both uses `page.js`. The shape:
    ```js
    import { Page, p } from "/app.js";
    export default new Page({
@@ -24,38 +33,30 @@ These are the mechanics. What the page is, where it goes and what goes on it, to
    ```
    A module index is `new Doc({ … })` instead (`documentation` skill). Never name a page
    method `render()` — it collides with core; `draw()`, `report()` are free.
-2b. **Route everything.** Anything a reader can see or open on the page — a doc swapped in place, a tab, a detail — has its own url (a child page, or `history.pushState` to one that reloads to the same view). A view with no address loses the reader's place on reload. `swap_link` does it for docs; core/Page's readme.
-3. **Add its name to the parent's `children:`.** Nothing crawls; an unlinked page does not
-   exist. ⚠ `children:` makes it ROUTABLE, not linked: a parent whose `content()` draws its own
-   thing instead of calling `previews()` shows zero links to the new child (`/layouts/` → `browse`,
-   0 anchors at 1920, 2026-09-17) — add one visible line there too, and check by counting
-   `a[href='<child url>']` on the PARENT, never by loading the child's own url. ⚠ A name declared in `children:` whose dir has no `page.js` and no `.md` 404s
-   the whole probe — declare only what exists. Backed only by a `.md`, it still renders
-   (core's probe tries `page.js` first, `.md` last) but logs a console 404 for the
-   missing `page.js` on every page in that subtree — declare the note as a config that
-   names the file instead: `["Naming", { content(){ return md.file(import.meta, "naming.md", { h1: false }); } }]`
-   for a clean console (`/layouts/doc/`, 3 errors × 16 pages, 2026-09-08).
-   ⚠ Not every subtree wants this line at all, and not every `page.js` is a `Page` —
-   `public/blog/readme.md` documents `/blog/` posts as deliberately undeclared (the
-   manifest `blog/posts.js` lists them so the front need not import every post to print
-   a title), and a post is `export default new Post({ meta: import.meta })`, four lines,
-   no `content()`. Check the module's own readme before assuming step 2/3 apply
-   (`/blog/ai/playwright/`, 2026-09-08).
-   ⚠ `icon:` is unverified and fails silently: the site loads **Material Icons**, not Symbols — a name only the newer set has (`developer_guide`) renders as its literal word, ~291px in a 219px card label, and nothing throws. Probe a new name's `offsetWidth` in the live page: a glyph is ~19px, a miss is 100px+.
-4. **Every view is a url — never a button that flips a class.** If a page shows two views
-   (an overview and an inbox, a list and a detail, tabs worth coming back to), each one is a
-   page the Router knows: a `children:` entry, or a name `route()` returns a `Page` for. The
-   switch between them is a plain link (`a.c("page-link").href(url)`), and CSS picks what shows
-   off the Router's own `.active-page` mark. A view you reach by `classList.add()` has no
-   address, so the site nav, the back button and a reload cannot get you out of it: AI 2's
-   "Open the full inbox" did exactly that and the nav rail stopped switching pages (the owner,
-   2026-09-23: "we can't just have these buttons that when clicked switch the view manually").
-   Check by clicking every view, then the site nav, then Back — the url must change each time.
-5. **`doc/`** beside it when there is a topic worth a url; `readme.md` for a module.
-6. Log the url in your task's `links`. Then `documentation` and `finish-task` when done.
+4. **Route everything.** Anything a reader can see or open on the page — a doc swapped in place, a
+   tab, a detail — has its own url (a child page, or `history.pushState` to one that reloads to
+   the same view). A view with no address loses the reader's place on reload. `swap_link` does it
+   for docs; core/Page's readme. Each view is a plain link, never a button that flips a class:
+   AI 2's "Open the full inbox" did that and the nav rail stopped switching pages (the owner,
+   2026-09-23). Check by clicking every view, then the site nav, then Back — the url must change.
+5. **Traps that still bite once the folder exists** — `create_page` gets you the folder, the
+   file and the link; these are about what you put in `children:` and `icon:` by hand:
+   - ⚠ `children:` makes a name ROUTABLE, not LINKED — a parent whose `content()` draws its own
+     thing instead of calling `previews()` shows zero visible links to the new child (`/layouts/`
+     → `browse`, 0 anchors at 1920, 2026-09-17). Add one visible line there too, and check by
+     counting `a[href='<child url>']` on the PARENT, never by loading the child's own url.
+   - ⚠ A name added to `children:` by hand, whose folder has no `page.js` and no `.md`, 404s the
+     whole probe — declare only what `create_page` (or you) already built.
+   - ⚠ Not every subtree wants this line at all: `public/blog/readme.md` documents `/blog/`
+     posts as deliberately undeclared (the manifest `blog/posts.js` lists them so the front need
+     not import every post), and a post is `export default new Post({ meta: import.meta })`, four
+     lines, no `content()`. Check the module's own readme before assuming a page.js shape applies.
+   - ⚠ `icon:` is unverified and fails silently: the site loads **Material Icons**, not Symbols —
+     a name only the newer set has (`developer_guide`) renders as its literal word, ~291px in a
+     219px card label, and nothing throws. Probe a new name's `offsetWidth` in the live page: a
+     glyph is ~19px, a miss is 100px+.
+6. **`doc/`** beside it when there is a topic worth a url; `readme.md` already exists once you
+   used `create_page` (fill in its stub sections).
+7. Log the url in your task's `links`. Then `documentation` and `finish-task` when done.
 
 Improve this skill: append to [`improvements.md`](improvements.md).
-
-## How an agent makes a page
-
-Use the page tools (Servex MCP), not hand edits: `create_page` makes the folder and links it from its parent, `place` adds a .md or module to a `page.jsonl` page, `set_layout` picks a name from `core/Layout/layouts.js`, and `list_pages` / `read_page` show what is there. Each write is one appended line. A `page.js` page still takes hand edits.
