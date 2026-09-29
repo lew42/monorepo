@@ -89,7 +89,7 @@ export async function send({ page = drawer.page(), text, context, card, thread, 
 async function post_card(entry){
 	const ok = await post_prompt(entry, servex_base() + "/log/prompts");
 	const re = entry.re;
-	if (is_folder_id(re) && await cards_ready()) card_prompt(re, entry.text, entry.via).catch(() => null);
+	if (is_folder_id(re) && await cards_ready()) card_prompt(re, entry.text, entry.via, entry.context).catch(() => null);
 	else post_prompt(entry, servex_base() + "/log/cards/" + (is_folder_id(re) ? re.split("/").at(-1) : re.split("/")[0])).catch(() => {});
 	return ok;
 }

@@ -425,9 +425,15 @@ export async function resolve_card(id){
  * on the card, `raw` verbatim; Servex stamps its `id` and `at`, and a later
  * line with the same id is the cleaned reading. `Servex/cards/readme.md`
  * defines the shape.
+ *
+ * `context` (optional) is the drawer's chips — the elements picked on the
+ * page — carried along so the card-assistant sees what the words are about,
+ * not just the words (ext/drawer/doc/select.md's `item()` shape). Typed and
+ * dictated words both go through this one function, so neither send path can
+ * drop it on its own.
  */
-export const card_prompt = (id, words, via) => append_card(id, {
-	prompt: { raw: words, text: words, via, on: id, url: location.pathname },
+export const card_prompt = (id, words, via, context) => append_card(id, {
+	prompt: { raw: words, text: words, via, on: id, url: location.pathname, ...(context ? { context } : {}) },
 });
 
 /**
