@@ -38,6 +38,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat } from "./review.mjs";
+import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
 const argv = process.argv.slice(2);
@@ -267,7 +268,7 @@ function planAll(files, branch) {
 	const baseRev = git(MAIN, "merge-base", BASE, branch).stdout.trim() || BASE;
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "merge-"));
 	try { return files.map(f => planFile(f, baseRev, branch, tmp)); }
-	finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+	finally { refuse_links_into_main(tmp, "removing the merge temp dir"); fs.rmSync(tmp, { recursive: true, force: true }); }   // guard: never delete through a link
 }
 
 /* Write every planned file; if one write throws, put back what was already written, then rethrow. */

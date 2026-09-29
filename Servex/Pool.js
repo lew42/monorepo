@@ -4,6 +4,7 @@ import path from "path";
 import { execFile, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import Events from "../Server/Events.js";
+import { refuse_links_into_main } from "../Server/junction-guard.mjs";
 import { stamp } from "./home.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -228,7 +229,9 @@ export default class Pool extends Events {
             for (const d of await this.dirt(slot)) this.restore(slot, d.file);
             await this.script("worktree-down.mjs", slot.id);
             fs.rmSync(path.join(this.main, ".worktree-logs", `${slot.id}.log.err`), { force: true });   // worktree-down deletes only the .log
-            fs.rmSync(path.join(os.tmpdir(), `lew42-pool-${slot.id}`), { recursive: true, force: true });   // the watcher's temp dir (watch())
+            const tmp = path.join(os.tmpdir(), `lew42-pool-${slot.id}`);
+            refuse_links_into_main(tmp, "removing the watcher's temp dir", this.main);   // guard: never a recursive delete through a link into main
+            fs.rmSync(tmp, { recursive: true, force: true });   // the watcher's temp dir (watch())
             this.say(`pool: ${slot.id} removed`, { id: slot.id });
         }).catch(e => this.say(`pool: removing ${slot.id} failed: ${e.message}`, { id: slot.id }))
           .finally(() => { this.leaving = this.leaving.filter(s => s !== slot); this.save(); });

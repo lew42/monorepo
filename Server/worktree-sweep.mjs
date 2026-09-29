@@ -21,6 +21,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { links_into_main } from "./junction-guard.mjs";
 
 // `ROOT` is normally this script's own repo (Server/.. — a worktree's copy sweeps that
 // worktree's own Servex state). `--root <dir>` (proof only, same idea as merge.mjs's `--main`)
@@ -147,9 +148,10 @@ export async function sweep({ dry = false } = {}){
 		if (!entry?.path || norm(entry.path) === norm(ROOT)) continue;   // belt-and-suspenders: never the main tree
 		const gone = !fs.existsSync(entry.path);
 		const { ok, why } = gone ? { ok: true, why: "worktree directory no longer exists on disk" } : await can_stop(entry);
-		const row = { name, ok, why };
+		const links = gone ? [] : links_into_main(entry.path);   // worktree-down refuses these too; say why here
+		const row = links.length ? { name, ok: false, why: `holds a link into the main checkout: ${links.map(l => l.path).join(", ")} — remove the link only, then sweep again` } : { name, ok, why };
 		rows.push(row);
-		if (ok && !dry){
+		if (row.ok && !dry){
 			const r = spawnSync(process.execPath, [path.join(ROOT, "Server/worktree-down.mjs"), name], { encoding: "utf8", windowsHide: true });
 			row.result = (r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed");
 		}
