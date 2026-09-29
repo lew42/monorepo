@@ -91,6 +91,24 @@
 	}
 	.app .drawer-menu:hover { color: var(--ink); background: var(--fill-a08); }
 
+	/* Below 52em, a page with its own `.sidebar` (core/Sidebar) draws a NATIVE ☰ of
+	   its own — `.sidebar-toggle`, top right of the sticky bar, same corner as this
+	   fixed one. They fought for every tap: this button sits on top (z-index 39,
+	   fixed to the viewport corner) and the sidebar's own nav could never be reached
+	   on mobile (mobile-nav, 2026-09-29 — the owner: "every time I click that top
+	   right hamburger icon on mobile, it opens the kind of like AI settings"). Below
+	   the breakpoint, when the page has a `.sidebar` anywhere in it, this corner
+	   button steps aside so the tap reaches the sidebar's own toggle underneath; the
+	   mobile bottom rail (ext/drawer/rail.js) is the other way into these tabs there.
+	   v1 — this button, unconditional, in this same corner — is NOT deleted: it is
+	   still exactly what desktop gets (no `.sidebar` below 52em means nothing here
+	   changes either), and `.drawer-menu-v1` on `.app` brings the old placement back
+	   even over a mobile sidebar, for anyone who wants to compare or revert. doc/decisions.md. */
+	@media (max-width: 52em) {
+		.app:has(.sidebar) .drawer-menu { display: none; }
+		.app.drawer-menu-v1:has(.sidebar) .drawer-menu { display: flex; }
+	}
+
 	/* The tab strip, in the drawer's pinned head beside the ✕ (tabs.js). */
 	/* Every tab always visible: the strip WRAPS onto a second row when the rail is too
 	   narrow (dragged to 200px, or a big screen's larger type at 19rem), never scrolls a
