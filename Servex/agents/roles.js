@@ -7,8 +7,9 @@
  * full id (`<role>-<name>`) is still built by Agents.name(). */
 /* THE table: one row per role — the skill it loads, its id prefix, and its posture.
  * The owner's rule is "skill name = role = agent id". Where a role and its skill
- * differ, `alias` is the other word, and either is accepted as a role. Renaming the
- * skill dirs would touch a dozen callers, so the mismatches are listed in doc/names.md.
+ * differ, `alias` is the other word (or an array of them), and any of them is
+ * accepted as a role. Renaming the skill dirs would touch a dozen callers, so the
+ * mismatches are listed in doc/names.md.
  * `prefix` is the id's first half (`<prefix>-<name>`, built by Agents.name()). */
 import { model } from "./tiers.js";
 
@@ -27,18 +28,23 @@ export const ROLES = {
 	"task-mastermind":  { skill: "sub-mastermind",   prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
 	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
 	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
-	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "fast",      model: model("fast"), effort: "high", permission_mode: "plan" },
-	/* The card layers (Layers.js): a card's manager loads sub-mastermind and is recycled for the
-	 * card's whole life; a card's assistant brings its own system brief (card-assistant.md). */
-	manager:            { skill: "sub-mastermind",   prefix: "manager",          tier: "manager",   model: model("manager"),   effort: "medium", permission_mode: "bypassPermissions" },
-	"card-assistant":   { skill: null,                prefix: "assistant",        tier: "fast",      model: model("fast"),      effort: "low",    permission_mode: "bypassPermissions" },
+	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
+	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
+	 * OR any other page, scoped to a directory given in the first message (doc/page-roles.md).
+	 * `master-assistant`, `manager` and `card-assistant` are the pre-recursive-pairs words for
+	 * these same two rows, kept as aliases so nothing that already says them breaks; write
+	 * `page-assistant` / `page-mastermind` in anything new. The skill files themselves keep
+	 * their old names (`every-prompt`, `sub-mastermind`) — see doc/names.md. */
+	"page-assistant":   { skill: "every-prompt",     prefix: "assistant",        alias: ["master-assistant", "card-assistant"], tier: "fast",    model: model("fast"),    effort: "low",    permission_mode: "bypassPermissions" },
+	"page-mastermind":  { skill: "sub-mastermind",   prefix: "manager",          alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 
-/* A role word or its alias -> the row's canonical role. */
+/* A role word or one of its aliases -> the row's canonical role. `alias` is a
+ * string or an array of strings, so several old words can point at one new row. */
 export function canonical(word){
 	if (ROLES[word]) return word;
-	return Object.keys(ROLES).find(k => ROLES[k].alias === word);
+	return Object.keys(ROLES).find(k => [].concat(ROLES[k].alias ?? []).includes(word));
 }
 
 const row = word => ROLES[canonical(word)];

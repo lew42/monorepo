@@ -15,16 +15,25 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
  * A resume must run in the session's ORIGINAL cwd, and mastermind-servex was made there. */
 const REPO = path.join(HERE, "../..");
-const HEARD = ["task", "landed", "blocked", "error"];
+/* Only a direct child's landing, block or error reaches the root assistant now
+ * (D3, doc/page-roles.md) — "task" (a queued-state change) is noise at this
+ * level and is dropped; a deeper page's own assistant hears its own "task". */
+const HEARD = ["landed", "blocked", "error"];
 const WORKER = /^(minion|helper|fork)/;
+const TASK_MASTERMIND = /^task-mastermind-/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
-/* THE TWO AGENTS ACROSS ALL CARDS (design: ai/2026-09-24/assistant-layers/doc/design.md).
+/* THE TWO ROOT AGENTS (design: ai/2026-09-24/assistant-layers/doc/design.md;
+ * narrowed 2026-09-25/28 by the recursive-pairs work, doc/page-roles.md).
  *
- * - `master-assistant` (fast tier, medium effort) hears every card at once — each
- *   fresh owner prompt and every task, landing, block or error — batched into at
- *   most one message every 20 seconds, and stays silent unless it earns a line.
+ * - `master-assistant` (fast tier, medium effort) is the root page's own
+ *   assistant — `page-assistant.md`'s root case. It no longer hears every
+ *   card: only a landing, block or error from a DIRECT CHILD of the root is
+ *   batched to it, at most one message every 20 seconds, and it stays silent
+ *   unless it earns a line. Every other page now has its own assistant
+ *   hearing its own prompts (Layers.js), so there is nothing left for the
+ *   root to hear there.
  * - `mastermind-servex` (architect tier) is the persistent systems architect. It
  *   already exists; Global never makes a second one. It is resumed under the same
  *   id from its recorded session, and spawned fresh only when there is none.
@@ -192,8 +201,11 @@ export default class Global {
 
 	/* THE REAPER — every minute: an idle minion, helper or fork that has
 	 * finished a turn (its parent was woken then) and sat idle past `reap_ms` is
-	 * stopped; the master and the mastermind are stopped after `idle_ms` of quiet
-	 * and resumed on the next message. */
+	 * stopped; the master, the mastermind, AND any idle `task-mastermind-*` (D5,
+	 * 2026-09-25/28: the same 15-minute rule, not just the two global agents) are
+	 * stopped after `idle_ms` of quiet. All of them resume on the next message —
+	 * that wake is generic (`Agents.wake`/`reopen`, by session id), not special
+	 * to the two ids this file spawns itself. */
 	reaper(){
 		this.reap_timer = setInterval(() => this.sweep(), this.reap_every_ms);
 		this.reap_timer.unref?.();
@@ -204,11 +216,12 @@ export default class Global {
 			if (agent.state !== "idle") continue;
 			const worker = WORKER.test(agent.role ?? "") || WORKER.test(agent.id ?? "");
 			const global = agent.id === this.master_id || agent.id === this.mastermind_id;
-			if (!worker && !global) continue;
+			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");
+			if (!worker && !global && !task_mastermind) continue;
 			if (worker && !(agent.turns >= 1)) continue;
 			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : this.idle_ms)) continue;
 			try { agent.stop(); } catch {}
-			if (worker) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
+			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
 		}
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
 	}
@@ -230,7 +243,12 @@ export default class Global {
 		return null;
 	}
 
-	/* Every card, at once — a little context about everything. */
+	/* THE EVERY-CARD FEED IS GONE (D3, 2026-09-25/28, doc/page-roles.md). Every
+	 * page now has its own assistant hearing its own fresh prompts (Layers.js),
+	 * so the root has no reason to hear them a second time — this class only
+	 * still listens for what a DIRECT CHILD of the root reports: a landing, a
+	 * block, or an error. Everything about a page deeper than that is read on
+	 * demand (`list_cards`, `list_agents`), never pushed here. */
 	listen(tries = 0){
 		const cards = this.servex.cards;
 		if (!cards?.on){
@@ -240,10 +258,19 @@ export default class Global {
 		cards.on((cardId, line, info = {}) => this.heard(cards.canonical?.(cardId) ?? cardId, line, info));
 	}
 
+	/* A direct child of the root pair: spawned by the Dispatcher (today's
+	 * `task-mastermind`s, `parent: "dispatcher"`), by `mastermind-servex`, or by
+	 * `master-assistant` itself. A grandchild's own report is for its own
+	 * page's assistant to hear, not the root's — this is what makes the feed
+	 * "direct children only" instead of "every card" again by another name. */
+	direct_child(id){
+		const parent = this.agents.live?.get(id)?.parent;
+		return parent === "dispatcher" || parent === this.mastermind_id || parent === this.master_id;
+	}
+
 	heard(card, line = {}, info = {}){
-		if (info.fresh && line.prompt) return this.queue(`card ${card}: ${line.prompt.text ?? line.prompt.raw ?? ""}`, "owner");
 		const m = line.message;
-		if (m && HEARD.includes(m.kind)) this.queue(`card ${card}, ${m.kind} from ${m.by ?? "someone"}: ${m.text ?? ""}`, "servex");
+		if (m && HEARD.includes(m.kind) && this.direct_child(m.by)) this.queue(`card ${card}, ${m.kind} from ${m.by ?? "someone"}: ${m.text ?? ""}`, "servex");
 	}
 
 	/* At most one message every `batch_ms`: what arrives meanwhile rides in the next one. */

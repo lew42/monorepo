@@ -96,7 +96,11 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const master = f.spawned.find(s => s.id === "master-assistant");
-	t(master && master.model === "claude-sonnet-5" && master.effort === "medium", "master-assistant spawned, exact id, fast tier");
+	/* D7 (the owner's words, the recursive-pairs card): "the root assistant runs on Opus" —
+	 * master() already spawns it on the architect model; this assertion was stale (said
+	 * claude-sonnet-5/"fast tier"), a pre-existing mismatch found while touching this file
+	 * for D3, not something this task's own edits changed. */
+	t(master && master.model === "claude-opus-5-5" && master.effort === "medium", "master-assistant spawned, exact id, architect tier (D7: root assistant on Opus)");
 	const mm = f.spawned.find(s => s.id === "mastermind-servex");
 	t(mm && !mm.resume && mm.prompt === "You are on duty. Answer nothing now." && mm.model === "claude-opus-5-5", "fresh mastermind only when nothing recorded");
 	t(["claim_topic", "release_topic", "list_claims", "set_focus"].every(k => f.tools.has(k)), "four tools registered");
@@ -135,23 +139,46 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	clearInterval(g.reap_timer);
 }
 
-// Three prompts within the window reach the master as ONE send; kinds filtered
+// D3: the every-card feed is gone. A fresh prompt on any card is no longer
+// forwarded (each page now hears its own); only a landing/block/error from a
+// DIRECT CHILD of the root reaches the master, batched, at most one send per window.
 {
 	reset();
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const hear = (card, line, info) => f.listeners.forEach(fn => fn(card, line, info));
+
+	// fresh prompts on cards: never forwarded any more
 	hear("a", { prompt: { text: "one" } }, { fresh: true });
 	hear("b", { prompt: { text: "two" } }, { fresh: true });
-	hear("c", { prompt: { text: "three" } }, { fresh: true });
-	hear("c", { message: { kind: "reply", by: "x", text: "ignored" } });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "fresh card prompts are no longer forwarded to the root");
+
+	// a landing from an agent with no recorded parent (not a direct child): dropped
+	hear("c", { message: { kind: "landed", by: "manager-c", text: "done, but not a direct child" } });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "a non-child's landing is not forwarded");
+
+	// a "reply" and a "task" kind: still never forwarded (HEARD dropped "task"; "reply" was never in it)
+	f.servex.agents.live.set("task-mastermind-x", { id: "task-mastermind-x", state: "idle", parent: "dispatcher" });
+	hear("c", { message: { kind: "reply", by: "task-mastermind-x", text: "ignored" } });
+	hear("c", { message: { kind: "task", by: "task-mastermind-x", text: "queued, ignored" } });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "kinds outside landed/blocked/error are never forwarded");
+
+	// a landing from a DIRECT CHILD (parent: dispatcher, mastermind-servex's own spawn path today): forwarded
+	hear("d", { message: { kind: "landed", by: "task-mastermind-x", text: "done" } });
 	await wait(120);
 	const to = f.sent.filter(s => s.id === "master-assistant");
-	t(to.length === 1 && to[0].text === "card a: one\ncard b: two\ncard c: three" && to[0].note.from === "owner", "three prompts, one send");
-	hear("a", { message: { kind: "landed", by: "manager-a", text: "done" } });
+	t(to.length === 1 && to[0].text === "card d, landed from task-mastermind-x: done" && to[0].note.from === "servex", "a direct child's landing reaches the root, from servex");
+
+	// two events in one window still batch into one send
+	f.servex.agents.live.set("task-mastermind-y", { id: "task-mastermind-y", state: "idle", parent: "mastermind-servex" });
+	hear("e", { message: { kind: "blocked", by: "task-mastermind-y", text: "stuck" } });
+	hear("f", { message: { kind: "error", by: "task-mastermind-y", text: "oops" } });
 	await wait(120);
 	const last = f.sent.filter(s => s.id === "master-assistant").pop();
-	t(last.text === "card a, landed from manager-a: done" && last.note.from === "servex", "landing heard, from servex");
+	t(last.text === "card e, blocked from task-mastermind-y: stuck\ncard f, error from task-mastermind-y: oops", "two direct-child events batch into one send");
 
 	// Idle stop, then a message resumes it by session id
 	const master = f.servex.agents.live.get("master-assistant");
@@ -163,9 +190,28 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	f.servex.agents.send("mastermind-servex", "hello", { from: "owner" });
 	const back = f.spawned.filter(s => s.id === "mastermind-servex").pop();
 	t(back.resume === "mm-sid" && f.sent.pop().text === "hello", "a message resumes mastermind-servex");
-	hear("a", { prompt: { text: "four" } }, { fresh: true });
+	hear("g", { message: { kind: "landed", by: "task-mastermind-x", text: "five" } });
 	await wait(120);
 	t(f.spawned.filter(s => s.id === "master-assistant").pop().resume === "m-sid", "batching resumes the master");
+	clearInterval(g.reap_timer);
+}
+
+// D5: the same 15-minute reaper now also stops an idle task-mastermind (was:
+// neither a worker nor `master_id`/`mastermind_id`, so sweep() skipped it
+// entirely and it never stopped). Waking a stopped one by message is generic
+// Agents.js behavior (`send` -> `wake` -> `reopen` by session id, outside this
+// fence); the live proof on the private Servex exercises the real thing.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const tm = f.add({ id: "task-mastermind-recursive-pairs", role: "task-mastermind", state: "idle", parent: "dispatcher", turns: 3, session_id: "tm-sid" });
+	f.servex.agents.live.set(tm.id, tm);
+	g.sweep(Date.now());
+	t(tm.state === "idle", "not reaped before idle_ms");
+	g.sweep(Date.now() + g.idle_ms + 1000);
+	t(tm.state === "stopped", "an idle task-mastermind is stopped after idle_ms (15 minutes by default)");
+	t(f.logged.some(l => l.type === "reaped" && l.id === "task-mastermind-recursive-pairs"), "its stop is logged like a worker's");
 	clearInterval(g.reap_timer);
 }
 
