@@ -7,7 +7,7 @@
 import refine from "/framework/ext/Refine/Refine.js";
 refine(import.meta, { run: "/framework/ai/2026-09-29/prompt-refine/runs/b/" });
 ```
-A `runs` list — `[{ id, label, dir }, …]` — draws a picker (`<select>`) above the ladder and makes this view **own** `?run=` in the url, the same one-owner rule [`ext/files`](/framework/ext/files/) uses for `?file=`: a reload lands back on the same run. The card at [`from-dictation-to-a-brief-with-nothing-l`](/framework/ai2/2026/09/29/from-dictation-to-a-brief-with-nothing-l/) uses this for its sample/a/b/c picker.
+A `runs` list — `[{ id, label, dir }, …]` — draws a picker (`<select>`) above the ladder and makes this view **own** `?run=` in the url, the same one-owner rule [`ext/files`](/framework/ext/files/) uses for `?file=`: a reload lands back on the same run. The card at `2026/09/29/from-dictation-to-a-brief-with-nothing-l` (on the AI 2 dashboard) uses this for its sample/a/b/c picker.
 
 ## Watch out
 - **Three widths, not two.** 1600px+: four full columns. 640–1599px: three — Raw and Clean share one, with their own mini tab strip (four columns squeezed a real run's Raw and Clean down to a few words a line as low as 1280px). Under 640px: the original stacked four-way tabs.
