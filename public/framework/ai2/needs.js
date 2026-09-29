@@ -1,7 +1,7 @@
 import { div, span, small, a, textarea, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { when } from "./faces.js";
-import { append_card, static_cards } from "./inbox.js";
+import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "./fold.js";
 import { card_needs, is_blocker } from "./needs-rule.js";
 
@@ -21,6 +21,9 @@ const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.t
  *  get fetched, so a very large board still answers quickly (brief: "the fastest working version
  *  first" — a card this old rarely still needs you). */
 export async function scan_needs({ limit = 300 } = {}){
+	const served = await waiting();
+	if (served) return served;
+
 	const cards = (await static_cards()) ?? [];
 	const live = cards.filter(c => c.status !== "archived" && c.status !== "done")
 		.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))
@@ -32,6 +35,18 @@ export async function scan_needs({ limit = 300 } = {}){
 	}));
 	const RANK = { blocker: 0, decision: 1, question: 1, fyi: 2 };
 	return rows.flat().sort((x, y) => (RANK[x.kind] ?? 3) - (RANK[y.kind] ?? 3) || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
+}
+
+/* Servex's `GET /waiting` runs the same rule (`card_needs`, needs-rule.js) over every
+   card and answers in ONE request. Reading each card's page.jsonl here instead was 300
+   requests every 20 s on every AI 2 page (measured 09-29); that scan is now only the
+   fallback when Servex is down (production, static). Null means "ask the files". */
+async function waiting(){
+	try {
+		const res = await servex_fetch(servex_base() + "/waiting");
+		const rows = res.ok ? await res.json() : null;
+		return Array.isArray(rows) ? rows.map(n => ({ ...n, url: "/framework/ai2/" + n.card + "/" })) : null;
+	} catch { return null; }
 }
 
 /* ── ONE SHARED SCAN, for the tab AND brief E's rail filter (contract: "one concept, one
