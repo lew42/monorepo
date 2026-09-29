@@ -209,6 +209,9 @@ export function dashboard(page){
 	const date = page.url.split("/").filter(Boolean).at(-1);
 	warm(date);   // route()'s has_page_js, warmed now so a click into a task already has the answer
 
+	// The same day, drawn as a tree of tasks (nested.js) — a link only.
+	p.c("muted", () => a("See this day as a tree: what ran together, what waited →").attr("href", `/framework/ext/AITask/tree/?date=${date}`));
+
 	// ⚠ `wide`, not `bleed` — `bleed` spends the page's two gutter tracks, and the
 	//   rule in ai.css that handed them back went with it (layout-primitives).
 	const $board = div.c("ai-dashboard flex v gap wide", async $d => {
