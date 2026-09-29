@@ -56,7 +56,7 @@ plain word count against the transcript, no model call.
 | S45 | So maybe we just focus on the paging system for now. | ask #9 |
 | S46 | And then, the other topics that don't really fit into explicitly within the paging system, we can still work on those later, but let's set those aside for now. | ask #9 |
 | S47 | Make sure this new mastermind task references those older tasks, these other audits, any audit that we have that we find, you could put a link to it on this new organization mastermind page. | ask #5 |
-| S48 | I'm gonna send this off so you can get working on it. | dropped, because instructs sending off this transcript/task for execution — an actionable handoff, not just scene-setting |
+| S48 | I'm gonna send this off so you can get working on it. | context only |
 | S49 | I'm gonna keep transcribing in a minute, though. | context only |
 | S50 | Okay, yeah, so the organization mastermind, it's sort of this task audit, but we're going to approach it in a prioritized way. | ask #20 |
 | S51 | We're going to start with the paging system. | ask #20 |
@@ -103,7 +103,7 @@ plain word count against the transcript, no model call.
 | S92 | Maybe ask a few minions to, as the minions are studying these things, ask them as one of their tasks to suggest a new structure for the top tabs and for each top tab can have an inner navigation, the left side bar there. | ask #36 |
 | S93 | Organizing by methods and properties doesn't seem like a bad way to go, when you click on the methods tab, you get a list of all the methods and then each one is its own page. | ask #37 |
 | S94 | But in terms of overview and concepts, I think, the big concepts of each class should be well-named things so that anywhere in the documentation you're referring to a certain concept we get familiar with them, you click on that concept, you understand what that means, even for simple ones, as long as it's something that's super simple and it's just self-evident, then you don't necessarily need to create a unique page for it, however if it's something specific to that class and it's important to know, as I've said before, creating structured familiar content is the way to go, but we definitely want to organize things in terms of their priority, how fundamental they are, and also think about the value that it provides, if we're documenting something that's very fundamental but it's confusing and it's not really easy to show how it works and wasting space confusing somebody is not what we want, we want to spend our space, we want to have the most impact, the most benefit for the time and for the space that we have. | ask #38 |
-| S95 | So I'm gonna send this one off. | dropped, because instructs sending off this segment for execution, same actionable handoff not captured as an ask |
+| S95 | So I'm gonna send this one off. | context only |
 
 ## Flags
 
@@ -116,37 +116,29 @@ transcript; a **thin citation** — an ask cites a sentence but shares no wordin
 |---|---|---|
 | #1 | thin citation | cites S2 but shares no wording with it — the citation may not reflect what S2 actually says |
 | #1 | thin citation | cites S5 but shares no wording with it — the citation may not reflect what S5 actually says |
-| #1 | new words | "recent", "backlog", "broad", "paused", "burning", "summarizing", "digestible" — not in the transcript at all |
-| #2 | new words | "called", "owner", "suggests", "alternative" — not in the transcript at all |
-| #3 | new words | "elsewhere", "toward" — not in the transcript at all |
-| #4 | new words | "back", "related" — not in the transcript at all |
+| #1 | new words | "backlog", "broad", "paused" — not in the transcript at all |
+| #2 | new words | "alternative" — not in the transcript at all |
+| #4 | new words | "related" — not in the transcript at all |
 | #5 | new words | "found" — not in the transcript at all |
 | #6 | thin citation | cites S12 but shares no wording with it — the citation may not reflect what S12 actually says |
-| #6 | new words | "starting" — not in the transcript at all |
-| #8 | new words | "overall" — not in the transcript at all |
-| #10 | new words | "update" — not in the transcript at all |
-| #11 | new words | "existing", "real" — not in the transcript at all |
-| #12 | new words | "small", "points", "kept" — not in the transcript at all |
-| #13 | new words | "treat", "reorganizing" — not in the transcript at all |
+| #11 | new words | "real" — not in the transcript at all |
+| #12 | new words | "small", "kept" — not in the transcript at all |
+| #13 | new words | "treat" — not in the transcript at all |
 | #14 | thin citation | cites S27 but shares no wording with it — the citation may not reflect what S27 actually says |
-| #14 | new words | "owner", "suggests", "clear", "belong", "already", "rather" — not in the transcript at all |
+| #14 | new words | "belong", "already", "rather" — not in the transcript at all |
 | #15 | new words | "including" — not in the transcript at all |
-| #18 | new words | "ironed", "building", "page's", "visually" — not in the transcript at all |
-| #20 | new words | "treat", "approached", "starting" — not in the transcript at all |
-| #21 | new words | "existing", "rather", "nuking" — not in the transcript at all |
-| #22 | new words | "check", "shown", "clear", "produces" — not in the transcript at all |
+| #20 | new words | "treat" — not in the transcript at all |
+| #21 | new words | "rather", "nuking" — not in the transcript at all |
+| #22 | new words | "check" — not in the transcript at all |
 | #23 | thin citation | cites S64 but shares no wording with it — the citation may not reflect what S64 actually says |
-| #24 | new words | "follow", "stands", "since", "hasn't" — not in the transcript at all |
-| #25 | new words | "roughly", "1000px", "stretches" — not in the transcript at all |
-| #26 | new words | "noting", "overall", "matters", "count" — not in the transcript at all |
-| #28 | new words | "stacks" — not in the transcript at all |
+| #24 | new words | "since" — not in the transcript at all |
+| #25 | new words | "roughly", "1000px" — not in the transcript at all |
+| #26 | new words | "noting", "matters", "count" — not in the transcript at all |
 | #30 | thin citation | cites S74 but shares no wording with it — the citation may not reflect what S74 actually says |
 | #30 | thin citation | cites S75 but shares no wording with it — the citation may not reflect what S75 actually says |
-| #30 | new words | "starting", "alone", "open", "problem" — not in the transcript at all |
+| #30 | new words | "alone", "open", "problem" — not in the transcript at all |
 | #31 | new words | "already", "built" — not in the transcript at all |
-| #32 | new words | "center" — not in the transcript at all |
-| #33 | new words | "owner", "suggests", "connecting", "unclear", "require" — not in the transcript at all |
+| #33 | new words | "connecting", "unclear", "require" — not in the transcript at all |
 | #35 | new words | "decide" — not in the transcript at all |
-| #36 | new words | "owner", "suggests", "asking", "sidebar" — not in the transcript at all |
-| #37 | new words | "clicking", "gives" — not in the transcript at all |
-| #38 | new words | "class's", "links", "clear", "explanation", "spending" — not in the transcript at all |
+| #37 | new words | "gives" — not in the transcript at all |
+| #38 | new words | "explanation" — not in the transcript at all |

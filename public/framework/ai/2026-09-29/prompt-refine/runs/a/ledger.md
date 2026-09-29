@@ -119,7 +119,7 @@
 - #23 "Add the idea about columns and dictating what size column to this work". The owner's "I had an idea about that. We could add that to this" was only a lead-in to the next sentence. The tool made it an ask of its own (a thin citation, S64).
 - #4 "linking back to and referencing the organization mastermind". This is a loose reading of S11.
 
-**The false alarms in `coverage.md`:**
+**The false alarms in the first `coverage.md`** (both fixed in the rebuild, where coverage shows 0 dropped, 4 context only and 28 flags; the rebuilt flags are fewer but still mostly paraphrase):
 
 - It marks S48 and S95, "I'm gonna send this off", as **dropped, because it is an actionable handoff**. That is wrong. It is the owner pressing send, not an ask.
 - 36 flags. About 30 are "new words" that are only the tool's own framing ("owner", "suggests", "starting", "treat") or inflections ("stacks", "ironed"). None of them is a real change of meaning.

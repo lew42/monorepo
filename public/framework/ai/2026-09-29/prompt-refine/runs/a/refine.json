@@ -23,8 +23,8 @@
     },
     "pick": 0.0505817,
     "brief": 0.19908620000000002,
-    "coverage": 0.0955662,
-    "total": 0.745493
+    "coverage": 0.09505519999999999,
+    "total": 0.744982
   },
   "word_counts": {
     "raw": 2737,
@@ -36,10 +36,11 @@
   "coverage": {
     "sentences": 95,
     "cited": 91,
-    "context_only": 2,
-    "dropped": 2,
+    "context_only": 4,
+    "dropped": 0,
     "unclassified": 0,
-    "flags": 36,
+    "flags": 28,
     "thin_citations": 7
-  }
+  },
+  "coverage_only_rerun_at": "2026-09-29T15:26:31-05:00"
 }
