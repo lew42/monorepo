@@ -145,3 +145,41 @@
 - It caught 2 of the 5 real drops. The other 3 (#18, #49, #50) sit inside cited ranges, so the bug hid them.
 
 **Tally, first pass:** 40 kept, 7 changed, 2 stricter, 5 dropped.
+
+## The tool's brief after its repair round, scored against the same ledger
+
+- **The run:** one repair round, $0.26, which brings the run to $0.96. The brief grew from 35 asks to 44: 9 new and 10 amended. The first pass is kept as [`brief-v1.md`](brief-v1.md), and [`brief.md`](brief.md) is now the repaired one.
+- **What is listed:** only the first pass's non-kept items. It shows what the repair round did to each one.
+
+| # | Ledger item | First pass | After repair | What happened |
+|---|---|---|---|---|
+| 3 | "Grok, both Groks really" | changed | changed | The new #36 repeats #2, still with only "Grok". |
+| 8 | Claude Code SDK misread as a requirement | changed | changed | #7 is untouched. |
+| 9 | the Servex mastermind reviews the plan | changed | changed | #7 is untouched. |
+| 18 | "on any card at any time" | dropped | dropped | S48 counts as "covered" by #14, so the repair never saw it. |
+| 20 | "when to list files" (file context) | changed | changed | #24 was amended ("resume exactly where you left off"), but file context is still missing. |
+| 27 | "it was broken when I clicked on it" | dropped | **kept** | New #37. It adds "and fix", which the owner didn't say. |
+| 30 | "it's possible you get fresh insight" (the hedge) | changed | changed | #8 is untouched. |
+| 32 | the review questions | changed | changed, less | #9 now has "right things in the right order" and "find everything they need". "Is the space used properly" is still missing. |
+| 41 | "probably want … either option … probably should have padding" | stricter | stricter | #20 adds "support either option", but still says "it needs padding". |
+| 46 | "bigger cards naturally get sorted to the top. I haven't really thought about that yet" | dropped | **stricter** | New #43: "Bigger icon cards should naturally sort to the top." The repair brought the item back as a rule. coverage.md files "I haven't really thought about that yet" (S81) as "context only". |
+| 47 | agent switcher: "we'll save that for another task" | stricter | stricter | #26 is untouched. coverage.md files "save that for another task" (S96) as "context only". |
+| 49 | "that whole assistant process for every page" | dropped | dropped | S107 counts as "covered" by #30, so the repair never saw it. |
+| 50 | the assistant's model: "maybe … a configuration" | dropped | **kept** | #31: "may not need its own chosen model (though maybe make that configurable)". |
+| 51 | "I'm not sure if we should just call it a mastermind" | changed | changed, less | #32 now keeps the naming doubt. It still says "Make sure the manager sees everything", but in the dictation it is the assistant that sees everything (S113, filed as "context only"). |
+
+**The repair's side effects:**
+
+- It added two duplicate asks: #36 repeats #2, and #39 repeats #19.
+- #37 adds "fix", which the owner didn't say.
+- The brief is 26% longer.
+- It did well on #10 ("don't burn too many tokens", with "the owner suggests"), #28 (node over bash, with the owner's full reason) and #34 (the playground).
+
+**The rebuilt `coverage.md`:**
+
+- It shows 1 dropped (S95, "we need to work on how that works"; this is fair) and 14 context only.
+- The range bug is gone, because the repaired brief cites plain lists.
+- It caught 0 of the 2 real drops that remain (#18 and #49). Both sit inside long sentences that count as "covered".
+- Three of its "context only" rows are the very hedges the brief hardened: S81, S96 and S113.
+
+**Tally, after repair:** 42 kept, 7 changed, 3 stricter, 2 dropped. The first pass had 40, 7, 2 and 5. Drops fell from 5 to 2, but one of the three that came back came back stricter.
