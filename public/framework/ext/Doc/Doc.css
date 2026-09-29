@@ -46,11 +46,26 @@
 	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
 	     and once the basis no longer fits and the strip wraps to its own line, it lands
 	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+	/* ⚠ Persistent navigation never moves or hides (CLAUDE.md's own law) — so THIS
+	   bar wraps its tabs onto a second row rather than scrolling or clipping, once
+	   there isn't room for all of them on one line: at 1920 a 13-tab module's last
+	   few (API, Docs, Files) sat past the fold of `overflow: auto`'s hidden
+	   scrollbar, and with the right drawer open the SAME thing happened to the
+	   first few at 1280 (2026-09-29, navfix). This overrides ext/tabs' own
+	   `.tab-bar { flex-wrap: nowrap; overflow: auto }` (tabs.css) — deliberately
+	   never-wrap there, because a fifty-member RAIL wrapped is 500px of chrome
+	   above the content it navigates (that file's own note). Doc's own top bar is
+	   never that big — Overview, the module's declared children, API, Docs, Files
+	   — so the trade is different, and only THIS selector (0,3,0, Doc's own) says
+	   so; the shared rule in ext/tabs is untouched and every other tab strip on
+	   the site still scrolls. */
 	.page.doc-page > .tabs > .tab-bar {
 		background: var(--well);
 		flex: 1 1 24em; min-width: 0;
 		align-items: flex-end;
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+		flex-wrap: wrap;
+		overflow: visible;
 	}
 
 	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }

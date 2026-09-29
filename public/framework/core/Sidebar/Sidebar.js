@@ -144,7 +144,7 @@ export class Sidebar extends View {
 		return div.c("sidebar-nav", () => {
 			if (this.root){
 				this.$tree = new Tree({ nodes: [], adapt: true });
-				Tree.nodes_of(this.root).then(nodes => this.$tree.draw(nodes))
+				Tree.nodes_of(this.root).then(nodes => this.$tree.draw(this.visible_nodes(this.root, nodes)))
 					.then(() => this.reveal())
 					// ⚠ A slow load racing a fast typist: nodes that arrive after the
 					// reader has already started filtering would otherwise all show,
@@ -156,6 +156,30 @@ export class Sidebar extends View {
 				this.reveal();
 			}
 		});
+	}
+
+	// "Appears in navigation" (core/Page/settings/) means the RAIL too, not only
+	// ext/Doc's tab strip — a child whose own `tab` line says `nav: false`, or whose
+	// own `settings.nav` is false, skips the tree here the same way `Doc.bar()`
+	// already skips it there, both reading `page.tab_visible(name)` (core/Page/
+	// Log.js) so the two can never disagree about what "hidden" means. The child is
+	// still real, still reachable at its own url — this only drops it from the list.
+	// ⚠ `Tree.nodes_of(page)` builds `nodes` from `[...page.children.keys()]`, same
+	//   order, so zipping the two by index is exact — `ux/Tree` is consumed here,
+	//   never edited (this file's own rule, above), so the filter runs on ITS
+	//   OUTPUT instead of inside it.
+	// ⚠ A deeper branch opens LAZILY — `node.children` is a function ux/Tree calls
+	//   the first time a reader expands it (`Tree.grow()`), not now — so the same
+	//   filter is wrapped around that function too, one level at a time, or a
+	//   hidden grandchild would still show the moment its parent branch opened.
+	visible_nodes(page, nodes){
+		return [...page.children.keys()]
+			.map((name, i) => [name, nodes[i]])
+			.filter(([name]) => page.tab_visible(name))
+			.map(([, node]) => !node.children ? node : {
+				...node,
+				children: () => Promise.resolve(node.children()).then(kids => this.visible_nodes(node.page, kids)),
+			});
 	}
 
 	// THE WIRE. `predicate` is a plain function, fresh from `ux/Filter` — never a DOM
