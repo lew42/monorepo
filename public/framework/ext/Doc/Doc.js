@@ -80,7 +80,17 @@ export class Doc extends Page {
 
 	// A top tab: a page whose own children are a left rail. Two levels of real pages,
 	// so a member is /View/api/append/ and every tab is a url.
+	//
+	// ⚠ 2026-09-29 fix round, finding 3: `nav: true` here PINS this tab always-shown,
+	// with no fetch — Overview/API/Docs/Files are this class's own derived chrome,
+	// never a real page anyone's `settings.jsonl` describes, and `this.url + name +
+	// "/"` could, for an unlucky name, collide with a REAL folder somewhere that
+	// does have one (core/Page/'s own "overview/" folder, for one). `tab_visible()`
+	// (core/Page/Log.js) treats an explicit `nav: true` the same way it already
+	// treats `nav: false` — it wins outright, no page_settings() lookup at all.
 	section(name, label, config){
+		this.tab({ name, nav: true });
+
 		return this.add(name, {
 			label,
 			title: `${this.title} ${label}`,

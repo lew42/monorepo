@@ -60,10 +60,18 @@ function this_page(app){
 				// none, and writes to a sibling `settings.jsonl` instead — the same rule
 				// weight.jsonl already uses (core/Page/weight/doc/design.md), so a
 				// settings line never subscribes that folder to the file watcher.
+				//
+				// ⚠ 2026-09-29 fix round, finding 5: no more `location.reload()`. Once
+				// this line streams back (only ever true for a page.jsonl page, whose
+				// own log is being tailed — a page.js folder's sibling settings.jsonl
+				// is never a live log, so THAT case still needs the reader to revisit
+				// the page once to see the change, same as any other settings.jsonl
+				// edit), the CHILD's own reader sees the `settings` key and asks ITS
+				// PARENT to redraw (core/Page/Log.js's Reader.changed(), which is what
+				// actually fixes the strip and the rail with no reload at all).
 				$box.on("change", async function(){
 					const target = page.jsonl_url ?? page.url + "settings.jsonl";
 					await Socket.singleton().request({ method: "append", args: [target, { settings: { nav: this.el.checked } }] });
-					location.reload();
 				});
 			});
 		});

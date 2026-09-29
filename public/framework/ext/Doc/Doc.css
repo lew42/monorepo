@@ -66,6 +66,20 @@
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
 		flex-wrap: wrap;
 		overflow: visible;
+
+		/* ⚠ The wrap above stops a tab from being CLIPPED — it does not stop one
+		   from landing UNDER the ☰ drawer button, which is `position: fixed` in
+		   this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
+		   2.2rem wide, 0.5rem from the edge) and so never pushes flow content out
+		   of its way. At 1920, this bar runs the FULL width of the page (the
+		   "full-bleed band" above), so its last tab on row 1 reached the exact
+		   same corner and rendered behind the button, invisible — the API tab,
+		   2026-09-29 fix round. `padding-inline-end` reserves that corner so
+		   nothing ever wraps AT it: the button's own footprint (2.2rem) plus its
+		   inset (0.5rem) plus a hair of breathing room.
+		   ⚠ Bigger than strictly measured on purpose — `--rail-push` (drawer.css)
+		   can nudge the button further in mid-open; this stays clear either way. */
+		padding-inline-end: 3.5rem;
 	}
 
 	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }
