@@ -58,7 +58,9 @@ law: no fixed number of items, no fixed depth. Drawn live at
 - **An outline often beats paragraphs.** Text that goes "first… then… also…" usually wants to be
   a nested list.
 - **Weight, when one thing matters more.** A bigger icon card for the idea the eye should land
-  on first, sorted to the top.
+  on first, sorted to the top. Real system: [core/Page/weight](/framework/core/Page/weight/).
+- **An icon isn't required.** It adds visual weight — reach for one when the concept needs to
+  be spotted at a glance; a plain named topic link is enough for a quieter one.
 
 | For example, you have… | Often reads best as |
 |---|---|
