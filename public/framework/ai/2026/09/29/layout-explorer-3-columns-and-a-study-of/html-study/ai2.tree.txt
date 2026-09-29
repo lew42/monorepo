@@ -1,0 +1,88 @@
+body  [block 1920x1080@0,0]
+  div.dev-bar.flex.v  [flex 272x1080@1936,0]  ⚑ fixed
+    div.dev-tabs.flex  [flex 271x6@1937,112]
+    div.dev-body.flex.v  [flex 271x961@1937,119]
+    … 2 more (content)
+  div.app.theme-lew42  [flex 1920x1080@0,0]
+    div.pages  [flex 1920x1080@0,0]
+      div.page.topic.flex.fill.page-homepage.hides-nav.active-ancestor  [none]  ⚑ NONE
+        div.sidebar  [flex 0x0@0,0]
+          div.sidebar-rail  [flex 0x0@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 0x0@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 0x0@0,0]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-nav  [flex 0x0@0,0]
+                … 1 more (content)
+              div.sidebar-footer  [flex 0x0@0,0]
+                div.sidebar-avatar  [block 0x0@0,0]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 0x0@0,0]
+          … 1 more (content)
+      div.page.page--framework.topic.flex.fill.hides-nav.active-ancestor  [flex 1920x1080@0,0]
+        div.sidebar  [flex 256x1080@0,0]
+          div.sidebar-rail  [flex 255x1080@0,0]  ⚑ sticky
+            div.sidebar-bar  [flex 255x57@0,0]
+              button.sidebar-toggle  [none]  ⚑ NONE
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+                span.sidebar-toggle-bar  [inline 0x0@0,0]
+              … 1 more (content)
+            div.sidebar-menu  [flex 255x1023@0,57]
+              div.filter.flex.wrap.gap.v-center.sidebar-filter.darken-2  [flex 255x46@0,57]
+                … 1 more (content)
+              div.sidebar-nav  [flex 255x942@0,103]
+                … 1 more (content)
+              div.sidebar-footer  [flex 255x34@0,1046]
+                div.sidebar-avatar  [block 24x24@215,1051]
+                … 1 more (content)
+          … 1 more (content)
+        div.pages  [flex 1664x1080@256,0]
+          div.page.flow.page--ai2.full.fill.active-ancestor  [flex 1664x1080@256,0]
+            h1.page-title  [none]  ⚑ NONE
+            a.page-fs-link  [flex 1664x24@256,51]
+              … 2 more (content)
+            div.ai2-shell  [contents 0x0@0,0]  ⚑ CONTENTS
+              div.ai2.bleed  [grid 1664x942@256,138]
+                div.ai2-rail  [flex 352x942@256,138]
+                  div.ai2-stream  [flex 351x689@256,344]
+                    div.ai2-rows  [block 351x689@256,344]
+                      div.ai2-unfiled  [block 351x36508@256,344]
+                        div.ai2-list  [block 351x36508@256,344]
+                          a.ai2-row.ai2-page-row  [block 351x120@256,3438]
+                            … 3 more (content)
+                          a.ai2-row.ai2-page-row  [block 351x120@256,3558]
+                            … 3 more (content)
+                          … 385 more (content)
+                        … 1 more (content)
+                      … 2 more (content)
+                    … 1 more (content)
+                  div.ai2-rail-foot.flex.v-center  [flex 351x46@256,1034]
+                    a.ai2-word.page-link  [block 59x26@263,1044]
+                    … 2 more (content)
+                  … 2 more (content)
+                div.ai2-detail  [block 1312x942@608,138]
+                  div.page.flow.page--live.ai2-card-page.ai2-card-live.ai2-live-nosel.active-page  [grid 1312x942@608,138]
+                    h1.page-title  [none]  ⚑ NONE
+                    a.page-fs-link  [flex 1279x24@625,675]
+                      … 2 more (content)
+                    a.ai2-back.page-link.in-path  [none]  ⚑ NONE
+                    div.ai2-full  [contents 0x0@0,0]  ⚑ CONTENTS
+                      div.ai2-live-talk-col  [none]  ⚑ NONE
+                        … 1 more (content)
+                      div.ai2-live-tasks  [block 632x436@1272,197]
+                        … 2 more (content)
+                      … 3 more (content)
+                    … 1 more (content)
+                  … 1 more (content)
+                button.ai2-selection-flag  [none]  ⚑ NONE fixed
+                … 1 more (content)
+            … 1 more (content)
+          … 1 more (content)
+    button.drawer-menu  [flex 35x35@1877,8]  ⚑ fixed
