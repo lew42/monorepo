@@ -70,14 +70,28 @@ export class Agents {
 	 * and a resume with no `prompt` sends nothing: it is held open, idle, until
 	 * someone talks to it. ⚠ A resume must run in the session's ORIGINAL `cwd`
 	 * — the SDK stores sessions per project directory and will not find it from
-	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it. */
+	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it.
+	 *
+	 * OPEN BY NODE. `task: {dir, card, brief}` opens the task's own task.jsonl
+	 * ITSELF, before the agent's first turn — the new-task skill then has
+	 * nothing to do. This needs the session id before the SDK has even started,
+	 * which the SDK's `sessionId` option allows (start() already uses it, the
+	 * same thing `claude --session-id` does from a terminal): mint it here,
+	 * write the task file, then hand the agent that same id to use. */
 	spawn(spec){
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
+		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
+		const base = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const prompt = spec.task
+			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
+			: base;
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec, id,
-			prompt: again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt),
+			...role_defaults(spec.role), ...spec, id, prompt,
+			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
 		agent.host = this;
@@ -338,6 +352,27 @@ export class Agents {
 	}
 }
 
+/* OPEN BY NODE — `spawn({task: {dir, card, brief}}, ...)` calls this before
+ * `agent.start()`, so the task's task.jsonl carries its owning agent from the
+ * first line, and the agent's own first turn never has to run new-task.
+ * `dir` may be a path relative to this process's own cwd (Servex always runs
+ * from the repo root) or absolute; it is created if it does not exist yet.
+ * Synchronous — this must be finished before the agent's first turn starts.
+ *
+ * One assign line, always appended, never rewritten: for a brand-new file
+ * `appendFileSync` both creates it and writes this as line 1; for a task dir
+ * a caller opened earlier (or a sibling agent shares), it just adds one more
+ * assign line with the same facts, exactly like every other `assign` a task
+ * log collects over its life — never touching what came before it. */
+function open_task(task, { session_id, agent, model }){
+	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
+	fs.mkdirSync(dir, { recursive: true });
+	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
+		model, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
+	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
+	return dir;
+}
+
 /* What a session's own file says about it — the `cwd` it ran in (a resume must
  * run there) and the last `model` that answered in it — for a registry row too
  * old to have recorded either. Synchronous on purpose: `revive()` runs inside
@@ -413,9 +448,12 @@ Agents.Agent = class Agent {
 		/* The session id is known AT SPAWN, not at the first `system/init`: a
 		 * fresh spawn or a fork mints one and hands it to the SDK as `sessionId`
 		 * (allowed beside `forkSession`), so the registry row can be resumed even
-		 * if the host dies during the first turn. A plain resume keeps its id. */
+		 * if the host dies during the first turn. A plain resume keeps its id;
+		 * `spawn()` may also hand in a session id it minted itself (a `task`
+		 * spawn, so it can write that same id into task.jsonl before this
+		 * runs) — `??=` keeps that one instead of minting a second. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
-		else { this.session_id = randomUUID(); this.minted = true; }
+		else { this.session_id ??= randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump();
 		if (!this.prompt){ this.state = "idle"; return this; }

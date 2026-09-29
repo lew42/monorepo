@@ -8,6 +8,7 @@ import Server from "../Server/Server.js";
 import Events from "../Server/Events.js";
 import Log from "./Log.js";
 import Monitor from "./Monitor.js";
+import TaskLoop from "./TaskLoop.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
@@ -166,6 +167,16 @@ export default class Servex extends Events {
             this.checks.push(spec => this.monitor.flag ? this.monitor.flag.reason : null);
             this.monitor.on("tick", () => this.drain());
         }
+
+        /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
+         * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
+         * owning agent stopped or is gone; escalate to its card after 2 chases
+         * SERVEX_TASKLOOP_GAP_MIN apart. `root: REPO`, not process.cwd(), so a
+         * worktree's Servex chases the worktree's own tasks, never the live site's.
+         * Built always (close_task and task_loop_status stay callable either way);
+         * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
+        this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
+        if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
 
         /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
@@ -535,6 +546,21 @@ export default class Servex extends Events {
             const health = this.health();
             return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
         });
+
+        /* The task loop's own two tools (Servex/doc/task-loop.md). */
+        this.mcp.tool("close_task", {
+            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
+                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
+            inputSchema: { type: "object", required: ["dir"], properties: {
+                dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
+                why: { type: "string", description: "One line: why it is being closed without landing." }
+            } }
+        }, async args => JSON.stringify(await this.task_loop.close_task(args)));
+
+        this.mcp.tool("task_loop_status", {
+            description: "The task loop's latest tick: how many tasks are open today, how many are quiet, and running"
+                + " totals chased/escalated since this Servex started."
+        }, () => JSON.stringify(this.task_loop.status()));
     }
 
     health(){
@@ -673,6 +699,7 @@ export default class Servex extends Events {
     shutdown(){
         const down = () => {
             try { this.monitor?.stop(); } catch {}
+            try { this.task_loop?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
@@ -833,6 +860,7 @@ Servex.Layers = Layers;
 Servex.Global = Global;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
+Servex.TaskLoop = TaskLoop;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;

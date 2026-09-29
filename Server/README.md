@@ -28,6 +28,23 @@ the bug that prompted it only appears above 1312px and `health.mjs` was looking 
 too — one definition, three callers. The before/after over 107 pages:
 [`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
 
+**`Server/on-landing.mjs`** runs automatically the first time the ledger hook sees a task with
+`landed_at`: text-check (walls of text), layout-check and padding-check on the pages the landing
+names, and — new in the task-loop work — **`Server/doc-check.mjs`**, which checks every module
+the task touched (the nearest directory at or above a touched file that has its own `page.js`,
+skipping a task's own `ai/**` notebook) for a `readme.md`, a `doc/` dir, and readme links that
+actually resolve. Each check appends one line to the task's own log; a dirty doc-check also
+posts one nag line on the task's card (Servex's `card_reply`, over its `/mcp` door) so the owner
+sees it without opening the log. ⚠ It is a plain file/dir existence check, so a module whose
+`page.js` routes some of its readme's links to *virtual* children (declared in code, no matching
+directory on disk) can flag those as dead when the site actually serves them fine — it does not
+understand the router, on purpose, to stay this simple.
+[`public/framework/ai/2026-09-28/task-loop/landing-checks/`](/framework/ai2/2026-09-28/task-loop/landing-checks/).
+
+**Landing needs an outcome.** The ledger hook (`.claude/hooks/ledger.mjs`) refuses a `landed_at`
+with an empty or missing `outcome` — it blocks the stop, every time, and logs the refusal to the
+task once (not on every retry), so `landed_at` alone can never read as done.
+
 ## The supervisor
 
 `server.js` at the repo root is a small supervisor: it forks the real server —
