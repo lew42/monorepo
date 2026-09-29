@@ -1,0 +1,100 @@
+/* Refine — the four-column ladder (raw | clean | structured | brief), stacked
+   tabs under 640px, and the coverage table underneath. Structure and tokens
+   only; framework.css's ramp (--ok → --warn → --hot → --error) supplies the
+   one colour this needs. */
+
+@layer util {
+
+	.refine-picker { margin-block-end: var(--gap); }
+
+	.refine-state {
+		font-weight: 600;
+		margin-block-end: var(--gap);
+	}
+
+	/* The tab strip only shows once the ladder itself has switched to one
+	   column at a time — see the @media block below. */
+	.refine-tabs { display: none; }
+
+	.refine-ladder {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: var(--gap);
+		align-items: start;
+	}
+
+	.refine-col {
+		min-width: 0;
+		border-inline-start: 1px solid var(--line);
+		padding-inline-start: var(--gap);
+	}
+	.refine-col:first-child { border-inline-start: none; padding-inline-start: 0; }
+
+	.refine-col-title {
+		margin-block-start: 0;
+		text-transform: uppercase;
+		font-size: 0.85em;
+		letter-spacing: 0.04em;
+		color: var(--muted, currentColor);
+	}
+
+	.refine-col-body { max-height: 60vh; overflow: auto; }
+
+	.refine-raw-text { white-space: pre-wrap; }
+
+	.refine-sentence-p { margin-block: 0.4em; }
+	.refine-s-num { color: var(--muted, currentColor); font-size: 0.85em; }
+
+	.refine-sentence, .refine-raw-seg, .refine-bullet, .refine-ask { cursor: pointer; border-radius: 0.2em; }
+	.refine-bullet, .refine-ask { padding: 0.15em 0.3em; margin-inline-start: -0.3em; }
+
+	.refine-hit { background: color-mix(in srgb, var(--ok) 28%, transparent); }
+	.refine-selected { outline: 2px solid var(--ok); outline-offset: 1px; }
+
+	.refine-cite { color: var(--muted, currentColor); font-size: 0.85em; }
+	.refine-flag-badge { color: var(--warn); font-weight: 600; margin-inline-start: 0.4em; }
+
+	.refine-empty { color: var(--muted, currentColor); font-style: italic; }
+
+	.refine-coverage { margin-block-start: calc(var(--gap) * 2); }
+	.refine-coverage-title:not(:first-child) { margin-block-start: var(--gap); }
+
+	.refine-coverage-table, .refine-flags-table { width: 100%; border-collapse: collapse; }
+	.refine-coverage-table :is(th, td), .refine-flags-table :is(th, td) {
+		text-align: start;
+		vertical-align: top;
+		padding: 0.3em 0.6em 0.3em 0;
+		border-block-end: 1px solid var(--line);
+	}
+	.refine-coverage-table tr:hover, .refine-flags-table tr:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+
+	/* Dropped rows: warm, not an alarm — one rung of the same ramp
+	   --card-edge draws with (framework.css). Never --error/--hot: dropped is
+	   worth a look, not a failure. */
+	.refine-coverage-table tr.refine-dropped {
+		border-inline-start: 3px solid var(--warn);
+		background: color-mix(in srgb, var(--warn) 10%, transparent);
+	}
+
+	.refine-json-note { color: var(--muted, currentColor); font-size: 0.85em; margin-block-start: var(--gap); }
+
+	@media (max-width: 640px) {
+		.refine-tabs {
+			display: flex; flex-wrap: nowrap; overflow: auto; scrollbar-width: none;
+			gap: 0.2em;
+			border-bottom: 1px solid var(--line);
+			margin-block-end: var(--gap);
+		}
+		.refine-tab {
+			padding: 0.5em 0.8em;
+			cursor: pointer;
+			white-space: nowrap;
+			border-bottom: 2px solid transparent;
+		}
+		.refine-tab-active { border-block-end-color: var(--ok); font-weight: 600; }
+
+		.refine-ladder { display: block; }
+		.refine-col { display: none; border-inline-start: none; padding-inline-start: 0; }
+		.refine-col-active { display: block; }
+	}
+}
