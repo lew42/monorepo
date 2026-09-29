@@ -206,4 +206,15 @@ Demos use the five blocks (Page, `previews()`, `ext/demo`, `ext/layout`, utiliti
 is a proposal. A new module isn't done until it has a `page.js` its parent's `children:`
 names. `core/new/1/` is prior art with measurements — read, never import.
 
+## 9. OOP: a default view for any instance
+
+Give any object a look with `view(thing)` (`ux/Content/Object/DefaultView.js`) — it
+checks `thing.constructor.View` first (a plain static, so `Thing.View = class extends
+DefaultView {...}` overrides it, and a subclass inherits its parent's automatically),
+else falls back to `DefaultView`: a tree of `ui/item` rows, one per own property,
+opened lazily so a big object graph costs nothing until clicked. A class opts its own
+instances into being findable at all with `core/track/track.js`: `track(MyClass)`
+once, then `MyClass.track(this)` — one line, in that class's own constructor — most
+classes should skip this. Live: [the Object demo](/framework/ux/Content/Object/).
+
 Improve this skill: append to [`improvements.md`](improvements.md).
