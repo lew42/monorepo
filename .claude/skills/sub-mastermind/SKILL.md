@@ -5,6 +5,12 @@ description: Become a task mastermind — the agent that owns exactly ONE task e
 
 # Sub-mastermind — one task, end to end
 
+**Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
+
+**A fresh agent reviews every task when it lands (the owner, 2026-09-29).** This is the `review.mjs` step below, and its reviewer must be a FRESH agent, or a fork of the builder's session for the cache. Give it the owner's original prompt, prefixed: "Don't build this. You are reviewing the finished result against it." Fix what it finds, and log one line `{"review":{"found":N,"real":M,"fixed":K}}`, so we learn whether reviews pay off.
+
+**Track your own experiments (the owner, 2026-09-29).** Only small ones, each checkable at a glance (a number before and after, a screenshot, a pass or fail). Log each in task.jsonl as `{"experiment":{"try","measure","result"}}`. Skip anything elaborate that can't be proven.
+
 **Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge. `merge.mjs` now finds the changed pages itself from the branch's diff and `smoke.mjs` follows every link it finds on them one level deep, so `[pages]` only needs to name what the diff can't (a url no page.js maps to, a route a config file changed).
 
 You are the middle of the ladder. The **master-mastermind** above you decides *what* is worth
@@ -50,6 +56,9 @@ rather than relying on your summary, and you don't need to paste the words (the 
 
 **One task, and only one.** If more work arrives for this task, it goes in the next brief. A
 mastermind that has taken five additions has stopped being able to land anything.
+
+You start with the readme chain for your directory; read deeper docs it names on demand
+(`Servex/doc/readme-chain.md`).
 
 When you split the task, decide its review size (none/light/full — `Server/doc/review.md`): the computed size is the default, you may only set `none` with `--size none --why "self-evident: <one line>"`, and you may always raise it. After the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>`, answer every finding, then `--turns` to run the reviewer's reply on any decline, and rule yourself (`--rule`) on anything still held after that one round.
 
@@ -105,6 +114,8 @@ pressure step down the ladder, not the work, and say in the log how it went.
 When the answer isn't obvious (a question to research, a plan with rivals, a class or method
 name), don't decide alone and don't read every draft yourself. Run a **collab**: cheap agents
 work the same question in rounds and vote, and you read only the tally.
+
+Research you pay for must outlive the task. Load the `research` skill: it covers saved sources, citations with a confidence, and a snapshot readme a fresh agent can start from. Every question in the owner's words becomes a research question.
 
 1. Write `<taskdir>/collab.json`: the question, `kind` (`research` or `design`), 3 members
    (Haiku and Sonnet mixed; `model` is a field), and the context files. Every run starts with
@@ -193,6 +204,8 @@ a fence, a fact you don't have — never "out of scope".
 Everything else lives in your task's `task.jsonl` ([`new-task`](../new-task/SKILL.md) has the shape): the plan as `steps` when you open it, a `decision` line (alternative named) and a `log` caveat **the moment each happens**, and `step`/`now` bumped as each step starts — so if you are lost, a fresh mastermind resumes from the log. Ask each minion to do the same in its own log. Append with `node .claude/hooks/append.mjs`.
 
 ## Never
+
+**No work in limbo (the owner, 2026-09-29).** Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
 
 **Let any process show a window.** Every Node spawn, exec or fork sets `windowsHide: true`, even
 when detached. `Start-Process` uses `-WindowStyle Hidden` with no output redirection. Prove it with

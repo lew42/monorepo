@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
 import { brief } from "./brief.js";
+import { first_prompt } from "./readme-chain.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -282,8 +283,14 @@ export default class Layers {
 		this.save();
 	}
 
+	/* A fresh assistant gets the readme chain for its card's own dir (`public/
+	 * framework/ai/<card>`, the sub-mastermind convention that a card's dir IS
+	 * its task dir) ahead of the card's transcript, so it knows where it is
+	 * before it reads a word the owner said. A resumed one already has it —
+	 * `open()`'s `prompt()` closure only runs on the fresh path. */
 	assistant(card){
-		return this.open(card, "assistant", () => this.transcript(card) + "\n\nThe owner's newest words are the last prompt line. Answer them.");
+		return this.open(card, "assistant", () => first_prompt(`public/framework/ai/${card}`)
+			+ "\n\n" + this.transcript(card) + "\n\nThe owner's newest words are the last prompt line. Answer them.");
 	}
 
 	/* The card's log, from its LAST `summary` line onward when there is one —
@@ -315,7 +322,9 @@ export default class Layers {
 		const slot = this.record(root).manager;
 		const was = this.live(slot.id), held = this.pending.has(slot.id);
 		const request = `Request from ${from} on ${sub}${task ? ` (task ${task})` : ""}: ${text}`;
-		const agent = this.open(root, "manager", () => `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
+		// same readme-chain treatment as the assistant: only the FRESH prompt() closure runs it.
+		const agent = this.open(root, "manager", () => first_prompt(`public/framework/ai/${root}`) + "\n\n"
+			+ `Load the \`sub-mastermind\` skill. You are ${slot.id}, the manager of card ${root}.`
 			+ " Your session is kept for this card's whole life: every later request on this card comes to you, so keep what you learn."
 			+ " First call `claim_topic({thing, change, card})`: `thing` is what you will change, as a short noun anyone would use (the site header, policy.js, the AI 2 rail), never the change itself."
 			+ " If it is refused, message mastermind-servex instead of starting."

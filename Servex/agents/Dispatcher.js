@@ -111,7 +111,7 @@ export default class Dispatcher {
 			const { manager } = this.servex.layers.ask_manager({ card: task.card, text: task.brief, from: this.id, task: task.id });
 			return this.progress(task.id, "working", `handed to ${manager}`);
 		}
-		const { topics, page } = await this.context(task);
+		const { topics } = await this.context(task);
 		const post = (state, now) => `append_log({name: "prompts", entry: {type: "task", id: "${task.id}",`
 			+ ` state: "${state}", now: "${now}"}})`;
 		const opening = "you own this task; open `ai/<date>/<slug>/` with `new-task`; a"
@@ -130,7 +130,13 @@ export default class Dispatcher {
 			model: model("manager"), effort: "medium",
 			prompt: `${task.brief}\n\n${opening}`,
 			parent: this.id,
-			topics, page
+			// no `page` here: this spawn has no real directory yet (it opens its own with
+			// `new-task` on its first turn) — passing one would give `Agents.spawn()`'s
+			// readme-chain wiring a directory to prepend, and it would always be wrong
+			// (found by review, 2026-09-29: `context()` below used to hand back a fixed
+			// stub, "/framework/ai2/", read by nothing until directory_of() started
+			// reading `spec.page`).
+			topics
 		});
 
 		this.running.set(agent.id, task.id);
@@ -143,15 +149,13 @@ export default class Dispatcher {
 
 	/* The names the fast assistant minted alongside this same idea, read back
 	 * off the card's own `re` — which lists every id minted since the prompt
-	 * it answers, names included (`Assistant.js`'s `entry()`). `page` is a
-	 * link back to where the card lives, so a registry row is never a dead
-	 * end even before the task has a page of its own. */
+	 * it answers, names included (`Assistant.js`'s `entry()`). */
 	async context(task){
 		const history = await this.servex.log.tail(this.log, 500).catch(() => []);
 		const card = history.find(e => e.type === "card" && e.id === task.re);
 		const ids = [].concat(card?.re ?? []);
 		const topics = history.filter(e => e.type === "name" && ids.includes(e.id)).map(e => e.name).filter(Boolean);
-		return { topics, page: "/framework/ai2/" };
+		return { topics };
 	}
 
 	/* A child's wake — `done` or `blocked`, from `Agents.wake_parent()` —
