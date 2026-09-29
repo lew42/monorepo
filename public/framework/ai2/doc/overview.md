@@ -7,8 +7,19 @@ tab's page reads that file straight off disk; it does no computing of its own.
 **How a task joins a concept:** the seven concepts (Servex, Page, View, App, AI 2, Dictation,
 Research & Collab), most important first, each list match words at the top of the script. A task
 joins the FIRST concept whose word matches its slug or group as a whole word; only if neither
-names one does its request text get tried too (request text is the noisiest of the three). No
-match at all leaves the task out, counted in `unfiled`.
+names one does its request text get tried too (request text is the noisiest of the three, so it
+goes last). No match at all leaves the task out, counted in `unfiled`. View is deliberately the
+strictest: its match list is small, and its one request-text word ("View") is checked
+case-SENSITIVE, because the framework class is always capitalized while ordinary English ("a
+context view", a slug like "days-view") is not.
+
+**Each ASK's `owner` field says whether `quote` is really the owner's own words.** The best
+signal is `session_id`: a task's `assign.session_id` is the same CLI session that logged the
+owner's prompts, so the owner's words for a task are the LATEST owner prompt in that same
+session, at or before the task's own `requested_at` (`owner: true`). Failing that, an older
+text-overlap guess is tried (`owner: true` too — still a real prompt, just not proven to be
+THIS task's own trigger). Only when neither finds anything does `quote` fall back to the task's
+own `request` — a mastermind's paraphrase, not the owner's words (`owner: false`).
 
 **Open vs. done:** unlanded and requested in the last 7 days = open; older unlanded = dropped,
 counted in `stale_count`. Landed = done; newest 30 kept, `done_count` is the true total.

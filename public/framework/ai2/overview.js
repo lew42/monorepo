@@ -115,7 +115,7 @@ export function overview(){
 	fetch(DATA, { cache: "no-store" })
 		.then(r => r.ok ? r.json() : Promise.reject(new Error(r.status + "")))
 		.then(data => {
-			$built.text("Built " + when(data.built_at) + " from the task logs");
+			$built.text("Built " + when(data.built_at) + " from the task logs" + (data.unfiled ? " · " + data.unfiled + " not filed" : ""));
 			$grid.empty(() => (data.concepts ?? []).forEach((c, i) => concept(c, i === 0)));
 		})
 		.catch(() => $built.text("The overview has not been built yet (Server/ai2-overview.mjs)."));
