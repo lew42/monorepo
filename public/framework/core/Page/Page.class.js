@@ -212,6 +212,11 @@ export class Page extends PageLog {
 		// page that routes every name still has one. Markdown.js.
 		if (name === "md" && known === undefined) return this.add(name, await this.md_folder()).load_all_children(levels);
 
+		// Every page has an `fs/`: this directory's real files, full screen — the
+		// owner's "any path slash fs" route (2026-09-28). The same seam as `md`
+		// above, one door over in ext, so no page.js exists for it anywhere.
+		if (name === "fs" && known === undefined) return this.add(name, await this.fs_folder()).load_all_children(levels);
+
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
@@ -226,6 +231,13 @@ export class Page extends PageLog {
 	async md_folder(){
 		const { default: PageMarkdown } = await import("./Markdown.js");
 		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown" });
+	}
+
+	// This directory's own files, full screen, at my own `fs/` — ext/files/fs.js.
+	// ⚠ core does not import ext: the import is dynamic, same as md_folder() above.
+	async fs_folder(){
+		const { default: PageFiles } = await import("../../ext/files/fs.js");
+		return new PageFiles({ folder: this.md_dir() });
 	}
 
 	// ════ WHERE A CLICKED LINK OPENS — the page decides, the link carries no target ══
@@ -544,6 +556,19 @@ export class Page extends PageLog {
 		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
+
+			// A small way into this folder's own real files, full screen — the
+			// owner's "any path slash fs" route (2026-09-28), linked from every page
+			// template so it never needs a second click through a parent's Files
+			// tab. Never on the /fs/ view itself: that page overrides render() whole
+			// and never reaches here (ext/files/fs.js).
+			// ⚠ `this.url` — a page with no real address (a synthetic sidebar group,
+			//   built before naming() ever ran) gets no link rather than one pointing
+			//   at "undefinedfs/". Found on the site's own hidden nav tree, 2026-09-28.
+			if (this.url)
+				a.c("page-fs-link", () => { icon("folder_open"); span("Folder"); })
+					.href(this.url + "fs/")
+					.style({ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: "var(--subtle)", textDecoration: "none" });
 
 			/* A page that said one of the six words gets a FRAME: the chrome its
 			   arrangement word asks for, around the box its content goes in. A page

@@ -179,8 +179,26 @@ export class Doc extends Page {
 
 		return this.section("files", "Files", {
 			render(){
-				return this.view ??= div.c("page doc-section doc-files", () => doc.browser())
-					.ac("page--files");
+				return this.view ??= div.c("page doc-section doc-files", () => {
+					// `.doc-files` itself is a flex ROW (Doc.css) built for exactly ONE
+					// child, `doc.browser()`'s tree|about|source panels — so a second
+					// child (the link) needs its OWN box, one that stacks the two
+					// vertically, rather than becoming a squeezed fourth column in that
+					// same row. Inline styles only: Doc.css is outside this fence.
+					div.c("doc-files-body", () => {
+						// This tab's own box is small — nested in the tab panel, the page
+						// padding and the site sidebar — so a reader who wants the real
+						// size gets the module's own full-screen `fs/` route instead.
+						// core/Page/Page.class.js's fs_folder() seam; ext/files/fs.js.
+						div.c("doc-files-head", () => {
+							a.c("doc-files-fs", () => { icon("open_in_full"); span("Open full screen"); })
+								.href(doc.url + "fs/")
+								.style({ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: "var(--subtle)", textDecoration: "none" });
+						}).style({ flex: "0 0 auto" });
+
+						doc.browser().style({ flex: "1 1 auto", minHeight: "0" });
+					}).style({ display: "flex", flexDirection: "column", flex: "1 1 auto", minHeight: "0", width: "100%" });
+				}).ac("page--files");
 			},
 		});
 	}

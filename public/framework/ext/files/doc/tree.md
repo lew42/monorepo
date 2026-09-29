@@ -47,9 +47,27 @@ reads it off `e.target.closest(".file-name").dataset.path` — never off
 `paths[i]`, and never per-row, so a tree the reader splits into a second panel
 is wired by the listener that was already there.
 
-## Kept: no expand/collapse
+## Expand and collapse (2026-09-28)
 
-Folders render open and stay open. A disclosure triangle is the obvious next
-feature and it should not be built: these trees run three to six entries by
-construction, and a doc example that needs collapsing is a doc example that is
-too big. `<details>` already does this with no JS, the day one genuinely does.
+The verdict above — "these trees run three to six entries by construction, and
+a doc example that needs collapsing is too big" — stopped being true the day
+`ext/files/fs.js` (minion B's half of this task) started handing this browser
+a whole real directory, which can be thousands of paths. A tree that always
+renders every row cannot do that without freezing the page.
+
+**A closed folder still gets its own row** — a chevron and a name, so it can
+be clicked — **but its children are not built until the first click on it.**
+`rows()` takes an `open` depth (default: every level, the old always-open
+behaviour) and only recurses into a folder past that depth once its
+`.file-dir-name` is clicked, appending the newly built rows into a `.file-dir-
+body` that already exists but was empty and `display: none`. Reopening a
+folder that was already built (past `open`'s depth, or forced open below)
+shows the same rows again — nothing rebuilds twice.
+
+**The chain of folders holding the selected file force-opens**, regardless of
+`open`: `tree()` slices the selected path down to the shortened form once and
+each level of `rows()` checks whether it is a prefix of that shortened path.
+Without this, a caller passing `open: 1` alongside a deep `?file=` link would
+show the file selected in the url but nowhere visible in the tree — worse than
+the old always-open behaviour, not better. Design record for the removal of
+the panel workspace this rode in on: [columns](./columns.md).

@@ -1,19 +1,43 @@
 @layer theme {
 
-	/* The frame around the workspace. ext/Panel sizes itself from `--panel-height` and
-	   every region inside is `flex: 1 1 0`, so this box is what they have to scroll in;
-	   a host wanting a taller browser retunes the token and nothing else. */
+	/* The frame. A plain caller gets a bounded box that scrolls inside itself
+	   (`--files-height`); `fill: true` (minion B's full-screen `/fs` route) makes it
+	   claim its parent's whole height instead, so the COLUMNS scroll and the page
+	   never does. */
 	.files {
-		--panel-height: min(70vh, 30em);
+		--files-height: min(70vh, 30em);
+		display: flex;
+		flex-direction: column;
+		block-size: var(--files-height);
 		border: 1px solid var(--line);
 		border-radius: var(--radius);
 		overflow: hidden;
 		background: var(--surface);
 	}
 
-	/* A panel body is a grid that centres what it is handed; a region is a full-width
-	   column, positioned by the panel's own `align` instead. */
-	.file-tree, .file-source, .file-about { inline-size: 100%; }
+	.files-fill { block-size: 100%; }
+
+	/* Vertically fixed (each column scrolls on its own); horizontally it scrolls the
+	   whole row once the columns' floors no longer fit — a narrow screen gets a
+	   sideways swipe across tree/about/source rather than a squeeze, the same trade
+	   core's own `.page-columns-row` makes. */
+	.files-row { display: flex; flex: 1 1 auto; min-block-size: 0; overflow-block: hidden; overflow-inline: auto; }
+
+	/* `position: relative` is `ext/grip`'s own requirement: its pill is an absolutely
+	   positioned child. `min-inline-size` keeps each column from being squeezed to
+	   nothing by the row's own flex math (a code line is wider than its column). */
+	.files-col { position: relative; overflow-y: auto; min-inline-size: 10em; flex-shrink: 0; }
+
+	.files-col-tree,
+	.files-col-about { border-inline-end: 1px solid var(--line); }
+
+	/* The written width lands here as `--files-col-w`, set by the grip living IN that
+	   same column — `ext/grip`'s own rule is that only the dragged column changes size;
+	   whatever is to its right just slides over. Nothing is saved: every visit gets the
+	   same seed, same as the ext/Panel arrangement this replaces. */
+	.files-col-tree { flex: 0 0 clamp(10em, var(--files-col-w, 16em), 60%); }
+	.files-col-about { flex: 0 0 clamp(12em, var(--files-col-w, 22em), 60%); }
+	.files-col-source { flex: 1 1 20em; min-inline-size: 20em; }
 
 	.file-tree { padding: 0.6em 0; font-size: 0.85em; }
 
@@ -21,27 +45,35 @@
 	.file-dir-name {
 		display: flex;
 		align-items: center;
-		gap: calc(var(--gap) * 0.45);   /* was gap 0.45em - 2026-09-05 ramps */
+		gap: calc(var(--gap) * 0.45);
 		padding: 0.3em 0.9em;
 		white-space: nowrap;
+		cursor: pointer;
 	}
 
-	.file-name { cursor: pointer; }
-	.file-name:hover { color: var(--prim); }
+	.file-name:hover,
+	.file-dir-name:hover { color: var(--prim); }
 
 	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
 
 	.file-dir-name { color: var(--subtle); }
-	.file-dir-body { padding-inline-start: 0.9em; }
+
+	/* Closed by default; only an OPEN folder's own body shows. `display: none` rather
+	   than removal — a folder built once (past `open`'s depth, or an ancestor of the
+	   selected file) keeps its rows across a close/reopen instead of rebuilding them. */
+	.file-dir-body { padding-inline-start: 0.9em; display: none; }
+	.file-dir.open > .file-dir-body { display: block; }
+
+	/* One glyph that turns, rather than swapping icons on click. */
+	.file-dir-name .icon { transition: transform 0.12s; }
+	.file-dir.open > .file-dir-name .icon { transform: rotate(90deg); }
 
 	.file-label { overflow: hidden; text-overflow: ellipsis; }
 
 	.file-tree .icon { font-size: 1em; opacity: 0.65; }
 	.file-name.selected .icon { opacity: 1; }
 
-	/* The panel body is the scroller now, so the block is flush and has no end of its
-	   own — the `max-height` this rule used to carry was the flex arrangement's way of
-	   giving the pane one. */
+	/* The source pane is the scroller (`.files-col`), so the block itself stays flush. */
 	.file-source > .code-block,
 	.file-source > pre {
 		margin: 0;
@@ -52,18 +84,4 @@
 
 	/* The prose written ABOUT the file, beside its source — ext/Doc's Files tab. */
 	.file-about { padding: 0 1.1em; font-size: 0.9em; }
-
-	.file-blank { font-size: 0.85em; }
-
-	/* The bar above the panels: one code column, two, or code + rendered. */
-	.files-bar { display: flex; align-items: center; gap: calc(var(--gap) * 0.45); padding: 0.35em 0.6em; border-bottom: 1px solid var(--line); font-size: 0.8em; }
-	.files-mode { display: inline-flex; align-items: center; gap: 0.35em; padding: 0.2em 0.7em; }
-	.files-mode.selected { color: var(--prim); background: var(--wash); }
-	.files-hint { margin-inline-start: auto; }
-
-	/* The second file, in 2-column mode. */
-	.file-name.pinned { color: var(--prim); background: var(--wash); font-style: italic; }
-
-	.file-rendered { inline-size: 100%; block-size: 100%; padding: 0 1.1em; font-size: 0.9em; }
-	.file-frame { inline-size: 100%; block-size: 100%; min-block-size: 20em; border: none; }
 }

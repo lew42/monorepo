@@ -1,91 +1,74 @@
 # `files.js`
 
-The door and the pieces: the exported `files(meta, names, { about })` factory,
-the two region renderers it shares with `panels.js` (`tree`, `source`), and the
-three private helpers that turn a flat, space-separated string of paths into a
-nested structure (`common_dir`, `nest`, `rows`).
+The whole module, one file: the exported `files(meta, names, { about, route, fill,
+open })` factory, the tree it builds (`tree`, `rows`, `nest`, `common_dir`), the source
+pane (`source`), and the url-query bookkeeping (`owns`, `read`, `write`). Until
+2026-09-28 the arrangement lived in a second file, `panels.js`, built from
+[`ext/Panel`](/framework/ext/Panel/) leaves — stripped out per the owner's call (it read
+as "really cluttered", and came with two stacked toolbars neither wanted). Everything
+now builds synchronously in one pass; there is no dynamic `import()` left to reason
+about.
 
-What it deliberately does **not** hold is the arrangement — that is
-[`panels.js`](./panels.js.md), and this file reaches it through a dynamic
-`import()`.
-
-## The shape: place the box now, arrange it later
+## The shape: three flex columns, one call
 
 ```js
-return div.c("files", () =>
-	import("./panels.js").then(m => () => m.panels({ meta, paths, cut, about })));
+const $box = div.c("files", () => {
+	div.c("files-row", () => {
+		div.c("files-col files-col-tree", $col => { tree(...); grip({ from: "start", write: … }); });
+		if (about) div.c("files-col files-col-about", $col => { …same… });
+		div.c("files-col files-col-source", () => { source(meta, state.path); });
+	});
+}).ac(fill && "files-fill");
 ```
 
-Three things at once, and each is load-bearing:
+Two columns without `about`, three with it. Each of the first two carries its own
+[`ext/grip`](/framework/ext/grip/) — the seam on ITS OWN right edge, which is what makes
+dragging it resize that column and nothing else. `grip`'s `write(px)` sets a CSS
+variable (`--files-col-w`) on that column alone; nothing is saved, so every visit gets
+the same seeded widths (`files.css`'s `clamp(…)` defaults) — the same trade the deleted
+`MemorySaver` made, just without a Panel underneath it.
 
-- **The box is placed synchronously**, so `files()` returns a real view to
-  whatever captor called it. Capturing is synchronous — a factory call after
-  the import resolved would append wherever the captor had drifted.
-- **The import is lazy**, because `app.js` re-exports this function for the
-  whole site and ext/Panel is roughly a dozen modules. A static import would
-  make every page on the site pay for the handful that draw a browser.
-- **A promise resolving to a FUNCTION**, never to a view. `append_promise`
-  awaits it and `append_fn` runs the function with the captor back on `.files`,
-  which is what lets `panels()` build with element factories.
+## The tree: real nesting, lazy past `open`
 
-## `tree` and `source` are exported for one caller
-
-Both are called from `panels.js` and nowhere else, and they live here rather
-than there because they are what a *file browser* renders — `panels.js` is only
-where the regions are put. The split is what keeps both files under a screen.
-
-`tree(paths, cut, selected)` takes the selected path rather than reading it
-from anywhere: a region draws from state it was handed, and the panel that owns
-the state is the one that hands it over.
-
-## The "returned, not called" shape, in `source()`
-
-`source()` hands back a **promise** on the `ext/highlight` path (`code.file()`
-is `capture: false` — nothing to place until it resolves) and a `pre` it built
-on the fallback path. Its caller wraps it in a callback —
-`div.c("file-source", () => source(meta, path))` — so `append_fn` handles both:
-the promise is awaited and appended, the `pre` placed itself and is re-appended
-to the same parent. Calling it outside a captor and dropping the value renders
-nothing, silently.
-
-## `common_dir`, `nest`, `rows`: segment-wise, never character-wise
-
-`common_dir()` counts how many leading **path segments** every file shares,
-comparing whole segments so `app.js` and `app2.js` never collide mid-name.
-`nest()` turns the flat list into `{ "file.js": "full/path/file.js", dir: {…} }`
-— a string leaf is a file holding its fetchable path, an object is a
-directory. `rows()` walks that structure and renders it, marking the selected
-row as it goes; insertion order is declaration order, which is the order the
-author wrote the paths in. Full record: [tree](../tree.md).
+`nest()` (unchanged) groups the flat, space-separated path list into `{ "file.js":
+"full/path", dir: {…} }` — a string leaf is a fetchable path, an object is a directory.
+`rows()` walks it and, new as of this rewrite, **keeps every folder past depth `open`
+closed and unbuilt**: a closed folder gets its own row (so it can be clicked) but its
+children are not constructed until the first click on it. This is what lets
+`ext/files/fs.js` (a full directory listing, thousands of paths) hand `files()` an `open:
+1` and not pay for the whole tree up front. The chain of folders holding the *selected*
+file is force-opened regardless of `open`, so a deep `?file=` link is never hidden
+inside a closed folder.
 
 ## `source`: an ext leaning on an ext, softly
 
 ```js
 if (code.file) return code.file(meta, path);
-return pre.c("code-block", () => code().append(fetch(...).then(resp => resp.text())));
+return pre.c("code-block", () => code().append(fetch(...).then(resp => resp.ok ? resp.text() : `Error loading …`)));
 ```
 
-With `ext/highlight` loaded (`app.js` always loads it), `code.file()` fetches,
-highlights and **caches by href** — which is what makes repainting the source
-panel on every click free. Without it, this file falls back to a plain `<pre>`:
-an ext may lean on an ext; only core may never.
+Unchanged from before. With [`ext/highlight`](/framework/ext/highlight/) loaded
+(`app.js` always loads it), `code.file()` fetches, highlights and **caches by href** —
+free repaints on every click. Without it, a plain `<pre>`, and this branch DOES check
+`resp.ok` (the 2026-08 audit that flagged it missing was checking a copy that had
+already been fixed; the doc just hadn't caught up — fixed in this pass).
+
+## The url query, carried over from `panels.js`
+
+`owns()` / `read()` / `write()` are the same claim-and-write dance the deleted
+`panels.js` used: only the first `files()` on a page holds `?file=`, everyone else keeps
+its selection private. Simplified from the old version because there is only ever one
+source column now — no more `file2` / `cols` in the query, since the multi-column
+toggle bar (1 column / 2 columns / code + rendered) is exactly what step 2 of this task
+deleted.
 
 ## Improvements
 
-1. **The fallback path never checks `resp.ok`.** `code.file()` does
-   (`if (!resp.ok) throw …`); the `pre.c(...)` fallback two lines below it in
-   this same file does not — a missing file resolves with whatever body the
-   SPA fallback served (typically `index.html`) and renders it as if it were
-   the file's contents, with no visible error. Currently masked because
-   `app.js` always imports `ext/highlight`, so `code.file` is truthy on every
-   page of this site; not masked for any other caller of `files()`.
-   *(simple, important — one line, matching `md.file()`'s existing guard.)*
-2. **No loading state.** Between `files()` returning and `panels.js` arriving,
-   the box is empty — one module fetch on a warm cache, longer on a cold one,
-   and now with an import in front of it where before there was none. A
-   skeleton row or a `muted` line would cost three. *(simple, useful)*
-3. **`rows()` marks the selection at build time and `mark()` toggles it
-   afterwards** — two writers of one class, in two files. Correct as written
-   (the build-time pass is for a panel that did not exist when the click
-   happened), but if a third writer ever appears this wants to be one function.
-   *(simple, speculative)*
+1. **No loading state.** `files()` builds everything synchronously now (an improvement
+   over the old lazy `import("./panels.js")` gap), but the very first `source()` /
+   `about()` call can still be a pending fetch with nothing shown meanwhile. A `muted`
+   placeholder line would cost three. *(simple, useful)*
+2. **The ancestor-force-open walk re-slices `selected` on every recursive call**
+   (`to.startsWith(path)`). Fine at the sizes this module runs at; a tree with a very
+   deep selected path and thousands of siblings at every level would want that
+   precomputed once. *(simple, speculative — not measured as a problem)*
