@@ -16,6 +16,7 @@ View.stylesheet(import.meta, "nested.css");
      landed  — a check                       (--ok)
      running — a pulsing dot and its %       (--prim)
      waiting — a hollow clock, "waits for …" (--subtle)
+     stopped — a grey stop sign: gone without landing, not in flight
    Parallel = side by side (or badged "together"); series = a "then" between. */
 
 export class TaskTree {
@@ -44,7 +45,7 @@ export class TaskTree {
 	mark(n){
 		const s = n.state || "running";
 		if (s === "running") return span.c("ai-tree-mark is-running", () => span.c("ai-tree-dot")).attr("title", "running");
-		return icon(s === "landed" ? "check_circle" : "schedule").ac(`ai-tree-mark is-${s}`).attr("title", s);
+		return icon({ landed: "check_circle", stopped: "stop_circle" }[s] || "schedule").ac(`ai-tree-mark is-${s}`).attr("title", s);
 	}
 
 	// "60%", or "waits for Read today's logs, Build the tree".
@@ -53,7 +54,7 @@ export class TaskTree {
 			const names = this.waits(n, siblings);
 			return span.c("ai-tree-status is-waiting", names.length ? `waits for ${names.join(", ")}` : "waiting");
 		}
-		return span.c(`ai-tree-status is-${n.state}`, n.state === "landed" ? "done" : `${TaskTree.pct(n)}%`);
+		return span.c(`ai-tree-status is-${n.state}`, { landed: "done", stopped: "stopped" }[n.state] || `${TaskTree.pct(n)}%`);
 	}
 
 	bar(n){
@@ -104,10 +105,9 @@ export class TaskTree {
 		return d.endsWith("/") ? d : d + "/";
 	}
 
-	// Look a sibling up by its dir, its last path part, or its agent.
+	// Look a sibling up by its exact dir (tree.js normalizes `after` like `dir`) or its agent.
 	static index(list = []){
-		const tail = s => String(s).replace(/\/+$/, "").split("/").pop();
-		return x => list.find(s => s.dir === x || s.agent === x || (s.dir && tail(s.dir) === tail(x)));
+		return x => list.find(s => s.dir === x || s.agent === x);
 	}
 
 	// Topological layers over `after`, siblings only.
@@ -134,14 +134,14 @@ export class TaskTree {
 	}
 
 	static counts(roots){
-		const c = { running: 0, waiting: 0, landed: 0 };
+		const c = { running: 0, waiting: 0, landed: 0, stopped: 0 };
 		TaskTree.walk(roots, n => { c[n.state] = (c[n.state] || 0) + 1; });
 		return c;
 	}
 
-	// Running first, then waiting, then landed.
+	// Running first, then waiting, then stopped, then landed.
 	static order(roots){
-		const rank = { running: 0, waiting: 1, landed: 2 };
+		const rank = { running: 0, waiting: 1, stopped: 2, landed: 3 };
 		return [...roots].sort((x, y) => (rank[x.state] ?? 3) - (rank[y.state] ?? 3));
 	}
 }
@@ -168,7 +168,7 @@ export class Lanes extends TaskTree {
 	lanes(n){
 		const phases = this.phases(n);
 		div.c("ai-tree-phases", () => phases.forEach((ph, i) => {
-			if (i) div.c("ai-tree-then", () => { icon("arrow_forward"); span("then"); });
+			if (i) div.c("ai-tree-then", () => { icon("arrow_forward"); span("then"); }).attr("title", "the next column starts when this one has landed");
 			div.c("ai-tree-lane", () => {
 				span.c("ai-tree-label", ph.length > 1 ? `${ph.length} at once` : "one task");
 				ph.forEach(c => this.card(c, n.children));
@@ -217,13 +217,16 @@ export class Outline extends TaskTree {
 
 /* Flow — a node graph: the parent on the left, each phase a column, and an arrow
    for every "waits for". A task's own subtasks show as small marks inside its
-   node. Plain HTML boxes on a grid, one SVG underneath for the arrows. */
+   node. HTML boxes placed in %, so the graph fills the width it is given (never
+   narrower than the px layout below), and one SVG underneath for the arrows,
+   stretched to the same box. The arrowhead is each box's own ::before, so the
+   stretch never distorts it. */
 export class Flow extends TaskTree {
 	static id = "flow";
 	static title = "Flow";
 
-	// Node box and gaps, in px — the SVG and the boxes share one coordinate system.
-	static W = 240; static H = 96; static GX = 56; static GY = 14;
+	// The layout, in px at its narrowest — the boxes and the SVG share it, then stretch.
+	static W = 240; static H = 112; static GX = 56; static GY = 14;
 
 	root(n){
 		const phases = this.phases(n);
@@ -237,15 +240,16 @@ export class Flow extends TaskTree {
 			const top = (height - (col.length * H + (col.length - 1) * GY)) / 2;
 			col.forEach((c, j) => pos.set(c, { x: i * (W + GX), y: top + j * (H + GY) }));
 		});
+		const pc = v => (100 * v / width) + "%";
 
 		div.c("ai-tree-root ai-tree-scroll", () => {
 			div.c("ai-tree-graph", $g => {
-				$g.style("width", width + "px").style("height", height + "px");
-				$g.el.insertAdjacentHTML("afterbegin", this.edges(n, cols, pos));
-				cols.forEach(col => col.forEach(c => {
+				$g.style("min-width", width + "px").style("height", height + "px");
+				$g.el.insertAdjacentHTML("afterbegin", this.edges(n, cols, pos, width, height));
+				cols.forEach((col, i) => col.forEach(c => {
 					const { x, y } = pos.get(c);
-					this.node(c, c === n ? [] : n.children).style("left", x + "px").style("top", y + "px")
-						.style("width", W + "px").style("height", H + "px");
+					this.node(c, c === n ? [] : n.children).ac(i ? "has-in" : "")
+						.style("left", pc(x)).style("top", y + "px").style("width", pc(W)).style("height", H + "px");
 				}));
 			});
 		});
@@ -254,7 +258,7 @@ export class Flow extends TaskTree {
 	node(n, siblings){
 		return div.c(`ai-tree-node is-${n.state}`, () => {
 			this.head(n, siblings);
-			this.bar(n);
+			if (n.state === "running") this.bar(n);
 			if (n.children?.length) div.c("ai-tree-subs", () => {
 				n.children.forEach(k => this.mark(k).attr("title", `${k.title || k.agent}: ${k.state}`));
 				span.c("ai-tree-label", `${n.children.length} subtasks`);
@@ -263,7 +267,7 @@ export class Flow extends TaskTree {
 	}
 
 	// Parent → phase 1; each later task ← what it waits for (or all of the phase before).
-	edges(n, cols, pos){
+	edges(n, cols, pos, width, height){
 		const { W, H } = this.constructor;
 		const by = TaskTree.index(n.children || []);
 		const lines = [];
@@ -271,7 +275,7 @@ export class Flow extends TaskTree {
 			const a = pos.get(from), b = pos.get(to);
 			if (!a || !b) return;
 			const x1 = a.x + W, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2, mx = (x1 + x2) / 2;
-			lines.push(`<path class="${cls}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2 - 6},${y2}" marker-end="url(#ai-tree-arrow)"/>`);
+			lines.push(`<path class="${cls}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`);
 		};
 		cols.forEach((col, i) => {
 			if (!i) return;
@@ -281,10 +285,7 @@ export class Flow extends TaskTree {
 				from.forEach(u => line(u, c, `is-${u.state === "landed" ? "landed" : (c.state === "waiting" ? "waiting" : "running")}`));
 			});
 		});
-		const w = cols.length * (W + 56), h = Math.max(...[...pos.values()].map(p => p.y)) + H;
-		return `<svg class="ai-tree-edges" width="${w}" height="${h}" aria-hidden="true">
-			<defs><marker id="ai-tree-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-			<path d="M0,0 L10,5 L0,10 z"/></marker></defs>${lines.join("")}</svg>`;
+		return `<svg class="ai-tree-edges" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" width="100%" height="${height}" aria-hidden="true">${lines.join("")}</svg>`;
 	}
 }
 
@@ -296,7 +297,7 @@ export const Winner = Lanes;
 export function counts(roots){
 	const c = TaskTree.counts(roots);
 	return div.c("ai-tree-counts", () => {
-		["running", "waiting", "landed"].forEach(s => span.c(`ai-tree-count is-${s}`, () => {
+		["running", "waiting", "landed", "stopped"].filter(s => s !== "stopped" || c.stopped).forEach(s => span.c(`ai-tree-count is-${s}`, () => {
 			span.c("ai-tree-n", String(c[s] || 0)); span(" " + s);
 		}));
 	});

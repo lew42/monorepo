@@ -439,7 +439,8 @@ function open_task(task, { session_id, agent, model, parent_dir }){
 	 * ext/AITask/tree.js draws. */
 	const rel = d => d && path.relative(process.cwd(), path.resolve(d)).split(path.sep).join("/");
 	const parent_task = rel(task.parent_task ?? parent_dir);
-	const after = Array.isArray(task.after) && task.after.length ? task.after : undefined;
+	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
+	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
 		model, parent_task, after, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");

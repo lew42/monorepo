@@ -38,7 +38,7 @@ export function fold(dir, entries, inbox = []){
 	let first = true;
 	for (const e of entries) if (e?.assign){
 		const a = e.assign;
-		if (first) for (const k of ["agent", "tab", "parent_task", "after", "title"]) if (a[k] != null) m[k] = a[k];
+		if (first) for (const k of ["agent", "tab", "parent_task", "after", "title", "request", "card"]) if (a[k] != null) m[k] = a[k];
 		if (a.requested_at != null) m.requested_at ??= a.requested_at;   // the first start, not a later re-assign
 		for (const k of ["landed_at", "step", "steps", "title"]) if (a[k] != null) m[k] = a[k];
 		first = false;
@@ -51,11 +51,18 @@ const leaf_pct = n => n.state === "landed" ? 100
 	: n.steps?.length ? Math.round(100 * (Math.max(1, Math.min(n.step ?? 1, n.steps.length)) - 1) / n.steps.length)
 	: 0;
 
+/* A task's title, best first: its own `title`, its brief's first heading
+   (`brief_title`, read by tree_for_day), the first sentence of line 1's
+   `request`, its card's slug, and only then its folder's slug. */
+const short = s => { s = String(s).split(/(?<=[.!?])\s|\n/)[0].trim(); return s.length > 80 ? s.slice(0, 79).trimEnd() + "…" : s; };
+export const title_of = m => m.title ?? m.brief_title ?? (m.request ? short(m.request) : null)
+	?? (m.card ? String(m.card).replace(/\/+$/, "").split("/").at(-1) : null) ?? norm(m.dir).split("/").at(-1);
+
 /** Every manifest → the roots of the tree. */
 export function build(manifests){
 	const nodes = new Map();
 	for (const m of manifests) nodes.set(norm(m.dir), {
-		dir: norm(m.dir), title: m.title ?? norm(m.dir).split("/").at(-1), agent: m.agent ?? m.tab ?? null,
+		dir: norm(m.dir), title: title_of(m), agent: m.agent ?? m.tab ?? null,
 		names: [m.agent, m.tab].filter(Boolean), parent_task: m.parent_task && norm(m.parent_task),
 		after: [].concat(m.after ?? []).map(norm), inbox: m.inbox ?? [],
 		start: m.requested_at ?? null, end: m.landed_at ?? null, landed: !!m.landed_at,
@@ -92,6 +99,7 @@ export function build(manifests){
 		for (const leaf of leaves.values()){
 			const last = leaf.rows.at(-1);
 			leaf.landed = last.kind === "done";
+			leaf.stopped = last.kind === "stopped" || last.kind === "error";   // gone, but never landed
 			leaf.end = leaf.landed ? last.at : null;
 			// a leaf's start is unknown (null), so time-based phasing never opens a new phase for it
 			delete leaf.rows;
@@ -110,8 +118,9 @@ export function build(manifests){
 function settle(n, parent_of){
 	for (const c of n.children) settle(c, parent_of);
 	const siblings = parent_of?.get(n)?.children ?? [];
-	const done = dir => siblings.find(s => s.dir === dir || s.dir.endsWith("/" + dir))?.state === "landed";
-	n.state = n.landed ? "landed" : n.after.length && !n.after.every(done) ? "waiting" : "running";
+	// `after` is task dirs, normalized like `dir`, and matched exactly — a slug is not accepted.
+	const done = dir => siblings.find(s => s.dir === dir)?.state === "landed";
+	n.state = n.landed ? "landed" : n.stopped ? "stopped" : n.after.length && !n.after.every(done) ? "waiting" : "running";
 	if (n.landed || !n.children.length) n.pct = leaf_pct(n);
 	else {
 		const w = c => c.steps?.length || 1;
@@ -120,7 +129,7 @@ function settle(n, parent_of){
 	}
 	n.phases = phases(n.children);
 	n.children = n.phases.flat();
-	for (const k of ["names", "parent_task", "inbox", "landed", "reported"]) delete n[k];
+	for (const k of ["names", "parent_task", "inbox", "landed", "reported", "stopped"]) delete n[k];
 	return n;
 }
 
@@ -131,7 +140,7 @@ export function phases(kids){
 	if (!kids.length) return [];
 	if (kids.some(k => k.after?.length)){
 		const layer = new Map();
-		const find = dir => kids.find(k => k.dir === dir || k.dir.endsWith("/" + dir));
+		const find = dir => kids.find(k => k.dir === dir);
 		const depth = (k, seen = new Set()) => {
 			if (layer.has(k)) return layer.get(k);
 			if (seen.has(k)) return 0;       // a cycle: read it as parallel rather than loop forever

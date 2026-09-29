@@ -13,9 +13,9 @@ const plan = edges => [
 	...["a", "b", "c"].map((x, i) => ({ dir: `ai/2026-09-29/plan/${x}`, agent: x, requested_at: T(10),
 		landed_at: T(11 + i), steps: ["one", "two"] })),
 	{ dir: "ai/2026-09-29/plan/d", agent: "d", requested_at: T(14), steps: ["1", "2", "3", "4"], step: 3,
-		after: edges ? ["a", "b", "c"] : undefined },
+		after: edges ? ["ai/2026-09-29/plan/a", "ai/2026-09-29/plan/b", "ai/2026-09-29/plan/c"] : undefined },
 	{ dir: "ai/2026-09-29/plan/e", agent: "e", requested_at: edges ? undefined : T(14), steps: ["1", "2"], step: 1,
-		after: edges ? ["plan/a", "b", "x-not-landed"] : undefined },
+		after: edges ? ["public/framework/ai/2026-09-29/plan/a", "/framework/ai/2026-09-29/plan/b", "ai/2026-09-29/plan/x-not-landed"] : undefined },
 ];
 
 for (const edges of [true, false]){
@@ -40,9 +40,26 @@ for (const edges of [true, false]){
 	assert.equal(roots.length, 1);
 	const kids = Object.fromEntries(roots[0].children.map(n => [n.title, n]));
 	assert.equal(kids["m1-work"].state, "landed");
-	assert.equal(kids.ghost.state, "running");
+	assert.equal(kids.ghost.state, "stopped");   // a stopped or errored minion is not in flight
 }
-console.log("tree.test: all assertions pass (plan by edges, plan by time, inbox children and leaves)");
+
+// `after` matches task dirs exactly: a bare slug is not an edge, so nothing waits on it
+{
+	const [root] = build([
+		{ dir: "ai/2026-09-29/q", agent: "q", requested_at: T(9) },
+		{ dir: "ai/2026-09-29/q/data", agent: "x", requested_at: T(10) },
+		{ dir: "ai/2026-09-29/q/other/data", agent: "y", requested_at: T(10) },
+		{ dir: "ai/2026-09-29/q/view", agent: "z", requested_at: T(10), after: ["data"] },
+	]);
+	assert.equal(root.children.find(n => n.agent === "z").state, "waiting");   // "data" names no sibling dir
+}
+
+// titles: the request's first sentence beats the folder slug
+{
+	const [root] = build([{ dir: "ai/2026-09-29/readme-chain", request: "Build readme-chain.js. Then wire it in.", requested_at: T(9) }]);
+	assert.equal(root.title, "Build readme-chain.js.");
+}
+console.log("tree.test: all assertions pass (plan by edges, plan by time, inbox children and leaves, stopped leaves, exact after, titles)");
 
 // the real day
 const day = process.argv[2] ?? "C:/Code/lew42/monorepo/public/framework/ai/2026-09-29";
