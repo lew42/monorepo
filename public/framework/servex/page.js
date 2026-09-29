@@ -8,6 +8,8 @@ export default new Doc({
 
 	notes: "roles",
 
+	children: "lifecycle",
+
 	content(){
 		md("**Servex is the one process on this machine that stays up** (port 80). It runs the Claude agents, starts and watches the dev servers, and owns every log file. It is not the [dev server](/framework/dev/) — that only reloads this site's pages.");
 
@@ -20,5 +22,9 @@ export default new Doc({
 - **MCP tools** — the door every Claude session uses, at \`http://127.0.0.1:8090/mcp\`.`);
 
 		md("Detail for every part: `Servex/readme.md` and `Servex/agents/readme.md`.");
+
+		h2("How much is left running");
+
+		md("A count of what the system starts and never shuts down — tasks, servers, worktrees, agents: [Lifecycle](/framework/servex/lifecycle/)");
 	},
 });
