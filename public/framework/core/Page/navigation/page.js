@@ -63,12 +63,16 @@ export default new Page({
 	content(){
 		md("**One question decides almost everything below: when you click, does the thing you were already looking at move?**");
 
-		div.c("flex wrap gap-50", () => {
-			concept_tile("Persistent vs switching", PERSISTENT_ICON, "A rail never moves; a switch replaces the whole screen — both are fine.", this.url + "#persistent");
+		// One even row in the WIDE track (a bare `flex wrap` sat in the reading track as
+		// ragged cards, each as wide as its own text). `.flex.auto` gives every card the
+		// same basis (`--column`) and equal height; `--grow: 2` makes the first, the
+		// biggest question, twice as wide. It wraps, then stacks, on narrow screens.
+		div.c("wide flex auto gap", () => {
+			concept_tile("Persistent vs switching", PERSISTENT_ICON, "A rail never moves; a switch replaces the whole screen — both are fine.", this.url + "#persistent").style("--grow", "2");
 			concept_tile("Levels that stack", "layers", "Header, sidebar, top tabs, inner sidebar — four deep, at most.", this.url + "#levels");
 			concept_tile("The go-to: class-doc tabs", "tab", "ext/Doc: a page whose children are a left rail of top tabs.", this.url + "#goto");
 			concept_tile("Alternatives", "alt_route", "Columns, a swapping workspace, a full-screen switch, a second rail.", this.url + "#alternatives");
-		});
+		}).style("--column", "16rem");
 
 		h2("1. Persistent vs switching").attr("id", "persistent");
 		md("**The rule the owner decided: persistent navigation stays exactly where it is.** A rail, a header, a crumb strip — pick one and it never moves, not by a pixel, no matter what gets clicked. *Switching* is the other option: the whole screen replaces itself. That's fine too — it's an accepted pattern, not a compromise — but a switch that visibly jumps, shifts, or makes something disappear when it shouldn't is a bug, not a lesser version of switching. Smooth animated transitions between switches are a future goal, not a requirement today.");
