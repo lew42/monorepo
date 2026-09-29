@@ -41,6 +41,7 @@ diffed:
 
 ```
 node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock]
+node Server/refine.mjs --coverage-only <dir> [--mock]
 ```
 
 - `<raw.txt | date:line>` — either a plain text file, or `<date>:<line>` (0-based) into
@@ -130,16 +131,51 @@ direct SDK or MCP call of its own.
 
 `public/framework/ai/2026-09-29/prompt-refine/runs/sample/` — the owner's own 522-word dictation
 about this exact worry (`owner-words.md`'s "The owner, verbatim" section), run without `--collab`
-(budget), default models (Haiku then Sonnet).
+(budget), default models (Haiku then Sonnet):
 
-**PLACEHOLDER — filled in once the real run finishes (in progress as this doc is written):**
-command, cost, word counts, and the coverage numbers (sentences / cited / context-only / dropped /
-unclassified / flags / thin-citations), plus what reading `coverage.md` by hand found.
+```
+node Server/refine.mjs <path to the dictation's raw text> --out public/framework/ai/2026-09-29/prompt-refine/runs/sample
+```
+
+**Cost:** $0.4158 total (clean $0.1343, structured $0.0407 + $0.1039, pick $0.0342, brief $0.1028,
+coverage $0 — every sentence was cited, so the classifier never had to run).
+**Word counts:** raw 522 → clean 459 → structured (winner: Sonnet) 272 → brief 262.
+**Clean overlap ratio:** 1.0 (every content word in `clean.md` is present in `raw.txt`).
+**Coverage:** 9 sentences, all 9 cited by an ask, 0 dropped, 0 unclassified, 0 thin citations, 5
+flags (down from 7 before the "new words" fix below).
+
+Reading `coverage.md` by hand: every one of the owner's 9 sentences reached an ask — nothing
+dropped, nothing silently missing. The flags are minor, expected paraphrase-drift (an ask says
+"ensure" where the owner never used that exact word, for instance), except one real, useful catch
+the coverage table surfaced on its own: **asks #1 and #6 both used the word "investigate"** — the
+brief turned the owner's stated *worry* ("I'm a little worried that my long rambling
+transcriptions pollute the IQ of the LLM") into an *investigation task*, which is a reasonable
+reading but not something the owner said in those words. Exactly the kind of thing this tool is
+for catching.
+
+### Two fixes from reviewing this run (owner, 2026-09-29 ~3pm)
+
+1. **The "new words" flag was too noisy at first** — 7 flags across 7 asks, mostly plain
+   inflections (`toward`/`towards`, `choose`/`choosing`, `explicit`/`explicitly`,
+   `dictated`/`dictating`, `summarizes`/`summarizing`) being read as brand-new words, which buried
+   the one real catch above. Fixed with a crude stemmer (strip `'s`/`n't`/`ing`/`ed`/`es`/`s`, then
+   treat two stems as matching if the shorter is a prefix of the longer — needed because the fixed
+   suffix list alone still leaves `explicit` and `explicitly` at different lengths), plus explicit
+   ignores for contractions/possessives and the brief's own framing words ("owner", "suggests",
+   "suspects", "ask"). Checked against `raw.txt`, not `clean.md`, per the owner's own wording. This
+   dropped the flagged word count from 31 to 14 and cleared two asks (#3, #5) entirely.
+2. **`node Server/refine.mjs --coverage-only <dir> [--mock]`** — rebuilds `coverage.md` (and
+   `refine.json`'s `coverage` numbers) from a run dir's own `raw.txt`/`clean.md`/`brief.md`,
+   without re-running `clean`/`structured`/`brief`. The classifier (uncited sentences only) is the
+   one model call left, so a coverage-only fix like #1 above can refresh other run dirs without
+   paying for the whole ladder again.
 
 ## Costs measured
 
-- `--mock` (both with and without `--collab`): $0, proven — see the task log.
-- The required real sample run: see the numbers above once filled in.
+- `--mock` (both with and without `--collab`, and `--coverage-only --mock`): $0, proven.
+- The required real sample run: $0.4158 (above).
+- The real `--coverage-only` re-run on `runs/sample` after the stemmer fix: $0 (nothing was
+  uncited, so the classifier never ran).
 - Ask-1's own check: $0 (read-only, no model calls).
 
 ## What's left, honestly
