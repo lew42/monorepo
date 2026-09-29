@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { spawn } from "child_process";
 import { stamp } from "./home.js";
+import { CHECK } from "./Heartbeat.js";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
  *
@@ -11,7 +13,8 @@ import { stamp } from "./home.js";
  * Every `every` minutes: walk today's and yesterday's task dirs; for every OPEN
  * task (no `landed_at` with a non-empty `outcome`, and no `closed_by`) — quiet
  * `quiet` minutes, or its owning agent stopped or gone — wake that agent once
- * ("land it, or say why"), again `gap` minutes later if still open, then
+ * with the heartbeat's neutral status check (never "land it": the owner,
+ * 2026-09-29 — a check must not steer the work), again `gap` minutes later if still open, then
  * escalate: `card_ask` (or, until that tool exists, a plain card message)
  * asking the owner to close it or keep chasing. Escalated = never chased again.
  * Only a landing or `close_task` removes a task from this loop.
@@ -51,6 +54,8 @@ export default class TaskLoop {
         if (this.busy) return;
         this.busy = true;
         try {
+            // worktree-down, 2026-09-29: a landed+merged task's dev server goes down (Server/worktree-sweep.mjs), hidden child so it never blocks this tick.
+            try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
             const now = Date.now(), registry = this.servex.agents.registry_list();
             let open = 0, quiet = 0, escalations = 0;
 
@@ -148,8 +153,7 @@ export default class TaskLoop {
 
     async chase(file, info, n, mtime){
         const id = this.owning_agent_id(info.state, this.servex.agents.registry_list());
-        const text = `Task ${this.slug(file)} has been quiet since ${this.at(mtime)}. Land it (append landed_at + outcome`
-            + ` to ${this.relative(file)}), or reply with why not.`;
+        const text = `Task ${this.slug(file)} has been quiet since ${this.at(mtime)}. ${CHECK}`;
         let woke;
         if (id) try { this.servex.agents.send(id, text, { from: "servex-task-loop" }); woke = `woke ${id}`; }
         catch (e){ woke = `could not wake: ${e.message || e}`; }
