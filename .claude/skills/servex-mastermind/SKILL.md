@@ -64,6 +64,10 @@ Every research program leaves a brain that outlives its sessions: the saved sour
 
 (the owner, 2026-09-29) Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
 
+## When you take over from a predecessor
+
+A message to a stopped agent revives it. So the moment you start, send every running task mastermind one line: "the Servex mastermind is now <your id>". Change the old id in any brief that hasn't launched yet, then stop the predecessor. On 09-29, mastermind-servex-4 was stopped three times and each time woke up again as a second mastermind, because task masterminds still messaged it.
+
 ## Never stop a mastermind that has children working
 
 A finished child's "done" is lost if its parent is stopped (2026-09-28: five masterminds were stopped to free memory, and $120 of finished work never landed). To free memory, stop an idle leaf minion, or pause dispatch. Until the task loop's heartbeat has merged, a stopped mastermind is resumed only by hand.
