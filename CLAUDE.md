@@ -11,7 +11,11 @@ This file rules; skills and readmes elaborate it. **Do not edit it without askin
 
 ## Presentation — always the overwhelmed newcomer (the owner, 2026-09-05)
 
-Level 1 is one page, mostly above the fold: what the thing is, **shown**; its major parts; the way in; room to breathe. Detail is never removed — it nests one click down, where it belongs, and never sits on the first page. Don't tell the reader what you are about to show them; show it. An index page is a wall of previews, kept small enough to digest. Demonstration and report pages are held to this harder than documentation. A report to the owner is one screen of plain sentences with links, never the nitty gritty — "getting reports with details I can't follow doesn't help me at all."
+Level 1 is one page, mostly above the fold: what the thing is, **shown**; its major parts; the way in; room to breathe. Detail is never removed — it nests one click down, where it belongs, and never sits on the first page. Don't tell the reader what you are about to show them; show it. An index page is a wall of previews, kept small enough to digest. Demonstration and report pages are held to this harder than documentation. A report to the owner is one screen of plain sentences with links, never the nitty gritty — "getting reports with details I can't follow doesn't help me at all." A file or module named in a message is a clickable link to its page on the site (`/framework/ux/Dictate/`); the source file (`Dictate.js`) is only a second link. (the owner, 2026-09-24)
+
+**Show it with the widget, then use words.** (the owner, 2026-09-25: "I don't want to read things. I want to see.") Files → `ext/files` (the tree, and highlighted source on click). An object → its live instances. A layout → a screenshot. A task → its checklist. Words come after the picture, and only as many as it takes.
+
+**Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
 
 ## Ask before
 
