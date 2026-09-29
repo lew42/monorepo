@@ -3,6 +3,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from 'url';
+import compress from "./compress.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,11 @@ export default class Server extends Events {
         this.express = express;
         this.app = express();
         this.router = express.Router();
+
+        // Compress before static, so it can wrap the response static is about to
+        // write — see compress.js. Directory.js writes `public/framework/directory.json`
+        // uncompressed at 3.3MB; this is what makes it small on the wire.
+        this.app.use(compress);
 
         // serve static files before fallback
         this.app.use(express.static("public", { redirect: false }));
