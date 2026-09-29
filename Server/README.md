@@ -30,6 +30,11 @@ the owner. The same per-call check runs on every Edit/Write, live, in
 advisory (never throws, always exits 0) and can flag a same-named method definition or a
 prose mention as a false positive — read the hit before editing anything.
 [`public/framework/ai/2026-09-28/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
+Same idea, one launcher: every script starts Chromium through
+[`Server/browser.mjs`](./browser.mjs), never `chromium.launch(` on its own — window-lint and
+`hidden_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
+an always-on `EnumWindows` probe that logs any NEW visible console or browser window (scoped so
+the owner's own Chrome never counts). [`doc/browser.md`](./doc/browser.md).
 
 **`node Server/padding-check.mjs <url>`** answers one question about one page, and
 exits non-zero when the answer is no: **does any text on it sit at 0 from an edge** —
