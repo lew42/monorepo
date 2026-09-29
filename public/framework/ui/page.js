@@ -32,7 +32,9 @@ export default new Doc({
 	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
 	// grid math depends on. It still routes and still shows up in this page's own
 	// nav — background-layer task, 2026-09-19, ai/2026-09-19/background-layer/.
-	children: names.join(" ") + " background",
+	// `section` is appended the same way, for the same reason — section-variants task,
+	// 2026-09-28.
+	children: names.join(" ") + " background section",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right
