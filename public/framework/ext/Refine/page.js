@@ -18,6 +18,6 @@ export default new Page({
 		const DEFAULT_RUN = "/framework/ai/2026-09-29/prompt-refine/runs/c/";
 		refine(import.meta, { run: new URLSearchParams(location.search).get("run") || DEFAULT_RUN }).ac("wide");
 
-		md(`This page shows a real \`Server/refine.mjs\` run — run C, the harness and research dictation — on one of the owner's own 09-29 dictations. \`?run=\` picks any other run directory — the [card](/framework/ai2/2026/09/29/from-dictation-to-a-brief-with-nothing-l/) has a picker for sample / a / b / c. There's also a small hand-built [fixture](${new URL("fixture/", import.meta.url).pathname}) this view was first built against, in the exact file shape \`refine.mjs\` writes.`);
+		md(`This page shows a real \`Server/refine.mjs\` run — run C, the harness and research dictation — on one of the owner's own 09-29 dictations. \`?run=\` picks any other run directory — the [card](/framework/ai2/2026/09/29/from-dictation-to-a-brief-with-nothing-l/) has a picker for sample / a / b / c. There's also a small hand-built [fixture](?run=${new URL("fixture/", import.meta.url).pathname}) this view was first built against, in the exact file shape \`refine.mjs\` writes.`);
 	},
 });
