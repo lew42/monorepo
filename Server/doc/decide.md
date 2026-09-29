@@ -31,7 +31,7 @@ node Server/decide.mjs show d-host --file $F        # status <id> = just what's 
 - **Option ids** are the first three words of the text, slugged (`"On a rented server"` → `on-a-rented`). You can also pass your own `id`.
 - **A child finds its parent.** Creating a decision with `--depends-on` adds it to that option's `then` while the parent is still a draft.
 - **Several parts at once.** `--json` takes an object with the same fields as the flags, or an array: for `options` the options, for `caveats` and `then` a list of `{"option":"a","caveats":[…]}` / `{"option":"a","then":[…]}`. `--options`, `--caveats` and `--then` parse JSON too; caveats and then also take an object keyed by option id. Each option can carry its own `caveats` and `then`.
-- **Refused, not guessed.** An unknown flag is refused with the flags that verb knows. Text that starts like JSON (`[`, `{` or `"`) in `--option`, `--caveat` or `--why` is refused instead of being slugged into an id (that once made `[{"id":"a",…}]` one option called `idatextaidbtextb`). A refused call changes nothing.
+- **Refused, not guessed.** An unknown flag is refused with the flags that verb knows. Text that starts like JSON (`[` or `{`) in `--option`, `--caveat` or `--why` is refused instead of being slugged into an id (that once made `[{"id":"a",…}]` one option called `idatextaidbtextb`). A refused call changes nothing.
 - **Self-test:** `node public/framework/ai/2026-09-29/decide-tool/decide-selftest.mjs` drives the CLI against a throwaway log (17 checks).
 
 ## The record
