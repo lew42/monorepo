@@ -78,7 +78,7 @@ function repoRoot() {
 }
 
 function parseArgs(argv) {
-	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false };
+	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false, coverageOnly: null };
 	const rest = [];
 	for (let i = 0; i < argv.length; i++) {
 		const a = argv[i];
@@ -86,6 +86,7 @@ function parseArgs(argv) {
 		else if (a === "--models") args.models = argv[++i].split(",").map(s => s.trim()).filter(Boolean);
 		else if (a === "--collab") args.collab = true;
 		else if (a === "--mock") args.mock = true;
+		else if (a === "--coverage-only") args.coverageOnly = argv[++i];
 		else rest.push(a);
 	}
 	args.input = rest[0];
@@ -308,6 +309,33 @@ function parseAsks(briefMd) {
 const citationsIn = text => [...text.matchAll(/\bS(\d+)\b/g)].map(m => Number(m[1]));
 const STRENGTH_WORDS = ["must", "never", "always", "only"];
 
+// Fix (2026-09-29, owner review of runs/sample: "7 flags on 7 asks... the real catch is buried
+// among plurals and boilerplate") — the "new words" flag below used to compare exact words, so
+// "toward" vs the raw's "towards", or "choose" vs "choosing", counted as two different words and
+// flagged constantly. A crude stem fixes most of it: lowercase, then strip the FIRST of these
+// suffixes that fits (in this order) as long as at least 3 letters are left: 's, n't, ing, ed, es,
+// s. Two stems "match" if the shorter one (at least 4 letters, so we're not matching on "th" or
+// "in") is a PREFIX of the longer one, not just equal — a fixed 6-suffix list still leaves
+// "explicit" and "explicitly" at different lengths after stripping (the "ly" isn't in the list),
+// and the prefix check absorbs that without a bigger stemmer.
+const STEM_SUFFIXES = ["'s", "n't", "ing", "ed", "es", "s"];
+function crudeStem(w) {
+	const s = w.toLowerCase();
+	for (const suf of STEM_SUFFIXES) if (s.endsWith(suf) && s.length - suf.length >= 3) return s.slice(0, -suf.length);
+	return s;
+}
+function stemsMatch(a, b) {
+	if (a === b) return true;
+	const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+	return shorter.length >= 4 && longer.startsWith(shorter);
+}
+// A word with an apostrophe ("there's", "wasn't", "llm's") is a contraction or a possessive, not
+// a new claim — ignored outright, never even stemmed. The brief's OWN framing words, added by the
+// "keep a suggestion a suggestion" rule (deliverable 3's brief prompt), aren't the owner's words
+// either, but they're not a leak — ignored by name.
+const isContraction = w => w.includes("'");
+const FRAMING_WORDS = new Set(["owner", "owner's", "suggests", "suspects", "ask"]);
+
 async function classifyUncited(uncited, cwd, mock) {
 	// --mock is canned test data, not a real classification gap, so it can safely default to
 	// "context only" — the fix below (an honest "unclassified" verdict) is only for the REAL
@@ -341,12 +369,14 @@ async function classifyUncited(uncited, cwd, mock) {
 	return { classified: out, cost_usd: r.cost_usd };
 }
 
-async function buildCoverage(sentences, asks, cwd, mock) {
+async function buildCoverage(rawText, sentences, asks, cwd, mock) {
 	const sentenceText = new Map(sentences.map(s => [s.n, s.text]));
-	// The whole transcript's own vocabulary — used by the "new words" flag below so a legitimate
-	// paraphrase (reusing a word from elsewhere in the SAME dictation) is never flagged, only a
-	// word that appears nowhere the owner actually said.
-	const fullWords = new Set(sentences.flatMap(s => contentWords(s.text)));
+	// The RAW transcript's own vocabulary, stemmed once — used by the "new words" flag below so a
+	// legitimate paraphrase (reusing a word the owner actually said, in a different form) is never
+	// flagged, only a word that appears nowhere the owner actually said. Checked against raw.txt,
+	// not clean.md — clean.md is near-verbatim but the owner's own instruction is "nowhere in the
+	// raw text", and it also catches a word clean.md's rewording happened to lose.
+	const fullStems = [...new Set(contentWords(rawText))].map(crudeStem);
 	const citedBy = new Map(); // sentence n -> [{ask, thin}, ...]
 	const flagRows = [];
 
@@ -373,13 +403,14 @@ async function buildCoverage(sentences, asks, cwd, mock) {
 			if (re.test(ask.text) && !re.test(citedText)) flagRows.push({ ask: ask.n, kind: "strength word", detail: `uses "${w}", not found in the cited sentence(s)` });
 		}
 
-		// Fix: "new words" — a content word in the ask that appears NOWHERE in the whole
-		// transcript, not just outside its own cited sentence(s). Checked against the FULL
-		// transcript (not only what's cited) on purpose: reusing a word the owner said somewhere
-		// else in the same dictation is normal paraphrase, not a problem; a word that was never
-		// said at all is the owner's exact worry — "choosing different words ... when I haven't
-		// said it explicitly that way."
-		const novel = [...askWords].filter(w => !fullWords.has(w));
+		// Fix: "new words" — a content word in the ask that appears NOWHERE in the whole raw
+		// transcript, not just outside its own cited sentence(s) — the owner's exact worry,
+		// "choosing different words ... when I haven't said it explicitly that way." Ignores a
+		// contraction/possessive, the brief's own framing words, and anything whose crude stem is
+		// prefix-compatible with a stem from the raw text (a plural, "-ing", "-ed" form, etc.).
+		const novel = [...askWords]
+			.filter(w => !isContraction(w) && !FRAMING_WORDS.has(w))
+			.filter(w => !fullStems.some(fs => stemsMatch(crudeStem(w), fs)));
 		if (novel.length) flagRows.push({ ask: ask.n, kind: "new words", detail: `"${novel.join('", "')}" — not in the transcript at all` });
 	}
 
@@ -435,12 +466,46 @@ async function buildCoverage(sentences, asks, cwd, mock) {
 	};
 }
 
+// ---- --coverage-only <dir>: rebuild coverage.md (and refine.json's coverage numbers) from a
+// run dir's own raw.txt/clean.md/brief.md, without re-running clean/structured/brief. Added
+// 2026-09-29 (owner: "that way I can refresh a, b and c after your fix without rerunning them")
+// so a coverage-only bug fix (like the "new words" stemmer above) doesn't cost a full re-run's
+// worth of clean/structured/brief calls — the classifier (uncited sentences only) is the one
+// model call left. ----------------------------------------------------------------------------
+
+async function runCoverageOnly(dir, mock) {
+	const root = repoRoot();
+	const outDir = path.resolve(dir);
+	const rawText = fs.readFileSync(path.join(outDir, "raw.txt"), "utf8");
+	const sentences = parseNumberedSentences(fs.readFileSync(path.join(outDir, "clean.md"), "utf8"));
+	const asks = parseAsks(fs.readFileSync(path.join(outDir, "brief.md"), "utf8"));
+
+	console.log("refine.mjs --coverage-only: rebuilding coverage.md...");
+	const coverage = await buildCoverage(rawText, sentences, asks, root, mock);
+	fs.writeFileSync(path.join(outDir, "coverage.md"), coverage.md);
+
+	const refineJsonPath = path.join(outDir, "refine.json");
+	let refineJson = {};
+	try { refineJson = JSON.parse(fs.readFileSync(refineJsonPath, "utf8")); } catch { /* no prior refine.json — write a minimal one below */ }
+	const prevCoverageCost = refineJson.cost_usd?.coverage || 0;
+	refineJson.coverage = coverage.numbers;
+	refineJson.cost_usd = refineJson.cost_usd || {};
+	refineJson.cost_usd.coverage = coverage.cost_usd;
+	if (typeof refineJson.cost_usd.total === "number") refineJson.cost_usd.total = Number((refineJson.cost_usd.total - prevCoverageCost + coverage.cost_usd).toFixed(6));
+	refineJson.coverage_only_rerun_at = now();
+	fs.writeFileSync(refineJsonPath, JSON.stringify(refineJson, null, 2) + "\n");
+
+	console.log(`refine.mjs --coverage-only: wrote ${outDir}\\coverage.md — ${coverage.numbers.sentences} sentences (${coverage.numbers.dropped} dropped, ${coverage.numbers.unclassified} unclassified, ${coverage.numbers.flags} flag(s), ${coverage.numbers.thin_citations} thin), classify cost $${coverage.cost_usd.toFixed(4)}`);
+}
+
 // ---- main ---------------------------------------------------------------------------------
 
 async function main() {
 	const args = parseArgs(process.argv.slice(2));
+	if (args.coverageOnly) { await runCoverageOnly(args.coverageOnly, args.mock); return; }
 	if (!args.input) {
 		console.error("usage: node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock]");
+		console.error("   or: node Server/refine.mjs --coverage-only <dir> [--mock]");
 		process.exit(1);
 	}
 	const root = repoRoot();
@@ -488,7 +553,7 @@ async function main() {
 
 	console.log("refine.mjs: building coverage.md...");
 	const asks = parseAsks(brief.md);
-	const coverage = await buildCoverage(clean.sentences, asks, cwd, args.mock);
+	const coverage = await buildCoverage(rawText, clean.sentences, asks, cwd, args.mock);
 	costs.coverage = coverage.cost_usd;
 	fs.writeFileSync(path.join(outDir, "coverage.md"), coverage.md);
 
