@@ -1,5 +1,5 @@
 {
-	"built_at": "2026-09-29T05:15:03.717Z",
+	"built_at": "2026-09-29T05:19:06.724Z",
 	"unfiled": 147,
 	"concepts": [
 		{
@@ -9,26 +9,13 @@
 			"url": "/framework/servex/",
 			"open": [
 				{
-					"task": "2026-09-28/shared-browser",
-					"quote": "One browser launcher, and a watcher that sees browser windows: Server/browser.mjs used by every Chromium-launching scri…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-28/shared-browser/",
-					"asked_at": "2026-09-28T22:41:56-05:00",
-					"landed_at": null,
-					"hours": 1.6,
-					"cost_usd": null,
-					"outcome": "",
-					"result_url": "/framework/ai/2026-09-28/shared-browser/",
-					"state": "open"
-				},
-				{
 					"task": "2026-09-28/task-loop",
-					"quote": "Build every row marked task-loop in the skills-as-a-workflow design: spawn_agent opens the task (line 1), roles carry a…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-task-loop.]\nLoad the `sub-mastermind` skill, then: You own one task. Your brief i…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/task-loop/",
 					"asked_at": "2026-09-28T14:09:43-05:00",
 					"landed_at": null,
-					"hours": 10.1,
+					"hours": 10.2,
 					"cost_usd": 12.2215,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/task-loop/",
@@ -36,8 +23,8 @@
 				},
 				{
 					"task": "2026-09-25/recursive-pairs",
-					"quote": "See requirements.md: one recursive agent system, the same pair on every page; plus the fast-assistant lifecycle and a p…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-recursive-pairs.]\nLoad the `sub-mastermind` skill, then: You own one task. Your b…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/recursive-pairs/",
 					"asked_at": "2026-09-28T13:46:43-05:00",
 					"landed_at": null,
@@ -50,22 +37,35 @@
 			],
 			"done": [
 				{
+					"task": "2026-09-28/shared-browser",
+					"quote": "[You are Servex agent task-mastermind-shared-browser-2.]\nLoad the `sub-mastermind` skill, then: You own one task. The f…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/shared-browser/",
+					"asked_at": "2026-09-28T22:41:56-05:00",
+					"landed_at": "2026-09-28T22:59:00-05:00",
+					"hours": 0.3,
+					"cost_usd": 8.2349,
+					"outcome": "What landed — Server/browser.mjs is now the one place every script starts Chromium; Server/window-watch.mjs also watches for a stray browse…",
+					"result_url": "/framework/ai/2026-09-28/shared-browser/",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-28/commit-live-system",
-					"quote": "About 240 files in the main tree are uncommitted, and core system files are not tracked at all: Servex/Pool.js, Server/…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-commit-live-system-2.]\nLoad the `sub-mastermind` skill, then: You own one task. T…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/commit-live-system/",
 					"asked_at": "2026-09-28T22:42:14-05:00",
 					"landed_at": "2026-09-28T22:49:58-05:00",
 					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "Landed — 326 uncommitted files went from git status --short down to about 10-12 (that count keeps moving; other agents are writing live), i…",
+					"cost_usd": 2.6667,
+					"outcome": "Landed — 326 uncommitted files into 12 commits on michael/dev, none pushed. Status fell from 326 to ~10 (still moving — other agents writin…",
 					"result_url": "/framework/ai/2026-09-28/commit-live-system/groups.md",
 					"state": "done"
 				},
 				{
 					"task": "2026-09-28/fresh-eyes-review",
-					"quote": "by the way, you can tell the Servex mastermind to build into the system, the task system, a review process. So, and tha…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-fresh-eyes-review.]\nLoad the `sub-mastermind` skill, then: You own one task. Your…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/fresh-eyes-review/",
 					"asked_at": "2026-09-28T12:08:07-05:00",
 					"landed_at": "2026-09-28T12:46:38-05:00",
@@ -90,13 +90,13 @@
 				},
 				{
 					"task": "2026-09-28/servex-mastermind",
-					"quote": "Servex mastermind, 2026-09-28: oversee the system. First: why broken links shipped on System design, and make merge.mjs…",
-					"owner": false,
+					"quote": "[from: servex-mastermind-opus · reply to: message on card 2026/09/24/system-design]\nThe owner asks: \"ask the servex mas…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/servex-mastermind/",
 					"asked_at": "2026-09-28T10:57:29-05:00",
 					"landed_at": "2026-09-28T11:05:00-05:00",
 					"hours": 0.1,
-					"cost_usd": 18.1709,
+					"cost_usd": 22.9943,
 					"outcome": "Checkpoint: the Servex mastermind hands over to a fresh session. Two task masterminds are running: hidden-windows (terminal pop-ups, priori…",
 					"result_url": "/framework/ai/2026-09-28/servex-mastermind/",
 					"state": "done"
@@ -425,24 +425,11 @@
 					"outcome": "Landed: spawnagent({role}) loads a skill before its first turn, and a registry says who's alive.",
 					"result_url": "/framework/ai/2026-09-22/spawn-role/",
 					"state": "done"
-				},
-				{
-					"task": "2026-09-22/servex-integrate",
-					"quote": "Connect the two landed halves: Servex.js constructs Agents and registers tools.js through the MCP seam, the agent log s…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-22/servex-integrate/",
-					"asked_at": "2026-09-22T15:23:08-05:00",
-					"landed_at": "2026-09-22T15:47:29-05:00",
-					"hours": 0.4,
-					"cost_usd": null,
-					"outcome": "Servex is now one always-on process that holds the Claude agents, owns every log, streams it all live, and keeps itself alive.",
-					"result_url": "/framework/ai/2026-09-22/servex-integrate/",
-					"state": "done"
 				}
 			],
-			"done_count": 34,
+			"done_count": 35,
 			"stale_count": 0,
-			"cost_usd": 172.91
+			"cost_usd": 188.63
 		},
 		{
 			"id": "page",
@@ -452,9 +439,22 @@
 			"open": [],
 			"done": [
 				{
+					"task": "2026-09-28/layout-system",
+					"quote": "[You are Servex agent minion-layout-system.]\nLoad the `minion` skill, then: Design the layout decision system, with a f…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/layout-system/",
+					"asked_at": "2026-09-28T23:56:19-05:00",
+					"landed_at": "2026-09-29T00:08:32-05:00",
+					"hours": 0.2,
+					"cost_usd": 4.1073,
+					"outcome": "Choosing a layout is now five questions, asked in order, with live demos: /layouts/decide/.",
+					"result_url": "/layouts/decide/",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-28/page-drawer",
-					"quote": "Step A: a menu on every page, and the drawer's tabs (see requirements.md) + owner-words-4: any content element selectab…",
-					"owner": false,
+					"quote": "[from: servex-mastermind-opus]\nA feature for the drawer, from the owner (verbatim: owner-words-4.md on card 2026/09/28/…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/page-drawer/",
 					"asked_at": "2026-09-28T14:24:15-05:00",
 					"landed_at": "2026-09-28T15:22:00-05:00",
@@ -479,8 +479,8 @@
 				},
 				{
 					"task": "2026-09-28/ai2-real-pages",
-					"quote": "we could render the actual page class right there in the inbox. And so the inbox is sort of just a different navigation…",
-					"owner": false,
+					"quote": "[from: mastermind-servex]\nAnswer 2 of 2, from organization: no weight field exists yet; the tiers live only as sections…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/ai2-real-pages/",
 					"asked_at": "2026-09-28T14:29:54-05:00",
 					"landed_at": "2026-09-28T14:47:01-05:00",
@@ -492,8 +492,8 @@
 				},
 				{
 					"task": "2026-09-28/organization",
-					"quote": "See owner-words.md: an organization card with the most important things first, every earlier audit linked, paging first…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-organization.]\nLoad the `sub-mastermind` skill, then: You own one task: the organ…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/organization/",
 					"asked_at": "2026-09-28T13:23:01-05:00",
 					"landed_at": "2026-09-28T14:39:36-05:00",
@@ -505,8 +505,8 @@
 				},
 				{
 					"task": "2026-09-28/smoke-links",
-					"quote": "merge.mjs finds changed pages itself and smoke.mjs follows links one level deep; 7 broken card-tile links shipped uncau…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-smoke-links.]\nLoad the `sub-mastermind` skill, then: Load the `sub-mastermind` sk…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/smoke-links/",
 					"asked_at": "2026-09-28T10:59:14-05:00",
 					"landed_at": "2026-09-28T11:18:41-05:00",
@@ -518,8 +518,8 @@
 				},
 				{
 					"task": "2026-09-25/padding-system",
-					"quote": "Find out why agents keep shipping content with no padding, and fix the system, not just one card. (The owner, on card 2…",
-					"owner": false,
+					"quote": "[from: servex-mastermind-opus]\nA correction to point 2, from the owner: \"I don't know if we want to make padding the de…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/padding-system/",
 					"asked_at": "2026-09-25T17:49:55-05:00",
 					"landed_at": "2026-09-25T18:14:23-05:00",
@@ -827,24 +827,11 @@
 					"outcome": "/layouts/browse/ now draws on this.browse(), and its verdicts share one trail with ext/Ask's own corner control, keyed by url.",
 					"result_url": "/layouts/browse/",
 					"state": "done"
-				},
-				{
-					"task": "2026-09-18/page-json-core",
-					"quote": "a page declares whether it has data (data: true / data: {...}); page.json is both the page's data and its directory; a…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-18/page-json-core/",
-					"asked_at": "2026-09-18T13:46:18-05:00",
-					"landed_at": "2026-09-18T14:25:33-05:00",
-					"hours": 0.7,
-					"cost_usd": null,
-					"outcome": "A page now says whether it has data, and a directory with only a page.json in it is a page. Six decisions, one core file, zero cost to ever…",
-					"result_url": "/framework/core/Page/doc/data/",
-					"state": "done"
 				}
 			],
-			"done_count": 398,
+			"done_count": 399,
 			"stale_count": 2,
-			"cost_usd": 148.54
+			"cost_usd": 152.65
 		},
 		{
 			"id": "view",
@@ -1020,22 +1007,35 @@
 			"url": "/framework/ai2/",
 			"open": [
 				{
-					"task": "2026-09-28/ai2-workspace-word",
-					"quote": "what is this workspace link?? it doesn't do anything",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
-					"asked_at": "2026-09-28T22:45:53-05:00",
+					"task": "2026-09-28/ai2-overview",
+					"quote": "[You are Servex agent task-mastermind-ai2-overview.]\nLoad the `sub-mastermind` skill, then: You own one task, and you a…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/ai2-overview/",
+					"asked_at": "2026-09-28T23:48:35-05:00",
 					"landed_at": null,
-					"hours": 1.5,
-					"cost_usd": 1.9419,
+					"hours": 0.5,
+					"cost_usd": 0.2123,
 					"outcome": "",
-					"result_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
+					"result_url": "/framework/ai/2026-09-28/ai2-overview/",
+					"state": "open"
+				},
+				{
+					"task": "2026-09-28/section-variants",
+					"quote": "[You are Servex agent task-mastermind-section-variants.]\nLoad the `sub-mastermind` skill, then: You own one task. The o…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/section-variants/",
+					"asked_at": "2026-09-28T23:33:40-05:00",
+					"landed_at": null,
+					"hours": 0.8,
+					"cost_usd": 14.2799,
+					"outcome": "",
+					"result_url": "/framework/ai/2026-09-28/section-variants/",
 					"state": "open"
 				},
 				{
 					"task": "2026-09-28/waiting-on-you",
-					"quote": "for things that you're waiting on me for, this is what the dashboard is for. We need to create a way where I don't, eve…",
-					"owner": false,
+					"quote": "[from: mastermind-servex (relaying task-mastermind-task-loop)]\nRelayed from task-mastermind-task-loop, which cannot mes…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/waiting-on-you/",
 					"asked_at": "2026-09-28T14:11:02-05:00",
 					"landed_at": null,
@@ -1047,12 +1047,12 @@
 				},
 				{
 					"task": "2026-09-28/figma-sept-frame",
-					"quote": "try to create a new task that's you know converting this uh, this frame that I'm linking to here in Figma convert that…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-figma-sept-cards.]\nLoad the `sub-mastermind` skill, then: You own one task. Your…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/figma-sept-frame/",
 					"asked_at": "2026-09-28T13:00:39-05:00",
 					"landed_at": null,
-					"hours": 11.2,
+					"hours": 11.3,
 					"cost_usd": 45.7048,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/figma-sept-frame/",
@@ -1078,7 +1078,7 @@
 					"words_url": "/framework/ai/2026-09-24/chat-ext-extract/",
 					"asked_at": "2026-09-24T21:48:09-05:00",
 					"landed_at": null,
-					"hours": 98.4,
+					"hours": 98.5,
 					"cost_usd": 0.9803,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-24/chat-ext-extract/",
@@ -1100,9 +1100,48 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-09-29/dictate-lag",
+					"quote": "[from: owner]\ncard 2026/09/29/new-card: All right, so after I transcribed here, it took about four or five seconds befo…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-29/dictate-lag/",
+					"asked_at": "2026-09-29T00:00:41-05:00",
+					"landed_at": "2026-09-29T00:09:13-05:00",
+					"hours": 0.1,
+					"cost_usd": null,
+					"outcome": "Two timers made dictation feel slow, and both are shorter now. Everything else takes about 10 ms.",
+					"result_url": "/framework/ext/Chat/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-28/ai2-rail-rhythm",
+					"quote": "[from: servex-mastermind-opus · reply to: message on card 2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va]\nPriority…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/ai2-rail-rhythm/",
+					"asked_at": "2026-09-28T23:32:26-05:00",
+					"landed_at": "2026-09-28T23:46:44-05:00",
+					"hours": 0.2,
+					"cost_usd": 5.4823,
+					"outcome": "Each inbox row now has the default padding and the same rhythm; the rail stays flush.",
+					"result_url": "/framework/ai/2026-09-28/ai2-rail-rhythm/why.md",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-28/ai2-workspace-word",
+					"quote": "[from: servex-mastermind-opus]\nThe owner: \"what is this workspace link?? it doesn't do anything\". I checked headless: t…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
+					"asked_at": "2026-09-28T22:45:53-05:00",
+					"landed_at": "2026-09-28T23:07:24-05:00",
+					"hours": 0.4,
+					"cost_usd": 8.9714,
+					"outcome": "The workspace word now shows only where it does something, and says what it is: \"Floating page view (try it)\".",
+					"result_url": "/framework/ai/2026-09-28/ai2-workspace-word/02-system-design.png",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-28/ai2-workspace",
-					"quote": "The inbox looks cramped: try the detail area as a workspace, a whole page with its own inner left nav, centred; and let…",
-					"owner": false,
+					"quote": "[from: mastermind-servex]\nFrom organization: there's no code on its side. The name is \"Floating page\", one of its Layou…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/ai2-workspace/",
 					"asked_at": "2026-09-28T13:58:40-05:00",
 					"landed_at": "2026-09-28T14:13:10-05:00",
@@ -1114,8 +1153,8 @@
 				},
 				{
 					"task": "2026-09-28/ai2-row-vanish",
-					"quote": "the uh, system, design card, just dropped off my inbox. I was actually looking for it and I couldn't see it in the inbo…",
-					"owner": false,
+					"quote": "[from: servex-mastermind-opus · reply to: message on card 2026/09/24/system-design]\nA bug in your area, from the owner,…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/ai2-row-vanish/",
 					"asked_at": "2026-09-28T11:04:02-05:00",
 					"landed_at": "2026-09-28T11:17:51-05:00",
@@ -1140,8 +1179,8 @@
 				},
 				{
 					"task": "2026-09-25/overview-fix",
-					"quote": "URGENT. On the Dictate card the Overview shows all 13 requests as unticked To do and 0 Delivered, as a flat list with n…",
-					"owner": false,
+					"quote": "[You are Servex agent minion-overview-fix.]\nLoad the `minion` skill, then: Load the `minion` skill first, then `code`.…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/overview-fix/",
 					"asked_at": "2026-09-25T18:13:25-05:00",
 					"landed_at": "2026-09-25T18:27:26-05:00",
@@ -1153,8 +1192,8 @@
 				},
 				{
 					"task": "2026-09-25/ai2-resurface-bar",
-					"quote": "When a card or group jumps to the top of the rail, its row shows a one-line bar saying what happened, taken from the ne…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-ai2-lead-2.]\nLoad the `sub-mastermind` skill, then: You are the fresh AI 2 lead.…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/ai2-resurface-bar/",
 					"asked_at": "2026-09-25T17:42:32-05:00",
 					"landed_at": "2026-09-25T18:06:47-05:00",
@@ -1166,8 +1205,8 @@
 				},
 				{
 					"task": "2026-09-25/now-card-tabs",
-					"quote": "Can you put everything on this page into a tab system? Like the, so the now card, can we make it without padding, make…",
-					"owner": false,
+					"quote": "[You are Servex agent minion-now-tabs.]\nLoad the `minion` skill, then: Load the `minion` skill first, then `code`, `css…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-25/now-card-tabs/",
 					"asked_at": "2026-09-25T17:37:19-05:00",
 					"landed_at": "2026-09-25T17:50:20-05:00",
@@ -1436,50 +1475,11 @@
 					"outcome": "Round 2: the composer is one line, every row says who, and you can talk into a card.",
 					"result_url": "/framework/ai2/",
 					"state": "done"
-				},
-				{
-					"task": "2026-09-22/card-to-task-proof",
-					"quote": "Make a page at /framework/ai/2026-09-22/card-to-task/proof/ that says hello and the time. Nothing more than that for no…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-22/card-to-task-proof/",
-					"asked_at": "2026-09-22T19:07:14-05:00",
-					"landed_at": "2026-09-22T19:11:03-05:00",
-					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "Landed: a proof page that says hello and the time, nothing else. card-to-task/proof/ is a single h1 reading \"hello — \" plus new Date().toLo…",
-					"result_url": "/framework/ai/2026-09-22/card-to-task/proof/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/board-declutter",
-					"quote": "this ai dashboard has way too much bullshit. 1) there's like... 200px of dead space at the top. 2) Todays' board? Every…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-22/board-declutter/",
-					"asked_at": "2026-09-22T17:37:58-05:00",
-					"landed_at": "2026-09-22T18:47:31-05:00",
-					"hours": 1.2,
-					"cost_usd": null,
-					"outcome": "The grid is hidden, nothing on the board touches the rail any more, the gap above the chrome line is gone — and the blank page you got when…",
-					"result_url": "/framework/ai/2026-09-22/board-declutter/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/dictate-silence",
-					"quote": "whisper hears \"Thank you\" because the browser sends it silence; find where the sound is lost",
-					"owner": false,
-					"words_url": "/framework/ai/2026-09-22/dictate-silence/",
-					"asked_at": "2026-09-22T17:43:08-05:00",
-					"landed_at": "2026-09-22T18:43:32-05:00",
-					"hours": 1,
-					"cost_usd": null,
-					"outcome": "The bench is the page now — no scrolling, no reading, no gate. Open it and the microphone picker, the level bars and the record button are…",
-					"result_url": "/framework/ai/2026-09-22/dictate-silence/",
-					"state": "done"
 				}
 			],
-			"done_count": 150,
+			"done_count": 153,
 			"stale_count": 0,
-			"cost_usd": 196.09
+			"cost_usd": 223.1
 		},
 		{
 			"id": "dictation",
@@ -1490,8 +1490,8 @@
 			"done": [
 				{
 					"task": "2026-09-28/content-cards-audit",
-					"quote": "Audit + proposal, no building: questions in the dictation flow, the content inventory, what agents write today, which c…",
-					"owner": false,
+					"quote": "<task-notification>\n<task-id>a2e217963934940a7</task-id>\n<tool-use-id>toolu_01KJeKBAKT9tzh4EeWBjsrcT</tool-use-id>\n<out…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/content-cards-audit/",
 					"asked_at": "2026-09-28T14:18:19-05:00",
 					"landed_at": "2026-09-28T14:19:43-05:00",
@@ -1503,8 +1503,8 @@
 				},
 				{
 					"task": "2026-09-28/dictation-playground",
-					"quote": "Dictation playground on the default Dictate page: one-click session, audio source panel, raw Whisper chunk view, fast-a…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-dictation-playground.]\nLoad the `sub-mastermind` skill, then: You own one task. Y…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/dictation-playground/",
 					"asked_at": "2026-09-28T12:19:10-05:00",
 					"landed_at": "2026-09-28T13:44:24-05:00",
@@ -1566,6 +1566,19 @@
 			"open": [],
 			"done": [
 				{
+					"task": "2026-09-28/ask-each",
+					"quote": "[You are Servex agent minion-ask-each.]\nLoad the `minion` skill, then: Build a small tool, budget about $2. The owner's…",
+					"owner": true,
+					"words_url": "/framework/ai/2026-09-28/ask-each/",
+					"asked_at": "2026-09-28T23:55:43-05:00",
+					"landed_at": "2026-09-29T00:02:49-05:00",
+					"hours": 0.1,
+					"cost_usd": 2.1942,
+					"outcome": "Built Server/ask-each.mjs — ask a model one question at a time in one session, instead of dumping a whole list into one prompt. The owner's…",
+					"result_url": "/framework/ai/2026-09-28/ask-each/",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-28/collab-facts",
 					"quote": "Build Collab.Fact + facts phase + dispute + abstain, per minion-brief.md: Collab.js, Server/collab.mjs, view.js, collab…",
 					"owner": false,
@@ -1593,8 +1606,8 @@
 				},
 				{
 					"task": "2026-09-28/harness-research",
-					"quote": "Research how we build our own AI harness on OpenRouter (or the providers directly), through the Research system. Owner'…",
-					"owner": false,
+					"quote": "[You are Servex agent task-mastermind-harness-research.]\nLoad the `sub-mastermind` skill, then: You own one task: resea…",
+					"owner": true,
 					"words_url": "/framework/ai/2026-09-28/harness-research/",
 					"asked_at": "2026-09-28T12:06:06-05:00",
 					"landed_at": "2026-09-28T12:22:57-05:00",
@@ -1941,24 +1954,11 @@
 					"outcome": "A baseline that names the bug, a click table whose two numbers agree, and a one-rule replacement for the canvas chrome.",
 					"result_url": "/framework/ai/2026-08-27/pg-ux-research/",
 					"state": "done"
-				},
-				{
-					"task": "2026-08-18/livereload-research",
-					"quote": "Using ext/Research, write the LiveReload report: .js updates, css updates, .json and .jsonl updates, parallel work sess…",
-					"owner": false,
-					"words_url": "/framework/ai/2026-08-18/livereload-research/",
-					"asked_at": "2026-08-18T17:14:28-05:00",
-					"landed_at": "2026-08-18T17:42:44-05:00",
-					"hours": 0.5,
-					"cost_usd": null,
-					"outcome": "LiveReload — 7 conclusions, argued by 7 minions into 52 nodes, 10 votes, 14 verdicts — the report (conclusions first, every claim opens). C…",
-					"result_url": "/framework/research/livereload/",
-					"state": "done"
 				}
 			],
-			"done_count": 56,
+			"done_count": 57,
 			"stale_count": 0,
-			"cost_usd": 65.98
+			"cost_usd": 68.17
 		}
 	]
 }
