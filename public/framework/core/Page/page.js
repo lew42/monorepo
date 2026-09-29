@@ -1,6 +1,7 @@
 import { Page, Doc, md, div, code } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
 import { object } from "../../ux/Content/Object/Object.js";
+import { page_object } from "./object.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
@@ -41,7 +42,7 @@ export default new Doc({
 	// route()) added the same day, so every sub-system the readme lists is a tab.
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before.
-	children: "make layout navigation ai dynamic generator old jsonl/page.jsonl",
+	children: "make layout navigation ai dynamic weight generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -100,7 +101,7 @@ export default new Doc({
 	// order always puts api/doc/files right after whatever was declared — which is
 	// why "old" could never move past them without this override.
 	bar(){
-		return ["overview", "make", "layout", "navigation", "ai", "dynamic", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 
@@ -180,6 +181,11 @@ export default new Doc({
 			code.json(`{"title": "Docs"}
 	{"place": "note.md"}`, "page.jsonl");
 		}).style("--column", "16em");
+
+		// The live "this is a page instance" block: THIS page, drawn as the object it
+		// is (its own fields, nothing hand-picked) — core/Page/object.js. In the reading
+		// track, not `wide`: at full width each key sat ~1500px from its value.
+		div(() => page_object(this.parent ?? this));
 
 		this.browse(BANDS, { "--column": "22em", "--gap": "2em", "--stage-max": "14em" });
 	},
