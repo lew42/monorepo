@@ -115,10 +115,15 @@ export default class Layers {
 	/* Dictation arrives in fragments: one spoken thought can land as several
 	 * prompt lines a second or two apart, and the assistant used to answer each
 	 * one (2026-09-24, card layout-columns). So a card's prompts wait until the
-	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 4 s), then go out
-	 * joined as one. 0 sends each one at once, as before. */
+	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 1.5 s), then go out
+	 * joined as one. 0 sends each one at once, as before.
+	 * ⚠ It was 4 s, and every reply started 4 s late (measured 2026-09-29, card
+	 * new-card: prompt logged 00:00:59, the assistant heard it 00:01:03). Since
+	 * 2026-09-25 the microphone itself joins a thought into one message before it
+	 * sends (ext/Chat/Mic.js, `paragraph_pause_ms`), so this only has to catch the
+	 * lines one send writes together — they land in the same second. */
 	listen(){
-		const quiet = Number(process.env.SERVEX_PROMPT_QUIET_MS ?? 4000);
+		const quiet = Number(process.env.SERVEX_PROMPT_QUIET_MS ?? 1500);
 		const waiting = new Map();   // card → { prompt, texts, timer }
 		const flush = card => {
 			const w = waiting.get(card); waiting.delete(card);

@@ -29,14 +29,16 @@ export const SETTINGS = {
 	paragraph_pause_ms: 2500,   // quiet after a finished sentence that sends everything said so far as one message
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
-	pause_send_ms: 4000,        // quiet time before everything left on screen is sent
+	pause_send_ms: 2500,        // quiet time before everything left on screen is sent (was 4000: words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
 	box_lines: 7,               // the box grows to this many lines, then scrolls
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
 };
 const STORE = "chat.mic.settings.2";   // .2: the chunked defaults must not be shadowed by an old saved per-sentence value
-try { Object.assign(SETTINGS, JSON.parse(localStorage.getItem(STORE) ?? "{}")); } catch {}
+/* The gear saves EVERY key, so a box that ever saved a setting still holds the old 4000 default for
+   `pause_send_ms` — a saved 4000 is dropped so the new default reaches it; any other saved value is the owner's own. */
+try { const saved = JSON.parse(localStorage.getItem(STORE) ?? "{}"); if (saved.pause_send_ms === 4000) delete saved.pause_send_ms; Object.assign(SETTINGS, saved); } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
 export const CHECK_MS = 250;
 
