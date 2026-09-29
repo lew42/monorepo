@@ -33,7 +33,7 @@ import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { place } from "./home.js";
+import { place, HOME } from "./home.js";
 import { ensure_deps } from "./ensure-deps.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -56,10 +56,36 @@ const alive = pid => { try { process.kill(pid, 0); return true; } catch { return
 
 /* ⚠ `child.kill()` on Windows leaves the GRANDCHILDREN — and Servex's
  * grandchildren are the dev servers and whisper, each holding a port. `/t` takes
- * the tree; this is the same call Process.js makes, for the same reason. */
-const kill = pid => process.platform === "win32"
-    ? spawnSync("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true })
-    : (() => { try { process.kill(pid, "SIGTERM"); } catch {} })();
+ * the tree; this is the same call Process.js makes, for the same reason.
+ *
+ * A blocking wait, no extra process: Atomics.wait is allowed on Node's main
+ * thread (unlike a browser tab), so this blocks the caller for real seconds
+ * without a busy loop or a spawned `sleep`. */
+const sleepSync = ms => { try { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); } catch {} };
+
+/* taskkill can exit 0 and still leave the pid running (a handle held open, a
+ * permission fluke) — 09-28/09-29's silent restarts were exactly this kind of
+ * "it said it worked" failure, one layer up. So `kill` does not trust its own
+ * exit code: it polls `alive()` for up to 5s, and only THEN, if the pid is
+ * still there, logs loudly and tries once more with a plain (non-tree) kill. */
+function kill(pid){
+    if (process.platform !== "win32"){
+        try { process.kill(pid, "SIGTERM"); } catch {}
+        return;
+    }
+    const first = spawnSync("taskkill", ["/pid", String(pid), "/t", "/f"], { windowsHide: true });
+    if (first.status !== 0)
+        note(`kill: taskkill /pid ${pid} /t /f exited ${first.status} — ${(first.stderr || first.stdout || "").toString().trim()}`);
+
+    for (let i = 0; i < 20 && alive(pid); i++) sleepSync(250);
+    if (!alive(pid)) return first;
+
+    note(`kill: pid ${pid} still alive 5s after taskkill (exit ${first.status}) — trying a plain taskkill /pid /f on the root`);
+    const retry = spawnSync("taskkill", ["/pid", String(pid), "/f"], { windowsHide: true });
+    for (let i = 0; i < 20 && alive(pid); i++) sleepSync(250);
+    note(alive(pid) ? `kill: pid ${pid} STILL alive after the retry — giving up` : `kill: pid ${pid} gone after the retry`);
+    return retry;
+}
 
 /* The dev servers Servex started detached (Process.js) — they outlive Servex,
  * so a tree kill of Servex never reaches them; each has a record here. */
@@ -122,8 +148,97 @@ function keep(){
  *   2. an agent mid-turn (`working`) is revived by the new Servex (Agents.revive)
  *      unless it has no session, is a fork, or is not `revivable` — refuse only
  *      for those, name them, and let `--force` override;
- *   3. afterwards, wait for /api/agents to answer, and say so if it does not. */
-const API = "http://127.0.0.1:8090/api/agents";
+ *   3. afterwards, wait for /api/agents to answer, and say so if it does not.
+ *
+ * ⚠ WHY THIS RUNS DETACHED FROM WMI, NOT FROM THIS PROCESS. `--restart` is
+ * usually run BY an agent Servex itself spawned: Servex → claude → bash → this
+ * script. `kill(pids.servex)` below is a `taskkill /t` — a TREE kill — and that
+ * tree is rooted above Servex, so it took out the whole chain, including the
+ * caller, before "restarting Servex" ever ran (09-28 1:44pm, 09-29 1:27pm;
+ * `sustain.log` shows "killing Servex" and no "back as pid" line after it).
+ * `spawn(..., {detached:true})` does NOT fix this on Windows: Windows records a
+ * child's parent pid at CreateProcess time and never updates it, so `taskkill
+ * /t` still finds it by walking that (dead) lineage. The one thing that
+ * actually reparents a new process to something OTHER than the caller is
+ * asking a different process to create it: WMI's `Win32_Process.Create` is
+ * called BY the WMI provider host (WmiPrvSE.exe), so the process it creates is
+ * WmiPrvSE's child, never ours — a `taskkill /t` on Servex can never reach it,
+ * no matter who called `--restart` or how deep. */
+// SERVEX_API_PORT is the same idea as SERVEX_HOME: a private proof (or a private Servex on
+// another port) points this here instead of guessing whether 8090 is the real one or a stand-in.
+const API = `http://127.0.0.1:${process.env.SERVEX_API_PORT || 8090}/api/agents`;
+
+/* Launch `sustain.mjs --restart-detached [extra...]` via WMI so it lands
+ * outside whatever tree called us, wait for CIM to hand back its new pid
+ * (this is a local, sub-second round trip — not the restart itself), and
+ * return it. `null` means the launch itself failed; the caller logs why.
+ *
+ * ⚠ Win32_Process.Create runs as WmiPrvSE, and hands the new process WHATEVER
+ * environment WmiPrvSE itself has — not ours. `HOME` above is where THIS
+ * process resolved its state (SERVEX_HOME if set, else %LOCALAPPDATA%\lew42\
+ * servex); if the detached copy re-resolves it from WmiPrvSE's own, possibly
+ * quite different, environment, it can read and write a DIFFERENT
+ * servex.pid.json than the one this Servex actually uses — silently
+ * "restarting" nothing, or (found while proving this fix) the real Servex
+ * when only a private test one was meant. So the launch pins SERVEX_HOME
+ * explicitly via `cmd.exe /c set "SERVEX_HOME=...">, which overrides just
+ * that one variable and leaves every other env var (PATH, etc.) as WmiPrvSE
+ * would have given it — `taskkill` and friends still resolve normally. */
+function relaunch_detached(extra){
+    // `set "SERVEX_HOME=...">` sits on a cmd.exe command line, unquoted from cmd's own point of
+    // view (only the value after `=` is quoted, not the whole `set` statement) — `&`, `|`, `^` or
+    // a stray `%` in HOME would be read as cmd syntax, not text. HOME is always a fixed,
+    // machine-chosen path (SERVEX_HOME or %LOCALAPPDATA%\lew42\servex), never anything typed
+    // in this session, but this still fails loudly instead of silently mis-launching Servex.
+    if (/[&|^%<>]/.test(HOME)) throw new Error(`HOME contains a cmd.exe metacharacter, refusing to relaunch: ${HOME}`);
+    if (/[&|^%<>]/.test(process.env.SERVEX_API_PORT || "")) throw new Error(`SERVEX_API_PORT contains a cmd.exe metacharacter, refusing to relaunch: ${process.env.SERVEX_API_PORT}`);
+    const inner = [process.execPath, path.join(HERE, "sustain.mjs"), "--restart-detached", ...extra]
+        .map(a => `"${a}"`).join(" ");
+    // Same reasoning for SERVEX_API_PORT as for SERVEX_HOME just above — it is also only an env
+    // var, so it is also invisible to WmiPrvSE unless pinned the same way.
+    const port = process.env.SERVEX_API_PORT ? ` "SERVEX_API_PORT=${process.env.SERVEX_API_PORT}"&& set` : "";
+    const cmdline = `cmd.exe /c set${port} "SERVEX_HOME=${HOME}"&& ${inner}`.replace(/'/g, "''");
+    // ShowWindow must be typed [uint16] — CIM infers a type for every property
+    // in -Property, and a bare `0` there fails with "Could not infer CimType".
+    const ps = `$ErrorActionPreference='Stop'; `
+        + `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; `
+        + `$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='${cmdline}'; ProcessStartupInformation=$si}; `
+        + `if ($r.ReturnValue -ne 0) { Write-Error "Win32_Process.Create returned $($r.ReturnValue)"; exit 1 } `
+        + `Write-Output $r.ProcessId`;
+    const res = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, encoding: "utf8" });
+    const pid = Number((res.stdout || "").trim());
+    return res.status === 0 && pid ? pid : null;
+}
+
+/* The in-tree entry point for `--restart` on win32: check the one thing that
+ * would make a relaunch pointless (no keeper), then hand off to WMI and get
+ * out of the way. The detached copy — running as `--restart-detached`, same
+ * argv otherwise — does the actual `restart()` below, parented to WmiPrvSE. */
+function restart_outside_tree(){
+    const pids = read();
+    if (!pids || !alive(pids.keeper))
+        return console.log("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
+    if (process.argv.includes("--dry-run"))
+        return restart(process.argv.includes("--force")); // nothing gets killed, no need to leave the tree
+
+    const extra = process.argv.slice(3); // pass --force / --dry-run / anything else through unchanged
+    let pid;
+    try { pid = relaunch_detached(extra); }
+    catch (e){
+        note(`restart: refusing to relaunch — ${e.message}`);
+        console.log(String(e.message));
+        process.exitCode = 1;
+        return;
+    }
+    if (!pid){
+        note("restart: WMI relaunch failed — see the console output above");
+        console.log("Could not relaunch outside the process tree (Win32_Process.Create failed); nothing was touched.");
+        process.exitCode = 1;
+        return;
+    }
+    note(`restart: relaunched detached as pid ${pid} (parent WmiPrvSE, not this chain) — it does the actual restart`);
+    console.log(`Restarting outside the tree (pid ${pid}). Watch ${OUT} for "back as pid".`);
+}
 
 function sources(dir = HERE){
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
@@ -132,25 +247,34 @@ function sources(dir = HERE){
         : /\.(m?js)$/.test(e.name) ? [path.join(dir, e.name)] : []);
 }
 
+/* ⚠ Every message below is `note()`, never a bare `console.log`. On win32 this
+ * whole function usually runs in the WMI-detached copy (see
+ * `restart_outside_tree` above), which has no console at all — `console.log`
+ * there is not "quiet", it is GONE, along with every refusal reason
+ * (`restart_servex`'s own description used to promise "a refusal is written
+ * in that log", which was false for exactly this reason; found in review).
+ * `note()` always also writes to `sustain.log`, so every caller — a console,
+ * this file's own OUT, or `ops.js`'s spawn (whose fd redirection only
+ * captures the in-tree hop's few lines, not this) — can read what happened. */
 async function restart(force){
     const pids = read();
     if (!pids || !alive(pids.keeper))
-        return console.log("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
+        return note("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
 
     const bad = sources().filter(f => spawnSync(process.execPath, ["--check", f], { windowsHide: true }).status !== 0);
-    if (bad.length) return console.log(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
+    if (bad.length) return note(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
 
     const agents = await fetch(API).then(r => r.json()).catch(() => []);
     const working = agents.filter(a => a.state === "working");
     const comesBack = a => !!a.session_id && a.role !== "fork" && a.revivable !== false;
     const revived = working.filter(comesBack).map(a => a.id);
     const busy = working.filter(a => !comesBack(a)).map(a => a.id);
-    if (revived.length) console.log(`Mid-turn, will be revived after the restart: ${revived.join(", ")}.`);
-    if (busy.length) console.log(`Mid-turn, would NOT come back: ${busy.join(", ")}.`);
+    if (revived.length) note(`Mid-turn, will be revived after the restart: ${revived.join(", ")}.`);
+    if (busy.length) note(`Mid-turn, would NOT come back: ${busy.join(", ")}.`);
     if (busy.length && !force)
-        return console.log(`Not restarting — wait for those, or add --force.`);
+        return note(`Not restarting — wait for those, or add --force.`);
     if (process.argv.includes("--dry-run"))
-        return console.log(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
+        return note(`Dry run: would restart${busy.length ? " (forced)" : ""}; nothing killed.`);
 
     note(`restart asked for${busy.length ? ` (forced past ${busy.join(", ")})` : ""} — killing Servex ${pids.servex}`);
     kill(pids.servex);
@@ -159,9 +283,9 @@ async function restart(force){
         await new Promise(r => setTimeout(r, 1000));
         const now = read();
         if (now?.servex !== pids.servex && await fetch(API).then(r => r.ok).catch(() => false))
-            return console.log(`Servex is back as pid ${now.servex}, running the new code.`);
+            return note(`Servex is back as pid ${now.servex}, running the new code.`);
     }
-    console.log(`Servex did not answer within 30s. The keeper keeps retrying; see ${OUT}.`);
+    note(`Servex did not answer within 30s. The keeper keeps retrying; see ${OUT}.`);
 }
 
 /* One generation of Servex. The backoff doubles only while it keeps dying
@@ -210,5 +334,10 @@ for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
 const verb = process.argv[2];
 if (verb === "--stop") stop();
 else if (verb === "--status") status();
-else if (verb === "--restart") restart(process.argv.includes("--force"));
+// `--restart`: on win32, hop out of the caller's tree first (see the comment
+// above `restart_outside_tree`). `--restart-detached` is that hop's landing
+// spot — the same code path, just not reachable by `taskkill /t` anymore —
+// and is not meant to be typed by hand.
+else if (verb === "--restart") process.platform === "win32" ? restart_outside_tree() : restart(process.argv.includes("--force"));
+else if (verb === "--restart-detached") restart(process.argv.includes("--force"));
 else keep();

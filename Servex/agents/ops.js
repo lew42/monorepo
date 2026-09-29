@@ -27,8 +27,11 @@ export function ops_tools(host){ return [
 	tool("restart_servex",
 		"Restart Servex so it loads new code. ⚠ This restarts EVERY agent, the caller included: your own session ends"
 		+ " when it happens. It runs `sustain.mjs --restart` (never --force) in the background and returns at once with"
-		+ " the path of a log file. Sustain keeps its own guards — it refuses if a file does not parse or if agents are"
-		+ " mid-turn — and a refusal is written in that log, so read the log to learn whether it went ahead.",
+		+ " the path of a log file. That first hop only hands off — on Windows, `sustain.mjs --restart` itself relaunches"
+		+ " outside whatever process tree called it (WMI, parented to WmiPrvSE, never this Servex) before it kills"
+		+ " anything, so a taskkill that used to reach back up and take out the caller now cannot. The actual restart"
+		+ " (parse check, mid-turn guard, the kill and the wait for Servex to answer again) is logged to sustain.log, not"
+		+ " this call's own log file — read `%LOCALAPPDATA%\\lew42\\servex\\logs\\sustain.log` for \"back as pid\".",
 		{ dry_run: { type: "boolean", description: "Only report the command and log path; start nothing." } },
 		({ dry_run } = {}) => {
 			fs.mkdirSync(DIR, { recursive: true });
