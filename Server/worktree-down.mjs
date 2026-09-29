@@ -49,6 +49,12 @@ if (entry.pid) {
 	}
 }
 
+// The creation log (lifecycle, 2026-09-29): this worktree's processes are gone as of now.
+try {
+	const lc = await import("../Servex/Lifecycle.js");
+	await lc.record({ kind: "worktree", id: name, path: entry.path, port: entry.port, pid: entry.pid, event: "end", why: process.env.LIFECYCLE_WHY || "worktree-down" });
+} catch {}
+
 // Servex is optional, always — stays silent and succeeds whether or not it's
 // answering. Removes the name from the proxy's map the same instant it stops.
 try {

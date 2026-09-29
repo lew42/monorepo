@@ -12,6 +12,7 @@ import TaskLoop from "./TaskLoop.js";
 import Heartbeat from "./Heartbeat.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
+import Lifecycle from "./Lifecycle.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
@@ -81,6 +82,9 @@ export default class Servex extends Events {
         this.processes = new Map();
 
         this.log = new this.constructor.Log();
+        /* THE CREATION LOG AND THE REAPER (lifecycle, 2026-09-29): Agents and Pool call its hooks,
+         * the heartbeat's tick runs its sweep (below). Servex/Lifecycle.js, Servex/doc/lifecycle.md. */
+        this.lifecycle = new this.constructor.Lifecycle({ servex: this });
         this.ports = new PortRegistry({ reserved: [80, this.dashboard_port, this.proxy_port, this.proxy_internal] });
         this.ports.pin("servex", this.dashboard_port);
 
@@ -195,6 +199,7 @@ export default class Servex extends Events {
          * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
         this.heartbeat = new this.constructor.Heartbeat({ servex: this });
         if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
+        this.reaper();
         /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
         if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
 
@@ -760,6 +765,27 @@ export default class Servex extends Events {
      * synchronous on purpose — `process.on("exit")` is the only hook Node
      * guarantees, and it cannot await. A whisper-server that was ALREADY
      * running when Servex started has no child here, so it is never touched. */
+    /* THE REAPER'S SWEEP rides the heartbeat's tick — wrapped on the instance, Heartbeat.js
+     * itself unchanged — at most once every 5 minutes (a sweep reads the process list: about
+     * 1 s of PowerShell). With the heartbeat off, the same sweep runs on its own minute timer.
+     * `SERVEX_NO_REAPER=1` boots without it; `SERVEX_REAPER_DRY=1` only says what it would close. */
+    reaper(){
+        if (process.env.SERVEX_NO_REAPER) return;
+        let last = 0;
+        const sweep = () => {
+            if (this.reaping || Date.now() - last < 5 * 60000) return;
+            last = Date.now();
+            const dry = !!process.env.SERVEX_REAPER_DRY;
+            this.reaping = this.lifecycle.sweep({ dry })
+                .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
+                .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
+                .finally(() => { this.reaping = null; });
+        };
+        if (process.env.SERVEX_NO_HEARTBEAT){ this.reaper_timer = setInterval(sweep, 60000); this.reaper_timer.unref(); return; }
+        const beat = this.heartbeat, tick = beat.tick.bind(beat);
+        beat.tick = async (...args) => { try { return await tick(...args); } finally { sweep(); } };
+    }
+
     shutdown(){
         const down = () => {
             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
@@ -930,6 +956,7 @@ Servex.Monitor = Monitor;
 Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;
 Servex.Pool = Pool;
+Servex.Lifecycle = Lifecycle;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;

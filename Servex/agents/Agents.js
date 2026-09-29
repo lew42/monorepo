@@ -38,6 +38,7 @@ export class Agents {
 	reg(){ return this.registry ??= new this.constructor.Registry({ dir: this.registry_dir }); }
 
 	register(agent){
+		if (agent.state === "stopped") try { this.servex?.lifecycle?.agent_ended(agent); } catch {}
 		const row = this.reg().write(agent);
 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
 		return row;
@@ -96,7 +97,7 @@ export class Agents {
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
-		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
 		const dir = fresh ? directory_of(spec) : null;
 		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
@@ -113,6 +114,7 @@ export class Agents {
 		this.live.set(agent.id, agent);
 		agent.start();
 		this.register(agent);
+		try { this.servex?.lifecycle?.agent_started(agent, spec); } catch {}   // lifecycle.jsonl: Servex/Lifecycle.js
 		return agent;
 	}
 
@@ -431,20 +433,27 @@ function directory_of(spec){
  * a caller opened earlier (or a sibling agent shares), it just adds one more
  * assign line with the same facts, exactly like every other `assign` a task
  * log collects over its life — never touching what came before it. */
-function open_task(task, { session_id, agent, model, parent_dir }){
+function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
 	fs.mkdirSync(dir, { recursive: true });
 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree
 	 * ext/AITask/tree.js draws. */
+	// `worktree` (lifecycle, 2026-09-29): on-landing.mjs finds the task's worktree through it.
 	const rel = d => d && path.relative(process.cwd(), path.resolve(d)).split(path.sep).join("/");
 	const parent_task = rel(task.parent_task ?? parent_dir);
 	// `after` is task dirs in the same form as parent_task, so the tree matches them exactly.
 	const after = Array.isArray(task.after) && task.after.length ? task.after.map(rel) : undefined;
 	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
-		model, parent_task, after, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
+		model, worktree: task.worktree ?? worktree, parent_task, after, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
 	return dir;
+}
+
+/* The worktree a cwd sits in (C:/Code/lew42/worktrees/<slug>/...), or undefined. */
+function worktree_of(cwd){
+	const m = String(cwd ?? "").match(/^(.*[\\/]worktrees[\\/][^\\/]+)/);
+	return m ? m[1] : undefined;
 }
 
 /* What a session's own file says about it — the `cwd` it ran in (a resume must
