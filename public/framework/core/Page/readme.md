@@ -10,6 +10,7 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 [storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md)
 [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK
 [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
+[weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
 
 This readme is the text version; the rendered page is designed from it ([how](./make/readme-page/)).
 
