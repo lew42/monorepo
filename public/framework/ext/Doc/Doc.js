@@ -347,8 +347,17 @@ export class Doc extends Page {
 	// — except "doc", which docs_section() now also builds for a module with members and
 	// no notes (so `doc/method/<name>/` has a node to live under): that one shows only
 	// when there is a real NOTE to read, so a module gains no tab it did not have before.
+	// ⚠ 2026-09-29, page-system task: a declared child can carry a `tab` line
+	//   (core/Page/Log.js's `tab()`) — `tab_visible()`/`tab_order()` read it. Neither
+	//   finds anything for a page that never wrote one, so this is a no-op for every
+	//   Doc page that doesn't use the new lines.
 	bar(){
-		return ["overview", ...[...this.children.keys()].filter(name => !Doc.SECTIONS.includes(name)), "api", "doc", "files"]
+		const middle = [...this.children.keys()]
+			.filter(name => !Doc.SECTIONS.includes(name))
+			.filter(name => this.tab_visible(name))
+			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
+
+		return ["overview", ...middle, "api", "doc", "files"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 

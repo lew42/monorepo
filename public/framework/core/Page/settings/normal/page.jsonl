@@ -1,0 +1,3 @@
+{"title": "Normal", "icon": "tab", "content": "An ordinary tab. The parent's page.jsonl (one level up) has no `tab` line naming \"normal\" at all, so it just shows up in the strip in its usual place, fully clickable."}
+{"settings":{"nav":false}}
+{"settings":{"nav":true}}

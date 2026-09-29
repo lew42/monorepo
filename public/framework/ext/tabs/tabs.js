@@ -37,13 +37,29 @@ Page.prototype.tabs = function(names){
 		return (this.loading || i === 0) && text ? text : name;
 	};
 
+	// A `tab` line (core/Page/Log.js) can hide a name from the STRIP (`nav: false` —
+	// still a real page at its own url, only missing here), grey it out (`disabled` —
+	// shown, unclickable) and reorder it (`order`). `list` itself stays whole — the
+	// regions Map above and `owns_url`/`default_tab` above still read every name — only
+	// what gets DRAWN below is filtered/sorted, through the same two Log.js reads
+	// Doc.bar() uses, so the two can never disagree.
+	const shown = list.filter(name => this.tab_visible(name)).sort((a, b) => this.tab_order(a) - this.tab_order(b));
+
 	const filling = Promise.resolve(this.loading ?? this.child(list[0])).then(() => {
 		// ⚠ `tab-default` marks the one whose href is MY url: every sibling url
 		// starts with it, so mark_links() would give it `.in-path` on every tab.
-		$bar.append(() => list.forEach((name, i) =>
+		// `i` is looked up in `list` (never `shown`'s own position), so `tab-default`
+		// still marks the true first/url-owning tab even when `order` moved it.
+		$bar.append(() => shown.forEach(name => {
+			const i = list.indexOf(name);
+			const disabled = !!this.tab_state(name).disabled;
+
 			a.c("tab", label(name, i))
 				.ac(owns_url && !i && "tab-default")
-				.href(owns_url && !i ? this.url : this.url + name + "/")));
+				.ac(disabled && "tab-disabled")
+				.style(disabled ? { opacity: "0.5", pointerEvents: "none" } : {})
+				.href(disabled ? undefined : owns_url && !i ? this.url : this.url + name + "/");
+		}));
 
 		// EVERY set renders its default, so no panel is ever blank. ⚠ `app` is handed
 		// down here exactly as `Page.child()` does it — a default child is never

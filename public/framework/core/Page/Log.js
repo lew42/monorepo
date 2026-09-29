@@ -30,6 +30,16 @@ const settable = value => value && typeof value === "object" && is.fn(value.set)
 
 export class PageLog {
 
+	// ════ SETTINGS — `{"settings": {"nav": false}}` ═══════════════════════════════
+	// A page's own preferences. Today there is exactly one: `nav` — "does this page
+	// show up in its parent's navigation?" (core/Page/settings/, loading-study.md
+	// section 4). `this.settings` is never a PLAIN object: it starts life as this tiny
+	// object with its own `set()`, so `set()` below routes a `settings` line into
+	// `settable()`'s branch and MERGES — the same trap `file()` avoids by keeping its
+	// own state off `this.file`: a plain object here would get SHADOWED (fully
+	// replaced) by the second settings line instead of merged with the first.
+	settings = { set(obj){ Object.assign(this, obj); } };
+
 	// `assign()` that calls methods instead of overwriting them. One argument, always.
 	set(obj){
 		for (const key in obj){
@@ -80,6 +90,44 @@ export class PageLog {
 		if (!this.child_kinds?.delete(key)) return;
 		this.children.delete(key);
 	}
+
+	// ════ TAB STATE — `{"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}}` ═══
+	// A child that already exists — a declared child, a `file` line, a `children:`
+	// entry on a page.js parent — is already a tab the moment Doc.bar() or tabs()
+	// (ext/tabs/tabs.js) sees it: this only adds STATE to it. `disabled` draws it
+	// greyed and unclickable; `nav: false` drops it from the tab STRIP entirely (it
+	// is still a real page at its own url); `order` breaks a tie when more than one
+	// tab wants a position. A name with none of the three still gets DECLARED as a
+	// child here (the same thing declare()'s own string form does), so a `tab` line
+	// can be how a tab comes to exist at all, with nothing yet to draw there.
+	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
+	//   never replace — set() calling this again is just one more spread.
+	tab(obj){
+		const { name, ...state } = obj;
+		if (!name) return;
+
+		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
+		if (!this.children.has(name)) this.children.set(name, null);
+	}
+
+	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
+	// every caller (Doc.bar(), tabs()) reads `.disabled` / `.nav` / `.order` with no guard.
+	tab_state(name){ return this.tabs_state?.get(name) ?? {}; }
+
+	// Shown in a tab strip? False when MY OWN `tab` line says `nav: false`, or the
+	// child itself — if it happens to be loaded ALREADY, nothing is fetched here —
+	// carries its own `{"settings": {"nav": false}}`. True for everyone else, so a
+	// page with no tab/settings lines at all sees no change. Doc.bar() and tabs()
+	// both read this, so the two can never disagree about what "hidden" means.
+	tab_visible(name){
+		if (this.tab_state(name).nav === false) return false;
+		return this.children.get(name)?.settings?.nav !== false;
+	}
+
+	// Sort key: an explicit `order` wins; everyone else ties at `Infinity`, and
+	// `Array.prototype.sort` is stable — a tie keeps the names in whatever order they
+	// already had, so a page that names no order at all is untouched.
+	tab_order(name){ return this.tab_state(name).order ?? Infinity; }
 
 	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
 	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.

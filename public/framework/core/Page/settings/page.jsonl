@@ -1,0 +1,15 @@
+{"title": "Settings", "icon": "tune", "class": "./tabs-demo.js"}
+{"file": "normal/page.jsonl"}
+{"file": "disabled/page.jsonl"}
+{"file": "hidden/page.jsonl"}
+{"tab": {"name": "disabled", "disabled": true}}
+{"tab": {"name": "hidden", "nav": false}}
+{"file":"settings.js"}
+{"file":"tabs-demo.js"}
+{"file":"normal/page.jsonl","gone":true}
+{"file":"disabled/page.jsonl","gone":true}
+{"file":"hidden/page.jsonl","gone":true}
+{"file":"normal/page.jsonl"}
+{"file":"disabled/page.jsonl"}
+{"file":"hidden/page.jsonl"}
+{"file":"readme.md"}

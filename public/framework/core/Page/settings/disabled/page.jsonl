@@ -1,0 +1,1 @@
+{"title": "Disabled", "icon": "block", "content": "This tab is disabled by one line on the PARENT, core/Page/settings/page.jsonl: `{\"tab\": {\"name\": \"disabled\", \"disabled\": true}}`. It still has this real page, at this real url — `disabled` only greys the tab in the bar and drops its href, so a click can't reach it from there."}

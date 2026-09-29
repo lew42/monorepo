@@ -42,8 +42,9 @@ export default new Doc({
 	// system) and `dynamic` (a url with no page.js, loaded through an ancestor's
 	// route()) added the same day, so every sub-system the readme lists is a tab.
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
-	// links to it, same as before.
-	children: "make layout navigation ai dynamic weight generator old jsonl/page.jsonl",
+	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
+	// that manage themselves via a `tab` line, and a page's own nav switch.
+	children: "make layout navigation ai dynamic weight generator old jsonl/page.jsonl settings/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -108,8 +109,10 @@ export default new Doc({
 	// readme lists is a tab". Every name in this array must be kept in sync with what
 	// `children:` actually declares; a name that ISN'T here never becomes a tab, no
 	// matter how it entered `this.children`.
+	// `settings` added 2026-09-29 (tabs-settings task), right after `jsonl` — the two
+	// storage/state tabs together.
 	bar(){
-		return ["overview", "make", "jsonl", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "jsonl", "settings", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 
