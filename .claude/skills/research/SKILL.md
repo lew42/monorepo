@@ -105,6 +105,19 @@ fringe claim cannot be read as a fact. See `/imagine/research/`.
 - **The front lists your `.md` pages until you write a `page.js`**, then links
   the page instead. Both come from `directory.json`, so neither needs an edit.
 
+## 6. A lesson goes where the next reader will find it
+
+A lesson worth remembering — not just a source to cite — goes in the `doc/` of the module
+it's about, as a normal doc page, citing where it came from (link to
+`public/framework/sources/<topic>/<slug>.md` when the source is saved there; a plain url
+otherwise). Only a lesson with no module to belong to — a cross-cutting finding, a fact about
+the world rather than this codebase — goes to `public/framework/sources/<topic>/lessons.md`
+(append; one lesson per heading, don't rewrite the file for one addition).
+
+Why: a lesson buried in a research log is read once, by whoever wrote it. One in the module's
+own `doc/` is read by the next agent who touches that module — the actual point of writing it
+down.
+
 ## Traps
 
 - **A torn line kills nothing but itself** — the reader counts it and the page

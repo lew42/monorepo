@@ -5,6 +5,16 @@ description: Load this first, before touching anything, when you have been start
 
 # Minion
 
+**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge.
+
+## Quick fixes: take, write, smoke-test, merge, return
+
+1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
+2. Write into `path` and commit there.
+3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
+4. Call `return_worktree(id)` when done or unused.
+5. Servex always keeps one ready, so don't start your own worktree for a small fix.
+
 ## You are a CLI session with your own id (the owner, 2026-09-19)
 
 A minion is a `claude` command-line session started with `--session-id`, never an in-process
@@ -17,6 +27,8 @@ going until you have landed. Follow-ups arrive as new prompts on your own sessio
 
 Read the `requirements.md` you were given first, start to finish, before you edit anything. Its deliverables are numbered; each one gets checked against the owner's own sentence at harvest — a smaller, easier version you built instead counts as a miss, not a partial win. The brief links the owner's full, original prompt; read that too whenever a deliverable is unclear, rather than guessing what was meant.
 
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+
 ## The three laws, and who you are writing for
 
 **Less is more** — the fastest version that actually works, first; then improve it; show, don't tell. **Clear beats brief, by far** — full plain sentences a new coder can follow with no other context, never clipped fragments or jargon standing in for an explanation. **Prioritize** — most important first, everything reads as a quick scan. The reader is always the overwhelmed newcomer: one screen, mostly above the fold, shown rather than told; detail nests one click down and is never deleted, never dumped on page one.
@@ -27,9 +39,11 @@ Run `new-task` inside the task dir your brief names — it already exists; you w
 
 **This skill and `new-task` are all you carry by default. Everything else is "read X when Y":** `code` before your first JS edit under `public/` · `layout` before building or restyling anything with a size · `css` before a declaration, `new-css-class` before a new class name · `new-page` before creating a `page.js` · `ui-test` to prove a drag, resize or hover really works · `research` before writing down anything you researched · `documentation` then `finish-task` at landing · `skill-improvement` for any skill that misled you.
 
+**Any page you build is seen on a 3440 screen.** Give it several columns, or a navigation column beside a centred main one, rather than one narrow column. Padding is opted into where it is needed, never a default others must undo: a region gets `.pad`, a framed box (background, border or rounded corners) gets `.card`, and a deliberate no is marked `.bleed`. Text never touches an edge, and framed boxes get a gap around them. The `page` skill's step 4 has the detail. When your task lands, a layout check screenshots its pages at four widths and flags wasted space. (In the logs of 40 tasks on 2026-09-24 and 25, the `layout` skill was never loaded, and the owner's top complaint was empty wide pages. These two lines are the part of it that matters most.)
+
 ## While working
 
-Log milestones, not keystrokes: `log` lines in your `task.jsonl` for findings, decisions and measurements. `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` stamps every `"NOW"` from the real clock and re-parses the whole file, so use it rather than building an append by hand. Send an `assign` with a new `now` line whenever what you're doing changes. Never write a `findings.md` — the task log is the only findings file.
+Your plan is the `steps` of your launch line. As each step starts, append `assign` with `step` and `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
 
 ## The reload hold — seconds, never minutes
 
@@ -66,6 +80,7 @@ The design and the measurements: [`reload-hold`](/framework/ai/2026-09-19/reload
 
 ## Never
 
+- **Never start a process that can show a window.** In Node, every `spawn`, `exec`, `execFile` and `fork` sets `windowsHide: true`, including detached ones, so the child gets a hidden console rather than none. A child with no console opens a window for every process it starts. In PowerShell, use `Start-Process -WindowStyle Hidden` with no `-Redirect…` flags, because redirecting its output shows the window anyway. Prove it: `(Get-Process -Id <pid>).MainWindowHandle` is `0`. Pop-up windows jumped in front of the owner on 2026-09-22, 09-24 and 09-25.
 - **Never kill or restart the dev server** (2026-08-19: an Opus minion ran `taskkill node.exe` mid-task while the owner was live on the site).
 - **Never drive the owner's browser tabs** — headless Playwright only, and it is a GLOBAL npm module here, not a repo dependency, so import it by absolute file url (`import { chromium } from "file:///C:/Users/<you>/AppData/Roaming/npm/node_modules/playwright/index.mjs"`); `NODE_PATH` does not help, because ESM ignores it.
 - **Never `git add` in the main tree either** — a landing at 20:33 (2026-09-22) left 16 files staged; staging is the step before a commit nobody asked for, and a later `git restore --staged` had to undo it. Land by writing files; the owner stages and commits.
@@ -87,7 +102,7 @@ The design and the measurements: [`reload-hold`](/framework/ai/2026-09-19/reload
 
 ## How to wait
 
-Wait in the foreground, in chunks under the tool's timeout (pass `timeout: 600000`, or loop with `Start-Sleep 15`) — a wait past the timeout backgrounds silently and ends your turn. Better still: don't gate on a wait at all when you can do the next useful thing instead.
+Keep things moving (the owner, 2026-09-24: "be very careful to manage concurrency, not block the session, keep things moving"). First choice: don't wait at all. Start the slow thing (a server, a build, a Playwright run) in the background and do the next useful thing meanwhile. Only a result you cannot continue without is worth a wait, and then wait in chunks under the tool's timeout (pass `timeout: 600000`, or loop with `Start-Sleep 15`): a wait past the timeout backgrounds silently and ends your turn.
 
 ## Resolve, don't park
 
@@ -95,6 +110,8 @@ A problem you find is yours to fix now, the best way you can, kept easy to chang
 
 ## Landing
 
-Run the `documentation` skill if you touched a module, then `finish-task` to land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
+If you touched a module, run `documentation` (a review: docs current, nothing new), then `finish-task` to land. **Land in your own task.jsonl, never your parent's.** A piece of a bigger task reports to its mastermind; only the mastermind writes `landed_at` in the task's log. (09-28: a minion's `landed_at` in collab-rounds' log made it look finished, and its dev server was stopped mid-work.) Land in your OWN task's `task.jsonl`, never your parent's: a `landed_at` in the parent's log tells everyone the whole task is finished, and on 2026-09-28 that got a live task's server stopped while its work was still in flight. With no task of your own, report to your parent and let it land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
+
+**A reviewer's finding is answered, not debated:** reply in `task.jsonl` as `fixed` or `declined: <why>` (`Server/doc/review.md`).
 
 **The owner watches a live log, and you can write to it** (2026-09-19): one command puts a line on their screen under your task's name — `node .claude/skills/every-prompt/say.mjs say "<what just happened, as one sentence>" "<one or two more sentences>" --as <your-task-slug> --id <your-task-slug> --status working` (the steady `--id` makes your card EVOLVE instead of piling up; `--status done` when you land). Worth one line when you start, when something the owner can now go and see exists, and when you land. Plain words for a non-reader of code; an apostrophe is fine inside the double quotes, a double quote, a dollar sign or a backtick is not.

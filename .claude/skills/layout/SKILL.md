@@ -9,6 +9,32 @@ Every awkward page here got awkward the same way: markup written before its **si
 decided. Answer these five, one line each, before the first factory call — and again after
 you look at it, because the second pass is where it gets right.
 
+## Start from these defaults (the owner, 2026-09-25)
+
+The owner, after too many narrow pages on wide screens: "we've got to stop putting a mobile
+layout into a 3440 page." These are strong defaults, not laws. Depart from them when the page
+genuinely needs to, and say why in a decision line.
+
+- **Main pages should work at 3440 as well as 1280.** That means several columns, or a
+  navigation column beside a centred main column. A single narrow column on an empty wide screen
+  is the failure to avoid.
+- **Reach for an approved layout first.** The named layouts in `core/Layout`, and the
+  approved ones in [/layouts/browse/](/layouts/browse/), cover most pages. If none fits, build
+  the new one as a proposal and say it is new, rather than inventing a one-off.
+- **The default container padding usually suffices.** It already grows with the container
+  (the clamp tokens). At wide sizes it can lean a little heavier, so the page looks weighted.
+- **Lean into multiple columns.** For a long list, CSS multi-column (`columns: <a floor in
+  rem>`) wraps it into balanced columns with no JavaScript; items flow down each column. The same
+  works as a cheap masonry for cards of uneven height. True CSS masonry isn't reliably
+  available yet.
+- **Rounded corners and gaps go together.** A rounded box is a card, and cards stand apart
+  with a gap between them. A flush stack (rows touching, no gap) is ONE box: round only the
+  stack's outer corners (the first item's top, the last item's bottom), or wrap the stack in one
+  rounded container, and give the rows inside square corners. Rounded items with zero gap leave
+  pinched notches where the corners meet (the owner, 2026-09-25).
+- **Look before you merge.** Screenshot the page at 1280, 1920, 2560 and 3440 (`node
+  Server/layout-check.mjs <url>`) and read the contact sheet.
+
 ## The five questions
 
 A component inside a container — a rail section, a card, a panel — answers 1 and 3;
