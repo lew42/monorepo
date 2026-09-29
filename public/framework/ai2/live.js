@@ -218,7 +218,7 @@ export function live_model({ prompts, day }){
  *  much is running. A FIXED height like every other row, so it can rise to the
  *  top without anything below it changing size. */
 export function live_row(it){
-	div.c("ai2-row-head flex v-center gap-25", () => {
+	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");
 		icon(it.icon);
 		span.c("ai2-row-title").text(it.title);

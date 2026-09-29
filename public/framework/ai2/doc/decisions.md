@@ -570,6 +570,12 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 - **The nav and the page centre together, as one unit.** The owner asked for a page "horizontally centered with a left sidebar of its own". Alternative rejected: the nav flush left and the page centred in the rest, which leaves a wide gap between them at 3440.
 - **`floating.js` is one file with its stylesheet inside it** (added once to the document, in `@layer site`), so it moves into core/Page's Layout tab in one step. Alternative rejected: `floating.css` beside it.
 
+# The rail's rhythm: the default padding, one step (2026-09-28)
+
+- **Every rail row is padded by `--pad-card`,** the word `.card` wears: 16px in a 351px rail, more if the grip widens it. It was `0.55em 0.7em` by hand, on the theory that a row is a control, and the rows ran together. The default padding system was not broken; AI 2 never used it. Alternative rejected: the `.card` class itself, which adds a border and radius on four sides where the rail's rows sit flush, one hairline apart.
+- **`.ai2-rows` is a size container,** so `--gap` inside the rail follows the rail, not the window (it was 24px at 1920 and 43px at 3440 in a 351px rail). Every part of a row sits one `--gap-35` below the one before, frozen on the row as `--ai2-step` so a smaller-type part does not shrink its own step.
+- **Title leading 1.35, and the dot, icon and time sit at the top,** not centred on a tall wrapped title. Measurements: [`ai2-rail-rhythm/why.md`](/framework/ai/2026-09-28/ai2-rail-rhythm/why.md).
+
 ## Open
 
 - Reserve the `floating-` prefix in `styles/css-scopes.txt` (outside this task's fence): `floating-   /framework/ai2/floating.js (moving to core/Page Layout)`.

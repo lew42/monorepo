@@ -229,7 +229,7 @@ export function real_title(path, router, then){
 export function page_face(path, evs){
 	const known = RealPage.known.get(path);
 	const top = evs[0];
-	div.c("ai2-row-head flex v-center gap-25", () => {
+	div.c("ai2-row-head flex gap-25", () => {
 		icon(known?.icon || "description");
 		span.c("ai2-row-title").text(known?.title || path.split("/").filter(Boolean).at(-1));
 		small.c("ai2-row-when muted").text(when(top?.at));

@@ -7,6 +7,13 @@
 		initial-value: 0px;
 	}
 
+	/* A rail row's one step between its parts, frozen on the row — see `.ai2-rows .ai2-row`. */
+	@property --ai2-step {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
 	/* AI 2 — a rail of previews on the left, one card's own page on the right.
 	   Why any of it is the way it is: `doc/decisions.md`.
 
@@ -279,8 +286,15 @@
 		min-height: 0;
 	}
 
-	/* The one box on this page that is MEANT to scroll. */
+	/* The one box on this page that is MEANT to scroll.
+	   ⚠ A CONTAINER, so the spacing inside the rail follows the RAIL (ai2-rail-rhythm,
+	     2026-09-28). `--gap` and its rungs are `cqi`, and `cqi` with no container
+	     reads the WINDOW: a 351px rail used a 24px gap at 1920 and 43px at 3440.
+	     Declared here, every row's `--gap-35` is ~5.6px at every window width.
+	     `flex: 1 1 auto` is what sizes it — a container cannot be sized by its own
+	     contents, and it never is here. */
 	.ai2-rows {
+		container: ai2-rows / inline-size;
 		flex: 1 1 auto;
 		min-width: 0;
 		overflow-y: auto;
@@ -288,11 +302,19 @@
 
 	/* ── a preview ──
 	   A ROW IS AN ANCHOR — a real link to the card's own url, which is what makes
-	   Back, a reload and a pasted url work with no code of ours. `em` padding: a
-	   row is a control and scales with its own text. */
+	   Back, a reload and a pasted url work with no code of ours.
+	   THE SITE'S DEFAULT PADDING (the owner, 2026-09-28: "if that's our default
+	   padding, which it should be"). A preview is a framed box, so it takes
+	   `--pad-card` — the same word `.card` wears (16px in this rail; it grows with
+	   the rail if the grip widens it). It used to be `0.55em 0.7em` (8.8 × 11.2px),
+	   written by hand on the theory that a row is a control; the rows then ran
+	   together. Not the `.card` class itself: that adds a border and a radius on
+	   all four sides, and the rail's rows sit flush, one hairline apart.
+	   ONE CADENCE: every part of a row sits `--gap-35` below the one before
+	   (`.ai2-rows .ai2-row > * + *` below) — title, meter, path, "what happened". */
 	.ai2-row {
 		display: block;
-		padding: 0.55em 0.7em;
+		padding: var(--pad-card);
 		border-block-end: 1px solid var(--line);
 		border-inline-start: 3px solid transparent;
 		color: inherit;
@@ -367,7 +389,40 @@
 		flex: 1;
 		min-width: 0;
 		font-weight: 600;
+		line-height: 1.35;   /* a title, not prose: the theme's 1.8 made a wrapped title read as a paragraph */
 		overflow-wrap: anywhere;
+	}
+
+	/* The dot, the icon and the time sit at the TOP, on the title's first line,
+	   not the middle of a tall one (the markup dropped `.v-center` for this; a
+	   util word would beat this rule at any specificity). `first baseline` was
+	   tried first: the icon font's glyph rides above the baseline and stood high. */
+	.ai2-row-head {
+		align-items: flex-start;
+	}
+
+	/* Centred on the title's first line box (1.35em tall): (1.35 - 0.5) / 2.
+	   ⚠ `top`, not a margin: framework.css's `.flex > * { margin: 0 }` is
+	     `@layer util` and zeroed the margin at any specificity. */
+	.ai2-row-head > .ai2-dot {
+		position: relative;
+		top: 0.425em;
+	}
+
+	/* THE CADENCE — one step between every part of a row, whichever parts it has.
+	   (0,2,0), so it beats each part's own older margin (`.ai2-news`,
+	   `.ai2-meter-line`), which still apply wherever those parts appear outside
+	   the rail.
+	   ⚠ The step is computed ONCE, on the row, into `--ai2-step` (a registered
+	     `<length>`, top of this file): `--gap-35` is re-declared on every element
+	     in that element's own `em`, so the 0.85em "what happened" bar got 4.76px
+	     and the title's head 5.6px — the same word, three different steps. */
+	.ai2-rows .ai2-row {
+		--ai2-step: var(--gap-35);
+	}
+
+	.ai2-rows .ai2-row > * + * {
+		margin-block-start: var(--ai2-step);
 	}
 
 	.ai2-row-when {
@@ -445,7 +500,7 @@
 
 	/* Everything no group holds yet: one quiet word that opens the old list. */
 	.ai2-unfiled-head {
-		padding: 0.55em 0.7em;
+		padding: 0.55em var(--pad-card);
 		cursor: pointer;
 		font-size: 0.9em;
 	}
@@ -1868,6 +1923,15 @@
 	}
 	.ai2-live-assistant[open] > .ai2-live-assistant-row { border-end-start-radius: 0; border-end-end-radius: 0; }
 	.ai2-live-assistant > .ai2-foot { margin-block-start: 0; }
+	/* ⚠ Under 60em the fold sits straight in the card page, whose padding is 0 and whose
+	     `> * { margin: 0 }` (0,2,0) wiped its own margins: its box touched the pane's edge
+	     at 400 and 1280 (padding-check, ai2-rail-rhythm 2026-09-28). The same `--pad` inset
+	     `.ai2-full` gives the sections above it, and the gap back. */
+	@container ai2-live (width < 60em) {
+		.page.ai2-card-page > .ai2-live-assistant {
+			margin: var(--gap) var(--pad) var(--pad);
+		}
+	}
 	@container ai2-live (min-width: 60em) {
 		.ai2-card-live .ai2-live-assistant { grid-area: chat; }
 		.ai2-card-live .ai2-live-assistant > .ai2-foot { grid-area: auto; margin-block-start: 0; border-start-start-radius: 0; border-start-end-radius: 0; border-block-start: 0; }

@@ -37,7 +37,7 @@ export function who(it){
     show live one click down, on its page. `it.progress` and `it.usd` are set by
     AI 2's `paint()`. */
 export function row(it){
-	div.c("ai2-row-head flex v-center gap-25", () => {
+	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
 		span.c("ai2-row-title").text(it.title);

@@ -527,7 +527,7 @@ function board(page){
 		/* The same face as any card: name, a bar (member tasks landed of all), the money. */
 		const tasks = members.filter(m => m.kind === "task");
 		const done = tasks.filter(m => m.landed).length;
-		div.c("ai2-row-head flex v-center gap-25", () => {
+		div.c("ai2-row-head flex gap-25", () => {
 			icon(g.icon);
 			span.c("ai2-row-title").text(name);
 			small.c("ai2-row-when muted").text(when(groups.at(g)));   // last updated, top-right, on every row
