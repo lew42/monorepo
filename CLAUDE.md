@@ -17,6 +17,8 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 **Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
 
+**Clarity is familiar structure.** (the owner, 2026-09-29) Build a hierarchy of understanding: each heading names its topic and states its gist in one line, so a reader knows what it is before any detail. Under it, only as many items as it takes, most important first. Each item sits beneath the right parent, with the right children. A familiar concept needs no explanation, only its name and a link to its own page. Detail is added only when it changes what the reader does. Pick names that can't be misread, and use the same name every time.
+
 ## Ask before
 
 - Breaking a constraint: no build step (`public/` runs as-is; imports are real `.js` URLs), no server at runtime (production is static), no new npm dependency (`npx` and global tools are fine).
