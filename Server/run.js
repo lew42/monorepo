@@ -40,3 +40,7 @@ Server.use(Screenshots);
 Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
 
 new Server();
+
+// The creation log (lifecycle, 2026-09-29): this child's own start and end, beside its
+// server.js wrapper's. Never blocks or fails the boot. Servex/Lifecycle.js.
+import("../Servex/Lifecycle.js").then(m => m.track("server", `run.js:${process.pid}`, { port: Number(process.env.PORT) || null })).catch(() => {});

@@ -82,3 +82,9 @@ answers `{ K, N_hours, slots: [...] }`. The AI 2 Live card reads it.
 
 
 **Known limit.** A pool worktree is branched from *committed* `michael/dev`. Work that sits uncommitted in the main tree is not in it, so a quick fix to an uncommitted file cannot be made there. Commit `michael/dev` often. (2026-09-25: `Pool.js` and `merge.mjs` themselves were not yet in `qf-1`.)
+
+## A holder that stopped (salvage)
+
+When the pool needs a slot and its holder has stopped, the slot is handed back if it is clean. If it still holds work, `salvage()` stops the slot's server and watcher first, then commits the work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev`, and removes it so a fresh one is made. The holder's card gets one line naming the branch. A slot whose diff is only appended `page.jsonl` lines (its own server's noise) is salvaged the same way, and the line says so. The reaper's sweep runs this check every 5 minutes, so a full pool no longer waits for someone to ask. By hand: `node Servex/Lifecycle.js --salvage qf-2`. Why and how: [lifecycle.md](lifecycle.md).
+
+**A recorded pid is checked before it is killed.** Windows reuses pids; on 2026-09-29 qf-4's old watcher pid belonged to `whisper-server.exe`. `kill()` now reads the process's command line first and skips it unless it is the slot's own server (`.worktree-logs/<slot>.log`) or a health watcher.

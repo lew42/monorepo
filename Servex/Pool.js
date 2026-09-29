@@ -128,6 +128,7 @@ export default class Pool extends Events {
                 continue;
             }
             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
+            try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
             this.top_up();
             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
         }
@@ -158,6 +159,7 @@ export default class Pool extends Events {
         Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
         this.save();
         this.say(`pool: ${id} returned and ready`, { id });
+        try { this.servex?.lifecycle?.record({ kind: "worktree", id, path: slot.path, port: slot.port, event: "end", why: "returned to the pool" }); } catch {}
 
         for (const extra of this.slots.filter(s => s.state === "ready" && s !== slot)) this.remove(extra);   // one ready is enough
         return this.list();
@@ -182,15 +184,56 @@ export default class Pool extends Events {
             const holder = slot.taken_by;
             try {
                 await this.give_back(slot.id);
+                if (!(await this.answers(slot.url))){ this.remove(slot); this.top_up(); }   // handed back, but its server is dead: make a fresh one
                 reclaimed.push(slot.id);
                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
             } catch (e) {
-                const why = String(e.message).split("\n")[0].replace(/^Refused: /, "");
-                kept.push({ id: slot.id, holder, why });
-                this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
+                // SALVAGE (lifecycle, 2026-09-29): the work is committed to a salvage/ branch that is never
+                // merged or deleted, the slot is reset to the base, then removed and replaced. Nothing is lost.
+                try {
+                    const s = await this.salvage(slot, holder);
+                    this.remove(slot);
+                    this.top_up();
+                    reclaimed.push(slot.id);
+                    this.say(`pool: ${slot.id} reclaimed from stopped ${holder}; ${s.what}`, { id: slot.id, from: holder, salvage: s.branch });
+                } catch (e2) {
+                    const why = String(e2.message || e.message).split("\n")[0].replace(/^Refused: /, "");
+                    kept.push({ id: slot.id, holder, why });
+                    this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
+                }
             }
         }
         return { reclaimed, kept };
+    }
+
+    /* A dead holder's slot, emptied without losing anything: its server is stopped FIRST (the
+     * wrapper, whose /T takes run.js with it — a running server keeps appending page.jsonl lines,
+     * so the tree went dirty again seconds after a hand reset on 09-29), then its uncommitted
+     * files and unmerged commits go to `salvage/<slot>-<date>`, never merged, never deleted,
+     * and the slot's own branch is moved back to the base. A diff of only appended page.jsonl
+     * lines is the server's noise: salvaged anyway, and said so. Returns {branch, what}. */
+    async salvage(slot, holder){
+        this.kill(slot.watcher_pid, /health-supervisor/i);
+        this.kill(slot.server_pid, this.server_cmd(slot));
+        const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
+        const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
+        if (!status && !commits) return { branch: null, what: "nothing to salvage" };
+        const files = status ? status.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
+        const numstat = (await this.git(slot.path, ["diff", "--numstat"])).out;
+        const noise = files.length > 0 && files.every(f => f.endsWith("page.jsonl")) && !/^\d+\t[1-9]/m.test(numstat) && !commits;
+        const day = stamp().slice(0, 10);
+        let branch = `salvage/${slot.id}-${day}`;
+        for (let i = 2; (await this.git(slot.path, ["rev-parse", "--verify", "--quiet", `refs/heads/${branch}`])).ok; i++) branch = `salvage/${slot.id}-${day}-${i}`;
+        const step = async args => { const r = await this.git(slot.path, args); if (!r.ok) throw new Error(`salvage of ${slot.id} stopped at git ${args[0]}: ${r.out}`); };
+        await step(["checkout", "-b", branch]);
+        if (status){
+            await step(["add", "-A"]);
+            await step(["commit", "-m", `salvage: ${slot.id}, held by ${holder} (stopped) — kept here, never merged`]);
+        }
+        await step(["checkout", "-B", slot.branch, this.base]);
+        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}`;
+        try { await this.servex?.lifecycle?.salvaged(slot, holder, branch, what); } catch {}
+        return { branch, what, noise };
     }
 
     /* The Servex agent registry's rows ({ id, name, state }), or none without a Servex. A seam for tests. */
@@ -258,8 +301,8 @@ export default class Pool extends Events {
         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
         this.save();
         return this.chain = this.chain.then(async () => {
-            this.kill(slot.watcher_pid);
-            this.kill(slot.server_pid);
+            this.kill(slot.watcher_pid, /health-supervisor/i);
+            this.kill(slot.server_pid, this.server_cmd(slot));
             const own = await this.own_dirt(slot);
             const ancestor = (await this.git(slot.path, ["merge-base", "--is-ancestor", "HEAD", this.base])).ok || await this.landed(slot);
             if (own.length || !ancestor){
@@ -392,9 +435,25 @@ export default class Pool extends Events {
         }));
     }
 
-    kill(pid){
-        if (pid) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+    /* Kill a pid only while it is still the process we started. Windows reuses pids: on 2026-09-29
+     * qf-4's recorded watcher pid (25792) had become whisper-server, and a blind taskkill /T would
+     * have taken the owner's dictation down. `expect` is matched against its command line. */
+    kill(pid, expect){
+        if (!pid) return;
+        if (expect){
+            const cmd = this.cmdline(pid);
+            if (!cmd || !expect.test(cmd)) return cmd && this.say(`pool: pid ${pid} is no longer ours (${cmd.slice(0, 80)}) — not killed`);
+        }
+        try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
     }
+
+    cmdline(pid){
+        try { return execFileSync("powershell.exe", ["-NoProfile", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}").CommandLine`], { encoding: "utf8", windowsHide: true }).trim(); }
+        catch { return ""; }
+    }
+
+    /* A slot's server is the cmd wrapper worktree-up.mjs launched, writing to .worktree-logs/<id>.log. */
+    server_cmd(slot){ return new RegExp(String.raw`worktree-logs[\\/]` + slot.id + String.raw`\.log`, "i"); }
 
     alive(pid){
         try { return !!pid && process.kill(pid, 0); } catch { return false; }

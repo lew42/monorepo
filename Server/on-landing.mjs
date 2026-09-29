@@ -108,6 +108,17 @@ try {
 	} catch (e) {
 		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}
+	// THE REAPER (lifecycle, 2026-09-29): everything else this task still owns — a server started
+	// by hand, its health watcher, headless browsers, idle reviewers and minions — is closed now,
+	// in node, instead of trusting an agent to remember. Each close is an end line in Servex's
+	// lifecycle.jsonl. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
+	try {
+		const { default: Lifecycle } = await import("../Servex/Lifecycle.js");
+		const rows = await new Lifecycle().reap(dir);
+		append(task, `lifecycle: ${rows.length ? `closed ${rows.map(r => `${r.kind} ${r.id}`).join(", ")}` : "nothing of this task's was left running"}`);
+	} catch (e) {
+		try { append(task, "lifecycle: reap not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
+	}
 	const paths = [...String(landing.outcome || "").matchAll(/\]\((\/[^)\s]*)\)|(?:^|[\s"'(])(\/[\w./~%-]+)/g)].map(m => m[1] || m[2])
 		.map(p => p.split(/[#?]/)[0]).filter(p => p && !/\.(png|jpe?g|gif|webp|svg|md|mp4|json|jsonl)$/i.test(p));
 	const out = path.join(dir, "layout-check");

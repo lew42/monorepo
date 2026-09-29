@@ -47,5 +47,20 @@ function get_chromium(){
  * changing that reason belongs here, not at each call site. */
 export async function browser(opts = {}){
 	const chromium = await get_chromium();
-	return chromium.launch({ headless: true, channel: "chromium", ...opts });
+	const b = await chromium.launch({ headless: true, channel: "chromium", ...opts });
+	log_browser(b);
+	return b;
+}
+
+/* The creation log (lifecycle, 2026-09-29): a start line with the browser's pid and owner task,
+ * an end line when it closes. A script that forgets close() leaves a start with no end, and
+ * the reaper's sweep closes it. Never throws. Servex/Lifecycle.js. */
+async function log_browser(b){
+	try {
+		const m = await import("../Servex/Lifecycle.js");
+		const pid = b.process?.()?.pid ?? null;
+		const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: path.basename(process.argv[1] || "") };
+		m.record({ ...base, event: "start" });
+		b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
+	} catch {}
 }

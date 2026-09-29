@@ -44,6 +44,9 @@ const REGISTRY = path.join(ROOT, ".worktrees.json");
 const WORKTREES_ROOT = path.resolve(ROOT, "..", "worktrees");
 
 const name = process.argv[2];
+// `--task <dir>` (or LEW_TASK): the task this worktree is for. Its task.jsonl gets
+// {worktree, branch}, so on-landing.mjs can find and tear down this worktree (lifecycle, 2026-09-29).
+const task_arg = process.argv.includes("--task") ? process.argv[process.argv.indexOf("--task") + 1] : process.env.LEW_TASK;
 if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
 	console.error("usage: node Server/worktree-up.mjs <name>   (lowercase letters, digits, hyphens — becomes branch worktree/<name>)");
 	process.exit(1);
@@ -192,6 +195,18 @@ if (!ok) {
 
 registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: true };
 write_registry(registry);
+
+/* THE CREATION LOG (lifecycle, 2026-09-29): one start line in Servex's lifecycle.jsonl, and the
+ * task's own log learns its worktree. Never fails the up. Servex/Lifecycle.js. */
+try {
+	const lc = await import("../Servex/Lifecycle.js");
+	if (task_arg) {
+		const dir = path.isAbsolute(task_arg) ? task_arg : path.join(ROOT, task_arg);
+		fs.mkdirSync(dir, { recursive: true });
+		fs.appendFileSync(path.join(dir, "task.jsonl"), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
+	}
+	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
+} catch {}
 
 /* Servex is optional, always — a worktree must work with it stopped, so this
    stays silent and succeeds either way. When it answers, it learns the name
