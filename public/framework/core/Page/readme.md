@@ -2,6 +2,12 @@
 
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
+## How a page loads
+
+A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/` →
+`route()` → `page.js` → a bare `.md` file → not found. The full order, with a code line for
+each step and the two traps that catch people, is [`doc/loading.md`](./doc/loading.md).
+
 ## The sub-systems
 
 [layout](./layout/) — the layout system: navigation and the parent, the page's own room, inside the page

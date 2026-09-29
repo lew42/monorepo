@@ -23,6 +23,10 @@ watcher row above, which then fills it with unrelated `{"file": …}` lines
 ([`core/Page/weight/doc/design.md`](/framework/core/Page/weight/md/doc/design/) has the incident
 that found this, 2026-09-29).
 
+Each page.jsonl lists its own files: the file watcher appends `{"file": name}` and
+`{"file": name, "gone": true}`;
+[`task-mastermind-page-files-log`](/framework/ai/2026-09-29/page-files-log/) owns that system.
+
 ## A look-alike that is NOT a writer
 
 Servex has an `append_log` tool that sounds like it belongs on this list — it doesn't.

@@ -2,7 +2,8 @@
 
 **A dynamic page is a url that opens even though nothing was ever saved at that path** — no folder, no `page.js`. An ancestor page answers the name itself, through `child()`, which asks `route()` before it ever checks the filesystem. Where that mechanism is actually explained — not repeated here:
 
-- [`doc/method/child.md`](/framework/core/Page/doc/method/child.md) — the method: memory, then `route()`, then the filesystem, in that order.
+- [`doc/loading.md`](/framework/core/Page/doc/loading.md) — the whole seven-step order this one hook sits inside, with a code line for each step.
+- [`doc/method/child.md`](/framework/core/Page/doc/method/child.md) — the method itself.
 - [`doc/property/route.md`](/framework/core/Page/doc/property/route.md) — the `route(name)` hook on its own.
 - [`overview/route/`](/framework/core/Page/overview/route/) — a small hard-coded demo: three urls built from one object.
 - [`overview/folders/`](/framework/core/Page/overview/folders/) — a page built the instant you ask for it, the same shape AI 2's own day and card pages use.
