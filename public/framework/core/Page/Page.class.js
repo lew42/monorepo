@@ -1065,10 +1065,28 @@ export class Page extends PageLog {
 	// in here would be an `<a>` inside an `<a>` — invalid, and the browser un-nests it.
 	preview_card(nav = this.nav(), thumb){
 		return div.c("page-preview", () => {
-			if (thumb) div.c("page-preview-thumb", thumb);
+			if (thumb) this.preview_thumb(thumb);
 			this.preview_link(nav);
 			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
 		}).ac(nav.card);
+	}
+
+	// THE THUMB, plus the one measurement Page.css can't make on its own: whether a
+	// live render (a `zoom-*` board, Page.css's own `:has([class*="zoom-"])` rule)
+	// actually came in taller than its `--stage-max` cap. `.capped` is what turns the
+	// hard `overflow: hidden` into a fade — set only when there is something to fade,
+	// never on a thumb that already fits. `requestAnimationFrame`, not a plain read:
+	// the thumb has to be in the document and laid out first, which is true by the
+	// time this callback runs everywhere except a HIDDEN tab (doc/method/preview.md) —
+	// there the frame never fires and the thumb just keeps the plain hard crop.
+	preview_thumb(thumb){
+		const $thumb = div.c("page-preview-thumb", thumb);
+
+		requestAnimationFrame(() => {
+			if ($thumb.el.scrollHeight > $thumb.el.clientHeight + 1) $thumb.ac("capped");
+		});
+
+		return $thumb;
 	}
 
 	// The card's only real link — Page.css spreads its ::after over the whole card.

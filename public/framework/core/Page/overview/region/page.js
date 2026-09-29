@@ -71,7 +71,9 @@ export default new Page({
 	group: "The box",
 	description: "What a region actually hands the page inside it — measured, not claimed.",
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", () => board(true))); },
+	// `zoom-50`, matching every other "The box" card (2026-09-29, the previews fix —
+	// a wall reads one shared zoom; a taller result just caps and fades now, Page.css).
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50", () => board(true))); },
 
 	content(){
 		md("A region can only talk to a page through inherited custom properties. **`--page-pad` arrives; `--measure` does not** — `.page` re-declares `--measure` for itself, and a declared value beats an inherited one, so `--measure: none` on a region is decoration.");
