@@ -17,6 +17,14 @@ const read = () => new URLSearchParams(location.search).get("view") === "workspa
 export const workspace = {
 	on: read(),
 
+	/** The rail word's label — self-evident either way, never just "workspace" (the
+	 *  owner, 2026-09-28: "what is this workspace link?? it doesn't do anything" —
+	 *  the old one-word label gave no reason to click it). */
+	label(){ return this.on ? "Back to the normal view" : "Floating page view (try it)"; },
+
+	/** The tooltip: one sentence, the same in both states, saying what actually changes. */
+	title: "The open card becomes a centred page with its own left nav.",
+
 	/** An AI 2 address with the switch carried on, when it is on. */
 	url(u){
 		if (!this.on) return u;

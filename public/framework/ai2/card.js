@@ -960,7 +960,11 @@ export default class Card extends Page {
 	// back to has to re-register and pick up titles that changed meanwhile.
 	activated(){
 		this.seen_from = null;   // each visit marks what is new since the last one (activity_tab)
-		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box });
+		// `top`/`ws` (page.js's rail header, the `workspace` word): both are `tabbed()` here —
+		// a top-level card fills `$detail` AND is exactly what `in_workspace()` would change;
+		// a sub-card (a request) is neither, so it must not touch the word for the top-level
+		// card still open beside it.
+		this.handle = this.shell?.ai2?.open({ id: this.id, draw: it => this.flag_changed(it), on: this.face(), $box: this.$box, top: this.tabbed(), ws: this.tabbed() });
 		// The sub-cards' titles come off AI 2's card list, which refreshes on its own clock.
 		this.stop_list = this.shell?.ai2?.cards?.on(() => this.redraw());
 		// A member landing, or a task's `now` moving, reorders a group's sections.

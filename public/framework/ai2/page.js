@@ -159,8 +159,12 @@ function board(page){
 	const waiting = new Set();     // ids that arrived while the list was busy
 	const watching = new Set();    // the card pages on screen, each watching for its own card
 	const list_watchers = new Set();   // the overview's own subscription onto this list
-	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived;
+	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
 	let $groups, $pinned, $unfiled, $unfiled_head, $list;
+	// THE ONE THING SHOWING IN `$detail` — a top-level card (`open()`'s `h.top`), never a sub-card
+	// beside it: drilling into a request must not hide the workspace word for the card still open
+	// next to it. `null` while nothing top-level is open (the bare inbox, a real site page, a view).
+	let ws_owner = null;
 
 	/* `bleed` is the page grid's own word for "the whole region" — without it
 	   this draws inside the prose track and the rail and the page share 52em. */
@@ -178,9 +182,13 @@ function board(page){
 					span("AI inbox");
 					// THE WORKSPACE VIEW, an experiment (workspace.js): a full navigation to this same
 					// page with `?view=workspace` flipped. `target` keeps the Router's hands off it.
-					a.c("ai2-word ai2-ws-word" + (workspace.on ? " on" : "")).href(workspace.flipped()).attr("target", "_self")
-						.attr("title", workspace.on ? "back to the plain card view" : "try it: an opened card becomes a centred page with its own left nav")
-						.text("workspace").click(e => { e.preventDefault(); location.assign(workspace.flipped()); })
+					// ⚠ SHOWN ONLY WHEN IT WOULD DO SOMETHING (the owner, 2026-09-28: "what is this
+					// workspace link?? it doesn't do anything") — hidden here at rest, then toggled by
+					// `render_ws()`, which only ever runs for a TOP-LEVEL card (`open()`'s `h.top`), never
+					// for a sub-card beside it, a real site page, or the bare inbox. `.el.hidden` starts
+					// true so a slow first paint never flashes a dead-looking word.
+					$ws = a.c("ai2-word ai2-ws-word").attr("target", "_self").attr("hidden", "")
+						.click(e => { e.preventDefault(); location.assign(workspace.flipped()); })
 						.on("pointerenter", e => { e.currentTarget.href = workspace.flipped(); });
 				});
 				usage_head(live);
@@ -301,6 +309,20 @@ function board(page){
 		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
 		$shell.style("--ai2-rail", w ? w + "px" : "");
 		return w;
+	}
+
+	/* THE WORKSPACE WORD — called from `open()`/`close()` below, whenever the top-level
+	   card in `$detail` changes. `ws_owner` is null for anything that toggle can never
+	   affect (the bare inbox, a real site page, the Live page, an old non-folder card),
+	   so the word simply stays hidden for all of them — no per-page special-casing here. */
+	function render_ws(){
+		const eligible = !!ws_owner?.ws;
+		$ws.el.hidden = !eligible;
+		if (!eligible) return;
+		$ws.el.classList.toggle("on", workspace.on);
+		$ws.el.href = workspace.flipped();
+		$ws.el.title = workspace.title;
+		$ws.text(workspace.label());
 	}
 
 	/* ── drawing the list ───────────────────────────────────────────────── */
@@ -643,10 +665,18 @@ function board(page){
 		open(h){
 			watching.add(h);
 			current = h;
+			// `h.top` — only a top-level card (or the old, never-eligible `card_page()`) sets
+			// this; a sub-card opening beside it must never touch the word for the card still
+			// open in `$detail`.
+			if (h.top){ ws_owner = h; render_ws(); }
 			paint();
 			return h;
 		},
-		close(h){ watching.delete(h); if (current === h) current = null; },
+		close(h){
+			watching.delete(h);
+			if (current === h) current = null;
+			if (ws_owner === h){ ws_owner = null; render_ws(); }
+		},
 		repaint: paint,
 		live,
 		// The card folders — `card.js` reads sub-card titles off this, and asks
@@ -810,7 +840,9 @@ function card_page(root, id){
 				history.replaceState({}, "", url);
 				root.app?.router?.load(url);
 			});
-			handle = root.ai2.open({ id, draw, on, $box });
+			// `top: true` — this IS what fills `$detail`; `ws: false` — the old, non-folder card
+			// page (and the Live page) has no floating view, so the workspace word never shows here.
+			handle = root.ai2.open({ id, draw, on, $box, top: true, ws: false });
 			// A LIVE UPDATE ON THIS CARD'S OWN LOG redraws the table of contents
 			// (and the body, in case a `refined` or `task` line just landed) —
 			// `sig` carries the log's length precisely so this cannot loop with
