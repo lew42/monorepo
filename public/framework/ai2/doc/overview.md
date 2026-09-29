@@ -27,7 +27,10 @@ folder look, by hand in `page.js`, because the panels are AI 2's own routed page
 The Overview (`overview.js`) draws one card per concept, in the json's order. The first card is
 two grid tracks wide and has bigger type. Each card shows a big icon, the name, "N open · M done"
 and the cost, then one row per open ask: the quote (linked to where it was said), a state word,
-and "result →". The done asks fold into one "Completed (n)" line, a native `<details>`.
+and "result →". At most three open rows show; the rest fold into "More open (n)", so no card
+grows tall enough to leave a hole in the grid. The done asks fold into one "Completed (n)" line,
+a native `<details>`. Both the count line and that summary say "· N today" (asks whose
+`landed_at` is today's local date; left out when none).
 
 Each ask has a one-line timeline under it (asked → delivered, how long, cost, outcome), shown
 on hover, or for every ask when the "timeline" box at the top is ticked (remembered in this

@@ -52,6 +52,17 @@ function ask(it){
 	});
 }
 
+const MAX_OPEN = 3;
+
+/** WHAT WAS DONE TODAY, readable in ten seconds: "6 today", from `landed_at` on today's
+ *  local date. Nothing when it is none. (The json keeps the newest 30 done asks, which
+ *  always holds today's.) */
+function today_word(c){
+	const today = new Date().toDateString();
+	const n = (c.done ?? []).filter(it => it.landed_at && new Date(it.landed_at).toDateString() === today).length;
+	return n ? n + " today" : "";
+}
+
 /** One concept: a big icon, its name, the count and the cost, then its asks. */
 function concept(c, first){
 	div.c("ai2-ov-card card" + (first ? " ai2-ov-first" : ""), () => {
@@ -60,13 +71,20 @@ function concept(c, first){
 			div.c("ai2-ov-name", () => {
 				h3(c.name);
 				const done = c.done_count ?? c.done?.length ?? 0;
-				small.c("muted").text([`${c.open?.length ?? 0} open · ${done} done`, usd(c.cost_usd)].filter(Boolean).join(" · "));
+				small.c("muted").text([`${c.open?.length ?? 0} open · ${done} done`, today_word(c), usd(c.cost_usd)].filter(Boolean).join(" · "));
 			});
 		});
-		if (c.open?.length) div.c("ai2-ov-asks", () => c.open.forEach(ask));
+		// AT MOST THREE OPEN ROWS, so no card grows tall enough to leave a hole in the grid;
+		// the rest fold into "More open (n)", just above Completed.
+		const open = c.open ?? [];
+		if (open.length) div.c("ai2-ov-asks", () => open.slice(0, MAX_OPEN).forEach(ask));
+		if (open.length > MAX_OPEN) details.c("ai2-ov-done", () => {
+			summary(`More open (${open.length - MAX_OPEN})`);
+			div.c("ai2-ov-asks", () => open.slice(MAX_OPEN).forEach(ask));
+		});
 		const done = c.done ?? [];
 		if (done.length) details.c("ai2-ov-done", () => {
-			summary(`Completed (${c.done_count ?? done.length})`);
+			summary([`Completed (${c.done_count ?? done.length})`, today_word(c)].filter(Boolean).join(" · "));
 			div.c("ai2-ov-asks", () => done.forEach(ask));
 			// the json keeps only the newest done asks; say so rather than let the count disagree
 			const more = (c.done_count ?? done.length) - done.length;
