@@ -184,11 +184,11 @@ demo.app(page, { scope: page, urls: true })   // scope is a REAL page — keep r
 
 		h2("The code beside the render");
 
-		code.js(`files(import.meta, "readme.md demo.js stage.js exhibit.js", { columns: "render" })`);
+		code.js(`files(import.meta, "readme.md demo.js stage.js exhibit.js")`);
 
-		files(import.meta, "readme.md demo.js stage.js exhibit.js", { columns: "render" }).ac("wide");
+		files(import.meta, "readme.md demo.js stage.js exhibit.js").ac("wide");
 
-		md("A demo shows the result; `files()` shows the **files behind it** — the real ones, on disk. Click a file: its source on the left, and its rendered page on the right when it is a `.md` or `.html`. Choose **2 columns** in the bar to read two files side by side, and shift-click to fill the second. The chosen files live in the url, so a reload or the back button lands here again. [Files](/framework/ext/files/) has the rest.");
+		md("A demo shows the result; `files()` shows the **files behind it** — the real ones, on disk. It's a two-column view: a file tree on the left, folders opening and closing on click, and the picked file's source on the right, with the seam between them ([`ext/grip`](/framework/ext/grip/)) draggable to resize. The chosen files live in the url, so a reload or the back button lands here again. [Files](/framework/ext/files/) has the rest.");
 
 		h2("Why");
 

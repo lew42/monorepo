@@ -38,6 +38,9 @@ resize the one on its left, plain flex — no panels underneath it as of 2026-09
 ## Later
 
 - A per-file readme in a third column (the owner: not now).
+- The 2-column "code + rendered page" mode and its switcher bar (1 column / 2 columns / code +
+  rendered) were cut outright along with `ext/Panel`, not just re-plumbed onto plain columns —
+  it can come back on request.
 
 ## More
 
