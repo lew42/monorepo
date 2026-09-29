@@ -99,22 +99,46 @@ function parseArgs(argv) {
 const modelKey = s => String(s).replace(/[^a-zA-Z0-9_-]+/g, "-");
 const modelIdFor = name => MODELS[name] || name; // a name not in the table is used literally
 
-// <date>:<line>, 0-based, into .claude/prompts/<date>.jsonl's `.prompt.text`.
+// `.claude/prompts/` is git-ignored and PER-WORKTREE (prompt-relay.mjs writes into whichever
+// tree the typing session's cwd was) — a worktree's own copy usually has just that worktree's own
+// sessions in it, so a prompt typed in the main tree (or a sibling worktree) is invisible from
+// here. `git rev-parse --git-common-dir` always points at the ONE shared `.git` every worktree of
+// the same repo has (the main tree's own, for a worktree; its own `.git` for the main tree
+// itself), so its parent is the main tree's root — the one other place worth trying.
+function mainTreeRoot(root) {
+	const r = spawnSync("git", ["rev-parse", "--git-common-dir"], { cwd: root, encoding: "utf8", windowsHide: true });
+	if (r.status !== 0 || !r.stdout.trim()) return null;
+	const commonDir = path.resolve(root, r.stdout.trim()); // e.g. C:/Code/lew42/monorepo/.git
+	return path.dirname(commonDir);
+}
+
+// <date>:<line>, 0-based, into .claude/prompts/<date>.jsonl's `.prompt.text` — tried in THIS tree
+// first, then the main tree, since a worktree's own log usually won't have a prompt that was
+// typed somewhere else. Returns which file it actually read, for refine.json.
 function resolveRaw(input, root) {
 	const m = /^(\d{4}-\d{2}-\d{2}):(\d+)$/.exec(input);
-	if (!m) return fs.readFileSync(input, "utf8");
+	if (!m) return { text: fs.readFileSync(input, "utf8"), sourceFile: path.resolve(input) };
 	const [, date, lineStr] = m;
 	const line = Number(lineStr);
-	const file = path.join(root, ".claude/prompts", `${date}.jsonl`);
-	let lines;
-	try { lines = fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean); }
-	catch (e) { throw new Error(`refine.mjs: could not read ${file}: ${e.message}`); }
+
+	const candidates = [path.join(root, ".claude/prompts", `${date}.jsonl`)];
+	const mainRoot = mainTreeRoot(root);
+	if (mainRoot && path.resolve(mainRoot) !== path.resolve(root)) candidates.push(path.join(mainRoot, ".claude/prompts", `${date}.jsonl`));
+
+	let file, lines;
+	const misses = [];
+	for (const candidate of candidates) {
+		try { lines = fs.readFileSync(candidate, "utf8").split(/\r?\n/).filter(Boolean); file = candidate; break; }
+		catch (e) { misses.push(`${candidate} (${e.code || e.message})`); }
+	}
+	if (!file) throw new Error(`refine.mjs: no ${date}.jsonl found — tried ${misses.join(" and ")}. .claude/prompts/ is git-ignored and per-worktree, so a prompt typed in a different tree's session won't be here.`);
+
 	if (line < 0 || line >= lines.length) throw new Error(`refine.mjs: ${file} has ${lines.length} line(s), no line ${line}`);
 	let obj;
 	try { obj = JSON.parse(lines[line]); } catch (e) { throw new Error(`refine.mjs: line ${line} of ${file} is not valid JSON: ${e.message}`); }
 	const text = obj?.prompt?.text;
 	if (typeof text !== "string" || !text.trim()) throw new Error(`refine.mjs: line ${line} of ${file} has no usable .prompt.text`);
-	return text;
+	return { text, sourceFile: file };
 }
 
 // ---- word counting / the mechanical faithfulness check (deliverable 2: "check it mechanically,
@@ -513,8 +537,10 @@ async function main() {
 	const outDir = path.resolve(args.out);
 	fs.mkdirSync(outDir, { recursive: true });
 
-	const rawText = resolveRaw(args.input, root);
+	const resolved = resolveRaw(args.input, root);
+	const rawText = resolved.text;
 	fs.writeFileSync(path.join(outDir, "raw.txt"), rawText); // byte for byte, whatever it is
+	console.log(`refine.mjs: read from ${resolved.sourceFile}`);
 
 	const costs = {};
 
@@ -560,7 +586,7 @@ async function main() {
 	const wordCount = t => wordsOf(t).length;
 	const totalCost = (costs.clean || 0) + Object.values(costs.structured).reduce((s, c) => s + c, 0) + (costs.pick || 0) + (costs.brief || 0) + (costs.coverage || 0);
 	const refineJson = {
-		at: now(), input: args.input, out: path.relative(root, outDir).replaceAll("\\", "/"),
+		at: now(), input: args.input, source_file: resolved.sourceFile.replaceAll("\\", "/"), out: path.relative(root, outDir).replaceAll("\\", "/"),
 		models: { clean: CLEAN_MODEL, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : JUDGE_MODEL, brief: BRIEF_MODEL, coverage: COVERAGE_MODEL },
 		collab: args.collab, mock: args.mock, structured_winner: pick.winner,
 		cost_usd: { ...costs, total: Number(totalCost.toFixed(6)) },

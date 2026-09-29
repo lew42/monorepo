@@ -46,7 +46,13 @@ node Server/refine.mjs --coverage-only <dir> [--mock]
 
 - `<raw.txt | date:line>` — either a plain text file, or `<date>:<line>` (0-based) into
   `.claude/prompts/<date>.jsonl`'s `.prompt.text`, for a dictation that was typed straight into a
-  Claude Code session.
+  Claude Code session. **`.claude/prompts/` is git-ignored and PER-WORKTREE** — the
+  `UserPromptSubmit` hook (`prompt-relay.mjs`) writes into whichever tree the typing session's
+  `cwd` was, so a prompt typed in the main tree's own session is not in a worktree's copy of that
+  day's log, and the other way round. `date:line` is looked up in THIS tree first, then in the
+  main tree (found via `git rev-parse --git-common-dir`, whose parent is always the main tree's
+  root, worktree or not) — `refine.json`'s `source_file` says which one it actually read. If
+  neither tree has that day's file, or that line, the error names both paths it tried.
 - `--out <dir>` — where the files land (default: the current directory).
 - `--models haiku,sonnet` — which models draft `structured.md`, cheap first (default). Each gets
   its own `structured-<name>.md`; the winner becomes `structured.md`.
