@@ -1,4 +1,4 @@
-import { Page, Sidebar, View, div, button, h2, h3, p, blockquote, code } from "/app.js";
+import { Page, Sidebar, View, div, a, img, h2, h3, p, button, blockquote, code } from "/app.js";
 import Framework from "/framework/page.js";
 import Core from "/framework/core/page.js";
 import SidebarModule from "/framework/core/Sidebar/page.js";
@@ -15,9 +15,12 @@ const PRETEND = [
 	{ name: "Sidebar", root: SidebarModule },
 ];
 
+// The real rail's own header shape (variant A's `header()`, copied): a logo image
+// that links home, and the page's own title as a link beside it — never a button.
 function brand_header(root){
 	return () => div.c("brand", () => {
-		button(root.title).ac("brand-title").attr("type", "button");
+		a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href("/").ac("brand-logo");
+		a(root.title).href(root.url).ac("brand-title");
 	});
 }
 
@@ -38,6 +41,13 @@ function stage_e(app){
 			button(entry.name).on("click", () => show(entry))));
 		div.c("variant-rail-box", () => { $rail = div.c("variant-rail-slot"); });
 		show(PRETEND[0]);
+
+		p("The code — one rail slot, rebuilt on every click:");
+		code.fn(() => {
+			function show(entry){
+				$rail.empty(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }));
+			}
+		});
 	});
 }
 
@@ -62,6 +72,15 @@ function stage_f(app){
 			$pg.append(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }).ac("variant-rail"));
 		}));
 		show(PRETEND[0].name);
+
+		p("The code — three rails already built; a click only moves a class:");
+		code.fn(() => {
+			function show(name){
+				$pages.forEach($pg => $pg.tc("active", $pg.el.dataset.name === name));
+			}
+		});
+
+		p("Risk the owner named: the parent's rail is only hidden, not gone — it has to come back the moment its own page is active again, or the reader is left staring at someone else's tree.");
 	});
 }
 
@@ -76,32 +95,14 @@ export default new Page({
 	render(){
 		return this.view ??= div.c("page sidebar-variant-rail flow pad", () => {
 
-			p("Two different ways to swap the left rail's header and tree when the reader moves between pages — E lets the app own one rail and hand it new content, F lets each page keep its own rail and hides the ones that aren't active. Click Framework / Core / Sidebar under each stage; both stages end up looking identical.");
+			p("Two ways to swap the left rail: the app owns one rail (E), or each page owns its own (F). They look the same; only the code differs.");
 
 			blockquote("“One way to handle the left and right sidebars is to have an app level sidebar that you swap things out of. Another option would be to have each page kind of render their own and maybe be able to hide a parent sidebar, but hiding the parent means that you then have to make sure you show it at the right time … maybe we do just add and remove the active classes.”");
 
-			div.c("variant-rail-pair", () => {
+			div.c("variant-rail-pair wide", () => {
 				stage_e(this.app);
 				stage_f(this.app);
 			});
-
-			h2("The code");
-
-			p("E — the app keeps ONE rail slot and rebuilds what's inside it:");
-			code.fn(() => {
-				function show(entry){
-					$rail.empty(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }));
-				}
-			});
-
-			p("F — each page keeps its own rail; a click only moves a class:");
-			code.fn(() => {
-				function show(name){
-					$pages.forEach($pg => $pg.tc("active", $pg.el.dataset.name === name));
-				}
-			});
-
-			p("The risk the owner named for F: the parent's rail is only hidden, not gone — it has to come back the moment its own page is active again, or the reader is left staring at someone else's tree.");
 
 			h2("Resizing and selection");
 

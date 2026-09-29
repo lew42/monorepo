@@ -29,19 +29,26 @@
 
 	.variant-crumb-sep { opacity: 0.55; font-size: 0.85em; flex: 0 0 auto; }
 
-	/* rail/page.js (E and F). Two stages side by side at 1920+; the util `flow`
-	   on the page wraps them to one-above-the-other itself once they don't fit,
-	   so this only needs to say how each stage's own INSIDE looks. */
+	/* rail/page.js (E and F). `.wide` (Page.css) is what lets this row escape the
+	   page's own narrow `main` reading column and actually use a 1920-wide
+	   screen — without it, two 32em stages have nowhere near enough room and
+	   stack even though the screen has 1300px sitting empty beside them. Two
+	   equal columns above ~1100px; below that there isn't room for even one
+	   stage at a readable width, so they stack. */
 	.variant-rail-pair {
 		display: flex;
-		flex-wrap: wrap;
 		gap: 1.5em;
 		align-items: flex-start;
 	}
 
 	.variant-rail-stage {
-		flex: 1 1 32em;
+		flex: 1 1 0;
 		min-width: 0;
+	}
+
+	@media (max-width: 1100px) {
+		.variant-rail-pair { flex-direction: column; }
+		.variant-rail-stage { flex: 1 1 auto; width: 100%; }
 	}
 
 	.variant-rail-tabs {
