@@ -11,19 +11,11 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK
 [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
 [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
-
-This readme is the text version; the rendered page is designed from it ([how](./make/readme-page/)).
-
-## Index
-
-[make](./make/) — five ways to make a page, each with its code and its live result — start here
-[layout](./layout/) — the layout system: concepts top down, every kind of layout, how to decide
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
-[jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js`, trimmed to the two-line case
 [overview](./overview/) — the wall of one picture card per page building block
 [old](./old/) — the first Page docs, kept as reference
-`tools/links.mjs` — a link-checking script, not a page
-[doc](./doc/) — every method, property and topic in full
+
+This readme is the text version; the rendered page is designed from it ([how](./make/readme-page/)).
 
 ## Five ways to make a page
 
@@ -45,4 +37,4 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
 
-**Reference** — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette)
+**Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette), `tools/links.mjs` (a link-checking script, not a page)

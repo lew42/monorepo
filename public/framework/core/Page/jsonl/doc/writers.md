@@ -13,6 +13,16 @@ of them only appends.
 | An agent, by hand | any line at all — nothing checks the shape, so a typo is possible | mid-task, when an agent wants to record a `{"file": …}` or `{"place": …}` line itself instead of waiting for a tool | `.claude/hooks/append.mjs <target.jsonl> <lines.json>`, a repo script every agent session has |
 | A person, editing on disk | any line | rare — someone opens the file in an editor and types a line by hand | not a tool, just a text file |
 
+## A page.js folder's weight lines go in weight.jsonl, not page.jsonl
+
+The "reference tracker" and "weight adjustment" rows above write into a page's **page.jsonl**
+only when that page IS a page.jsonl page (no `page.js` of its own). A folder that has a
+`page.js` — most of `core/Page`'s own sub-pages — gets a sibling `weight.jsonl` instead, written
+by the same `Server/page-refs.mjs`: a new `page.jsonl` would subscribe the folder to the file
+watcher row above, which then fills it with unrelated `{"file": …}` lines
+([`core/Page/weight/doc/design.md`](/framework/core/Page/weight/md/doc/design/) has the incident
+that found this, 2026-09-29).
+
 ## A look-alike that is NOT a writer
 
 Servex has an `append_log` tool that sounds like it belongs on this list — it doesn't.

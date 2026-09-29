@@ -1,4 +1,4 @@
-import { Page, md, h2, small, div } from "/app.js";
+import { Page, md, h2, small, div, details, summary } from "/app.js";
 import { view } from "/framework/ux/Content/Object/DefaultView.js";
 import { agents } from "../live.js";
 
@@ -35,7 +35,16 @@ export default new Page({
 			agents().then(rows => $box.append(() => {
 				if (rows === null) return void small.c("muted", "Servex is not answering on this machine — nothing to show.");
 				if (!rows.length) return void small.c("muted", "No agents running right now.");
-				view(rows);
+
+				// ⚠ 2026-09-29 fix round, finding 3: `view(rows)` alone drew every row as a
+				// bare array index (".0 {…}", ".1 {…}") — you had to open one to learn
+				// anything about it. Each row gets the same id/role/state label the "Live
+				// right now" widget on `ai/` already uses, with the full object one click
+				// down inside it.
+				rows.forEach(row => details.c("ai-row", () => {
+					summary(`${row.id} · ${row.role} · ${row.state}`);
+					div.c("ai-row-body", () => view(row));
+				}));
 			}));
 		});
 

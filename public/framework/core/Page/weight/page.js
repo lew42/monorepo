@@ -1,4 +1,4 @@
-import { Page, md, h2, div, a, span, icon } from "/app.js";
+import { Page, md, h2, h3, div, a, span, icon } from "/app.js";
 import { weight as page_weight } from "./weight.js";
 
 /* Weight — the owner's own words, 2026-09-29 (4:45 PM): "let's create a weight system for
@@ -94,14 +94,22 @@ export default new Page({
 
 		md("Every card below reads REAL data: eight real `core/Page` sub-pages, real `referenced_by` lines seeded by the writer from real links (the readme's own sub-systems list, plus `layout → navigation` and `overview → generator` — both real links inside those pages' own readmes), and two real manual bumps (`layout` +10, `old` −2) — not fabricated numbers.");
 
-		div.c("card ux-content-section flow", $box => {
+		// [fix-2026-09-29 finding 7] Two bugs, one card: these four sub-headings were
+		// `h2` — the theme's h2 is set for a page-level section, not a title inside a
+		// card, and at the card's old ~640px width "1. Main navigation — weight >= 1
+		// is listed…" wrapped to three huge lines. `h3` is the right size for a title
+		// INSIDE a card (the layout skill: h1/h2/h3, in that order, never a box's own
+		// heading jumping back up to h1/h2 size). `wide` on the card gives the same
+		// fix the ai/ tiles got (finding 5): this card sat in the ~640px measure
+		// track with ~900px empty at 1920; now it can use the tab panel's full width.
+		div.c("wide card ux-content-section flow", $box => {
 			Promise.all(PAGES.map(p => page_weight(p.href).then(w => ({ p, w })))).then(rows => {
 				rows.sort((a, b) => b.w.weight - a.w.weight);
 				const main = rows.filter(r => r.w.weight >= 1);
 				const parked = rows.filter(r => r.w.weight < 1);
 
 				$box.append(() => {
-					h2("1. Main navigation — weight ≥ 1 is listed; below 1 is still reachable, just not here");
+					h3("1. Main navigation — weight ≥ 1 is listed; below 1 is still reachable, just not here");
 					div.c("ux-content-icards", () => main.forEach(({ p, w }) => nav_card(p, w)));
 
 					if (parked.length){
@@ -109,15 +117,15 @@ export default new Page({
 							parked.map(({ p, w }) => `[${p.name}](${p.href}) (weight ${w.weight})`).join(", ") + ".");
 					}
 
-					h2("2. Quick links — a flex-wrap row of pills, the core things, heaviest first");
+					h3("2. Quick links — a flex-wrap row of pills, the core things, heaviest first");
 					div.c("flex wrap gap-35", () => main.forEach(({ p, w }) => pill(p, w)));
 
-					h2("3. Past weight 10, an item is upgraded — bigger, not just first");
+					h3("3. Past weight 10, an item is upgraded — bigger, not just first");
 					md(main[0]
 						? `**${main[0].p.name}** is weight **${main[0].w.weight}** — over 10, so it renders bigger above, not only sorted first. It's manually marked important because the owner's own \`navigation/readme.md\` already says to "start every layout here": the most-pointed-to starting page of the eight.`
 						: "");
 
-					h2("4. Showing the weight — A or B? Not decided; both are built");
+					h3("4. Showing the weight — A or B? Not decided; both are built");
 					md("**A** is quiet: a bar whose length scales with weight, the exact number only on hover. **B** is loud: the plain number, always visible. Same eight rows, same numbers — pick whichever reads better.");
 
 					div.c("wide flex gap", () => {
@@ -129,6 +137,6 @@ export default new Page({
 		});
 
 		h2("Run it yourself");
-		md("`node Server/page-refs.mjs <from-url> <to-url>` appends one `referenced_by` line to the target's own `page.jsonl` — running it twice for the same pair adds one line, not two. `node Server/page-refs.mjs <to-url> --weight <N>` sets the manual number the same way. `weight(page_url)` (`weight.js`) reads it all back as `{ weight, refs, manual }`. Not built: wiring this into `Page`'s own real navigation menu — a core change that needs the owner's own yes first (`doc/design.md`).");
+		md("`node Server/page-refs.mjs <from-url> <to-url>` appends one `referenced_by` line to the target's own log — running it twice for the same pair adds one line, not two. `node Server/page-refs.mjs <to-url> --weight <N>` sets the manual number the same way. The log is `weight.jsonl` beside a `page.js` folder, or the page's own `page.jsonl` when it has no `page.js` — [`doc/design.md`](/framework/core/Page/weight/doc/design.md) has the rule and why. `weight(page_url)` (`weight.js`) reads it all back as `{ weight, refs, manual }`. Not built: wiring this into `Page`'s own real navigation menu — a core change that needs the owner's own yes first (`doc/design.md`).");
 	},
 });

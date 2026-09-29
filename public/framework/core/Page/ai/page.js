@@ -39,13 +39,22 @@ export default new Doc({
 	content(){
 		md("**Every page path is a context.** A card's directory (`ai/<date>/<slug>/`) is not just where its log lives — the moment the owner talks or types on it, Servex mints that path its own fast assistant and its own manager, and both keep the same session id for as long as the card is alive. The five parts below are how that works; [Servex](/framework/servex/) documents the agents themselves.");
 
-		div.c("ux-content-icards", () => {
-			PARTS.forEach(p => a.c("ux-content-icard w2", () => {
-				icon(p.icon);
-				span(p.name);
-				small.c("muted", p.blurb);
-			}).attr("href", p.href));
-		});
+		// [fix-2026-09-29 finding 5] `.ux-content-icard` centres its text, and this
+		// Overview renders inside a catalog's DETAIL column (core's own "content()
+		// lands in a catalog" trap, the layout skill) — so without `wide` the five
+		// tiles sat in the ~640px measure track, wrapped every two words, and left
+		// the right half of the screen empty. `wide` lets this row claim the whole
+		// detail column; `navigation/page.js` set the same left-aligned tile pattern
+		// the same day (`.card flex v gap-35`).
+		div.c("wide flex auto gap", () => {
+			PARTS.forEach(p => a.c("card flex v gap-35").href(p.href)
+				.style({ textDecoration: "none", color: "var(--ink)" })
+				.append(() => {
+					icon(p.icon).style({ fontSize: "2rem" });
+					span(p.name).style({ fontWeight: "700" });
+					small.c("muted", p.blurb);
+				}));
+		}).style("--column", "14rem");
 
 		// SHOW, DON'T JUST LINK — the very thing this page is about, right here: real
 		// agents, fetched live, rendered by the default instance view (ux/Content/Object/DefaultView.js).

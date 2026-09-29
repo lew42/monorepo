@@ -75,3 +75,15 @@ live on the weight page itself, reading the same eight numbers:
 `Page.class.js` or `page.js` — a core API change with a dozen callers, which `CLAUDE.md`'s "Ask
 before" rule reserves for the owner's own yes. The nav and quick-links sections on the weight
 page are a working **preview** of the idea using real data, not the real menu.
+
+## The rule that replaced the sidecar `page.jsonl` (2026-09-29 fix round, finding 2)
+
+**A page.js folder's weight lines live in a sibling `weight.jsonl`, never a `page.jsonl`.**
+Creating a `page.jsonl` beside a `page.js` — the design this doc used to recommend, in the
+section above — turns out to subscribe that folder to the dev server's file watcher
+(`Server/plugins/PageFiles.js` matches on the exact filename `page.jsonl`), which then fills the
+"weight data only" file with `{"file": …}` lines every time something in the folder changes —
+31 of 33 committed lines in `overview/page.jsonl` were exactly this churn, found in the
+2026-09-29 review. `weight.js` and `Server/page-refs.mjs` both try `weight.jsonl` first and fall
+back to `page.jsonl` only for a folder with no `page.js` of its own — a real page.jsonl PAGE
+(`core/Page/jsonl/` itself) keeps its weight lines where its content already is.

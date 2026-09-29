@@ -40,6 +40,7 @@ same things as tiles ([why both](/framework/core/Page/make/readme-page/)).
 [styles/layouts](/framework/styles/layouts/) — whole-page layouts as class strings, one filterable wall
 [Labs](/layouts/labs/) — six shape experiments: shells, screens, sections, blog, magazine, decks
 [DesignTool](/framework/ext/DesignTool/) — measures a layout: what is broken, how good it is
+**Vertical split (mobile)** — not built — the owner's idea, 2026-09-29: two stacked areas, content above and chat below, each scrolling on its own; a grip on the separator drags it up and down, and a tap may collapse one side or merge the two. Today only columns resize — this would be the same idea, stacked.
 
 ## Deciding a layout
 

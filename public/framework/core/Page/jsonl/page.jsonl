@@ -18,4 +18,4 @@
 {"file":"doc/"}
 {"place":{"module":"system.js"}}
 {"file":"child/page.jsonl"}
-{"title":"page.jsonl","label":"page.jsonl","placed":[{"module":"system.js","part":"tiles"},"note.md",{"module":"system.js","part":"source"}]}
+{"title":"page.jsonl","label":"Storage (page.jsonl)","placed":[{"module":"system.js","part":"tiles"},"note.md",{"module":"system.js","part":"source"}]}
