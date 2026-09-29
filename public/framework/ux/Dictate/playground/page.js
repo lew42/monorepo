@@ -19,6 +19,7 @@ export default new Page({
 		a.c("page-link").href("/framework/ux/Dictate/playground/walkthrough/").text("New here? Next / Next through it, one screen at a time →");
 		md("Press 🎤, or ▶ Sample for a scripted fake session — no mic needed.");
 		pg.widget();
+		md("Want a different LOOK on top of this same mic — mobile prompt cards, a compact toolbar line? See [Variants](/framework/ux/Dictate/variants/).");
 		md.details(import.meta, "readme.md", "Readme");
 	},
 });

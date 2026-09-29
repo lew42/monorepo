@@ -1,9 +1,8 @@
-/* ux/Dictate — states you can SEE. Layout is plain framework.css utilities
- * (flex, gap, muted); everything here is the two things a utility class can't
- * give a button: a level meter driven by a number set from JS every audio
- * frame, and a plain still-image pulse for the one engine with no level to
- * read. doc/decisions.md has the "why a level meter, why capped at 240 chars"
- * calls. */
+/* FROZEN — the exact `ux/Dictate/Dictate.css` from before the 2026-09-29
+ * mobile-nav task (commit 21eee692), kept beside the frozen `Dictate.js` in
+ * this same folder so "v1" never changes again. Same class names as the live
+ * stylesheet on purpose — this is the styling those classes had before this
+ * task, not a new set of names (`ai/2026-09-29/mobile-nav/review.md`, finding 6). */
 @layer theme {
 
 	/* "on" is a solid, still fact — the owner's own complaint was the button
@@ -27,12 +26,6 @@
 
 	/* the last segment is still in flight after the owner pressed stop. */
 	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
-
-	/* asked for, not yet on — a permission prompt or a device still opening. Same pulse
-	 * as "transcribing" (both mean "wait, something is happening"), never the solid
-	 * "listening" look, which the owner's own bug report is why this state exists at all:
-	 * the mic must never LOOK live before it really is. */
-	.ux-dictate-btn.connecting { animation: ux-dictate-pulse .8s ease-in-out infinite; }
 
 	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
 
