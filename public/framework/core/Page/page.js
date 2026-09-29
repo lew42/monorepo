@@ -98,7 +98,7 @@ export default new Doc({
 	// order always puts api/doc/files right after whatever was declared — which is
 	// why "old" could never move past them without this override.
 	bar(){
-		return ["overview", "make", "layout", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "layout", "navigation", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 
