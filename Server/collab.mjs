@@ -332,6 +332,18 @@ async function runPhase(spec, root, taskDir, taskJsonl, members, phase, ids, las
 	const results = await Promise.all(active.map(async member => {
 		const file = fileFor(taskDir, member.id, phase);
 		fs.mkdirSync(path.dirname(file), { recursive: true });
+		// 2026-09-29 (Server/refine.mjs, brief minion-a.md): `phase.given: true` means the
+		// caller already wrote this phase's file itself (refine.mjs pre-seeds each model's own
+		// `structured-<model>.md` draft here before calling collab.mjs) — spawn nothing, mock or
+		// real, and just confirm the file is there. This is the one hook that lets a caller reuse
+		// collab's OWN vote/tally/scoreboard machinery to pick among drafts it made itself,
+		// instead of collab re-drafting them (which would double the model cost for no reason).
+		// Every existing collab.json is unaffected: `given` is undefined/falsy on every phase it
+		// never sets, so this branch never runs for a research/design spec.
+		if (phase.given) {
+			const exists = fs.existsSync(file);
+			return { id: member.id, status: exists ? "done" : "error", why: exists ? undefined : "given: true but no file was pre-seeded", file: exists ? rel(root, file) : undefined, cost: 0, agent: "given" };
+		}
 		if (mock) {
 			if (phase.kind === "vote") {
 				const candidates = ids.filter(id => id !== member.id && !errored.has(id));
