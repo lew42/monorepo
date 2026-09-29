@@ -1,49 +1,48 @@
-import { Page, md } from "/app.js";
+import { Page, md, div } from "/app.js";
 import { section } from "../../../ux/Content/structure/Structure.js";
 
 /**
- * Layout — the owner's three words (standard / split / fill-as-columns) plus the
- * top-down shape, as one page of links. Nothing here is a new mechanism: every
- * item points at the real thing. proposal.md rewrite order item 2.
- *
- * ⚠ Word collision, named once so nobody re-discovers it: core already uses "wide"
- * and "fill" for something else (a page's own `width:` word, and a column's own
- * `width:` word) — not the owner's "two columns" and "three or more columns". That
- * is why the items below are named Standard / Split / Columns, not wide / fill.
- * Renaming core's words instead touches about a dozen callers — major surgery,
- * left for the owner to decide. audit/3c.md.
+ * The layout hub — every layout question and every layout page on the site, in
+ * one place. Show it with the widget (the icon sections below), then the words
+ * (readme.md, rendered underneath — see core/Page/make/ "5. readme.md" for the
+ * pattern this uses). v1 is the first version of this page, kept as reference.
  */
 export default new Page({
 	meta: import.meta,
 	title: "Layout",
-	description: "Choosing a layout: standard, split, columns, floating page, top-down shape.",
+	description: "The layout hub: the five shapes, how to choose one, and every layout page on the site.",
 	icon: "dashboard_customize",
 
-	children: "floating",
+	children: "floating v1",
 
 	content(){
-		md("**Choosing a layout.** Five shapes cover almost every page. Each link below goes to the real mechanism — nothing on this page is new.");
-
 		section({
-			title: "Choosing a layout", bg: true, items: [
+			title: "The five shapes", bg: true, items: [
 				{ name: "Standard", icon: "view_agenda", weight: 3, href: "/framework/core/Page/doc/words/" },
 				{ name: "Split", icon: "vertical_split", weight: 3, href: "/framework/core/Layout/main-aside/" },
 				{ name: "Columns", icon: "view_column", weight: 3, href: "/framework/core/Page/doc/columns/" },
-				{ name: "Floating page", icon: "flip_to_front", weight: 2, href: "/framework/core/Page/layout/floating/" },
+				{ name: "Floating page", icon: "flip_to_front", weight: 2, href: "./floating/" },
 				{ name: "Top-down shape", icon: "layers", weight: 2, href: "/framework/core/Page/doc/words/" },
 			],
 		});
 
-		md(`| shape | one line | mechanism |
-|---|---|---|
-| **Standard** | one column, 300–1000px — the site's own default | a page that says nothing (\`doc/words.md\`) |
-| **Split** | two columns, any proportion, stacks on mobile | \`arrangement: "main-aside"\` ([Layout catalogue](/framework/core/Layout/main-aside/)) |
-| **Columns** | three or more standard columns, responsive | \`this.columns({ even: true })\` ([\`doc/columns.md\`](/framework/core/Page/doc/columns/)) |
-| **Floating page** | an inner left sidebar beside a page that scrolls on its own | \`floating()\` ([\`core/Page/layout/floating/\`](/framework/core/Page/layout/floating/)) |
-| **Top-down shape** | background · padding · full-bleed | today spread over [\`doc/words.md\`](/framework/core/Page/doc/words/), \`doc/columns.md\` and styles' \`layout-system.md\` |`);
+		section({
+			title: "The whole layout system", bg: true, items: [
+				{ name: "Layouts encyclopedia", icon: "auto_stories", weight: 3, href: "/layouts/" },
+				{ name: "Browse every layout", icon: "grid_view", weight: 2, href: "/layouts/browse/" },
+				{ name: "Decide (the 5 questions)", icon: "checklist", weight: 3, href: "/layouts/decide/" },
+				{ name: "Practice pages", icon: "school", weight: 1, href: "/layouts/practice/" },
+				{ name: "Labs", icon: "science", weight: 1, href: "/layouts/labs/" },
+				{ name: "Shell", icon: "web", weight: 1, href: "/layouts/shell/" },
+				{ name: "core/Layout catalogue", icon: "view_quilt", weight: 3, href: "/framework/core/Layout/" },
+				{ name: "Sidebar variant", icon: "vertical_split", weight: 1, href: "/framework/styles/layouts/sidebar/" },
+				{ name: "Layout explorer", icon: "account_tree", weight: 2, href: "/layouts/explorer/" },
+			],
+		});
 
-		md("> **Word collision.** The owner's *wide* (two columns) and *fill* (three or more) are not core's `width: \"wide\"` (one full track, no second column) or a column's own `fill` (take the leftover, no ceiling). Reusing those words here would make every doc ambiguous — that's why this page says **Split** and **Columns** instead. `doc/columns.md`'s six width words are a different vocabulary again, for a column's own width inside a `columns()` row.");
-
-		md("More shapes than these five: the [Layout catalogue](/framework/core/Layout/) — 30 named arrangements, each proven at seven widths.");
+		// A Page isn't a View — it draws through `this.view`, so a promise (capture:false,
+		// like every md.file()/code.file()) gets appended onto a real box, never `this`.
+		// See core/Page/make/'s "5. readme.md" for the same pattern.
+		div().append(md.file(import.meta, "readme.md"));
 	},
 });

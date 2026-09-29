@@ -1,4 +1,4 @@
-import { Page, md, code, h3, demo } from "/app.js";
+import { Page, md, code, h3, h4, div, demo } from "/app.js";
 
 // Reused by two of the four demos below, so the code shown and the code that ran
 // are the same object — demo()/demo.app() print fn.toString(), so writing it twice
@@ -48,11 +48,13 @@ const folders_demo = () => new Page({
 export default new Page({
 	meta: import.meta,
 	title: "Make a page",
-	description: "Four ways to make a page, simplest first — the code, then what it produces, live.",
+	description: "Five ways to make a page, simplest first — the code, then what it produces, live.",
 	icon: "add_box",
 
+	children: "readme-page",
+
 	content(){
-		md("Four ways to make a page. Each one below shows the smallest real code for it, then the real thing running.");
+		md("Five ways to make a page. Each one below shows the smallest real code for it, then the real thing running.");
 
 		h3("1. page.js — one file");
 		md("The folder is the url. `children:` is the menu, in order:");
@@ -92,6 +94,23 @@ export default new Page({
 }`);
 		demo.stage(() => demo.app(folders_demo())).ac("toc-skip");
 		md("Live: [overview/folders](/framework/core/Page/overview/folders/) — the same two years, at its own url.");
+
+		h3("5. readme.md — the page's own content");
+		md("The whole page can just BE its own `readme.md`. What an AI reads is exactly what a person sees — one file, not two copies to keep in sync:");
+		code.js(`content(){ return md.file(import.meta, "readme.md"); }`);
+		md("Source and rendered, side by side:");
+		// Two boxes captured synchronously; each promise (code.file/md.file, both
+		// capture:false) is appended onto its own box explicitly — never after an
+		// `await`, which would land wherever the captor had drifted to by then.
+		div.c("flex gap wrap", () => {
+			const left = div.c("flex-1", () => h4("readme.md — source"));
+			left.append(code.file(import.meta, "readme-page/readme.md", "markdown"));
+
+			const right = div.c("flex-1", () => h4("Rendered"));
+			right.append(md.file(import.meta, "readme-page/readme.md"));
+		});
+		md("Where markdown falls short, in three lines: it can't take a custom module or a class on a span, it can't hold a live widget (a drag handle, a chart, anything with its own JS), and it reads as one long flow with no regions. Reach for JS `content()` instead once a page needs any of those.");
+		md("Live: [make/readme-page](/framework/core/Page/make/readme-page/) — the same readme, as a real page, with one JS-built block under it.");
 
 		md("Every child's own `label`, `title` and `icon`: [`doc/labels.md`](/framework/core/Page/doc/labels.md). Once a page exists, [structured content](/framework/ux/Content/structure/) is the vocabulary for what goes *inside* it — icon items, sections, outlines.");
 	},
