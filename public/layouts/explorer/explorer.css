@@ -1,40 +1,98 @@
 @layer site {
 
-	/* THE THREE-REGION ROW. A grid, not flex, so the centre column can be given the
-	   most room without every card in the rails fighting it for space — `minmax(0, …)`
-	   on all three tracks is what stops a wide iframe or a long title blowing the row
-	   wider than the page (the same trap `2-equal`'s own recipe warns about in
-	   layouts.json). Stacks at the rail's own floor, same number the layout standard
-	   uses for a sidebar row (`2-sidebar`'s wire, 40rem) — a phone gets three full-width
-	   sections in reading order: left, centre, right. */
-	.std-explorer {
-		display: grid;
-		grid-template-columns: minmax(0, 18em) minmax(0, 2fr) minmax(0, 18em);
-		gap: var(--gap);
-		align-items: start;
+	/* THE PAGE SHELL — round 2: the page starts at the top of the screen. `render()`
+	   in page.js skips core's default `<h1>` + "Folder" link, so this IS the whole
+	   page: a header row (the breadcrumb), then the three regions filling the rest
+	   of `100dvh`. `page-fs-link` (the "Folder" link) is core's own default, drawn
+	   by `render()` before `content()` ever runs — the reason this page overrides
+	   `render()` whole rather than trying to hide one line of someone else's markup. */
+	.std-explorer-page {
+		display: flex;
+		flex-direction: column;
+		height: 100dvh;
+		overflow: hidden;
+		padding-inline: var(--pad, 1em);
 	}
+
+	/* THE HEADER — one line: the breadcrumb, then a small (i) whose native title=
+	   tooltip carries the explanation that used to be a whole paragraph. */
+	.std-explorer-head {
+		flex: 0 0 auto;
+		padding-block: 0.6em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.std-explorer-crumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.2em;
+		flex-wrap: wrap;
+	}
+
+	.std-explorer-crumb {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2em;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.std-explorer-crumb:hover { color: var(--accent, currentColor); }
+
+	.std-explorer-info { margin-inline-start: auto; color: var(--subtle); cursor: help; }
+
+	/* THE THREE-REGION ROW — fills whatever height the header left. Round 2,
+	   deliverable 6: the rails GROW a little on a wide screen (the `clamp`'s middle
+	   term is a `vw`) but cap well short of the centre's own share, which is the
+	   rest of the row (`minmax(0, 1fr)`) — the same "a share, floored and capped"
+	   shape every `cols` track in the layout standard already uses. */
+	.std-explorer-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: grid;
+		grid-template-columns: clamp(14em, 16vw, 20em) minmax(0, 1fr) clamp(14em, 16vw, 20em);
+		gap: var(--gap);
+		padding-block: 0.8em;
+		overflow: hidden;
+	}
+
+	/* EACH REGION SCROLLS ITSELF — deliverable 1: "each rail scrolling on its own",
+	   so a long wall of cards never pushes the other two regions off screen. */
+	.std-explorer-rail,
+	.std-explorer-centre {
+		min-width: 0;
+		height: 100%;
+		overflow-y: auto;
+		padding-inline-end: 0.4em;
+	}
+
+	.std-explorer-rail h3 { margin-block: 0 0.4em; }
 
 	@media (max-width: 40rem) {
-		.std-explorer { grid-template-columns: minmax(0, 1fr); }
+		/* A PHONE READS ONE COLUMN — the three regions stack in DOM order and the
+		   PAGE scrolls, rather than three independent scroll boxes each fighting a
+		   sliver of a 700px-tall screen for room. */
+		.std-explorer-page { height: auto; overflow: visible; }
+		.std-explorer-body { display: block; height: auto; overflow: visible; }
+		.std-explorer-rail,
+		.std-explorer-centre { height: auto; overflow: visible; margin-block-end: 1.2em; }
 	}
-
-	.std-explorer-rail { min-width: 0; }
-	.std-explorer-rail h3 { margin-block-end: 0.4em; }
 
 	.std-explorer-cards {
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 0.6em;
+		gap: 0.5em;
 	}
 
 	/* A CARD — the whole thing is the link (`.std-explorer-card` IS the `<a>`), so a
 	   drawing or an iframe inside it must never take the click; explorer.css is the
 	   one place that turns both off, rather than repeating `pointer-events: none` at
-	   every call site. */
+	   every call site. Round 2, deliverable 4: shorter, so ~6 fit in one screen —
+	   the caption is ONE line (`text-overflow: ellipsis`), never a second row. */
 	.std-explorer-card {
 		display: block;
 		border: 1px solid var(--line);
-		border-radius: 0.4em;
+		border-radius: 0.35em;
 		overflow: hidden;
 		text-decoration: none;
 		color: inherit;
@@ -47,24 +105,24 @@
 	.std-explorer-card .std-frame,
 	.std-explorer-card .std-explorer-draw iframe { pointer-events: none; }
 
-	.std-explorer-card-label {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15em;
-		padding: 0.5em 0.6em;
+	.std-explorer-card-title {
+		display: block;
+		padding: 0.35em 0.6em;
+		font-weight: 600;
+		font-size: 0.9em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.std-explorer-card-title { font-weight: 600; }
-	.std-explorer-card-count { font-size: 0.85em; color: var(--subtle); }
-
-	/* A pure category (no wire, no real page) — a plain tile with a count, so the
-	   eye still has a picture-shaped thing to scan even where there is no drawing. */
+	/* A pure category with nothing at all to draw (no children either) — the one
+	   fallback `effective()` in page.js cannot resolve. Round 2 removed this as the
+	   NORMAL category picture (a category now shows its first child's own drawing),
+	   so it is rare — a plain tile still reads as "a picture belongs here". */
 	.std-explorer-pic-cat {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.3em;
 		aspect-ratio: 16 / 9;
 		background: var(--tint, var(--pad-bg, #0000000d));
 		color: var(--subtle);
@@ -91,36 +149,16 @@
 
 	/* THE CENTRE — the selected item, real size (well, real page, shrunk to the
 	   column it is given). Its iframe DOES take clicks — it is not inside a link. */
-	.std-explorer-centre { min-width: 0; }
-	.std-explorer-centre-head h2 { margin-block-end: 0.2em; }
+	.std-explorer-centre-title { margin-block: 0 0.5em; }
 
 	.std-explorer-pic-big { border: 1px solid var(--line); border-radius: 0.4em; overflow: hidden; }
 	.std-explorer-pic-big .std-explorer-draw iframe { pointer-events: auto; }
 
 	.std-explorer-empty { padding: 2em; text-align: center; }
 
-	/* THE CRUMB — one link per level; `chevron_right` between them is the framework's
-	   own icon font, the same one every other crumb on the site already loads. */
-	.std-explorer-crumbs {
-		display: flex;
-		align-items: center;
-		gap: 0.2em;
-		flex-wrap: wrap;
-		margin-block-end: 0.6em;
-	}
-
-	.std-explorer-crumb {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.2em;
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.std-explorer-crumb:hover { color: var(--accent, currentColor); }
-
-	/* DELIVERABLE 7's FALLBACK — a small strip under the centre, not the ☰ drawer
-	   (see page.js's own comment and the final report for why). */
+	/* DELIVERABLE 7's FALLBACK — a small strip under the centre's own picture, not
+	   the ☰ drawer (see page.js's own comment and the final report for why). Lives
+	   inside `.std-explorer-centre` now, so it scrolls with it. */
 	.std-explorer-props {
 		margin-block-start: 1em;
 		padding: 0.8em 1em;

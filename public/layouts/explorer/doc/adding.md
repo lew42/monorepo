@@ -17,8 +17,9 @@ Three fields do all the work:
     draw the layout standard's own wireframe, live, with no picture to take or keep current.
   - `url` is a real page's address — the card and the centre view load it in a small, shrunk
     `<iframe>`, so whatever that page looks like today is what the explorer shows today.
-  - Neither field: this node is a pure category (like "Two columns") — it has no picture of its
-    own, only a `description` and children one click to the right.
+  - Neither field: this node is a pure category (like "Two columns") — it borrows its own
+    picture from its first child (recursively, if that child is a category too), and its
+    `description` and full children sit one click to the right.
 
 `children` nests the same shape, so a layout with real variants (the way `2-sidebar` holds the
 five [`Sidebar` variants](/framework/core/Sidebar/variants/)) gets its own `children` array of

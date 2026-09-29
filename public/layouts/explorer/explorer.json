@@ -79,7 +79,14 @@
 		},
 		{
 			"id": "approved", "title": "The approved five", "url": "/layouts/doc/studies/approved/",
-			"description": "A closed set with floors and ceilings at every level — the contract that keeps a new page from inventing a sixth."
+			"description": "A closed set with floors and ceilings at every level — the contract that keeps a new page from inventing a sixth.",
+			"children": [
+				{ "id": "rail-content", "title": "1 · Rail + content", "url": "/framework/" },
+				{ "id": "docs-three-region", "title": "2 · Docs, three-region", "url": "/blog/systems/layout-generators/" },
+				{ "id": "columns-row", "title": "3 · Columns row (Finder)", "url": "/framework/core/Page/overview/columns/finder/" },
+				{ "id": "tile-wall", "title": "4 · Tile wall", "wire": "n-wall" },
+				{ "id": "solo", "title": "5 · Solo", "url": "/resume/" }
+			]
 		}
 	]
 }
