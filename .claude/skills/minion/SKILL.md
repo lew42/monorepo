@@ -27,6 +27,8 @@ going until you have landed. Follow-ups arrive as new prompts on your own sessio
 
 Read the `requirements.md` you were given first, start to finish, before you edit anything. Its deliverables are numbered; each one gets checked against the owner's own sentence at harvest — a smaller, easier version you built instead counts as a miss, not a partial win. The brief links the owner's full, original prompt; read that too whenever a deliverable is unclear, rather than guessing what was meant.
 
+If you were opened with `spawn_agent`'s `task: {dir}` option, you start with the readme chain for your directory; read deeper docs it names on demand. A plain CLI-started minion gets none of that automatically (`Servex/doc/readme-chain.md`).
+
 **Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
 
 ## The three laws, and who you are writing for
@@ -103,6 +105,8 @@ The design and the measurements: [`reload-hold`](/framework/ai/2026-09-19/reload
 ## How to wait
 
 Keep things moving (the owner, 2026-09-24: "be very careful to manage concurrency, not block the session, keep things moving"). First choice: don't wait at all. Start the slow thing (a server, a build, a Playwright run) in the background and do the next useful thing meanwhile. Only a result you cannot continue without is worth a wait, and then wait in chunks under the tool's timeout (pass `timeout: 600000`, or loop with `Start-Sleep 15`): a wait past the timeout backgrounds silently and ends your turn.
+
+**Never wait by polling with Monitor or repeated short checks.** Every check is a full turn that re-reads your whole context. On 2026-09-29 one Sonnet minion reached 428k tokens and $12, mostly spent waiting. For a run longer than about 10 minutes, start it detached, write where its output goes in task.jsonl, and end your turn. Your parent, or the heartbeat, wakes you.
 
 ## Resolve, don't park
 

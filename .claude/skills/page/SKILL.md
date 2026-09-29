@@ -5,6 +5,8 @@ description: Invoke before making or reshaping ANY page, card or view the owner 
 
 # Page: from the top down
 
+**Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
+
 The owner, 2026-09-25: "creating content, creating pages, creating layouts: it's all the same
 thing." Visual hierarchy is the thing that matters most: clean, simple, the right content in the
 right order. Answer these in order, one line each, before you build.

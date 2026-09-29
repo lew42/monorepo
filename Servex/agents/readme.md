@@ -167,6 +167,14 @@ whom. Everything about it: [`doc/layers.md`](./doc/layers.md).
 `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
 card. `SERVEX_NO_ASSISTANT=1` boots without it.
 
+## A fresh, directory-bound agent starts with its readme chain
+
+A FRESH spawn whose directory is named (`task: {dir}`, or `page`) gets the
+readme.md chain from the repo root down to that directory prepended to its
+first message, so it knows "where it is" before it does anything — the owner's
+own ask, 2026-09-29. `readme-chain.js`; the seam, the token cap, where it's
+wired in and left out: [`doc/readme-chain.md`](../doc/readme-chain.md).
+
 ## The Dispatcher — a card becomes a task mastermind
 
 When the assistant decides a sentence asked for something built, fixed, changed or looked
@@ -207,6 +215,8 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `roles.js` (role → posture) · `registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `jobs.js` (background work in node) ·
 `experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
+`readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
+[`doc/readme-chain.md`](../doc/readme-chain.md)) ·
 `demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
 `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
 

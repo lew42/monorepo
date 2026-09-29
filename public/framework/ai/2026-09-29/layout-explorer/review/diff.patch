@@ -1,0 +1,765 @@
+diff --git a/public/layouts/explorer/doc/adding.md b/public/layouts/explorer/doc/adding.md
+new file mode 100644
+index 00000000..1c341a3f
+--- /dev/null
++++ b/public/layouts/explorer/doc/adding.md
+@@ -0,0 +1,29 @@
++# Adding a layout to the explorer
++
++One object in [`explorer.json`](../explorer.json), inside the `children` array of the category
++it belongs under (or a new top-level category, same shape):
++
++```json
++{ "id": "1-flow", "title": "Flow", "wire": "1-flow" }
++```
++
++Three fields do all the work:
++
++- **`id`** — the url segment. Lowercase, dashes, no spaces — the same shape every id on the site
++  already uses.
++- **`title`** — what the card and the breadcrumb say.
++- **`wire`** *or* **`url`**, not both:
++  - `wire` is a `layouts.json` id (see [`/layouts/`](/layouts/)) — the card and the centre view
++    draw the layout standard's own wireframe, live, with no picture to take or keep current.
++  - `url` is a real page's address — the card and the centre view load it in a small, shrunk
++    `<iframe>`, so whatever that page looks like today is what the explorer shows today.
++  - Neither field: this node is a pure category (like "Two columns") — it borrows its own
++    picture from its first child (recursively, if that child is a category too), and its
++    `description` and full children sit one click to the right.
++
++`children` nests the same shape, so a layout with real variants (the way `2-sidebar` holds the
++five [`Sidebar` variants](/framework/core/Sidebar/variants/)) gets its own `children` array of
++`{ id, title, url }` objects, one per variant.
++
++Nothing else to touch — no CSS, no new page.js. `page.js`'s own `route()` reads the file fresh
++on every request the tree can answer.
+diff --git a/public/layouts/explorer/doc/page.js b/public/layouts/explorer/doc/page.js
+new file mode 100644
+index 00000000..a05715d3
+--- /dev/null
++++ b/public/layouts/explorer/doc/page.js
+@@ -0,0 +1,22 @@
++import { Page, md } from "/app.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Docs",
++	icon: "menu_book",
++	description: "How the explorer is built, and how to add a layout to it.",
++
++	children: [
++		["Adding a layout", {
++			description: "The one object explorer.json needs to add a layout, in full.",
++			icon: "article",
++			content(){ return md.file(import.meta, "adding.md", { h1: false }); },
++		}],
++	],
++
++	content(){
++		md("How [`/layouts/explorer/`](/layouts/explorer/) is built, in one note: what goes in `explorer.json` to add a layout.");
++		md("**Why the selected item's properties sit in a strip under the centre, not the ☰ drawer:** `ext/drawer`'s tabs (AI, Sessions, Dictation, Settings, Admin) are a fixed, registered list outside this module's fence.");
++		this.previews();
++	},
++});
+diff --git a/public/layouts/explorer/explorer.css b/public/layouts/explorer/explorer.css
+new file mode 100644
+index 00000000..ca8782c4
+--- /dev/null
++++ b/public/layouts/explorer/explorer.css
+@@ -0,0 +1,209 @@
++@layer site {
++
++	/* THE PAGE SHELL — round 2: the page starts at the top of the screen. `render()`
++	   in page.js skips core's default `<h1>` + "Folder" link, so this IS the whole
++	   page: a header row (the breadcrumb), then the three regions filling the rest
++	   of `100dvh`. `page-fs-link` (the "Folder" link) is core's own default, drawn
++	   by `render()` before `content()` ever runs — the reason this page overrides
++	   `render()` whole rather than trying to hide one line of someone else's markup. */
++	.std-explorer-page {
++		display: flex;
++		flex-direction: column;
++		height: 100dvh;
++		overflow: hidden;
++		padding-inline: var(--pad, 1em);
++	}
++
++	/* THE HEADER — one line: the breadcrumb, then a small (i) whose native title=
++	   tooltip carries the explanation that used to be a whole paragraph. */
++	.std-explorer-head {
++		flex: 0 0 auto;
++		padding-block: 0.6em;
++		border-block-end: 1px solid var(--line);
++	}
++
++	.std-explorer-crumbs {
++		display: flex;
++		align-items: center;
++		gap: 0.2em;
++		flex-wrap: wrap;
++	}
++
++	.std-explorer-crumb {
++		display: inline-flex;
++		align-items: center;
++		gap: 0.2em;
++		text-decoration: none;
++		color: inherit;
++	}
++
++	.std-explorer-crumb:hover { color: var(--accent, currentColor); }
++
++	.std-explorer-info { margin-inline-start: auto; color: var(--subtle); cursor: help; }
++
++	/* THE THREE-REGION ROW — fills whatever height the header left. Round 2,
++	   deliverable 6: the rails GROW a little on a wide screen (the `clamp`'s middle
++	   term is a `vw`) but cap well short of the centre's own share, which is the
++	   rest of the row (`minmax(0, 1fr)`) — the same "a share, floored and capped"
++	   shape every `cols` track in the layout standard already uses. */
++	.std-explorer-body {
++		flex: 1 1 auto;
++		min-height: 0;
++		display: grid;
++		grid-template-columns: clamp(14em, 16vw, 20em) minmax(0, 1fr) clamp(14em, 16vw, 20em);
++		gap: var(--gap);
++		padding-block: 0.8em;
++		overflow: hidden;
++	}
++
++	/* EACH REGION SCROLLS ITSELF — deliverable 1: "each rail scrolling on its own",
++	   so a long wall of cards never pushes the other two regions off screen. The
++	   centre is ALSO a flex column now (round 3): its picture is the one flexible
++	   item (`flex: 1 1 auto` below), so it grows to fill whatever height the title
++	   and the properties strip leave, rather than sitting at a fixed aspect. */
++	.std-explorer-rail {
++		min-width: 0;
++		height: 100%;
++		overflow-y: auto;
++		padding-inline-end: 0.4em;
++	}
++
++	.std-explorer-centre {
++		min-width: 0;
++		height: 100%;
++		overflow-y: auto;
++		padding-inline-end: 0.4em;
++		display: flex;
++		flex-direction: column;
++	}
++
++	.std-explorer-rail h3 { margin-block: 0 0.4em; }
++
++	@media (max-width: 40rem) {
++		/* A PHONE READS ONE COLUMN — round 3: the centre comes FIRST (the actual
++		   answer to "what does this look like"), then its children, then the
++		   sibling list — `order`, the DOM itself is unchanged. The PAGE scrolls,
++		   rather than three independent scroll boxes each fighting a sliver of a
++		   700px-tall screen for room. */
++		.std-explorer-page { height: auto; overflow: visible; }
++
++		.std-explorer-body {
++			display: flex;
++			flex-direction: column;
++			height: auto;
++			overflow: visible;
++		}
++
++		.std-explorer-body > *:nth-child(1) { order: 3; }   /* left rail — siblings */
++		.std-explorer-body > *:nth-child(2) { order: 1; }   /* centre */
++		.std-explorer-body > *:nth-child(3) { order: 2; }   /* right rail — children */
++
++		.std-explorer-rail,
++		.std-explorer-centre { height: auto; overflow: visible; margin-block-end: 1.2em; }
++
++		.std-explorer-pic-big { flex: 0 0 auto; aspect-ratio: 16 / 9; }
++	}
++
++	.std-explorer-cards {
++		display: grid;
++		grid-template-columns: 1fr;
++		gap: 0.5em;
++	}
++
++	/* A CARD — the whole thing is the link (`.std-explorer-card` IS the `<a>`), so a
++	   drawing or an iframe inside it must never take the click; explorer.css is the
++	   one place that turns both off, rather than repeating `pointer-events: none` at
++	   every call site. Round 2, deliverable 4: shorter, so ~6 fit in one screen —
++	   the caption is ONE line (`text-overflow: ellipsis`), never a second row. */
++	.std-explorer-card {
++		display: block;
++		border: 1px solid var(--line);
++		border-radius: 0.35em;
++		overflow: hidden;
++		text-decoration: none;
++		color: inherit;
++		background: var(--surface);
++	}
++
++	.std-explorer-card:hover { border-color: var(--accent, currentColor); }
++	.std-explorer-card.is-active { border-color: var(--accent, currentColor); border-width: 2px; }
++
++	.std-explorer-card .std-frame,
++	.std-explorer-card .std-explorer-draw iframe { pointer-events: none; }
++
++	.std-explorer-card-title {
++		display: block;
++		padding: 0.35em 0.6em;
++		font-weight: 600;
++		font-size: 0.9em;
++		white-space: nowrap;
++		overflow: hidden;
++		text-overflow: ellipsis;
++	}
++
++	/* A pure category with nothing at all to draw (no children either) — the one
++	   fallback `effective()` in page.js cannot resolve. Round 2 removed this as the
++	   NORMAL category picture (a category now shows its first child's own drawing),
++	   so it is rare — a plain tile still reads as "a picture belongs here". */
++	.std-explorer-pic-cat {
++		display: flex;
++		align-items: center;
++		justify-content: center;
++		aspect-ratio: 16 / 9;
++		background: var(--tint, var(--pad-bg, #0000000d));
++		color: var(--subtle);
++	}
++
++	/* THE IFRAME FRAME — the same "draw it real size, then shrink with a container
++	   query zoom" trick Layout.js's own `.std-frame`/`.std-draw` already uses (its own
++	   header comment has the measurements), so a wireframe card and a real-page card
++	   land at the same height with nothing measured in JS. */
++	.std-explorer-frame {
++		container-type: inline-size;
++		aspect-ratio: var(--w) / var(--h);
++		overflow: hidden;
++		background: var(--surface);
++	}
++
++	.std-explorer-draw {
++		width: calc(var(--w) * 1px);
++		height: calc(var(--h) * 1px);
++		zoom: calc(100cqw / (var(--w) * 1px));
++	}
++
++	.std-explorer-draw iframe { width: 100%; height: 100%; border: 0; display: block; }
++
++	/* THE CENTRE — the selected item, real size (well, real page, shrunk to the
++	   column it is given). Its iframe DOES take clicks — it is not inside a link. */
++	.std-explorer-centre-title { margin-block: 0 0.5em; }
++
++	/* ROUND 3, DELIVERABLE 1 — the one flexible item in the centre's own flex column
++	   (`.std-explorer-centre`, above): it takes whatever height the title and the
++	   properties strip below it leave, and `fit_frame()` in page.js reads that real
++	   box back into the frame's own `--w`/`--h`, so the drawing (or iframe) fills it
++	   exactly rather than sitting at a fixed 16∶9 slice of it. */
++	.std-explorer-pic-big {
++		flex: 1 1 auto;
++		min-height: 240px;
++		border: 1px solid var(--line);
++		border-radius: 0.4em;
++		overflow: hidden;
++	}
++
++	.std-explorer-pic-big .std-explorer-draw iframe { pointer-events: auto; }
++
++	.std-explorer-empty { padding: 2em; text-align: center; }
++
++	/* DELIVERABLE 7's FALLBACK — a small strip under the centre's own picture, not
++	   the ☰ drawer (see page.js's own comment and the final report for why). Lives
++	   inside `.std-explorer-centre` now, so it scrolls with it. */
++	.std-explorer-props {
++		margin-block-start: 1em;
++		padding: 0.8em 1em;
++		border: 1px solid var(--line);
++		border-radius: 0.4em;
++		background: var(--surface);
++	}
++
++	.std-explorer-props p { margin: 0.2em 0; }
++}
+diff --git a/public/layouts/explorer/explorer.json b/public/layouts/explorer/explorer.json
+new file mode 100644
+index 00000000..e2b64191
+--- /dev/null
++++ b/public/layouts/explorer/explorer.json
+@@ -0,0 +1,92 @@
++{
++	"about": "The layout explorer's own tree — every layout on the site, one branch per family, with the real page (or the layout standard's own wire drawing) each id points at. Adding a layout is one object here; see readme.md.",
++	"title": "Explorer",
++	"children": [
++		{
++			"id": "one-column", "title": "One column",
++			"description": "The only questions are how wide it may get, and whether its height is divided instead.",
++			"children": [
++				{ "id": "1-flow", "title": "Flow", "wire": "1-flow" },
++				{ "id": "1-centered", "title": "Centered", "wire": "1-centered" },
++				{ "id": "1-rows", "title": "Rows", "wire": "1-rows" },
++				{ "id": "1-bands", "title": "Bands", "wire": "1-bands" }
++			]
++		},
++		{
++			"id": "two-columns", "title": "Two columns",
++			"description": "One decision: is the room shared evenly, or does one column support the other?",
++			"children": [
++				{ "id": "2-equal", "title": "Equal", "wire": "2-equal" },
++				{
++					"id": "2-sidebar", "title": "Sidebar", "wire": "2-sidebar",
++					"description": "A narrow column beside a wide one. Five real pages below try different tops for the rail, and one asks who should own it.",
++					"children": [
++						{ "id": "a", "title": "Variant A — the brand row", "url": "/framework/core/Sidebar/variants/a/" },
++						{ "id": "b", "title": "Variant B — the brand row", "url": "/framework/core/Sidebar/variants/b/" },
++						{ "id": "c", "title": "Variant C — the brand row", "url": "/framework/core/Sidebar/variants/c/" },
++						{ "id": "d", "title": "Variant D — the brand row", "url": "/framework/core/Sidebar/variants/d/" },
++						{ "id": "rail", "title": "Who owns the rail", "url": "/framework/core/Sidebar/variants/rail/" }
++					]
++				}
++			]
++		},
++		{
++			"id": "three-columns", "title": "Three columns",
++			"description": "Where a layout gets a middle. Which side the narrow columns sit on is the whole difference.",
++			"children": [
++				{ "id": "3-equal", "title": "Equal", "wire": "3-equal" },
++				{ "id": "3-holy-grail", "title": "Holy grail", "wire": "3-holy-grail" },
++				{ "id": "3-sidebar", "title": "Sidebar, twice", "wire": "3-sidebar" }
++			]
++		},
++		{
++			"id": "many", "title": "Many",
++			"description": "The count is not fixed, or is only fixed because a footer really means it.",
++			"children": [
++				{ "id": "4-1", "title": "4-1 (bento)", "wire": "4-1" },
++				{ "id": "n-wall", "title": "Wall", "wire": "n-wall" },
++				{ "id": "n-newspaper", "title": "Newspaper", "wire": "n-newspaper" }
++			]
++		},
++		{
++			"id": "mobile", "title": "Mobile",
++			"description": "Real pages built to still work at 400 pixels wide.",
++			"children": [
++				{ "id": "width", "title": "core/Page's width words", "url": "/framework/core/Page/overview/width/" },
++				{ "id": "reader", "title": "Reader, holds at 400", "url": "/layouts/practice/reader/" }
++			]
++		},
++		{
++			"id": "mega", "title": "Mega",
++			"description": "Real pages built to spend a 3440 ultrawide screen on purpose.",
++			"children": [
++				{ "id": "shell", "title": "Shell — drag the sidebar", "url": "/layouts/shell/" },
++				{ "id": "workbench", "title": "Workbench at 3440", "url": "/layouts/practice/workbench/" },
++				{ "id": "catalog", "title": "Catalog at 3440", "url": "/layouts/practice/catalog/" },
++				{ "id": "floating", "title": "Floating page", "url": "/framework/core/Page/layout/floating/" }
++			]
++		},
++		{
++			"id": "decide", "title": "How to choose", "url": "/layouts/decide/",
++			"description": "Five questions, asked in order, with live demos of a fit and a miss.",
++			"children": [
++				{ "id": "amount", "title": "How much room", "url": "/layouts/decide/amount/" },
++				{ "id": "centred", "title": "Is it outlined", "url": "/layouts/decide/centred/" },
++				{ "id": "equal", "title": "Fill the width", "url": "/layouts/decide/equal/" },
++				{ "id": "short", "title": "Which approved layout", "url": "/layouts/decide/short/" },
++				{ "id": "servex", "title": "Worked example: Servex", "url": "/layouts/decide/servex/" }
++			]
++		},
++		{
++			"id": "approved", "title": "The approved five", "url": "/layouts/doc/studies/approved/",
++			"description": "A closed set with floors and ceilings at every level — the contract that keeps a new page from inventing a sixth.",
++			"children": [
++				{ "id": "rail-content", "title": "1 · Rail + content", "url": "/framework/" },
++				{ "id": "docs-three-region", "title": "2 · Docs, three-region", "url": "/blog/systems/layout-generators/" },
++				{ "id": "columns-row", "title": "3 · Columns row (Finder)", "url": "/framework/core/Page/overview/columns/finder/" },
++				{ "id": "tile-wall", "title": "4 · Tile wall", "wire": "n-wall" },
++				{ "id": "solo", "title": "5 · Solo", "url": "/resume/" }
++			]
++		}
++	]
++}
+diff --git a/public/layouts/explorer/page.js b/public/layouts/explorer/page.js
+new file mode 100644
+index 00000000..108988bf
+--- /dev/null
++++ b/public/layouts/explorer/page.js
+@@ -0,0 +1,300 @@
++import { Page, View, div, a, span, p, h2, h3, b, icon, iframe } from "/app.js";
++import Layout, { load as load_layouts, find as find_layout } from "/layouts/Layout.js";
++
++View.stylesheet(import.meta, "explorer.css");
++
++/* ── /layouts/explorer/ — every layout on the site, walked as one tree ──────────
++
++   WHAT THIS PAGE IS FOR. The owner: "a left preview rail that activates the main
++   ... in the right sidebar, by default, we show alternates ... as you're browsing
++   this tree ... the right sidebar becomes the left [and] the currently selected
++   one becomes the main view." This page IS exactly that, three regions:
++
++       LEFT    the current level's items (this node's siblings, itself included)
++       CENTRE  the selected item, large — its real page, or the layout standard's
++               own drawing when it has no page of its own
++       RIGHT   the selected item's children — click one and it becomes the centre,
++               the old right becomes the new left. A url per step; reload and back
++               both land in the same place.
++
++   ONE PAGE, NOT NESTED PAGES. The HTML study (`/framework/ai/2026/09/29/
++   layout-explorer-3-columns-and-a-study-of/html-study.md`) found that a Finder-style
++   `columns()` host keeps every ancestor mounted just to show a window three wide —
++   so this page does not use `columns()`. It stays ONE routed page per url (route()
++   below, recursing over explorer.json), and every render reads the SAME data file
++   for whichever url it is — never a tree of framework Page objects walked eagerly.
++
++   ⚠ `render()` IS OVERRIDDEN (the same move `core/Page/layout/floating/` makes) —
++     core's own default draws an `<h1>` and a "Folder" link above whatever `content()`
++     returns, which is a whole screen's worth of scroll before the three regions even
++     start (round 1's own screenshots). The breadcrumb below IS the page's one header
++     line; the explanation sentence moved to its own `title=` tooltip. The three
++     regions then fill the rest of `100dvh`, each one scrolling on its own.
++
++   THE DATA IS explorer.json, THE ONLY COPY. A preview card never renders a live
++   child page (a wall of a hundred live modules would crawl — the layout skill's own
++   rule) — it draws the layout standard's OWN wireframe (Layout.js, already used by
++   /layouts/ and /layouts/browse/) for an id that has one, or a lazy `<iframe>` of
++   the real page otherwise, shrunk with the same container-query `zoom` trick
++   Layout.js's own `.std-frame`/`.std-draw` uses — never a screenshot, so what you
++   see is the real page. Reused: `Layout.frame()` (the wire drawing), `layouts.json`
++   via `Layout.js`'s own `load()`/`find()`, and the `std-` prefix already registered
++   for `/layouts`.
++
++   ⚠ No DOM after an `await`: every box below is captured synchronously and filled
++     inside `.append(callback)`, the framework's own rule (`core/View/doc/capturing.md`). */
++
++const BASE = new URL(".", import.meta.url).pathname;
++
++// The tree — resolved once, at module eval, the same "cold deep link" reason
++// /layouts/page.js loads layouts.json this way.
++const TREE = await fetch(new URL("./explorer.json", import.meta.url)).then(res => res.json());
++
++const HELP = "Left: this level's items. Centre: the one you picked, real size. Right: its variants — click one and it slides into the centre, and the old right becomes the new left.";
++
++// A url segment chain (e.g. ["two-columns", "2-sidebar"]) → this page's own url for it.
++const href = chain => BASE + chain.filter(Boolean).join("/") + (chain.length ? "/" : "");
++
++// Walk the tree by a chain of ids, root first. Always succeeds when the chain came
++// from `route()` below, because that is the only place a chain is ever built.
++function resolve(chain){
++	let node = TREE;
++	for (const id of chain) node = (node.children ?? []).find(kid => kid.id === id);
++	return node;
++}
++
++// A node's OWN picture: itself, if it has a `wire` or a `url` — otherwise (a pure
++// category, like "Two columns") its first child's, recursively. Round 2's own rule:
++// "a category card is a preview, not a folder icon" — the owner's "you see the most
++// basic version of it in the main area" applies to a category's centre the same way.
++function effective(node){
++	if (!node) return null;
++	if (node.wire || node.url) return node;
++	return node.children?.length ? effective(node.children[0]) : null;
++}
++
++/* ⚠ THE SPACE THIS PAGE OWNS. `route()` sees undeclared names only (core's own
++   rule — `child()`, Page.class.js), so it can never shadow `doc`. Everything else
++   under /layouts/explorer/ is a chain into explorer.json, walked one segment at a
++   time exactly the way /layouts/tag/<tag>/ walks one name — this just keeps doing
++   it, because each answer carries its own `route()` for the segment after it. */
++export default new Page({
++	meta: import.meta,
++	title: "Explorer",
++	icon: "view_carousel",
++	description: "Every layout on the site, walked as one tree: siblings on the left, the one you picked large in the middle, its variants on the right.",
++	children: "doc",
++
++	route(name){
++		if (name.includes(".")) return;
++		const child = TREE.children.find(kid => kid.id === name);
++		return child && node_page(child, [name]);
++	},
++
++	render(){
++		if (this.view) return this.view;
++		this.view = div.c("page std-explorer-page", () => { body(TREE, []); });
++		return this.view;
++	},
++});
++
++// One tree node, as the thing `route()` (above, or a level down) hands to `add()`.
++// Its OWN `route()` is how the walk goes another level deeper — the same shape,
++// called again, never a nested `columns()` page.
++function node_page(node, chain){
++	return {
++		title: node.title,
++		description: node.description,
++		render(){
++			if (this.view) return this.view;
++			this.view = div.c("page std-explorer-page", () => { body(node, chain); });
++			return this.view;
++		},
++		route(name){
++			if (name.includes(".")) return;
++			const child = (node.children ?? []).find(kid => kid.id === name);
++			return child && node_page(child, [...chain, name]);
++		},
++	};
++}
++
++/* ── THE BODY ── one call per url: the header row, then the three regions filling
++   the rest of the screen. `chain` is this url's own id path from the root; `node`
++   is what it resolves to.
++
++   ROUND 2, DELIVERABLE 2 — the bare /layouts/explorer/ url (chain === []) has no
++   parent, so nothing is "selected" by the url itself. The owner: "you select one
++   of these categories ... and then you see the most basic version of it." So this
++   render ALSO auto-selects the first category for what it SHOWS — never a
++   `history.pushState`, never a `route()` claim, just what `selected` computes to
++   on this one call. Reloading /layouts/explorer/ makes the exact same choice again,
++   which is what "no history entry" means here. */
++function body(node, chain){
++	const parent_chain = chain.slice(0, -1);
++	const parent = chain.length ? resolve(parent_chain) : null;
++
++	const selected = parent ? node : (node.children?.[0] ?? null);
++	const selected_chain = parent ? chain : (selected ? [selected.id] : []);
++
++	const left_base = parent ? parent_chain : chain;   // [] either way at the root
++	const left_items = parent ? (parent.children ?? []) : (node.children ?? []);
++	const right_items = selected ? (selected.children ?? []) : [];
++
++	div.c("std-explorer-head", () => { crumbs(chain); });
++
++	div.c("std-explorer-body", () => {
++		div.c("std-explorer-rail", () => {
++			// ROUND 3, DELIVERABLE 3 — "Categories" whenever this rail IS the top-level
++			// list (`parent` is the tree's own root, or there is no parent at all, the
++			// root state); the parent's own name otherwise, matching the right rail's
++			// "Inside X" exactly, rather than the root's fixed label "Explorer" one
++			// level down.
++			h3(!parent || parent === TREE ? "Categories" : "Inside " + parent.title);
++			rail(left_items, left_base, selected?.id, "Nothing here.");
++		});
++
++		div.c("std-explorer-centre", () => { centre(selected); });
++
++		div.c("std-explorer-rail", () => {
++			h3(selected ? "Inside " + selected.title : "Variants");
++			rail(right_items, selected_chain, null,
++				selected ? "No variants yet — this is as deep as this branch goes." : "Pick something on the left first.");
++		});
++	});
++}
++
++// THE HEADER — the breadcrumb IS the header now (round 2: the old h1 + "Folder"
++// link + paragraph pushed the three regions ~450px down the page). The explanation
++// sentence that used to sit under them is a hover tooltip on the (i), instead of a
++// permanent line — deliverable 7's same "the drawer has no hook this fence reaches"
++// reasoning applies here too, so it stays on the page rather than in the ☰ drawer.
++function crumbs(chain){
++	div.c("std-explorer-crumbs", () => {
++		a.c("std-explorer-crumb").href(BASE).append(() => { icon("view_carousel"); span("Explorer"); });
++
++		let running = [];
++		chain.forEach(id => {
++			running = [...running, id];
++			const at = resolve(running);
++			icon("chevron_right");
++			a.c("std-explorer-crumb").href(href(running)).append(() => span(at?.title ?? id));
++		});
++
++		icon("info").ac("std-explorer-info").attr("title", HELP);
++	});
++}
++
++// A rail of cards. `base` is the chain to this rail's PARENT, so each item's own
++// url is `base + item.id`. `active_id` marks the one that is also the centre.
++function rail(items, base, active_id, empty_message){
++	if (!items.length) return void p.c("muted", empty_message);
++
++	div.c("std-explorer-cards", () => items.forEach(item =>
++		card(item, [...base, item.id], item.id === active_id)));
++}
++
++// ONE CARD — round 2: a category card shows its own most-basic child's picture
++// (never a folder icon), and the count moves INTO the one-line caption so it is
++// never said twice. The whole card is the link; the picture inside it never
++// receives the click (explorer.css turns off pointer-events on it).
++function card(item, chain, active){
++	return a.c("std-explorer-card" + (active ? " is-active" : "")).href(href(chain)).append(() => {
++		const eff = effective(item);
++		if (eff) picture(eff, false); else div.c("std-explorer-pic std-explorer-pic-cat", () => { icon("folder_open"); });
++
++		span.c("std-explorer-card-title",
++			item.title + (item.children?.length ? " · " + item.children.length + " inside" : ""));
++	});
++}
++
++// THE CENTRE — the selected node, large: its real page, or the layout standard's
++// own drawing, or (a pure category) its first child's — `effective()`, the same
++// rule a card's own picture follows. `null` (nothing at all, which no longer
++// happens at the bare url — see `body()` — kept as the honest fallback) is the
++// one caption-only state.
++function centre(node){
++	if (!node) return void div.c("std-explorer-empty", () => { p.c("muted", "Pick something on the left."); });
++
++	h2.c("std-explorer-centre-title", node.title);
++
++	const eff = effective(node);
++	if (eff) picture(eff, true); else p.c("muted", "Nothing to draw here yet.");
++
++	properties(node);
++}
++
++// A DRAWING (this id already has one in layouts.json) or a lazy IFRAME of the real
++// page — never a screenshot. `big` changes loading eagerness, the picture's own
++// aspect (the centre is closer to a real screen; a card is shorter — round 2,
++// deliverable 4, "aim for ~6 visible at 1920") and a class the CSS sizes
++// differently. The same function draws a thumbnail card and the centre.
++//
++// ROUND 3, DELIVERABLE 1 — a card KEEPS the fixed 1920x760 aspect (it is a small,
++// uniform thumbnail; nothing about it needs to fill anything). The CENTRE does
++// not: it is "the selected item, LARGE, real size", so its box's `--w`/`--h` are
++// re-measured off its own real, rendered pixels (`fit_frame`, below) the instant
++// it has a size — never a fixed 1920x1080 — so the drawing (or the iframe) grows
++// to fill BOTH the column's width and the viewport's height, not just one.
++function picture(item, big){
++	const size = big ? { w: 1920, h: 1080 } : { w: 1920, h: 760 };
++	const cls = "std-explorer-pic" + (big ? " std-explorer-pic-big" : "");
++
++	if (item.wire) return div.c(cls, $pic => {
++		load_layouts().then(data => {
++			const entry = find_layout(data, item.wire);
++			$pic.append(() => {
++				if (!entry) return;
++				const $frame = new Layout({ wire: entry.wire, id: entry.id }).frame(size);
++				if (big) fit_frame($pic, $frame);
++			});
++		});
++	});
++
++	if (item.url) return div.c(cls, $pic => {
++		const $frame = div.c("std-explorer-frame", () => {
++			div.c("std-explorer-draw", () => {
++				iframe().attr("src", item.url).attr("title", item.title).attr("loading", big ? "eager" : "lazy");
++			});
++		}).style({ "--w": size.w, "--h": size.h });
++		if (big) fit_frame($pic, $frame);
++	});
++
++	return div.c(cls + " std-explorer-pic-cat", () => { icon("folder_open"); });
++}
++
++// THE CENTRE'S OWN SIZE, fed back into the frame it holds. `$box` is the flex
++// item the CSS already grows to fill the centre column (`.std-explorer-pic-big`,
++// `flex: 1 1 auto` in explorer.css) — this only reads its real width and height
++// once they exist and writes them as the frame's `--w`/`--h`, so the frame's own
++// `aspect-ratio: var(--w) / var(--h)` becomes exactly the box's own ratio and the
++// drawing fills it exactly, at every viewport, not just a fixed 16∶9 slice of it.
++function fit_frame($box, $frame){
++	const fit = () => {
++		const w = $box.el.clientWidth, h = $box.el.clientHeight;
++		if (w > 40 && h > 40) $frame.style({ "--w": w, "--h": h });
++	};
++
++	new ResizeObserver(fit).observe($box.el);
++	fit();
++}
++
++// DELIVERABLE 7's fallback — title, the real address (or the drawing's id),
++// description, child count. Lives INSIDE the centre now (round 2), so it scrolls
++// with it rather than adding a fourth block under the fixed-height three regions.
++function properties(node){
++	const eff = effective(node);
++
++	div.c("std-explorer-props flow", () => {
++		p.c("muted", "Properties");
++		p(() => { b("Title — "); span(node.title); });
++		p(() => {
++			b("Address — ");
++			if (node.url) return void a(node.url).href(node.url);
++			if (node.wire) return void span("a drawing, /layouts/" + node.wire + "/");
++			if (eff) return void span("a category — pictured here via its first child, " + (eff.url ?? "/layouts/" + eff.wire + "/"));
++			span("none yet");
++		});
++		if (node.description) p(() => { b("What it is — "); span(node.description); });
++		p(() => { b("Children — "); span(String(node.children?.length ?? 0)); });
++	});
++}
+diff --git a/public/layouts/explorer/readme.md b/public/layouts/explorer/readme.md
+new file mode 100644
+index 00000000..16defc2e
+--- /dev/null
++++ b/public/layouts/explorer/readme.md
+@@ -0,0 +1,41 @@
++# Explorer — every layout on the site, walked as one tree
++
++[**/layouts/explorer/**](/layouts/explorer/) is a three-column browser: the current level's
++items on the left, the one you picked large in the middle, and its variants on the right. Click
++a variant and it slides into the middle, and the old right becomes the new left — the owner's
++own words for it: "the right sidebar becomes the left ... the currently selected one becomes the
++main view."
++
++## Use
++
++- Start at the top and the left rail is the categories: one column, two columns, three columns,
++  many, mobile, mega, how to choose, the approved five.
++- Click a category, then a layout id, then (where there are any) a real page built from it — a
++  sidebar variant, a "how to choose" question, a page at 3440. Every stop has its own url, so
++  reload and back both land in the same place.
++- Adding a layout to the tree is one object in [`explorer.json`](./explorer.json) —
++  [`doc/adding.md`](/layouts/explorer/doc/adding/) has the shape.
++
++## Watch out
++
++- **This is a SEPARATE tree from the site's real page tree**, on purpose — the html study this
++  task followed found that nesting real pages the way a Finder column browser does keeps every
++  ancestor mounted just to show a window three wide. `explorer.json` is its own small file; a
++  node's `wire` or `url` points at the real thing, but the tree shape itself is this page's own.
++- **A card never renders a live page.** An id with a `wire` in `layouts.json` gets the layout
++  standard's own drawing (`Layout.frame()`, already built for `/layouts/`); a node with a `url`
++  gets a lazy `<iframe>` of the real page, shrunk the same way `Layout.js` shrinks its own
++  wireframes — a container-query `zoom`, never a screenshot.
++- **The ☰ drawer does not hold this page's properties.** `ext/drawer`'s tabs are a fixed,
++  registered list (AI, Sessions, Dictation, Settings, Admin) and this task's fence did not reach
++  that module, so the selected item's title, address, description and child count are a small
++  strip under the centre view instead — the brief's own named fallback.
++- **`std-` is this page's CSS prefix**, already registered for `/layouts` in
++  `framework/styles/css-scopes.txt` — no new prefix was needed.
++
++## More
++
++- [`explorer.json`](./explorer.json) — the tree: every category, every layout id, every real
++  page, one object each
++- [`doc/adding.md`](/layouts/explorer/doc/adding/) — how to add a layout to the tree
++- The html study this page follows: `/framework/ai/2026/09/29/layout-explorer-3-columns-and-a-study-of/html-study.md`
+diff --git a/public/layouts/page.js b/public/layouts/page.js
+index 55b087aa..2160282b 100644
+--- a/public/layouts/page.js
++++ b/public/layouts/page.js
+@@ -36,7 +36,7 @@ export default new Page({
+ 	icon: "dashboard",
+ 	description: "Every layout named, defined and drawn at three widths.",
+ 
+-	children: "browse decide practice shell labs tag doc",
++	children: "browse decide practice shell labs tag doc explorer",
+ 
+ 	/* A layout's page, built from its entry. `route()` sees undeclared names only, so
+ 	   it can never shadow `tag` or `doc`.
+@@ -81,6 +81,8 @@ export default new Page({
+ 
+ 		md("**[Six labs where a shape got tried before it earned an id →](/layouts/labs/)** — an app shell, what a click does to your screen, a horizontal band, a blog at 3440, a magazine page, a deck cut into regions. Moved here from `/imagine/` on 2026-09-18.");
+ 
++		md("**[Walk every layout on the site as one tree →](/layouts/explorer/)** — siblings on the left, the one you picked large in the middle, its variants on the right. Click a variant and it becomes the new middle.");
++
+ 		div.c("wide", $tags => {
+ 			load().then(data => {
+ 				$tags.append(() => {
+diff --git a/public/layouts/readme.md b/public/layouts/readme.md
+index 549a095b..22a78c71 100644
+--- a/public/layouts/readme.md
++++ b/public/layouts/readme.md
+@@ -37,6 +37,9 @@ that is the whole feature.
+   2026-09-18: an app shell, what a click does to your screen, a horizontal band, a blog at
+   3440, a magazine page, a deck cut into regions — arrangements played with before they earned
+   an id above
++- [/layouts/explorer/](/layouts/explorer/) — **every layout on the site, walked as one tree**:
++  a left rail of siblings, the one you picked large in the middle, its variants on the right —
++  click a variant and it becomes the new middle, with its own url at every step
+ 
+ Adding a layout is **one object in `layouts.json`** — no page, no CSS.
+ [`doc/naming.md`](/layouts/doc/naming/) has the shape and the three questions that decide whether

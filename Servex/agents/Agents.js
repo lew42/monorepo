@@ -7,6 +7,7 @@ import Log from "../Log.js";
 import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
+import { first_prompt } from "./readme-chain.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -77,7 +78,18 @@ export class Agents {
 	 * nothing to do. This needs the session id before the SDK has even started,
 	 * which the SDK's `sessionId` option allows (start() already uses it, the
 	 * same thing `claude --session-id` does from a terminal): mint it here,
-	 * write the task file, then hand the agent that same id to use. */
+	 * write the task file, then hand the agent that same id to use.
+	 *
+	 * README CHAIN. A FRESH spawn (never a resume — a resumed session already
+	 * has it, and one bringing its own `system` brief is code, not this path)
+	 * whose directory we can name gets the readme chain from the repo root down
+	 * to that directory prepended, ahead of everything else, so it knows "where
+	 * it is" before its first turn: `spec.task.dir` (a task mastermind, or any
+	 * agent opened with `task: {dir, ...}`) or `spec.page` (a page-bound agent;
+	 * a URL path like `/framework/ux/Dictate/`, mapped onto the matching repo
+	 * dir under `public/`). A plain minion with neither carries its directory
+	 * in its own brief text instead, so it is deliberately left untouched here
+	 * — `directory_of` returns null for it and nothing is added. */
 	spawn(spec){
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
@@ -85,7 +97,10 @@ export class Agents {
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
-		const base = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const fresh = !again && !spec.system;
+		const dir = fresh ? directory_of(spec) : null;
+		const opened = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
 			: base;
@@ -380,6 +395,20 @@ export class Agents {
 			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
 		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
 	}
+}
+
+/* The directory a fresh spawn is FOR, if it names one — `spec.task.dir` as-is
+ * (repo-relative or absolute, same as `open_task` accepts), or `spec.page`
+ * (a site URL path, e.g. `/framework/ux/Dictate/`) mapped onto the repo dir
+ * that URL is served from, `public/<page, leading slash stripped>`. Neither
+ * present (a plain minion, most forks, the fast assistant) -> null, and
+ * `spawn()` adds nothing. */
+function directory_of(spec){
+	if (spec.task?.dir) return spec.task.dir;
+	// forward slashes always, even on Windows (path.join would use `\`), so the
+	// "Where you are" line reads the same as a repo-relative task.dir does.
+	if (spec.page) return path.posix.join("public", String(spec.page).replace(/^\/+/, ""));
+	return null;
 }
 
 /* OPEN BY NODE — `spawn({task: {dir, card, brief}}, ...)` calls this before

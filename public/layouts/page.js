@@ -36,7 +36,7 @@ export default new Page({
 	icon: "dashboard",
 	description: "Every layout named, defined and drawn at three widths.",
 
-	children: "browse decide practice shell labs tag doc",
+	children: "browse decide practice shell labs tag doc explorer",
 
 	/* A layout's page, built from its entry. `route()` sees undeclared names only, so
 	   it can never shadow `tag` or `doc`.
@@ -80,6 +80,8 @@ export default new Page({
 		md("**[A sidebar that never moves, and a tree of homepage designs →](/layouts/shell/)** — drag the sidebar to any width and click a row: the viewport beside it redraws. A base homepage, and seven designs under it, each one the design above it with a single thing added, changed or taken away.");
 
 		md("**[Six labs where a shape got tried before it earned an id →](/layouts/labs/)** — an app shell, what a click does to your screen, a horizontal band, a blog at 3440, a magazine page, a deck cut into regions. Moved here from `/imagine/` on 2026-09-18.");
+
+		md("**[Walk every layout on the site as one tree →](/layouts/explorer/)** — siblings on the left, the one you picked large in the middle, its variants on the right. Click a variant and it becomes the new middle.");
 
 		div.c("wide", $tags => {
 			load().then(data => {

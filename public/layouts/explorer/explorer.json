@@ -1,0 +1,92 @@
+{
+	"about": "The layout explorer's own tree — every layout on the site, one branch per family, with the real page (or the layout standard's own wire drawing) each id points at. Adding a layout is one object here; see readme.md.",
+	"title": "Explorer",
+	"children": [
+		{
+			"id": "one-column", "title": "One column",
+			"description": "The only questions are how wide it may get, and whether its height is divided instead.",
+			"children": [
+				{ "id": "1-flow", "title": "Flow", "wire": "1-flow" },
+				{ "id": "1-centered", "title": "Centered", "wire": "1-centered" },
+				{ "id": "1-rows", "title": "Rows", "wire": "1-rows" },
+				{ "id": "1-bands", "title": "Bands", "wire": "1-bands" }
+			]
+		},
+		{
+			"id": "two-columns", "title": "Two columns",
+			"description": "One decision: is the room shared evenly, or does one column support the other?",
+			"children": [
+				{ "id": "2-equal", "title": "Equal", "wire": "2-equal" },
+				{
+					"id": "2-sidebar", "title": "Sidebar", "wire": "2-sidebar",
+					"description": "A narrow column beside a wide one. Five real pages below try different tops for the rail, and one asks who should own it.",
+					"children": [
+						{ "id": "a", "title": "Variant A — the brand row", "url": "/framework/core/Sidebar/variants/a/" },
+						{ "id": "b", "title": "Variant B — the brand row", "url": "/framework/core/Sidebar/variants/b/" },
+						{ "id": "c", "title": "Variant C — the brand row", "url": "/framework/core/Sidebar/variants/c/" },
+						{ "id": "d", "title": "Variant D — the brand row", "url": "/framework/core/Sidebar/variants/d/" },
+						{ "id": "rail", "title": "Who owns the rail", "url": "/framework/core/Sidebar/variants/rail/" }
+					]
+				}
+			]
+		},
+		{
+			"id": "three-columns", "title": "Three columns",
+			"description": "Where a layout gets a middle. Which side the narrow columns sit on is the whole difference.",
+			"children": [
+				{ "id": "3-equal", "title": "Equal", "wire": "3-equal" },
+				{ "id": "3-holy-grail", "title": "Holy grail", "wire": "3-holy-grail" },
+				{ "id": "3-sidebar", "title": "Sidebar, twice", "wire": "3-sidebar" }
+			]
+		},
+		{
+			"id": "many", "title": "Many",
+			"description": "The count is not fixed, or is only fixed because a footer really means it.",
+			"children": [
+				{ "id": "4-1", "title": "4-1 (bento)", "wire": "4-1" },
+				{ "id": "n-wall", "title": "Wall", "wire": "n-wall" },
+				{ "id": "n-newspaper", "title": "Newspaper", "wire": "n-newspaper" }
+			]
+		},
+		{
+			"id": "mobile", "title": "Mobile",
+			"description": "Real pages built to still work at 400 pixels wide.",
+			"children": [
+				{ "id": "width", "title": "core/Page's width words", "url": "/framework/core/Page/overview/width/" },
+				{ "id": "reader", "title": "Reader, holds at 400", "url": "/layouts/practice/reader/" }
+			]
+		},
+		{
+			"id": "mega", "title": "Mega",
+			"description": "Real pages built to spend a 3440 ultrawide screen on purpose.",
+			"children": [
+				{ "id": "shell", "title": "Shell — drag the sidebar", "url": "/layouts/shell/" },
+				{ "id": "workbench", "title": "Workbench at 3440", "url": "/layouts/practice/workbench/" },
+				{ "id": "catalog", "title": "Catalog at 3440", "url": "/layouts/practice/catalog/" },
+				{ "id": "floating", "title": "Floating page", "url": "/framework/core/Page/layout/floating/" }
+			]
+		},
+		{
+			"id": "decide", "title": "How to choose", "url": "/layouts/decide/",
+			"description": "Five questions, asked in order, with live demos of a fit and a miss.",
+			"children": [
+				{ "id": "amount", "title": "How much room", "url": "/layouts/decide/amount/" },
+				{ "id": "centred", "title": "Is it outlined", "url": "/layouts/decide/centred/" },
+				{ "id": "equal", "title": "Fill the width", "url": "/layouts/decide/equal/" },
+				{ "id": "short", "title": "Which approved layout", "url": "/layouts/decide/short/" },
+				{ "id": "servex", "title": "Worked example: Servex", "url": "/layouts/decide/servex/" }
+			]
+		},
+		{
+			"id": "approved", "title": "The approved five", "url": "/layouts/doc/studies/approved/",
+			"description": "A closed set with floors and ceilings at every level — the contract that keeps a new page from inventing a sixth.",
+			"children": [
+				{ "id": "rail-content", "title": "1 · Rail + content", "url": "/framework/" },
+				{ "id": "docs-three-region", "title": "2 · Docs, three-region", "url": "/blog/systems/layout-generators/" },
+				{ "id": "columns-row", "title": "3 · Columns row (Finder)", "url": "/framework/core/Page/overview/columns/finder/" },
+				{ "id": "tile-wall", "title": "4 · Tile wall", "wire": "n-wall" },
+				{ "id": "solo", "title": "5 · Solo", "url": "/resume/" }
+			]
+		}
+	]
+}
