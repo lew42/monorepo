@@ -12,10 +12,10 @@ import { p, h2, h3, div, a, span, icon, pre } from "/app.js";
 
 const TILES = [
 	{ name: "Format", ic: "data_object", meaning: "One line = one JSON object = one method call. Line 1 builds the page.", href: "/framework/core/Page/doc/jsonl/" },
-	{ name: "Who writes", ic: "edit_note", meaning: "Five different writers append lines — none of them by hand, on purpose.", href: "doc/writers/" },
-	{ name: "Timing", ic: "schedule", meaning: "A line lands the moment it's appended; localhost streams it in with no reload.", href: "doc/timing/" },
-	{ name: "Caveats", ic: "warning", meaning: "Duplicate lines and a swept-in server write are known, not bugs.", href: "doc/caveats/" },
-	{ name: "Size", ic: "monitor_weight", meaning: "484 files, one over 100 KB; a purge is proposed, not built yet.", href: "doc/size/" },
+	{ name: "Who writes", ic: "edit_note", meaning: "Five different writers append lines — none of them by hand, on purpose.", href: "md/doc/writers/" },
+	{ name: "Timing", ic: "schedule", meaning: "A line lands the moment it's appended; localhost streams it in with no reload.", href: "md/doc/timing/" },
+	{ name: "Caveats", ic: "warning", meaning: "Duplicate lines and a swept-in server write are known, not bugs.", href: "md/doc/caveats/" },
+	{ name: "Size", ic: "monitor_weight", meaning: "484 files, one over 100 KB; a purge is proposed, not built yet.", href: "md/doc/size/" },
 ];
 
 // The same small "icon, name, one-line meaning" card `core/Page/navigation/page.js`
