@@ -1,15 +1,20 @@
-import { Page, p } from "/app.js";
+import { Page } from "/app.js";
+import { source } from "/framework/ext/files/files.js";
 
 /**
- * See tree-styles/page.js.
+ * See tree-styles/page.js. Shows the pattern's real switcher.js — moved to
+ * ext/tabs/switcher.js on 2026-09-29 (review-switcher.md note 7) — the routing
+ * script this whole pattern is built on.
  */
 export default new Page({
 	meta: import.meta,
-	title: "router.js",
-	description: "Demo file for the switcher's file-tree skin.",
+	title: "switcher.js",
+	description: "The switcher pattern's own routing script, shown live in its file-tree skin.",
 	icon: "description",
 
 	content(){
-		p("This is what /fs will eventually route to for real — file_link() from task-mastermind-file-system's work once it lands (see doc/decide.md's convergence note).");
+		// See tree-styles/page.js's comment: content() must RETURN this so the page's
+		// own captor can wait for and append ext/highlight's async code.file() promise.
+		return source(import.meta, "/framework/ext/tabs/switcher.js");
 	},
 });

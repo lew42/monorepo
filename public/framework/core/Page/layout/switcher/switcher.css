@@ -35,6 +35,22 @@
 	   it does anywhere else on the site (ext/tabs/tabs.css); nothing here touches it. */
 	.switcher-toggle { display: none; }
 
+	/* Every panel is a real, routed child page, and `render()` (Page.class.js) draws
+	   its own `h1.page-title` plus a "folder_open Folder" link on every one of them —
+	   right for a page reached on its own, but inside a switcher the list beside it
+	   already names the choice, so both just repeat it. The content area should hold
+	   only the content (review-switcher.md finding 3). Unconditional, not
+	   narrow-width-only: a real caller of switcher() (the /fs mobile file explorer,
+	   say) wants this at every width, not only inside this module's own demo frames. */
+	.switcher .tab-panel .page-title { display: none; }
+
+	/* ⚠ `!important`, only here: `render()` sets the Folder link's `display` with an
+	   inline `.style({ display: "inline-flex", … })`, and an inline style outranks any
+	   stylesheet rule at any specificity — confirmed by `getComputedStyle` still
+	   reading `flex` with the plain rule above. There is no rule in this file's own
+	   fence that can touch that inline style except this one. */
+	.switcher .tab-panel .page-fs-link { display: none !important; }
+
 	/* NARROW: the list becomes a one-row sticky header holding only the CURRENT item;
 	   tapping the toggle above it opens the full list as a dropdown over the content
 	   below. 30em was picked so the ~400px narrow demo frame on this module's own
@@ -149,15 +165,4 @@
 	     border/background/padding, these two classes only fix the width. */
 	.switcher-demo-frame-wide { width: 880px; max-width: 100%; }
 	.switcher-demo-frame-narrow { width: 400px; max-width: 100%; }
-
-	/* Each demo child's own `title` still draws its usual `h1.page-title` (Page.class.js
-	   line 560) — right everywhere else, but a whole-page display heading is the wrong
-	   size for a one-line stand-in file inside an 880px or 400px demo frame. Shrunk to
-	   the `h3, .h3` size (framework.css) here only: three classes deep beats
-	   `.page h1.page-title`'s own (0,2,1) regardless of file load order, in the same
-	   `theme` layer. */
-	.switcher-demo-frame-wide .page h1.page-title,
-	.switcher-demo-frame-narrow .page h1.page-title {
-		font-size: 1em; font-weight: 700;
-	}
 }

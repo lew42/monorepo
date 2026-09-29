@@ -1,5 +1,5 @@
 import { Page, div, h3, p, span, a, code, md } from "/app.js";
-import "./switcher.js";
+import "/framework/ext/tabs/switcher.js";
 
 /**
  * The Switcher, live: a list on the left switches the content on the right. Show,
@@ -26,10 +26,10 @@ export default new Page({
 	children: "cmp-w-index cmp-w-app narrow-index narrow-app wide-index wide-app tree-styles tree-router nav-home nav-settings",
 
 	content(){
-		p("Vertical tabs, a file tree beside its code, and a plain left nav are all the same thing: a list on the left routes to real, url'd content on the right. Below, the same switcher() call proves it two ways — first that shrinking it needs no new JavaScript, then that the same list wears three different skins.");
-
-		h3("Wide vs narrow, side by side");
-		p("Two live instances of the exact same pattern, framed at fixed widths so the collapse is visible without resizing the window. Tap the narrow one's header to open its list.");
+		// Show, don't tell (layout skill: "level 1 above the fold") — the pattern
+		// itself is the very first thing on the page, one line under the title, not
+		// three paragraphs and a heading down.
+		p("A list on the left switches the content on the right — the same live switcher() call below, framed wide and narrow, so the collapse is visible with no window resize.");
 
 		// `.ac("wide")`: two ~880px/~400px cards side by side need the page's WIDE
 		// track, not the default `main` measure — squeezed into `main` at 1920/3440

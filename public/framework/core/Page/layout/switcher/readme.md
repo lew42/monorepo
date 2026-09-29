@@ -8,7 +8,7 @@ routing underneath is identical, and that identity is the whole point of this mo
 ## Use
 
 ```js page.js
-import "/framework/core/Page/layout/switcher/switcher.js";   // once, anywhere in your app
+import "/framework/ext/tabs/switcher.js";   // once, anywhere in your app
 
 content(){ this.switcher("guide api reference"); }                    // vertical tabs (default)
 content(){ this.switcher("index-js router-js", { skin: "tree" }); }   // file tree
@@ -19,6 +19,11 @@ content(){ this.switcher("home settings", { skin: "nav" }); }         // left na
 `switcher()` calls `this.tabs(names).ac("vertical")` for you and wraps it. Every name needs a
 real child page (a `children:` line and its own folder), because a switcher IS routing: each
 choice gets a real url, the same as any other page on the site.
+
+`switcher()` itself lives at [`ext/tabs/switcher.js`](/framework/ext/tabs/), not here — it calls
+`this.tabs()`, and CLAUDE.md's rule is "imports flow down", so a core module may not import an
+ext one. This page, its three skins and `switcher.css` (the collapse mechanism and the skins'
+paint) still live here; only the one file that imports `ext/tabs` moved.
 
 ## Why this needed its own module, and not just a CSS class on `ext/tabs`
 
@@ -37,11 +42,15 @@ sticky header — and touches zero of Router's or Page.css's own code to do it.
 - **The container query needs a sized ancestor.** `.switcher` declares `container-type:
   inline-size` on itself; if the box around it has no defined width (a flex item with no
   `flex-basis`, say), the query has nothing to measure against. See `doc/decide.md`.
-- **`switcher.js` closes the `<details>` after a click purely as a courtesy** — it reads which
-  link was clicked, never which one carries `.active`. Delete that one listener and the pattern
-  still works; the list just stays open until the reader taps the header again.
+- **`ext/tabs/switcher.js` closes the `<details>` after a click purely as a courtesy** — it reads
+  which link was clicked, never which one carries `.active`. Delete that one listener and the
+  pattern still works; the list just stays open until the reader taps the header again.
 - **The three skins are demos, not a closed set.** A fourth skin is a fourth CSS block in
-  `switcher.css` under `.switcher-skin-<name>`; nothing in `switcher.js` needs to change.
+  `switcher.css` under `.switcher-skin-<name>`; nothing in `ext/tabs/switcher.js` needs to change.
+- **One `default_tab` per page.** `switcher()` is built on `this.tabs()`, and `this.default_tab`
+  (ext/tabs/tabs.js) is a single field a page can only own once — a second `switcher()`/`tabs()`
+  call on the same page falls back to its own first tab instead of owning the url. Known limit,
+  not a bug: `doc/decide.md`'s last section names it for `/fs`, the first real caller.
 
 ## More
 
@@ -49,4 +58,5 @@ sticky header — and touches zero of Router's or Page.css's own code to do it.
   active-class logic, with the files and lines
 - [core/Router](/framework/core/Router/) — `mark()` / `mark_links()`, the classes this module reads
 - [core/Page/layout](/framework/core/Page/layout/) — the hub this page sits in, beside `floating`
-- [ext/tabs](/framework/ext/tabs/) — the routing and the vertical-rail styling this builds on
+- [ext/tabs](/framework/ext/tabs/) — the routing and vertical-rail styling this builds on, and
+  where `switcher()` itself now lives (`ext/tabs/switcher.js`)

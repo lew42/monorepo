@@ -47,7 +47,7 @@ every tab *except* the one already carrying `.active` or `.in-path` while it's c
 That's the whole trick. It's a `:not()` on classes Router already put there — this rule doesn't
 know or care *how* `.active` got set, only that it's the one class not to hide. Tapping the
 toggle flips the browser's own `[open]` attribute (no listener needed for that part either);
-[switcher.js](../switcher.js)'s one small script only closes it again after a link is clicked,
+[switcher.js](/framework/ext/tabs/switcher.js)'s one small script only closes it again after a link is clicked,
 reading `e.target.closest("a.tab")` — which link was clicked — never reading or writing `.active`.
 Delete that listener and the pattern still works; the reader just has to tap the toggle a second
 time to close it.
@@ -66,7 +66,7 @@ question — they're both about `<details>` and containers, which is why they be
   form-associated widgets). The fix was structural, not a workaround: `.switcher-drop` (the
   `<details>`, holding nothing but its own `<summary>`) sits **beside** `.tabs.vertical` as a
   sibling, never wrapping it, and the CSS reads the toggle's `[open]` state off that sibling with
-  the `~` combinator — [switcher.js](../switcher.js)'s own header comment tells this story too, so
+  the `~` combinator — [switcher.js](/framework/ext/tabs/switcher.js)'s own header comment tells this story too, so
   the next person who reaches for `<details>` around real content sees it before repeating it.
 - **A `@container` rule can't restyle the box that declares the container — and this bit the fix
   for the first trap, too.** Once the toggle and the list were siblings, the OPEN dropdown needed
@@ -113,6 +113,38 @@ clicked, never `.active`/`.in-path`). See the live demo on [the pattern page](..
 narrow, side by side": the same `switcher()` call, unmodified, framed at ~880px and ~400px on one
 page, no window resize needed. The label-and-chevron fusion once listed here as "not proven" is
 done (2026-09-29) — the two quirks above are what it took.
+
+## Known limits
+
+Two real limits turned up in review (review-switcher.md notes 5 and 6) — neither is about the
+active-class question above, both are worth knowing before building on this pattern:
+
+- **`switcher.css` copies the exact test `tabs.css` already uses for "which tab is current"**
+  (the `:has(.active, .in-path…)` / `:first-child` fallback at switcher.css:118-128, `@container`
+  block above) so it can hide every tab but the current one at narrow widths. That's *reading* the
+  active classes, not patching them — the whole point of this page — but it is a **copy**, not a
+  shared source: if `ext/tabs` ever changes its own default-tab rule, this file has to change to
+  match it by hand, or the two drift apart silently. The better fix is for `ext/tabs` to compute
+  that test once and stamp the result as one class (say `.tab-current`) that both `tabs.css` and
+  `switcher.css` read — not done here, since `ext/tabs/tabs.js` is being changed by another
+  worktree right now and this task's fence doesn't include it.
+- **One `default_tab` per page, so a page needing several switchers needs filler pages.**
+  `this.default_tab` (`ext/tabs/tabs.js`) is a single field, set by whichever `tabs()`/`switcher()`
+  call runs first on a page — so only the FIRST switcher on a page can own the url; every other one
+  on the same page falls back to its own first child instead. That's why this pattern page has ten
+  content-free filler children (`doc/decisions.md`) instead of two real ones: each of its five
+  `switcher()` calls needs its own pair of names so they don't fight over the one url slot. This is
+  fine for a demo with five switchers on one page; it is the first thing `/fs` (the first real
+  caller, one switcher per page) will run into if it ever puts two switchers on the same page.
+
+## `switcher()` itself moved (2026-09-29)
+
+The mechanism this whole page documents — `Page.prototype.switcher`, the `<details>` toggle, the
+`this.tabs(names).ac("vertical")` call — used to live in this folder as `switcher.js`. It now
+lives at [`ext/tabs/switcher.js`](/framework/ext/tabs/) instead, because it imports `ext/tabs`, and
+CLAUDE.md's rule is "imports flow down": a `core/Page/layout/` module may not import an `ext/`
+one (review-switcher.md note 7). Nothing about the proof above changed — same file, same lines,
+new address — this page (the pattern, its three skins, `switcher.css`) stayed put.
 
 ## Converging with task-mastermind-file-system
 
