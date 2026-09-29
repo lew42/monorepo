@@ -4,6 +4,7 @@ import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { job_tools } from "./jobs.js";
+import { expert_tools } from "./experts.js";
 
 /* The seven verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
@@ -35,11 +36,12 @@ const tool = (name, description, properties, required, handler) => {
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
 /* Everything an agent can call: the seven agent verbs below, the three
- * operator tools (ops.js) and the two job tools (jobs.js) — so one line in
+ * operator tools (ops.js), the two job tools (jobs.js) and the four module-expert
+ * tools (experts.js: ask_expert, list_experts, load_module, readme_modules) — so one line in
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from)];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents)];
 }
 
 /* start_job's answer comes to `from` — which defaults to whoever is calling
@@ -176,14 +178,15 @@ return [
  * to a spawn as `mcp_servers: { servex: server(host) }` and the agent calls
  * `mcp__servex__fork_self` straight into this process. `ctx.caller` is who the
  * handlers are told is calling — what `?as=` is on the HTTP door. JSON Schema → zod for
- * the property kinds the tools use. `alwaysLoad`: otherwise the CLI defers them
+ * the property kinds the tools use. `list` narrows it: `server(host, ctx, loader_tools())`
+ * gives a session only `load_module` and `readme_modules` (experts-proof.mjs, way b). `alwaysLoad`: otherwise the CLI defers them
  * behind ToolSearch and a small model reports the tool "not available". */
-export function server(agents = singleton, ctx = { caller: null }){
+export function server(agents = singleton, ctx = { caller: null }, list = tools(agents)){
 	const zod = ({ type, items, enum: one_of }) => one_of ? z.enum(one_of)
 		: type === "number" ? z.number() : type === "boolean" ? z.boolean()
 		: type === "object" ? z.looseObject({})   // NOT z.record(): one record breaks the SDK server's whole tools/list
 		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
-	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: tools(agents).map(t => sdk_tool(t.name, t.description,
+	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: list.map(t => sdk_tool(t.name, t.description,
 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
 			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
 		async args => {

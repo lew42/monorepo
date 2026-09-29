@@ -42,6 +42,7 @@ Never the in-process Agent tool: nobody else can reach, message or reopen one, i
 
 - **Spawn** — `spawn_agent {role, name, prompt}` on Servex's `/mcp`; `model`, `effort` and `cwd` override the role's defaults, and `role` loads that role's skill before the agent's first turn. Then `send_message`, `interrupt_agent`, `stop_agent` and `list_agents`, from anywhere. The seam is [`Servex/agents/readme.md`](../../../Servex/agents/readme.md); the six roles are [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
 - **Fallback, when Servex is down** — `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json`, run from the repo root; `claude --resume <id> -p` for a follow-up; a preloaded library and its forks are the `fork-claude-session` skill. ⚠ Those two permission flags are the whole difference between a minion that works and one that cannot write or run anything (five minions, $8.50, nothing written, 2026-09-19).
+- **Ask, don't read** — A question about one module goes to its expert if `list_experts` has one (`ask_expert`). For several modules, spawn a mastermind with `readme_modules`.
 - **Record** — the agent's id and its `session_id` go in the brief and in the task's `task.jsonl` launch line. That one field is what makes the work resumable later.
 
 ## Grouping work: how many masterminds, how many worktrees (the owner, 2026-09-24)
