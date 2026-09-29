@@ -37,8 +37,6 @@ export default new Page({
 	icon: "dynamic_feed",
 
 	content(){
-		md("*The little **Folder** link above opens this directory's real files, full screen — one general mechanism every page gets. What follows is the same idea, data on disk, used on purpose.*");
-
 		md("**A dynamic page is a url nobody saved.** No `page.js`, no folder on disk — and it still opens, because the PARENT page catches the name the moment it's asked for and hands back a real page. Three ideas, in the order that matters:");
 
 		div.c("card ux-content-section", () => div.c("ux-content-icards", () => [
