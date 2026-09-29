@@ -36,7 +36,12 @@ import os from "node:os";
 const HOME = process.env.SERVEX_HOME || path.join(os.homedir(), "AppData", "Local", "lew42", "servex");
 const LOG_DIR = path.join(HOME, "logs");
 const LOG_FILE = path.join(LOG_DIR, "windows.jsonl");
-const TARGETS = ["conhost", "cmd", "powershell", "node", "bash", "claude"];
+const TARGETS = ["conhost", "cmd", "powershell", "node", "bash", "claude", "chrome-headless-shell", "chrome", "chromium"];
+// Of TARGETS, these three are also the owner's own everyday browser's process names — a hit on
+// one only counts as OURS (shared-browser, 2026-09-28) when Playwright launched it (its exe sits
+// under an ms-playwright cache folder) or a node process started it (walked in the parent chain
+// below). The owner's own Chrome is neither.
+const BROWSER_TARGETS = ["chrome-headless-shell", "chrome", "chromium"];
 
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
@@ -61,7 +66,9 @@ function say(msg){ console.log(`window-watch: ${msg}`); }
  * a trip through a shell (same reasoning as Servex/Monitor.js's own PS child). */
 let restarts = 0;
 function watch(){
-	const script = PS.replace("__PARENT__", String(process.pid)).replace("__TARGETS__", TARGETS.map(t => `'${t}'`).join(","));
+	const script = PS.replace("__PARENT__", String(process.pid))
+		.replace("__TARGETS__", TARGETS.map(t => `'${t}'`).join(","))
+		.replace("__BROWSER_TARGETS__", BROWSER_TARGETS.map(t => `'${t}'`).join(","));
 	const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
 		"-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")],
 		{ windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
@@ -101,6 +108,7 @@ const PS = String.raw`
 $ErrorActionPreference = 'SilentlyContinue'
 $parent = __PARENT__
 $targets = @(__TARGETS__)
+$browserTargets = @(__BROWSER_TARGETS__)
 
 Add-Type @"
 using System;
@@ -148,9 +156,18 @@ $callback = {
   $procId = 0
   [WindowWatchNative]::GetWindowThreadProcessId($hWnd, [ref]$procId) | Out-Null
   $image = ''
-  try { $image = (Get-Process -Id $procId -ErrorAction Stop).ProcessName } catch {}
+  $procPath = ''
+  try { $p = Get-Process -Id $procId -ErrorAction Stop; $image = $p.ProcessName; $procPath = $p.Path } catch {}
   if ($targets -notcontains $image.ToLower()) { return $true }
   $chain = Parent-Chain $procId
+  # A real browser (chrome / chromium / chrome-headless-shell) is only OURS when Playwright
+  # launched it (its exe sits under an ms-playwright cache folder) or a node process started it
+  # (somewhere in its own parent chain) — the owner's everyday Chrome is neither of those.
+  if ($browserTargets -contains $image.ToLower()) {
+    $underPlaywright = $procPath -and ($procPath -match 'ms-playwright')
+    $fromNode = @($chain | Where-Object { $_.image -match '^node(\.exe)?$' }).Count -gt 0
+    if (-not $underPlaywright -and -not $fromNode) { return $true }
+  }
   $script:hits.Add([pscustomobject]@{ hwnd = $key; title = $sb.ToString(); pid = [int]$procId; image = $image; chain = $chain })
   return $true
 }

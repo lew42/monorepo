@@ -81,3 +81,26 @@ function hidden_guard(file){
 	console.log(JSON.stringify({ decision: "block",
 		reason: `This file has a spawn/exec/execFile/fork call with no { windowsHide: true } in its own argument list.${detachedNote} On Windows that pops a window in front of the owner. Add windowsHide: true to EACH call that needs it, not just somewhere in the file.${rest} (PowerShell: Start-Process -WindowStyle Hidden, no -Redirect flags. Still flashes even hidden? Route it through a wrapper proven with an EnumWindows probe, like Servex/hidden-launch.vbs.)` }));
 }
+
+/* THE ONE-LAUNCHER GUARD (shared-browser, 2026-09-28). `chromium.launch()` with no
+ * `channel: "chromium"` opens a real OS window (chrome-headless-shell) even in
+ * "headless" mode — the same class of popup as the hidden-window guard above, just
+ * for Playwright instead of child_process. `Server/browser.mjs` is now the one place
+ * every script gets Chromium from, so a `.launch(` next to a Playwright import
+ * anywhere ELSE is a call that bypassed it — flag it, the same way a stray
+ * spawn/exec without windowsHide gets flagged. Repo-wide sweep: `Server/window-lint.mjs`. */
+function browser_guard(file){
+	const rel = path.relative(root, file).replaceAll("\\", "/");
+	// The launcher itself (where .launch( belongs) and this guard's own source
+	// (which necessarily spells out ".launch(" and "playwright" to describe them).
+	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return;
+	const src = fs.readFileSync(file, "utf8");
+	if (!/playwright/i.test(src)) return;
+	const LAUNCH = /\.launch\s*\(/g;
+	const lines = [];
+	let m;
+	while ((m = LAUNCH.exec(src))) lines.push(src.slice(0, m.index).split("\n").length);
+	if (!lines.length) return;
+	console.log(JSON.stringify({ decision: "block",
+		reason: `This file calls Chromium's .launch( directly (line${lines.length > 1 ? "s" : ""} ${lines.join(", ")}), instead of going through Server/browser.mjs — the one launcher every script in this repo shares, which sets the channel that opens no window. Import { browser } from "./browser.mjs" (adjust the relative path) and call browser(opts) instead of chromium.launch(opts).` }));
+}

@@ -14,13 +14,13 @@
  * errors or new sideways scroll appeared) — a changed pixel alone is not a
  * failure, a human still looks at the picture.
  *
- * ⚠ Playwright resolves from the GLOBAL npm install, never a project dependency
- * — this repo has none, on purpose (CLAUDE.md: no new npm dependency). Never
- * search the disk for it; the url below is the one place it is allowed to live.
+ * ⚠ Chromium is started through Server/browser.mjs, the one launcher every
+ * script in this repo shares — it resolves Playwright from the GLOBAL npm
+ * install (CLAUDE.md: no new npm dependency) and opens no window.
  *
  * doc: readme.md beside this file — the baseline-dir convention (never the repo).
  */
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import { browser as launch } from "../../../../../Server/browser.mjs";
 import fs from "fs";
 import path from "path";
 
@@ -101,7 +101,7 @@ async function runBaseline(){
 	console.log(`baseline: ${pages.length} pages × ${widths.length} widths = ${jobs.length} shots → ${out}`);
 	const t0 = Date.now();
 
-	const browser = await chromium.launch();
+	const browser = await launch();
 	let results;
 	try { results = await shoot(browser, jobs, { server, inject, outDir: out }); }
 	finally { await browser.close(); }
@@ -134,7 +134,7 @@ async function runCompare(){
 	console.log(`compare: ${jobs.length} shots against ${path.basename(baselineDir)} → ${out}`);
 	const t0 = Date.now();
 
-	const browser = await chromium.launch();
+	const browser = await launch();
 	let rows;
 	try {
 		const results = await shoot(browser, jobs, { server, inject, outDir: out });

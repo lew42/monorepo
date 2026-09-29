@@ -48,11 +48,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
-import { execSync, execFileSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import MtimeFilter from "./MtimeFilter.js";
 import * as Hold from "./hold.mjs";
 import { check_page } from "./padding-check.mjs";
+import { browser as launch } from "./browser.mjs";
 
 /* The widths this watcher checks the padding law at. 1280 is the viewport it
    already loads every page in, so it costs one evaluate and no re-layout; 3440
@@ -280,25 +281,14 @@ function archive_sweep(){
 	}
 }
 
-/* ── Playwright, resolved from the GLOBAL install, never hard-coded ──────── */
-
-function resolve_playwright(){
-	let g; try { g = execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim(); } catch { return null; }
-	const entry = path.join(g, "playwright", "index.mjs");
-	return fs.existsSync(entry) ? entry : null;
-}
-
-const pw_entry = resolve_playwright();
-if (!pw_entry){
-	console.log("health.mjs: Playwright is not installed globally (`npm root -g` has no playwright/) — install it with `npm install -g playwright` and `npx playwright install chromium` to run this watcher. Exiting.");
-	process.exit(0);
-}
-const { pathToFileURL } = await import("node:url");
-const { chromium } = await import(pathToFileURL(pw_entry).href);
+/* ── Chromium, via the one shared launcher (Server/browser.mjs) ──────────── */
 
 let browser = null;
 async function ensure_browser(){
-	if (!browser) browser = await chromium.launch({ headless: true, channel: "chromium" });
+	if (!browser) try { browser = await launch(); } catch (e) {
+		console.log("health.mjs: " + e.message + " Exiting.");
+		process.exit(0);
+	}
 	return browser;
 }
 
@@ -469,18 +459,27 @@ async function check_one(context, url){
 		await page.goto(HEALTH_BASE + url, { waitUntil: "networkidle", timeout: 15000 });
 		await page.waitForTimeout(1000);
 		// ⚠ A routed page nests peer pages inside it (core/Page/doc/data-children.md
-		// — "nested pages ARE peers via display: contents"), so `.page` can match
-		// several elements and the FIRST one in DOM order is often an inactive
-		// branch sitting at `display: none` (the util-layer contract css/caveats.md
-		// warns about) — `.first().boundingBox()` measured null on every page
-		// checked in this watcher's own prove step, not just a broken one (2026-09-19).
-		// The real question is simpler than "which .page is THE page": is ANY of
-		// them actually on screen with real height.
-		const tallest = await page.evaluate(() => Math.max(0, ...[...document.querySelectorAll(".page")]
+		// — "nested pages ARE peers via display: contents"), so a bare `.page`
+		// can match several elements, including an ANCESTOR page that is idle
+		// (0px, or briefly a stray size while its child routes) — that ancestor
+		// matching before the real page rendered is what threw three false
+		// "you broke /framework/core/Page/" alarms (2026-09-28, shared-browser).
+		// `.page.active-page` — the same scope smoke.mjs's link-follower uses —
+		// is the one leaf that IS the page on screen; measure only that.
+		//
+		// A page whose content streams in over the dev socket (JSONL.live, e.g.
+		// core/Page's own Doc tab) needs longer than the 1s above once this same
+		// check blocks that socket below — measured up to ~4s while it falls back
+		// to a plain fetch (2026-09-28). Poll instead of a second fixed wait, so a
+		// page that is already tall does not sit here.
+		await page.waitForFunction(() => [...document.querySelectorAll(".page.active-page")]
+			.some(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 50; }),
+			{ timeout: 5000 }).catch(() => {});
+		const tallest = await page.evaluate(() => Math.max(0, ...[...document.querySelectorAll(".page.active-page")]
 			.map(el => el.getBoundingClientRect())
 			.filter(r => r.width > 0 && r.height > 0)
 			.map(r => r.height)));
-		if (tallest < 50) add("error", "blank", "no .page element is drawing more than 50px tall");
+		if (tallest < 50) add("error", "blank", "no .page.active-page element is drawing more than 50px tall");
 
 		const lint = await page.evaluate(lint_findings);
 		for (const f of lint) add("warning", f.kind, f.text);

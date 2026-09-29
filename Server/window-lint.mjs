@@ -79,6 +79,26 @@ function scan_js(file, rel) {
 	return hits;
 }
 
+// THE ONE-LAUNCHER CHECK (shared-browser, 2026-09-28) — repo-wide twin of
+// browser_guard() in .claude/hooks/syntax-guard.mjs (that one fires per-Edit;
+// this one sweeps everything in one run). Same reasoning: `chromium.launch()`
+// with no `channel: "chromium"` opens a real window even "headless", so every
+// script gets Chromium from Server/browser.mjs now — a `.launch(` anywhere
+// else, next to a Playwright import, means a script bypassed it.
+function scan_browser_launch(file, rel) {
+	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
+	const src = fs.readFileSync(file, "utf8");
+	if (!/playwright/i.test(src)) return [];
+	const LAUNCH = /\.launch\s*\(/g;
+	const hits = [];
+	let m;
+	while ((m = LAUNCH.exec(src))) {
+		const line = src.slice(0, m.index).split("\n").length;
+		hits.push({ file: rel, line, call: "launch", why: "Chromium launched directly instead of through Server/browser.mjs" });
+	}
+	return hits;
+}
+
 function scan_ps1_inline(file, rel) {
 	// PowerShell text embedded in a JS/mjs string (or a real .ps1, if any land under public/framework later).
 	const src = fs.readFileSync(file, "utf8");
@@ -100,6 +120,7 @@ for (const f of files) {
 	try {
 		rows = rows.concat(scan_js(f, rel));
 		rows = rows.concat(scan_ps1_inline(f, rel));
+		rows = rows.concat(scan_browser_launch(f, rel));
 	} catch { /* unreadable — skip, never throw */ }
 }
 
