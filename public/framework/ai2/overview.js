@@ -54,13 +54,14 @@ function ask(it){
 
 const MAX_OPEN = 3;
 
-/** WHAT WAS DONE TODAY, readable in ten seconds: "6 today", from `landed_at` on today's
- *  local date. Nothing when it is none. (The json keeps the newest 30 done asks, which
- *  always holds today's.) */
+/** WHAT WAS DONE RECENTLY, readable in ten seconds: "5 in 24 h", asks whose `landed_at` is
+ *  within the last 24 hours. Not a calendar "today": the owner looks in the morning, when a
+ *  calendar day would read 0 everywhere. Nothing when it is none. (The json keeps the newest
+ *  30 done asks, which always holds the last day's.) */
 function today_word(c){
-	const today = new Date().toDateString();
-	const n = (c.done ?? []).filter(it => it.landed_at && new Date(it.landed_at).toDateString() === today).length;
-	return n ? n + " today" : "";
+	const since = Date.now() - 24 * 60 * 60 * 1000;
+	const n = (c.done ?? []).filter(it => it.landed_at && Date.parse(it.landed_at) >= since).length;
+	return n ? n + " in 24 h" : "";
 }
 
 /** One concept: a big icon, its name, the count and the cost, then its asks. */
