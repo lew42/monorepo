@@ -49,10 +49,11 @@ outlines, using these cards." Every change here is judged against that sentence.
   (task pages throw `this[verb] is not a function`; page-drawer's m1/m2 404). Not AI 2's; when only those
   fail, check that AI 2's files match the merge base and land by hand.
 
-One page at [`/framework/ai2/`](/framework/ai2/). **The default view is the inbox** (you
-preferred it, 2026-09-23): a narrow rail down the left, with a one-line box you talk to at its
-top. Click anything in it and it opens on the right, at its own url, and stays there: the list
-keeps filling behind it and nothing you are reading moves.
+One page at [`/framework/ai2/`](/framework/ai2/). **The default view is Needs you** (2026-09-29,
+see above); the inbox — a narrow rail down the left, with `+ New card` and its filters at its
+top — moved to [`/framework/ai2/inbox/`](/framework/ai2/inbox/), one click in. Click anything in
+the rail and it opens on the right, at its own url, and stays there: the list keeps filling behind
+it and nothing you are reading moves.
 
 **The rail leads with seven groups** (2026-09-24) — System design, Servex, AI dashboard, Pages &
 markdown, Cards & content, Layout & columns, Audits — each an icon, a name, and the newest thing
@@ -61,7 +62,14 @@ real task page of every task in it, newest first. Below the groups sits the Live
 **Not filed yet**, a fold holding every card no group holds. How a thing joins a group:
 [`doc/groups.md`](./doc/groups.md).
 
-**Two tabs under the title: Inbox and Overview** (2026-09-28). Inbox is this page; the
+**"Needs you" is the default view** (2026-09-29): one ranked list of every card still waiting on
+you — an open Decision or Question, a card typed "question", or one whose own last message asks
+you something — with its answer control right there, so you never have to open the card to answer
+it. The inbox rail's own "Needs review" checkbox (`?review=1`) filters to the SAME rows. Both read
+one shared rule: [`doc/needs-you.md`](./doc/needs-you.md), [`needs-rule.js`](./needs-rule.js).
+
+**Three tabs under the title: Needs you, Inbox and Overview** (Needs you added 2026-09-29, see
+just above). Inbox is the rail and a card's own page, described just below; the
 [Overview](/framework/ai2/overview/) is one big icon card per concept (Servex, Page, View, App,
 AI 2, Dictation, Research & Collab), each with its open asks and a folded "Completed (n)" line,
 built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
@@ -208,6 +216,9 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## More
 
+- [`doc/one-ai.md`](./doc/one-ai.md) — 2026-09-29: the card's own composer bar and chat
+  split are gone by default; the mobile ✦ sheet and the desktop drawer's AI tab talk into
+  the card instead, same session, same thread. `Card.V1` / `?chat=v1` keeps the old box.
 - [`doc/card-standard.md`](./doc/card-standard.md): what every card shows, in order: its folder, its objects, its checklist, then words
 - [`doc/groups.md`](./doc/groups.md) — the seven groups, how a thing joins one, how a group rises
 - [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status

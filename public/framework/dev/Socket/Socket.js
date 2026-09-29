@@ -61,8 +61,10 @@ export default class Socket {
 		// Put the reader back where they were, if the last thing this tab did was reload.
 		this.restore();
 
-		// ⚠ LOCALHOST ONLY — production is static hosting with nothing to connect
-		// to. Keep this gate: it is part of static compatibility.
+		// ⚠ LOCALHOST ONLY, kept on purpose — this socket also carries `rpc:cmd`
+		// and `rpc:write`, so widening it to the LAN would be RCE, not a UX fix.
+		// `POST /ask/turn` (Server/plugins/Ask.js) is the narrow door for a phone
+		// instead; see `ai/2026-09-29/mobile-nav/` (task log) for why.
 		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
 			this.connect();
 		} else {

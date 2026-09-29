@@ -25,6 +25,26 @@ const layout_names = a => {
 	return [...src.matchAll(/^\s*name:\s*"([a-z0-9-]+)"/gm)].map(m => m[1]);
 };
 
+// A page's title/icon/layout words, read the same way `read_page` reads them — never
+// imported, just text. For page.js it's a regex over the declared string. For page.jsonl,
+// line 1 sets the starting props and a later line (`set_layout`'s appended {"layout":…})
+// can override one, so this takes the LAST value seen for each key: the same value the
+// page itself ends up with once every line has been applied.
+const layout_of = (dir, kind) => {
+	if (kind === "page.js") {
+		const text = fs.readFileSync(path.join(dir, "page.js"), "utf8");
+		const pick = k => new RegExp(`\\b${k}:\\s*"([^"]*)"`).exec(text)?.[1] ?? null;
+		return { title: pick("title"), icon: pick("icon"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
+	}
+	const out = { title: null, icon: null, layout: null, cols: null, room: null };
+	for (const line of fs.readFileSync(path.join(dir, "page.jsonl"), "utf8").split("\n")) {
+		if (!line.trim()) continue;
+		let obj; try { obj = JSON.parse(line); } catch { continue; }
+		for (const k of Object.keys(out)) if (obj[k] !== undefined) out[k] = obj[k];
+	}
+	return out;
+};
+
 // The child names a page declares, and their kind, without importing anything.
 const children_of = dir => {
 	const kind = kind_of(dir), out = [];
@@ -66,10 +86,11 @@ export const page_tools = () => {
 				return { ok: true, kind, title: pick("title"), icon: pick("icon"), children: pick("children"), layout: pick("layout"), cols: pick("cols"), room: pick("room") };
 			}),
 
-		tool("create_page", "Make a new child page: folder + page.jsonl line 1, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string).",
-			{ parent: P, name: { type: "string", description: "a-z0-9- only" }, title: { type: "string" }, icon: { type: "string" }, layout: { type: "string", description: "optional layout name" } },
-			["parent", "name", "title", "icon"], a => {
+		tool("create_page", "Make a new child page reliably: folder + page.jsonl line 1 (title, icon, description, optional layout) + a readme.md stub, then link it from the parent (one appended {file} line, or the name added to the parent page.js children string). The empty doc/ dir is NOT created — one appears only once there is a real doc. Returns the PARENT's context (title, layout words, sibling names, readme url) so the calling agent looks at where this page sits before filling it in.",
+			{ parent: P, name: { type: "string", description: "a-z0-9- only" }, title: { type: "string" }, icon: { type: "string" }, description: { type: "string", description: "One sentence — the card's subtitle everywhere this page is previewed." }, layout: { type: "string", description: "optional layout name" } },
+			["parent", "name", "title", "icon", "description"], a => {
 				if (!NAME.test(a.name || "")) throw new Error("name must be a-z0-9- only");
+				if (!String(a.description || "").trim()) throw new Error("description is required — one sentence: what this page is, for the card that previews it everywhere");
 				const pdir = dir_of(a, a.parent), pkind = kind_of(pdir);
 				if (!pkind) throw new Error(`${a.parent} is not a page`);
 				const dir = path.join(pdir, a.name);
@@ -82,14 +103,23 @@ export const page_tools = () => {
 					if (!m) throw new Error("parent page.js has no `children: \"...\"` string to extend");
 					parent_js = { file, src, m };
 				}
+				// Read the parent's own context BEFORE writing anything, so the new page's own
+				// line (about to be appended below) never shows up as one of its own siblings.
+				const parent_layout = layout_of(pdir, pkind);
+				const siblings = children_of(pdir).map(c => c.name);
+				const parent_readme = `${a.parent.replace(/\/?$/, "/")}md/readme/`;
 				fs.mkdirSync(dir);
-				const first = { title: a.title, icon: a.icon, ...(a.layout ? { layout: a.layout } : {}) };
+				const first = { title: a.title, icon: a.icon, description: a.description, ...(a.layout ? { layout: a.layout } : {}) };
 				fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
+				fs.writeFileSync(path.join(dir, "readme.md"), `# ${a.title} — ${a.description}\n\n## Index\n\n## Use\n\n## Watch out\n\n## More\n`);
 				if (parent_js) {
 					const { file, src, m } = parent_js, i = m.index + m[1].length, sep = m[2].trim() ? " " : "";
 					fs.writeFileSync(file, src.slice(0, i) + m[2].replace(/\s+$/, "") + sep + a.name + "/page.jsonl" + src.slice(i + m[2].length));
 				} else append(path.join(pdir, "page.jsonl"), { file: `${a.name}/page.jsonl` });
-				return { ok: true, made: `${a.parent.replace(/\/?$/, "/")}${a.name}/`, linked_in: pkind };
+				return {
+					ok: true, made: `${a.parent.replace(/\/?$/, "/")}${a.name}/`, linked_in: pkind,
+					parent: { title: parent_layout.title, layout: parent_layout.layout, cols: parent_layout.cols, room: parent_layout.room, siblings, readme: parent_readme }
+				};
 			}),
 
 		tool("place", "Append {\"place\": what} to a page.jsonl. `what` is a .md name, a module .js name, or {module: \"x.js\", ...data}. page.js pages are refused.",

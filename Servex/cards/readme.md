@@ -20,8 +20,10 @@ ai/2026/09/24/fix-the-sidebar/wider/…      a sub-card — 2026/09/24/fix-the-s
 - `list({view, tag})` — `view` is `today`, `open`, `all`, or a tag. Projects are tags, not folders.
 - `on(fn)` — `fn(cardId, line, info)` hears every line appended to any card (`{fresh}` for a prompt, `{created: true}` for a create); returns a remover. A throwing listener never breaks a write.
 - `attach(id, agent)` · `attached(id)` · `forward(id, prompt)`
-- `routes(router, cors)` — `GET /cards?view=`, `GET /card?id=`, `POST /card/create`, `POST /card/append?id=`
-- `tools()` — `create_card`, `read_card`, `attach_card`, `list_cards`, in `agents/tools.js`'s shape
+- `ask({card, question, options?, title?, from?})` places a Decision (with `options`) or a Question (without) — the widget the owner already answers on a card. `waiting()` reads every card's open asks back, ranked and newest first (`needs-rule.js`'s `card_needs`, the same rule the AI 2 "Needs you" tab uses); the MCP tools are `card_ask` and `list_waiting`, the HTTP route is `GET /waiting`.
+- The moment a `chose`, `answer` or legacy `answer.ask` line lands in `append()`, it wakes whoever asked (`from` on the placed line, or every attached, live, non-minion agent when there's no `from`) with the answer.
+- `routes(router, cors)` — `GET /cards?view=`, `GET /card?id=`, `POST /card/create`, `POST /card/append?id=`, `GET /waiting`
+- `tools()` — `create_card`, `read_card`, `attach_card`, `list_cards`, `card_ask`, `list_waiting`, in `agents/tools.js`'s shape
 - `node Servex/cards/test.mjs` runs every method against a scratch folder.
 
 ## The lines — this is the one place they are defined

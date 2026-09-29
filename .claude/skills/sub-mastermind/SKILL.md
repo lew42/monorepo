@@ -5,6 +5,8 @@ description: Become a task mastermind — the agent that owns exactly ONE task e
 
 # Sub-mastermind — one task, end to end
 
+**The build order (the owner, 2026-09-29).** In every task: (1) build in the worktree; (2) update the docs, the readme and what it links to, so they are true now, pointing to a log for ongoing detail and never holding log data; (3) spawn a FRESH mastermind that reads only those docs, as a smoke test: `spawn_agent` role `reviewer`, Sonnet, prompt "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds; (4) THEN the fresh-eyes review (`review.mjs`), which now reads current docs; (5) then merge. The reason: every later mastermind starts from a blank slate and learns the directory only from its readme.
+
 **Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
 
 **A fresh agent reviews every task when it lands (the owner, 2026-09-29).** This is the `review.mjs` step below, and its reviewer must be a FRESH agent, or a fork of the builder's session for the cache. Give it the owner's original prompt, prefixed: "Don't build this. You are reviewing the finished result against it." Fix what it finds, and log one line `{"review":{"found":N,"real":M,"fixed":K}}`, so we learn whether reviews pay off.
@@ -19,7 +21,7 @@ this whole task in its head, so the quality of it is yours.
 
 **Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai2/doc/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
 
-**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_ask`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
 
 **Before you land a change anyone can see, look at the whole page at 1920, reached the way the owner reaches it (from the rail, not a direct crop).** Answer from the picture alone: what is its status, what was asked, what was delivered? A screenshot you took but didn't judge proves nothing.
 
@@ -157,6 +159,7 @@ moving." A turn spent sitting in a wait is a turn nothing else progresses in.
 - **Start work, then do the next useful thing.** Spawn minions as Servex agents
   (`spawn_agent` with `parent` set to your own id). The call returns at once, and each child's
   done, blocked or error message arrives as an event addressed to you. Start several in one message.
+- **Every minion gets its own task log, a subtask of yours.** Spawn it with `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full task dirs, never bare slugs); a parent never shares its log (the tree: `/framework/ext/AITask/` tree.js).
 - **Long-running helpers run in the background** (a dev server, a Playwright watcher, a build).
   Start them so they report to you. Never poll them in a loop inside your own turn.
 - **Never miss a notice.** Every child and every background process must have a way to reach

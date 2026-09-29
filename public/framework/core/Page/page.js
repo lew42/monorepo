@@ -1,6 +1,8 @@
-import { Page, Doc, md, div, code } from "/app.js";
+import { Page, Doc, md, div, code, file_link } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
 import { object } from "../../ux/Content/Object/Object.js";
+import { page_object } from "./object.js";
+import { item } from "../../ui/item/item.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
@@ -33,11 +35,15 @@ export default new Doc({
 
 	subject: Page,
 	// Tab order, top to bottom of `bar()` below: Overview · Make a page · Layout ·
-	// Generator · API · Docs · Files · Old. `make` and `layout` are new top tabs
-	// (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
+	// Navigation · Generator · API · Docs · Files · Old. `make` and `layout` are new
+	// top tabs (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
+	// `navigation` added 2026-09-29 (page-system task): persistent vs switching, the
+	// levels that stack, the class-doc go-to, the alternatives. `ai` (the page-based AI
+	// system) and `dynamic` (a url with no page.js, loaded through an ancestor's
+	// route()) added the same day, so every sub-system the readme lists is a tab.
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before.
-	children: "make layout generator old jsonl/page.jsonl",
+	children: "make layout navigation ai dynamic weight generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -95,8 +101,15 @@ export default new Doc({
 	// the reference tabs API/Docs/Files, Old moved to the very end. Doc.bar()'s own
 	// order always puts api/doc/files right after whatever was declared — which is
 	// why "old" could never move past them without this override.
+	// ⚠ 2026-09-29 fix round, finding 1: "jsonl" (declared above as "jsonl/page.jsonl",
+	// which `child_file()` records under the plain key "jsonl") was missing from this
+	// literal array, so `bar()`'s filter always dropped it — the whole reason storage
+	// had no top tab even though the comment above claimed "every sub-system the
+	// readme lists is a tab". Every name in this array must be kept in sync with what
+	// `children:` actually declares; a name that ISN'T here never becomes a tab, no
+	// matter how it entered `this.children`.
 	bar(){
-		return ["overview", "make", "layout", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "jsonl", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 
@@ -166,8 +179,10 @@ export default new Doc({
 		+ "jsonl/page.jsonl jsonl/full/page.jsonl",
 
 	content(){
+		md(`Files: [Page.class.js](${file_link("framework/core/Page/Page.class.js")}) · [Log.js](${file_link("framework/core/Page/Log.js")}) · [Markdown.js](${file_link("framework/core/Page/Markdown.js")}) · [words.js](${file_link("framework/core/Page/words.js")})`);
+
 		div.c("wide grid three gap", () => {
-			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the four ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");
+			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the five ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");
 			code.js(`export default new Page({
   meta: import.meta,
   title: "Docs",
@@ -176,6 +191,22 @@ export default new Doc({
 			code.json(`{"title": "Docs"}
 	{"place": "note.md"}`, "page.jsonl");
 		}).style("--column", "16em");
+
+		// The live "this is a page instance" block. `page_object()` (core/Page/object.js,
+		// owned by item-ui) draws EVERY own field flat, 25 rows deep — that used to run
+		// right here and crowd the palette wall below it off the first screen (finding 6,
+		// 2026-09-29 review). Rather than edit object.js, this wraps it: five named
+		// fields a reader actually wants first, then the whole tree one click down inside
+		// a plain closed `<details>` ("All fields") — nothing removed, just reordered.
+		div.c("card pad flow", () => {
+			const subject = this.parent ?? this;
+			item({ name: ".title", end: subject.title ?? "—" });
+			item({ name: ".url", end: subject.url ?? "—" });
+			item({ name: ".parent", end: subject.parent?.title ?? subject.parent?.url ?? "none" });
+			item({ name: ".children", end: `${subject.children?.size ?? 0}` });
+			item({ name: ".files", end: `${Doc.names(subject.files).length}` });
+			item({ name: "All fields", children: () => page_object(subject) });
+		});
 
 		this.browse(BANDS, { "--column": "22em", "--gap": "2em", "--stage-max": "14em" });
 	},

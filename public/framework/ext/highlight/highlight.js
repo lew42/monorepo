@@ -154,10 +154,18 @@ for (const [name, language] of Object.entries(accessors)){
  * code.file(import.meta, "example.js") — same signature and promise contract as
  * md.file(). Language inferred from the extension unless given; always a block.
  *
+ * The third argument is still a plain language STRING for every existing caller
+ * (`code.file(meta, "readme.md", "markdown")`) — additive only: hand it
+ * `{ lang, lines }` instead and `lines: true` also gives the block a line-number
+ * gutter, one `.code-line` per source line, ready for `ext/files`' `#L42` anchor
+ * (built there, not here — see doc/method/file.md). Nothing changes for a caller
+ * that never mentions `lines`.
+ *
  * ⚠ `capture: false`, like md.file — nothing to place until it resolves, so the
  * promise has to be returned or appended.
  */
-code.file = async function(meta, url, lang){
+code.file = async function(meta, url, opts){
+	const { lang, lines } = typeof opts === "string" ? { lang: opts } : (opts ?? {});
 	const href = new URL(url, meta.url).href;
 
 	const view = new View({ tag: "pre", capture: false }).ac("code-block");
@@ -170,6 +178,7 @@ code.file = async function(meta, url, lang){
 		}));
 
 		render(target, lang ?? code.ext(url), text.replace(/\s+$/, ""));
+		if (lines) gutter(target);
 
 		return view;
 	} catch (error) {
@@ -177,6 +186,57 @@ code.file = async function(meta, url, lang){
 		return view.ac("code-error").text(`Error loading ${url}: ${error.message}`);
 	}
 };
+
+/* Rebuilds a highlighted `<code>`'s innerHTML as one `.code-line` per source
+ * line, each holding a clickable line number (`.code-line-no`, `href="#L<n>"`)
+ * and the line's own highlighted markup (`.code-line-code`) — `highlight.css`
+ * lays the two out as grid columns via `display: contents` on `.code-line`, so
+ * every number lines up with its code without a second pass over the DOM.
+ *
+ * ⚠ Splits the ALREADY-HIGHLIGHTED html, not the source text — hljs's markup is
+ *   one flat run of `<span class="hljs-…">`, and a token can span several lines
+ *   (a block comment, a template string), so a naive `split("\n")` would cut a
+ *   `<span>` in half on every line it crosses. split_lines() below closes every
+ *   currently-open span at each newline and reopens the same ones on the next
+ *   line, so each line's own html is independently well-formed. */
+function gutter(view){
+	const lines = split_lines(view.el.innerHTML);
+
+	view.ac("code-lines");
+	view.el.innerHTML = lines
+		.map((line, i) => `<span class="code-line" data-line="${i + 1}"><a class="code-line-no" href="#L${i + 1}" tabindex="-1">${i + 1}</a><span class="code-line-code">${line}</span></span>`)
+		.join("");
+}
+
+function split_lines(html){
+	const open = [];
+	const lines = [];
+	let line = "";
+
+	for (let i = 0; i < html.length; ){
+		if (html.startsWith("<span class=\"", i)){
+			const end = html.indexOf("\">", i) + 2;
+			open.push(html.slice(i + 13, end - 2));
+			line += html.slice(i, end);
+			i = end;
+		} else if (html.startsWith("</span>", i)){
+			open.pop();
+			line += "</span>";
+			i += 7;
+		} else if (html[i] === "\n"){
+			line += "</span>".repeat(open.length);
+			lines.push(line);
+			line = open.map(cls => `<span class="${cls}">`).join("");
+			i++;
+		} else {
+			line += html[i];
+			i++;
+		}
+	}
+
+	lines.push(line);
+	return lines;
+}
 
 // extension -> language. Unknown ones fall through and render() degrades them.
 code.ext = function(url){

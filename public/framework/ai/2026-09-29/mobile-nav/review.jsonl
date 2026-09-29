@@ -27,3 +27,78 @@
 {"phase":{"at":"2026-09-29T16:00:23-05:00","n":3,"kind":"replies","status":"start"}}
 {"reply":{"at":"2026-09-29T16:00:35-05:00","n":4,"stance":"accept","text":"Rebuilding the sheet on `CardsDictate` is a real improvement but a bigger change than this pass needs — it touches a working design for a v2-shaped payoff (merging the two card styles), not a bug. Fixing the duplicate caption directly (finding 5) covers the actual defect; the rebuild is fine to leave as a named follow-up rather than doing it now.","cost":0.137326}}
 {"phase":{"at":"2026-09-29T16:00:35-05:00","n":3,"kind":"replies","status":"done"}}
+{"phase":{"at":"2026-09-29T17:25:31-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":1,"kind":"fix","text":"`POST /ask/turn` (`Server/plugins/Ask.js:31-44`) lets anyone on the Wi-Fi start a full `claude -p` turn. The route never sets `tools`, so the turn gets every built-in tool, and `.claude/settings.json:3` is `defaultMode: \"bypassPermissions\"`. Any device on the LAN can therefore say \"run this command\" and get a shell — the same RCE that `dev/Socket/Socket.js:457` says it keeps closed. The comment at `Ask.js:26` (\"no shell, no file write\") is false. At minimum pass `tools: \"\"` plus `strict_mcp: true` (`Ask.js:150-157` explains both) and refuse a client-supplied `resume`. Better: leave the door off until the https-on-LAN proposal lands."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":2,"kind":"fix","text":"`Server/plugins/ServexProxy.js:155` forwards every method and every path under `/servex/*` to Servex, from any LAN address. That puts all of Servex's HTTP API (agents, servers, logs) on the Wi-Fi, not just the `/log/prompts` and `/api/page-ai` calls the phone needs. Allow-list those two or three paths, or guard it like `MCP.js`'s loopback check."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":3,"kind":"fix","text":"On a card page the ✦ sheet's `card()` (`ext/drawer/rail.js:733-736`) posts through `send()` and throws the result away. So if Servex is down — and from a phone it always is, because `post_card()` (`tabs/ai.js:90`) uses `servex_base()`, which is still `127.0.0.1:8090` (`ai2/inbox.js:110`), not the new `servex_url()` — the spoken sentence just vanishes: no card, no error. That is exactly the \"not work and not know why\" the owner named. Show the sentence as a local card with a \"not sent\" mark when `send()` fails, and route `servex_base()` through `servex_url()`."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":4,"kind":"note","text":"The `servex_url()` swap in `ext/drawer/tabs/ai.js:802` never runs on a phone: it sits behind `DEV` (`tabs.js:6`), which is localhost-only. Either drop the change or fix the gate, so the code doesn't imply LAN support it doesn't give."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":5,"kind":"note","text":"Most of this diff is new scope, not the four deliverables: the one-AI merge (`ai2/card.js`, `ai2/doc/one-ai.md`), a LAN proxy and a LAN Ask door, a \"Files\" link in the drawer (`tabs.js:760-773`), and two unrelated `ai2.css` fixes (`ai2.css:228`, `:247`). Deliverables 1–4 appear to have landed earlier (review-1's note 2). Each new piece should be named in the task's landing so the owner knows it shipped."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":6,"kind":"note","text":"Version 1 is kept properly for the card chat (`Card.V1` / `?chat=v1`, `ai2/card.js:269-272`). The old plain-page sheet markup is only preserved as a branch inside `sync_card()` (`rail.js:703-709`), not as a class of its own. That meets the letter of \"keep v1\" but not the requirement that a variant is a subclass."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":7,"kind":"note","text":"Simpler option: `sync_global_ai()` (`ai2/card.js:343-351`) runs two dynamic imports on every card redraw just to call `sync()`. A tiny event (for example `card.emit(\"redraw\")`) that the sheet and the drawer tab subscribe to would drop the cross-module imports and the module-level `live_card` slot (`tabs/ai.js:816`)."}}
+{"finding":{"at":"2026-09-29T17:25:31-05:00","n":8,"kind":"note","text":"No 400px screenshot shows the new card-page sheet (a card's thread plus the mic). The `review/` shots all predate it or are desktop-only. Shoot `/framework/ai2/<card>/` at 400px with the sheet open."}}
+{"phase":{"at":"2026-09-29T17:25:31-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.8018616,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:27:53-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":1,"reply":"declined: the owner accepted the LAN risk explicitly ('there's only my kids on my network… let's just get this done and working right now'); the phone gets the same assistant as the PC. The guard that lands next is by address range: loopback plus the home subnets only. The false 'no shell' comment is corrected in that same follow-up."}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":2,"reply":"fixed in the follow-up (minion-lan-guard): one guard for /servex/*, /ask/turn and /whisper/* that allows loopback and the home subnets, and answers 403 otherwise — no path allow-list, per the owner"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":3,"reply":"fixed in the follow-up: servex_base() goes through servex_url(), and a failed send shows the sentence as a 'not sent' card"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":4,"reply":"fixed in the follow-up: the DEV gate lets the same-origin path run on a phone"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":5,"reply":"noted: every new piece is named in the landing — the /servex proxy, /ask/turn, one AI on card pages, the Files link, and the two ai2.css fixes"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":6,"reply":"noted: the plain-page sheet v1 is a branch, not a subclass; DrawerRail.V1 already exists as a class for the rail, and the sheet's own variant can follow"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":7,"reply":"declined: swapping the two imports for an event is a refactor with no visible change; not now"}}
+{"answer":{"at":"2026-09-29T17:27:53-05:00","n":8,"reply":"fixed in the follow-up: shots/card-400-lan-sheet.png; card-400-sheet-thread.png already shows the card thread in the sheet at 400"}}
+{"phase":{"at":"2026-09-29T17:27:53-05:00","n":2,"kind":"answers","status":"done"}}
+{"phase":{"at":"2026-09-29T17:27:53-05:00","n":3,"kind":"replies","status":"start"}}
+{"reply":{"at":"2026-09-29T17:27:53-05:00","n":1,"stance":"hold","text":"reviewer gave no answer for finding 1 (spawn failed or wrote nothing)","cost":0}}
+{"reply":{"at":"2026-09-29T17:27:53-05:00","n":7,"stance":"hold","text":"reviewer gave no answer for finding 7 (spawn failed or wrote nothing)","cost":0}}
+{"phase":{"at":"2026-09-29T17:27:53-05:00","n":3,"kind":"replies","status":"done"}}
+{"phase":{"at":"2026-09-29T17:28:06-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:28:06-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:28:06-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:55:24-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:55:24-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:55:24-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:55:37-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:55:37-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:55:37-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:56:17-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:56:17-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:56:17-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:56:57-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:56:57-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:56:57-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:57:38-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:57:38-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:57:38-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:58:18-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:58:18-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:58:18-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:58:58-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:58:58-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:58:58-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T17:59:39-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T17:59:39-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T17:59:39-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:00:19-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:00:19-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:00:19-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:00:59-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:00:59-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:00:59-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:01:40-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:01:40-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:01:40-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:02:20-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:02:20-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:02:20-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:03:00-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:03:00-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:03:00-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:24:58-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:24:58-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:24:58-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:25:42-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:25:42-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:25:42-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-29T18:26:04-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-09-29T18:26:04-05:00","n":1,"kind":"fix","text":"reviewer failed to run: spawn_agent did not return an id"}}
+{"phase":{"at":"2026-09-29T18:26:04-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0,"model":"claude-opus-5-5"}}

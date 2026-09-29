@@ -4,6 +4,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
 import { parse_lines, fold_card, summary } from "../../public/framework/ai2/fold.js";
+import { card_needs } from "../../public/framework/ai2/needs-rule.js";
 
 /* CARDS — one folder per card, one append-only `page.jsonl` per folder.
  *
@@ -180,8 +181,73 @@ export default class Cards {
 			await this.write(card, line);
 			if (line.legacy) this.legacy_map().set(line.legacy, card);
 			this.emit(card, line, line.prompt ? { fresh } : {});
-			return { ok: true, id: card, line, ...(line.prompt ? { fresh, ref: `${card}#${line.prompt.id}` } : {}) };
+			const answering = line.chose?.decision ?? line.answer?.question ?? line.answer?.ask;
+			return { ok: true, id: card, line, ...(line.prompt ? { fresh, ref: `${card}#${line.prompt.id}` } : {}),
+				...(answering ? { woke: await this.wake(card, line) } : {}) };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
+	}
+
+	/* ---------- asking, and waking the asker (contract-v2 §2 and §3) ---------- */
+
+	ask_id(prefix){ return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 4).padEnd(2, "0")}`; }
+
+	/* card_ask: ONE `place` line for the widget the card already draws and already knows how
+	 * to answer — a Decision (`ux/Content/Decision`) when `options` is given, a Question
+	 * (`ux/Content/Question`) when it is not. No new verb, no new datastore: the owner answers
+	 * with the exact control already on the card, and `append()` below wakes the asker.
+	 * Returns `{ok, id: <card>, ask: <the place line's own id>}`, or `{ok:false, why}`. */
+	async ask({ card, question, options, title, from } = {}){
+		if (!question || !String(question).trim()) return { ok: false, why: "a card_ask needs a question" };
+		const decision = Array.isArray(options) && options.length > 0;
+		const id = this.ask_id(decision ? "d" : "q");
+		const place = decision
+			? { module: "/framework/ux/Content/Decision/Decision.js", id, ask: question, options, at: stamp() }
+			: { module: "/framework/ux/Content/Question/Question.js", id, ask: question, at: stamp() };
+		if (title) place.title = title;
+		if (from) place.from = from;
+		const out = await this.append(card, { place });
+		if (!out.ok) return out;
+		return { ok: true, id: out.id, ask: id };
+	}
+
+	/* Any `chose`, `answer` (or legacy `answer.ask`) line just written wakes whoever the
+	 * matching `place` (or legacy `ask`) line named as `from` — or, with no `from`, every
+	 * attached, live, non-minion agent (the same door `forward()` uses). Returns the agent
+	 * ids actually sent to. Never throws: one bad send must not break the append that woke it. */
+	async wake(card, line){
+		if (!this.agents) return [];
+		const ask_id = line.chose?.decision ?? line.answer?.question ?? line.answer?.ask;
+		if (!ask_id) return [];
+
+		let found = null;
+		for (const l of await this.read(card)){
+			if (l.place?.id === ask_id) found = { ask: l.place.ask, from: l.place.from };
+			else if (l.ask?.id === ask_id) found = { ask: l.ask.question ?? l.ask.title, from: l.ask.from };
+		}
+		if (!found) return [];
+
+		const answer = line.chose?.option ?? line.answer?.text;
+		const text = `The owner answered your question on card ${card} ("${found.ask}"): ${answer}`;
+		const note = { from: OWNER, reply_to: `card ${card}` };
+		const targets = found.from ? [found.from]
+			: (await this.attached(card)).filter(a => { const live = this.live(a); return live && !this.minion(live); });
+
+		const woke = [];
+		for (const t of targets) try { this.agents.send(t, text, note); woke.push(t); } catch {}
+		return woke;
+	}
+
+	/* ---------- waiting: contract-v2 §4 ---------- */
+
+	/* Every open need across every non-done, non-archived card — the same `card_needs` rule the
+	 * browser's "Needs you" tab and the rail's "Needs review" filter read, so they can never
+	 * disagree with what Servex answers here. Ranked: blocker, then decision/question, then fyi;
+	 * newest within each group. */
+	async waiting(){
+		const RANK = { blocker: 0, decision: 1, question: 1, fyi: 2 };
+		const cards = (await this.list({ view: "all" })).filter(c => c.status !== "done" && c.status !== "archived");
+		const rows = await Promise.all(cards.map(async c => card_needs(c.id, await this.read(c.id), c)));
+		return rows.flat().sort((x, y) => (RANK[x.kind] ?? 3) - (RANK[y.kind] ?? 3) || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
 	}
 
 	/* A new owner prompt, with what the caller left out filled in. `text` is the
@@ -311,8 +377,9 @@ export default class Cards {
 		const json = express.json({ limit: "1mb" });
 		const reply = (res, out, bad = 400) => res.status(out && out.ok !== false ? 200 : bad).json(out ?? { ok: false, why: "not found" });
 
-		for (const p of ["/cards", "/card", "/card/create", "/card/append"]) router.options(p, cors, (req, res) => res.status(204).end());
+		for (const p of ["/cards", "/card", "/card/create", "/card/append", "/waiting"]) router.options(p, cors, (req, res) => res.status(204).end());
 		router.get("/cards", cors, async (req, res) => res.json(await this.list({ view: req.query.view || "today", tag: req.query.tag || undefined })));
+		router.get("/waiting", cors, async (req, res) => res.json(await this.waiting()));
 		router.get("/card", cors, async (req, res) => reply(res, await this.fold(String(req.query.id ?? "")), 404));
 		router.post("/card/create", cors, json, async (req, res) => reply(res, await this.create(req.body ?? {})));
 		router.post("/card/append", cors, json, async (req, res) => {
@@ -371,7 +438,30 @@ export default class Cards {
 					tag: { type: "string", description: "Only cards with this tag — a project." }
 				},
 				[],
-				async a => say(await this.list(a ?? {})))
+				async a => say(await this.list(a ?? {}))),
+
+			this.tool("card_ask",
+				"Ask the owner something ON a card, with the widget the card already draws — a Decision (a row of"
+				+ " buttons to pick from) when you pass `options`, a Question (a free-text box) when you don't. The"
+				+ " owner answers it from the dashboard, same as any card; when they do, `from` (or, with none, every"
+				+ " live, non-minion agent attached to the card) is sent the answer as a message. Returns"
+				+ " `{ok, id: <card>, ask: <the place line's own id>}`, or `{ok:false, why}`.",
+				{
+					card: CARD,
+					question: { type: "string", description: "What you're asking, in plain words." },
+					options: { type: "array", items: { type: "string" }, description: "Pass this for a Decision — each a short thing the owner can pick, e.g. [\"close it\", \"keep chasing\"]. Omit it for a free-text Question." },
+					title: { type: "string", description: "A short label for the ask, if the question text alone doesn't say enough." },
+					from: { type: "string", description: "Your own agent id — who gets woken when the owner answers. Omit it and every live, non-minion agent attached to the card is woken instead." }
+				},
+				["card", "question"],
+				async a => say(await this.ask(a))),
+
+			this.tool("list_waiting",
+				"Everything on the board waiting on the owner right now — a blocker, decision or question with no"
+				+ " answer yet, ranked (blocker first) and newest first within each rank. The same list the"
+				+ " dashboard's \"Needs you\" tab, and the rail's \"Needs review\" filter, show.",
+				{}, [],
+				async () => say(await this.waiting()))
 		];
 	}
 }

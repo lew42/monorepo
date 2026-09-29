@@ -128,6 +128,10 @@
 	.drawer .drawer-tab:hover { color: var(--ink); background: var(--fill-a08); }
 	.drawer .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
 
+	/* "Files" (tabs.js `files_href()`) is a plain link, not a tab — no body to
+	   load, no `.on` state, so it sits apart at the strip's other end. */
+	.drawer .drawer-files-link { margin-inline-start: auto; text-decoration: none; }
+
 	/* One list of rows (Sessions), one conversation (AI). */
 	.drawer-ai, .drawer-sessions, .drawer-settings, .drawer-admin, .drawer-dictation { gap: calc(var(--gap) * 0.8); }
 	.drawer-ai-head { gap: 0.5em; }

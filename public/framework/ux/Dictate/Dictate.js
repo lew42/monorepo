@@ -1,6 +1,7 @@
 import { View, div, span, button, label, input } from "../../core/View/View.js";
 import Capture from "./capture.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -56,7 +57,7 @@ async function fetch_timeout(url, opts, ms){
  *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
  *  `v/3/compose.js`'s typed `send()` — one shape for "did Servex take this
  *  prompt", not two. */
-export async function post_prompt(entry, url = "http://127.0.0.1:8090/log/prompts"){
+export async function post_prompt(entry, url = servex_url("/log/prompts")){
 	try {
 		const r = await fetch_timeout(url, {
 			method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
@@ -493,7 +494,7 @@ export default class Dictate extends View {
 			// to just have it not work and not know why". Ends the dictation rather than
 			// silently dropping every segment from here on.
 			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
-			this.set_error("Whisper stopped answering — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.");
+			this.set_error(`Whisper stopped answering (${e.message}) — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.`);
 			return;
 		}
 		finally { this.inflight = null; }
@@ -526,8 +527,14 @@ export default class Dictate extends View {
 		form.append("file", wav, "segment.wav");
 		form.append("response_format", "json");
 		const t_sent = performance.now();
-		const r = await fetch_timeout(this.whisper_url + "/inference", { method: "POST", body: form }, 20000);
-		if (!r.ok) throw new Error("whisper-server answered " + r.status);
+		const url = this.whisper_url + "/inference";
+		let r;
+		// Named here, not left for the caller to guess: WHICH url this device tried, and
+		// WHY it failed — a timeout (the 20s cap below), a plain network error (nothing
+		// there to answer), or an HTTP status (something answered, but not with success).
+		try { r = await fetch_timeout(url, { method: "POST", body: form }, 20000); }
+		catch (e){ throw new Error(`${url}: ${e?.name === "AbortError" ? "timed out after 20 s" : (e?.message || "network error")}`); }
+		if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
 		const body = await r.json();
 		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
 		this.whisper_ms = this.t_result - t_sent;
@@ -766,7 +773,7 @@ function default_whisper_url(){
 }
 
 Dictate.prototype.whisper_url = default_whisper_url();
-Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
+Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
 Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";
 Dictate.prototype.pause_ms = 700;        // silence this long closes a segment

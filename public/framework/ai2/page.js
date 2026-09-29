@@ -13,6 +13,7 @@ import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
+import needs_view, { watch_needs } from "./needs.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
@@ -57,25 +58,36 @@ export default new Page({
 	   card page into `children` and the sidebar walks that map. */
 	leaf: true,
 
-	/* THE DEFAULT VIEW IS THE INBOX — the rail + a card's own page (the owner,
-	   2026-09-23: "I prefer the inbox view"). The four-column overview is its
-	   own page with its own address, `overview/`, routed like a card: EVERY
-	   view here is a url, never a class flipped by a button, because a view the
-	   Router does not know about is one the nav cannot get you out of (the
-	   owner, same day: "we can't just have these buttons that when clicked
-	   switch the view manually"). */
-	/* THE TWO TABS, LIKE A CLASS DOC PAGE (the owner, 2026-09-28: "the title, and then some
-	   tabs for like inbox, but over then maybe an overview"). ext/tabs' own look and ext/Doc's
-	   well, drawn by hand: the panels are this page's own routed children, not a `tabs()` set.
-	   Inbox is this url, so a card url (which runs through it) still lights Inbox. */
+	/* THE DEFAULT VIEW IS NEEDS YOU (the owner, 2026-09-29: "a prioritized view of what's
+	   needed from me... I don't even want to look at it because it's just so [much]"). What
+	   was the default — the rail + a card's own page — moved to its own address, `inbox/`;
+	   everything that used to load at the bare url (Live, most of all) still does, one click
+	   in. The four-column-turned-one-column overview stays at `overview/`. EVERY view here is
+	   a url, never a class flipped by a button (the owner, 2026-09-23: "we can't just have
+	   these buttons that when clicked switch the view manually").
+	   ⚠ CARD PAGES STILL LIVE AT `this.url + id + "/"`, unchanged — moving them under
+	     `inbox/` would break every link to one already written across this codebase and the
+	     card logs themselves. So "Inbox lights for a card url" is a CSS trick, not a url
+	     change: both "Needs you" and "Inbox" wear `.tab-default` (ext/tabs' own "not really a
+	     match" flag — see `.tab-bar` rules, `tabs.css`), so neither's `.in-path` (every route
+	     starts with the root url, and Inbox's own `.../inbox/`) fires for the other's address;
+	     with nothing left to match, `ext/tabs`' own fallback lights the tab-bar's DOM
+	     `:first-child` — which is Inbox, kept first in the markup on purpose (`ai2.css`'
+	     `order` then draws it visually second). A card route matches no tab's own href, so it
+	     always falls through to that same fallback: Inbox lights. */
 	content(){
 		div.c("ai2-head", () => {
 			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
 			div.c("tabs block", () => div.c("tab-bar", () => {
-				a.c("tab tab-default").href(this.url).text("Inbox");
-				a.c("tab").href(this.url + "overview/").text("Overview");
+				a.c("tab tab-default ai2-tab-inbox").href(this.url + "inbox/").text("Inbox");
+				a.c("tab tab-default ai2-tab-needs").href(this.url).text("Needs you");
+				a.c("tab ai2-tab-overview").href(this.url + "overview/").text("Overview");
 			}));
 		});
+		// NOTHING ELSE ON THIS TAB (deliverable 1) — `needs.js` owns the whole list; CSS shows
+		// this div and hides `.ai2-shell` (the rail) only while THIS page is the active leaf,
+		// i.e. the bare url — the same `:has(.active-page)` trick `overview/` already uses.
+		div.c("ai2-needs", () => { needs_view(); });
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
 	},
 
@@ -86,6 +98,10 @@ export default new Page({
 	route(id){
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
+		// WHAT USED TO BE THE BARE URL: the rail + whatever is open beside it (today, that
+		// still means Live loads automatically the first time, exactly as before — see
+		// `board()`'s own comment on `LIVEVIEW_KEY`).
+		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
 		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
 		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`,
 		// sub-cards one segment deeper, any depth. The year, month and day are
@@ -136,6 +152,23 @@ function overview_page(root){
 	});
 }
 
+/* The Inbox tab: exactly what the bare url used to show — nothing of its own beyond the
+   rail (`board()`, always mounted) and its usual empty state, so a first click here (or the
+   `LIVEVIEW_KEY` redirect below) reads the same as it always has. */
+function inbox_page(root){
+	return new Page({
+		title: "Inbox",
+		url: root.url + "inbox/",
+		classes: "ai2-inbox-page",
+		content(){
+			div.c("ai2-empty muted", () => {
+				span("Pick something on the left.");
+				small("It opens here and stays here while the list keeps filling.");
+			});
+		},
+	});
+}
+
 function board(page){
 	const log = new Board({ url: BOARD_URL });
 	const says = new Says({ url: VERDICTS_URL });
@@ -162,6 +195,11 @@ function board(page){
 	page.auto_transcribe = auto_transcribe;
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
+	// BRIEF E — "Needs review": on, the rail shows only the rows `needs.js`'s shared rule
+	// (the same one the Needs you tab reads) says still need the owner. Its state lives in the
+	// url (`?review=1`), never in a variable alone, so a reload keeps the filter on.
+	let review_only = new URLSearchParams(location.search).get("review") === "1";
+	let needs_ids = new Set();
 	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
 	const at_of = new Map();       // row id (a group's as "group:<id>") → when it was last updated
@@ -203,9 +241,10 @@ function board(page){
 						.on("pointerenter", e => { e.currentTarget.href = workspace.flipped(); });
 				});
 				usage_head(live);
-				// Typed-only (item 10) — the mic lives on the card's own page now,
-				// one per card, so it never talks into whatever happens to be open.
-				composer({ placeholder: "say anything — it starts a new card", mic: false });
+				// THE TEXT AREA AND SEND BUTTON THAT USED TO SIT HERE ARE GONE (brief E — the
+				// owner, 2026-09-29: "I don't need that text area or the send button… I've never
+				// used that. I think a new card is supposed to do what it needs to"). The row
+				// below is the toolbar now: "+ New card" and the filters.
 				div.c("ai2-chrome flex v-center gap-25", () => {
 					// A blank workspace that listens: the card exists on the board
 					// the moment you press this, and the url becomes its own.
@@ -221,6 +260,23 @@ function board(page){
 							if (made?.ok) await folders.refresh();
 							page.opening = id;
 							page.app?.router?.go(workspace.url(page.url + id + "/"));
+						});
+					// THE FIRST FILTER (brief E, "room for more filters later"): the SAME rows the
+					// Needs you tab lists — never a second idea of what needs the owner. Its own
+					// state is the url, so a reload or a pasted link keeps the filter on.
+					label.c("ai2-review flex v-center gap-25 muted")
+						.attr("title", "show only what needs your review — the same list as the Needs you tab").append(() => {
+							const $review = input().attr("type", "checkbox");
+							$review.el.checked = review_only;
+							$review.on("change", e => {
+								review_only = e.target.checked;
+								const url = new URL(location.href);
+								if (review_only) url.searchParams.set("review", "1");
+								else url.searchParams.delete("review");
+								history.replaceState({}, "", url.pathname + url.search + url.hash);
+								relist();
+							});
+							span("Needs review");
 						});
 					// LIVE IS THE DEFAULT VIEW. The "Live" toggle that sat here is gone (ai2-lead
 					// audit, 2026-09-25): it looked like a link to Live, and the Live row just below
@@ -299,8 +355,10 @@ function board(page){
 	page.$pages = $detail;
 	// With the workspace view on, every AI 2 link clicked in here keeps `?view=workspace` (workspace.js).
 	$shell.el.addEventListener("click", e => workspace.keep(e));
-	// LIVE IS THE DEFAULT VIEW — the bare address goes to it once per load (Back returns here, no loop).
-	if (location.pathname === page.url && store.get(LIVEVIEW_KEY) !== "off" && !page.went_live){
+	// LIVE IS INBOX'S DEFAULT — `inbox/` goes to it once per load (Back returns here, no loop).
+	// This used to fire on the bare `/framework/ai2/` url; that address now belongs to Needs
+	// you (2026-09-29), and this redirect moved one level down with Inbox, unchanged otherwise.
+	if (location.pathname === page.url + "inbox/" && store.get(LIVEVIEW_KEY) !== "off" && !page.went_live){
 		page.went_live = true;
 		setTimeout(() => page.app?.router?.go(workspace.url(page.url + "live/")), 0);
 	}
@@ -352,7 +410,10 @@ function board(page){
 		// A group's own card IS its group row: never a second row beside it.
 		const group_cards = new Set((groups.list ?? []).map(g => g.card));
 		const pool = list.filter(it => !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
-		const base = only_notes ? pool.filter(it => it.kind === "note") : pool;
+		let base = only_notes ? pool.filter(it => it.kind === "note") : pool;
+		// BRIEF E's "Needs review" filter — `needs_ids` is the SAME set the Needs you tab lists
+		// (`needs.js`'s one shared scan), so the two can never disagree about what still needs you.
+		if (review_only) base = base.filter(it => needs_ids.has(it.id));
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
 		return show_archived ? [...base, ...(list.archived ?? []).filter(it => !groups.filed(it))] : base;
@@ -473,6 +534,10 @@ function board(page){
 			rec.$row.empty(() => { group_face(g, latest, size, spent, name); if (news) news_bar(news); });
 		});
 		order.forEach(g => at_of.set("group:" + g.id, groups.at(g)));
+		// BRIEF E's "Needs review" filter — a group is not itself an "ask", so it shows only
+		// while ITS OWN card is one of the rows `needs.js`'s shared scan lists; run every call
+		// (not gated by the `sig` check above), so flipping the filter hides these at once.
+		order.forEach(g => { const rec = group_rows.get(g.id); if (rec) rec.$row.style({ display: (review_only && !needs_ids.has(g.card)) ? "none" : "" }); });
 		draw_pages();
 		order_rows(force);
 	}
@@ -488,6 +553,9 @@ function board(page){
 				$list.append(() => { rec.$row = a.c("ai2-row ai2-page-row").href(page.url + path.slice(1)); });
 				page_rows.set(path, rec);
 			}
+			// A real site page is never one of the owner's own asks — BRIEF E's "Needs review"
+			// filter hides it outright rather than greying it.
+			rec.$row.style({ display: review_only ? "none" : "" });
 			real_title(path, page.app?.router, () => draw_groups());
 			at_of.set("page:" + path, evs[0].at);
 			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
@@ -662,6 +730,11 @@ function board(page){
 	folders.start();
 	groups.on(paint);
 	groups.start({ folders, socket: page.app?.socket });
+
+	// THE "NEEDS REVIEW" FILTER READS THE SAME SHARED SCAN THE NEEDS YOU TAB DOES (needs.js) —
+	// so when that scan refreshes (a poll, or right after answering something), the filtered
+	// rail redraws too, and the two can never show a different answer to "what needs the owner".
+	watch_needs(s => { needs_ids = s.ids; if (review_only) relist(); });
 
 	/* What a card's own page is allowed to ask of the list.
 	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and

@@ -203,6 +203,14 @@ function planFile(f, baseRev, branch, tmp) {
 	const n = f.replace(/[^\w.-]/g, "_");
 	const [po, pb, pt] = ["ours", "base", "theirs"].map(s => path.join(tmp, `${n}.${s}`));
 	fs.writeFileSync(po, o); fs.writeFileSync(pb, b ?? Buffer.alloc(0)); fs.writeFileSync(pt, t);
+	// .jsonl is an append-only log: both sides only ever ADD lines, so a "conflict" here is really
+	// two different lines appended at the same spot — --union keeps both instead of refusing, since
+	// on replay the latest line by its own content wins regardless of which copy comes first.
+	if (f.endsWith(".jsonl")) {
+		const mu = spawnSync("git", ["merge-file", "-p", "--union", po, pb, pt], { cwd: tmp, windowsHide: true, maxBuffer: 256 << 20 });
+		if (mu.status < 0 || mu.status === null || mu.status > 127) return { f, action: "conflict", why: `git merge-file --union failed: ${mu.stderr}` };
+		return { f, action: "write", data: out(mu.stdout), why: `jsonl: union merge keeps both sides' appended lines${crlf ? " (CRLF kept)" : ""}` };
+	}
 	const m = spawnSync("git", ["merge-file", "-p", "--diff3", `--marker-size=${MARK}`, po, pb, pt], { cwd: tmp, windowsHide: true, maxBuffer: 256 << 20 });
 	if (m.status < 0 || m.status === null || m.status > 127) return { f, action: "conflict", why: `git merge-file failed: ${m.stderr}` };
 	if (m.status === 0) return { f, action: "write", data: out(m.stdout), why: `both changed: merged cleanly${crlf ? " (CRLF kept)" : ""}` };

@@ -1,5 +1,8 @@
-import View, { div, span, pre, code, icon } from "../../core/View/View.js";
+import View, { div, pre, code } from "../../core/View/View.js";
 import grip from "../grip/grip.js";
+import FsFile from "../filesystem/FsFile.js";
+import FsDir from "../filesystem/FsDir.js";
+import { context_menu } from "../filesystem/menu.js";
 
 View.stylesheet(import.meta, "files.css");
 
@@ -22,8 +25,22 @@ View.stylesheet(import.meta, "files.css");
  *   open   — folders open down to this depth at start (default: every folder, as
  *            before). A folder past that depth builds its rows on first click, not
  *            before — for a tree of thousands of paths.
+ *   select — pre-select this exact path (one of the values in `names`) on first draw,
+ *            instead of `paths[0]` — `ext/files/fs.js`'s `PageFiles` passes this so a
+ *            `file_link()` url opens `/fs/` with that file already showing. `?file=`
+ *            in the url (if `route` is on) still wins once the visitor clicks around.
+ *   lines  — the source column gets a line-number gutter (`ext/highlight`'s
+ *            `code.file(…, { lines: true })`), and `#L42` / `#L40-L48` in the url
+ *            scrolls to and highlights those lines — `mark_lines()` below, also
+ *            exported so `ext/files/fs.js`'s v2 explorer (several code columns, not
+ *            one) can wire the same behavior itself. Off by default: a plain
+ *            two-column caller (`/framework/start/`, most `about` callers) is
+ *            unchanged.
  *
  * The selection lives in the url — ?file=a.js — for the first files() on a page.
+ *
+ * A row's right-click opens a small menu (`ext/filesystem/menu.js`): Copy path, Open in /fs,
+ * Open raw.
  *
  * The files are FETCHED, so what you read is what is on disk. The longest common
  * directory is stripped for display, so a doc folder reads as a project.
@@ -31,10 +48,10 @@ View.stylesheet(import.meta, "files.css");
  * ⚠ Paths resolve against `import.meta`, never the document — the SPA fallback makes
  * the document url a route. Design record: framework/ext/files/readme.md.
  */
-export default function files(meta, names, { about, route = "file", fill, open = Infinity } = {}){
+export default function files(meta, names, { about, route = "file", fill, open = Infinity, select, lines } = {}){
 	const paths = names.trim().split(/\s+/).filter(Boolean);
 	const cut = common_dir(paths);
-	const state = { path: paths[0] };
+	const state = { path: (select && paths.includes(select)) ? select : paths[0] };
 	const me = { born: Date.now() };
 
 	const short = path => path.slice(cut);
@@ -72,8 +89,11 @@ export default function files(meta, names, { about, route = "file", fill, open =
 		.forEach(row => row.classList.toggle("selected", row.dataset.path === state.path));
 
 	const draw_source = () => {
-		$source.empty(() => source(meta, state.path));
+		const drawn = source(meta, state.path, lines);
+		$source.empty(() => drawn);
 		if (about) $about.empty(() => about(state.path));
+		if (lines) Promise.resolve(drawn).then(() => requestAnimationFrame(() => mark_lines($source)));
+		if (lines) watch_lines($source);
 	};
 
 	const show = path => {
@@ -91,6 +111,16 @@ export default function files(meta, names, { about, route = "file", fill, open =
 			}).on("click", e => {
 				const row = e.target.closest(".file-name");
 				if (row) show(row.dataset.path);
+			}).on("contextmenu", e => {
+				const row = e.target.closest(".file-name");
+				if (!row) return;
+				e.preventDefault();
+				// `row.dataset.path` is the DECLARED path — relative to THIS caller's own
+				// `meta.url`, same as what `source()` fetches with (`new URL(path,
+				// meta.url)`). The menu wants a site-ROOT path (what `file_link()` and a
+				// raw fetch both take), so it's resolved here, once, the same way.
+				const root_path = new URL(row.dataset.path, meta.url).pathname.replace(/^\/+/, "");
+				context_menu(root_path, e.clientX, e.clientY);
 			});
 
 			if (about) div.c("files-col files-col-about", $col => {
@@ -125,11 +155,23 @@ export const tree = (paths, cut, selected, open = Infinity) => {
 	return div.c("file-tree", () => rows(nest(paths, cut), selected, to, 0, open, ""));
 };
 
+// Each row's markup is drawn by `FsFile.render()` / `FsDir.render()` (ext/filesystem) — one
+// place owns "what a file/directory row looks like". `FsFile.render()` already wears
+// `ui/item`'s row; `FsDir.render()` doesn't yet (see its own comment for why: `rows()`
+// below owns lazy open/close, a behavior `ui/item`'s tree mode doesn't have a hook for).
+// `rows()` still owns the tree-widget part those classes don't know about either way:
+// which folders start open, and building a folder's children only on first click.
+//
+// ⚠ `nest()` below keeps its plain `{ "name": "path", dir: {…} }` shape ON PURPOSE —
+// `ext/Doc`'s own `note_tree()` (Doc.js) imports `nest()` too, for a tree of routed
+// note PAGES rather than files, and reads that exact shape with `Object.entries` +
+// `typeof child === "string"`. Rebuilding `nest()` itself into `FsDir`/`FsFile`
+// instances would silently break Doc's tree — so the new classes are built HERE,
+// per row, from the same plain node `nest()` already produces.
 function rows(node, selected, to, depth, open, prefix){
 	for (const [name, child] of Object.entries(node)){
 		if (typeof child === "string"){
-			div.c("file-name", () => { icon("description"); span.c("file-label", name); })
-				.attr("data-path", child).ac(child === selected && "selected");
+			new FsFile({ name, path: child }).render().ac(child === selected && "selected");
 			continue;
 		}
 
@@ -139,7 +181,7 @@ function rows(node, selected, to, depth, open, prefix){
 		let $body;
 
 		div.c("file-dir" + (opened ? " open" : ""), $dir => {
-			div.c("file-dir-name", () => { icon("chevron_right"); span.c("file-label", name); })
+			new FsDir({ name, path }).render()
 				.on("click", () => {
 					if ($dir.tc("open").hc("open") && !built){
 						built = true;
@@ -158,20 +200,95 @@ function rows(node, selected, to, depth, open, prefix){
 
 /* ext/highlight, softly — the same deal demo() and ext/Doc make. With it loaded a file
  * arrives highlighted and cached; without it, the text in a <pre>. An ext may lean on
- * an ext; only core may never. */
-export function source(meta, path){
+ * an ext; only core may never.
+ *
+ * `lines` asks `code.file()` for the gutter (ext/highlight's own `{ lines: true }`
+ * option) — silently ignored on the no-highlight fallback below, since a plain
+ * fetched <pre> has no `.code-line`s for `#L42` to find; the file still shows, just
+ * without the anchor. */
+export function source(meta, path, lines){
 	if (code.file)
-		return code.file(meta, path);
+		return code.file(meta, path, { lines });
 
 	return pre.c("code-block", () => code().append(
 		fetch(new URL(path, meta.url).href)
 			.then(resp => resp.ok ? resp.text() : `Error loading ${path}: ${resp.status} ${resp.statusText}`)));
 }
 
+/* #L42 or #L40-L48 in the url → the matching `.code-line`s (built by ext/highlight's
+ * `code.file(…, { lines: true })`) get `.line-hit` and the first one scrolls into
+ * view. `$host` is whatever box holds ONE such code block — `files()` above passes
+ * its own `$source`; `ext/files/fs.js`'s v2 explorer, which can have several code
+ * columns open at once, calls this once per column, and each call only ever touches
+ * the `.code-line`s inside ITS OWN `$host`, so two open files never cross-highlight.
+ *
+ * ⚠ Open item: if the hash's line NUMBER happens to exist in more than one open
+ *   column, every one of them lights up — there is nothing in `#L42` alone that says
+ *   which file it means once more than one is on screen. Harmless (nothing breaks,
+ *   nothing is lost), just a display ambiguity a future pass could resolve by
+ *   putting the file in the hash too. */
+export function mark_lines($host){
+	$host.el.querySelectorAll(".code-line.line-hit").forEach(el => el.classList.remove("line-hit"));
+
+	// GitHub's own range spelling repeats the "L" (`#L40-L48`, the brief's own
+	// example) — `-L?` makes it optional so `#L40-48` still works too.
+	const m = location.hash.match(/^#L(\d+)(?:-L?(\d+))?$/);
+	if (!m) return;
+
+	const from = Number(m[1]);
+	const to = m[2] ? Math.max(Number(m[2]), from) : from;
+	let $first;
+
+	for (let n = from; n <= to; n++){
+		const el = $host.el.querySelector(`.code-line[data-line="${n}"]`);
+		if (el){ el.classList.add("line-hit"); $first ??= el; }
+	}
+
+	$first?.scrollIntoView({ block: "center" });
+}
+
+// `#L42` clicked from a gutter this module (or `ext/files/fs.js`'s v2 explorer)
+// already drew only changes `location.hash` — a same-page anchor, not a
+// navigation, so it fires `hashchange`, never `popstate`. ONE listener for the
+// whole module, registered exactly once at import time and never removed — what
+// would need removing, per host, per render, is the SET MEMBERSHIP instead:
+// every `$host` this is called with goes into `hosts`, and a disconnected one is
+// pruned the moment the listener next runs, so nothing accumulates the way a
+// fresh `addEventListener` per `files()` call (or per v2 explorer render) used
+// to (review finding 10, 2026-09-29: "files.js adds a hashchange listener on
+// every `lines: true` call… neither is ever removed").
+const hosts = new Set();
+let wired = false;
+
+export function watch_lines($host){
+	hosts.add($host);
+	if (wired) return;
+	wired = true;
+
+	window.addEventListener("hashchange", () => {
+		for (const $h of hosts){
+			// ⚠ `isConnected` alone is not "on screen": `ext/files/explorer.js`'s v2
+			// keeps a folder's own bare page mounted (hidden, `display: none`) once
+			// a file inside it has been opened — Page.css's arrangement contract
+			// hides it, `isConnected` does not agree (measured live, 2026-09-29: a
+			// gutter click marked the SAME line number in both the visible file and
+			// the hidden folder page's own default selection). `checkVisibility()`
+			// is the one DOM primitive that reads the CSS, not just the tree.
+			if (!$h.el.isConnected) hosts.delete($h);
+			else if ($h.el.checkVisibility ? $h.el.checkVisibility() : $h.el.offsetParent !== null) mark_lines($h);
+		}
+	});
+}
+
 /* How much of the front of every path is the same directory. Character-wise would
  * happily cut "app" out of "app.js" and "app2.js", so this compares whole segments
- * and only ever cuts at a slash. */
-function common_dir(paths){
+ * and only ever cuts at a slash.
+ *
+ * Exported (2026-09-29) for the same reason `nest()` was: `ext/files/fs.js`'s v2
+ * explorer builds its OWN multi-column source area on top of this module's tree, and
+ * wants the identical shortened display path `files()` already computes — one rule,
+ * not two copies that could drift. */
+export function common_dir(paths){
 	const dirs = paths.map(path => path.split("/").slice(0, -1));
 	let shared = 0;
 

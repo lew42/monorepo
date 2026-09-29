@@ -68,6 +68,11 @@ const BOOT_FAILED_FILE = path.join(__dirname, ".server-boot-failed.json");
 // one true home (server.js at the repo root) __dirname IS this file's own
 // folder, so this resolves to the exact same module either way.
 const { default: MtimeFilter } = await import(pathToFileURL(path.join(__dirname, "Server", "MtimeFilter.js")).href);
+// THE CREATION LOG (lifecycle, 2026-09-29): every server writes its own start line, and its end
+// line on exit, into Servex's lifecycle.jsonl — so a hand-started PORT=... node server.js is
+// never invisible again. Never blocks or fails the boot. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
+import(pathToFileURL(path.join(__dirname, "Servex", "Lifecycle.js")).href)
+	.then(m => m.track("server", `server.js:${process.pid}`, { port: Number(process.env.PORT) || null, path: __dirname })).catch(() => {});
 
 // How long a candidate gets to answer a real 200 before it's called a failure,
 // and how long a kill gets before it's escalated — both overridable for a proof

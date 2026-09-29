@@ -39,7 +39,7 @@ standpoint, in terms of revising the skills."
   that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
   pages.
 - **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
-  You don't start task masterminds: you write their brief and post a dispatch line.
+  You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI 2 listing fetches a 404 for that folder (spawn_agent appends its own line later).
 - **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
   asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
   under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
@@ -47,6 +47,24 @@ standpoint, in terms of revising the skills."
   than 4 GB free. Building goes through a task mastermind.
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
+
+## A VS Code tab is an agent you can message
+
+Register once, near the start: `register_session({id, session_id})` — `id` is a short word you
+pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid
+(`$CLAUDE_CODE_SESSION_ID`). After that, `list_agents` lists you, `send_to_agent` reaches you, and
+the owner's words on any card you create go to you too — all as lines appended to your own inbox
+file, `logs/inbox/<id>.jsonl` under Servex's home. You are not a live agent Servex holds open, so
+nothing pushes those lines to you: watch for them yourself, with **one** `Monitor` call whose
+command tails that file. A Monitor cannot run forever: it stops after its `timeout_ms`, and 30
+minutes (`1800000`) is the most the tool allows, so pass that. **Re-arm it at the start of every
+turn**, and again whenever its expiry notice arrives:
+
+```
+tail -n 0 -F <SERVEX_HOME>/logs/inbox/<your id>.jsonl
+```
+
+Full design: `Servex/agents/doc/external.md`.
 
 ## The main tree is shared: read old code, never swap it
 

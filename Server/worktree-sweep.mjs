@@ -29,7 +29,7 @@ import { links_into_main } from "./junction-guard.mjs";
 // there yet — without changing what an import (`on-landing.mjs`, `TaskLoop.js`) ever sees.
 let ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registry_file = () => path.join(ROOT, ".worktrees.json");
-const ai_dir = () => path.join(ROOT, "public", "framework", "ai");
+const ai_dir = (root = ROOT) => path.join(root, "public", "framework", "ai");
 
 const norm = p => path.resolve(String(p || "")).replace(/\\/g, "/").toLowerCase();
 
@@ -40,7 +40,7 @@ function read_registry(){
 /* Every task.jsonl under public/framework/ai/, any depth (a sub-task's own dir included) —
  * there are only a few hundred, so a full walk once per tick is cheap. Dot-dirs and
  * node_modules skipped, same as TaskLoop.js's own walk(). */
-function all_task_files(){
+function all_task_files(root = ROOT){
 	const out = [];
 	(function walk(dir){
 		let entries;
@@ -51,7 +51,7 @@ function all_task_files(){
 			if (e.isDirectory()) walk(p);
 			else if (e.name === "task.jsonl") out.push(p);
 		}
-	})(ai_dir());
+	})(ai_dir(root));
 	return out;
 }
 
@@ -67,26 +67,41 @@ export function task_state(dir){
 	return state;
 }
 
-const task_key = dir => path.relative(ai_dir(), dir).split(path.sep).join("/");
+const task_key = (dir, root = ROOT) => path.relative(ai_dir(root), dir).split(path.sep).join("/");
 
-/** The task whose line-1 `worktree` names this exact worktree path, or null. */
-function find_task_for_worktree(wtPath){
-	const target = norm(wtPath);
-	for (const file of all_task_files()){
+/** The task that owns this worktree, or null: the one whose `worktree` names this exact path; else
+ *  (lifecycle, 2026-09-29: only 1 of about 20 task logs that day carried `worktree`, so no teardown
+ *  ever ran) the newest task whose `branch` is worktree/<slug> or whose own dir is named <slug>.
+ *  `root` is the checkout whose task logs to read (Servex/Lifecycle.js passes the main one). */
+export function task_for_worktree(wtPath, root = ROOT){
+	const target = norm(wtPath), slug = path.basename(path.resolve(String(wtPath)));
+	let best = null, best_t = -1;
+	for (const file of all_task_files(root)){
 		const dir = path.dirname(file);
 		const state = task_state(dir);
-		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir), ...state };
+		if (state?.worktree && norm(state.worktree) === target) return { dir, key: task_key(dir, root), ...state };
+		if (state?.worktree) continue;
+		if (state?.branch === `worktree/${slug}` || path.basename(dir) === slug){
+			let t = 0; try { t = fs.statSync(file).mtimeMs; } catch {}
+			if (t > best_t){ best_t = t; best = { dir, key: task_key(dir, root), ...state }; }
+		}
 	}
-	return null;
+	return best;
 }
+const find_task_for_worktree = wtPath => task_for_worktree(wtPath);
 
 /** The registry entry (from .worktrees.json) whose path is this task's own `worktree` field. */
 export function entry_for_task_dir(dir){
 	const state = task_state(dir);
-	if (!state?.worktree) return null;
-	const target = norm(state.worktree);
-	for (const entry of Object.values(read_registry())) if (norm(entry.path) === target) return entry;
-	return null;
+	if (!state) return null;
+	const registry = Object.values(read_registry());
+	if (state.worktree){
+		const target = norm(state.worktree);
+		return registry.find(entry => norm(entry.path) === target) ?? null;
+	}
+	// no `worktree` on the log: match the task's own slug or branch against the registry
+	const slug = path.basename(path.resolve(dir));
+	return registry.find(entry => entry.branch === (state.branch ?? `worktree/${slug}`) || entry.name === slug) ?? null;
 }
 
 function is_merged(branch){

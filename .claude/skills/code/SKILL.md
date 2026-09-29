@@ -217,4 +217,13 @@ instances into being findable at all with `core/track/track.js`: `track(MyClass)
 once, then `MyClass.track(this)` — one line, in that class's own constructor — most
 classes should skip this. Live: [the Object demo](/framework/ux/Content/Object/).
 
+**Every new class ships a view of its state** (the owner, 2026-09-29: "I want to see as much of
+the data as possible to start trying to understand the internal workings"). Show the essential
+state in the simplest meaningful form, at more than one size:
+- **icon:** one glyph for the whole object, with small flags that light up for on/off state (recording, connected, muted);
+- **row:** the icon, the name and the one or two values that matter;
+- **panel:** everything, opened on demand.
+It applies to abstract classes too (an audio stream, a session, a queue), not just visible things.
+The default view is the fallback; a class with real state earns its own `View`.
+
 Improve this skill: append to [`improvements.md`](improvements.md).

@@ -2,6 +2,7 @@ import os from "os";
 import { spawn } from "child_process";
 import Events from "../Server/Events.js";
 import { stamp } from "./home.js";
+import { ONE_PASS } from "./Lifecycle.js";
 
 /* THE MACHINE MONITOR — is this computer melting, and who is doing it?
  *
@@ -185,15 +186,28 @@ export default class Monitor extends Events {
         else if (this.flag) this.clear();
     }
 
+    /* NEWS ONLY (lifecycle, 2026-09-29): "stop the finished ones" went out about every 3 minutes
+     * from 16:40 to 17:45, usually with nothing left to stop. Now the message goes only when the
+     * set of stoppable agents (idle ones the reaper would close) differs from the last one sent,
+     * and it names them. The flag itself is still logged and shown on the card every time.
+     * `ONE_PASS` comes from Lifecycle.js (review finding 7) so this list can never drift from the
+     * reaper's own rule — a second, hand-copied regex here would be exactly that drift. */
+    stoppable(){
+        const live = [...(this.servex?.agents?.live?.values() ?? [])].filter(a => a.state === "idle");
+        return live.filter(a => ONE_PASS.test(a.role ?? "") || (a.role === "minion" && a.parent && this.servex.agents.live.get(a.parent)?.state === "stopped")).map(a => a.id).sort();
+    }
+
     up(reason){
         this.flag = { reason, since: stamp() };
-        const idle = this.sample?.agents?.idle_holding_claude ?? 0;
-        const text = `Servex monitor: the machine is under strain — ${reason}. New agent spawns are queued until it clears.`
-            + ` ${idle} idle agent${idle === 1 ? "" : "s"} still hold a claude process; stopping the finished ones frees memory.`
-            + " Call system_health for the full sample.";
+        const names = this.stoppable(), key = names.join(",");
         let sent = null;
-        try {
+        if (!names.length || key === this.last_nag) sent = names.length ? "not sent: the same stoppable agents as last time" : "not sent: nothing to stop";
+        else try {
+            const text = `Servex monitor: the machine is under strain — ${reason}. New agent spawns are queued until it clears.`
+                + ` These ${names.length} finished agent${names.length === 1 ? " is" : "s are"} idle and can be stopped: ${names.join(", ")}.`
+                + " Call system_health for the full sample.";
             this.servex.agents.send(this.notify, text, { from: "servex-monitor" });
+            this.last_nag = key;
             sent = `sent to ${this.notify}`;
         } catch (e){ sent = `not sent: ${e.message || e}`; }
         this.log({ type: "flag", state: "up", reason, message: sent });

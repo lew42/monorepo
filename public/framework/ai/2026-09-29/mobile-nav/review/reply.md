@@ -1,1 +1,3 @@
-4. [accept] Rebuilding the sheet on `CardsDictate` is a real improvement but a bigger change than this pass needs — it touches a working design for a v2-shaped payoff (merging the two card styles), not a bug. Fixing the duplicate caption directly (finding 5) covers the actual defect; the rebuild is fine to leave as a named follow-up rather than doing it now.
+1. [accept] The owner made an informed call to accept the LAN risk for now, and a concrete follow-up (address-range guard, fixed comment) is already planned. Declining an immediate fix for a risk the owner explicitly signed off on, with a real next step queued, is reasonable.
+
+7. [accept] Swapping the two dynamic imports for an event is pure refactor with no behavior change, so deferring it under "not now" is a fair prioritization call rather than a dodge.

@@ -90,6 +90,10 @@ const HEARTBEAT_PATH = path.join(ROOT, "public", "framework", "ai", "health", "h
 // command lines too, not just as an invisible fallback inside health.mjs.
 const HEALTH_BASE = process.env.HEALTH_BASE || "http://monorepo.localhost";
 
+// The creation log (lifecycle, 2026-09-29): its own start and end in Servex's lifecycle.jsonl,
+// so the reaper can find it by pid and owner. Never blocks. Servex/Lifecycle.js.
+import("../Servex/Lifecycle.js").then(m => m.track("health", `health-supervisor:${process.pid}`, { base: HEALTH_BASE, path: ROOT })).catch(() => {});
+
 const HEARTBEAT_MS = 10_000;      // how often the heartbeat file is refreshed while a child is up
 const BOOT_GRACE_MS = 1500;       // dying before this counts as "never really up" — same idea as server.js's BOOT_GRACE_MS
 const KILL_DEADLINE_MS = 3000;    // same bounded-kill deadline as server.js's supervisor

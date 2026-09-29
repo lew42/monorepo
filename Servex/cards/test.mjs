@@ -5,6 +5,7 @@ import os from "os";
 import path from "path";
 import express from "express";
 import Cards from "./Cards.js";
+import { stamp } from "../home.js";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "cards-test-"));
 const sends = [];
@@ -143,7 +144,7 @@ check("the remover stops listening", heard.length === 3 && cards.listeners.size 
 
 // the MCP tools
 const tools = Object.fromEntries(cards.tools().map(t => [t.name, t]));
-check("four tools", Object.keys(tools).join() === "create_card,read_card,attach_card,list_cards");
+check("six tools", Object.keys(tools).join() === "create_card,read_card,attach_card,list_cards,card_ask,list_waiting", Object.keys(tools));
 check("create_card says it is the only way", /ONLY way/.test(tools.create_card.description));
 const made = JSON.parse(await tools.create_card.handler({ parent: d.id, title: "From a tool", type: "note" }));
 check("create_card makes a sub-card", made.ok && made.id === `${d.id}/from-a-tool`, made);
@@ -152,6 +153,13 @@ sends.length = 0;
 const att = JSON.parse(await tools.attach_card.handler({ card: made.id, agent: "assistant-desk" }));
 check("attach_card appends and sends the whole log", att.sent && sends[0]?.id === "assistant-desk" && sends[0].text.includes('"From a tool"'), att);
 check("list_cards", JSON.parse(await tools.list_cards.handler({ view: "all" })).length === 12);
+
+// card_ask and list_waiting as MCP tools — appending a line to an EXISTING card, so the
+// card-count assertions above and below (which count folders, not lines) stay valid.
+const toolAsk = JSON.parse(await tools.card_ask.handler({ card: d.id, question: "Tool test — pick one?", options: ["ok"] }));
+check("card_ask tool places a Decision", toolAsk.ok && toolAsk.id === d.id && /^d-/.test(toolAsk.ask), toolAsk);
+const toolWaiting = JSON.parse(await tools.list_waiting.handler({}));
+check("list_waiting tool lists it", toolWaiting.some(w => w.card === d.id && w.ask === toolAsk.ask && w.control === "decision"), toolWaiting);
 
 // the HTTP routes, on a real port
 const app = express();
@@ -172,7 +180,73 @@ const g1 = await fetch(`${at}/card?id=${encodeURIComponent(h1.j.id)}`).then(r =>
 check("GET /card folds", g1.title === "Over HTTP" && g1.prompts.length === 1);
 check("GET /card unknown → 404", (await fetch(`${at}/card?id=nope`)).status === 404);
 check("GET /cards?view=all", (await fetch(`${at}/cards?view=all`).then(r => r.json())).length === 13);
+const gw = await fetch(`${at}/waiting`).then(r => r.json());
+check("GET /waiting lists the open ask on d.id", gw.some(w => w.card === d.id && w.ask === toolAsk.ask && w.control === "decision"), gw);
 await new Promise(r => server.close(r));
+
+// card_ask + waiting() + the wake (contract-v2 §2–4), on fresh scratch cards so the
+// card-count assertions above are untouched.
+
+// a Decision: ask, see it in waiting(), choose, it's gone, and the asker (`from`) was sent the answer
+const decCard = await cards.create({ title: "Needs a color", type: "task" });
+await cards.attach(decCard.id, "assistant-desk");
+sends.length = 0;
+const dAsk = await cards.ask({ card: decCard.id, question: "Which color?", options: ["red", "blue"], from: "assistant-desk" });
+check("ask() a decision returns {ok, id, ask}", dAsk.ok && dAsk.id === decCard.id && /^d-/.test(dAsk.ask), dAsk);
+let waiting = await cards.waiting();
+check("waiting() lists the open decision", waiting.some(w => w.card === decCard.id && w.ask === dAsk.ask && w.control === "decision" && w.options[0].say === "red"), waiting);
+const chose = await cards.append(decCard.id, { chose: { decision: dAsk.ask, option: "blue", at: stamp(), by: "owner" } });
+check("chose wakes the asker named by `from`", chose.woke?.join() === "assistant-desk" && sends[0]?.id === "assistant-desk" && sends[0].text.includes("blue") && sends[0].text.includes(decCard.id), { chose, sends });
+waiting = await cards.waiting();
+check("a chosen decision leaves waiting()", !waiting.some(w => w.card === decCard.id && w.ask === dAsk.ask), waiting);
+
+// a Question: same shape, no options, `answer` instead of `chose`
+sends.length = 0;
+const qAsk = await cards.ask({ card: decCard.id, question: "Anything else?", from: "assistant-desk" });
+check("ask() a question returns {ok, id, ask}", qAsk.ok && /^q-/.test(qAsk.ask), qAsk);
+waiting = await cards.waiting();
+check("waiting() lists the open question", waiting.some(w => w.card === decCard.id && w.ask === qAsk.ask && w.control === "reply"), waiting);
+const answer = await cards.append(decCard.id, { answer: { question: qAsk.ask, text: "No, that's all.", at: stamp(), by: "owner" } });
+check("answer wakes the asker named by `from`", answer.woke?.join() === "assistant-desk" && sends[0]?.text.includes("No, that's all."), { answer, sends });
+waiting = await cards.waiting();
+check("an answered question leaves waiting()", !waiting.some(w => w.card === decCard.id && w.ask === qAsk.ask), waiting);
+
+// no `from`: every attached, live, non-minion agent is woken instead (like forward())
+const noFromCard = await cards.create({ title: "No from named" });
+await cards.attach(noFromCard.id, "assistant-desk");
+await cards.attach(noFromCard.id, "minion-builder");
+sends.length = 0;
+const nf = await cards.ask({ card: noFromCard.id, question: "Ok to ship?", options: ["yes", "no"] });
+const nfLines = await cards.read(noFromCard.id);
+check("ask() with no from places a line with no `from`", nf.ok && !nfLines.find(l => l.place?.id === nf.ask)?.place?.from, nfLines);
+await cards.append(noFromCard.id, { chose: { decision: nf.ask, option: "yes", at: stamp(), by: "owner" } });
+check("no from: wakes attached, live, non-minion agents only", sends.length === 1 && sends[0].id === "assistant-desk", sends);
+
+// `reviewed` clears a question-type card's pseudo-item, never a placed Decision/Question
+const qTypeCard = await cards.create({ title: "Is this ok?", type: "question" });
+waiting = await cards.waiting();
+check("a question-type card is waiting (pseudo-id 'card')", waiting.some(w => w.card === qTypeCard.id && w.ask === "card"), waiting);
+await cards.append(qTypeCard.id, { reviewed: { at: stamp(), by: "owner" } });
+waiting = await cards.waiting();
+check("reviewed clears the card pseudo-item", !waiting.some(w => w.card === qTypeCard.id && w.ask === "card"), waiting);
+
+const stillOpenCard = await cards.create({ title: "Still needs a real answer" });
+const so = await cards.ask({ card: stillOpenCard.id, question: "Pick one", options: ["a", "b"] });
+await cards.append(stillOpenCard.id, { reviewed: { at: stamp(), by: "owner" } });
+waiting = await cards.waiting();
+check("reviewed does NOT clear a placed Decision", waiting.some(w => w.card === stillOpenCard.id && w.ask === so.ask), waiting);
+
+// legacy sweep shape: {"ask": {id, question, options, from}} and its {"answer": {"ask": id}}
+const legacyCard = await cards.create({ title: "Legacy sweep style" });
+await cards.attach(legacyCard.id, "assistant-desk");
+await cards.append(legacyCard.id, { ask: { id: "ask-1", title: "Legacy ask", question: "Legacy — pick one?", options: ["x", "y"], from: "assistant-desk", at: stamp() } });
+waiting = await cards.waiting();
+check("a legacy ask line is waiting", waiting.some(w => w.card === legacyCard.id && w.ask === "ask-1" && w.control === "decision" && w.options[0].say === "x"), waiting);
+sends.length = 0;
+await cards.append(legacyCard.id, { answer: { ask: "ask-1", text: "x", at: stamp(), by: "owner" } });
+check("legacy answer.ask wakes the asker", sends.some(s => s.id === "assistant-desk" && s.text.includes("x")), sends);
+waiting = await cards.waiting();
+check("legacy ask answered leaves waiting()", !waiting.some(w => w.card === legacyCard.id && w.ask === "ask-1"), waiting);
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log(failed ? `\n${failed} FAILED` : "\nall passed");

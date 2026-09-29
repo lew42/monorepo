@@ -1,0 +1,22 @@
+{"class":"/framework/ai2/card.js","title":"AI 2 rhythm, tabs, sections and sidebar variants","type":"request","id":"2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va","created":"2026-09-28T23:31:24-05:00","by":"servex-mastermind-opus","tags":[]}
+{"place":"owner-words.md"}
+{"file":"owner-words.md"}
+{"file":"owner-words.md"}
+{"message":{"by":"task-mastermind-ai2-lead-2","kind":"reply","text":"Taken, the rail first: a builder is measuring why the preview rows get no default padding, and will fix it at the source while the rail stays flush. Before and after pictures at 1920 and 3440 come here. Then: Inbox · Overview tabs on AI 2, and an Overview of what you asked vs what was done.","at":"2026-09-28T23:32:26-05:00"}}
+{"file":"imagine-merge.md"}
+{"file":"imagine-merge.md"}
+{"place":"imagine-merge.md"}
+{"from":"task-mastermind-section-variants","text":"Started: two builders are making the section element and four sidebar variants side by side. A Next/Next walkthrough with screenshots lands here when they finish."}
+{"from":"task-mastermind-section-variants","text":"The section element works: a thin border, and its class names appear on hover. I sent it back for padding inside the border and a label that sits on the border line instead of covering the text."}
+{"from":"task-mastermind-section-variants","text":"The four sidebar variants work: each one really takes over the left rail, so you see the actual thing rather than a mock. I sent them back for a real short name in C, a tidier breadcrumb in D, and previews on the index that show the difference."}
+{"message":{"by":"task-mastermind-ai2-lead-2","kind":"reply","text":"Step 1 is live: every inbox row now has the site's default padding (16px) and the same rhythm, and the rail stays flush. The default padding system was not broken: AI 2's rows never used it; they padded themselves by hand at about 9 by 11px. Before: /framework/ai/2026-09-28/ai2-rail-rhythm/shots/before-ai2-1920.png . After: /framework/ai/2026-09-28/ai2-rail-rhythm/shots/after-ai2-1920.png , and at 3440: /framework/ai/2026-09-28/ai2-rail-rhythm/shots/after-ai2-3440.png . Next: Inbox and Overview tabs, then an Overview of what you asked against what was done.","at":"2026-09-28T23:46:44-05:00"}}
+{"message":{"by":"task-mastermind-ai2-overview","text":"Taken: AI 2 gets two tabs, Inbox and Overview. Overview is seven big icon cards (Servex, Page, View, App, AI 2, Dictation, Research), each listing its open asks with finished ones folded into one \"Completed\" line — two helpers are building it now.","kind":"reply","at":"2026-09-28T23:50:00-05:00"}}
+{"from":"task-mastermind-section-variants","text":"Variants A to D are done: each index card now previews what that rail shows. Now building \"Who owns the rail?\": the app swapping one rail versus each page drawing its own, side by side."}
+{"message":{"by":"task-mastermind-ai2-overview","text":"The Inbox · Overview tabs and the seven big concept cards are built, and I've checked the pictures at both screen widths. One last pass adds a \"done today\" count to each card, then it merges.","kind":"reply","at":"2026-09-28T23:58:32-05:00"}}
+{"from":"task-mastermind-section-variants","text":"The walkthrough of the section element and the sidebar variants is built. Now building the floating page as a core layout: a gray well, a white page with its top edge showing, and the tab nav on its left."}
+{"message":{"by":"task-mastermind-ai2-overview","text":"Done and live: AI 2 now has Inbox and Overview tabs, and the Overview is seven big icon cards with Servex first, each showing its open asks and a \"Completed (n) · k in 24 h\" fold. Open it at /framework/ai2/overview/; tick \"timeline\" to see when each ask was made, when it was delivered, and what it cost.","kind":"reply","at":"2026-09-29T00:20:45-05:00"}}
+{"file":"which-sidebar-variant/page.jsonl"}
+{"message":{"by":"task-mastermind-section-variants","text":"Landed on michael/dev. Press Next through all of it, with a picture per step: /framework/core/Sidebar/variants/walkthrough/ covers the section element (/framework/ui/section/), four sidebar variants, who owns the rail, and the floating page (/framework/core/Page/layout/floating/), which AI 2 now uses. My sidebar pick is on the Decision sub-card.","kind":"reply","at":"2026-09-29T00:50:31-05:00"}}
+{"file":"walkthrough.md"}
+{"place":"walkthrough.md"}
+{"file":"walkthrough.md"}

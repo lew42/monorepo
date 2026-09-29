@@ -1,9 +1,30 @@
-import { div, button, span } from "/framework/core/View/View.js";
+import { div, button, span, a } from "/framework/core/View/View.js";
 import drawer from "./drawer.js";
+import { http_ask_ready, ask_probe } from "/framework/ext/Ask/Ask.js";
 
 /* Is this the dev server? Settings and Admin drive it (edit mode, reload holds, the socket),
-   so on a static host they are not shown, and the AI tab does not call Servex. */
-export const DEV = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
+   so on a static host they are not shown, and the AI tab does not call Servex.
+ *
+ * The hostname check alone is only right ON THIS MACHINE — a phone reads the dev
+ * server by its LAN address (`http://10.0.0.135:8137/`), which matches neither
+ * `localhost` nor `127.0.0.1`, so `DEV` used to come back false there even though
+ * the dev server is real and answering, and the LAN path in `tabs/ai.js`'s `send()`
+ * (the `servex_url()` swap) never ran on a phone (review #4, 2026-09-29). Off the
+ * local hostname, this reuses `ext/Ask/Ask.js`'s OWN probe (`ask_probe` /
+ * `http_ask_ready`) rather than sending a second `POST /ask/turn` — one fetch per
+ * page load, not two. ⚠ It must be the SAME check: a status-code test alone is
+ * wrong, because this site's own static production host answers 405 (not 404) to
+ * an unknown POST route, which would have flipped `DEV` on for every reader in
+ * production (review, 2026-09-29). Only a JSON body proves a real dev server is
+ * behind the page — `Ask.js`'s probe already checks exactly that. `export let`,
+ * not `const`: this starts as the synchronous, always-right localhost answer and
+ * flips true once the probe resolves — an ES module export is a live binding, so
+ * every importer (`tabs/ai.js`, this file's own tab list) sees the flip without
+ * re-importing anything, the same shape `ai2/inbox.js`'s `servex_up()` already
+ * uses for the same kind of "ask once, remember" check. */
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
+export let DEV = LOCAL_HOST;
+if (!DEV) ask_probe.then(() => { if (http_ask_ready) DEV = true; });
 
 /* THE DRAWER'S TABS — AI, Sessions, Dictation, Settings and Admin, plus Element while
    something on the page is selected (select.js) — opened by the ☰
@@ -72,6 +93,15 @@ export class DrawerTabs {
 
 	find(name){ return this.shown().find(t => t.name === name); }
 
+	/** This page's own file browser — itself if the reader is already in one
+	 *  (never `fs/fs/`), else its own `fs/` one level deeper. A plain link at the
+	 *  end of the tab strip, not a tab (the task mastermind, 2026-09-29): it goes
+	 *  straight to the files, no tab body of its own to load first. */
+	files_href(){
+		const path = location.pathname;
+		return path.includes("/fs/") ? path : path.replace(/\/?$/, "/") + "fs/";
+	}
+
 	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
 	open(name){
 		const was = this.current;
@@ -120,6 +150,8 @@ export class DrawerTabs {
 			div.c("drawer-tabs flex", () => {
 				this.shown().forEach(t => button.c("drawer-tab", t.label).attr("type", "button")
 					.ac(t === this.current && "on").click(() => this.open(t.name)));
+				a.c("drawer-tab drawer-files-link", "Files").href(this.files_href())
+					.attr("title", "This page's own files, full screen");
 			});
 		});
 

@@ -1,0 +1,75 @@
+/* switcher — a responsive "vertical tabs" pattern: a NAV of choices beside a PANEL
+   showing the current one, above its own width; a full-width PANEL with the nav
+   tucked behind a sticky dropdown HEADER, below it. Generic on purpose — nothing
+   in this file names a file, a tree or a column. A caller supplies real markup
+   for `.switcher-nav` (the choices) and `.switcher-panel` (the current one),
+   wraps both plus a `.switcher-header` (holding one `.switcher-toggle` button) in
+   `.switcher-body`, and gets the whole collapse for free by toggling
+   `.switcher-open` on the outer `.switcher`. Built for ext/files' v2 explorer
+   (2026-09-29), which is the one caller today; doc/switcher.md is the
+   one-paragraph "how to reuse this elsewhere" note.
+
+   ⚠ Measures ITS OWN width with a container query, not the viewport — right for
+     a pattern meant to work again inside a narrower host later (a rail, a panel),
+     and it also means an ordinary window RESIZE can trigger the collapse, not
+     only a phone.
+
+   ⚠ `.switcher-body`, not `.switcher` itself, is what the query restyles. A
+     container query CANNOT restyle the element establishing it — the browser
+     silently ignores a rule inside `@container switcher (…)` that targets
+     `.switcher` (found live, 2026-09-29: `.switcher-header`'s own `display`
+     flipped correctly, `.switcher`'s `flex-direction` never did, no error
+     anywhere). `.switcher` only ever provides the box `container-type` measures
+     and never changes shape itself; the one child inside it, `.switcher-body`,
+     is a plain DESCENDANT and restyles normally. */
+@layer theme {
+
+	.switcher {
+		container-type: inline-size;
+		container-name: switcher;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.switcher-body { display: flex; flex: 1 1 auto; min-height: 0; }
+
+	.switcher-header { display: none; }
+	.switcher-nav { flex: 0 0 auto; overflow: auto; }
+	.switcher-panel { flex: 1 1 auto; min-width: 0; min-height: 0; }
+
+	@container switcher (max-width: 30em) {
+		.switcher-body { flex-direction: column; }
+
+		/* `position: sticky`, not fixed — it only has to stay put while ITS OWN box
+		   (`.switcher-body`) scrolls, never the whole window. */
+		.switcher-header {
+			display: flex;
+			position: sticky; top: 0; z-index: 1;
+			background: var(--surface);
+			border-bottom: 1px solid var(--line);
+		}
+
+		.switcher-toggle {
+			flex: 1 1 auto;
+			display: flex; align-items: center; justify-content: space-between;
+			gap: var(--gap-35);
+			padding: 0.6em 0.9em;
+			border: none; border-radius: 0;
+			background: none;
+		}
+		.switcher-toggle-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.switcher-toggle .icon { transition: transform 0.12s; }
+		.switcher.switcher-open .switcher-toggle .icon { transform: rotate(180deg); }
+
+		/* Closed: gone (not just hidden off-canvas — a hidden tab still lays out,
+		   `hidden-tab-no-layout`'s own lesson). Open: the SAME flex column's second
+		   row, filling whatever the header left — no absolute positioning, no
+		   z-index stack, because there is nothing else it has to sit on top of. */
+		.switcher-nav { display: none; flex: 1 1 auto; min-height: 0; overflow: auto; }
+		.switcher.switcher-open .switcher-nav { display: block; }
+		.switcher.switcher-open .switcher-panel { display: none; }
+
+		.switcher-panel { flex: 1 1 auto; min-height: 0; overflow: auto; }
+	}
+}

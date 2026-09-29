@@ -141,6 +141,10 @@ export { default as drawer } from "./framework/ext/drawer/drawer.js";
 // The ☰ on every page (render() calls it). Down here beside the drawer it opens; imports hoist.
 import menu from "./framework/ext/drawer/menu.js";
 
+// file_link(path, line?) — a link to a file inside /fs/, its tree already open to it,
+// for any readme or page to point at real source. ext/filesystem/readme.md.
+export { file_link } from "./framework/ext/filesystem/file_link.js";
+
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.
 export { default as files } from "./framework/ext/files/files.js";

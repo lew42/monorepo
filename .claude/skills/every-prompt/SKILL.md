@@ -10,7 +10,7 @@ the dev bar on the live site, so an answer that exists only here was never given
 
 **Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai2/doc/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
 
-**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_ask`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
 
 ## Two commands, in order, before you write any text here
 
@@ -51,9 +51,21 @@ or the owner's browser. Write the owner's name — say *you*.
 `public/framework/ai/handover.md` — one screen: the state of the world, what the owner is waiting
 on, and the session ids worth resuming.
 
+## Watching a card's inbox
+
+If you made a card, you are registered with Servex (`register_session`) and get an inbox file:
+`logs/inbox/<your id>.jsonl`, under Servex's own log directory. Whatever the owner says on that
+card lands there.
+
+Watch it with **one** `Monitor` call whose command tails the file (`tail -n 0 -F <that file>`).
+A Monitor cannot run forever: it expires after its `timeout_ms`, and 30 minutes (`1800000`) is the
+most the tool allows, so pass that. **Re-arm it at the start of every turn**, and again whenever
+its expiry notice arrives, so you are never more than a few seconds behind what the owner said.
+
 ## Load this if…
 
 - **you are writing a card** and need ids, icons, status, `--re`, `--parent`, `--focus`: [`cards.md`](cards.md)
+- **you are a page's own assistant** (spawned for a card or any page, not the front-desk tab): [`page-assistant.md`](page-assistant.md)
 - **you have no Bash tool** (the server spawned you): [`headless.md`](headless.md)
 - **you are wondering who does what** — fast assistant, master assistant, mastermind, minion: [`tiers.md`](tiers.md)
 - **something failed** — "relay NOT delivered", the hook, quoting: [`trouble.md`](trouble.md)

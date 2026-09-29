@@ -216,6 +216,15 @@ whole site were one bug of exactly this shape: `.page-previews`' hardcoded `--ga
 the surrounding `.md.flow`'s `--flow: 2em` — a 10.8px wall margin against 27.1px of paragraph
 rhythm, read live off both boxes (2026-09-05, `/framework/styles/system/studies/spacing/`).
 
+**Association by proximity** (the owner, 2026-09-29). A label belongs to the thing it's closest
+to. The space between a label and its own card must be clearly SMALLER than the gap to the next
+card. If they're equal, nobody can tell whether a title belongs above or below. Pick the gap
+first, then keep the label's margin well under it.
+
+**Previews are auto height.** A preview shows its content at one shared zoom and is exactly as
+tall as that content: a one-line item is one line high. Never a fixed height that wastes the
+space, and never one that crops a taller preview.
+
 ## Boxes, padding and contrast (the owner, 2026-09-17)
 
 **Are the siblings more similar or more different?** Worth asking before giving anything a
