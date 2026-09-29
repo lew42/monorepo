@@ -61,6 +61,12 @@ check("register_session refuses with no id or no session_id", () => {
 	assert.throws(() => external.register({ id: "x" }), /needs `session_id`/);
 });
 
+check("register_session refuses an id that would escape logs/inbox/ (fresh-eyes review, finding 3)", () => {
+	assert.throws(() => external.register({ id: "../../x", session_id: "s" }), /not a valid id/);
+	assert.throws(() => external.register({ id: "UPPER", session_id: "s" }), /not a valid id/);
+	assert.ok(external.register({ id: "vscode-y", session_id: "s" }), "an ordinary id still registers");
+});
+
 check("list_agents sees it — the SAME registry row Agents.js reads for every real agent", () => {
 	const row = agents.registry_list().find(r => r.id === "vscode-x");
 	assert.ok(row, "vscode-x is listed");

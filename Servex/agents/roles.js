@@ -31,14 +31,21 @@ export const ROLES = {
 	/* ONE PAIR ON EVERY PAGE (recursive-pairs, 2026-09-25/28): a page-assistant, root page
 	 * included, and a page-mastermind — the same two roles Layers.js now spawns for a card
 	 * OR any other page, scoped to a directory given in the first message (doc/page-roles.md).
-	 * `master-assistant`, `manager` and `card-assistant` are the pre-recursive-pairs words for
-	 * these same two rows, kept as aliases so nothing that already says them breaks; write
-	 * `page-assistant` / `page-mastermind` in anything new. The skill files themselves keep
-	 * their old names (`every-prompt`, `sub-mastermind`) — see doc/names.md.
-	 * A caller's own fields always win: Global.js still spawns `master-assistant` on the
-	 * architect tier with its own system brief, and Layers.js the root page's assistant too. */
-	"page-assistant":   { skill: "every-prompt",     prefix: "assistant",        alias: ["master-assistant", "card-assistant"], tier: "fast",    model: model("fast"),    effort: "low",    permission_mode: "bypassPermissions" },
+	 * `manager` and `card-assistant` are the pre-recursive-pairs words for these same two rows,
+	 * kept as aliases so nothing that already says them breaks; write `page-assistant` /
+	 * `page-mastermind` in anything new. The skill files themselves keep their old names
+	 * (`every-prompt`, `sub-mastermind`) — see doc/names.md.
+	 * `master-assistant` is its OWN row below, not an alias here: it is a different agent (the
+	 * root page's own assistant, Opus, plan mode), and folding it into this fast/bypass row
+	 * quietly loosened a plain `spawn_agent({role: "master-assistant"})`'s posture for any
+	 * caller that isn't Global.js (fresh-eyes review, finding 5). Global.js still spawns
+	 * `master-assistant` with its own fields, which always win over this table either way. */
+	"page-assistant":   { skill: "every-prompt",     prefix: "assistant",        alias: "card-assistant", tier: "fast",    model: model("fast"),    effort: "low",    permission_mode: "bypassPermissions" },
 	"page-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
+	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
+	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
+	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table. */
+	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
 	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }

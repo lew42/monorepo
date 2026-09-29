@@ -117,7 +117,7 @@ export default class Global {
 		let agent = this.live(id);
 		if (agent && started === day) return this.touch(id, agent);
 		if (agent){ try { agent.stop(); } catch {} this.agents.live.delete(id); }   // a new day: recycled
-		const master_tools = ["card_reply", "send_to_agent", "list_claims", "page_reply", "ask_manager"].map(t => `mcp__servex__${t}`);
+		const master_tools = ["card_reply", "send_to_agent", "list_claims", "page_reply", "ask_manager", "list_cards", "list_agents"].map(t => `mcp__servex__${t}`);
 		const spec = { id, role: "master-assistant", name: "", model: model("architect"), effort: "medium",
 			permission_mode: "bypassPermissions", system: this.system("master-assistant.md"),
 			/* page_reply and ask_manager: it is also the page `/`'s assistant (Layers.js ROOT_ASSISTANT). */

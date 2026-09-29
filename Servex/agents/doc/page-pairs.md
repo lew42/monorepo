@@ -102,7 +102,8 @@ inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merg
 
 ## Known limits
 
-These are known and left as they are for now (the fresh-eyes review, findings 8 to 10).
+These are known and left as they are for now (the fresh-eyes review, findings 8 to 10; the second
+review's findings 10 and 11 add two more, below).
 
 - **A plain page's chat lives inside the site.** It is `public<page>ai/chat.jsonl`, so every page
   that is spoken on gains an `ai/` folder in the live-reloaded tree, and `/framework/`'s lands in
@@ -113,3 +114,9 @@ These are known and left as they are for now (the fresh-eyes review, findings 8 
 - **The ids say `manager-`, not `mastermind-`.** The owner named the pair's second agent
   `mastermind-<page>`; the ids are `manager-<page>` (and `roles.js` keeps `manager` as an alias of
   `page-mastermind`). This is a naming decision, not the owner's word, and should be said so.
+- **The root can grow past 40k with no checkpoint.** `master-assistant` is excluded from
+  `Layers.sweep()`, and Global only recycles it once a day, so a busy day can push the Opus root
+  well past its own fresh-start size with nothing to catch it mid-day.
+- **`Policy.kind()` reads `registry.json` from disk on every message check.** `registered_external`
+  does a synchronous file read on every `send_to_agent`; cheap today, but a read on every message
+  is a cost that grows with traffic.

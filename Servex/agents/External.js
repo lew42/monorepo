@@ -23,7 +23,9 @@ import { place, stamp } from "../home.js";
  *     tail, never a poll). A Monitor always expires: 30 minutes
  *     (`timeout_ms: 1800000`) is the most the tool allows, so the tab re-arms
  *     it at the start of each turn and on each expiry notice
- *     (`.claude/skills/servex-mastermind/SKILL.md`, `every-prompt/page-assistant.md`).
+ *     (`.claude/skills/servex-mastermind/SKILL.md`, `every-prompt/SKILL.md` — this
+ *     is the VS Code tab's own doorstep, not a spawned assistant's, so it moved
+ *     out of `every-prompt/page-assistant.md` (fresh-eyes review, finding 4)).
  *
  * Plain code, no Claude session of its own — the same shape as `Layers.js`
  * and `Cards.js`: one module `Servex.js` installs once, that adds its own MCP
@@ -66,6 +68,9 @@ export default class External {
 
 	register({ id, session_id } = {}){
 		if (!id || typeof id !== "string") throw new Error("register_session needs an `id` — a short, readable word, never a uuid.");
+		/* `id` becomes a filename (`file()` below, `logs/inbox/<id>.jsonl`): anything else lets
+		 * an id like "../../x" write outside that directory (fresh-eyes review, finding 3). */
+		if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) throw new Error(`register_session refused: "${id}" is not a valid id — lowercase letters, digits and hyphens only, starting with a letter or digit (such as vscode-<your task>).`);
 		if (!session_id) throw new Error("register_session needs `session_id` — this session's own Claude session uuid (in a terminal, $CLAUDE_CODE_SESSION_ID).");
 		const rows = this.reg().read();
 		/* An id that already belongs to one of Servex's own agents is refused: its row

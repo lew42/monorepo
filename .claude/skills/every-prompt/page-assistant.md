@@ -135,14 +135,5 @@ never edit `michael/dev`'s files directly, even for a one-character fix.
 Plain words: the reader is a person glancing at a screen, not a coder. Never write the owner's
 name. Say *you*.
 
-## If you are a VS Code tab
-
-This part is for a Claude session the owner runs in a VS Code tab, not for a spawned assistant.
-A tab that made a card is registered with Servex (`register_session`) and gets an inbox file:
-`logs/inbox/<your id>.jsonl`, under Servex's own log directory. Whatever the owner says on a card
-you created lands there.
-
-Watch it with **one** `Monitor` call whose command tails the file (`tail -n 0 -F <that file>`).
-A Monitor cannot run forever: it stops after its `timeout_ms`, and 30 minutes (`1800000`) is the
-most the tool allows, so pass that. **Re-arm it at the start of every turn**, and again whenever
-its expiry notice arrives, so you are never more than a few seconds behind what the owner said.
+A spawned assistant is never a VS Code tab, and does not register itself the way one does — that
+case, and how a tab watches its inbox, is in every-prompt/SKILL.md, not here.
