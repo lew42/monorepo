@@ -8,6 +8,8 @@ description: Open a task — create its ai/<date>/<slug>/ dir, open its task.jso
 Anything that changes the repo is a **task**: a dir at
 `public/framework/ai/<YYYY-MM-DD>/<slug>/` whose append-only `task.jsonl` the day dashboard (`/framework/ai/<date>/`) renders live. Open it **before the first edit**. Format: `ext/JSONL/readme.md`; viewer: `ext/AITask/readme.md`.
 
+If your brief names a task dir, Servex already opened it: log there and skip step 1.
+
 ## 1. Create the dir
 
 - Slug: kebab-case, matching the VS Code tab title — `Get-Process Code -ErrorAction SilentlyContinue | Where-Object MainWindowTitle | Select-Object -ExpandProperty MainWindowTitle` lists the windows; yours matches this conversation's topic.

@@ -70,14 +70,28 @@ export class Agents {
 	 * and a resume with no `prompt` sends nothing: it is held open, idle, until
 	 * someone talks to it. ⚠ A resume must run in the session's ORIGINAL `cwd`
 	 * — the SDK stores sessions per project directory and will not find it from
-	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it. */
+	 * anywhere else. `id` (revive's) keeps a known id when nothing live has it.
+	 *
+	 * OPEN BY NODE. `task: {dir, card, brief}` opens the task's own task.jsonl
+	 * ITSELF, before the agent's first turn — the new-task skill then has
+	 * nothing to do. This needs the session id before the SDK has even started,
+	 * which the SDK's `sessionId` option allows (start() already uses it, the
+	 * same thing `claude --session-id` does from a terminal): mint it here,
+	 * write the task file, then hand the agent that same id to use. */
 	spawn(spec){
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
+		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model });
+		const base = again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt);
+		const prompt = spec.task
+			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
+			: base;
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec, id,
-			prompt: again || spec.system ? spec.prompt : this.whoami(id) + opening(spec.role, spec.prompt),
+			...role_defaults(spec.role), ...spec, id, prompt,
+			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
 		agent.host = this;
@@ -335,18 +349,58 @@ export class Agents {
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
 		if (child.one_shot && child.woke) return;
-		let parent;
-		try { parent = this.get(child.parent); }
-		catch { return; }
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
 		child.woke = true;
-		try { parent.send(body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
-		catch {}
+		this.inbox(child, kind, text);
+		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent);
+		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child
+			this.store().append("servex", { type: "wake-skipped", child: child.id, parent: child.parent, stopped_by: by.by }).catch(() => {});
+			return;
+		}
+		/* Through the HOST's send(), which revives a stopped parent — `get(parent).send()`
+		 * threw "has stopped" into an empty catch, and results were lost (task-loop, 09-29). */
+		try { this.send(child.parent, body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
+		catch (e){ this.store().append("servex", { type: "wake-failed", child: child.id, parent: child.parent, error: String(e.message || e) }).catch(() => {}); }
 	}
+
+	/* A child's result also lands in its parent's task dir as inbox.jsonl
+	 * ({at, from, kind, text}), so a stop, a restart or the reaper cannot lose it.
+	 * The parent's dir: the heartbeat's owner map, the live parent's own task, or
+	 * the directory above the child's own task dir when that holds a task.jsonl. */
+	inbox(child, kind, text){
+		try {
+			const up = child.task?.dir && path.dirname(path.resolve(child.task.dir));
+			const dir = this.task_dir_of?.(child.parent) ?? this.live.get(child.parent)?.task?.dir
+				?? (up && fs.existsSync(path.join(up, "task.jsonl")) ? up : null);
+			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
+		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
+	}
+}
+
+/* OPEN BY NODE — `spawn({task: {dir, card, brief}}, ...)` calls this before
+ * `agent.start()`, so the task's task.jsonl carries its owning agent from the
+ * first line, and the agent's own first turn never has to run new-task.
+ * `dir` may be a path relative to this process's own cwd (Servex always runs
+ * from the repo root) or absolute; it is created if it does not exist yet.
+ * Synchronous — this must be finished before the agent's first turn starts.
+ *
+ * One assign line, always appended, never rewritten: for a brand-new file
+ * `appendFileSync` both creates it and writes this as line 1; for a task dir
+ * a caller opened earlier (or a sibling agent shares), it just adds one more
+ * assign line with the same facts, exactly like every other `assign` a task
+ * log collects over its life — never touching what came before it. */
+function open_task(task, { session_id, agent, model }){
+	const dir = path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir);
+	fs.mkdirSync(dir, { recursive: true });
+	const line = JSON.stringify({ assign: strip({ session_id, agent, card: task.card, brief: task.brief,
+		model, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
+	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
+	return dir;
 }
 
 /* What a session's own file says about it — the `cwd` it ran in (a resume must
@@ -424,9 +478,12 @@ Agents.Agent = class Agent {
 		/* The session id is known AT SPAWN, not at the first `system/init`: a
 		 * fresh spawn or a fork mints one and hands it to the SDK as `sessionId`
 		 * (allowed beside `forkSession`), so the registry row can be resumed even
-		 * if the host dies during the first turn. A plain resume keeps its id. */
+		 * if the host dies during the first turn. A plain resume keeps its id;
+		 * `spawn()` may also hand in a session id it minted itself (a `task`
+		 * spawn, so it can write that same id into task.jsonl before this
+		 * runs) — `??=` keeps that one instead of minting a second. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
-		else { this.session_id = randomUUID(); this.minted = true; }
+		else { this.session_id ??= randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump();
 		if (!this.prompt){ this.state = "idle"; return this; }

@@ -56,6 +56,25 @@ try {
 	});
 } catch {}
 
+// The directory itself is already gone (removed by hand, or its disk cleaned up some other
+// way) — worktree-sweep.mjs hits this whenever a registered worktree's dir vanished. There is
+// nothing dirty to protect, so skip straight to clearing git's own record of it (`worktree
+// remove` when it still lists the path, else `prune` for the leftover admin files) and the
+// registry entry, rather than the "could not read git status" refusal below, which would
+// otherwise leave a dead entry in .worktrees.json forever.
+if (!fs.existsSync(entry.path)) {
+	console.log(`worktree-down: ${entry.path} no longer exists on disk — clearing its record only.`);
+	try { execFileSync("git", ["worktree", "remove", "--force", entry.path], { cwd: ROOT, windowsHide: true }); } catch {}
+	try { execFileSync("git", ["worktree", "prune"], { cwd: ROOT, windowsHide: true }); } catch {}
+	try { execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, windowsHide: true }); }
+	catch (e) { console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`); }
+	if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
+	delete registry[name];
+	write_registry(registry);
+	console.log(`worktree-down: done.`);
+	process.exit(0);
+}
+
 let status = "";
 try {
 	status = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });

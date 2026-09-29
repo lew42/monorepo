@@ -1,14 +1,19 @@
-/* `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text) and layout-check on what a landed task wrote.
+/* `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text), doc-check
+ * (readme/doc/links on every module touched) and layout-check on what a landed task wrote.
  * The ledger hook spawns it (detached) the first time it sees a task with `landed_at`.
  * It reads the latest landing's `outcome`, takes up to 5 site links (paths starting with "/", no
- * images or .md), runs layout-check into <task dir>/layout-check, and appends ONE log line to the
- * task's task.jsonl. Flagged pages are also appended to servex-mastermind's task.jsonl. It never
- * throws: any failure becomes one log line, and the exit code is always 0. */
+ * images or .md), runs layout-check into <task dir>/layout-check, and appends ONE log line per
+ * check to the task's task.jsonl. A dirty doc-check also gets ONE nag line on the task's own
+ * card (Servex's `card_reply` tool, over its MCP door); flagged pages from the other checks go
+ * to servex-mastermind's task.jsonl. It never throws: any failure becomes one log line, and the
+ * exit code is always 0. */
 import fs from "node:fs";
 import path from "node:path";
-import { spawnSync, spawn } from "node:child_process";
+import { spawnSync, spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { text_flags } from "./text-check.mjs";
+import { doc_check } from "./doc-check.mjs";
+import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 const dir = path.resolve(process.argv[2] || ".");
@@ -28,9 +33,10 @@ const append = (file, msg) => {
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
 
 try {
-	const landing = fs.readFileSync(task, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } })
-		.filter(e => e.assign?.landed_at).pop()?.assign;
+	const entries = fs.readFileSync(task, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } });
+	const landing = entries.filter(e => e.assign?.landed_at).pop()?.assign;
 	if (!landing) throw new Error("no landing line in " + task);
+	const card = Object.assign({}, ...entries.filter(e => e.assign).map(e => e.assign)).card;
 	// the clarity agent (.claude/skills/clarity/): a fresh Sonnet inside Servex, detached so layout-check does not wait
 	try { spawn(process.execPath, [path.join(root, "Server/clarity.mjs"), "landing", dir], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
 	try {
@@ -40,6 +46,68 @@ try {
 		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
 		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
 	} catch {}
+	// The doc check (task-loop, 2026-09-28): every module this task touched needs a
+	// readme.md, a doc/ and readme links that resolve — CLAUDE.md's own module shape.
+	// ONE log line always; when something is missing, ONE nag line on the task's own
+	// card too, through Servex's MCP door, so the owner sees it without opening the
+	// log. Skipped when the task has no card (a headless run with nobody to nag).
+	try {
+		const dc = doc_check(dir);
+		append(task, dc.line);
+		if (dc.dirty.length && card) {
+			const text = `Docs missing for ${dc.dirty.map(d => d.module).join(", ")} (no readme / no doc/ / dead links). Please fix before this counts as done.`;
+			const port = process.env.SERVEX_PORT || 8090;
+			try {
+				await fetch(`http://127.0.0.1:${port}/mcp?as=on-landing`, {
+					method: "POST", headers: { "content-type": "application/json" },
+					body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "card_reply", arguments: { card, from: "on-landing", text } } }),
+					signal: AbortSignal.timeout(3000),
+				});
+			} catch (e) { append(task, "doc-check: card nag not sent — " + String(e && e.message || e).slice(0, 150)); }
+		}
+	} catch (e) {
+		try { append(task, "doc-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
+	}
+	// Worktree teardown (task-loop, worktree-down, 2026-09-29): a landed task's own private dev
+	// server (its task.jsonl line 1 `worktree`) goes down the moment it's actually safe — landed,
+	// its branch merged into michael/dev, and nobody still working there. can_stop() in
+	// worktree-sweep.mjs is the one place that decides "safe"; sweep() on the loop's own tick
+	// catches anything this misses (Servex down right now, a race with a still-running agent). A
+	// task built straight in the main tree (no `worktree` on its line 1) has nothing to tear down
+	// here — entry is null and this whole block is a no-op.
+	try {
+		const entry = entry_for_task_dir(dir);
+		if (entry) {
+			const { ok, reason, why } = await can_stop(entry);
+			if (ok) {
+				const r = spawnSync(process.execPath, [path.join(root, "Server/worktree-down.mjs"), entry.name], { encoding: "utf8", windowsHide: true });
+				append(task, `worktree-down: ${entry.name} - ${(r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed")}`);
+			} else {
+				append(task, `worktree-down: kept ${entry.name} running - ${why}`);
+				// "not-merged" fixes itself once merge.mjs lands the branch — this loop's own next
+				// tick sweeps it then, no one needs to act — so only every OTHER reason (still
+				// busy, no task found) is worth a line on the card.
+				if (card && reason !== "not-merged") {
+					let untracked = "";
+					try {
+						const st = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
+						const files = st.split("\n").filter(l => l.startsWith("??")).map(l => l.slice(3).trim());
+						if (files.length) untracked = ` Untracked in the worktree: ${files.join(", ")}.`;
+					} catch {}
+					const text = `Worktree ${entry.name} is still running - ${why}.${untracked}`;
+					try {
+						await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/mcp?as=on-landing`, {
+							method: "POST", headers: { "content-type": "application/json" },
+							body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "card_reply", arguments: { card, from: "on-landing", text } } }),
+							signal: AbortSignal.timeout(3000),
+						});
+					} catch (e) { append(task, "worktree-down: card nag not sent - " + String(e && e.message || e).slice(0, 150)); }
+				}
+			}
+		}
+	} catch (e) {
+		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
+	}
 	const paths = [...String(landing.outcome || "").matchAll(/\]\((\/[^)\s]*)\)|(?:^|[\s"'(])(\/[\w./~%-]+)/g)].map(m => m[1] || m[2])
 		.map(p => p.split(/[#?]/)[0]).filter(p => p && !/\.(png|jpe?g|gif|webp|svg|md|mp4|json|jsonl)$/i.test(p));
 	const out = path.join(dir, "layout-check");

@@ -206,6 +206,19 @@ const run = async () => {
 		const task = cached_task(input.agent_id, input.session_id) || find_task(input.session_id, false);
 		if (!task) return;
 		const s = state(task);
+		// A landing needs an outcome (task-loop, 2026-09-28): a `landed_at` with nothing
+		// to show for it is not a landing, so block it here — before anything downstream
+		// (on-landing.mjs included) ever sees this as landed. Logged ONCE, not on every
+		// stop the agent bounces off this, so the log stays a record, not a chant.
+		if (s.landed_at && !String(s.outcome || "").trim()) {
+			const refusal = "landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}.";
+			if (!lines(task).some(e => e.log?.msg === refusal)) append(task, { log: { at: now(), msg: refusal } });
+			console.log(JSON.stringify({
+				decision: "block",
+				reason: `${rel(task)} has landed_at but no outcome, so it is not landed. Append ONE line: {"assign": {"outcome": "**what landed** — …"}} — then stop again.`
+			}));
+			return;
+		}
 		// A landed task gets its layout-check once, with no agent spending a turn: detached, so the hook stays instant.
 		if (s.landed_at) try {
 			const d = path.dirname(task);
