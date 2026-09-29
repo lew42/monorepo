@@ -15,6 +15,7 @@ description: Load this first, before touching anything, when you have been start
 4. Call `return_worktree(id)` when done or unused.
 5. Servex always keeps one ready, so don't start your own worktree for a small fix.
 6. **Never link a worktree's `node_modules` to the main tree's** (no junction, no symlink, no mklink). Deleting that worktree deletes through the link and empties the main `node_modules`, and Servex crash-loops (2026-09-22, and again 2026-09-29 13:53–15:02, which killed every agent). If `take_worktree()` fails, message your parent; don't improvise one.
+7. **Stop every server you start.** A `PORT=… node server.js &` you ran to test something keeps running after you land (09-29: five of them, about 1 GB, held while spawns were queued for memory). Kill it before your turn ends.
 
 ## You are a CLI session with your own id (the owner, 2026-09-19)
 
