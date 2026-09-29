@@ -14,15 +14,17 @@ const STEPS = [
 	{ title: "Variant A", pic: "variant-a.png", open: "/framework/core/Sidebar/variants/a/",
 		say: "The logo and the word sit together at the top; the nav tree below is plain and quiet." },
 	{ title: "Variant B", pic: "variant-b.png", open: "/framework/core/Sidebar/variants/b/",
-		say: "The logo grows bigger and the word drops away; the nav tree carries more weight." },
+		say: "The logo now points up to the page above (Framework); the word becomes this page's own title (“Core”), pointing at itself; the nav below shows Core's own children instead of the whole tree." },
 	{ title: "Variant C", pic: "variant-c.png", open: "/framework/core/Sidebar/variants/c/",
-		say: "The word runs long, so it wraps; the logo shrinks to make room for it." },
+		say: "The word doesn't truncate a long title — it swaps to a short name instead (“Section”), with the full title in a tooltip on hover." },
 	{ title: "Variant D", pic: "variant-d.png", open: "/framework/core/Sidebar/variants/d/",
-		say: "No word at all — just the logo, so the rail stays narrow and the nav tree gets the space." },
+		say: "A small breadcrumb sits beside the logo — Framework › Core — each hop its own link, so both “go home” and “how far home” are answered on the same line." },
 	{ title: "Variant B, narrow and wide", pic: "variant-b-1280.png", after: "variant-b-3440.png", open: "/framework/core/Sidebar/variants/b/",
 		say: "Top: B at 1280px, a laptop width. Bottom: B at 3440px, the owner's own screen — the same rail, more room around it." },
 	{ title: "Who owns the rail", pic: "variant-rail.png", open: "/framework/core/Sidebar/variants/rail/",
 		say: "Either the app swaps one rail as pages change (E), or every page keeps its own rail and an `active` class hides the rest (F)." },
+	{ title: "The floating page", pic: "floating-1920-top.png", open: "/framework/core/Page/layout/floating/",
+		say: "A different kind of page, not a sidebar variant: its own inner left nav, in a gray well, beside a white page that scrolls past it." },
 	{ title: "Which one?", open: "/framework/core/Sidebar/variants/",
 		say: "None of this decides anything by itself — the choice among A–F lives on the task's card, as a Decision, for the owner." },
 ];
@@ -32,7 +34,7 @@ const from_hash = () => Math.max(0, Math.min(STEPS.length - 1, (parseInt(locatio
 export default new Page({
 	meta: import.meta,
 	title: "Sidebar variants, step by step",
-	description: "A walkthrough of the six sidebar variants: the section element, the index, A–D, B at two widths, and who owns the rail.",
+	description: "A walkthrough of the six sidebar variants and the floating page: the section element, the index, A–D, B at two widths, who owns the rail, and the floating page.",
 	icon: "slideshow",
 
 	content(){
