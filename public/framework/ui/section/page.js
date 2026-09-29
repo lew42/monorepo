@@ -34,7 +34,7 @@ export default new Page({
 		// 4. Plain prose, `.flow` rhythm — two classes, so the label reads both.
 		section("flow ui-section-br", () => {
 			p("A plain paragraph, flowing with the next one at the page's normal rhythm.");
-			p("This section carries two classes — `.flow` and `.ui-section-br` — so its label reads both, in the bottom-right corner instead of the default top-left.");
+			p("This section carries `.ui-section-br` too, so its label shows only `.flow` — `.ui-section-br` is a placement modifier, not a layout class — and sits bottom-right instead of the default top-left.");
 		});
 
 		md.details(import.meta, "readme.md", "Readme, and doc/decisions.md for the full record");

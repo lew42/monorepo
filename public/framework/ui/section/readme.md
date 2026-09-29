@@ -15,8 +15,9 @@ section("bleed flex wrap gap", () => {
 
 - Wrap only the parts of a page worth labelling — this doesn't have to go on
   every element, or even every section of a page.
-- The label is exactly the classes you passed in, written back as
-  `.bleed .flex`. `.ui-section` itself never appears in the label.
+- The label is the LAYOUT classes you passed in, written back as
+  `.bleed .flex` — `.ui-section` and every `.ui-section-*` placement
+  modifier (like `.ui-section-br`) are left out of it.
 - Add `ui-section-br` to move the label to the bottom-right corner instead
   of the default top-left — see it on this page.
 - The border and the label both read framework tokens (`--line`, `--subtle`,
