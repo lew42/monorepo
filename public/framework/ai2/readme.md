@@ -31,17 +31,16 @@ outlines, using these cards." Every change here is judged against that sentence.
   the Floating page view is behind the "Floating page view (try it)" word, shown only on cards it
   changes (`floating.js`, `workspace.js`); a card's own `content.js` ([doc/cards.md](./doc/cards.md));
   rail rows use the default card padding and one cadence ([ai2-rail-rhythm](/framework/ai/2026-09-28/ai2-rail-rhythm/)).
-- **Open, first — checkpoint 2026-09-28, 11:50 PM.** From card
-  [2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va](/framework/ai2/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/),
-  step 1 (the rail's rhythm) is landed as `82c93dda`. **Steps 2 and 3 (Inbox · Overview tabs, an
-  Overview of what was asked against what was done) are for a fresh lead, from the owner's sharper
-  words at 11 PM on that card**; read those first, not the 10:50 PM version. Nothing of them was built
-  (a builder was stopped before its first edit; its brief, now superseded, is at
-  [ai2-overview](/framework/ai/2026-09-28/ai2-overview/requirements.md)). Useful data: the open-tasks sweep
-  ([/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/](/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/)),
-  task logs' `landed_at` and `outcome`, the owner's prompts in `.claude/prompts/*.jsonl`; `ui/section` is
-  task-mastermind-section-variants'. Card weight, when wanted: a `{"weight": 1|2|3}` line (latest wins,
-  missing = 2; organization's rule).
+- **Done, 2026-09-29** ([ai2-overview](/framework/ai/2026-09-28/ai2-overview/)): the Inbox · Overview
+  tabs, and the [Overview](/framework/ai2/overview/), with one big card per concept.
+- **Open, first — the Overview's next steps.** (1) `overview.json` is a snapshot. Rebuild it with
+  `node Server/ai2-overview.mjs` from the main tree, since `.claude/prompts` exists only there. Nothing
+  rebuilds it when a task lands yet; a finish-task step or a Servex route would. (2) Only about 3% of
+  quotes are proven to be the owner's own words (`owner: true`). A task's session is usually an agent's,
+  not the one the owner spoke in. Tracing a task to the card it came from would fix most of the rest.
+  (3) About 150 tasks match no concept. (4) Page is the catch-all: about 400 tasks.
+  `ui/section` belongs to task-mastermind-section-variants. Card weight, when wanted, is a
+  `{"weight": 1|2|3}` line (the latest wins; missing means 2; the organization task's rule).
 - **Open, later:** remove the composer at the bottom of a card once page-drawer's `into_card` is merged
   (the drawer's AI tab holds it). The drawer following a real page is called but not yet seen in a
   picture. The list filter is not in the url. The chat's `···` and `⚙` have no labels. Tasks in class
