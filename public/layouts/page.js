@@ -36,7 +36,7 @@ export default new Page({
 	icon: "dashboard",
 	description: "Every layout named, defined and drawn at three widths.",
 
-	children: "browse practice shell labs tag doc",
+	children: "browse decide practice shell labs tag doc",
 
 	/* A layout's page, built from its entry. `route()` sees undeclared names only, so
 	   it can never shadow `tag` or `doc`.
@@ -70,6 +70,8 @@ export default new Page({
 		md("**A flex row and a grid that make the same picture are the same layout.** So `2-sidebar` is a narrow column beside a wide one whatever CSS built it, and the technique is a [tag](/layouts/tag/2-column-flex/) instead — as are paint, proportion, and which side the sidebar sits on. Click any tag and you get every layout that carries it. [The rules in full](/layouts/doc/naming/).");
 
 		md("**[What 47 real sites actually do →](/websites/patterns/)** — these same words, counted across the corpus next door: which arrangements the web really uses, what each one becomes on a phone, and which three are worth copying.");
+
+		md("**[How to choose a layout →](/layouts/decide/)** — five questions, asked in order: how much room, how much content, is it outlined, how to fill the width, which approved layout. With live demos of columns that match, one that does not, and the fix.");
 
 		md("**[Approve or improve every layout on the site →](/layouts/browse/)** — the twelve above, plus the whole-page shapes, the section templates and the ui and ux components the rest of this site is built from: every one of them a picture, in three tiers, each with a verdict button.");
 
