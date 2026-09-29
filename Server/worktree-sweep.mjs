@@ -148,7 +148,7 @@ export async function sweep({ dry = false } = {}){
 		if (!entry?.path || norm(entry.path) === norm(ROOT)) continue;   // belt-and-suspenders: never the main tree
 		const gone = !fs.existsSync(entry.path);
 		const { ok, why } = gone ? { ok: true, why: "worktree directory no longer exists on disk" } : await can_stop(entry);
-		const links = gone ? [] : links_into_main(entry.path);   // worktree-down refuses these too; say why here
+		const links = gone ? [] : links_into_main(entry.path, ROOT);   // worktree-down refuses these too; say why here
 		const row = links.length ? { name, ok: false, why: `holds a link into the main checkout: ${links.map(l => l.path).join(", ")} — remove the link only, then sweep again` } : { name, ok, why };
 		rows.push(row);
 		if (row.ok && !dry){

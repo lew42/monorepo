@@ -110,6 +110,16 @@ try {
 	process.exit(1);
 }
 
+/* Sweep every worktree for links into the main checkout (Server/junction-check.mjs) while npm ci
+   runs, and print its warning after. It never fails the up: it only tells you. */
+const junction_check = new Promise(resolve => {
+	let out = "";
+	const c = spawn(process.execPath, [path.join(ROOT, "Server", "junction-check.mjs")], { cwd: ROOT, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+	c.stdout.on("data", d => out += d); c.stderr.on("data", d => out += d);
+	c.on("error", () => resolve(null));
+	c.on("exit", code => resolve({ code, out }));
+});
+
 /* `node_modules` IS NOT IN THE WORKTREE. `git worktree add` checks out tracked
    files only, and `node_modules` is gitignored, so the fresh tree's
    `node server.js` dies on `Cannot find package 'express'` unless something
@@ -125,16 +135,6 @@ try {
    `npm ci` instead: it needs no network for packages already in the local
    npm cache from the main checkout's own install, and it cannot ever reach
    back and delete the main tree's copy. Measured 5s for these 68 packages. */
-/* Sweep every worktree for links into the main checkout (Server/junction-check.mjs) while npm ci
-   runs, and print its warning after. It never fails the up: it only tells you. */
-const junction_check = new Promise(resolve => {
-	let out = "";
-	const c = spawn(process.execPath, [path.join(ROOT, "Server", "junction-check.mjs")], { cwd: ROOT, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
-	c.stdout.on("data", d => out += d); c.stderr.on("data", d => out += d);
-	c.on("error", () => resolve(null));
-	c.on("exit", code => resolve({ code, out }));
-});
-
 /* GUARD (2026-09-29): npm ci empties node_modules first. If this tree's node_modules (or anything
    in it) were a link into the main checkout, that would empty the MAIN tree's copy. Refuse. */
 try { refuse_links_into_main(target, "npm ci"); }

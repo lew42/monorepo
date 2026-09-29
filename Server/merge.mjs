@@ -268,7 +268,10 @@ function planAll(files, branch) {
 	const baseRev = git(MAIN, "merge-base", BASE, branch).stdout.trim() || BASE;
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "merge-"));
 	try { return files.map(f => planFile(f, baseRev, branch, tmp)); }
-	finally { refuse_links_into_main(tmp, "removing the merge temp dir"); fs.rmSync(tmp, { recursive: true, force: true }); }   // guard: never delete through a link
+	finally {   // guard: never delete through a link; a refusal is printed, not thrown, so it cannot hide planFile's own error
+		try { refuse_links_into_main(tmp, "removing the merge temp dir"); fs.rmSync(tmp, { recursive: true, force: true }); }
+		catch (e) { console.error(e.message); }
+	}
 }
 
 /* Write every planned file; if one write throws, put back what was already written, then rethrow. */
