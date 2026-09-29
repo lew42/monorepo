@@ -17,6 +17,8 @@ Everything here is writing files: no registration, no build. `./doc/` stands on 
 ## 1. `readme.md` — the reader's index
 
 The AI (and the owner) reads this first and must not have to open every doc to know it exists.
+
+**A readme is the curated context (the owner, 2026-09-29).** It's the top 20% of the detail that serves 80% of the tasks in this module. Say exactly what is, now: not a rule set, not a vague tour. Leave out timestamps, decision history and anything the code already says plainly; that goes one click down, to `doc/decisions.md`. Test each line with one question: would the next agent building here do worse without it? If not, cut it. Every agent spawned for a directory gets this readme in its first prompt (`readme_chain`), so each extra line is paid for many times.
 **Try to keep it as short and simple as possible (law #1).** Most land near 30 lines; if the
 length is justified, it's fine. Shape:
 

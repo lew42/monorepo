@@ -5,6 +5,8 @@ description: Invoke before writing any substantial CSS in this repo — it has y
 
 # CSS
 
+**Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
+
 **Start from this: write as little new CSS as you can** (the owner, 2026-09-25: "we want to
 minimize the amount of CSS drastically; we want to reuse classes"). Reach for an existing class,
 token or layout first. If something you need doesn't exist yet and would be useful elsewhere
