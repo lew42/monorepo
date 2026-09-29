@@ -33,14 +33,15 @@ outlines, using these cards." Every change here is judged against that sentence.
   rail rows use the default card padding and one cadence ([ai2-rail-rhythm](/framework/ai/2026-09-28/ai2-rail-rhythm/)).
 - **Open, first — checkpoint 2026-09-28, 11:50 PM.** From card
   [2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va](/framework/ai2/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/),
-  step 1 (the rail's rhythm) is landed as `82c93dda`. Next:
-  2. **Top tabs on the AI 2 root**, like a class doc page: the title "AI 2", then **Inbox · Overview**, each routed.
-  3. **Overview = a grid or catalog of what was asked against what was done**, so unfinished work stops
-     disappearing. Full-width sections with text above and below; use `ui/section` once
-     task-mastermind-section-variants builds it. Data: the open-tasks sweep
-     ([/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/](/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/)),
-     task logs' `landed_at` and `outcome`, and the owner's prompts in `.claude/prompts/*.jsonl`.
-     Later: size cards by weight, a `{"weight": 1|2|3}` card line (latest wins, missing = 2; organization's rule).
+  step 1 (the rail's rhythm) is landed as `82c93dda`. **Steps 2 and 3 (Inbox · Overview tabs, an
+  Overview of what was asked against what was done) are for a fresh lead, from the owner's sharper
+  words at 11 PM on that card**; read those first, not the 10:50 PM version. Nothing of them was built
+  (a builder was stopped before its first edit; its brief, now superseded, is at
+  [ai2-overview](/framework/ai/2026-09-28/ai2-overview/requirements.md)). Useful data: the open-tasks sweep
+  ([/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/](/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/)),
+  task logs' `landed_at` and `outcome`, the owner's prompts in `.claude/prompts/*.jsonl`; `ui/section` is
+  task-mastermind-section-variants'. Card weight, when wanted: a `{"weight": 1|2|3}` line (latest wins,
+  missing = 2; organization's rule).
 - **Open, later:** remove the composer at the bottom of a card once page-drawer's `into_card` is merged
   (the drawer's AI tab holds it). The drawer following a real page is called but not yet seen in a
   picture. The list filter is not in the url. The chat's `···` and `⚙` have no labels. Tasks in class
