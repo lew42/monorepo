@@ -42,6 +42,18 @@ export class DrawerRail extends View {
 	render(){
 		this.ai_button();
 		this.menu_button();
+		this.watch_breakpoint();
+	}
+
+	// Bound ONCE, here, never per-open: rail.css's own media query (`(max-width:
+	// 52em)`) is the only thing that shows the sheet, so if the window widens past
+	// it — or a phone rotates — while the sheet is open, the sheet becomes
+	// unreachable but the mic was still listening into it (found 2026-09-29: no
+	// way back to a mic left running behind a sheet nobody can see). `close()`
+	// already stops the mic, so reusing it here is the whole fix.
+	watch_breakpoint(){
+		const mq = globalThis.matchMedia?.("(max-width: 52em)");
+		mq?.addEventListener?.("change", e => { if (!e.matches) this.$sheet?.close(); });
 	}
 
 	// ✦ — opens the listening sheet. Built lazily (below), on the FIRST tap: a

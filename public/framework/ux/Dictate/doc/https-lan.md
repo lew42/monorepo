@@ -18,6 +18,12 @@ module's own `Dictate.js`, `insecure_context_message()`). Getting an address the
 browser will call secure is the only real fix; nothing in the app's own code can work
 around a rule the browser enforces before any of this app's code even runs.
 
+**One more thing worth knowing:** the `/whisper/inference` proxy this same-origin trick
+relies on (`Server/plugins/Whisper.js`) is reachable by anyone on this Wi-Fi, with no
+login and no check of who is asking — fine for a dev-only server nobody outside the
+house can reach, but it does mean any device on the same network can use this
+machine's GPU to transcribe audio through it, not only the phone this was set up for.
+
 ## Recommended: `mkcert` — a private certificate authority for this LAN
 
 **What it is, in plain words.** A real `https://` certificate normally has to be signed

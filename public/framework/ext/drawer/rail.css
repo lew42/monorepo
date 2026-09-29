@@ -52,17 +52,28 @@
 		border-top: 1px solid var(--line);
 		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
 		box-shadow: 0 -0.3em 1em var(--fill-a16);
-		transform: translateY(100%);
-		transition: transform 0.18s;
 	}
 	@media (max-width: 52em) {
-		.drawer-rail-sheet.on { display: flex; transform: none; }
+		/* No slide transition: `display: none -> flex` never animates a `transform`
+		   change in the same step (the browser has nothing to transition FROM,
+		   since the element wasn't rendered a moment ago) — the sheet always just
+		   popped in regardless (measured 2026-09-29). Deleted rather than fixed
+		   with a second mechanism (a class toggled a frame later, `@starting-style`)
+		   for a cosmetic slide nobody asked for. */
+		.drawer-rail-sheet.on { display: flex; }
 	}
 
 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
 	.drawer-rail-sheet-title { font-weight: 600; }
 
 	.drawer-rail-sheet-mic { flex: 0 0 auto; }
+	/* Every FINISHED sentence already gets its own card below (`rail.js`'s own
+	   `card()`) — the widget's own caption of the same finished text is hidden here
+	   so it never shows twice (measured 2026-09-29: the exact same sentence painted
+	   twice a few lines apart). Only the live, still-moving guess (the `muted` line
+	   — `Dictate.js`'s own `draw_caption()`, open mode) is left visible, so the
+	   owner still sees words appear while talking, before they become a card. */
+	.drawer-rail-sheet-mic .ux-dictate-line:not(.muted) { display: none; }
 
 	.drawer-rail-sheet-cards {
 		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;

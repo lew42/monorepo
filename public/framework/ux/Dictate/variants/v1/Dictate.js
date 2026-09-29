@@ -1,5 +1,22 @@
-import { View, div, span, button, label, input } from "../../core/View/View.js";
-import Capture from "./capture.js";
+/* FROZEN — the exact `ux/Dictate/Dictate.js` from before the 2026-09-29 mobile-nav
+ * task (commit 21eee692), copied here as its own module so "v1" stays reachable
+ * forever, unaffected by anything a later task does to the live `Dictate.js`
+ * (`ai/2026-09-29/mobile-nav/review.md`, finding 6 — the owner's own rule: "even
+ * if the AI deems it not useful... we want at least to save the snapshot of
+ * version one so I could click back to the first version"). Only two lines
+ * changed from the original: the two relative imports below now point at the
+ * LIVE, absolute `/framework/...` files they always meant (`View.js`,
+ * `capture.js` — unchanged since this snapshot, so reusing them is exact, not
+ * an approximation), because a file living at a different depth needs a
+ * different relative path to the same thing. Everything else — every method,
+ * every comment, every constant — is byte-for-byte the code that shipped
+ * before this task, plus one new method at the bottom (`sample()`) added only
+ * so this page can show itself without a microphone; it changes nothing about
+ * how a real dictation behaves. Never edit this file to fix or improve
+ * anything in the LIVE `Dictate` — that work happens in
+ * `ux/Dictate/Dictate.js`, and never reaches this snapshot. */
+import { View, div, span, button, label, input } from "/framework/core/View/View.js";
+import Capture from "/framework/ux/Dictate/capture.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 
 View.stylesheet(import.meta, "Dictate.css");
@@ -150,7 +167,7 @@ export default class Dictate extends View {
 					span("stop after a pause");
 				}).style("--gap", "0.3em");
 			}).style("--gap", "0.6em");
-			this.build_output();
+			this.$caption = div.c("ux-dictate-caption muted");
 		}).style("--gap", "0.15em");
 
 		if (this.$send_on_pause) this.$send_on_pause.el.checked = !!this.send_on_pause;
@@ -172,7 +189,7 @@ export default class Dictate extends View {
 		if (!this.el.isConnected) return document.removeEventListener("keydown", this.hotkey_bound);
 		if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== "m") return;
 
-		const engaged = this.state === "listening" || this.state === "transcribing" || this.state === "connecting";
+		const engaged = this.state === "listening" || this.state === "transcribing";
 		const focused_here = this.el.contains(document.activeElement) || this.input()?.el === document.activeElement;
 		if (!engaged && !focused_here) return;
 
@@ -218,51 +235,20 @@ export default class Dictate extends View {
 	}
 
 	name_engine(){
-		const name = this.engine === "whisper" ? "Whisper on the PC" : "the browser's recognizer";
-		this.$engine.text(name + this.keyboard_hint());
-	}
-
-	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
-	 * `(pointer: coarse)` is true on a phone or tablet (the primary pointer is a finger),
-	 * false on a desktop or laptop with a mouse/trackpad — the standard, no-dependency
-	 * way to ask "is this mainly a touch device" (found from a mobile screenshot showing
-	 * the hint on a phone's own bottom sheet: `ai/2026-09-29/mobile-nav/`). */
-	keyboard_hint(){
-		try { if (globalThis.matchMedia?.("(pointer: coarse)").matches) return ""; } catch {}
-		return " · Ctrl+Shift+M stops";
+		const name = this.engine === "whisper" ? "whisper (local)" : "Chrome's built-in recognition";
+		this.$engine.text(name + " · Ctrl+Shift+M stops");
 	}
 
 	// ---- the button ---------------------------------------------------------
 
 	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
 
-	/** An INSTANT, one-line check, before anything else is even tried. A browser only
-	 *  hands out a real microphone on a secure context — https, or the special-cased
-	 *  `localhost` / `127.0.0.1` / `*.localhost` — and off that, `navigator.mediaDevices`
-	 *  is simply `undefined`. But the Web Speech API's own CONSTRUCTOR still exists on an
-	 *  insecure page and quietly does nothing useful, so without this check the code would
-	 *  sail past `detect_engine()`, pick `"browser"`, and `start()` would return having
-	 *  asked Chrome to listen — with no error ever arriving. Proved headless, on a page
-	 *  loaded over this machine's own LAN address: `isSecureContext` was `false`,
-	 *  `navigator.mediaDevices` was `undefined`, and the state stayed `"listening"` for
-	 *  1.5s with no error — while the START SOUND had already played
-	 *  (`ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). */
-	insecure_context_message(){
-		if (globalThis.isSecureContext) return null;
-		const port = globalThis.location?.port ? ":" + globalThis.location.port : "";
-		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
-	}
-
 	async start(){
-		const insecure = this.insecure_context_message();
-		if (insecure){ this.set_error(insecure); return; }
-
 		this.settled = "";
 		this.partial_text = "";
 		this.segment_epoch = 0;
 		this.inflight = null;
 		this.skipped_silent = false;
-		this.cancel_connect = false;
 		this.on_start?.();
 
 		this.engine = await this.detect_engine();
@@ -272,76 +258,35 @@ export default class Dictate extends View {
 		}
 		this.name_engine();
 		this.$button.el.dataset.engine = this.engine;
-		// "connecting", not "listening" — the mic may still need a permission prompt
-		// answered or a device opened. `set_state("listening")` below only runs once the
-		// mic is REALLY on: after whisper's own `capture.start()` resolves, or (for the
-		// browser engine) from `rec.onstart`, never merely because we asked for it. A
-		// caller's "start sound" (`ext/Chat/Mic.js`'s `on_listening()`) is wired to that
-		// same real transition, not to this call returning.
-		this.set_state("connecting");
+		this.set_state("listening");
 
 		// One shared clock for both engines: whisper's own segment/resend timing
 		// (heartbeat(), whisper-only) AND the "stop after a pause" countdown
 		// (either engine, only when the owner has turned it on).
 		this.last_loud_at = performance.now();
 		this.timer = setInterval(() => this.heartbeat(), 200);
-		// Nothing genuinely started within a few seconds — a permission dialog nobody
-		// answered, or (should the up-front secure-context check above ever miss a case)
-		// a browser that fails this quietly. Never leaves the owner without a reason.
-		this.connect_watchdog = setTimeout(() => {
-			if (this.state === "connecting")
-				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
-		}, 8000);
 
 		try {
 			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
 		} catch (e){
 			this.set_error(this.explain(e));
-			return;
 		}
-		if (this.cancel_connect){   // stopped while still connecting — release what opened late
-			this.mic?.stop();
-			try { this.rec?.stop(); } catch {}
-			return;
-		}
-		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
-		// own `.start()` call returns long before recognition is actually live.
-		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
 	}
 
 	async stop(){
-		if (this.state === "connecting"){
-			// Cancel an attempt still in flight (a permission prompt the owner gave up
-			// on) instead of only ever handling "listening" — the button must still work
-			// as a stop button in the gap the owner's own bug lived in.
-			this.cancel_connect = true;
-			clearTimeout(this.connect_watchdog);
-			clearInterval(this.timer);
-			this.hide_countdown();
-			this.mic?.stop();
-			try { this.rec?.stop(); } catch {}
-			this.set_state("idle");
-			this.on_stop?.();
-			return;
-		}
 		if (this.state !== "listening") return;
-		clearTimeout(this.connect_watchdog);
 		clearInterval(this.timer);
 		this.hide_countdown();
 		this.set_state("transcribing");
 
 		if (this.engine === "whisper"){
 			await this.close_segment();
-			this.mic?.stop();
-			// close_segment() may itself have set_error()'d (whisper stopped answering
-			// mid-session) — never stamp that back to "idle" as if nothing happened.
-			if (this.state !== "error"){
-				this.set_state("idle");
-				// Never silence about silence: a dictation that heard nothing loud
-				// enough to send now SAYS so, instead of just ending with an empty box.
-				if (!this.settled && this.skipped_silent)
-					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
-			}
+			this.capture?.stop();
+			this.set_state("idle");
+			// Never silence about silence: a dictation that heard nothing loud
+			// enough to send now SAYS so, instead of just ending with an empty box.
+			if (!this.settled && this.skipped_silent)
+				this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
 		} else {
 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
 		}
@@ -352,37 +297,21 @@ export default class Dictate extends View {
 		if (e?.name === "NotAllowedError")
 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
-		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
-			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
-		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
-		if (e?.name === "NotSupportedError")
-			return "This browser can't run the audio pipeline dictation needs here — try Chrome, or use the browser's own speech recognition instead of Whisper.";
-		// Never just echo a raw browser message with no next step — the owner's own
-		// complaint was exactly that: an error nobody could act on. Every OTHER case
-		// above says what to check; this last resort still says what to try.
-		return `The microphone stopped (${e?.name ? e.name + ": " : ""}${e?.message ?? e}) — press 🎤 again, or reload the page if it keeps happening.`;
+		return "The microphone stopped: " + (e?.message ?? e);
 	}
 
-	/* `"connecting"` is new: set the instant `start()` decides to try, before the mic
-	 * is really open — asked-for, not yet on. Only a genuine transition INTO
-	 * `"listening"` (never a same-state restatement, which Chrome's own silent
-	 * mid-session restarts would otherwise cause) fires `on_listening()` — the hook
-	 * `ext/Chat/Mic.js` plays the start sound from. */
 	set_state(state){
-		const was_listening = this.state === "listening";
 		this.state = state;
-		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
-		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
-		if (state === "listening" && !was_listening) this.on_listening?.();
+		this.$button.rc("listening transcribing").ac(state === "listening" || state === "transcribing" ? state : "");
+		this.$status.rc("error").text(state === "listening" ? "listening…" : state === "transcribing" ? "finishing…" : "");
 	}
 
 	set_error(msg){
-		clearTimeout(this.connect_watchdog);
 		clearInterval(this.timer);
 		this.hide_countdown();
-		this.mic?.stop();
+		this.capture?.stop();
 		this.state = "error";
-		this.$button.rc("listening transcribing connecting");
+		this.$button.rc("listening transcribing");
 		this.$status.ac("error").text(msg);
 		console.error("ux/Dictate:", msg);
 		this.on_error?.(msg);
@@ -399,11 +328,11 @@ export default class Dictate extends View {
 
 	async start_whisper(){
 		const { id, label } = this.device();
-		this.mic = new Capture({ device_id: id, device_label: label });
+		this.capture = new Capture({ device_id: id, device_label: label });
 		this.level = 0;
 		this.has_speech = false;
 		this.segment_started_at = this.last_partial_at = performance.now();
-		await this.mic.start(level => this.on_level(level));
+		await this.capture.start(level => this.on_level(level));
 	}
 
 	/* A rough, un-calibrated loudness -> `--ux-dictate-level` (0..1), read by
@@ -457,7 +386,7 @@ export default class Dictate extends View {
 		   (measured 68 ms of a 167 ms wait, about half of all segment ends). */
 		if (this.has_speech && performance.now() - this.last_loud_at > this.skip_partial_after_ms) return;
 		const epoch = this.segment_epoch;
-		const samples = this.mic.snapshot();
+		const samples = this.capture.snapshot();
 		if (!this.worth_sending(samples)) return;
 
 		this.inflight = this.transcribe(samples);
@@ -469,8 +398,8 @@ export default class Dictate extends View {
 	}
 
 	async close_segment(){
-		const samples = this.mic.snapshot();
-		this.mic.cut();
+		const samples = this.capture.snapshot();
+		this.capture.cut();
 		this.segment_epoch++;
 		this.has_speech = false;
 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
@@ -487,15 +416,7 @@ export default class Dictate extends View {
 		this.inflight = this.transcribe(samples);
 		let text;
 		try { text = await this.inflight; }
-		catch (e){
-			// This is the "Whisper server unreachable" case, surfaced where it was only
-			// ever a console.error before — the owner's own words: "we don't want users
-			// to just have it not work and not know why". Ends the dictation rather than
-			// silently dropping every segment from here on.
-			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
-			this.set_error("Whisper stopped answering — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.");
-			return;
-		}
+		catch (e){ console.error("ux/Dictate: whisper-server did not answer for a segment:", e); return; }
 		finally { this.inflight = null; }
 		this.commit(text);
 	}
@@ -513,14 +434,14 @@ export default class Dictate extends View {
 	 *  220ms, so `min_speech_ms` at 120 sits in a gap with nothing in it. */
 	worth_sending(samples){
 		if (!samples.length) return false;
-		const loud = this.last_loudness = this.mic.loudness(samples, this.speech_floor);
+		const loud = this.last_loudness = this.capture.loudness(samples, this.speech_floor);
 		if (loud.loud_ms >= this.min_speech_ms) return true;
 		this.skipped_silent = true;
 		return false;
 	}
 
 	async transcribe(samples){
-		const wav = this.mic.wav(samples);
+		const wav = this.capture.wav(samples);
 		this.dump(wav, samples);
 		const form = new FormData();
 		form.append("file", wav, "segment.wav");
@@ -557,9 +478,9 @@ export default class Dictate extends View {
 			let binary = "";
 			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
 				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
-			const loud = this.mic.loudness(samples, this.speech_floor);
+			const loud = this.capture.loudness(samples, this.speech_floor);
 			return Socket.singleton().async_rpc("append", file, { dump: {
-				at: new Date().toISOString(), rate: this.mic.rate(), seconds: +loud.seconds.toFixed(3),
+				at: new Date().toISOString(), rate: this.capture.rate(), seconds: +loud.seconds.toFixed(3),
 				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
 				wav_base64: btoa(binary),
 			} });
@@ -581,22 +502,13 @@ export default class Dictate extends View {
 		rec.lang = this.lang;
 		rec.continuous = true;
 		rec.interimResults = true;
-		// The ONLY place the browser engine is really live — `rec.start()` below returns
-		// long before this fires. This is what `set_state("listening")` (and therefore
-		// the start SOUND, via `on_listening()`) now waits for, instead of firing the
-		// instant `.start()` was merely called.
-		rec.onstart = () => {
-			clearTimeout(this.connect_watchdog);
-			if (this.cancel_connect){ try { rec.stop(); } catch {} return; }
-			this.set_state("listening");
-		};
 		rec.onresult = e => this.heard_browser(e);
 		rec.onerror = e => { console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error); };
 		// Chrome stops on its own after a few seconds of silence even with
 		// `continuous` — restart unless a real press asked to stop (`this.stopping`).
 		rec.onend = () => {
 			if (this.stopping){ this.stopping = false; this.set_state("idle"); }
-			else if (this.state === "listening" || this.state === "connecting") rec.start();
+			else if (this.state === "listening") rec.start();
 		};
 		rec.start();
 	}
@@ -615,10 +527,8 @@ export default class Dictate extends View {
 	}
 
 	browser_error(error){
-		if (error === "service-not-allowed" && this.insecure_context_message()) return this.set_error(this.insecure_context_message());
 		this.set_error({
 			"not-allowed": "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.",
-			"service-not-allowed": "Chrome's speech recognition service refused this page — allow microphone access for this site and press 🎤 again.",
 			"network": "Chrome's speech recognition needs the internet and that failed — try again, or start whisper for a local, offline path.",
 			"no-speech": "No speech was heard — try again, closer to the microphone.",
 			"audio-capture": "No microphone could be read — check it is plugged in and not used by another app.",
@@ -654,16 +564,7 @@ export default class Dictate extends View {
 	 * (`Server/plugins/SocketServer/Append.js`, `rpc:append`) so a dictation
 	 * during today's setup still lands somewhere real instead of vanishing
 	 * once it scrolls off screen. Never throws into the caller — a log write
-	 * failing must not break the dictation the owner is mid-sentence in.
-	 *
-	 * ⚠ Neither path can reach anywhere from a LAN client that is not itself
-	 * `localhost`/`127.0.0.1`: `log_url` is `127.0.0.1:8090`, which on a phone
-	 * means the PHONE, and `Socket` — the dev-server fallback — refuses to even
-	 * open a connection off `localhost` by design (`dev/Socket/Socket.js`, "LOCALHOST
-	 * ONLY — production is static hosting with nothing to connect to"). Both
-	 * failures are already silent-safe (this `catch` only warns), so a dictation
-	 * from the phone still shows its words live; they are just never logged.
-	 * Left as-is on purpose — see "Voice → log from the LAN" in `doc/https-lan.md`. */
+	 * failing must not break the dictation the owner is mid-sentence in. */
 	async log_prompt(text){
 		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
 		// clock only when the entry arrives without one; a client-side `new Date()` used
@@ -701,17 +602,6 @@ export default class Dictate extends View {
 		this.on_text?.(chunk);
 	}
 
-	/** **The variant seam.** `build_output()` builds whatever holds the transcript
-	 *  (here, one muted line — `this.$caption`); `draw_caption()` repaints it every
-	 *  time a segment settles or the live guess changes. A variant with a genuinely
-	 *  different user experience — a wall of "prompt item" cards instead of one
-	 *  running line, a single-line compact strip for a toolbar — overrides ONLY
-	 *  these two methods; the whole state machine above (engines, errors, the start
-	 *  sound's real timing) is untouched and every variant inherits it for free. See
-	 *  `ux/Dictate/variants/` for the built ones, and `doc/variants.md` for how to
-	 *  write another. */
-	build_output(){ this.$caption = div.c("ux-dictate-caption muted"); }
-
 	/* Settled text in the page's own ink, the still-moving guess grey after it —
 	 * capped so a long dictation does not grow the caption without bound. Open
 	 * mode never runs for long unwatched (a mic left on indefinitely), so instead
@@ -732,13 +622,12 @@ export default class Dictate extends View {
 		});
 	}
 
-	/** **Demo only — no mic, no whisper, nothing logged.** Feeds sentences straight
-	 *  into the settled transcript exactly as `commit()` would (same `settled_lines`,
-	 *  same `draw_caption()`, same target box), so a variant page can show what makes
-	 *  it different the instant it loads, without anyone talking into a real
-	 *  microphone first. Skips `log_prompt()` on purpose — sample text is not
-	 *  something the owner said, and must never land in the real prompt log. The
-	 *  owner's own rule this exists for: "I want to see" (`ai/2026-09-29/mobile-nav/review.md`). */
+	/** **Added after the freeze, demo-only.** Feeds sentences straight into the
+	 *  settled transcript and the target box exactly as `commit()` would, but
+	 *  skips `log_prompt()` — sample text is not something the owner said, and
+	 *  must never land in the real prompt log. Lets this page show its box full
+	 *  of text the instant it loads, with no microphone (the owner's own rule:
+	 *  "I want to see" — `ai/2026-09-29/mobile-nav/review.md`, finding 1). */
 	async sample(lines){
 		for (const text of lines){
 			this.settled = this.settled ? this.settled + " " + text : text;
@@ -750,22 +639,7 @@ export default class Dictate extends View {
 	}
 }
 
-/** Where to reach `whisper-server`. On this machine (`localhost`/`127.0.0.1`/`*.localhost`)
- *  that is the direct port, unchanged. From anywhere else — a phone on the LAN — `127.0.0.1`
- *  would mean the PHONE, so the page's own origin is used instead, and
- *  `Server/plugins/Whisper.js`'s `/whisper/inference` + `/whisper/` proxy that same-origin
- *  request on to the real `127.0.0.1:8178` on the machine actually running whisper-server.
- *  This does NOT open the microphone on an insecure LAN page — that is a separate, harder
- *  browser rule `insecure_context_message()` catches — it only means that once the mic
- *  IS open (secure context reached some other way), reaching whisper does not require
- *  hard-coding a loopback address that means a different machine on every device. */
-function default_whisper_url(){
-	const h = globalThis.location?.hostname;
-	const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
-	return local || !globalThis.location ? "http://127.0.0.1:8178" : globalThis.location.origin + "/whisper";
-}
-
-Dictate.prototype.whisper_url = default_whisper_url();
+Dictate.prototype.whisper_url = "http://127.0.0.1:8178";
 Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
 Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
 Dictate.prototype.lang = "en-US";

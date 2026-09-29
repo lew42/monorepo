@@ -1,0 +1,36 @@
+/* FROZEN — the exact `ux/Dictate/Dictate.css` from before the 2026-09-29
+ * mobile-nav task (commit 21eee692), kept beside the frozen `Dictate.js` in
+ * this same folder so "v1" never changes again. Same class names as the live
+ * stylesheet on purpose — this is the styling those classes had before this
+ * task, not a new set of names (`ai/2026-09-29/mobile-nav/review.md`, finding 6). */
+@layer theme {
+
+	/* "on" is a solid, still fact — the owner's own complaint was the button
+	 * flickering with every sound. Same look for both engines; only the level
+	 * bar beside the icon (below) moves. */
+	.ux-dictate-btn.listening { color: var(--prim); box-shadow: 0 0 0 3px var(--prim); }
+
+	/* The level bar: real loudness for whisper (`--ux-dictate-level`, set every
+	 * audio frame in on_level()), a plain still pulse for the browser engine
+	 * (SpeechRecognition owns the mic, not this page — there is no level to
+	 * read, same as ext/Ask/mic.js before it). Invisible off, or before an
+	 * engine is chosen (`--ux-dictate-level` defaults to 0). */
+	.ux-dictate-level {
+		display: inline-block; width: 3px; margin-inline-start: .35em; border-radius: 2px;
+		background: var(--prim); vertical-align: -.1em;
+		height: calc(4px + var(--ux-dictate-level, 0) * 16px);
+	}
+	.ux-dictate-btn.listening[data-engine="whisper"] .ux-dictate-level { transition: height 80ms linear; }
+	.ux-dictate-btn.listening[data-engine="browser"] .ux-dictate-level { animation: ux-dictate-pulse 1.4s ease-in-out infinite; }
+	.ux-dictate-btn:not(.listening) .ux-dictate-level { height: 4px; opacity: 0; }
+
+	/* the last segment is still in flight after the owner pressed stop. */
+	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+
+	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
+
+	.ux-dictate-status.error { color: var(--error); }
+
+	/* an idle caption takes no space rather than leaving an empty muted line. */
+	.ux-dictate-caption:empty { display: none; }
+}
