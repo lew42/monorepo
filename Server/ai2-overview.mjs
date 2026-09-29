@@ -228,6 +228,21 @@ function conceptFor(task) {
 	return null;
 }
 
+// A link is only safe to show if the static site can actually serve it:
+// either it's under /framework/ (every route there, even a dynamic one
+// with no literal file, is a real page), or it's some other path under
+// public/ that genuinely exists on disk (an image, a script's own output
+// page, etc). Anything else — a repo path like "/Server/review.mjs", which
+// is source code, not a site page — is not a link the owner can click.
+function publicUrl(url) {
+	if (typeof url !== "string" || !url.startsWith("/")) return null;
+	if (url.startsWith("/framework/")) return url;
+	const clean = url.split("?")[0].split("#")[0];
+	const onDisk = path.join(ROOT, "public", clean);
+	try { if (fs.existsSync(onDisk)) return url; } catch { /* fall through */ }
+	return null;
+}
+
 function truncate(str, n) {
 	if (!str) return "";
 	str = str.trim();
@@ -286,13 +301,13 @@ function build() {
 			task: task.id,
 			quote: truncate(quote, 120),
 			owner,
-			words_url: taskUrl,
+			words_url: publicUrl(taskUrl) || taskUrl,
 			asked_at: task.requested_at || null,
 			landed_at: task.landed_at || null,
 			hours,
 			cost_usd: typeof task.cost_usd === "number" ? task.cost_usd : null,
 			outcome: truncate(outcomeFirstLine, 140),
-			result_url: links[0]?.url || taskUrl,
+			result_url: publicUrl(links[0]?.url) || taskUrl,
 			state: landedAt ? "done" : "open",
 		};
 

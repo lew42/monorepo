@@ -1,5 +1,5 @@
 {
-	"built_at": "2026-09-29T05:09:45.265Z",
+	"built_at": "2026-09-29T05:15:03.717Z",
 	"unfiled": 147,
 	"concepts": [
 		{
@@ -15,7 +15,7 @@
 					"words_url": "/framework/ai/2026-09-28/shared-browser/",
 					"asked_at": "2026-09-28T22:41:56-05:00",
 					"landed_at": null,
-					"hours": 1.5,
+					"hours": 1.6,
 					"cost_usd": null,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/shared-browser/",
@@ -28,7 +28,7 @@
 					"words_url": "/framework/ai/2026-09-28/task-loop/",
 					"asked_at": "2026-09-28T14:09:43-05:00",
 					"landed_at": null,
-					"hours": 10,
+					"hours": 10.1,
 					"cost_usd": 12.2215,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/task-loop/",
@@ -41,7 +41,7 @@
 					"words_url": "/framework/ai/2026-09-25/recursive-pairs/",
 					"asked_at": "2026-09-28T13:46:43-05:00",
 					"landed_at": null,
-					"hours": 10.4,
+					"hours": 10.5,
 					"cost_usd": 29.1857,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-25/recursive-pairs/",
@@ -228,7 +228,7 @@
 					"hours": 0,
 					"cost_usd": null,
 					"outcome": "Servex now survives a reboot — the owner registered the Servex logon task (Register-ScheduledTask, state Ready), and the readme's reboot se…",
-					"result_url": "/Servex/readme.md",
+					"result_url": "/framework/ai/2026-09-24/servex-startup-note/",
 					"state": "done"
 				},
 				{
@@ -241,7 +241,7 @@
 					"hours": 0.1,
 					"cost_usd": null,
 					"outcome": "Servex owns port 80 — localhost and servex.localhost are the dashboard, monorepo.localhost is this site, no port anywhere.",
-					"result_url": "http://servex.localhost/",
+					"result_url": "/framework/ai/2026-09-23/servex-port-80/",
 					"state": "done"
 				},
 				{
@@ -423,7 +423,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "Landed: spawnagent({role}) loads a skill before its first turn, and a registry says who's alive.",
-					"result_url": "http://127.0.0.1:8090/agents",
+					"result_url": "/framework/ai/2026-09-22/spawn-role/",
 					"state": "done"
 				},
 				{
@@ -474,7 +474,7 @@
 					"hours": null,
 					"cost_usd": null,
 					"outcome": "Landed on michael/dev. Server/review.mjs now runs a review as four logged turns instead of one shot: the reviewer's findings, the builder's…",
-					"result_url": "/Server/review.mjs",
+					"result_url": "/framework/ai/2026-09-28/review-turns/",
 					"state": "done"
 				},
 				{
@@ -1026,7 +1026,7 @@
 					"words_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
 					"asked_at": "2026-09-28T22:45:53-05:00",
 					"landed_at": null,
-					"hours": 1.4,
+					"hours": 1.5,
 					"cost_usd": 1.9419,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
@@ -1039,7 +1039,7 @@
 					"words_url": "/framework/ai/2026-09-28/waiting-on-you/",
 					"asked_at": "2026-09-28T14:11:02-05:00",
 					"landed_at": null,
-					"hours": 10,
+					"hours": 10.1,
 					"cost_usd": 14.1704,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/waiting-on-you/",
@@ -1065,7 +1065,7 @@
 					"words_url": "/framework/ai/2026-09-25/chat-merge/",
 					"asked_at": "2026-09-25T15:34:21-05:00",
 					"landed_at": null,
-					"hours": 80.6,
+					"hours": 80.7,
 					"cost_usd": 0.9945,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-25/chat-merge/",
@@ -1537,7 +1537,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "The dev server now starts whisper-server by itself — nobody has to run it by hand for dictation to work. New Server/plugins/Whisper.js, one…",
-					"result_url": "/Server/plugins/Whisper.js",
+					"result_url": "/framework/ai/2026-09-19/whisper-autostart/",
 					"state": "done"
 				},
 				{
@@ -1614,7 +1614,7 @@
 					"hours": 0.5,
 					"cost_usd": null,
 					"outcome": "Opening a site page no longer visits that site, and the two tiers were judged on an ultrawide for the first time: four failures found, four…",
-					"result_url": "/websites/wikipedia-css/",
+					"result_url": "/framework/ai/2026-09-08/critic-3440/",
 					"state": "done"
 				},
 				{
@@ -1627,7 +1627,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "One rule, in Page.css, fixes the mid-word title break. The bug wasn't on the brief's tag page (documentation alone fits at 400) but where c…",
-					"result_url": "/websites/python-docs-index/",
+					"result_url": "/framework/ai/2026-09-08/title-wrap/",
 					"state": "done"
 				},
 				{
@@ -1666,7 +1666,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "All 13 sites wired. Wrote the wire key (through readrecord/writerecord, never hand-edited) for astral-codex-ten-home, bbc-news-home, framer…",
-					"result_url": "/websites/ikea-home/",
+					"result_url": "/framework/ai/2026-09-08/wire-d/",
 					"state": "done"
 				},
 				{
@@ -1679,7 +1679,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "All 9 wires written, checked and honest-worded. Every site in the table now carries a wire — amazon-kindle-product · cctype-foundry · figma…",
-					"result_url": "/websites/amazon-kindle-product/",
+					"result_url": "/framework/ai/2026-09-08/wire-c/",
 					"state": "done"
 				},
 				{
@@ -1692,7 +1692,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "All 10 wires written, checked headless at 1920, one fix pass, index.mjs run. Every site in the table got a wire key through writerecord (ne…",
-					"result_url": "/websites/allbirds-home/",
+					"result_url": "/framework/ai/2026-09-08/wire-b/",
 					"state": "done"
 				},
 				{
@@ -1705,7 +1705,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "All 10 wires written and checked, 10/10 close. Read the 1920/400 shots and records for every site in the table, wrote each wire through rea…",
-					"result_url": "/websites/gitlab-explore/",
+					"result_url": "/framework/ai/2026-09-08/wire-a/",
 					"state": "done"
 				},
 				{
@@ -1744,7 +1744,7 @@
 					"hours": 0.6,
 					"cost_usd": null,
 					"outcome": "Wireframe recreation is live on /websites/wikipedia-css/ (and mdn-css, stripe) — the same page with the content taken out, drawn at 400/192…",
-					"result_url": "/websites/wikipedia-css/",
+					"result_url": "/framework/ai/2026-09-08/corpus-polish/",
 					"state": "done"
 				},
 				{
@@ -1783,7 +1783,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "Playwright research topic landed — 32 credence-graded entries (24 established, 4 contested, 3 speculation, 1 fringe), 0 refused by --check.…",
-					"result_url": "https://lew42.com/imagine/research/playwright/",
+					"result_url": "/framework/ai/2026-09-08/playwright-research/",
 					"state": "done"
 				},
 				{
@@ -1796,7 +1796,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "60 candidate websites found and proven headless — eight per category for docs/marketing/news/blog/app/shop, six for system and six found vi…",
-					"result_url": "public/framework/ai/2026-09-08/site-scout/candidates.json",
+					"result_url": "/framework/ai/2026-09-08/site-scout/",
 					"state": "done"
 				},
 				{
@@ -1809,7 +1809,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "The adversary pass over all nine other verdicts, landed. Threat model: 10 ranked abuse cases (account takeover via stolen cookie, cross-top…",
-					"result_url": "/imagine/platform/research/security/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-security/",
 					"state": "done"
 				},
 				{
@@ -1822,7 +1822,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "fal.ai research landed: MVP ships with no AI; when AI lands, fal is scoped to image/video/3D/audio only, never a browser-held key. 46-entry…",
-					"result_url": "/imagine/platform/research/ai/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-ai/",
 					"state": "done"
 				},
 				{
@@ -1835,7 +1835,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "Recommend 1-5 rubric levels over a topic-scoped, derived reputation log, with founder-owns/owner-overrides governance and zero voting in th…",
-					"result_url": "/imagine/platform/research/community/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-community/",
 					"state": "done"
 				},
 				{
@@ -1848,7 +1848,7 @@
 					"hours": 0.3,
 					"cost_usd": null,
 					"outcome": "No stored-value tipping balance on day one. Ship the $10/month membership on Stripe Billing (Payment Element + Customer Portal) — about $0.…",
-					"result_url": "/imagine/platform/research/payments/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-payments/",
 					"state": "done"
 				},
 				{
@@ -1861,7 +1861,7 @@
 					"hours": 0.3,
 					"cost_usd": null,
 					"outcome": "Verdict: embed YouTube now, defer videos.insert upload. The site's existing labs (/imagine/youtube/, /imagine/feeds/video/) already use onl…",
-					"result_url": "/imagine/platform/research/video/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-video/",
 					"state": "done"
 				},
 				{
@@ -1874,7 +1874,7 @@
 					"hours": 0.3,
 					"cost_usd": null,
 					"outcome": "Where each kind of data lives, so the site stays static and the platform stays cheap. Recommendation: (A) static+git first, D1 for identity…",
-					"result_url": "/imagine/platform/research/data/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-data/",
 					"state": "done"
 				},
 				{
@@ -1887,7 +1887,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "Real-time substrate researched: text-first DO chat, growing to voice legally — verdict · log, 36 lines. MVP: one hibernating Durable Object…",
-					"result_url": "/imagine/platform/research/realtime/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-realtime/",
 					"state": "done"
 				},
 				{
@@ -1900,7 +1900,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "One Durable Object per topic is the right MVP default; the whole stack costs $0 at 100 users, ~$20/month at 10k, ~$150-200/month at 1M. 43…",
-					"result_url": "/imagine/platform/research/cloudflare/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-cloudflare/",
 					"state": "done"
 				},
 				{
@@ -1913,7 +1913,7 @@
 					"hours": 0.2,
 					"cost_usd": null,
 					"outcome": "Landed — 44-entry research log + one-screen verdict on identity, session and authorization for a public product on Cloudflare. Recommendati…",
-					"result_url": "/imagine/platform/research/users/verdict/",
+					"result_url": "/framework/ai/2026-09-04/research-users/",
 					"state": "done"
 				},
 				{
