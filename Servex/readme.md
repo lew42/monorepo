@@ -212,6 +212,9 @@ shortcut — if it works for them it works for yours. Six are the servers'
 - **Nothing supervises the keeper.** That is the honest floor of any restart
   chain, and why `sustain.mjs` does one thing. Surviving a machine reboot wants a
   Scheduled Task that runs it at logon — see below.
+- **`--restart` hops outside Servex's own process tree before it kills anything** —
+  an agent running it from inside that tree used to kill itself along with Servex,
+  so nothing came back (09-28, 09-29): [`doc/restart.md`](./doc/restart.md).
 
 ## Surviving a reboot
 
