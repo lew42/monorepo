@@ -77,6 +77,19 @@ export default function agents_panel(card_id){
 const costs = new Map();
 let queue = Promise.resolve();
 
+/* ONE list for every card: the rail asks agent_cost() for each of ~390 cards, and
+   each ask used to fetch the whole /api/agents list — 398 identical fetches, 3.6 MB,
+   on one card page load (measured 09-29). Shared, and refetched at most every 30 s. */
+let agents_list = null;
+const all_agents = () => {
+	if (agents_list && Date.now() - agents_list.at < 30000) return agents_list.list;
+	const list = servex_fetch(url("/api/agents"))
+		.then(r => r.ok && (r.headers.get("content-type") ?? "").includes("json") ? r.json() : [])
+		.catch(() => []);
+	agents_list = { at: Date.now(), list };
+	return list;
+};
+
 export function agent_cost(card_id, then){
 	const hit = costs.get(card_id);
 	if (hit && Date.now() - hit.at < 30000) return hit.usd;
@@ -86,8 +99,7 @@ export function agent_cost(card_id, then){
 			let usd = null;
 			try {
 				// The number: `cost` on Servex's `/api/agents` records for this card's assistant and manager, found by name (`assistant-<slug>`, `manager-<slug>`).
-				const r = await servex_fetch(url("/api/agents"));
-				const list = r.ok && (r.headers.get("content-type") ?? "").includes("json") ? await r.json() : [];
+				const list = await all_agents();
 				const slug = card_id.split("/").pop();
 				const mine = Array.isArray(list) ? list.filter(a => (a.id === "assistant-" + slug || a.id === "manager-" + slug) && typeof a.cost === "number") : [];
 				const spent = mine.reduce((n, a) => n + a.cost, 0);

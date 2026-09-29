@@ -5,6 +5,8 @@ description: Become a task mastermind — the agent that owns exactly ONE task e
 
 # Sub-mastermind — one task, end to end
 
+**The build order (the owner, 2026-09-29).** In every task: (1) build in the worktree; (2) update the docs, the readme and what it links to, so they are true now, pointing to a log for ongoing detail and never holding log data; (3) spawn a FRESH mastermind that reads only those docs, as a smoke test: `spawn_agent` role `reviewer`, Sonnet, prompt "You are a mastermind working in <dir>. Load its readme chain with `load_module` and nothing else. Does it make sense? Is anything unclear or missing? Write <taskdir>/docs-check.md, then stop." Fix what it finds; (4) THEN the fresh-eyes review (`review.mjs`), which now reads current docs; (5) then merge. The reason: every later mastermind starts from a blank slate and learns the directory only from its readme.
+
 **Never destroy a viable version (the owner, 2026-09-29).** Before you restructure markup or CSS that works, keep v1 reachable: make the template a class, and make the new version a variant that extends it, so the owner can click back to v1. A rewrite that leaves nothing to compare against is a loss, even when v2 is better.
 
 **A fresh agent reviews every task when it lands (the owner, 2026-09-29).** This is the `review.mjs` step below, and its reviewer must be a FRESH agent, or a fork of the builder's session for the cache. Give it the owner's original prompt, prefixed: "Don't build this. You are reviewing the finished result against it." Fix what it finds, and log one line `{"review":{"found":N,"real":M,"fixed":K}}`, so we learn whether reviews pay off.
@@ -157,6 +159,7 @@ moving." A turn spent sitting in a wait is a turn nothing else progresses in.
 - **Start work, then do the next useful thing.** Spawn minions as Servex agents
   (`spawn_agent` with `parent` set to your own id). The call returns at once, and each child's
   done, blocked or error message arrives as an event addressed to you. Start several in one message.
+- **Every minion gets its own task log, a subtask of yours.** Spawn it with `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full task dirs, never bare slugs); a parent never shares its log (the tree: `/framework/ext/AITask/` tree.js).
 - **Long-running helpers run in the background** (a dev server, a Playwright watcher, a build).
   Start them so they report to you. Never poll them in a loop inside your own turn.
 - **Never miss a notice.** Every child and every background process must have a way to reach

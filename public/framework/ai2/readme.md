@@ -216,6 +216,9 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 
 ## More
 
+- [`doc/one-ai.md`](./doc/one-ai.md) — 2026-09-29: the card's own composer bar and chat
+  split are gone by default; the mobile ✦ sheet and the desktop drawer's AI tab talk into
+  the card instead, same session, same thread. `Card.V1` / `?chat=v1` keeps the old box.
 - [`doc/card-standard.md`](./doc/card-standard.md): what every card shows, in order: its folder, its objects, its checklist, then words
 - [`doc/groups.md`](./doc/groups.md) — the seven groups, how a thing joins one, how a group rises
 - [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status

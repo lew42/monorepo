@@ -23,8 +23,8 @@ export function brief(servex){
 		const running = [...(servex?.agents?.live?.values?.() ?? [])]
 			.filter(a => a.state !== "stopped" && !WORKERS.test(a.role ?? "") && !WORKERS.test(a.id ?? ""));
 		out.push("Running now:");
-		for (const a of running.slice(0, 12)) out.push(`- ${a.id}: ${a.state}`);
-		if (running.length > 12) out.push(`- and ${running.length - 12} more`);
+		for (const a of running.slice(0, 10)) out.push(`- ${a.id}: ${a.state}`);
+		if (running.length > 10) out.push(`- and ${running.length - 10} more`);   // 10, not 12: the two lines added to the header pushed the focus past the 25-line cut
 		if (!running.length) out.push("- nothing");
 
 		out.push("Today's focus:", focus ? `- ${focus.split("\n")[0].slice(0, 200)}` : "- none set");

@@ -1,0 +1,34 @@
+lifecycle sweep : 16 to close, 2 dead log lines to end, 14 kept
+
+CLOSED
+  server  worktree:needs-you                 pid 49216 port 53478 task -
+          no owning task, running 4.6 h
+  server  run:36116                          pid 27548 port 59512 task 2026-09-28/waiting-on-you
+          its task 2026-09-28/waiting-on-you has landed
+  server  run:10552                          pid 54696 port 61452 task 2026-09-25/recursive-pairs/fix
+          its task 2026-09-25/recursive-pairs/fix has landed
+  server  wrapper:36312                      pid 36312 port 8177 task 2026-09-24/assistant-layers
+          its task 2026-09-24/assistant-layers has landed
+  server  wrapper:40548                      pid 40548 port - task -
+          no owning task, running 97.9 h
+  server  wrapper:30432                      pid 30432 port 8377 task -
+          no owning task, running 97.1 h
+  server  wrapper:51912                      pid 32004 port - task 2026-09-28/source-library
+          its task 2026-09-28/source-library has landed
+  server  wrapper:35464                      pid 54924 port - task 2026-09-28/review-turns
+          its task 2026-09-28/review-turns has landed
+  server  wrapper:18960                      pid 18960 port 56175 task 2026-09-28/source-library
+          its task 2026-09-28/source-library has landed
+  agent   reviewer-mobile-nav                pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-build                     pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-build-2                   pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-mobile-nav-6              pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-mobile-nav-7              pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-mobile-nav-8              pid - port - task -
+          one-pass reviewer, its result is written
+  agent   reviewer-mobile

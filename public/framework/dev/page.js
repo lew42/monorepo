@@ -1,4 +1,4 @@
-import { Page, md, code, h2, pre } from "/app.js";
+import { Page, md, code, h2, pre, file_link } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -13,6 +13,8 @@ export default new Page({
 
 		// Line first, then the two commands that produce it.
 		md("Save a file, the browser reloads. That is all this tier does — the server watches `public/` and pushes a reload down a WebSocket.");
+
+		md(`Files: [page.js](${file_link("framework/dev/page.js")}) · [Socket.js](${file_link("framework/dev/Socket/Socket.js")}) · [DevBar.js](${file_link("framework/dev/DevBar/DevBar.js")}) · [claim.js](${file_link("framework/dev/Claim/claim.js")})`);
 
 		pre(`npm install
 node server.js      # http://localhost`);

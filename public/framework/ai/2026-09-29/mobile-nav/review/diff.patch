@@ -1,1562 +1,1466 @@
-diff --git a/Server/plugins/Whisper.js b/Server/plugins/Whisper.js
-index 0a71776a..2ef97e51 100644
---- a/Server/plugins/Whisper.js
-+++ b/Server/plugins/Whisper.js
-@@ -55,6 +55,51 @@ export default class Whisper {
-         this.restarts = 0;
-         this.stopping = false;
-         server.on("listening", () => this.start());
-+        server.on("express", () => this.route());
-+    }
-+
-+    /* A dev-only, same-origin PROXY onto whisper-server — added for
-+     * `ai/2026-09-29/mobile-nav/`. `ux/Dictate` hard-codes `http://127.0.0.1:8178` as
-+     * its DEFAULT, and that is exactly right on THIS machine — but "127.0.0.1" means a
-+     * different machine on every device, so a phone on the LAN can never reach it that
-+     * way, no matter how the phone got its microphone permission. `Dictate.js`'s
-+     * `default_whisper_url()` already points a non-localhost page at `<origin>/whisper`
-+     * instead; these two routes are the other end of that same wire. Loopback-only guards
-+     * (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this route exists
-+     * so a LAN client can reach it.
-+     *
-+     * Forwards the request bytes and its `content-type` untouched — a whisper `/inference`
-+     * POST is `multipart/form-data` with a boundary in that header, and re-building the
-+     * multipart body instead of forwarding it verbatim would be strictly more code for no
-+     * reason. A dead or missing whisper-server answers 502 with a plain JSON reason, which
-+     * `Dictate.detect_engine()` already reads as "not reachable" (it only checks `r.ok`)
-+     * and falls back to the browser's own engine — nothing new for that caller to learn. */
-+    route() {
-+        this.server.router.post("/whisper/inference", this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
-+            try {
-+                const r = await fetch(`http://127.0.0.1:${PORT}/inference`, {
-+                    method: "POST",
-+                    headers: { "content-type": req.headers["content-type"] || "application/octet-stream" },
-+                    body: req.body,
-+                    signal: AbortSignal.timeout(20000),
-+                });
-+                res.status(r.status);
-+                const ct = r.headers.get("content-type");
-+                if (ct) res.set("content-type", ct);
-+                res.send(Buffer.from(await r.arrayBuffer()));
-+            } catch (e) {
-+                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
-+            }
-+        });
-+
-+        this.server.router.get("/whisper/", async (req, res) => {
-+            try {
-+                const r = await fetch(`http://127.0.0.1:${PORT}/`, { signal: AbortSignal.timeout(1500) });
-+                res.status(r.status).send(await r.text());
-+            } catch (e) {
-+                res.status(502).json({ error: "whisper-server unreachable: " + (e?.message || e) });
-+            }
-+        });
-     }
+diff --git a/Server/plugins/Ask.js b/Server/plugins/Ask.js
+index 0e5b92a0..65c5d438 100644
+--- a/Server/plugins/Ask.js
++++ b/Server/plugins/Ask.js
+@@ -5,6 +5,7 @@ import path from "path";
+ import shot from "./Shot.js";
+ import stamp from "../stamp.js";
+ import Assistant from "./Assistant.js";
++import { lan, safe_host } from "./MCP.js";
  
-     async start() {
-diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
-index 91b74b99..5de10d42 100644
---- a/public/framework/ext/Chat/Mic.js
-+++ b/public/framework/ext/Chat/Mic.js
-@@ -123,7 +123,7 @@ export class ComposerMic extends Dictate {
- 		let mine;
- 		try {
- 			const gap = this.gap_before ?? 0;
--			if (this.capture && this.worth_sending(this.capture.snapshot())){
-+			if (this.mic && this.worth_sending(this.mic.snapshot())){
- 				(this.gaps ??= []).push(gap); this.gap_before = 0;
- 				let guess = unfill(this.partial_text ?? "");
- 				const sent = this.dropped && this.dropped.epoch === this.segment_epoch ? this.dropped.text : "";
-@@ -152,7 +152,7 @@ export class ComposerMic extends Dictate {
- 	}
- 
- 	active(){
--		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing");
-+		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing" || this.state === "connecting");
- 	}
- 
- 	/* THE BOX IS WHERE THE WORDS APPEAR. Each Whisper update — the still-moving
-@@ -320,11 +320,22 @@ export class ComposerMic extends Dictate {
- 			this.resend_ms = SETTINGS.guess_ms;
- 			await super.start();
- 		} finally { this.starting = false; }
--		if (this.state === "listening"){
--			beep("start"); this.watch_capture();
--			clearInterval(this.auto_timer);
--			this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
--		}
-+	}
-+
-+	/* THE START SOUND — moved here from the end of `start()`. `Dictate` now calls this
-+	 * the INSTANT the mic is genuinely open (whisper's own `capture.start()` resolved, or
-+	 * the browser engine's `rec.onstart` fired), never merely because `start()` was asked
-+	 * to run. Before this, `start()` returning was treated as "it's on" — but for the
-+	 * browser engine `start()` returns before Chrome has done anything at all, and on an
-+	 * insecure LAN page Chrome can go on "trying" for a long time with no error, so the
-+	 * chime played while nothing was actually listening (the owner's own phone report,
-+	 * `ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
-+	 * fires this twice for one press — Chrome's own silent mid-session restarts (still
-+	 * "listening" throughout) do not replay the chime. */
-+	on_listening(){
-+		beep("start"); this.watch_capture();
-+		clearInterval(this.auto_timer);
-+		this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
- 	}
- 
- 	/* WHY THE MIC "TURNED ITSELF OFF": a Windows sleep, a Bluetooth switch or an
-@@ -333,12 +344,12 @@ export class ComposerMic extends Dictate {
- 	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
- 	   suspended audio engine is woken the same way. */
- 	watch_capture(){
--		const cap = this.capture, track = cap?.stream?.getAudioTracks()[0];
-+		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
- 		if (cap?.ctx) cap.ctx.onstatechange = () => {
- 			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
- 		};
- 		track?.addEventListener("ended", async () => {
--			if (this.capture !== cap || this.state !== "listening") return;
-+			if (this.mic !== cap || this.state !== "listening") return;
- 			await this.stop();
- 			const now = performance.now();
- 			if (now - (this.last_revive ?? -1e9) < 5000) return this.set_error("The microphone was disconnected.");
-diff --git a/public/framework/ext/drawer/doc/decisions.md b/public/framework/ext/drawer/doc/decisions.md
-index 105ee6cb..02de1ef9 100644
---- a/public/framework/ext/drawer/doc/decisions.md
-+++ b/public/framework/ext/drawer/doc/decisions.md
-@@ -79,6 +79,60 @@ do.
-   rather than being retyped by every caller. Handing back the two views keeps
-   `empty(fn)`, the blessed re-capture form, at the call site.
- 
-+## The mobile bottom rail (2026-09-29)
-+
-+`rail.js`/`rail.css` — below 52em, an ✦ button (a listening sheet) and a second
-+button (this same drawer's tabs), pinned to the bottom of the screen. The side
-+drawer above was not a template to copy for this: it is `position: fixed`, so
-+it has to restate its own width as a `padding-inline-end` reservation on
-+`.app` (`--rail-push`) to keep the page from sitting behind it — two numbers,
-+kept in sync by hand.
-+
-+- **The second button reads ⋯ "More", not ☰ "Menu" (the task mastermind,
-+  2026-09-29, judging the first shots).** It launched as a second ☰, copying
-+  menu.js's own glyph and label — but deliverable 1 (this same day) moved the
-+  page's OWN ☰ to the top of the screen on mobile, so a second ☰ down here at
-+  the bottom read as "press this again," not "here's something else," even
-+  though it opens a different thing (the drawer, not the page's nav). `⋯
-+  "More"` names what it actually is: a way to reach everything that doesn't
-+  fit as its own button. The old glyph/label/title are prototype fields
-+  (`menu_icon`, `menu_label`, `menu_title`), not hard-coded in `menu_button()`,
-+  so nothing was deleted — `DrawerRail.V1` (a two-line subclass, `rail.js`)
-+  restores the ☰ "Menu" look verbatim for anyone who wants it back.
-+
-+- **A plain, non-fixed flex child of `.app`, not `position: fixed` (the
-+  option actually chosen).** `.app` is already `height: 100%; display: flex;
-+  flex-direction: column` with `.pages` as its one growing row
-+  (`framework.css`) — so a bar that is simply the LAST child of that column,
-+  `flex: 0 0 auto`, already takes its own space and `.pages` shrinks to fit
-+  above it. One layout fact (the column has three rows now, not two), nothing
-+  to compute, nothing that can drift out of sync the way `--rail-push` can.
-+- **The alternative the brief asked to weigh: full-height, independently-
-+  scrolling sections for the whole page (rejected).** This would mean giving
-+  every page a snap-scrolling, fixed-viewport-height section model instead of
-+  the one long scrolling column `.pages` already is — a rewrite of how every
-+  page on the site scrolls, to solve a problem ("reserve one bar's height")
-+  that flexbox already solves for free. Only worth it if the rail needed to be
-+  full-screen or independently scrollable itself, which it does not: it is a
-+  few centimetres tall and fixed in height.
-+- **A near-alternative also considered and rejected: `position: fixed` with a
-+  manual `padding-block-end` reservation on `.pages`, mirroring the side
-+  drawer's own `--rail-push` token.** Works, but only by re-deriving the exact
-+  bookkeeping problem the flex-child answer skips entirely — a token to write,
-+  a token to read, and a media query in two files that have to agree on the
-+  bar's height. Chosen only when a bar needs to float OVER content on
-+  purpose (the side drawer does, this one does not).
-+- **The sheet itself IS `position: fixed`** (`.drawer-rail-sheet`), because it
-+  is a modal-style overlay that is meant to cover content, including the rail
-+  itself, while it is open — the one place in this pair where "cover, don't
-+  reserve" is the right call.
-+- **No error banner of its own in the sheet.** `ux/Dictate` already shows an
-+  honest, specific message beside its own mic button — no device, no
-+  permission, no engine reachable — and a second sentence here said the exact
-+  same thing a few lines down. Mic feedback (the sound only once the mic is
-+  truly on, the wording of each message) is `ux/Dictate`'s job; this sheet
-+  only supplies where its widget lives and what a finished sentence becomes.
-+
- ## What will bite you
- 
- - **⚠ The rail mounts inside `.app`, never on `<body>`.** `color-scheme` is forced
-diff --git a/public/framework/ext/drawer/menu.js b/public/framework/ext/drawer/menu.js
-index 7617b065..647e0194 100644
---- a/public/framework/ext/drawer/menu.js
-+++ b/public/framework/ext/drawer/menu.js
-@@ -1,6 +1,7 @@
- import { button } from "/framework/core/View/View.js";
- import tabs from "./tabs.js";
- import select from "./select.js";
-+import rail from "./rail.js";
- 
- /* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
-    page could have like a little menu button in the top right… that kind of makes it
-@@ -31,6 +32,12 @@ export default function menu(app){
- 	const routed = tabs.routed();
- 	if (routed) app.styles_loaded().then(() => tabs.open(routed));
- 
-+	// The mobile bottom rail (rail.js) — the drawer's other way in below 52em, on
-+	// every page. Hidden entirely above that breakpoint (rail.css), so this is
-+	// free to call here unconditionally rather than app.js needing to know about
-+	// a second piece of drawer chrome.
-+	rail(app);
-+
- 	return $menu;
+ const PUBLIC = path.resolve("public");
+ const SEGMENT = /^[\w.-]+$/;
+@@ -23,6 +24,11 @@ function thread_dir(task){
+     return dir.startsWith(PUBLIC + path.sep) ? dir : null;
  }
  
-diff --git a/public/framework/ext/drawer/page.js b/public/framework/ext/drawer/page.js
-index 80e9cc8a..7b27b915 100644
---- a/public/framework/ext/drawer/page.js
-+++ b/public/framework/ext/drawer/page.js
-@@ -10,9 +10,9 @@ export default new Doc({
- 	// framework sidebar from 231px to 344px through `min-width: auto`.
- 	icon: "view_sidebar",
- 
--	files: "drawer.js drawer.css menu.js tabs.js select.js page.js readme.md",
-+	files: "drawer.js drawer.css menu.js tabs.js select.js rail.js rail.css page.js readme.md",
- 	notes: "tabs select decisions",
--	children: ["walkthrough"],
-+	children: ["walkthrough", "rail"],
- 
- 	content(){
- 
-@@ -28,6 +28,10 @@ export default new Doc({
- 
- 		md("**With the drawer open, click any paragraph on this page.** It is selected, the Element tab shows what it is, and *Ask about this* puts it in the AI tab's input as a chip: [doc/select.md](/framework/ext/drawer/doc/select/).");
- 
-+		h2("On a phone");
++// A no-op stand-in for the live WebSocket `ask()`/`turn()` otherwise expect —
++// used only by the HTTP door below, which has no socket, no live tab, and never
++// streams. Every method used off that path is a harmless no-op; nothing throws.
++const NULL_SOCKET = { on(){}, rpc(){}, once(){}, off(){}, send(){}, socket_server: null, tab: undefined };
 +
-+		md("Below 52em the ☰ in the corner steps aside — a page with its own left-side sidebar draws its own ☰ there instead, so mobile nav and this drawer stop fighting for the same corner. A small bar at the bottom of the screen is the drawer's other way in: [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, a voice-to-cards sheet, screenshots and the layout decision behind it.");
-+
- 		h2("Fill it yourself");
+ /* One browser message -> one headless `claude -p` turn. Continuity is the
+  * transcript on disk, so nothing is kept alive between turns.
+  * Dev server only; see public/framework/ext/Ask/readme.md. */
+@@ -30,6 +36,40 @@ export default class Ask {
  
- 		code.js(`import { drawer } from "/app.js";
-diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+     static setup(socket){ new Ask(socket); }
+ 
++    /* THE HTTP DOOR — `POST /ask/turn`, same-origin, for a phone on the LAN.
++     * `dev/Socket/Socket.js`'s dev socket refuses any non-loopback connection on
++     * purpose (its own doc comment says why: that socket also carries `rpc:cmd`
++     * and `rpc:write`), so a phone reaching this page by its LAN address has no
++     * way to open it. This route hands out the same thing the socket path gives a
++     * local tab — one `claude -p` turn, the SAME tools, the SAME `--resume`
++     * (the owner's call, 2026-09-29: the phone's assistant is not a downgraded
++     * one) — guarded instead by `lan()` AND `safe_host()` (`MCP.js`): the request
++     * must arrive from loopback or this machine's own Wi-Fi, AND its own `Host`
++     * header must name this machine too, never an outside domain a DNS-rebinding
++     * page pointed at 127.0.0.1 to fake a same-origin call.
++     * `run_turn()`/`turn_http()` below are the code `ask()` (the socket path)
++     * shares with this, not a copy of it. */
++    static route(server){
++        const bridge = new Ask(NULL_SOCKET);
++        server.router.post("/ask/turn", server.express.json({ limit: "1mb" }), async (req, res) => {
++            const from = req.socket.remoteAddress;
++            if (!lan(from) || !safe_host(req.headers.host)){
++                console.warn(`Ask: REFUSED /ask/turn from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
++                return res.status(403).json({ error: "loopback/LAN only; refused " + from });
++            }
++
++            const { text, context, task, resume, id } = req.body || {};
++            if (!text) return res.status(400).json({ error: "Missing text" });
++            if (task && !thread_dir(task)) return res.status(400).json({ error: "Refusing thread path: " + task });
++
++            try {
++                res.json(await bridge.turn_http({ id: id || randomUUID(), prompt: text, context, task, resume }));
++            } catch (e){
++                res.status(500).json({ error: String(e?.message || e) });
++            }
++        });
++    }
++
+     constructor(socket){
+         this.socket = socket;
+         socket.on("rpc:ask", (args, index) => this.ask(args[0] || {}, index));
+@@ -89,12 +129,10 @@ export default class Ask {
+         const reply_id = req.preset === "assistant" ? Assistant.start({ prompt: req.prompt }) : null;
+ 
+         try {
+-            const file = req.shot && await shot(req.shot);
+-            const reply = await this.turn({ ...req, ...preset, stream,
+-                system: preset ? preset.system : this.system(req),
++            const reply = await this.run_turn({ ...req, ...preset, stream,
++                system: preset ? preset.system : undefined,
+                 on_chunk: reply_id ? text => Assistant.chunk(reply_id, text) : undefined,
+-                board_id: reply_id,
+-                prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
++                board_id: reply_id });
+ 
+             if (req.task && !reply.error) this.record(req, reply);
+             if (preset && !reply.error) Assistant.remember(tab?.id, reply.session_id);
+@@ -141,6 +179,39 @@ export default class Ask {
+         return lines.join("\n\n") || null;
+     }
+ 
++    /* The one function `ask()` (the socket path) and `turn_http()` (the HTTP door,
++     * `route()` above) both call — a screenshot read in first if `shot` was asked
++     * for, the default system line filled in unless the caller already built its
++     * own (a preset does), then one spawn via `turn()` below. Sharing this instead
++     * of copying it means a change to either — a new default system line, a new
++     * screenshot rule — only has to happen once. */
++    async run_turn(req){
++        const file = req.shot && await shot(req.shot);
++        return this.turn({ ...req, system: req.system ?? this.system(req),
++            prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
++    }
++
++    /* THE HTTP DOOR'S own turn — the same dedupe-by-key lock `ask()` keeps, the
++     * same shared `run_turn()`, the same thread log `record()` writes to if `task`
++     * is given — just none of `ask()`'s socket-only bookkeeping (no live tab to
++     * claim, no preset, no streaming, no `ask_done` rpc). Never throws: a failed
++     * turn comes back as `{error}`, the same shape `ask()`'s own caller sees. */
++    async turn_http(req){
++        const key = req.resume || req.task || req.id;
++        if (turns.has(key)) return { error: "That session is mid-turn." };
++        turns.set(key, req.id);
++
++        try {
++            const reply = await this.run_turn(req);
++            if (req.task && !reply.error) this.record(req, reply);
++            return reply;
++        } catch (e){
++            return { error: String(e?.message || e) };
++        } finally {
++            turns.delete(key);
++        }
++    }
++
+     /* The whole command line, as data — so what a turn is told is one readable list and
+      * a test can assert on it without spawning anything. `effort` is the CLI's own
+      * `--effort low|medium|high|xhigh|max` (confirmed on the installed CLI — there is
+@@ -261,3 +332,13 @@ export default class Ask {
+         fs.appendFileSync(file, lines.map(l => JSON.stringify(l)).join("\n") + "\n");
+     }
+ }
++
++/* A tiny second plugin so `Ask.route()` (above) registers ONCE, at server boot —
++ * distinct from `Ask.setup(socket)`, which `DevSocket.Socket.use(Ask)` calls once
++ * per WebSocket connection. Same convention as Whisper.js/ServexProxy.js: wait
++ * for the server's own "express" event, then add the route. `Server.use(AskRoute)`
++ * in run.js, alongside the existing `DevSocket.Socket.use(Ask)`. */
++export class AskRoute {
++    static setup(server){ new AskRoute(server); }
++    constructor(server){ server.on("express", () => Ask.route(server)); }
++}
+diff --git a/Server/plugins/MCP.js b/Server/plugins/MCP.js
+index b01b1276..e8fcc91f 100644
+--- a/Server/plugins/MCP.js
++++ b/Server/plugins/MCP.js
+@@ -11,6 +11,40 @@ export function loopback(address){
+     return LOOPBACK.test(String(address ?? "").replace(/%.*$/, ""));
+ }
+ 
++/* The home network, plus loopback — the one guard shared by every route built so a
++ * phone on the owner's own Wi-Fi can reach the dev server (`/ask/turn`, `/servex/*`,
++ * `/whisper/*`; see each file's own doc comment for why that route exists at all).
++ * `loopback()` above stays strict for the routes that must never leave this machine
++ * (`/mcp`, `/screenshot`, the socket) — this is a second, wider guard for the routes
++ * built ON PURPOSE to answer a phone, so they still refuse the open internet if this
++ * machine's router or Servex's own :8090 were ever port-forwarded. The three private
++ * ranges are the ones a home router hands out (RFC 1918): 10.0.0.0/8, 172.16.0.0/12,
++ * 192.168.0.0/16. `::ffff:` (an IPv4 address as seen through an IPv6-dual-stack
++ * socket) is stripped first, same as `loopback()` already does for `%zone`. */
++const PRIVATE = /^(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)$/;
++export function lan(address){
++    const a = String(address ?? "").replace(/%.*$/, "").replace(/^::ffff:/, "");
++    return LOOPBACK.test(a) || PRIVATE.test(a);
++}
++
++/* DNS REBINDING'S OTHER HALF — `lan()` above only asks "did this TCP connection
++ * come from a safe address"; it says nothing about which site the BROWSER thinks
++ * it is talking to. A page the owner opens on the open internet can bind a name
++ * to 127.0.0.1 (or wait for its own DNS record's TTL to expire and re-point it),
++ * so a script on that page fetches "http://attacker-name.example/ask/turn", the
++ * request lands on THIS loopback-bound server and passes `lan()`, yet the browser
++ * still treats it as same-origin with the attacker's page — same-origin
++ * protections never fire. Checking the request's own `Host` header closes that:
++ * a real phone or a real tab on this LAN always sends `localhost`, `*.localhost`,
++ * `127.0.0.1` or this machine's own LAN IP as `Host`, never an outside domain.
++ * Every LAN-facing route (`/ask/turn`, `/servex/*`, `/whisper/*`) must pass BOTH
++ * `lan(address)` and this — one checks the network the request arrived on, the
++ * other checks the name it claims to be for. */
++const SAFE_HOST = /^(localhost|127\.0\.0\.1|[\w-]+\.localhost|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?$/i;
++export function safe_host(host){
++    return SAFE_HOST.test(String(host ?? ""));
++}
++
+ const TAB = { type: "string", description: "Which tab, by the `tab` id `pages` gives it. The reliable way to name one — prefer it to `path`." };
+ const PATH = { type: "string", description: "Which tab, by the url path it reported. Refused when it names more than one tab; omit only when exactly one tab is connected." };
+ 
+diff --git a/Server/plugins/ServexProxy.js b/Server/plugins/ServexProxy.js
 new file mode 100644
-index 00000000..cdefc390
+index 00000000..f4b9828d
 --- /dev/null
-+++ b/public/framework/ext/drawer/rail.css
-@@ -0,0 +1,79 @@
-+/* The mobile bottom rail (rail.js) — below 52em only, hidden entirely above it.
-+   A normal flex child of `.app`, not `position: fixed`: `.app` is a 100%-height
-+   column with `.pages` as its one growing row (framework.css), so this bar being
-+   the LAST child of that column already takes its own space and `.pages` shrinks
-+   to fit above it — no separate token to keep in sync. doc/decisions.md. */
-+@layer theme {
++++ b/Server/plugins/ServexProxy.js
+@@ -0,0 +1,78 @@
++import { Readable } from "stream";
++import { lan, safe_host } from "./MCP.js";
 +
-+	.drawer-rail { display: none; }
++const SERVEX = "http://127.0.0.1:8090";
 +
-+	@media (max-width: 52em) {
-+		.drawer-rail {
-+			display: flex; flex: 0 0 auto;
-+			gap: 0.4em;
-+			/* `env()`'s own fallback, not `max()` alone — a browser that has never
-+			   heard of `env()` reads the second argument as invalid and drops the
-+			   WHOLE declaration, leaving no bottom padding at all on a phone with
-+			   a home-indicator strip. */
-+			padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px));
-+			background: var(--surface);
-+			border-top: 1px solid var(--line);
++/* A dev-only, same-origin PROXY onto Servex — `/servex/*` → `http://127.0.0.1:8090/*`,
++ * built for `ai/2026-09-29/mobile-nav/` the same way `Server/plugins/Whisper.js`
++ * proxies `/whisper/*` onto whisper-server. Servex answers the AI drawer's page-ai
++ * route and the prompt log at `127.0.0.1:8090`, and that address means a different
++ * machine on every device — a phone on the LAN can never reach "127.0.0.1" that way.
++ * `public/framework/dev/servex_url.js` is the browser side of this same wire: it
++ * points a non-localhost page at `<origin>/servex` instead of `127.0.0.1:8090` directly.
++ *
++ * Guarded by `lan()` AND `safe_host()` (`MCP.js`), the SAME checks `/ask/turn`
++ * uses — loopback or this machine's own Wi-Fi, AND a `Host` header that actually
++ * names this machine (closing DNS rebinding: a page bound to 127.0.0.1 from an
++ * outside domain would otherwise pass `lan()` alone). This exposes ALL of Servex's HTTP
++ * API (agents, servers, logs — not just the page-ai and prompt-log calls the phone's
++ * drawer happens to make today) to anyone on that network, which is the owner's own
++ * choice (2026-09-29: "do NOT downgrade the phone's assistant" — a path allow-list
++ * would have to be kept in lockstep with whatever the drawer starts calling next,
++ * and would still let a full Servex user run every agent tool from a browser tab
++ * that IS on the network, just through a narrower door). A caller outside `lan()`
++ * gets 403 before any request reaches Servex at all.
++ *
++ * Forwards the method, every header but `host` (which must name THIS server, not
++ * Servex, or `fetch` sends the wrong one) and the raw body bytes untouched — a
++ * page-ai call is small JSON, but this stays generic (any method, any content-type)
++ * rather than special-casing JSON, so it also carries whatever Ask ends up needing.
++ * The reply streams straight back with `Readable.fromWeb`, so a chunked reply (Ask's
++ * own streaming turns) is not buffered whole before the caller sees the first byte.
++ * A dead or missing Servex answers 502 with a plain JSON reason — same shape as
++ * Whisper.js's own failure path, so callers already know what "unreachable" looks like. */
++export default class ServexProxy {
++
++	static setup(server) { new ServexProxy(server); }
++
++	constructor(server) {
++		this.server = server;
++		server.on("express", () => this.route());
++	}
++
++	route() {
++		this.server.router.all(/^\/servex\/(.*)/, this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
++			const from = req.socket.remoteAddress;
++			if (!lan(from) || !safe_host(req.headers.host)){
++				console.warn(`ServexProxy: REFUSED ${req.originalUrl} from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
++				return res.status(403).json({ error: "loopback/LAN only; refused " + from });
++			}
++
++			const rest = req.params[0] || "";
++			const qs = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
++			const target = `${SERVEX}/${rest}${qs}`;
++
++			try {
++				const headers = { ...req.headers };
++				delete headers.host;
++				delete headers["content-length"];
++
++				const r = await fetch(target, {
++					method: req.method,
++					headers,
++					body: ["GET", "HEAD"].includes(req.method) || !req.body?.length ? undefined : req.body,
++					signal: AbortSignal.timeout(30000),
++				});
++
++				res.status(r.status);
++				for (const [k, v] of r.headers)
++					if (!["content-encoding", "transfer-encoding", "connection"].includes(k.toLowerCase())) res.set(k, v);
++
++				if (r.body) Readable.fromWeb(r.body).pipe(res);
++				else res.end();
++			} catch (e) {
++				res.status(502).json({ error: "Servex unreachable: " + (e?.message || e) });
++			}
++		});
++	}
++}
+diff --git a/Server/plugins/Whisper.js b/Server/plugins/Whisper.js
+index 2ef97e51..bbb6ea9a 100644
+--- a/Server/plugins/Whisper.js
++++ b/Server/plugins/Whisper.js
+@@ -1,6 +1,7 @@
+ import { spawn } from "child_process";
+ import fs from "fs";
+ import path from "path";
++import { lan, safe_host } from "./MCP.js";
+ 
+ const HOME = process.env.WHISPER_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "whisper");
+ const EXE = path.join(HOME, "bin", "whisper-server.exe");
+@@ -68,6 +69,13 @@ export default class Whisper {
+      * (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this route exists
+      * so a LAN client can reach it.
+      *
++     * Guarded by `lan()` AND `safe_host()` (`MCP.js`) — the same checks `/ask/turn`
++     * and `/servex/*` use: loopback or this machine's own Wi-Fi, AND a `Host`
++     * header that actually names this machine (closes DNS rebinding). Loopback-only
++     * guards (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this
++     * route exists so a LAN client can reach it — but "any LAN client" is not "anyone
++     * who can reach this port," which a forwarded router would otherwise make true.
++     *
+      * Forwards the request bytes and its `content-type` untouched — a whisper `/inference`
+      * POST is `multipart/form-data` with a boundary in that header, and re-building the
+      * multipart body instead of forwarding it verbatim would be strictly more code for no
+@@ -75,7 +83,16 @@ export default class Whisper {
+      * `Dictate.detect_engine()` already reads as "not reachable" (it only checks `r.ok`)
+      * and falls back to the browser's own engine — nothing new for that caller to learn. */
+     route() {
++        const guard = (req, res) => {
++            const from = req.socket.remoteAddress;
++            if (lan(from) && safe_host(req.headers.host)) return true;
++            console.warn(`Whisper: REFUSED ${req.originalUrl} from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
++            res.status(403).json({ error: "loopback/LAN only; refused " + from });
++            return false;
++        };
++
+         this.server.router.post("/whisper/inference", this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
++            if (!guard(req, res)) return;
+             try {
+                 const r = await fetch(`http://127.0.0.1:${PORT}/inference`, {
+                     method: "POST",
+@@ -93,6 +110,7 @@ export default class Whisper {
+         });
+ 
+         this.server.router.get("/whisper/", async (req, res) => {
++            if (!guard(req, res)) return;
+             try {
+                 const r = await fetch(`http://127.0.0.1:${PORT}/`, { signal: AbortSignal.timeout(1500) });
+                 res.status(r.status).send(await r.text());
+diff --git a/Server/run.js b/Server/run.js
+index 965e3a1a..92ba325f 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -10,12 +10,13 @@ import PageFiles from "./plugins/PageFiles.js";
+ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+-import Ask from "./plugins/Ask.js";
++import Ask, { AskRoute } from "./plugins/Ask.js";
+ import CardAnswer from "./plugins/CardAnswer.js";
+ import MCP from "./plugins/MCP.js";
+ import Recordings from "./plugins/Recordings.js";
+ import Research from "./plugins/Research.js";
+ import Screenshots from "./plugins/Screenshots.js";
++import ServexProxy from "./plugins/ServexProxy.js";
+ import Start from "./plugins/Start.js";
+ import Whisper from "./plugins/Whisper.js";
+ import Tab from "./plugins/SocketServer/Tab.js";
+@@ -38,5 +39,7 @@ Server.use(Recordings);
+ Server.use(Research);   // registers its tools on MCP — after it
+ Server.use(Screenshots);
+ Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
++Server.use(ServexProxy);   // /servex/* → Servex, for a phone on the LAN — Server/plugins/ServexProxy.js
++Server.use(AskRoute);   // POST /ask/turn — the AI drawer's one Claude turn, for a phone on the LAN — Server/plugins/Ask.js
+ 
+ new Server();
+diff --git a/public/framework/ai/2026-09-29/mobile-nav/task.jsonl b/public/framework/ai/2026-09-29/mobile-nav/task.jsonl
+index 85b66ed4..b5155843 100644
+--- a/public/framework/ai/2026-09-29/mobile-nav/task.jsonl
++++ b/public/framework/ai/2026-09-29/mobile-nav/task.jsonl
+@@ -74,3 +74,15 @@
+ {"assign":{"cost_usd":30.0104,"cost":{"root":"task-mastermind-mobile-nav","agents":[{"id":"task-mastermind-mobile-nav","model":"claude-opus-5-5","role":"task-mastermind","usd":3.64},{"id":"minion-mic-variants","model":"claude-sonnet-5","role":"minion","usd":13.5342},{"id":"minion-mobile-rail","model":"claude-sonnet-5","role":"minion","usd":6.2051},{"id":"minion-review-fixes","model":"claude-sonnet-5","role":"minion","usd":6.1445},{"id":"minion-mobile-walkthrough","model":"claude-haiku-4-5-20251001","role":"minion","usd":0.2943},{"id":"minion-mobile-review","model":"claude-sonnet-5","role":"minion","usd":0.1923}],"own_usd":3.64,"minions_usd":26.37,"parent_task":null,"open":1,"window":{"from":"2026-09-29T15:03:59-05:00","to":null},"at":"2026-09-29T16:05:10-05:00"}}}
+ {"assign":{"step":7,"now":"landed","title":"Mobile: the ☰ is the page nav again, plus an ✦ AI rail at the bottom","landed_at":"2026-09-29T16:05:55-05:00","outcome":"**On a phone the ☰ opens the page's own nav again, and a bottom rail brings the AI: ✦ listens and turns each sentence into a card.** [Walkthrough, steps 8–11](/framework/ext/drawer/walkthrough/#8)\n\n- [x] ☰ = the home links / the framework sidebar: shots/step1-*-400-sidebar-open.png\n- [x] bottom rail with the AI star: [rail](/framework/ext/drawer/rail/), shots/step2-rail-400.png\n- [x] sheet listens, sentences become prompt cards: shots/fix-sheet-no-double-caption-400.png\n- [x] drawer tabs on mobile: ⋯ More, shots/step2-rail-menu-opens-drawer-400.png\n- [x] mic errors say why and how to fix; sound only once the mic is on: shots/sheet-case-1..5-*.png\n- [x] https on the LAN proposed, nothing installed: [https-lan](/framework/ux/Dictate/doc/https-lan/)\n- [x] Dictate variants linked from the playground: [Variants](/framework/ux/Dictate/variants/)\n- [x] v1 kept: .drawer-menu-v1, DrawerRail.V1, a frozen [v1 Dictate](/framework/ux/Dictate/variants/v1/)\n\nReviewed: 8 fixed, 1 declined, 2 noted ([review.md](/framework/ai/2026-09-29/mobile-nav/review.md)), plus a fresh-eyes pass: all met.\n\nLeft: the phone reaches Whisper only after a dev-server restart. Spent about $30 of $10.","links":[{"url":"/framework/ext/drawer/walkthrough/#8","label":"Walkthrough: the phone steps"},{"url":"/framework/ext/drawer/rail/","label":"Mobile bottom rail"},{"url":"/framework/ux/Dictate/variants/","label":"Dictate variants"},{"url":"/framework/ux/Dictate/doc/https-lan/","label":"https on the LAN (proposal)"},{"url":"/framework/ai/2026-09-29/mobile-nav/review.md","label":"Review"}],"tokens":null}}
+ {"log":{"at":"2026-09-29T16:05:55-05:00","msg":"Left for the owner or the master mastermind: Server/plugins/Whisper.js's same-origin /whisper proxy is merged but inactive until the monorepo dev server restarts (a task mastermind may not restart it). Not in this task's four steps: the owner's question about where the home and framework sidebars are defined and the hide-nav CSS; it was addressed to the page-structure mastermind. Worktree dir C:\\Code\\lew42\\worktrees\\mobile-nav still holds untracked files, so it was not removed."}}
++{"assign":{"session_id":"minion-lan-guard"}}
++{"log":{"msg":"Review-fix minion started: findings 1, 2, 3, 4, 8 from review.md. Owner amendment (via task-mastermind-mobile-nav): item 1 keeps LAN callers at full parity with loopback (same tools, same resume) — only the false 'no shell, no file write' comment is fixed; item 2 becomes one shared guard (loopback + 10/8, 172.16/12, 192.168/16) applied to /ask/turn, /servex/*, /whisper/*, not a path allow-list; item 8b becomes a unit check of the guard function instead of a live 403 proof."}}
++{"decision":{"question":"Where does the shared LAN-or-loopback guard live?","options":["a new Server/plugins/Guard.js","Server/plugins/MCP.js, beside the existing loopback()"],"chosen":"MCP.js","why":"loopback() already lives there and is imported by four other plugins the same way; a second guard beside it is one import site, not a new module to discover.","rule":"code#3 (parts are classes/functions that hang together, not new files by default)"}}
++{"log":{"msg":"Ask.js: added lan() guard (403 before any turn work) on POST /ask/turn; rewrote the doc comment that falsely said 'no shell, no file write' — the LAN door now gets the exact same tools/resume as loopback, per the owner's amendment. No tools:'' restriction added."}}
++{"log":{"msg":"ServexProxy.js: replaced the planned path allow-list with the same lan() guard on the whole /servex/* proxy — refuses non-loopback/non-LAN before any Servex request is made. Doc comment names the tradeoff (whole Servex API reachable from the LAN) as the owner's explicit choice."}}
++{"log":{"msg":"Whisper.js: same lan() guard added to both /whisper routes (was open to any caller reaching the port at all); comment updated — it used to say loopback guards don't apply here 'on purpose', which was true but let in the whole internet if the port were ever forwarded."}}
++{"log":{"msg":"Unit-checked lan() with 13 cases (loopback v4/v6/mapped, all three private ranges' edges, and four outside addresses including the 172.16/12 boundary) — all passed. Command and cases are in this task's shots/ dir is not used for this; ran ad hoc via node -e, not persisted (no test convention in Server/)."}}
++{"log":{"msg":"inbox.js: servex_base()'s bare fallback was hard-coded 127.0.0.1:8090 (meaningless off this machine); now falls through to servex_url() (dev/servex_url.js), matching what tabs/ai.js already does."}}
++{"log":{"msg":"rail.js: Sheet.card() on a card page used to fire-and-forget send() — a failed send (Servex down, which is the normal case for a phone before this task) silently lost the sentence. Added not_sent(text, note), appended into $thread, showing the sentence marked 'not sent — <note>'."}}
++{"log":{"msg":"tabs.js: DEV was a synchronous hostname-only const, so the servex_url() LAN swap in tabs/ai.js's send() never ran on a phone (DEV gated it, and DEV was always false off localhost). Changed to `export let DEV`, starting at the synchronous localhost answer and, off localhost, flipped true by one live POST /ask/turn probe (400 = real dev server; 404/failure = static host). ES module named exports are live bindings, so every importer sees the flip without re-importing."}}
++{"log":{"msg":"Proof, over the LAN address (http://10.0.0.135:59637, worktree's own server, PORT=59637, NO_WHISPER=1, wrapper PID 33040 killed at the end — never run.js directly): (a) shots/card-400-lan-sheet.png — /framework/ai2/2026/09/29/layout-explorer-3-columns-and-a-study-of/ at 400x800 with the sheet open, showing that card's real persisted thread (not the local-prompt fallback). The originally-named card id in the brief (mobile-nav-back-an-ai-rail-at-the-bottom) turned out to be a board-only virtual card with no ai2 Card route (confirmed identically 404ing on loopback too, so pre-existing and out of this task's scope) — used a real, routable card instead to prove the same finding (#3/#8a). (b) superseded by the unit check above, per the owner's amendment. (c) shots/proxy-reply-400.png — a plain (non-card) page's AI tab, same LAN address: typing 'ping' now goes through servex_url()'s page-ai route (note: 'sent to this page's assistant') instead of silently failing — proof DEV's LAN flip (finding #4) actually enables the swap in tabs/ai.js. Localhost re-checked afterwards: DEV is still synchronously true there (one eval check), unchanged."}}
++{"log":{"msg":"Reverted page.jsonl noise from the proof server's own view-logging (13 files, git checkout --) before committing. Left as-is: findings 5, 6, 7 (not in this brief's numbered list)."}}
+diff --git a/public/framework/ai2/ai2.css b/public/framework/ai2/ai2.css
+index ae513135..e18f6501 100644
+--- a/public/framework/ai2/ai2.css
++++ b/public/framework/ai2/ai2.css
+@@ -784,6 +784,19 @@
+ 		display: none;
+ 	}
+ 
++	/* "Folder" TWICE (one-ai, 2026-09-29): core's own page chrome
++	   (`core/Page/Page.class.js` `render()`) draws a "📁 Folder" link on EVERY
++	   page, before that page's own `content()` ever runs — so a card page showed
++	   it once for the AI 2 shell it sits inside AND again for itself, one above
++	   "AI 2" and one above "← all cards". The card's own fold ("More…") already
++	   has its own way into the folder (`draw_folder()`), so the card's copy is
++	   the redundant one; the shell's stays as the one, real way in.
++	   ⚠ `!important`: core sets this with `.style()`, an inline style, which
++	   nothing but `!important` can beat (`css` skill's own cascade order). */
++	.page.ai2-card-page > .page-fs-link {
++		display: none !important;
++	}
++
+ 	.ai2-full-title {
+ 		font-weight: 700;
+ 		font-size: 1.2em;
+@@ -1652,7 +1665,14 @@
+ 		gap: 0.2em var(--gap-50);
+ 	}
+ 
+-	.ai2-full-name > .ai2-full-title { flex: none; }
++	/* ⚠ NOT `flex: none` (found 2026-09-29, "title runs under Actions"):
++	   `.ai2-full-name` is itself shrunk to `min-width: 0` by its parent flex row,
++	   but a `flex-shrink: 0` title inside it refuses to follow — the title kept
++	   its full one-line width and ran straight under the Actions button at
++	   400px, the exact "flex-shrink defaults to 1" trap in reverse (`code` skill
++	   §7). Letting it shrink and wrap (its own `overflow-wrap: anywhere`, above)
++	   is what stacking the state badge onto its own line below now depends on. */
++	.ai2-full-name > .ai2-full-title { flex: 1 1 auto; min-width: 0; }
+ 
+ 	.ai2-state {
+ 		font-size: 0.9em;
+diff --git a/public/framework/ai2/card.js b/public/framework/ai2/card.js
+index d424d3b7..d99a7916 100644
+--- a/public/framework/ai2/card.js
++++ b/public/framework/ai2/card.js
+@@ -85,6 +85,21 @@ export default class Card extends Page {
+ 
+ 	static base = "/framework/ai/";
+ 
++	/* ONE AI, NOT TWO (one-ai, 2026-09-29; `doc/one-ai.md` has the full finding).
++	   Off by default: the card's own composer bar and its half/half chat split
++	   are gone, because the global AI now talks into this card instead — the
++	   mobile ✦ sheet (`ext/drawer/rail.js`) and the desktop drawer's AI tab
++	   (`ext/drawer/tabs/ai.js`) both post through the SAME route this card's old
++	   composer used (`tabs/ai.js`'s `send({card, text})`) and can show this
++	   card's own thread by reading `chat_entries()` below — so a second, in-card
++	   copy of the same conversation had nothing left to add.
++	   Set `Card.V1 = true` (or open a card with `?chat=v1`) to bring the old,
++	   unchanged box back for comparison — see `chat_v1()`. */
++	static V1 = false;
++
++	/** Old box or new: a subclass flips `Card.V1`, or the url says `?chat=v1`. */
++	chat_v1(){ return !!this.constructor.V1 || new URLSearchParams(location.search).get("chat") === "v1"; }
++
+ 	assign(...args){
+ 		for (const obj of args) if (obj) for (const key of Object.keys(obj))
+ 			VERBS.has(key) ? this[key](obj[key]) : (this[key] = obj[key]);
+@@ -221,26 +236,35 @@ export default class Card extends Page {
+ 		});
+ 		this.fill_tasks();
+ 
+-		div.c("ai2-foot", () => {
+-			this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
+-			const fresh = !!shell && shell.opening === this.id;
+-			if (fresh) shell.opening = null;
+-			this.$composer = composer({
+-				re: () => this.id,
+-				placeholder: sub ? "talk into this request" : "talk into this card",
+-				on_text: text => this.talk.echo(text),
+-				autostart: fresh && shell.auto_transcribe?.(),
++		const fresh = !!shell && shell.opening === this.id;
++		if (this.chat_v1()){
++			div.c("ai2-foot", () => {
++				this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
++				if (fresh) shell.opening = null;
++				this.$composer = composer({
++					re: () => this.id,
++					placeholder: sub ? "talk into this request" : "talk into this card",
++					on_text: text => this.talk.echo(text),
++					autostart: fresh && shell.auto_transcribe?.(),
++				});
++				// The chat's own inline-start edge. ONE chat column on screen at a time (the
++				// deepest open card's), so one token for every card: the chat keeps its width
++				// as you move between a card and its sub-cards (layout-unify, 2026-09-24).
++				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
+ 			});
+-			// The chat's own inline-start edge. ONE chat column on screen at a time (the
+-			// deepest open card's), so one token for every card: the chat keeps its width
+-			// as you move between a card and its sub-cards (layout-unify, 2026-09-24).
+-			Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
+-		});
++		} else if (fresh){
++			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge) — just
++			// through the global sheet now, not a composer built into this page, and only on
++			// the phone: the desktop drawer's AI tab has no auto-mic of its own to start.
++			shell.opening = null;
++			if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
++				import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
 +		}
+ 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
+ 		// column also holds the chat, so the chat is held at its current width while you
+ 		// drag — the seam then moves only the card and the sub-card, the two beside it.
+ 		if (sub) Card.seam("--ai2-subw", "ai2-sub-w", 320, () => innerWidth - 700, () => this.hold_chat());
+-		this.talk.sync();
++		this.talk?.sync();
+ 	}
+ 
+ 	/** Pin the chat column at the width it has now, if nothing has set it yet. For this
+@@ -301,6 +325,25 @@ export default class Card extends Page {
+ 		}
+ 		this.talk?.sync();
+ 		this.fill_tasks();
++		if (!this.chat_v1()) this.sync_global_ai();
 +	}
 +
-+	.drawer-rail-ai, .drawer-rail-menu {
-+		flex: 1 1 0;
-+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
-+		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
-+		padding: 0.3em 0.5em;
-+		font: inherit; font-size: 0.7em; line-height: 1.2;
-+		color: var(--subtle);
-+		background: none;
-+		border: 0;
-+		border-radius: calc(var(--radius) / 2);
-+		cursor: pointer;
-+	}
-+	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
-+	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
-+	.drawer-rail-ai { color: var(--prim); }
-+	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
++	/* THE GLOBAL AI'S OWN COPY OF THIS THREAD (one-ai, 2026-09-29) — the mobile ✦
++	   sheet draws this card's `chat_entries()` too (`ext/drawer/rail.js`), through
++	   its own `chat()` instance, so a reply streaming in has to reach THAT
++	   instance's `sync()` as well, not just a `this.talk` this page no longer has.
++	   Cheap and safe to call every redraw: `rail.js` is already loaded on every
++	   page (`menu.js` imports it eagerly), so the import below resolves at once,
++	   and it is a no-op unless the sheet exists, is open, and is showing THIS
++	   card — never another one open on a different tab. */
++	sync_global_ai(){
++		import("/framework/ext/drawer/rail.js").then(m => {
++			const sheet = m.default(this.app)?.$sheet;
++			if (sheet?.card_id === this.id) sheet.talk?.sync();
++		});
++		// The desktop drawer's AI tab, same idea — a no-op unless it is open on
++		// exactly this card (`ext/drawer/tabs/ai.js`'s own `sync_card_thread()`).
++		import("/framework/ext/drawer/tabs/ai.js").then(m => m.sync_card_thread?.(this.id));
+ 	}
+ 
+ 	/* ── the task pages ──────────────────────────────────────────────────── */
+diff --git a/public/framework/ai2/doc/one-ai.md b/public/framework/ai2/doc/one-ai.md
+new file mode 100644
+index 00000000..e3771709
+--- /dev/null
++++ b/public/framework/ai2/doc/one-ai.md
+@@ -0,0 +1,73 @@
++# One AI, not two (2026-09-29)
 +
-+	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
-+	   too (a bottom sheet that left the tab bar showing under it would read as
-+	   two floors) — closing it (✕) is the only way back to the rail. */
-+	.drawer-rail-sheet {
-+		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
-+		display: none; flex-direction: column;
-+		max-block-size: 70vh;
-+		gap: calc(var(--gap) * 0.6);
-+		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
-+		background: var(--surface);
++The owner's words: a card page had its own built-in chat (a composer bar, a mic, a
++"talk into this card" box, split about half the phone screen against the card's own
++content) — and separately, every page already has a global AI: the mobile bottom
++rail's ✦ button (a listening sheet) and the desktop drawer's AI tab. He asked: do
++those two talk into the same place? If so, why does a card need its own copy?
++
++## What was actually true before this task
++
++**The backend was already shared — the display was not.**
++
++- The card's own composer (`ai2/compose.js`) posts each message into Servex's prompt
++  log with `re: <card id>`, and the fast assistant / manager that watch that log
++  reply into the SAME card. The card's own chat (`ai2/chat.js`, reading
++  `card.chat_entries()`) draws that whole persisted thread.
++- The **desktop drawer's AI tab** (`ext/drawer/tabs/ai.js`) already detects a card
++  page (`tabs.js`'s `context()`, duck-typed: "is the active page AI 2's card.js")
++  and, when it does, sends through `send({ card: card.id, ... })` — which posts to
++  the exact same Servex prompt-log route the card's own composer used
++  (`post_card()` in `ai.js`). So on desktop, a message typed in the drawer's AI tab
++  on a card page and a message typed in the card's own composer already landed in
++  the same session, answered by the same assistant.
++  **But** the drawer tab drew its own separate, throwaway list of turns
++  (`ai.js`'s `turn()`), empty every time the tab opens — it never read the card's
++  persisted `chat_entries()`. So even though the messages shared a backend, the
++  reader saw two different-looking, differently-remembered conversations.
++- The **mobile ✦ sheet** (`ext/drawer/rail.js`'s `DrawerRailSheet`) was not
++  connected at all. It built a bare `Dictate` widget in `mode: "open"` and turned
++  every finished sentence into a purely local "prompt item" card, drawn only in
++  the sheet's own DOM — it never called `send()`, never posted to Servex. Talking
++  into the ✦ sheet on a card page reached nobody; it was a dead end.
++
++## What changed (this task's fence: `ai2/**`, `ext/drawer/{rail.js, rail.css,
++drawer.css, tabs.js}` — not `ext/drawer/tabs/ai.js`, owned by a sibling minion)
++
++1. **The card's own composer bar and its half/half split are gone by default.**
++   `Card.content()` (`ai2/card.js`) no longer builds `.ai2-foot` (the chat log +
++   composer + the desktop card|chat seam) unless `chat_v1()` says so. The card's
++   content region now fills the whole page height — no second, smaller box fighting
++   it for space.
++2. **The mobile ✦ sheet now talks into the card it sits on top of.** Opening it on
++   a card page (`DrawerRailSheet.active_card()`, the same duck type `tabs.js` uses)
++   makes it: (a) show that card's own real, persisted thread by reusing
++   `ai2/chat.js` — the exact same widget the card used to draw itself, reading the
++   exact same `chat_entries()`; (b) post every finished sentence through
++   `tabs/ai.js`'s exported `send({ card, text })` — called, never edited — the same
++   route the desktop tab and the old composer both use. A reply lands in the one
++   thread; the sheet's own `sync_global_ai()` hook (called from `Card.redraw()`)
++   keeps that thread live while the sheet is open.
++3. On any page that is **not** a card, the ✦ sheet is unchanged: a bare mic, each
++   sentence its own small local card — nothing here regresses that.
++4. The **desktop drawer's AI tab** showing the card's persisted thread (not just
++   sharing its backend) is `ext/drawer/tabs/ai.js` — outside this task's fence,
++   left for the minion already working that file.
++
++## v1, kept reachable
++
++`Card.V1 = true` (a subclass) or opening a card with `?chat=v1` in the url brings
++back the old, byte-for-byte composer bar + chat + split, unchanged — `chat_v1()`
++in `ai2/card.js`.
++
++## Later: layout experiment
++
++The owner also described a *possible* third option — a resizable vertical split on
++the phone itself, with a grip on the seam you could drag up or down, and maybe a
++way to click the seam to close one side or merge the two — as something worth
++trying in the page-layout system generally, not something to build for this task
++yet ("it seems like it could be tricky... maybe for now" the plain merge above is
++enough). It is not built here. If it is picked up later, it belongs in the layout
++system as a general two-pane-with-grip primitive (not AI2-specific), since the
++same shape — "two scrolling regions stacked on a phone, resizable, closable one at
++a time" — would be reusable well beyond a card's chat.
+diff --git a/public/framework/ai2/inbox.js b/public/framework/ai2/inbox.js
+index cd35f629..040ea70d 100644
+--- a/public/framework/ai2/inbox.js
++++ b/public/framework/ai2/inbox.js
+@@ -2,6 +2,7 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+ import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
+ import { fold_card, parse_lines, summary } from "./fold.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ 
+ export { fold };
+ 
+@@ -105,9 +106,16 @@ export async function say(id, word, { note, quote } = {}){
+  */
+ /* ⚠ `?servex=` IS READ ONCE, when this module loads, and kept: the first click
+    on a card drops the query string, and a test page pointed at a scratch Servex
+-   would then silently post the next sentence into the REAL one. */
++   would then silently post the next sentence into the REAL one.
++ *
++ * The bare fallback used to be the hard-coded `http://127.0.0.1:8090` — exactly
++ * right on this machine, meaningless on a phone reading the page by its LAN
++ * address ("127.0.0.1" then means the phone, not the PC running Servex). Off
++ * localhost `servex_url()` (`dev/servex_url.js`) points here instead at
++ * `<origin>/servex`, the same-origin proxy `Server/plugins/ServexProxy.js`
++ * answers (mobile-nav, 2026-09-29). */
+ const PINNED_SERVEX = new URLSearchParams(location.search).get("servex");
+-export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || "http://127.0.0.1:8090";
++export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || servex_url();
+ 
+ /* SERVEX IS OPTIONAL. Everything that reads is a static file (below); Servex is
+    for writes, live agents and the push. `servex_up()` asks it ONCE — and never
+diff --git a/public/framework/ai2/readme.md b/public/framework/ai2/readme.md
+index 455e5089..cb46c22b 100644
+--- a/public/framework/ai2/readme.md
++++ b/public/framework/ai2/readme.md
+@@ -208,6 +208,9 @@ To draw a card from anywhere, append a line to one of the logs it reads:
+ 
+ ## More
+ 
++- [`doc/one-ai.md`](./doc/one-ai.md) — 2026-09-29: the card's own composer bar and chat
++  split are gone by default; the mobile ✦ sheet and the desktop drawer's AI tab talk into
++  the card instead, same session, same thread. `Card.V1` / `?chat=v1` keeps the old box.
+ - [`doc/card-standard.md`](./doc/card-standard.md): what every card shows, in order: its folder, its objects, its checklist, then words
+ - [`doc/groups.md`](./doc/groups.md) — the seven groups, how a thing joins one, how a group rises
+ - [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status
+diff --git a/public/framework/dev/Socket/Socket.js b/public/framework/dev/Socket/Socket.js
+index c1db36d0..2eea51b2 100644
+--- a/public/framework/dev/Socket/Socket.js
++++ b/public/framework/dev/Socket/Socket.js
+@@ -61,8 +61,10 @@ export default class Socket {
+ 		// Put the reader back where they were, if the last thing this tab did was reload.
+ 		this.restore();
+ 
+-		// ⚠ LOCALHOST ONLY — production is static hosting with nothing to connect
+-		// to. Keep this gate: it is part of static compatibility.
++		// ⚠ LOCALHOST ONLY, kept on purpose — this socket also carries `rpc:cmd`
++		// and `rpc:write`, so widening it to the LAN would be RCE, not a UX fix.
++		// `POST /ask/turn` (Server/plugins/Ask.js) is the narrow door for a phone
++		// instead; see `ai/2026-09-29/mobile-nav/` (task log) for why.
+ 		if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.endsWith(".localhost")) {
+ 			this.connect();
+ 		} else {
+diff --git a/public/framework/dev/servex_url.js b/public/framework/dev/servex_url.js
+new file mode 100644
+index 00000000..9d830058
+--- /dev/null
++++ b/public/framework/dev/servex_url.js
+@@ -0,0 +1,21 @@
++/* Where Servex answers, from any page. On localhost/127.0.0.1/*.localhost — this
++ * machine — `127.0.0.1:8090` (Servex's own address) is exactly right. From anywhere
++ * else, most of all a phone on the LAN reading the dev server by its IP
++ * (http://10.0.0.135:8137/), "127.0.0.1" means the PHONE, not the PC running Servex,
++ * so the page's own dev server proxies it instead, same-origin: `<origin>/servex/…`.
++ * `Server/plugins/ServexProxy.js` is the other end of this wire — the same pattern
++ * `ux/Dictate`'s `default_whisper_url()` already uses for `/whisper`.
++ *
++ *     import { servex_url } from "/framework/dev/servex_url.js";
++ *     fetch(servex_url("/api/page-ai"), { method: "POST", … });
++ *
++ * One shared helper instead of three copies of the same localhost check — see
++ * `ext/drawer/tabs/ai.js`, `ux/Dictate/Dictate.js` (`log_url`) and
++ * `ux/Dictate/playground/Playground.js` (`TIDY_URL`). */
++const DEV_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/;
++
++export function servex_url(path = ""){
++	return DEV_HOST.test(location.hostname) ? "http://127.0.0.1:8090" + path : location.origin + "/servex" + path;
++}
++
++export default servex_url;
+diff --git a/public/framework/ext/Ask/Ask.js b/public/framework/ext/Ask/Ask.js
+index 2af482b5..24330769 100644
+--- a/public/framework/ext/Ask/Ask.js
++++ b/public/framework/ext/Ask/Ask.js
+@@ -10,8 +10,32 @@ const listeners = new Map();
+    for callers in public/ finds none. Same live path as Socket.reload(). */
+ Socket.prototype.ask_event = function(e){ listeners.get(e.id)?.(e); };
+ 
++/* SAME-ORIGIN FALLBACK for a phone on the LAN — `dev/Socket/Socket.js`'s own dev
++ * socket refuses any non-loopback connection ON PURPOSE (see its doc comment),
++ * so `edit()` is always false off localhost. `Server/plugins/Ask.js`'s `POST
++ * /ask/turn` is the narrower door built for exactly this: one Claude turn, the
++ * SAME tools and the SAME `--resume` as `rpc:ask` runs — not a downgraded one
++ * (the owner's call, 2026-09-29) — guarded instead by that route's own `lan()`
++ * check, loopback or this machine's Wi-Fi, never the open internet. Probed once,
++ * at load, and the check is JSON-or-not, never a status code: a static host can
++ * answer any status for an unknown route (this site's own production host
++ * answers 405, not 404), so only a JSON body proves a real `/ask/turn` is behind
++ * it. `ext/drawer/tabs.js`'s own DEV flag reuses this exact probe (`ask_probe`,
++ * `http_ask_ready`) instead of sending a second one — one fetch per page load,
++ * not two (review, 2026-09-29). Skipped on localhost entirely — `edit()`
++ * already covers it, so there is nothing for this probe to add there, and no
++ * reason to add the network noise. */
++export let http_ask_ready = false;
++export const ask_probe = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname)
++	? Promise.resolve()
++	: fetch(location.origin + "/ask/turn", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
++		.then(r => { http_ask_ready = (r.headers.get("content-type") ?? "").includes("json"); })
++		.catch(() => {});
++
+ // The one switch every editor control reads — ext/Ask/edit.js's doc/decisions.md.
+-export function available(){ return edit(); }
++// True on localhost with edit mode on (the dev socket), OR off localhost once the
++// `/ask/turn` probe above has come back — see its comment.
++export function available(){ return edit() || http_ask_ready; }
+ 
+ /**
+  * One turn of a Claude Code session, from the browser.
+@@ -39,13 +63,12 @@ export function available(){ return edit(); }
+  *
+  *     await ask("What is wrong with this card's layout?", { shot: ".preview-card" });
+  *
+- * ⚠ Rejects off localhost, or with edit mode off in the dev rail. Guard with
+- * `available()` and render the fallback; never let a page depend on this.
++ * ⚠ Off localhost this rides `POST /ask/turn` instead of the socket (see
++ * `available()`'s comment) — same turn, no streaming, no `shot`. Throws when
++ * neither door is open; guard with `available()` and render the fallback,
++ * never let a page depend on this.
+  */
+ export async function ask(prompt, opts = {}){
+-	const socket = Socket.singleton();
+-	if (!edit()) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
+-
+ 	if (typeof opts.shot === "string") opts = { ...opts, shot: { url: location.href, selector: opts.shot } };
+ 
+ 	/* A picked element rides in the PROMPT, not in the system line: the server slices
+@@ -58,6 +81,18 @@ export async function ask(prompt, opts = {}){
+ 		opts = { ...opts, context: `the element ${opts.context.selector}, on ${opts.context.home ?? opts.context.page}` };
+ 	}
+ 
++	if (!edit()){
++		if (!http_ask_ready) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
++		const res = await fetch(location.origin + "/ask/turn", { method: "POST",
++			headers: { "content-type": "application/json" },
++			body: JSON.stringify({ text: prompt, context: opts.context, task: opts.task, resume: opts.resume }),
++			signal: AbortSignal.timeout(60000) });
++		const reply = await res.json().catch(() => ({ error: `ask(): HTTP ${res.status}` }));
++		if (reply?.error) throw new Error(reply.error);
++		return reply;
++	}
++
++	const socket = Socket.singleton();
+ 	const id = crypto.randomUUID();
+ 	if (opts.on) listeners.set(id, opts.on);
+ 
+diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
+index ab282a47..7ccc7f63 100644
+--- a/public/framework/ext/drawer/drawer.css
++++ b/public/framework/ext/drawer/drawer.css
+@@ -128,6 +128,10 @@
+ 	.drawer .drawer-tab:hover { color: var(--ink); background: var(--fill-a08); }
+ 	.drawer .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
+ 
++	/* "Files" (tabs.js `files_href()`) is a plain link, not a tab — no body to
++	   load, no `.on` state, so it sits apart at the strip's other end. */
++	.drawer .drawer-files-link { margin-inline-start: auto; text-decoration: none; }
++
+ 	/* One list of rows (Sessions), one conversation (AI). */
+ 	.drawer-ai, .drawer-sessions, .drawer-settings, .drawer-admin, .drawer-dictation { gap: calc(var(--gap) * 0.8); }
+ 	.drawer-ai-head { gap: 0.5em; }
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index 75ae22a7..2146b31f 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -19,6 +19,11 @@
+ 			background: var(--surface);
+ 			border-top: 1px solid var(--line);
+ 		}
++		/* SHORTER — the default rail (mobile-nav, 2026-09-29): icons only, no text
++		   label line, so the bar takes less of the screen a phone has to give up
++		   permanently. `.drawer-rail-full` (`DrawerRail.V2`) restores the exact
++		   earlier padding below. */
++		.drawer-rail-compact { padding-block: 0.2em calc(0.2em + env(safe-area-inset-bottom, 0px)); }
+ 	}
+ 
+ 	.drawer-rail-ai, .drawer-rail-menu {
+@@ -38,6 +43,25 @@
+ 	.drawer-rail-ai { color: var(--prim); }
+ 	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
+ 
++	/* ICONS ONLY, ✦ ON THE THUMB (RIGHT) SIDE — the default rail's own two
++	   changes (mobile-nav, 2026-09-29). The text label stays in the DOM (the
++	   `aria-label`/`title` on each button say the same thing either way) —
++	   only its on-screen line is removed, so nothing but CSS has to change to
++	   bring it back. `order` swaps the ON-SCREEN position without touching
++	   `rail.js`'s own DOM order (✦ is built first, `.drawer-rail-menu` second),
++	   so `DrawerRail.V2` below only has to say "use source order" to get the
++	   original ✦-on-the-left layout back, not rebuild the markup. */
++	.drawer-rail-compact .drawer-rail-ai-label,
++	.drawer-rail-compact .drawer-rail-menu-label { display: none; }
++	.drawer-rail-compact .drawer-rail-ai { order: 2; }
++	.drawer-rail-compact .drawer-rail-menu { order: 1; }
++
++	/* THE OLD FULL LOOK — `DrawerRail.V2`, kept reachable verbatim: the label
++	   line shows again (source order above already gives it the old sizing) and
++	   ✦ sits first (left), because `order` is left at its default (source
++	   order) for every full-rail button. */
++	.drawer-rail-full { padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px)); }
++
+ 	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
+ 	   too (a bottom sheet that left the tab bar showing under it would read as
+ 	   two floors) — closing it (✕) is the only way back to the rail. */
+@@ -66,17 +90,25 @@
+ 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
+ 	.drawer-rail-sheet-title { font-weight: 600; }
+ 
++	/* THE THREAD — either a card's own persisted chat (`ai2/chat.js`, one-ai
++	   2026-09-29) or, on a plain page, the local empty-state + growing list of
++	   prompt cards below. Either way it is the part that scrolls; the mic stays
++	   pinned under it. */
++	.drawer-rail-sheet-thread { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; }
++	.drawer-rail-sheet-thread .chatbox-log { max-block-size: none; }
++
+ 	.drawer-rail-sheet-mic { flex: 0 0 auto; }
+-	/* Every FINISHED sentence already gets its own card below (`rail.js`'s own
+-	   `card()`) — the widget's own caption of the same finished text is hidden here
+-	   so it never shows twice (measured 2026-09-29: the exact same sentence painted
+-	   twice a few lines apart). Only the live, still-moving guess (the `muted` line
+-	   — `Dictate.js`'s own `draw_caption()`, open mode) is left visible, so the
+-	   owner still sees words appear while talking, before they become a card. */
++	/* Every FINISHED sentence already gets its own card, or its own line in the
++	   card's real thread above (`rail.js`'s own `card()`) — the widget's own
++	   caption of the same finished text is hidden here so it never shows twice
++	   (measured 2026-09-29: the exact same sentence painted twice a few lines
++	   apart). Only the live, still-moving guess (the `muted` line — `Dictate.js`'s
++	   own `draw_caption()`, open mode) is left visible, so the owner still sees
++	   words appear while talking, before they land above. */
+ 	.drawer-rail-sheet-mic .ux-dictate-line:not(.muted) { display: none; }
+ 
+ 	.drawer-rail-sheet-cards {
+-		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;
++		display: flex; flex-direction: column;
+ 		gap: 0.4em;
+ 	}
+ 	.drawer-rail-sheet-card {
+@@ -87,4 +119,27 @@
+ 		border: 1px solid var(--line);
+ 		border-radius: calc(var(--radius) / 2);
+ 	}
++	/* The reply, once `send()` answers — under the sentence's own card (deliverable
++	   1, mobile-nav 2026-09-29), not a separate box floating elsewhere. */
++	.drawer-rail-sheet-card-reply { margin-block-start: 0.3em; font-size: 0.9em; }
++
++	/* A card-page echo, shown the instant a sentence is said and removed once the
++	   real, persisted turn has drawn in its place (`Sheet.card()`'s own comment). */
++	.drawer-rail-sheet-pending { padding: 0.3em 0.6em; font-size: 0.9em; }
++
++	/* THE LINKS FOOTER — `DrawerRail.Sheet` only (not `SheetV1`): a few ways out of
++	   this small sheet into the real drawer, since this widget deliberately does
++	   not try to reproduce the desktop drawer's other tabs (deliverable 4,
++	   mobile-nav 2026-09-29). */
++	.drawer-rail-sheet-links { flex: 0 0 auto; gap: 0.4em; padding-block-start: 0.4em; border-top: 1px solid var(--line); }
++	.drawer-rail-sheet-link {
++		font: inherit; font-size: 0.8em;
++		padding: 0.3em 0.6em;
 +		color: var(--ink);
-+		border-top: 1px solid var(--line);
-+		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
-+		box-shadow: 0 -0.3em 1em var(--fill-a16);
-+		transform: translateY(100%);
-+		transition: transform 0.18s;
-+	}
-+	@media (max-width: 52em) {
-+		.drawer-rail-sheet.on { display: flex; transform: none; }
-+	}
-+
-+	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
-+	.drawer-rail-sheet-title { font-weight: 600; }
-+
-+	.drawer-rail-sheet-mic { flex: 0 0 auto; }
-+
-+	.drawer-rail-sheet-cards {
-+		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;
-+		gap: 0.4em;
-+	}
-+	.drawer-rail-sheet-card {
-+		flex: 0 0 auto;
-+		padding: 0.5em 0.6em;
-+		font-size: 0.9em;
 +		background: var(--fill-a08);
 +		border: 1px solid var(--line);
 +		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
 +	}
-+}
++	.drawer-rail-sheet-link:hover { background: var(--fill-a16); }
+ }
 diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
-new file mode 100644
-index 00000000..596beae1
---- /dev/null
+index dd7b682a..2a94e2d2 100644
+--- a/public/framework/ext/drawer/rail.js
 +++ b/public/framework/ext/drawer/rail.js
-@@ -0,0 +1,184 @@
-+import { View, div, span, button } from "/framework/core/View/View.js";
-+import Dictate from "/framework/ux/Dictate/Dictate.js";
-+import tabs from "./tabs.js";
-+
-+View.stylesheet(import.meta, "rail.css");
-+
-+/* THE MOBILE BOTTOM RAIL — below 52em only, the drawer's other way in (mobile-nav,
-+   2026-09-29). Two controls: ✦ opens a small listening sheet (below), ⋯ opens the
-+   same right-side drawer every page already has (menu.js's own button, reachable
-+   here because that fixed corner button now steps aside for the page's own ☰ on a
-+   page with a sidebar — drawer.css, `.app:has(.sidebar) .drawer-menu`).
-+
-+   ⚠ `⋯ "More"`, not a second `☰ "Menu"` (the task mastermind, 2026-09-29): the
-+   page's own ☰ is now the thing at the top of the screen on mobile (deliverable
-+   1), so a SECOND ☰ down here read as "do this again" rather than "here's
-+   something else." `menu_icon`/`menu_label`/`menu_title` are prototype fields,
-+   not hard-coded in `menu_button()`, so the ☰/"Menu" look is not deleted — it
-+   is `DrawerRail.V1` below, one subclass away.
-+
-+   ⚠ A NORMAL flex child of `.app`, never `position: fixed` — `.app` is a
-+   `height: 100%; flex-direction: column` box with `.pages` as its one growing
-+   child (framework.css), so this bar sitting last in that column already takes
-+   its own row and `.pages` shrinks to fit above it, with NO separate "reserve
-+   this much space" token to keep in sync (the mistake the side drawer's own
-+   `--rail-push` exists to fix, because THAT rail is `position: fixed` and has to
-+   restate the reservation by hand). See rail.css's own note and doc/decisions.md
-+   for the alternative this ruled out (full-height, independently-scrolling
-+   sections) and why.
-+
-+   Built as a class so a later variant can subclass one method — `Sheet.card()`
-+   decides what a finished utterance becomes; a variant only has to override that
-+   one. css: .drawer-rail, .drawer-rail-ai, .drawer-rail-menu, .drawer-rail-sheet
-+   (rail.css). Record: readme.md, doc/decisions.md. */
-+export class DrawerRail extends View {
-+
-+	// ⚠ No `.flex` utility class here — `@layer util` beats `@layer theme`
-+	// regardless of specificity, so a `.flex { display: flex }` utility would
-+	// have permanently out-ranked this component's own `.drawer-rail { display:
-+	// none }` above 52em (measured: the bar showed at 1920 too, css skill's own
-+	// warning about this exact trap). The component owns its display; rail.css
-+	// says `flex` only inside the media query that is allowed to say so.
-+	render(){
-+		this.ai_button();
-+		this.menu_button();
-+	}
-+
-+	// ✦ — opens the listening sheet. Built lazily (below), on the FIRST tap: a
-+	// page nobody taps this on never constructs a Dictate, never checks whether
-+	// an engine is reachable (code skill's own rule for the drawer's tabs, same
-+	// reasoning here — this bar is on every page below 52em, so "every page pays
-+	// for it" would be the wrong default).
-+	ai_button(){
-+		return button.c("drawer-rail-ai").attr("type", "button")
-+			.attr("aria-label", "Ask, by voice — opens a listening sheet")
-+			.append(() => {
-+				span.c("drawer-rail-ai-icon", "✦");
-+				span.c("drawer-rail-ai-label", "AI");
-+			})
-+			.click(() => this.open_sheet());
-+	}
-+
-+	// The drawer's own tabs (AI, Sessions, Dictation, Settings, Admin), the exact
-+	// button menu.js already draws; this is just another way to reach it. The
-+	// icon/label/title are prototype fields (below), not written here, so a
-+	// variant (`DrawerRail.V1`) can restore the old ☰ "Menu" look by overriding
-+	// three values instead of this whole method.
-+	menu_button(){
-+		return button.c("drawer-rail-menu").attr("type", "button")
-+			.attr("title", this.menu_title).attr("aria-label", this.menu_title)
-+			.append(() => {
-+				span.c("drawer-rail-menu-icon", this.menu_icon);
-+				span.c("drawer-rail-menu-label", this.menu_label);
-+			})
-+			.click(() => tabs.toggle());
-+	}
-+
-+	// The sheet is built once, the first time it is opened, and kept — closing it
-+	// only hides it (`rc("on")`), so the second tap does not re-detect the engine
-+	// or lose the transcript so far. `this.constructor.Sheet` (not `DrawerRail.Sheet`
-+	// directly), so a subclass that swaps in its own Sheet is honoured.
-+	open_sheet(){
-+		if (!this.$sheet) this.append(() => { this.$sheet = new this.constructor.Sheet({ rail: this }); });
-+		this.$sheet.open();
-+		return this.$sheet;
-+	}
-+}
-+
-+/** THE SHEET — a small panel that slides up from the bottom, starts listening the
-+ *  moment it opens (`mode: "open"`, ux/Dictate's own live-open-mic mode: the mic
-+ *  stays on, nothing is ever written into a box, every finished sentence reaches
-+ *  `on_text` instead), and turns each one into its own little card.
+@@ -39,7 +39,15 @@ export class DrawerRail extends View {
+ 	// none }` above 52em (measured: the bar showed at 1920 too, css skill's own
+ 	// warning about this exact trap). The component owns its display; rail.css
+ 	// says `flex` only inside the media query that is allowed to say so.
++	// `compact` (a prototype field, below) is what tells rail.css whether to draw
++	// small icon-only buttons with ✦ on the thumb (right) side — the default now
++	// — or the original full look (icon + text label, ✦ on the left):
++	// `DrawerRail.V2` sets `compact = false` to bring that original look back
++	// verbatim, one class away, never deleted (the owner tested the ✦ sheet on a
++	// phone and found no reply ever came; while fixing that, the rail itself grew
++	// a second, shorter design — mobile-nav, 2026-09-29).
+ 	render(){
++		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
+ 		this.ai_button();
+ 		this.menu_button();
+ 		this.watch_breakpoint();
+@@ -100,17 +108,45 @@ export class DrawerRail extends View {
+ /** THE SHEET — a small panel that slides up from the bottom, starts listening the
+  *  moment it opens (`mode: "open"`, ux/Dictate's own live-open-mic mode: the mic
+  *  stays on, nothing is ever written into a box, every finished sentence reaches
+- *  `on_text` instead), and turns each one into its own little card.
++ *  `on_text` instead).
 + *
-+ *  Dictate is used only through its public API — `new Dictate({...})` — never
-+ *  its internals; this module owns none of the microphone, the engine choice or
-+ *  the error wording (ux/Dictate/readme.md is the one place for that).
++ *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai2/doc/one-ai.md` has the full finding).
++ *  On a CARD PAGE (`/framework/ai2/…`), this sheet now talks into that card's own
++ *  session — the exact route the card's own (now-removed) composer used
++ *  (`ext/drawer/tabs/ai.js`'s `send({card, text})`, called here, never edited) —
++ *  and shows that card's own persisted thread (`ai2/chat.js`, reused, reading the
++ *  card's `chat_entries()`), so a sentence said here is the SAME conversation the
++ *  card's Overview and the desktop drawer's AI tab show, not a second one.
++ *  On any OTHER page, each finished sentence becomes its own small "prompt item"
++ *  card, local to this sheet only.
 + *
-+ *  THE SEAM: override `card(text)` for a variant that wants a different shape
-+ *  for a finished utterance (a checkbox item, a chip, a row with a delete
-+ *  button) — everything else here (opening, closing, wiring the mic, showing
-+ *  an error) stays the same. */
-+export class DrawerRailSheet extends View {
-+
-+	// ⚠ No error UI of its own — `ux/Dictate` already shows an honest, specific
-+	// message beside its own mic button the moment something goes wrong (no
-+	// device, no permission, no engine reachable), and a second banner saying
-+	// the same thing here read as a duplicate, not a help (measured 2026-09-29:
-+	// the exact same sentence painted twice a few lines apart). Mic feedback
-+	// itself — the sound only once the mic is truly on, the wording of each
-+	// message — is `ux/Dictate`'s own job, not this sheet's.
-+	render(){
-+		this.head();
-+		this.$mic = div.c("drawer-rail-sheet-mic");
-+		this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
-+		this.$cards = div.c("drawer-rail-sheet-cards flex v");
++ *  ⚠ NO RESPONSES (the owner tested the phone, 2026-09-29): saying something into
++ *  this sheet on a PLAIN page used to only draw the local card — it never sent
++ *  the sentence anywhere, so nothing could ever answer. `card(text)` below now
++ *  sends every finished sentence through `ext/drawer/tabs/ai.js`'s own `send()` —
++ *  the exact route the desktop drawer's AI tab uses (page-ai, then the `/ask/turn`
++ *  bridge) — and shows the reply under that sentence's own card. On a card page,
++ *  the sentence is echoed into the thread AT ONCE (posting can take a moment, and
++ *  a phone has no live socket to redraw the thread on its own) and `talk.sync()`
++ *  runs again once the send resolves, the same order `tabs/ai.js`'s own card
++ *  composer uses. A send that fails still leaves the "not sent — <note>" mark
++ *  (review #3, 2026-09-29) rather than the sentence just vanishing.
+  *
+  *  Dictate is used only through its public API — `new Dictate({...})` — never
+  *  its internals; this module owns none of the microphone, the engine choice or
+  *  the error wording (ux/Dictate/readme.md is the one place for that).
+  *
+  *  THE SEAM: override `card(text)` for a variant that wants a different shape
+- *  for a finished utterance (a checkbox item, a chip, a row with a delete
+- *  button) — everything else here (opening, closing, wiring the mic, showing
+- *  an error) stays the same. */
+-export class DrawerRailSheet extends View {
++ *  for a finished utterance on a PLAIN page (a checkbox item, a chip, a row with
++ *  a delete button) — everything else here (opening, closing, wiring the mic,
++ *  showing an error, the card-page merge above) stays the same.
++ *
++ *  Kept reachable as `DrawerRail.SheetV1` — this is the whole sheet exactly as it
++ *  shipped earlier today, before the reply fix and the links footer. The default,
++ *  `DrawerRail.Sheet` (below), is this class plus one more thing: a row of links
++ *  to the full drawer (Sessions, Dictation, Settings, "Open full AI"), because a
++ *  phone still needs a way to reach what this small sheet doesn't show. */
++export class DrawerRailSheetV1 extends View {
+ 
+ 	// ⚠ No error UI of its own — `ux/Dictate` already shows an honest, specific
+ 	// message beside its own mic button the moment something goes wrong (no
+@@ -121,9 +157,10 @@ export class DrawerRailSheet extends View {
+ 	// message — is `ux/Dictate`'s own job, not this sheet's.
+ 	render(){
+ 		this.head();
++		// Filled by `sync_card()` below, on every open: either the card's own real
++		// chat thread, or the old empty-state + growing list of local prompt cards.
++		this.$thread = div.c("drawer-rail-sheet-thread");
+ 		this.$mic = div.c("drawer-rail-sheet-mic");
+-		this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
+-		this.$cards = div.c("drawer-rail-sheet-cards flex v");
+ 	}
+ 
+ 	head(){
+@@ -133,12 +170,22 @@ export class DrawerRailSheet extends View {
+ 		});
+ 	}
+ 
++	// The card the page under this sheet belongs to, or null — the exact duck
++	// type `ext/drawer/tabs.js`'s own `context()` uses ("is the active page AI
++	// 2's card.js"), read fresh on every open since this sheet is built once but
++	// the page underneath it changes as the reader navigates.
++	active_card(){
++		const active = this.rail?.app?.router?.active;
++		return active?.shell?.ai2 && active.id && typeof active.subs === "function" ? active : null;
 +	}
 +
-+	head(){
-+		return div.c("drawer-rail-sheet-head flex v-center split", () => {
-+			span.c("drawer-rail-sheet-title", "Ask, by voice");
-+			button.c("drawer-x", "✕").attr("type", "button").attr("title", "Close").click(() => this.close());
+ 	// First open: build the Dictate widget INSIDE this sheet (`code` skill §1 —
+ 	// captured now, in a real callback, never as a bare statement left to
+ 	// whatever captor happens to be current at click time) and start it right
+ 	// away. A later open just restarts listening on the widget already here.
+ 	open(){
+ 		this.ac("on");
++		this.sync_card();
+ 		this.dictate ? this.dictate.start() : this.listen();
+ 		return this;
+ 	}
+@@ -156,17 +203,145 @@ export class DrawerRailSheet extends View {
+ 		this.dictate.start();
+ 	}
+ 
+-	// THE ONE METHOD a variant overrides. Default: one small "prompt item" card
+-	// per finished utterance, newest at the bottom, the list growing as the
+-	// owner keeps talking (the owner's own words, 2026-09-29: "little prompt
+-	// cards"). Never wipes `$cards` — each call only adds one.
++	// Which thread `$thread` shows right now — rebuilt only when the card actually
++	// changed (a fresh open on the same card just re-syncs the existing thread).
++	// `ai2/chat.js` is imported lazily, HERE, not at the top of this module: this
++	// sheet sits on every page below 52em (rail.js is loaded on all of them), and
++	// most opens are on a page that is not a card at all — loading AI 2's own chat
++	// module for those would be dead weight paid on every phone.
++	sync_card(){
++		const card = this.active_card();
++		const id = card?.id ?? null;
++		if (id === this.card_id){ this.talk?.sync(); return; }
++		this.card_id = id;
++		this.card_ref = card;
++		if (!card){
++			this.talk = null;
++			this.$thread.empty(() => {
++				this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
++				this.$cards = div.c("drawer-rail-sheet-cards flex v");
++			});
++			return;
++		}
++		const token = this.sync_token = (this.sync_token ?? 0) + 1;
++		import("/framework/ai2/chat.js").then(m => {
++			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
++			this.$thread.empty(() => {
++				this.talk = m.default({ source: () => card.chat_entries(), re: () => card.id });
++			});
++			// ⚠ `chat()` BUILDS AN EMPTY BOX — it only paints once `sync()` runs (every
++			// caller in `ai2/card.js` does the same right after constructing one).
++			// Skipping this left the sheet showing the mic and nothing above it, even
++			// on a card with a long history (found in this task's own proof shots).
++			this.talk.sync();
 +		});
 +	}
 +
-+	// First open: build the Dictate widget INSIDE this sheet (`code` skill §1 —
-+	// captured now, in a real callback, never as a bare statement left to
-+	// whatever captor happens to be current at click time) and start it right
-+	// away. A later open just restarts listening on the widget already here.
-+	open(){
-+		this.ac("on");
-+		this.dictate ? this.dictate.start() : this.listen();
-+		return this;
-+	}
-+
-+	close(){
-+		this.dictate?.stop();
-+		this.rc("on");
-+		return this;
-+	}
-+
-+	listen(){
-+		this.$mic.append(() => {
-+			this.dictate = new Dictate({ mode: "open", on_text: text => this.card(text) });
++	// THE ONE METHOD a variant overrides, for a PLAIN page (no active card) —
++	// the default local "prompt item" card, one per finished sentence, never
++	// wiping `$cards`. On a card page the sentence instead posts into that
++	// card's own session, the same place its own composer used to send it, and
++	// the reply lands in the very thread `$thread` is already showing.
++	//
++	// ⚠ NO RESPONSES (the owner tested the phone, 2026-09-29): on a plain page
++	// this used to only draw the local card and send nothing at all, so no
++	// reply could ever come back — the owner said "can you hear me?" and never
++	// heard anything. Both branches now go through `tabs/ai.js`'s own `send()`
++	// (the same route the desktop drawer's AI tab uses: page-ai, then the
++	// `/ask/turn` bridge for a card, or over `/ask/turn` directly for a page)
++	// and show the reply under this sentence's own card. `send()`'s result
++	// used to be thrown away on the card branch too (review #3): from a phone
++	// Servex is often unreachable, and the spoken sentence just vanished — no
++	// card, no error. `not_sent()` below shows it instead, so a failed send
++	// still leaves something to see.
+ 	card(text){
+-		this.$empty.hide();
+-		this.$cards.append(() => { div.c("drawer-rail-sheet-card").text(text); });
++		if (this.card_ref){
++			// Echoed AT ONCE, before `send()` even starts — a phone has no live
++			// socket to redraw the card's thread on its own, so without this the
++			// sentence stayed invisible until something else happened to redraw
++			// the page (review #3, 2026-09-29). Removed once `sync()` below has
++			// drawn the real, persisted turn in its place.
++			const $echo = this.echo(text);
++			import("./tabs/ai.js").then(async m => {
++				const r = await m.send({ card: this.card_ref.id, text, via: "voice" });
++				if (!r.ok) this.not_sent(text, r.note);
++				this.talk?.sync();
++				$echo?.remove();
++			});
++			return;
++		}
++		this.$empty?.hide();
++		let $item, $wait;
++		this.$cards?.append(() => {
++			$item = div.c("drawer-rail-sheet-card", () => {
++				div.c("drawer-rail-sheet-card-text", text);
++				// `send()` can now sit for up to 90s polling the page's own chat log
++				// for a page-ai reply (mastermind, 2026-09-29) — this placeholder is
++				// what tells the reader something is actually happening, replaced
++				// the moment `send()` resolves either way.
++				$wait = div.c("drawer-rail-sheet-card-reply muted", "waiting for the page's assistant…");
++			});
 +		});
-+		this.dictate.start();
++		import("./tabs/ai.js").then(async m => {
++			const r = await m.send({ text, via: "voice" });
++			$wait?.remove();
++			$item?.append(() => {
++				r.via === "none"
++					? span.c("muted", "not sent — " + (r.note || "Servex is not answering"))
++					: div.c("drawer-rail-sheet-card-reply muted", r.text ?? r.note ?? "");
++			});
++		});
 +	}
 +
-+	// THE ONE METHOD a variant overrides. Default: one small "prompt item" card
-+	// per finished utterance, newest at the bottom, the list growing as the
-+	// owner keeps talking (the owner's own words, 2026-09-29: "little prompt
-+	// cards"). Never wipes `$cards` — each call only adds one.
-+	card(text){
-+		this.$empty.hide();
-+		this.$cards.append(() => { div.c("drawer-rail-sheet-card").text(text); });
++	// A placeholder line shown the instant a sentence is said on a card page,
++	// before `send()` has even reached the server — `$thread` may otherwise sit
++	// empty or unchanged for a second or more, which reads as "nothing heard."
++	echo(text){
++		let $line;
++		this.$thread.append(() => { $line = div.c("drawer-rail-sheet-pending muted", "you: " + text); });
++		return $line;
++	}
++
++	// A sentence `send()` could not deliver — shown right in the thread box, so
++	// it sits where the reply would have gone rather than disappearing.
++	not_sent(text, note){
++		this.$thread.append(() => {
++			div.c("drawer-rail-sheet-card", () => {
++				div.c("drawer-rail-sheet-card-text", text);
++				span.c("muted", "not sent — " + (note || "Servex is not answering"));
++			});
++		});
 +	}
 +}
 +
-+DrawerRail.Sheet = DrawerRailSheet;
-+
-+// ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
-+// rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
-+// the look by overriding three values instead of copying the whole method.
-+DrawerRail.prototype.menu_icon = "⋯";
-+DrawerRail.prototype.menu_label = "More";
-+DrawerRail.prototype.menu_title = "AI sessions, dictation, settings, admin";
-+
-+/* v1 — the ☰ "Menu" button this replaced (the task mastermind, 2026-09-29: a
-+   second ☰ down here, once the page's own ☰ moved to the top for deliverable 1,
-+   read as "the same button twice"). Not deleted — `new DrawerRail.V1({ app })`
-+   in place of `rail(app)`'s `new DrawerRail({ app })` brings it back verbatim. */
-+export class DrawerRailV1 extends DrawerRail {}
-+DrawerRailV1.prototype.menu_icon = "☰";
-+DrawerRailV1.prototype.menu_label = "Menu";
-+DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";
-+DrawerRail.V1 = DrawerRailV1;
-+
-+// One rail per document, built the first time a page asks for it — same shape as
-+// drawer.js's own singleton. Called from menu.js, so app.js needs no change: the
-+// site already calls `menu(app)` once, and that is this module's only caller.
-+let $rail;
-+export default function rail(app){
-+	return $rail ??= new DrawerRail({ app });
-+}
-+
-+export { rail };
-diff --git a/public/framework/ext/drawer/rail/page.js b/public/framework/ext/drawer/rail/page.js
-new file mode 100644
-index 00000000..69626530
---- /dev/null
-+++ b/public/framework/ext/drawer/rail/page.js
-@@ -0,0 +1,65 @@
-+import { Page, md, h2, img, code } from "/app.js";
-+
-+const shot = name => new URL("shots/" + name, import.meta.url).href;
-+
-+/* THE MOBILE BOTTOM RAIL — real screenshots, not a live embed: `rail.css` is
-+ * gated by an actual VIEWPORT media query (`@media (max-width: 52em)`), which a
-+ * narrow box on a wide desktop screen never trips — a container query would,
-+ * but the rest of this component's chrome (`.sidebar`, the side drawer) is
-+ * built the same viewport-query way, so a container query here would be one
-+ * rule that behaves differently from everything around it for no real gain.
-+ * Shrink this browser window below 52em (about 832px) — or open it on a phone
-+ * — to see it for real. */
-+export default new Page({
-+	meta: import.meta,
-+	title: "Mobile bottom rail",
-+	description: "Below 52em: an ✦ AI button that opens a listening sheet, and an ⋯ More that reaches the drawer's tabs — the two ways into ext/drawer on a phone.",
-+	icon: "smartphone",
-+
-+	content(){
-+
-+		h2("What it is");
-+
-+		md("Below 52em (about 832px), every page grows a small bar pinned to the bottom of the screen — two buttons: **✦** opens a listening sheet, **⋯ More** opens this same drawer on its tabs. Not a second ☰: the page's own ☰ already lives at the top of the screen there (deliverable 1's fix), so this button names what it actually is instead of repeating that glyph. Above 52em neither button exists; the side drawer's own ☰ (top right) is the whole story there.");
-+
-+		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ⋯ More buttons, page content unobstructed above them")
-+			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
-+
-+		md("**Tap ✦** and a small sheet slides up: it starts listening right away ([`ux/Dictate`](/framework/ux/Dictate/), its own `mode: \"open\"`), and every finished sentence becomes its own card — the list grows as you keep talking.");
-+
-+		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open, showing ux/Dictate's own mic status and two prompt-item cards")
-+			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
-+
-+		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **injected two finished utterances** straight through the sheet's public `card()` method — the same one a real dictation calls. `ux/Dictate` is used only through its own public API (`new Dictate({ mode: \"open\", on_text })`) — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
-+
-+		md("**Desktop is untouched.** At 1920 the rail simply does not exist — no reserved space, no hidden bar, nothing to undo:");
-+
-+		img().attr("src", shot("desktop-1920-no-rail.png")).attr("alt", "The same page at 1920px: no rail, no reserved space, the side drawer's own ☰ top right")
-+			.style({ maxWidth: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
-+
-+		h2("The one seam");
-+
-+		md("Built as a class (`DrawerRail`, `DrawerRail.Sheet`) so a later variant only has to override **one** method — `Sheet.card(text)`, what a finished utterance becomes. Everything else (opening, closing, wiring the microphone) stays exactly the same:");
-+
-+		code.js(`import { DrawerRailSheet } from "/framework/ext/drawer/rail.js";
-+
-+class MyChecklistSheet extends DrawerRailSheet {
-+    card(text){
-+        // a checkbox row instead of a plain card — nothing else in the
-+        // rail or the sheet needs to know this happened
-+    }
-+}`);
-+
-+		md("The rail's own second button changed once already — it launched as a second ☰ \"Menu,\" and the task mastermind judged that a repeated glyph reads as \"do this again,\" not \"here's something else,\" now that the page's own ☰ lives at the top. Nothing was deleted: `menu_icon`/`menu_label`/`menu_title` are prototype fields, and `DrawerRail.V1` is the old look, kept as a subclass rather than a comment saying what used to be here:");
-+
-+		code.js(`import { DrawerRail } from "/framework/ext/drawer/rail.js";
-+
-+// menu.js calls \`rail(app)\`, which builds \`new DrawerRail({ app })\`.
-+// A caller that wants the old look builds the variant class instead:
-+new DrawerRail.V1({ app });   // ☰ "Menu", verbatim`);
-+
-+		h2("Why a normal flex row, not position: fixed");
-+
-+		md("The side drawer is `position: fixed` and has to restate its own width as a `padding-inline-end` reservation on `.app` (`--rail-push`) so the page never sits behind it — two numbers that have to be kept in sync by hand. This rail skips that entirely: it is a plain, non-fixed last child of `.app`'s own `height: 100%; flex-direction: column` box, so it just takes its own row and `.pages` shrinks to fit above it — one layout fact, nothing to keep in sync. The alternative this ruled out — full-height, independently-scrolling sections for the whole page — would have meant rebuilding how every page scrolls, for a bar that only needed its own height reserved. [doc/decisions.md](/framework/ext/drawer/doc/decisions/) has the fuller record.");
-+	},
-+});
-diff --git a/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png b/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png
-new file mode 100644
-index 00000000..c767c408
-Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/desktop-1920-no-rail.png differ
-diff --git a/public/framework/ext/drawer/rail/shots/rail-400.png b/public/framework/ext/drawer/rail/shots/rail-400.png
-new file mode 100644
-index 00000000..1bc04c33
-Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/rail-400.png differ
-diff --git a/public/framework/ext/drawer/rail/shots/sheet-cards-400.png b/public/framework/ext/drawer/rail/shots/sheet-cards-400.png
-new file mode 100644
-index 00000000..36a1cf78
-Binary files /dev/null and b/public/framework/ext/drawer/rail/shots/sheet-cards-400.png differ
-diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
-index 5a415b54..e6f63ee6 100644
---- a/public/framework/ext/drawer/readme.md
-+++ b/public/framework/ext/drawer/readme.md
-@@ -21,6 +21,10 @@ Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It o
- 
- While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
- 
-+## On a phone
-+
-+Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet that starts listening (`ux/Dictate`, used only through its public API) and turns each finished sentence into its own card, and an **⋯ "More"** button opens this same drawer on its tabs — not a second ☰, since the page's own ☰ already lives at the top of the screen there. Built as a class so a later variant only overrides one method (`Sheet.card()`), and the old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/).
-+
- ## Sharing it
- 
- One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
-@@ -45,6 +49,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
- ## More
- 
- - [Walkthrough](/framework/ext/drawer/walkthrough/) — seven screenshots, click Next through the whole rail
-+- [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, the listening sheet, and why it's a plain flex row instead of `position: fixed`
- - [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [Files](/framework/ext/drawer/files/) — one note per file
--- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `page.js` (live demo)
-+- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `rail.js` + `rail.css` (the mobile bottom rail and its sheet), `page.js` (live demo)
- - The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it
-diff --git a/public/framework/ux/Dictate/Dictate.css b/public/framework/ux/Dictate/Dictate.css
-index a09965cd..0066ef77 100644
---- a/public/framework/ux/Dictate/Dictate.css
-+++ b/public/framework/ux/Dictate/Dictate.css
-@@ -28,6 +28,12 @@
- 	/* the last segment is still in flight after the owner pressed stop. */
- 	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
- 
-+	/* asked for, not yet on — a permission prompt or a device still opening. Same pulse
-+	 * as "transcribing" (both mean "wait, something is happening"), never the solid
-+	 * "listening" look, which the owner's own bug report is why this state exists at all:
-+	 * the mic must never LOOK live before it really is. */
-+	.ux-dictate-btn.connecting { animation: ux-dictate-pulse .8s ease-in-out infinite; }
-+
- 	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
- 
- 	.ux-dictate-status.error { color: var(--error); }
-diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
-index a7d8c6d0..de871394 100644
---- a/public/framework/ux/Dictate/Dictate.js
-+++ b/public/framework/ux/Dictate/Dictate.js
-@@ -150,7 +150,7 @@ export default class Dictate extends View {
- 					span("stop after a pause");
- 				}).style("--gap", "0.3em");
- 			}).style("--gap", "0.6em");
--			this.$caption = div.c("ux-dictate-caption muted");
-+			this.build_output();
- 		}).style("--gap", "0.15em");
- 
- 		if (this.$send_on_pause) this.$send_on_pause.el.checked = !!this.send_on_pause;
-@@ -172,7 +172,7 @@ export default class Dictate extends View {
- 		if (!this.el.isConnected) return document.removeEventListener("keydown", this.hotkey_bound);
- 		if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.key.toLowerCase() !== "m") return;
- 
--		const engaged = this.state === "listening" || this.state === "transcribing";
-+		const engaged = this.state === "listening" || this.state === "transcribing" || this.state === "connecting";
- 		const focused_here = this.el.contains(document.activeElement) || this.input()?.el === document.activeElement;
- 		if (!engaged && !focused_here) return;
- 
-@@ -218,20 +218,51 @@ export default class Dictate extends View {
- 	}
- 
- 	name_engine(){
--		const name = this.engine === "whisper" ? "whisper (local)" : "Chrome's built-in recognition";
--		this.$engine.text(name + " · Ctrl+Shift+M stops");
-+		const name = this.engine === "whisper" ? "Whisper on the PC" : "the browser's recognizer";
-+		this.$engine.text(name + this.keyboard_hint());
++/** THE DEFAULT SHEET — `DrawerRailSheetV1` (above) plus one more thing: a short
++ *  row of links to the parts of the full drawer this small sheet doesn't try to
++ *  reproduce (Sessions, Dictation, Settings, "Open full AI"). No feature parity
++ *  with the desktop drawer — tapping a link opens the REAL drawer on that tab and
++ *  closes this sheet, rather than growing a second copy of each tab in here. */
++export class DrawerRailSheet extends DrawerRailSheetV1 {
++	render(){
++		super.render();
++		this.links();
 +	}
 +
-+	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
-+	 * `(pointer: coarse)` is true on a phone or tablet (the primary pointer is a finger),
-+	 * false on a desktop or laptop with a mouse/trackpad — the standard, no-dependency
-+	 * way to ask "is this mainly a touch device" (found from a mobile screenshot showing
-+	 * the hint on a phone's own bottom sheet: `ai/2026-09-29/mobile-nav/`). */
-+	keyboard_hint(){
-+		try { if (globalThis.matchMedia?.("(pointer: coarse)").matches) return ""; } catch {}
-+		return " · Ctrl+Shift+M stops";
- 	}
- 
- 	// ---- the button ---------------------------------------------------------
- 
- 	toggle(){ (this.state === "idle" || this.state === "error") ? this.start() : this.stop(); }
- 
-+	/** An INSTANT, one-line check, before anything else is even tried. A browser only
-+	 *  hands out a real microphone on a secure context — https, or the special-cased
-+	 *  `localhost` / `127.0.0.1` / `*.localhost` — and off that, `navigator.mediaDevices`
-+	 *  is simply `undefined`. But the Web Speech API's own CONSTRUCTOR still exists on an
-+	 *  insecure page and quietly does nothing useful, so without this check the code would
-+	 *  sail past `detect_engine()`, pick `"browser"`, and `start()` would return having
-+	 *  asked Chrome to listen — with no error ever arriving. Proved headless, on a page
-+	 *  loaded over this machine's own LAN address: `isSecureContext` was `false`,
-+	 *  `navigator.mediaDevices` was `undefined`, and the state stayed `"listening"` for
-+	 *  1.5s with no error — while the START SOUND had already played
-+	 *  (`ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). */
-+	insecure_context_message(){
-+		if (globalThis.isSecureContext) return null;
-+		const port = globalThis.location?.port ? ":" + globalThis.location.port : "";
-+		return `The mic needs https or localhost: open http://localhost${port} on this machine, or see doc/https-lan.md for https on the LAN.`;
++	links(){
++		return div.c("drawer-rail-sheet-links flex wrap", () => {
++			this.link("Sessions", "sessions");
++			this.link("Dictation", "dictation");
++			this.link("Settings", "settings");
++			this.link("Open full AI", "ai");
++		});
 +	}
 +
- 	async start(){
-+		const insecure = this.insecure_context_message();
-+		if (insecure){ this.set_error(insecure); return; }
-+
- 		this.settled = "";
- 		this.partial_text = "";
- 		this.segment_epoch = 0;
- 		this.inflight = null;
- 		this.skipped_silent = false;
-+		this.cancel_connect = false;
- 		this.on_start?.();
- 
- 		this.engine = await this.detect_engine();
-@@ -241,35 +272,76 @@ export default class Dictate extends View {
- 		}
- 		this.name_engine();
- 		this.$button.el.dataset.engine = this.engine;
--		this.set_state("listening");
-+		// "connecting", not "listening" — the mic may still need a permission prompt
-+		// answered or a device opened. `set_state("listening")` below only runs once the
-+		// mic is REALLY on: after whisper's own `capture.start()` resolves, or (for the
-+		// browser engine) from `rec.onstart`, never merely because we asked for it. A
-+		// caller's "start sound" (`ext/Chat/Mic.js`'s `on_listening()`) is wired to that
-+		// same real transition, not to this call returning.
-+		this.set_state("connecting");
- 
- 		// One shared clock for both engines: whisper's own segment/resend timing
- 		// (heartbeat(), whisper-only) AND the "stop after a pause" countdown
- 		// (either engine, only when the owner has turned it on).
- 		this.last_loud_at = performance.now();
- 		this.timer = setInterval(() => this.heartbeat(), 200);
-+		// Nothing genuinely started within a few seconds — a permission dialog nobody
-+		// answered, or (should the up-front secure-context check above ever miss a case)
-+		// a browser that fails this quietly. Never leaves the owner without a reason.
-+		this.connect_watchdog = setTimeout(() => {
-+			if (this.state === "connecting")
-+				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
-+		}, 8000);
- 
- 		try {
- 			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
- 		} catch (e){
- 			this.set_error(this.explain(e));
-+			return;
-+		}
-+		if (this.cancel_connect){   // stopped while still connecting — release what opened late
-+			this.mic?.stop();
-+			try { this.rec?.stop(); } catch {}
-+			return;
- 		}
-+		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
-+		// own `.start()` call returns long before recognition is actually live.
-+		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
- 	}
- 
- 	async stop(){
-+		if (this.state === "connecting"){
-+			// Cancel an attempt still in flight (a permission prompt the owner gave up
-+			// on) instead of only ever handling "listening" — the button must still work
-+			// as a stop button in the gap the owner's own bug lived in.
-+			this.cancel_connect = true;
-+			clearTimeout(this.connect_watchdog);
-+			clearInterval(this.timer);
-+			this.hide_countdown();
-+			this.mic?.stop();
-+			try { this.rec?.stop(); } catch {}
-+			this.set_state("idle");
-+			this.on_stop?.();
-+			return;
-+		}
- 		if (this.state !== "listening") return;
-+		clearTimeout(this.connect_watchdog);
- 		clearInterval(this.timer);
- 		this.hide_countdown();
- 		this.set_state("transcribing");
- 
- 		if (this.engine === "whisper"){
- 			await this.close_segment();
--			this.capture?.stop();
--			this.set_state("idle");
--			// Never silence about silence: a dictation that heard nothing loud
--			// enough to send now SAYS so, instead of just ending with an empty box.
--			if (!this.settled && this.skipped_silent)
--				this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
-+			this.mic?.stop();
-+			// close_segment() may itself have set_error()'d (whisper stopped answering
-+			// mid-session) — never stamp that back to "idle" as if nothing happened.
-+			if (this.state !== "error"){
-+				this.set_state("idle");
-+				// Never silence about silence: a dictation that heard nothing loud
-+				// enough to send now SAYS so, instead of just ending with an empty box.
-+				if (!this.settled && this.skipped_silent)
-+					this.$status.text("nothing loud enough to transcribe was heard — check the level meter moves while you talk");
-+			}
- 		} else {
- 			this.stop_browser();   // set_state("idle") happens in onend, once Chrome truly stops
- 		}
-@@ -280,21 +352,37 @@ export default class Dictate extends View {
- 		if (e?.name === "NotAllowedError")
- 			return "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.";
- 		if (e?.name === "NotFoundError") return "No microphone was found on this machine.";
--		return "The microphone stopped: " + (e?.message ?? e);
-+		if (e?.name === "NotReadableError" || e?.name === "TrackStartError")
-+			return "The microphone is being used by another app (or another browser tab) — close it and press 🎤 again.";
-+		if (e?.name === "SecurityError") return this.insecure_context_message() ?? "The browser refused the microphone for security reasons.";
-+		if (e?.name === "NotSupportedError")
-+			return "This browser can't run the audio pipeline dictation needs here — try Chrome, or use the browser's own speech recognition instead of Whisper.";
-+		// Never just echo a raw browser message with no next step — the owner's own
-+		// complaint was exactly that: an error nobody could act on. Every OTHER case
-+		// above says what to check; this last resort still says what to try.
-+		return `The microphone stopped (${e?.name ? e.name + ": " : ""}${e?.message ?? e}) — press 🎤 again, or reload the page if it keeps happening.`;
- 	}
- 
-+	/* `"connecting"` is new: set the instant `start()` decides to try, before the mic
-+	 * is really open — asked-for, not yet on. Only a genuine transition INTO
-+	 * `"listening"` (never a same-state restatement, which Chrome's own silent
-+	 * mid-session restarts would otherwise cause) fires `on_listening()` — the hook
-+	 * `ext/Chat/Mic.js` plays the start sound from. */
- 	set_state(state){
-+		const was_listening = this.state === "listening";
- 		this.state = state;
--		this.$button.rc("listening transcribing").ac(state === "listening" || state === "transcribing" ? state : "");
--		this.$status.rc("error").text(state === "listening" ? "listening…" : state === "transcribing" ? "finishing…" : "");
-+		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
-+		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
-+		if (state === "listening" && !was_listening) this.on_listening?.();
- 	}
- 
- 	set_error(msg){
-+		clearTimeout(this.connect_watchdog);
- 		clearInterval(this.timer);
- 		this.hide_countdown();
--		this.capture?.stop();
-+		this.mic?.stop();
- 		this.state = "error";
--		this.$button.rc("listening transcribing");
-+		this.$button.rc("listening transcribing connecting");
- 		this.$status.ac("error").text(msg);
- 		console.error("ux/Dictate:", msg);
- 		this.on_error?.(msg);
-@@ -311,11 +399,11 @@ export default class Dictate extends View {
- 
- 	async start_whisper(){
- 		const { id, label } = this.device();
--		this.capture = new Capture({ device_id: id, device_label: label });
-+		this.mic = new Capture({ device_id: id, device_label: label });
- 		this.level = 0;
- 		this.has_speech = false;
- 		this.segment_started_at = this.last_partial_at = performance.now();
--		await this.capture.start(level => this.on_level(level));
-+		await this.mic.start(level => this.on_level(level));
- 	}
- 
- 	/* A rough, un-calibrated loudness -> `--ux-dictate-level` (0..1), read by
-@@ -369,7 +457,7 @@ export default class Dictate extends View {
- 		   (measured 68 ms of a 167 ms wait, about half of all segment ends). */
- 		if (this.has_speech && performance.now() - this.last_loud_at > this.skip_partial_after_ms) return;
- 		const epoch = this.segment_epoch;
--		const samples = this.capture.snapshot();
-+		const samples = this.mic.snapshot();
- 		if (!this.worth_sending(samples)) return;
- 
- 		this.inflight = this.transcribe(samples);
-@@ -381,8 +469,8 @@ export default class Dictate extends View {
- 	}
- 
- 	async close_segment(){
--		const samples = this.capture.snapshot();
--		this.capture.cut();
-+		const samples = this.mic.snapshot();
-+		this.mic.cut();
- 		this.segment_epoch++;
- 		this.has_speech = false;
- 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
-@@ -399,7 +487,15 @@ export default class Dictate extends View {
- 		this.inflight = this.transcribe(samples);
- 		let text;
- 		try { text = await this.inflight; }
--		catch (e){ console.error("ux/Dictate: whisper-server did not answer for a segment:", e); return; }
-+		catch (e){
-+			// This is the "Whisper server unreachable" case, surfaced where it was only
-+			// ever a console.error before — the owner's own words: "we don't want users
-+			// to just have it not work and not know why". Ends the dictation rather than
-+			// silently dropping every segment from here on.
-+			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
-+			this.set_error("Whisper stopped answering — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.");
-+			return;
-+		}
- 		finally { this.inflight = null; }
- 		this.commit(text);
- 	}
-@@ -417,14 +513,14 @@ export default class Dictate extends View {
- 	 *  220ms, so `min_speech_ms` at 120 sits in a gap with nothing in it. */
- 	worth_sending(samples){
- 		if (!samples.length) return false;
--		const loud = this.last_loudness = this.capture.loudness(samples, this.speech_floor);
-+		const loud = this.last_loudness = this.mic.loudness(samples, this.speech_floor);
- 		if (loud.loud_ms >= this.min_speech_ms) return true;
- 		this.skipped_silent = true;
- 		return false;
- 	}
- 
- 	async transcribe(samples){
--		const wav = this.capture.wav(samples);
-+		const wav = this.mic.wav(samples);
- 		this.dump(wav, samples);
- 		const form = new FormData();
- 		form.append("file", wav, "segment.wav");
-@@ -461,9 +557,9 @@ export default class Dictate extends View {
- 			let binary = "";
- 			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
- 				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
--			const loud = this.capture.loudness(samples, this.speech_floor);
-+			const loud = this.mic.loudness(samples, this.speech_floor);
- 			return Socket.singleton().async_rpc("append", file, { dump: {
--				at: new Date().toISOString(), rate: this.capture.rate(), seconds: +loud.seconds.toFixed(3),
-+				at: new Date().toISOString(), rate: this.mic.rate(), seconds: +loud.seconds.toFixed(3),
- 				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
- 				wav_base64: btoa(binary),
- 			} });
-@@ -485,13 +581,22 @@ export default class Dictate extends View {
- 		rec.lang = this.lang;
- 		rec.continuous = true;
- 		rec.interimResults = true;
-+		// The ONLY place the browser engine is really live — `rec.start()` below returns
-+		// long before this fires. This is what `set_state("listening")` (and therefore
-+		// the start SOUND, via `on_listening()`) now waits for, instead of firing the
-+		// instant `.start()` was merely called.
-+		rec.onstart = () => {
-+			clearTimeout(this.connect_watchdog);
-+			if (this.cancel_connect){ try { rec.stop(); } catch {} return; }
-+			this.set_state("listening");
-+		};
- 		rec.onresult = e => this.heard_browser(e);
- 		rec.onerror = e => { console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error); };
- 		// Chrome stops on its own after a few seconds of silence even with
- 		// `continuous` — restart unless a real press asked to stop (`this.stopping`).
- 		rec.onend = () => {
- 			if (this.stopping){ this.stopping = false; this.set_state("idle"); }
--			else if (this.state === "listening") rec.start();
-+			else if (this.state === "listening" || this.state === "connecting") rec.start();
- 		};
- 		rec.start();
- 	}
-@@ -510,8 +615,10 @@ export default class Dictate extends View {
- 	}
- 
- 	browser_error(error){
-+		if (error === "service-not-allowed" && this.insecure_context_message()) return this.set_error(this.insecure_context_message());
- 		this.set_error({
- 			"not-allowed": "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.",
-+			"service-not-allowed": "Chrome's speech recognition service refused this page — allow microphone access for this site and press 🎤 again.",
- 			"network": "Chrome's speech recognition needs the internet and that failed — try again, or start whisper for a local, offline path.",
- 			"no-speech": "No speech was heard — try again, closer to the microphone.",
- 			"audio-capture": "No microphone could be read — check it is plugged in and not used by another app.",
-@@ -547,7 +654,16 @@ export default class Dictate extends View {
- 	 * (`Server/plugins/SocketServer/Append.js`, `rpc:append`) so a dictation
- 	 * during today's setup still lands somewhere real instead of vanishing
- 	 * once it scrolls off screen. Never throws into the caller — a log write
--	 * failing must not break the dictation the owner is mid-sentence in. */
-+	 * failing must not break the dictation the owner is mid-sentence in.
-+	 *
-+	 * ⚠ Neither path can reach anywhere from a LAN client that is not itself
-+	 * `localhost`/`127.0.0.1`: `log_url` is `127.0.0.1:8090`, which on a phone
-+	 * means the PHONE, and `Socket` — the dev-server fallback — refuses to even
-+	 * open a connection off `localhost` by design (`dev/Socket/Socket.js`, "LOCALHOST
-+	 * ONLY — production is static hosting with nothing to connect to"). Both
-+	 * failures are already silent-safe (this `catch` only warns), so a dictation
-+	 * from the phone still shows its words live; they are just never logged.
-+	 * Left as-is on purpose — see "Voice → log from the LAN" in `doc/https-lan.md`. */
- 	async log_prompt(text){
- 		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
- 		// clock only when the entry arrives without one; a client-side `new Date()` used
-@@ -585,6 +701,17 @@ export default class Dictate extends View {
- 		this.on_text?.(chunk);
- 	}
- 
-+	/** **The variant seam.** `build_output()` builds whatever holds the transcript
-+	 *  (here, one muted line — `this.$caption`); `draw_caption()` repaints it every
-+	 *  time a segment settles or the live guess changes. A variant with a genuinely
-+	 *  different user experience — a wall of "prompt item" cards instead of one
-+	 *  running line, a single-line compact strip for a toolbar — overrides ONLY
-+	 *  these two methods; the whole state machine above (engines, errors, the start
-+	 *  sound's real timing) is untouched and every variant inherits it for free. See
-+	 *  `ux/Dictate/variants/` for the built ones, and `doc/variants.md` for how to
-+	 *  write another. */
-+	build_output(){ this.$caption = div.c("ux-dictate-caption muted"); }
-+
- 	/* Settled text in the page's own ink, the still-moving guess grey after it —
- 	 * capped so a long dictation does not grow the caption without bound. Open
- 	 * mode never runs for long unwatched (a mic left on indefinitely), so instead
-@@ -606,7 +733,22 @@ export default class Dictate extends View {
++	link(label, tab){
++		return button.c("drawer-rail-sheet-link", label).attr("type", "button")
++			.click(() => { this.close(); tabs.open(tab); });
  	}
  }
  
--Dictate.prototype.whisper_url = "http://127.0.0.1:8178";
-+/** Where to reach `whisper-server`. On this machine (`localhost`/`127.0.0.1`/`*.localhost`)
-+ *  that is the direct port, unchanged. From anywhere else — a phone on the LAN — `127.0.0.1`
-+ *  would mean the PHONE, so the page's own origin is used instead, and
-+ *  `Server/plugins/Whisper.js`'s `/whisper/inference` + `/whisper/` proxy that same-origin
-+ *  request on to the real `127.0.0.1:8178` on the machine actually running whisper-server.
-+ *  This does NOT open the microphone on an insecure LAN page — that is a separate, harder
-+ *  browser rule `insecure_context_message()` catches — it only means that once the mic
-+ *  IS open (secure context reached some other way), reaching whisper does not require
-+ *  hard-coding a loopback address that means a different machine on every device. */
-+function default_whisper_url(){
-+	const h = globalThis.location?.hostname;
-+	const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
-+	return local || !globalThis.location ? "http://127.0.0.1:8178" : globalThis.location.origin + "/whisper";
+ DrawerRail.Sheet = DrawerRailSheet;
++DrawerRail.SheetV1 = DrawerRailSheetV1;
+ 
+ // ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
+ // rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
+@@ -185,6 +360,18 @@ DrawerRailV1.prototype.menu_label = "Menu";
+ DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";
+ DrawerRail.V1 = DrawerRailV1;
+ 
++/* v2 — the whole earlier rail, verbatim: icon-and-text-label buttons at full
++   height, ✦ on the LEFT (source order, `compact = false` turns off the
++   `order:` swap in rail.css), opening the earlier full sheet (`SheetV1`, no
++   links footer). Built while fixing the "no reply ever came" bug and the new
++   icon-only rail with ✦ on the thumb (right) side (the primary action) —
++   `new DrawerRail.V2({ app })` in place of `rail(app)`'s default brings the
++   whole earlier design back, one class away, nothing deleted. */
++export class DrawerRailV2 extends DrawerRail {}
++DrawerRailV2.prototype.compact = false;
++DrawerRailV2.Sheet = DrawerRailSheetV1;
++DrawerRail.V2 = DrawerRailV2;
++
+ // One rail per document, built the first time a page asks for it — same shape as
+ // drawer.js's own singleton. Called from menu.js, so app.js needs no change: the
+ // site already calls `menu(app)` once, and that is this module's only caller.
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+index 9f389599..74aa4f43 100644
+--- a/public/framework/ext/drawer/tabs.js
++++ b/public/framework/ext/drawer/tabs.js
+@@ -1,9 +1,30 @@
+-import { div, button, span } from "/framework/core/View/View.js";
++import { div, button, span, a } from "/framework/core/View/View.js";
+ import drawer from "./drawer.js";
++import { http_ask_ready, ask_probe } from "/framework/ext/Ask/Ask.js";
+ 
+ /* Is this the dev server? Settings and Admin drive it (edit mode, reload holds, the socket),
+-   so on a static host they are not shown, and the AI tab does not call Servex. */
+-export const DEV = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
++   so on a static host they are not shown, and the AI tab does not call Servex.
++ *
++ * The hostname check alone is only right ON THIS MACHINE — a phone reads the dev
++ * server by its LAN address (`http://10.0.0.135:8137/`), which matches neither
++ * `localhost` nor `127.0.0.1`, so `DEV` used to come back false there even though
++ * the dev server is real and answering, and the LAN path in `tabs/ai.js`'s `send()`
++ * (the `servex_url()` swap) never ran on a phone (review #4, 2026-09-29). Off the
++ * local hostname, this reuses `ext/Ask/Ask.js`'s OWN probe (`ask_probe` /
++ * `http_ask_ready`) rather than sending a second `POST /ask/turn` — one fetch per
++ * page load, not two. ⚠ It must be the SAME check: a status-code test alone is
++ * wrong, because this site's own static production host answers 405 (not 404) to
++ * an unknown POST route, which would have flipped `DEV` on for every reader in
++ * production (review, 2026-09-29). Only a JSON body proves a real dev server is
++ * behind the page — `Ask.js`'s probe already checks exactly that. `export let`,
++ * not `const`: this starts as the synchronous, always-right localhost answer and
++ * flips true once the probe resolves — an ES module export is a live binding, so
++ * every importer (`tabs/ai.js`, this file's own tab list) sees the flip without
++ * re-importing anything, the same shape `ai2/inbox.js`'s `servex_up()` already
++ * uses for the same kind of "ask once, remember" check. */
++const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
++export let DEV = LOCAL_HOST;
++if (!DEV) ask_probe.then(() => { if (http_ask_ready) DEV = true; });
+ 
+ /* THE DRAWER'S TABS — AI, Sessions, Dictation, Settings and Admin, plus Element while
+    something on the page is selected (select.js) — opened by the ☰
+@@ -72,6 +93,15 @@ export class DrawerTabs {
+ 
+ 	find(name){ return this.shown().find(t => t.name === name); }
+ 
++	/** This page's own file browser — itself if the reader is already in one
++	 *  (never `fs/fs/`), else its own `fs/` one level deeper. A plain link at the
++	 *  end of the tab strip, not a tab (the task mastermind, 2026-09-29): it goes
++	 *  straight to the files, no tab body of its own to load first. */
++	files_href(){
++		const path = location.pathname;
++		return path.includes("/fs/") ? path : path.replace(/\/?$/, "/") + "fs/";
++	}
++
+ 	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
+ 	open(name){
+ 		const was = this.current;
+@@ -120,6 +150,8 @@ export class DrawerTabs {
+ 			div.c("drawer-tabs flex", () => {
+ 				this.shown().forEach(t => button.c("drawer-tab", t.label).attr("type", "button")
+ 					.ac(t === this.current && "on").click(() => this.open(t.name)));
++				a.c("drawer-tab drawer-files-link", "Files").href(this.files_href())
++					.attr("title", "This page's own files, full screen");
+ 			});
+ 		});
+ 
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index 2b13ca56..6fd79062 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -4,6 +4,7 @@ import { composer } from "/framework/ext/Chat/Composer.js";
+ import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
+ import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
+ import { ask, available } from "/framework/ext/Ask/Ask.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ import drawer from "../drawer.js";
+ import { DEV } from "../tabs.js";
+ 
+@@ -20,7 +21,6 @@ import { DEV } from "../tabs.js";
+      (ai/2026-09-25/recursive-pairs/interface.md); until Servex answers it, the dev
+      bar's Ask route (ext/Ask), so a message still gets an answer today. */
+ 
+-const PAGE_AI = "http://servex.localhost/api/page-ai";
+ export const MODELS = ["haiku", "sonnet", "opus", "fable"];
+ const MODEL_KEY = "lew42-drawer-model";
+ 
+@@ -37,10 +37,48 @@ const as_text = context => Array.isArray(context)
+ 	? context.map(c => `${c.label ?? c.kind ?? "element"} (${c.selector ?? "?"}): ${String(c.text ?? "").slice(0, 300)}`).join("\n")
+ 	: context ?? undefined;
+ 
++/* ⚠ NO REPLY EVER SHOWED (mastermind, 2026-09-29): `POST /api/page-ai` answers at
++ * once with `{ok, assistant, manager}` and no text — the assistant's own answer
++ * lands a few seconds later, appended by Servex to the page's own chat log, a flat
++ * JSONL file at `<page>ai/chat.jsonl` (one line per turn: `{"prompt":{id,text,at,by}}`
++ * then `{"message":{by,text,at,kind:"reply"}}`). `send()` used to return the moment
++ * the POST answered, so both the sheet and the desktop drawer showed "sent" and
++ * then nothing, forever. This polls that same log, same-origin, until an assistant
++ * reply dated at or after this prompt's own send time shows up. `cache: "no-store"`:
++ * the file is growing under us, and a cached miss from the FIRST check (the file may
++ * not exist a split second before the prompt line lands) must never stick. */
++const REPLY_POLL_MS = 1500;
++const REPLY_TIMEOUT_MS = 90000;
++
++async function page_reply(page, since){
++	const url = String(page ?? "/").replace(/\/?$/, "/") + "ai/chat.jsonl";
++	const deadline = Date.now() + REPLY_TIMEOUT_MS;
++	while (Date.now() < deadline){
++		try {
++			const res = await fetch(url, { cache: "no-store" });
++			if (res.ok){
++				const lines = (await res.text()).split("\n").filter(Boolean);
++				for (const line of lines){
++					let row; try { row = JSON.parse(line); } catch { continue; }
++					const msg = row.message;
++					if (msg?.kind === "reply" && String(msg.by ?? "").startsWith("assistant") && new Date(msg.at) >= since) return msg.text;
++				}
++			}
++		} catch {}
++		await new Promise(r => setTimeout(r, REPLY_POLL_MS));
++	}
++	return null;
 +}
 +
-+Dictate.prototype.whisper_url = default_whisper_url();
- Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
+ /**
+  * Send one message from the drawer. Resolves `{via, text?, session_id?, note}`:
+- * `via` is "card", "page-ai" or "ask"; `text` is a reply when the route gives one
+- * back at once (only Ask does); `note` is one line to show the reader.
++ * `via` is "card", "page-ai" or "ask"; `note` is one line to show the reader.
++ * `text` is the reply — for "ask" the route hands it back at once; for "page-ai"
++ * the POST itself answers with no text, so this waits (polling the page's own
++ * `ai/chat.jsonl`, up to 90s) for the assistant's own reply and returns that.
++ * `on({text})` fires once with a "waiting…" line while that poll runs, the same
++ * shape Ask's own streaming chunks use, so a caller that shows `on` chunks live
++ * needs no special case for either route.
+  *
+  *     await send({ page: "/framework/ux/Dictate/", text: "why two buttons?",
+  *                  context: [{ kind: "p", label: "this paragraph", text: "…", selector: "main p" }] });
+@@ -60,10 +98,16 @@ export async function send({ page = drawer.page(), text, context, card, thread,
+ 	// fresh conversation goes to the page's assistant. Off the dev server there is no
+ 	// Servex to call (and an http:// call from an https:// page is blocked anyway).
+ 	if (!thread && DEV) try {
+-		const res = await fetch(PAGE_AI, { method: "POST", headers: { "content-type": "application/json" },
++		const sent_at = new Date();
++		const res = await fetch(servex_url("/api/page-ai"), { method: "POST", headers: { "content-type": "application/json" },
+ 			body: JSON.stringify({ page, text, from: "owner", context }), signal: AbortSignal.timeout(4000) });
+ 		const out = res.ok && (res.headers.get("content-type") ?? "").includes("json") ? await res.json() : null;
+-		if (out?.ok) return { via: "page-ai", ...out, note: "sent to this page's assistant" };
++		if (out?.ok){
++			on?.({ text: "waiting for the page's assistant…" });
++			const reply = await page_reply(page, sent_at);
++			return { via: "page-ai", ...out, text: reply ?? undefined,
++				note: reply ? "answered by this page's assistant" : "no reply after 90 s" };
++		}
+ 	} catch {}
+ 
+ 	// The fallback: one turn of the dev bar's Ask bridge, on this tab's dev server.
+@@ -113,9 +157,24 @@ function turn($list, who, text){
+ 	return $text;
+ }
+ 
++/* THE AI TAB'S OWN LIVE THREAD, if it is open on a card right now — one module-level
++   slot (this tab is a singleton, like the drawer itself), read by `ai2/card.js`'s
++   `sync_global_ai()` so a reply streaming in reaches this tab's thread too, without
++   rebuilding the whole tab (which would wipe whatever the reader is mid-typing in its
++   own composer below). `null` whenever the tab is shut, or open on something that is
++   not a card. */
++let live_card = null;
++
++/** Called from `ai2/card.js` on every redraw of the card this tab might be open on —
++ *  a no-op unless this tab is showing exactly that card right now. */
++export function sync_card_thread(id){
++	if (live_card?.id === id) live_card.sync();
++}
++
+ export default function ai({ page, card, tabs }){
+ 	const thread = card ? null : tabs.thread;
+-	let $list;
++	let $list, talk, $hint;
++	live_card = card ? { id: card.id, sync: () => talk?.sync() } : null;
+ 
+ 	div.c("drawer-ai flex v", () => {
+ 		div.c("drawer-ai-head flex v-center split wrap", () => {
+@@ -130,12 +189,31 @@ export default function ai({ page, card, tabs }){
+ 			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
+ 		});
+ 
+-		$list = div.c("drawer-ai-list flex v");
+-		(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
+-		// The hint goes as soon as the first message is sent.
+-		const $hint = !thread?.history?.length && small.c("drawer-ai-empty muted", card
+-			? "Say or type anything; the card's own chat, on the page, shows the reply."
+-			: "Ask anything about this page. Sessions lists this page's saved threads.");
++		/* THE THREAD. ON A CARD (one-ai, 2026-09-29): this tab used to draw its own
++		   empty, throwaway list of turns EVEN THOUGH `send()` below already posted
++		   into the card's real, persisted log — the SAME route the card's own page
++		   and the mobile ✦ sheet (`ext/drawer/rail.js`) post through — so the exact
++		   same conversation looked like two different, differently-remembered ones
++		   depending on which door you talked through. It now reuses `ai2/chat.js`,
++		   the exact widget the ✦ sheet already shows, reading the card's own
++		   `chat_entries()` — one thread, seen the same way everywhere.
++		   ⚠ Imported lazily, HERE, not at this file's top: this tab loads on every
++		   page's drawer, and most opens are not on a card — loading AI 2's own chat
++		   module for those would be dead weight paid on every other page. */
++		if (card){
++			const $thread = div.c("drawer-ai-list flex v");
++			import("/framework/ai2/chat.js").then(m => {
++				$thread.empty(() => { talk = m.default({ source: () => card.chat_entries(), re: () => card.id }); });
++				talk.sync();
++			});
++		} else {
++			$list = div.c("drawer-ai-list flex v");
++			(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
++			// The hint goes as soon as the first message is sent. Card side: the real
++			// thread above already says "nothing yet" its own way (or shows what is
++			// there), so there is nothing for a second, local hint to add.
++			$hint = !thread?.history?.length && small.c("drawer-ai-empty muted", "Ask anything about this page. Sessions lists this page's saved threads.");
++		}
+ 
+ 		// THE CHIPS — what the next message is about, like the open file an IDE shows in its
+ 		// chat box: each element picked on the page (the Element tab's "Ask about this"),
+@@ -153,17 +231,23 @@ export default function ai({ page, card, tabs }){
+ 		chips();
+ 		const context = () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined;
+ 
+-		// ON A CARD the message goes where the card's own footer sends it (`send()` with
+-		// `card`) and the reply lands in the card's chat; on a page it is answered here.
+-		// `deliver(entry)` answers true when the message went; the composer then shows
+-		// `sent` or `failed` in its own box.
++		// ON A CARD the message goes where the card's own footer used to send it
++		// (`send()` with `card`), and the reply now lands in the SAME thread drawn
++		// above — `talk.sync()` right after is what picks it up without waiting for
++		// the next unrelated redraw; on a page it is answered here as before.
++		// `deliver(entry)` answers true when the message went; the composer then
++		// shows `sent` or `failed` in its own box.
+ 		composer({
+ 			placeholder: card ? "talk into this card" : "ask about this page",
+-			sent: card ? "sent — the reply lands in the card's chat" : "sent",
++			sent: card ? "sent — the reply lands in the thread above" : "sent",
+ 			failed: card ? "Servex is not answering, so nothing was sent" : "not sent",
+-			on_text: text => { $hint?.el.remove(); turn($list, "you", text); },
++			on_text: text => { $hint?.el.remove(); if (!card) turn($list, "you", text); },
+ 			deliver: card
+-				? async entry => (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok
++				? async entry => {
++					const ok = (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok;
++					talk?.sync();
++					return ok;
++				}
+ 				: async entry => {
+ 					let streamed = "";
+ 					const $reply = turn($list, "assistant", "_thinking…_");
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 0870eaa4..02bc7909 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -1,6 +1,7 @@
+ import { View, div, span, button, label, input } from "../../core/View/View.js";
+ import Capture from "./capture.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
++import { servex_url } from "/framework/dev/servex_url.js";
+ 
+ View.stylesheet(import.meta, "Dictate.css");
+ 
+@@ -56,7 +57,7 @@ async function fetch_timeout(url, opts, ms){
+  *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
+  *  `v/3/compose.js`'s typed `send()` — one shape for "did Servex take this
+  *  prompt", not two. */
+-export async function post_prompt(entry, url = "http://127.0.0.1:8090/log/prompts"){
++export async function post_prompt(entry, url = servex_url("/log/prompts")){
+ 	try {
+ 		const r = await fetch_timeout(url, {
+ 			method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+@@ -493,7 +494,7 @@ export default class Dictate extends View {
+ 			// to just have it not work and not know why". Ends the dictation rather than
+ 			// silently dropping every segment from here on.
+ 			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
+-			this.set_error("Whisper stopped answering — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.");
++			this.set_error(`Whisper stopped answering (${e.message}) — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.`);
+ 			return;
+ 		}
+ 		finally { this.inflight = null; }
+@@ -526,8 +527,14 @@ export default class Dictate extends View {
+ 		form.append("file", wav, "segment.wav");
+ 		form.append("response_format", "json");
+ 		const t_sent = performance.now();
+-		const r = await fetch_timeout(this.whisper_url + "/inference", { method: "POST", body: form }, 20000);
+-		if (!r.ok) throw new Error("whisper-server answered " + r.status);
++		const url = this.whisper_url + "/inference";
++		let r;
++		// Named here, not left for the caller to guess: WHICH url this device tried, and
++		// WHY it failed — a timeout (the 20s cap below), a plain network error (nothing
++		// there to answer), or an HTTP status (something answered, but not with success).
++		try { r = await fetch_timeout(url, { method: "POST", body: form }, 20000); }
++		catch (e){ throw new Error(`${url}: ${e?.name === "AbortError" ? "timed out after 20 s" : (e?.message || "network error")}`); }
++		if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+ 		const body = await r.json();
+ 		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
+ 		this.whisper_ms = this.t_result - t_sent;
+@@ -766,7 +773,7 @@ function default_whisper_url(){
+ }
+ 
+ Dictate.prototype.whisper_url = default_whisper_url();
+-Dictate.prototype.log_url = "http://127.0.0.1:8090/log/prompts";       // Servex's single-writer log — not always up yet
++Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet
  Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-server rpc:append fallback, relative under public/
  Dictate.prototype.lang = "en-US";
-diff --git a/public/framework/ux/Dictate/doc/decisions.md b/public/framework/ux/Dictate/doc/decisions.md
-index d858914c..e2494055 100644
---- a/public/framework/ux/Dictate/doc/decisions.md
-+++ b/public/framework/ux/Dictate/doc/decisions.md
-@@ -313,3 +313,41 @@ clip on both `talk` and AI 2's composer: three real whisper segments, the box's
- `ComposerMic.send_mode` (in `ext/Chat/Mic.js`) decides when finished sentences leave the box: `manual` (default — only Send, so nothing can go early), `pause` (4 s of silence, only if the last sentence is finished), `sentences` (every 3 finished sentences). Send never cuts the live guess: the moving sentence is kept out of what Send reads, then redrawn into the emptied box. Try all three at [`/framework/ux/Dictate/demo/`](/framework/ux/Dictate/demo/).
+ Dictate.prototype.pause_ms = 700;        // silence this long closes a segment
+diff --git a/public/framework/ux/Dictate/playground/Playground.js b/public/framework/ux/Dictate/playground/Playground.js
+index 52d95d94..5ab55811 100644
+--- a/public/framework/ux/Dictate/playground/Playground.js
++++ b/public/framework/ux/Dictate/playground/Playground.js
+@@ -1,11 +1,12 @@
+ import { View, div, span, button, select, option, a } from "../../../core/View/View.js";
+ import Dictate, { remember_device, remembered_device } from "../Dictate.js";
++import { servex_url } from "/framework/dev/servex_url.js";
  
- Delay, measured over 20 updates: Whisper answers in about 67 ms (max 283 ms); everything after the answer — filler filter, paragraphing, setting the box — is under 0.5 ms in total. The felt delay was the wait between guesses, so `resend_ms` went from 1500 to 900. Paragraph breaks need a pause of 1.5 s AND a finished sentence before it; Whisper's own newlines are collapsed to spaces.
-+
-+## Mic feedback, the "connecting" state, and a testing note (2026-09-29)
-+
-+The owner's phone (`http://10.0.0.135:8137`, plain http) played the start sound with no
-+mic ever really on, and no error. Traced headless: off a secure context (https, or
-+`localhost`/`127.0.0.1`/`*.localhost`), `navigator.mediaDevices` is `undefined`, but
-+`window.webkitSpeechRecognition`'s CONSTRUCTOR still exists — so `detect_engine()` still
-+picked `"browser"`, and `Dictate.start()` was marking state `"listening"` (which is what
-+played the sound, in `ext/Chat/Mic.js`) **before** the engine had actually connected, not
-+after. Fixed: a new `"connecting"` state is set first; `set_state("listening")` — and
-+therefore `ext/Chat/Mic.js`'s `on_listening()` hook the start sound is wired to — now only
-+fires on the REAL transition, once whisper's own `capture.start()` resolves or the browser
-+engine's own `rec.onstart` fires. An instant, first-line `insecure_context_message()` check
-+in `start()` also means the insecure-LAN case now errors immediately with a plain fix,
-+before any engine is even asked for. Proof and every case's exact wording:
-+`ai/2026-09-29/mobile-nav/`.
-+
-+**A real, previously-silent bug this surfaced:** `Dictate`'s own audio-capture object was
-+held in `this.capture` — the same name `View.prototype.capture` already uses for an
-+unrelated auto-append-to-captor flag (`core/View/View.js`). Any error path that ran BEFORE
-+`start_whisper()` had assigned a real `Capture` instance (which is exactly what the new
-+up-front insecure-context check does) hit `this.capture === true` (View's own default) and
-+`true.stop()` threw, silently eating the error message before its text ever reached
-+`$status`. Renamed the field to `this.mic` throughout `Dictate.js` and `ext/Chat/Mic.js`.
-+
-+**Testing note — "Not supported" in a screenshot is very likely a plain-headless artefact,
-+not a mic bug.** A `NotSupportedError` (shown as "This browser can't run the audio pipeline
-+dictation needs here…") is the shape Chromium gives when `AudioContext.audioWorklet` (or
-+the fake/real audio backend behind it) is not usable at all — exactly what a Playwright
-+run WITHOUT any fake-media flags tends to hit, since default headless Chromium has no real
-+microphone and no synthetic one either. A proof that needs the mic to genuinely open —
-+reaching real `"listening"`, seeing the start sound fire, exercising a mid-session failure —
-+needs `chromium.launch({ args: ["--use-fake-device-for-media-stream",
-+"--use-fake-ui-for-media-stream", "--use-file-for-fake-audio-capture=<abs path to a real
-+wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
-+(`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
-+device's default tone may or may not cross the speech-loudness floor, so a real recorded
-+clip (`ai/2026-09-22/whisper-servex/clip.wav` was used here) is the reliable choice.
-diff --git a/public/framework/ux/Dictate/doc/https-lan.md b/public/framework/ux/Dictate/doc/https-lan.md
-new file mode 100644
-index 00000000..8de86f3c
---- /dev/null
-+++ b/public/framework/ux/Dictate/doc/https-lan.md
-@@ -0,0 +1,109 @@
-+# Getting https on the LAN, so a phone's microphone works
-+
-+**Nothing on this machine was installed to write this page.** This is a proposal — three
-+ways to do it, the recommended one first, with the exact commands for when the owner
-+decides to run one. All three need the owner's own choice before anything changes.
-+
-+## Why this is needed at all
-+
-+A browser only ever hands a page the microphone on a **secure context**. That means
-+either a real `https://` address, or one of a short, fixed list of addresses every
-+browser treats as secure even over plain `http://`: `localhost`, `127.0.0.1`, and any
-+name ending in `.localhost`. A phone opening this site by its LAN address — something
-+like `http://10.0.0.135:8137` — is on NONE of those, so the browser makes
-+`navigator.mediaDevices` simply not exist, silently. That is exactly what caused the
-+owner's bug: the "listening" sound played, but nothing was really listening, and no
-+error explained why (traced and fixed in `ai/2026-09-29/mobile-nav/` — see this
-+module's own `Dictate.js`, `insecure_context_message()`). Getting an address the phone's
-+browser will call secure is the only real fix; nothing in the app's own code can work
-+around a rule the browser enforces before any of this app's code even runs.
-+
-+## Recommended: `mkcert` — a private certificate authority for this LAN
-+
-+**What it is, in plain words.** A real `https://` certificate normally has to be signed
-+by an authority every browser already trusts (that's what costs money and needs a real
-+domain name). `mkcert` is a small, free, open-source tool that makes your OWN
-+computer into a trusted authority, just for your own devices — one command creates the
-+authority, one more command creates a certificate for this machine's LAN address, and
-+then you tell your phone to trust that authority too. After that one-time setup, this
-+address is `https://` for every device you trusted it on, for as long as this machine
-+keeps that same LAN address (which a home network almost always does).
-+
-+**Why this one, over the other two below:** it is the only option that (a) needs no
-+re-setup when the dev server's PORT changes (a cert covers the whole address, any port),
-+(b) works in every browser on the phone, not just one, and (c) never depends on an
-+outside service being up. The one-time cost is trusting one certificate on the phone,
-+which takes about a minute.
-+
-+**Exact steps:**
-+
-+1. Install `mkcert` on this Windows machine — a global tool, not an npm package, so it
-+   does not touch this repo at all:
-+   ```
-+   winget install FiloSottile.mkcert
-+   ```
-+   (or `choco install mkcert` with Chocolatey, or download the `.exe` directly from
-+   <https://github.com/FiloSottile/mkcert/releases> if neither is set up.)
-+
-+2. Create the local authority once, and a certificate for this machine's LAN address
-+   (replace `10.0.0.135` with whatever `ipconfig` shows for this machine's Wi-Fi
-+   adapter — it is usually stable on a home network):
-+   ```
-+   mkcert -install
-+   mkcert 10.0.0.135 localhost 127.0.0.1
-+   ```
-+   This writes two files, `10.0.0.135+2.pem` (the certificate) and
-+   `10.0.0.135+2-key.pem` (its private key), in the folder you ran it from.
-+
-+3. Point the dev server at those two files so it serves `https://` instead of `http://`.
-+   This repo's `Server/` does not do this today — that is a separate, small change
-+   (reading an `HTTPS_CERT`/`HTTPS_KEY` env var and calling Node's `https.createServer`
-+   instead of `http.createServer` when they are set) left for whoever picks this up,
-+   since it touches `Server/` and this task's fence does not include it.
-+
-+4. Trust the SAME authority on the phone. `mkcert -install` (step 2) printed where its
-+   root certificate file is (a `rootCA.pem`, under a folder `mkcert -CAROOT` prints) —
-+   send that one file to the phone (AirDrop, a USB cable, or a private link) and open
-+   it there; Android and iOS both ask "install this certificate?" and walk through it.
-+   This step is the only one that touches the phone at all, and it is a one-time thing
-+   per phone.
-+
-+Once steps 3 and 4 are done, `https://10.0.0.135:<port>` opens on the phone with no
-+warning, and the microphone works exactly as it does on this machine.
-+
-+## Alternative: a Chrome flag, zero setup, zero certificate
-+
-+Chrome has a flag that tells it "treat this one address as secure even over plain
-+http" — perfect for a quick test, with no certificate and nothing to install:
-+
-+1. On the PHONE, open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
-+2. Type the exact address, including the port, e.g. `http://10.0.0.135:8137`
-+   (comma-separate more than one if several ports are used).
-+3. Set the flag to **Enabled**, then tap **Relaunch** at the bottom of the screen.
-+
-+**Trade-offs against `mkcert`:** this only affects Chrome on that one phone (Safari,
-+Firefox, or a second phone would each need their own flag set); the exact address —
-+including the PORT — has to be re-typed every time the dev server's port changes, which
-+happens whenever this repo's tasks use a different private worktree port; and it is a
-+setting on that one phone's Chrome, easy to lose track of. Fastest to try RIGHT NOW,
-+worst to depend on for the long run.
-+
-+## Alternative: a tunnel (Cloudflare Tunnel, ngrok, Tailscale)
-+
-+A tunnel service gives this dev server a real public (or private-network-only, for
-+Tailscale) `https://` address with a certificate signed by an authority every browser
-+already trusts — no flag, no certificate to install on the phone at all. The trade-off
-+is a new account and a new tool to run (`cloudflared`, `ngrok`, or the Tailscale client),
-+and — for the fully public tunnels (Cloudflare, ngrok) — the dev server becomes reachable
-+from the whole internet, not just this LAN, while the tunnel is running. Tailscale avoids
-+that specific trade-off (its addresses only work between devices on the same private
-+"tailnet"), at the cost of installing the Tailscale client on both this machine and the
-+phone. Reach for this option only if testing from OUTSIDE the home LAN is ever needed;
-+for "my phone, my own Wi-Fi", it is more moving parts than `mkcert` for no real gain.
-+
-+## What this page does NOT cover
-+
-+Wiring the dev server itself to actually serve `https://` (step 3 above) — that is a
-+`Server/` change, outside `ux/Dictate`'s own fence for this task, and belongs to whoever
-+next works on `Server/`. This page is the research and the recommendation; the wiring is
-+the next, separate piece of work.
-diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
-index 65d2cc07..b9c79a4c 100644
---- a/public/framework/ux/Dictate/page.js
-+++ b/public/framework/ux/Dictate/page.js
-@@ -31,13 +31,14 @@ export default new Doc({
- 	icon: "mic",
+ View.stylesheet(import.meta, "Playground.css");
  
- 	files: "Dictate.js capture.js pcm-worklet.js Dictate.css page.js readme.md",
--	notes: "handover decisions silence",
-+	notes: "handover decisions silence https-lan",
+ // Servex's fast assistant — not always up (`server-port` sibling task). A failed request
+ // here is EXPECTED until Servex restarts; the rules fallback below is what covers it.
+-const TIDY_URL = "http://127.0.0.1:8090/api/tidy";
++const TIDY_URL = servex_url("/api/tidy");
  
- 	children: [
- 		"demo",
- 		demo.page("words", words, {
- 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
- 		"playground",
-+		"variants",
- 	],
- 
- 	content(){
-@@ -45,9 +46,9 @@ export default new Doc({
- 		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
- 		pg.widget();
- 
--		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `whisper (local)` when `whisper-server` is running on this machine, `Chrome's built-in recognition` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
-+		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `Whisper on the PC` when `whisper-server` is running on this machine, `the browser's recognizer` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
- 
--		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline.");
-+		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
- 
- 		demo.exhibit({
- 			page: this,
-diff --git a/public/framework/ux/Dictate/playground/page.js b/public/framework/ux/Dictate/playground/page.js
-index 2558a3ca..c89741a5 100644
---- a/public/framework/ux/Dictate/playground/page.js
-+++ b/public/framework/ux/Dictate/playground/page.js
-@@ -19,6 +19,7 @@ export default new Page({
- 		a.c("page-link").href("/framework/ux/Dictate/playground/walkthrough/").text("New here? Next / Next through it, one screen at a time →");
- 		md("Press 🎤, or ▶ Sample for a scripted fake session — no mic needed.");
- 		pg.widget();
-+		md("Want a different LOOK on top of this same mic — mobile prompt cards, a compact toolbar line? See [Variants](/framework/ux/Dictate/variants/).");
- 		md.details(import.meta, "readme.md", "Readme");
- 	},
- });
-diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
-index 854e9c68..443466fa 100644
---- a/public/framework/ux/Dictate/readme.md
-+++ b/public/framework/ux/Dictate/readme.md
-@@ -82,12 +82,28 @@ Only needed with `NO_WHISPER=1` (turns the auto-start off), or when running
- 
- Leave that window open; the component finds it on the next 🎤 press.
- 
-+## Variants — the same mic, a different look
-+
-+**A variant is a `Dictate` subclass that overrides one or two methods** — `build_output()`
-+(what holds the transcript) and/or `draw_caption()` (how a settled sentence and the live guess
-+are drawn). Everything else — the engines, every error message, the start sound's real timing —
-+is inherited untouched. Today's box is `v1`, kept on its own url forever so a newer variant can
-+never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
-+
-+- **v1** — today's box, unchanged.
-+- **Cards** — the mobile "prompt cards" flow: each finished sentence becomes its own card.
-+- **Compact** — one short line for a toolbar, never a growing block.
-+
- ## More
- 
- - **Starting a new round? Read [`doc/handover.md`](/framework/ux/Dictate/doc/handover/) first** — where the pieces live (`ext/Chat/Mic.js`
-   is Dictate's too), every setting, the rules learned the hard way, how to test, what is open
-+- **Mic feedback and https on the LAN:** [`doc/https-lan.md`](/framework/ux/Dictate/doc/https-lan/) —
-+  why the start sound could play with no error on a phone over plain http, and the cleanest way
-+  to get https on the LAN so a phone's mic works at all
- - [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
--  the same box under `ui-contrast ui-compact`
-+  the same box under `ui-contrast ui-compact` · [variants](/framework/ux/Dictate/variants/) —
-+  the same mic, three different looks
- - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the
-   segment/resend mechanics, the RMS numbers, who starts `whisper-server`
- - [`doc/silence.md`](/framework/ux/Dictate/doc/silence/) — why whisper said "Thank you", the
-diff --git a/public/framework/ux/Dictate/variants/cards/Cards.js b/public/framework/ux/Dictate/variants/cards/Cards.js
-new file mode 100644
-index 00000000..ef7c882c
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/cards/Cards.js
-@@ -0,0 +1,43 @@
-+import { div } from "../../../../core/View/View.js";
-+import Dictate from "../../Dictate.js";
-+
-+/**
-+ * **The mobile "prompt cards" flow** the owner asked for: "it just, maybe it opens up
-+ * like a little transcription window, and as you start saying things, it converts that
-+ * prompt into little cards — that's really what it should be, a prompt item." Every
-+ * finished utterance becomes its own small card in a stack, instead of one running line
-+ * of text — the shape `ext/drawer/rail.js`'s bottom sheet already builds by hand; this is
-+ * the same idea turned into a genuine `Dictate` variant, so any other page can use it with
-+ * one `new CardsDictate({...})` instead of copying that sheet's own drawing code.
-+ *
-+ * Overrides exactly two methods, per the owner's own rule ("extending the classes...
-+ * cherry pick a specific method") — everything else (engines, errors, the start sound's
-+ * real timing fixed in `ai/2026-09-29/mobile-nav/`) is inherited from `Dictate` untouched:
-+ *
-+ * - `build_output()` — a vertical card list instead of one caption line.
-+ * - `draw_caption()` — repaints the WHOLE list from `this.settled_lines` (every commit()
-+ *   already pushes here, in both modes) each time a segment settles or the live guess
-+ *   changes; the still-moving guess is its own last, muted card.
-+ *
-+ * Defaults to `mode: "open"` (the mic stays on, nothing is ever written into a box) —
-+ * exactly the "start listening, cards keep appearing" flow being asked for. A caller can
-+ * still pass `mode: null` and a `$input` to use it as a plain dictation box with cards
-+ * instead of a caption, since nothing here reads `mode` directly.
-+ */
-+export default class CardsDictate extends Dictate {
-+
-+	build_output(){
-+		this.$cards = div.c("ux-dictate-cards flex v gap");
-+	}
-+
-+	draw_caption(){
-+		// `.card` is framework.css's own framed-box utility (background, border,
-+		// padding, radius, all for free) — a new stylesheet here would only repeat it.
-+		this.$cards.empty(() => {
-+			for (const line of this.settled_lines ?? []) div.c("ux-dictate-card card", line);
-+			if (this.partial_text) div.c("ux-dictate-card card muted", this.partial_text);
-+		});
-+	}
-+}
-+
-+CardsDictate.prototype.mode = "open";
-diff --git a/public/framework/ux/Dictate/variants/cards/page.js b/public/framework/ux/Dictate/variants/cards/page.js
-new file mode 100644
-index 00000000..dbf5e3ac
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/cards/page.js
-@@ -0,0 +1,26 @@
-+import { Page, p, div } from "/app.js";
-+import CardsDictate from "./Cards.js";
-+
-+/* Mobile "prompt cards" — the owner's own words: "it converts that prompt into little
-+ * cards — that's really what it should be, a prompt item." Press 🎤 once; it keeps
-+ * listening (mode: "open") and every finished sentence becomes its own card below,
-+ * instead of one growing line of text. `ext/drawer/rail.js`'s bottom sheet draws the
-+ * same idea on mobile; this page is the reusable class it could be built from. */
-+export default new Page({
-+	meta: import.meta,
-+	title: "Cards",
-+	description: "Each finished sentence becomes its own card — the mobile \"prompt item\" flow.",
-+	icon: "view_agenda",
-+
-+	files: "Cards.js",
-+
-+	content(){
-+		p("Press 🎤 and talk. The mic stays on; each finished sentence becomes its own card below, in order, instead of one line that keeps growing. This is `CardsDictate` — a `Dictate` subclass that overrides two methods, `build_output()` and `draw_caption()` — see the file below for the whole class, about 15 lines.");
-+
-+		div.c("pad card flex v gap", () => { new CardsDictate({}); }).style("max-width", "32em");
-+
-+		p.c("muted", "Where this fits: any page that wants a running list of what was said — a voice note taker, a meeting log, the mobile AI rail's own sheet — can use this class directly instead of redrawing the same list by hand.");
-+	},
-+
-+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new CardsDictate({}); })); },
-+});
-diff --git a/public/framework/ux/Dictate/variants/compact/Compact.css b/public/framework/ux/Dictate/variants/compact/Compact.css
-new file mode 100644
-index 00000000..caeeea88
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/compact/Compact.css
-@@ -0,0 +1,30 @@
-+/* Compact.js's own look: one short line, never a growing block. `css` skill: every
-+ * rule lives in a layer, `theme` is the right one for a component's own look (the same
-+ * layer Dictate.css itself uses). */
-+@layer theme {
-+
-+	/* Small text, no wrap, no growth — the whole point of "compact" is that this
-+	 * widget never gets taller or wider than a single toolbar row. `text-overflow:
-+	 * ellipsis` is the safety net if `compact_chars` (Compact.js) still overflows this
-+	 * width at a given font size — a soft cutoff, never a hard clip mid-letter. */
-+	.ux-dictate-caption-compact {
-+		font-size: 0.85em;
-+		white-space: nowrap;
-+		overflow: hidden;
-+		text-overflow: ellipsis;
-+		max-width: 20em;
-+	}
-+
-+}
-+
-+/* `@layer util` BEATS `@layer theme` regardless of selector specificity (`code` skill,
-+ * "layout and CSS that never throw") — and the checkbox row also wears the `flex`
-+ * utility class (`ux-dictate-pause-opt flex v-center muted` in Dictate.js's own
-+ * `render()`), which sets `display: flex` in that same util layer. A `display: none`
-+ * living in `theme` above would silently lose to it, so this one rule lives in `util`
-+ * instead — the one place that can actually win against a utility class. */
-+@layer util {
-+	/* The "stop after a pause" checkbox is a real option, but real bulk a one-line
-+	 * toolbar mic can't afford — hidden here only, never on the full-size widget. */
-+	.ux-dictate-compact .ux-dictate-pause-opt { display: none; }
-+}
-diff --git a/public/framework/ux/Dictate/variants/compact/Compact.js b/public/framework/ux/Dictate/variants/compact/Compact.js
-new file mode 100644
-index 00000000..b7696cc3
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/compact/Compact.js
-@@ -0,0 +1,39 @@
-+import { View, div } from "../../../../core/View/View.js";
-+import Dictate from "../../Dictate.js";
-+
-+View.stylesheet(import.meta, "Compact.css");
-+
-+/**
-+ * **The compact desktop inline variant.** Meant to sit inside a toolbar or a single
-+ * form row — never a growing block of history, only ONE short line: the live guess
-+ * while talking, or the last finished sentence once it settles, truncated from the
-+ * front so the newest words are always the ones still visible.
-+ *
-+ * Overrides two methods — everything else (the button, the engine name, every error
-+ * message, the start sound's real timing) is the same `Dictate` as the full-size widget:
-+ *
-+ * - `build_output()` — the same one `$caption` line, wearing an extra class so the
-+ *   compact CSS (below) applies from the very first render, not only once something has
-+ *   actually been said.
-+ * - `draw_caption()` — shows only the LAST piece of text, truncated from the front,
-+ *   instead of the base class's whole capped history.
-+ */
-+export default class CompactDictate extends Dictate {
-+
-+	build_output(){
-+		this.ac("ux-dictate-compact");   // marks the ROOT — Compact.css uses it to hide the "stop after a
-+		                                  // pause" checkbox row too: a real option, but real bulk a one-line
-+		                                  // toolbar mic can't afford. `mode: "open"` would hide it for free,
-+		                                  // but would also stop this variant writing into a target `$input`,
-+		                                  // which its own page explicitly offers it for ("a single-line
-+		                                  // quick note field") — so this hides ONLY the extra row instead.
-+		this.$caption = div.c("ux-dictate-caption ux-dictate-caption-compact muted");
-+	}
-+
-+	draw_caption(){
-+		const shown = this.partial_text || this.settled_lines?.at(-1) || "";
-+		this.$caption.text(shown.length > this.compact_chars ? "…" + shown.slice(-this.compact_chars) : shown);
-+	}
-+}
-+
-+CompactDictate.prototype.compact_chars = 60;   // how much of the last sentence stays visible; CSS ellipsis catches the rest
-diff --git a/public/framework/ux/Dictate/variants/compact/page.js b/public/framework/ux/Dictate/variants/compact/page.js
-new file mode 100644
-index 00000000..268c0216
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/compact/page.js
-@@ -0,0 +1,27 @@
-+import { Page, p, div, span } from "/app.js";
-+import CompactDictate from "./Compact.js";
-+
-+/* The desktop compact inline variant — meant to sit in a toolbar or a single form row,
-+ * never grow. Overrides ONE method (`draw_caption()`) — the smallest possible variant,
-+ * proving the seam works for a tiny change too, not only a whole new layout like Cards. */
-+export default new Page({
-+	meta: import.meta,
-+	title: "Compact",
-+	description: "One short line, never a growing block — for a toolbar or a single form row.",
-+	icon: "unfold_less",
-+
-+	files: "Compact.js Compact.css",
-+
-+	content(){
-+		p("Press 🎤 and talk. Only ONE short line ever shows — the live guess while you talk, or the last finished sentence once it settles, truncated from the front so the newest words stay visible. This is `CompactDictate` — a `Dictate` subclass overriding two small methods, `build_output()` and `draw_caption()`.");
-+
-+		div.c("pad card flex gap v-center", () => {
-+			span.c("muted", "Ask something:");
-+			new CompactDictate({});
-+		}).style("max-width", "32em");
-+
-+		p.c("muted", "Where this fits: a toolbar mic that must never push its neighbours around, or a single-line \"quick note\" field.");
-+	},
-+
-+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new CompactDictate({}); })); },
-+});
-diff --git a/public/framework/ux/Dictate/variants/page.js b/public/framework/ux/Dictate/variants/page.js
-new file mode 100644
-index 00000000..2d91d038
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/page.js
-@@ -0,0 +1,25 @@
-+import { Page, p } from "/app.js";
-+
-+/**
-+ * A wall of every `Dictate` VARIANT — a variant is a subclass that overrides one or two
-+ * of its methods (which one is named in the class's own doc comment: `build_output()` for
-+ * the container shape, `draw_caption()` for how a settled sentence and the live guess are
-+ * drawn). Nothing about the engines, the errors, or the start sound's real timing ever
-+ * needs restating — every variant inherits all of that from `Dictate` untouched.
-+ *
-+ * **v1 is kept here on purpose, unchanged** — the owner's own rule: a new idea never
-+ * deletes a working one; it becomes a sibling, reachable on its own url forever.
-+ */
-+export default new Page({
-+	meta: import.meta,
-+	title: "Variants",
-+	description: "Today's box (v1), the mobile prompt-cards flow, and a compact one-line toolbar mic — three ways of drawing the same dictation, each its own subclass.",
-+	icon: "grid_view",
-+
-+	children: ["v1", "cards", "compact"],
-+
-+	content(){
-+		p("Each card below is a real, working `Dictate` — press its 🎤 right on the card. Open any one for its own page: what it overrides, why, and where it fits.");
-+		this.previews();
-+	},
-+});
-diff --git a/public/framework/ux/Dictate/variants/readme.md b/public/framework/ux/Dictate/variants/readme.md
-new file mode 100644
-index 00000000..d7a28f1d
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/readme.md
-@@ -0,0 +1,42 @@
-+# Dictate variants — the same mic, a different look
-+
-+**What:** three working `Dictate` widgets, side by side — [v1](/framework/ux/Dictate/variants/v1/)
-+(today's box, unchanged), [Cards](/framework/ux/Dictate/variants/cards/) (each finished
-+sentence becomes its own card — the mobile "prompt cards" flow), and
-+[Compact](/framework/ux/Dictate/variants/compact/) (one short line for a toolbar). Each is a
-+plain subclass of [`Dictate`](/framework/ux/Dictate/) overriding one or two methods; none of
-+them touch the mic pipeline itself — the engines, every error message, and the start sound's
-+real timing (fixed in `ai/2026-09-29/mobile-nav/`) are inherited by every variant, for free.
-+
-+**Use:** `import CardsDictate from "/framework/ux/Dictate/variants/cards/Cards.js"; new
-+CardsDictate({...});` — the exact same constructor shape as plain `Dictate`
-+(`$input`, `on_text`, `on_error`, `mode`, all still work).
-+
-+## Write your own variant
-+
-+Pick the ONE thing that should look different, then override the smallest method that draws
-+it:
-+
-+- **A different container for the transcript** (a card list, a sidebar panel, …) →
-+  override `build_output()`. It runs inside `render()`'s own captor, so a bare factory call
-+  (`div.c(...)`) works exactly as it would in `render()` itself.
-+- **A different way of drawing a settled sentence or the live guess** → override
-+  `draw_caption()`. Read `this.settled_lines` (every commit, in order, both modes) and
-+  `this.partial_text` (the still-moving guess); write into whatever `build_output()` built.
-+
-+Never override `start()`, `stop()`, or anything else in `Dictate.js` for a look-only
-+variant — those run the actual microphone and are the same for every variant on purpose.
-+
-+## Watch out
-+
-+- **`build_output()` runs ONCE, inside `render()`'s captor** — build a container there and
-+  keep a reference (`this.$cards = div.c(...)`); `draw_caption()` then repaints INTO that
-+  same reference every time, never rebuilds it.
-+- **`this.settled_lines` already exists on the base class**, pushed by `commit()` in BOTH
-+  modes — a variant never needs its own bookkeeping just to get "every sentence, in order".
-+
-+## More
-+
-+- [`Dictate`](/framework/ux/Dictate/) — the class every variant extends
-+- [Playground](/framework/ux/Dictate/playground/) — the full raw/corrections/live pipeline,
-+  built on plain `Dictate`
-diff --git a/public/framework/ux/Dictate/variants/v1/page.js b/public/framework/ux/Dictate/variants/v1/page.js
-new file mode 100644
-index 00000000..9645d818
---- /dev/null
-+++ b/public/framework/ux/Dictate/variants/v1/page.js
-@@ -0,0 +1,28 @@
-+import { Page, p, div, textarea, span } from "/app.js";
-+import Dictate from "../../Dictate.js";
-+
-+/* Today's UI, kept reachable on its OWN url. Nothing here changes as new variants are
-+ * added — the owner's own rule: "even if the AI deems it not useful... we want at least
-+ * to save the snapshot of version one so I could click back to the first version" — this
-+ * page IS that snapshot. Same widget the plain `ux/Dictate` demo shows. */
-+export default new Page({
-+	meta: import.meta,
-+	title: "v1 — today's box",
-+	description: "The dictation box exactly as it has always worked: one caption line, growing settled text, a grey guess.",
-+	icon: "mic",
-+
-+	content(){
-+		p("This is the ORIGINAL `Dictate` widget, unchanged — one caption line under the button, the settled text growing in the page's own ink, the still-moving guess shown grey. Every other variant on this site is a subclass that overrides one or two of its methods; this page exists so this exact look never quietly disappears while that happens.");
-+
-+		let $ta, $out;
-+		div.c("flex v gap", () => {
-+			new Dictate({ $input: () => $ta });
-+			$ta = textarea.c("ux-dictate-demo-box").attr("rows", "3")
-+				.attr("placeholder", "click 🎤 and talk — or type here")
-+				.on("input", () => $out.text($ta.el.value || "(empty)"));
-+			$out = span.c("muted", "(empty)");
-+		}).style("--gap", "calc(var(--gap) * 0.5)");
-+	},
-+
-+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => { new Dictate({}); })); },
-+});
+ // How much already-cleaned text rides along as `before` — enough for the assistant to
+ // see the sentence it is joining, not the whole transcript.

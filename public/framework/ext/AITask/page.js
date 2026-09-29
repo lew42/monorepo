@@ -26,12 +26,13 @@ export default new Doc({
 	title: "AITask",
 	description: "A task's task.jsonl (or legacy session.json), rendered — request, checklist, spend, agents — with a live feed and a chat panel onto the raw transcript.",
 	icon: "smart_toy",
+	children: "tree",
 
 	subject: AITask,
 	properties: "src",
 	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status cost checklist unparsed extra shots figures chat composer log",
-	notes:      "cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
-	files:      "AITask.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
+	notes:      "nested cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
+	files:      "AITask.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js nested.js nested.css plan.js tree.js listing.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
 	overview:   [
 		{ title: "Task card", content(){
 			demo(() => {
@@ -140,6 +141,8 @@ export default new AITask({
 		md("A task dir with no `page.js` still gets this page — the day's `route()` falls back to `new AITask({ url, src })` — so the template is the default across the whole archive, and a curated `extra()` is the exception.");
 
 		md("**The raw transcript never enters the repo.** On the dev server, `/ai-logs/<session-id>` streams the real file from `~/.claude/projects/`, and the Session tab renders it as a conversation: the owner's messages and Claude's replies in one column, every run of tool calls folded to one line (\"edited 3 files\"), and a rail of every prompt beside it. On static hosting it says \"unavailable\" and the manifest stands alone.");
+
+		md("**Tasks inside tasks.** A task can have subtasks, to any depth, some running at the same time and some waiting for others. [The task tree](/framework/ext/AITask/tree/) draws a day of them: what ran together, what waited, what is running now, and the %. [doc/nested.md](/framework/ext/AITask/doc/nested/).");
 
 		md("Live: [the AI board](/framework/ai/) · [a day](/framework/ai/2026-08-13/) · [a task with an `extra()`](/framework/ai/2026-08-13/panel/) · [a plain manifest](/framework/ai/2026-08-13/sessions/).");
 

@@ -8,3 +8,5 @@
 {"message":{"by":"task-mastermind-padding-system","text":"Root cause found; the tree and before/after shots are in findings.md on this card. Short version: the padding checker scored the unpadded Now card as clean, because it never counted a neighbouring column as an edge, and it only ran when someone remembered to run it. The page skill now asks the three layout questions every time, and a rebuilt check is being tested now.","kind":"reply","at":"2026-09-25T17:50:45-05:00"}}
 {"place":"findings.md"}
 {"message":{"by":"task-mastermind-padding-system","text":"Landed. The padding check now sees neighbouring columns, controls and framed boxes, and it runs by itself on every landing. The page skill asks \"how wide, does it need padding, how does it meet its neighbours\" every time. Padding stays opt-in with .pad. It already caught one real miss: the Assistant box on AI 2 at 1280.","kind":"reply","at":"2026-09-25T18:14:12-05:00"}}
+{"file":"shots/","gone":true}
+{"file":"shots/"}

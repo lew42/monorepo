@@ -1,4 +1,4 @@
-import { Page, Doc, md, div, code, a, span, small } from "/app.js";
+import { Page, Doc, md, div, code, a, span, small, file_link } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
 import { object } from "../../ux/Content/Object/Object.js";
 import { page_object } from "./object.js";
@@ -218,6 +218,8 @@ export default new Doc({
 					});
 				}));
 		}).style("--gap", "0.75em");
+
+		md(`Files: [Page.class.js](${file_link("framework/core/Page/Page.class.js")}) · [Log.js](${file_link("framework/core/Page/Log.js")}) · [Markdown.js](${file_link("framework/core/Page/Markdown.js")}) · [words.js](${file_link("framework/core/Page/words.js")})`);
 
 		div.c("wide grid three gap", () => {
 			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the five ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");

@@ -39,3 +39,7 @@ In PowerShell, run `(Get-Item <link>).Delete()`. In cmd, run `rmdir <link>` with
 prints a warning.
 
 The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/2026-09-29/node-modules-guard/guards/proof.md).
+
+## Tell the worktree which task it is for
+
+`node Server/worktree-up.mjs <slug> --task <task dir>` (or `LEW_TASK=<task dir>`) writes `worktree` into that task's `task.jsonl`. When the task lands, `Server/on-landing.mjs` uses it to stop the worktree's server. Without it, the landing matches the task's folder name or branch against `.worktrees.json`. Everything a worktree starts is also recorded in Servex's creation log: [Servex/doc/lifecycle.md](../../Servex/doc/lifecycle.md).

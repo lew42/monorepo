@@ -295,8 +295,9 @@ export class PageLog {
 		const reader = new this.Reader({ url: url + "page.jsonl" });
 		await reader.open();
 
+		// A log whose line 1 is a `file` line is a folder's listing, not a page.
 		const [first] = reader.entries;
-		if (!first) { reader.close(); return null; }
+		if (!first || typeof first.file === "string") { reader.close(); return null; }
 
 		const Class = first.class ? await this.log_class(first.class, url) : this;
 		const { class: _, ...line } = first;
@@ -305,6 +306,33 @@ export class PageLog {
 		page.content ??= page.log_view;
 		reader.attach(page);
 		return page;
+	}
+
+	/* A FOLDER'S OWN FILE LIST, from its page.jsonl — what used to cost the whole
+	   site's directory.json. `url` is the folder (a trailing `/` is added). One fetch
+	   per folder, memoised (`fresh` refetches); no page is built. Null when the folder
+	   has no page.jsonl: the caller falls back. A log with no `file` lines is an empty folder.
+	   ⚠ Not live: a file added after the fetch is missing until `fresh`. */
+	static listing(url, fresh){
+		url = String(url).replace(/\/?$/, "/");
+		if (PageLog.UNLOGGED.test(url)) return Promise.resolve(null);
+		const memo = PageLog.listings ??= new Map();
+		if (fresh || !memo.has(url)) memo.set(url, new PageLog.Reader({ url: url + "page.jsonl" }).load()
+			.then(reader => reader.loaded ? PageLog.Listing.from(reader.entries) : null)
+			.then(listing => { (PageLog.loaded_listings ??= new Map()).set(url, listing); return listing; }));
+		return memo.get(url);
+	}
+
+	// ⚠ Folders INSIDE a dated task folder get no log (Server/plugins/PageFiles.js
+	//   covers()), so asking would only log a 404: listing() answers null at once and
+	//   the caller falls back. The card style (ai/YYYY/MM/DD/) is left out on purpose:
+	//   a sub-card's folder can hold a real page.jsonl.
+	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
+
+	// The listing, only if a `listing()` call has already brought it in; never fetches.
+	// undefined = not asked yet, null = asked, no page.jsonl.
+	static loaded_listing(url){
+		return PageLog.loaded_listings?.get(String(url).replace(/\/?$/, "/"));
 	}
 
 	static async log_class(module, url){
@@ -395,6 +423,40 @@ PageLog.Reader = class PageLogReader {
 		delete this.loaded;
 		return this;
 	}
+};
+
+/* WHAT `listing()` ANSWERS — the entries directly inside one folder, replayed the way
+   file() replays them (keyed by first segment, latest line wins, `gone` removes):
+       files  ["readme.md", …]         plain files
+       dirs   ["doc", …]               plain folders (each may have its own page.jsonl)
+       pages  Map { "kid" → "js" }     child pages, and which file makes each one
+       page   true/false               is this log itself a page (line 1 is not a file line)? */
+PageLog.Listing = class PageListing {
+
+	files = [];
+	dirs = [];
+	pages = new Map();
+
+	static from(entries){
+		const latest = new Map();
+		for (const { file, gone } of entries){
+			if (typeof file !== "string") continue;
+			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
+		}
+
+		const listing = new this();
+		listing.page = !!entries[0] && typeof entries[0].file !== "string";   // line 1 builds a page; a listing-only log starts with a file line
+		latest.forEach((name, key) => {
+			const kind = name.match(CHILD)?.[2];
+			if (kind) listing.pages.set(key, kind);
+			else if (name.includes("/")) listing.dirs.push(key);
+			else listing.files.push(name);
+		});
+		return listing;
+	}
+
+	// Is `name` a folder here, page or not?
+	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
 };
 
 export default PageLog;

@@ -29,3 +29,5 @@ only clears by being answered, never by "Reviewed ✓".
 One rule decides all three (the tab, the filter, and Servex's own `list_waiting`/`GET /waiting`):
 [`needs-rule.js`](../needs-rule.js), `card_needs()`. [`needs.js`](../needs.js) is the browser half
 — the shared scan every reader here subscribes to (`watch_needs()`), and the tab's own drawing.
+The scan asks Servex's `GET /waiting` first: one request. Reading every card's `page.jsonl`
+itself (300 requests every 20 s, measured 09-29) is only the fallback when Servex is down.

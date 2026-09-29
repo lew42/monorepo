@@ -96,7 +96,11 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const master = f.spawned.find(s => s.id === "master-assistant");
-	t(master && master.model === "claude-sonnet-5" && master.effort === "medium", "master-assistant spawned, exact id, fast tier");
+	/* D7 (the owner's words, the recursive-pairs card): "the root assistant runs on Opus" —
+	 * master() already spawns it on the architect model; this assertion was stale (said
+	 * claude-sonnet-5/"fast tier"), a pre-existing mismatch found while touching this file
+	 * for D3, not something this task's own edits changed. */
+	t(master && master.model === "claude-opus-5-5" && master.effort === "medium", "master-assistant spawned, exact id, architect tier (D7: root assistant on Opus)");
 	const mm = f.spawned.find(s => s.id === "mastermind-servex");
 	t(mm && !mm.resume && mm.prompt === "You are on duty. Answer nothing now." && mm.model === "claude-opus-5-5", "fresh mastermind only when nothing recorded");
 	t(["claim_topic", "release_topic", "list_claims", "set_focus"].every(k => f.tools.has(k)), "four tools registered");
@@ -135,23 +139,47 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	clearInterval(g.reap_timer);
 }
 
-// Three prompts within the window reach the master as ONE send; kinds filtered
+// D3: the every-card feed is gone. A fresh prompt on any card is no longer
+// forwarded (each page now hears its own); only a landing/block/error from a
+// DIRECT CHILD of the root reaches the master, batched, at most one send per window.
 {
 	reset();
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const hear = (card, line, info) => f.listeners.forEach(fn => fn(card, line, info));
-	hear("a", { prompt: { text: "one" } }, { fresh: true });
-	hear("b", { prompt: { text: "two" } }, { fresh: true });
-	hear("c", { prompt: { text: "three" } }, { fresh: true });
-	hear("c", { message: { kind: "reply", by: "x", text: "ignored" } });
+	f.servex.layers = { root: id => id.split("/").length >= 4 ? id : null };   // a pair hears every root card
+
+	// fresh prompts on cards a page pair hears: never forwarded any more
+	hear("2026/09/24/a", { prompt: { text: "one" } }, { fresh: true });
+	hear("2026/09/24/b/sub", { prompt: { text: "two" } }, { fresh: true });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "fresh card prompts are no longer forwarded to the root");
+
+	// a landing from an agent with no recorded parent (not a direct child): dropped
+	hear("c", { message: { kind: "landed", by: "manager-c", text: "done, but not a direct child" } });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "a non-child's landing is not forwarded");
+
+	// a "reply" and a "task" kind: still never forwarded (HEARD dropped "task"; "reply" was never in it)
+	f.servex.agents.live.set("task-mastermind-x", { id: "task-mastermind-x", state: "idle", parent: "dispatcher" });
+	hear("c", { message: { kind: "reply", by: "task-mastermind-x", text: "ignored" } });
+	hear("c", { message: { kind: "task", by: "task-mastermind-x", text: "queued, ignored" } });
+	await wait(120);
+	t(!f.sent.some(s => s.id === "master-assistant"), "kinds outside landed/blocked/error are never forwarded");
+
+	// a landing from a DIRECT CHILD (parent: dispatcher, mastermind-servex's own spawn path today): forwarded
+	hear("d", { message: { kind: "landed", by: "task-mastermind-x", text: "done" } });
 	await wait(120);
 	const to = f.sent.filter(s => s.id === "master-assistant");
-	t(to.length === 1 && to[0].text === "card a: one\ncard b: two\ncard c: three" && to[0].note.from === "owner", "three prompts, one send");
-	hear("a", { message: { kind: "landed", by: "manager-a", text: "done" } });
+	t(to.length === 1 && to[0].text === "card d, landed from task-mastermind-x: done" && to[0].note.from === "servex", "a direct child's landing reaches the root, from servex");
+
+	// two events in one window still batch into one send
+	f.servex.agents.live.set("task-mastermind-y", { id: "task-mastermind-y", state: "idle", parent: "mastermind-servex" });
+	hear("e", { message: { kind: "blocked", by: "task-mastermind-y", text: "stuck" } });
+	hear("f", { message: { kind: "error", by: "task-mastermind-y", text: "oops" } });
 	await wait(120);
 	const last = f.sent.filter(s => s.id === "master-assistant").pop();
-	t(last.text === "card a, landed from manager-a: done" && last.note.from === "servex", "landing heard, from servex");
+	t(last.text === "card e, blocked from task-mastermind-y: stuck\ncard f, error from task-mastermind-y: oops", "two direct-child events batch into one send");
 
 	// Idle stop, then a message resumes it by session id
 	const master = f.servex.agents.live.get("master-assistant");
@@ -163,9 +191,83 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	f.servex.agents.send("mastermind-servex", "hello", { from: "owner" });
 	const back = f.spawned.filter(s => s.id === "mastermind-servex").pop();
 	t(back.resume === "mm-sid" && f.sent.pop().text === "hello", "a message resumes mastermind-servex");
-	hear("a", { prompt: { text: "four" } }, { fresh: true });
+	hear("g", { message: { kind: "landed", by: "task-mastermind-x", text: "five" } });
 	await wait(120);
 	t(f.spawned.filter(s => s.id === "master-assistant").pop().resume === "m-sid", "batching resumes the master");
+	clearInterval(g.reap_timer);
+}
+
+// Fix items 1-2 (2026-09-29): the owner's PAGE-LESS prompts reach master-assistant,
+// and a top-level page's manager (the REAL Layers' ids and layers.json) is a direct child.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const hear = (card, line, info) => f.listeners.forEach(fn => fn(card, line, info));
+	const to_master = () => f.sent.filter(s => s.id === "master-assistant");
+
+	// no Layers at all: nobody else hears a prompt, so every one is page-less
+	hear("2026/09/24/a", { prompt: { text: "no layers here" } }, { fresh: true });
+	await wait(120);
+	t(to_master().at(-1)?.text === "card 2026/09/24/a: no layers here" && to_master().at(-1).note.from === "owner", "with Layers off, a prompt reaches the root, from the owner");
+
+	const { default: Layers } = await import("./Layers.js");
+	const repo = fs.mkdtempSync(path.join(os.tmpdir(), "global-layers-"));
+	const L = new Layers({ servex: f.servex, file: path.join(repo, "layers.json"), repo, watch(){} });
+	L.load();
+	f.servex.layers = L;
+	for (const k of ["2026/09/24/fix-the-sidebar", "/framework/", "/framework/ux/Dictate/"]) L.record(k);
+	const n = to_master().length;
+
+	hear("2026/09/24/fix-the-sidebar", { prompt: { text: "a card's own words" } }, { fresh: true });
+	hear("2026/09/24/fix-the-sidebar/wider", { prompt: { text: "a sub-card's words" } }, { fresh: true });
+	hear("2026/09/24/fix-the-sidebar", { prompt: { text: "not fresh" } }, { fresh: false });
+	hear("2026/09", { prompt: { text: "spoken on the month, no card" } }, { fresh: true });
+	await wait(120);
+	const got = to_master().slice(n).map(s => s.text).join(" | ");
+	t(got === "card 2026/09: spoken on the month, no card", "only the page-less prompt reaches the root: " + JSON.stringify(got));
+
+	// landings: a card's manager and a top-level page's manager are direct children (parent manager-root in layers.json);
+	// a deeper page's manager (parent manager-ux) is not. Their LIVE parent is their own assistant, as Layers spawns them.
+	for (const [id, parent] of [["manager-fix-the-sidebar", "assistant-fix-the-sidebar"], ["manager-framework", "assistant-framework"], ["manager-dictate", "assistant-dictate"]])
+		f.servex.agents.live.set(id, f.add({ id, parent }));
+	t(L.state.cards["2026/09/24/fix-the-sidebar"].parent === "manager-root" && L.state.cards["/framework/ux/Dictate/"].parent === "manager-ux", "the real recorded parents");
+	t(g.direct_child("manager-fix-the-sidebar") && g.direct_child("manager-framework"), "a card's and a top-level page's manager are direct children");
+	t(!g.direct_child("manager-dictate") && !g.direct_child("manager-root") && !g.direct_child("assistant-framework"), "a deeper page's manager, the root's own manager and an assistant are not");
+	const m = to_master().length;
+	hear("2026/09/24/fix-the-sidebar", { message: { kind: "landed", by: "manager-fix-the-sidebar", text: "sidebar shipped" } });
+	hear("2026/09/24/fix-the-sidebar", { message: { kind: "landed", by: "manager-dictate", text: "a grandchild's landing" } });
+	await wait(120);
+	const landed = to_master().slice(m).map(s => s.text).join(" | ");
+	t(landed === "card 2026/09/24/fix-the-sidebar, landed from manager-fix-the-sidebar: sidebar shipped", "manager-<card>'s landing reaches the root; the deeper one's does not: " + JSON.stringify(landed));
+	// a STOPPED card manager is still a direct child: layers.json, not the live map, decides
+	f.servex.agents.live.delete("manager-fix-the-sidebar");
+	t(g.direct_child("manager-fix-the-sidebar"), "a stopped card manager still counts");
+
+	const master = f.spawned.find(s => s.id === "master-assistant");
+	t(["page_reply", "ask_manager", "card_reply"].every(k => master.allowed_tools.includes(`mcp__servex__${k}`)), "master-assistant can answer the page / and hand work to manager-root");
+	t(master.model === "claude-opus-5-5", "master-assistant runs on the architect tier (Opus)");
+	t(Array.isArray(master.setting_sources) && !master.setting_sources.length && master.sdk?.tools?.length === 0 && master.env?.ENABLE_CLAUDEAI_MCP_SERVERS === "false", "master-assistant starts lean, like a page assistant");
+	fs.rmSync(repo, { recursive: true, force: true });
+	clearInterval(g.reap_timer);
+}
+
+// D5: the same 15-minute reaper now also stops an idle task-mastermind (was:
+// neither a worker nor `master_id`/`mastermind_id`, so sweep() skipped it
+// entirely and it never stopped). Waking a stopped one by message is generic
+// Agents.js behavior (`send` -> `wake` -> `reopen` by session id, outside this
+// fence); the live proof on the private Servex exercises the real thing.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const tm = f.add({ id: "task-mastermind-recursive-pairs", role: "task-mastermind", state: "idle", parent: "dispatcher", turns: 3, session_id: "tm-sid" });
+	f.servex.agents.live.set(tm.id, tm);
+	g.sweep(Date.now());
+	t(tm.state === "idle", "not reaped before idle_ms");
+	g.sweep(Date.now() + g.idle_ms + 1000);
+	t(tm.state === "stopped", "an idle task-mastermind is stopped after idle_ms (15 minutes by default)");
+	t(f.logged.some(l => l.type === "reaped" && l.id === "task-mastermind-recursive-pairs"), "its stop is logged like a worker's");
 	clearInterval(g.reap_timer);
 }
 
@@ -225,6 +327,17 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	for (const h of handlers) h(held[0], real);
 	t(!g.held && f.sent.length === 1 && f.sent[0].text === "two cards collide" && f.sent[0].note.from === "manager-a", "admitted: the held message is delivered");
 	t(JSON.parse(fs.readFileSync(path.join(HOME, "global.json"), "utf8")).mastermind.session_id === "s-mm", "admitted: its session id is remembered");
+}
+
+{
+	/* fresh-eyes review (second round), finding 5: master-assistant's own roles.js row must
+	 * stay pinned to its pre-recursive-pairs posture, so a future re-alias into page-assistant's
+	 * fast/bypass row (as briefly happened) is caught by a test, not just re-read by eye. */
+	const { defaults, canonical } = await import("./roles.js");
+	t(canonical("master-assistant") === "master-assistant", "master-assistant resolves to its own row, not an alias of page-assistant");
+	const posture = defaults("master-assistant");
+	t(posture.model === "claude-opus-5-5" && posture.effort === "high" && posture.permission_mode === "plan",
+		`spawn_agent({role: "master-assistant"}) keeps its old posture: architect/high/plan (got ${JSON.stringify(posture)})`);
 }
 
 fs.rmSync(HOME, { recursive: true, force: true });

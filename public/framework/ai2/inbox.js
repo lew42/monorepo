@@ -2,6 +2,7 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 export { fold };
 
@@ -105,9 +106,16 @@ export async function say(id, word, { note, quote } = {}){
  */
 /* ⚠ `?servex=` IS READ ONCE, when this module loads, and kept: the first click
    on a card drops the query string, and a test page pointed at a scratch Servex
-   would then silently post the next sentence into the REAL one. */
+   would then silently post the next sentence into the REAL one.
+ *
+ * The bare fallback used to be the hard-coded `http://127.0.0.1:8090` — exactly
+ * right on this machine, meaningless on a phone reading the page by its LAN
+ * address ("127.0.0.1" then means the phone, not the PC running Servex). Off
+ * localhost `servex_url()` (`dev/servex_url.js`) points here instead at
+ * `<origin>/servex`, the same-origin proxy `Server/plugins/ServexProxy.js`
+ * answers (mobile-nav, 2026-09-29). */
 const PINNED_SERVEX = new URLSearchParams(location.search).get("servex");
-export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || "http://127.0.0.1:8090";
+export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || servex_url();
 
 /* SERVEX IS OPTIONAL. Everything that reads is a static file (below); Servex is
    for writes, live agents and the push. `servex_up()` asks it ONCE — and never

@@ -57,8 +57,10 @@ or the words you said into the group card itself. The order changes only while t
 
 ## What the page reads
 
-- **Tasks:** every task dir of today and yesterday with a `task.jsonl`, from the dev server's
-  `directory.json`. Today's stream live; yesterday's are read once.
+- **Tasks:** every task dir of today and yesterday with a `task.jsonl`: ONE request per day, the
+  day folder's own `page.jsonl` (`Page.listing()`), which names its task folders. Every task log
+  streams over the dev socket (no HTTP request each). A task folder's own file list is fetched only
+  when a card shows that task. Only a day with no log falls back to `directory.json`.
 - **Cards:** a card's `group` line is only in its own log, so the page asks Servex for the folded
   state (`GET /card?id=`) of the group cards and of every card touched today or yesterday, once
   per change of that card's `last` time. ⚠ Filing a card does not change its `last`, so a card

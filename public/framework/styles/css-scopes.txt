@@ -89,6 +89,14 @@ dropdown-    ext/Dropdown
 dt-          ext/DesignTool
 editor-      ext/editor
 file-        ext/files
+files-       ext/files (a second namespace beside file- above, for files.js's own
+             columns/frame classes added 2026-09-28: .files, .files-row, .files-col*)
+fs-explorer- ext/files (explorer.js, v2 of <any path>/fs/ — the head, the per-column
+             toolbar, the multi-column layout; not the generic .switcher- below)
+switcher-    the responsive dropdown pattern in ext/files/switcher.css — deliberately
+             UNPREFIXED to its one caller today (v2's explorer.js) since a reused
+             component keeping its birth module's name would be the wrong name the
+             moment it moves; doc/switcher.md has the reuse contract
 grip-        ext/grip
 hljs-        ext/highlight (vendored)
 layout-      ext/layout

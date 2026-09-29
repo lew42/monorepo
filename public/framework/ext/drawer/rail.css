@@ -19,6 +19,11 @@
 			background: var(--surface);
 			border-top: 1px solid var(--line);
 		}
+		/* SHORTER — the default rail (mobile-nav, 2026-09-29): icons only, no text
+		   label line, so the bar takes less of the screen a phone has to give up
+		   permanently. `.drawer-rail-full` (`DrawerRail.V2`) restores the exact
+		   earlier padding below. */
+		.drawer-rail-compact { padding-block: 0.2em calc(0.2em + env(safe-area-inset-bottom, 0px)); }
 	}
 
 	.drawer-rail-ai, .drawer-rail-menu {
@@ -37,6 +42,25 @@
 	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
 	.drawer-rail-ai { color: var(--prim); }
 	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
+
+	/* ICONS ONLY, ✦ ON THE THUMB (RIGHT) SIDE — the default rail's own two
+	   changes (mobile-nav, 2026-09-29). The text label stays in the DOM (the
+	   `aria-label`/`title` on each button say the same thing either way) —
+	   only its on-screen line is removed, so nothing but CSS has to change to
+	   bring it back. `order` swaps the ON-SCREEN position without touching
+	   `rail.js`'s own DOM order (✦ is built first, `.drawer-rail-menu` second),
+	   so `DrawerRail.V2` below only has to say "use source order" to get the
+	   original ✦-on-the-left layout back, not rebuild the markup. */
+	.drawer-rail-compact .drawer-rail-ai-label,
+	.drawer-rail-compact .drawer-rail-menu-label { display: none; }
+	.drawer-rail-compact .drawer-rail-ai { order: 2; }
+	.drawer-rail-compact .drawer-rail-menu { order: 1; }
+
+	/* THE OLD FULL LOOK — `DrawerRail.V2`, kept reachable verbatim: the label
+	   line shows again (source order above already gives it the old sizing) and
+	   ✦ sits first (left), because `order` is left at its default (source
+	   order) for every full-rail button. */
+	.drawer-rail-full { padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px)); }
 
 	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
 	   too (a bottom sheet that left the tab bar showing under it would read as
@@ -66,17 +90,25 @@
 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
 	.drawer-rail-sheet-title { font-weight: 600; }
 
+	/* THE THREAD — either a card's own persisted chat (`ai2/chat.js`, one-ai
+	   2026-09-29) or, on a plain page, the local empty-state + growing list of
+	   prompt cards below. Either way it is the part that scrolls; the mic stays
+	   pinned under it. */
+	.drawer-rail-sheet-thread { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; }
+	.drawer-rail-sheet-thread .chatbox-log { max-block-size: none; }
+
 	.drawer-rail-sheet-mic { flex: 0 0 auto; }
-	/* Every FINISHED sentence already gets its own card below (`rail.js`'s own
-	   `card()`) — the widget's own caption of the same finished text is hidden here
-	   so it never shows twice (measured 2026-09-29: the exact same sentence painted
-	   twice a few lines apart). Only the live, still-moving guess (the `muted` line
-	   — `Dictate.js`'s own `draw_caption()`, open mode) is left visible, so the
-	   owner still sees words appear while talking, before they become a card. */
+	/* Every FINISHED sentence already gets its own card, or its own line in the
+	   card's real thread above (`rail.js`'s own `card()`) — the widget's own
+	   caption of the same finished text is hidden here so it never shows twice
+	   (measured 2026-09-29: the exact same sentence painted twice a few lines
+	   apart). Only the live, still-moving guess (the `muted` line — `Dictate.js`'s
+	   own `draw_caption()`, open mode) is left visible, so the owner still sees
+	   words appear while talking, before they land above. */
 	.drawer-rail-sheet-mic .ux-dictate-line:not(.muted) { display: none; }
 
 	.drawer-rail-sheet-cards {
-		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;
+		display: flex; flex-direction: column;
 		gap: 0.4em;
 	}
 	.drawer-rail-sheet-card {
@@ -87,4 +119,27 @@
 		border: 1px solid var(--line);
 		border-radius: calc(var(--radius) / 2);
 	}
+	/* The reply, once `send()` answers — under the sentence's own card (deliverable
+	   1, mobile-nav 2026-09-29), not a separate box floating elsewhere. */
+	.drawer-rail-sheet-card-reply { margin-block-start: 0.3em; font-size: 0.9em; }
+
+	/* A card-page echo, shown the instant a sentence is said and removed once the
+	   real, persisted turn has drawn in its place (`Sheet.card()`'s own comment). */
+	.drawer-rail-sheet-pending { padding: 0.3em 0.6em; font-size: 0.9em; }
+
+	/* THE LINKS FOOTER — `DrawerRail.Sheet` only (not `SheetV1`): a few ways out of
+	   this small sheet into the real drawer, since this widget deliberately does
+	   not try to reproduce the desktop drawer's other tabs (deliverable 4,
+	   mobile-nav 2026-09-29). */
+	.drawer-rail-sheet-links { flex: 0 0 auto; gap: 0.4em; padding-block-start: 0.4em; border-top: 1px solid var(--line); }
+	.drawer-rail-sheet-link {
+		font: inherit; font-size: 0.8em;
+		padding: 0.3em 0.6em;
+		color: var(--ink);
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer-rail-sheet-link:hover { background: var(--fill-a16); }
 }

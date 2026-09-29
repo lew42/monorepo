@@ -30,7 +30,23 @@ async function main(){
 		try { const e = JSON.parse(l); return e.target === target && Date.now() - Date.parse(e.at) < (kind === "look" ? 10 : 30) * 60000; } catch { return false; }
 	});
 	if (recent && process.env.CLARITY_FORCE !== "1") return;   // CLARITY_FORCE=1: re-check while refining the skill
+	// ONCE PER TASK (lifecycle, 2026-09-29): a clarity agent used to be spawned for every minion
+	// landing, which multiplied agents under memory pressure. A sub-task (its parent dir has a
+	// task.jsonl) is checked with its parent; a task whose log already has a clarity line is skipped.
+	if (kind === "landing") {
+		const own = path.join(arg, "task.jsonl");
+		if (fs.existsSync(path.join(path.dirname(path.resolve(arg)), "task.jsonl"))) return note({ target, verdict: "skipped", what: "a sub-task: its parent task gets the one check" });
+		try { if (fs.readFileSync(own, "utf8").includes('"clarity: ')) return note({ target, verdict: "skipped", what: "this task already had its clarity check" }); } catch {}
+		try { fs.appendFileSync(own, JSON.stringify({ log: { at: new Date().toISOString(), msg: "clarity: queued (once per task)" } }) + "\n"); } catch {}
+	}
 	note({ target, verdict: "queued", kind });
+	// Wait while the machine is under strain (Servex's monitor flag), at most an hour.
+	for (let i = 0; i < 60; i++) {
+		let flag = null;
+		try { flag = (await (await fetch(MCP.replace("/mcp", "/api/system"), { signal: AbortSignal.timeout(3000) })).json()).flag; } catch {}
+		if (!flag) break;
+		await sleep(60000);
+	}
 	if (kind === "proposal") {                                   // let the writer finish
 		for (let i = 0; i < 10; i++) {
 			const age = Date.now() - fs.statSync(arg).mtimeMs;

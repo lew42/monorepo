@@ -5,6 +5,7 @@ import path from "path";
 import shot from "./Shot.js";
 import stamp from "../stamp.js";
 import Assistant from "./Assistant.js";
+import { lan, safe_host } from "./MCP.js";
 
 const PUBLIC = path.resolve("public");
 const SEGMENT = /^[\w.-]+$/;
@@ -23,12 +24,51 @@ function thread_dir(task){
     return dir.startsWith(PUBLIC + path.sep) ? dir : null;
 }
 
+// A no-op stand-in for the live WebSocket `ask()`/`turn()` otherwise expect —
+// used only by the HTTP door below, which has no socket, no live tab, and never
+// streams. Every method used off that path is a harmless no-op; nothing throws.
+const NULL_SOCKET = { on(){}, rpc(){}, once(){}, off(){}, send(){}, socket_server: null, tab: undefined };
+
 /* One browser message -> one headless `claude -p` turn. Continuity is the
  * transcript on disk, so nothing is kept alive between turns.
  * Dev server only; see public/framework/ext/Ask/readme.md. */
 export default class Ask {
 
     static setup(socket){ new Ask(socket); }
+
+    /* THE HTTP DOOR — `POST /ask/turn`, same-origin, for a phone on the LAN.
+     * `dev/Socket/Socket.js`'s dev socket refuses any non-loopback connection on
+     * purpose (its own doc comment says why: that socket also carries `rpc:cmd`
+     * and `rpc:write`), so a phone reaching this page by its LAN address has no
+     * way to open it. This route hands out the same thing the socket path gives a
+     * local tab — one `claude -p` turn, the SAME tools, the SAME `--resume`
+     * (the owner's call, 2026-09-29: the phone's assistant is not a downgraded
+     * one) — guarded instead by `lan()` AND `safe_host()` (`MCP.js`): the request
+     * must arrive from loopback or this machine's own Wi-Fi, AND its own `Host`
+     * header must name this machine too, never an outside domain a DNS-rebinding
+     * page pointed at 127.0.0.1 to fake a same-origin call.
+     * `run_turn()`/`turn_http()` below are the code `ask()` (the socket path)
+     * shares with this, not a copy of it. */
+    static route(server){
+        const bridge = new Ask(NULL_SOCKET);
+        server.router.post("/ask/turn", server.express.json({ limit: "1mb" }), async (req, res) => {
+            const from = req.socket.remoteAddress;
+            if (!lan(from) || !safe_host(req.headers.host)){
+                console.warn(`Ask: REFUSED /ask/turn from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
+                return res.status(403).json({ error: "loopback/LAN only; refused " + from });
+            }
+
+            const { text, context, task, resume, id } = req.body || {};
+            if (!text) return res.status(400).json({ error: "Missing text" });
+            if (task && !thread_dir(task)) return res.status(400).json({ error: "Refusing thread path: " + task });
+
+            try {
+                res.json(await bridge.turn_http({ id: id || randomUUID(), prompt: text, context, task, resume }));
+            } catch (e){
+                res.status(500).json({ error: String(e?.message || e) });
+            }
+        });
+    }
 
     constructor(socket){
         this.socket = socket;
@@ -89,12 +129,10 @@ export default class Ask {
         const reply_id = req.preset === "assistant" ? Assistant.start({ prompt: req.prompt }) : null;
 
         try {
-            const file = req.shot && await shot(req.shot);
-            const reply = await this.turn({ ...req, ...preset, stream,
-                system: preset ? preset.system : this.system(req),
+            const reply = await this.run_turn({ ...req, ...preset, stream,
+                system: preset ? preset.system : undefined,
                 on_chunk: reply_id ? text => Assistant.chunk(reply_id, text) : undefined,
-                board_id: reply_id,
-                prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
+                board_id: reply_id });
 
             if (req.task && !reply.error) this.record(req, reply);
             if (preset && !reply.error) Assistant.remember(tab?.id, reply.session_id);
@@ -139,6 +177,39 @@ export default class Ask {
         if (context) lines.push(`The owner has selected, on that tab:\n${String(context).slice(0, 800)}`);
 
         return lines.join("\n\n") || null;
+    }
+
+    /* The one function `ask()` (the socket path) and `turn_http()` (the HTTP door,
+     * `route()` above) both call — a screenshot read in first if `shot` was asked
+     * for, the default system line filled in unless the caller already built its
+     * own (a preset does), then one spawn via `turn()` below. Sharing this instead
+     * of copying it means a change to either — a new default system line, a new
+     * screenshot rule — only has to happen once. */
+    async run_turn(req){
+        const file = req.shot && await shot(req.shot);
+        return this.turn({ ...req, system: req.system ?? this.system(req),
+            prompt: file ? `Read the screenshot at ${file}, then: ${req.prompt}` : req.prompt });
+    }
+
+    /* THE HTTP DOOR'S own turn — the same dedupe-by-key lock `ask()` keeps, the
+     * same shared `run_turn()`, the same thread log `record()` writes to if `task`
+     * is given — just none of `ask()`'s socket-only bookkeeping (no live tab to
+     * claim, no preset, no streaming, no `ask_done` rpc). Never throws: a failed
+     * turn comes back as `{error}`, the same shape `ask()`'s own caller sees. */
+    async turn_http(req){
+        const key = req.resume || req.task || req.id;
+        if (turns.has(key)) return { error: "That session is mid-turn." };
+        turns.set(key, req.id);
+
+        try {
+            const reply = await this.run_turn(req);
+            if (req.task && !reply.error) this.record(req, reply);
+            return reply;
+        } catch (e){
+            return { error: String(e?.message || e) };
+        } finally {
+            turns.delete(key);
+        }
     }
 
     /* The whole command line, as data — so what a turn is told is one readable list and
@@ -260,4 +331,14 @@ export default class Ask {
         this.socket.socket_server?.live_reload?.mute(file, this.socket);
         fs.appendFileSync(file, lines.map(l => JSON.stringify(l)).join("\n") + "\n");
     }
+}
+
+/* A tiny second plugin so `Ask.route()` (above) registers ONCE, at server boot —
+ * distinct from `Ask.setup(socket)`, which `DevSocket.Socket.use(Ask)` calls once
+ * per WebSocket connection. Same convention as Whisper.js/ServexProxy.js: wait
+ * for the server's own "express" event, then add the route. `Server.use(AskRoute)`
+ * in run.js, alongside the existing `DevSocket.Socket.use(Ask)`. */
+export class AskRoute {
+    static setup(server){ new AskRoute(server); }
+    constructor(server){ server.on("express", () => Ask.route(server)); }
 }

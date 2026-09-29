@@ -11,6 +11,40 @@ export function loopback(address){
     return LOOPBACK.test(String(address ?? "").replace(/%.*$/, ""));
 }
 
+/* The home network, plus loopback — the one guard shared by every route built so a
+ * phone on the owner's own Wi-Fi can reach the dev server (`/ask/turn`, `/servex/*`,
+ * `/whisper/*`; see each file's own doc comment for why that route exists at all).
+ * `loopback()` above stays strict for the routes that must never leave this machine
+ * (`/mcp`, `/screenshot`, the socket) — this is a second, wider guard for the routes
+ * built ON PURPOSE to answer a phone, so they still refuse the open internet if this
+ * machine's router or Servex's own :8090 were ever port-forwarded. The three private
+ * ranges are the ones a home router hands out (RFC 1918): 10.0.0.0/8, 172.16.0.0/12,
+ * 192.168.0.0/16. `::ffff:` (an IPv4 address as seen through an IPv6-dual-stack
+ * socket) is stripped first, same as `loopback()` already does for `%zone`. */
+const PRIVATE = /^(10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)$/;
+export function lan(address){
+    const a = String(address ?? "").replace(/%.*$/, "").replace(/^::ffff:/, "");
+    return LOOPBACK.test(a) || PRIVATE.test(a);
+}
+
+/* DNS REBINDING'S OTHER HALF — `lan()` above only asks "did this TCP connection
+ * come from a safe address"; it says nothing about which site the BROWSER thinks
+ * it is talking to. A page the owner opens on the open internet can bind a name
+ * to 127.0.0.1 (or wait for its own DNS record's TTL to expire and re-point it),
+ * so a script on that page fetches "http://attacker-name.example/ask/turn", the
+ * request lands on THIS loopback-bound server and passes `lan()`, yet the browser
+ * still treats it as same-origin with the attacker's page — same-origin
+ * protections never fire. Checking the request's own `Host` header closes that:
+ * a real phone or a real tab on this LAN always sends `localhost`, `*.localhost`,
+ * `127.0.0.1` or this machine's own LAN IP as `Host`, never an outside domain.
+ * Every LAN-facing route (`/ask/turn`, `/servex/*`, `/whisper/*`) must pass BOTH
+ * `lan(address)` and this — one checks the network the request arrived on, the
+ * other checks the name it claims to be for. */
+const SAFE_HOST = /^(localhost|127\.0\.0\.1|[\w-]+\.localhost|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)(:\d+)?$/i;
+export function safe_host(host){
+    return SAFE_HOST.test(String(host ?? ""));
+}
+
 const TAB = { type: "string", description: "Which tab, by the `tab` id `pages` gives it. The reliable way to name one — prefer it to `path`." };
 const PATH = { type: "string", description: "Which tab, by the url path it reported. Refused when it names more than one tab; omit only when exactly one tab is connected." };
 

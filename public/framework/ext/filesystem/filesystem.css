@@ -1,0 +1,27 @@
+@layer theme {
+
+	/* The right-click menu — a small floating card at the pointer. `position: fixed`
+	   because `x`/`y` are viewport pixels (`event.clientX`/`clientY`), not page ones. */
+	.fs-menu {
+		position: fixed;
+		z-index: 1000;
+		display: flex;
+		flex-direction: column;
+		min-inline-size: 10em;
+		padding: 0.3em;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		box-shadow: 0 0.4em 1.2em rgb(0 0 0 / 0.18);
+	}
+
+	.fs-menu-item {
+		padding: 0.4em 0.7em;
+		border-radius: calc(var(--radius) * 0.6);
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.fs-menu-item:hover { background: var(--wash); color: var(--prim); }
+}

@@ -94,6 +94,21 @@ export default class Card extends Page {
 
 	static base = "/framework/ai/";
 
+	/* ONE AI, NOT TWO (one-ai, 2026-09-29; `doc/one-ai.md` has the full finding).
+	   Off by default: the card's own composer bar and its half/half chat split
+	   are gone, because the global AI now talks into this card instead — the
+	   mobile ✦ sheet (`ext/drawer/rail.js`) and the desktop drawer's AI tab
+	   (`ext/drawer/tabs/ai.js`) both post through the SAME route this card's old
+	   composer used (`tabs/ai.js`'s `send({card, text})`) and can show this
+	   card's own thread by reading `chat_entries()` below — so a second, in-card
+	   copy of the same conversation had nothing left to add.
+	   Set `Card.V1 = true` (or open a card with `?chat=v1`) to bring the old,
+	   unchanged box back for comparison — see `chat_v1()`. */
+	static V1 = false;
+
+	/** Old box or new: a subclass flips `Card.V1`, or the url says `?chat=v1`. */
+	chat_v1(){ return !!this.constructor.V1 || new URLSearchParams(location.search).get("chat") === "v1"; }
+
 	assign(...args){
 		for (const obj of args) if (obj) for (const key of Object.keys(obj))
 			VERBS.has(key) ? this[key](obj[key]) : (this[key] = obj[key]);
@@ -230,26 +245,35 @@ export default class Card extends Page {
 		});
 		this.fill_tasks();
 
-		div.c("ai2-foot", () => {
-			this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
-			const fresh = !!shell && shell.opening === this.id;
-			if (fresh) shell.opening = null;
-			this.$composer = composer({
-				re: () => this.id,
-				placeholder: sub ? "talk into this request" : "talk into this card",
-				on_text: text => this.talk.echo(text),
-				autostart: fresh && shell.auto_transcribe?.(),
+		const fresh = !!shell && shell.opening === this.id;
+		if (this.chat_v1()){
+			div.c("ai2-foot", () => {
+				this.talk = chat({ source: () => this.chat_entries(), re: () => this.id });
+				if (fresh) shell.opening = null;
+				this.$composer = composer({
+					re: () => this.id,
+					placeholder: sub ? "talk into this request" : "talk into this card",
+					on_text: text => this.talk.echo(text),
+					autostart: fresh && shell.auto_transcribe?.(),
+				});
+				// The chat's own inline-start edge. ONE chat column on screen at a time (the
+				// deepest open card's), so one token for every card: the chat keeps its width
+				// as you move between a card and its sub-cards (layout-unify, 2026-09-24).
+				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
 			});
-			// The chat's own inline-start edge. ONE chat column on screen at a time (the
-			// deepest open card's), so one token for every card: the chat keeps its width
-			// as you move between a card and its sub-cards (layout-unify, 2026-09-24).
-			Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
-		});
+		} else if (fresh){
+			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge) — just
+			// through the global sheet now, not a composer built into this page, and only on
+			// the phone: the desktop drawer's AI tab has no auto-mic of its own to start.
+			shell.opening = null;
+			if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
+				import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
+		}
 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
 		// column also holds the chat, so the chat is held at its current width while you
 		// drag — the seam then moves only the card and the sub-card, the two beside it.
 		if (sub) Card.seam("--ai2-subw", "ai2-sub-w", 320, () => innerWidth - 700, () => this.hold_chat());
-		this.talk.sync();
+		this.talk?.sync();
 	}
 
 	/** Pin the chat column at the width it has now, if nothing has set it yet. For this
@@ -314,6 +338,25 @@ export default class Card extends Page {
 		}
 		this.talk?.sync();
 		this.fill_tasks();
+		if (!this.chat_v1()) this.sync_global_ai();
+	}
+
+	/* THE GLOBAL AI'S OWN COPY OF THIS THREAD (one-ai, 2026-09-29) — the mobile ✦
+	   sheet draws this card's `chat_entries()` too (`ext/drawer/rail.js`), through
+	   its own `chat()` instance, so a reply streaming in has to reach THAT
+	   instance's `sync()` as well, not just a `this.talk` this page no longer has.
+	   Cheap and safe to call every redraw: `rail.js` is already loaded on every
+	   page (`menu.js` imports it eagerly), so the import below resolves at once,
+	   and it is a no-op unless the sheet exists, is open, and is showing THIS
+	   card — never another one open on a different tab. */
+	sync_global_ai(){
+		import("/framework/ext/drawer/rail.js").then(m => {
+			const sheet = m.default(this.app)?.$sheet;
+			if (sheet?.card_id === this.id) sheet.talk?.sync();
+		});
+		// The desktop drawer's AI tab, same idea — a no-op unless it is open on
+		// exactly this card (`ext/drawer/tabs/ai.js`'s own `sync_card_thread()`).
+		import("/framework/ext/drawer/tabs/ai.js").then(m => m.sync_card_thread?.(this.id));
 	}
 
 	/* ── the task pages ──────────────────────────────────────────────────── */
