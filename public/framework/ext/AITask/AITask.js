@@ -8,6 +8,7 @@ import { asks as ask_wall } from "./asks.js";
 import { needs_of } from "./needs.js";
 import { decisions as decision_wall } from "./decisions.js";
 import { progress, spend } from "./stats.js";
+import { names } from "./listing.js";
 import { segments, current, links_row } from "./card.js";
 import { shot_wall } from "./shots.js";
 import { chat } from "../Ask/chat.js";
@@ -109,6 +110,18 @@ export class AITask extends Page {
 		const task = new this({ title: base.split("/").filter(Boolean).at(-1), url: base, src: base + "session.json" }, ...args);
 		task.content();
 		return task;
+	}
+
+	/* A subtask's folder inside this task's folder is a task too (nested tasks,
+	   doc/nested.md) and opens with this same template. Only a folder holding a
+	   task.jsonl and no page.js is claimed — anything else (an `audit.md` routed
+	   as `audit/`, a subtask with its own page) falls through to Page.child(). */
+	route(sub){
+		if (sub.includes(".")) return;
+		const at = this.url?.match(/\/framework\/ai\/(\d{4}-\d{2}-\d{2}\/.+?)\/?$/)?.[1];
+		const list = at && names(`${at}/${sub}`);
+		if (!list?.includes("task.jsonl") || list.includes("page.js")) return;
+		return new AITask({ title: sub, icon: "receipt_long", url: this.url + sub + "/", src: this.url + sub + "/session.json" });
 	}
 
 	/* ⚠ `wide`, not the default `main` track. A task page is not prose: it is a

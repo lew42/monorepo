@@ -1,5 +1,6 @@
 import { div, span, button, icon } from "../../core/View/View.js";
 import { TaskJSONL } from "../../ext/JSONL/JSONL.js";
+import { threads } from "../../ext/drawer/tabs/sessions.js";
 import { available, thread } from "../../ext/Ask/Ask.js";
 import { chat } from "../../ext/Ask/chat.js";
 import { settings, set } from "./settings.js";
@@ -52,25 +53,8 @@ function selection(){
 		picked && `text "${picked.slice(0, 300)}"`].filter(Boolean).join("\n\n") || null;
 }
 
-/* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
-const json = url => fetch(url)
-	.then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
-	.catch(() => null);
-
-// The dir listing IS the index — nothing declares a thread and nothing crawls.
-async function threads(url){
-	const dir = url.replace(/^\//, "") + "ai";
-	const listing = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
-
-	return (listing?.children ?? [])
-		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))
-		.map(kid => ({ slug: kid.name, task: `${dir}/${kid.name}` }));
-}
-
-const walk = (files, [head, ...rest]) => {
-	const hit = files.find(file => file.name === head);
-	return !hit ? null : rest.length ? walk(hit.children ?? [], rest) : hit;
-};
+// A thread is a dir under `<page>ai/` holding a task.jsonl. The one walk that finds them is
+// the drawer's (ext/drawer/tabs/sessions.js threads()), imported, not repeated.
 
 const slugify = name => (name ?? "").trim().toLowerCase()
 	.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);

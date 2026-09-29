@@ -157,6 +157,7 @@ moving." A turn spent sitting in a wait is a turn nothing else progresses in.
 - **Start work, then do the next useful thing.** Spawn minions as Servex agents
   (`spawn_agent` with `parent` set to your own id). The call returns at once, and each child's
   done, blocked or error message arrives as an event addressed to you. Start several in one message.
+- **Every minion gets its own task log, a subtask of yours.** Spawn it with `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full task dirs, never bare slugs); a parent never shares its log (the tree: `/framework/ext/AITask/` tree.js).
 - **Long-running helpers run in the background** (a dev server, a Playwright watcher, a build).
   Start them so they report to you. Never poll them in a loop inside your own turn.
 - **Never miss a notice.** Every child and every background process must have a way to reach
