@@ -252,7 +252,7 @@ function properties(node){
 	const eff = effective(node);
 
 	div.c("std-explorer-props flow", () => {
-		p.c("muted", "Properties — shown here, not in the ☰ drawer: see the final report for why.");
+		p.c("muted", "Properties");
 		p(() => { b("Title — "); span(node.title); });
 		p(() => {
 			b("Address — ");

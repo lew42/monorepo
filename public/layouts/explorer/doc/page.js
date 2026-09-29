@@ -16,6 +16,7 @@ export default new Page({
 
 	content(){
 		md("How [`/layouts/explorer/`](/layouts/explorer/) is built, in one note: what goes in `explorer.json` to add a layout.");
+		md("**Why the selected item's properties sit in a strip under the centre, not the ☰ drawer:** `ext/drawer`'s tabs (AI, Sessions, Dictation, Settings, Admin) are a fixed, registered list outside this module's fence.");
 		this.previews();
 	},
 });
