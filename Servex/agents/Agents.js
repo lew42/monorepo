@@ -356,7 +356,12 @@ export class Agents {
 		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
 		child.woke = true;
 		this.inbox(child, kind, text);
-		if (this.closing) return;   // Servex is shutting down (Heartbeat.stop): the inbox has it; revive nobody
+		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent);
+		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child
+			this.store().append("servex", { type: "wake-skipped", child: child.id, parent: child.parent, stopped_by: by.by }).catch(() => {});
+			return;
+		}
 		/* Through the HOST's send(), which revives a stopped parent — `get(parent).send()`
 		 * threw "has stopped" into an empty catch, and results were lost (task-loop, 09-29). */
 		try { this.send(child.parent, body, { from: child.id, reply_to: `log agent-${child.parent}` }); }

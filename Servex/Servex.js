@@ -737,6 +737,7 @@ export default class Servex extends Events {
      * running when Servex started has no child here, so it is never touched. */
     shutdown(){
         const down = () => {
+            this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
             try { this.monitor?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}

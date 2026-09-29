@@ -39,6 +39,7 @@ export default class Heartbeat {
         const a = this.agents, watch = a.watch.bind(a), stop = a.stop.bind(a);
         a.watch = (event, agent) => { watch(event, agent); try { this.saw(event, agent); } catch {} };
         a.stop = id => { if (!this.stopped_by.has(id)) this.stopped_by.set(id, { by: "in-process", at: stamp() }); return stop(id); };
+        a.stopped_on_purpose = id => this.stopped_by.get(id);   // wake_parent never revives these (rule 4c.2)
         a.task_dir_of = id => { for (const [f, w] of this.watch) if (w.owner === id) return path.dirname(f); };
         this.servex.on?.("admitted", spec => this.admitted.add(spec));
         const run = () => this.tick().catch(e => this.servex.say?.(`heartbeat: ${e.message || e}`));
@@ -48,7 +49,7 @@ export default class Heartbeat {
         return this;
     }
 
-    stop(){ clearInterval(this.timer); this.agents.closing = true; }   // Servex is shutting down: wake_parent must not revive anyone
+    stop(){ clearInterval(this.timer); }
 
     /* Who called stop_agent — the MCP door knows (`ctx.caller`), the tool does not
      * pass it on. Wrapped at the first tick, once Servex has registered its tools. */
