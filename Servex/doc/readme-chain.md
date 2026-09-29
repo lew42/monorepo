@@ -59,11 +59,12 @@ Both are plain functions, never throw: an unreadable readme is just skipped.
 
 ## The proof
 
-A private Servex, a test agent spawned with `task: {dir:
-"public/framework/ux/Dictate"}`: its first message opens with the root
-readme, then `public/framework/readme.md`, `public/framework/ux/readme.md`,
-`public/framework/ux/Dictate/readme.md`, in that order (`public/` itself has
-no readme, so it's skipped). `public/framework/ai/2026-09-29/readme-chain/proof/`.
+A private Servex, a test agent spawned with `page: "/framework/ux/Dictate/"`
+(page-bound, so nothing writes into the live module): its first message opens
+with the root readme, then `public/framework/readme.md`,
+`public/framework/ux/readme.md`, `public/framework/ux/Dictate/readme.md`, in
+that order (`public/` itself has no readme, so it's skipped).
+`public/framework/ai/2026-09-29/readme-chain/proof/`.
 
 ## Tests
 
