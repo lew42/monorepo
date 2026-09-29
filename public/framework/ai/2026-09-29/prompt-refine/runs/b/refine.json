@@ -23,8 +23,8 @@
     },
     "pick": 0.311308,
     "brief": 0.1481882,
-    "coverage": 0.19225119999999998,
-    "total": 0.970666
+    "coverage": 0.0945362,
+    "total": 0.872951
   },
   "word_counts": {
     "raw": 1664,
@@ -35,11 +35,12 @@
   "clean_overlap_ratio": 0.999,
   "coverage": {
     "sentences": 66,
-    "cited": 44,
-    "context_only": 16,
-    "dropped": 6,
+    "cited": 65,
+    "context_only": 1,
+    "dropped": 0,
     "unclassified": 0,
-    "flags": 20,
-    "thin_citations": 5
-  }
+    "flags": 22,
+    "thin_citations": 7
+  },
+  "coverage_only_rerun_at": "2026-09-29T15:34:22-05:00"
 }
