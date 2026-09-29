@@ -35,6 +35,38 @@ genuinely needs to, and say why in a decision line.
 - **Look before you merge.** Screenshot the page at 1280, 1920, 2560 and 3440 (`node
   Server/layout-check.mjs <url>`) and read the contact sheet.
 
+## Choosing a layout (before sizing): C1–C5, one at a time (the owner, 2026-09-28)
+
+Before the five sizing questions below, choose the layout. These are numbered C1–C5 so they are never mistaken for those. Think about each of these on its own,
+in order; a list read all at once gets answered all at once, and thinly. Each is a judgement
+with its usual answers, not a rule. Drawn, with live demos: [/layouts/decide/](/layouts/decide/).
+
+- C1. **How much room is there?** Work it out top down: the site nav, a rail or a ToC are known
+   before the page draws, so the room left is known too. A phone always gets one column; that
+   is the floor, not the design. *Usually:* a phone · one reading column · a wide main beside a
+   sidebar · most of a 3440 screen.
+- C2. **How much content is there?** A little (a preview card, a few lines) wants a small, tight
+   box; a lot (many sections) wants structure a reader can steer by, such as tabs or a left nav.
+   [Both, side by side](/layouts/decide/amount/).
+- C3. **Is it outlined yet?** A layout chosen before you know what the page says is a guess. If the
+   sections, their order, the demos and the tabs are not written down, write that outline first;
+   the layout often picks itself after.
+- C4. **How will the content fill the width?** On a wide screen the answer is nearly always "fill
+   it", so the question is how. Columns side by side read best when their content is roughly
+   equal in height ([equal](/layouts/decide/equal/)); one short column leaves a hole
+   ([short](/layouts/decide/short/)); a short title column centred vertically turns the hole into
+   weight ([the fix](/layouts/decide/centred/): `flex v h-center` on the title's box).
+   *Usually:* equal columns · a centred title column beside the rest · a wall of cards · a nav
+   column beside a centred main · tabs or a left nav · one small box with the space left on purpose.
+- C5. **Which approved layout fits?** Standard, Split, Columns, Tile wall, Rail + content, Docs
+   three-region ([the approved set](/layouts/doc/studies/approved/)). If none fits, build it as a
+   proposal and say it is new. Each layout the owner approves makes the next choice more certain,
+   so these answers firm up over time; record your answer as a `decision` line either way.
+
+To ask them one at a time for real, run `node Server/ask-each.mjs` on
+`public/layouts/decide/questions.md` with the page's outline as `--context`; a worked run is at
+[/layouts/decide/servex/](/layouts/decide/servex/).
+
 ## The five questions
 
 A component inside a container — a rail section, a card, a panel — answers 1 and 3;
