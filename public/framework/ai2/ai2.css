@@ -64,7 +64,6 @@
 	   own address; the four-column overview is `overview/`. Which one shows is
 	   decided by the Router's own `.active-page` mark, never a class a button
 	   flips — see the overview rules further down. */
-	.ai2-overview { height: 100%; }
 
 	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
 	   space "generally... in two: the preview column resizable, the detail
@@ -199,7 +198,7 @@
 		order: 1;
 	}
 
-	.ai2-chrome > :is(.ai2-ov-back, .ai2-count, .ai2-word) {
+	.ai2-chrome > :is(.ai2-count, .ai2-word) {
 		order: 2;
 	}
 
@@ -208,7 +207,7 @@
 	   markup order again. */
 	@container ai2-top (width >= 30em) {
 		.ai2-chrome::before { display: none; }
-		.ai2-chrome > :is(.ai2-ov-back, .ai2-count, .ai2-word) { order: 0; }
+		.ai2-chrome > :is(.ai2-count, .ai2-word) { order: 0; }
 	}
 
 	/* Dragged narrow (the grip's floor is 200px): "+ New card" and the whole
@@ -991,283 +990,104 @@
 	}
 }
 
-/* ── the overview (deliverable 7, ai2-nested, 2026-09-23) ─────────────────── */
+/* ── the head and the Overview (ai2-overview, 2026-09-28) ─────────────────── */
 @layer theme {
 
-	/* FOUR EQUAL COLUMNS, FULL HEIGHT, EDGE TO EDGE (the owner, 2026-09-23: "these
-	   four columns should be full height and share the full width… no padding on
-	   this page… no borders, radiuses or gap… substantial padding on them").
-	   The page itself has no padding; each column pads like a whole page would —
-	   `--ai2-ov-pad` is `--pad`'s own formula measured against the overview's
-	   width (cqi), not the column's, because `--pad`'s `%` resolves against the
-	   column and a quarter of the screen would floor it at 1em. It scales:
-	   ~1em at 1280, ~2em at 1920, 4em at 3440. Each column scrolls on its own,
-	   the full height of the screen — no short boxes inside it. */
-	/* The overview is a routed page (`overview/`) that mounts in the detail
-	   column like a card — while it is the active page it takes the whole
-	   shell: no rail, no third column, no page padding of its own. */
-	.ai2:has(.ai2-overview-page.active-page) {
-		grid-template-columns: minmax(0, 1fr);
+	/* THE HEAD: "AI 2" and the Inbox · Overview tabs, one band, like a class doc page.
+	   ext/Doc's `.doc-well` + ext/tabs' `.tabs.block` markup; these few lines are the
+	   `.page.doc-page` rules restated, because this page is not a Doc.
+	   ⚠ The page is a flex COLUMN now: the band on top, the inbox (or the overview)
+	     taking the rest. `min-height: 0` on `.ai2`, or nothing inside it scrolls. */
+	.page.full:has(.ai2) { display: flex; flex-direction: column; }
+	.page.full:has(.ai2) > .ai2-shell > .ai2 { flex: 1 1 0; height: auto; }
+	/* `margin: 0`: the page is `.flow`, and the hidden h1 still counts as a sibling. */
+	.ai2-head {
+		flex: none; margin: 0;
+		display: flex; flex-wrap: wrap;
+		--gutter-x: clamp(1em, 2%, 3em);
+		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--tab-fill: var(--ground, var(--wash));
 	}
-	.ai2:has(.ai2-overview-page.active-page) :is(.ai2-rail, .ai2-sub) {
-		display: none;
+	.ai2-head > .tabs { display: contents; }
+	.ai2-head > .tabs > .tab-bar {
+		background: var(--well);
+		flex: 1 1 16em; min-width: 0;
+		align-items: flex-end;
+		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+		padding-inline-end: 0.8em;
 	}
-	/* ⚠ A FLEX COLUMN, NOT THE PAGE GRID (2026-09-24). As a `.page` this box is
-	   a prose grid — a `--measure` track and a leftover track — whose children
-	   are content-sized rows, so the four columns grew to 4800px tall inside a
-	   1000px screen and nothing scrolled. A column of two children (the head
-	   line, the four columns) says "full height" directly. (0,2,0) so it beats
-	   core's `.page { display: grid }` whatever the load order; the arrangement
-	   contract that hides an inactive page is `@layer util` and still wins. */
+	/* two tabs is a rail: ext/tabs hides a bar of ONE, never ours */
+	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
+
+	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
+	   card; while it is the active page it takes the whole shell and scrolls by itself. */
+	.ai2:has(.ai2-overview-page.active-page) { grid-template-columns: minmax(0, 1fr); }
+	.ai2:has(.ai2-overview-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
 	.page.ai2-overview-page {
-		display: flex;
-		flex-direction: column;
+		display: block;
 		height: 100%;
+		overflow-y: auto;
 		padding: 0;
 	}
-
-	/* The h1 "Overview" was ~130px of dead space above the columns; the rail's
-	   own `overview` word already names this view. */
-	.ai2-overview-page > .page-title {
-		display: none;
-	}
-
-	/* `margin: 0` — the page is `.flow`, whose `* + *` rhythm would put
-	   `--flow` above this box (the hidden h1 still counts as a sibling). */
-	.ai2-overview-page > .ai2-overview {
-		flex: 1 1 0;
-		min-height: 0;
-		margin: 0;
-	}
+	/* the tab already names this view */
+	.ai2-overview-page > .page-title { display: none; }
+	.ai2-overview-page > .ai2-overview { margin: 0; }
 
 	.ai2-overview {
-		container-type: inline-size;
-		--ai2-ov-pad: calc(clamp(1em, 2.6cqi - 1.1em, 4em) * var(--size, 1));
-		display: flex;
-		flex-direction: column;
-		padding: 0;
+		padding: var(--pad);
+		display: flex; flex-direction: column; gap: 1.5em;
 	}
 
-	.ai2-ov-cols {
-		display: flex;
-		flex: 1 1 auto;
-		min-height: 0;
+	/* THE GRID: the first concept is the big one (two tracks wide), the rest fill in. */
+	.ai2-ov-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr));
+		gap: 1.5em;
+		align-items: start;
 	}
+	.ai2-ov-first { grid-column: span 2; }
+	@media (width < 56em) { .ai2-ov-first { grid-column: auto; } }
 
-	.ai2-ov-col {
-		flex: 1 1 0;
-		min-width: 0;
-		overflow-y: auto;
-		padding: var(--ai2-ov-pad);
-	}
-
-	/* "The whole column disappears when empty" — needs-you's own rule, but
-	   written generically: any column with nothing in it collapses the same
-	   way, so a quiet night hands the fold back to the columns that have
-	   something to say. */
-	.ai2-ov-col.ai2-ov-collapsed {
-		display: none;
-	}
-
+	.ai2-ov-card { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
 	.ai2-ov-head {
-		padding-block-end: 0.6em;
-		border-block-end: 1px solid var(--line);
+		display: flex; align-items: center; gap: 0.8em;
+		color: inherit; text-decoration: none;
 	}
+	.ai2-ov-head h3 { margin: 0; }
+	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prim); }
+	.ai2-ov-first .ai2-ov-icon { font-size: 3.6em; }
+	.ai2-ov-first .ai2-ov-head h3 { font-size: 1.6em; }
 
-	.ai2-ov-title {
-		font-weight: 700;
+	/* ONE ROW PER ASK: the quote, a small state word, the result link; the timeline under it. */
+	.ai2-ov-asks { display: flex; flex-direction: column; gap: 0.6em; }
+	.ai2-ov-first > .ai2-ov-asks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22em), 1fr)); column-gap: 1.5em; }
+	.ai2-ov-ask-main { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; line-height: 1.4; }
+	.ai2-ov-card > * { margin: 0; }
+	.ai2-ov-quote { flex: 1 1 12em; min-width: 0; color: inherit; text-decoration: none; }
+	a.ai2-ov-quote:hover { text-decoration: underline; }
+	.ai2-ov-state {
+		font-size: 0.75em; padding: 0.05em 0.5em; border-radius: 1em;
+		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
 	}
-
-	.ai2-ov-count {
-		margin-inline-start: auto;
-		font-size: 0.85em;
-	}
-
-	.ai2-ov-body {
-		position: relative;
-	}
-
-	.ai2-ov-empty {
-		display: block;
-		padding-block: 0.6em;
-	}
-
-	/* `display: block` above beats the browser's own `[hidden]` rule, so
-	   `$empty.el.hidden = true` did nothing and "nothing here" sat under full
-	   columns. */
-	.ai2-ov-empty[hidden] {
+	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prim); }
+	.ai2-ov-line {
 		display: none;
+		font-size: 0.8em; color: var(--subtle); text-decoration: none;
+		padding-block-start: 0.15em;
+		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 	}
+	.ai2-ov-ask:hover > .ai2-ov-line,
+	.ai2-ov-timeline .ai2-ov-line { display: block; }
 
-	/* THE PILL — a new arrival never reorders what is on screen (deliverable
-	   7: "a new arrival never pushes the top of a column down — it enters
-	   below the fold or behind a pill"), the same mechanism the rail itself
-	   already uses for exactly the same reason. */
-	.ai2-ov-pill {
-		display: none;
-		position: absolute;
-		z-index: 2;
-		inset-inline: 0.5em;
-		top: 0.4em;
-		font-size: 0.8em;
-		padding: 0.15em 0.6em;
+	/* DONE IS ONE LINE — it opens to the done rows, never a wall of 100% bars. */
+	/* ⚠ framework.css draws a bare <summary> as a control (a box and a fill); this one is a line. */
+	.ai2-ov-done > summary {
+		cursor: pointer; color: var(--subtle);
+		background: none; border: 0; padding: 0; min-height: 0; font-size: 0.9em;
 	}
-
-	.ai2-ov-pill.on {
-		display: block;
-	}
-
-	.ai2-ov-row {
-		padding-block: 0.5em;
-		border-block-end: 1px solid var(--line);
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0 0.5em;
-	}
-
-	.ai2-ov-rows > .ai2-ov-row:last-child {
-		border-block-end: 0;
-	}
-
-	.ai2-ov-link {
-		display: flex;
-		align-items: center;
-		gap: 0.35em;
-		min-width: 0;
-		flex: 1 1 auto;
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.ai2-ov-row-title {
-		font-weight: 600;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.ai2-ov-row-when {
-		flex: none;
-		font-size: 0.8em;
-	}
-
-	/* `min-width: 0` + `overflow-wrap: anywhere` — one long unbroken path in a
-	   report ("%LOCALAPPDATA%/lew42/servex/…") set the row's min-content width
-	   and ran its text under the next column (2026-09-24). */
-	.ai2-ov-row-line {
-		flex-basis: 100%;
-		min-width: 0;
-		overflow-wrap: anywhere;
-		font-size: 0.85em;
-	}
-
-	.ai2-ov-clear {
-		flex: none;
-		margin-inline-start: auto;
-		border: 0;
-		background: none;
-		color: inherit;
-		opacity: 0.45;
-		cursor: pointer;
-	}
-
-	.ai2-ov-clear:hover {
-		opacity: 1;
-		color: var(--error);
-	}
-
-	/* `needs-you` reads as the one that matters most — its title in the error
-	   colour, the one mark the other three don't get. */
-	.ai2-ov-needs .ai2-ov-title {
-		color: var(--error);
-	}
-
-	.ai2-ov-usage {
-		padding-block: 0.5em;
-		border-block-start: 1px solid var(--line);
-	}
-
-	.ai2-ov-usage-row {
-		display: flex;
-		align-items: center;
-		gap: 0.4em;
-		margin-block: 0.2em;
-	}
-
-	.ai2-ov-usage-label {
-		flex: none;
-		width: 6em;
-		text-transform: capitalize;
-	}
-
-	.ai2-ov-usage-track {
-		flex: 1 1 auto;
-		height: 0.5em;
-		border-radius: 0.3em;
-		background: var(--fill-a08);
-		overflow: hidden;
-	}
-
-	.ai2-ov-usage-fill {
-		height: 100%;
-		background: var(--prim);
-	}
-
-	.ai2-ov-usage-critical {
-		background: var(--error);
-	}
-
-	.ai2-ov-usage-pct {
-		flex: none;
-		width: 2.5em;
-		text-align: end;
-	}
-
-	.ai2-ov-stream-feed {
-		padding-block: 0.4em;
-		border-block-start: 1px solid var(--line);
-	}
-
-	.ai2-ov-stream-line {
-		display: block;
-		padding-block: 0.1em;
-	}
-
-	/* The head line: one small link, its text on the same left edge as the
-	   columns' text below it (both pad by `--ai2-ov-pad`). */
-	.ai2-ov-top {
-		flex: none;
-		padding: 0.5em var(--ai2-ov-pad);
-		border-block-end: 1px solid var(--line);
-	}
-	.ai2-ov-group {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3em;
-		font-size: 0.85em;
-		text-decoration: none;
-	}
-	.ai2-ov-folded { display: block; padding-block: 0.6em; }
-
-	/* A long list is CSS columns, never one thin strip down a wide screen: as many
-	   ~16rem columns as the column can hold (1 at 1280, 2-3 at 3440). A row never splits. */
-	.ai2-ov-rows {
-		column-width: 16rem;
-		column-gap: var(--ai2-ov-pad);
-	}
-	.ai2-ov-rows > .ai2-ov-row { break-inside: avoid; }
-	/* a headline is a sentence: it wraps, it is not cut with an ellipsis */
-	:is(.ai2-ov-landed, .ai2-ov-reports) .ai2-ov-row-title { white-space: normal; }
-
-	/* The overview stacks in importance order on a phone (deliverable 7: "at
-	   400 they stack in that order") — the DOM order already IS that order.
-	   Written after the rules above, in the same layer, so it wins. */
-	@media (width < 40em) {
-		.ai2-overview { overflow-y: auto; }
-		.ai2-ov-cols { flex-direction: column; flex: none; }
-		.ai2-ov-col { flex: none; overflow: visible; }
-	}
+	.ai2-ov-done[open] > summary { margin-block-end: 0.6em; }
+	.ai2-ov-top { gap: 1.5em; }
+	.ai2-ov-toggle { cursor: pointer; font-size: 0.85em; }
 }
 
 /* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */

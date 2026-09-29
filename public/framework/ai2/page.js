@@ -1,4 +1,4 @@
-import { Page, View, div, p, span, small, a, button, label, input, details, summary, h4 } from "/app.js";
+import { Page, View, div, p, span, small, a, button, label, input, details, summary, h1, h4 } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { Groups } from "./groups.js";
 import { task_of, task_region } from "./tasks.js";
@@ -64,7 +64,18 @@ export default new Page({
 	   Router does not know about is one the nav cannot get you out of (the
 	   owner, same day: "we can't just have these buttons that when clicked
 	   switch the view manually"). */
+	/* THE TWO TABS, LIKE A CLASS DOC PAGE (the owner, 2026-09-28: "the title, and then some
+	   tabs for like inbox, but over then maybe an overview"). ext/tabs' own look and ext/Doc's
+	   well, drawn by hand: the panels are this page's own routed children, not a `tabs()` set.
+	   Inbox is this url, so a card url (which runs through it) still lights Inbox. */
 	content(){
+		div.c("ai2-head", () => {
+			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
+			div.c("tabs block", () => div.c("tab-bar", () => {
+				a.c("tab tab-default").href(this.url).text("Inbox");
+				a.c("tab").href(this.url + "overview/").text("Overview");
+			}));
+		});
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
 	},
 
@@ -113,15 +124,15 @@ const auto_transcribe = () => store.get(AUTO_KEY) !== "off";
      was asked for, cannot be read at the wrong moment. */
 // It lives on the page itself (`page.opening`), because `card.js` reads it too.
 
-/* The four columns by importance, as a page of its own — it mounts in the
-   detail column like a card does, and `ai2.css` hands it the whole width while
-   it is the active page. */
+/* The Overview tab: one big card per concept (overview.js), as a page of its own — it
+   mounts in the detail column like a card does, and `ai2.css` hands it the whole width
+   while it is the active page. */
 function overview_page(root){
 	return new Page({
 		title: "Overview",
 		url: root.url + "overview/",
 		classes: "ai2-overview-page",
-		content(){ overview(root, root.ai2); },
+		content(){ overview(); },
 	});
 }
 
@@ -196,10 +207,6 @@ function board(page){
 				// one per card, so it never talks into whatever happens to be open.
 				composer({ placeholder: "say anything — it starts a new card", mic: false });
 				div.c("ai2-chrome flex v-center gap-25", () => {
-					// "Reachable... and back" (deliverable 7) — closes whatever card
-					// is open (a real navigation to the root) and drops the manual
-					// inbox toggle, so the overview is what shows either way.
-					a.c("ai2-word ai2-ov-back page-link").href(page.url + "overview/").attr("title", "everything at once: needs you, reports, landed, live").text("Overview");
 					// A blank workspace that listens: the card exists on the board
 					// the moment you press this, and the url becomes its own.
 					button.c("ai2-newcard").attr("type", "button")
