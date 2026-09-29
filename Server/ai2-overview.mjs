@@ -118,6 +118,14 @@ function readTask({ date, slug, file }) {
 //    three happened: true for the first two (both are real owner text),
 //    false for the last (a paraphrase).
 // ---------------------------------------------------------------------------
+// True for an agent's own launch/skill text wrongly logged as "owner":
+// starts with "[" (after trimming — "[You are Servex agent …]", "[from:
+// …]"), or names a skill load ("Load the `minion` skill…").
+function isAgentText(text) {
+	const trimmed = text.trim();
+	return trimmed.startsWith("[") || trimmed.includes("Load the `");
+}
+
 function readOwnerPrompts() {
 	const prompts = []; // { session_id, at, atMs, text }
 	if (!fs.existsSync(PROMPTS_DIR)) return prompts; // not every checkout has this
@@ -130,7 +138,12 @@ function readOwnerPrompts() {
 			let obj;
 			try { obj = JSON.parse(line); } catch { continue; }
 			const p = obj.prompt;
-			if (p && p.author === "owner" && p.text) {
+			// Round 4: some lines marked author "owner" are actually an agent's
+			// own launch text ("[You are Servex agent …]", "[from: …]") or a
+			// skill brief ("Load the `…` skill…") relayed back through the same
+			// log — never something the owner said. Skip those here so neither
+			// match method (session or text) can ever surface one as a quote.
+			if (p && p.author === "owner" && p.text && !isAgentText(p.text)) {
 				const atMs = p.at ? new Date(p.at).getTime() : NaN;
 				prompts.push({ session_id: p.session_id || null, at: p.at || null, atMs, text: p.text });
 			}
