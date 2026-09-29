@@ -13,3 +13,8 @@
 {"file":"child/"}
 {"file":"child/"}
 {"file":"readme.md"}
+{"file":"child/","gone":true}
+{"file":"system.js"}
+{"file":"doc/"}
+{"place":{"module":"system.js"}}
+{"file":"child/page.jsonl"}
