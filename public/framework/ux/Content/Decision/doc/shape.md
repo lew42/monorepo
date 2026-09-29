@@ -12,9 +12,9 @@ A record written by `Server/decide.mjs` (its detail: `Server/doc/decide.md`) kee
 | `confidence` (0–1) | a "75% confident" chip |
 | `recommended` (an option id) | a "★ recommended" mark on that option, until one is chosen |
 | `sources` | a "Sources: …" line under the reason |
-| `depends_on: {decision, option}` | the record is drawn inside that option of its parent |
+| `depends_on: {decision, option}` | the record is drawn full width below its parent's options, in the block labelled "If <option> → then decide:" |
 | options' `id`, `text`, `caveats`, `then` | `id` matches `recommended` and `depends_on.option`; `then` lists the children |
-| `status`, `decided_by` | "Decided by …" when `status` is `decided` |
+| `status`, `decided_by` | always `open` / `null` from decide.mjs: the card decides. The latest `chose` line is the decision, shown as "Decided by <by>" |
 
 A record without these draws exactly as before.
 

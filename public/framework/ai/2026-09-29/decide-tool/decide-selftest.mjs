@@ -56,6 +56,18 @@ check("complete → appended", r.ok && r.appended === true, r);
 const line = fs.readFileSync(F, "utf8").trim().split("\n").map(l => JSON.parse(l)).find(l => l.decision?.id === "d-x");
 check("record shape", line && line.decision.options.map(o => o.id).join() === "a,b" && line.decision.ask === "Which one?" && line.decision.options[0].say === "A", line);
 
+// One truth for nesting: depends_on. A logged parent can't gain a child; `then` can't disagree.
+refused("child of a logged parent", run("create", "--question", "Later?", "--rank", "2", "--depends-on", "d-x:a"), /already logged.*create children while the parent is a draft/);
+run("create", "--id", "d-p", "--question", "Parent?", "--rank", "1");
+run("options", "--id", "d-p", "--options", '[{"id":"a","text":"A"},{"id":"b","text":"B"}]');
+r = run("create", "--id", "d-c", "--question", "Child?", "--rank", "2", "--depends-on", "d-p:a");
+check("child of a draft parent is linked", run("show", "d-p").decision?.options?.[0]?.then?.includes("d-c"), run("show", "d-p"));
+refused("then disagreeing with depends_on", run("then", "--id", "d-p", "--option", "b", "--child", "d-c"), /does not depend on d-p:b/);
+
+// One way to record a choice: recommend no longer takes --status / --decided-by.
+refused("recommend --status is gone", run("recommend", "--id", "d-p", "--status", "decided"), /unknown flag --status/);
+check("record status stays open", line.decision.status === "open" && line.decision.decided_by === null, line.decision);
+
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(fails ? `${fails} failed` : "all passed");
 process.exit(fails ? 1 : 0);

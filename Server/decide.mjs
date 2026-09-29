@@ -161,7 +161,7 @@ function record(d, by){
 		id: d.id, question: d.question, ask: d.question, rank: d.rank,
 		options: d.options.map(o => ({ id: o.id, text: o.text, say: o.text, caveats: o.caveats, caveat: o.caveats.join(" "), then: o.then })),
 		recommended: d.recommended, confidence: d.confidence, why: d.why, sources: d.sources,
-		depends_on: d.depends_on ?? null, status: d.status ?? "open", decided_by: d.decided_by ?? null,
+		depends_on: d.depends_on ?? null, status: "open", decided_by: null,	// deciding = a `chose` line, written by the card
 		by: by ?? d.by ?? null, at: now(),
 	} };
 }
@@ -196,7 +196,10 @@ export function create(file, a){
 	let depends_on = null;
 	if (a.depends_on) {
 		const [decision, option] = typeof a.depends_on === "string" ? a.depends_on.split(":") : [a.depends_on.decision, a.depends_on.option];
-		const parent = drafts[decision] ?? logged(file).get(decision);
+		const parent = drafts[decision];
+		// depends_on is the truth for nesting, and a parent's `then` must agree with it — so a child
+		// is created while its parent is still a draft (a logged line is never rewritten).
+		if (!parent && logged(file).has(decision)) refuse(`${decision} is already logged, so its then can no longer list a new child: create children while the parent is a draft, or drop and redo`);
 		if (!parent) refuse(`depends_on names ${decision}, which is neither drafted nor logged`);
 		const o = (parent.options ?? []).find(o => o.id === option);
 		if (!o) refuse(`depends_on names option ${JSON.stringify(option)} of ${decision}; its options are ${(parent.options ?? []).map(o => o.id).join(", ") || "(none yet)"}`);
@@ -256,6 +259,9 @@ export function follow(file, a){
 		for (const c of ids) {
 			if (c === d.id) refuse(`${d.id} cannot follow from itself`);
 			if (!known.has(c)) refuse(`then names ${c}, which is neither drafted nor logged: create it first with --depends-on ${d.id}:${oid}`);
+			// depends_on is the truth; `then` may only repeat it, never disagree with it.
+			const up = (drafts[c] ?? logged(file).get(c))?.depends_on;
+			if (up?.decision !== d.id || up?.option !== oid) refuse(`${c} does not depend on ${d.id}:${oid} (its depends_on is ${up ? up.decision + ":" + up.option : "none"}); a child is linked by creating it with --depends-on ${d.id}:${oid}`);
 		}
 		o.then = [...new Set([...(o.then ?? []), ...ids])];
 	}
@@ -273,9 +279,6 @@ export function recommend(file, a){
 	if (a.why != null) { if (!String(a.why).trim()) refuse("why is empty"); d.why = plain(String(a.why).trim(), "why"); }
 	const src = [a.sources ?? a.source ?? []].flat().map(String).map(s => s.trim()).filter(Boolean);
 	if (src.length) d.sources = [...new Set([...(d.sources ?? []), ...src])];
-	if (a.status) { if (!["open", "decided"].includes(a.status)) refuse("status is open or decided"); d.status = a.status; }
-	if (a.decided_by) d.decided_by = String(a.decided_by);
-	if (d.status === "decided" && !d.decided_by) refuse("a decided decision names who decided it: --decided-by");
 	return settle(file, drafts, d, a.by);
 }
 
@@ -324,7 +327,7 @@ export const FLAGS = {
 	options:   ["file", "json", "by", "id", "option", "options"],
 	caveats:   ["file", "json", "by", "id", "option", "caveat", "caveats"],
 	then:      ["file", "json", "by", "id", "option", "child", "then"],
-	recommend: ["file", "json", "by", "id", "option", "confidence", "why", "source", "sources", "status", "decided-by"],
+	recommend: ["file", "json", "by", "id", "option", "confidence", "why", "source", "sources"],
 	status: ["file", "id"], show: ["file", "id"], drop: ["file", "id"], list: ["file"],
 };
 const JSON_FLAGS = new Set(["json", "options", "caveats", "then", "sources"]);	// parsed when the value starts with [ or {

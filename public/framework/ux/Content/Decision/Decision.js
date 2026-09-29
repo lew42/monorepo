@@ -69,7 +69,8 @@ export default class Decision extends ContentModule {
 		// One read, then show the latest `chose` for this id (later lines win).
 		this.history().then(lines => {
 			const line = lines.filter(l => l.chose?.decision === this.id).pop();
-			if (line){ this.chosen = line.chose.option; this.draw(); }
+			// A `chose` line IS the decision: who clicked it is who decided (one way to record a choice).
+			if (line){ this.chosen = line.chose.option; this.decided_by = line.chose.by; this.draw(); }
 		});
 	}
 
@@ -88,7 +89,7 @@ export default class Decision extends ContentModule {
 		const bits = [];
 		if (this.rank != null) bits.push(["ux-content-rank", `Rank ${this.rank}`]);
 		if (this.confidence != null) bits.push(["ux-content-confidence", `${Math.round(this.confidence * 100)}% confident`]);
-		if (this.status === "decided") bits.push(["ux-content-status", `Decided${this.decided_by ? " by " + this.decided_by : ""}`]);
+		if (this.chosen && this.decided_by) bits.push(["ux-content-status", `Decided by ${this.decided_by}`]);
 		if (bits.length) div.c("ux-content-decision-head", () => bits.forEach(([c, t]) => span.c(c, t)));
 	}
 
@@ -96,15 +97,10 @@ export default class Decision extends ContentModule {
 		if (this.sources?.length) p.c("ux-content-sources", "Sources: " + this.sources.join(", "));
 	}
 
+	/* The options side by side; then, full width below the row, each option's child decisions. */
 	wall(){
-		return ul.c("ui-decision-options", () => this.options.forEach(o => {
-			const kids = this.kids(o);
-			const $li = li(() => {
-				this.option(o);
-				if (kids.length) this.branch(o, kids);
-			});
-			if (kids.length) $li.ac("ux-content-branch");
-		}));
+		ul.c("ui-decision-options", () => this.options.forEach(o => li(() => this.option(o))));
+		this.options.forEach(o => { const kids = this.kids(o); if (kids.length) this.branch(o, kids); });
 	}
 
 	/* The child decisions an option leads to: from `nested` (Decisions.js), by option id. */
@@ -123,6 +119,7 @@ export default class Decision extends ContentModule {
 	/* Local first (the card shows it at once), then the log. */
 	choose(say){
 		this.chosen = say;
+		this.decided_by = this.who();
 		this.draw();
 		return this.write({ chose: { decision: this.id, option: say, at: this.now(), by: this.who() } });
 	}

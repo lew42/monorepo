@@ -29,7 +29,7 @@ node Server/decide.mjs show d-host --file $F        # status <id> = just what's 
 ```
 
 - **Option ids** are the first three words of the text, slugged (`"On a rented server"` → `on-a-rented`). You can also pass your own `id`.
-- **A child finds its parent.** Creating a decision with `--depends-on` adds it to that option's `then` while the parent is still a draft.
+- **One truth for nesting: `depends_on`.** Creating a child with `--depends-on parent:option` adds it to that option's `then` while the parent is still a draft. A parent that is already logged is never rewritten, so a new child for it is **refused** ("create children while the parent is a draft, or drop and redo"). A `then` that names a child whose `depends_on` points somewhere else is refused too. So `then` can only repeat `depends_on`, never disagree with it. (The alternative was re-appending the parent with an updated `then`. It was rejected because it puts two versions of one decision in the log.)
 - **Several parts at once.** `--json` takes an object with the same fields as the flags, or an array: for `options` the options, for `caveats` and `then` a list of `{"option":"a","caveats":[…]}` / `{"option":"a","then":[…]}`. `--options`, `--caveats` and `--then` parse JSON too; caveats and then also take an object keyed by option id. Each option can carry its own `caveats` and `then`.
 - **Refused, not guessed.** An unknown flag is refused with the flags that verb knows. Text that starts like JSON (`[` or `{`) in `--option`, `--caveat` or `--why` is refused instead of being slugged into an id (that once made `[{"id":"a",…}]` one option called `idatextaidbtextb`). A refused call changes nothing.
 - **Self-test:** `node public/framework/ai/2026-09-29/decide-tool/decide-selftest.mjs` drives the CLI against a throwaway log (17 checks).
@@ -37,6 +37,8 @@ node Server/decide.mjs show d-host --file $F        # status <id> = just what's 
 ## The record
 
 `id, question, rank, options:[{id, text, caveats, then}], recommended, confidence, why, sources, depends_on, status, decided_by, by, at`, plus `ask` (= question) and each option's `say` (= text) and `caveat` (= caveats joined). Those three extra fields let the older `Decision` view and collab's decision shape read the record without changes.
+
+**Deciding is one line, and only one kind of line.** decide.mjs writes every decision as `status: "open"`, `decided_by: null`. It proposes and recommends; it never decides. A choice is a `chose` line, `{"chose":{"decision","option","at","by"}}`, written when someone clicks an option on the card. The view treats the latest `chose` line for a decision as the decision and shows "Decided by <by>". `recommend` has no `--status` or `--decided-by` flag, so the same choice can't be recorded in two places that might disagree.
 
 ## As a module
 
@@ -49,6 +51,6 @@ The `then` verb is the function `follow`. A module that exports a function calle
 
 ## Showing it
 
-Add `{"place":{"module":"/framework/ux/Content/Decision/Decisions.js"}}` to a card's page.jsonl. It draws every decision in rank order, with each child inside the option that leads to it. On an AI 2 card with `{"layout":"tabs"}`, this becomes a **Decisions** tab.
+Add `{"place":{"module":"/framework/ux/Content/Decision/Decisions.js"}}` to a card's page.jsonl. It draws every decision in rank order. Below each decision's row of options, every option that leads to more decisions gets a full-width block labelled "If <option> → then decide:", holding its children. On an AI 2 card with `{"layout":"tabs"}`, this becomes a **Decisions** tab.
 
 **Not a Servex tool yet.** Adding one would mean changing Servex/, and Servex has to restart to pick that up. The CLI and the module are enough for now.

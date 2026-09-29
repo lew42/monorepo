@@ -15,7 +15,9 @@ One simple, concrete question, with:
 - for each option, **the decisions that follow** if it is chosen: "choose A, then decide X and Y",
 - a **recommended** option, a **confidence** from 0 to 1 (be honest: 0.6 means you're not sure), **why**, and **sources** (research ids or urls).
 
-A decision that only matters when some option is chosen is created with `--depends-on <parent>:<option>`. It is then drawn inside that option.
+A decision that only matters when some option is chosen is created with `--depends-on <parent>:<option>`, **while the parent is still a draft**. A logged parent can't gain children. It is then drawn below its parent, under that option.
+
+You recommend; you never decide. The owner decides by clicking an option on the card, which writes a `chose` line.
 
 ## The walk
 

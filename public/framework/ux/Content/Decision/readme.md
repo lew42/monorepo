@@ -9,7 +9,7 @@ new Decision({ id: "d-1", ask: "…", options: [{ say, caveat }], why, log })
 ```
 `export default` the class, everything from one data object — so a page.jsonl `place` line can construct it.
 
-**Every decision in a log, ranked and nested:** place `Decisions.js` — `{"place":{"module":"/framework/ux/Content/Decision/Decisions.js"}}`. Rank 1 first; a child decision sits inside the option that leads to it. The records come from `Server/decide.mjs` (its detail: `Server/doc/decide.md`), which walks each one step by step.
+**Every decision in a log, ranked and nested:** place `Decisions.js` — `{"place":{"module":"/framework/ux/Content/Decision/Decisions.js"}}`. Rank 1 first; a child decision sits below its parent's options, under "If <option> → then decide:". A click writes a `chose` line, and the latest one is the decision ("Decided by …"). The records come from `Server/decide.mjs` (its detail: `Server/doc/decide.md`), which walks each one step by step.
 
 ## Watch out
 - Writes: Servex `/card/append?id=` for a card host, else the dev socket's `append`; nothing when `edit()` is off.

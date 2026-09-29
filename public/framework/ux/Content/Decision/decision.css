@@ -8,13 +8,8 @@
 	.ux-content-sources { color: var(--subtle); font-size: .85em; }
 	.ux-content-recommended::before { content: "★ "; }
 
-	/* An option that leads to more decisions is a column: the option, then its children. */
-	.ux-content-branch { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
-	.ux-content-branch > button.ux-content-option { height: auto; }
-	/* Beside a branch, a plain option keeps its own height instead of stretching to the branch's. */
-	.ui-decision-options:has(> .ux-content-branch) { align-items: start; }
-
-	/* The children sit on a tinted ground with a rule on the left, so the nesting reads at a glance. */
+	/* An option's child decisions: full width below the option row, one block per option, on a
+	   tinted ground with a rule on the left; the label names the option they follow. */
 	.ux-content-then {
 		display: flex; flex-direction: column; gap: var(--gap);
 		background: var(--tint, var(--wash)); border-inline-start: 3px solid var(--prim);
