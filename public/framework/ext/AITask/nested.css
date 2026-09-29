@@ -1,0 +1,99 @@
+/* Nested tasks, drawn — nested.js. Three designs share the marks at the top;
+   each design's own layout follows under its class. Colours are the site's
+   tokens: --ok landed, --prim running, --subtle waiting. */
+@layer base, theme, site, util;
+@layer theme {
+
+	/* ---- shared: the mark, the status, the bar ---- */
+	.ai-tree { --ai-tree-run: var(--prim); display: flex; flex-direction: column; gap: var(--gap); }
+	.ai-tree-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25em 0.5em; min-width: 0; }
+	/* "waits for …" takes its own line under the title, so neither is cut short. */
+	.ai-tree-head > .ai-tree-status.is-waiting { flex: 1 0 100%; padding-inline-start: 1.9em; font-size: 0.8em; }
+	.ai-tree-title { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0; color: inherit; }
+	a.ai-tree-title:hover { text-decoration: underline; }
+	.ai-tree-head.is-waiting .ai-tree-title { font-weight: 500; color: var(--subtle); }
+
+	.ai-tree-mark { flex: 0 0 auto; font-size: 1.15em; line-height: 1; }
+	.ai-tree-mark.is-landed { color: var(--ok); }
+	.ai-tree-mark.is-waiting { color: var(--subtle); }
+	.ai-tree-mark.is-running { width: 1.15em; height: 1.15em; display: inline-grid; place-items: center; }
+	.ai-tree-dot { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--ai-tree-run);
+		box-shadow: 0 0 0 0 var(--ai-tree-run); animation: ai-tree-pulse 1.6s ease-out infinite; }
+	@keyframes ai-tree-pulse {
+		0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-tree-run) 60%, transparent); }
+		100% { box-shadow: 0 0 0 0.55em transparent; }
+	}
+	@media (prefers-reduced-motion: reduce) { .ai-tree-dot { animation: none; } }
+
+	.ai-tree-status { flex: 0 0 auto; font-size: 0.85em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+	.ai-tree-status.is-running { color: var(--ai-tree-run); font-weight: 600; }
+	.ai-tree-status.is-landed { color: var(--ok); }
+	.ai-tree-status.is-waiting { color: var(--subtle); white-space: normal; flex-shrink: 1; min-width: 0; }
+
+	.ai-tree-bar { height: 0.3em; border-radius: 1em; background: var(--fill-a08); overflow: hidden; }
+	.ai-tree-bar > span { display: block; height: 100%; background: var(--ai-tree-run); border-radius: inherit; }
+	.ai-tree-bar.is-landed > span { background: var(--ok); }
+
+	.ai-tree-label { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); }
+
+	/* The counts line over a page of trees. */
+	.ai-tree-counts { display: flex; flex-wrap: wrap; gap: 0.5em 1.5em; }
+	.ai-tree-count { display: inline-flex; align-items: baseline; gap: 0.15em; color: var(--subtle); }
+	.ai-tree-n { font-size: 1.6em; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+	.ai-tree-count.is-running .ai-tree-n { color: var(--prim); }
+	.ai-tree-count.is-landed .ai-tree-n { color: var(--ok); }
+
+	/* ---- Lanes ---- */
+	/* A day of roots is a wall; a root with subtasks takes the whole row. */
+	.ai-tree.ai-tree-lanes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22em), 1fr)); }
+	.ai-tree-lanes > .ai-tree-root.has-kids { grid-column: 1 / -1; }
+	.ai-tree-card { display: flex; flex-direction: column; gap: 0.5em; padding: var(--pad-card); background: var(--surface);
+		border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+	.ai-tree-card.is-running { border-color: color-mix(in srgb, var(--prim) 45%, var(--line)); }
+	.ai-tree-card.is-waiting { background: transparent; border-style: dashed; }
+	/* The phase row: columns left to right, "then" between them; wraps on a phone. */
+	.ai-tree-card .ai-tree-phases { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--gap-50); margin-block-start: 0.25em; }
+	/* A lane is a grid: one column when phases share the row, several when a phase is alone and wide. */
+	.ai-tree-lane { flex: 1 1 16em; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16em), 1fr)); align-content: start; gap: var(--gap-50);
+		padding: var(--gap-50); background: var(--wash); border-radius: var(--radius); }
+	.ai-tree-then { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
+		color: var(--subtle); font-size: 0.8em; padding-inline: 0.25em; }
+	.ai-tree-then .icon { font-size: 1.6em; }
+	.ai-tree-lane > .ai-tree-label { grid-column: 1 / -1; }
+	/* With a "then" in the row, each phase is one stacked column: side by side = at once. */
+	.ai-tree-phases:has(> .ai-tree-then) > .ai-tree-lane { grid-template-columns: minmax(0, 1fr); }
+	.ai-tree-lane .ai-tree-card:has(.ai-tree-phases) { grid-column: 1 / -1; }
+	.ai-tree-lane .ai-tree-card { font-size: 0.95em; }
+
+	/* ---- Outline ---- */
+	.ai-tree-outline .ai-tree-root { padding: var(--pad-card); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+	.ai-tree-outline .item-name { flex: 1 1 auto; }
+	.ai-tree-outline .ai-tree-mark { margin-inline-end: 0.35em; }
+	.ai-tree-outline .ai-tree-row.is-waiting .item-name { color: var(--subtle); }
+	.ai-tree-group { display: flex; flex-direction: column; margin-block: 0.35em; padding-inline-start: 0.6em;
+		border-inline-start: 2px solid color-mix(in srgb, var(--prim) 35%, transparent); }
+	.ai-tree-group:has(> .ai-tree-badge.is-then) { border-inline-start-style: dashed; border-inline-start-color: var(--line); }
+	.ai-tree-badge { align-self: flex-start; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.06em;
+		padding: 0.1em 0.6em; border-radius: 1em; background: var(--fill-a08); color: var(--subtle); margin-block-end: 0.15em; }
+	.ai-tree-badge.is-then { background: transparent; border: 1px solid var(--line); }
+
+	/* ---- Flow ---- */
+	.ai-tree-scroll { overflow-x: auto; padding-block: var(--gap-50); }
+	.ai-tree-graph { position: relative; }
+	.ai-tree-edges { position: absolute; inset: 0 auto auto 0; overflow: visible; }
+	.ai-tree-edges path { fill: none; stroke-width: 2; stroke: var(--prim); }
+	.ai-tree-edges path.is-landed { stroke: var(--ok); }
+	.ai-tree-edges path.is-waiting { stroke: var(--subtle); stroke-dasharray: 5 4; }
+	.ai-tree-edges marker path { fill: var(--subtle); stroke: none; }
+	.ai-tree-node { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; gap: 0.35em; justify-content: center;
+		padding: 0.5em 0.75em; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: 0.9em; }
+	.ai-tree-node.is-running { border-color: color-mix(in srgb, var(--prim) 45%, var(--line)); }
+	.ai-tree-node.is-waiting { border-style: dashed; }
+	.ai-tree-node .ai-tree-head > .ai-tree-status.is-waiting { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.ai-tree-subs { display: flex; align-items: center; gap: 0.25em; }
+	.ai-tree-subs .ai-tree-label { margin-inline-start: 0.35em; }
+
+	/* ---- the tree pages ---- */
+	.ai-tree-page { display: flex; flex-direction: column; gap: var(--gap); }
+	.ai-tree-designs { display: flex; flex-wrap: wrap; gap: 0.5em 1em; align-items: center; }
+}
