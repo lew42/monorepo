@@ -1,0 +1,30 @@
+/* Figma "Lists" section — the one rounded darken panel every section sits
+   in, Features/Steps as two columns that stay two-up down to a narrow card,
+   and the Figma spec's own 16px label gap / 45px row rhythm instead of the
+   page's fluid --gap. Every class is prefixed `figma-lists-`, this card's
+   own name (review finding 1: two cards' stylesheets are both loaded onto
+   the AI 2 board at once, so a bare shared name is not actually scoped). */
+@layer site {
+	.figma-lists-panel {
+		border-radius: var(--radius);
+		padding: 2.25em 2em;   /* 36px / 32px at the root size */
+	}
+
+	/* Unconditional two-up, not `auto-fit`: the card column measures ~336px
+	   of content, and `auto-fit, minmax(10em, 1fr)` needs 2 * 10em (320px)
+	   PLUS the gap to stay two-up, so it stacked instead. `1fr 1fr` always
+	   fits — a track can shrink below its content's natural width, unlike
+	   `minmax`'s floor. */
+	.figma-lists-list-cols {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 36px;
+	}
+
+	.figma-lists h4 { margin: 0 0 16px; }
+	.figma-lists-list { padding-left: 1.4em; margin: 0; }
+	/* A wrapped item's second line lands under the TEXT, not the marker —
+	   the default `list-style-position: outside` already does this. */
+	.figma-lists-list li::marker { color: var(--prim); font-weight: 700; }
+	.figma-lists-list li + li { margin-top: 12px; }
+}

@@ -1,0 +1,73 @@
+@layer site {
+	/* The container-query root and the font-size clamp both now come from
+	   the shared `ui/scale` component (review finding 8) — `ui-scale` opens
+	   the container-query context, `ui-scale-body` sets the font-size, and
+	   this file only adds what is specific to this band: the border-radius. */
+	.figma-details {
+		border-radius: var(--radius);
+	}
+
+	/* The base chip shape — `chip()` in details.js sets the fill/text colour
+	   per tone (accent / pale / white / outline) inline, since each one reads
+	   a different colour off the priority or status it names. */
+	.figma-details-chip {
+		display: inline-flex;
+		align-items: center;
+		flex: 0 0 auto;
+		font-weight: 700;
+		font-size: 0.7em;
+		letter-spacing: 0.04em;
+		padding: 0.3em 0.7em;
+		border-radius: 0.3em;
+		white-space: nowrap;
+	}
+
+	.figma-details-type {
+		font-size: 0.75em;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: color-mix(in srgb, currentColor 65%, transparent);
+	}
+
+	.figma-details-line { height: 0.0625em; background: var(--line); }
+
+	.figma-details-title { font-size: 1em; line-height: 1.3; }
+	.figma-details-title-lg { font-size: 1.5em; line-height: 1.3; margin: 0; font-weight: 700; }
+	/* The priority board's own titles — regular weight, sentence case (the
+	   mastermind's second read: bold/uppercase was the Figma's status chips
+	   bleeding into the title, not the title's own look). */
+	.figma-details-title-reg-lg { font-size: 1.4em; line-height: 1.3; margin: 0; font-weight: 400; }
+	/* This one is an h4 (for the right HTML level), but the site's own h4
+	   rule uppercases and tracks its text — wrong for a sentence-case title,
+	   so both are explicitly turned back off (mastermind correction,
+	   2026-09-28). */
+	.figma-details-title-reg-sm { font-size: 1em; line-height: 1.3; margin: 0; font-weight: 400; text-transform: none; letter-spacing: normal; }
+	.figma-details-desc { font-size: 0.875em; color: color-mix(in srgb, currentColor 65%, transparent); line-height: 1.4; }
+
+	.figma-details-field-label { font-size: 0.75em; letter-spacing: 0.04em; color: color-mix(in srgb, currentColor 65%, transparent); }
+	.figma-details-field-value { font-size: 0.875em; }
+	.figma-details-field .icon, .figma-details-path .icon { font-size: 0.9em; color: color-mix(in srgb, currentColor 55%, transparent); }
+
+	.figma-details-path { font-size: 0.8em; color: color-mix(in srgb, currentColor 65%, transparent); }
+	.figma-details-activity { font-size: 0.875em; line-height: 1.4; }
+
+	/* The sub-task row's assignee — small grey initials, not an avatar. */
+	.figma-details-subtask-owner { font-size: 0.7em; font-weight: 700; color: color-mix(in srgb, currentColor 55%, transparent); }
+
+	/* A determinate bar drawn from a custom property — the card already reads
+	   "done N of M" from the checklist above it, so a real <progress> would
+	   repeat the same number a second way. */
+	.figma-details-progress {
+		height: 0.4em;
+		border-radius: 999px;
+		background: var(--darken-1);
+	}
+	.figma-details-progress::before {
+		content: "";
+		display: block;
+		height: 100%;
+		width: var(--value, 0%);
+		border-radius: inherit;
+		background: var(--prim);
+	}
+}

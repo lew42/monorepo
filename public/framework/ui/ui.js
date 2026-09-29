@@ -19,6 +19,7 @@ import "./menu/menu.js";
 import "./accordion/accordion.js";
 import "./decision/decision.js";
 import "./words/words.js";   // the config words — not a component; the same trap applies
+import "./scale/scale.js";
 
 // Three functions, because three of the twenty carry a loop. The rest are
 // copy-paste templates and deliberately have nothing to import — readme.md.
