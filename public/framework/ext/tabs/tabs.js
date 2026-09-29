@@ -16,7 +16,14 @@ View.stylesheet(import.meta, "tabs.css");
  */
 Page.prototype.tabs = function(names){
 	const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
-	const owns_url = !this.default_tab && (this.default_tab = list[0]);
+
+	// A `{"tab": {"name": "x", "active": true}}` line (core/Page/Log.js) names the
+	// tab that should show when a reader lands on MY bare url, instead of always
+	// the first-declared one -- 2026-09-29 fix round, finding 6. First match in
+	// `list` order wins if more than one ever claims it; nobody using this line at
+	// all falls straight back to `list[0]`, today's only behaviour.
+	const active = list.find(name => this.tab_state(name).active === true);
+	const owns_url = !this.default_tab && (this.default_tab = active ?? list[0]);
 	let $bar, $panel;
 
 	// placed NOW, while the captor is still ours; filled once the first tab lands
@@ -30,29 +37,56 @@ Page.prototype.tabs = function(names){
 
 	// ⚠ A label must not depend on which tab you happened to arrive at, or the bar
 	// reads differently per entry point. `this.loading` is the guarantee that every
-	// title is real; the `i === 0` fallback covers a page built without a url.
-	const label = (name, i) => {
+	// title is real; the `name === this.default_tab` fallback covers a page built
+	// without a url (its one, preloaded child -- see `filling` below).
+	const label = name => {
 		const page = this.children.get(name);
 		const text = page?.label ?? page?.title;
-		return (this.loading || i === 0) && text ? text : name;
+		return (this.loading || name === this.default_tab) && text ? text : name;
 	};
 
-	const filling = Promise.resolve(this.loading ?? this.child(list[0])).then(() => {
+	// A `tab` line (core/Page/Log.js) can hide a name from the STRIP (`nav: false` —
+	// still a real page at its own url, only missing here), grey it out (`disabled` —
+	// shown, unclickable) and reorder it (`order`). `list` itself stays whole — the
+	// regions Map above and `owns_url`/`default_tab` above still read every name — only
+	// what gets DRAWN below is filtered/sorted, through the same two Log.js reads
+	// Doc.bar() uses, so the two can never disagree.
+	//
+	// Pulled into its own function, and kept in `_tab_redraws`, so it can run again
+	// later with no reload: core/Page/Log.js's Reader.changed() calls
+	// `page.nav_redraw()` the moment a live `tab` or `file` line changes what
+	// `tab_visible()`/`tab_order()` answer (2026-09-29 fix round, finding 5) — this
+	// is the thing that actually redraws.
+	const draw_bar = () => {
+		const shown = list.filter(name => this.tab_visible(name)).sort((a, b) => this.tab_order(a) - this.tab_order(b));
+
 		// ⚠ `tab-default` marks the one whose href is MY url: every sibling url
 		// starts with it, so mark_links() would give it `.in-path` on every tab.
-		$bar.append(() => list.forEach((name, i) =>
-			a.c("tab", label(name, i))
-				.ac(owns_url && !i && "tab-default")
-				.href(owns_url && !i ? this.url : this.url + name + "/")));
+		$bar.empty(() => shown.forEach(name => {
+			const disabled = !!this.tab_state(name).disabled;
+			const is_default = owns_url && name === this.default_tab;
+
+			a.c("tab", label(name))
+				.ac(is_default && "tab-default")
+				.ac(disabled && "tab-disabled")
+				.style(disabled ? { opacity: "0.5", pointerEvents: "none" } : {})
+				.href(disabled ? undefined : is_default ? this.url : this.url + name + "/");
+		}));
+
+		// ⚠ these links were built after mark() ran, so they missed the pass
+		this.app?.router?.mark_links();
+	};
+
+	(this._tab_redraws ??= new Set()).add(draw_bar);
+
+	const filling = Promise.resolve(this.loading ?? this.child(this.default_tab)).then(() => {
+		draw_bar();
 
 		// EVERY set renders its default, so no panel is ever blank. ⚠ `app` is handed
 		// down here exactly as `Page.child()` does it — a default child is never
 		// routed to, and a nested set with no `app` cannot mark its own links.
-		const first = this.children.get(list[0])?.assign({ app: this.app });
+		const first = this.children.get(this.default_tab)?.assign({ app: this.app });
 		if (first) $panel.append(first.render().ac("default"));
-
-		// ⚠ these links were built after mark() ran, so they missed the pass
-		this.app?.router?.mark_links();
 
 		// ⚠ after inject(): on a cold load every view here is still detached, and a
 		// detached element measures zero.
@@ -67,6 +101,18 @@ Page.prototype.tabs = function(names){
 	this.app?.loaders?.push(filling);
 
 	return $tabs;
+};
+
+// core/Page/Log.js's Reader.changed() calls this after a live `tab`/`file` line on
+// MY OWN log, and my PARENT's own reader calls it on THEM after a live `settings`
+// line on MINE (their strip may show me). Every tab-bar I have open redraws in
+// place, then this bubbles to my own parent too — its strip might show me, and
+// that is also how the sidebar's rail hears about it: core/Sidebar/Sidebar.js
+// registers its own redraw the same way, on the site's ROOT page, which is the
+// only page every bubble eventually reaches. 2026-09-29 fix round, finding 5.
+Page.prototype.nav_redraw = function(){
+	this._tab_redraws?.forEach(fn => fn());
+	this.parent?.nav_redraw?.();
 };
 
 // The strip hides its own scrollbar, so a deep link landing on the fortieth member

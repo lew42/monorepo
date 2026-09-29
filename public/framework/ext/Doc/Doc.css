@@ -46,20 +46,64 @@
 	   ⚠ One inset serves both shapes: beside the title it reads as a gutter-wide gap,
 	     and once the basis no longer fits and the strip wraps to its own line, it lands
 	     the LABELS on the axis (the tab boxes hang one tab-padding to their left). */
+	/* ⚠ Persistent navigation never moves or hides (CLAUDE.md's own law) — so THIS
+	   bar wraps its tabs onto a second row rather than scrolling or clipping, once
+	   there isn't room for all of them on one line: at 1920 a 13-tab module's last
+	   few (API, Docs, Files) sat past the fold of `overflow: auto`'s hidden
+	   scrollbar, and with the right drawer open the SAME thing happened to the
+	   first few at 1280 (2026-09-29, navfix). This overrides ext/tabs' own
+	   `.tab-bar { flex-wrap: nowrap; overflow: auto }` (tabs.css) — deliberately
+	   never-wrap there, because a fifty-member RAIL wrapped is 500px of chrome
+	   above the content it navigates (that file's own note). Doc's own top bar is
+	   never that big — Overview, the module's declared children, API, Docs, Files
+	   — so the trade is different, and only THIS selector (0,3,0, Doc's own) says
+	   so; the shared rule in ext/tabs is untouched and every other tab strip on
+	   the site still scrolls. */
+	/* ⚠ `flex-wrap: wrap` — the strip has 7 labels (overview/api/doc/files/…) and
+	     `tabs.css` scrolls them sideways with nothing to say so below ~450px
+	     (measured: content 644px in a 400px bar). Wrapping to a second row shows
+	     every label instead. Doc.css:2026-09-29. */
 	.page.doc-page > .tabs > .tab-bar {
 		background: var(--well);
 		flex: 1 1 24em; min-width: 0;
 		align-items: flex-end;
+		flex-wrap: wrap;
 		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+		overflow: visible;
+
+		/* ⚠ The wrap above stops a tab from being CLIPPED — it does not stop one
+		   from landing UNDER the ☰ drawer button, which is `position: fixed` in
+		   this same top-right corner (`.drawer-menu`, ext/drawer/drawer.css:
+		   2.2rem wide, 0.5rem from the edge) and so never pushes flow content out
+		   of its way. At 1920, this bar runs the FULL width of the page (the
+		   "full-bleed band" above), so its last tab on row 1 reached the exact
+		   same corner and rendered behind the button, invisible — the API tab,
+		   2026-09-29 fix round. `padding-inline-end` reserves that corner so
+		   nothing ever wraps AT it: the button's own footprint (2.2rem) plus its
+		   inset (0.5rem) plus a hair of breathing room.
+		   ⚠ Bigger than strictly measured on purpose — `--rail-push` (drawer.css)
+		   can nudge the button further in mid-open; this stays clear either way. */
+		padding-inline-end: 3.5rem;
 	}
 
-	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; }
+	/* `tabs.css`'s own `.tab-panel { padding-top: 3em }` is for a bare tab strip
+	   with no well above it. Here the panel's first child is always a `.doc-section`
+	   page, which already pays its own top inset (`--pad-y: 1.5em` below) — the 3em
+	   on top of that was pure empty band (measured 42px at 400px, 48 at 1920).
+	   Doc.css:2026-09-29. */
+	.page.doc-page > .tabs > .tab-panel { flex: 0 0 100%; min-width: 0; padding-top: 0; }
 
 	/* The well prints the module name; the catalog's intro would print it again.
 	   ⚠ The successor's margin goes with it — a `display: none` element still matches
 	     `.page-title + *`, so the 3em the heading occupied stayed behind. */
 	.page.doc-page .page-catalog-pages > .page--intro > .page-title { display: none; }
 	.page.doc-page .page-catalog-pages > .page--intro > .page-title + * { margin-block-start: 0; }
+
+	/* The intro page sits INSIDE the `overview` section, and both are `.page`s, so
+	   both pay `padding: var(--pad-y) var(--gutter-x)` (Page.css) — the same inset
+	   twice (measured: 56px each side at 400px, should be 28). Zeroing the intro's
+	   own copy leaves the section's. Doc.css:2026-09-29. */
+	.page.doc-page .page-catalog-pages > .page--intro { --gutter-x: 0px; --pad-y: 0px; }
 
 	/* A doc section IS a page, so it is the shell's own grid now — `main` for the
 	   prose, `wide` for a table or a listing that needs the room. It used to declare
@@ -79,9 +123,11 @@
 	   a `bleed` child (every catalog is one) spends those tracks and lands back on the
 	   region edge — so zeroing the nested page's gutter left the prose inside it flush
 	   against the app sidebar. Measured on `/framework/ui/`: the intro started at x=274,
-	   0px of inset, where the section's own axis is 90px. Nothing replaces it: the
-	   nested page pays its own gutter, and because the catalog between them bleeds, the
-	   two insets never add up. */
+	   0px of inset, where the section's own axis is 90px.
+	   ⚠ STALE as of 2026-09-29: the catalog is `.wide` now (`div.page-catalog.wide`), so
+	   it no longer bleeds between the two pages — the section's and the intro's insets
+	   DO stack (measured: 56px each side at 400px instead of 28). The `.page--intro`
+	   rule above (`--gutter-x: 0px; --pad-y: 0px`) is the fix for that. */
 
 	/* The Files section is one browser, not a rail — and the browser is a panel
 	   workspace, so the height is its token rather than a flex line. Taller than the

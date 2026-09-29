@@ -80,7 +80,17 @@ export class Doc extends Page {
 
 	// A top tab: a page whose own children are a left rail. Two levels of real pages,
 	// so a member is /View/api/append/ and every tab is a url.
+	//
+	// ⚠ 2026-09-29 fix round, finding 3: `nav: true` here PINS this tab always-shown,
+	// with no fetch — Overview/API/Docs/Files are this class's own derived chrome,
+	// never a real page anyone's `settings.jsonl` describes, and `this.url + name +
+	// "/"` could, for an unlucky name, collide with a REAL folder somewhere that
+	// does have one (core/Page/'s own "overview/" folder, for one). `tab_visible()`
+	// (core/Page/Log.js) treats an explicit `nav: true` the same way it already
+	// treats `nav: false` — it wins outright, no page_settings() lookup at all.
 	section(name, label, config){
+		this.tab({ name, nav: true });
+
 		return this.add(name, {
 			label,
 			title: `${this.title} ${label}`,
@@ -347,8 +357,17 @@ export class Doc extends Page {
 	// — except "doc", which docs_section() now also builds for a module with members and
 	// no notes (so `doc/method/<name>/` has a node to live under): that one shows only
 	// when there is a real NOTE to read, so a module gains no tab it did not have before.
+	// ⚠ 2026-09-29, page-system task: a declared child can carry a `tab` line
+	//   (core/Page/Log.js's `tab()`) — `tab_visible()`/`tab_order()` read it. Neither
+	//   finds anything for a page that never wrote one, so this is a no-op for every
+	//   Doc page that doesn't use the new lines.
 	bar(){
-		return ["overview", ...[...this.children.keys()].filter(name => !Doc.SECTIONS.includes(name)), "api", "doc", "files"]
+		const middle = [...this.children.keys()]
+			.filter(name => !Doc.SECTIONS.includes(name))
+			.filter(name => this.tab_visible(name))
+			.sort((a, b) => this.tab_order(a) - this.tab_order(b));
+
+		return ["overview", ...middle, "api", "doc", "files"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	}
 

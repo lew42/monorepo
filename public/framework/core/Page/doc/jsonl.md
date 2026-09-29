@@ -56,6 +56,34 @@ assigned. `Card.jsonl(url)` does the same without the line, because the loader b
      `content()`;
    - a child's name draws nothing extra: it is already linked.
 
+## Two more lines: a tab's state, and a page's own settings
+
+Added 2026-09-29 (the tabs-settings task), both read by `Log.js`, neither one required —
+every page that doesn't write them is unchanged.
+
+**`{"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}}`** — state for ONE
+CHILD, written on the PARENT's own log. A child that already exists (a declared child, a
+`file` line naming it) is already a tab the moment `Doc.bar()` or `tabs()`
+(`ext/tabs/tabs.js`) sees it as a declared child; this line only adds STATE: `disabled`
+draws it greyed and unclickable (still a real page at its own url), `nav: false` drops it
+from the tab STRIP entirely (still a real page — only missing from the bar), `order` breaks
+a tie between tabs that both want a position. A name with none of the three is still
+DECLARED as a child (like a plain string in `declare()`), so a `tab` line can be how a tab
+comes to exist at all. Repeat lines for one name merge, never replace.
+
+**`{"settings": {"nav": false}}`** — a whole PAGE's own preference, written on ITS OWN log
+(a page.js folder writes a sibling `settings.jsonl` instead, the same rule `weight.jsonl`
+uses — never a `page.jsonl`, which would subscribe it to the file watcher for nothing). The
+first and only setting is `nav`: does this page appear in ITS PARENT's navigation? The right
+drawer's Settings tab has an "Appears in navigation" checkbox for whichever page you're
+looking at, and a change writes exactly this line. If nothing ever set it, `nav` follows
+weight (`core/Page/weight/`): a page whose weight is below 1 is out of nav too.
+
+`Doc.bar()` and `tabs()` both read a name's tab state AND (when the child happens to be
+already loaded — nothing is fetched to check) that child's own settings, through two Log.js
+methods, `tab_visible(name)` and `tab_order(name)`, so the two can never disagree. Live demo,
+all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
+
 ## Who writes the file lines
 
 Nobody has to remember them. The dev server's `Server/plugins/PageFiles.js` watches `public/`

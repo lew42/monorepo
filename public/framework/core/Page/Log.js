@@ -1,4 +1,5 @@
 import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+import { page_settings } from "./settings/settings.js";
 
 /* A PAGE AS A LOG — `page.jsonl`, the page format that needs no page.js.
 
@@ -29,6 +30,16 @@ const skipped = key => key === "constructor" || key === "__proto__" || key.start
 const settable = value => value && typeof value === "object" && is.fn(value.set) && !(value instanceof Map);
 
 export class PageLog {
+
+	// ════ SETTINGS — `{"settings": {"nav": false}}` ═══════════════════════════════
+	// A page's own preferences. Today there is exactly one: `nav` — "does this page
+	// show up in its parent's navigation?" (core/Page/settings/, loading-study.md
+	// section 4). `this.settings` is never a PLAIN object: it starts life as this tiny
+	// object with its own `set()`, so `set()` below routes a `settings` line into
+	// `settable()`'s branch and MERGES — the same trap `file()` avoids by keeping its
+	// own state off `this.file`: a plain object here would get SHADOWED (fully
+	// replaced) by the second settings line instead of merged with the first.
+	settings = { set(obj){ Object.assign(this, obj); } };
 
 	// `assign()` that calls methods instead of overwriting them. One argument, always.
 	set(obj){
@@ -80,6 +91,83 @@ export class PageLog {
 		if (!this.child_kinds?.delete(key)) return;
 		this.children.delete(key);
 	}
+
+	// ════ TAB STATE — `{"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}}` ═══
+	// A child that already exists — a declared child, a `file` line, a `children:`
+	// entry on a page.js parent — is already a tab the moment Doc.bar() or tabs()
+	// (ext/tabs/tabs.js) sees it: this only adds STATE to it. `disabled` draws it
+	// greyed and unclickable; `nav: false` drops it from the tab STRIP entirely (it
+	// is still a real page at its own url); `order` breaks a tie when more than one
+	// tab wants a position. A name with none of the three still gets DECLARED as a
+	// child here (the same thing declare()'s own string form does), so a `tab` line
+	// can be how a tab comes to exist at all, with nothing yet to draw there.
+	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
+	//   never replace — set() calling this again is just one more spread.
+	tab(obj){
+		const { name, ...state } = obj;
+		if (!name) return;
+
+		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
+		if (!this.children.has(name)) this.children.set(name, null);
+	}
+
+	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
+	// every caller (Doc.bar(), tabs()) reads `.disabled` / `.nav` / `.order` with no guard.
+	tab_state(name){ return this.tabs_state?.get(name) ?? {}; }
+
+	// ════ NAV VISIBILITY — one rule, read in one place, for the rail, the tab strip
+	// and the drawer's own checkbox ═══════════════════════════════════════════════
+	// Shown unless: MY OWN `tab` line says `nav: false` for this child (explicit,
+	// always wins, and an explicit `nav: true` always wins the other way — see
+	// `section()` in ext/Doc/Doc.js, which pins its own OVERVIEW/API/DOCS/FILES
+	// chrome this way so those never depend on a real page's settings). Otherwise
+	// this asks the exact question the drawer's own checkbox asks —
+	// `page_settings()`, core/Page/settings/settings.js — which already unifies an
+	// explicit `{"settings": {"nav": false}}` line on the CHILD's own log with the
+	// weight fallback (below 1 is out of nav too). 2026-09-29 fix round, finding 3:
+	// before this, a page.js child (no page.jsonl of its own, like ux/Dictate/)
+	// never had settings.jsonl read into it at all, so unticking "Appears in
+	// navigation" on one did nothing — only a loaded page.jsonl child's own,
+	// already-in-memory `.settings` was ever checked.
+	//
+	// That real answer needs a fetch, so this stays SYNCHRONOUS the way every
+	// caller (Doc.bar(), tabs(), Sidebar's rail) needs at render time: the first
+	// ever ask answers optimistically `true` — a tab is never hidden before it's
+	// actually been checked — then checks for real in the background, and if the
+	// answer disagrees, corrects the cache and calls `nav_redraw()`
+	// (ext/tabs/tabs.js) so the strip (and the rail, which bubbles up to it) fixes
+	// itself with no reload. `nav_ready()` below is the same answer, awaited, with
+	// no flash — used the one place that can afford to await before its first
+	// paint (Sidebar.visible_nodes()).
+	tab_visible(name){
+		const set = this.tab_state(name).nav;
+		if (set === false) return false;
+		if (set === true) return true;
+
+		this._nav ??= new Map();
+		if (!this._nav.has(name)){
+			this._nav.set(name, true);
+			this.nav_ready(name).then(nav => {
+				if (this._nav.get(name) === nav) return;
+				this._nav.set(name, nav);
+				this.nav_redraw?.();
+			});
+		}
+		return this._nav.get(name);
+	}
+
+	// The real, awaited answer tab_visible() above is a synchronous, cached,
+	// eventually-consistent stand-in for.
+	async nav_ready(name){
+		const set = this.tab_state(name).nav;
+		if (typeof set === "boolean") return set;
+		return (await page_settings(this.url + name + "/")).nav;
+	}
+
+	// Sort key: an explicit `order` wins; everyone else ties at `Infinity`, and
+	// `Array.prototype.sort` is stable — a tie keeps the names in whatever order they
+	// already had, so a page that names no order at all is untouched.
+	tab_order(name){ return this.tab_state(name).order ?? Infinity; }
 
 	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
 	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.
@@ -322,6 +410,12 @@ PageLog.Reader = class PageLogReader {
 			const { class: _, ...line } = entry;
 			this.page ? this.page.set(this.count ? entry : line) : this.entries.push(entry);
 			this.count++;
+
+			// What changed() (below) needs to know: did a `tab`, `file` or `settings`
+			// key arrive? Reset once the INITIAL read is done (attach(), below), so
+			// this only ever holds keys from lines that streamed in AFTER that —
+			// finding 5's whole point, live lines redrawing the nav with no reload.
+			for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
 		}
 		return this;
 	}
@@ -338,11 +432,23 @@ PageLog.Reader = class PageLogReader {
 		this.page = page;
 		this.entries.splice(0).slice(1).forEach(entry => page.set(entry));
 		page.report_unknown();
+		this._seen = null;   // only track keys from lines that arrive FROM HERE ON
 	}
 
+	// ⚠ 2026-09-29 fix round, finding 5: a `tab` or `file` line describes MY OWN
+	// children's state, so I redraw MY OWN tab strip (nav_redraw(), ext/tabs/
+	// tabs.js). A `settings` line is a page's preference about ITSELF, read by
+	// its PARENT's tab strip — so that redraw is asked of `this.page.parent`
+	// instead. Either way this replaces the drawer's old `location.reload()` —
+	// the strip (and the rail, which nav_redraw() bubbles up to) now fixes
+	// itself with no reload at all.
 	changed(){
 		this.page?.report_unknown();
 		this.page?.log_redraw();
+
+		const seen = this._seen; this._seen = null;
+		if (seen?.has("tab") || seen?.has("file")) this.page?.nav_redraw?.();
+		if (seen?.has("settings")) this.page?.parent?.nav_redraw?.();
 	}
 
 	reset(){

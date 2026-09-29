@@ -144,18 +144,79 @@ export class Sidebar extends View {
 		return div.c("sidebar-nav", () => {
 			if (this.root){
 				this.$tree = new Tree({ nodes: [], adapt: true });
-				Tree.nodes_of(this.root).then(nodes => this.$tree.draw(nodes))
+				Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
 					.then(() => this.reveal())
 					// ⚠ A slow load racing a fast typist: nodes that arrive after the
 					// reader has already started filtering would otherwise all show,
 					// unfiltered. Re-runs the CURRENT predicate against the just-drawn
 					// rows, only when there is one.
 					.then(() => this.$filter.needle.trim() && this.filtered(this.$filter.predicate()));
+
+				// A `tab`/`file`/`settings` line anywhere in the tree bubbles up
+				// through `nav_redraw()` (ext/tabs/tabs.js) to the ROOT page — the
+				// only page every bubble reaches — so registering here, once, is
+				// how the rail hears about ANY of them with no reload (2026-09-29
+				// fix round, finding 5). Cheap even though it rebuilds from the
+				// top: `ux/Tree` only ever re-fetches a branch a reader had opened.
+				(this.root._tab_redraws ??= new Set()).add(() => this.refresh_nav());
 			} else {
 				this.$tree = new Tree({ nodes: this.tree_nodes(this.pages), adapt: true });
 				this.reveal();
 			}
 		});
+	}
+
+	// The live-update half of nav() above: same tree, redrawn in place, no reload.
+	// ⚠ `draw()` throws every row away and rebuilds closed — reveal() after it is not
+	// optional, or a redraw that lands mid-cold-load silently erases whatever the
+	// COLD LOAD's own reveal() had already opened, with nothing to put it back
+	// (2026-09-29 fix round part 2, regression: a page whose tab strip corrects
+	// itself on first paint — core/Page/'s own "old" tab, weight-demoted below 1 —
+	// fires exactly this redraw while Sidebar is still walking down to the active
+	// page, so `/framework/core/Page/` cold-loaded with Core shut and Page nowhere
+	// in the tree). Same two-step nav() itself always takes: draw, THEN reveal.
+	refresh_nav(){
+		if (!this.$tree) return;
+		Tree.nodes_of(this.root).then(nodes => this.visible_nodes(this.root, nodes)).then(nodes => this.$tree.draw(nodes))
+			.then(() => this.reveal());
+	}
+
+	// "Appears in navigation" (core/Page/settings/) means the RAIL too, not only
+	// ext/Doc's tab strip — a child whose own `tab` line says `nav: false`, or whose
+	// own settings (a page.jsonl page's own log, or a page.js folder's sibling
+	// settings.jsonl, or its weight if nobody ever set either) says so, skips the
+	// tree here the same way `Doc.bar()` already skips it there. Both read the
+	// SAME rule (core/Page/Log.js's `nav_ready()`/`tab_visible()`, core/Page/
+	// settings/settings.js's `page_settings()`) so the two can never disagree
+	// about what "hidden" means. The child is still real, still reachable at its
+	// own url — this only drops it from the list.
+	//
+	// ⚠ ASYNC, on purpose (2026-09-29 fix round, finding 3): the real answer for a
+	// page.js child needs a fetch (page_settings()), and this whole call already
+	// sits inside a `.then()` in nav()/refresh_nav() below — awaiting the REAL
+	// answer (`nav_ready()`) here, once, before the first paint, is what keeps the
+	// rail from ever flashing a tab that a moment later disappears. `tab_visible()`
+	// (the same rule, cached and synchronous) is for callers that render
+	// synchronously and correct themselves later instead — Doc.bar(), tabs().
+	// ⚠ `Tree.nodes_of(page)` builds `nodes` from `[...page.children.keys()]`, same
+	//   order, so zipping the two by index is exact — `ux/Tree` is consumed here,
+	//   never edited (this file's own rule, above), so the filter runs on ITS
+	//   OUTPUT instead of inside it.
+	// ⚠ A deeper branch opens LAZILY — `node.children` is a function ux/Tree calls
+	//   the first time a reader expands it (`Tree.grow()`), not now — so the same
+	//   filter is wrapped around that function too, one level at a time, or a
+	//   hidden grandchild would still show the moment its parent branch opened.
+	async visible_nodes(page, nodes){
+		const names = [...page.children.keys()];
+		const visible = await Promise.all(names.map(name => page.nav_ready(name)));
+
+		return names
+			.map((name, i) => [nodes[i], visible[i]])
+			.filter(([, ok]) => ok)
+			.map(([node]) => !node.children ? node : {
+				...node,
+				children: () => Promise.resolve(node.children()).then(kids => this.visible_nodes(node.page, kids)),
+			});
 	}
 
 	// THE WIRE. `predicate` is a plain function, fresh from `ux/Filter` — never a DOM
