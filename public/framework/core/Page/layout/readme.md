@@ -24,9 +24,9 @@ drawn live, with demos, at [/layouts/decide/](/layouts/decide/).
 [/layouts/shell/](/layouts/shell/) — a sidebar that never moves, and a tree of homepage designs
 [core/Layout](/framework/core/Layout/) — the catalogue: 30 named arrangements, each proven at seven widths
 [sidebar variant](/framework/styles/layouts/sidebar/) — the `.basis + .flex-1` sidebar shape
-[floating page](./floating/) — this module's own inner-sidebar shape, `floating()`
+[floating page](/framework/core/Page/layout/floating/) — this module's own inner-sidebar shape, `floating()`
 [layout explorer](/layouts/explorer/) — one tree of every layout on the site, siblings/selected/children in three columns
-[v1](./v1/) — this hub's first version, kept as reference
+[v1](/framework/core/Page/layout/v1/) — this hub's first version, kept as reference
 [doc/words](/framework/core/Page/doc/words/) — Standard and Top-down shape, in words
 [Layout catalogue: main-aside](/framework/core/Layout/main-aside/) — the Split mechanism, `arrangement: "main-aside"`
 [doc/columns](/framework/core/Page/doc/columns/) — the Columns mechanism, `this.columns({ even: true })`
