@@ -32,7 +32,7 @@ prose mention as a false positive — read the hit before editing anything.
 [`public/framework/ai/2026-09-28/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
 Same idea, one launcher: every script starts Chromium through
 [`Server/browser.mjs`](./browser.mjs), never `chromium.launch(` on its own — window-lint and
-`hidden_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
+syntax-guard's `browser_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
 an always-on `EnumWindows` probe that logs any NEW visible console or browser window (scoped so
 the owner's own Chrome never counts). [`doc/browser.md`](./doc/browser.md).
 

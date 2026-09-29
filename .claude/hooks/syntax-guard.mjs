@@ -96,7 +96,7 @@ function browser_guard(file){
 	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return;
 	const src = fs.readFileSync(file, "utf8");
 	if (!/playwright/i.test(src)) return;
-	const LAUNCH = /\.launch\s*\(/g;
+	const LAUNCH = /\.launch(PersistentContext|Server)?\s*\(/g;
 	const lines = [];
 	let m;
 	while ((m = LAUNCH.exec(src))) lines.push(src.slice(0, m.index).split("\n").length);
