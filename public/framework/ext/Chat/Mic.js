@@ -123,7 +123,7 @@ export class ComposerMic extends Dictate {
 		let mine;
 		try {
 			const gap = this.gap_before ?? 0;
-			if (this.capture && this.worth_sending(this.capture.snapshot())){
+			if (this.mic && this.worth_sending(this.mic.snapshot())){
 				(this.gaps ??= []).push(gap); this.gap_before = 0;
 				let guess = unfill(this.partial_text ?? "");
 				const sent = this.dropped && this.dropped.epoch === this.segment_epoch ? this.dropped.text : "";
@@ -152,7 +152,7 @@ export class ComposerMic extends Dictate {
 	}
 
 	active(){
-		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing");
+		return !!(this.starting || this.reviving || this.posting || this.held?.length || this.state === "listening" || this.state === "transcribing" || this.state === "connecting");
 	}
 
 	/* THE BOX IS WHERE THE WORDS APPEAR. Each Whisper update — the still-moving
@@ -320,11 +320,22 @@ export class ComposerMic extends Dictate {
 			this.resend_ms = SETTINGS.guess_ms;
 			await super.start();
 		} finally { this.starting = false; }
-		if (this.state === "listening"){
-			beep("start"); this.watch_capture();
-			clearInterval(this.auto_timer);
-			this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
-		}
+	}
+
+	/* THE START SOUND — moved here from the end of `start()`. `Dictate` now calls this
+	 * the INSTANT the mic is genuinely open (whisper's own `capture.start()` resolved, or
+	 * the browser engine's `rec.onstart` fired), never merely because `start()` was asked
+	 * to run. Before this, `start()` returning was treated as "it's on" — but for the
+	 * browser engine `start()` returns before Chrome has done anything at all, and on an
+	 * insecure LAN page Chrome can go on "trying" for a long time with no error, so the
+	 * chime played while nothing was actually listening (the owner's own phone report,
+	 * `ai/2026-09-29/mobile-nav/`, `doc/https-lan.md`). `Dictate.set_state()` also never
+	 * fires this twice for one press — Chrome's own silent mid-session restarts (still
+	 * "listening" throughout) do not replay the chime. */
+	on_listening(){
+		beep("start"); this.watch_capture();
+		clearInterval(this.auto_timer);
+		this.auto_timer = setInterval(() => this.auto_check(), CHECK_MS);
 	}
 
 	/* WHY THE MIC "TURNED ITSELF OFF": a Windows sleep, a Bluetooth switch or an
@@ -333,12 +344,12 @@ export class ComposerMic extends Dictate {
 	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
 	   suspended audio engine is woken the same way. */
 	watch_capture(){
-		const cap = this.capture, track = cap?.stream?.getAudioTracks()[0];
+		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
 		if (cap?.ctx) cap.ctx.onstatechange = () => {
 			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
 		};
 		track?.addEventListener("ended", async () => {
-			if (this.capture !== cap || this.state !== "listening") return;
+			if (this.mic !== cap || this.state !== "listening") return;
 			await this.stop();
 			const now = performance.now();
 			if (now - (this.last_revive ?? -1e9) < 5000) return this.set_error("The microphone was disconnected.");

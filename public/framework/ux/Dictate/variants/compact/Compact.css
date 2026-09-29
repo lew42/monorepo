@@ -1,0 +1,30 @@
+/* Compact.js's own look: one short line, never a growing block. `css` skill: every
+ * rule lives in a layer, `theme` is the right one for a component's own look (the same
+ * layer Dictate.css itself uses). */
+@layer theme {
+
+	/* Small text, no wrap, no growth — the whole point of "compact" is that this
+	 * widget never gets taller or wider than a single toolbar row. `text-overflow:
+	 * ellipsis` is the safety net if `compact_chars` (Compact.js) still overflows this
+	 * width at a given font size — a soft cutoff, never a hard clip mid-letter. */
+	.ux-dictate-caption-compact {
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 20em;
+	}
+
+}
+
+/* `@layer util` BEATS `@layer theme` regardless of selector specificity (`code` skill,
+ * "layout and CSS that never throw") — and the checkbox row also wears the `flex`
+ * utility class (`ux-dictate-pause-opt flex v-center muted` in Dictate.js's own
+ * `render()`), which sets `display: flex` in that same util layer. A `display: none`
+ * living in `theme` above would silently lose to it, so this one rule lives in `util`
+ * instead — the one place that can actually win against a utility class. */
+@layer util {
+	/* The "stop after a pause" checkbox is a real option, but real bulk a one-line
+	 * toolbar mic can't afford — hidden here only, never on the full-size widget. */
+	.ux-dictate-compact .ux-dictate-pause-opt { display: none; }
+}

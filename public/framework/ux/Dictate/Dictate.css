@@ -28,6 +28,12 @@
 	/* the last segment is still in flight after the owner pressed stop. */
 	.ux-dictate-btn.transcribing { animation: ux-dictate-pulse .8s ease-in-out infinite; }
 
+	/* asked for, not yet on — a permission prompt or a device still opening. Same pulse
+	 * as "transcribing" (both mean "wait, something is happening"), never the solid
+	 * "listening" look, which the owner's own bug report is why this state exists at all:
+	 * the mic must never LOOK live before it really is. */
+	.ux-dictate-btn.connecting { animation: ux-dictate-pulse .8s ease-in-out infinite; }
+
 	@keyframes ux-dictate-pulse { 50% { opacity: .5; } }
 
 	.ux-dictate-status.error { color: var(--error); }
