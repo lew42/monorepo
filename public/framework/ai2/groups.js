@@ -1,6 +1,7 @@
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { resolve_card, today_str, plain, headline, first_sentence } from "./inbox.js";
 import { total } from "/framework/ext/AITask/cost.js";
+import { PageLog } from "/framework/core/Page/Log.js";
 
 /**
  * THE GROUPS — a few familiar names the work is filed under (the owner,
@@ -78,6 +79,8 @@ export class Groups {
 		this.tasks = new Map();     // "<date>/<slug>" → Member
 		this.folds = new Map();     // card id → { key, fold }
 		this.readers = new Set();
+		this.task_files = new Map();   // "<date>/<slug>" → the task folder's file names
+		this.looking = new Map();      // base → "pending" | "done": task_at() asked for its listing
 	}
 
 	on(fn){ this.readers.add(fn); return () => this.readers.delete(fn); }
@@ -91,7 +94,11 @@ export class Groups {
 		this.by_id = new Map(this.list.map(g => [g.id, g]));
 		this.by_card = new Map(this.list.map(g => [g.card, g]));
 		folders?.on(() => this.read_cards());
-		socket?.on?.("data", path => { if (String(path).endsWith("/directory.json")) this.read_tasks(); });
+		socket?.on?.("data", path => {
+			const day = String(path).match(/\/framework\/ai\/(\d{4}-\d\d-\d\d)\/page\.jsonl$/)?.[1];
+			if (day && this.dates().includes(day)) this.read_tasks(day);
+			else if (String(path).endsWith("/directory.json") && this.dir){ this.reading = null; this.read_tasks(); }
+		});
 		await Promise.all([this.read_tasks(), this.read_cards()]);
 		this.changed();
 		return this;
@@ -108,29 +115,56 @@ export class Groups {
 		return out;
 	}
 
-	/* Every task dir with a task.jsonl, from the dev server's directory listing
-	   (the same one the task board reads). ⚠ The SPA fallback answers a miss
-	   with index.html — the content-type is the 404. */
-	async read_tasks(){
-		const res = await fetch("/framework/directory.json").catch(() => null);
-		const dir = res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? await res.json().catch(() => null) : null;
-		const ai = dir?.files?.find(f => f.name === "ai")?.children ?? [];
-		this.dir = ai;
+	/* Every task dir with a task.jsonl, for the days shown. Each day folder's own
+	   page.jsonl names its task folders, and each task folder's names its files —
+	   a few small fetches instead of the whole site's directory.json, which is read
+	   only for a day that has no page.jsonl yet. `fresh` (a day) refetches that
+	   day's list: a task folder was added to it. */
+	async read_tasks(fresh){
 		const today = today_str();
 		const loads = [];
-		for (const date of this.dates()){
-			const day = ai.find(d => d.name === date);
-			for (const kid of day?.children ?? []){
-				if (kid.type !== "dir" || !kid.children?.some(k => k.name === "task.jsonl")) continue;
-				const key = date + "/" + kid.name;
-				if (this.tasks.has(key)) continue;
-				const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug: kid.name, files: kid.children.map(k => k.name) });
-				this.tasks.set(key, m);
-				loads.push(date === today ? m.live(() => this.changed()) : m.load());
-			}
-		}
+		const days = await Promise.all(this.dates().map(date => this.day(date, date === fresh)));
+		days.flat().forEach(({ date, slug, files }) => {
+			const key = date + "/" + slug;
+			this.task_files.set(key, files);
+			if (this.tasks.has(key)) return;
+			const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug, files });
+			this.tasks.set(key, m);
+			loads.push(date === today ? m.live(() => this.changed()) : m.load());
+		});
 		await Promise.all(loads);
 		if (loads.length) this.changed();
+	}
+
+	/** One day's task folders that hold a task.jsonl: [{ date, slug, files }]. */
+	async day(date, fresh){
+		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
+		if (!listing) return this.day_from_tree(date);
+
+		const slugs = [...listing.dirs, ...listing.pages.keys()].filter(slug => !this.tasks.has(date + "/" + slug));
+		const logs = await Promise.all(slugs.map(slug => PageLog.listing(`/framework/ai/${date}/${slug}/`)));
+		return slugs.map((slug, i) => ({ date, slug, files: logs[i] && this.constructor.names(logs[i]) }))
+			.filter(task => task.files?.includes("task.jsonl"));
+	}
+
+	// A listing's entries as one list of names, files and folders alike.
+	static names(listing){ return [...listing.files, ...listing.dirs, ...listing.pages.keys()]; }
+
+	/* THE FALLBACK — the dev server's directory.json, read once, for a day or a
+	   task with no page.jsonl. ⚠ The SPA fallback answers a miss with
+	   index.html — the content-type is the 404. */
+	tree(){
+		return this.reading ??= fetch("/framework/directory.json")
+			.then(res => res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? res.json() : null)
+			.catch(() => null)
+			.then(dir => this.dir = dir?.files?.find(f => f.name === "ai")?.children ?? []);
+	}
+
+	async day_from_tree(date){
+		const day = (await this.tree()).find(d => d.name === date);
+		return (day?.children ?? [])
+			.filter(kid => kid.type === "dir" && kid.children?.some(k => k.name === "task.jsonl"))
+			.map(kid => ({ date, slug: kid.name, files: kid.children.map(k => k.name) }));
 	}
 
 	/* A card's `group` line is only in its own log, so the folds of the cards
@@ -197,10 +231,30 @@ export class Groups {
 	    nothing until the directory listing is in, so the task page is never
 	    drawn without knowing which of its files exist. */
 	task_at(base){
-		if (!base || !this.dir) return [];
+		if (!base) return [];
 		const [date, slug] = base.split("/").filter(Boolean).slice(-2);
-		const files = this.dir.find(d => d.name === date)?.children?.find(k => k.name === slug)?.children?.map(k => k.name);
+		const known = this.task_files.get(date + "/" + slug);
+		if (known) return [{ base, files: known }];
+		if (this.looking.get(base) !== "done"){
+			this.look(base, date + "/" + slug);
+			return [];
+		}
+
+		// No page.jsonl there: the directory.json fallback look() read.
+		const files = this.dir?.find(d => d.name === date)?.children?.find(k => k.name === slug)?.children?.map(k => k.name);
 		return [{ base, files: files ?? [] }];
+	}
+
+	// Its own page.jsonl, fetched once (a task older than `days` was never read); then the view redraws.
+	look(base, key){
+		if (this.looking.has(base)) return;
+		this.looking.set(base, "pending");
+		PageLog.listing(base).then(async listing => {
+			if (listing) this.task_files.set(key, this.constructor.names(listing));
+			else await this.tree();
+			this.looking.set(base, "done");
+			this.changed();
+		});
 	}
 
 	/** The loaded task a task-page url (`/framework/ai/<date>/<slug>/`) points at, or null —

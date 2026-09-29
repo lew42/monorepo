@@ -20,12 +20,12 @@ export default class PageMarkdown extends Page {
 
 		// The file list answers first, so no folder is fetched as `<folder>.md` and 404s.
 		// With no list (production), try the file, and a miss is taken as a folder.
-		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.constructor.node(this.folder + path)));
+		const { dir, md } = await this.constructor.where(this.folder, name);
 
-		const file = dir?.type !== "dir" && md !== null && await Page.file(this.folder + name + ".md");
+		const file = dir !== true && md !== false && await Page.file(this.folder + name + ".md");
 		if (file) return this.add(name, { ...file, folder: this.folder }).load_all_children(levels);
 
-		if (dir === null || dir?.type === "file") return null;
+		if (dir === false) return null;
 		return this.add(name, new this.constructor({ folder: this.folder + name + "/" })).load_all_children(levels);
 	}
 
@@ -65,7 +65,43 @@ export default class PageMarkdown extends Page {
 		});
 	}
 
-	// ════ THE FILE LIST — the dev server's directory.json ════════════════════
+	// ════ THE FILE LIST — each folder's own page.jsonl (Page.listing()) ════════
+
+	// Is `name` in `folder` a folder, a `.md` file, or unknown (undefined)? The listing
+	// answers; a name it does not know may still be a new .md, so the file is tried.
+	static async where(folder, name){
+		const listing = await Page.listing(folder);
+		if (listing) return { dir: listing.folder(name), md: listing.files.includes(name + ".md") || undefined };
+
+		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.node(folder + path)));
+		return { dir: dir === undefined ? undefined : dir?.type === "dir", md: md === undefined ? undefined : md !== null };
+	}
+
+	// Every .md under `dir`, as paths relative to it. A folder that is a page is
+	// another page, with its own md/ — so it is not listed here.
+	static async files(dir){
+		const found = await this.walk(dir, { keep: name => name.endsWith(".md") });
+		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
+	}
+
+	/* Every file under `dir` that `keep` wants, relative to `dir`: one page.jsonl per
+	   folder, each level's folders fetched in parallel. `pages: true` walks into child
+	   pages too (ext/files' /fs/). A folder with no page.jsonl is read from the old
+	   directory.json instead. Undefined when neither exists (production).
+	   ⚠ A `kid/page.jsonl` line may be a plain folder whose log is only a listing, so
+	     it is looked into, and skipped only if its log turns out to be a page. */
+	static async walk(dir, { keep = () => true, pages = false, rel = "" } = {}){
+		dir = dir.replace(/\/?$/, "/");
+		const listing = await Page.listing(dir);
+		if (!listing) return this.walk_tree(await this.node(dir), { keep, pages, rel });
+		if (rel && !pages && listing.page) return [];
+
+		const into = [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)];
+		const deeper = await Promise.all(into.map(name => this.walk(dir + name + "/", { keep, pages, rel: rel + name + "/" })));
+		return [...listing.files.filter(keep).map(name => rel + name), ...deeper.flatMap(found => found ?? [])];
+	}
+
+	// ════ THE FALLBACK — the dev server's directory.json, the whole site in one file ══
 	static tree(){ return PageMarkdown.reading ??= Page.read_json("/directory.json"); }
 
 	static async node(dir){
@@ -78,20 +114,16 @@ export default class PageMarkdown extends Page {
 		return node;
 	}
 
-	// Every .md under `dir`, as paths relative to it. A folder with its own page.js is
-	// another page, with its own md/ — so it is not listed here.
-	static async files(dir){
-		const node = await this.node(dir);
-		if (node === undefined) return null;
+	static walk_tree(node, { keep, pages, rel }){
+		if (node === undefined) return undefined;
 
 		const found = [];
 		const walk = (node, rel) => (node?.children ?? []).forEach(child => {
-			if (child.type === "file" && child.name.endsWith(".md")) found.push(rel + child.name);
-			else if (child.type === "dir" && !child.children?.some(c => c.name === "page.js")) walk(child, rel + child.name + "/");
+			if (child.type === "file" && keep(child.name)) found.push(rel + child.name);
+			else if (child.type === "dir" && (pages || !child.children?.some(c => c.name === "page.js"))) walk(child, rel + child.name + "/");
 		});
-		walk(node, "");
-
-		return found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
+		walk(node, rel);
+		return found;
 	}
 }
 

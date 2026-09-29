@@ -12,9 +12,10 @@ that happens to start here shows up anywhere else `task.jsonl` is read.
 
 ## Nothing declares a thread; the directory listing is the index
 
-`ask.js`'s `threads()` fetches `/directory.json` (the dev server's own
-listing, gitignored, dev-only) and walks it to `<page>ai/`, returning every
-child directory that holds a `task.jsonl`. No manifest, no registration call
+`ask.js`'s `threads()` reads the page folder's own `page.jsonl`, then
+`<page>ai/`'s, and returns every child directory whose own log lists a
+`task.jsonl` (`Page.listing()`). With no log there it falls back to
+`/directory.json` (the dev server's own listing, gitignored, dev-only). No manifest, no registration call
 — dropping a `task.jsonl` in the right place is what makes a thread exist,
 the same rule `children:` follows for pages elsewhere in the framework.
 

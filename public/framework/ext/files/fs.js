@@ -34,7 +34,7 @@ export default class PageFiles extends Page {
 
 			return this.constructor.list(this.folder ?? this.url).then(names => () => {
 				if (names === null)
-					return void p.c("muted", "This server has no file list (`/directory.json`) — /fs/ only works on the dev server, never on the live site.");
+					return void p.c("muted", "This server has no file list (no `page.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
 				if (!names.length)
 					return void p.c("muted", "No files under " + (this.folder ?? this.url) + ".");
 
@@ -45,27 +45,19 @@ export default class PageFiles extends Page {
 
 	// Every real file under `dir` (a site-root path, e.g. "/framework/ext/files/"),
 	// as paths relative to the site root — what `files()` wants when handed
-	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. Walks
-	// the same `/directory.json` tree `PageMarkdown` already reads
-	// (`core/Page/Markdown.js`), just without its `.md`-only filter — every file,
-	// not only the markdown ones.
-	// ⚠ `undefined` (no `/directory.json` at all — production, no dev server) reads
-	//   differently from `null` (the folder itself isn't in the tree): the caller
+	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. The
+	// same walk `PageMarkdown` does (`core/Page/Markdown.js`): each folder's own
+	// page.jsonl, a level at a time in parallel, into child pages too, and every
+	// file, not only the markdown ones.
+	// ⚠ `null` (no file list at all — production, no page.jsonl and no
+	//   directory.json) reads differently from `[]` (nothing here): the caller
 	//   shows a different message for each.
 	static async list(dir){
-		const node = await PageMarkdown.node(dir);
-		if (node === undefined) return null;
-		if (!node) return [];
+		const found = await PageMarkdown.walk(dir, { pages: true });
+		if (found === undefined) return null;
 
 		const root = dir.replace(/^\/+/, "");
-		const found = [];
-
-		const walk = (node, rel) => (node?.children ?? []).forEach(child => {
-			if (child.type === "file") found.push(root + rel + child.name);
-			else if (child.type === "dir") walk(child, rel + child.name + "/");
-		});
-		walk(node, "");
-
-		return found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
+		return found.map(name => root + name)
+			.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
 }

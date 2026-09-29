@@ -222,9 +222,31 @@ export class Page extends PageLog {
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
+		// My folder's own page.jsonl (Log.js listing()), IF something already loaded it,
+		// says which file makes `name`, so the probe that would 404 is skipped. Not
+		// fetched here: every folder the Router walks would pay a fetch, and a folder
+		// with no log a 404. A name it does not list keeps the probe order below: a
+		// stale list must never hide a real page.
+		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
+		const kind = listing?.pages.get(name);
+		const md = !kind && docs?.files.includes(name + ".md");
+
+		if (kind === "jsonl") {
+			const page = await Page.jsonl(this.url + name + "/");
+			if (page) return this.add(name, page).load_all_children(levels);
+		}
+
+		const doc = md && await this.child_md(name, levels);
+		if (doc) return doc;
+
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
+		return md ? null : this.child_md(name, levels);
+	}
+
+	// `name.md` beside me, as a page — the last probe, or the first when my list names it.
+	async child_md(name, levels){
 		const file = await Page.file(this.md_dir() + name + ".md");
 		return file ? this.add(name, { ...file, folder: this.md_dir() }).load_all_children(levels) : null;
 	}
