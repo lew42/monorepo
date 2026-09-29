@@ -20,6 +20,7 @@ If your brief names a task dir, Servex already opened it: log there and skip ste
   `route()`, `dashboard(this)`) **and** the date added to `ai/page.js` `children:`, or the day
   404s and every task under it is invisible.
 - `requirements.md` — the ask **verbatim**, plus scope and file-ownership fences if agents will run.
+- **A brief made from dictation is made with `refine.mjs`, not by hand-summarizing.** If the request started as a long spoken or typed dictation, run `node Server/refine.mjs <raw.txt | date:line> --out ai/<date>/<slug>/runs/<name>` first — it turns the raw talking into a checked `brief.md`, and its `coverage.md` proves nothing important was silently dropped or turned into a stricter rule on the way. Use `brief.md`'s numbered asks as `requirements.md`'s own content, and keep `coverage.md` sitting right beside `requirements.md` (`Server/doc/refine.md`).
 - ⚠ Scratch (probes, transcripts, intermediate JSON) goes in the session scratchpad, not the repo — and that
   scratchpad is **shared by every agent in the session**: name scripts after your task (`md-routes-probe.mjs`),
   or a sibling minion overwrites your `probe.mjs` mid-run (2026-08-18, it happened).

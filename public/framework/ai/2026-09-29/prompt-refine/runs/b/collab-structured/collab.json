@@ -1,0 +1,26 @@
+{
+  "id": "structured-pick",
+  "question": "Which structured draft best captures the owner's dictation, keeping their own words and the sentence citations intact?",
+  "kind": "structure",
+  "phases": [
+    {
+      "n": 1,
+      "kind": "structured",
+      "given": true
+    },
+    {
+      "n": 2,
+      "kind": "vote"
+    }
+  ],
+  "members": [
+    {
+      "id": "haiku",
+      "model": "claude-haiku-4-5-20251001"
+    },
+    {
+      "id": "sonnet",
+      "model": "claude-sonnet-5"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"at":"2026-09-29T15:07:51-05:00","input":"public/framework/ai/2026-09-29/prompt-refine/runs/sample/raw.txt","models":["claude-haiku-4-5-20251001","claude-sonnet-5"],"collab":false,"mock":false,"winner":"sonnet","costs":{"clean":0.13429270000000001,"structured":{"haiku":0.0406537,"sonnet":0.1038872},"pick":0.0341637}}

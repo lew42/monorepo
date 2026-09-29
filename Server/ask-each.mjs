@@ -27,6 +27,8 @@
  * against asking all the questions in a single prompt. */
 
 import { readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { query } from "../Servex/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs";
 
 function parseArgs(argv){
@@ -89,6 +91,12 @@ async function askOnce(text, { model, cwd, sessionId }){
 	};
 }
 
+// 2026-09-29 (Server/refine.mjs, brief minion-a.md): `askOnce` is the one function every future
+// tool that needs "one model call, one answer, one cost" should reuse instead of writing its own
+// query() plumbing — exported here so `refine.mjs` (and anything after it) can `import { askOnce }
+// from "./ask-each.mjs"` without also running this file's own CLI `main()`.
+export { askOnce };
+
 async function main(){
 	const args = parseArgs(process.argv.slice(2));
 	if (!args.questions){
@@ -128,4 +136,7 @@ async function main(){
 	console.log(`wrote ${args.out} — total cost $${totalCost.toFixed(4)}`);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+// Only run the CLI when this file is executed directly (`node Server/ask-each.mjs …`), never when
+// another module `import`s it just for `askOnce` — same guard collab.mjs uses.
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) main().catch(e => { console.error(e); process.exit(1); });

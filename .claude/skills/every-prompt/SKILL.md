@@ -25,6 +25,13 @@ message is the bell. Only then write one sentence here, and stop — no waiting,
 
 **Speed is the job:** under ten seconds, two or three plain sentences. It is voice mode.
 
+## A long, rambling dictation
+
+Don't summarize it yourself before relaying — that's exactly the "you summarize in a few words
+and the details don't get passed on" gap the owner has flagged. Relay their words verbatim as
+always; if the mastermind (or you, writing a brief) needs a clean, audited version, that's
+`node Server/refine.mjs` (`Server/doc/refine.md`), not a paragraph you write by hand.
+
 ## Routing
 
 Relay to the mastermind that owns the topic. **Today there is exactly one**, and `say.mjs state`
