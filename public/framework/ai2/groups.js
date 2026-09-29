@@ -156,7 +156,11 @@ export class Groups {
 	   task with no page.jsonl. ⚠ The SPA fallback answers a miss with
 	   index.html — the content-type is the 404. */
 	tree(){
-		return this.reading ??= fetch("/framework/directory.json")
+		// `priority: "low"` — this file is ~3.3MB. A browser only opens ~6 connections per
+		// origin, and a slow, uncompressed 3.3MB download can occupy one of them long enough
+		// to queue a page's own small requests behind it; this lets those go first when both
+		// are in flight. See ai/2026-09-29/slow-card-fix/ for the measurement.
+		return this.reading ??= fetch("/framework/directory.json", { priority: "low" })
 			.then(res => res?.ok && !(res.headers.get("content-type") ?? "").includes("html") ? res.json() : null)
 			.catch(() => null)
 			.then(dir => this.dir = dir?.files?.find(f => f.name === "ai")?.children ?? []);
