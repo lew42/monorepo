@@ -53,7 +53,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		history.pushState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 	};
 
-	let $state, $picker, $ladder, $coverage;
+	let $state, $picker, $strip, $ladder, $coverage;
 	let matchMap = new Map(); // clean sentence # -> best-matching raw segment #, recomputed by render() on every run
 	const cols = {};
 	const COLS = ["raw", "clean", "structured", "brief"];
@@ -75,6 +75,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		}
 
 		$state = div.c("refine-state").text("Loading…");
+		$strip = div.c("refine-strip");
 
 		div.c("refine-tabs", () => {
 			COLS.forEach(name => {
@@ -83,8 +84,28 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 			});
 		});
 
+		// Raw and Clean share ONE column between 640 and 1600px (Refine.css), so
+		// they live inside their own wrapper with its own mini tab strip. At
+		// 1600px+ the wrapper is `display: contents` and they act as two of four
+		// full columns; under 640px it's `display: contents` again and the TOP
+		// tab strip above (four-way) drives all of raw/clean/structured/brief the
+		// same way it always has.
 		$ladder = div.c("refine-ladder", () => {
-			COLS.forEach(name => {
+			div.c("refine-rawclean", () => {
+				div.c("refine-rawclean-tabs", () => {
+					["raw", "clean"].forEach(name => {
+						span.c("refine-tab").attr("data-col", name).text(LABEL[name])
+							.on("click", () => select_col(name));
+					});
+				});
+				["raw", "clean"].forEach(name => {
+					div.c("refine-col refine-col-rc refine-col-" + name, () => {
+						h3.c("refine-col-title").text(LABEL[name]);
+						cols[name] = div.c("refine-col-body");
+					});
+				});
+			});
+			["structured", "brief"].forEach(name => {
 				div.c("refine-col refine-col-" + name, () => {
 					h3.c("refine-col-title").text(LABEL[name]);
 					cols[name] = div.c("refine-col-body");
@@ -128,6 +149,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 
 		if (!sentences.length && !raw){
 			$state.text("Nothing here yet — Server/refine.mjs hasn't run on this dictation.");
+			$strip.empty();
 			COLS.forEach(name => cols[name].empty());
 			$coverage.empty();
 			return;
@@ -143,6 +165,8 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		$state.text(`${sentences.length} sentence${sentences.length === 1 ? "" : "s"} · ${n_asks} → asks · ${n_context} context · ${n_dropped} dropped`
 			+ (n_other > 0 ? ` · ${n_other} unclassified` : "")
 			+ ` · ${flags.length} flag${flags.length === 1 ? "" : "s"}`);
+
+		render_strip(sentences, coverage, flags, asks);
 
 		cols.raw.empty(() => {
 			div.c("refine-raw-text", () => {
@@ -228,6 +252,41 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 				const models = Object.entries(refineJson.models ?? {}).map(([k, v]) => `${k}=${Array.isArray(v) ? v.join("+") : v}`).join(", ") || "—";
 				p.c("refine-json-note").text(`Models: ${models}. Cost: $${cost.toFixed(2)}.`);
 			}
+		});
+	}
+
+	/* The compact strip above the ladder: every sentence worth a second look
+	 * without opening the full coverage table below — dropped, "(thin)"
+	 * (an ask cites it but barely uses its words), or cited by a flagged ask.
+	 * One row per SENTENCE for dropped/thin (coverage.md already keys them
+	 * that way); one row per flagged ASK, anchored on its first cited
+	 * sentence, so a range citing nine sentences doesn't make nine rows. */
+	function render_strip(sentences, coverage, flags, asks){
+		const by_n = new Map(sentences.map(s => [s.n, s.text]));
+
+		const items = [];
+		coverage.forEach(row => {
+			if (/^dropped/i.test(row.to)) items.push({ n: row.n, cites: [row.n], reason: row.to });
+			else if (/\(thin\)/i.test(row.to)) items.push({ n: row.n, cites: [row.n], reason: `thin citation — ${row.to}` });
+		});
+		flags.forEach(f => {
+			const askN = Number(String(f.ask).replace(/\D/g, ""));
+			const ask = asks.find(a => a.n === askN);
+			if (!ask?.cites.length) return;
+			items.push({ n: ask.cites[0], cites: ask.cites, reason: `ask #${askN} flagged (${f.word}) — ${f.why}` });
+		});
+
+		$strip.empty(() => {
+			if (!items.length) return; // nothing dropped, thin or flagged — say nothing rather than an empty box
+			h3.c("refine-strip-title").text("Dropped & flagged");
+			items.forEach(item => {
+				const $row = div.c("refine-strip-row", () => {
+					span.c("refine-strip-s").text("S" + item.n + " ");
+					span.c("refine-strip-text").text(trim(by_n.get(item.n) ?? "", 100) + " — ");
+					span.c("refine-strip-reason").text(item.reason);
+				});
+				$row.on("click", () => highlight(item.cites, $row.el));
+			});
 		});
 	}
 
@@ -346,6 +405,14 @@ export function parse_coverage(md){
 	const coverage = rows(cov_block).map(([s, sentence, to]) => ({ n: Number((s || "").replace(/^S/i, "")), sentence, to })).filter(r => r.n);
 	const flags = rows(flag_block).map(([ask, word, why]) => ({ ask, word, why })).filter(f => f.ask);
 	return { coverage, flags };
+}
+
+/* "S is very worried…" -> "S is very worried…" (unchanged) or "…" trimmed at
+ * `max` chars with an ellipsis — used to keep the dropped-and-flagged strip
+ * to one line per row. */
+export function trim(text, max){
+	text = text || "";
+	return text.length > max ? text.slice(0, max - 3).trimEnd() + "…" : text;
 }
 
 /* Raw has no sentence markers, so "the matching stretch" is a heuristic: split
