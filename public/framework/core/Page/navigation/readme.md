@@ -22,6 +22,11 @@ thing to get right. [Live page](/framework/core/Page/navigation/).
 
 ## Watch out
 
+- **Two navigation pages, one click apart, on two different topics.** This page is about
+  navigation as a UI *pattern* (rails, tabs, persistent vs switching). [`core/Page/doc/navigation.md`](/framework/core/Page/doc/navigation/)
+  is about navigation as core's own routing *mechanism* — how a page's `children:` becomes a
+  menu. Same word, different subject; each links to the other rather than merging, since
+  merging them is a bigger call than this task's fence covers.
 - **Two different vocabularies name the same idea.** This site's stability study says *stable*
   (0px moved) / *dynamic* (something moved); the owner says *persistent* / *switching*. They map
   onto each other — see the page for the exact translation — but don't mix the words in new text
