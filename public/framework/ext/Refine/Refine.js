@@ -170,7 +170,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 						const $li = li.c("refine-bullet");
 						$li.append(() => {
 							span.c("refine-bullet-text").text(b.text);
-							if (b.cites.length) span.c("refine-cite").text(" [" + b.cites.map(c => "S" + c).join(", ") + "]");
+							if (b.cites.length) span.c("refine-cite").text(` [${b.label}]`);
 						});
 						$li.on("click", () => highlight(b.cites, $li.el));
 					});
@@ -185,7 +185,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 					const $li = li.c("refine-ask");
 					$li.append(() => {
 						span.c("refine-ask-text").text(ask.text);
-						if (ask.cites.length) span.c("refine-cite").text(" [" + ask.cites.map(c => "S" + c).join(", ") + "]");
+						if (ask.cites.length) span.c("refine-cite").text(` [${ask.label}]`);
 						if (flagged_asks.has(String(ask.n))) span.c("refine-flag-badge").text("⚑ flag");
 					});
 					$li.on("click", () => highlight(ask.cites, $li.el));
@@ -274,11 +274,29 @@ export function parse_clean(md){
 	}).filter(s => s.text);
 }
 
-/* A trailing `[S3, S7]` is the citation; everything before it is the text. */
+/* A trailing citation is the sentence numbers an ask or a bullet came from —
+ * either a comma list ("[S3, S7]") or a range ("[S6-S9]", meaning S6, S7, S8
+ * AND S9); `Server/refine.mjs` writes both shapes depending on the run.
+ * `label` keeps the citation exactly as written (so a long range still
+ * displays as "S6-S9", not nine separate numbers) while `cites` is every
+ * individual sentence number in it, expanded, for the click-to-highlight. */
 export function parse_cites(text){
-	const m = text.match(/\[S([\d,\s]+)\]\s*$/);
-	if (!m) return { text: text.trim(), cites: [] };
-	return { text: text.slice(0, m.index).trim(), cites: m[1].split(",").map(s => Number(s.trim())).filter(n => n > 0) };
+	const m = text.match(/\[(S\d+(?:\s*[-–]\s*S?\d+)?(?:\s*,\s*S?\d+(?:\s*[-–]\s*S?\d+)?)*)\]\s*$/);
+	if (!m) return { text: text.trim(), cites: [], label: "" };
+
+	const cites = [];
+	m[1].split(",").forEach(part => {
+		const range = part.trim().match(/^S?(\d+)\s*[-–]\s*S?(\d+)$/);
+		if (range){
+			const [lo, hi] = [Number(range[1]), Number(range[2])].sort((a, b) => a - b);
+			for (let n = lo; n <= hi; n++) cites.push(n);
+			return;
+		}
+		const single = part.trim().match(/^S?(\d+)$/);
+		if (single) cites.push(Number(single[1]));
+	});
+
+	return { text: text.slice(0, m.index).trim(), cites, label: m[1].replace(/\s+/g, "") };
 }
 
 /* structured.md: "## Section" headings, "- bullet [S…]" lines under them —
