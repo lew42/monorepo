@@ -3,6 +3,7 @@
  * a worktree) and a site `path` like /framework/core/Page/. Detail: core/Page/doc/jsonl.md. */
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const MAIN = "C:\\Code\\lew42\\monorepo";
 const json = v => JSON.stringify(v, null, 2);
@@ -109,6 +110,82 @@ export const page_tools = () => {
 				return { ok: true };
 			})
 	];
+};
+
+/* ── Docs tab: read-only routes for the Servex dashboard ─────────────────
+ * List every module under Servex/ or Server/ that has its own readme.md,
+ * and read one file out of a module (its readme, its demo.js, or a
+ * doc/*.md). No import ever touches page rendering — this only reads text
+ * off disk, the same way `read_page` above does. Detail: the owner's ask
+ * lives at ai/2026-09-29/servex-docs-tab/requirements.md. */
+
+// Repo root = two levels up from this file (Servex/pages.js -> Servex/ -> repo root),
+// so this works whether Servex is running from the main tree or a worktree checkout.
+const repo_root = () => path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+const DOC_ROOTS = ["Servex", "Server"];
+const DOC_FILE = /^doc\/[\w.-]+\.md$/;
+
+// Walk one root (Servex/ or Server/), collecting every module (a folder with
+// its own readme.md) into `out`. Wrapped per-directory so one unreadable
+// folder (a permissions hiccup, a broken symlink) can't kill the whole scan.
+const walk_docs_dir = (abs_dir, rel_path, out) => {
+	let entries;
+	try { entries = fs.readdirSync(abs_dir, { withFileTypes: true }); }
+	catch { return; }
+
+	try {
+		if (fs.existsSync(path.join(abs_dir, "readme.md"))) {
+			let docs = [];
+			try {
+				const doc_dir = path.join(abs_dir, "doc");
+				if (fs.existsSync(doc_dir)) docs = fs.readdirSync(doc_dir).filter(f => f.endsWith(".md")).sort();
+			} catch {}
+			let demo = false;
+			try { demo = fs.existsSync(path.join(abs_dir, "demo.js")); } catch {}
+			out.push({ path: rel_path, readme: true, docs, demo });
+		}
+	} catch {}
+
+	for (const e of entries) {
+		if (!e.isDirectory() || e.name.startsWith(".") || e.name === "node_modules") continue;
+		const child_rel = `${rel_path}/${e.name}`;
+		if (child_rel === "Servex/public") continue; // the dashboard's own static root, never a documented module
+		try { walk_docs_dir(path.join(abs_dir, e.name), child_rel, out); } catch {}
+	}
+};
+
+// GET /api/docs — one entry per module under Servex/ or Server/ with a readme.md.
+export const docs_list = () => {
+	const repo = repo_root(), out = [];
+	for (const root of DOC_ROOTS) {
+		try { walk_docs_dir(path.join(repo, root), root, out); } catch {}
+	}
+	out.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+	return out;
+};
+
+// GET /api/docs/file — the raw text of one file inside one module. Throws an
+// Error with `.status` (400 or 404) and a plain-sentence `.message` on any
+// refusal; the route handler turns that straight into the HTTP response.
+export const docs_read_file = (raw_path, raw_file) => {
+	const p = String(raw_path || ""), f = String(raw_file || "");
+	const refuse = (status, message) => { const e = new Error(message); e.status = status; throw e; };
+
+	const seg0 = p.split("/")[0];
+	if (seg0 !== "Servex" && seg0 !== "Server") refuse(400, "path must start with Servex or Server");
+	if (p.includes("..") || p.includes("\\")) refuse(400, "path must not contain .. or a backslash");
+	if (f.includes("..") || f.includes("\\")) refuse(400, "file must not contain .. or a backslash");
+	if (!(f === "readme.md" || f === "demo.js" || DOC_FILE.test(f)))
+		refuse(400, "file must be readme.md, demo.js, or doc/<name>.md");
+
+	const repo = repo_root();
+	const root_dir = path.resolve(repo, seg0);
+	const file_path = path.resolve(repo, ...p.split("/").filter(Boolean), ...f.split("/"));
+	if (file_path !== root_dir && !file_path.startsWith(root_dir + path.sep))
+		refuse(400, "path escapes its root");
+	if (!fs.existsSync(file_path) || !fs.statSync(file_path).isFile()) refuse(404, "file not found");
+	return fs.readFileSync(file_path, "utf8");
 };
 
 export default page_tools;

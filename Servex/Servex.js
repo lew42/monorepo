@@ -26,6 +26,7 @@ import Layers from "./agents/Layers.js";
 import Global from "./agents/Global.js";
 import agent_tools from "./agents/tools.js";
 import tidy from "./agents/tidy.js";
+import { docs_list, docs_read_file } from "./pages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -508,6 +509,24 @@ export default class Servex extends Events {
 
         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+
+        /* THE DOCS TAB (servex-docs-tab, 2026-09-29) — read-only, loopback-only
+         * (guard() above already refuses non-loopback callers). `/api/docs` lists
+         * every module under Servex/ or Server/ with its own readme.md;
+         * `/api/docs/file` reads one file out of one module. All the validation
+         * (path shape, no `..`, resolved-path-stays-inside-root) lives in
+         * `docs_read_file()` in pages.js, which throws `.status` 400 or 404. */
+        router.get("/api/docs", (req, res) => {
+            try { res.json(docs_list()); }
+            catch (e){ res.status(500).json({ error: String(e.message || e) }); }
+        });
+
+        router.get("/api/docs/file", (req, res) => {
+            try {
+                const text = docs_read_file(req.query.path, req.query.file);
+                res.type(req.query.file === "demo.js" ? "text/javascript" : "text/plain").send(text);
+            } catch (e){ res.status(e.status || 400).json({ error: String(e.message || e) }); }
+        });
     }
 
     tools(){
