@@ -29,18 +29,28 @@ export default class PageFiles extends Page {
 	// `.layout-full > :last-child { flex: 1 1 auto; min-height: 0 }` — already in
 	// `layouts.css` — give it the rest of the window. No new CSS.
 	render(){
-		return this.view ??= div.c("page layout-full", () => {
+		return this.view ??= div.c("page layout-full", $page => {
 			a.c("layout-close", () => icon("close")).href(this.parent?.url ?? "/");
 
-			return this.constructor.list(this.folder ?? this.url).then(names => () => {
-				if (names === null)
-					return void p.c("muted", "This server has no file list (no `page.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
-				if (!names.length)
-					return void p.c("muted", "No files under " + (this.folder ?? this.url) + ".");
-
-				files({ url: location.origin + "/" }, names.join(" "), { fill: true, open: 1 });
+			// First paint is this folder's own files (one request); the whole tree, a
+			// folder's page.jsonl at a time, then replaces it.
+			const dir = this.folder ?? this.url;
+			let $shown;
+			const show = names => $page.append(() => { $shown?.el.remove(); $shown = this.draw_files(names, dir); });
+			this.constructor.list(dir, 1).then(first => {
+				if (first?.length) show(first);
+				if (first === null) return show(null);
+				this.constructor.list(dir).then(all => { if (all.length > first.length || !first.length) show(all); });
 			});
 		});
+	}
+
+	draw_files(names, dir){
+		if (names === null)
+			return p.c("muted", "This server has no file list (no `page.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
+		if (!names.length)
+			return p.c("muted", "No files under " + dir + ".");
+		return files({ url: location.origin + "/" }, names.join(" "), { fill: true, open: 1 });
 	}
 
 	// Every real file under `dir` (a site-root path, e.g. "/framework/ext/files/"),
@@ -52,8 +62,8 @@ export default class PageFiles extends Page {
 	// ⚠ `null` (no file list at all — production, no page.jsonl and no
 	//   directory.json) reads differently from `[]` (nothing here): the caller
 	//   shows a different message for each.
-	static async list(dir){
-		const found = await PageMarkdown.walk(dir, { pages: true });
+	static async list(dir, depth){
+		const found = await PageMarkdown.walk(dir, { pages: true, depth });
 		if (found === undefined) return null;
 
 		const root = dir.replace(/^\/+/, "");

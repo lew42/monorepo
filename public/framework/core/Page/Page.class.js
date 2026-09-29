@@ -229,7 +229,7 @@ export class Page extends PageLog {
 		// stale list must never hide a real page.
 		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
 		const kind = listing?.pages.get(name);
-		const md = !kind && docs?.files.includes(name + ".md");
+		const md = !listing?.folder(name) && docs?.files.includes(name + ".md");
 
 		if (kind === "jsonl") {
 			const page = await Page.jsonl(this.url + name + "/");

@@ -37,9 +37,15 @@ export default class PageMarkdown extends Page {
 		return super.open_link(link);
 	}
 
+	// First paint is this folder's own files (one request); the sub-folders, each its
+	// own page.jsonl, fill in after. A phone never waits on the fan-out to see a list.
 	content(){
 		div.c("page-md-index", $box => {
-			this.constructor.files(this.folder).then(files => $box.append(() => { this.list(files); }));
+			const draw = files => $box.empty(() => { this.list(files); });
+			this.constructor.files(this.folder, 1).then(first => {
+				draw(first);
+				if (first) this.constructor.files(this.folder).then(all => { if (all.length > first.length) draw(all); });
+			});
 		});
 	}
 
@@ -68,10 +74,13 @@ export default class PageMarkdown extends Page {
 	// ════ THE FILE LIST — each folder's own page.jsonl (Page.listing()) ════════
 
 	// Is `name` in `folder` a folder, a `.md` file, or unknown (undefined)? The listing
-	// answers; a name it does not know may still be a new .md, so the file is tried.
+	// answers. A name it does not know may be newer than the list, so the list is read
+	// once more before the answer is "neither" — a stale list never hides a real page.
 	static async where(folder, name){
-		const listing = await Page.listing(folder);
-		if (listing) return { dir: listing.folder(name), md: listing.files.includes(name + ".md") || undefined };
+		const has = listing => listing.folder(name) || listing.files.includes(name + ".md");
+		let listing = await Page.listing(folder);
+		if (listing && !has(listing)) listing = await Page.listing(folder, true);
+		if (listing) return { dir: listing.folder(name), md: listing.files.includes(name + ".md") };
 
 		const [dir, md] = await Promise.all([name + "/", name + ".md"].map(path => this.node(folder + path)));
 		return { dir: dir === undefined ? undefined : dir?.type === "dir", md: md === undefined ? undefined : md !== null };
@@ -79,25 +88,26 @@ export default class PageMarkdown extends Page {
 
 	// Every .md under `dir`, as paths relative to it. A folder that is a page is
 	// another page, with its own md/ — so it is not listed here.
-	static async files(dir){
-		const found = await this.walk(dir, { keep: name => name.endsWith(".md") });
+	static async files(dir, depth){
+		const found = await this.walk(dir, { keep: name => name.endsWith(".md"), depth });
 		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
 
 	/* Every file under `dir` that `keep` wants, relative to `dir`: one page.jsonl per
 	   folder, each level's folders fetched in parallel. `pages: true` walks into child
 	   pages too (ext/files' /fs/). A folder with no page.jsonl is read from the old
-	   directory.json instead. Undefined when neither exists (production).
+	   directory.json instead. Undefined when neither exists (production). `depth: 1`
+	   is this folder only: one request.
 	   ⚠ A `kid/page.jsonl` line may be a plain folder whose log is only a listing, so
 	     it is looked into, and skipped only if its log turns out to be a page. */
-	static async walk(dir, { keep = () => true, pages = false, rel = "" } = {}){
+	static async walk(dir, { keep = () => true, pages = false, rel = "", depth = Infinity } = {}){
 		dir = dir.replace(/\/?$/, "/");
 		const listing = await Page.listing(dir);
 		if (!listing) return this.walk_tree(await this.node(dir), { keep, pages, rel });
 		if (rel && !pages && listing.page) return [];
 
-		const into = [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)];
-		const deeper = await Promise.all(into.map(name => this.walk(dir + name + "/", { keep, pages, rel: rel + name + "/" })));
+		const into = depth > 1 ? [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)] : [];
+		const deeper = await Promise.all(into.map(name => this.walk(dir + name + "/", { keep, pages, rel: rel + name + "/", depth: depth - 1 })));
 		return [...listing.files.filter(keep).map(name => rel + name), ...deeper.flatMap(found => found ?? [])];
 	}
 

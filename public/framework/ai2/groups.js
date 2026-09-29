@@ -1,5 +1,5 @@
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
-import { resolve_card, today_str, plain, headline, first_sentence } from "./inbox.js";
+import { resolve_card, plain, headline, first_sentence } from "./inbox.js";
 import { total } from "/framework/ext/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
 
@@ -67,8 +67,9 @@ function card_words(f){
 }
 
 export class Groups {
-	/* How many days of task dirs to read, newest first: today's stream live,
-	   the earlier ones are read once. */
+	/* How many days of task dirs to read, newest first. Every task log streams over
+	   the dev socket: no HTTP request each, and a folder with no task.jsonl answers
+	   quietly instead of a 404 (off localhost live() is a plain load()). */
 	static days = 2;
 
 	constructor(...args){ this.assign(...args); this.initialize(); }
@@ -96,7 +97,9 @@ export class Groups {
 		folders?.on(() => this.read_cards());
 		socket?.on?.("data", path => {
 			const day = String(path).match(/\/framework\/ai\/(\d{4}-\d\d-\d\d)\/page\.jsonl$/)?.[1];
+			const task = String(path).match(/^(\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/)page\.jsonl$/)?.[1];
 			if (day && this.dates().includes(day)) this.read_tasks(day);
+			else if (task && this.looking.has(task)) this.look(task, true);
 			else if (String(path).endsWith("/directory.json") && this.dir){ this.reading = null; this.read_tasks(); }
 		});
 		await Promise.all([this.read_tasks(), this.read_cards()]);
@@ -115,36 +118,33 @@ export class Groups {
 		return out;
 	}
 
-	/* Every task dir with a task.jsonl, for the days shown. Each day folder's own
-	   page.jsonl names its task folders, and each task folder's names its files —
-	   a few small fetches instead of the whole site's directory.json, which is read
-	   only for a day that has no page.jsonl yet. `fresh` (a day) refetches that
-	   day's list: a task folder was added to it. */
+	/* Every task dir of the days shown. ONE request per day: the day folder's own
+	   page.jsonl names its task folders, and each task's task.jsonl is loaded as
+	   before (a folder with none fails quietly and is never shown). A task folder's
+	   OWN listing is fetched only when a card shows that task (task_at()): on a phone
+	   every extra request waits a whole round trip (the owner's measurement, 09-29).
+	   directory.json is read only for a day with no page.jsonl. `fresh` (a day)
+	   refetches that day's list: a task folder was added to it. */
 	async read_tasks(fresh){
-		const today = today_str();
 		const loads = [];
 		const days = await Promise.all(this.dates().map(date => this.day(date, date === fresh)));
 		days.flat().forEach(({ date, slug, files }) => {
 			const key = date + "/" + slug;
-			this.task_files.set(key, files);
+			if (files) this.task_files.set(key, files);
 			if (this.tasks.has(key)) return;
 			const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug, files });
 			this.tasks.set(key, m);
-			loads.push(date === today ? m.live(() => this.changed()) : m.load());
+			loads.push(m.live(() => this.changed()));
 		});
 		await Promise.all(loads);
 		if (loads.length) this.changed();
 	}
 
-	/** One day's task folders that hold a task.jsonl: [{ date, slug, files }]. */
+	/** One day's task folders: [{ date, slug, files? }]. `files` only from the fallback. */
 	async day(date, fresh){
 		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
 		if (!listing) return this.day_from_tree(date);
-
-		const slugs = [...listing.dirs, ...listing.pages.keys()].filter(slug => !this.tasks.has(date + "/" + slug));
-		const logs = await Promise.all(slugs.map(slug => PageLog.listing(`/framework/ai/${date}/${slug}/`)));
-		return slugs.map((slug, i) => ({ date, slug, files: logs[i] && this.constructor.names(logs[i]) }))
-			.filter(task => task.files?.includes("task.jsonl"));
+		return [...listing.dirs, ...listing.pages.keys()].map(slug => ({ date, slug }));
 	}
 
 	// A listing's entries as one list of names, files and folders alike.
@@ -236,7 +236,7 @@ export class Groups {
 		const known = this.task_files.get(date + "/" + slug);
 		if (known) return [{ base, files: known }];
 		if (this.looking.get(base) !== "done"){
-			this.look(base, date + "/" + slug);
+			this.look(base);
 			return [];
 		}
 
@@ -245,11 +245,13 @@ export class Groups {
 		return [{ base, files: files ?? [] }];
 	}
 
-	// Its own page.jsonl, fetched once (a task older than `days` was never read); then the view redraws.
-	look(base, key){
-		if (this.looking.has(base)) return;
-		this.looking.set(base, "pending");
-		PageLog.listing(base).then(async listing => {
+	// A task folder's own page.jsonl, fetched when a card first shows it, and again
+	// (`fresh`) when the socket says that log grew; then the view redraws.
+	look(base, fresh){
+		if (this.looking.has(base) && !fresh) return;
+		const [date, slug] = base.split("/").filter(Boolean).slice(-2), key = date + "/" + slug;
+		if (!fresh) this.looking.set(base, "pending");
+		PageLog.listing(base, fresh).then(async listing => {
 			if (listing) this.task_files.set(key, this.constructor.names(listing));
 			else await this.tree();
 			this.looking.set(base, "done");

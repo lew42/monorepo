@@ -3,6 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { when } from "./faces.js";
 import { plain, headline } from "./inbox.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
+import { PageLog } from "/framework/core/Page/Log.js";
 
 /**
  * A CARD'S DETAIL IS THE REAL TASK PAGE (the owner, 2026-09-24: "When I click a
@@ -42,8 +43,12 @@ export function task_section(m, { head = true } = {}){
 			a.c("ai2-link page-link").href(m.base).text("open the task page");
 		});
 		else a.c("ai2-link page-link").href(m.base).text("open the task page");
+		// The task folder's own file names, fetched now, when the task is shown (groups.js
+		// no longer reads every task folder up front): no fetch for a file that is not there.
+		const files = m.files ? Promise.resolve(m.files)
+			: PageLog.listing(m.base).then(l => l && [...l.files, ...l.dirs, ...l.pages.keys()]);
 		div.c("ai2-task-body", $body => {
-			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { known_files: m.files } : {}); }))
+			Promise.all([aitask(), files]).then(([AITask, known_files]) => $body.append(() => { AITask.into(m.base, known_files ? { known_files } : {}); }))
 				.catch(() => $body.append(() => { small.c("muted").text("The task page could not be drawn here — open it instead."); }));
 		});
 	});
