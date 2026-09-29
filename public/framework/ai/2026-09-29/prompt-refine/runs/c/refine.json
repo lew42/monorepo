@@ -23,8 +23,9 @@
     },
     "pick": 0.04829170000000001,
     "brief": 0.1719212,
-    "coverage": 0.1992252,
-    "total": 0.771264
+    "coverage": 0.1315382,
+    "total": 0.960213,
+    "repair": 0.256636
   },
   "word_counts": {
     "raw": 2356,
@@ -35,11 +36,41 @@
   "clean_overlap_ratio": 0.978,
   "coverage": {
     "sentences": 121,
-    "cited": 56,
-    "context_only": 42,
-    "dropped": 23,
+    "cited": 106,
+    "context_only": 14,
+    "dropped": 1,
     "unclassified": 0,
-    "flags": 25,
-    "thin_citations": 7
-  }
+    "flags": 33,
+    "thin_citations": 5
+  },
+  "repair": {
+    "rounds_run": 1,
+    "cost_usd": 0.256636,
+    "dropped_before": 8,
+    "thin_before": 24,
+    "dropped_after": 1,
+    "thin_after": 5,
+    "notes": [
+      "round 1: new ask #36",
+      "round 1: amended ask #9",
+      "round 1: new ask #37",
+      "round 1: amended ask #10",
+      "round 1: new ask #38",
+      "round 1: new ask #39",
+      "round 1: amended ask #20",
+      "round 1: new ask #40",
+      "round 1: new ask #41",
+      "round 1: new ask #42",
+      "round 1: new ask #43",
+      "round 1: amended ask #24",
+      "round 1: amended ask #27",
+      "round 1: amended ask #28",
+      "round 1: new ask #44",
+      "round 1: amended ask #31",
+      "round 1: amended ask #32",
+      "round 1: amended ask #33",
+      "round 1: amended ask #34"
+    ]
+  },
+  "repair_only_rerun_at": "2026-09-29T15:38:07-05:00"
 }
