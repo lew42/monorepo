@@ -147,9 +147,36 @@ export default class Socket {
 	}
 
 	reload() {
-		if (window.$BLOCKRELOAD) return this.skip();
+		if (window.$BLOCKRELOAD) { this.mark_stale(); return this.skip(); }
+		if (this.busy()) { this.mark_stale(); return this.defer(); }
 		this.stash();
 		window.location.reload();
+	}
+
+	/* THE OUT-OF-DATE PILL. A reload this tab refused or postponed (blocked, or busy
+	 * with the mic) means code on screen is older than the file on disk. Say so, with
+	 * one click to fix it; never reload by itself. Plain DOM, so it works on any page. */
+	mark_stale() {
+		if (this.pill || !document.body) return;
+		const style = document.createElement("style");
+		style.textContent = "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }";
+		const pill = this.pill = document.createElement("button");
+		pill.className = "dev-stale-pill";
+		pill.textContent = "This page is out of date — reload";
+		pill.onclick = () => { this.stash(); window.location.reload(); };
+		document.head.append(style);
+		document.body.append(pill);
+	}
+
+	/* A page can say "not now": add_busy(fn), where fn() is true while a reload
+	 * would destroy something (ai2 registers one that is true while its mic is
+	 * recording or a transcript is pending). A busy reload is not lost: it waits,
+	 * checking once a second, and happens once as soon as every hook says idle. */
+	add_busy(fn) { (this.busy_hooks ??= new Set()).add(fn); return () => this.busy_hooks.delete(fn); }
+	busy() { for (const fn of this.busy_hooks ?? []) try { if (fn()) return true; } catch {} return false; }
+	defer() {
+		if (this.deferring) return;
+		this.deferring = setInterval(() => { if (!this.busy()) { clearInterval(this.deferring); this.deferring = null; this.reload(); } }, 1000);
 	}
 
 	/* A reload this tab refused. The count matters as much as the refusal: a switch

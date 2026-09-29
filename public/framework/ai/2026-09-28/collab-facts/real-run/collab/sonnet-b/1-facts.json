@@ -1,0 +1,62 @@
+[
+  {
+    "id": "b1",
+    "text": "Never introduce a bare class name that matches a reserved prefix line in css-scopes.txt (e.g. 'flex', 'card', 'page') without owning that module — the framework block is off limits entirely for anything new.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b2",
+    "text": "Always prefix a new class with its owning module's prefix (e.g. '.panel-grip', not '.grip') unless the selector already starts with the module's own class.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b3",
+    "text": "Before naming a class, grep-census the live CSS/JS for that name; a hit in another module is a collision and you must pick a different name — but check WHERE the hit is first, since vendored bundles (e.g. minified three.js) can false-positive.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b4",
+    "text": "A View subclass's constructor name is itself a CSS class (classify() kebab-cases the chain), so a class named Stage silently wears the framework's own '.stage' — check every view class name against the census too, not just literal class= strings.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b5",
+    "text": "A modifier class built by string concatenation (e.g. 'type-anchors-post ' + variant.key) is a class name too — put the module prefix inside the concatenated string itself, not just around it, and check every possible runtime value of the variable, not only the one literal visible in source.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b6",
+    "text": "Never start a new module's class with 'page-' unless the module is core/Page itself, since that is core/Page's reserved namespace — except a second core module that itself extends Page may register its own sub-namespace like 'page-layout-' or 'page-section-' in css-scopes.txt.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b7",
+    "text": "'page--<slug>' (two dashes) is the per-route instance stamp core/Page.class.js puts on every page, and it is a fixed, hard-coded convention — never repurpose the two-dash form for a different module's own naming.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b8",
+    "text": "When a module opens a new namespace, its first class must add one line to css-scopes.txt ('prefix-   owner'); if css-scopes.txt is outside your write fence, the reservation is still owed — write it into the module's own doc/decisions.md under Open instead of dropping it.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b9",
+    "text": "Before naming a '-card'/'-tile'/'-box' class, check it isn't just the framework's existing '.card' (a framed box) — the three spacing words are '.pad' for a page region, '.card' for a framed box, and an em unit for a control or row; ~180 hand-rolled duplicate card/tile classes existed sitewide before this was enforced.",
+    "certainty": "likely"
+  },
+  {
+    "id": "b10",
+    "text": "It is only a guideline, not a hard rule, exactly which of '.pad' / '.card' / an em-based size a given box should use — the skill gives a rule of thumb (page region vs framed box vs control/row) but real layouts have judgment calls at the edges.",
+    "certainty": "likely"
+  },
+  {
+    "id": "b11",
+    "text": "Skipping the whole new-css-class check is allowed, but only when reusing a class name that already exists — any genuinely new or renamed class name must go through the check.",
+    "certainty": "settled"
+  },
+  {
+    "id": "b12",
+    "text": "One component gets one prefix used consistently for all its sub-parts (e.g. ui-<component>-*, panel-*, sidebar-*) rather than a fresh ad hoc name per sub-part — this is the general shape of every registered entry in css-scopes.txt, though the file does not state it as an explicit numbered rule.",
+    "certainty": "likely"
+  }
+]

@@ -1,0 +1,22 @@
+{"log":{"at":"2026-09-25T15:07:14-05:00","task":"layout-check","msg":"landed — layout-check tool + AI 2 overview redesign"}}
+{"log":{"at":"2026-09-25T15:38:08-05:00","task":"css-audit","msg":"landed: explorer, ranked plan and padding curves; up to 8,599 of 35,769 lines can go; pilot skipped for budget"}}
+{"log":{"at":"2026-09-25T15:43:07-05:00","task":"tabbed-card","msg":"task opened — tabs (Overview / Tasks) and grouped requests on AI 2 card pages"}}
+{"log":{"at":"2026-09-25T15:49:16-05:00","task":"tabbed-card","msg":"landed — AI 2 cards have Overview / Tasks tabs; Dictate requests grouped under three headings"}}
+{"log":{"at":"2026-09-25T21:10:00-07:00","task":"page-system","msg":"landed — page tools + one-screen Page page"}}
+{"log":{"at":"2026-09-25T16:22:06-05:00","task":"ai2-lead","msg":"task opened — AI 2 lead: element audit + walkthrough"}}
+{"log":{"at":"2026-09-25T16:22:38-05:00","task":"feedback-council","msg":"landed: 44 asks, five checkers, verdict page + todo.md fixes"}}
+{"log":{"at":"2026-09-25T16:38:02-05:00","task":"ai2-lead","msg":"landed — AI 2 element audit applied; walkthrough at ai2-lead/"}}
+{"log":{"at":"2026-09-25T16:39:08-05:00","task":"page-audit","msg":"landed — paging audit round 1 at ai/audits/paging"}}
+{"log":{"at":"2026-09-25T17:12:56-05:00","task":"ai2-lead","msg":"landed again — rail is one timeline, focus line opens a card, usage bars show time left"}}
+{"log":{"at":"2026-09-25T17:37:19-05:00","task":"now-card-tabs","msg":"task opened — the Now card gets tiny top tabs, full bleed, one section at a time"}}
+{"log":{"at":"2026-09-25T17:41:04-05:00","task":"now-card-tabs","msg":"landed — the Now card shows one section at a time under tiny top tabs, full bleed, with the tab in the url"}}
+{"log":{"at":"2026-09-25T17:50:20-05:00","task":"now-card-tabs","msg":"landed again — chat back on the right, each tab a real routed page, padding only on the Now card"}}
+{"log":{"at":"2026-09-25T18:06:47-05:00","task":"ai2-resurface-bar","msg":"landed: resurfaced rows show what happened; bar opens a routed Activity tab"}}
+{"log":{"at":"2026-09-25T18:14:23-05:00","task":"padding-system","msg":"landed — the padding check sees neighbours, controls and framed boxes, runs on every landing; page skill asks the three layout questions"}}
+{"log":{"at":"2026-09-25T18:16:10-05:00","task":"overview-fix","msg":"landed: Dictate card Overview shows 11 of 13 delivered, grouped"}}
+{"log":{"at":"2026-09-25T19:09:52-05:00","task":"quickfix-worktrees/landing","msg":"landed — merge.mjs applies instead of merging when the main tree has uncommitted edits to the same files; 4/4 scratch cases pass (c0087c8d)"}}
+{"log":{"at":"2026-09-25T19:21:50-05:00","task":"quickfix-worktrees","msg":"landed: warm quick-fix worktree pool (take_worktree/return_worktree), smoke test + serialized merge.mjs before every merge; 85-file reset incident recovered"}}
+{"log":{"at":"2026-09-28T13:48:55-05:00","task":"recursive-pairs/inbox","msg":"task opened — deliverable 8: a VS Code tab is an agent you can message (register_session, inbox delivery, card-creator routing, Monitor watch)"}}
+{"log":{"at":"2026-09-28T13:54:59-05:00","task":"recursive-pairs/roles","msg":"task opened — one skill per role, the feed cut down to direct children, the mastermind-servex-N messaging bug, the task-mastermind reaper"}}
+{"log":{"at":"2026-09-28T14:01:19-05:00","task":"recursive-pairs/inbox","msg":"landed — a VS Code tab is an agent you can message: register_session, inbox delivery, card-creator routing, servex-mastermind Watch section, proved under 2s (single-digit ms) on a private Servex"}}
+{"log":{"at":"2026-09-28T14:19:14-05:00","task":"recursive-pairs/roles","msg":"landed — roles, the narrower feed, the mastermind-servex-N and external-id messaging fixes, and the task-mastermind reaper, all proven live on a private Servex; 163 unit checks green"}}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" font-family="system-ui, sans-serif" font-size="15">
+  <style>
+    .b{fill:#fff;stroke:#555;stroke-width:1.5}.o{fill:#fff4e5;stroke:#e07a1f;stroke-width:1.5}.c{fill:#eef6ee;stroke:#3a8a3a;stroke-width:1.5}
+    .t{fill:#222;font-weight:600}.m{fill:#666;font-size:13px}.a{stroke:#777;stroke-width:1.5;fill:none;marker-end:url(#h)}
+    @media (prefers-color-scheme: dark){.b,.o,.c{fill:#1e1e1e}.t{fill:#eee}.m{fill:#aaa}.a{stroke:#aaa}}
+  </style>
+  <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#777"/></marker></defs>
+  <rect class="o" x="10" y="40" width="170" height="90" rx="8"/><text class="t" x="24" y="66">1 Your words</text>
+  <text class="m" x="24" y="88">every prompt, verbatim</text><text class="m" x="24" y="106">+ what you dictate</text><text class="m" x="24" y="122">  on AI 2 cards</text>
+  <rect class="b" x="205" y="40" width="170" height="90" rx="8"/><text class="t" x="219" y="66">2 Asks</text>
+  <text class="m" x="219" y="88">one line per thing</text><text class="m" x="219" y="106">you asked for</text><text class="m" x="219" y="122">asks.jsonl</text>
+  <rect class="b" x="400" y="40" width="170" height="90" rx="8"/><text class="t" x="414" y="66">3 Cards &amp; tasks</text>
+  <text class="m" x="414" y="88">agents plan and</text><text class="m" x="414" y="106">build it</text>
+  <rect class="b" x="595" y="40" width="170" height="90" rx="8"/><text class="t" x="609" y="66">4 Built</text>
+  <text class="m" x="609" y="88">a landing: a checklist</text><text class="m" x="609" y="106">of your asks + proof</text>
+  <rect class="c" x="790" y="40" width="160" height="90" rx="8"/><text class="t" x="804" y="66">5 Council</text>
+  <text class="m" x="804" y="88">5 Sonnet checkers</text><text class="m" x="804" y="106">done · partly · not</text>
+  <path class="a" d="M180,85 L205,85"/><path class="a" d="M375,85 L400,85"/><path class="a" d="M570,85 L595,85"/><path class="a" d="M765,85 L790,85"/>
+  <rect class="o" x="400" y="190" width="365" height="70" rx="8"/><text class="t" x="414" y="216">6 Fixes</text>
+  <text class="m" x="414" y="238">the smallest fix per miss → the owning mastermind or todo.md</text>
+  <path class="a" d="M870,130 L870,225 L765,225"/>
+  <path class="a" d="M400,225 L290,225 L290,130"/>
+  <text class="m" x="20" y="200">Still open → checked again next run.</text>
+  <text class="m" x="20" y="218">Done → stays done, not re-checked.</text>
+</svg>

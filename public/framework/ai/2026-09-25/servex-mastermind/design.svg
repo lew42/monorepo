@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" font-family="system-ui, sans-serif" font-size="15">
+  <style>
+    .box{fill:#fff;stroke:#555;stroke-width:1.5}
+    .tip{fill:#fff4e5;stroke:#e07a1f;stroke-width:1.5}
+    .fork{fill:#eef6ee;stroke:#3a8a3a;stroke-width:1.5}
+    .t{fill:#222}.s{fill:#666;font-size:13px}
+    .a{stroke:#555;stroke-width:1.5;fill:none;marker-end:url(#h)}
+    @media (prefers-color-scheme: dark){ .box,.tip,.fork{fill:#1e1e1e} .t{fill:#eee} .s{fill:#aaa} .a{stroke:#aaa} }
+  </style>
+  <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#777"/></marker></defs>
+
+  <!-- the module -->
+  <rect class="tip" x="20" y="40" width="240" height="90" rx="8"/>
+  <text class="t" x="36" y="68" font-weight="600">readme.md: the tip</text>
+  <text class="s" x="36" y="90">what it is · core ideas</text>
+  <text class="s" x="36" y="110">which files · which doc/ topics</text>
+  <rect class="box" x="20" y="160" width="240" height="70" rx="8"/>
+  <text class="t" x="36" y="188" font-weight="600">doc/&lt;topic&gt;.md + files</text>
+  <text class="s" x="36" y="210">the detail, one click down</text>
+  <path class="a" d="M140,130 L140,160"/>
+
+  <!-- path A: read it yourself -->
+  <text class="t" x="300" y="30" font-weight="600">Small module: read it yourself</text>
+  <rect class="box" x="300" y="40" width="210" height="60" rx="8"/>
+  <text class="t" x="316" y="66">any agent</text>
+  <text class="s" x="316" y="86">loads readme, then what it names</text>
+  <path class="a" d="M300,70 L262,80"/>
+
+  <!-- path B: checkpoint + fork -->
+  <text class="t" x="300" y="170" font-weight="600">Big module: ask_module()</text>
+  <rect class="box" x="300" y="182" width="210" height="70" rx="8"/>
+  <text class="t" x="316" y="208">checkpoint session</text>
+  <text class="s" x="316" y="228">has read the tip + its files, once</text>
+  <text class="s" x="316" y="244">never answers, never grows</text>
+  <path class="a" d="M300,200 L262,120"/>
+
+  <rect class="fork" x="560" y="150" width="170" height="44" rx="8"/>
+  <text class="t" x="574" y="177">fork 1 answers, stops</text>
+  <rect class="fork" x="560" y="206" width="170" height="44" rx="8"/>
+  <text class="t" x="574" y="233">fork 2 answers, stops</text>
+  <path class="a" d="M510,210 L558,174"/>
+  <path class="a" d="M510,222 L558,228"/>
+
+  <rect class="box" x="770" y="178" width="170" height="60" rx="8"/>
+  <text class="t" x="784" y="204">asker gets</text>
+  <text class="s" x="784" y="224">an answer, not the files</text>
+  <path class="a" d="M730,200 L768,205"/>
+
+  <!-- the 40% rule -->
+  <rect class="box" x="20" y="280" width="920" height="56" rx="8"/>
+  <text class="t" x="36" y="304" font-weight="600">And for every long-lived agent: past 40% of its window, write a summary line and restart from it.</text>
+  <text class="s" x="36" y="324">Yesterday's Dictate manager ran to 199k tokens and $6.35; each turn re-read all of it.</text>
+</svg>

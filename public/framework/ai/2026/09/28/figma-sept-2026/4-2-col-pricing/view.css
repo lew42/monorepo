@@ -1,0 +1,79 @@
+/* Figma's "2-Col: Pricing" section (metadata.xml, frame 17:1051) has NO panel
+ * behind the two plan cards — just the cards themselves, side by side, on
+ * the page's own background. Every measurement below comes straight off
+ * metadata.xml at the Figma frame's own 856px width (padding 32, card gap
+ * 24, row gap 16 — all multiples of the 16px body size), turned into `em`
+ * against `ui-scale-body`'s own font-size (from `ui/scale`) instead of
+ * pixels, so the SAME numbers hold true at any width. Every class carries
+ * this card's own `figma-price-` prefix (review finding 1).
+ */
+@layer site {
+
+	.figma-price-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5em;   /* 24px at 16px */
+	}
+
+	.figma-price-plan {
+		display: flex;
+		flex-direction: column;
+		gap: 1em;   /* 16px — every internal Figma gap, at once */
+		padding: 2em;   /* 32px */
+		border-radius: var(--radius);
+		background: var(--surface);
+		color: var(--ink);
+		border: 1px solid var(--line);
+	}
+	.figma-price-plan.figma-price-plan-dark {
+		background: var(--ink);
+		color: var(--surface);
+		border-color: var(--ink);
+	}
+
+	.figma-price-plan-label {
+		font-size: 0.875em;   /* 14px */
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--prim);
+	}
+
+	.figma-price-plan-price {
+		font-size: 3em;   /* 48px */
+		font-weight: 900;
+		line-height: 1;
+	}
+
+	.figma-price-plan-sub { font-size: 1em; opacity: 0.7; }
+
+	.figma-price-plan hr {
+		border: none;
+		border-top: 1px solid color-mix(in oklab, currentColor 20%, transparent);
+		width: 100%;
+	}
+
+	/* [check][text], two real grid columns, so a line long enough to wrap
+	   ("Unlimited projects" at the narrowest width) wraps under its OWN
+	   text instead of under the checkmark. */
+	.figma-price-plan-features {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: start;
+		column-gap: 0.625em;   /* 10px */
+		row-gap: 1em;   /* 16px, same unit as everything else */
+		font-size: 1em;
+	}
+	.figma-price-plan-check { color: var(--prim); }
+
+	.figma-price-plan button.prim {
+		display: block;
+		width: 100%;
+		font-size: 0.875em;   /* 14px */
+		text-transform: uppercase;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		padding: 0.9em 1em;
+		white-space: nowrap;
+	}
+}

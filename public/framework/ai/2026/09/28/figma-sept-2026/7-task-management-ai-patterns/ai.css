@@ -1,0 +1,354 @@
+@layer site {
+
+	/* Figma "AI feedback patterns" (78:13866) — the bottom band of section 7:
+	   the compact/expanded composer pair, then a full conversation with code
+	   blocks and a reply composer at the bottom. Every colour, avatar shape
+	   and button style below was checked against sections/7-task-management-
+	   ai-patterns.png by the mastermind and corrected once already
+	   (2026-09-28) — see that round's report in the task log before changing
+	   any of it again. */
+
+	/* SCALE, DON'T REFLOW: the card column is ~400px at 1920, half the
+	   Figma frame's 856px — too narrow for the compact/expanded pair to sit
+	   side by side at the site's own spacing. So this band keeps Figma's
+	   exact layout and just shrinks it, via the shared `ui/scale` component
+	   (review finding 8): `ui-scale` opens the container-query context,
+	   `ui-scale-body`'s font-size is that width ÷ 53.5 (856px ÷ 16px, so
+	   1em = 16px at the Figma's own size and less below it), and every
+	   length inside this band — padding, gap, radius, avatar size, border —
+	   is written in `em`, always relative to an element's own font-size.
+	   Shrink the one variable and the whole panel shrinks together, same
+	   proportions Figma drew. `--gap`/`--pad`/`--flow` are the site's
+	   page-rhythm tokens, tuned for a full page width, not a 400px card —
+	   overridden here to plain `em` so every `gap`/`pad` class already in
+	   ai.js becomes scale-safe for free. */
+	.figma-ai-band {
+		--gap: 1em;
+		--pad: 2em;
+		--flow: 1.5em;
+		/* No status-green in framework.css (`ui/badge`'s own doc calls this
+		   "a third done") — defined locally, light-dark aware like the
+		   site's own tokens, used only inside this band. */
+		--figma-ai-green: light-dark(#1a8a5f, #34d399);
+		--figma-ai-green-bg: light-dark(#e3f6ec, #113826);
+		background: var(--darken-1);
+		border-radius: var(--radius);
+		padding: 2.25em 2em;   /* Figma's pad-y 36 / pad-x 32, at 16px = 1em */
+	}
+
+	/* ── chips: three different shapes, not one reused three ways ── */
+
+	.figma-ai-eyebrow {
+		background: var(--ink);
+		color: var(--prim);
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		border-radius: 0.3em;
+		padding: 0.4em 0.7em;
+	}
+
+	.figma-ai-status {
+		background: var(--prim);
+		color: white;
+		font-weight: 700;
+		border-radius: 999px;
+		padding: 0.3em 0.8em;
+		display: inline-block;
+		/* A flex COLUMN's children stretch to its full width by default
+		   (align-items: stretch) — without this the pill spans the whole
+		   card instead of hugging "In review". */
+		align-self: flex-start;
+	}
+
+	.figma-ai-tests-pass {
+		background: var(--figma-ai-green-bg);
+		color: var(--figma-ai-green);
+		font-weight: 700;
+		border-radius: 999px;
+		padding: 0.3em 0.8em;
+	}
+
+	.figma-ai-state-label {
+		letter-spacing: 0.05em;
+	}
+
+	/* `h4` (framework.css) is bold, tracked AND UPPERCASE — right for the
+	   eyebrow/status chips above, wrong for plain small text like a branch
+	   path or "You · 10:44", which Figma draws in normal case. This is just
+	   `h4`'s font-size, nothing else. */
+	.figma-ai-meta {
+		font-size: 0.8em;
+	}
+
+	/* framework.css has no `.bold` — a component may not invent one either, so
+	   this is scoped to the figures this band actually needs bold. */
+	.figma-ai-strong {
+		font-weight: 600;
+	}
+
+	/* The card column is ~400px at 1920 — a 15em min column never gets two
+	   across. 10em does, and still wraps to one below that. */
+	.figma-ai-states {
+		--column: 10em;
+	}
+
+	/* ── the compact footer example ── */
+
+	.figma-ai-compact-footer {
+		border-top: 1px solid var(--line);
+		margin-top: var(--gap);
+		padding-top: 0.6em;
+	}
+
+	.figma-ai-icon-btn {
+		color: var(--ink);
+		opacity: 0.6;
+		cursor: pointer;
+	}
+
+	.figma-ai-icon-btn:hover {
+		opacity: 1;
+	}
+
+	/* ── the four avatar voices ── */
+
+	.figma-ai-face-ai {
+		background: var(--ink);
+		color: white;
+	}
+
+	.figma-ai-face-bot {
+		background: var(--figma-ai-green);
+		color: white;
+	}
+
+	.figma-ai-face-mate {
+		background: light-dark(#7c5cff, #a78bfa);
+		color: white;
+	}
+
+	.figma-ai-face-you {
+		background: var(--prim);
+		color: white;
+		font-size: 0.6em;   /* "YOU" is three letters, not two initials */
+		font-weight: 700;
+	}
+
+	/* ── the expanded composer, reused for the standalone example AND the
+	   live reply box under the transcript ── */
+
+	.figma-ai-composer {
+		border: 1px solid var(--prim);
+		border-radius: var(--radius);
+		background: var(--surface);
+	}
+
+	.figma-ai-composer textarea {
+		width: 100%;
+		border: none;
+		background: none;
+		resize: none;
+		font: inherit;
+		color: var(--ink);
+		padding: 0;
+		/* `rows="2"` in ai.js reserves the room; this is what actually lets
+		   the placeholder wrap onto that second line instead of clipping. */
+		white-space: pre-wrap;
+		overflow: hidden;
+	}
+
+	.figma-ai-composer textarea:focus {
+		outline: none;
+	}
+
+	.figma-ai-send {
+		width: 2em;
+		height: 2em;
+		border-radius: 0.4em;
+		background: var(--prim);
+		color: white;
+		border: none;
+		display: grid;
+		place-items: center;
+		cursor: pointer;
+		flex: none;
+	}
+
+	.figma-ai-dictate {
+		border-radius: 999px;
+		background: var(--darken-1);
+		color: var(--ink);
+		padding: 0.3em 0.7em;
+		font-weight: 700;
+		text-transform: uppercase;
+		font-size: 0.75em;
+	}
+
+	.figma-ai-new-session {
+		border: 1px solid var(--line);
+		border-radius: 0.35em;
+		width: 1.8em;
+		height: 1.8em;
+		display: grid;
+		place-items: center;
+		background: none;
+		color: var(--ink);
+		cursor: pointer;
+	}
+
+	/* ── the conversation panel ── */
+
+	.figma-ai-conversation {
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.figma-ai-conv-header {
+		border-bottom: 1px solid var(--line);
+		padding: 0.75em var(--pad);
+	}
+
+	.figma-ai-messages {
+		padding: var(--pad);
+	}
+
+	.figma-ai-message + .figma-ai-message {
+		margin-top: var(--gap);
+	}
+
+	.figma-ai-message > .ui-avatar {
+		flex: none;
+	}
+
+	/* ── the message bubble — a bordered surface, the avatar sits OUTSIDE it
+	   (a "gutter"), not inside — and the two voices get two border colours ── */
+
+	.figma-ai-bubble {
+		flex: 1;
+		min-width: 0;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		background: var(--surface);
+		padding: 1em;
+	}
+
+	.figma-ai-bubble-you {
+		border-color: var(--prim);
+	}
+
+	.figma-ai-action-row {
+		justify-content: flex-end;
+	}
+
+	/* ── action buttons: small, bold, uppercase, right-aligned ── */
+
+	.figma-ai-action {
+		font-weight: 700;
+		text-transform: uppercase;
+		font-size: 0.75em;
+		padding: 0.5em 1em;
+		border-radius: 0.4em;
+	}
+
+	.figma-ai-action.chosen {
+		box-shadow: inset 0 0 0 2px var(--darken-2);
+	}
+
+	.figma-ai-action-prim {
+		background: var(--prim);
+		border-color: var(--prim);
+		color: white;
+	}
+
+	.figma-ai-action-reject {
+		background: none;
+		border-color: var(--error);
+		color: var(--error);
+	}
+
+	.figma-ai-action-approve {
+		background: var(--figma-ai-green);
+		border-color: var(--figma-ai-green);
+		color: white;
+	}
+
+	/* ── an inline code block: a dark header row + a dark body, both the
+	   same near-black fill — the header just one step lighter ── */
+
+	.figma-ai-code {
+		border-radius: var(--radius);
+		overflow: hidden;
+	}
+
+	.figma-ai-code-head {
+		background: color-mix(in srgb, var(--ink) 90%, white);
+		color: var(--surface);
+		padding: 0.5em 0.9em;
+	}
+
+	.figma-ai-code-lang {
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		opacity: 0.7;
+	}
+
+	.figma-ai-code pre {
+		margin: 0;
+		padding: 0.9em;
+		overflow-x: auto;
+		background: var(--ink);
+	}
+
+	.figma-ai-code code {
+		background: none;
+		box-shadow: none;
+		color: var(--surface);
+		white-space: pre;
+		font-family: ui-monospace, "SF Mono", Consolas, monospace;
+	}
+
+	.figma-ai-copy {
+		border: none;
+		background: none;
+		color: inherit;
+		cursor: pointer;
+		opacity: 0.85;
+	}
+
+	/* ── a linked reference: underlined bold text with a small check icon,
+	   not a bordered chip (a task chip LOOKS like a link because it is one) ── */
+
+	.figma-ai-task-link {
+		font-weight: 700;
+		text-decoration: underline;
+		color: var(--ink);
+		cursor: pointer;
+	}
+
+	.figma-ai-task-link .icon {
+		color: var(--prim);
+	}
+
+	/* ── the embedded follow-up task card — an accent border, unlike the
+	   grey-bordered bubble it sits inside ── */
+
+	.figma-ai-task-embed {
+		border: 1px solid var(--prim);
+		border-radius: var(--radius);
+		padding: 0.75em;
+	}
+
+	.figma-ai-task-embed a.figma-ai-icon-btn {
+		text-decoration: none;
+	}
+
+	/* ── the reply composer sits in its own grey strip at the panel's foot ── */
+
+	.figma-ai-conv-footer {
+		background: var(--darken-1);
+		border-top: 1px solid var(--line);
+		padding: var(--pad);
+	}
+}

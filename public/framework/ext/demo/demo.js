@@ -145,7 +145,12 @@ export function source_block(label, body, file){
 	return div.c("demo-source", $source => {
 		div.c("demo-source-head", () => {
 			span(label);
-			if (file) file_link(file);
+			// ⚠ `file` sometimes arrives as `this.file` off a Page — and every Page
+			// already has a `file(name)` METHOD of its own (Log.js, the jsonl log),
+			// which `this.file` reads instead of a caller's config when that config
+			// never set one. A string is a real path; anything else is that method
+			// (or nothing), so it gets no link rather than a crash.
+			if (is.str(file)) file_link(file);
 			copy_btn($source);
 		});
 

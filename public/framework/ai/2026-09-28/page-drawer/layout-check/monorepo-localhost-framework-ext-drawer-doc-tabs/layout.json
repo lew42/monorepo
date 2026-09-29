@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/drawer/doc/tabs/",
+ "widths": {
+  "1280": {
+   "empty": 0.547,
+   "widest_text": 594,
+   "widest_text_sample": ") the ☰ and the AI, Sessions and Dictati",
+   "overflow_x": false,
+   "items": 103,
+   "narrow_share": 0.34
+  },
+  "1920": {
+   "empty": 0.676,
+   "widest_text": 632,
+   "widest_text_sample": ") the ☰ and the AI, Sessions and Dictati",
+   "overflow_x": false,
+   "items": 103,
+   "narrow_share": 0.738
+  },
+  "2560": {
+   "empty": 0.711,
+   "widest_text": 711,
+   "widest_text_sample": ") the ☰ and the AI, Sessions and Dictati",
+   "overflow_x": false,
+   "items": 103,
+   "narrow_share": 0.748
+  },
+  "3440": {
+   "empty": 0.778,
+   "widest_text": 711,
+   "widest_text_sample": ") the ☰ and the AI, Sessions and Dictati",
+   "overflow_x": false,
+   "items": 103,
+   "narrow_share": 0.757
+  }
+ },
+ "errors": []
+}

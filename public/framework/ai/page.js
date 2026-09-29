@@ -16,7 +16,7 @@ export default new Page({
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
-	children: "process 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
+	children: "process council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
 	// The board IS the dashboard — catalog's previews() override, split-screen for free.
 	// content() becomes the "intro" child catalog() adds (readme.md's own note) — the
@@ -155,6 +155,9 @@ export default new Page({
 		// its own page.js, for one reason — the date route above is a regex on the
 		// SAME segment, and a declared child would have to be kept out of its way
 		// forever. `effort/` is the prior art; `log` can never look like a date.
+		// Year/month/day path dirs (2026/09/25/<card>/…) are bare pass-throughs, so a card's own page.js is reachable below them.
+		if (/^\d{4}$/.test(name)){ const seg = (n, u, d) => new Page({ title: n, url: u, content(){}, route(m){ if (d < 3 && /^[\w-]+$/.test(m)) return seg(m, u + m + "/", d + 1); } }); return seg(name, this.url + name + "/", 0); }
+
 		if (name === "log") return new Page({
 			title: "Everything", icon: "history", url: this.url + "log/",
 			description: "Every task of every day, in-flight first, forty at a time.",

@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-25/servex-mastermind/",
+ "widths": {
+  "1280": {
+   "empty": 0.525,
+   "widest_text": 597,
+   "widest_text_sample": "The standard, the Servex card's own fold",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.6
+  },
+  "1920": {
+   "empty": 0.675,
+   "widest_text": 635,
+   "widest_text_sample": "The standard, the Servex card's own fold",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.88
+  },
+  "2560": {
+   "empty": 0.706,
+   "widest_text": 714,
+   "widest_text_sample": "The standard, the Servex card's own fold",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.88
+  },
+  "3440": {
+   "empty": 0.785,
+   "widest_text": 714,
+   "widest_text_sample": "The standard, the Servex card's own fold",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.9
+  }
+ },
+ "errors": []
+}

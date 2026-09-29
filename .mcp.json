@@ -3,6 +3,10 @@
         "site": {
             "type": "http",
             "url": "http://monorepo.localhost/mcp"
+        },
+        "servex": {
+            "type": "http",
+            "url": "http://servex.localhost/mcp"
         }
     }
 }

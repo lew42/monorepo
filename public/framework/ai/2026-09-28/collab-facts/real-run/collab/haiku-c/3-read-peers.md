@@ -1,0 +1,5 @@
+# Peers' Findings
+
+**Sonnet-b:** Found clearer structure than I did — numbered five hard rules about collision (reserved names, census, hidden class names, page prefix detail, namespace registration) versus three genuine guidelines (spacing choice, optional re-prefixing under scoped selectors, and gaps). Explicitly connected the re-prefixing carve-out to BEM's own FAQ, showing the philosophy that block names already act as namespaces is recognized outside this repo. More actionable framing: gaps are "open questions to ask the module owner."
+
+**Haiku-a:** Researched deeper on whether nesting actually provides namespace safety and found it does not — the "optional" framing should be "discouraged" instead because collision avoidance depends on explicit naming, not DOM structure. Proposed a longest-prefix tiebreaker rule for precedence (e.g., `.module-submodule-thing` beats `.module-thing`) and characterized bare modifiers as a special case with specific conditions (low collision risk, semantic, small). More skeptical take on whether the current guidance is sufficient.

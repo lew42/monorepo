@@ -1,0 +1,8 @@
+/* /layouts/decide/ — one rule. Everything else on these pages is framework.css words.
+
+   A preview is a LITTLE content, so its card is sized by what it says: a floor and a CEILING
+   (20rem), and the row keeps the leftover rather than stretching three cards across 3440.
+   `.grid.auto` alone uses `1fr` tracks, which is right for a wall and wrong for this demo. */
+@layer site {
+	.std-decide-previews { grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 20rem)); }
+}

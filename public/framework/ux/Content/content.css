@@ -47,6 +47,71 @@
 	.ux-content-quotation details summary { cursor: pointer; color: var(--subtle); }
 }
 
+/* Object: "oh, this is a Page and it has a property of this that equals this" —
+   one small box, full width by default; `inline` shrinks it to fit its content instead
+   of filling the grid track (a card row beside prose, not a whole wall cell). */
+@layer theme {
+	.ux-content-object {
+		display: block; width: 100%; min-width: 0; max-width: 32em;
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad-card); font-size: .95em;
+	}
+	.ux-content-object.inline { width: max-content; max-width: 100%; }
+
+	.ux-content-object-head { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; margin-block-end: var(--gap-50); }
+	.ux-content-object-class { font-weight: 700; font-size: 1.1em; }
+	.ux-content-object-label { color: var(--subtle); font-family: var(--mono, monospace); }
+
+	.ux-content-object-group + .ux-content-object-group { margin-block-start: var(--gap-50); }
+	.ux-content-object-label-row {
+		display: block; color: var(--subtle); font-size: .8em; text-transform: uppercase;
+		letter-spacing: .04em; margin-block-end: .3em;
+	}
+
+	/* Properties read best as a column of `name = value` lines. */
+	.ux-content-object-properties { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .2em; }
+	.ux-content-object-property { display: flex; gap: .4em; font-family: var(--mono, monospace); align-items: baseline; min-width: 0; flex-wrap: wrap; }
+	.ux-content-object-name { color: var(--prim); flex: none; }
+	a.ux-content-object-name { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prim) 40%, transparent); }
+	a.ux-content-object-name:hover { text-decoration-color: var(--prim); }
+	.ux-content-object-eq { color: var(--subtle); flex: none; }
+	.ux-content-object-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+	/* `.chips`: no value was ever read off any of them (a bare class, mostly) — a
+	   wrapping row of chips, same look as the methods row below, reads better than
+	   13 single-word lines. */
+	.ux-content-object-properties.chips { flex-direction: row; flex-wrap: wrap; gap: .3em; }
+	.ux-content-object-properties.chips .ux-content-object-name {
+		display: inline-block; background: var(--wash); border-radius: .3em; padding: .1em .5em;
+	}
+	.ux-content-object-properties.chips a.ux-content-object-name:hover { background: color-mix(in srgb, var(--prim) 15%, var(--wash)); }
+
+	/* Methods read best as a wrapping row of chips — a card with 40 of them is still a
+	   few lines tall, not one name per row. */
+	.ux-content-object-methods { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3em; }
+	.ux-content-object-method { font-family: var(--mono, monospace); font-size: .9em; }
+	.ux-content-object-link {
+		display: inline-block; color: inherit; text-decoration: none; background: var(--wash);
+		border-radius: .3em; padding: .1em .5em;
+	}
+	a.ux-content-object-link { color: var(--prim); }
+	a.ux-content-object-link:hover { background: color-mix(in srgb, var(--prim) 15%, var(--wash)); }
+
+	/* "+N more" — a native <details>, same open/close as Disclosure, styled as one more
+	   row (properties) or one more chip (methods): the summary alone carries that look,
+	   set by whichever list it sits in. */
+	.ux-content-object-more > details > summary { cursor: pointer; color: var(--subtle); list-style: none; }
+	.ux-content-object-more > details > summary::-webkit-details-marker { display: none; }
+	.ux-content-object-properties .ux-content-object-more > details > summary { font-size: .9em; }
+	.ux-content-object-methods .ux-content-object-more > details > summary {
+		display: inline-block; font-family: var(--mono, monospace); font-size: .9em;
+		background: var(--wash); border-radius: .3em; padding: .1em .5em;
+	}
+	.ux-content-object-more > details[open] > summary { margin-block-end: .3em; }
+	.ux-content-object-more .ux-content-object-properties,
+	.ux-content-object-more .ux-content-object-methods { margin-block-start: .2em; }
+}
+
 @layer theme {
 	.ux-content-spend { display: block; width: 100%; min-width: 0; }
 	.ux-content-spend svg { display: block; width: 100%; height: auto; }

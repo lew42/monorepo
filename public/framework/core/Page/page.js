@@ -1,5 +1,6 @@
 import { Page, Doc, md, div, code } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
+import { object } from "../../ux/Content/Object/Object.js";
 
 /**
  * The Overview is the **palette**: every building block a page can be made of, each
@@ -19,7 +20,7 @@ import { mini } from "../../ext/demo/mini.js";
 // `columns` moved UP rather than the five standing alone.
 const BANDS = {
 	"Building blocks":      "columns tabs vtabs list wall prose",
-	"Pages are navigation": "page children mounts replace route labels",
+	"Pages are navigation": "page children mounts replace route folders labels",
 	"The box":              "shell measure inset region full width render",
 	"Recipes":              "rail grid flush crumbs catalog dashboard strip landing docs site",
 };
@@ -31,7 +32,12 @@ export default new Doc({
 	icon: "description",
 
 	subject: Page,
-	children: "generator old jsonl/page.jsonl",
+	// Tab order, top to bottom of `bar()` below: Overview · Make a page · Layout ·
+	// Generator · API · Docs · Files · Old. `make` and `layout` are new top tabs
+	// (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
+	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
+	// links to it, same as before.
+	children: "make layout generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -44,7 +50,7 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth related",
 
-	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns roles panels previews findings markdown open decisions",
+	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -54,6 +60,64 @@ export default new Doc({
 	// would also mean `this.browse()` inside `content()` searches MY children, not the
 	// section's. Called as `this.content()` from render() below, unbound resolves `this`
 	// to the section — whose children the list above just populated.
+	// The API tab OPENS with a card, not a wall of words: "oh, this is a Page and it has
+	// a property of this that equals this" (the owner, 2026-09-28), before the member
+	// rail even loads. Doc's own api_section() builds the rail; this only swaps its
+	// render() to draw the card first — same seam core/Page/page.js already uses on
+	// overview_section() below.
+	api_section(){
+		if (!Doc.names(`${this.properties ?? ""} ${this.methods ?? ""}`).length) return;
+
+		const doc = this;
+
+		// A small, unmounted example — nothing here is added to the real tree or
+		// fetched, `declare()` only records the two names — so the card can show real
+		// VALUES ("title = Intro"), which a bare `Page` class never has (the owner's own
+		// ask: "this is a Page, and its property X = Y").
+		const example = new Page({ title: "Intro", children: "setup usage" });
+
+		return this.section("api", "API", {
+			initialize(){ this.parent.api(this); },
+			render(){
+				return this.view ??= div.c("page doc-section", () => {
+					// `api`, not `doc`: this card sits right above the rail below it, and that
+					// rail already answers `api/<name>/` for every one of these names — a
+					// second address at `doc/method/<name>/` would be two urls for one member.
+					object(example, { api: "/framework/core/Page/api/", properties: doc.properties, methods: doc.methods });
+					this.tabs().ac("vertical");
+				}).ac("page--" + this.name);
+			},
+		});
+	},
+
+	// The tab order the proposal asks for (rewrite order item 6): Overview, Make a
+	// page and Layout first (a new reader's first two stops), Generator next, then
+	// the reference tabs API/Docs/Files, Old moved to the very end. Doc.bar()'s own
+	// order always puts api/doc/files right after whatever was declared — which is
+	// why "old" could never move past them without this override.
+	bar(){
+		return ["overview", "make", "layout", "generator", "api", "doc", "files", "old"]
+			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
+	},
+
+	// ⚠ bar() (above) only reorders the TOP-TAB strip — the framework's own left
+	// sidebar reads `this.children` in raw INSERTION order, and that order is always
+	// "declared children, then the sections Doc.initialize() adds" (declare() runs
+	// in the Page constructor before initialize()), which Page.class.js decides and
+	// this task does not touch. So the Map itself is rebuilt here, right after
+	// sections() has added overview/api/doc/files, into the SAME order bar() computes
+	// — one order, read by both. Every child SURVIVES (same Page instances, same
+	// url); only the Map's iteration order changes.
+	initialize(){
+		Doc.prototype.initialize.call(this);
+
+		const order = this.bar();
+		const rest = [...this.children.keys()].filter(name => !order.includes(name));
+		const ordered = new Map();
+		[...order, ...rest].forEach(name => { if (this.children.has(name)) ordered.set(name, this.children.get(name)); });
+		this.children = ordered;
+	},
+
 	overview_section(){
 		return this.section("overview", "Overview", {
 			title: this.title,
@@ -86,9 +150,11 @@ export default new Doc({
 	files: "Page.class.js Page.css old/page.js old/children/page.js old/flow/page.js "
 		+ "old/nav/page.js old/previews/page.js old/shell/page.js old/intro/page.js page.js readme.md "
 		+ "old/overview/readme.md overview/readme.md "
+		+ "make/page.js layout/page.js layout/floating/page.js "
 		+ "overview/tabs/page.js overview/vtabs/page.js overview/rail/page.js overview/list/page.js "
 		+ "overview/grid/page.js overview/flush/page.js overview/prose/page.js overview/crumbs/page.js "
 		+ "overview/page/page.js overview/children/page.js overview/mounts/page.js overview/replace/page.js overview/route/page.js "
+		+ "overview/folders/page.js "
 		+ "overview/shell/page.js overview/measure/page.js overview/inset/page.js overview/region/page.js "
 		+ "overview/full/page.js overview/width/page.js "
 		+ "overview/wall/page.js overview/catalog/page.js overview/dashboard/page.js overview/strip/page.js "
@@ -96,11 +162,12 @@ export default new Doc({
 		+ "overview/columns/refs/page.js overview/columns/panels/page.js "
 		+ "overview/columns/examples/grids/page.js overview/columns/examples/looks/page.js "
 		+ "overview/landing/page.js overview/docs/page.js overview/site/page.js "
-		+ "overview/labels/page.js overview/render/page.js",
+		+ "overview/labels/page.js overview/render/page.js "
+		+ "jsonl/page.jsonl jsonl/full/page.jsonl",
 
 	content(){
 		div.c("wide grid three gap", () => {
-			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card is one block, shown running. Start with [navigation](/framework/core/Page/doc/navigation/) or [layout](/framework/core/Page/doc/layout-overview/); every method is in the [API](/framework/core/Page/doc/api/).");
+			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the four ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");
 			code.js(`export default new Page({
   meta: import.meta,
   title: "Docs",

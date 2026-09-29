@@ -65,7 +65,7 @@ const clip = (s, n = 160) => String(s ?? "").replace(/\s+/g, " ").slice(0, n);
 
 // ── boot ─────────────────────────────────────────────────────────────────
 function free(port){
-	try { return !execFileSync("netstat", ["-ano"], { encoding: "utf8" }).split("\n").some(l => l.includes(`:${port} `) && /LISTEN/.test(l)); }
+	try { return !execFileSync("netstat", ["-ano"], { encoding: "utf8", windowsHide: true }).split("\n").some(l => l.includes(`:${port} `) && /LISTEN/.test(l)); }
 	catch { return true; }
 }
 
@@ -98,7 +98,7 @@ async function shutdown(){
 		for (const a of Array.isArray(live) ? live : []) if (a.state !== "stopped" && a.id !== "dispatcher") await tool("stop_agent", { id: a.id }).catch(() => {});
 	} catch {}
 	await sleep(1500);
-	try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore" }); } catch {}
+	try { execFileSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { stdio: "ignore", windowsHide: true }); } catch {}
 	say(`private Servex pid ${child.pid} stopped`);
 	child = null;
 	await until(async () => free(8190) && free(8189) && free(8188), 15000, 500);
@@ -113,7 +113,7 @@ const made_cards = [];
 const today = new Date(), pad = n => String(n).padStart(2, "0");   // LOCAL date, as the card ids use
 const DAY = path.join(AI, String(today.getFullYear()), pad(today.getMonth() + 1), pad(today.getDate()), "page.jsonl");
 const day_before = fs.existsSync(DAY) ? fs.readFileSync(DAY) : null;
-const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" }).split("\n").filter(Boolean); } catch { return []; } };
+const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8", windowsHide: true }).split("\n").filter(Boolean); } catch { return []; } };
 const dirty_before = new Set(dirty());
 let touched = [];
 /* Check 8 needs ai2-dashboard's groups file, which this branch does not have
@@ -122,7 +122,7 @@ const GROUPS = path.join(REPO, "public/framework/ai2/groups.json");
 const groups_before = fs.existsSync(GROUPS);
 function groups_in(){
 	if (groups_before) return JSON.parse(fs.readFileSync(GROUPS, "utf8"));
-	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai2/groups.json"], { cwd: REPO, encoding: "utf8" });
+	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai2/groups.json"], { cwd: REPO, encoding: "utf8", windowsHide: true });
 	fs.writeFileSync(GROUPS, text);
 	return JSON.parse(text);
 }

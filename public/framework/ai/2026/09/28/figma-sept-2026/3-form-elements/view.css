@@ -1,0 +1,47 @@
+/* Figma's "Form Elements" section is one rounded panel: darken-2 for the fill
+ * (the .darken-2 utility class carries that, view.js), this file for its own padding
+ * and the spacing/control sizes Figma draws tighter than the site's default
+ * flow rhythm. Kept to what .darken-1/.card/h4 do not already give. Every
+ * class carries this card's own `figma-form-` prefix (review finding 1).
+ */
+@layer site {
+
+	.figma-form-elements {
+		border-radius: var(--radius);
+		padding: 36px 32px;
+	}
+
+	.figma-form-elements .figma-form-chip { margin-bottom: 24px; }
+
+	.figma-form-field + .figma-form-field { margin-top: 36px; }
+	.figma-form-field-label { margin-bottom: 12px; }
+
+	.figma-form-elements input,
+	.figma-form-elements textarea {
+		display: block;
+		width: 100%;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		padding: 16px 26px;
+		font-size: 16px;
+	}
+
+	.figma-form-actions {
+		display: flex;
+		gap: 12px;
+		margin-top: 36px;
+	}
+
+	/* The site skin stopped giving buttons a shouty voice on 2026-09-06
+	   (lew42.css's own note) — Figma's SUBMIT/CANCEL still want one here. */
+	.figma-form-actions button {
+		text-transform: uppercase;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		font-size: 0.75em;
+		padding: 0.9em 1.6em;
+	}
+
+	.figma-form-status { margin-top: 12px; }
+}

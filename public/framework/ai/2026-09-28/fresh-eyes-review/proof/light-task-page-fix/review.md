@@ -1,0 +1,6 @@
+verdict: fix
+
+1. [fix] `public/framework/ext/AITask/readme.md:19` and `:22` still show the old `listing` option (`AITask.into(url, { listing: [...] })`) — the exact name the fix renamed to `known_files` because it shadows `Page.listing()`. Anyone copying this readme's example reintroduces the bug this fix just closed.
+2. [note] The core rename is correct and minimal: `ai2/tasks.js:44` (the only caller) and `ext/AITask/AITask.js:105,153-159` (the definition) both moved to `known_files`, and `Page.listing()` at `core/Page/Log.js:160` confirms the shadowing theory — a method, always truthy, whose `.includes` would throw and abort the page's `content()` before Report/Asks ever drew.
+3. [note] The added `Array.isArray(this.known_files)` guard (AITask.js:159) is a small, welcome hardening over the original `this.listing &&` check — it means a future caller passing a non-array by mistake degrades to "just fetch it" instead of throwing again, rather than reproducing the original failure mode.
+4. [note] Grepped the rest of `public/framework` for `listing`/`known_files`; no other caller of `AITask.into` or reader of `this.known_files` was found outside the two files in the diff, so the rename didn't miss a second call site.

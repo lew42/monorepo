@@ -136,7 +136,7 @@ async function restart(force){
     if (!pids || !alive(pids.keeper))
         return console.log("No keeper is running, so nothing would start Servex again. Start one: node Servex/sustain.mjs");
 
-    const bad = sources().filter(f => spawnSync(process.execPath, ["--check", f]).status !== 0);
+    const bad = sources().filter(f => spawnSync(process.execPath, ["--check", f], { windowsHide: true }).status !== 0);
     if (bad.length) return console.log(`Not restarting — these files do not parse:\n  ${bad.join("\n  ")}`);
 
     const agents = await fetch(API).then(r => r.json()).catch(() => []);
@@ -172,10 +172,14 @@ function start(backoff){
 
     const child = spawn(process.execPath, ["--report-on-fatalerror", `--report-directory=${REPORTS}`, ENTRY], {
         cwd: path.join(HERE, ".."),
-        stdio: ["ignore", out, out]
+        stdio: ["ignore", out, out],
+        windowsHide: true
         // ⚠ no windowsHide: Servex spawns agents and servers, and a process with no console makes
         // its children pop visible windows. The keeper is launched with a HIDDEN console
         // (PowerShell Start-Process -WindowStyle Hidden) and everything below inherits it.
+        // (2026-09-28 windowsHide sweep: added windowsHide: true above anyway, belt-and-braces —
+        // a safe no-op here since the parent's console is already hidden, and a real fix if this
+        // ever runs from a parent that has a visible console. The reasoning above still holds.)
     });
 
     fs.writeFileSync(PIDS, JSON.stringify({ keeper: process.pid, servex: child.pid, started: new Date().toISOString() }, null, 2));

@@ -1,0 +1,835 @@
+{
+ "module": "framework/ext (Panel, AITask, tabs, catalog, Research + every other ext dir except demo/dev)",
+ "paths": [
+  "framework/ext/Panel",
+  "framework/ext/AITask",
+  "framework/ext/tabs",
+  "framework/ext/catalog",
+  "framework/ext/Research",
+  "framework/ext/Ask",
+  "framework/ext/Chat",
+  "framework/ext/depth",
+  "framework/ext/DesignTool",
+  "framework/ext/Doc",
+  "framework/ext/Draggable",
+  "framework/ext/drawer",
+  "framework/ext/Dropdown",
+  "framework/ext/editor",
+  "framework/ext/files",
+  "framework/ext/grip",
+  "framework/ext/highlight",
+  "framework/ext/layout",
+  "framework/ext/markdown",
+  "framework/ext/Timeline",
+  "framework/ext/toc"
+ ],
+ "lines": {
+  "css": 5120,
+  "jsBlocks": 0
+ },
+ "clusters": [
+  {
+   "id": "AITask-ai-css:head-timeline",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 1,
+   "to": 56,
+   "lines": 56,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "page header + day timeline layout, specific to the AI board",
+   "saves": 0
+  },
+  {
+   "id": "AITask-ai-css:asks-group-layout",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 57,
+   "to": 100,
+   "lines": 44,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "asks group/topic/footnote-fold layout, specific to this tab",
+   "saves": 0
+  },
+  {
+   "id": "AITask-ai-css:ask-card",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 101,
+   "to": 200,
+   "lines": 100,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework.css:456,489) + `.card.selected` ring (framework.css:502)",
+   "evidence": "`.ai-ask` (ai.css:103-109) hand-writes padding var(--pad), radius, flex-column gap and an active outline: exactly what `.card` (surface+radius+--pad-card+child rhythm) and `.card.selected` already give",
+   "saves": 60
+  },
+  {
+   "id": "AITask-ai-css:needs-you-list",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 201,
+   "to": 236,
+   "lines": 36,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "one row layout for the owner's todo items (unverified: could wear .flex.split)",
+   "saves": 0
+  },
+  {
+   "id": "AITask-ai-css:rank-grip",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 237,
+   "to": 259,
+   "lines": 23,
+   "verdict": "GENERALIZE",
+   "target": "drag-handle corner (new, beside `.drag-handle` ext/Draggable/draggable.css:4)",
+   "evidence": "absolute-positioned handle repeated for ask (254-255), decision (257-258) and asks-topic (86-87); one host rule instead of three",
+   "saves": 10
+  },
+  {
+   "id": "AITask-ai-css:decisions-tab",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 260,
+   "to": 318,
+   "lines": 59,
+   "verdict": "GENERALIZE",
+   "target": "disclosure twirl + chip (see generalize list)",
+   "evidence": "twirl glyph rules at 273-274 and status chip at 284-290 repeat the same pattern as 54-55, 117-118, 418-419 and 137-143",
+   "saves": 15
+  },
+  {
+   "id": "AITask-ai-css:fold-bar",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 319,
+   "to": 329,
+   "lines": 11,
+   "verdict": "GENERALIZE",
+   "target": "disclosure twirl",
+   "evidence": "`.ai-fold` open/closed toggle, third copy of the twirl",
+   "saves": 5
+  },
+  {
+   "id": "AITask-ai-css:session-chat",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 330,
+   "to": 437,
+   "lines": 108,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "transcript stream+rail layout unique to this view (unverified: .ai-chat flex+wrap may be `.cols.main-aside`, framework.css:908)",
+   "saves": 0
+  },
+  {
+   "id": "AITask-ai-css:usage-gauge-steps-checks",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 438,
+   "to": 500,
+   "lines": 63,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar / meter component (new, ui/progress)",
+   "evidence": "`.ai-track/.ai-fill` (469-475) and `.ai-seg` (480-487) are a progress bar; ui/progress/page.js only shows native progress/meter with no shared style. grep -il 'progress|meter|gauge' over *.css also hits ai2/ai2.css, ai/v/3/v3.css, ux/Dictate/Dictate.css, ext/Panel/text.css",
+   "saves": 40
+  },
+  {
+   "id": "AITask-ai-css:dashboard-titles",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 501,
+   "to": 527,
+   "lines": 27,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "dashboard/index title tweaks (page-title resize), page-specific",
+   "saves": 0
+  },
+  {
+   "id": "AITask-ai-css:group-title",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 528,
+   "to": 529,
+   "lines": 2,
+   "verdict": "DUPLICATE",
+   "target": "`.h4` (framework.css:432)",
+   "evidence": "`.ai-group-title` (ai.css:528) = 0.9em, 700, uppercase, tracked: what `.h4` is",
+   "saves": 2
+  },
+  {
+   "id": "AITask-ai-css:dot",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 530,
+   "to": 536,
+   "lines": 7,
+   "verdict": "DUPLICATE",
+   "target": "`.ui-badge.dot` (ui/badge/badge.js:13-19)",
+   "evidence": "`.ai-dot` (530) is a small filled circle beside text like badge.dot::before; only .idea/.live/pulse stay",
+   "saves": 3
+  },
+  {
+   "id": "AITask-ai-css:task-card-list",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 537,
+   "to": 636,
+   "lines": 100,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework.css:456,489)",
+   "evidence": "`.ai-card` (562-591) paints its own ground and hand-sets padding var(--gap-50) var(--gap): the card word already carries surface+padding; only the 3-track grid stays",
+   "saves": 25
+  },
+  {
+   "id": "AITask-ai-css:highlights-wall",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 637,
+   "to": 723,
+   "lines": 87,
+   "verdict": "DUPLICATE",
+   "target": "`.grid.auto` + `--column` (framework.css:967) and `.card`",
+   "evidence": "`.ai-hl-wall` sets --column:20em (652) = `.grid.auto`; `.ai-hl` (669-678) is a padded card",
+   "saves": 30
+  },
+  {
+   "id": "AITask-ai-css:index-rail-region",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 724,
+   "to": 808,
+   "lines": 85,
+   "verdict": "GENERALIZE",
+   "target": "catalog rail modifier (new, ext/catalog/catalog.css)",
+   "evidence": "`.ai-index-rail` (724-808) re-lays out `.page-catalog` (catalog.css:12,47,119) through five :has() chains; a rail modifier on the catalog would do it once for every module",
+   "saves": 45
+  },
+  {
+   "id": "AITask-ai-css:routed-task-hide",
+   "file": "framework/ext/AITask/ai.css",
+   "from": 809,
+   "to": 818,
+   "lines": 10,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "hides the day while a task shows; tied to the catalog tab-panel contract",
+   "saves": 0
+  },
+  {
+   "id": "AITask-feed-css:feed-columns",
+   "file": "framework/ext/AITask/feed.css",
+   "from": 1,
+   "to": 12,
+   "lines": 12,
+   "verdict": "DUPLICATE",
+   "target": "`.flex.v.gap-50` / `.gap-70` (framework.css:832,865,1033-1034)",
+   "evidence": "`.ai-feed`, `.ai-feed-list`, `.ai-turn`, `.ai-turn-flow` are each flex column + gap; `.ai-turn` is also defined at ai.css:395 (duplicate selector)",
+   "saves": 9
+  },
+  {
+   "id": "Panel-toolbar-css:dead-toolbar",
+   "file": "framework/ext/Panel/toolbar.css",
+   "from": 1,
+   "to": 142,
+   "lines": 142,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "toolbar.css is loaded only by toolbar.js:16; grep for imports of ./toolbar (from and import() forms, over ext core ux app) found zero importers; page.js files: list omits it; glyphs.js:23 and PanelDrag.js:12 say toolbar.js is deleted; its .panel-bar/.panel-btn are re-declared in controls.css",
+   "saves": 142
+  },
+  {
+   "id": "Panel-controls-css:panel-bar",
+   "file": "framework/ext/Panel/controls.css",
+   "from": 1,
+   "to": 83,
+   "lines": 83,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the overlay strip that carries the grip; unique out-of-flow layout",
+   "saves": 0
+  },
+  {
+   "id": "Panel-controls-css:panel-btn",
+   "file": "framework/ext/Panel/controls.css",
+   "from": 84,
+   "to": 113,
+   "lines": 30,
+   "verdict": "GENERALIZE",
+   "target": "square icon `.btn.size-small` (framework.css:706 control grammar)",
+   "evidence": "`.panel-btn` (84-112) re-states box, hover and on-state the control grammar already draws; make the icon button a `.btn` variant once (unverified visual parity)",
+   "saves": 20
+  },
+  {
+   "id": "Panel-controls-css:swatch-pop",
+   "file": "framework/ext/Panel/controls.css",
+   "from": 114,
+   "to": 149,
+   "lines": 36,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "swatch chip and seam popover, small and Panel-only",
+   "saves": 0
+  },
+  {
+   "id": "Panel-display-css:body-display",
+   "file": "framework/ext/Panel/display.css",
+   "from": 1,
+   "to": 60,
+   "lines": 60,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the flex/grid display modes of a panel body: core to Panel",
+   "saves": 0
+  },
+  {
+   "id": "Panel-display-css:display-picker",
+   "file": "framework/ext/Panel/display.css",
+   "from": 61,
+   "to": 129,
+   "lines": 69,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the display picker widget in the rail (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "Panel-flow-css:flow-bar",
+   "file": "framework/ext/Panel/flow.css",
+   "from": 1,
+   "to": 39,
+   "lines": 39,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "flow-mode bar buttons, Panel-only",
+   "saves": 0
+  },
+  {
+   "id": "Panel-focus-css:focus-ring",
+   "file": "framework/ext/Panel/focus.css",
+   "from": 1,
+   "to": 45,
+   "lines": 45,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "focus/hover ring; also shared with imagine/paging/make per the 2026-09-24 inventory",
+   "saves": 0
+  },
+  {
+   "id": "Panel-grip-css:seam-grip",
+   "file": "framework/ext/Panel/grip.css",
+   "from": 1,
+   "to": 32,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "a col-resize seam between sibling panels, a different job from ext/grip's rail edge",
+   "saves": 0
+  },
+  {
+   "id": "Panel-grip-css:grip-pill",
+   "file": "framework/ext/Panel/grip.css",
+   "from": 33,
+   "to": 49,
+   "lines": 17,
+   "verdict": "GENERALIZE",
+   "target": "shared grip-pill (ext/grip/grip.css:44)",
+   "evidence": "`.panel-grip-pill` (33-49) and `.grip-pill` (ext/grip/grip.css:44) both draw the hover pill; build once",
+   "saves": 12
+  },
+  {
+   "id": "Panel-grip-css:seam-details",
+   "file": "framework/ext/Panel/grip.css",
+   "from": 50,
+   "to": 80,
+   "lines": 31,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "popover on the seam and floating-panel exception",
+   "saves": 0
+  },
+  {
+   "id": "Panel-insert-css:insert-stub",
+   "file": "framework/ext/Panel/insert.css",
+   "from": 1,
+   "to": 81,
+   "lines": 81,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the insert stub at a seam head, unique to Panel",
+   "saves": 0
+  },
+  {
+   "id": "Panel-panel-css:panel-box",
+   "file": "framework/ext/Panel/panel.css",
+   "from": 1,
+   "to": 182,
+   "lines": 182,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the Panel box and body layout itself",
+   "saves": 0
+  },
+  {
+   "id": "Panel-repeat-css:repeat-add",
+   "file": "framework/ext/Panel/repeat.css",
+   "from": 1,
+   "to": 44,
+   "lines": 44,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the add-repeat button on a focused panel",
+   "saves": 0
+  },
+  {
+   "id": "Panel-size-css:panel-sizing",
+   "file": "framework/ext/Panel/size.css",
+   "from": 1,
+   "to": 160,
+   "lines": 160,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "hug/fill sizing arithmetic (--panel-self-*), the module's core",
+   "saves": 0
+  },
+  {
+   "id": "Panel-split-css:split-ghost",
+   "file": "framework/ext/Panel/split.css",
+   "from": 1,
+   "to": 48,
+   "lines": 48,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "split-edge strips and the drag ghost",
+   "saves": 0
+  },
+  {
+   "id": "Panel-templates-css:template-samples",
+   "file": "framework/ext/Panel/templates.css",
+   "from": 1,
+   "to": 324,
+   "lines": 324,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "generated sample content (haze/aurora/depth/dial) shown inside panels; decorative and Panel-only (unverified: 272-324 rail/link/toc mock could wear .rail)",
+   "saves": 0
+  },
+  {
+   "id": "Panel-templates-css:panel-props-rail",
+   "file": "framework/ext/Panel/templates.css",
+   "from": 325,
+   "to": 405,
+   "lines": 81,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the properties rail's own delete/close/set grid (properties.js)",
+   "saves": 0
+  },
+  {
+   "id": "Panel-text-css:text-edit-gauge",
+   "file": "framework/ext/Panel/text.css",
+   "from": 1,
+   "to": 45,
+   "lines": 45,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "inline text edit and its width gauge",
+   "saves": 0
+  },
+  {
+   "id": "Panel-tools-css:align-3x3",
+   "file": "framework/ext/Panel/tools.css",
+   "from": 1,
+   "to": 62,
+   "lines": 62,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "3x3 align overlay and scrub tools",
+   "saves": 0
+  },
+  {
+   "id": "Panel-Workspace-workspace-css:workspace-viewports",
+   "file": "framework/ext/Panel/Workspace/workspace.css",
+   "from": 1,
+   "to": 71,
+   "lines": 71,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "workspace mode chip, name and viewport grid",
+   "saves": 0
+  },
+  {
+   "id": "Panel-playground-playground-css:playground-head",
+   "file": "framework/ext/Panel/playground/playground.css",
+   "from": 1,
+   "to": 31,
+   "lines": 31,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "playground page header and back link",
+   "saves": 0
+  },
+  {
+   "id": "tabs-tabs-css:tab-util-contract",
+   "file": "framework/ext/tabs/tabs.css",
+   "from": 1,
+   "to": 35,
+   "lines": 35,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "util-layer tab-panel arrangement contract; must stay in util",
+   "saves": 0
+  },
+  {
+   "id": "tabs-tabs-css:tab-bar",
+   "file": "framework/ext/tabs/tabs.css",
+   "from": 36,
+   "to": 159,
+   "lines": 124,
+   "verdict": "GENERALIZE",
+   "target": "stamped .tabs-idle class (tabs.js)",
+   "evidence": "the same :has(.tab.active, .tab:is(.in-path,[aria-current])...) test is written out at lines 105, 153, 190, 262, 298; one class set by tabs.js replaces five long selectors",
+   "saves": 15
+  },
+  {
+   "id": "tabs-tabs-css:bounded",
+   "file": "framework/ext/tabs/tabs.css",
+   "from": 160,
+   "to": 229,
+   "lines": 70,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the opt-in rectangle skin",
+   "saves": 0
+  },
+  {
+   "id": "tabs-tabs-css:vertical",
+   "file": "framework/ext/tabs/tabs.css",
+   "from": 230,
+   "to": 303,
+   "lines": 74,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "vertical rail variant; comment at 230 says it must NOT be the .basis utility",
+   "saves": 0
+  },
+  {
+   "id": "catalog-catalog-css:catalog-layout",
+   "file": "framework/ext/catalog/catalog.css",
+   "from": 1,
+   "to": 192,
+   "lines": 192,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the catalog + previews arrangement Page.css relies on; AITask fights it (see ai.css:724-808)",
+   "saves": 0
+  },
+  {
+   "id": "catalog-catalog-css:catalog-util",
+   "file": "framework/ext/catalog/catalog.css",
+   "from": 193,
+   "to": 199,
+   "lines": 7,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "util-layer contract line",
+   "saves": 0
+  },
+  {
+   "id": "catalog-browse-css:browse-facets",
+   "file": "framework/ext/catalog/browse.css",
+   "from": 1,
+   "to": 96,
+   "lines": 96,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "faceted browse rail and bands, this module's own",
+   "saves": 0
+  },
+  {
+   "id": "Research-Research-css:research-header-node",
+   "file": "framework/ext/Research/Research.css",
+   "from": 1,
+   "to": 117,
+   "lines": 117,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "research header, minion strip, node/summary card (unverified: .research-node could be a .card)",
+   "saves": 0
+  },
+  {
+   "id": "Research-Research-css:research-cards",
+   "file": "framework/ext/Research/Research.css",
+   "from": 118,
+   "to": 167,
+   "lines": 50,
+   "verdict": "DUPLICATE",
+   "target": "`.card` (framework.css:456,489)",
+   "evidence": "line 118 lists four hand-rolled card selectors (.research-theory/.research-entry/.research-take/.research-cred-card) that each paint surface, radius and padding",
+   "saves": 20
+  },
+  {
+   "id": "Research-Research-css:research-stream-badge",
+   "file": "framework/ext/Research/Research.css",
+   "from": 168,
+   "to": 225,
+   "lines": 58,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "stream, verdict badge (could adopt .ui-badge, ui/badge/badge.js:5) and process foot",
+   "saves": 0
+  },
+  {
+   "id": "Ask-ask-css:ask-chat",
+   "file": "framework/ext/Ask/ask.css",
+   "from": 1,
+   "to": 209,
+   "lines": 209,
+   "verdict": "GENERALIZE",
+   "target": "chat-bubble component (new)",
+   "evidence": "speaker bubble + who tag also styled at Chat.css:150-154 and ai.css:402-413 (unverified overlap)",
+   "saves": 40
+  },
+  {
+   "id": "Chat-Chat-css:chatbox",
+   "file": "framework/ext/Chat/Chat.css",
+   "from": 1,
+   "to": 218,
+   "lines": 218,
+   "verdict": "GENERALIZE",
+   "target": "chat-bubble component (new)",
+   "evidence": "see Ask; chatbox-who-* (150-154) is a per-speaker variant set",
+   "saves": 40
+  },
+  {
+   "id": "depth-depth-css:depth",
+   "file": "framework/ext/depth/depth.css",
+   "from": 1,
+   "to": 139,
+   "lines": 139,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "depth ladder visuals for the depth study (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "DesignTool-DesignTool-css:design-tool",
+   "file": "framework/ext/DesignTool/DesignTool.css",
+   "from": 1,
+   "to": 179,
+   "lines": 179,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "tool overlay chrome (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "DesignTool-journey-journey-css:journey",
+   "file": "framework/ext/DesignTool/journey/journey.css",
+   "from": 1,
+   "to": 7,
+   "lines": 7,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "seven lines, page-specific",
+   "saves": 0
+  },
+  {
+   "id": "DesignTool-vision-vision-css:vision",
+   "file": "framework/ext/DesignTool/vision/vision.css",
+   "from": 1,
+   "to": 59,
+   "lines": 59,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "vision run browser, page-specific (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "Doc-Doc-css:doc",
+   "file": "framework/ext/Doc/Doc.css",
+   "from": 1,
+   "to": 92,
+   "lines": 92,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "class-doc tables and headings (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "Draggable-draggable-css:drag",
+   "file": "framework/ext/Draggable/draggable.css",
+   "from": 1,
+   "to": 30,
+   "lines": 30,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the drag verbs' handle/ghost/placeholder states, needed by every sortable",
+   "saves": 0
+  },
+  {
+   "id": "drawer-drawer-css:drawer",
+   "file": "framework/ext/drawer/drawer.css",
+   "from": 1,
+   "to": 70,
+   "lines": 70,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the inline-end rail shell; consumed by --drawer in framework.css:412",
+   "saves": 0
+  },
+  {
+   "id": "Dropdown-dropdown-css:dropdown",
+   "file": "framework/ext/Dropdown/dropdown.css",
+   "from": 1,
+   "to": 83,
+   "lines": 83,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "popover listbox, different from ui/menu's details menu",
+   "saves": 0
+  },
+  {
+   "id": "editor-editor-css:editor",
+   "file": "framework/ext/editor/editor.css",
+   "from": 1,
+   "to": 35,
+   "lines": 35,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "block editor chrome",
+   "saves": 0
+  },
+  {
+   "id": "files-files-css:file-tree",
+   "file": "framework/ext/files/files.css",
+   "from": 1,
+   "to": 57,
+   "lines": 57,
+   "verdict": "GENERALIZE",
+   "target": "reuse ui/tree (ui/tree/tree.js:7-10)",
+   "evidence": "`.file-tree/.file-dir-*` (files.css:18-40) is a second tree; ui/tree already ships a twirl-tree (unverified whether it can host file icons)",
+   "saves": 25
+  },
+  {
+   "id": "grip-grip-css:rail-grip",
+   "file": "framework/ext/grip/grip.css",
+   "from": 1,
+   "to": 78,
+   "lines": 78,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "rail edge resize pill, see Panel/grip.css for the shared pill",
+   "saves": 0
+  },
+  {
+   "id": "highlight-highlight-css:hljs-tokens",
+   "file": "framework/ext/highlight/highlight.css",
+   "from": 1,
+   "to": 115,
+   "lines": 115,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "token colours for the highlight.js runtime classes; my unused-class scan flagged them but the library emits them at runtime",
+   "saves": 0
+  },
+  {
+   "id": "layout-layout-css:layout-drawer",
+   "file": "framework/ext/layout/layout.css",
+   "from": 1,
+   "to": 114,
+   "lines": 114,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "layout tool panel (unverified)",
+   "saves": 0
+  },
+  {
+   "id": "markdown-md-css:md",
+   "file": "framework/ext/markdown/md.css",
+   "from": 1,
+   "to": 25,
+   "lines": 25,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "markdown table/link details",
+   "saves": 0
+  },
+  {
+   "id": "Timeline-Timeline-css:time-axis",
+   "file": "framework/ext/Timeline/Timeline.css",
+   "from": 1,
+   "to": 129,
+   "lines": 129,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "pixel-positioned time axis; different from ui/timeline's dot list (ui/timeline/timeline.js:8)",
+   "saves": 0
+  },
+  {
+   "id": "toc-toc-css:toc",
+   "file": "framework/ext/toc/toc.css",
+   "from": 1,
+   "to": 115,
+   "lines": 115,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "table-of-contents rail (unverified)",
+   "saves": 0
+  }
+ ],
+ "totals": {
+  "DUPLICATE": 358,
+  "GENERALIZE": 896,
+  "KEEP": 3724,
+  "DELETE": 142
+ },
+ "proposal": "Delete Panel/toolbar.css first: it is 142 lines loaded only by an orphaned toolbar.js that nothing imports. Next, build one progress bar, one disclosure twirl and one chip once, because AITask's ai.css writes each of them three or four times and ai2, v3 and Dictate write their own too. Then let the card-like boxes in ai.css (asks, task cards, highlights) and Research wear the existing .card, and the highlights wall use .grid.auto, which removes roughly 150 lines with no new CSS. Give the catalog a rail modifier so ai.css stops re-laying-out it through five :has() chains, and stamp one class on idle tab bars so tabs.css stops repeating its long selector five times. The rest of Panel and the small ext modules are page-specific and were kept, with the unchecked ones marked unverified.",
+ "generalize": [
+  {
+   "name": "progress-bar (track+fill+segments+marker)",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:460-487",
+    "framework/ai2/ai2.css",
+    "framework/ai/v/3/v3.css",
+    "framework/ux/Dictate/Dictate.css"
+   ]
+  },
+  {
+   "name": "disclosure-twirl",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:54-55",
+    "framework/ext/AITask/ai.css:117-118",
+    "framework/ext/AITask/ai.css:273-274",
+    "framework/ext/AITask/ai.css:418-419"
+   ]
+  },
+  {
+   "name": "chip (status pill with ok/warn/error tones; ui-badge has only accent/dark/outline)",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:137-143",
+    "framework/ext/AITask/ai.css:284-290",
+    "framework/ext/AITask/ai.css:610-618",
+    "framework/ext/Research/Research.css:197-203"
+   ]
+  },
+  {
+   "name": "line-clamp utility",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:122",
+    "framework/ext/AITask/ai.css:603",
+    "framework/ext/AITask/ai.css:687"
+   ]
+  },
+  {
+   "name": "catalog rail modifier",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:724-808"
+   ]
+  },
+  {
+   "name": "chat-bubble",
+   "wouldReplace": [
+    "framework/ext/Ask/ask.css",
+    "framework/ext/Chat/Chat.css",
+    "framework/ext/AITask/ai.css:402-413"
+   ]
+  },
+  {
+   "name": "drag-handle corner",
+   "wouldReplace": [
+    "framework/ext/AITask/ai.css:86-87",
+    "framework/ext/AITask/ai.css:254-258"
+   ]
+  }
+ ],
+ "risk": "low for the toolbar.css delete and the .card swaps in AITask, medium for the shared progress/chip/twirl (three modules restyle), high only if the catalog rail modifier is touched (every page uses the catalog). Saves figures are estimates."
+}

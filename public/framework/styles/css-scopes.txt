@@ -79,6 +79,7 @@ looks-       core/Page/overview/columns/examples/looks
 
 # ext
 ai-          ext/AITask
+collab-      ext/Collab
 cssdoc-      ext/CSSDoc
 demo-        ext/demo
 doc-         ext/Doc
@@ -205,3 +206,7 @@ v2-
 
 # framework/ai/v/3 - the AI dashboard, version 3 (registered by the mastermind 2026-09-19)
 v3-
+classify-
+
+# public/framework/sources — the source library's authority badge, .sources-badge(-high/-medium/-low) (2026-09-28)
+sources-

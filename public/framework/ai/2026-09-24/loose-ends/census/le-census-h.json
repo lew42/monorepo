@@ -1,0 +1,607 @@
+[
+ {
+  "task": "codrops",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/codrops/",
+  "title": "spawn minions to try and integrate codrops (tympanus.net/codrops/) examples using the framework; create an imagine page for this, and keep this running at usage",
+  "status": "landed"
+ },
+ {
+  "task": "codrops-2",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/codrops-2/",
+  "title": "Port three more MIT, vanilla-or-reimplementable Codrops demos (a reveal/transition named in the paging vocabulary, a scroll-driven layout, a text effect); add t",
+  "status": "landed"
+ },
+ {
+  "task": "codrops-3",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/codrops-3/",
+  "title": "Port three more MIT Codrops demos: a menu/navigation effect framed in the paging vocabulary (which mechanism), an image or grid transition, a hover-driven layou",
+  "status": "landed"
+ },
+ {
+  "task": "codrops-4",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/codrops-4/",
+  "title": "Port three more Codrops MIT demos (intro sequence, pointer effect, card stack/carousel) into /imagine/codrops/, then regroup the hub's cards by paging mechanism",
+  "status": "landed"
+ },
+ {
+  "task": "columns-polish",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/columns-polish/",
+  "title": "Build the two Page.css rules (fill yields to open child; column head pad-y with square x inset), restore width fill on both research fronts, measure widths, doc",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Measured headless @3440: `/imagine/research/` alone fills the row (3008px); with `stone/barabar-caves/` open, rail 432 / front 1090 / topic 828 / leaf 1090; the cloudflare verdict path (`/imagine/platform/research/cloudf",
+   "Zero console errors on the two touched fronts (one pre-existing, unrelated routing-probe 404 on the verdict leaf's own page.js probe, by design — it falls back to verdict.md)."
+  ]
+ },
+ {
+  "task": "core-fixes",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/core-fixes/",
+  "title": "Apply nav-stability proposal (a) and the sections bleed finding at the cause in core/Page/Page.css, measure before/after, prove three unrelated columns pages un",
+  "status": "landed"
+ },
+ {
+  "task": "layout-system",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/layout-system/",
+  "title": "Build /imagine/layouts/ - STACKS vs SPLITS shown live, the numbered system 1.*/2.*/3.*/4.* with distribution pages and chips for padding, surface and navigation",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open, with reasons in [doc/decisions.md](/imagine/layouts/doc/decisions.md):** at 1280 inside the columns row the card stacks (the number column is ~610px, the card's floor is 52rem — the same floor a three-track "
+  ]
+ },
+ {
+  "task": "mastermind-day",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/mastermind-day/",
+  "title": "Day brief (verbatim in requirements.md): decide, don't wait; the overwhelmed-newcomer presentation rule into CLAUDE.md + the mastermind skill; /imagine/paging/ ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "div.page-preview: cause was .grid.auto being auto-FIT (one card 3,342px at 3440) - scoped auto-fill to .grid.auto:has(> .page-preview), card now 183.5px (not swapped for all ~90 call sites - the owner's call)."
+  ],
+  "left_open": [
+   "At 3440: /imagine/research/ alone 3008px; with a topic + leaf open rail 432 / front 1090 / topic 828 / leaf 1090; the cloudflare verdict path 432 / 752 / 752 / 752 / 752 - every column over 600.",
+   "Core proposals with diffs (ai/2026-09-05/nav-stability/proposals.md): --page-column-* tokens inherit into a nested columns row (one rule fixes it); `fixed` as a real columns word.",
+   "Proposals: a Sections entry on the layouts hub; a Next door link on the paging rail.",
+   "Found outside the fence: More -> Code -> a drawer chip hands the rail to ext/layout's DesignTool (proposal)."
+  ]
+ },
+ {
+  "task": "mastermind-night",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/mastermind-night/",
+  "title": "Overnight brief (verbatim in requirements.md): integrate magazine/blog/screens/shells into the paging UX; color x layout permutations; STACKS vs SPLITS; vertica",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Awaiting the owner: the spacing ceiling (1x / 1.5x / 2x), the fill-yields columns rule, the column-head padding, five core/ext proposals with diffs in the reviewers' logs, and the find-/ hook."
+  ],
+  "left_open": [
+   "Open: paging/doc/ 404s (no doc/page.js - sent to mechanisms-v2); cms/json has the promise-cycle bug; four ext/ modules persist with no mark + a Page head slot - proposals with diffs; made/ holds two stray test pages to p",
+   "Proposal: .page-previews takes the gap-default clamp - fixes 3/3 and touches all 45 gap comparisons beside a previews wall.",
+   "doc/templates.md: what Make cannot say (no template/type/source words) + the proposed grammar 'Title: <template> <style> <type> <mechanism> [from <source>]' + a one-line Shell.css diff proposal.",
+   "Tabs show their panel (own classes; the selected tab wears the panel's surface and hides the shared border; ext/tabs untouched - site-wide diff as a proposal)."
+  ]
+ },
+ {
+  "task": "nav-stability",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/nav-stability/",
+  "title": "Measure every navigation mechanism's horizontal reflow and vertical jump at 1280 and 3440 with headless plans, define stable and dynamic in one sentence each, b",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Two core proposals, written not applied** (`core/` is outside this task's fence) — [proposals.md](/framework/ai/2026-09-05/nav-stability/proposals.md), both with the diff:\n1.",
+   "**Left, with reasons:** `ext/tabs` cannot wear the reserved panel as it stands — it mounts one page at a time, so an unopened tab has nothing to measure; it wants an opt-in word, not a change to every tab set (proposal 3"
+  ]
+ },
+ {
+  "task": "page-builder-ux",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/page-builder-ux/",
+  "title": "go through all the pages in this framework, and think, \"how would i build this with a ui?\" if we want to move pages to pure .json, how can the ui go from \"new p",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Four proposals, diffs in the doc, none applied (fences).** The first is one word and everything else depends on it: `build` in `paging/page.js`'s `children:` — without it the builder is unreachable from the site.",
+   "**Left open, with reasons.** No “open an existing page to edit it” — that is `made.load()` plus a picker, and a half-built loader would have shipped without the reload proof; Make is where a made page is renamed and dele",
+   "**Five proposals, diffs in the doc, none applied (fences).** The first two are about being findable: `build` in `paging/page.js`'s `children:` (one word — without it the builder is unreachable from the site), and this do"
+  ]
+ },
+ {
+  "task": "paging-audit-1",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-1/",
+  "title": "Critic A, the overwhelmed newcomer: open /imagine/paging/ cold at 3440, click for twenty minutes, screenshot every page, log four lines per page, deliver a ten-",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-1b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-1b/",
+  "title": "Critic B, the systems designer. Read the paging realm's code and docs (paging.js, readme.md, doc/*, every tree's page.js) and answer: what is the small handful ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT 7/10 - DELETE: critique/ and inventory/ (site-wide surveys, not paging blocks; critique's own paging row still reads 'Still a placeholder - Being built'), explorer/ (55 lines of prose about the core generator - t",
+   "VERDICT 9/10 - MISSING: (1) two independent colour controls - today one word paints the box on 'card' and the whole column on the other four, the owner's exact complaint; (2) a combinator that crosses all six blocks at o"
+  ],
+  "left_open": [
+   "The findings and the ten-line verdict are the `log` lines below."
+  ]
+ },
+ {
+  "task": "paging-audit-2",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-2/",
+  "title": "Critic A, the overwhelmed newcomer, SECOND visit: walk /imagine/paging/ cold at 1280 and 3440 for twenty minutes with screenshots, score the owner's six words 1",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-2b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-2b/",
+  "title": "Critic B, the systems designer, second visit. Read the REBUILT paging code and docs (public/imagine/paging/: paging.js, words.js, the rail, the library, the too",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-3",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-3/",
+  "title": "Critic A, the overwhelmed newcomer, THIRD visit: walk /imagine/paging/ cold at 1280 and 3440 with screenshots after the fix pass landed, score the owner's six w",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-3b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-3b/",
+  "title": "Critic B, the systems designer, THIRD visit. Re-check the second verdict item by item with file:line - one name/control/page per block; blocks crossing (the too",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-4",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-4/",
+  "title": "Critic A, the overwhelmed newcomer, FOURTH visit - the exit test. Walk /imagine/paging/ cold at 1280 and 3440 with screenshots after paging-fix-3 landed (eight ",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-4b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-4b/",
+  "title": "Critic B, the systems designer, FOURTH visit - the exit test. Re-check my third list item by item with file:line; count the stage renderers and the vocabularies",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-5",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-5/",
+  "title": "Critic A, the overwhelmed newcomer, FIFTH visit. Name the exit condition in my own words FIRST - what would have to be true for me to return an empty list - the",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open, deliberately, and it is the ceiling on the owner's own word:** `content` is still eight canned renderers."
+  ]
+ },
+ {
+  "task": "paging-audit-5b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-5b/",
+  "title": "Critic B, the systems designer, FIFTH visit. Name my exit condition first, then walk: re-check the fourth list with file:line; count renderers and vocabularies ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The seam, measured.** Seven non-default words in one cold address open right; the old keys still open, so no saved link broke; all seven dropdowns write the reader's words; `?nest=` off round-trips."
+  ]
+ },
+ {
+  "task": "paging-audit-6",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-6/",
+  "title": "Critic A, the overwhelmed newcomer, SIXTH visit, after paging-fix-5 landed (all seven). Name my exit condition first. Cold walk at 1280 and 3440 with screenshot",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-6b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-6b/",
+  "title": "Critic B, the systems designer, SIXTH visit. Name my exit condition first, then walk: re-check the fifth list with file:line; count renderers and vocabularies; ",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-7",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-7/",
+  "title": "Critic A, the overwhelmed newcomer, SEVENTH visit, after paging-fix-6 landed (all six). Name my exit condition first. Cold walk at 1280 and 3440 with screenshot",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**My instrument found itself five times before it found anything real** — a zero-size check that flagged hidden pages, an overflow check that flagged the dev server's own drawer, a crawler that manufactured eight 404s by"
+  ]
+ },
+ {
+  "task": "paging-audit-7b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-7b/",
+  "title": "Critic B, the systems designer, SEVENTH visit. Name my exit condition first, then walk: re-check the sixth list with file:line; judge my three conditions plainl",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "One correction to my own last verdict: I wrote that `axes:` exists nowhere in the realm."
+  ]
+ },
+ {
+  "task": "paging-audit-8",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-8/",
+  "title": "Critic A, the overwhelmed newcomer, EIGHTH visit, after paging-fix-7 landed (all six). Name my exit condition first. Cold walk at 1280 and 3440 with screenshots",
+  "status": "landed"
+ },
+ {
+  "task": "paging-audit-8b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-audit-8b/",
+  "title": "Critic B, the systems designer, EIGHTH visit. Name my exit condition first, then: re-check the seventh list with file:line; judge my three conditions on BOTH ed",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-2",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-2/",
+  "title": "Fix pass after audit 2: the merged eleven-item list - toolbar never covers the demo, takeover keeps the rail and has an exit, the stage reserves its height, the",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-3",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-3/",
+  "title": "The fix pass after audit 3. Nine items in order: Make's Save throw; Build speaking the seven words (step 4 renamed Arrangement); one meaning per name; cross cel",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-4",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-4/",
+  "title": "The fix pass after audit 4. Eleven items in order: the collapsed drawer code boxes; a made page drawing its own children; \"Make this a page\" naming the new page",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-5",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-5/",
+  "title": "The fix pass after the two fifth-visit audits. Seven items in order: (1) a nested made page draws its own children and blocks, at the seam so there is no third ",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-6",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-6/",
+  "title": "The fix pass after the two sixth-visit audits. Six items in order: (1) the address gets its own full-width line under the seven words, a wide field and a Copy; ",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-7",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-7/",
+  "title": "The fix pass after the two seventh-visit audits. Six items in order: (1) the nest field never loses what you typed and reads back; (2) the drawer's exports are ",
+  "status": "landed"
+ },
+ {
+  "task": "paging-fix-8",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-fix-8/",
+  "title": "The closing fix pass after the two eighth-visit audits. Six small items in order: (1) the drawer's boxes never go stale - move node_now() inside the drawer call",
+  "status": "landed"
+ },
+ {
+  "task": "paging-mechanisms-v2",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-mechanisms-v2/",
+  "title": "The always-visible stage rule; tabs that show their panel; four swap visuals on one stage (tabs, card-in, cross-fade, flip); the four mechanisms demonstrated on",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "`ext/tabs` was NOT touched — its selected tab is (0,4,0) in the same layer, so the site-wide version is a proposal with the full diff: [ext-tabs-proposal.md](/framework/ai/2026-09-05/paging-mechanisms-v2/ext-tabs-proposa",
+   "**Left open, with reasons.** (1) `ext/tabs` and `core/` are outside the fence, so the site-wide tab panel is a proposal, not a commit.",
+   "(2) Every `readme/` route on the site logs a 404 for `readme/page.js` before falling back to markdown (`/framework/ext/tabs/readme/`, `/imagine/mag/readme/` too) — core's probe order, a proposal."
+  ]
+ },
+ {
+  "task": "paging-templates",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-templates/",
+  "title": "The magazine, blog, screens and shells INTEGRATED into the paging UX system, each drawn by its own real machinery imported from where it lives, themed under the",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "![](theming-3440.png)\n\n## What Make cannot say yet\n\nMake's line is `Title: style content mechanism` — **not one of those three words is a template.** The proposal, with the exact grammar and what a single word still cann"
+  ]
+ },
+ {
+  "task": "paging-v3",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/paging-v3/",
+  "title": "Rebuild /imagine/paging/ around a small handful of building blocks: an app with a persistent left rail of nav grids and a swapping centre, a preset library with",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open, one line each.** [Room](/imagine/paging/room/) still reads 29% dead at 3440 because its stage opens on the `reading` width word, which is what that page is about."
+  ]
+ },
+ {
+  "task": "persistence-rethink",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/persistence-rethink/",
+  "title": "Judge and rebuild persistence: audit every realm that persists, decide and write the rule (demos never persist silently), build the shared modified-mark + reset",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open, with reasons.** `/imagine/paging/doc/` 404s (no rendered Docs tab) — the fix is a `doc/page.js`, and `paging/page.js` is another task's fence tonight · `cms/json/page.js` carries the same promise-cycle bug, "
+  ]
+ },
+ {
+  "task": "sections",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/sections/",
+  "title": "Build /imagine/sections/ - multi-column sections that fill 3440: one class with Side/Main/Aside/Head/Foot parts and words for columns, distribution, per-column ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Two more proposals in the log: a Sections entry on the layouts hub, and a Next-door link on the paging rail.",
+   "**Left open, with reasons.** No `space` chip on the hub's spacing section — the three levels are shown side by side instead, and the live chip is on `stack/` where there are thirteen sections to try it against."
+  ]
+ },
+ {
+  "task": "skill-hygiene",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/skill-hygiene/",
+  "title": "Fold today's improvement entries into the skills: for every 2026-09-05 entry in .claude/skills/*/improvements.md, decide fail-safe or not; fail-safe goes into t",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Tonight's lessons are in the skills now, not in a pile beside them.** 42 improvement entries dated 2026-09-05 across nine skills: **38 applied and deleted, 4 left as proposals for you** (plus 3 older ui-test entries fo",
+   "And `new-css-class` carries the trap three agents hit last night: a View subclass's NAME is a CSS class (`Stage` → `.stage`), with all three measurements; making it a numbered STEP is proposal 1 below.",
+   "**Left for you:** four proposals, one line each, in this task's log — the view-class census step, the usage refresh vs a brief's write fence, the mastermind's server port, and drive.mjs's `out` default."
+  ]
+ },
+ {
+  "task": "spacing-apply",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-apply/",
+  "title": "spacing-apply",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The previews-wall bug fixed at the cause, the ceilings proposal shot, the cms constant found and fixed.** `.page-previews` in `core/Page/Page.css` traded its flat `--gap: 0.8em` for `var(--gap-default)` on both the wal"
+  ]
+ },
+ {
+  "task": "spacing-audit",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-audit/",
+  "title": "take more screenshots at 3440. our UI is ok.. it's functional, but it's not clean, simple, user friendly. i asked you to fix the visual flow, let things breath,",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-audit-a",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-audit-a/",
+  "title": "Auditor A of the spacing-audit program: measure adjacent-pair spacing, growth, control strips/padding, padding-inversion, x0 text, and touching siblings across ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Round 2 (after) added: findings-after.json (31 pages, 1876 findings), shots/after/ (31 thumbnails + 10 own-worst crops + 7 of 10 before-crop follow-ups), p75/p90 added per page per width, ten before-crops individually ve"
+  ]
+ },
+ {
+  "task": "spacing-audit-b",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-audit-b/",
+  "title": "spacing auditor B: 13 /imagine/ realms (landing + first two children), 5 widths, 6 measurements, before round, findings.json + shots + crops per shared brief",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-audit-c",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-audit-c/",
+  "title": "spacing auditor C: docs tier under /framework/ - measure spacing/padding/controls at 5 widths, before round, evidence only, no fixes",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open:** which `doc/` page ‘counts’ as each section's first for `core`/`ext`/`styles` is a judgment call — those three sections aren't `Doc`-type pages themselves (no Docs tab of their own), so I picked the first `"
+  ]
+ },
+ {
+  "task": "spacing-audit-d",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-audit-d/",
+  "title": "spacing auditor D: public site (/, /blog/ + 3 recent posts, /resume/, /notes/ + children) - measure spacing, produce findings.json, shots, crops. Fix nothing.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The eyeball verdict the numbers back up: at 400px every page reads clean and well-paced."
+  ]
+ },
+ {
+  "task": "spacing-components",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-components/",
+  "title": "The judge's tokens are right and the pages that read them grow 1.8x from 1280 to 3440, but the sitewide median gap is unchanged (9.7px at 3440) because on 65 of",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "NOT swapped site-wide - .grid.auto has ~90 call sites, which is the owners call.",
+   "Not swapped site-wide: `.grid.auto` has ~90 call sites, which is the owner's call."
+  ]
+ },
+ {
+  "task": "spacing-judge",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-judge/",
+  "title": "You are the spacing judge. Four auditors measured 92 pages at five widths; a manager ranked the results. Decide, write the decision down where a reader will fin",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-study",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/spacing-study/",
+  "title": "Measure vertical spacing (padding, margin, gap, --flow, real sibling distance) on every /imagine/ realm landing page plus /imagine/design/padding/ as control, a",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Proposal: give `.page-previews` the site's `--flow`/`--gap-default` clamp instead of its own flat `--gap` — fixes 3 of 3, touches all 45 gap-comparisons beside a previews wall sitewide."
+  ]
+ },
+ {
+  "task": "tabs-panel",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/tabs-panel/",
+  "title": "Apply the panel-showing tabs to public/framework/ext/tabs/ for the whole site with the old underline look reachable by one word, shoot six tabs users before and",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The floor lands: every tab set on the site now shows its panel by default.** `ext/tabs/tabs.css` gates the proposal's rules on `:not(.underline):not(.vertical)` instead of an opt-in `.panel` class — a bounded surface (",
+   "**Left open, with reason:** the reference realm's own `.paging-tab*` classes in `/imagine/paging/paging.css` should now drop for `ext/tabs`'s own — the proposal said so and this task agrees — but two of the three call si"
+  ]
+ },
+ {
+  "task": "ux-blogx",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-blogx/",
+  "title": "UX rethink pass 2 on /imagine/blogx/ - the reviewer-brief.md in ux-rethink, realm=blogx",
+  "status": "landed"
+ },
+ {
+  "task": "ux-cms",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-cms/",
+  "title": "UX rethink pass on /imagine/cms/ - five sentences, try an alternative landing layout for real and measure it, make it more visual, verify persistence, fix the l",
+  "status": "landed"
+ },
+ {
+  "task": "ux-decks",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-decks/",
+  "title": "UX rethink pass on /imagine/decks/ - second, harder pass: is this the best shape this page could have, build and measure an alternative, make it more visual, ch",
+  "status": "landed"
+ },
+ {
+  "task": "ux-design",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-design/",
+  "title": "UX rethink pass 2 on /imagine/design/ (the design realm): five sentences, try an alternative layout for real and measure it, make it more visual, check persiste",
+  "status": "landed"
+ },
+ {
+  "task": "ux-feeds",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-feeds/",
+  "title": "UX rethink pass 2 on /imagine/feeds/ per reviewer-brief.md — is this the best shape this page could have?",
+  "status": "landed"
+ },
+ {
+  "task": "ux-gallery",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-gallery/",
+  "title": "UX rethink pass 2 on /imagine/gallery/ - reconsider what/how/goal/hardness/simpler, try an alternative layout for real and measure it, make it more visual, chec",
+  "status": "landed"
+ },
+ {
+  "task": "ux-game",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-game/",
+  "title": "UX reviewer, realm=game: five sentences before/after, try an alternative layout on the landing page and measure it, make it more visual, verify the persistence ",
+  "status": "landed"
+ },
+ {
+  "task": "ux-generated",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-generated/",
+  "title": "UX reviewer for /imagine/generated/ - second pass: five sentences, a real alternative layout tried and measured, more visual, persistence check, resolve and lan",
+  "status": "landed"
+ },
+ {
+  "task": "ux-mag",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-mag/",
+  "title": "Second-pass UX review of /imagine/mag/: five sentences, try an alternative layout for real and measure it, make it more visual, verify persistence, check paging",
+  "status": "landed"
+ },
+ {
+  "task": "ux-platform",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-platform/",
+  "title": "second-pass UX review of /imagine/platform/: five sentences, try a real alternative layout and measure it, make it more visual, check the persistence rule, land",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Kept the reorder and de-dupe, reverted the tile wall.** `/imagine/platform/`'s real page wall (`this.previews()`) now runs right after two sentences of intro instead of after ~1600px of prose, six duplicate text-links ",
+   "Built and measured the approved tile-wall pattern for those nine verdicts (bullet list to `.grid.auto` card-per-topic); reverted it with real numbers: this page is a fixed-width Miller-columns pane that does not widen wi"
+  ]
+ },
+ {
+  "task": "ux-research",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-research/",
+  "title": "UX reviewer pass on /imagine/research/ - rethink the page, try an alternative layout, measure, keep or revert, make it more visual, check persistence, land.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: the highlighted theory is always the newest, not the most contested/interesting one."
+  ]
+ },
+ {
+  "task": "ux-rethink",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-rethink/",
+  "title": "Spawn one Sonnet UX reviewer per realm (18 realms under /imagine/), each answering the owner's five questions, trying an alternative layout for real, making the",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Also landed:** three CSS prefixes registered in [css-scopes.txt](/framework/styles/css-scopes.txt) - `rethink-`, plus `rfront-` and `cms-`, which were two reviewers' proposals that would otherwise have died in a log.",
+   "**Left, deliberately.** Five proposals the reviewers could not apply themselves are in their logs with diffs - the largest is making core's grouped card wall render one grid per group, which hands every grouped wall on t"
+  ]
+ },
+ {
+  "task": "ux-scenes",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-scenes/",
+  "title": "UX rethink pass on /imagine/scenes/ — five sentences before/after, build and measure one real alternative layout, make it more visual, check persistence, land",
+  "status": "landed"
+ },
+ {
+  "task": "ux-screens",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-screens/",
+  "title": "UX rethink pass on /imagine/screens/ — five sentences, an actually-built alternative layout, measure and keep-or-revert, more visual, persistence check, ui-test",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Kept the useful half: each existing tile-wall card now shows a fourth short line, the demo's own measured stat (`.screens-verdict`), so a reader sees `1920/960/640/480 at 1920` etc."
+  ]
+ },
+ {
+  "task": "ux-shells",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-shells/",
+  "title": "Second UX pass on /imagine/shells/ - the ten app-shell layouts realm. Write five sentences, build and measure an alternative layout for real, make it more visua",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "A deeper fix - shells importing paging/words.js MECHANISMS directly instead of restating the fact - would make /imagine/shells/ depend on /imagine/paging/, a cross-realm import neither module declares today; left open in"
+  ]
+ },
+ {
+  "task": "ux-stream",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-stream/",
+  "title": "UX reviewer, second pass: rethink /imagine/stream/ landing page per reviewer-brief.md - five sentences, try an alternative layout for real and measure it, make ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Found and fixed a pre-existing console 404 on the deck card (a stale `shapes:` field plus a per-realm thumb-path bug in the shared `Deck` class) — fixed locally, one-line fix proposed for `decks/deck.js` in `doc/decision"
+  ]
+ },
+ {
+  "task": "ux-team",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-team/",
+  "title": "UX rethink pass on /imagine/team/ — five sentences before/after, try an alternative layout (3-column card is the brief's suggestion for this realm since it is o",
+  "status": "landed"
+ },
+ {
+  "task": "ux-vary",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-vary/",
+  "title": "UX rethink pass on /imagine/vary/ - five sentences, try an alternative layout and measure it, make it more visual, check persistence, resolve and land",
+  "status": "landed"
+ },
+ {
+  "task": "ux-youtube",
+  "date": "2026-09-05",
+  "link": "/framework/ai/2026-09-05/ux-youtube/",
+  "title": "UX rethink pass 2 on /imagine/youtube/ (the youtube realm): five sentences, try an alternative layout for real and measure it, make it more visual, check persis",
+  "status": "landed"
+ },
+ {
+  "skipped": []
+ }
+]

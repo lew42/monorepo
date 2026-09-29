@@ -1,0 +1,105 @@
+/* ux/Dictate/playground — the widget's own look. Layout is plain framework.css
+ * utilities (flex, gap, wrap, muted); this file is the rest: a bigger, always-visible
+ * level meter, a plain tab strip (not ext/tabs — this widget is ONE page's worth of
+ * DOM that never re-renders when a tab is picked, only shows/hides; doc/decisions.md),
+ * the code-font transcript box, the strike/add diff colours, and the Live tab's
+ * fade-then-collapse. */
+@layer theme {
+
+	/* `wide` (JS) opts the widget out of the page's default 40em reading measure, so this
+	 * is the number that actually caps it — readable, not the full wide track's width. A
+	 * transcript line at the old ~550px wrapped constantly at 1920 and 3440. */
+	.ux-dictate-pg { max-width: 60em; }
+
+	.ux-dictate-pg-sample { white-space: nowrap; }
+
+	/* The mic's own small caption (settled/partial text beside the button) would just
+	 * repeat the Raw panel below it — this widget IS that caption, at full size. */
+	.ux-dictate-pg-mic .ux-dictate-caption { display: none; }
+
+	/* ---- audio source panel: mic name, picker, and its own bigger meter ----- */
+
+	.ux-dictate-pg-audio-label, .ux-dictate-pg-meter-label { white-space: nowrap; }
+	.ux-dictate-pg-meter-label { font-size: .85em; }
+
+	/* A SEPARATE bar from the mic button's own tiny one (the owner: "larger" —
+	 * `Dictate.css`'s `.ux-dictate-level` is 3px wide and lives beside the icon,
+	 * too small to read as "the audio source panel"). Same signal, though: both
+	 * read the identical smoothed number, `Dictate`'s `on_meter()` hook — one
+	 * loudness calculation, two bars. Visible and FLAT at idle (`--ux-dictate-pg-level`
+	 * defaults to 0, set only while `Dictate` is actually listening) — never
+	 * invisible, so "is this even wired up" never has to be guessed.
+	 * ⚠ `--wash`/`--line` alone (8%/15% opacity) blended into the page at idle and read
+	 * as nothing at all, not a meter — a fresh review found it invisible in every
+	 * screenshot at every width. A darker mixed-in track and a plainly-visible border
+	 * fix that; the "level" label beside it (JS) removes any doubt further. */
+	.ux-dictate-pg-meter {
+		inline-size: 10em; block-size: 1.6em; border-radius: .3em; flex: none; overflow: hidden;
+		background: color-mix(in srgb, var(--ink) 10%, var(--wash));
+		border: 1px solid color-mix(in srgb, var(--ink) 35%, var(--line));
+	}
+	.ux-dictate-pg-meter-fill {
+		block-size: 100%; background: var(--prim);
+		inline-size: calc(var(--ux-dictate-pg-level, 0) * 100%);
+		transition: inline-size 80ms linear;
+	}
+
+	.ux-dictate-pg-status { font-style: italic; }
+	.ux-dictate-pg-status:empty { display: none; }
+
+	/* ---- the tab strip — quiet, the same shape ext/tabs draws (its own doc), ---
+	   just not ext/tabs itself: every panel below is ALREADY built and mounted, so
+	   picking a tab only shows/hides — nothing here is a Page and nothing re-renders. */
+	.ux-dictate-pg-tabs { display: flex; gap: 1.2em; border-bottom: 1px solid var(--line); }
+	.ux-dictate-pg-tab {
+		padding-block: .5em; border-bottom: 2px solid transparent; text-decoration: none;
+	}
+	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prim); }
+
+	/* ---- the three panels ---------------------------------------------------- */
+
+	.ux-dictate-pg-panels { padding-block-start: .8em; }
+
+	.ux-dictate-pg-code, .ux-dictate-pg-diff {
+		font-family: var(--mono);
+		font-size: .95em;
+		white-space: pre-wrap;
+		background: var(--code-bg, var(--wash));
+		color: var(--code-ink, inherit);
+		border-radius: var(--radius, .4em);
+		padding: 1em;
+		min-height: 6em;
+	}
+
+	.ux-dictate-pg-line { padding-block: .15em; }
+	.ux-dictate-pg-break { block-size: 1em; }   /* the blank line a long pause earns */
+
+	.ux-dictate-pg-guess { font-style: italic; }
+	.ux-dictate-pg-guess:empty { display: none; }
+
+	/* The one line an empty panel shows until its first real chunk — plain prose, not
+	 * code, so it doesn't read as part of the transcript it's explaining. */
+	.ux-dictate-pg-empty { font-family: initial; white-space: normal; font-style: italic; }
+
+	/* Flat, not `light-dark()` — same reason `--code-ink`/`--syn-*` are flat in
+	 * lew42.css: this box (`--code-bg`) is dark in BOTH colour modes, but `--error`/
+	 * `--ok` follow the PAGE's mode, so in light mode they resolved to their light
+	 * variants (#c00, #15803d) — too dark to read on a dark ground. A review caught
+	 * "so um", "uh" and "the" barely visible in a light-mode screenshot. These two are
+	 * picked for exactly this dark ground, the same pair a GitHub dark diff uses. */
+	.ux-dictate-pg-strike { color: #ff7b72; text-decoration: line-through; }
+	.ux-dictate-pg-add    { color: #7ee787; }
+
+	/* The Live panel's whole point: the marks dissolve, the clean words stay. The
+	 * FADE DURATION is set per element from JS (`Playground.FADE_MS`, one constant) —
+	 * this sheet only says WHAT transitions. `.ux-dictate-pg-faded` is added a frame
+	 * after the line first paints, so the browser has a starting state to transition
+	 * FROM. Fading `opacity` alone left the struck word's own WIDTH behind — a gap
+	 * exactly its size ("we should␣␣we should") that read as broken, not clean; JS
+	 * also sets `display: none` on each struck word once the fade finishes, which is
+	 * what actually closes that gap (a CSS-only collapse would have to animate
+	 * `inline-size` on an inline element, which does not exist to animate). */
+	.ux-dictate-pg-strike, .ux-dictate-pg-add { transition-property: opacity, color; transition-timing-function: ease-out; }
+	.ux-dictate-pg-faded .ux-dictate-pg-strike { opacity: 0; }
+	.ux-dictate-pg-faded .ux-dictate-pg-add { color: inherit; }
+}

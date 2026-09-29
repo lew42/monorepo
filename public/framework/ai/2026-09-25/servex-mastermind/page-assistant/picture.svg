@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" font-family="system-ui, sans-serif" font-size="15">
+  <style>
+    .b{fill:#fff;stroke:#555;stroke-width:1.5}.base{fill:#fff4e5;stroke:#e07a1f;stroke-width:1.5}
+    .s{fill:#eef6ee;stroke:#3a8a3a;stroke-width:1.5}.q{fill:#f3f7ff;stroke:#4a6fb5;stroke-width:1.2}
+    .t{fill:#222}.m{fill:#666;font-size:13px}.a{stroke:#777;stroke-width:1.5;fill:none;marker-end:url(#h)}
+    @media (prefers-color-scheme: dark){.b,.base,.s,.q{fill:#1e1e1e}.t{fill:#eee}.m{fill:#aaa}.a{stroke:#aaa}}
+  </style>
+  <defs><marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#777"/></marker></defs>
+
+  <text class="m" x="20" y="26">Any page</text>
+  <rect class="b" x="20" y="36" width="230" height="130" rx="8"/>
+  <text class="t" x="36" y="62" font-weight="600">/framework/ux/Tree/</text>
+  <text class="m" x="36" y="84">readme.md  (or page.jsonl)</text>
+  <rect class="q" x="36" y="120" width="96" height="30" rx="6"/>
+  <text class="t" x="50" y="140">💬 Chat</text>
+  <text class="m" x="140" y="140">dev bar, or</text>
+  <text class="m" x="140" y="156">a page button</text>
+
+  <text class="m" x="300" y="26">Baseline: one per page, never talked to</text>
+  <rect class="base" x="300" y="36" width="250" height="90" rx="8"/>
+  <text class="t" x="316" y="62" font-weight="600">checkpoint</text>
+  <text class="m" x="316" y="84">has read: assistant skill + readme</text>
+  <text class="m" x="316" y="104">rebuilt when the readme changes</text>
+  <path class="a" d="M250,84 L300,84"/>
+
+  <text class="m" x="610" y="26">Sessions: forks of the baseline (~98% cached)</text>
+  <rect class="s" x="610" y="36" width="330" height="56" rx="8"/>
+  <text class="t" x="626" y="60" font-weight="600">assistant-ux-Tree  ▸ Resume</text>
+  <text class="m" x="626" y="80">the current session; opens where you left it</text>
+  <rect class="s" x="610" y="104" width="330" height="56" rx="8"/>
+  <text class="t" x="626" y="128" font-weight="600">+ New session</text>
+  <text class="m" x="626" y="148">a fresh fork; the old one stays in the list</text>
+  <path class="a" d="M550,70 L610,64"/>
+  <path class="a" d="M550,100 L610,130"/>
+
+  <text class="m" x="610" y="196">Questions from agents: a one-shot fork</text>
+  <rect class="q" x="610" y="206" width="330" height="56" rx="8"/>
+  <text class="t" x="626" y="230" font-weight="600">ask_module(path, question)</text>
+  <text class="m" x="626" y="250">answers in a few lines, then stops</text>
+  <path class="a" d="M500,126 L610,230"/>
+
+  <text class="m" x="20" y="316">Life cycle</text>
+  <text class="t" x="20" y="342">idle 10 min → stopped (session kept) → a message wakes it → at most 30 running → transcripts kept 30 days</text>
+  <text class="m" x="20" y="370">The same machine as today's card assistants: a card is just a page whose baseline has read its page.jsonl.</text>
+</svg>

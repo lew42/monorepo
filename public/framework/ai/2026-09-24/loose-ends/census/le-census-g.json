@@ -1,0 +1,459 @@
+[
+ {
+  "task": "color-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/color-study/",
+  "title": "color study",
+  "status": "landed"
+ },
+ {
+  "task": "controls-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/controls-study/",
+  "title": "controls study",
+  "status": "landed"
+ },
+ {
+  "task": "journey-crawl",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/journey-crawl/",
+  "title": "journey crawl",
+  "status": "landed"
+ },
+ {
+  "task": "layout-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/layout-study/",
+  "title": "layout study",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-design-crawl",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/mastermind-design-crawl/",
+  "title": "mastermind design crawl",
+  "status": "landed"
+ },
+ {
+  "task": "navigation-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/navigation-study/",
+  "title": "navigation study",
+  "status": "landed"
+ },
+ {
+  "task": "padding-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/padding-study/",
+  "title": "padding study",
+  "status": "landed"
+ },
+ {
+  "task": "scale-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/scale-study/",
+  "title": "scale study",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-clamp",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/spacing-clamp/",
+  "title": "spacing clamp",
+  "status": "landed"
+ },
+ {
+  "task": "system-proposal",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/system-proposal/",
+  "title": "system proposal",
+  "status": "landed"
+ },
+ {
+  "task": "themes-browser",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/themes-browser/",
+  "title": "themes browser",
+  "status": "landed"
+ },
+ {
+  "task": "type-study",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/type-study/",
+  "title": "type study",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "MEASURE VERDICT: characters-per-line.md measured --measure at the OLD value 52em (83-108 chars). Live Page.css ships --measure:40em"
+  ]
+ },
+ {
+  "task": "vocabulary-tags",
+  "date": "2026-09-01",
+  "link": "/framework/ai/2026-09-01/vocabulary-tags/",
+  "title": "vocabulary tags",
+  "status": "landed"
+ },
+ {
+  "task": "decision-data",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/decision-data/",
+  "title": "decision data",
+  "status": "landed"
+ },
+ {
+  "task": "decision-identity",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/decision-identity/",
+  "title": "decision identity",
+  "status": "landed"
+ },
+ {
+  "task": "decision-topic-model",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/decision-topic-model/",
+  "title": "decision topic model",
+  "status": "landed"
+ },
+ {
+  "task": "existing-framework",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/existing-framework/",
+  "title": "existing framework",
+  "status": "landed"
+ },
+ {
+  "task": "hub-report",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/hub-report/",
+  "title": "hub report",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "finding, not fixed (outside fences and pre-existing sitewide): every .md-fallback page"
+  ]
+ },
+ {
+  "task": "imagine-blogx",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-blogx/",
+  "title": "imagine blogx",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-cms",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-cms/",
+  "title": "imagine cms",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-decks",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-decks/",
+  "title": "imagine decks",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-design",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-design/",
+  "title": "imagine design",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-feeds",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-feeds/",
+  "title": "imagine feeds",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-gallery",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-gallery/",
+  "title": "imagine gallery",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-game",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-game/",
+  "title": "imagine game",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "PROPOSED (not applied - needs design work beyond a safe page.js/CSS edit, and revisits a documented decision)"
+  ]
+ },
+ {
+  "task": "imagine-generated",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-generated/",
+  "title": "imagine generated",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "the deeper placeholder-title pattern (Queue, Register, Atlas, etc. three levels down)"
+  ]
+ },
+ {
+  "task": "imagine-mag",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-mag/",
+  "title": "imagine mag",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "PROPOSED (not applied, no core/ext touch needed but deferred as a bigger design pass than this review's budget): a genuine full-bleed treatment for the cover at ultra-wide"
+  ]
+ },
+ {
+  "task": "imagine-platform",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-platform/",
+  "title": "imagine platform",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "PROPOSED 2 (left open, budget - not a fence): existing/page.js, prior/page.js and decisions/*.md share MVP's dense-engineering-jargon pattern"
+  ]
+ },
+ {
+  "task": "imagine-research",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-research/",
+  "title": "imagine research",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-review",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-review/",
+  "title": "imagine review",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-scenes",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-scenes/",
+  "title": "imagine scenes",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-screens",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-screens/",
+  "title": "imagine screens",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-shells",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-shells/",
+  "title": "imagine shells",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-stream",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-stream/",
+  "title": "imagine stream",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-team",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-team/",
+  "title": "imagine team",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "PROPOSALS (outside my fence, not applied): (1) upstream diff for public/imagine/imagine.css"
+  ]
+ },
+ {
+  "task": "imagine-vary",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-vary/",
+  "title": "imagine vary",
+  "status": "landed"
+ },
+ {
+  "task": "imagine-youtube",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/imagine-youtube/",
+  "title": "imagine youtube",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "one width decision confirmed still open"
+  ]
+ },
+ {
+  "task": "local-dev-harness",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/local-dev-harness/",
+  "title": "local dev harness",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-platform",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/mastermind-platform/",
+  "title": "mastermind platform",
+  "status": "landed"
+ },
+ {
+  "task": "omnibox-prototype",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/omnibox-prototype/",
+  "title": "omnibox prototype",
+  "status": "landed"
+ },
+ {
+  "task": "paging",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging/",
+  "title": "paging",
+  "status": "unlanded"
+ },
+ {
+  "task": "paging-clarity",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-clarity/",
+  "title": "paging clarity",
+  "status": "landed"
+ },
+ {
+  "task": "paging-core",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-core/",
+  "title": "paging core",
+  "status": "landed"
+ },
+ {
+  "task": "paging-critique",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-critique/",
+  "title": "paging critique",
+  "status": "landed"
+ },
+ {
+  "task": "paging-explorer",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-explorer/",
+  "title": "paging explorer",
+  "status": "landed"
+ },
+ {
+  "task": "paging-rightnav",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-rightnav/",
+  "title": "paging rightnav",
+  "status": "landed"
+ },
+ {
+  "task": "paging-scout",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-scout/",
+  "title": "paging scout",
+  "status": "landed"
+ },
+ {
+  "task": "paging-toolbars",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/paging-toolbars/",
+  "title": "paging toolbars",
+  "status": "landed"
+ },
+ {
+  "task": "prior-cloudflare",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/prior-cloudflare/",
+  "title": "prior cloudflare",
+  "status": "landed"
+ },
+ {
+  "task": "realm-alternates",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/realm-alternates/",
+  "title": "realm alternates",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Two of three realms fixed; the third measured and deliberately not shipped."
+  ]
+ },
+ {
+  "task": "research-ai",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-ai/",
+  "title": "research ai",
+  "status": "landed"
+ },
+ {
+  "task": "research-cloudflare",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-cloudflare/",
+  "title": "research cloudflare",
+  "status": "landed"
+ },
+ {
+  "task": "research-community",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-community/",
+  "title": "research community",
+  "status": "landed"
+ },
+ {
+  "task": "research-data",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-data/",
+  "title": "research data",
+  "status": "landed"
+ },
+ {
+  "task": "research-payments",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-payments/",
+  "title": "research payments",
+  "status": "landed"
+ },
+ {
+  "task": "research-realtime",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-realtime/",
+  "title": "research realtime",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "flags a direct conflict with research/cloudflare verdict which picked one DO per topic -- unresolved, needs owner tie"
+  ]
+ },
+ {
+  "task": "research-security",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-security/",
+  "title": "research security",
+  "status": "landed"
+ },
+ {
+  "task": "research-users",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-users/",
+  "title": "research users",
+  "status": "landed"
+ },
+ {
+  "task": "research-video",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/research-video/",
+  "title": "research video",
+  "status": "landed"
+ },
+ {
+  "task": "screens-divide",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/screens-divide/",
+  "title": "screens divide",
+  "status": "landed"
+ },
+ {
+  "task": "table-equal",
+  "date": "2026-09-04",
+  "link": "/framework/ai/2026-09-04/table-equal/",
+  "title": "table equal",
+  "status": "landed"
+ }
+]

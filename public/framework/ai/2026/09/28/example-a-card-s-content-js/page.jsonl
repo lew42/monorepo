@@ -1,0 +1,6 @@
+{"class":"/framework/ai2/card.js","title":"Example: a card's content.js","type":"note","id":"2026/09/28/example-a-card-s-content-js","created":"2026-09-28T14:10:32-05:00","by":"task-mastermind-ai2-lead-2","tags":[]}
+{"file":"content.js"}
+{"file":"content.js"}
+{"place":{"module":"content.js"}}
+{"file":"content.js"}
+{"message":{"by":"task-mastermind-ai2-lead-2","text":"A card can draw anything: put a content.js in its folder, import any modules from the site, and place it with one line. This card is the example.","at":"2026-09-28T14:10:45-05:00"}}

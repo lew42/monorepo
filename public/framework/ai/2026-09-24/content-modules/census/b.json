@@ -1,0 +1,498 @@
+[
+ {
+  "name": "preview card",
+  "what": "A linked tile for one child page: a picture (or a sentence) above its title; the wall an index page is built from.",
+  "source": "public/framework/core/Page/Page.class.js:892",
+  "classes": [
+   ".page-preview",
+   ".page-preview-thumb",
+   ".page-preview-link",
+   ".page-preview-desc"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/core/Page/",
+   "every index page via previews()"
+  ],
+  "used_count": 309,
+  "padding": "padding 0 and no background at Page.css:1186; the thumb carries the box",
+  "bleeds": "no (inside .page-previews.bleed)",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   "v3 tile",
+   "decks card",
+   "blog card"
+  ],
+  "notes": "Needs a Page instance (preview_card(nav, thumb)), so render is null. Count is files of any type mentioning the class."
+ },
+ {
+  "name": "preview wall",
+  "what": "The wrapping grid of preview cards that an index page shows for its children; may carry group headings.",
+  "source": "public/framework/core/Page/Page.class.js:856",
+  "classes": [
+   ".page-previews",
+   ".page-previews-group",
+   ".page-walls",
+   ".page-wall"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/core/Page/"
+  ],
+  "used_count": null,
+  "padding": "none of its own; padding-inline var(--gutter-x) in .page.standard",
+  "bleeds": "yes: the .bleed word takes the widest grid track",
+  "interactive": false,
+  "duplicates": [],
+  "notes": "walls() (Page.class.js:869) nests one wall per grandchild group. Rail form .rail:has(> .page-preview) forces 11em cards (Page.css:1037)."
+ },
+ {
+  "name": "wireframe picture",
+  "what": "A chrome-free mini drawing of a page shape (29 words), used as a preview card thumbnail instead of a zoomed live render.",
+  "source": "public/framework/ext/demo/mini.js:24",
+  "classes": [
+   ".demo-mini--<word>",
+   ".demo-mini-<part>"
+  ],
+  "render": "import { mini } from '/framework/ext/demo/mini.js'; import { div } from '/app.js'; div.c('card', () => mini('tabs'));",
+  "used_in": [
+   "/framework/core/Page/"
+  ],
+  "used_count": null,
+  "padding": "none; parts size themselves in em (mini.css)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "zoom-25 live thumb"
+  ],
+  "notes": "Trap from the readme: a PART is .demo-mini-x, a PICTURE .demo-mini--x; one dash misapplies padding."
+ },
+ {
+  "name": "wireframe tile",
+  "what": "One tiny grey rectangle inside a wireframe picture; a stand-in for a card.",
+  "source": "public/framework/ext/demo/mini.css:146",
+  "classes": [
+   ".demo-mini-tile"
+  ],
+  "render": null,
+  "used_in": [
+   "ext/demo/mini.css"
+  ],
+  "used_count": 2,
+  "padding": "none, min-height 1.8em",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card"
+  ],
+  "notes": "Another spelling of a box with surface fill and hairline; a drawing, not a real card."
+ },
+ {
+  "name": "card",
+  "what": "The framework's one padded, bordered surface for a heading and text; optional coloured status edge and selected ring.",
+  "source": "public/framework/framework.css:489",
+  "classes": [
+   ".card",
+   ".card.selected",
+   "--card-edge"
+  ],
+  "render": "import { div, h4, p } from '/app.js'; div.c('card', () => { h4('Title'); p('A card holds a heading and a paragraph.'); });",
+  "used_in": [
+   "site-wide"
+  ],
+  "used_count": 56,
+  "padding": "--pad-card = clamp(1rem, 2.6%, 2em) * --size",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "surface",
+   "preview card",
+   "decks card",
+   "blog card",
+   "v3 tile",
+   "dev chat card"
+  ],
+  "notes": "Count is files with c(\"card. The 3px edge is always reserved. framework.css:456 says 180 hand-rolled card classes were the reason .card exists."
+ },
+ {
+  "name": "surface",
+  "what": "The card look without its padding: fill, hairline, radius.",
+  "source": "public/framework/framework.css:456",
+  "classes": [
+   ".surface"
+  ],
+  "render": "import { div, p } from '/app.js'; div.c('surface pad', () => p('A surface needs .pad added.'));",
+  "used_in": [
+   "site-wide"
+  ],
+  "used_count": 120,
+  "padding": "none; caller adds .pad",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card"
+  ],
+  "notes": "Twin of .card: forgetting the second word gives an unpadded box, the trap .card was made to remove. Count is files with c(\"surface."
+ },
+ {
+  "name": "wash",
+  "what": "A background-only tint box (no border, no padding).",
+  "source": "public/framework/framework.css:503",
+  "classes": [
+   ".wash",
+   ".tint"
+  ],
+  "render": "import { div, p } from '/app.js'; div.c('wash pad', () => p('Tinted ground.'));",
+  "used_in": [
+   "site-wide"
+  ],
+  "used_count": null,
+  "padding": "none",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "surface"
+  ],
+  "notes": "--tint once had no class and painted nothing silently (framework.css comment after line 503)."
+ },
+ {
+  "name": "decks card",
+  "what": "A small tinted, bordered link tile in the decks lab.",
+  "source": "public/framework/../imagine/decks/decks.css:177",
+  "classes": [
+   ".decks-card"
+  ],
+  "render": null,
+  "used_in": [
+   "/imagine/decks/",
+   "layouts/labs/decks (verbatim copy)"
+  ],
+  "used_count": 5,
+  "padding": "0.8em 0.9em, hard-coded",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   "preview card"
+  ],
+  "notes": "Duplicate of .card with its own padding; decks.css is copied verbatim under layouts/labs/."
+ },
+ {
+  "name": "blog card",
+  "what": "A surface-coloured article tile with a hairline on two sides and a hover shade.",
+  "source": "public/framework/../imagine/blogx/blogx.css:266",
+  "classes": [
+   ".blogx-card"
+  ],
+  "render": null,
+  "used_in": [
+   "/imagine/blogx/",
+   "layouts/labs/blogx (copy)"
+  ],
+  "used_count": 10,
+  "padding": "1em 1.1em 1.2em, hard-coded",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   "decks card"
+  ],
+  "notes": "A third card padding; box-shadow instead of a border."
+ },
+ {
+  "name": "three-column card",
+  "what": "One wide row of three columns (facts, main content, meta) in the imagine realm.",
+  "source": "public/framework/../imagine/imagine.css:479",
+  "classes": [
+   ".imagine-card3",
+   ".imagine-card3-left",
+   ".imagine-card3-center",
+   ".imagine-card3-right"
+  ],
+  "render": null,
+  "used_in": [
+   "/imagine/"
+  ],
+  "used_count": 7,
+  "padding": "no padding; gap var(--gap-default), margin-block-end 1.2em",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card"
+  ],
+  "notes": "Named card but is a grid layout; collapses to one column in a query."
+ },
+ {
+  "name": "v3 tile",
+  "what": "A clickable board tile in the AI dashboard: icon, title, one sentence, footer.",
+  "source": "public/framework/ai/v/3/v3.css:345",
+  "classes": [
+   ".v3-tile",
+   ".v3-tile-compact",
+   ".v3-tile-big",
+   ".v3-tile-head",
+   ".v3-tile-title"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 22,
+  "padding": "set elsewhere in v3.css (not read in full)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   "preview card"
+  ],
+  "notes": "Own background token --v3-card and its own selected look (box-shadow none): a fork of .card.selected."
+ },
+ {
+  "name": "dev chat card",
+  "what": "A message card in the dev bar chat.",
+  "source": "public/framework/dev/DevBar/devbar.css:466",
+  "classes": [
+   ".dev-chat-card"
+  ],
+  "render": null,
+  "used_in": [
+   "dev bar"
+  ],
+  "used_count": 5,
+  "padding": "not read",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card"
+  ],
+  "notes": "A test copy sits in ai/2026-09-19/devbar-chat/test/chat-test.css:54."
+ },
+ {
+  "name": "ai2 card page",
+  "what": "A Page styled as a card on the ai2 board.",
+  "source": "public/framework/ai2/ai2.css:469",
+  "classes": [
+   ".page.ai2-card-page"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 5,
+  "padding": "not read",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card",
+   "preview card"
+  ],
+  "notes": "A Page pretending to be a card."
+ },
+ {
+  "name": "paging box",
+  "what": "A vertical stack of headings and paragraphs used as swappable content in the paging lab.",
+  "source": "public/framework/../imagine/paging/paging.css:26",
+  "classes": [
+   ".paging-box"
+  ],
+  "render": null,
+  "used_in": [
+   "/imagine/paging/"
+  ],
+  "used_count": 11,
+  "padding": "none; gap var(--gap-70)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [],
+  "notes": "Prose is limited to --measure (paging.css:30)."
+ },
+ {
+  "name": "section band",
+  "what": "A full-width themed strip (hero, callout, stats, faq...) from the section library; each section is a function returning a band.",
+  "source": "public/framework/styles/sections/callout.js:5",
+  "classes": [
+   ".section-band"
+  ],
+  "render": "import callout from '/framework/styles/sections/callout.js'; callout('prim');",
+  "used_in": [
+   "/framework/styles/sections/"
+  ],
+  "used_count": 38,
+  "padding": "inner .measure (62em) plus per-section padding",
+  "bleeds": "yes: full-width band with an inner .measure",
+  "interactive": false,
+  "duplicates": [
+   "surface"
+  ],
+  "notes": "Count is files. Sections hand-build inner boxes (stats uses div.c('pad flex v')) rather than .card."
+ },
+ {
+  "name": "stat tile",
+  "what": "A padded label-over-big-number box inside the stats section.",
+  "source": "public/framework/styles/sections/stats.js:5",
+  "classes": [
+   ".pad",
+   ".flex",
+   ".v"
+  ],
+  "render": null,
+  "used_in": [
+   "styles/sections/stats.js"
+  ],
+  "used_count": null,
+  "padding": ".pad",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "card"
+  ],
+  "notes": "Built from utility words, not .card: another spelling of a small padded box."
+ },
+ {
+  "name": "demo shell",
+  "what": "The whole demo band: path above, render in a stage, source column beside; what page.demo() draws.",
+  "source": "public/framework/ext/demo/shell.css:15",
+  "classes": [
+   ".demo-shell",
+   ".demo-shell-code"
+  ],
+  "render": "import { demo } from '/app.js'; demo(() => { h1('Hello'); }, 'Caption - the code shown IS the code that ran.');",
+  "used_in": [
+   "all demo() callers (readme says 202)"
+  ],
+  "used_count": 19,
+  "padding": "padding-inline var(--gutter-x)",
+  "bleeds": "no (a leaf page stage takes .bleed)",
+  "interactive": true,
+  "duplicates": [
+   "demo stage"
+  ],
+  "notes": "Splits to two columns from ~1310px of its own width."
+ },
+ {
+  "name": "demo stage",
+  "what": "One resizable viewport with a width readout and preset widths 390/810/1440/3440.",
+  "source": "public/framework/ext/demo/stage.js:29",
+  "classes": [
+   ".demo-stage",
+   ".demo-screen",
+   ".demo-render"
+  ],
+  "render": "import { demo } from '/app.js'; demo.stage(() => p('Drag the handle.'));",
+  "used_in": [
+   "ext/demo",
+   "ext/Panel/Workspace"
+  ],
+  "used_count": 47,
+  "padding": ".demo-screen padding var(--demo-pad, 1.5rem)",
+  "bleeds": "yes: .demo-stage.bleed zeroes the screen padding",
+  "interactive": true,
+  "duplicates": [
+   "pane (device frame)"
+  ],
+  "notes": "The three nested boxes cannot merge (overflow). A div is not a viewport: @media inside ignores the handle."
+ },
+ {
+  "name": "demo app",
+  "what": "A Page tree playing App and Router inside a box.",
+  "source": "public/framework/ext/demo/app.js:237",
+  "classes": [
+   ".demo-app"
+  ],
+  "render": "import { demo } from '/app.js'; import sample from '/framework/ext/demo/sample.js'; demo.app(sample());",
+  "used_in": [
+   "ext/demo"
+  ],
+  "used_count": null,
+  "padding": "none",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "demo stage"
+  ],
+  "notes": "Defaults urls:false; hides its own width readout inside stages and preview cards. sample.js default export was not verified."
+ },
+ {
+  "name": "demo steps",
+  "what": "A two-column hero: numbered steps beside a live demo, each step ticking when the demo fires its event.",
+  "source": "public/framework/ext/demo/steps.js:101",
+  "classes": [
+   ".demo-steps"
+  ],
+  "render": null,
+  "used_in": [
+   "ext/demo"
+  ],
+  "used_count": null,
+  "padding": "steps.css",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "demo shell"
+  ],
+  "notes": "Needs a stage function and event names, so render is null."
+ },
+ {
+  "name": "omnibox",
+  "what": "The search box and results in the site chrome.",
+  "source": "public/framework/core/Search/Search.css:11",
+  "classes": [
+   ".omnibox",
+   ".omnibox-bar"
+  ],
+  "render": null,
+  "used_in": [
+   "site chrome"
+  ],
+  "used_count": 49,
+  "padding": "not read",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [],
+  "notes": "Count is all files mentioning it."
+ },
+ {
+  "name": "tab panel",
+  "what": "The content pane belonging to one tab of a tabbed page.",
+  "source": "public/framework/core/new/1/site/compound/compound.css:69",
+  "classes": [
+   ".tab-panel",
+   ".paging-tab-panel"
+  ],
+  "render": null,
+  "used_in": [
+   "tabbed pages"
+  ],
+  "used_count": 94,
+  "padding": "panel unset; a direct .page child gets padding 0 (compound.css:73)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [],
+  "notes": "Count is files."
+ },
+ {
+  "name": "editing panel",
+  "what": "The ext/Panel editor: bar, body, workspace, items, props, grips.",
+  "source": "public/framework/ext/Panel/panel.css:79",
+  "classes": [
+   ".panel",
+   ".panel-bar",
+   ".panel-body",
+   ".panel-items",
+   ".panel-workspace",
+   ".panel-btn",
+   ".panel-grip"
+  ],
+  "render": null,
+  "used_in": [
+   "ext/Panel (part C's territory)"
+  ],
+  "used_count": 94,
+  "padding": "panel own tokens",
+  "bleeds": "yes: --panel-hug seams of 0px",
+  "interactive": true,
+  "duplicates": [],
+  "notes": "The word panel is overloaded: the 94 .panel rules top the class census; .tab-panel and .paging-tab-panel mean something else."
+ }
+]

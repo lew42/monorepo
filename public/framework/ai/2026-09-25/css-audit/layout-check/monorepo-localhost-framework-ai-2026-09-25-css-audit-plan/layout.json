@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-25/css-audit/plan/",
+ "widths": {
+  "1280": {
+   "empty": 0.479,
+   "widest_text": 898,
+   "widest_text_sample": "8,599 of 35,769 lines could go, and abou",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 0.464
+  },
+  "1920": {
+   "empty": 0.531,
+   "widest_text": 1458,
+   "widest_text_sample": "public/ holds 35,769 lines of CSS. The e",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 0.696
+  },
+  "2560": {
+   "empty": 0.549,
+   "widest_text": 1913,
+   "widest_text_sample": "public/ holds 35,769 lines of CSS. The e",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 0.696
+  },
+  "3440": {
+   "empty": 0.635,
+   "widest_text": 2887,
+   "widest_text_sample": "public/ holds 35,769 lines of CSS. The e",
+   "overflow_x": false,
+   "items": 56,
+   "narrow_share": 0.696
+  }
+ },
+ "errors": []
+}

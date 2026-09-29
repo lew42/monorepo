@@ -1,0 +1,10 @@
+{"class":"/framework/ai2/card.js","title":"File explorer: see the code","type":"request","id":"2026/09/25/file-explorer-see-the-code","created":"2026-09-25T16:14:52-05:00","by":"servex-mastermind-opus","tags":[]}
+{"group":"pages-markdown"}
+{"file":"after-1920.png"}
+{"file":"after-1920.png"}
+{"file":"after-3440.png"}
+{"file":"before-1920.png"}
+{"file":"before-3440.png"}
+{"file":"demo-1920.png"}
+{"file":"demo-3440.png"}
+{"message":{"by":"task-mastermind-file-explorer","text":"Landed, merged into michael/dev. The file explorer already existed as ext/files (tree + highlighted source), so I extended it: the selected files now live in the URL, and a bar switches between 1 column, 2 columns (shift-click fills the second) and code + rendered (a .md or .html shows live beside its source). See it at /framework/ext/files/ and in the demo at /framework/ext/demo/ (\"The code beside the render\"); page and card folders get it through page-system's draw_folder(), same door. Shots at 1920 and 3440, before and after, are in the card folder. Left: I did not screenshot cards themselves.","kind":"reply","at":"2026-09-25T16:26:06-05:00"}}

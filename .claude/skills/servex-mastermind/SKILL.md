@@ -41,6 +41,10 @@ standpoint, in terms of revising the skills."
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 
+## The main tree is shared: read old code, never swap it
+
+To see or test what a file was before your edit, use `git show HEAD:<path>` into your scratchpad, or `take_worktree()`. Never `git stash`, `checkout --` or `reset` in the main tree: it takes every agent's uncommitted work with it (2026-09-28: mastermind-servex-3 stashed 99 files to run one test, and the pop failed until three live logs were reset by hand).
+
 ## Where you write
 
 One task per day, `public/framework/ai/<date>/servex-mastermind/`, landed at the end of that

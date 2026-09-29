@@ -300,3 +300,16 @@ stop), and `draw_caption()` keeps every settled sentence as its own line, append
 one string capped at 240 characters. Proven against a private Servex + a concatenated 3x `jfk.wav`
 clip on both `talk` and AI 2's composer: three real whisper segments, the box's `value` stayed
 `""` throughout, "stop after a pause" was absent, zero console errors — `ai/2026-09-22/open-mic/`.
+
+## The dictation box: growth, jumping, breaks and delay (2026-09-24)
+
+- **Height.** The composer box grows with the words up to `min(40vh, 12lh)` (about twelve lines), then scrolls inside itself with the newest words in view (`ext/Chat/Chat.css`, `Mic.js`).
+- **Why it jumped.** Dictate's `close_segment()` blanked the guess the instant a pause closed a segment, then waited for Whisper's final (100–300 ms): the box emptied, shrank to two lines, and grew back. `ComposerMic` now keeps the guess in `pending` until its final arrives, and never lets the box shrink while dictating (`floor_h`, released on Send). The old italic caption line sat in a fixed row, so nothing below it could move.
+- **Odd breaks.** Whisper puts `\n` between its own segments mid-speech; `transcribe()` now collapses all whitespace. A paragraph break needs a 1.5 s pause **and** a finished sentence before it.
+- **Delay.** Whisper's answer reaches the box in about 4 ms; the time is Whisper itself (~100 ms warm, ~300 ms first request) plus the final queueing behind an in-flight guess (whisper-server is one request at a time). No guess is now started once the speaker has been quiet 300 ms (`skip_partial_after_ms`).
+
+## Send modes and the delay (2026-09-24)
+
+`ComposerMic.send_mode` (in `ext/Chat/Mic.js`) decides when finished sentences leave the box: `manual` (default — only Send, so nothing can go early), `pause` (4 s of silence, only if the last sentence is finished), `sentences` (every 3 finished sentences). Send never cuts the live guess: the moving sentence is kept out of what Send reads, then redrawn into the emptied box. Try all three at [`/framework/ux/Dictate/demo/`](/framework/ux/Dictate/demo/).
+
+Delay, measured over 20 updates: Whisper answers in about 67 ms (max 283 ms); everything after the answer — filler filter, paragraphing, setting the box — is under 0.5 ms in total. The felt delay was the wait between guesses, so `resend_ms` went from 1500 to 900. Paragraph breaks need a pause of 1.5 s AND a finished sentence before it; Whisper's own newlines are collapsed to spaces.

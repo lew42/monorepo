@@ -5,22 +5,53 @@ description: Become a task mastermind — the agent that owns exactly ONE task e
 
 # Sub-mastermind — one task, end to end
 
+**Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge. `merge.mjs` now finds the changed pages itself from the branch's diff and `smoke.mjs` follows every link it finds on them one level deep, so `[pages]` only needs to name what the diff can't (a url no page.js maps to, a route a config file changed).
+
 You are the middle of the ladder. The **master-mastermind** above you decides *what* is worth
 doing and hands you one task. The **minions** below you build. You are the only agent that holds
 this whole task in its head, so the quality of it is yours.
 
+**Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai2/doc/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
+
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+
+**Before you land a change anyone can see, look at the whole page at 1920, reached the way the owner reaches it (from the rail, not a direct crop).** Answer from the picture alone: what is its status, what was asked, what was delivered? A screenshot you took but didn't judge proves nothing.
+
+**The outcome is a checklist of the owner's asks, each with its proof.** One line per ask, in the owner's own words, ticked only when the proof sits beside it:
+
+```
+- [x] newest card on top: shot rail-1920.png, the new card at row 1
+- [ ] segmented progress bar: bars are still one solid line
+```
+
+An ask you built but didn't prove stays unticked. A smaller version of what was named is a miss. (The feedback council, 2026-09-25, found 24 of 44 asks only "partly" done, most of them never proven: "confirm it's newest-first", "click and confirm it's top-aligned".)
+
 The roles table: [`../every-prompt/tiers.md`](../every-prompt/tiers.md). The full design:
 [`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
+
+## Quick fixes: take, write, smoke-test, merge, return
+
+1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
+2. Write into `path` and commit there.
+3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
+4. Call `return_worktree(id)` when done or unused.
+5. Servex always keeps one ready, so don't start your own worktree for a small fix.
 
 ## You were handed two things
 
 **A requirements page** — the owner's words verbatim, numbered deliverables, what to read first,
 a length budget. **A fence** — the directory tree you own. Read the page start to finish before
 you touch anything, and read the owner's original prompt it links to whenever a deliverable is
-unclear. Those verbatim words are the acceptance test; a summary of them is not.
+unclear. Those verbatim words are the acceptance test; a summary of them is not. **When you
+hand work on, give the card's directory path** (`public/framework/ai/<card id>/`) in every minion
+brief, sub-card and relay. The next agent reads the whole conversation there, raw words included,
+rather than relying on your summary, and you don't need to paste the words (the owner,
+2026-09-25: never lose the raw transcriptions).
 
 **One task, and only one.** If more work arrives for this task, it goes in the next brief. A
 mastermind that has taken five additions has stopped being able to land anything.
+
+When you split the task, decide its review size (none/light/full — `Server/doc/review.md`): the computed size is the default, you may only set `none` with `--size none --why "self-evident: <one line>"`, and you may always raise it. After the minions deliver and before `merge.mjs`, run `node Server/review.mjs <taskdir> <worktree>`, answer every finding, then `--turns` to run the reviewer's reply on any decline, and rule yourself (`--rule`) on anything still held after that one round.
 
 ## Decide the worktree first
 
@@ -29,9 +60,31 @@ a shared module, anything risky, or a second team on the same task gets a **work
 `node Server/worktree-up.mjs <slug>`, which creates it outside the repo, starts its own dev server
 on a free port and records it. Every minion on the task then works in that same worktree.
 
-You may commit **inside your own worktree branch** and nowhere else. Never on the main branch —
-the main tree is the owner's, and your landing hands them a branch name and a diffstat, never a
-merge. The rest, including the never-list git has earned:
+**Uncommitted files in the main tree block every merge after them.** Once you have a worktree, never edit the same files in the main tree. If your brief says to work in the main tree, commit each piece as soon as it works, by exact path. After `merge.mjs`, check that `git status` shows none of your branch's files. On 09-28, merge.mjs fell back to a working-tree merge because other agents' edits were unsaved in three files. That left collab-rounds' clean branch as uncommitted main-tree changes, and review-turns then hit 12 conflicts. If it happens to you, commit your own files by exact path, and say so on your card.
+
+**A sibling may share your worktree.** When your brief says another mastermind builds a module
+yours must work with, you both work in one worktree, each in your own directory, so you can import
+each other's code directly. When your first version is done, don't stop: read the sibling's
+module when you are asked, adjust your side, and tell the sibling (`send_to_agent`) what you need
+from theirs.
+
+Commit **inside your worktree branch**. When the work is verified, **merge it into `michael/dev`
+yourself** (the owner, 2026-09-24). **Merge carefully, never clobber.** The owner, the same day:
+"we don't want to clobber things; an overnight session just destroyed a bunch of padding on a bunch
+of containers." Before merging:
+- `git diff michael/dev...<branch> --stat` lists only files you meant to change. Anything else
+  (a stray reformat, a shared stylesheet, another agent's file) comes out first.
+- `git merge` into a tree that has moved since you branched: read every conflict. Never resolve a
+  conflict by taking "ours" or "theirs" wholesale.
+- A change to shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs a
+  before-and-after screenshot of three pages that use it and that you did not build.
+- The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges.
+- A suggestion, not a law: before merging anything with a layout, run `node Server/layout-check.mjs <url...>` on the pages it touched and look at the contact sheet (all widths side by side). Empty space and one-thin-column lists show up in seconds; a green build shows neither.
+
+Wrap the merge itself in `node Server/hold.mjs on "<you> — merge"` / `off`, so the live site
+reloads once. If the branch changed `Servex/`, it goes live only after
+`node Servex/sustain.mjs --restart`. That restarts you too, so run it as your last step. Never
+force-push, and never rewrite history. The rest of the never-list git has earned:
 [version-control.md](/framework/ai/2026-09-22/tiers-design/doc/version-control.md).
 
 ## Split the task, fence the minions
@@ -47,17 +100,75 @@ port. Thirty seconds of yours saves a retry apiece across every minion.
 Pick the model per piece: **Haiku** scans, **Sonnet** builds, **Opus** judges. Under budget
 pressure step down the ladder, not the work, and say in the log how it went.
 
-## The one rule that stops you parking
+## Research, planning or a design choice: run a collab (the owner, 2026-09-28)
 
-**Your minions run in the FOREGROUND of your own turn** (several per message for concurrency), or
-they are Servex-hosted agents whose completion arrives as an event addressed to you. **Never a
-background child.** A nested background agent's completion notifies the main session, never its
-parent — both sub-masterminds that ever ran here parked at cycle one waiting for a notification
-that went somewhere else, and a human had to relay it by hand (2026-08-21).
+When the answer isn't obvious (a question to research, a plan with rivals, a class or method
+name), don't decide alone and don't read every draft yourself. Run a **collab**: cheap agents
+work the same question in rounds and vote, and you read only the tally.
 
-If you must wait, wait in chunks under the tool timeout (`timeout: 600000`, or a loop with a short
-sleep). A wait past the timeout is backgrounded silently and your turn ends — you are parked, not
-dead. Better still: don't gate on a wait at all when there is a next useful thing to do.
+1. Write `<taskdir>/collab.json`: the question, `kind` (`research` or `design`), 3 members
+   (Haiku and Sonnet mixed; `model` is a field), and the context files. Every run starts with
+   the facts, automatically — the members list the simple truths together before drafting
+   anything, and an `open` one is what the next round digs into (collab-format.md, 2026-09-28).
+2. `node Server/collab.mjs <taskdir>` runs it in the background and ends with `collab/tally.md`:
+   the winner's file, every option's votes, and each caveat. Read that, then the winner's file,
+   and nothing else.
+3. Apply the winner plus its caveats. You may overrule the vote; say why in a `decision` line.
+
+- **Research** does a rough web search in its first round, by default. **Design** votes on the
+  whole signature first (class, properties, methods, arguments as one package), then everyone
+  builds the winning names, then they vote on the builds. Set `target: {module, class}` and the
+  winning names are recorded, so the class's doc page links each name to its vote.
+- **Cost, measured 2026-09-28:** about $1.50 to $2 for 3 members; the first round's web search
+  is most of it. A one-line claim needs a `check` (under $0.01), not a collab.
+- **Our own research run's answer:** a plain vote does most of the work, and extra rounds mostly
+  add cost. So when the tally is close, run one more read-and-revise round, never more.
+
+How to write the spec and read the tally: [`Server/doc/collab.md`](/Server/doc/collab.md). A run,
+drawn live: `/framework/ext/Collab/?src=/framework/ai/<task>/collab.jsonl`.
+
+## Keep everything moving: never block, never miss a notice (the owner, 2026-09-24)
+
+The owner's words: "be very careful to manage concurrency, not block the session, keep things
+moving." A turn spent sitting in a wait is a turn nothing else progresses in.
+
+- **Start work, then do the next useful thing.** Spawn minions as Servex agents
+  (`spawn_agent` with `parent` set to your own id). The call returns at once, and each child's
+  done, blocked or error message arrives as an event addressed to you. Start several in one message.
+- **Long-running helpers run in the background** (a dev server, a Playwright watcher, a build).
+  Start them so they report to you. Never poll them in a loop inside your own turn.
+- **Never miss a notice.** Every child and every background process must have a way to reach
+  you: its Servex parent event, or a background job that ends when the thing happens. A child
+  nobody hears from is worse than a slow one.
+- **Not the in-process Agent tool's background mode.** Its completion goes to the main session,
+  not to you. Both sub-masterminds that used it parked at cycle one, waiting for a notice that
+  went somewhere else (2026-08-21).
+- **Stop a minion once you have read its result** (`stop_agent`; its session id stays in
+  `list_agents`, so it can still be resumed). An idle Servex agent keeps its claude process,
+  about 250 MB. On 2026-09-24 about 100 finished minions sat idle and the machine fell to
+  1.5 GB of free memory. Keep one alive only for a question you will really ask it, and keep
+  about 10 of yours running at once.
+- **If you truly must wait,** keep each wait under the tool timeout. A wait past it is
+  backgrounded silently and your turn ends: you are parked, not dead.
+
+## Broken pages reach you at once
+
+`node Server/health-supervisor.mjs` loads the pages a changed file could break in a hidden
+browser, and logs every console error to `public/framework/ai/health/<date>.jsonl`. By default it
+watches the main site (`HEALTH_BASE=http://monorepo.localhost`). For your worktree, start one in
+the background **from the worktree's root**, against your own server
+(`HEALTH_BASE=http://127.0.0.1:<your port>`). It watches that tree's files and writes that tree's
+log. Read the log after each minion lands. A console error on a page you touched is yours to fix before you
+land. A worktree server is started by `worktree-up.mjs` itself, not by Servex, so a Servex
+restart does not stop it; only the `<name>.localhost` route to it blips.
+
+## A bug report may be from another branch
+
+The owner looks at the live site (`michael/dev`, the main tree), and you work on your own branch.
+When a report comes in, check where it was seen before you fix anything: `git log
+michael/dev -1` against your branch's base. If `michael/dev` has moved since you branched, merge
+it in and reproduce the bug there first. It may already be fixed, or the cause may be something
+merged after you started.
 
 ## Judge against the owner's sentence
 
@@ -79,16 +190,18 @@ a fence, a fact you don't have — never "out of scope".
 - **Blocked** — one line, the moment it happens: the specific thing, and what you are doing meanwhile.
 - **Landed** — one screen: the headline, then plain sentences with links. The numbers stay in the log.
 
-Everything else lives in your task's `task.jsonl`, where anyone can read it without being sent it.
-Log milestones, not keystrokes; a `decision` line for every fork in the road, with the alternative
-named. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` — it stamps the clock
-and re-parses the file.
+Everything else lives in your task's `task.jsonl` ([`new-task`](../new-task/SKILL.md) has the shape): the plan as `steps` when you open it, a `decision` line (alternative named) and a `log` caveat **the moment each happens**, and `step`/`now` bumped as each step starts — so if you are lost, a fresh mastermind resumes from the log. Ask each minion to do the same in its own log. Append with `node .claude/hooks/append.mjs`.
 
 ## Never
+
+**Let any process show a window.** Every Node spawn, exec or fork sets `windowsHide: true`, even
+when detached. `Start-Process` uses `-WindowStyle Hidden` with no output redirection. Prove it with
+`MainWindowHandle` = 0. Put this in every brief that starts a process (the owner: "I don't want
+these pop-ups jumping in front of my face"; it happened 2026-09-22, 09-24 and 09-25).
 
 Take a second task · change your own fence · spawn another task mastermind (depth stops at two
 until one measured run proves a three-deep tree can report failure upward) · write code, CSS or
 scripts by hand — that is a minion's, even when it is two lines · kill or restart the dev server ·
 drive the owner's tabs · ask the owner to approve non-dangerous work.
 
-Land with `documentation` then `finish-task`. Improve this skill: [`improvements.md`](improvements.md).
+Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](improvements.md).

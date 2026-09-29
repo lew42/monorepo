@@ -1,0 +1,53 @@
+{
+  "_about": "A snapshot of one real session (the loose-ends task mastermind, 2026-09-24 ~18:00), trimmed. The card draws THIS data; nothing is fetched live.",
+  "session": {
+    "id": "task-mastermind-loose-ends",
+    "role": "task-mastermind",
+    "model": "claude-opus-5-5",
+    "state": "working",
+    "started_at": "2026-09-24T22:27:05Z",
+    "now_at": "2026-09-24T23:00:00Z",
+    "cost_usd": 6.42,
+    "task": {
+      "title": "Loose ends",
+      "request": "Dig into all the things we've been working on in the past, see the completion status of each of those things, and try to identify anything left as loose ends.",
+      "page": "/framework/ai/2026-09-24/loose-ends/",
+      "steps": ["census (minions)", "merge + decide", "page", "small fixes (worktree)", "merge into michael/dev", "briefs to live card", "land"],
+      "step": 4,
+      "now": "auditing 84 old task pages, one Sonnet minion each"
+    },
+    "worktree": {
+      "name": "loose-ends",
+      "branch": "worktree/loose-ends",
+      "path": "C:\\Code\\lew42\\worktrees\\loose-ends",
+      "port": 61234,
+      "commits_ahead": 3,
+      "files_changed": 7
+    },
+    "minions": {
+      "total": 102,
+      "working": 2,
+      "idle": 6,
+      "stopped": 94,
+      "by_group": [
+        { "group": "census", "count": 14, "model": "claude-sonnet-5", "state": "stopped", "cost_usd": 2.10 },
+        { "group": "fix", "count": 2, "model": "claude-sonnet-5", "state": "stopped", "cost_usd": 0.61 },
+        { "group": "audit", "count": 84, "model": "claude-sonnet-5", "state": "working", "cost_usd": 3.05 }
+      ],
+      "recent": [
+        { "id": "minion-audit-084", "model": "claude-sonnet-5", "state": "working", "started_at": "2026-09-24T22:58:05Z", "doing": "auditing /framework/ai/2026-09-12/tabs-panel/" },
+        { "id": "minion-audit-081", "model": "claude-sonnet-5", "state": "working", "started_at": "2026-09-24T22:58:00Z", "doing": "auditing /framework/ai/2026-09-11/page-builder/" },
+        { "id": "minion-audit-083", "model": "claude-sonnet-5", "state": "idle", "started_at": "2026-09-24T22:58:03Z", "doing": "done: 2 loose ends found" },
+        { "id": "minion-audit-082", "model": "claude-sonnet-5", "state": "idle", "started_at": "2026-09-24T22:58:02Z", "doing": "done: nothing left open" },
+        { "id": "minion-audit-080", "model": "claude-sonnet-5", "state": "idle", "started_at": "2026-09-24T22:57:59Z", "doing": "done: 1 loose end found" },
+        { "id": "minion-fix-page", "model": "claude-sonnet-5", "state": "stopped", "started_at": "2026-09-24T22:34:28Z", "doing": "built the report page" }
+      ]
+    },
+    "last_log": [
+      { "at": "2026-09-24T22:34:40Z", "msg": "census: 14 Sonnet minions (12 date ranges + memory + handover), ~900 tasks." },
+      { "at": "2026-09-24T22:52:20Z", "msg": "audit wave: one Sonnet minion per old task page, 84 pages." },
+      { "at": "2026-09-24T22:59:10Z", "msg": "82 of 84 audits back; 11 loose ends so far." }
+    ],
+    "waiting_on_owner": ["Say \"prune\" (739 dead files)", "Cloudflare login", "Gmail connector auth"]
+  }
+}

@@ -1,0 +1,576 @@
+[
+ {
+  "task": "ai-v2",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/ai-v2/",
+  "title": "Improve the mastermind's first cut of the v2 AI dashboard at /framework/ai/v/2/: newest-run auto-pick, a compact/cozy/roomy density switch o",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "[readme.md](/framework/ai/v/2/readme.md) says the shape; the `note` verb is now one line in new-task's own verb list and a proposal line in the mastermind skill's improvements.md."
+  ]
+ },
+ {
+  "task": "assistant-stream",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/assistant-stream/",
+  "title": "make the assistant's reply type itself out on the owner's screen as it is generated: --include-partial-messages over the bridge as ask_chunk",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left open, on purpose:** `readme.md` doesn't mention `stream.js` yet (outside this task's write fence — only `doc/**` was open; the line to add is one click into the decisions doc below)."
+  ]
+ },
+ {
+  "task": "background-layer",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/background-layer/",
+  "title": "Launch a minion to design a background layer system. So we have a div, probably with a class of background, inset zero. It's basically a mod",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "left open -- a fence is a valid reason (minion skill), and both fixes touch ui/page.js beyond the children line this task was scoped to"
+  ]
+ },
+ {
+  "task": "blunder-critic",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/blunder-critic/",
+  "title": "Sweep about forty-five pages built in the last two days for visual blunders a stranger would see - controls wearing page-scale spacing, boxe",
+  "status": "landed"
+ },
+ {
+  "task": "card-adopt",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/card-adopt/",
+  "title": "The card standard (.card / --pad-card) exists but nothing wears it. Make the dev bar's log cards -- the ones the owner complained about -- w",
+  "status": "landed"
+ },
+ {
+  "task": "card-replies",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/card-replies/",
+  "title": "a dashboard card asks the owner a question with buttons, and the choice reaches the right Claude session in seconds: say.mjs --ask/--ask-to,",
+  "status": "landed"
+ },
+ {
+  "task": "card-word",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/card-word/",
+  "title": "card-word — add ONE additive word to framework.css: .card = .surface plus padding from a new --pad-card token in the size standard's family;",
+  "status": "landed"
+ },
+ {
+  "task": "dashboard-next",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/dashboard-next/",
+  "title": "One minion on ai/v/3/ and dev/DevBar/ until landed: (1) a `now` view, first/default in V3, showing the newest owner card verbatim (transcrip",
+  "status": "landed"
+ },
+ {
+  "task": "day-audit",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/day-audit/",
+  "title": "Audit today's work: every request the owner made in their own words beside what was done, with a verdict judged against their sentence; an a",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdicts, judged against the owner's sentence rather than each task's landing report: 30 done as asked, 12 partly, 5 done but differs, 6 not done.",
+   "Every verdict is judged against YOUR sentence, not against the report the task wrote about itself.",
+   "Proved both ways on a private server: appending a `.jsonl` line left an in-page marker alive and never navigated; writing an ordinary `.css` file reloaded the page and destroyed it."
+  ]
+ },
+ {
+  "task": "devbar-chat",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/devbar-chat/",
+  "title": "Add a chat tab to the dev bar, first and default: live conversation of the current mastermind session (reusing ext/AITask/conversation.js's ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "\"The mastermind log\" (was \"the mastermind says\") evolves cards in place instead of only appending, reads three (now more) authors, and streams live chunks as text nodes."
+  ]
+ },
+ {
+  "task": "health-quiet",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/health-quiet/",
+  "title": "health-quiet: nine malformed JSONL lines and two rule exceptions silence 850 of 861 warnings in tonight's page-health log, per the triage at",
+  "status": "landed"
+ },
+ {
+  "task": "health-revive",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/health-revive/",
+  "title": "Server/health.mjs is dead: no process, nothing restarts it, its target port 8123 is not running, its findings page is linked from nowhere, a",
+  "status": "landed"
+ },
+ {
+  "task": "health-triage",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/health-triage/",
+  "title": "Read the ~1000-line health watcher log for 2026-09-19, sort real defects from rule noise and mid-edit snapshots, verify the top few live, an",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Six incidents in the log (a 17:00-17:02 sitewide blank-page spell, v/3's 16:14-16:30 syntax error, card-replies' appendChild bug, inbox-zero's 404 probe, v3/verdicts.jsonl already owned by v3-timeline, and assistant-stream's scratch-board.jsonl 404) were all real at the time and are all gone now."
+  ]
+ },
+ {
+  "task": "hold-guard",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/hold-guard/",
+  "title": "the reload hold expires silently after its TTL; build a check that notices a write going out under a lapsed hold it once held, and acts, ins",
+  "status": "landed"
+ },
+ {
+  "task": "improvements-sweep",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/improvements-sweep/",
+  "title": "improvements-sweep -- 55 recorded lessons that nobody has ever applied. Read every skills/*/improvements.md entry, apply the fail-safe ones ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Read every skills/*/improvements.md entry, apply the fail-safe ones straight to SKILL.md/caveats.md and delete the entry, delete entries that are simply obsolete, leave the rest as proposals.",
+   "Applied + deleted + proposals must sum to 55.",
+   "Final tally: 48 applied, 7 deleted as obsolete, 5 left as proposals = 60.",
+   "Left 1 as a PROPOSAL (kept in improvements.md, marked): adding a sixth check to the five-question ritual (how far a control's visible consequence lands from it) -- that changes what every future agent is required to answer, so it needs the owner's yes."
+  ]
+ },
+ {
+  "task": "inbox-zero",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/inbox-zero/",
+  "title": "The AI v3 dashboard becomes an inbox: Approve/Improve on every card, approved ones leave the view (never lost, a count brings them back), Im",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Worked around by giving VERDICTS_URL as a bare path, matching day-audit's own APPROVALS constant.",
+   "Cleanup: gesture-proving Approve/Improve pressed real verdicts on four real board cards (health-revive, page-health-dead, state, v3-data) and relayed one fake 'owner' Improve note into the mastermind's own live inbox.",
+   "All four verdicts were reopened (say: reopen) immediately after, restoring the exact pre-test state (confirmed: count back to the same total, no approved toggle showing) -- nothing was left approved or flagged from testing.",
+   "(1) verdicts.jsonl moved from public/framework/ai/v/3/ to public/framework/ai/verdicts.jsonl, beside board.jsonl -- a verdict judges a board card, not V3's own UI, so it belongs where the owner's own words tonight put version-agnostic data."
+  ]
+ },
+ {
+  "task": "incident-site-down",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/incident-site-down/",
+  "title": "The site is down. Get it back up (done by the mastermind), then find what broke it, file a report, and audit why it broke and how to stop it",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "proposal"
+  ]
+ },
+ {
+  "task": "mastermind-sonnet-run",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/mastermind-sonnet-run/",
+  "title": "ok, be a mastermind. we need to seriously cut back on our tokens, so spawn sonnet minions for everything. have a minion do the system-eval. ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The split is by subject, not by the earlier audit's verdict, so the 30 rows graded done get re-checked too - the owner said not to treat that audit as thorough.",
+   "That is the difference between the two verdicts and it is the thing to fix in how work is landed, not in any one of these tasks.",
+   "four of five verifiers landed; waiting on verify-dashboard and the V3 data move",
+   "v3-layout keeps its partly verdict but for a different reason than the audit gave: the exact 50/50 split WAS built with a working drag handle, and what is actually missing is the full bleed and the hour-lined timeline."
+  ]
+ },
+ {
+  "task": "mistake-audit",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/mistake-audit/",
+  "title": "Four mistakes reached the owner today (the site blanked twice by backticks inside a css() comment; the sidebar shipped visibly wrong with no",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "PROPOSAL 1 - how a visible change proves it looks right, since three sidebar landings proved themselves entirely in numbers and every one of them was visibly wrong",
+   "a required step is paid by every future task - the reason this is a proposal, not an edit",
+   "proposal",
+   "PROPOSAL 2 - where a harness trap must live so the agent who needs it sees it: the mastermind broke its own ledger hook with a bash heredoc, a trap written down in the minion skill, which the mastermind does not load"
+  ]
+ },
+ {
+  "task": "model-latency",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/model-latency/",
+  "title": "My fast assistant (sonnet medium) is telling me it can't spawn minions with specific effort level? Is there no flag for effort level? The id",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "If you spawn claude -p with stdin left open as a pipe, it waits three seconds for input that never comes before it does anything.",
+   "Appending a line is safe on this Windows machine at every size tested."
+  ]
+ },
+ {
+  "task": "padding-audit",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/padding-audit/",
+  "title": "Run the auditor on why padding decisions keep going wrong. What do layout, css and the ui skills say about padding? Are containers declared ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Plus: name the container-query failure modes this site has actually hit; measure whether the cq tokens cost paint time during a resize; and weigh the owner's own proposal - a `card` class that carries the default pad, so a card is by definition padded.",
+   "VERDICT: the tokens are not the cost - neutralising them moves nothing outside noise and produces no long frames at 60fps.",
+   "CHANGE 1 - the owner's own proposal: a card class that carries the default pad, so a card is by definition padded",
+   "proposal"
+  ]
+ },
+ {
+  "task": "page-health",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/page-health/",
+  "title": "I'm getting a ton of JSONL unknown verb note errors. Not sure where that's coming from. So the mastermind should probably spin up a minion t",
+  "status": "landed"
+ },
+ {
+  "task": "popover-system",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/popover-system/",
+  "title": "build ux/Popover: a comparison page (in-flow absolute vs the popover attribute + CSS anchor positioning), a small Popover class from the win",
+  "status": "landed"
+ },
+ {
+  "task": "prompt-relay",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/prompt-relay/",
+  "title": "write .claude/hooks/prompt-relay.mjs, a UserPromptSubmit hook: assistant-marked sessions relay every prompt verbatim to the mastermind's inb",
+  "status": "landed"
+ },
+ {
+  "task": "reload-hold",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/reload-hold/",
+  "title": "Build a live-reload HOLD any agent takes with one command (node Server/hold.mjs on|off) before a batch of writes, held as a lock file outsid",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Left:** page re-import stays a demo, not a feature — the study's own verdict."
+  ]
+ },
+ {
+  "task": "reset-deep",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/reset-deep/",
+  "title": "reset-restore replayed only 5 of the 56 real session transcripts on this machine (203MB, largest 53MB). Search all 56 (plus their subagent t",
+  "status": "landed"
+ },
+ {
+  "task": "reset-recovery",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/reset-recovery/",
+  "title": "At 23:16 something (most likely VS Code's Discard All Changes) reverted every uncommitted edit to every TRACKED file in the repo back to com",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Named in framework.css's own new comment and in lost.jsonl for the owner's call.",
+   "Left settings.js untouched -- its only pending edit sets the default tab to \"chat\", which does not exist in the restored tools.js; applying it would be harmless (falls back to tabs[0]) but would misdocument a feature that is not there."
+  ]
+ },
+ {
+  "task": "reset-restore",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/reset-restore/",
+  "title": "Put back the 216 files reset-recovery/reset-scope marked recoverable: yes in lost.jsonl -- byte-for-byte from a session transcript, or not a",
+  "status": "landed"
+ },
+ {
+  "task": "reset-scope",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/reset-scope/",
+  "title": "Finish the manifest reset-recovery left incomplete: mine today's transcripts for every tracked file the 23:16 reset destroyed (only ~39 of a",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "(2) A 'yes' verdict means a transcript holds a snapshot as of its last recorded touch -- if a file was edited again by unlogged means after that, the 'yes' content is stale, not final, and this method cannot detect that."
+  ]
+ },
+ {
+  "task": "server-boot-test",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/server-boot-test/",
+  "title": "Make server.js boot-test a changed Server/ tree as a candidate child on a spare port before swapping the live child, never wedge, and surviv",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "(d) kill live child while idle: back on its own, ~230ms (first attempt showed a false failure - I was killing it inside its own 1s boot-grace window, a test timing bug, not a supervisor bug, fixed by waiting past it)."
+  ]
+ },
+ {
+  "task": "server-self",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/server-self/",
+  "title": "Fix Server/watch.js so a file READ no longer fires a live-reload (mtime-checked filter), build a supervisor so node server.js restarts itsel",
+  "status": "landed"
+ },
+ {
+  "task": "servex-study",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/servex-study/",
+  "title": "Read-only 30-minute study of the separate repo C:\\Code\\servex, a PM2-based local dev-server manager: what it is and does, whether its Server",
+  "status": "landed"
+ },
+ {
+  "task": "sidebar-repair",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/sidebar-repair/",
+  "title": "The sidebar got messed up and does not look right: 46.5px tree rows, labels 80px in, a 9px fold glyph, and the filter sitting in a bordered ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The owner's call."
+  ]
+ },
+ {
+  "task": "skill-roles",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/skill-roles/",
+  "title": "(1) The every-prompt skill stays minimal and re-reads on every prompt; long detail moves to sub-readmes it names with 'load this if you need",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "proposal",
+   "The heredoc trap bit me mid-task, in the same session in which I wrote the skill line about it: a `python - <<PY` block hung waiting on stdin and had to be backgrounded, and the edits were done with the Edit tool instead."
+  ]
+ },
+ {
+  "task": "skills-shrink",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/skills-shrink/",
+  "title": "shrink dated-incident stories in SKILL.md files to one sentence plus a link to the task log, without losing the teeth or changing any rule's",
+  "status": "landed"
+ },
+ {
+  "task": "system-eval",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/system-eval/",
+  "title": "Look at all the skills, evaluate the system, say what to improve and what to subtract; explain and design session-id tracking.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "What remains: the skill-by-skill verdicts, the ranked list of at most seven changes, the subtractions, and the sessions.jsonl registry design.",
+   "proposal - the owner's call, since it reshapes a role",
+   "proposal",
+   "**Registry verdict.** Yes: public/framework/ai/sessions.jsonl, append-only, written only by the start script, status derived from the task logs - because the sessions that matter most for resume-this (the assistants, the mastermind's tab, a library) have no task to carry their id."
+  ]
+ },
+ {
+  "task": "timing-audit-2",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/timing-audit-2/",
+  "title": "Measure timing end to end - prompt arrival, echo, card, relay, mastermind pickup - mine the real jsonl record, do not stage a synthetic run",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: said-to-arrived is inferred near-zero rather than separately measured, because the dedicated arrival hook (prompt-relay.mjs) exists on disk but is not wired into settings.json -- fixing that is a settings change outside this read-only audit's fence."
+  ]
+ },
+ {
+  "task": "v3-data",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/v3-data/",
+  "title": "Move ai/v/3/board.jsonl out of the v/3 template dir into one shared store outside every version directory, update every writer and reader in",
+  "status": "landed"
+ },
+ {
+  "task": "v3-timeline",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/v3-timeline/",
+  "title": "V3's left column becomes a real timeline: full bleed, hour lines, time read spatially; plus the jump key, prompt cards and the usage footer.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Corrected mid-dispatch: LOG_URL/VERDICTS_URL already moved out of v/3/ (read them from timeline.js, never a path); the inbox (Approve/Improve, N left count, keyboard stepping) must keep working inside the new timeline view; item 7's toolbar folds into the existing head row.",
+   "j/k/ArrowUp/ArrowDown (inbox-zero's own verdict-queue stepping) and Spacebar (this task's own jump-to-newest) both wanting a single keyboard scheme",
+   "Approve on the scratch board: count 6->5, one real line landed in scratch-verdicts.jsonl with the test's own author (window.$VERDICT_AUTHOR), never 'owner', never the real file.",
+   "j/k and the arrows were deliberately left doing exactly what inbox-zero built (step the undecided verdict queue) -- see the keyboard-reconciliation decision in this log for why the two didn't need to fight."
+  ]
+ },
+ {
+  "task": "verify-assistant",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/verify-assistant/",
+  "title": "Second, harder verification pass on 14 of the 53 audit rows, topic: the assistant tiers, the relay, and how fast the process moves. Do not t",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "DISAGREE mastermind-log (audit: partly): says.js:56 section title is literally \"the mastermind log\" (renamed from \"the mastermind says\", says.js:18), and timeline.js:45 upserts a card by id (findIndex) so a same-id line updates in place instead of appending.",
+   "Verdict: done.",
+   "AGREE (10 of 14): assistant-mode, prompt-relay, assistant-cards, multi-level-assistants, every-prompt, skill-roles, dashboard-first, process-redesign, speed-and-reuse, timing-audit all checked directly (code read, live shot, or a landed tasks own outcome text) and the earlier verdict holds.",
+   "Ten verdicts held up; four were graded too harshly and move up to `done`.** [Verify: assistant tiers](/framework/ai/2026-09-19/verify-assistant/) — the one-screen report, disagreements first."
+  ]
+ },
+ {
+  "task": "verify-dashboard",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/verify-dashboard/",
+  "title": "Second, harder verification pass on the 12 audit rows about the AI dashboard itself (V1/V2/V3, cards, timeline) - do not trust the earlier a",
+  "status": "landed"
+ },
+ {
+  "task": "verify-design",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/verify-design/",
+  "title": "Second, harder verification pass on the design-system/sidebar/page-look topic (6 of 53 owner requests): do not trust the earlier day-audit; ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict: differs.",
+   "Left: whether to point v3 at v2's --size switch, or tell the owner v2 is the one to use, is the owner's call, not mine to make."
+  ]
+ },
+ {
+  "task": "verify-devbar",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/verify-devbar/",
+  "title": "Second, harder verification pass on the dev bar / live log topic (11 of 53 owner requests): decide done/partly/differs/not/cannot-tell for e",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Second, harder verification pass on the dev bar / live log topic (11 of 53 owner requests): decide done/partly/differs/not/cannot-tell for each, with evidence, not trusting the earlier day-audit.jsonl verdicts.",
+   "Verdict: partly, not done.",
+   "Verdict: differs, not done."
+  ]
+ },
+ {
+  "task": "verify-server",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/verify-server/",
+  "title": "Second, harder verification pass on the 10 audit rows about the server, reliability, and not breaking the live site - do not trust the earli",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Verdict unchanged (partly) but the audit's own citation was wrong.",
+   "worktrees-and-cache: a fresh headless screenshot of worktree-study's page shows it rendering fully now -- the empty-body bug the task's own log flagged as 'left open' at landing time has since cleared.",
+   "Verdict done, confirmed live not just from the log.",
+   "Full verdict + evidence per row: [verify.jsonl](/framework/ai/2026-09-19/verify-server/verify.jsonl)."
+  ]
+ },
+ {
+  "task": "whisper-autostart",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/whisper-autostart/",
+  "title": "add Server/plugins/Whisper.js so the owner-facing dev server starts whisper-server by itself: adopts one already running, stops the one it s",
+  "status": "landed"
+ },
+ {
+  "task": "whisper-local",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/whisper-local/",
+  "title": "the whole dictation thing is not working properly. The microphone, it requested the permission, I granted it. I click the microphone and it ",
+  "status": "landed"
+ },
+ {
+  "task": "worktree-study",
+  "date": "2026-09-19",
+  "link": "/framework/ai/2026-09-19/worktree-study/",
+  "title": "Study git worktrees for parallel minions and what the one-hour prompt cache changes; one real worktree experiment; judge against the owner's",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- **Left open, the owner's call:** commit `michael/dev` regularly to unlock worktrees for every minion for free, or grant a standing branch the mastermind may commit to (a rule change)."
+  ]
+ },
+ {
+  "task": "ai-padding",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/ai-padding/",
+  "title": "So we seem to have broken all the layouts on the framework AI page. There's no padding on the page and most of the cards have no padding eit",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Method: re-derived stash-restore's own 3-way classification read-only (git ls-tree / git show / git hash-object on the working tree, no stash apply/pop/drop/clear), then compared line counts disk vs stash vs base as a fast triage -- NOT a verdict, a pointer to where a human diff would be worth it."
+  ]
+ },
+ {
+  "task": "approve-loop",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/approve-loop/",
+  "title": "Make the approve/improve loop on the AI v3 board legible (say what a button does, show what happened, put controls where the owner reads a c",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Found and fixed one new bug while proving the toast’s own Undo: write_verdict()’s promise resolves once the file WRITE lands, not once this client’s own live-socket echo has replayed the change back, so re-selecting the just-reopened card immediately re-rendered it as still approved.",
+   "Fixed by mirroring the same line into the local verdicts model by hand (verdicts.verdict(...)), the same shape the real echo carries -- same technique advance() already used for the identical race, just applied one place further.",
+   "VERIFIED the real files are untouched: public/framework/ai/verdicts.jsonl -- 16 lines before and after, identical sha256 (8a6569fe...).",
+   "ask-vs-verdict"
+  ]
+ },
+ {
+  "task": "dictate-fix",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/dictate-fix/",
+  "title": "Also the dictation doesn't seem to work. I'm not sure what's going on there.",
+  "status": "landed"
+ },
+ {
+  "task": "start-here",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/start-here/",
+  "title": "a page that tells the owner what to do first, after a day of work they have no visibility into; the ranking is the job",
+  "status": "landed"
+ },
+ {
+  "task": "stash-restore",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/stash-restore/",
+  "title": "The whole pre-reset tree is sitting in git stash@{0} (1,389 files, base commit 8b4ced8e), not destroyed. 877 of those files are still absent",
+  "status": "landed"
+ },
+ {
+  "task": "studies-honest",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/studies-honest/",
+  "title": "public/framework/styles/system/studies/page.js still declares nine children whose page.js files are gone (404s). Check each of the nine hone",
+  "status": "landed"
+ },
+ {
+  "task": "v3-axis-fix",
+  "date": "2026-09-20",
+  "link": "/framework/ai/2026-09-20/v3-axis-fix/",
+  "title": "the V3 dashboard's sticky strip (hour/clock + pinned needs-you cards) is eating ~80% of the left column because the pinned strip is unbounde",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "real files untouched, proven: md5 of public/framework/ai/verdicts.jsonl identical before and after this whole task (6cc15bd9...).",
+   "The `Server/` `VERDICTS_PATH` workaround this page already carried in is untouched, still waiting on a fenced restart window."
+  ]
+ },
+ {
+  "task": "ai-front",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/ai-front/",
+  "title": "the AI framework slash AI page should default to V3. And there should be a link to any important things on V3. So the timeline view with the",
+  "status": "landed"
+ },
+ {
+  "task": "front-door-today",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/front-door-today/",
+  "title": "mastermind cycle work: /framework/ai/ opens on the Now view, and Now shows the newest OWNER thread - which is from 2026-09-19, because the f",
+  "status": "landed"
+ },
+ {
+  "task": "head-mobile",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/head-mobile/",
+  "title": "mastermind cycle work: the V3 head row measures 255px at 400px wide against 76px at 1920 - a quarter of a phone screen before any content, o",
+  "status": "landed"
+ },
+ {
+  "task": "live-select",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/live-select/",
+  "title": "the hour box goes and everything sits in one chronological list; two card sizes with the icon beside the heading and one-liners instead of t",
+  "status": "landed"
+ },
+ {
+  "task": "safe-rollout",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/safe-rollout/",
+  "title": "we should never be breaking the dashboard. We should be using work trees to roll test and roll out new features without breaking the actual ",
+  "status": "landed"
+ },
+ {
+  "task": "start-here-today",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/start-here-today/",
+  "title": "mastermind cycle work: the owner's own start-here page is a day stale and one of its four items is now actively wrong. It is linked from the",
+  "status": "landed"
+ },
+ {
+  "task": "traps-consolidate",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/traps-consolidate/",
+  "title": "mastermind cycle work: the code skill's improvements backlog holds ~20 evidence-backed traps that have never been applied to the SKILL.md ag",
+  "status": "landed"
+ },
+ {
+  "task": "v3-ways-out",
+  "date": "2026-09-21",
+  "link": "/framework/ai/2026-09-21/v3-ways-out/",
+  "title": "the AI framework slash AI page should default to V3. And there should be a link to any important things on V3.",
+  "status": "landed"
+ },
+ {
+  "skipped": [
+   "2026-09-19/day.jsonl",
+   "2026-09-19/page.js",
+   "2026-09-20/day.jsonl",
+   "2026-09-20/page.js",
+   "2026-09-21/arm-the-hooks",
+   "2026-09-21/day.jsonl",
+   "2026-09-21/page.js"
+  ]
+ }
+]

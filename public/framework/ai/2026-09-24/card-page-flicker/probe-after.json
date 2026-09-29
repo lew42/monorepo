@@ -1,0 +1,18 @@
+{
+ "label": "after",
+ "idle8s": {
+  "total": 0,
+  "childList": 0,
+  "by": {}
+ },
+ "readersFired": 14,
+ "noChange": {
+  "total": 1,
+  "childList": 0,
+  "by": {
+   "attributes BUTTON.dev-skipped @hidden +0/-0": 1
+  }
+ },
+ "hasHook": "object",
+ "errors": []
+}

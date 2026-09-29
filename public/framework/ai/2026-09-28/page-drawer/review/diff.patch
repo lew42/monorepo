@@ -1,0 +1,1476 @@
+diff --git a/public/app.js b/public/app.js
+index bbed7c24..a84f8c3a 100644
+--- a/public/app.js
++++ b/public/app.js
+@@ -3,6 +3,7 @@ import Socket from "./framework/dev/Socket/Socket.js";
+ import devbar from "./framework/dev/DevBar/DevBar.js";
+ import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
+ import mode from "./framework/core/App/mode.js";
++import menu from "./framework/ext/drawer/menu.js";
+ 
+ /* ⚠ The default resource-timing buffer holds ~250 entries and then silently stops
+  * recording, so a long-lived tab would stop recognising its own files as loaded
+@@ -58,6 +59,10 @@ const app = window.app = new App({
+ 			// The toggle lives in sidebar FOOTERS now; this applies the reader's
+ 			// stored mode on routes that don't render one.
+ 			mode.apply(this);
++
++			// The ☰ in the top right of every page: opens ext/drawer on its tabs
++			// (AI, Sessions, Dictation, Settings, Admin). ext/drawer/doc/tabs.md.
++			menu(this);
+ 		});
+ 
+ 		// Ctrl + \ — the dev rail, on <body> beside the shell rather than inside it.
+@@ -76,6 +81,7 @@ const app = window.app = new App({
+ 	navigated(page){
+ 		this.socket.rpc("hello", page.url);
+ 		devbar.refresh();
++		menu.navigated();
+ 	},
+ });
+ 
+diff --git a/public/framework/ai/2026-09-28/day.jsonl b/public/framework/ai/2026-09-28/day.jsonl
+new file mode 100644
+index 00000000..21492d4d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/day.jsonl
+@@ -0,0 +1,2 @@
++{"log":{"at":"2026-09-28T14:42:03-05:00","task":"page-drawer/m1","msg":"landed — a menu button on every page opens the drawer on five routed tabs (AI, Sessions, Dictation, Settings, Admin); committed on worktree/page-drawer"}}
++{"log":{"at":"2026-09-28T14:55:37-05:00","task":"page-drawer/m2","msg":"landed — select any element while the drawer is open, its properties on the Element tab, a chip that sends it as context; tab strip wraps"}}
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m1-menu-tabs.md b/public/framework/ai/2026-09-28/page-drawer/m1-menu-tabs.md
+new file mode 100644
+index 00000000..b6b65d70
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m1-menu-tabs.md
+@@ -0,0 +1,28 @@
++# Minion 1: the ☰ menu and the drawer's tabs
++
++Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md` (read the last third: "each page could have like a little menu button in the top right…"). The design: `design.md` in the same dir. The whole brief: `public/framework/ai/2026-09-28/page-drawer/requirements.md`.
++
++**Work only in the worktree** `C:\Code\lew42\worktrees\page-drawer` (branch `worktree/page-drawer`, its own server at http://localhost:62178/). Commit there. Do not merge. Log in `public/framework/ai/2026-09-28/page-drawer/m1/task.jsonl` (in the worktree).
++
++## Deliverables
++
++1. **The menu:** a ☰ button, top right, on every page, added in the site chrome (`public/app.js`, the menu only). One click opens `ext/drawer`; a second click (or the drawer's ✕) shuts it. It must not cover the page head or the dev bar. Shoot it at 1280 and 3440.
++2. **Tabs in the drawer:** AI, Sessions, Dictation, Settings, Admin — a new file set under `public/framework/ext/drawer/` (e.g. `tabs.js` plus one small file per tab). Each tab is routed: `?drawer=sessions` in the URL opens the drawer on that tab, clicking a tab rewrites the URL with `history.replaceState`, so a reload lands on the same tab. No `?drawer` = drawer shut.
++3. **AI tab:** the card's composer (chat and dictate) — `public/framework/ai2/compose.js` and where `ai2/card.js` uses it — is reused here, imported, not copied. Add a model picker that only shows the choice (Haiku / Sonnet / Opus / Fable) and stores it; nothing reads it yet. On a card page, sending goes where the card's composer already sends. On a plain page, send by the agreed interface `public/framework/ai/2026-09-25/recursive-pairs/interface.md` (`POST http://servex.localhost/api/page-ai`, body `{page, text, from, context}`); that endpoint is not live yet, so when it fails, fall back to the dev bar Ask route (`dev/DevBar/ask.js`, `ext/Ask`) so a message still gets an answer today. Keep the send in one function, `send({page, text, context})`, exported, so minion 2 can pass element context through it.
++4. **Sessions tab:** every thread on this page, read from the dev bar Ask's store (`<page>/ai/<slug>/task.jsonl`; `chat_session_id` resumes a thread — see `dev/DevBar/sessions.js`, `ask.js`). One click reopens that thread in the AI tab and the next send resumes it. On a card, the card's sub-cards show here too.
++5. **Dictation tab:** embeds the dictation playground (`/framework/ux/Dictate/playground/`, built today). **Settings tab:** the dev bar's settings (`dev/DevBar/settings.js`), reused. **Admin tab:** only what already exists (e.g. hold on/off, links to the dev bar's tools); nothing new.
++6. **Docs:** `ext/drawer/doc/tabs.md`, a screenshot first, then the tab model (how to add a tab, the route word). Add one line to `ext/drawer/readme.md` pointing at it, and a live demo on `ext/drawer/page.js`.
++
++## Proof (put the pngs in `public/framework/ai/2026-09-28/page-drawer/shots/`)
++
++- the drawer open on a plain page (`/framework/ext/drawer/`) and on a card (`/framework/ai2/` with a card open) at 1280 and 1920;
++- the ☰ at 3440, not covering the head or the dev bar;
++- a reload on `?drawer=sessions` landing on Sessions;
++- an old Ask thread resumed from the Sessions tab (find one under any page's `ai/` dir).
++Drive a headless Playwright against http://localhost:62178/, never the owner's tabs. Zero console errors on the pages you touched: `node Server/smoke.mjs C:\Code\lew42\worktrees\page-drawer`.
++
++## Never
++
++Edit files outside the fence (`public/app.js` menu only, `ext/drawer/**`, and a small export seam in `ai2/compose.js` if needed — say so in your log). Start or restart any server. Show a window: every spawn sets `windowsHide: true`. New CSS classes go through `new-css-class` with the `drawer-` prefix.
++
++When done, write `m1/proof.md` (checklist, one line per deliverable with its png) and stop.
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m1/proof.md b/public/framework/ai/2026-09-28/page-drawer/m1/proof.md
+new file mode 100644
+index 00000000..e1a6bc9b
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m1/proof.md
+@@ -0,0 +1,22 @@
++# Minion 1 — proof
++
++Every page now has a ☰ in its top right. It opens the drawer on five tabs, and the open tab is in the url. All shots are headless Playwright against this worktree's server (http://localhost:62178/). They are in [`../shots/`](../shots/).
++
++| # | Deliverable | Done | Shot |
++|---|---|---|---|
++| 1 | ☰ top right on every page; a click opens, a second click (or ✕) shuts; it covers neither the page head nor the dev bar | yes | [menu-3440.png](../shots/menu-3440.png) · [menu-3440-devbar.png](../shots/menu-3440-devbar.png) (dev bar open, ☰ beside it) · [menu-3440-open.png](../shots/menu-3440-open.png) · [second-click-shuts.png](../shots/second-click-shuts.png) |
++| 2 | Five tabs, routed: `?drawer=sessions` opens Sessions, a click rewrites the url with `replaceState`, a reload lands on the same tab | yes | [reload-sessions.png](../shots/reload-sessions.png) |
++| 3 | AI tab: the card's composer, imported (`ai2/compose.js`); a model picker that only stores; on a card it sends where the card sends; on a page `send()` tries `/api/page-ai`, then falls back to Ask | yes | [plain-ai-1280.png](../shots/plain-ai-1280.png) · [plain-ai-1920.png](../shots/plain-ai-1920.png) · [card-ai-1280.png](../shots/card-ai-1280.png) · [card-ai-1920.png](../shots/card-ai-1920.png) |
++| 4 | Sessions: this page's Ask threads; a click reopens one in the AI tab and the next send resumes it; a card's sub-cards listed too | yes | [sessions-list-1280.png](../shots/sessions-list-1280.png) · [thread-resumed-1280.png](../shots/thread-resumed-1280.png) (an old thread answers "we'd been tracing how devbar → socket → claude CLI → task.jsonl drives the live reload") · [card-sessions-1280.png](../shots/card-sessions-1280.png) |
++| 5 | Dictation embeds the playground; Settings and Admin reuse the dev bar's own controls | yes | [tab-dictation-1280.png](../shots/tab-dictation-1280.png) · [tab-settings-1280.png](../shots/tab-settings-1280.png) · [tab-admin-1280.png](../shots/tab-admin-1280.png) |
++| 6 | Docs: `ext/drawer/doc/tabs.md` (screenshot first), a readme line, a live demo on the drawer page | yes | [/framework/ext/drawer/doc/tabs/](/framework/ext/drawer/doc/tabs/) |
++| + | `drawer.page(path)` (mastermind's addition): every tab reads it; a change redraws the open tab | yes | doc/tabs.md |
++
++## Things to know
++
++- **The Dictation tab needs the playground merged.** `ux/Dictate/playground/` is still uncommitted in the main tree, so it is not in this worktree. For the shot it was copied in and removed afterwards. Without it, the tab says so in one line (and the browser logs one 404 for the missing module).
++- **An old thread's session can be gone.** `test-thread`'s saved session no longer exists on disk, so `--resume` answered nothing. `send()` now starts a fresh session in the same thread and hands it the thread's last turns; the shot shows it remembering the conversation.
++- **One edit outside the fence:** `ext/layout/panel.js`, two lines. Its page-wide click listener redrew the shared drawer with its own "nothing selected" view on every click, which replaced the tabs and stopped the ☰ from ever shutting its own drawer. It now redraws only a drawer it filled itself. Its own panel still opens and works (checked on `/framework/ext/layout/`).
++- **Seams added:** `compose.js` takes a `deliver` option and exports `into_card`; `drawer.js` gained `drawer.filled_by()`, `drawer.page()` and a `drawer-close` event.
++- **Not mine, still broken:** `styles/layouts/space/page.js` rewrites its own url and drops every query (so `?drawer=` too); `/docs/syntax/` linked from the Space page 404s; AI 2 asks for a missing `ai/usage.json`.
++- Smoke: `node Server/smoke.mjs` over the drawer, layout, Space and card pages: no errors on these pages; the two failures are the old links above.
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m1/task.jsonl b/public/framework/ai/2026-09-28/page-drawer/m1/task.jsonl
+new file mode 100644
+index 00000000..8f21ea7b
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m1/task.jsonl
+@@ -0,0 +1,21 @@
++{"assign":{"session_id":"20f947e1-a022-40d5-bd44-efa1e27b29c3","tab":"minion-drawer-tabs","group":"page-drawer","request":"Minion 1 of page-drawer: a menu button top right on every page opens ext/drawer; the drawer gets routed tabs AI, Sessions, Dictation, Settings, Admin (brief: ../m1-menu-tabs.md).","requested_at":"2026-09-28T14:25:59-05:00","model":"claude-opus-5-5","window":{"before":0.43},"now":"reading the drawer, the card composer and the dev bar","steps":["read the brief and the code","the menu button in app.js","routed tabs","AI tab with send()","Sessions tab","Dictation, Settings, Admin","shots at 1280/1920/3440","docs and proof.md","commit"],"step":1}}
++{"log":{"at":"2026-09-28T14:25:59-05:00","msg":"Usage refresh skipped: ai/usage.json is outside this minion's fence. The 2026-09-28 day page is not in this worktree; the task dir stays undeclared as new-task says."}}
++{"action":{"at":"2026-09-28T14:27:39-05:00","did":"edit","files":["public/framework/ext/drawer/drawer.js"]}}
++{"action":{"at":"2026-09-28T14:27:58-05:00","did":"edit","files":["public/framework/ext/drawer/tabs.js"]}}
++{"action":{"at":"2026-09-28T14:28:05-05:00","did":"edit","files":["public/framework/ext/drawer/menu.js"]}}
++{"action":{"at":"2026-09-28T14:28:46-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/ai.js"]}}
++{"action":{"at":"2026-09-28T14:29:16-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/sessions.js"]}}
++{"action":{"at":"2026-09-28T14:29:23-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/dictation.js"]}}
++{"action":{"at":"2026-09-28T14:29:28-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/settings.js"]}}
++{"action":{"at":"2026-09-28T14:29:39-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/admin.js"]}}
++{"log":{"at":"2026-09-28T14:39:11-05:00","msg":"skill: documentation"}}
++{"action":{"at":"2026-09-28T14:39:45-05:00","did":"edit","files":["public/framework/ext/drawer/doc/tabs.md"]}}
++{"action":{"at":"2026-09-28T14:41:35-05:00","did":"edit","files":["public/framework/ai/2026-09-28/page-drawer/m1/proof.md"]}}
++{"log":{"at":"2026-09-28T14:41:37-05:00","msg":"skill: finish-task"}}
++{"log":{"at":"2026-09-28T14:42:03-05:00","msg":"ext/layout/panel.js hijacked the shared drawer on every page click (its capture-phase click listener redrew it with 'nothing selected'), so the menu could never shut its own drawer and any click replaced the tabs. Two-line guard: layout redraws only a drawer it filled itself (drawer.filled_by()). Outside the brief's fence, logged as the one excursion; layout's own panel still opens and works."}}
++{"log":{"at":"2026-09-28T14:42:03-05:00","msg":"Old Ask thread test-thread: its saved session no longer exists on disk, so --resume returned an empty reply. send() now retries once with a fresh session filed in the same thread, handed the thread's last four turns (under the server's 800-character context cut). Proven: the reply remembered the conversation."}}
++{"decision":{"id":"drawer-tabs-lazy","at":"2026-09-28T14:42:03-05:00","question":"How do the five tab files load?","options":["import all five in tabs.js","import each on first show"],"chose":"import each on first show","why":"every page imports the menu; eager imports would put the composer, the microphone and the playground on every page load, and would create an app.js <-> ai2/compose.js import cycle","rule":"code#8"}}
++{"decision":{"id":"drawer-thread-route","at":"2026-09-28T14:42:03-05:00","question":"Where does a send go when a Sessions thread is picked?","options":["page-ai first, Ask fallback","straight to Ask"],"chose":"straight to Ask","why":"a thread IS an Ask session; page-ai knows nothing about it, so resuming must go through Ask","rule":"brief#4"}}
++{"decision":{"id":"drawer-composer-css","at":"2026-09-28T14:42:03-05:00","question":"How does the composer get its look outside AI 2?","options":["split compose rules into compose.css","load ai2.css once from the AI tab"],"chose":"load ai2.css once from the AI tab","why":"every ai2.css rule is ai2- scoped, so loading it elsewhere changes nothing else; splitting would move AI 2 code outside the fence","rule":"code#8"}}
++{"log":{"at":"2026-09-28T14:42:03-05:00","msg":"Also fixed: the drawer readme linked ./doc/file/ which 404s; it now links the Files tab. Not mine, left: space/page.js drops every url query on load; /docs/syntax/ 404s from the Space page; AI 2 requests a missing ai/usage.json. Dictation tab proven with the main tree's uncommitted playground copied in for the shot and removed afterwards."}}
++{"assign":{"step":9,"landed_at":"2026-09-28T14:42:03-05:00","outcome":"**Every page has a menu button (☰) in its top right; it opens the drawer on five tabs: AI, Sessions, Dictation, Settings, Admin.** The open tab is in the url (`?drawer=sessions`), so a reload lands on it.\n\n![The drawer open on its AI tab](/framework/ext/drawer/doc/tabs.png)\n\n- The AI tab reuses the card's composer. On a card it talks into the card; on a page, `send()` tries the page assistant and falls back to Ask today.\n- Sessions lists this page's saved Ask threads. Click one and the next message carries it on, even when the old session is gone.\n- Proof, one line per deliverable: [proof.md](/framework/ai/2026-09-28/page-drawer/m1/proof.md) · how it works: [doc/tabs](/framework/ext/drawer/doc/tabs/) · try it: [the drawer page](/framework/ext/drawer/)\n\nCommitted on `worktree/page-drawer`, not merged. The Dictation tab needs the dictation playground merged first. One two-line fix outside the fence, in `ext/layout/panel.js`: it was taking over the drawer on every click.","links":[{"url":"/framework/ext/drawer/","label":"Drawer page (live demo)"},{"url":"/framework/ext/drawer/doc/tabs/","label":"doc/tabs.md"},{"url":"/framework/ai/2026-09-28/page-drawer/m1/proof.md","label":"proof.md"},{"url":"/framework/ai/2026-09-28/page-drawer/shots/","label":"shots"}],"window":{"before":0.43,"after":0.48},"tokens":16029905,"usage":{"input":194,"cache_write":213347,"cache_read":15754062,"output":62302,"calls":97}}}
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m2-select-chip.md b/public/framework/ai/2026-09-28/page-drawer/m2-select-chip.md
+new file mode 100644
+index 00000000..001024c0
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m2-select-chip.md
+@@ -0,0 +1,25 @@
++# Minion 2: select any element, its properties, a chip in the chat
++
++Load the `minion` skill first, then `code`, `page` and `css`. The owner's raw words: `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words-4.md`, the second half ("for any content card whether it's a paragraph or a question or any list item… it should be selectable…"). Read it; it is the acceptance test.
++
++**Work only in the worktree** `C:\Code\lew42\worktrees\page-drawer` (branch `worktree/page-drawer`, server http://localhost:62178/). Minion 1 already built the ☰ menu and the drawer's tabs there (read `ext/drawer/doc/tabs.md` and `m1/proof.md`). Commit there; do not merge. Log in `public/framework/ai/2026-09-28/page-drawer/m2/task.jsonl` in the worktree.
++
++## Deliverables
++
++1. **Any content element is selectable:** a paragraph, a heading, a question, a list item, a card. Hover brightens its background subtly (a `lighten` token, not a new colour); a click keeps it selected (one at a time; Escape or a click on empty space clears it). Only while the drawer is open, so plain reading and links are untouched when it is shut. Links, buttons and inputs keep their own clicks. Never inside the drawer or the dev bar.
++2. **Selecting it opens its PROPERTIES in the drawer:** minimal — what it is (tag, class, its text's first line), where it is (the page, the nearest module readme, the file that drew it if `ext/Ask` can find it). Reuse `ext/Ask`'s `pick()` code (it already gathers the markup and the nearest readme), don't rewrite it.
++3. **A chat bubble adds the element to the page chat's context,** shown as a chip in the AI tab's input ("this paragraph", ✕ to remove), the way IDEs show the open file. The send (minion 1's exported `send({page, text, context})`) carries it as `context: [{kind, label, text, selector}]` — the shape in `public/framework/ai/2026-09-25/recursive-pairs/interface.md`. The page's own manager answers; there is no agent per element.
++4. **Suggestions are, for now, that chat:** no suggest-edit UI.
++5. **Docs:** `ext/drawer/doc/select.md`, a screenshot first; one line in `ext/drawer/readme.md`.
++
++## Proof (pngs in `public/framework/ai/2026-09-28/page-drawer/shots/`)
++
++- hover and selected, on a paragraph and on a card, at 1920;
++- the properties shown in the drawer;
++- the chip in the input, and the sent message's body carrying `context` (log the request body);
++- the drawer shut: clicking a paragraph does nothing and links still work.
++Headless Playwright against http://localhost:62178/ only. `node Server/smoke.mjs C:\Code\lew42\worktrees\page-drawer` clean.
++
++## Never
++
++Edit outside `ext/drawer/**`, `ext/Ask/` (an export seam only, logged), and the ☰ line in `public/app.js`. Start or restart a server. Show a window (`windowsHide: true`). New classes use the `drawer-` prefix via `new-css-class`. Write `m2/proof.md` (one line per deliverable with its png) and stop.
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m2/proof.md b/public/framework/ai/2026-09-28/page-drawer/m2/proof.md
+new file mode 100644
+index 00000000..4704f08d
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m2/proof.md
+@@ -0,0 +1,24 @@
++# Minion 2 — proof
++
++While the drawer is open, a click on any content on the page selects it. The drawer's new **Element** tab shows what the element is and where it lives. "💬 Ask about this" puts it on the AI tab's input as a chip, and every message carries it as `context`. All shots are headless Playwright at 1920 against this worktree's server. They are in [`../shots/`](../shots/): the repo ignores `ai/**/shots/`, so they live on disk and are not committed. The doc's own screenshot, `ext/drawer/doc/select.png`, is committed.
++
++| # | Deliverable | Done | Shot |
++|---|---|---|---|
++| 0 | (fix from m1) All five tabs visible at the default 19rem and at the 200px drag floor: they wrap, never scroll | yes | [tabs-1920-default.png](../shots/tabs-1920-default.png) · [tabs-1920-narrow.png](../shots/tabs-1920-narrow.png) · [tabs-3440-narrow.png](../shots/tabs-3440-narrow.png) · [plain-ai-1920.png](../shots/plain-ai-1920.png) |
++| 1 | Any content element selectable while the drawer is open: hover brightens (`--lighten-2`), a click keeps it (one at a time), Escape or empty page clears; controls keep their clicks; never the drawer, dev bar or navigation | yes | [select-paragraph-hover-1920.png](../shots/select-paragraph-hover-1920.png) · [select-card-hover-1920.png](../shots/select-card-hover-1920.png) · [select-card-selected-1920.png](../shots/select-card-selected-1920.png) |
++| 2 | Its properties in the drawer: tag, classes, first words; the page, the page file that drew it, the nearest readme, the owning module (from ext/Ask's `context()`) | yes | [select-paragraph-properties-1920.png](../shots/select-paragraph-properties-1920.png) |
++| 3 | A chip in the AI input ("this paragraph ✕"); the send carries `context: [{kind, label, text, selector}]` | yes | [chip-in-input-1920.png](../shots/chip-in-input-1920.png) · [chip-sent-1920.png](../shots/chip-sent-1920.png) · the logged body: [request-body.json](request-body.json) |
++| 4 | Suggestions are that chat; no suggest-edit UI | yes | — |
++| 5 | Docs: `ext/drawer/doc/select.md` (screenshot first), a readme line, a line on the drawer page | yes | [/framework/ext/drawer/doc/select/](/framework/ext/drawer/doc/select/) |
++| — | The drawer shut: a paragraph click selects nothing and opens nothing; a link still navigates | yes | [shut-no-select-1920.png](../shots/shut-no-select-1920.png) |
++
++Measured on the run: the chip's `selector` (`.page--intro > p:nth-of-type(4)`) finds the same element again with `document.querySelector`. Escape cleared the selection. The script saw no console errors apart from AI 2's own missing `ai/usage.json`.
++
++## Things to know
++
++- **The send's endpoint was stubbed for the proof.** `/api/page-ai` is not live yet, so the headless run answered it with `{ok: true}` and saved the exact body the drawer sent ([request-body.json](request-body.json)). The card test did not send, because a card send goes to the real Servex prompt log.
++- **Hover and selection are data attributes, not classes.** With a `drawer-` class, ext/Ask named `ext/drawer` as the module of every element you selected (it maps class prefixes to modules). Found on the card shot, fixed.
++- **One ext/Ask seam, logged:** `context()` now also returns `file`, the page.js that drew the element.
++- **Hover is subtle on purpose** (the owner's word): one lighten rung. Selection adds a hairline ring so it still shows on a white card.
++- **A card now sends through `send()` too**, so its chips ride along. It posts to the same place the card's own footer does.
++- **Links that will work after merge:** the Dictation playground (`/framework/ux/Dictate/playground/`) is still uncommitted in the main tree, so it 404s here. The interface file is untracked in main, so the docs name its path without linking it.
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m2/request-body.json b/public/framework/ai/2026-09-28/page-drawer/m2/request-body.json
+new file mode 100644
+index 00000000..832be1b5
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m2/request-body.json
+@@ -0,0 +1,13 @@
++{
++  "page": "/framework/ext/drawer/",
++  "text": "Is this sentence right?",
++  "from": "owner",
++  "context": [
++    {
++      "kind": "p",
++      "label": "this paragraph",
++      "text": "It pushes rather than covers — --drawer is the inline-end strip .app yields, written onto the same element the rail inherits its width from, so the reserved strip and the rail are one number. A properties panel that covers what you're editing is the one thing this widget must never do.",
++      "selector": ".page--intro > p:nth-of-type(4)"
++    }
++  ]
++}
+diff --git a/public/framework/ai/2026-09-28/page-drawer/m2/task.jsonl b/public/framework/ai/2026-09-28/page-drawer/m2/task.jsonl
+new file mode 100644
+index 00000000..c7d14ae1
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/m2/task.jsonl
+@@ -0,0 +1,12 @@
++{"assign":{"session_id":"20f947e1-a022-40d5-bd44-efa1e27b29c3","tab":"minion-drawer-tabs","group":"page-drawer","request":"Minion 2 of page-drawer: select any content element while the drawer is open, show its properties in the drawer, and a chip in the AI tab input that sends the element as context (brief: ../m2-select-chip.md). Also: the tab strip must show all five tabs at 19rem and at the narrowest drag width.","requested_at":"2026-09-28T14:43:19-05:00","model":"claude-opus-5-5","window":{"before":0.48},"now":"fixing the tab strip, then reading ext/Ask pick()","steps":["tab strip wraps","select on hover and click","properties in the drawer","chip in the AI input","shots at 1920","docs and proof.md","commit"],"step":1}}
++{"action":{"at":"2026-09-28T14:45:08-05:00","did":"edit","files":["public/framework/ext/drawer/select.js"]}}
++{"action":{"at":"2026-09-28T14:45:44-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/element.js"]}}
++{"action":{"at":"2026-09-28T14:53:26-05:00","did":"edit","files":["public/framework/ext/drawer/doc/select.md"]}}
++{"action":{"at":"2026-09-28T14:55:19-05:00","did":"edit","files":["public/framework/ai/2026-09-28/page-drawer/m2/proof.md"]}}
++{"log":{"at":"2026-09-28T14:55:37-05:00","msg":"Tab strip fix: at 1920 the page type is larger at the same 19rem, so Admin clipped. The strip now wraps (flex-wrap) and never scrolls; measured every tab fully visible at 1280/1920/3440 and at the 200px drag floor."}}
++{"log":{"at":"2026-09-28T14:55:37-05:00","msg":"Proof pngs cannot be committed: .gitignore line 14 ignores public/framework/ai/**/shots/. They stay on disk in the worktree; the docs' own screenshots (ext/drawer/doc/tabs.png, select.png) are committed."}}
++{"log":{"at":"2026-09-28T14:55:37-05:00","msg":"ext/Ask seam (the one allowed edit there): context() also returns file, the page.js that drew the element (pick.js page_at)."}}
++{"decision":{"id":"drawer-select-attrs","at":"2026-09-28T14:55:37-05:00","question":"How are hover and selection marked on the element?","options":["classes drawer-hover / drawer-selected","data attributes data-drawer-hover / data-drawer-selected"],"chose":"data attributes","why":"the element's classes are what the Element tab reports and what ext/Ask maps to an owning module via css-scopes.txt; a drawer- class made every selected element report ext/drawer as its module (seen on the card shot)","rule":"code#7"}}
++{"decision":{"id":"drawer-select-where","at":"2026-09-28T14:55:37-05:00","question":"Where do the selected element's properties show?","options":["a section on top of the AI tab","a sixth tab, Element, routed like the rest"],"chose":"a sixth tab, Element","why":"one tab per job keeps the AI tab a chat; it is routed (?drawer=element) and the chip is the bridge into the AI tab","rule":"brief#2"}}
++{"decision":{"id":"drawer-select-active","at":"2026-09-28T14:55:37-05:00","question":"When is selecting on?","options":["whenever the drawer is open","only while the drawer shows its own tabs"],"chose":"only while it shows its own tabs","why":"ext/layout's panel uses the same drawer and has its own clicks; selecting over it would steal them","rule":"brief#1"}}
++{"assign":{"step":7,"landed_at":"2026-09-28T14:55:37-05:00","outcome":"**While the drawer is open, a click on any paragraph, heading, list item or card selects it. The new Element tab shows what it is and where it lives, and \"Ask about this\" puts it on the AI input as a chip that goes along with every message.**\n\n![A paragraph selected and its properties](/framework/ext/drawer/doc/select.png)\n\n- The send carries `context: [{kind, label, text, selector}]`, the agreed shape; the logged body is in [request-body.json](/framework/ai/2026-09-28/page-drawer/m2/request-body.json).\n- With the drawer shut, nothing changes: clicks select nothing and links work.\n- The tab strip now wraps, so every tab is visible at every width.\n- Proof: [m2/proof.md](/framework/ai/2026-09-28/page-drawer/m2/proof.md) · how it works: [doc/select](/framework/ext/drawer/doc/select/)\n\nCommitted on `worktree/page-drawer`, not merged. The proof pngs are gitignored (`ai/**/shots/`), so they stay in the worktree.","links":[{"url":"/framework/ext/drawer/doc/select/","label":"doc/select.md"},{"url":"/framework/ext/drawer/","label":"Drawer page"},{"url":"/framework/ai/2026-09-28/page-drawer/m2/proof.md","label":"proof.md"}],"window":{"before":0.48},"tokens":null}}
+diff --git a/public/framework/ai/2026-09-28/page-drawer/requirements.md b/public/framework/ai/2026-09-28/page-drawer/requirements.md
+new file mode 100644
+index 00000000..7fab742a
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/page-drawer/requirements.md
+@@ -0,0 +1,14 @@
++# Step A: a menu on every page, and the drawer's tabs
++
++Design (one picture, one table): [/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md). Owner's words: `2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md`. This is ① and ② plus Sessions.
++
++1. **The menu:** a ☰ button, top right, on every page (site chrome in `public/app.js`). It opens `ext/drawer`. It must not cover the page head or the dev bar; check at 1280 and 3440.
++2. **Tabs:** AI, Sessions, Dictation, Settings, Admin. Each is routed (`?drawer=sessions` or a child URL), so a reload lands on the same tab.
++3. **AI tab:** the card's existing composer (chat and dictate) moves in, with a model picker that only shows the choice for now (the provider comes with harness step 2).
++4. **Sessions tab:** every thread on this page, read from the dev bar Ask's store (`<page>/ai/<slug>/task.jsonl`, whose `chat_session_id` resumes a thread). One click jumps back into a thread. On a card, the card's own sub-threads show here too.
++5. **Dictation, Settings, Admin:** Dictation embeds what task-mastermind-dictation-playground built; the other two start with what exists (the dev bar's settings) and nothing new.
++6. **Docs:** `ext/drawer/doc/` gets the tab model, with a screenshot first.
++
++**Proof:** shots at 1280 and 1920 of the drawer open on a plain page and on a card; a reload on `?drawer=sessions`; an old Ask thread resumed from the Sessions tab.
++
++**Fence:** `public/app.js` (the menu only), `ext/drawer/`, the drawer's tab files, and the composer's move. Before editing the composer, check list_agents and the AI 2 card for an AI 2 lead or the dictation playground working on the same files. Work in your own worktree.
+diff --git a/public/framework/ai2/compose.js b/public/framework/ai2/compose.js
+index fdaa6d1c..c86d230d 100644
+--- a/public/framework/ai2/compose.js
++++ b/public/framework/ai2/compose.js
+@@ -81,6 +81,9 @@ class ComposerMic extends Dictate {
+ 	}
+ 
+ 	async post_held(text){
++		// The drawer's seam (ext/drawer/tabs/ai.js): a composer handed `deliver` sends
++		// every finished sentence through it instead of posting to Servex itself.
++		if (this.deliver) return this.deliver(text, "whisper");
+ 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+ 		const re = this.re?.();
+ 		// `re` still pins the sentence to the open card (unchanged); `selected`
+@@ -113,7 +116,7 @@ ComposerMic.prototype.mode = "open";   // the mic stays on; the box is single-li
+  * is beside the `/log/prompts` post, never instead of it: that one is what the
+  * fast assistant reads.
+  */
+-async function into_card(re, entry){
++export async function into_card(re, entry){
+ 	// A Servex not yet restarted onto the card code has no `/card/append`: a
+ 	// folder card's words then go on the old log under its own slug (the last
+ 	// segment), to be copied across once the card routes are live.
+@@ -128,7 +131,7 @@ async function into_card(re, entry){
+  * are how the footer shows the words the instant they exist, before Servex has
+  * seen them, which is the whole of "I don't like that my words disappear".
+  */
+-export function composer({ re = () => null, on_text, on_partial, placeholder, autostart, mic: with_mic = true } = {}){
++export function composer({ re = () => null, on_text, on_partial, placeholder, autostart, mic: with_mic = true, deliver } = {}){
+ 	let $box, $input, $note, mic;
+ 
+ 	const view = div.c("ai2-compose", () => {
+@@ -142,6 +145,7 @@ export function composer({ re = () => null, on_text, on_partial, placeholder, au
+ 			// whatever card happens to be open.
+ 			if (with_mic) mic = new ComposerMic({
+ 				re,
++				deliver,
+ 				on_text: text => on_text?.(text),
+ 				on_partial: text => on_partial?.(text),
+ 				on_error: e => note(String(e?.message ?? e)),
+@@ -175,6 +179,8 @@ export function composer({ re = () => null, on_text, on_partial, placeholder, au
+ 		const target = re();
+ 		if (target){ entry.re = target; entry.selected = target; }
+ 		on_text?.(msg);
++		// The drawer's seam: `deliver(text, via)` owns the send, and says what to show.
++		if (deliver) return note(await deliver(msg, "typed") || "sent");
+ 		note("sending…");
+ 		const ok = await post_prompt(entry, servex_base() + "/log/prompts");
+ 		if (target) into_card(target, entry);
+diff --git a/public/framework/ext/Ask/pick.js b/public/framework/ext/Ask/pick.js
+index 37c18ebc..64d96f45 100644
+--- a/public/framework/ext/Ask/pick.js
++++ b/public/framework/ext/Ask/pick.js
+@@ -124,7 +124,7 @@ export function label(el){
+  *       module:    { url, text } }  // the framework module that owns its class prefix
+  */
+ export async function context(el, { app } = {}){
+-	const { url: page, dir } = page_at(el, app);
++	const { url: page, dir, file } = page_at(el, app);
+ 
+ 	const about = {
+ 		page,
+@@ -135,6 +135,10 @@ export async function context(el, { app } = {}){
+ 		html: el.outerHTML.slice(0, 600),
+ 	};
+ 
++	// The page.js that drew it, when a Page on the way up knows its own module (ext/drawer's
++	// properties view shows it).
++	if (file) about.file = file;
++
+ 	const [readme, module] = await Promise.all([nearest_readme(dir ?? page), module_url(el)]);
+ 
+ 	const [decisions, mod] = await Promise.all([
+@@ -229,6 +233,7 @@ function page_at(el, app){
+ 	return {
+ 		url: url.endsWith("/") ? url : url.replace(/[^/]*$/, ""),
+ 		dir: owner?.meta ? new URL(".", owner.meta.url).pathname : null,
++		file: owner?.meta ? new URL(owner.meta.url).pathname : null,
+ 	};
+ }
+ 
+diff --git a/public/framework/ext/drawer/doc/file/menu.js.md b/public/framework/ext/drawer/doc/file/menu.js.md
+new file mode 100644
+index 00000000..97052ed4
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/file/menu.js.md
+@@ -0,0 +1 @@
++The ☰ in the top right of every page. `app.js` calls `menu(app)` once in `render()` and `menu.navigated()` after every navigation. One click opens the drawer on its tabs, a second shuts it; a url carrying `?drawer=<tab>` opens on that tab once the styles are in. Not drawn inside a frame. [doc/tabs.md](/framework/ext/drawer/doc/tabs/).
+diff --git a/public/framework/ext/drawer/doc/file/select.js.md b/public/framework/ext/drawer/doc/file/select.js.md
+new file mode 100644
+index 00000000..704f7e7c
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/file/select.js.md
+@@ -0,0 +1 @@
++`DrawerSelect` — while the drawer is open on its tabs, hovering a content element brightens it and a click selects it (data attributes, one at a time) and opens the Element tab. Also `item(el)`, the `{kind, label, text, selector}` a chip carries, and `path(el)`, the selector that finds the element again. [doc/select.md](/framework/ext/drawer/doc/select/).
+diff --git a/public/framework/ext/drawer/doc/file/tabs.js.md b/public/framework/ext/drawer/doc/file/tabs.js.md
+new file mode 100644
+index 00000000..7df2e473
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/file/tabs.js.md
+@@ -0,0 +1 @@
++`DrawerTabs` — the five tabs, their route word (`?drawer=<name>`, written with `history.replaceState`), and the context each tab is drawn with: the app, `drawer.page()`, the open card. Each tab file under `tabs/` is imported the first time it is shown. [doc/tabs.md](/framework/ext/drawer/doc/tabs/).
+diff --git a/public/framework/ext/drawer/doc/select.md b/public/framework/ext/drawer/doc/select.md
+new file mode 100644
+index 00000000..b69007bc
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/select.md
+@@ -0,0 +1,39 @@
++# Selecting an element, and asking about it
++
++![A paragraph selected on the page, and its properties in the drawer's Element tab](/framework/ext/drawer/doc/select.png)
++
++**While the drawer is open, you can click any content on the page to select it** — a paragraph, a heading, a list item, a question, a card. Hovering brightens it a little; a click keeps it selected, one at a time, and the drawer's **Element** tab shows what it is and where it lives. Escape, or a click on empty page, clears it.
++
++**"💬 Ask about this"** puts the element on the AI tab's input as a chip, *this paragraph ✕*, the way an editor shows the open file in its chat box. Every message you send carries the chips as context, until you remove them with ✕.
++
++## What stays the same
++
++- **With the drawer shut, nothing changes.** A click on a paragraph does nothing, text selects as usual, and links work.
++- Links, buttons and inputs always keep their own clicks.
++- Nothing inside the drawer, the dev bar, the site's navigation or the page's tab bar is ever selectable.
++- A drag that selects text is reading, not choosing, so it selects no element.
++- While another module owns the drawer (ext/layout's panel), its own clicks win.
++
++## What the Element tab shows
++
++**What:** the tag, the element's own classes and its first words. **Where:** the page, the page file that drew it, the nearest readme and the module that owns its class name. The "where" half is [`ext/Ask`](/framework/ext/Ask/)'s own `context()`, the same gathering its *pick an element* button does.
++
++## What the message carries
++
++Each chip is `{kind, label, text, selector}`, the shape agreed in the page-pair interface (`framework/ai/2026-09-25/recursive-pairs/interface.md`):
++
++```json
++{ "page": "/framework/ext/drawer/", "text": "Is this sentence right?", "from": "owner",
++  "context": [{ "kind": "p", "label": "this paragraph", "text": "It pushes rather than covers …",
++                "selector": ".page--intro > p:nth-of-type(4)" }] }
++```
++
++The page's own assistant answers; there is no agent per element. `selector` finds the element again (`document.querySelector(selector)`), stepping up from it to its page.
++
++## Watch out
++
++- **The hover and selection are data attributes** (`data-drawer-hover`, `data-drawer-selected`), not classes. The element's classes are what the Element tab reports and what ext/Ask maps to a module; a `drawer-` class would name ext/drawer as the owner of everything you select.
++- **`lighten` is invisible on white.** Hover is one lighten rung. Selection adds a hairline ring so it still shows on a white card.
++- What counts as content is one list, `DrawerSelect.CONTENT` in `select.js`. Add `data-selectable` to anything else that should count.
++
++Suggestions are this chat for now; there is no suggest-an-edit UI yet.
+diff --git a/public/framework/ext/drawer/doc/select.png b/public/framework/ext/drawer/doc/select.png
+new file mode 100644
+index 00000000..bbcaa845
+Binary files /dev/null and b/public/framework/ext/drawer/doc/select.png differ
+diff --git a/public/framework/ext/drawer/doc/tabs.md b/public/framework/ext/drawer/doc/tabs.md
+new file mode 100644
+index 00000000..4200aa6f
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/tabs.md
+@@ -0,0 +1,60 @@
++# The ☰ menu and the drawer's tabs
++
++![The drawer open on its AI tab, beside a page — the ☰ at the page's top right](/framework/ext/drawer/doc/tabs.png)
++
++**Every page has a ☰ in its top right corner.** Click it and the drawer opens on the right with its tabs: **AI**, **Sessions**, **Dictation**, **Settings**, **Admin** and **Element**. Click the ☰ again, or the drawer's ✕, and it shuts.
++
++## What each tab is
++
++| Tab | What it shows | Built from |
++|---|---|---|
++| AI | A chat about this page: a model picker, the conversation, and the one-line composer with its microphone | the card's composer, [`ai2/compose.js`](/framework/ai2/), imported |
++| Sessions | Every saved thread on this page. Click one and the AI tab carries on that thread | the dev bar Ask's store, `<page>ai/<slug>/task.jsonl` |
++| Dictation | The dictation playground | [`ux/Dictate/playground/`](/framework/ux/Dictate/playground/) |
++| Settings | Edit mode, the reload block, the width line, the x-ray outline | the dev bar's own controls |
++| Admin | Who holds reloads, the route, the dev server, the page structure, links | the dev bar's own page sections |
++| Element | What is selected on the page: what it is and where it lives; "Ask about this" | [doc/select.md](/framework/ext/drawer/doc/select/) |
++
++## The route word
++
++The open tab is in the url: `?drawer=sessions`. Clicking a tab rewrites it with `history.replaceState`, so a reload opens the same tab and the back button is not filled with tab clicks. A url with no `?drawer` opens with the drawer shut.
++
++⚠ A page that rewrites its own url and drops the query (the Space realm's `space/page.js` does) also drops the route word. The drawer stays open; only a reload forgets it.
++
++## Adding a tab
++
++A tab is one row in `DrawerTabs.list` (`tabs.js`) and one file under `tabs/`:
++
++```js
++// tabs.js
++{ name: "notes", label: "Notes", load: () => import("./tabs/notes.js") },
++
++// tabs/notes.js — draws into the drawer's body, which is the captor
++export default function notes({ app, page, card, tabs }){
++    p("Notes about " + page);
++}
++```
++
++`load()` runs the first time the tab is shown, so a page nobody opens the drawer on never downloads it. The function gets the app, the **page the drawer is about**, the open card when that page is a card, and `tabs` itself (`tabs.open("ai")` switches tab).
++
++## Sending a message: `send()`
++
++`tabs/ai.js` exports `send({ page, text, context })`, the one way anything sends from the drawer:
++
++- **On a card:** the message goes where the card's own composer sends it (Servex's prompt log, pinned to the card), and the reply arrives in the card's chat.
++- **On a plain page:** it goes to the page's assistant, `POST http://servex.localhost/api/page-ai` (the agreed interface, `framework/ai/2026-09-25/recursive-pairs/interface.md`). Until that answers, it falls back to the dev bar's Ask route, so a message still gets a reply.
++- **On a thread picked in Sessions:** it goes straight to Ask and resumes that thread's session. If the old session is gone (Claude Code prunes old transcripts, and a session started in another tree is not found), a fresh session is filed in the same thread and given the thread's last turns.
++
++`context` is a list of picked elements, `[{kind, label, text, selector}]`.
++
++## The page the drawer is about: `drawer.page()`
++
++Every tab reads `drawer.page()`, never `location.pathname`. A host that shows another page inside itself (AI 2 embedding a page in its detail area) calls `drawer.page("/framework/ux/Dictate/")`; `drawer.page(null)` hands it back to the address bar. A change redraws the open tab.
++
++## Sharing the drawer
++
++The drawer is one box that any module can fill. `drawer.filled_by()` says who filled it last, which is how the ☰ knows whether a click should open its tabs or shut them. `ext/layout` now redraws the drawer only when it filled it last, so a click on the page no longer replaces the tabs.
++
++The tab strip wraps onto a second row when the rail is narrow; no tab is ever cut off or scrolled out of sight.
++
++The composer's model picker only stores the choice for now (`localStorage`, `lew42-drawer-model`). Nothing reads it until the provider lands (harness step 2).
+diff --git a/public/framework/ext/drawer/doc/tabs.png b/public/framework/ext/drawer/doc/tabs.png
+new file mode 100644
+index 00000000..c673342a
+Binary files /dev/null and b/public/framework/ext/drawer/doc/tabs.png differ
+diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
+index 5d2d7eea..26de7517 100644
+--- a/public/framework/ext/drawer/drawer.css
++++ b/public/framework/ext/drawer/drawer.css
+@@ -67,4 +67,119 @@
+ 		cursor: pointer;
+ 	}
+ 	.drawer .drawer-x:hover { color: var(--ink); background: var(--fill-a08); }
++
++	/* THE ☰ (menu.js) — top right of the page, on every page. Fixed, and inset by the
++	   same '--rail-push' the page yields to the rails (above), so it sits at the PAGE's
++	   corner beside an open drawer or dev bar, never on top of either. Small and quiet:
++	   page heads keep their title on the left, and this corner is empty on every layout
++	   measured (1280, 1920, 3440). z-index 39 — just under the drawer (40). */
++	.app .drawer-menu {   /* two classes: clears the theme's :is(button, .btn) padding at 0-2-0 */
++		position: fixed; z-index: 39;
++		inset-block-start: 0.5rem;
++		inset-inline-end: calc(var(--rail-push, 0px) + 0.5rem);
++		display: flex; align-items: center; justify-content: center;
++		inline-size: 2.2rem; block-size: 2.2rem;
++		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
++		padding: 0;
++		font-size: 1.15rem; line-height: 1;
++		color: var(--subtle);
++		background: var(--surface);
++		border: 1px solid var(--line);
++		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
++		transition: inset-inline-end 0.18s;
++	}
++	.app .drawer-menu:hover { color: var(--ink); background: var(--fill-a08); }
++
++	/* The tab strip, in the drawer's pinned head beside the ✕ (tabs.js). */
++	/* Every tab always visible: the strip WRAPS onto a second row when the rail is too
++	   narrow (dragged to 200px, or a big screen's larger type at 19rem), never scrolls a
++	   tab out of sight. The slot takes the room left of the ✕, so the ✕ stays top right. */
++	.drawer-slot:has(> .drawer-tabs) { flex: 1 1 auto; }
++	.drawer-tabs { flex-wrap: wrap; gap: 0.1em; min-inline-size: 0; }
++	.drawer .drawer-tab {
++		min-block-size: 0;
++		padding: 0.25em 0.3em;
++		font: inherit; font-size: 0.9em;
++		color: var(--subtle);
++		background: none;
++		border: 0;
++		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
++	}
++	.drawer .drawer-tab:hover { color: var(--ink); background: var(--fill-a08); }
++	.drawer .drawer-tab.on { color: var(--ink); background: var(--fill-a08); font-weight: 600; }
++
++	/* One list of rows (Sessions), one conversation (AI). */
++	.drawer-ai, .drawer-sessions, .drawer-settings, .drawer-admin, .drawer-dictation { gap: calc(var(--gap) * 0.8); }
++	.drawer-ai-head { gap: 0.5em; }
++	.drawer-model { gap: 0.4em; }
++	.drawer-ai-list { gap: 0.6em; }
++	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
++	.drawer-turn-who { font-size: 0.85em; }
++	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
++	.drawer-rows { gap: 0.35em; }
++	.drawer .drawer-row {
++		display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em;
++		padding: 0.5em 0.6em;
++		font: inherit; text-align: start;
++		color: var(--ink);
++		background: none;
++		border: 1px solid var(--line);
++		border-radius: calc(var(--radius) / 2);
++		cursor: pointer;
++	}
++	.drawer .drawer-row:hover, .drawer .drawer-row.on { background: var(--fill-a08); }
++	.drawer-row-title { font-weight: 600; }
++	.drawer-acts { gap: 0.5em; }
++
++	/* SELECTING (select.js), only while the drawer is open on its tabs. Hover brightens the
++	   element's ground one 'lighten' rung; selected takes the next rung and a hairline
++	   ring, so it still reads on a white card where lighten alone is invisible. The glow is
++	   a box-shadow of the same colour, so the element never moves by a pixel.
++	   '.pages' in front (0-2-0), so a card's own background cannot win the tie. */
++	.pages [data-drawer-hover] {
++		background-color: var(--lighten-2);
++		box-shadow: 0 0 0 0.3em var(--lighten-2);
++		cursor: pointer;
++	}
++	.pages [data-drawer-selected] {
++		background-color: var(--lighten-3);
++		box-shadow: 0 0 0 0.3em var(--lighten-3), 0 0 0 calc(0.3em + 1px) var(--fill-a16);
++	}
++
++	/* The chips above the AI tab's input: what the next message is about. */
++	.drawer-chips { gap: 0.3em; }
++	.drawer-chips:empty { display: none; }
++	.drawer-chip {
++		gap: 0.2em;
++		max-inline-size: 100%;
++		padding: 0.1em 0.2em 0.1em 0.55em;
++		font-size: 0.9em;
++		background: var(--fill-a08);
++		border: 1px solid var(--line);
++		border-radius: 1em;
++	}
++	.drawer-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.drawer .drawer-chip-x {
++		min-block-size: 0;
++		padding: 0 0.3em;
++		font: inherit; line-height: 1.4;
++		color: var(--subtle);
++		background: none;
++		border: 0;
++		border-radius: 1em;
++		cursor: pointer;
++	}
++	.drawer .drawer-chip-x:hover { color: var(--ink); background: var(--fill-a08); }
++
++	/* The Element tab. */
++	.drawer-props { gap: calc(var(--gap) * 0.8); }
++	.drawer-props-head { gap: 0.5em; }
++	.drawer .drawer-ask { white-space: nowrap; }
++	/* The dev bar's key column is 3.6em, sized for its own short keys; "module" needs more. */
++	.drawer-props .dev-row { grid-template-columns: 4.8em 1fr; }
++	.drawer-props-title { margin: 0; }
++	.drawer-props-where { gap: 0.35em; }
++	.drawer-props-link { overflow-wrap: anywhere; }
+ }
+diff --git a/public/framework/ext/drawer/drawer.js b/public/framework/ext/drawer/drawer.js
+index 2490c876..b976ed81 100644
+--- a/public/framework/ext/drawer/drawer.js
++++ b/public/framework/ext/drawer/drawer.js
+@@ -50,10 +50,31 @@ drawer.refresh = () => { if (fill && drawer.showing()) fill($slot, $body); };
+ drawer.close = () => {
+ 	$rail?.rc("on");
+ 	$shell?.style("--drawer", "");
++	// Said out loud, so a caller that wrote state somewhere else (the menu's `?drawer=`
++	// word in the url, tabs.js) can take it back when the ✕ shuts the rail.
++	window.dispatchEvent(new Event("drawer-close"));
+ };
+ 
+ drawer.showing = () => !!$rail?.hc("on");
+ 
++// Whose content is showing: the fill function last handed to `drawer()`. The menu
++// compares it with its own, so its ☰ can tell "open on my tabs" from "open on a
++// selection's words" and toggle only the first.
++drawer.filled_by = () => fill;
++
++/* THE PAGE THE DRAWER IS ABOUT — a site path with a trailing slash. Normally the
++   address bar's; a host that shows a different page inside itself (AI 2 embedding a
++   real page in its detail area) sets it, and `null` hands it back to the address bar.
++   No argument reads it. Every tab reads this, never `location.pathname`, and a change
++   fires `drawer-page` so the open tab redraws (tabs.js). doc/tabs.md. */
++let about = null;
++drawer.page = function(path){
++	if (!arguments.length) return about ?? location.pathname;
++	about = path ? String(path).replace(/\/?$/, "/") : null;
++	window.dispatchEvent(new Event("drawer-page"));
++	return drawer.page();
++};
++
+ // What the grip writes on every move: clamp it, put it on the shell, hand it back so the
+ // number that gets remembered is the one that was actually applied.
+ function size(px){
+@@ -80,7 +101,7 @@ function build(){
+ 	$rail.append(() => {
+ 		div.c("drawer-head flex v-center split", () => {
+ 			$slot = div.c("drawer-slot flex v-center");
+-			button.c("drawer-x", "✕").click(drawer.close).attr("title", "Close");
++			button.c("drawer-x", "✕").click(() => drawer.close()).attr("title", "Close");
+ 		});
+ 
+ 		$body = div.c("drawer-body flex v");
+diff --git a/public/framework/ext/drawer/menu.js b/public/framework/ext/drawer/menu.js
+new file mode 100644
+index 00000000..7617b065
+--- /dev/null
++++ b/public/framework/ext/drawer/menu.js
+@@ -0,0 +1,40 @@
++import { button } from "/framework/core/View/View.js";
++import tabs from "./tabs.js";
++import select from "./select.js";
++
++/* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
++   page could have like a little menu button in the top right… that kind of makes it
++   look obvious that when you click over there the right sidebar appears").
++
++   One click opens the drawer on its tabs (tabs.js); a second click, or the drawer's
++   own ✕, shuts it. Called once by the site, in app.js's `render()`, so it is built
++   inside `.app` and reads the push tokens there (drawer.css places it).
++
++   ⚠ Not drawn inside a frame: an embedded page (a demo in an iframe) is not a page
++   of its own, and a ☰ in every frame would stack menus inside menus. */
++export default function menu(app){
++	tabs.app = app;
++	if (window.top !== window) return null;
++
++	// While the drawer is open on its tabs, any content element on the page can be
++	// selected (select.js); shut, the page reads exactly as before.
++	select.start();
++
++	const $menu = button.c("drawer-menu", "☰")
++		.attr("type", "button")
++		.attr("title", "Menu — AI, sessions, dictation, settings")
++		.attr("aria-label", "Open the page menu")
++		.click(() => tabs.toggle());
++
++	// A url that names a tab (`?drawer=sessions`) opens on it — once the styles are in,
++	// so the rail never paints unstyled and slides.
++	const routed = tabs.routed();
++	if (routed) app.styles_loaded().then(() => tabs.open(routed));
++
++	return $menu;
++}
++
++// App's `navigated()` seam: the drawer's tabs follow the page.
++menu.navigated = () => tabs.navigated();
++
++export { menu, tabs };
+diff --git a/public/framework/ext/drawer/page.js b/public/framework/ext/drawer/page.js
+index e9d2d97d..4dc786b6 100644
+--- a/public/framework/ext/drawer/page.js
++++ b/public/framework/ext/drawer/page.js
+@@ -1,19 +1,34 @@
+ import { Doc, md, code, h2, h3, drawer, div, span, button, p } from "/app.js";
++import tabs from "./tabs.js";
+ 
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "Drawer",
+-	description: "The right rail — one per document, opened by anything, shut only by its own ✕.",
++	description: "The right rail — one per document, opened by the ☰ on every page or by anything else, shut only by its own ✕.",
+ 	// ⚠ Measured against the loaded font, not guessed: `right_panel_open` is not in this
+ 	// Material Icons build and rendered as 384px of literal word, which forced the whole
+ 	// framework sidebar from 231px to 344px through `min-width: auto`.
+ 	icon: "view_sidebar",
+ 
+-	files: "drawer.js drawer.css page.js readme.md",
+-	notes: "decisions",
++	files: "drawer.js drawer.css menu.js tabs.js select.js page.js readme.md",
++	notes: "tabs select decisions",
+ 
+ 	content(){
+ 
++		h2("The ☰ and its tabs");
++
++		md("Every page has a **☰** in its top right. It opens this drawer on five tabs, and the open tab is in the url (`?drawer=sessions`), so a reload lands on it. Try them:");
++
++		div.c("flex gap wrap", () => {
++			tabs.list.forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));
++		});
++
++		md("How a tab is added, where a message is sent, and `drawer.page()`: [doc/tabs.md](/framework/ext/drawer/doc/tabs/).");
++
++		md("**With the drawer open, click any paragraph on this page.** It is selected, the Element tab shows what it is, and *Ask about this* puts it in the AI tab's input as a chip: [doc/select.md](/framework/ext/drawer/doc/select/).");
++
++		h2("Fill it yourself");
++
+ 		code.js(`import { drawer } from "/app.js";
+ 
+ drawer(($slot, $body) => {
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index b1436bd8..af42620f 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -15,6 +15,12 @@ drawer.close();       // what the ✕ calls
+ drawer.showing();     // is it open
+ ```
+ 
++## The ☰ and its tabs
++
++Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on five routed tabs — AI, Sessions, Dictation, Settings, Admin (`tabs.js`, `tabs/*.js`); `?drawer=sessions` opens on Sessions. The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
++
++While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
++
+ ## Sharing it
+ 
+ One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
+@@ -37,6 +43,6 @@ One box, any number of callers — `ext/layout` fills it with a selected element
+ 
+ ## More
+ 
+-- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [doc/file/](./doc/file/) — one note per file
+-- Files that matter: `drawer.js` (shell, push, ✕, the width), `drawer.css` (strip, sheet, z-index), `page.js` (live demo)
++- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [Files](/framework/ext/drawer/files/) — one note per file
++- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `page.js` (live demo)
+ - The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it
+diff --git a/public/framework/ext/drawer/select.js b/public/framework/ext/drawer/select.js
+new file mode 100644
+index 00000000..5c49c822
+--- /dev/null
++++ b/public/framework/ext/drawer/select.js
+@@ -0,0 +1,145 @@
++import drawer from "./drawer.js";
++import tabs from "./tabs.js";
++
++/* SELECT ANY ELEMENT ON THE PAGE — while the drawer is open (the owner, 2026-09-28: "for
++   any content card whether it's a paragraph or a question or any list item… if you click
++   on that thing it should be selectable… it just brightens the background color a little
++   bit on hover. And then when you click it, it kind of stays selected… and it launches
++   the properties in the sidebar").
++
++   Hover brightens a content element (`[data-drawer-hover]`); a click keeps it selected
++   (`[data-drawer-selected]`, one at a time) and opens the drawer's Element tab on it. Escape,
++   or a click on empty page, clears it. With the drawer SHUT none of this runs, so plain
++   reading, text selection and links are untouched. Links, buttons and inputs keep their
++   own clicks, and nothing inside the drawer or the dev bar is ever selectable.
++
++   ⚠ Data ATTRIBUTES, not classes: the element's own classes are what the Element tab
++   reports and what ext/Ask maps to a module (css-scopes.txt), and a `drawer-` class
++   would name ext/drawer as the owner of every element you select.
++
++   The chip that carries a selection into the chat lives on `tabs` (`tabs.chips`), so the
++   Element tab adds it and the AI tab shows it. doc/select.md. */
++export class DrawerSelect {
++	// What counts as a content element: the innermost of these under the pointer wins.
++	static CONTENT = "p, h1, h2, h3, h4, h5, h6, li, dt, dd, blockquote, pre, figure, table, summary, details, "
++		+ ".card, .preview-card, .ai2-full-card, [data-selectable]";
++
++	// Controls keep their own clicks.
++	static OWN_CLICK = "a[href], button, input, select, textarea, label, [contenteditable], [role=button]";
++
++	// Never selectable: the drawer itself, the dev bar, the ☰, the picker's chrome, and a
++	// page's own navigation (the sidebar and the tab bar are chrome, not content).
++	static NEVER = ".drawer, .dev-bar, .drawer-menu, .ask-pick-ui, .sidebar, .tab-bar, nav";
++
++	hovered = null;
++	selected = null;
++
++	constructor(...args){ this.assign(...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	/** Listen, once. Every handler asks `active()` first, so nothing happens while the drawer is shut. */
++	start(){
++		if (this.started) return this;
++		this.started = true;
++		document.addEventListener("pointerover", e => this.hover(e.target));
++		document.addEventListener("pointerleave", () => this.hover(null));
++		document.addEventListener("click", e => this.click(e));
++		document.addEventListener("keydown", e => { if (e.key === "Escape" && this.selected) this.clear(); });
++		// The drawer shut: forget the hover and the selection, so nothing stays lit.
++		window.addEventListener("drawer-close", () => { this.hover(null); this.clear(); });
++		return this;
++	}
++
++	// Open on ITS tabs — not while another caller (ext/layout's panel) owns the drawer,
++	// whose own clicks select its own things.
++	active(){ return tabs.mine(); }
++
++	/** The content element a target belongs to, or null: inside the page, never the chrome. */
++	find(target){
++		if (!target?.closest || target.closest(this.constructor.NEVER)) return null;
++		const el = target.closest(this.constructor.CONTENT);
++		return el && el.closest(".pages") ? el : null;
++	}
++
++	hover(target){
++		const el = this.active() ? this.find(target) : null;
++		if (el === this.hovered) return;
++		this.hovered?.removeAttribute("data-drawer-hover");
++		this.hovered = el;
++		el?.setAttribute("data-drawer-hover", "");
++	}
++
++	click(e){
++		if (!this.active() || e.defaultPrevented || e.button) return;
++		if (e.target.closest?.(this.constructor.NEVER)) return;
++		if (e.target.closest?.(this.constructor.OWN_CLICK)) return;
++		// A drag that selected text is reading, not choosing.
++		if (String(getSelection() ?? "").trim()) return;
++
++		const el = this.find(e.target);
++		if (el) this.select(el);
++		else if (e.target.closest?.(".pages")) this.clear();
++	}
++
++	/** Select one element and show its properties on the drawer's Element tab. */
++	select(el){
++		if (this.selected !== el) this.selected?.removeAttribute("data-drawer-selected");
++		this.selected = el;
++		el.setAttribute("data-drawer-selected", "");
++		tabs.open("element");
++		return el;
++	}
++
++	clear(){
++		this.selected?.removeAttribute("data-drawer-selected");
++		this.selected = null;
++		if (tabs.mine() && tabs.current?.name === "element") drawer.refresh();
++	}
++}
++
++/** What the chat is told about one element — the interface's shape,
++ *  `{kind, label, text, selector}` (ai/2026-09-25/recursive-pairs/interface.md). */
++export function item(el){
++	const kind = el.tagName.toLowerCase();
++	return { kind, label: "this " + word(el), text: text_of(el).slice(0, 300), selector: path(el) };
++}
++
++/* The words a reader sees, one space between blocks. `textContent` runs a card's blocks
++   together ("restart.cardquestion") and reads an icon ligature out as a word ("forum"), so
++   this walks the text nodes and skips any inside an icon or a control. */
++const SKIP = "i, .icon, .material-icons, .material-symbols-outlined, [aria-hidden=true], select, button, script, style";
++export function text_of(el){
++	const words = [];
++	const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
++	for (let node = walk.nextNode(); node; node = walk.nextNode()){
++		const skip = node.parentElement?.closest(SKIP);
++		if (!skip || !el.contains(skip)) words.push(node.nodeValue);
++	}
++	return words.join(" ").replace(/\s+/g, " ").replace(/\s+([.,;:!?])(?=\s|$)/g, "$1").trim();
++}
++
++// "this paragraph", "this heading" — how a reader would say it.
++export function word(el){
++	const tag = el.tagName.toLowerCase();
++	if (el.matches(".card, .preview-card, .ai2-full-card")) return "card";
++	return { p: "paragraph", li: "list item", dt: "term", dd: "definition", blockquote: "quote", pre: "code block",
++		figure: "figure", table: "table", summary: "question", details: "question" }[tag]
++		?? (/^h[1-6]$/.test(tag) ? "heading" : tag);
++}
++
++/** A selector that finds this element again: `tag:nth-of-type(n)` steps up to the page. */
++export function path(el){
++	const steps = [];
++	for (let at = el; at && at.nodeType === 1 && !at.matches(".pages"); at = at.parentElement){
++		if (at.id){ steps.unshift("#" + CSS.escape(at.id)); break; }
++		// The page itself is named by core's own stamp, `.page--<name>`, not by position.
++		if (at.matches(".page")){ steps.unshift("." + ([...at.classList].find(c => c.startsWith("page--")) ?? "page")); break; }
++		const tag = at.tagName.toLowerCase();
++		const same = [...(at.parentElement?.children ?? [])].filter(k => k.tagName === at.tagName);
++		steps.unshift(same.length > 1 ? `${tag}:nth-of-type(${same.indexOf(at) + 1})` : tag);
++	}
++	return steps.join(" > ");
++}
++
++export const select = new DrawerSelect();
++export default select;
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+new file mode 100644
+index 00000000..2a3497ca
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs.js
+@@ -0,0 +1,126 @@
++import { div, button, span } from "/framework/core/View/View.js";
++import drawer from "./drawer.js";
++
++/* THE DRAWER'S TABS — AI, Sessions, Dictation, Settings, Admin, and Element (what is
++   selected on the page, select.js) — opened by the ☰
++   (menu.js) on every page. doc/tabs.md has the picture and the model.
++
++   A tab is one row of `list`: a route word, a label, and `load()`, which imports
++   the tab's own file only the first time that tab is shown — so a page nobody
++   opens the drawer on never downloads the composer, the microphone or the
++   playground. The file's default export draws the tab into the drawer's body.
++
++   ROUTED. The open tab is `?drawer=<word>` in the url, written with
++   `history.replaceState` (no new history entry per click), so a reload opens the
++   drawer on the same tab. No `?drawer` means the drawer is shut. */
++export class DrawerTabs {
++	static KEY = "drawer";
++
++	list = [
++		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
++		{ name: "sessions",  label: "Sessions",  load: () => import("./tabs/sessions.js") },
++		{ name: "dictation", label: "Dictation", load: () => import("./tabs/dictation.js") },
++		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js") },
++		{ name: "admin",     label: "Admin",     load: () => import("./tabs/admin.js") },
++		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js") },
++	];
++
++	// The thread the AI tab talks into — set by a click on the Sessions tab,
++	// `null` for a fresh, unrecorded conversation. {slug, task, resume, history}
++	thread = null;
++
++	// What the next AI message is about: elements picked on the page, each shown as a chip
++	// in the AI tab's input. {kind, label, text, selector} — select.js's item().
++	chips = [];
++
++	chip(it){
++		if (!this.chips.some(c => c.selector === it.selector)) this.chips.push(it);
++		return this;
++	}
++
++	unchip(it){
++		this.chips = this.chips.filter(c => c.selector !== it.selector);
++		return this;
++	}
++
++	constructor(...args){
++		this.assign(...args);
++		// The one bound fill, so `drawer.filled_by()` can say whether the rail is ours.
++		this.fill = this.fill.bind(this);
++		window.addEventListener("drawer-close", () => this.write(null));
++		// A host changed the page the drawer is about (drawer.page()) — the open tab redraws.
++		window.addEventListener("drawer-page", () => { if (this.mine()) drawer.refresh(); });
++	}
++	assign(...args){ return Object.assign(this, ...args); }
++
++	// The tab the url names, or null.
++	routed(){ return new URLSearchParams(location.search).get(this.constructor.KEY); }
++
++	// Is the rail open on these tabs (not on some other caller's content)?
++	mine(){ return drawer.showing() && drawer.filled_by() === this.fill; }
++
++	find(name){ return this.list.find(t => t.name === name); }
++
++	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
++	open(name){
++		this.current = this.find(name) ?? this.current ?? this.list[0];
++		this.write(this.current.name);
++		drawer(this.fill);
++		return this;
++	}
++
++	shut(){ drawer.close(); }
++
++	toggle(){ this.mine() ? this.shut() : this.open(); }
++
++	/* The route word, written back into the url without a new history entry.
++	   ⚠ `history.state` is carried over as-is — Router keeps its own entry there. */
++	write(name){
++		const url = new URL(location.href);
++		if ((url.searchParams.get(this.constructor.KEY) ?? null) === name) return;
++		name ? url.searchParams.set(this.constructor.KEY, name) : url.searchParams.delete(this.constructor.KEY);
++		history.replaceState(history.state, "", url);
++	}
++
++	/* A navigation is a new page, so every tab has something new to say (this page's
++	   threads, this page's context). Router pushes the new url AFTER `navigated()`
++	   (code skill §7), so the route word is written back on the next task. */
++	navigated(){
++		if (!this.mine()) return;
++		setTimeout(() => { this.write(this.current.name); drawer.refresh(); });
++	}
++
++	/** What every tab is handed: the app, the page the drawer is about (drawer.page(),
++	 *  never location.pathname), and the open card if that page IS a card (ai2/card.js
++	 *  — duck-typed, so nothing here imports AI 2). */
++	context(){
++		const url = drawer.page();
++		const active = this.app?.router?.active;
++		const card = active?.shell?.ai2 && active.id && typeof active.subs === "function"
++			&& active.url === url ? active : null;
++		return { app: this.app, tabs: this, page: url, card };
++	}
++
++	fill($slot, $body){
++		$slot.empty(() => {
++			div.c("drawer-tabs flex", () => {
++				this.list.forEach(t => button.c("drawer-tab", t.label).attr("type", "button")
++					.ac(t === this.current && "on").click(() => this.open(t.name)));
++			});
++		});
++
++		// ⚠ The tab's file is imported, and an await drops the captor — so the body is
++		// captured NOW and filled in a callback (code skill §1).
++		const tab = this.current, ctx = this.context();
++		$body.empty(() => { span.c("drawer-wait muted", "loading…"); });
++		tab.load()
++			.then(m => {
++				if (this.current !== tab) return;   // another tab was clicked meanwhile
++				$body.empty(() => { m.default(ctx); });
++			})
++			.catch(e => $body.empty(() => { span.c("drawer-wait muted", "This tab could not load: " + e.message); }));
++	}
++}
++
++export const tabs = new DrawerTabs();
++export default tabs;
+diff --git a/public/framework/ext/drawer/tabs/admin.js b/public/framework/ext/drawer/tabs/admin.js
+new file mode 100644
+index 00000000..10919beb
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/admin.js
+@@ -0,0 +1,23 @@
++import { div, small } from "/framework/core/View/View.js";
++import { section } from "/framework/dev/DevBar/parts.js";
++import { tabs as devbar_tabs } from "/framework/dev/DevBar/tools.js";
++import hold from "/framework/dev/DevBar/hold.js";
++
++/* THE ADMIN TAB — only what already exists, nothing new: the writers' reload hold
++   (read-only, as in the dev bar's head — a hold is taken from a terminal, never
++   clicked), and the dev bar's own page sections: the route, the dev server, the page
++   structure and the links to its tools. Borrowed from dev/DevBar/tools.js by name, so
++   a section the dev bar changes changes here too. */
++const WANT = ["route", "server", "structure", "jump"];
++
++export default function admin({ app }){
++	const page = devbar_tabs.find(([name]) => name === "page")?.[1] ?? [];
++
++	div.c("drawer-admin flex v", () => {
++		section("reload hold", () => {
++			small.c("muted", "Who is holding live reloads while they write files. Empty means nobody.");
++			hold();
++		});
++		page.filter(fn => WANT.includes(fn.name)).forEach(fn => fn(app));
++	});
++}
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+new file mode 100644
+index 00000000..a126411a
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -0,0 +1,168 @@
++import View, { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
++import md from "/framework/ext/markdown/md.js";
++import composer from "/framework/ai2/compose.js";
++import { into_card } from "/framework/ai2/compose.js";
++import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
++import { servex_base } from "/framework/ai2/inbox.js";
++import { ask, available } from "/framework/ext/Ask/Ask.js";
++import drawer from "../drawer.js";
++
++/* THE AI TAB — the card's own composer (ai2/compose.js, imported, not copied: one
++   line, the microphone inside it, Send beside it) with a model picker above it and
++   the conversation between them.
++
++   Where a message goes is ONE function, `send()`, exported so anything else on the
++   page — a picked element, minion 2's selection — sends the same way:
++   · on a CARD: where the card's composer already sends (Servex's prompt log, `re`
++     the card), and the reply arrives in the card's own chat on the page;
++   · on a plain PAGE: the agreed page-pair route, `POST /api/page-ai`
++     (ai/2026-09-25/recursive-pairs/interface.md); until Servex answers it, the dev
++     bar's Ask route (ext/Ask), so a message still gets an answer today. */
++
++// ⚠ The composer's look lives in ai2.css. On AI 2 it is already loaded; anywhere else
++// it is added once — every rule in it is `ai2-` scoped, so nothing else changes.
++if (!document.querySelector('link[href$="/ai2/ai2.css"]')) View.stylesheet("/framework/ai2/ai2.css");
++
++const PAGE_AI = "http://servex.localhost/api/page-ai";
++export const MODELS = ["haiku", "sonnet", "opus", "fable"];
++const MODEL_KEY = "lew42-drawer-model";
++
++/** The model the reader picked. Stored only — nothing reads it yet (harness step 2). */
++export function model(value){
++	try {
++		if (value) localStorage.setItem(MODEL_KEY, value);
++		return localStorage.getItem(MODEL_KEY) || "sonnet";
++	} catch { return value || "sonnet"; }
++}
++
++// Context for the Ask route is text: a list of picked elements becomes one line each.
++const as_text = context => Array.isArray(context)
++	? context.map(c => `${c.label ?? c.kind ?? "element"} (${c.selector ?? "?"}): ${String(c.text ?? "").slice(0, 300)}`).join("\n")
++	: context ?? undefined;
++
++/**
++ * Send one message from the drawer. Resolves `{via, text?, session_id?, note}`:
++ * `via` is "card", "page-ai" or "ask"; `text` is a reply when the route gives one
++ * back at once (only Ask does); `note` is one line to show the reader.
++ *
++ *     await send({ page: "/framework/ux/Dictate/", text: "why two buttons?",
++ *                  context: [{ kind: "p", label: "this paragraph", text: "…", selector: "main p" }] });
++ *
++ * `card` (an id) sends into that card; `thread` ({task, resume}) skips the page
++ * assistant, records an Ask exchange in that thread and resumes its session; `on` streams Ask's reply.
++ */
++export async function send({ page = drawer.page(), text, context, card, thread, via = "typed", on } = {}){
++	if (card){
++		const entry = { at: new Date().toISOString(), type: "prompt", by: "owner", text, via, re: card, selected: card };
++		if (context) entry.context = context;
++		const ok = await post_prompt(entry, servex_base() + "/log/prompts");
++		into_card(card, entry);
++		return { via: "card", ok, note: ok ? "sent — the reply lands in the card's chat" : "Servex is not answering, so nothing was sent" };
++	}
++
++	// A thread picked on the Sessions tab IS an Ask session, so it resumes there; only a
++	// fresh conversation goes to the page's assistant.
++	if (!thread) try {
++		const res = await fetch(PAGE_AI, { method: "POST", headers: { "content-type": "application/json" },
++			body: JSON.stringify({ page, text, from: "owner", context }), signal: AbortSignal.timeout(4000) });
++		const out = res.ok && (res.headers.get("content-type") ?? "").includes("json") ? await res.json() : null;
++		if (out?.ok) return { via: "page-ai", ...out, note: "sent to this page's assistant" };
++	} catch {}
++
++	// The fallback: one turn of the dev bar's Ask bridge, on this tab's dev server.
++	if (!available()) return { via: "none", note: "No page assistant yet, and the Ask bridge is off (localhost with edit mode on)." };
++	let r = await ask(text, { task: thread?.task, resume: thread?.resume, context: as_text(context), on }), fresh = "";
++
++	/* ⚠ A thread's session can be GONE — Claude Code prunes old transcripts, and a
++	   session is filed under the directory it ran in, so one started in another tree is
++	   not found here. `--resume` then answers nothing at all. The thread goes on anyway:
++	   a fresh session, filed in the same thread, handed its last turns to read. */
++	if (thread?.resume && !r.text){
++		r = await ask(text, { task: thread.task, context: [recap(thread.history), as_text(context)].filter(Boolean).join("\n\n"), on });
++		fresh = " · the old session was gone, so a fresh one read the thread";
++	}
++	if (thread) thread.resume = r.session_id;
++	return { via: "ask", ...r, note: `answered by Ask · $${(r.cost_usd ?? 0).toFixed(3)}${fresh}` };
++}
++
++// A thread's last turns, as text — what a fresh session reads to carry the thread on.
++// Kept under 800 characters: the server cuts `context` there (ext/Ask/Ask.js).
++const recap = (history = []) => "Earlier in this thread:\n" + history.filter(c => c.text).slice(-4)
++	.map(c => `${c.role}: ${String(c.text).slice(0, 170)}`).join("\n");
++
++// One turn of the conversation. Built through `$list.append`, which re-establishes the
++// captor, so a bubble raised from an event handler lands in the list.
++function turn($list, who, text){
++	let $text;
++	$list.append(() => {
++		div.c("drawer-turn drawer-turn-" + who, () => {
++			span.c("drawer-turn-who muted", who === "you" ? "you" : "assistant");
++			$text = div.c("drawer-turn-text", () => { md(text ?? ""); });
++		});
++	});
++	$text.el.scrollIntoView({ block: "nearest" });
++	return $text;
++}
++
++export default function ai({ page, card, tabs }){
++	const thread = card ? null : tabs.thread;
++	let $list;
++
++	div.c("drawer-ai flex v", () => {
++		div.c("drawer-ai-head flex v-center split wrap", () => {
++			small.c("muted", card ? `talking into this card — ${String(card.title ?? card.name).slice(0, 60)}`
++				: thread ? `thread · ${thread.slug}` : "this page · a new conversation");
++
++			label.c("drawer-model flex v-center", () => {
++				span.c("muted", "model");
++				const $pick = select(() => { MODELS.forEach(m => option(m[0].toUpperCase() + m.slice(1)).attr("value", m)); });
++				$pick.el.value = model();
++				$pick.on("change", () => model($pick.el.value));
++			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
++		});
++
++		$list = div.c("drawer-ai-list flex v");
++		(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
++		if (!thread?.history?.length) small.c("drawer-ai-empty muted", card
++			? "Say or type anything; the card's own chat, on the page, shows the reply."
++			: "Ask anything about this page. Sessions lists this page's saved threads.");
++
++		// THE CHIPS — what the next message is about, like the open file an IDE shows in its
++		// chat box: each element picked on the page (the Element tab's "Ask about this"),
++		// with an ✕. They stay until removed, and every send carries them as `context`.
++		const $chips = div.c("drawer-chips flex wrap");
++		const chips = () => $chips.empty(() => {
++			tabs.chips.forEach(it => {
++				span.c("drawer-chip flex v-center", () => {
++					span.c("drawer-chip-label", it.label).attr("title", it.text);
++					button.c("drawer-chip-x", "✕").attr("type", "button").attr("title", "Leave it out")
++						.click(() => { tabs.unchip(it); chips(); });
++				});
++			});
++		});
++		chips();
++		const context = () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined;
++
++		// ON A CARD the message goes where the card's own footer sends it (`send()` with
++		// `card`) and the reply lands in the card's chat; on a page it is answered here.
++		composer({
++			placeholder: card ? "talk into this card" : "ask about this page",
++			on_text: text => turn($list, "you", text),
++			deliver: card ? (text, via) => send({ card: card.id, page, text, via, context: context() }).then(r => r.note) : async (text, via) => {
++				let streamed = "";
++				const $reply = turn($list, "assistant", "_thinking…_");
++				try {
++					const r = await send({ page, text, thread, via, context: context(), on: e => {
++						streamed += e.text ?? "";
++						if (streamed) $reply.empty(() => { md(streamed); });
++					} });
++					$reply.empty(() => { md(r.text ?? r.note); });
++					return r.note;
++				} catch (e){
++					$reply.empty(() => { md("**Could not send:** " + e.message); });
++					return "not sent";
++				}
++			},
++		});
++	});
++}
+diff --git a/public/framework/ext/drawer/tabs/dictation.js b/public/framework/ext/drawer/tabs/dictation.js
+new file mode 100644
+index 00000000..a9571d52
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/dictation.js
+@@ -0,0 +1,18 @@
++import { div, small, a } from "/framework/core/View/View.js";
++
++/* THE DICTATION TAB — the dictation playground (ux/Dictate/playground/), embedded.
++   Its module keeps ONE shared instance (`pg`), so words said here are the same words
++   the playground's own page shows. Imported only when this tab opens: it brings the
++   microphone, the audio meter and its own stylesheet. */
++const URL = "/framework/ux/Dictate/playground/";
++
++export default function dictation(){
++	div.c("drawer-dictation flex v", $d => {
++		a.c("page-link", "Open the playground as a page →").href(URL);
++		import(URL + "Playground.js")
++			.then(m => $d.append(() => { m.pg.widget(); }))
++			.catch(() => $d.append(() => {
++				small.c("drawer-wait muted", "The dictation playground is not on this server yet.");
++			}));
++	});
++}
+diff --git a/public/framework/ext/drawer/tabs/element.js b/public/framework/ext/drawer/tabs/element.js
+new file mode 100644
+index 00000000..8b63f0df
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/element.js
+@@ -0,0 +1,58 @@
++import { div, span, small, a, button, h4 } from "/framework/core/View/View.js";
++import { context } from "/framework/ext/Ask/pick.js";
++import { section, row } from "/framework/dev/DevBar/parts.js";
++import select, { item, word } from "../select.js";
++
++/* THE ELEMENT TAB — the properties of whatever is selected on the page (select.js).
++   Minimal on purpose: WHAT it is (its kind, tag, classes, first words) and WHERE it is
++   (the page, the nearest readme, the module that owns its class, the page file that
++   drew it). The where half is ext/Ask's own `context()` — the same gathering its
++   "pick an element" does — so the two can never disagree.
++
++   "Ask about this" puts the element on the AI tab's input as a chip; the next message
++   carries it as context. doc/select.md. */
++export default function element({ app, tabs }){
++	const el = select.selected;
++
++	div.c("drawer-props flex v", () => {
++		if (!el?.isConnected) return void small.c("drawer-wait muted",
++			"Click anything on the page — a paragraph, a heading, a list item, a card — to select it. Escape clears it.");
++
++		const it = item(el);
++
++		div.c("drawer-props-head flex v-center split", () => {
++			h4.c("drawer-props-title", "This " + word(el));
++			button.c("btn prim drawer-ask", "💬 Ask about this").attr("type", "button")
++				.attr("title", "Add it to the AI tab's input as a chip").click(() => { tabs.chip(it); tabs.open("ai"); });
++		});
++
++		section("what", () => {
++			row("tag", "<" + it.kind + ">");
++			if (el.classList.length) row("class", [...el.classList].join(" "));
++			row("text", it.text.slice(0, 140) + (it.text.length > 140 ? "…" : "") || "—");
++		});
++
++		// ⚠ `context()` fetches the readmes — so the box is captured now and filled in a
++		// callback, never built after the await (code skill §1).
++		section("where", () => {
++			div.c("drawer-props-where flex v", $where => {
++				small.c("muted", "finding its readme…");
++				context(el, { app }).then(about => $where.empty(() => {
++					link_row("page", about.page);
++					if (about.file) link_row("file", about.file);
++					if (about.readme) link_row("readme", about.readme.url);
++					if (about.module) link_row("module", about.module.url);
++					if (!about.readme && !about.module) row("readme", "none found near this page");
++				}));
++			});
++		});
++	});
++}
++
++// A key/value row whose value is a link — the dev bar's row, with the url inside it.
++function link_row(key, url){
++	div.c("dev-row", () => {
++		span.c("dev-key", key);
++		a.c("dev-val drawer-props-link", url.replace(/^\/framework\//, "")).href(url).attr("title", url);
++	});
++}
+diff --git a/public/framework/ext/drawer/tabs/sessions.js b/public/framework/ext/drawer/tabs/sessions.js
+new file mode 100644
+index 00000000..7399ece8
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/sessions.js
+@@ -0,0 +1,90 @@
++import { div, span, button, small, a, h4 } from "/framework/core/View/View.js";
++import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
++import { thread, available } from "/framework/ext/Ask/Ask.js";
++
++/* THE SESSIONS TAB — every thread on this page. A thread is the dev bar Ask's own
++   store: a dir `<page>ai/<slug>/` holding a `task.jsonl`, whose `chat` lines are the
++   exchange and whose `chat_session_id` resumes it (dev/DevBar/ask.js). One click
++   hands the thread to the AI tab, and the next send there resumes that session.
++   On a card, the card's sub-cards are listed under the threads.
++
++   ⚠ `threads()` repeats dev/DevBar/ask.js's dir walk (a dozen lines) rather than
++   importing it: that file draws the dev bar's own panel and exports only `ask`.
++   When the dev bar's panel retires (design.md), this copy is the one left. */
++
++// ⚠ The SPA fallback answers every miss with index.html — the content-type is the 404.
++const json = url => fetch(url)
++	.then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
++	.catch(() => null);
++
++const walk = (files, [head, ...rest]) => {
++	const hit = files.find(file => file.name === head);
++	return !hit ? null : rest.length ? walk(hit.children ?? [], rest) : hit;
++};
++
++/** This page's threads, newest file listing order: [{slug, task}]. The dir listing IS the index. */
++export async function threads(url){
++	const dir = url.replace(/^\//, "") + "ai";
++	const listing = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
++	return (listing?.children ?? [])
++		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))
++		.map(kid => ({ slug: kid.name, task: `${dir}/${kid.name}` }));
++}
++
++/** One thread, read: its exchange and the session that resumes it. */
++export async function load(t){
++	const m = await new TaskJSONL({ url: `/${t.task}/task.jsonl` }).load();
++	return { ...t, resume: m.chat_session_id, history: m.chats ?? [] };
++}
++
++const slugify = name => (name ?? "").trim().toLowerCase()
++	.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
++
++export default function sessions({ page, card, tabs }){
++	// Hand a thread to the AI tab — the next send there resumes it.
++	const go = t => { tabs.thread = t; tabs.open("ai"); };
++
++	div.c("drawer-sessions flex v", $s => {
++		small.c("muted", "Threads on " + page);
++
++		div.c("drawer-rows flex v", async $rows => {
++			const found = await Promise.all((await threads(page)).map(load));
++			$rows.append(() => {
++				if (!found.length) small.c("drawer-wait muted", "No threads on this page yet.");
++				found.forEach(t => button.c("drawer-row").attr("type", "button")
++					.ac(tabs.thread?.task === t.task && "on").click(() => go(t)).append(() => {
++						span.c("drawer-row-title", t.slug);
++						small.c("drawer-row-meta muted", `${t.history.length} turns${t.resume ? " · resumable" : ""}`);
++						const last = t.history.at(-1)?.text;
++						if (last) small.c("drawer-row-last muted", String(last).slice(0, 120));
++					}));
++			});
++		});
++
++		div.c("drawer-acts flex wrap", () => {
++			button.c("btn", "New conversation").attr("type", "button")
++				.click(() => go(null));
++
++			// A native prompt, as the dev bar does: naming a thread is two words once in a while.
++			if (available()) button.c("btn", "New thread").attr("type", "button").click(async () => {
++				const slug = slugify(window.prompt("Name this thread — one or two words"));
++				if (!slug) return;
++				const task = `${page.replace(/^\//, "")}ai/${slug}`;
++				try { await thread(task); go({ slug, task, history: [] }); }
++				catch (e){ window.alert(e.message); }
++			});
++		});
++
++		// ON A CARD: its sub-cards are threads too — each opens as its own page.
++		const subs = card?.subs?.() ?? [];
++		if (subs.length) {
++			h4.c("drawer-sub-title", "Sub-cards");
++			div.c("drawer-rows flex v", () => {
++				subs.forEach(sub => {
++					const it = card.shell?.ai2?.cards?.card?.(card.id + "/" + sub);
++					a.c("drawer-row", it?.title ?? sub).href(card.url + sub + "/");
++				});
++			});
++		}
++	});
++}
+diff --git a/public/framework/ext/drawer/tabs/settings.js b/public/framework/ext/drawer/tabs/settings.js
+new file mode 100644
+index 00000000..d84bb629
+--- /dev/null
++++ b/public/framework/ext/drawer/tabs/settings.js
+@@ -0,0 +1,28 @@
++import { div, span, label, input } from "/framework/core/View/View.js";
++import { edit, set_edit } from "/framework/ext/Ask/edit.js";
++import { section, check } from "/framework/dev/DevBar/parts.js";
++import width from "/framework/dev/DevBar/width.js";
++import blocked from "/framework/dev/DevBar/blocked.js";
++
++/* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
++   (ext/Ask/edit.js, the one every editor control reads), the reader's reload block,
++   the width line, and the x-ray outline. Each is the dev bar's own function drawing
++   into this box, so the two can never disagree; the dev bar's stylesheet is already
++   on every page (app.js mounts it). */
++export default function settings({ app }){
++	div.c("drawer-settings flex v", () => {
++		section("editing", () => {
++			label.c("dev-knob", () => {
++				// Same as the dev bar: every editor control decides at construction, so a flip reloads.
++				const $box = input().attr("type", "checkbox")
++					.on("change", function(){ set_edit(this.el.checked); location.reload(); });
++				if (edit()) $box.attr("checked", true);
++				span("edit mode — drag/drop, verdicts, Ask");
++			});
++		});
++
++		section("live reload", () => { blocked(); });
++		section("width", () => { width(app); });
++		section("x-ray", () => check("outline every box", "dev-outline"));
++	});
++}
+diff --git a/public/framework/ext/layout/panel.js b/public/framework/ext/layout/panel.js
+index da570f9e..c2ecf645 100644
+--- a/public/framework/ext/layout/panel.js
++++ b/public/framework/ext/layout/panel.js
+@@ -56,10 +56,15 @@ export function deselect(){
+    this, same as deselecting and the click listener below (which fires on the ✕ itself
+    and reopened the rail a millisecond after it shut). `open()`, above, is the one path
+    still allowed to `show()`. decisions.md. */
+-const redraw = () => { if (drawer.showing()) show(); };
++/* ⚠ And only a rail showing THIS module's content (2026-09-28, page-drawer): the drawer
++   is shared, and this click listener fires on every click on the page — so without the
++   check, any click replaced whatever another caller had open (the ☰'s tabs) with
++   "nothing selected", and the ☰ could never shut its own drawer. */
++let fill = null;
++const redraw = () => { if (drawer.showing() && drawer.filled_by?.() === fill) show(); };
+ 
+ function show(){
+-	const $rail = drawer(($slot, $body) => {
++	const $rail = drawer(fill = ($slot, $body) => {
+ 		$slot.empty(() => head($sel));
+ 		$body.empty(() => body($sel, contexts.get(host) || [], show));
+ 	});

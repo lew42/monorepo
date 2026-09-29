@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/24/prompt-mechanics-2/",
+ "widths": {
+  "1280": {
+   "empty": 0.423,
+   "widest_text": 388,
+   "widest_text_sample": "Okay, so how hard would it be to make th",
+   "overflow_x": false,
+   "items": 461,
+   "narrow_share": 0.035
+  },
+  "1920": {
+   "empty": 0.549,
+   "widest_text": 640,
+   "widest_text_sample": "Okay, so how hard would it be to make th",
+   "overflow_x": false,
+   "items": 461,
+   "narrow_share": 0.063
+  },
+  "2560": {
+   "empty": 0.566,
+   "widest_text": 720,
+   "widest_text_sample": "Okay, so how hard would it be to make th",
+   "overflow_x": false,
+   "items": 461,
+   "narrow_share": 0.063
+  },
+  "3440": {
+   "empty": 0.652,
+   "widest_text": 720,
+   "widest_text_sample": "Okay, so how hard would it be to make th",
+   "overflow_x": false,
+   "items": 461,
+   "narrow_share": 0.779
+  }
+ },
+ "errors": []
+}

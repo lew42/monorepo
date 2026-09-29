@@ -1,0 +1,20 @@
+FAIL /framework/  1 error
+       HTTP 404: http://127.0.0.1:65447/framework/core/Item/nope.js
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item/nope.js)
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item.md)
+FAIL /framework/ai2/  1 error
+       HTTP 404: http://127.0.0.1:65447/framework/core/Item/nope.js
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item/nope.js)
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item.md)
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/ai/usage.json)
+  warn console: Access to fetch at 'http://127.0.0.1:8090/api/worktrees' from origin 'http://127.0.0.1:65447' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.  (http://127.0.0.1:65447/framework/ai2/)
+  warn request failed: http://127.0.0.1:8090/api/worktrees  (net::ERR_FAILED)
+  warn console: Failed to load resource: net::ERR_FAILED  (http://127.0.0.1:8090/api/worktrees)
+FAIL /framework/core/Item/  2 errors
+       HTTP 404: http://127.0.0.1:65447/framework/core/Item/nope.js
+       console: Error: 404 — nothing matches "/framework/core/Item/"
+    at App.load (http://127.0.0.1:65447/framework/core/App/App.js:64:11)
+    at async App.instantiate (http://127.0.0.1:65447/framework/core/App/App.js:26:4)  (http://127.0.0.1:65447/framework/core/App/App.js)
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item/nope.js)
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:65447/framework/core/Item.md)
+exit 1

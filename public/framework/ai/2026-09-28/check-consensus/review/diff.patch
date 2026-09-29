@@ -1,0 +1,519 @@
+diff --git a/.claude/skills/sub-mastermind/SKILL.md b/.claude/skills/sub-mastermind/SKILL.md
+index 2561c19e..60f6c1bb 100644
+--- a/.claude/skills/sub-mastermind/SKILL.md
++++ b/.claude/skills/sub-mastermind/SKILL.md
+@@ -82,7 +82,8 @@ a fence, a fact you don't have — never "out of scope".
+ Everything else lives in your task's `task.jsonl`, where anyone can read it without being sent it.
+ Log milestones, not keystrokes; a `decision` line for every fork in the road, with the alternative
+ named. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` — it stamps the clock
+-and re-parses the file.
++and re-parses the file. `check()` runs by itself after a `decision` line and on a landing outcome —
++never on the fast assistant's quick replies (`Server/doc/check.md`).
+ 
+ ## Never
+ 
+diff --git a/Server/check.mjs b/Server/check.mjs
+new file mode 100644
+index 00000000..862afe0b
+--- /dev/null
++++ b/Server/check.mjs
+@@ -0,0 +1,117 @@
++/* `node Server/check.mjs <cardDir> <claim> [--owner-words <file>[,<file>]] [--files <file,file>]`
++ * A cheap sanity check by default: 2 fresh Servex agents, from different model families where
++ * possible, read ONLY the claim, the owner's own words and the files it names — never the
++ * caller's reasoning or the conversation that produced the claim — and say whether they agree
++ * or doubt it, and what the alternative might be. Today the two families are Claude's own
++ * Haiku and Sonnet; OpenRouter adds more families once harness step 2 lands (see `CHECKERS`).
++ *
++ * Spawn pattern copied from `Server/review.mjs`'s `mcp()` (fresh eyes: `spawn_agent` ->
++ * `wait_for_agent` -> `stop_agent` over the loopback MCP at http://127.0.0.1:8090/mcp) — not
++ * imported, since review.mjs is a script, not a library. Every child process this file might
++ * spawn sets `windowsHide: true`; today it spawns none directly, only over MCP `fetch`.
++ *
++ * Never throws: a Servex problem for one checker becomes `{"verdict":"doubt", "why":
++ * "checker failed to run: <msg>"}` for that checker, not a crash of the whole check.
++ *
++ * Design: /framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md (④). */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const MCP = "http://127.0.0.1:8090/mcp";
++// The repo THIS copy of check.mjs lives in — a worktree carries its own copy of Server/, so this
++// is never assumed to be wherever Servex's own process happens to be running.
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++
++// Today's two families. OpenRouter adds more families once harness step 2 lands.
++const CHECKERS = [
++	{ model: "claude-haiku-4-5-20251001" },
++	{ model: "claude-sonnet-5" }
++];
++
++const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
++
++function appendJSON(file, obj) {
++	let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
++	fs.appendFileSync(file, lead + JSON.stringify(obj) + "\n");
++}
++
++async function mcp(name, args, ms = 30000) {
++	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
++	const j = await r.json();
++	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
++	try { return JSON.parse(text); } catch { return { raw: text }; }
++}
++
++function buildPrompt(claim, ownerWords, files) {
++	const read = [...ownerWords, ...files];
++	return `You are a fresh checker: you have never seen the reasoning or conversation behind this claim, only the files below. Repo root: ${ROOT.replaceAll("\\", "/")}.\n\n`
++		+ (read.length ? `Read: ${read.join(", ")}.\n\n` : "")
++		+ `Claim being checked: ${claim}\n\n`
++		+ `Could this be wrong? What is a real alternative? Then decide.\n\n`
++		+ `Answer in 5 lines at most. The first line must be exactly "verdict: agree" or "verdict: doubt" — nothing else on that line. The rest is your reasoning, in plain sentences.`;
++}
++
++// A checker's raw reply -> {model, verdict, why}. The first line decides; everything after is "why".
++function parseVerdict(model, text) {
++	const rows = String(text ?? "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
++	const first = rows[0] ?? "";
++	const verdict = /^verdict:\s*agree\b/i.test(first) ? "agree" : "doubt";
++	const rest = rows.slice(1).join(" ").trim();
++	const why = rest || (/^verdict:\s*(agree|doubt)\b/i.test(first) ? "" : "no parseable verdict line — treated as doubt");
++	return { model, verdict, why };
++}
++
++async function askChecker(model, claim, ownerWords, files) {
++	const prompt = buildPrompt(claim, ownerWords, files);
++	try {
++		// allowed_tools: ["Read"] only — a job that is always "read these named files, then answer
++		// in 5 lines" never needs Bash, Edit, Agent or any MCP server, and omitting allowed_tools
++		// hands the checker the CLI's whole default toolset for nothing. ⚠ Measured: this repo's
++		// own CLAUDE.md + skill-listing preamble is paid on every spawn regardless, so a real
++		// two-checker run still landed near $0.18, well over the $0.01 target — see check.md's
++		// "Watch out" and this task's own log for the number and the open question about it.
++		const spawned = await mcp("spawn_agent", { role: "checker", name: `check-${model.replace(/[^a-z0-9]+/gi, "-")}`, prompt, model, effort: "low", permission_mode: "bypassPermissions", cwd: ROOT, allowed_tools: ["Read"] });
++		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
++		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 180 }, 190000);
++		await mcp("stop_agent", { id: spawned.id }, 20000);
++		return { ...parseVerdict(model, waited.words), cost: waited.cost ?? 0 };
++	} catch (e) {
++		return { model, verdict: "doubt", why: `checker failed to run: ${String(e?.message || e).slice(0, 200)}`, cost: 0 };
++	}
++}
++
++/* `"✓✓"` when both checkers agree, `"✓?"` when they split or either doubts — what a card shows. */
++export function chip(verdicts) {
++	return verdicts.length && verdicts.every(v => v.verdict === "agree") ? "✓✓" : "✓?";
++}
++
++/* `claim`: the one sentence being checked. `context`: `{ownerWords: [file paths], files: [file
++ * paths the claim is about], cardDir: the card's directory}`. Appends one `{"check":…}` line to
++ * `<cardDir>/task.jsonl` when `cardDir` is given, and returns `{verdicts, cost, chip}`. */
++export async function check(claim, context = {}) {
++	const { ownerWords = [], files = [], cardDir } = context;
++	const results = await Promise.all(CHECKERS.map(c => askChecker(c.model, claim, ownerWords, files)));
++	const verdicts = results.map(({ model, verdict, why }) => ({ model, verdict, why }));
++	const cost = results.reduce((sum, r) => sum + (r.cost || 0), 0);
++	if (cardDir) appendJSON(path.join(cardDir, "task.jsonl"), { check: { at: now(), claim, verdicts, cost } });
++	return { verdicts, cost, chip: chip(verdicts) };
++}
++
++async function main() {
++	const argv = process.argv.slice(2);
++	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
++	const ownerWordsArg = flag("--owner-words"), filesArg = flag("--files");
++	const [cardDirArg, claim] = argv;
++	if (!cardDirArg || !claim) { console.error('usage: node Server/check.mjs <cardDir> <claim> [--owner-words <file>[,<file>]] [--files <file,file>]'); process.exit(1); }
++	const result = await check(claim, {
++		cardDir: path.resolve(cardDirArg),
++		ownerWords: ownerWordsArg ? ownerWordsArg.split(",").filter(Boolean) : [],
++		files: filesArg ? filesArg.split(",").filter(Boolean) : []
++	});
++	console.log(JSON.stringify(result, null, 2));
++	console.log(result.chip);
++}
++
++const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; });
+diff --git a/Server/consensus.mjs b/Server/consensus.mjs
+new file mode 100644
+index 00000000..75f2f799
+--- /dev/null
++++ b/Server/consensus.mjs
+@@ -0,0 +1,127 @@
++/* `node Server/consensus.mjs <cardDir> "<question>" "<option1>" "<option2>" ...`
++ * When a check's checkers disagree, or the truth is just unclear: 5 models at 3 price levels
++ * vote on an open question, and the tally shows on the card. Today the roster is Claude's own
++ * tiers — 2x Haiku-tier, 2x Sonnet-tier, 1x Opus-tier — kept in one small `VOTERS` array so
++ * swapping to OpenRouter (its own models, chosen from one config table with prices) once harness
++ * step 2 lands is a one-array edit, not a rewrite.
++ *
++ * Spawn pattern copied from `Server/review.mjs`'s `mcp()`, same as `Server/check.mjs` — not
++ * imported, since review.mjs is a script, not a library.
++ *
++ * Never throws: a Servex problem for one voter becomes a `{"pick": "(no vote)", "caveat": "voter
++ * failed to run: <msg>"}` row for that voter, not a crash of the whole consensus.
++ *
++ * The `Vote` shape (`member`, `pick`, `caveat`) is the design's own — a favourite option plus the
++ * one improvement that voter would add to the winner, not a free-form "why".
++ *
++ * Design: /framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md (⑤, and the
++ * "Added" section's `Vote` row). */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const MCP = "http://127.0.0.1:8090/mcp";
++// The repo THIS copy of consensus.mjs lives in — same reasoning as check.mjs's ROOT.
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++
++// Today's 5-member roster at 3 price levels. `member` is the Vote's own id (the design's `Member`
++// object has an id distinct from its model). OpenRouter replaces this with a priced config table
++// once harness step 2 lands — swap the array, nothing else in this file changes.
++export const VOTERS = [
++	{ member: "haiku-1", model: "claude-haiku-4-5-20251001", tier: "cheap" },
++	{ member: "haiku-2", model: "claude-haiku-4-5-20251001", tier: "cheap" },
++	{ member: "sonnet-1", model: "claude-sonnet-5", tier: "mid" },
++	{ member: "sonnet-2", model: "claude-sonnet-5", tier: "mid" },
++	{ member: "opus-1", model: "claude-opus-5-5", tier: "premium" }
++];
++
++const now = () => { const d = new Date(), o = -d.getTimezoneOffset(), p = n => String(Math.floor(Math.abs(n))).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}${o < 0 ? "-" : "+"}${p(o / 60)}:${p(o % 60)}`; };
++
++function appendJSON(file, obj) {
++	let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
++	fs.appendFileSync(file, lead + JSON.stringify(obj) + "\n");
++}
++
++async function mcp(name, args, ms = 30000) {
++	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
++	const j = await r.json();
++	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
++	try { return JSON.parse(text); } catch { return { raw: text }; }
++}
++
++function buildPrompt(question, options) {
++	return `Question: ${question}\n\nOptions:\n${options.map((o, i) => `${i + 1}. ${o}`).join("\n")}\n\n`
++		+ `Pick exactly one favourite option. Answer in 2 lines: the first line exactly "pick: <option>"`
++		+ ` (copy the option text exactly, nothing else on that line), the second line "caveat: <text>" —`
++		+ ` the one improvement you'd want added if a DIFFERENT option won instead of yours.`;
++}
++
++// A voter's raw reply -> {member, pick, caveat}. `pick` is matched back to one of `options`
++// (case-insensitive, exact first, then a loose contains); an unmatched pick is kept as said so
++// nothing is silently dropped, but never tallied.
++function parseVote(member, text, options) {
++	const rows = String(text ?? "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
++	const m = /^pick:\s*(.+)$/i.exec(rows[0] ?? "");
++	const said = (m ? m[1] : "").trim();
++	const pick = options.find(o => o.toLowerCase() === said.toLowerCase())
++		?? options.find(o => said && said.toLowerCase().includes(o.toLowerCase()))
++		?? (said || "(no vote)");
++	const caveatLine = rows.slice(1).join(" ").trim();
++	const caveat = caveatLine.replace(/^caveat:\s*/i, "") || (m ? "" : "no parseable pick line");
++	return { member, pick, caveat };
++}
++
++async function askVoter(member, model, question, options) {
++	const prompt = buildPrompt(question, options);
++	try {
++		// allowed_tools: [] — a voter sees the whole question and options in its prompt, reads no
++		// file, so the default full toolset (Bash, Edit, Agent, every MCP server…) would be pure
++		// overhead here. ⚠ Measured: it did NOT bring the cost down much — a real 5-voter run still
++		// lands near $0.47, over the $0.05 target, because this repo's own CLAUDE.md + skill-listing
++		// preamble is paid on every spawn regardless of allowed_tools. See check.md's "Watch out".
++		const spawned = await mcp("spawn_agent", { role: "voter", name: `vote-${member}`, prompt, model, effort: "low", permission_mode: "bypassPermissions", cwd: ROOT, allowed_tools: [] });
++		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
++		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 180 }, 190000);
++		await mcp("stop_agent", { id: spawned.id }, 20000);
++		return { ...parseVote(member, waited.words, options), cost: waited.cost ?? 0 };
++	} catch (e) {
++		return { member, pick: "(no vote)", caveat: `voter failed to run: ${String(e?.message || e).slice(0, 200)}`, cost: 0 };
++	}
++}
++
++function tally(votes, options) {
++	const t = Object.fromEntries(options.map(o => [o, 0]));
++	for (const v of votes) if (t[v.pick] !== undefined) t[v.pick]++;
++	return t;
++}
++
++/* `question`: the open question. `options`: the list of choices (strings). Returns
++ * `{votes, tally, cost}` — no card write here, since this function's own shape carries no
++ * `cardDir` (see `appendConsensus` below for that, used by the CLI and the Servex tool). */
++export async function consensus(question, options) {
++	const results = await Promise.all(VOTERS.map(v => askVoter(v.member, v.model, question, options)));
++	const votes = results.map(({ member, pick, caveat }) => ({ member, pick, caveat }));
++	const cost = results.reduce((sum, r) => sum + (r.cost || 0), 0);
++	return { votes, tally: tally(votes, options), cost };
++}
++
++/* Appends `{"consensus":{at, question, options, votes, tally, cost}}` to `<cardDir>/task.jsonl`
++ * — same append style as `check()`. Kept separate from `consensus()` because `consensus()`'s own
++ * signature (spec'd as `(question, options)`) carries no `cardDir`; both the CLI below and the
++ * Servex `consensus` tool call this after `consensus()` resolves. */
++export function appendConsensus(cardDir, question, options, result) {
++	appendJSON(path.join(cardDir, "task.jsonl"), { consensus: { at: now(), question, options, votes: result.votes, tally: result.tally, cost: result.cost } });
++}
++
++async function main() {
++	const [cardDirArg, question, ...options] = process.argv.slice(2);
++	if (!cardDirArg || !question || !options.length) { console.error('usage: node Server/consensus.mjs <cardDir> "<question>" "<option1>" "<option2>" ...'); process.exit(1); }
++	const cardDir = path.resolve(cardDirArg);
++	const result = await consensus(question, options);
++	appendConsensus(cardDir, question, options, result);
++	console.log(JSON.stringify(result, null, 2));
++	console.log(JSON.stringify(result.tally));
++}
++
++const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
++if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; });
+diff --git a/Server/doc/check.md b/Server/doc/check.md
+new file mode 100644
+index 00000000..c1886ef9
+--- /dev/null
++++ b/Server/doc/check.md
+@@ -0,0 +1,78 @@
++# check() and consensus() — a cheap second opinion, by default
++
++Design: [Step C — sanity checks](/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md) (④ check, ⑤ consensus).
++
++## What they are
++
++Two small node modules that ask a couple of **fresh** agents — ones that never saw the
++reasoning behind a claim — whether it holds up.
++
++- **`check(claim, context)`** (`Server/check.mjs`) — for a single decision, answer or landing
++  outcome. Spawns 2 cheap agents (Haiku and Sonnet today — different model families, so a
++  mistake one is prone to isn't shared by both) and asks each: could this be wrong, what's the
++  alternative, agree or doubt? Target cost: **under $0.01**.
++- **`consensus(question, options)`** (`Server/consensus.mjs`) — for when the checkers disagree,
++  or the truth just isn't clear. 5 agents at 3 price levels (2x Haiku-tier, 2x Sonnet-tier,
++  1x Opus-tier today) each vote for one option. Target cost: **under $0.05**.
++
++Both reuse the spawn pattern `Server/review.mjs`'s fresh-eyes review already proved: a brand
++new Servex agent, never resumed or forked, over the loopback MCP
++(`spawn_agent` → `wait_for_agent` → `stop_agent`). Neither ever throws — a checker or voter
++that fails to run becomes one `doubt`/`(no vote)` row, not a crash.
++
++## How it's used
++
++```js
++import { check, chip } from "../Server/check.mjs";
++const result = await check("The button should say Save, not Submit.", {
++	ownerWords: ["public/framework/ai/2026/09/28/.../owner-words.md"],
++	files: ["public/app.js"],
++	cardDir: "public/framework/ai/2026/09/28/some-card"   // appends {"check":…} to its task.jsonl
++});
++result.chip   // "✓✓" both agree, "✓?" they split or either doubts
++```
++
++```js
++import { consensus, appendConsensus } from "../Server/consensus.mjs";
++const result = await consensus("Which layout word fits best?", ["rail", "wall", "grid"]);
++appendConsensus(cardDir, question, options, result);   // appends {"consensus":…}
++```
++
++Or from the command line, while building or debugging:
++
++```
++node Server/check.mjs <cardDir> "<claim>" [--owner-words <file>] [--files <file,file>]
++node Server/consensus.mjs <cardDir> "<question>" "<option1>" "<option2>" ...
++```
++
++Both print their JSON result, plus the chip or tally. A Servex agent calls the same work as
++MCP tools — `check` and `consensus`, wired in `Servex/agents/check-tools.js`.
++
++## When it runs by itself
++
++After a manager or task mastermind writes a `decision` line, and on a landing outcome — never
++on the fast assistant's quick replies. One line about this lives in the sub-mastermind skill.
++
++## Watch out
++
++- Each checker/voter sees **only** the claim (or question), the owner's words and the files
++  named — never the conversation that produced the claim. That's the whole point: a fresh
++  read, not an echo.
++- The model rosters (`CHECKERS` in check.mjs, `VOTERS` in consensus.mjs) are Claude's own tiers
++  today. OpenRouter replaces them with a priced config table once harness step 2 lands — the
++  array is the one place that changes.
++- **The measured cost is over both targets today.** A real `check()` run (2 turns, `allowed_tools`
++  restricted to `["Read"]`) landed near **$0.18**, not the $0.01 target; a real `consensus()` run
++  (5 turns, `allowed_tools: []`) landed near **$0.47**, not the $0.05 target. Restricting the
++  toolset barely moved the number — this repo's own CLAUDE.md and skill-listing preamble is paid
++  on **every** spawn regardless of what tools it can use, and that fixed cost (roughly $0.09 per
++  turn here) dwarfs a 5-line answer. Fixing it means changing what a Servex spawn loads by
++  default — outside this module. Until then, call `check`/`consensus` sparingly, not on every
++  small decision.
++- `consensus()`'s own exported signature is `(question, options)`, with no `cardDir` — the
++  append happens separately, in `appendConsensus(cardDir, question, options, result)`, called by
++  both the CLI and the Servex `consensus` tool. `check()` differs: it takes `cardDir` inside its
++  `context` and appends itself.
++- The `Vote` shape is `{member, pick, caveat}` (the design's own shape, not a plain `{model,
++  vote, why}`) — `pick` is the voter's favourite option, `caveat` is the one improvement it
++  would want if a different option won.
+diff --git a/Servex/agents/check-tools.js b/Servex/agents/check-tools.js
+new file mode 100644
+index 00000000..1d29f43e
+--- /dev/null
++++ b/Servex/agents/check-tools.js
+@@ -0,0 +1,53 @@
++import { check } from "../../Server/check.mjs";
++import { consensus, appendConsensus } from "../../Server/consensus.mjs";
++
++/* The two check/consensus tools: a cheap sanity check by default, and a 5-model vote when the
++ * truth is unclear. Same shape as `ops_tools(host)` in ops.js — the handlers here need no
++ * `agents`, but the argument is kept so both are wired the same way:
++ *
++ *   for (const tool of check_tools(servex.agents)) servex.mcp.tool(tool);
++ *
++ * Design: /framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md (④ and ⑤). */
++
++const tool = (name, description, properties, required, handler) => {
++	const inputSchema = { type: "object", required, properties };
++	return { name, description, inputSchema, schema: inputSchema, handler };
++};
++
++export function check_tools(agents){ return [
++
++	tool("check",
++		"Spawn 2 fresh checkers (Haiku and Sonnet today, different model families) to sanity-check one"
++		+ " claim — a decision, an answer, a landing outcome. Each checker sees ONLY the claim, the"
++		+ " owner's words and the files it names, never your reasoning, and says whether it agrees or"
++		+ " doubts, in 5 lines at most. Appends a `{\"check\":…}` line to the card's task.jsonl and"
++		+ " returns the verdicts, the total cost and the chip (\"✓✓\" both agree, \"✓?\" otherwise).",
++		{
++			cardDir: { type: "string", description: "The card's directory (e.g. public/framework/ai/2026/09/28/<slug>). The result is appended to its task.jsonl." },
++			claim: { type: "string", description: "The one sentence being checked." },
++			ownerWords: { type: "array", items: { type: "string" }, description: "File paths to the owner's own words, so a checker can weigh the claim against what was actually asked." },
++			files: { type: "array", items: { type: "string" }, description: "File paths the claim is about." }
++		},
++		["cardDir", "claim"],
++		async ({ cardDir, claim, ownerWords, files }) =>
++			JSON.stringify(await check(claim, { cardDir, ownerWords: ownerWords ?? [], files: files ?? [] }), null, 2)),
++
++	tool("consensus",
++		"5 models at 3 price levels (2x Haiku-tier, 2x Sonnet-tier, 1x Opus-tier today) vote on an"
++		+ " open question, when checkers disagree or the truth is just unclear. Appends a"
++		+ " `{\"consensus\":…}` line to the card's task.jsonl and returns the votes, the tally and"
++		+ " the total cost.",
++		{
++			cardDir: { type: "string", description: "The card's directory. The result is appended to its task.jsonl." },
++			question: { type: "string", description: "The open question." },
++			options: { type: "array", items: { type: "string" }, description: "The list of choices." }
++		},
++		["cardDir", "question", "options"],
++		async ({ cardDir, question, options }) => {
++			const result = await consensus(question, options);
++			appendConsensus(cardDir, question, options, result);
++			return JSON.stringify(result, null, 2);
++		})
++]; }
++
++export default check_tools;
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index a9b9364d..8f26e93b 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -4,6 +4,7 @@ import { agents as singleton } from "./Agents.js";
+ import { Policy } from "./policy.js";
+ import { ops_tools } from "./ops.js";
+ import { job_tools } from "./jobs.js";
++import { check_tools } from "./check-tools.js";
+ 
+ /* The seven verbs, as MCP tools. This is the whole point of the host: a normal
+  * Claude session — sidebar, terminal, or another agent — cannot hold a child
+@@ -39,7 +40,7 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
+  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
+  * wires them all, and `server(host)` hands all of them to an in-process agent. */
+ export function tools(agents = singleton){
+-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from)];
++	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...check_tools(agents)];
+ }
+ 
+ /* start_job's answer comes to `from` — which defaults to whoever is calling
+diff --git a/public/framework/ai/2026-09-28/check-consensus/minion-a/requirements.md b/public/framework/ai/2026-09-28/check-consensus/minion-a/requirements.md
+new file mode 100644
+index 00000000..a536cb5c
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/check-consensus/minion-a/requirements.md
+@@ -0,0 +1,49 @@
++# Build check() and consensus() — Step C of "agent work on every page"
++
++Task dir (read this whole conversation, not a summary): `public/framework/ai/2026-09-28/check-consensus/`
++Design doc (④ and ⑤): `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md`
++Owner's words (verbatim, the actual ask): `public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/owner-words.md`
++Reuse pattern (read it first, in full): `Server/review.mjs` — the same three-call spawn (`spawn_agent` → `wait_for_agent` → `stop_agent` over the loopback MCP at `http://127.0.0.1:8090/mcp`) that "fresh eyes" review already uses. Do not fork review.mjs; write new files that reuse its pattern.
++
++You are a minion. Load the `minion` skill first, then `code` before writing any JS.
++
++## What to build
++
++**1. `Server/check.mjs`** — a node module exporting `async function check(claim, context)`.
++- `claim`: the one sentence being checked (a decision, an answer, a landing outcome).
++- `context`: `{ ownerWords: [file paths], files: [file paths the claim is about], cardDir: path to the card's directory (so it can append the result there) }`.
++- Spawns 2 fresh Servex agents from different model families — Haiku (`claude-haiku-4-5-20251001`) and Sonnet (`claude-sonnet-5`) today, so a note in the code says "OpenRouter adds more families once harness step 2 lands." Each checker gets ONLY the claim, the owner's words file(s), and the files context names — never the caller's reasoning or conversation. Ask it: could this be wrong, what are the alternatives, agree or doubt — answer in 5 lines at most, first line exactly `verdict: agree` or `verdict: doubt`.
++- Parse each checker's reply into `{model, verdict: "agree"|"doubt", why}`.
++- Cost: sum both checkers' `wait_for_agent` cost (same field `review.mjs` reads: `waited.cost`).
++- Append one line to `<cardDir>/task.jsonl` (create the file if it doesn't exist, same append style as `Server/review.mjs`'s `appendJSON`): `{"check":{"at":ISO, "claim":claim, "verdicts":[...], "cost":totalCost}}`.
++- Export a `chip(verdicts)` helper that returns `"✓✓"` when both agree, `"✓?"` when they split or either doubts — this is what a card shows; keep it simple, a two-line function.
++- CLI usage for testing: `node Server/check.mjs <cardDir> <claim> [--owner-words <file>] [--files <file,file>]`. Print the result as JSON and the chip.
++- Every child process spawn sets `windowsHide: true` (there are none directly here — the spawning is over MCP `fetch`, same as review.mjs's `mcp()` helper; reuse that exact function, copied in, not imported, since review.mjs isn't a library entry point).
++- Never throws: a Servex problem becomes a `{"verdict":"doubt","why":"checker failed to run: <msg>"}` for that checker, not a crash.
++
++**2. `Server/consensus.mjs`** — a node module exporting `async function consensus(question, options)`.
++- `question`: the open question. `options`: the list of choices (strings).
++- 5 models vote, at 3 price levels. Use the Claude tiers today (OpenRouter is NOT live — harness step 2 hasn't landed): e.g. 2x Haiku-tier, 2x Sonnet-tier, 1x Opus-tier (`claude-opus-5-5`) — comment in the code that this becomes OpenRouter models, chosen from one config table with prices, once step 2 lands. Put the 5-model roster in one small exported config array (`VOTERS`) so swapping to OpenRouter later is a one-array edit, not a rewrite.
++- Each voter gets the question and options, answers with exactly one option (first line `pick: <option>`) plus one line: the one improvement it would add to the winner (`caveat: ...`).
++- Vote shape is `{member, pick, caveat}` — NOT `{model, vote, why}` — per the design doc's "Added" section (Collab system, Vote row: "a favourite plus the one improvement it would add; the winner absorbs the caveats"), so `consensus`'s output is directly reusable by task-mastermind-collab-rounds. `member` is the voter's model/id.
++- Tally the votes (by `pick`), append `{"consensus":{"at":ISO, "question":question, "options":options, "votes":[{member,pick,caveat}], "tally":{option:count}, "cost":totalCost}}` to `<cardDir>/task.jsonl` the same way.
++- CLI usage: `node Server/consensus.mjs <cardDir> "<question>" "<option1>" "<option2>" ...`. Print result JSON and the tally.
++- Same never-throws rule as check.mjs.
++
++**3. Servex tool `check`** — new file `Servex/agents/check-tools.js`, same shape as `Servex/agents/ops.js` (`const tool = (name, description, properties, required, handler) => ({...})`, export a `check_tools(agents)` function — `agents` unused today but keep the parameter for the same reason ops.js does, consistency). Two tools: `check` (args: `cardDir`, `claim`, `ownerWords?`, `files?`) and `consensus` (args: `cardDir`, `question`, `options`) — both just call the modules above and return their JSON result. Wire it into `Servex/agents/tools.js`: import `check_tools`, add `...check_tools(agents)` to the array `tools()` returns (see the existing `...ops_tools(agents)` line — same pattern).
++
++**4. One line in the sub-mastermind skill** — `.claude/skills/sub-mastermind/SKILL.md`. Find a natural spot (near where it talks about decisions/landing, or add a short new paragraph) and add ONE line saying: `check()` runs by itself after a manager or task mastermind writes a `decision` line, and on a landing outcome — never on the fast assistant's quick replies. Keep it to one line, matching the terse style already in that file. Do not restructure the file.
++
++**5. Docs** — `Server/doc/check.md`, one screen (the `documentation` skill's standard: what it is, how it's used, a link to the design). Load the `documentation` skill before writing it.
++
++## Fence
++
++You may create/edit only: `Server/check.mjs`, `Server/consensus.mjs`, `Servex/agents/check-tools.js`, `Servex/agents/tools.js` (one import + one array-spread line only), `.claude/skills/sub-mastermind/SKILL.md` (one line only), `Server/doc/check.md`. Nothing else. If you think another file needs a change, stop and say so instead of editing it.
++
++## Cost target
++
++Measured, not guessed: a `check()` call should cost under $0.01 (2 short Haiku/Sonnet turns), a `consensus()` call under $0.05 (5 short turns, one Opus). If your test run comes in over, say so plainly in your landing note rather than hiding it — the task mastermind will decide whether that's acceptable.
++
++## When you're done
++
++Run both CLIs once for real, against a real claim (see the task dir's requirements.md — "5 real decisions from today's task logs" is the proof the task mastermind still owes; you don't have to find those 5, just prove your own code runs once). Report back with: what you built, the fence you touched, your one real test run's output (paste the chip/tally and the cost), and anything you couldn't finish.
+diff --git a/public/framework/ai/2026-09-28/check-consensus/minion-a/task.jsonl b/public/framework/ai/2026-09-28/check-consensus/minion-a/task.jsonl
+new file mode 100644
+index 00000000..f1efe0bf
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/check-consensus/minion-a/task.jsonl
+@@ -0,0 +1,17 @@
++{"assign":{"session_id":"6771aade-6f86-4d87-adc7-78626a2f1d1d","tab":"minion-check-consensus-build","group":"check-consensus","request":"Build check() and consensus() — Step C of \"agent work on every page\": Server/check.mjs, Server/consensus.mjs, Servex/agents/check-tools.js wired into tools.js, one line in the sub-mastermind skill, and Server/doc/check.md.","requested_at":"2026-09-28T13:48:54-05:00","model":"claude-sonnet-5","window":{"before":0},"now":"reading the brief, the design doc and Server/review.mjs's spawn pattern","steps":["read brief, design doc, owner words, review.mjs","write Server/check.mjs","write Server/consensus.mjs","write Servex/agents/check-tools.js and wire into tools.js","one line in sub-mastermind SKILL.md","write Server/doc/check.md","run both CLIs for real, prove cost","land"],"step":1}}
++{"action":{"at":"2026-09-28T13:49:30-05:00","did":"edit","files":["Server/check.mjs"]}}
++{"action":{"at":"2026-09-28T13:49:52-05:00","did":"edit","files":["Server/consensus.mjs"]}}
++{"action":{"at":"2026-09-28T13:50:02-05:00","did":"edit","files":["Servex/agents/check-tools.js"]}}
++{"action":{"at":"2026-09-28T13:50:06-05:00","did":"edit","files":["Servex/agents/tools.js"]}}
++{"action":{"at":"2026-09-28T13:50:17-05:00","did":"edit","files":[".claude/skills/sub-mastermind/SKILL.md"]}}
++{"log":{"at":"2026-09-28T13:50:18-05:00","msg":"skill: documentation"}}
++{"action":{"at":"2026-09-28T13:50:37-05:00","did":"edit","files":["Server/doc/check.md"]}}
++{"check":{"at":"2026-09-28T13:51:12-05:00","claim":"check() spawns 2 fresh Servex agents (Haiku and Sonnet) to sanity-check a claim, and never throws even if Servex fails","verdicts":[{"model":"claude-haiku-4-5-20251001","verdict":"doubt","why":"The file `Server/check.mjs` does not exist in the codebase. A `check()` function spawning agents cannot exist if its source file is missing. Similar patterns in `review.mjs` and `clarity.mjs` spawn single agents (not pairs), and both correctly implement error handling to avoid throwing on Servex failure. A real alternative would be for `check()` to exist as an export in an existing module or in a new `Server/check.mjs` file, but neither is currently true."},{"model":"claude-sonnet-5","verdict":"doubt","why":"Server/check.mjs does not exist in the repo — I searched Server/ and found no such file, only unrelated files like health.mjs, review.mjs, text-check.mjs, etc. Without the actual source, the claim's specifics (spawns 2 agents, Haiku+Sonnet, never throws) cannot be verified. A real alternative is that this logic lives under a different name or inside one of those other files (or doesn't exist at all yet). Since the named file is missing, the claim as stated is unverifiable and likely wrong about the location."}],"cost":0.2448183}}
++{"assign":{"now":"wrote check.mjs, consensus.mjs, check-tools.js, wired tools.js, one line in sub-mastermind skill, doc/check.md — first real CLI run surfaced a bug","step":7}}
++{"log":{"at":"2026-09-28T13:52:15-05:00","msg":"First real run of check.mjs (claim about check.mjs itself, --files Server/check.mjs) came back ✓? doubt/doubt — both checkers correctly said the file did not exist, because spawn_agent had no cwd and defaulted to Servex's own working directory (the main tree), not this worktree. Fixed: both check.mjs and consensus.mjs now compute ROOT from their own file location (path.dirname(fileURLToPath(import.meta.url)) + '/..') and pass cwd: ROOT to spawn_agent, the same way review.mjs passes cwd: root. That first run's $0.2448 check line stays in task.jsonl as-is (append-only) — it was a real, honest run, just of a claim not yet true when it ran (the ROOT/cwd fix landed right after)."}}
++{"check":{"at":"2026-09-28T13:52:46-05:00","claim":"check.mjs and consensus.mjs pass cwd: ROOT (this worktree's own root) to spawn_agent, so a checker reads files from the correct checkout instead of wherever Servex's own process happens to run","verdicts":[{"model":"claude-haiku-4-5-20251001","verdict":"agree","why":"Both files correctly compute ROOT as their worktree-specific parent directory (line 24 in check.mjs, line 21 in consensus.mjs) and pass `cwd: ROOT` to every `spawn_agent` call (line 68 in check.mjs, line 69 in consensus.mjs). The comments explicitly state this solves the worktree isolation problem. An alternative would be omitting cwd entirely, forcing checkers to resolve files relative to wherever Servex happens to run—a clear failure."},{"model":"claude-sonnet-5","verdict":"agree","why":"Both files derive ROOT from `import.meta.url` (this file's own directory, resolved up one level), not from `process.cwd()` or any Servex-supplied default — so ROOT is this checkout's root regardless of where Servex's own process runs. Both then pass `cwd: ROOT` directly into the `spawn_agent` call. A real alternative would be relying on `spawn_agent`'s default cwd (likely Servex's own process directory or last-used worktree), which could silently point a checker at the wrong checkout when multiple worktrees exist — the explicit `cwd: ROOT` guards against exactly that. Code matches the claim."}],"cost":0.175786}}
++{"consensus":{"at":"2026-09-28T13:53:54-05:00","question":"Should the sub-mastermind skill's one-line mention of check() live in the Report-three-messages section (near the existing decision-line sentence) or get its own new paragraph?","options":["near the existing decision-line sentence","its own new paragraph","a footnote at the end of the file"],"votes":[{"member":"haiku-1","pick":"near the existing decision-line sentence","caveat":"if a new paragraph won, make its opening sentence signal how check() relates to the decision-line concept—readers skimming might miss the connection otherwise."},{"member":"haiku-2","pick":"near the existing decision-line sentence","caveat":"if this were its own paragraph instead, it should explain what `check()` does or why it matters, not just mention it exists — a standalone line loses context."},{"member":"sonnet-1","pick":"near the existing decision-line sentence","caveat":"if it gets its own paragraph instead, keep it to one or two sentences max so it doesn't outweigh the decision-line it's describing."},{"member":"sonnet-2","pick":"near the existing decision-line sentence","caveat":"if a new paragraph wins instead, keep it to one or two sentences so it doesn't outweigh the existing decision-line material around it."},{"member":"opus-1","pick":"near the existing decision-line sentence","caveat":"if it gets its own paragraph, keep it to one sentence and place it straight after the decision-line sentence so the two read together."}],"tally":{"near the existing decision-line sentence":5,"its own new paragraph":0,"a footnote at the end of the file":0},"cost":0.4713716}}
++{"check":{"at":"2026-09-28T13:54:42-05:00","claim":"check.mjs restricts each checker to allowed_tools: [\"Read\"] so it cannot Bash, Edit or call other MCP servers, only read the named files","verdicts":[{"model":"claude-haiku-4-5-20251001","verdict":"agree","why":"The code explicitly sets `allowed_tools: [\"Read\"]` on line 72 when spawning each checker agent, restricting them to only the Read tool. The comments confirm this is intentional to save tokens by preventing unnecessary tool access. An alternative would be omitting `allowed_tools` entirely, which would grant the checker the full CLI toolset (Bash, Edit, MCP servers, etc.), but the file deliberately avoids that overhead."},{"model":"claude-sonnet-5","verdict":"agree","why":"The code literally passes `allowed_tools: [\"Read\"]` in the `spawn_agent` call (line 72), with a comment explaining it's meant to keep the checker to reading named files only. A real alternative concern: `permission_mode: \"bypassPermissions\"` is also set, and it's possible that flag overrides tool restriction rather than just skipping prompts, which would make the claim only half true depending on the MCP server's semantics — this file cannot prove enforcement, only intent. But based on what's actually in check.mjs, the claim accurately describes what it does."}],"cost":0.1754965}}
++{"consensus":{"at":"2026-09-28T13:55:18-05:00","question":"Is claude-opus-5-5 a real model id worth keeping as the one premium voter, or should consensus.mjs drop to 2 Sonnet + 2 Haiku + 1 more Sonnet until OpenRouter lands?","options":["keep claude-opus-5-5 as the one premium voter","drop Opus, use 3 Sonnet + 2 Haiku instead"],"votes":[{"member":"haiku-1","pick":"drop Opus, use 3 Sonnet + 2 Haiku instead","caveat":"Prioritize OpenRouter integration so a premium voter can be restored once Opus pricing becomes viable — the consensus quality gap will matter for real decisions."},{"member":"haiku-2","pick":"drop Opus, use 3 Sonnet + 2 Haiku instead","caveat":"measure consensus accuracy over the next 20 rounds—if ties favor Opus choices when they occur, revert on the evidence that premium reasoning breaks consensus deadlocks."},{"member":"sonnet-1","pick":"drop Opus, use 3 Sonnet + 2 Haiku instead","caveat":"claude-opus-5-5 isn't a real/verifiable model id, so if Opus is kept, confirm the actual id first and gate it with a fallback to Sonnet on failure."},{"member":"sonnet-2","pick":"drop Opus, use 3 Sonnet + 2 Haiku instead","caveat":"if Opus stays, verify claude-opus-5-5 is a real, callable model id before relying on it as the tie-breaking premium voter — a silent 404/fallback there is worse than not having one."},{"member":"opus-1","pick":"keep claude-opus-5-5 as the one premium voter","caveat":"if Opus is dropped, give the third Sonnet the deciding vote on ties so the panel still has one clear tie-breaker, and add Opus back as soon as OpenRouter lands."}],"tally":{"keep claude-opus-5-5 as the one premium voter":1,"drop Opus, use 3 Sonnet + 2 Haiku instead":4},"cost":0.4760156}}
++{"decision":{"at":"2026-09-28T13:56:07-05:00","question":"consensus.mjs's Vote shape","options":["{model, vote, why} as I first wrote it","{member, pick, caveat} per the design doc's Added section"],"chose":"{member, pick, caveat}","why":"task-mastermind-check-consensus relayed a correction from mastermind-servex-3: the design doc (public/framework/ai/2026/09/28/agent-work-on-every-page-sanity-checks-c/design.md, 'Added' section, the Vote row) defines Vote as member/pick/caveat — a favourite plus the one improvement that voter would add if a different option won, not a plain 'why'. Confirmed by re-reading the doc myself before changing anything. check.mjs's {model, verdict, why} is a different, unrelated shape and stays as-is per the same correction."}}
++{"log":{"at":"2026-09-28T13:56:07-05:00","msg":"Real measured cost, both after fixing the cwd bug and after restricting allowed_tools: check() (2 turns, allowed_tools ['Read']) ~$0.175-0.245 per run; consensus() (5 turns, allowed_tools []) ~$0.47-0.48 per run. Both well over the $0.01/$0.05 targets. Restricting allowed_tools barely moved either number (check went $0.245 -> $0.175, mostly from the cwd fix eliminating a wasted Glob/Grep hunt, not from the tool restriction; consensus stayed flat at ~$0.47 with or without tools). Best explanation: this repo's own CLAUDE.md + skill-listing preamble is paid once per spawned turn regardless of allowed_tools — roughly $0.09/turn here, which dwarfs a 5-line answer. That preamble lives outside Server/check.mjs and Server/consensus.mjs (it's how a Servex spawn's system prompt is built), so it's out of this task's fence to fix. Reporting plainly per the brief's Cost target section rather than hiding it."}}
+diff --git a/public/framework/ai/2026-09-28/day.jsonl b/public/framework/ai/2026-09-28/day.jsonl
+new file mode 100644
+index 00000000..aeedf35c
+--- /dev/null
++++ b/public/framework/ai/2026-09-28/day.jsonl
+@@ -0,0 +1 @@
++{"log":{"at":"2026-09-28T13:48:54-05:00","task":"check-consensus/minion-a","msg":"task opened — build check() and consensus() (Step C of agent work on every page)"}}

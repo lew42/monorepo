@@ -1,0 +1,983 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 8e19bb94..5313d4b2 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -23,6 +23,7 @@ import Cards from "./cards/Cards.js";
+ import Layers from "./agents/Layers.js";
+ import Global from "./agents/Global.js";
+ import agent_tools from "./agents/tools.js";
++import tidy from "./agents/tidy.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+@@ -442,6 +443,18 @@ export default class Servex extends Events {
+ 
+         this.cards.routes(router, cors);
+ 
++        /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
++         * model call that cleans up a chunk of dictated text near-verbatim
++         * (typos, capitalization, punctuation, fillers only — never a
++         * rewrite). See Servex/agents/tidy.js for the prompt and options. */
++        router.options("/api/tidy", cors, (req, res) => res.status(204).end());
++
++        router.post("/api/tidy", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            const body = req.body ?? {};
++            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
++            res.json(await tidy(body));
++        });
++
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+ 
+         /* The dashboard's first paint. After this it hears about every change on
+diff --git a/Servex/agents/tidy.js b/Servex/agents/tidy.js
+new file mode 100644
+index 00000000..26cd87e3
+--- /dev/null
++++ b/Servex/agents/tidy.js
+@@ -0,0 +1,55 @@
++import { query } from "@anthropic-ai/claude-agent-sdk";
++
++/* TIDY — the fast, near-verbatim cleanup pass on one chunk of dictated text.
++ *
++ * One no-tools Sonnet call, same minimal options `jobs.js` `decide` uses (see
++ * that file's comment: without `strictMcpConfig` etc. the prefix is ~51k
++ * tokens instead of about 800). This pass never rephrases, reorders or
++ * summarizes — see the owner's words in this task's requirements.md: the
++ * first pass stays "nearly verbatim", only typos, capitalization, punctuation
++ * and filler words are touched. `before` is the already-cleaned text just
++ * before this chunk, given only so the seam's capitalization/punctuation
++ * comes out right — it is context, never rewritten. */
++
++const MODEL = "claude-sonnet-5";
++
++const SYSTEM = `You clean up one chunk of dictated (speech-to-text) text. Stay as close to verbatim as possible.
++
++Fix ONLY:
++- obvious typos or mis-hearings, only when you are certain what was meant
++- capitalization: a new sentence starts with a capital letter
++- punctuation: a question mark only at the end of an actual question; sentence-ending punctuation where a sentence clearly ends
++- filler words: remove "um", "uh", "ah", "er", "you know" and "like" used as filler (not as a real comparison), and stutters/repeated words like "the, the"
++
++Never rephrase, reorder, summarize, or change the intent or word choice otherwise. Return ONLY the cleaned text — no quotes, no commentary, nothing else.`;
++
++/* {text, before} -> {ok:true, text, model, ms} or {ok:false, why}. `run_query`
++ * is swappable so a proof (or a test) can fake the model call. */
++export async function tidy({ text, before } = {}, { run_query = query } = {}){
++	if (typeof text !== "string") return { ok: false, why: "text must be a string" };
++	if (!text.trim()) return { ok: true, text: "" };
++
++	const prompt = before?.trim()
++		? `The text just before this chunk (already cleaned, for context only — do not repeat or edit it):\n${before.trim()}\n\nClean this chunk:\n${text}`
++		: `Clean this chunk:\n${text}`;
++
++	const t0 = Date.now();
++	let out = "";
++	try {
++		for await (const m of run_query({ prompt, options: {
++			/* Same minimal config as jobs.js `decide` — see its comment. */
++			model: MODEL, tools: [], mcpServers: {}, strictMcpConfig: true, skills: [],
++			settingSources: [], maxTurns: 1, persistSession: false,
++			extraArgs: { "disable-slash-commands": null },
++			systemPrompt: SYSTEM
++		} })){
++			if (m.type === "result") out = m.result ?? out;
++			else if (m.type === "assistant") out = (m.message?.content ?? []).filter(b => b.type === "text").map(b => b.text).join("") || out;
++		}
++	} catch (e){ return { ok: false, why: String(e.message || e) }; }
++
++	if (!out.trim()) return { ok: false, why: "empty model reply" };
++	return { ok: true, text: out.trim(), model: MODEL, ms: Date.now() - t0 };
++}
++
++export default tidy;
+diff --git a/Servex/proof/tidy-proof.mjs b/Servex/proof/tidy-proof.mjs
+new file mode 100644
+index 00000000..b5832a1d
+--- /dev/null
++++ b/Servex/proof/tidy-proof.mjs
+@@ -0,0 +1,27 @@
++import { tidy } from "../agents/tidy.js";
++
++/* Proof for Servex/agents/tidy.js — three real-model samples (typos, fillers,
++ * a question mark seam, and one that should come back unchanged except
++ * punctuation/capitals), then one offline run with a fake `run_query` so
++ * this is testable without a model call. Run: `node Servex/proof/tidy-proof.mjs`. */
++
++const samples = [
++	"so um i was thinking we should uh we should build the the playground you know",
++	"what do you think? about the the layout",
++	"the car is red and the door is blue"
++];
++
++for (const text of samples){
++	const out = await tidy({ text });
++	console.log("input: ", text);
++	console.log("output:", out.text, `(${out.ms}ms, ${out.model})`);
++	console.log();
++}
++
++/* Offline: a fake run_query, no real model call, so this proof (and a future
++ * test) can run without spending anything or needing network. */
++const fake_run_query = async function* ({ prompt }){
++	yield { type: "result", result: "Fake cleaned reply." };
++};
++const offline = await tidy({ text: "some raw text" }, { run_query: fake_run_query });
++console.log("offline (fake run_query):", offline);
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 07b89b64..1c4c3c1c 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -74,6 +74,19 @@ export async function post_prompt(entry, url = "http://127.0.0.1:8090/log/prompt
+  *     dictate(() => this.$input, { on_start: () => this.open() });
+  *     // or: new Dictate({ on_text: text => … })   // no box — just the words
+  *
++ * **`on_guess(text)`** — optional, does nothing when unset: the still-moving grey
++ * guess, fired every partial resend (whisper) or interim result (the browser
++ * engine), text `""` the instant a segment closes. `on_text(chunk)` (above) is
++ * still the settled-chunk hook — `on_guess` only adds the in-between guess a
++ * caller building its own transcript view (`ux/Dictate/playground/`) needs.
++ *
++ * **`on_meter(level)`** — optional, does nothing when unset: the SAME smoothed
++ * 0..1 number `on_level()` already writes to `--ux-dictate-level` (this button's
++ * own tiny bar), handed to a caller that wants a bigger meter of its own
++ * (`ux/Dictate/playground/`'s audio source panel) — one number, two bars, never
++ * two smoothing calculations to keep in sync. whisper only; the browser engine
++ * has no raw stream to read a level from (`doc/decisions.md`).
++ *
+  * **Engines, tried in order:** whisper.cpp running locally on this machine
+  * (`http://127.0.0.1:8178`, checked with a fast health request) — private, and
+  * on an RTX 4070 SUPER an 11-second clip transcribes in about a tenth of a
+@@ -312,6 +325,7 @@ export default class Dictate extends View {
+ 	on_level(level){
+ 		this.level = this.level * 0.6 + level * 0.4;
+ 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
++		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
+ 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
+ 	}
+ 
+@@ -359,7 +373,7 @@ export default class Dictate extends View {
+ 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
+ 		// The segment may have closed WHILE this was in flight — a stale partial
+ 		// must never paint over a segment that has already gone final.
+-		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); }
++		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); this.on_guess?.(text); }
+ 	}
+ 
+ 	async close_segment(){
+@@ -370,6 +384,7 @@ export default class Dictate extends View {
+ 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
+ 		this.partial_text = "";
+ 		this.draw_caption();
++		this.on_guess?.("");   // the growing guess is gone — a caller mirroring it clears too
+ 		if (!this.worth_sending(samples)) return;
+ 
+ 		// Let a partial resend for the OLD segment finish first — whisper-server
+@@ -482,6 +497,7 @@ export default class Dictate extends View {
+ 		}
+ 		this.partial_text = interim.trim();
+ 		this.draw_caption();
++		this.on_guess?.(this.partial_text);
+ 	}
+ 
+ 	browser_error(error){
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index 53cd78b1..001a7ec9 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -1,5 +1,6 @@
+ import { Doc, md, demo, div, span, textarea } from "/app.js";
+ import Dictate from "./Dictate.js";
++import { pg } from "./playground/Playground.js";
+ 
+ /* The card's own context — a real textarea, dictated into live. `$out` mirrors
+  * the box's value so a screenshot of the DEMO proves the wire without a
+@@ -33,12 +34,16 @@ export default new Doc({
+ 	notes: "decisions silence",
+ 
+ 	children: [
++		"playground",
+ 		demo.page("words", words, {
+ 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
+ 	],
+ 
+ 	content(){
+ 
++		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, side by side — same widget, its own url, at the [playground](playground/).");
++		pg.widget();
++
+ 		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `whisper (local)` when `whisper-server` is running on this machine, `Chrome's built-in recognition` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
+ 
+ 		demo.exhibit({
+diff --git a/public/framework/ux/Dictate/playground/Playground.css b/public/framework/ux/Dictate/playground/Playground.css
+new file mode 100644
+index 00000000..8705f26f
+--- /dev/null
++++ b/public/framework/ux/Dictate/playground/Playground.css
+@@ -0,0 +1,84 @@
++/* ux/Dictate/playground — the widget's own look. Layout is plain framework.css
++ * utilities (flex, gap, wrap, muted); this file is the rest: a bigger, always-visible
++ * level meter, a plain tab strip (not ext/tabs — this widget is ONE page's worth of
++ * DOM that never re-renders when a tab is picked, only shows/hides; doc/decisions.md,
++ * "one pg, many widgets"), the code-font transcript box, the strike/add diff colours,
++ * and the Live tab's fade-then-collapse. */
++@layer theme {
++
++	.ux-dictate-pg-sample { white-space: nowrap; }
++
++	/* The mic's own small caption (settled/partial text beside the button) would just
++	 * repeat the Raw panel below it — this widget IS that caption, at full size. */
++	.ux-dictate-pg-mic .ux-dictate-caption { display: none; }
++
++	/* ---- audio source panel: mic name, picker, and its own bigger meter ----- */
++
++	.ux-dictate-pg-device { white-space: nowrap; }
++
++	/* A SEPARATE bar from the mic button's own tiny one (the owner: "larger" —
++	 * `Dictate.css`'s `.ux-dictate-level` is 3px wide and lives beside the icon,
++	 * too small to read as "the audio source panel"). Same signal, though: both
++	 * read the identical smoothed number, `Dictate`'s `on_meter()` hook — one
++	 * loudness calculation, two bars. Visible and FLAT at idle (`--ux-dictate-pg-level`
++	 * defaults to 0, set only while `Dictate` is actually listening) — never
++	 * invisible, so "is this even wired up" never has to be guessed. */
++	.ux-dictate-pg-meter {
++		inline-size: 10em; block-size: 1.6em; border-radius: .3em;
++		background: var(--wash); border: 1px solid var(--line); overflow: hidden; flex: none;
++	}
++	.ux-dictate-pg-meter-fill {
++		block-size: 100%; background: var(--prim);
++		inline-size: calc(var(--ux-dictate-pg-level, 0) * 100%);
++		transition: inline-size 80ms linear;
++	}
++
++	.ux-dictate-pg-status { font-style: italic; }
++	.ux-dictate-pg-status:empty { display: none; }
++
++	/* ---- the tab strip — quiet, the same shape ext/tabs draws (its own doc), ---
++	   just not ext/tabs itself: every panel below is ALREADY built and mounted, so
++	   picking a tab only shows/hides — nothing here is a Page and nothing re-renders. */
++	.ux-dictate-pg-tabs { display: flex; gap: 1.2em; border-bottom: 1px solid var(--line); }
++	.ux-dictate-pg-tab {
++		padding-block: .5em; border-bottom: 2px solid transparent; text-decoration: none;
++	}
++	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prim); }
++
++	/* ---- the three panels ---------------------------------------------------- */
++
++	.ux-dictate-pg-panels { padding-block-start: .8em; }
++
++	.ux-dictate-pg-code, .ux-dictate-pg-diff {
++		font-family: var(--mono);
++		font-size: .95em;
++		white-space: pre-wrap;
++		background: var(--code-bg, var(--wash));
++		color: var(--code-ink, inherit);
++		border-radius: var(--radius, .4em);
++		padding: 1em;
++		min-height: 6em;
++	}
++
++	.ux-dictate-pg-line { padding-block: .15em; }
++	.ux-dictate-pg-break { block-size: 1em; }   /* the blank line a long pause earns */
++
++	.ux-dictate-pg-guess { font-style: italic; }
++	.ux-dictate-pg-guess:empty { display: none; }
++
++	.ux-dictate-pg-strike { color: var(--error); text-decoration: line-through; }
++	.ux-dictate-pg-add    { color: var(--ok); }
++
++	/* The Live panel's whole point: the marks dissolve, the clean words stay. The
++	 * FADE DURATION is set per element from JS (`Playground.FADE_MS`, one constant) —
++	 * this sheet only says WHAT transitions. `.ux-dictate-pg-faded` is added a frame
++	 * after the line first paints, so the browser has a starting state to transition
++	 * FROM. Fading `opacity` alone left the struck word's own WIDTH behind — a gap
++	 * exactly its size ("we should␣␣we should") that read as broken, not clean; JS
++	 * also sets `display: none` on each struck word once the fade finishes, which is
++	 * what actually closes that gap (a CSS-only collapse would have to animate
++	 * `inline-size` on an inline element, which does not exist to animate). */
++	.ux-dictate-pg-strike, .ux-dictate-pg-add { transition-property: opacity, color; transition-timing-function: ease-out; }
++	.ux-dictate-pg-faded .ux-dictate-pg-strike { opacity: 0; }
++	.ux-dictate-pg-faded .ux-dictate-pg-add { color: inherit; }
++}
+diff --git a/public/framework/ux/Dictate/playground/Playground.js b/public/framework/ux/Dictate/playground/Playground.js
+new file mode 100644
+index 00000000..d0767ce4
+--- /dev/null
++++ b/public/framework/ux/Dictate/playground/Playground.js
+@@ -0,0 +1,410 @@
++import { View, div, span, button, select, option, a } from "../../../core/View/View.js";
++import Dictate, { remember_device, remembered_device } from "../Dictate.js";
++
++View.stylesheet(import.meta, "Playground.css");
++
++// Servex's fast assistant — not always up (`server-port` sibling task). A failed request
++// here is EXPECTED until Servex restarts; the rules fallback below is what covers it.
++const TIDY_URL = "http://127.0.0.1:8090/api/tidy";
++
++// How much already-cleaned text rides along as `before` — enough for the assistant to
++// see the sentence it is joining, not the whole transcript.
++const BEFORE_CHARS = 300;
++
++// Longer than this since the previous chunk settled reads as a paragraph break (a blank
++// line in every view), not just the ordinary pause between sentences.
++const BIG_GAP_MS = 2500;
++
++// The Live tab's one constant: how long the red/green marks take to dissolve, in JS so
++// the CSS transition and a headless proof's wait share the same number.
++export const FADE_MS = 5000;
++
++const TABS = ["raw", "corrections", "live"];
++const TAB_LABEL = { raw: "Raw", corrections: "Corrections", live: "Live" };
++
++const FILLERS = /\b(um+|uh+|erm+|you know|i mean|like)\b[,]?\s*/gi;
++
++// ---- word-level diff (LCS, no library) ------------------------------------
++// Splits both strings on whitespace and walks the classic longest-common-subsequence
++// table back to a list of {type: "keep"|"strike"|"add", word}. A few dozen lines, and
++// the whole reason the Corrections/Live tabs can show "this word, not that one" instead
++// of a wall of red-then-green.
++function words(text){ return text.trim().split(/\s+/).filter(Boolean); }
++
++function word_diff(raw_text, clean_text){
++	const a = words(raw_text), b = words(clean_text);
++	const n = a.length, m = b.length;
++	const lcs = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
++
++	for (let i = n - 1; i >= 0; i--)
++		for (let j = m - 1; j >= 0; j--)
++			lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
++
++	const ops = [];
++	let i = 0, j = 0;
++	while (i < n && j < m){
++		if (a[i] === b[j]){ ops.push({ type: "keep", word: a[i] }); i++; j++; }
++		else if (lcs[i + 1][j] >= lcs[i][j + 1]){ ops.push({ type: "strike", word: a[i] }); i++; }
++		else { ops.push({ type: "add", word: b[j] }); j++; }
++	}
++	while (i < n) ops.push({ type: "strike", word: a[i++] });
++	while (j < m) ops.push({ type: "add", word: b[j++] });
++	return ops;
++}
++
++// ---- the fallback pass, when /api/tidy is down or answers ok:false --------
++// Minimal on purpose — the owner's own rule: near-verbatim, never change the intent.
++// Fillers out, a doubled word collapsed, a capital after a sentence ends, a capital
++// to open it. No punctuation is MOVED — a misplaced "?" stays exactly where it was
++// said; that is the fast assistant's job, not this one's.
++function rule_clean(text){
++	let out = text.trim();
++	out = out.replace(/\b(\w+)(\s+\1\b)+/gi, "$1");   // "the the" -> "the"
++	out = out.replace(FILLERS, "");
++	out = out.replace(/\s{2,}/g, " ").trim();
++	out = out.replace(/^[a-z]/, c => c.toUpperCase());
++	out = out.replace(/([.!?]\s+)([a-z])/g, (m, sep, c) => sep + c.toUpperCase());
++	return out;
++}
++
++async function tidy(text, before){
++	try {
++		const ctrl = new AbortController();
++		const timer = setTimeout(() => ctrl.abort(), 4000);
++		const r = await fetch(TIDY_URL, {
++			method: "POST", headers: { "Content-Type": "application/json" },
++			body: JSON.stringify({ text, before }), signal: ctrl.signal,
++		});
++		clearTimeout(timer);
++		if (!r.ok) return null;
++		const body = await r.json();
++		return body?.ok ? body : null;
++	} catch { return null; }   // connection refused, a CORS-less 404 fallback, a timeout — all "not up yet"
++}
++
++const wait = ms => new Promise(res => setTimeout(res, ms));
++
++/** One line of the cleanup status: what cleaned this chunk, and how. */
++function source_label(entry){
++	return entry.source_kind === "assistant"
++		? `cleanup: fast assistant · ${entry.model} · ${(entry.ms / 1000).toFixed(1)} s`
++		: "cleanup: rules (no LLM) — Servex /api/tidy not reachable";
++}
++
++/**
++ * The dictation playground — one 🎤, one session, three ways of watching it: the raw
++ * words whisper actually heard, the fast assistant's strike/add corrections, and a
++ * "live" version where those marks dissolve into the clean text. `ux/Dictate/doc/`
++ * has the mic itself; this file is only the pipeline and the widget on top of it.
++ *
++ * Not a `View` — `widget()` is called from inside a `Page`'s own `content()` (once on
++ * the plain Dictate page, once on this module's own page), each already running inside
++ * the right captor. **Both calls share this ONE instance** — `pg` at the bottom of this
++ * file — so a session started from either widget shows up on both; `doc/decisions.md`
++ * ("one pg, many widgets") has the shape and the bug that shape caused the first time.
++ * `globalThis.$dictate_pg` (set in `page.js`) is the seam a headless test drives.
++ */
++export default class Playground {
++
++	constructor(...args){ this.assign(...args); this.views = new Set(); this.reset(); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	// Everything a session accumulates — cleared at the start of every NEW session
++	// (the owner's ask #1: one click clears the views and starts fresh). Every MOUNTED
++	// widget clears with it — `this.views` is every `widget()` call still on screen.
++	reset(){
++		this.chunks = [];          // [{ raw, gap, cleaned, deltas, source_kind, model, ms }], settled order
++		this.partial = "";         // the still-moving guess, greyed in the Raw view
++		this.cleaned_so_far = "";  // accumulated CLEANED text — the `before` context for /api/tidy
++		this.last_chunk_at = null; // performance.now() of the last settle, for the gap check
++		this.clean_queue = Promise.resolve();   // chunks clean IN ORDER, never out of turn
++
++		this.views.forEach(view => {
++			view.$raw.empty(() => { view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted"); });
++			view.$corrections.empty();
++			view.$live.empty();
++			view.$status.text("");
++		});
++	}
++
++	// ---- the widget: mic, sample, audio source, status, tabs, panels --------
++
++	// ⚠ Called on EVERY page that shows the playground (the plain Dictate page's
++	// Overview, and this module's own page) — each call builds its OWN mic button,
++	// audio panel and three panels, registered in `this.views` so the pipeline
++	// (`settle()`/`guess()`/`clean_chunk()`) updates every one of them, not just the
++	// last one built. No DOM ref here is ever a field on `this` (the shared `pg`) —
++	// only on the LOCAL `view` object — because two widgets sharing one field would
++	// each overwrite the other's reference (found the hard way: `doc/decisions.md`).
++	widget(){
++		const view = { tab: null };
++		this.views.add(view);
++
++		const $root = div.c("ux-dictate-pg flex v gap", () => {
++			div.c("ux-dictate-pg-mic flex gap v-center wrap", () => {
++				new Dictate({
++					mode: "open",             // the box is not this widget's job — on_text/on_guess are
++					on_start: () => this.reset(),
++					on_stop: () => {},
++					on_text: text => this.settle(text),
++					on_guess: text => this.guess(text),
++					on_meter: level => this.meter(level),
++				});
++				button.c("ux-dictate-pg-sample", "▶ Sample")
++					.attr("type", "button")
++					.attr("title", "play a scripted fake session — no mic, no whisper, same pipeline")
++					.on("click", () => this.run_sample());
++			});
++
++			this.audio_panel(view);
++
++			view.$status = div.c("ux-dictate-pg-status muted");
++
++			div.c("ux-dictate-pg-tabs flex gap", () => {
++				view.$tabs = TABS.map(name => a.c("ux-dictate-pg-tab", TAB_LABEL[name])
++					.href("#" + name)
++					.on("click", e => { e.preventDefault(); this.select_tab(view, name); }));
++			});
++
++			div.c("ux-dictate-pg-panels", () => {
++				view.$raw = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-raw", () => {
++					this.chunks.forEach(entry => this.draw_raw_line(view, entry));
++					view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
++				});
++				view.$corrections = div.c("ux-dictate-pg-panel ux-dictate-pg-diff ux-dictate-pg-corrections", () => {
++					this.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$corrections, c, false));
++				});
++				view.$live = div.c("ux-dictate-pg-panel ux-dictate-pg-diff ux-dictate-pg-live", () => {
++					this.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$live, c, true));
++				});
++			});
++		}).style("--gap", "0.6em");
++
++		this.update_status(view);
++
++		// "routed" the light way: the hash names the tab, so a reload or the back
++		// button lands on the same one — no separate Page per tab (that shape drew
++		// a duplicate H1 per tab and rebuilt panels instead of just showing them).
++		const start = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "raw";
++		this.select_tab(view, start);
++
++		return $root;
++	}
++
++	select_tab(view, name){
++		view.tab = name;
++		view.$tabs.forEach((t, i) => t.rc("active muted").ac(TABS[i] === name ? "active" : "muted"));
++		view.$raw.el.hidden = name !== "raw";
++		view.$corrections.el.hidden = name !== "corrections";
++		view.$live.el.hidden = name !== "live";
++		if (location.hash.slice(1) !== name) history.replaceState(null, "", location.pathname + location.search + "#" + name);
++	}
++
++	// ---- the audio source panel: which mic, and its level while listening ---
++
++	audio_panel(view){
++		let $select;
++
++		div.c("ux-dictate-pg-audio flex v gap", () => {
++			div.c("ux-dictate-pg-audio-row flex gap v-center wrap", () => {
++				view.$device_label = span.c("ux-dictate-pg-device muted");
++				$select = select.c("ux-dictate-pg-devices")
++					.on("change", e => this.pick_device($select, view.$device_label, e.target.value));
++			});
++			// Always visible — flat at idle, bouncing while listening. Bigger than the
++			// mic button's own tiny bar on purpose (the owner: "larger"); driven by the
++			// SAME smoothed number as that bar, `Dictate`'s new `on_meter()` hook, never
++			// a second loudness calculation of its own.
++			view.$meter = div.c("ux-dictate-pg-meter", () => { view.$meter_fill = div.c("ux-dictate-pg-meter-fill"); });
++		}).style("--gap", "0.3em");
++
++		view.$select = $select;
++		this.refresh_devices($select, view.$device_label);
++	}
++
++	meter(level){
++		this.views.forEach(view => view.$meter_fill?.style("--ux-dictate-pg-level", level.toFixed(3)));
++	}
++
++	// A picker of `enumerateDevices()` audio inputs, remembered the same way every
++	// `Dictate` on the site remembers one — `DEVICE_KEY` / `remember_device()`, so
++	// picking a mic here moves the board's own mic too (`Dictate.js`'s own doc).
++	async refresh_devices($select, $label){
++		if (!navigator.mediaDevices?.enumerateDevices){
++			$label.text("this browser cannot list microphones");
++			return;
++		}
++
++		let devices = [];
++		try { devices = await navigator.mediaDevices.enumerateDevices(); }
++		catch { /* no permission asked yet — an empty list still renders something honest */ }
++
++		const inputs = devices.filter(d => d.kind === "audioinput");
++		const remembered = remembered_device();
++		const picked = inputs.find(d => d.deviceId === remembered?.id) ?? inputs[0];
++
++		$select.empty(() => {
++			if (!inputs.length){ option("no microphone found").attr("value", ""); return; }
++			inputs.forEach((d, i) => {
++				option(d.label || `microphone ${i + 1}`).attr("value", d.deviceId)
++					.attr("selected", d.deviceId === picked?.deviceId ? "" : undefined);
++			});
++		});
++
++		$label.text(picked ? "mic: " + (picked.label || remembered?.label || "default")
++			: "no microphone found");
++	}
++
++	pick_device($select, $label, id){
++		const opt = [...$select.el.options].find(o => o.value === id);
++		remember_device(id, opt?.textContent ?? "");
++		$label.text("mic: " + (opt?.textContent ?? id));
++	}
++
++	// ---- the pipeline: a settled chunk in, a raw line + a cleaned diff out ----
++
++	// The still-moving guess — replaces the ONE grey line at the end of the Raw view,
++	// never appends a new one, so a revised guess is never shown twice.
++	guess(text){
++		this.partial = text;
++		this.views.forEach(view => this.render_guess(view));
++	}
++
++	// A chunk has settled. Draws the raw line immediately (whisper's own answer, never
++	// held up) in every mounted widget, then queues the cleanup pass — real or ruled —
++	// behind whatever is still cleaning ahead of it, so `before` always reflects
++	// everything settled so far.
++	settle(raw, { force_gap } = {}){
++		if (!raw) return;
++
++		const now = performance.now();
++		const gap = force_gap ?? (this.last_chunk_at != null && now - this.last_chunk_at > BIG_GAP_MS);
++		this.last_chunk_at = now;
++
++		this.partial = "";
++		this.views.forEach(view => this.render_guess(view));
++
++		const entry = { raw, gap, cleaned: null, deltas: null, source_kind: null };
++		this.chunks.push(entry);
++		this.views.forEach(view => this.draw_raw_line(view, entry));
++
++		this.clean_queue = this.clean_queue.then(() => this.clean_chunk(entry));
++	}
++
++	async clean_chunk(entry){
++		const before = this.cleaned_so_far.slice(-BEFORE_CHARS);
++		const result = await tidy(entry.raw, before);
++
++		if (result){ entry.cleaned = result.text; entry.source_kind = "assistant"; entry.model = result.model; entry.ms = result.ms; }
++		else { entry.cleaned = rule_clean(entry.raw); entry.source_kind = "rules"; }
++
++		entry.deltas = word_diff(entry.raw, entry.cleaned);
++		this.cleaned_so_far = (this.cleaned_so_far + " " + entry.cleaned).trim();
++
++		this.views.forEach(view => {
++			this.draw_diff_line(view.$corrections, entry, false);
++			this.draw_diff_line(view.$live, entry, true);
++			this.update_status(view);
++		});
++	}
++
++	// ONE line, above the tabs, naming the CURRENT cleanup source — never repeated
++	// per chunk (the owner: "noise"). Per-line detail still lives in each line's own
++	// `title` tooltip (`draw_diff_line()`).
++	update_status(view){
++		const last = this.chunks.findLast(c => c.source_kind);
++		view.$status.text(last ? source_label(last) : "");
++	}
++
++	// ---- Raw panel -------------------------------------------------------------
++
++	// One settled chunk = one line, inserted before the guess line — which always
++	// stays last (`insertBefore`, since a plain append would land a new line AFTER
++	// the guess it is replaying to replace).
++	draw_raw_line(view, entry){
++		if (!view.$raw) return;
++
++		const $line = div(entry.raw).ac("ux-dictate-pg-line");
++		if (entry.gap) view.$raw.el.insertBefore(div.c("ux-dictate-pg-break").el, view.$guess?.el ?? null);
++		view.$raw.el.insertBefore($line.el, view.$guess?.el ?? null);
++	}
++
++	render_guess(view){
++		if (!view.$guess) return;
++		view.$guess.text(this.partial);
++		view.$guess.el.style.display = this.partial ? "" : "none";
++	}
++
++	// ---- Corrections + Live panels — same drawing, Live also fades ----------
++
++	draw_diff_line($container, entry, fading){
++		if (!$container || !entry.deltas) return;
++
++		let $line;
++		$container.append(() => {
++			if (entry.gap) div.c("ux-dictate-pg-break");
++			$line = div.c("ux-dictate-pg-line flex wrap", () => {
++				entry.deltas.forEach(op => {
++					if (op.type === "keep") span(op.word + " ");
++					else if (op.type === "strike") span.c("ux-dictate-pg-strike", op.word + " ");
++					else span.c("ux-dictate-pg-add", op.word + " ");
++				});
++			});
++		});
++		$line.attr("title", source_label(entry));
++
++		if (fading) this.start_fade($line);
++	}
++
++	// The strike/add marks dissolve over `FADE_MS` — set once, as an inline style, so
++	// the CSS only has to say WHAT transitions, never the number. Added on the NEXT
++	// frame (not this one) or the browser has nothing to transition FROM. Once the
++	// fade finishes, the struck words are also taken OUT OF LAYOUT (`display: none`)
++	// — opacity alone left a gap exactly the width of the word that "vanished"
++	// ("we should␣␣we should"), which does not read as clean text at all.
++	start_fade($line){
++		const strikes = [...$line.el.querySelectorAll(".ux-dictate-pg-strike")];
++		const adds = [...$line.el.querySelectorAll(".ux-dictate-pg-add")];
++
++		[...strikes, ...adds].forEach(el => { el.style.transitionDuration = FADE_MS + "ms"; });
++		requestAnimationFrame(() => requestAnimationFrame(() => $line.ac("ux-dictate-pg-faded")));
++		setTimeout(() => strikes.forEach(el => { el.style.display = "none"; }), FADE_MS + 60);
++	}
++
++	// ---- the Sample button: the same pipeline, no mic, no whisper -----------
++
++	// Feeds guesses word by word, then settles each chunk — the OWNER's own script:
++	// fillers and doubled words in the first line, a misplaced "?" in the second, a
++	// forced paragraph break before the third. Proves the whole pipeline (guess ->
++	// settle -> clean -> diff -> fade) to a reader, or a headless test, with no
++	// microphone and no whisper-server running.
++	async run_sample(){
++		if (this.sample_running) return;
++		this.sample_running = true;
++		this.reset();
++
++		for (const { text, force_gap } of Playground.SAMPLE_SCRIPT){
++			const parts = words(text);
++			for (let n = 1; n <= parts.length; n++){
++				this.guess(parts.slice(0, n).join(" "));
++				await wait(60);
++			}
++			await wait(250);
++			this.settle(text, { force_gap });
++		}
++
++		this.sample_running = false;
++	}
++}
++
++Playground.SAMPLE_SCRIPT = [
++	{ text: "so um i was thinking we should uh we should build the the playground" },
++	{ text: "what do you think? about the layout" },
++	{ text: "let's also think about the audio source panel and the live level meter", force_gap: true },
++];
++
++// One instance for the whole `ux/Dictate` tier — the standalone playground page (its
++// own url) and the widget embedded at the top of the plain Dictate page both read and
++// drive this SAME pipeline, so a chunk settled from either widget shows up in both.
++// `doc/decisions.md` — "one pg, many widgets" — has the shape and the bug it caused.
++export const pg = new Playground();
+diff --git a/public/framework/ux/Dictate/playground/doc/decisions.md b/public/framework/ux/Dictate/playground/doc/decisions.md
+new file mode 100644
+index 00000000..7ef07535
+--- /dev/null
++++ b/public/framework/ux/Dictate/playground/doc/decisions.md
+@@ -0,0 +1,171 @@
++# Dictation playground — decisions
++
++Landed 2026-09-28. Task log:
++[`ai/2026-09-28/dictation-playground/playground/`](/framework/ai/2026-09-28/dictation-playground/playground/).
++Owner's words opened the parent task: "for the dictation... playground, this should be
++right at the... default dictation page... you just click the microphone button and it
++starts transcribing just so we can test it quickly with one click."
++
++## One `pg`, two toolbars
++
++The mic + Sample button + audio source panel (`Playground.toolbar()`) is called from
++TWO different `page.js` files: the plain [`ux/Dictate/page.js`](/framework/ux/Dictate/)
++(so the owner's "one click, right at the default page" is literal — no navigation
++needed) and this module's own `page.js` (the full Raw/Corrections/Live tabbed view).
++Both read and write the SAME `Playground` instance — `export const pg = new
++Playground()` at the bottom of `Playground.js`, a module-level singleton — so a chunk
++settled from either toolbar shows up in both places' Raw/Corrections/Live state.
++
++**Alternative considered and rejected:** embedding the SAME routed child Page's already-
++rendered view inline at the top of the parent page (`this.child("playground").then(p =>
++$box.append(p.render()))`). `Page.render()` memoizes its view per instance, and
++`Router.activate()` MOVES that cached DOM node into ITS OWN container the first time the
++reader actually navigates to `/playground/` (`this.render().el.parentNode !==
++container.el` in `core/Page/Page.class.js`). That would leave the parent page's embedded
++spot silently EMPTY after the reader's first real visit to the full playground — a
++regression that would only show up on a second look, not the first. Two independent
++`toolbar()` calls, one shared pipeline behind them, avoids that: nothing ever gets
++yanked out of a page it was already shown on.
++
++**The bug that shape caused, found and fixed:** the first version stored the device
++`<select>`/label as fields on `this` (the shared `pg`) — `this.$device_select`. With
++two toolbars, the SECOND `toolbar()` call overwrote that field before the FIRST
++toolbar's own `enumerateDevices()` promise had resolved, so the first toolbar's own
++`<select>` — the one actually on screen for a reader on the Overview tab — never
++filled in; only the second one (Playground tab, off screen at the time) did. Found with
++a headless proof that checked BOTH `.ux-dictate-pg-devices` elements' `outerHTML`, not
++just the first one `document.querySelector` happened to return. Fixed by making every
++per-toolbar DOM ref a LOCAL variable inside `toolbar()`/`audio_panel()`, never a field
++on the shared instance — `refresh_devices($select, $label)` and `pick_device($select,
++$label, id)` take them as arguments now. The mic button itself (`new Dictate(...)`,
++built fresh inside each `toolbar()` call) was never stored on `this` at all, so it never
++had this problem — two independent, fully working mic buttons, sharing one pipeline
++through `on_text`/`on_guess`/`on_start` closures over `this` (the pipeline), never
++through a shared DOM reference.
++
++## The word-level diff — LCS, not a library
++
++`word_diff(raw, clean)` tokenizes both strings on whitespace and walks the classic
++longest-common-subsequence table back into a list of `{type: "keep"|"strike"|"add",
++word}` — the standard `git diff --word-diff` algorithm, about 25 lines. No npm
++dependency (CLAUDE.md's own rule): the alternative, a real diff library, was never
++considered for something this size.
++
++## The fallback rule pass is deliberately small
++
++The owner's own rule, said twice: "near-verbatim," "I'm a little worried that the
++assistant is going to mangle the prompt intent by doing too much correction." The local
++fallback (`rule_clean()`, used whenever `/api/tidy` is down or absent) only: collapses
++an immediately-doubled word, strips a fixed filler list (um, uh, erm, you know, I mean,
++like), and fixes capitalization at the start and after `. ! ?`. It never reorders or
++moves a punctuation mark — the sample script's own "what do you think? about the
++layout" (the misplaced `?`) is left exactly where it was said by the rule pass on
++purpose; relocating punctuation correctly needs real language understanding, which is
++exactly what `/api/tidy`'s fast assistant is for once Servex is up.
++
++## The paragraph-break gap — wall-clock, not a whisper signal
++
++Whisper's own segment boundary (`Dictate.js`'s `pause_ms`, 700ms) already closes
++*every* sentence — using that same number for "this deserves a blank line" would put a
++blank line before nearly every chunk. `BIG_GAP_MS` (2500ms) is a second, coarser
++threshold: the wall-clock time between when one chunk settles and the next settles.
++It's an approximation (whisper/network latency rides along with it), acceptable for a
++playground; the Sample button's own script proves the visual behavior exactly with a
++`force_gap` flag rather than actually waiting 2.5 real seconds.
++
++## `on_guess(text)` — the one new hook on `Dictate`
++
++`Dictate` already had `on_text(chunk)` for a SETTLED chunk (reused here for the Raw
++view's finished lines) but nothing fired for the still-moving GUESS — the grey text
++`draw_caption()` paints into `Dictate`'s own caption, never handed to a caller. Added as
++a plain optional callback, fired from the three places `partial_text` changes
++(`partial_tick()`, `close_segment()` with `""`, `heard_browser()`) — does nothing when
++unset, so every existing caller (`ext/Ask/reply.js`, `ai/v/3/compose.js`,
++`ai2/compose.js`, `ai/talk/page.js` — checked with a repo-wide grep of every
++`from ".../Dictate.js"` import) keeps its current behaviour exactly. Considered
++`on_segment(text, gap_ms)` instead (a name the original brief suggested) and rejected
++it: `on_text` already IS the settled-chunk hook, and this playground computes its own
++gap from wall-clock time regardless (see above), so a second, overlapping "here's a
++settled chunk" hook would have been one hook too many.
++
++⚠ **The brief named `ext/Chat/Mic.js` as an existing caller to leave unbroken — it does
++not exist in this worktree** (`qf-3`). A repo-wide search found it only on `michael/dev`,
++tied to the older `ComposerMic`/`send_mode` design; this worktree's `Dictate.js` has
++already superseded it with `ext/Ask`'s newer, whisper-first engine. Not a defect here —
++flagging it because the brief was evidently written against a different branch's state
++than the one this task actually built against.
++
++## Round 2 — one `widget()`, not `toolbar()` + routed tabs
++
++The task-mastermind's review of the first landing asked for the WHOLE playground (mic,
++audio panel, Raw/Corrections/Live) embedded on the plain Dictate page, not just the
++toolbar with a link out to it — plus proof that switching tabs never loses the running
++session. Both together ruled out the first design's `ext/tabs`-based
++`this.tabs("raw corrections live")`: each tab was a separate routed child `Page`, so
++embedding the FULL thing twice (Dictate page + `/playground/`) would have meant SIX
++routed sub-pages fighting over the same shared containers — the exact "two toolbars, one
++shared field" bug from round 1, now three times over, with less certainty a headless
++proof would catch every one.
++
++**The fix: `widget()` builds one self-contained unit, no per-tab `Page` at all.** All
++three panels (Raw, Corrections, Live) are built together, every time, and a tab click
++only toggles which one is `hidden` — nothing is ever rebuilt, so nothing is ever lost.
++`pg.views` is a `Set` of every mounted widget's own DOM refs (`{$raw, $guess,
++$corrections, $live, $status, $tabs}`); every pipeline method (`settle()`, `guess()`,
++`clean_chunk()`) loops over `this.views` and updates ALL of them, so a chunk settled
++from any widget shows up on every other one currently on screen. "Routed" is now a
++plain `location.hash` (`#raw`/`#corrections`/`#live`), read once at mount and written on
++every click with `history.replaceState` — a reload or the back button still lands on
++the same tab, without a second `Page` per tab.
++
++**The bug this still found:** the Corrections and Live panels were first built with the
++SAME two classes (`ux-dictate-pg-panel ux-dictate-pg-diff`) and nothing telling them
++apart — functionally harmless (each `view` object still points at the right element),
++but it meant NOTHING on the page could be selected as "the Live one" from outside —
++including a headless proof's own selectors. Fixed by adding `ux-dictate-pg-live` /
++`ux-dictate-pg-corrections` alongside the shared `ux-dictate-pg-diff` class.
++
++**The Live fade left a gap.** `opacity: 0` alone leaves a struck word's own WIDTH in
++the flow — "we should␣␣we should" instead of "we should" once the strike vanished.
++`start_fade()` now also `setTimeout`s a plain `display: none` on every struck word,
++timed to land exactly when the opacity transition finishes (`FADE_MS + 60`) — CSS alone
++cannot collapse an inline element's width (there is no `inline-size` to animate on a
++`span`), so this half is JS, not the stylesheet.
++
++**The status line moved from every diff line to one line, once.** `entry.source` used
++to print after every settled chunk ("rules (no LLM)" × N) — noise once a session has a
++few sentences in it. `update_status()` now writes ONE line above the tab strip,
++`source_label()` of the MOST RECENT chunk (`"cleanup: fast assistant · <model> · <n> s"`
++or `"cleanup: rules (no LLM) — Servex /api/tidy not reachable"`); each diff line keeps
++its own source as a `title` tooltip instead of inline text.
++
++**The level meter got its own hook, `on_meter(level)`.** The mic button's own bar
++(`Dictate.css`'s `.ux-dictate-level`) is 3px wide and lives beside the icon — enlarging
++it with CSS (round 1's approach) still left it too small and easy to miss as "the audio
++source panel." `Dictate.on_level()` now also calls `this.on_meter?.(smoothed_level)` —
++the SAME smoothed number already written to `--ux-dictate-level`, just also handed to a
++caller — so the playground's own bigger, always-visible bar (bordered so the EMPTY
++track still reads as a meter, not nothing) never duplicates the smoothing math, only
++mirrors it.
++
++**"Send modes" / `/framework/ux/Dictate/demo/`, investigated, not built.** The
++mastermind's review said this page exists with a `page.js` titled "Send modes." A
++repo-wide search found it does — on `michael/dev`, at `ux/Dictate/demo/page.js`, built
++on `ext/Chat/Mic.js`'s `ComposerMic` (`send_mode: "pause"|"sentences"|"manual"`,
++documented in that branch's `ux/Dictate/doc/handover.md`). **`ext/Chat/` does not exist
++in this worktree at all** — confirmed with `ls` and a repo-wide grep — and this
++worktree's `Dictate.js` has no `send_mode`, `arm()`, or `held_timer` for such a page to
++demonstrate. Not fabricated here: a stub page with no real mechanism behind it would be
++worse than the honest gap. Flagged back to the mastermind rather than guessed around —
++see the task log.
++
++## Left for later — the owner's own words
++
++- **A structured final version** (headings, sections) waits on the structured-content
++  design — card `2026/09/28/structured-content-icon-cards-outlines-b`, named directly in
++  this task's brief.
++- **Whisper's own revised-guess history** is not kept — only the LATEST guess is ever
++  shown, replaced in place (the parent brief: "I don't think it necessarily needs to be
++  useful to look at what whisper decides to change").
++- **A real second-pass punctuation move** (the misplaced "?") is left to `/api/tidy`
++  once Servex is up — see "the fallback rule pass" above.
+diff --git a/public/framework/ux/Dictate/playground/page.js b/public/framework/ux/Dictate/playground/page.js
+new file mode 100644
+index 00000000..b9ffb1f6
+--- /dev/null
++++ b/public/framework/ux/Dictate/playground/page.js
+@@ -0,0 +1,21 @@
++import { Page, md } from "/app.js";
++import { pg } from "./Playground.js";
++
++// The one shared instance (`Playground.js`) — every `widget()` call, here or embedded
++// on the plain Dictate page, reads and writes the SAME state, so switching between them
++// (or between tabs inside one) never loses a word. `globalThis.$dictate_pg` is the seam
++// a headless test presses the Sample button through.
++globalThis.$dictate_pg = pg;
++
++export default new Page({
++	meta: import.meta,
++	title: "Playground",
++	description: "Press 🎤 and watch a whisper session become raw text, then a fast-assistant diff, then a clean live version.",
++	icon: "science",
++
++	content(){
++		md("Press 🎤, or ▶ Sample for a scripted fake session — no mic needed.");
++		pg.widget();
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
+diff --git a/public/framework/ux/Dictate/playground/readme.md b/public/framework/ux/Dictate/playground/readme.md
+new file mode 100644
+index 00000000..dcf1de53
+--- /dev/null
++++ b/public/framework/ux/Dictate/playground/readme.md
+@@ -0,0 +1,57 @@
++# The dictation playground — watch a mic session become clean text, live
++
++## What
++
++One widget that shows the WHOLE dictation pipeline working, in order: press 🎤, watch
++whisper's raw guess grow word by word, watch each finished sentence get cleaned up (a
++strike/add diff), and watch that diff dissolve into plain text over a few seconds. Three
++tabs show the same session three ways — **Raw** (what whisper actually heard),
++**Corrections** (the diff, permanent), **Live** (the diff, fading into clean text). A
++▶ **Sample** button runs a scripted fake session — no microphone, no `whisper-server` —
++so anyone, or a headless test, can see it work with nothing plugged in.
++
++The exact same widget is embedded in two places, both reading and driving the one
++shared session: right at the top of the plain [Dictate](/framework/ux/Dictate/) page
++(one click, no navigation at all) and on this module's own page (the same thing, its
++own url).
++
++## Use
++
++Press 🎤 and talk (or press ▶ Sample first, to see it with no mic). Switch tabs with
++Raw · Corrections · Live — the url's `#hash` remembers which one, so a reload or the
++back button lands on the same tab. `globalThis.$dictate_pg` is the one shared pipeline
++instance, for a script or a console to drive directly (`$dictate_pg.run_sample()`).
++
++## Watch out
++
++- **Fillers and typos are cleaned by `POST http://127.0.0.1:8090/api/tidy`** (Servex's
++  fast assistant) when it's up; when it isn't (the common case until Servex restarts), a
++  small local rule pass takes over — fillers out, a doubled word collapsed, capitals
++  fixed. Which one cleaned the CURRENT session is one line above the tabs ("cleanup:
++  ..."), not repeated per chunk; each diff line's own source is in its `title` tooltip.
++  No punctuation is ever MOVED by the rule pass — a misplaced "?" stays exactly where it
++  was said. `doc/decisions.md`.
++- **A long pause reads as a paragraph break** (a blank line in every panel) — measured by
++  wall-clock time between two settled chunks, not anything whisper itself reports.
++  `doc/decisions.md`.
++- **The Live tab's fade is one constant**, `FADE_MS` (`Playground.js`, currently 5
++  seconds) — change it there, not in the CSS. After it finishes, the struck words are
++  also taken out of layout, so the result reads as clean text with no leftover gaps.
++- **Tabs are not routed `Page`s.** All three panels are built once and just shown/hidden
++  — the mic keeps listening and the transcript keeps its place no matter which tab is
++  open, on either widget. `doc/decisions.md` ("Round 2 — one `widget()`...") has the
++  routed-tabs shape this replaced, and why.
++- **`on_guess(text)` and `on_meter(level)`** are two new, optional hooks on
++  [`Dictate`](/framework/ux/Dictate/) — do nothing unless a caller sets them. No other
++  caller on the site was changed to add either one.
++
++## More
++
++- [Overview](/framework/ux/Dictate/playground/) — press 🎤 or ▶ Sample and watch it work
++- [`doc/decisions.md`](/framework/ux/Dictate/playground/doc/decisions.md) — the word-diff,
++  the one-`pg`-many-widgets shape (and the two bugs that shape caused, found and fixed),
++  what's deliberately not built yet
++- [`Dictate`](/framework/ux/Dictate/) — the mic itself; `on_guess`/`on_meter`/`on_text`
++  are its hooks
++- Files: `Playground.js` (the pipeline + the widget), `Playground.css`, `page.js` (this
++  module's own page, embedding the same widget)

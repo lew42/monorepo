@@ -6,7 +6,7 @@ export default new Page({
 	label: "Extensions",
 	description: "Opt-in addons. They may extend core; core never depends on them.",
 	icon: "extension",
-	children: "markdown demo highlight files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask",
+	children: "Classify markdown demo highlight files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab",
 
 	content(){
 

@@ -1,0 +1,363 @@
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { execFile, execFileSync } from "child_process";
+import { fileURLToPath } from "url";
+import Events from "../Server/Events.js";
+import { stamp } from "./home.js";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const slash = p => String(p).split(path.sep).join("/");
+
+/* THE WORKTREE POOL — a quick fix goes into a worktree that is already warm.
+ *
+ * The owner, 2026-09-25: "Rather than spinning up a new mastermind and a new
+ * work tree and a new Playwright, which takes time, if you have a quick fix you
+ * send it off to an existing one." So Servex keeps ONE worktree ready — branched
+ * from michael/dev, its own server answering, a page watcher on, git configured —
+ * and any agent takes it with `take_worktree`, gets `{id, path, branch, url}` at
+ * once, writes, smoke-tests (Server/smoke.mjs) and merges. Taking one makes
+ * Servex prepare the next. `return_worktree` hands an unused or merged one back.
+ * No agent manages this: it is a class, a JSON file and a 10-minute sweep.
+ *
+ *   K = 3        at most this many worktrees in the pool, taken or not
+ *   N = 6 hours  a ready one idle longer than this is removed — except the one kept ready
+ *
+ * Slots are made and removed by the scripts every agent already uses,
+ * Server/worktree-up.mjs and worktree-down.mjs, run from the MAIN checkout
+ * (found through `git rev-parse --git-common-dir`) so a slot branches from
+ * michael/dev even when this Servex runs from a worktree. State lives in
+ * `.worktree-pool.json` at the main repo's root, so it survives a restart.
+ * The whole story for a reader: Servex/doc/pool.md. */
+export default class Pool extends Events {
+
+    initialize(){
+        this.K ??= 3;
+        this.N_hours ??= 6;
+        this.base ??= "michael/dev";
+        this.prefix ??= process.env.SERVEX_POOL_PREFIX || "qf";
+        this.main ??= Pool.main_repo();
+        this.file ??= process.env.SERVEX_POOL_FILE || path.join(this.main, ".worktree-pool.json");
+        ({ slots: this.slots = [], leaving: this.leaving = [] } = this.load());
+        this.chain = Promise.resolve();     // one worktree-up (or -down) at a time
+    }
+
+    static main_repo(){
+        const common = execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: HERE, encoding: "utf8", windowsHide: true }).trim();
+        return slash(path.resolve(HERE, common, ".."));
+    }
+
+    start(){
+        this.started = this.adopt().then(() => this.sweep()).catch(e => this.say(`pool: start failed: ${e.message}`));
+        this.timer = setInterval(() => this.sweep().catch(e => this.say(`pool: sweep failed: ${e.message}`)), 10 * 60 * 1000);
+        this.timer.unref();
+        return this;
+    }
+
+    /* ── state on disk ────────────────────────────────────────────────── */
+
+    load(){
+        try { return JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return {}; }
+    }
+
+    save(){
+        const plain = list => list.map(({ ready, ...s }) => s);   // `ready` is an in-memory promise
+        fs.writeFileSync(this.file + ".tmp", JSON.stringify({ K: this.K, N_hours: this.N_hours,
+            slots: plain(this.slots), leaving: plain(this.leaving) }, null, "\t"));
+        fs.renameSync(this.file + ".tmp", this.file);
+    }
+
+    list(){
+        return { K: this.K, N_hours: this.N_hours, slots: this.slots.map(s => ({ id: s.id, state: s.state, url: s.url, path: s.path,
+            branch: s.branch, taken_by: s.taken_by, taken_at: s.taken_at, idle_since: s.idle_since })) };
+    }
+
+    say(msg, extra = {}){
+        this.servex?.say(msg, { event: "pool", ...extra });
+    }
+
+    /* ── the two tools ────────────────────────────────────────────────── */
+
+    tools(){
+        return [{
+            name: "take_worktree",
+            description: "Take a ready quick-fix worktree: returns {id, path, branch, url} at once — a worktree already branched from"
+                + " michael/dev and brought current, its own server answering at `url`. Write your fix into `path`, run"
+                + " `node Server/smoke.mjs <path>`, merge into michael/dev, then call return_worktree. Servex prepares the next one"
+                + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 3 exist; when all"
+                + " 3 are taken it answers an error naming who holds each.",
+            inputSchema: { type: "object", properties: {} },
+            handler: async (args, ctx) => JSON.stringify(await this.take(ctx?.caller), null, 2)
+        }, {
+            name: "return_worktree",
+            description: "Hand a worktree back to the pool. It must be clean and hold nothing unmerged (unused, merged, or applied by Server/merge.mjs into"
+                + " michael/dev); it is then fast-forwarded to michael/dev and marked ready. Anything uncommitted or unmerged is"
+                + " refused with the list — nothing is ever discarded.",
+            inputSchema: { type: "object", required: ["id"], properties: { id: { type: "string", description: "The id take_worktree gave, e.g. qf-1." } } },
+            handler: async args => JSON.stringify(await this.give_back(args.id), null, 2)
+        }];
+    }
+
+    async take(caller){
+        await this.started;
+        for (let tries = 0; tries < 4; tries++){
+            const slot = this.slots.find(s => s.state === "ready");
+            if (!slot){
+                const pending = this.slots.find(s => s.state === "preparing" && s.ready);
+                if (pending){ await pending.ready; continue; }
+                if (this.slots.length >= this.K) throw new Error(`All ${this.K} worktrees are taken: `
+                    + this.slots.map(s => `${s.id} by ${s.taken_by ?? "?"} since ${s.taken_at ?? "?"}`).join("; ")
+                    + ". Ask a holder to return_worktree, or wait.");
+                await this.prepare()?.ready;
+                continue;
+            }
+            // claimed synchronously, before any await, so two callers never get the same one
+            Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
+            this.save();
+            const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+            if (!ff.ok){
+                slot.state = "bad";
+                this.say(`pool: ${slot.id} would not fast-forward to ${this.base} — dropped: ${ff.out}`, { id: slot.id });
+                this.remove(slot);
+                continue;
+            }
+            this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
+            this.top_up();
+            return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+        }
+        throw new Error("No worktree could be made ready — see the servex log (event: pool).");
+    }
+
+    async give_back(id){
+        const slot = this.slots.find(s => s.id === id);
+        if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
+        if (slot.state !== "taken") return { id, state: slot.state, note: "It was not taken; nothing to do." };
+
+        const dirty = await this.own_dirt(slot);
+        if (dirty.length) throw new Error(`Refused: ${id} has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded.\n`
+            + dirty.map(d => d.file).join("\n"));
+        const unmerged = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
+        if (unmerged && await this.landed(slot)){
+            // merge.mjs APPLIED this branch over the owner's uncommitted edits: its commits are in the main
+            // working tree but not in michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one.
+            this.remove(slot);
+            this.top_up();
+            this.say(`pool: ${id} returned; its branch was applied, not merged, so it is removed and a fresh one made`, { id });
+            return this.list();
+        }
+        if (unmerged) throw new Error(`Refused: ${id} holds commits not yet in ${this.base} — merge them first. Nothing was discarded.\n${unmerged}`);
+
+        const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (!ff.ok) throw new Error(`Refused: ${id} would not fast-forward to ${this.base}: ${ff.out}`);
+        Object.assign(slot, { state: "ready", taken_by: null, taken_at: null, idle_since: stamp() });
+        this.save();
+        this.say(`pool: ${id} returned and ready`, { id });
+
+        for (const extra of this.slots.filter(s => s.state === "ready" && s !== slot)) this.remove(extra);   // one ready is enough
+        return this.list();
+    }
+
+    /* ── making and removing slots ────────────────────────────────────── */
+
+    /* Keep one ready (or on its way), within K. Runs in the background. */
+    top_up(){
+        if (this.slots.some(s => s.state === "ready" || s.state === "preparing")) return;
+        if (this.slots.length < this.K) this.prepare();
+    }
+
+    prepare(){
+        const id = this.free_id();
+        if (!id) return null;
+        const slot = { id, path: slash(path.resolve(this.main, "..", "worktrees", id)), branch: `worktree/${id}`, url: null, port: null,
+            state: "preparing", taken_by: null, taken_at: null, idle_since: null, server_pid: null, watcher_pid: null };
+        this.slots.push(slot);
+        this.save();
+        slot.ready = this.chain = this.chain.then(() => this.up(slot)).catch(e => {
+            this.say(`pool: ${id} could not be made ready: ${e.message}`, { id });
+            this.forget(slot);
+            if (this.registry()[id]) return this.script("worktree-down.mjs", id).catch(() => {});
+        });
+        return slot;
+    }
+
+    free_id(){
+        const taken = new Set([...this.slots.map(s => s.id), ...Object.keys(this.registry())]);
+        for (let i = 1; i <= 9; i++){
+            const id = `${this.prefix}-${i}`;
+            if (taken.has(id) || fs.existsSync(path.resolve(this.main, "..", "worktrees", id))) continue;
+            try { execFileSync("git", ["rev-parse", "--verify", "--quiet", `refs/heads/worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); continue; }
+            catch { return id; }   // no such branch: free
+        }
+        return null;
+    }
+
+    async up(slot){
+        const t0 = Date.now();
+        await this.script("worktree-up.mjs", slot.id);
+        const entry = this.registry()[slot.id];
+        if (!entry?.booted) throw new Error("worktree-up finished but its server never answered");
+        Object.assign(slot, { path: slash(entry.path), port: entry.port, url: `http://127.0.0.1:${entry.port}/`, server_pid: entry.pid });
+        const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (!ff.ok) throw new Error(`could not fast-forward to ${this.base}: ${ff.out}`);
+        await this.identity(slot);
+        await this.watch(slot);
+        slot.baseline = Object.fromEntries((await this.dirt(slot)).map(d => [d.file, d.hash]));
+        Object.assign(slot, { state: "ready", idle_since: stamp() });
+        this.save();
+        this.say(`pool: ${slot.id} ready at ${slot.url} in ${((Date.now() - t0) / 1000).toFixed(1)} s`, { id: slot.id, url: slot.url });
+    }
+
+    /* A slot leaves the pool at once; its worktree goes down on the chain.
+     * Never discards: a slot with changes of its own or unmerged commits is only
+     * forgotten, and left on disk for a person to look at. Its server is stopped
+     * FIRST, so the baseline files (see `dirt()`) can be put back to HEAD
+     * without the server writing them again, and worktree-down finds it clean. */
+    remove(slot){
+        this.forget(slot);
+        this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
+        this.save();
+        return this.chain = this.chain.then(async () => {
+            this.kill(slot.watcher_pid);
+            this.kill(slot.server_pid);
+            const own = await this.own_dirt(slot);
+            const ancestor = (await this.git(slot.path, ["merge-base", "--is-ancestor", "HEAD", this.base])).ok || await this.landed(slot);
+            if (own.length || !ancestor){
+                this.say(`pool: ${slot.id} left on disk at ${slot.path} — it holds ${own.length ? "uncommitted changes" : "unmerged commits"}`, { id: slot.id });
+                return;
+            }
+            for (const d of await this.dirt(slot)) this.restore(slot, d.file);
+            await this.script("worktree-down.mjs", slot.id);
+            fs.rmSync(path.join(this.main, ".worktree-logs", `${slot.id}.log.err`), { force: true });   // worktree-down deletes only the .log
+            fs.rmSync(path.join(os.tmpdir(), `lew42-pool-${slot.id}`), { recursive: true, force: true });   // the watcher's temp dir (watch())
+            this.say(`pool: ${slot.id} removed`, { id: slot.id });
+        }).catch(e => this.say(`pool: removing ${slot.id} failed: ${e.message}`, { id: slot.id }))
+          .finally(() => { this.leaving = this.leaving.filter(s => s !== slot); this.save(); });
+    }
+
+    forget(slot){
+        this.slots = this.slots.filter(s => s !== slot);
+        this.save();
+    }
+
+    /* ── keeping it tidy ──────────────────────────────────────────────── */
+
+    /* At start: adopt what survived a restart. A slot whose worktree is gone is
+     * dropped; a ready one whose server stopped answering is replaced; a watcher
+     * that died is started again; one half-made or half-removed when Servex died is removed. */
+    async adopt(){
+        for (const slot of this.leaving.splice(0)) if (fs.existsSync(slot.path)) this.remove(slot);
+        for (const slot of [...this.slots]){
+            if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
+            if (slot.state === "taken") continue;
+            if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
+            if (!this.alive(slot.watcher_pid)){ await this.watch(slot); this.save(); }
+        }
+        if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
+    }
+
+    /* Every 10 minutes and at start: at most K; a ready one idle over N hours
+     * goes, except the newest; then make sure one is ready. Taken ones are never touched. */
+    async sweep(){
+        const ready = this.slots.filter(s => s.state === "ready").sort((a, b) => String(b.idle_since).localeCompare(String(a.idle_since)));
+        const cutoff = Date.now() - this.N_hours * 3600 * 1000;
+        for (const slot of ready.slice(1)){
+            if (this.slots.length > this.K || Date.parse(slot.idle_since) < cutoff) this.remove(slot);
+        }
+        this.top_up();
+    }
+
+    /* ── helpers ──────────────────────────────────────────────────────── */
+
+    registry(){
+        try { return JSON.parse(fs.readFileSync(path.join(this.main, ".worktrees.json"), "utf8")); } catch { return {}; }
+    }
+
+    /* The MAIN checkout's copy of the script, run from the main checkout: its
+     * own root decides where the worktree branches from. SERVEX_PORT tells it
+     * which Servex to register the new name with. */
+    script(name, id){
+        return new Promise((resolve, reject) => execFile(process.execPath, [path.join(this.main, "Server", name), id], {
+            cwd: this.main, windowsHide: true, timeout: 180000, maxBuffer: 8 << 20,
+            env: { ...process.env, SERVEX_PORT: String(this.servex?.dashboard_port ?? 8090) }
+        }, (e, out, err) => e ? reject(new Error(`${name} ${id} failed: ${String(err || out).trim().split("\n").slice(-3).join(" | ")}`)) : resolve(out)));
+    }
+
+    /* True when merge.mjs APPLIED this slot's current head over uncommitted edits
+     * (recorded in .merge-landed.json at the main root): as good as merged. */
+    async landed(slot){
+        const head = (await this.git(slot.path, ["rev-parse", "HEAD"])).out;
+        try { return JSON.parse(fs.readFileSync(path.join(this.main, ".merge-landed.json"), "utf8")).some(e => e.head === head); }
+        catch { return false; }
+    }
+
+    git(cwd, args){
+        return new Promise(resolve => execFile("git", ["-C", cwd, ...args], { windowsHide: true, encoding: "utf8" },
+            (e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trim() })));
+    }
+
+    /* THE BASELINE. A fresh slot is not clean: its own dev server's PageFiles
+     * plugin appends, at boot, the page.jsonl lines michael/dev has not
+     * committed yet (measured 2026-09-25: two lines, in every new worktree).
+     * `dirt()` is every changed file with a content hash; `up()` keeps it as the
+     * slot's `baseline`. `own_dirt()` is what changed BEYOND it — an agent's
+     * work — and only that makes a return refuse. A baseline file whose hash
+     * moved counts as the agent's, so nothing anyone wrote is ever put back. */
+    async dirt(slot){
+        const out = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
+        const files = out ? out.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
+        return Promise.all(files.map(async file => {
+            const h = await this.git(slot.path, ["hash-object", "--", file]);
+            return { file, hash: h.ok ? h.out : "gone" };
+        }));
+    }
+
+    async own_dirt(slot){
+        return (await this.dirt(slot)).filter(d => slot.baseline?.[d.file] !== d.hash);
+    }
+
+    /* A baseline file back to exactly what HEAD holds (a new one is deleted). */
+    restore(slot, file){
+        const full = path.join(slot.path, file);
+        try { fs.writeFileSync(full, execFileSync("git", ["-C", slot.path, "show", `HEAD:${file}`], { windowsHide: true, stdio: ["ignore", "pipe", "ignore"] })); }
+        catch { fs.rmSync(full, { force: true }); }
+    }
+
+    async identity(slot){
+        if ((await this.git(slot.path, ["config", "user.name"])).out) return;
+        for (const key of ["user.name", "user.email"]){
+            const value = (await this.git(this.main, ["config", key])).out;
+            if (value) await this.git(slot.path, ["config", key, value]);
+        }
+    }
+
+    /* The page watcher, started from the slot's own root and pointed at the
+     * slot's own server. Launched through PowerShell so it gets a HIDDEN console
+     * its children inherit (worktree-up.mjs says why a bare detached node opens
+     * windows). ⚠ health.mjs allows one copy per machine through a lock in the
+     * temp dir, so each slot gets a temp dir of its own — or it would see the
+     * owner's watcher and exit at once. */
+    watch(slot){
+        const tmp = path.join(os.tmpdir(), `lew42-pool-${slot.id}`);
+        fs.mkdirSync(tmp, { recursive: true });
+        const q = s => String(s).replaceAll("'", "''");
+        const ps = `$env:HEALTH_BASE='http://127.0.0.1:${slot.port}'; $env:TEMP='${q(tmp)}'; $env:TMP='${q(tmp)}'; `
+            + `$p = Start-Process -FilePath '${q(process.execPath)}' -ArgumentList 'Server/health-supervisor.mjs' -WorkingDirectory '${q(slot.path)}' -WindowStyle Hidden -PassThru; $p.Id`;
+        return new Promise(resolve => execFile("powershell.exe", ["-NoProfile", "-Command", ps], { windowsHide: true, encoding: "utf8" }, (e, out) => {
+            slot.watcher_pid = Number(String(out).trim()) || null;
+            if (!slot.watcher_pid) this.say(`pool: ${slot.id} page watcher did not start: ${e?.message ?? out}`, { id: slot.id });
+            resolve(slot.watcher_pid);
+        }));
+    }
+
+    kill(pid){
+        if (pid) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+    }
+
+    alive(pid){
+        try { return !!pid && process.kill(pid, 0); } catch { return false; }
+    }
+
+    async answers(url){
+        try { return !!url && (await fetch(url, { signal: AbortSignal.timeout(3000) })).status === 200; } catch { return false; }
+    }
+}

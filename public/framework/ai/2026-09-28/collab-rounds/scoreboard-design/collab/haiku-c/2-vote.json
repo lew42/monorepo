@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "Add forDecision(decisionId) to expose all scores for a specific decision, enabling vote breakdown display (haiku-a includes this); clarify if decision drill-down belongs in Scoreboard or Collab.decision()."
+}

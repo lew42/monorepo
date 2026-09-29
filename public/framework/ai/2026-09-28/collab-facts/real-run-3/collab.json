@@ -1,0 +1,11 @@
+{
+  "id": "collab-facts-real-3",
+  "question": "In this repo, when a merge into michael/dev needs a before-and-after screenshot (shared CSS changed) versus when it doesn't, and whether an agent may ever skip node Server/merge.mjs's review gate for a light-sized change if it is confident the change is safe — where is this a hard rule versus the mastermind's own judgment call?",
+  "kind": "research",
+  "members": [
+    {"id": "haiku-p", "model": "claude-haiku-4-5-20251001"},
+    {"id": "haiku-q", "model": "claude-haiku-4-5-20251001"},
+    {"id": "sonnet-r", "model": "claude-sonnet-5"}
+  ],
+  "context": [".claude/skills/sub-mastermind/SKILL.md", "Server/doc/review.md"]
+}

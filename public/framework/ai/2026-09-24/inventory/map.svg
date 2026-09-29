@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" font-family="Montserrat, Segoe UI, sans-serif" font-size="13">
+  <!-- The map: every area of the site as a box, every duplicate cluster as a numbered line.
+       The numbers are the ranks in the plan on the page beside this file. -->
+  <rect x="0" y="0" width="1000" height="620" rx="14" fill="#fbfaf8"/>
+  <style>
+    .area { fill: #ffffff; stroke: #c9c4bd; stroke-width: 1.5; }
+    .group { fill: #f1eee9; fill-opacity: .5; stroke: #d8d2ca; stroke-width: 1.5; }
+    .ghost { fill: #fff3ec; stroke: #e8590c; stroke-width: 2; stroke-dasharray: 7 5; }
+    .dead { fill: #f4f4f4; stroke: #9c9c9c; stroke-width: 1.5; stroke-dasharray: 4 4; }
+    .t { fill: #2b2b2b; font-weight: 600; }
+    .s { fill: #6b655e; font-size: 11.5px; }
+    .h { fill: #2b2b2b; font-weight: 700; font-size: 15px; }
+    .edge { fill: none; stroke: #3b6fb6; stroke-width: 2.2; opacity: .75; }
+    .bad { fill: none; stroke: #e8590c; stroke-width: 2.6; }
+    .badge { fill: #3b6fb6; }
+    .badgeb { fill: #e8590c; }
+    .n { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; }
+  </style>
+
+  <!-- overlap lines first, so the boxes sit on top of them -->
+  <path class="bad" d="M750 380 C 700 380, 690 150, 710 120"/>
+  <path class="bad" d="M750 420 C 560 440, 300 450, 226 320"/>
+  <path class="bad" d="M966 120 C 1000 200, 1000 330, 966 340"/>
+  <path class="edge" d="M226 280 C 360 250, 420 120, 490 90"/>
+  <path class="edge" d="M226 100 C 330 20, 420 30, 490 60"/>
+  <path class="edge" d="M710 70 C 730 60, 745 70, 764 80"/>
+  <path class="edge" d="M600 170 L 600 190"/>
+  <path class="edge" d="M130 144 C 110 180, 20 220, 36 300" stroke-dasharray="3 3"/>
+  <path class="edge" d="M226 195 L 244 195"/>
+  <path class="edge" d="M339 160 L 339 144"/>
+  <path class="edge" d="M130 60 C 200 0, 470 0, 490 230"/>
+  <path class="edge" d="M710 230 C 740 200, 740 110, 764 100"/>
+  <path class="edge" d="M130 470 C 100 440, 60 420, 60 330" stroke-dasharray="3 3"/>
+  <path class="edge" d="M434 390 C 600 380, 700 170, 764 150"/>
+
+  <!-- framework/ -->
+  <rect class="group" x="20" y="20" width="430" height="420" rx="12"/>
+  <text class="h" x="36" y="44">framework/  — the product</text>
+  <rect class="area" x="36" y="60" width="190" height="84" rx="8"/>
+  <text class="t" x="48" y="82">core/</text>
+  <text class="s" x="48" y="100">Page · Layout · Section</text>
+  <text class="s" x="48" y="116">Sidebar · Search · Router</text>
+  <text class="s" x="48" y="132">29 demo cards (overview)</text>
+  <rect class="area" x="244" y="60" width="190" height="84" rx="8"/>
+  <text class="t" x="256" y="82">ext/</text>
+  <text class="s" x="256" y="100">Panel · DesignTool · demo</text>
+  <text class="s" x="256" y="116">Dropdown · grip · drawer</text>
+  <text class="s" x="256" y="132">JSONL · Research · AITask</text>
+  <rect class="area" x="36" y="160" width="190" height="70" rx="8"/>
+  <text class="t" x="48" y="182">ui/</text>
+  <text class="s" x="48" y="200">24 copy-paste templates</text>
+  <text class="s" x="48" y="216">menu · tree · tags · tooltip</text>
+  <rect class="area" x="244" y="160" width="190" height="70" rx="8"/>
+  <text class="t" x="256" y="182">ux/</text>
+  <text class="s" x="256" y="200">10 behaviour classes</text>
+  <text class="s" x="256" y="216">Menu · Popover · Tree · Tags</text>
+  <rect class="area" x="36" y="246" width="190" height="84" rx="8"/>
+  <text class="t" x="48" y="268">styles/</text>
+  <text class="s" x="48" y="286">framework.css · 33 layouts</text>
+  <text class="s" x="48" y="302">15 landing "sections"</text>
+  <text class="s" x="48" y="318">design studies</text>
+  <rect class="area" x="244" y="246" width="190" height="84" rx="8"/>
+  <text class="t" x="256" y="268">AI boards</text>
+  <text class="s" x="256" y="286">ai/ v1 · v/2 · v/3 · ai2</text>
+  <text class="s" x="256" y="302">four boards, one job</text>
+  <text class="s" x="256" y="318">DevBar sessions</text>
+  <rect class="dead" x="36" y="346" width="398" height="78" rx="8"/>
+  <text class="t" x="48" y="368">kept "for the record" — nothing imports it</text>
+  <text class="s" x="48" y="388">core/new (367 files) · core/Page/old (26) · Panel/toolbar.js</text>
+  <text class="s" x="48" y="406">ext/Omnibox stub · audit/ snapshot · research/ (one topic)</text>
+
+  <!-- /layouts/ and /web/ -->
+  <rect class="area" x="490" y="20" width="220" height="150" rx="10"/>
+  <text class="h" x="504" y="44">/layouts/</text>
+  <text class="s" x="504" y="64">named layouts + tags</text>
+  <text class="s" x="504" y="80">browse (Approve / Improve)</text>
+  <text class="s" x="504" y="96">practice · shell</text>
+  <text class="s" x="504" y="112">labs: shells screens sections</text>
+  <text class="s" x="504" y="128">decks blogx mag trees</text>
+  <text class="s" x="504" y="148">its own Layout.js class</text>
+  <rect class="area" x="490" y="190" width="220" height="80" rx="10"/>
+  <text class="h" x="504" y="214">/web/</text>
+  <text class="s" x="504" y="234">how-to guide: 9 nav patterns</text>
+  <text class="s" x="504" y="250">7 layout principles</text>
+  <rect class="area" x="490" y="290" width="220" height="60" rx="10"/>
+  <text class="h" x="504" y="314">/websites/</text>
+  <text class="s" x="504" y="334">47 real sites, shot and tagged</text>
+
+  <!-- /imagine/ -->
+  <rect class="group" x="750" y="20" width="230" height="300" rx="12"/>
+  <text class="h" x="764" y="44">/imagine/ — 17 live realms</text>
+  <rect class="area" x="764" y="58" width="202" height="62" rx="8"/>
+  <text class="t" x="776" y="78">paging</text>
+  <text class="s" x="776" y="96">Make (page CMS) · templates</text>
+  <text class="s" x="776" y="111">mechanisms · navigation</text>
+  <rect class="area" x="764" y="128" width="202" height="46" rx="8"/>
+  <text class="t" x="776" y="148">research · importance</text>
+  <text class="s" x="776" y="164">platform (a research program)</text>
+  <rect class="area" x="764" y="182" width="202" height="46" rx="8"/>
+  <text class="t" x="776" y="202">cms · stream · generated</text>
+  <text class="s" x="776" y="218">data-backed pages</text>
+  <rect class="area" x="764" y="236" width="202" height="72" rx="8"/>
+  <text class="t" x="776" y="256">worlds + studies</text>
+  <text class="s" x="776" y="272">game scenes team gallery</text>
+  <text class="s" x="776" y="286">codrops youtube feeds</text>
+  <text class="s" x="776" y="300">review vary</text>
+
+  <!-- the ghosts -->
+  <rect class="ghost" x="750" y="340" width="230" height="100" rx="12"/>
+  <text class="t" x="764" y="364">moved, but copies left behind</text>
+  <text class="s" x="764" y="384">imagine/ blogx decks shells</text>
+  <text class="s" x="764" y="400">sections screens mag design</text>
+  <text class="s" x="764" y="420">~736 files behind 9-line stubs</text>
+
+  <!-- the rest of the site -->
+  <rect class="area" x="20" y="470" width="220" height="66" rx="10"/>
+  <text class="h" x="34" y="494">/notes/</text>
+  <text class="s" x="34" y="514">70 notebook pages, ~23 sketch</text>
+  <text class="s" x="34" y="528">what paging + Panel later built</text>
+  <rect class="area" x="260" y="470" width="190" height="66" rx="10"/>
+  <text class="h" x="274" y="494">/blog/ · /resume/</text>
+  <text class="s" x="274" y="514">live, uses the framework</text>
+  <rect class="dead" x="490" y="470" width="260" height="66" rx="10"/>
+  <text class="h" x="504" y="494">sandboxes</text>
+  <text class="s" x="504" y="514">alex arya castin edric michael</text>
+  <text class="s" x="504" y="528">hand-copied Page + Router</text>
+  <rect class="area" x="770" y="470" width="210" height="66" rx="10"/>
+  <text class="h" x="784" y="494">/fly/ · data · assets</text>
+  <text class="s" x="784" y="514">standalone, no overlap</text>
+
+  <!-- 1: ghosts -> their real homes; paging/templates still imports the ghosts -->
+  <circle class="badgeb" cx="716" cy="300" r="11"/><text class="n" x="716" y="304">1</text>
+  <text class="s" x="905" y="332" fill="#e8590c">imports!</text>
+
+  <!-- 3: AI boards (inside) -->
+  <circle class="badge" cx="420" cy="258" r="11"/><text class="n" x="420" y="262">3</text>
+
+  <!-- 2: dead record -->
+  <circle cx="420" cy="358" r="11" fill="#8a8a8a"/><text class="n" x="420" y="362">2</text>
+
+  <!-- 4: layouts, six places -->
+  <circle class="badge" cx="470" cy="100" r="11"/><text class="n" x="470" y="104">4</text>
+
+  <!-- 5: three "sections" -->
+  <circle class="badge" cx="24" cy="220" r="11"/><text class="n" x="24" y="224">5</text>
+
+  <!-- 6 + 7: popups and graduated templates, ui <-> ux <-> ext -->
+  <circle class="badge" cx="235" cy="180" r="11"/><text class="n" x="235" y="184">6</text>
+  <circle class="badge" cx="235" cy="212" r="11"/><text class="n" x="235" y="216">7</text>
+
+  <!-- 8: page + navigation demos, core <-> web <-> paging <-> notes -->
+  <circle class="badge" cx="478" cy="190" r="11"/><text class="n" x="478" y="194">8</text>
+
+  <!-- 9: research fronts -->
+  <circle class="badge" cx="640" cy="364" r="11"/><text class="n" x="640" y="368">9</text>
+
+  <!-- legend -->
+  <rect x="20" y="560" width="960" height="44" rx="8" fill="#f1eee9"/>
+  <circle class="badgeb" cx="44" cy="582" r="9"/>
+  <text class="s" x="60" y="586">a move that finished halfway</text>
+  <circle class="badge" cx="270" cy="582" r="9"/>
+  <text class="s" x="286" y="586">the same job built in two or more places — number = rank in the plan</text>
+  <rect class="dead" x="760" y="573" width="26" height="18" rx="4"/>
+  <text class="s" x="794" y="586">nothing uses it</text>
+</svg>

@@ -32,21 +32,20 @@
  * that is MEANT to run to its edge says so with `.bleed` or `[data-bleed]`, and
  * this check leaves everything inside it alone.
  *
- * ⚠ Playwright is a GLOBAL npm module on this machine, not a repo dependency, so
- *   it is imported by absolute file url. NODE_PATH does not help — ESM ignores it.
+ * ⚠ Chromium is started through Server/browser.mjs, the one launcher every
+ *   script in this repo shares — it opens no window; nothing here calls it directly.
  * ⚠ This file opens no port and imports nothing from the dev server. Running it
  *   cannot slow or crash anyone's server; it only loads pages from one.
  */
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { browser as launch } from "./browser.mjs";
 
 /** Smaller than this is "ink touching an edge". It is the smallest spacing rung
  *  the size standard has (`--gap-25` = a quarter of `--gap`, whose floor is 1em)
  *  at its floor — below it, nothing on this site is deliberate spacing. */
 export const FLOOR = 4;
-
-const PLAYWRIGHT = "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
 
 /* ══ THE MEASUREMENT ══════════════════════════════════════════════════════════
    Runs inside the page, so it must be self-contained — no closures, no imports.
@@ -408,8 +407,7 @@ export async function check_page(page, width, floor = FLOOR){
    so a caller can tell "clean" from "never measured". `style` is optional CSS
    injected after load (a way to reproduce a bug: strip a padding and look). */
 export async function edges(urls, { base = process.env.PADDING_BASE || "http://monorepo.localhost", widths = [1280, 3440], floor = FLOOR, style = null } = {}){
-	const { chromium } = await import(PLAYWRIGHT);
-	const browser = await chromium.launch({ channel: "chromium" });
+	const browser = await launch();
 	const rows = [];
 	try {
 		for (const url of urls) {
@@ -468,8 +466,7 @@ async function main(){
 	const style  = arg("style", null);
 	const all    = argv.includes("--all");
 
-	const { chromium } = await import(PLAYWRIGHT);
-	const browser = await chromium.launch({ channel: "chromium" });
+	const browser = await launch();
 	const page = await browser.newPage({ viewport: { width: widths[0], height: 1200 } });
 
 	let failed = 0;

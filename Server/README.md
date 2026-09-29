@@ -18,6 +18,24 @@ the editing agent at its very next write. `HEALTH_BASE` picks which server to lo
 pages against (default `http://localhost:8123`, the mastermind's). Full story:
 [`public/framework/ai/health/readme.md`](/framework/ai/health/).
 
+**`node Server/layout-check.mjs <url...>`** shoots pages at four widths and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
+
+**`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/2026-09-28/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/).
+
+**`node Server/window-lint.mjs`** answers one question about the whole repo: **which
+`spawn`/`exec`/`execFile`/`fork`/`Start-Process` call is missing `windowsHide: true` (or
+`-WindowStyle Hidden`)**, the flag that stops a process popping a visible console in front of
+the owner. The same per-call check runs on every Edit/Write, live, in
+`.claude/hooks/syntax-guard.mjs`'s `hidden_guard`; this is the repo-wide sweep version. It's
+advisory (never throws, always exits 0) and can flag a same-named method definition or a
+prose mention as a false positive — read the hit before editing anything.
+[`public/framework/ai/2026-09-28/hidden-windows/`](/framework/ai2/2026-09-28/hidden-windows/).
+Same idea, one launcher: every script starts Chromium through
+[`Server/browser.mjs`](./browser.mjs), never `chromium.launch(` on its own — window-lint and
+syntax-guard's `browser_guard` both flag a stray one too. `node Server/window-watch.mjs` is the live catcher —
+an always-on `EnumWindows` probe that logs any NEW visible console or browser window (scoped so
+the owner's own Chrome never counts). [`doc/browser.md`](./doc/browser.md).
+
 **`node Server/padding-check.mjs <url>`** answers one question about one page, and
 exits non-zero when the answer is no: **does any text on it sit at 0 from an edge** —
 the nav rail, the window, the ToC column, or the border of any box that paints a
@@ -27,6 +45,10 @@ the bug that prompted it only appears above 1312px and `health.mjs` was looking 
 1280 alone. `health.mjs` now imports the same measurement, so the watcher checks it
 too — one definition, three callers. The before/after over 107 pages:
 [`/framework/ai/2026-09-22/padding-law/`](/framework/ai/2026-09-22/padding-law/).
+
+**node Server/review.mjs <taskdir> [<worktree>]** gets a fresh agent — one that never saw the
+author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
+will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
 
 ## The supervisor
 

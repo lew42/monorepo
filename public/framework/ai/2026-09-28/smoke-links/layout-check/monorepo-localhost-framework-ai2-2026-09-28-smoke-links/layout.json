@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026-09-28/smoke-links/",
+ "widths": {
+  "1280": {
+   "empty": 0.559,
+   "widest_text": 3628,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 376,
+   "narrow_share": 0.032
+  },
+  "1920": {
+   "empty": 0.642,
+   "widest_text": 3861,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 376,
+   "narrow_share": 0.069
+  },
+  "2560": {
+   "empty": 0.662,
+   "widest_text": 4344,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 376,
+   "narrow_share": 0.069
+  },
+  "3440": {
+   "empty": 0.748,
+   "widest_text": 4344,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 376,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

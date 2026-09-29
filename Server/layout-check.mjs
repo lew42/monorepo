@@ -8,7 +8,7 @@
  *   errors       console + page errors
  * Read the contact sheet first; the numbers say where to look. Exit code 1 if any url has errors
  * or overflow. Output: <out>/<slug>/<width>.png, sheet.png, layout.json (default: ./layout-check-out). */
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -63,7 +63,7 @@ const measure = () => {
 };
 
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
-const b = await chromium.launch({ channel: "chromium" });
+const b = await launch();
 const t0 = Date.now();
 const contexts = await Promise.all(widths.map(w => b.newContext({ viewport: { width: w, height } })));
 let bad = 0;
