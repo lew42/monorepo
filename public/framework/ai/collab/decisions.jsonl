@@ -9,3 +9,4 @@
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"overruleCount","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"retire","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
 {"named":{"at":"2026-09-28T14:32:36-05:00","module":"ext/Collab","class":"Scoreboard","member":"explain","kind":"method","collab":"2026-09-28/collab-rounds/scoreboard-design","decision":"d-1"}}
+{"named":{"module":"ui/item","class":"item","member":"item","kind":"function","decision":"owner"}}
