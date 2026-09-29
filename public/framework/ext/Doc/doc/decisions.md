@@ -59,6 +59,21 @@ argument in full, including why a rail beat a wall of preview cards.
 
 ## Decisions
 
+**The Files tab's "Open full screen" link now opens v2, unchanged** (2026-09-29,
+minion-b of `file-system`). The owner's own complaint about this tab was "too many
+layers of navigation" — site nav, this module's own well-and-tabs, the Files tab's
+nested tree/about/source panel. `ext/files/explorer.js` (v2 of `<any path>/fs/`)
+exists now specifically to have fewer of those: the framework's own left nav stays,
+everything else is one tree and one or more code columns, no tab strip at all.
+`files_section()`'s link already pointed at `doc.url + "fs/"`, and `core/Page/
+Page.class.js`'s `fs_folder()` now builds v2 there by default (`?v=1` for the old
+one) — so the escape hatch this tab already had became the roomier one for free,
+with no edit to this file. **Judged, not changed**: the nested `doc.browser()`
+three-column preview *inside* the tab stays as it is — it is the one place a
+reader gets the `about` prose (a `.md` file's worth of *why*) beside the source,
+which the deliverable said to keep working, and collapsing it into v2 would lose
+that hook entirely rather than reduce a layer.
+
 **A Doc's sections are children, so a Doc's own wall has to subtract them**
 (2026-08-16). `sections()` adds Overview, API, Docs and Files to `this.children`
 because they *are* pages — that is what buys a member a url and a back button. The

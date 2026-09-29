@@ -41,7 +41,11 @@
 
 	.file-tree { padding: 0.6em 0; font-size: 0.85em; }
 
-	.file-name,
+	/* A FILE row is `ui/item`'s own row now (ext/filesystem's FsFile.render()) — `.item` already
+	   gives it display/padding/gap, so only the parts `.item` doesn't know about stay
+	   here: the pointer cursor (a plain `div.item` gets none) and the selection look.
+	   A DIRECTORY row is still hand-drawn (FsDir.render(), ext/filesystem) — see its own
+	   comment for why — so it keeps its full markup rules. */
 	.file-dir-name {
 		display: flex;
 		align-items: center;
@@ -49,14 +53,15 @@
 		padding: 0.3em 0.9em;
 		white-space: nowrap;
 		cursor: pointer;
+		color: var(--subtle);
 	}
+
+	.file-name { cursor: pointer; }
 
 	.file-name:hover,
 	.file-dir-name:hover { color: var(--prim); }
 
 	.file-name.selected { color: var(--prim); font-weight: 600; background: var(--wash); }
-
-	.file-dir-name { color: var(--subtle); }
 
 	/* Closed by default; only an OPEN folder's own body shows. `display: none` rather
 	   than removal — a folder built once (past `open`'s depth, or an ancestor of the
@@ -84,4 +89,79 @@
 
 	/* The prose written ABOUT the file, beside its source — ext/Doc's Files tab. */
 	.file-about { padding: 0 1.1em; font-size: 0.9em; }
+
+	/* ════ v2's own full-screen shell (`ext/files/explorer.js`, minion-b 2026-09-29) ═
+	   The framework's own left nav is a SIBLING of this box (it never became
+	   `.layout-full`, which is what v1 does and what used to cover it) — this only
+	   has to fill the rest of the window and own its own scrolling, the same shape
+	   `.layout-full > :last-child` already uses one level up. `--page-pad: 0` is the
+	   opt-out `.page.doc-page` and `.tab-panel` already use (Page.css); `initial` on
+	   the token there is what keeps it from leaking onto a page nested inside this
+	   one (there isn't one today, but the rule is load-bearing, not decorative). */
+	.page.fs-explorer {
+		--page-pad: 0;
+		display: flex; flex-direction: column;
+		overflow: hidden;
+	}
+	.page.fs-explorer > :last-child { flex: 1 1 auto; min-height: 0; }
+
+	.fs-explorer-head {
+		display: flex; align-items: center; justify-content: space-between;
+		gap: var(--gap);
+		padding: 0.5em 0.9em;
+		border-bottom: 1px solid var(--line);
+	}
+	.fs-explorer-head-title { display: flex; align-items: center; gap: calc(var(--gap) * 0.4); color: var(--subtle); font-size: 0.85em; }
+	.fs-explorer-head-v1 { color: var(--subtle); font-size: 0.85em; }
+	.fs-explorer-head-v1:hover { color: var(--prim); }
+
+	/* A code column's ONE toolbar — path, copy, raw, close. Never a second bar
+	   stacked above it: that was the owner's exact complaint about the old
+	   class-doc Files tab ("too many layers of navigation"). */
+	.fs-explorer-bar {
+		display: flex; align-items: center; gap: calc(var(--gap) * 0.3);
+		padding: 0.35em 0.7em;
+		border-bottom: 1px solid var(--line);
+		font-size: 0.85em;
+	}
+	.fs-explorer-path { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--subtle); }
+	.fs-explorer-btn {
+		flex: 0 0 auto;
+		display: flex; align-items: center;
+		padding: 0.25em; min-height: unset;
+		border: none; background: none; color: inherit;
+		border-radius: var(--radius);
+	}
+	.fs-explorer-btn:hover { background: var(--wash); }
+
+	/* A code column's own box: a resizable, mid-row column with `--files-col-w`
+	   like the tree/about columns already carry (`ext/grip`'s `write()` sets it),
+	   EXCEPT the last one open, which fills whatever is left — exactly the rule
+	   `.files-col-source` above already states for the single-column case; this
+	   just lets more than one exist at a time. `display: flex; column` so its own
+	   toolbar and its source box stack instead of overlapping. */
+	.fs-explorer-col {
+		display: flex; flex-direction: column;
+		flex: 0 0 clamp(20em, var(--files-col-w, 34em), 70%);
+		min-inline-size: 20em;
+	}
+	.fs-explorer-col:last-child { flex: 1 1 20em; }
+	.fs-explorer-col .file-source { flex: 1 1 auto; min-height: 0; }
+
+	/* The tree's own "open beside" button (`ui/item`'s `end` slot) — hidden by
+	   default so the tree reads as a tree, not "a column of icons" (the owner,
+	   2026-09-29, after seeing it on every row of Servex's own copy of this
+	   tree). Shown on hover or keyboard focus of THAT row, and always on a row
+	   that is already open as a column — the one case a phone (no hover) still
+	   needs to see it on, since a touch reader never hovers anything.
+	   ⚠ `@media (hover: hover)` gates the MOUSE reveal only — `:focus-within`
+	     stays unconditional, because a keyboard user's Tab lands on the button
+	     itself and needs to see what it just focused on any device. */
+	.switcher-nav .item-end { opacity: 0; transition: opacity 0.12s; }
+	.switcher-nav a.item.fs-explorer-open-row .item-end,
+	.switcher-nav a.item:focus-within .item-end { opacity: 1; }
+
+	@media (hover: hover) {
+		.switcher-nav a.item:hover .item-end { opacity: 1; }
+	}
 }

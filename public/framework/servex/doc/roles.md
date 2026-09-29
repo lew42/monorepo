@@ -29,7 +29,7 @@ you
 | **card manager** | that card's assistant | **Opus** | sub-mastermind | everything |
 | **clarity** | Servex, after each landing | Sonnet | clarity | everything |
 
-Where it's set: `Servex/agents/roles.js` (one row per role) and `Servex/agents/tiers.js` (which model each size of role uses).
+Where it's set: [`Servex/agents/roles.js`](/framework/servex/fs/?file=Servex%2Fagents%2Froles.js) (one row per role) and [`Servex/agents/tiers.js`](/framework/servex/fs/?file=Servex%2Fagents%2Ftiers.js) (which model each size of role uses).
 
 ## The gap you spotted
 

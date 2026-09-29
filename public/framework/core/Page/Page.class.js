@@ -257,10 +257,18 @@ export class Page extends PageLog {
 		return new PageMarkdown({ folder: this.md_dir(), title: "Markdown" });
 	}
 
-	// This directory's own files, full screen, at my own `fs/` — ext/files/fs.js.
+	// This directory's own files, full screen, at my own `fs/` — ext/files/fs.js is
+	// the classic view (v1: no site nav at all); ext/files/explorer.js is v2 (the
+	// framework's own nav stays, tree + code columns fill the rest) and is the
+	// DEFAULT now — the owner's own words, 2026-09-29: "on framework pages, we
+	// want to leave the framework navigation there as much as possible." `?v=1` in
+	// the url is the one-click way back to v1, same as every other page word: the
+	// page never decides for itself, the url does.
 	// ⚠ core does not import ext: the import is dynamic, same as md_folder() above.
 	async fs_folder(){
-		const { default: PageFiles } = await import("../../ext/files/fs.js");
+		const v1 = new URLSearchParams(location.search).get("v") === "1";
+		const module = v1 ? "../../ext/files/fs.js" : "../../ext/files/explorer.js";
+		const { default: PageFiles } = await import(module);
 		return new PageFiles({ folder: this.md_dir() });
 	}
 
@@ -605,19 +613,17 @@ export class Page extends PageLog {
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
 
-			// A small way into this folder's own real files, full screen — the
-			// owner's "any path slash fs" route (2026-09-28), linked from every page
-			// template so it never needs a second click through a parent's Files
-			// tab. Never on the /fs/ view itself: that page overrides render() whole
-			// and never reaches here (ext/files/fs.js). Never inside a Doc page's
-			// chrome either (in_doc(), above): its Files tab is the same trip.
-			// ⚠ `this.url` — a page with no real address (a synthetic sidebar group,
-			//   built before naming() ever ran) gets no link rather than one pointing
-			//   at "undefinedfs/". Found on the site's own hidden nav tree, 2026-09-28.
-			if (this.url && !this.in_doc())
-				a.c("page-fs-link", () => { icon("folder_open"); span("Folder"); })
-					.href(this.url + "fs/")
-					.style({ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: "var(--subtle)", textDecoration: "none" });
+			// ⚠ NOT a floating "Folder" link here any more. One existed briefly
+			// (2026-09-28, "any path slash fs") and michael/dev re-added a refined
+			// version of it (in_doc()-guarded) in the SAME merge this comment
+			// resolves — but the owner found it unclear ON ITS OWN PAGE and it was
+			// deliberately deleted same-day (dbe94242, "a 'Files' item in the
+			// mobile-nav drawer replaces it"), which is real, separate, already-
+			// landed work (the mobile-nav task, several merges into michael/dev).
+			// Kept deleted: reintroducing it here would undo a dated, reasoned
+			// owner decision that the merge otherwise has no way to know about.
+			// `/fs/` itself is unaffected — every folder still has one, this was
+			// only ever the inline link TO it.
 
 			/* A page that said one of the six words gets a FRAME: the chrome its
 			   arrangement word asks for, around the box its content goes in. A page
