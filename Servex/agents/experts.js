@@ -116,7 +116,9 @@ const fence = (rel, text) => {
  *              deduplicated across modules (a shared parent readme appears once)
  *   modules    per module: title, covers, and its recipe's `load` + `also` files IN FULL
  *   on_demand  the rest, by path and one-line purpose — not loaded
- *   files      every file put in, with its sha1 (what a checkpoint's freshness re-checks)
+ *   files      the recipe's own `load` + `also` files (plus the recipe.json itself), each
+ *              with its sha1 — what a checkpoint's freshness re-checks. Chain readmes are
+ *              NOT in here: a parent readme changing should not make every module stale.
  *   tokens     a rough size: chars / 2.25 (measured 2026-09-29 on core/Page — code and markdown run ~2.25 chars a token, not 4)
  * Harness-agnostic on purpose: an SDK tool, an MCP tool and `readme()` are all
  * thin wrappers around this one function. `extra` adds files to the first module. */
@@ -127,13 +129,14 @@ export function load_module(modules, { extra = [] } = {}){
 	const full = new Set();                        // loaded in full, so the chain skips its first screen
 	for (const r of recipes) for (const f of [...r.load, ...r.also]) full.add(rel_path(path.join(r.dir, f)));
 
+	// Chain readmes go into the PROMPT (chain, below) but stay OUT of the freshness
+	// set: a checkpoint should not go stale just because a parent readme (the root,
+	// framework/readme.md, …) changed — only the recipe's own `load`/`also` files do.
 	const seen = new Set(), chain = [];
 	for (const r of recipes) if (r.chain !== false)
 		for (const lvl of readme_chain(r.dir)) if (!seen.has(lvl.path) && !full.has(lvl.path)){
 			seen.add(lvl.path);
 			chain.push({ path: lvl.path, text: lvl.text.trimEnd(), truncated: !!lvl.truncated });
-			const t = read(path.join(REPO, lvl.path));
-			if (t != null) hashes.set(lvl.path, sha1(t));
 		}
 
 	const out = recipes.map((r, i) => {

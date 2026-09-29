@@ -91,7 +91,12 @@ async function links_on(page){
 	const out = [];
 	for (const href of hrefs) {
 		if (!href || href.startsWith("#") || /^(mailto|tel|javascript):/i.test(href)) continue;
-		let u; try { u = new URL(href, base); } catch { continue; }
+		// Resolve against the PAGE the link was found on, not the bare server origin: a
+		// relative href ("./floating/") still raw at crawl time (md.resolve() rewrites
+		// readme links async, and this snapshot can beat it) must resolve the same way a
+		// real browser resolves it — against the current url, not the site root, or a
+		// perfectly working link false-fails as a 404 at the wrong path.
+		let u; try { u = new URL(href, page.url()); } catch { continue; }
 		if (u.origin !== new URL(base).origin) continue;
 		const ext = (u.pathname.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
 		if (SKIP_EXT.has(ext)) continue;

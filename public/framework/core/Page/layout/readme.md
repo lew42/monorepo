@@ -1,18 +1,12 @@
 # Layout — the hub for every layout question and every layout page on the site
 
-## The five shapes a page picks from
-
-| shape | one line | mechanism |
-|---|---|---|
-| **Standard** | one column, 300–1000px — the site's own default | a page that says nothing ([`doc/words.md`](/framework/core/Page/doc/words/)) |
-| **Split** | two columns, any proportion, stacks on mobile | `arrangement: "main-aside"` ([Layout catalogue](/framework/core/Layout/main-aside/)) |
-| **Columns** | three or more standard columns, responsive | `this.columns({ even: true })` ([`doc/columns.md`](/framework/core/Page/doc/columns/)) |
-| **Floating page** | an inner left sidebar beside a page that scrolls on its own | [`layout/floating/`](./floating/) |
-| **Top-down shape** | background · padding · full-bleed | [`doc/words.md`](/framework/core/Page/doc/words/) and [`doc/columns.md`](/framework/core/Page/doc/columns/) |
+The five shapes and the whole layout system are the icon sections above, each one a link. This
+file is what those widgets don't show: how to choose a shape, one note on naming, and a plain
+list of every link (for an AI reading this file directly, not the rendered page).
 
 > **Word collision, named once:** core's own `width: "wide"` and a column's own `fill` are not
 > the owner's "two columns" (**Split**, above) and "three or more" (**Columns**, above) — that's
-> why this table says Split/Columns, not wide/fill.
+> why the shapes above are named Split and Columns, not wide and fill.
 
 ## Choosing one
 
@@ -20,7 +14,7 @@ Before building: the `layout` skill's five sizing questions (container, size, ow
 container count, preview), and its five **C1–C5** questions for picking the shape itself —
 drawn live, with demos, at [/layouts/decide/](/layouts/decide/).
 
-## Everything else about layout, indexed
+## Every link on this page, indexed
 
 [/layouts/](/layouts/) — the encyclopedia: every way a page divides its room, named and drawn
 [/layouts/browse/](/layouts/browse/) — every layout on the whole site, one picture card each, Approve/Improve
@@ -33,3 +27,6 @@ drawn live, with demos, at [/layouts/decide/](/layouts/decide/).
 [floating page](./floating/) — this module's own inner-sidebar shape, `floating()`
 [layout explorer](/layouts/explorer/) — one tree of every layout on the site, siblings/selected/children in three columns
 [v1](./v1/) — this hub's first version, kept as reference
+[doc/words](/framework/core/Page/doc/words/) — Standard and Top-down shape, in words
+[Layout catalogue: main-aside](/framework/core/Layout/main-aside/) — the Split mechanism, `arrangement: "main-aside"`
+[doc/columns](/framework/core/Page/doc/columns/) — the Columns mechanism, `this.columns({ even: true })`

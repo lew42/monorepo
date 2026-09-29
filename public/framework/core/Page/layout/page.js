@@ -40,9 +40,11 @@ export default new Page({
 			],
 		});
 
-		// A Page isn't a View — it draws through `this.view`, so a promise (capture:false,
-		// like every md.file()/code.file()) gets appended onto a real box, never `this`.
-		// See core/Page/make/'s "5. readme.md" for the same pattern.
-		div().append(md.file(import.meta, "readme.md"));
+		// This wrapper (div().append, not the plain content(){ return md.file(...) })
+		// is only needed because JS runs above it — a readme-only page returns the
+		// promise directly instead. See core/Page/make/'s "5. readme.md" for that pattern.
+		// `{ h1: false }` drops the readme's own `# ` line, since the page already draws
+		// `title` as its h1 (else the title shows twice).
+		div().append(md.file(import.meta, "readme.md", { h1: false }));
 	},
 });

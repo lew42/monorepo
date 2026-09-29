@@ -13,10 +13,11 @@ export default new Page({
 	icon: "description",
 
 	content(){
-		// A Page isn't a View — it draws through `this.view`, so a promise
-		// (capture:false, like every md.file()) gets appended onto a real box,
-		// never `this`.
-		div().append(md.file(import.meta, "readme.md"));
+		// This wrapper (div().append, not the plain content(){ return md.file(...) })
+		// is only needed because JS follows below — a readme-only page returns the
+		// promise directly instead. `{ h1: false }` drops the readme's own `# ` line,
+		// since the page already draws `title` as its h1 (else the title shows twice).
+		div().append(md.file(import.meta, "readme.md", { h1: false }));
 
 		section({
 			title: "The JS-built part — a row of links, not markdown", bg: true, items: [

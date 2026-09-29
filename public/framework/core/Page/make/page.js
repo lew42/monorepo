@@ -98,6 +98,7 @@ export default new Page({
 		h3("5. readme.md — the page's own content");
 		md("The whole page can just BE its own `readme.md`. What an AI reads is exactly what a person sees — one file, not two copies to keep in sync:");
 		code.js(`content(){ return md.file(import.meta, "readme.md"); }`);
+		md("That one-liner is the whole pattern when the readme IS the page. The moment more JS follows it (like the icon row make/readme-page/ adds below its own readme), `content()` has to append the promise onto a real box instead: `div().append(md.file(import.meta, `readme.md`))` — a Page cannot just return it once other JS runs too.");
 		md("Source and rendered, side by side:");
 		// Two boxes captured synchronously; each promise (code.file/md.file, both
 		// capture:false) is appended onto its own box explicitly — never after an

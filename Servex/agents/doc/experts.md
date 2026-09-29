@@ -40,13 +40,37 @@ token**, not 4 (core/Page: 169k characters is ~75k tokens).
 MCP tools (in `tools.js`): `ask_expert`, `list_experts`, `load_module`, `readme_modules`.
 CLI: `node Servex/agents/experts.js readme core/Page Servex` · `tokens core/Page` · `list` · `fresh core/Page`.
 
+## `ask_expert` is the default; `load_module` is the exception
+
+**Use `ask_expert` for a question.** It forks the checkpoint (no bundle lands in your own
+context) and answers in a few seconds for a few cents — the proof's table below shows it
+five times cheaper than a cold agent and twelve times cheaper than a preloaded bundle, at the
+same answer quality.
+
+**Reach for `load_module` (or a preloaded bundle) only to start a long-lived mastermind that
+will do many turns of work ON that module.** It lands the module's whole ~78k-token bundle in
+the CALLER's own context in one call — heavier than the owner's "iceberg" rule (the brief up
+front, the rest on demand) — so it is worth that cost only when the caller is about to become
+the expert itself, not for a single question.
+
+[Cited: proof.md's four-way table](/framework/ai/2026-09-29/module-experts/proof.md) — fork
+$0.032/question vs `load_module` $0.196/question vs a preloaded prompt $0.381/question vs a
+cold agent $0.156/question, all scored blind by the same judge.
+
 ## Freshness
 
-Each row of `Servex/experts.json` records every file it read and its sha1 (the recipe too). When one
+Each row of `Servex/experts.json` records the sha1 of the recipe's own `load` + `also` files (and
+the recipe.json itself) — **not** the readme chain above it, so an edit to the root readme or
+`framework/readme.md` does not mark every expert on the site stale at once. When a recorded file
 changes, or the recipe grows a file, the row reads **stale** and the next `ask` rebuilds it first
 (the answer's footer says `rebuilt: stale`). `list_experts` shows fresh or stale per row.
 
 ## Watch out
+
+- **The root readme does not land in a checkpoint twice.** `build()`'s spawn names no `task` or
+  `page`, so `Agents.js`'s own chain-prepend (`directory_of(spec)`) never fires for it — the
+  readme chain reaches the checkpoint exactly once, from `format()`'s own "Where it sits"
+  section. Proof, no model call: [`item8-no-double-chain.mjs`](/framework/ai/2026-09-29/module-experts/).
 
 - **The cache needs the same posture.** A fork copies the row's model, effort, cwd, permission mode and
   `setting_sources: []` exactly; a different model is a different checkpoint (so `deep` has its own).
