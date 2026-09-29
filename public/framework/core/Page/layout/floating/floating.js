@@ -105,19 +105,28 @@ Floating.css = `
 		background: var(--fill-a16);
 		padding: var(--pad);
 		padding-top: var(--pad);
-		/* Fills the whole region at rest, even when the current tab is short. NOT a
-		   percentage: this box's ancestor is a CSS-grid row sized "auto" (Page.css sets
-		   grid-template-columns for its main/wide/bleed tracks, never grid-template-rows),
-		   so a row holding only this box sizes to ITS content and a percentage height on
-		   this box has nothing definite to be a percentage OF — both resolve to each
-		   other and the well ends up content-height, not full-bleed (found live, 2026-09-29:
-		   a 656px-tall well in a 1080px-tall page). 100dvh sidesteps that: a caller whose
-		   region is not the full viewport (AI 2's workspace, a smaller panel) overrides it
-		   by declaring --floating-min-height on any ancestor.
-		   The extra + var(--pad) is on purpose too: without it, a short tab's well is
-		   EXACTLY one screen tall and there is nothing left to scroll, so the "the top
-		   edge clips away as you scroll" behaviour would have nothing to demonstrate it
-		   on. One padding's worth of headroom guarantees a short tab still scrolls. */
+	}
+	/* Fills the whole region at rest, even when the current tab is short. NOT a
+	   percentage: this box's ancestor is a CSS-grid row sized "auto" (Page.css sets
+	   grid-template-columns for its main/wide/bleed tracks, never grid-template-rows),
+	   so a row holding only this box sizes to ITS content and a percentage height on
+	   this box has nothing definite to be a percentage OF — both resolve to each
+	   other and the well ends up content-height, not full-bleed (found live, 2026-09-29:
+	   a 656px-tall well in a 1080px-tall page). 100dvh sidesteps that: a caller whose
+	   region is not the full viewport (AI 2's workspace, a smaller panel) overrides it
+	   by declaring --floating-min-height on any ancestor.
+	   The extra + var(--pad) is on purpose too: without it, a short tab's well is
+	   EXACTLY one screen tall and there is nothing left to scroll, so the "the top
+	   edge clips away as you scroll" behaviour would have nothing to demonstrate it on.
+	   One padding's worth of headroom guarantees a short tab still scrolls.
+	   The :not(.ui-section) is load-bearing — a page that explains this component by
+	   wrapping a SECOND, illustrative "floating-well" in ui/section (core/Page/layout/
+	   floating/page.js's own Overview tab does exactly this) is not the real thing, and
+	   this rule must not reach it: found live, 2026-09-29, a 700px gray gap under a
+	   60px diagram box, because the diagram's own label box inherited a floor meant only
+	   for the real one. ui/section always adds "ui-section" alongside the classes it is
+	   asked to label, so that is the one reliable way to tell the two apart. */
+	.floating-well:not(.ui-section) {
 		min-height: calc(var(--floating-min-height, 100dvh) + var(--pad));
 	}
 	.floating {
