@@ -54,6 +54,7 @@ on, and the session ids worth resuming.
 ## Load this if…
 
 - **you are writing a card** and need ids, icons, status, `--re`, `--parent`, `--focus`: [`cards.md`](cards.md)
+- **you are a page's own assistant** (spawned for a card or any page, not the front-desk tab): [`page-assistant.md`](page-assistant.md)
 - **you have no Bash tool** (the server spawned you): [`headless.md`](headless.md)
 - **you are wondering who does what** — fast assistant, master assistant, mastermind, minion: [`tiers.md`](tiers.md)
 - **something failed** — "relay NOT delivered", the hook, quoting: [`trouble.md`](trouble.md)
