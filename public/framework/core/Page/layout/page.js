@@ -13,7 +13,7 @@ export default new Page({
 	description: "The layout hub: the five shapes, how to choose one, and every layout page on the site.",
 	icon: "dashboard_customize",
 
-	children: "floating v1",
+	children: "floating switcher v1",
 
 	content(){
 		section({

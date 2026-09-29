@@ -25,6 +25,7 @@ drawn live, with demos, at [/layouts/decide/](/layouts/decide/).
 [core/Layout](/framework/core/Layout/) — the catalogue: 30 named arrangements, each proven at seven widths
 [sidebar variant](/framework/styles/layouts/sidebar/) — the `.basis + .flex-1` sidebar shape
 [floating page](/framework/core/Page/layout/floating/) — this module's own inner-sidebar shape, `floating()`
+[switcher](/framework/core/Page/layout/switcher/) — a routed list switches the content beside it (vertical tabs, a file tree, a left nav are its three skins); collapses to a mobile dropdown with no active-class rewrite
 [layout explorer](/layouts/explorer/) — one tree of every layout on the site, siblings/selected/children in three columns
 [v1](/framework/core/Page/layout/v1/) — this hub's first version, kept as reference
 [doc/words](/framework/core/Page/doc/words/) — Standard and Top-down shape, in words
