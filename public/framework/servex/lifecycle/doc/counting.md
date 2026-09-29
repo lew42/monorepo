@@ -1,7 +1,7 @@
 # How each number was counted
 
 Read only — nothing on this list stops or changes anything. The script is
-[`ai/2026-09-29/lifecycle/study/count.mjs`](/framework/ai/2026-09-29/lifecycle/study/); it writes
+[`ai/2026-09-29/lifecycle/study/count.mjs`](/framework/ai/2026-09-29/lifecycle/study/count.mjs); it writes
 `counts.json`, which this page's `data.json` is a copy of.
 
 1. **Tasks never landed.** Every `task.jsonl` found under

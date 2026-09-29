@@ -16,7 +16,7 @@ sitting there?"* This page is the count.
 ## Use
 
 `data.json` next to this page is a copy of
-[`ai/2026-09-29/lifecycle/study/counts.json`](/framework/ai/2026-09-29/lifecycle/study/); refresh
+[`ai/2026-09-29/lifecycle/study/counts.json`](/framework/ai/2026-09-29/lifecycle/study/count.mjs); refresh
 it by re-running `node public/framework/ai/2026-09-29/lifecycle/study/count.mjs` from the repo
 root and copying `counts.json` here as `data.json` again. How each number is counted:
 [Docs → counting](/framework/servex/lifecycle/doc/counting/).

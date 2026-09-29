@@ -103,7 +103,7 @@ export default new Doc({
 				md(`The \`page.jsonl\` dirt-check fix (excluding it from \`Pool.js\`'s \`dirt()\` walk) is the owner's decision to make (\`Servex/doc/lifecycle.md\`).`);
 			}
 
-			md("Raw data and the counting script: [`ai/2026-09-29/lifecycle/study/`](/framework/ai/2026-09-29/lifecycle/study/).");
+			md("Raw data and the counting script: [`ai/2026-09-29/lifecycle/study/`](/framework/ai/2026-09-29/lifecycle/study/count.mjs).");
 		}));
 	},
 });
