@@ -223,11 +223,17 @@ export default class Lifecycle {
 		if (r.kind === "agent") return /^(assistant-|manager-|master-assistant|mastermind-servex|dispatcher$)/.test(r.id) ? "one of Servex's own standing agents" : null;
 		const ports = keep_ports();
 		if (r.port && ports.has(Number(r.port))) return `port ${r.port} is on the keep list`;
-		if (r.path && norm(r.path) === norm(main_repo())) return "the main checkout's own server";
 		// itself Servex, the gate or whisper, or started by one of them (3 node/cmd parents up; an agent's bash is never read)
 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
 		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
+		// Only reap what the creation log recorded, or what runs under C:\Code\lew42 (worktrees or the
+		// monorepo) — never a server from some other project or a path we couldn't determine at all.
+		// "the main checkout's own server" is NOT a blanket keep any more: :3104 is already on the keep
+		// list above, so a hand-started `PORT=… node server.js` in the main checkout is reaped like any
+		// other once it's old and ownerless (review finding 8).
+		if (!r.logged && !inside(r.path, path.dirname(main_repo())))
+			return r.path ? "outside C:\\Code\\lew42 and not in the creation log — never reaped" : "unknown path (no cwd could be found) — never reaped";
 		const busy = (this.all_agents ?? []).find(a => (a.state === "working" || a.state === "starting") && inside(a.cwd, r.path));
 		if (r.kind !== "agent" && busy) return `${busy.id} is working there`;
 		return null;

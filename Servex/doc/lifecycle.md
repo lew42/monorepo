@@ -31,7 +31,11 @@ Every close writes an `end` line whose `why` says the reason in plain words.
 
 ## 3. What is never touched
 
-The main site (port 3104, and anything running from the main checkout), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone. A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
+The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone. A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
+
+**The main checkout is not a blanket keep.** Only port 3104 (and the other keep-list ports) is protected there — a hand-started `PORT=5000 node server.js` in the main checkout is reaped exactly like one anywhere else once it's old and has no owning task (review finding 8, 2026-09-29).
+
+**Only a known, trusted path is ever reaped.** A process is only a candidate to close when either the creation log recorded it (`kind: "server"` etc. with a `start` line) or its path resolves to somewhere under `C:\Code\lew42\` (a worktree or the monorepo itself). Windows gives no reliable "cwd" for a running process (`Get-CimInstance` doesn't have one), so the path comes from the child `run.js`'s own command line, the `.worktree-logs\<name>.log` redirect on its wrapper, or the log's own `path`. When none of those gives a path, or the path it finds is outside `C:\Code\lew42\`, the process is **kept**, never closed — a `node server.js` someone hand-started for an unrelated project is never ours to touch (review finding 1, 2026-09-29).
 
 **Windows reuses process ids.** A pid is killed only while it is still the same process: the reaper checks its birth time against the log line, and the pool checks its command line (on 09-29 a pool slot's old watcher pid had become `whisper-server.exe`).
 
@@ -53,5 +57,6 @@ When a pool slot's holder has stopped and the slot still holds work, the pool st
 ## Also in this change
 
 - **A clarity check runs once per task**, not once per minion landing, and waits while the machine monitor's flag is up (`Server/clarity.mjs`).
-- **The monitor's "stop the finished ones" message goes out only when the list of stoppable agents has changed**, and it names them (`Servex/Monitor.js`).
+- **The monitor's "stop the finished ones" message goes out only when the list of stoppable agents has changed**, and it names them, using the same `ONE_PASS` rule `Lifecycle.js` reaps by, imported rather than copied (`Servex/Monitor.js`, review finding 7).
+- **One browser per process.** `Server/browser.mjs`'s `browser()` now reuses the one Chromium it already launched in this process instead of starting a new one on every call; `close()` shuts it down (idempotent — safe to call twice, or after a caller closed the Browser it got back directly). It also closes itself on a normal exit (`beforeExit`) and makes a best-effort kill on `process.exit()` (`exit`), with the reaper's sweep as the backstop for anything killed outright.
 - **A task log learns its worktree.** `spawn_agent` with a `task` and a worktree `cwd`, `take_worktree`, and `worktree-up.mjs --task <dir>` all write `worktree` into the task's log. `entry_for_task_dir` also matches by the task's slug or branch when that line is missing, so on-landing can find the worktree to tear down.

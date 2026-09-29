@@ -2,6 +2,7 @@ import os from "os";
 import { spawn } from "child_process";
 import Events from "../Server/Events.js";
 import { stamp } from "./home.js";
+import { ONE_PASS } from "./Lifecycle.js";
 
 /* THE MACHINE MONITOR — is this computer melting, and who is doing it?
  *
@@ -188,11 +189,12 @@ export default class Monitor extends Events {
     /* NEWS ONLY (lifecycle, 2026-09-29): "stop the finished ones" went out about every 3 minutes
      * from 16:40 to 17:45, usually with nothing left to stop. Now the message goes only when the
      * set of stoppable agents (idle ones the reaper would close) differs from the last one sent,
-     * and it names them. The flag itself is still logged and shown on the card every time. */
+     * and it names them. The flag itself is still logged and shown on the card every time.
+     * `ONE_PASS` comes from Lifecycle.js (review finding 7) so this list can never drift from the
+     * reaper's own rule — a second, hand-copied regex here would be exactly that drift. */
     stoppable(){
         const live = [...(this.servex?.agents?.live?.values() ?? [])].filter(a => a.state === "idle");
-        const one_pass = /^(reviewer|clarity|checker|critic|fork)$/;
-        return live.filter(a => one_pass.test(a.role ?? "") || (a.role === "minion" && a.parent && this.servex.agents.live.get(a.parent)?.state === "stopped")).map(a => a.id).sort();
+        return live.filter(a => ONE_PASS.test(a.role ?? "") || (a.role === "minion" && a.parent && this.servex.agents.live.get(a.parent)?.state === "stopped")).map(a => a.id).sort();
     }
 
     up(reason){
