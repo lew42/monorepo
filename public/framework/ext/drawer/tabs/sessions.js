@@ -25,7 +25,7 @@ const walk = (files, [head, ...rest]) => {
 export async function threads(url){
 	const dir = url.replace(/^\//, "") + "ai";
 
-	// Each folder's own page.jsonl names its sub-folders; each thread's names its task.jsonl.
+	// Each folder's own file list (files.jsonl, Page.listing()) names its sub-folders; each thread's names its task.jsonl.
 	// The page's own list first: a page with no ai/ folder costs one fetch, not a 404.
 	const own = await PageLog.listing("/" + dir.replace(/ai$/, ""));
 	if (own && !own.folder("ai")) return [];
@@ -36,7 +36,7 @@ export async function threads(url){
 		return kids.filter((kid, i) => logs[i]?.files.includes("task.jsonl")).map(slug => ({ slug, task: `${dir}/${slug}` }));
 	}
 
-	// No page.jsonl there yet: the whole site's directory.json.
+	// No file list there yet: the whole site's directory.json.
 	const tree = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
 	return (tree?.children ?? [])
 		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))

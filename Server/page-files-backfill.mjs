@@ -1,22 +1,21 @@
 import path from "path";
 import PageFiles from "./plugins/PageFiles.js";
 
-/* One-time: creates every missing page.jsonl the covers() rule in Server/plugins/PageFiles.js
- * allows, using the EXACT SAME WALK the dev server's own boot catch-up runs at startup —
- * `boot(dir, true)`, where the server itself always passes `false` (existing logs only, so a
- * fresh server starts fast) and this script passes `true` (also create what's missing).
+/* One-time: gives every covered folder its file list, using the EXACT SAME WALK the dev
+ * server's own boot catch-up runs at startup — `boot(dir, true)`, where the server itself
+ * passes `false` (existing logs only, so a fresh server starts fast) and this script passes
+ * `true` (also create what's missing). Which file a folder's list lives in is PageFiles'
+ * own rule (`log_of()`): a jsonl page's page.jsonl, else files.jsonl; an empty folder gets
+ * none. Run page-files-migrate.mjs first, so old list-only page.jsonl files are moved.
  *
- * Run it from the repo root (or a worktree root) — it walks THAT root's own public/:
+ * Run it from the repo (or a worktree) root — it walks THAT root's own public/:
  *
  *   node Server/page-files-backfill.mjs
  *
- * IDEMPOTENT: a second run visits the same folders but creates 0 logs and appends 0 lines,
- * because every covered folder already has its log and every log already agrees with what's
- * on disk (the same "replay before you write" rule every other page.jsonl write goes through).
+ * IDEMPOTENT: a second run visits the same folders but creates 0 logs and appends 0 lines.
  *
  * This never starts the dev server's watch() — it builds a bare instance straight on
- * PageFiles' own prototype, so it gets `boot`/`ensure`/`catchup`/`sync`/`append` unchanged
- * and nothing that keeps the process alive after the walk finishes. */
+ * PageFiles' own prototype, so nothing keeps the process alive after the walk finishes. */
 
 const PUBLIC = path.resolve("public");
 

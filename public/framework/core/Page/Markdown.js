@@ -71,7 +71,7 @@ export default class PageMarkdown extends Page {
 		});
 	}
 
-	// ════ THE FILE LIST — each folder's own page.jsonl (Page.listing()) ════════
+	// ════ THE FILE LIST — each folder's own files.jsonl or page.jsonl (Page.listing()) ════
 
 	// Is `name` in `folder` a folder, a `.md` file, or unknown (undefined)? The listing
 	// answers. A name it does not know may be newer than the list, so the list is read
@@ -93,14 +93,14 @@ export default class PageMarkdown extends Page {
 		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
 
-	/* How many folders one walk reads by their own page.jsonl before the rest come
+	/* How many folders one walk reads by their own file list before the rest come
 	   from ONE directory.json read. On a phone every request waits a round trip:
 	   /framework/fs/ was 2,351 page.jsonl requests uncapped (measured 09-29). */
 	static budget = 40;
 
 	/* Every file under `dir` that `keep` wants, relative to `dir`. Breadth-first:
-	   each level's folders are read in parallel, one page.jsonl each, until `budget`
-	   folders are read; the folders left over, and any folder with no page.jsonl, are
+	   each level's folders are read in parallel, one file list each, until `budget`
+	   folders are read; the folders left over, and any folder with no file list, are
 	   read from the old directory.json instead. `pages: true` walks into child pages
 	   too (ext/files' /fs/). `depth: 1` is this folder only: one request. Undefined
 	   when there is no file list at all (production).
@@ -122,8 +122,8 @@ export default class PageMarkdown extends Page {
 				if (!listing) return void missing.push(folder);
 				if (folder.rel && !pages && listing.page) return;
 
-				// The log itself is never one of its own lines, but it is a real file here.
-				[...listing.files, "page.jsonl"].filter(keep).forEach(name => found.push(folder.rel + name));
+				// The log itself (files.jsonl or page.jsonl) is never one of its own lines, but it is a real file here.
+				[...listing.files, listing.log].filter(keep).forEach(name => found.push(folder.rel + name));
 				if (d < depth) this.folders(listing, pages).forEach(name => level.push({ dir: folder.dir + name + "/", rel: folder.rel + name + "/" }));
 			});
 		}

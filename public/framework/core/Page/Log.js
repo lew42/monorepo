@@ -217,22 +217,54 @@ export class PageLog {
 
 		page.content ??= page.log_view;
 		reader.attach(page);
+		(PageLog.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
 		return page;
 	}
 
-	/* A FOLDER'S OWN FILE LIST, from its page.jsonl — what used to cost the whole
-	   site's directory.json. `url` is the folder (a trailing `/` is added). One fetch
-	   per folder, memoised (`fresh` refetches); no page is built. Null when the folder
-	   has no page.jsonl: the caller falls back. A log with no `file` lines is an empty folder.
-	   ⚠ Not live: a file added after the fetch is missing until `fresh`. */
+	/* A FOLDER'S OWN FILE LIST — what used to cost the whole site's directory.json.
+	   `url` is the folder (a trailing `/` is added). Where the list lives
+	   (Server/plugins/PageFiles.js, doc/jsonl.md):
+	     - a jsonl page keeps it in its own page.jsonl — if that page is already loaded,
+	       its `listed` lines ARE the listing, with no fetch at all;
+	     - every other folder keeps it in files.jsonl.
+	   So: the loaded page, else files.jsonl, else page.jsonl (a jsonl page nobody has
+	   loaded, or a log from before files.jsonl), else null and the caller falls back to
+	   directory.json. When the parent's listing already says `kid/page.jsonl`, page.jsonl
+	   is asked first, so a card costs one request, not a 404 and then one.
+	   Memoised per folder (`fresh` refetches); no page is built.
+	   ⚠ Not live unless it came from a loaded page: a file added after the fetch is
+	   missing until `fresh`. */
 	static listing(url, fresh){
 		url = String(url).replace(/\/?$/, "/");
 		if (PageLog.UNLOGGED.test(url)) return Promise.resolve(null);
+
+		const own = PageLog.page_listing(url);
+		if (own) return Promise.resolve(own);
+
 		const memo = PageLog.listings ??= new Map();
-		if (fresh || !memo.has(url)) memo.set(url, new PageLog.Reader({ url: url + "page.jsonl" }).load()
-			.then(reader => reader.loaded ? PageLog.Listing.from(reader.entries) : null)
+		if (fresh || !memo.has(url)) memo.set(url, PageLog.fetch_listing(url)
 			.then(listing => { (PageLog.loaded_listings ??= new Map()).set(url, listing); return listing; }));
 		return memo.get(url);
+	}
+
+	// The two files, in the order the parent's listing suggests; the first one there wins.
+	static async fetch_listing(url){
+		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
+		const jsonl_first = parent && PageLog.loaded_listing(parent)?.pages.get(name) === "jsonl";
+		const order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+
+		for (const file of order){
+			const reader = await new PageLog.Reader({ url: url + file }).load();
+			if (reader.loaded) return PageLog.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
+		}
+		return null;
+	}
+
+	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+	static page_listing(url){
+		const page = PageLog.log_pages?.get(url);
+		if (!page) return null;
+		return PageLog.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
 	}
 
 	// ⚠ Folders INSIDE a dated task folder get no log (Server/plugins/PageFiles.js
@@ -241,10 +273,12 @@ export class PageLog {
 	//   a sub-card's folder can hold a real page.jsonl.
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
 
-	// The listing, only if a `listing()` call has already brought it in; never fetches.
-	// undefined = not asked yet, null = asked, no page.jsonl.
+	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+	// call that has come back; never fetches.
+	// undefined = not asked yet, null = asked, no file list.
 	static loaded_listing(url){
-		return PageLog.loaded_listings?.get(String(url).replace(/\/?$/, "/"));
+		url = String(url).replace(/\/?$/, "/");
+		return PageLog.page_listing(url) ?? PageLog.loaded_listings?.get(url);
 	}
 
 	static async log_class(module, url){
@@ -324,14 +358,17 @@ PageLog.Reader = class PageLogReader {
        files  ["readme.md", …]         plain files
        dirs   ["doc", …]               plain folders (each may have its own page.jsonl)
        pages  Map { "kid" → "js" }     child pages, and which file makes each one
-       page   true/false               is this log itself a page (line 1 is not a file line)? */
+       page   true/false               is this log itself a page (line 1 is not a file line)?
+       log    "files.jsonl" | "page.jsonl"   the file the list was read from */
 PageLog.Listing = class PageListing {
 
 	files = [];
 	dirs = [];
 	pages = new Map();
 
-	static from(entries){
+	// `page`: is this folder a jsonl page? Unknown (undefined) means "read line 1".
+	// `log`: the file the list came from ("files.jsonl" or "page.jsonl") — a real file there too.
+	static from(entries, page, log = "page.jsonl"){
 		const latest = new Map();
 		for (const { file, gone } of entries){
 			if (typeof file !== "string") continue;
@@ -339,7 +376,8 @@ PageLog.Listing = class PageListing {
 		}
 
 		const listing = new this();
-		listing.page = !!entries[0] && typeof entries[0].file !== "string";   // line 1 builds a page; a listing-only log starts with a file line
+		listing.log = log;
+		listing.page = page ?? (!!entries[0] && typeof entries[0].file !== "string");   // line 1 builds a page; a listing-only log starts with a file line
 		latest.forEach((name, key) => {
 			const kind = name.match(CHILD)?.[2];
 			if (kind) listing.pages.set(key, kind);
