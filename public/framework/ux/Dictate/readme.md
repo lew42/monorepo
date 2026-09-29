@@ -101,6 +101,7 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - **Mic feedback and https on the LAN:** [`doc/https-lan.md`](/framework/ux/Dictate/doc/https-lan/) —
   why the start sound could play with no error on a phone over plain http, and the cleanest way
   to get https on the LAN so a phone's mic works at all
+- **What's in flight for dictation** — the Overview's own strip, drawn by [`page_work`](/framework/core/Page/ai/) (`core/Page/ai/work.js`), keyword-matched against Servex's open cards and agents
 - [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
   the same box under `ui-contrast ui-compact` · [variants](/framework/ux/Dictate/variants/) —
   the same mic, three different looks

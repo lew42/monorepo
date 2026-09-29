@@ -1,6 +1,7 @@
 import { Doc, View, md, h2, small, div, a, icon, span, details, summary } from "/app.js";
 import { view } from "/framework/ux/Content/Object/DefaultView.js";
 import { agents } from "./live.js";
+import { page_work, page_work_strip } from "./work.js";
 
 View.stylesheet(import.meta, "ai.css");   // the `.ai-row` rows below (the stand-in ObjectView.js used to load it)
 
@@ -34,7 +35,7 @@ export default new Doc({
 	icon: "smart_toy",
 
 	children: "agents",
-	notes: "dictation assistant manager sessions",
+	notes: "dictation assistant manager sessions work",
 
 	content(){
 		md("**Every page path is a context.** A card's directory (`ai/<date>/<slug>/`) is not just where its log lives — the moment the owner talks or types on it, Servex mints that path its own fast assistant and its own manager, and both keep the same session id for as long as the card is alive. The five parts below are how that works; [Servex](/framework/servex/) documents the agents themselves.");
@@ -55,6 +56,22 @@ export default new Doc({
 					small.c("muted", p.blurb);
 				}));
 		}).style("--column", "14rem");
+
+		// page_work() (work.js) — THIS page's own open work, matched by keyword
+		// against every open Servex card and live agent (page-work-data.md has
+		// why keyword, not a real field, is what works today). Shown TWICE on
+		// purpose, as its own second example: View A always open, View B a
+		// one-line strip that opens the same block on click. Recommendation,
+		// in one line: View B for most pages — a page's main topic is not its
+		// AI work, so a closed strip costs one line until the reader asks for
+		// more; View A earns its space only on a page ABOUT the AI system
+		// itself, which is exactly this one.
+		const WORK_OPTS = { match: ["page-", "page system"] };
+		h2("Its own work");
+		md("Matched by the keywords `page-` and `page system` — real agents and cards, right now. **View A** (open by default):");
+		div.c("card pad", $box => page_work($box, WORK_OPTS));
+		md("**View B** (a one-line strip; click to open the same block):");
+		div.c("card pad", $box => page_work_strip($box, WORK_OPTS));
 
 		// SHOW, DON'T JUST LINK — the very thing this page is about, right here: real
 		// agents, fetched live, rendered by the default instance view (ux/Content/Object/DefaultView.js).

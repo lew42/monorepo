@@ -17,3 +17,14 @@
 	.ai-row[open] > summary::before { content: "▾ "; }
 	.ai-row-body { padding-inline-start: 1.1em; padding-block: .2em .4em; }
 }
+
+/* page_work() — work.js. View A's rows use plain utility classes (flex
+   gap-25); the two things that need their own rule are the "Parent: …"
+   disclosure (reuses .ai-row above) and View B's one-line strip. */
+@layer theme {
+	.page-work-strip > summary { cursor: pointer; list-style: none; }
+	.page-work-strip > summary::-webkit-details-marker { display: none; }
+	.page-work-strip > summary::before { content: "▸ "; color: var(--subtle); }
+	.page-work-strip[open] > summary::before { content: "▾ "; }
+	.page-work-strip-body { border-inline-start: 1px solid var(--line); margin-block-start: .3em; }
+}

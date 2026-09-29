@@ -1,6 +1,19 @@
-import { Doc, md, demo, div, span, textarea } from "/app.js";
+import { Doc, md, demo, div, span, textarea, h2, icon, a, small } from "/app.js";
 import Dictate from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
+import { page_work_strip } from "/framework/core/Page/ai/work.js";
+
+/* Level 1, above the fold: what the dictation SYSTEM is made of, as linked
+   icon tiles — the page skill's "first thing on a page" (5a). Same pattern
+   core/Page/ai/page.js uses for its own five parts; a real ux/Content/Concepts
+   module (new child pages) would be the graduated version of this once one
+   exists for a page whose children are already this settled. */
+const CONCEPTS = [
+	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
+	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
+	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
+	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
+];
 
 /* The card's own context — a real textarea, dictated into live. `$out` mirrors
  * the box's value so a screenshot of the DEMO proves the wire without a
@@ -42,6 +55,28 @@ export default new Doc({
 	],
 
 	content(){
+
+		// The overview: what the dictation system is made of, shown before anything else.
+		div.c("wide flex auto gap", () => {
+			CONCEPTS.forEach(c => a.c("card flex v gap-35").href(c.href)
+				.style({ textDecoration: "none", color: "var(--ink)" })
+				.append(() => {
+					icon(c.icon).style({ fontSize: "2rem" });
+					span(c.name).style({ fontWeight: "700" });
+					small.c("muted", c.blurb);
+				}));
+		}).style("--column", "14rem");
+
+		// page_work() (core/Page/ai/work.js) — the system's own open work, right
+		// after the overview it belongs to. A one-line strip (View B): this
+		// page's main topic is the mic, not its own AI tasks, so it stays
+		// closed until asked for (page-work-data.md names the match method
+		// and why it's a keyword guess, not a real field, today).
+		h2("What's in flight");
+		div.c("card pad", $box => page_work_strip($box, {
+			match: ["dictat", "mic", "whisper"],
+			ancestors: [{ title: "ux", url: "/framework/ux/", match: ["ux/"] }],
+		}));
 
 		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
 		pg.widget();
