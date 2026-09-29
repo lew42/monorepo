@@ -45,7 +45,22 @@
 
 		.switcher-drop {
 			display: block;
-			position: sticky; top: 0; z-index: 1;
+			position: sticky; top: 0; z-index: 2;
+		}
+
+		/* CLOSED: `.switcher-drop`'s own box collapses to zero height — no separate
+		   chevron row — and its <summary> becomes just the chevron button, pinned to
+		   the end of the row that the one surviving tab (below) now spans full width.
+		   Together they read as ONE header ("index.js ▾"): the label is the tab's own
+		   text, never duplicated here; tapping the chevron opens the list. ⚠ Tried
+		   first as an inset:0 overlay spanning the WHOLE row (so a tap anywhere would
+		   open it) — Chromium measured that box at width:0 despite explicit left:0;
+		   right:0 (a <details>/<summary> sizing quirk, the same family doc/decide.md
+		   §2 already hit once). An EXPLICIT width sidesteps it. */
+		.switcher-drop:not([open]) { height: 0; }
+		.switcher-drop:not([open]) .switcher-toggle {
+			position: absolute; top: 0; right: 0; width: 2.4em; height: 2.4em;
+			padding: 0; background: none; border: none;
 		}
 
 		.switcher-toggle {
@@ -55,7 +70,16 @@
 		}
 		.switcher-toggle::-webkit-details-marker { display: none; }
 
-		.switcher-drop ~ .tabs.vertical { flex-direction: column; gap: 0; }
+		/* ⚠ `align-items: stretch` matters here: without it the row only shrink-wraps
+		   its own label (`align-items: flex-start` is `.tabs.vertical`'s own default,
+		   from tabs.css) — invisible on an actually-narrow BROWSER, since tabs.css's
+		   own `@media (max-width: 64em)` sets `stretch` there anyway, but this
+		   CONTAINER query can match on a wide screen too (an 880px demo frame shrunk
+		   to fit a phone-sized CARD) where that media query never fires, and the
+		   header row measured 115px wide in a 332px switcher instead of spanning it
+		   (2026-09-29 proof run). Stated here so the container query's own narrow
+		   state never depends on the page's viewport width, only the switcher's. */
+		.switcher-drop ~ .tabs.vertical { flex-direction: column; gap: 0; align-items: stretch; }
 		.switcher-drop ~ .tabs.vertical > .tab-bar {
 			flex-direction: row; flex: 0 0 auto;
 			position: sticky; top: 2.4em; z-index: 1;
@@ -65,10 +89,30 @@
 			mask-image: none;
 		}
 
-		/* CLOSED: every tab but the current one is gone, so this row IS the header —
-		   reading .active / .in-path, the same marks the wide layout already reads. */
-		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar > .tab:not(.active, .in-path) {
+		/* CLOSED: every tab but the one CURRENTLY SHOWING is gone, so this row IS the
+		   header. "Currently showing" reads the exact same test ext/tabs' own CSS
+		   already uses for its highlight everywhere else on the site (tabs.css): a
+		   real `.active`/`.in-path` mark when Router set one, else — a set with
+		   nothing of its own in the url yet, e.g. a second switcher() on one host
+		   page, since `this.default_tab` (ext/tabs/tabs.js) is a single field that
+		   only the FIRST switcher()/tabs() call on a page can own — the first tab,
+		   same as `.tab-bar:not(:has(...)) > .tab:first-child` in tabs.css. Neither
+		   branch is new logic; both are copied from what tabs.css already reads.
+		   The survivor also spans the row's whole width and keeps clear of the
+		   chevron button pinned over its end (above), so together they read as one
+		   header ("index.js ▾"), not a lone list item. */
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar { top: 0; }
+
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default)) > .tab:not(.active, .in-path) {
 			display: none;
+		}
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:not(:first-child) {
+			display: none;
+		}
+
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar > .tab:is(.active, .in-path),
+		.switcher-drop:not([open]) ~ .tabs.vertical > .tab-bar:not(:has(.tab.active, .tab:is(.in-path, [aria-current]):not(.tab-default))) > .tab:first-child {
+			flex: 1 1 auto; padding-inline-end: 2.4em;
 		}
 
 		/* OPEN: the full list drops down over whatever is below it. ⚠ `top: 2.4em`, not
@@ -105,4 +149,15 @@
 	     border/background/padding, these two classes only fix the width. */
 	.switcher-demo-frame-wide { width: 880px; max-width: 100%; }
 	.switcher-demo-frame-narrow { width: 400px; max-width: 100%; }
+
+	/* Each demo child's own `title` still draws its usual `h1.page-title` (Page.class.js
+	   line 560) — right everywhere else, but a whole-page display heading is the wrong
+	   size for a one-line stand-in file inside an 880px or 400px demo frame. Shrunk to
+	   the `h3, .h3` size (framework.css) here only: three classes deep beats
+	   `.page h1.page-title`'s own (0,2,1) regardless of file load order, in the same
+	   `theme` layer. */
+	.switcher-demo-frame-wide .page h1.page-title,
+	.switcher-demo-frame-narrow .page h1.page-title {
+		font-size: 1em; font-weight: 700;
+	}
 }

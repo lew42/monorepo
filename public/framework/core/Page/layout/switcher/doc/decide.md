@@ -85,20 +85,34 @@ The container query itself — `@container switcher (width < 30em)` at
 (`.switcher`, [switcher.css:30](../switcher.css)) and read on its descendants (`.switcher-drop`,
 `.tabs.vertical`), never on `.switcher` itself for anything that needs the query to actually fire.
 
-## 3. What this proves, and what it doesn't
+**Two more `<details>`/container quirks turned up fusing the toggle and the label into one row
+(2026-09-29), same family as the two above — still nothing to do with the active-class answer:**
 
-**Proven:** the exact same `.active-page` / `.active-ancestor` / `.active` / `.in-path` marks
-that drive every tab strip and every nav link on the site can be reshaped into a collapsing
-mobile dropdown using CSS alone (plus one optional, state-reading-only script) — see the live
-demo on [the pattern page](../page.js), "Wide vs narrow, side by side": the same `switcher()`
-call, unmodified, framed at ~880px and ~400px on one page, no window resize needed.
+- **An absolutely positioned `<summary>` sized only by `inset: 0 0 auto 0` measured `width: 0` in
+  Chromium**, even though `left` and `right` both computed to `0px` (verified with
+  `getComputedStyle` — a plain CSS2.1 abs-pos box with both inline insets set should fill its
+  containing block regardless of `display`). The fix was to stop relying on that: the toggle is
+  now a small `width: 2.4em` chevron button pinned to the row's end (`right: 0`) with an explicit
+  size, not a full-row overlay — simpler, and it sidesteps the bug rather than explaining it.
+- **The row measured full width on an actual 400px BROWSER but shrink-wrapped to its own label
+  (115px in a 332px switcher) on a 1920/3440 browser with the same ~400px demo FRAME.** The cause:
+  `ext/tabs/tabs.css`'s own vertical-rail collapse sets `align-items: stretch` under
+  `@media (max-width: 64em)` — a *viewport* query — which this module's `@container switcher
+  (width < 30em)` had been quietly relying on. A container query can match on a wide viewport (an
+  880px frame shrunk into a narrow card), where that media query never fires. Fix:
+  `align-items: stretch` is now stated directly on `.switcher-drop ~ .tabs.vertical`, inside the
+  container query itself, so the collapse no longer depends on the page's own width.
 
-**Not proven, and not needed for this answer:** that the *visual* fusion of the disclosure toggle
-and the current item's label into one seamless row (rather than two thin stacked rows) is
-achievable without a tiny label-mirroring script. It probably is, with more CSS trickery or a
-`<summary>` whose content is the active tab itself rather than a separate caret — but that's a
-polish question for whoever builds the real `/fs` instance, not a blocker on the "no active-class
-monkey-patching" question this page exists to answer.
+## 3. What this proves
+
+The exact same `.active-page` / `.active-ancestor` / `.active` / `.in-path` marks that drive every
+tab strip and every nav link on the site reshape into a collapsing mobile dropdown — a full-width
+sticky header showing the current item's label and a real toggle icon, tap to open the rest — using
+CSS alone (plus one optional, state-reading-only script that only ever reads which link was
+clicked, never `.active`/`.in-path`). See the live demo on [the pattern page](../page.js), "Wide vs
+narrow, side by side": the same `switcher()` call, unmodified, framed at ~880px and ~400px on one
+page, no window resize needed. The label-and-chevron fusion once listed here as "not proven" is
+done (2026-09-29) — the two quirks above are what it took.
 
 ## Converging with task-mastermind-file-system
 
