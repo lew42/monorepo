@@ -29,14 +29,21 @@ import { css } from "../parts.js";
  * `end` is `"menu"` (a small ⋯ button — wire its `click` yourself, this only draws
  * it), `"arrow"` (a plain → glyph, for a link row), or a function that draws
  * anything else there.
+ *
+ * A row that is one of an array `children` always reserves the caret's own width,
+ * blank when that row has no children of its own — a leaf sitting beside a branch
+ * (a file next to a folder, both children of the same folder) lines its icon up
+ * with its sibling's, the way a real file tree does. `sibling` is that flag; you
+ * never pass it by hand — the recursion above sets it for you.
  */
-function item({ icon: glyph, name, href, end, open, children } = {}){
+function item({ icon: glyph, name, href, end, open, children } = {}, sibling){
 	const kids = children != null;
+	const caret = kids || sibling;
 
 	// The row's own insides — shared between the plain-row and the summary-row case,
 	// so a branch and a leaf line up on the same icon and name columns.
 	const inside = () => {
-		if (kids) span.c("item-caret", "▸");
+		if (caret) span.c("item-caret", kids ? "▸" : "");
 		if (glyph) icon(glyph).ac("item-icon");
 		span.c("item-name", name);
 		end_part(end);
@@ -47,7 +54,7 @@ function item({ icon: glyph, name, href, end, open, children } = {}){
 			if (open) $node.attr("open", "");
 			summary.c("item", inside);
 			div.c("item-children", () => {
-				is.fn(children) ? children() : children.forEach(child => item(child));
+				is.fn(children) ? children() : children.forEach(child => item(child, true));
 			});
 		});
 	}
