@@ -1,10 +1,14 @@
 # Census — which classes are worth a debug view?
 
-This table walks every exported class in `core/`, `ext/` and `ux/` (73 classes; `ui/`
-and `web/` export none — they're plain page files, not classes) and judges whether it
-holds state worth looking at, whether anything already shows that state, and whether it
-deserves a card. **Headline: 73 classes, 27 worth a view, 1 already has one** (`Page`,
-via [`ObjectCard`](/framework/ux/Content/Object/), on its own API tab).
+This table walks every exported class in `core/`, `ext/` and `ux/` — anything matching
+`export class` or `export default class` at the top level of a `.js` file, skipping
+`ai/`, `core/legacy/`, `core/new/`, `dev/` and sandbox dirs (77 classes; `ui/` and `web/`
+turned up zero — they're plain page files, not classes) — and judges whether it holds
+state worth looking at, whether anything already shows that state, and whether it
+deserves a card. **Headline: 77 classes, 37 worth a view, 1 already has one** (`Page`,
+via [`ObjectCard`](/framework/ux/Content/Object/), on its own API tab). All 37 "yes"
+rows are listed first, most useful first (`Page` and `App` at the very top); the 40
+"no" rows follow, in no particular order.
 
 | class | module | object-like? | has a view today? | worth a view? |
 |---|---|---|---|---|
@@ -34,22 +38,23 @@ via [`ObjectCard`](/framework/ux/Content/Object/), on its own API tab).
 | Panel | ext/Panel | yes — extends Item; size, position, hug/fill | no | yes — the panel's numbers |
 | PanelDrag | ext/Panel | yes — extends Sortable; drag state | no | yes — mid-drag debug only |
 | Workspace | ext/Panel/Workspace | yes — collection of Panels + layout | no | yes — panel count + layout |
+| Flow | ext/Panel | yes — recorded steps of panel gestures | no | yes — step count + current index |
 | Timeline | ext/Timeline | yes — extends View; entries, cursor | no | yes — entry count |
-| Draggable | ext/Draggable | yes — drag position, target | no | no — only useful mid-gesture |
-| Sortable | ext/Draggable | yes — extends Draggable, order | no | no — same as Draggable |
 | Auth | ux/Auth | yes — extends View; session/user state | no | yes — who's signed in |
 | MagicAuth | ux/Auth | yes — extends Auth, token state | no | yes — same as Auth |
 | Course | ux/Course | yes — extends View; steps, progress | no | yes — progress at a glance |
 | Dictate | ux/Dictate | yes — extends View; recording/transcript state | no | yes — the state the owner asked for by name |
-| Capture | ux/Dictate | yes — audio buffer, level | no | no — too live/binary to render as text |
-| Playground | ux/Dictate/playground | yes — a lab harness, config + samples | no | no — a demo page, not a model |
 | Filter | ux/Filter | yes — extends View; active filters | no | yes — which filters are on |
 | FilterChips | ux/Filter | yes — extends Filter | no | yes — same as Filter |
 | Tags | ux/Tags | yes — extends View; tag list | no | yes — the tag list |
 | Tree | ux/Tree | yes — extends View; expanded/selected nodes | no | yes — small, useful |
+| Wizard | ux/Wizard | yes — extends View; step, answers | no | yes — current step + answers |
+| Draggable | ext/Draggable | yes — drag position, target | no | no — only useful mid-gesture |
+| Sortable | ext/Draggable | yes — extends Draggable, order | no | no — same as Draggable |
+| Capture | ux/Dictate | yes — audio buffer, level | no | no — too live/binary to render as text |
+| Playground | ux/Dictate/playground | yes — a lab harness, config + samples | no | no — a demo page, not a model |
 | TreeDrag | ux/Tree | yes — extends Tree, drag state | no | no — mid-drag debug only |
 | TreeKeys | ux/Tree | no — pure keyboard-handler mixin, no own state | n/a | no |
-| Wizard | ux/Wizard | yes — extends View; step, answers | no | yes — current step + answers |
 | Popover | ux/Popover | yes — open/anchor state | no | no — transient UI, not a model |
 | Menu | ux/Menu | yes — extends View; open items | no | no — transient UI, not a model |
 | Pagination | ux/Pagination | yes — extends View; page/total | no | no — two numbers, not worth a card |
