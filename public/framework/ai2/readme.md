@@ -62,11 +62,10 @@ real task page of every task in it, newest first. Below the groups sits the Live
 **Not filed yet**, a fold holding every card no group holds. How a thing joins a group:
 [`doc/groups.md`](./doc/groups.md).
 
-The rail's `overview` word opens the **overview** at [`overview/`](/framework/ai2/overview/) — four
-columns by importance: needs you (flagged or blocked, cleared per item), reports (the
-mastermind's own notes and write-ups), landed (recent task landings), and live (what Servex is
-running now, the usage windows, the last few events). Nothing pushes the top of a column down —
-a new arrival waits behind a small pill. "← Open the inbox" goes back.
+**Two tabs under the title: Inbox and Overview** (2026-09-28). Inbox is this page; the
+[Overview](/framework/ai2/overview/) is one big icon card per concept (Servex, Page, View, App,
+AI 2, Dictation, Research & Collab), each with its open asks and a folded "Completed (n)" line,
+built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
