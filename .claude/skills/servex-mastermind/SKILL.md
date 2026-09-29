@@ -48,6 +48,24 @@ standpoint, in terms of revising the skills."
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 
+## A VS Code tab is an agent you can message
+
+Register once, near the start: `register_session({id, session_id})` — `id` is a short word you
+pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid
+(`$CLAUDE_CODE_SESSION_ID`). After that, `list_agents` lists you, `send_to_agent` reaches you, and
+the owner's words on any card you create go to you too — all as lines appended to your own inbox
+file, `logs/inbox/<id>.jsonl` under Servex's home. You are not a live agent Servex holds open, so
+nothing pushes those lines to you: watch for them yourself, with **one** `Monitor` call whose
+command tails that file. A Monitor cannot run forever: it stops after its `timeout_ms`, and 30
+minutes (`1800000`) is the most the tool allows, so pass that. **Re-arm it at the start of every
+turn**, and again whenever its expiry notice arrives:
+
+```
+tail -n 0 -F <SERVEX_HOME>/logs/inbox/<your id>.jsonl
+```
+
+Full design: `Servex/agents/doc/external.md`.
+
 ## The main tree is shared: read old code, never swap it
 
 To see or test what a file was before your edit, use `git show HEAD:<path>` into your scratchpad, or `take_worktree()`. Never `git stash`, `checkout --` or `reset` in the main tree: it takes every agent's uncommitted work with it (2026-09-28: mastermind-servex-3 stashed 99 files to run one test, and the pop failed until three live logs were reset by hand).

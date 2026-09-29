@@ -51,9 +51,21 @@ or the owner's browser. Write the owner's name — say *you*.
 `public/framework/ai/handover.md` — one screen: the state of the world, what the owner is waiting
 on, and the session ids worth resuming.
 
+## Watching a card's inbox
+
+If you made a card, you are registered with Servex (`register_session`) and get an inbox file:
+`logs/inbox/<your id>.jsonl`, under Servex's own log directory. Whatever the owner says on that
+card lands there.
+
+Watch it with **one** `Monitor` call whose command tails the file (`tail -n 0 -F <that file>`).
+A Monitor cannot run forever: it expires after its `timeout_ms`, and 30 minutes (`1800000`) is the
+most the tool allows, so pass that. **Re-arm it at the start of every turn**, and again whenever
+its expiry notice arrives, so you are never more than a few seconds behind what the owner said.
+
 ## Load this if…
 
 - **you are writing a card** and need ids, icons, status, `--re`, `--parent`, `--focus`: [`cards.md`](cards.md)
+- **you are a page's own assistant** (spawned for a card or any page, not the front-desk tab): [`page-assistant.md`](page-assistant.md)
 - **you have no Bash tool** (the server spawned you): [`headless.md`](headless.md)
 - **you are wondering who does what** — fast assistant, master assistant, mastermind, minion: [`tiers.md`](tiers.md)
 - **something failed** — "relay NOT delivered", the hook, quoting: [`trouble.md`](trouble.md)

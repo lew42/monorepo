@@ -26,6 +26,7 @@ import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
 import Layers from "./agents/Layers.js";
 import Global from "./agents/Global.js";
+import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import tidy from "./agents/tidy.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -140,6 +141,11 @@ export default class Servex extends Events {
 
         /* CARD FOLDERS — one folder per card under ai/, written only by Cards. */
         this.cards = new this.constructor.Cards({ agents: this.agents, log: this.log });
+
+        /* A VS CODE TAB IS AN AGENT YOU CAN MESSAGE (External.js) — `register_session`
+         * lets any Claude session outside this process become addressable: listed,
+         * messageable, and forwarded the owner's words on any card it creates. */
+        this.external = new this.constructor.External({ servex: this }).install();
 
         /* THE FAST ASSISTANT — one Sonnet session, always up, whose only job is
          * to turn each sentence the owner speaks into a name, a card and a
@@ -918,6 +924,7 @@ Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
 Servex.Layers = Layers;
 Servex.Global = Global;
+Servex.External = External;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.TaskLoop = TaskLoop;

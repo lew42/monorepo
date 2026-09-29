@@ -15,18 +15,28 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
  * A resume must run in the session's ORIGINAL cwd, and mastermind-servex was made there. */
 const REPO = path.join(HERE, "../..");
-const HEARD = ["task", "landed", "blocked", "error"];
-/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. */
-const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher)/;
+/* Only a direct child's landing, block or error reaches the root assistant now
+ * (D3, doc/page-roles.md) — "task" (a queued-state change) is noise at this
+ * level and is dropped; a deeper page's own assistant hears its own "task". */
+const HEARD = ["landed", "blocked", "error"];
+/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. `page-` covers the recursive-pairs role words (page-assistant, page-mastermind); their ids already start with assistant-/manager-. */
+const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-)/;
 const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
+const TASK_MASTERMIND = /^task-mastermind-/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
-/* THE TWO AGENTS ACROSS ALL CARDS (design: ai/2026-09-24/assistant-layers/doc/design.md).
+/* THE TWO ROOT AGENTS (design: ai/2026-09-24/assistant-layers/doc/design.md;
+ * narrowed 2026-09-25/28 by the recursive-pairs work, doc/page-roles.md).
  *
- * - `master-assistant` (fast tier, medium effort) hears every card at once — each
- *   fresh owner prompt and every task, landing, block or error — batched into at
- *   most one message every 20 seconds, and stays silent unless it earns a line.
+ * - `master-assistant` (architect tier, medium effort) is the root page's own
+ *   assistant: a send to the page `/` reaches it straight from Layers.js
+ *   (ROOT_ASSISTANT), and Layers never spawns a second one. It no longer hears
+ *   every card: only the owner's page-less prompts (`page_less()`) and a
+ *   landing, block or error from a DIRECT CHILD of the root (`direct_child()`)
+ *   are batched to it, at most one message every 20 seconds, and it stays
+ *   silent unless it earns a line. Every other page has its own assistant
+ *   hearing its own prompts (Layers.js).
  * - `mastermind-servex` (architect tier) is the persistent systems architect. It
  *   already exists; Global never makes a second one. It is resumed under the same
  *   id from its recorded session, and spawned fresh only when there is none.
@@ -107,9 +117,17 @@ export default class Global {
 		let agent = this.live(id);
 		if (agent && started === day) return this.touch(id, agent);
 		if (agent){ try { agent.stop(); } catch {} this.agents.live.delete(id); }   // a new day: recycled
+		const master_tools = ["card_reply", "send_to_agent", "list_claims", "page_reply", "ask_manager", "list_cards", "list_agents"].map(t => `mcp__servex__${t}`);
 		const spec = { id, role: "master-assistant", name: "", model: model("architect"), effort: "medium",
 			permission_mode: "bypassPermissions", system: this.system("master-assistant.md"),
-			allowed_tools: ["mcp__servex__card_reply", "mcp__servex__send_to_agent", "mcp__servex__list_claims"] };
+			/* page_reply and ask_manager: it is also the page `/`'s assistant (Layers.js ROOT_ASSISTANT). */
+			allowed_tools: master_tools,
+			/* LEAN, like a page assistant (Layers.spec): no settings files, no claude.ai connectors,
+			 * no auto-memory, no built-in tools (it reads no files), and every other Servex tool
+			 * denied so its schema is not sent. Measured 2026-09-29 (fix/proof.txt): it began
+			 * at about 52k tokens without these. */
+			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+			sdk: { tools: [], disallowedTools: (this.servex.mcp?.tools ?? []).map(t => `mcp__servex__${t.name}`).filter(t => !master_tools.includes(t)) } };
 		this.master_day = day;
 		agent = started === day && saved.session_id && !agent
 			? this.agents.spawn({ ...spec, resume: saved.session_id, cwd: saved.cwd ?? REPO })
@@ -212,8 +230,11 @@ export default class Global {
 
 	/* THE REAPER — every minute: an idle minion, helper or fork that has
 	 * finished a turn (its parent was woken then) and sat idle past `reap_ms` is
-	 * stopped; the master and the mastermind are stopped after `idle_ms` of quiet
-	 * and resumed on the next message. */
+	 * stopped; the master, the mastermind, AND any idle `task-mastermind-*` (D5,
+	 * 2026-09-25/28: the same 15-minute rule, not just the two global agents) are
+	 * stopped after `idle_ms` of quiet. All of them resume on the next message —
+	 * that wake is generic (`Agents.wake`/`reopen`, by session id), not special
+	 * to the two ids this file spawns itself. */
 	reaper(){
 		this.reap_timer = setInterval(() => this.sweep(), this.reap_every_ms);
 		this.reap_timer.unref?.();
@@ -223,12 +244,13 @@ export default class Global {
 		for (const agent of [...this.agents.live.values()]){
 			if (agent.state !== "idle") continue;
 			const worker = is_worker(agent);
-			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id) || /^task-mastermind-/.test(agent.id);   // 15 min idle; a message wakes them
-			if (!worker && !global) continue;
+			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id ?? "");   // 15 min idle; a message wakes them
+			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // D5: the same 15 minutes, and its reap is logged
+			if (!worker && !global && !task_mastermind) continue;
 			if (worker && !(agent.turns >= 1)) continue;
 			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : this.idle_ms)) continue;
 			try { agent.stop(); } catch {}
-			if (worker) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
+			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
 		}
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
 	}
@@ -250,7 +272,12 @@ export default class Global {
 		return null;
 	}
 
-	/* Every card, at once — a little context about everything. */
+	/* THE EVERY-CARD FEED IS GONE (D3, 2026-09-25/28, doc/page-roles.md). Every
+	 * page now has its own assistant hearing its own fresh prompts (Layers.js),
+	 * so the root has no reason to hear them a second time — this class only
+	 * still listens for what a DIRECT CHILD of the root reports: a landing, a
+	 * block, or an error. Everything about a page deeper than that is read on
+	 * demand (`list_cards`, `list_agents`), never pushed here. */
 	listen(tries = 0){
 		const cards = this.servex.cards;
 		if (!cards?.on){
@@ -260,10 +287,45 @@ export default class Global {
 		cards.on((cardId, line, info = {}) => this.heard(cards.canonical?.(cardId) ?? cardId, line, info));
 	}
 
+	/* A direct child of the root pair: spawned by the Dispatcher (today's
+	 * `task-mastermind`s, `parent: "dispatcher"`), by `mastermind-servex`, or by
+	 * `master-assistant` itself. A grandchild's own report is for its own
+	 * page's assistant to hear, not the root's — this is what makes the feed
+	 * "direct children only" instead of "every card" again by another name. */
+	direct_child(id){
+		const parent = this.agents.live?.get(id)?.parent;
+		if (parent === "dispatcher" || parent === this.mastermind_id || parent === this.master_id) return true;
+		return this.top_manager(id);
+	}
+
+	/* A top-level page's or a card's manager (`manager-<card>`, `manager-framework`):
+	 * spawned by its own assistant, so its live parent says nothing about the tree —
+	 * but its layers.json `parent` is the root's manager. A deeper page's manager
+	 * (`manager-dictate`, parent `manager-ux`) is not a direct child. */
+	top_manager(id){
+		const layers = this.servex.layers, who = layers?.owner?.(id);
+		if (!who || who.role !== "manager" || who.card === "/") return false;
+		const root = layers.state?.cards?.["/"];
+		const parent = layers.state.cards[who.card]?.parent;
+		return !!parent && (parent === root?.manager?.id || parent === this.master_id);
+	}
+
+	/* A PAGE-LESS PROMPT: a fresh owner prompt on a card no page pair hears —
+	 * Layers keys a pair on a root card (four path segments), so a shorter id (a
+	 * day's own page, a lobby group card) reaches nobody else. With Layers off,
+	 * every prompt is page-less. This is the one part of the old every-card feed
+	 * that is kept (recursive-pairs fix, 2026-09-29). A send to the page `/`
+	 * reaches master-assistant straight from Layers, not through here. */
+	page_less(card){
+		const layers = this.servex.layers;
+		if (!layers?.root) return true;
+		try { return !layers.root(card); } catch { return true; }
+	}
+
 	heard(card, line = {}, info = {}){
-		if (info.fresh && line.prompt) return this.queue(`card ${card}: ${line.prompt.text ?? line.prompt.raw ?? ""}`, "owner");
+		if (info.fresh && line.prompt && this.page_less(card)) return this.queue(`card ${card}: ${line.prompt.text ?? line.prompt.raw ?? ""}`, "owner");
 		const m = line.message;
-		if (m && HEARD.includes(m.kind)) this.queue(`card ${card}, ${m.kind} from ${m.by ?? "someone"}: ${m.text ?? ""}`, "servex");
+		if (m && HEARD.includes(m.kind) && this.direct_child(m.by)) this.queue(`card ${card}, ${m.kind} from ${m.by ?? "someone"}: ${m.text ?? ""}`, "servex");
 	}
 
 	/* At most one message every `batch_ms`: what arrives meanwhile rides in the next one. */

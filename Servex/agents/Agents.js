@@ -289,11 +289,19 @@ export class Agents {
 	 * only in the registry, reopens it first: the same id, `resume` = its
 	 * session, its own recorded spec, no prompt — then delivers. A fork is never
 	 * re-woken. ⚠ `Agent.send()` on a stopped INSTANCE still throws: the live
-	 * card's route turns that throw into a 409. */
+	 * card's route turns that throw into a 409.
+	 *
+	 * A registered EXTERNAL id (External.js — a VS Code tab, a terminal) is
+	 * never in `live` and has no session for `wake()` to reopen: it is a real
+	 * Claude session, just not one this process holds. `external.deliver()`
+	 * appends to its inbox file instead and hands back an agent-shaped
+	 * stand-in, the same trick the spawn gate's `hold()` stand-in already
+	 * uses elsewhere in this file. */
 	send(id, text, note){
 		id = this.holder(id);
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
+		if (this.external?.has?.(id)) return this.external.deliver(id, text, note);
 		return this.wake(id).send(text, note);
 	}
 
