@@ -29,7 +29,7 @@
 | 9 | "low hanging fruit, like quick and easy fixes … that carry a lot of weight" | kept | #4 |
 | 10 | "the priorities, the weights, the, you know, sizing, the scale and, and grouping … a quick tangible reference point" | changed | #4 "Prioritize by weight". Sizing, scale and grouping (how big each item looks on the card) are lost. |
 | 11 | "we want to be updating the actual documentation pages" instead of new content | kept | #5 "REAL documentation pages … not new side content" |
-| 12 | "the framework page … the framework core page … the framework core slash page page … an audit of all the documentation" | changed | #5 names only `/framework/core/Page/` and the page skill. The owner later narrowed it too (#28 below), but `/framework/` ("I haven't seen it in a while") and `/framework/core/` were named and vanished. |
+| 12 | "the framework page … the framework core page … the framework core slash page page … an audit of all the documentation" | changed | #5 names only `/framework/core/Page/` and the page skill. The owner later narrowed it too (#31 below), but `/framework/` ("I haven't seen it in a while") and `/framework/core/` were named and vanished. |
 | 13 | "extreme focus for not being verbose … highly structured things … all that visual" | kept | #5 "little writing" |
 | 14 | "the H1 the H2s the H3s … wording things in a way where it almost becomes like navigation … little H3s as just section headers" | kept | #5 |
 | 15 | "a whole bunch of like navigation icon items … frequently referenced" | kept | #5 "icon items as navigation" |
@@ -95,5 +95,5 @@
 ## Tally
 
 - **Items in the ledger:** 59.
-- **The tab's result:** 43 kept, 10 changed, 2 stricter, 4 dropped.
+- **The tab's result:** 44 kept, 9 changed, 2 stricter, 4 dropped.
 - **Raw words passed along:** yes, word for word.
