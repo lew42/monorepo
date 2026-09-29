@@ -144,7 +144,12 @@ function body(node, chain){
 
 	div.c("std-explorer-body", () => {
 		div.c("std-explorer-rail", () => {
-			h3(parent ? parent.title : "Categories");
+			// ROUND 3, DELIVERABLE 3 — "Categories" whenever this rail IS the top-level
+			// list (`parent` is the tree's own root, or there is no parent at all, the
+			// root state); the parent's own name otherwise, matching the right rail's
+			// "Inside X" exactly, rather than the root's fixed label "Explorer" one
+			// level down.
+			h3(!parent || parent === TREE ? "Categories" : "Inside " + parent.title);
 			rail(left_items, left_base, selected?.id, "Nothing here.");
 		});
 
@@ -223,6 +228,13 @@ function centre(node){
 // aspect (the centre is closer to a real screen; a card is shorter — round 2,
 // deliverable 4, "aim for ~6 visible at 1920") and a class the CSS sizes
 // differently. The same function draws a thumbnail card and the centre.
+//
+// ROUND 3, DELIVERABLE 1 — a card KEEPS the fixed 1920x760 aspect (it is a small,
+// uniform thumbnail; nothing about it needs to fill anything). The CENTRE does
+// not: it is "the selected item, LARGE, real size", so its box's `--w`/`--h` are
+// re-measured off its own real, rendered pixels (`fit_frame`, below) the instant
+// it has a size — never a fixed 1920x1080 — so the drawing (or the iframe) grows
+// to fill BOTH the column's width and the viewport's height, not just one.
 function picture(item, big){
 	const size = big ? { w: 1920, h: 1080 } : { w: 1920, h: 760 };
 	const cls = "std-explorer-pic" + (big ? " std-explorer-pic-big" : "");
@@ -230,19 +242,40 @@ function picture(item, big){
 	if (item.wire) return div.c(cls, $pic => {
 		load_layouts().then(data => {
 			const entry = find_layout(data, item.wire);
-			$pic.append(() => { if (entry) new Layout({ wire: entry.wire, id: entry.id }).frame(size); });
+			$pic.append(() => {
+				if (!entry) return;
+				const $frame = new Layout({ wire: entry.wire, id: entry.id }).frame(size);
+				if (big) fit_frame($pic, $frame);
+			});
 		});
 	});
 
-	if (item.url) return div.c(cls, () => {
-		div.c("std-explorer-frame", () => {
+	if (item.url) return div.c(cls, $pic => {
+		const $frame = div.c("std-explorer-frame", () => {
 			div.c("std-explorer-draw", () => {
 				iframe().attr("src", item.url).attr("title", item.title).attr("loading", big ? "eager" : "lazy");
 			});
 		}).style({ "--w": size.w, "--h": size.h });
+		if (big) fit_frame($pic, $frame);
 	});
 
 	return div.c(cls + " std-explorer-pic-cat", () => { icon("folder_open"); });
+}
+
+// THE CENTRE'S OWN SIZE, fed back into the frame it holds. `$box` is the flex
+// item the CSS already grows to fill the centre column (`.std-explorer-pic-big`,
+// `flex: 1 1 auto` in explorer.css) — this only reads its real width and height
+// once they exist and writes them as the frame's `--w`/`--h`, so the frame's own
+// `aspect-ratio: var(--w) / var(--h)` becomes exactly the box's own ratio and the
+// drawing fills it exactly, at every viewport, not just a fixed 16∶9 slice of it.
+function fit_frame($box, $frame){
+	const fit = () => {
+		const w = $box.el.clientWidth, h = $box.el.clientHeight;
+		if (w > 40 && h > 40) $frame.style({ "--w": w, "--h": h });
+	};
+
+	new ResizeObserver(fit).observe($box.el);
+	fit();
 }
 
 // DELIVERABLE 7's fallback — title, the real address (or the drawing's id),

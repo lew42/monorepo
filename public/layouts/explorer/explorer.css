@@ -57,25 +57,51 @@
 	}
 
 	/* EACH REGION SCROLLS ITSELF — deliverable 1: "each rail scrolling on its own",
-	   so a long wall of cards never pushes the other two regions off screen. */
-	.std-explorer-rail,
-	.std-explorer-centre {
+	   so a long wall of cards never pushes the other two regions off screen. The
+	   centre is ALSO a flex column now (round 3): its picture is the one flexible
+	   item (`flex: 1 1 auto` below), so it grows to fill whatever height the title
+	   and the properties strip leave, rather than sitting at a fixed aspect. */
+	.std-explorer-rail {
 		min-width: 0;
 		height: 100%;
 		overflow-y: auto;
 		padding-inline-end: 0.4em;
 	}
 
+	.std-explorer-centre {
+		min-width: 0;
+		height: 100%;
+		overflow-y: auto;
+		padding-inline-end: 0.4em;
+		display: flex;
+		flex-direction: column;
+	}
+
 	.std-explorer-rail h3 { margin-block: 0 0.4em; }
 
 	@media (max-width: 40rem) {
-		/* A PHONE READS ONE COLUMN — the three regions stack in DOM order and the
-		   PAGE scrolls, rather than three independent scroll boxes each fighting a
-		   sliver of a 700px-tall screen for room. */
+		/* A PHONE READS ONE COLUMN — round 3: the centre comes FIRST (the actual
+		   answer to "what does this look like"), then its children, then the
+		   sibling list — `order`, the DOM itself is unchanged. The PAGE scrolls,
+		   rather than three independent scroll boxes each fighting a sliver of a
+		   700px-tall screen for room. */
 		.std-explorer-page { height: auto; overflow: visible; }
-		.std-explorer-body { display: block; height: auto; overflow: visible; }
+
+		.std-explorer-body {
+			display: flex;
+			flex-direction: column;
+			height: auto;
+			overflow: visible;
+		}
+
+		.std-explorer-body > *:nth-child(1) { order: 3; }   /* left rail — siblings */
+		.std-explorer-body > *:nth-child(2) { order: 1; }   /* centre */
+		.std-explorer-body > *:nth-child(3) { order: 2; }   /* right rail — children */
+
 		.std-explorer-rail,
 		.std-explorer-centre { height: auto; overflow: visible; margin-block-end: 1.2em; }
+
+		.std-explorer-pic-big { flex: 0 0 auto; aspect-ratio: 16 / 9; }
 	}
 
 	.std-explorer-cards {
@@ -151,7 +177,19 @@
 	   column it is given). Its iframe DOES take clicks — it is not inside a link. */
 	.std-explorer-centre-title { margin-block: 0 0.5em; }
 
-	.std-explorer-pic-big { border: 1px solid var(--line); border-radius: 0.4em; overflow: hidden; }
+	/* ROUND 3, DELIVERABLE 1 — the one flexible item in the centre's own flex column
+	   (`.std-explorer-centre`, above): it takes whatever height the title and the
+	   properties strip below it leave, and `fit_frame()` in page.js reads that real
+	   box back into the frame's own `--w`/`--h`, so the drawing (or iframe) fills it
+	   exactly rather than sitting at a fixed 16∶9 slice of it. */
+	.std-explorer-pic-big {
+		flex: 1 1 auto;
+		min-height: 240px;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		overflow: hidden;
+	}
+
 	.std-explorer-pic-big .std-explorer-draw iframe { pointer-events: auto; }
 
 	.std-explorer-empty { padding: 2em; text-align: center; }
