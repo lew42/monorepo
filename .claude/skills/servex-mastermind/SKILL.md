@@ -39,7 +39,12 @@ standpoint, in terms of revising the skills."
   that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
   pages.
 - **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
-  You don't start task masterminds.
+  You don't start task masterminds: you write their brief and post a dispatch line.
+- **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without
+  asking. Use `spawn_agent` with `role: "minion"`, `parent` set to your own id, a `task` dir
+  under your day's folder, and Sonnet at medium effort, doing read-only work that returns a table.
+  Run at most two at once, and only while `system_health` shows fewer than 8 working and more
+  than 4 GB free. Building goes through a task mastermind.
 - **Keep your turns short**, and end them between events. Your value is being available and
   clear-headed.
 
