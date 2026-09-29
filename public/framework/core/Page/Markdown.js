@@ -93,22 +93,66 @@ export default class PageMarkdown extends Page {
 		return found && found.sort((x, y) => x.split("/").length - y.split("/").length || x.localeCompare(y));
 	}
 
-	/* Every file under `dir` that `keep` wants, relative to `dir`: one page.jsonl per
-	   folder, each level's folders fetched in parallel. `pages: true` walks into child
-	   pages too (ext/files' /fs/). A folder with no page.jsonl is read from the old
-	   directory.json instead. Undefined when neither exists (production). `depth: 1`
-	   is this folder only: one request.
+	/* How many folders one walk reads by their own page.jsonl before the rest come
+	   from ONE directory.json read. On a phone every request waits a round trip:
+	   /framework/fs/ was 2,351 page.jsonl requests uncapped (measured 09-29). */
+	static budget = 40;
+
+	/* Every file under `dir` that `keep` wants, relative to `dir`. Breadth-first:
+	   each level's folders are read in parallel, one page.jsonl each, until `budget`
+	   folders are read; the folders left over, and any folder with no page.jsonl, are
+	   read from the old directory.json instead. `pages: true` walks into child pages
+	   too (ext/files' /fs/). `depth: 1` is this folder only: one request. Undefined
+	   when there is no file list at all (production).
 	   ⚠ A `kid/page.jsonl` line may be a plain folder whose log is only a listing, so
 	     it is looked into, and skipped only if its log turns out to be a page. */
-	static async walk(dir, { keep = () => true, pages = false, rel = "", depth = Infinity } = {}){
-		dir = dir.replace(/\/?$/, "/");
-		const listing = await Page.listing(dir);
-		if (!listing) return this.walk_tree(await this.node(dir), { keep, pages, rel });
-		if (rel && !pages && listing.page) return [];
+	static async walk(dir, { keep = () => true, pages = false, depth = Infinity, budget = this.budget } = {}){
+		const found = [], unread = [], missing = [];
+		let level = [{ dir: dir.replace(/\/?$/, "/"), rel: "" }], read = 0;
 
-		const into = depth > 1 ? [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)] : [];
-		const deeper = await Promise.all(into.map(name => this.walk(dir + name + "/", { keep, pages, rel: rel + name + "/", depth: depth - 1 })));
-		return [...listing.files.filter(keep).map(name => rel + name), ...deeper.flatMap(found => found ?? [])];
+		for (let d = 1; level.length; d++){
+			const now = level.slice(0, Math.max(0, budget - read));
+			unread.push(...level.slice(now.length));
+			read += now.length;
+
+			const listings = await Promise.all(now.map(folder => Page.listing(folder.dir)));
+			level = [];
+			now.forEach((folder, i) => {
+				const listing = listings[i];
+				if (!listing) return void missing.push(folder);
+				if (folder.rel && !pages && listing.page) return;
+
+				// The log itself is never one of its own lines, but it is a real file here.
+				[...listing.files, "page.jsonl"].filter(keep).forEach(name => found.push(folder.rel + name));
+				if (d < depth) this.folders(listing, pages).forEach(name => level.push({ dir: folder.dir + name + "/", rel: folder.rel + name + "/" }));
+			});
+		}
+
+		return this.walk_rest(found, unread, missing, { keep, pages });
+	}
+
+	// The sub-folders a walk goes into: plain folders, and child pages when `pages`
+	// (a jsonl one always: it may be a plain folder's listing, see walk()).
+	static folders(listing, pages){
+		return [...listing.dirs, ...[...listing.pages].filter(([, kind]) => pages || kind === "jsonl").map(([name]) => name)];
+	}
+
+	// What the budget left, and the folders with no log: from directory.json. With no
+	// directory.json (production), the unread folders are read by their logs after all.
+	static async walk_rest(found, unread, missing, { keep, pages }){
+		if (!unread.length && !missing.length) return found;
+
+		const tree = await this.tree();
+		if (!tree){
+			if (missing.some(folder => !folder.rel)) return undefined;   // not even the top folder has a log
+			const more = await Promise.all(unread.map(folder => this.walk(folder.dir, { keep, pages, budget: Infinity })));
+			unread.forEach((folder, i) => (more[i] ?? []).forEach(name => found.push(folder.rel + name)));
+			return found;
+		}
+
+		for (const folder of [...unread, ...missing])
+			found.push(...this.walk_tree(await this.node(folder.dir), { keep, pages, rel: folder.rel }) ?? []);
+		return found;
 	}
 
 	// ════ THE FALLBACK — the dev server's directory.json, the whole site in one file ══

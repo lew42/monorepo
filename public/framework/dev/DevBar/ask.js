@@ -1,6 +1,6 @@
 import { div, span, button, icon } from "../../core/View/View.js";
 import { TaskJSONL } from "../../ext/JSONL/JSONL.js";
-import { PageLog } from "../../core/Page/Log.js";
+import { threads } from "../../ext/drawer/tabs/sessions.js";
 import { available, thread } from "../../ext/Ask/Ask.js";
 import { chat } from "../../ext/Ask/chat.js";
 import { settings, set } from "./settings.js";
@@ -53,38 +53,8 @@ function selection(){
 		picked && `text "${picked.slice(0, 300)}"`].filter(Boolean).join("\n\n") || null;
 }
 
-/* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
-const json = url => fetch(url)
-	.then(res => res.ok && !res.headers.get("content-type")?.includes("html") ? res.json() : null)
-	.catch(() => null);
-
-// The dir listing IS the index — nothing declares a thread and nothing crawls.
-async function threads(url){
-	const dir = url.replace(/^\//, "") + "ai";
-
-	// Each folder's own page.jsonl names its sub-folders; each thread's names its task.jsonl.
-	// The page's own list first: a page with no ai/ folder costs one fetch, not a 404.
-	const own = await PageLog.listing("/" + dir.replace(/ai$/, ""));
-	if (own && !own.folder("ai")) return [];
-	const listing = own && await PageLog.listing("/" + dir + "/");
-	if (listing){
-		const kids = [...listing.dirs, ...listing.pages.keys()];
-		const logs = await Promise.all(kids.map(kid => PageLog.listing(`/${dir}/${kid}/`)));
-		return kids.filter((kid, i) => logs[i]?.files.includes("task.jsonl")).map(slug => ({ slug, task: `${dir}/${slug}` }));
-	}
-
-	// No page.jsonl there yet: the whole site's directory.json.
-	const tree = walk((await json("/directory.json"))?.files ?? [], dir.split("/").filter(Boolean));
-
-	return (tree?.children ?? [])
-		.filter(kid => kid.type === "dir" && kid.children?.some(file => file.name === "task.jsonl"))
-		.map(kid => ({ slug: kid.name, task: `${dir}/${kid.name}` }));
-}
-
-const walk = (files, [head, ...rest]) => {
-	const hit = files.find(file => file.name === head);
-	return !hit ? null : rest.length ? walk(hit.children ?? [], rest) : hit;
-};
+// A thread is a dir under `<page>ai/` holding a task.jsonl. The one walk that finds them is
+// the drawer's (ext/drawer/tabs/sessions.js threads()), imported, not repeated.
 
 const slugify = name => (name ?? "").trim().toLowerCase()
 	.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);

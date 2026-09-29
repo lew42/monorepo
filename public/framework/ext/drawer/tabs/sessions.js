@@ -9,9 +9,7 @@ import { PageLog } from "/framework/core/Page/Log.js";
    hands the thread to the AI tab, and the next send there resumes that session.
    On a card, the card's sub-cards are listed under the threads.
 
-   ⚠ `threads()` repeats dev/DevBar/ask.js's dir walk (a dozen lines) rather than
-   importing it: that file draws the dev bar's own panel and exports only `ask`.
-   When the dev bar's panel retires (design.md), this copy is the one left. */
+   `threads()` is the one thread walk: dev/DevBar/ask.js imports it from here. */
 
 // ⚠ The SPA fallback answers every miss with index.html — the content-type is the 404.
 const json = url => fetch(url)

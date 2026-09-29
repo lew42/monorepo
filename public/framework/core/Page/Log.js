@@ -227,12 +227,19 @@ export class PageLog {
 	   ⚠ Not live: a file added after the fetch is missing until `fresh`. */
 	static listing(url, fresh){
 		url = String(url).replace(/\/?$/, "/");
+		if (PageLog.UNLOGGED.test(url)) return Promise.resolve(null);
 		const memo = PageLog.listings ??= new Map();
 		if (fresh || !memo.has(url)) memo.set(url, new PageLog.Reader({ url: url + "page.jsonl" }).load()
 			.then(reader => reader.loaded ? PageLog.Listing.from(reader.entries) : null)
 			.then(listing => { (PageLog.loaded_listings ??= new Map()).set(url, listing); return listing; }));
 		return memo.get(url);
 	}
+
+	// ⚠ Folders INSIDE a dated task folder get no log (Server/plugins/PageFiles.js
+	//   covers()), so asking would only log a 404: listing() answers null at once and
+	//   the caller falls back. The card style (ai/YYYY/MM/DD/) is left out on purpose:
+	//   a sub-card's folder can hold a real page.jsonl.
+	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
 
 	// The listing, only if a `listing()` call has already brought it in; never fetches.
 	// undefined = not asked yet, null = asked, no page.jsonl.

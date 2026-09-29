@@ -144,7 +144,9 @@ export class Groups {
 	async day(date, fresh){
 		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
 		if (!listing) return this.day_from_tree(date);
-		return [...listing.dirs, ...listing.pages.keys()].map(slug => ({ date, slug }));
+		// A folder whose own list is already in and names no task.jsonl is no task; nothing is fetched to ask.
+		const no_task = slug => PageLog.loaded_listing(`/framework/ai/${date}/${slug}/`)?.files.includes("task.jsonl") === false;
+		return [...listing.dirs, ...listing.pages.keys()].filter(slug => !no_task(slug)).map(slug => ({ date, slug }));
 	}
 
 	// A listing's entries as one list of names, files and folders alike.

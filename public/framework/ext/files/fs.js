@@ -57,7 +57,8 @@ export default class PageFiles extends Page {
 	// as paths relative to the site root — what `files()` wants when handed
 	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. The
 	// same walk `PageMarkdown` does (`core/Page/Markdown.js`): each folder's own
-	// page.jsonl, a level at a time in parallel, into child pages too, and every
+	// page.jsonl, a level at a time in parallel up to `PageMarkdown.budget` folders
+	// (the rest from one directory.json read), into child pages too, and every
 	// file, not only the markdown ones.
 	// ⚠ `null` (no file list at all — production, no page.jsonl and no
 	//   directory.json) reads differently from `[]` (nothing here): the caller

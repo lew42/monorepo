@@ -42,7 +42,8 @@ reserved, but it gives no index and no subfolders. The choice and its reasons ar
 - **The trailing slash matters.** `ext/Panel` documents `flow.js` in `doc/file/flow.js.md`,
   and a url ending in `.js` is answered as a file (a 404), never as the app.
 - **The index reads each folder's own `page.jsonl`** (its `file` lines, through `Page.listing()`),
-  one folder at a time, and looks inside a sub-folder by that folder's own log. A folder with
+  one folder at a time, and looks inside a sub-folder by that folder's own log, up to 40
+  folders (`PageMarkdown.budget`); the rest come from one `/directory.json` read. A folder with
   no log falls back to the dev server's `/directory.json`; with neither, the index shows the
   folder's `readme.md` instead, and a folder name nobody has checked opens as an empty
   folder rather than a 404.

@@ -12,7 +12,7 @@ that happens to start here shows up anywhere else `task.jsonl` is read.
 
 ## Nothing declares a thread; the directory listing is the index
 
-`ask.js`'s `threads()` reads the page folder's own `page.jsonl`, then
+`threads()` (ext/drawer/tabs/sessions.js, which `ask.js` imports) reads the page folder's own `page.jsonl`, then
 `<page>ai/`'s, and returns every child directory whose own log lists a
 `task.jsonl` (`Page.listing()`). With no log there it falls back to
 `/directory.json` (the dev server's own listing, gitignored, dev-only). No manifest, no registration call
