@@ -38,6 +38,15 @@
 		color: var(--muted, currentColor);
 	}
 
+	/* Structured's own sub-headings ("The worry: …") sit inside a narrow column —
+	   the page's own h3 size (1.5em here, from the page's heading scale) is too
+	   big for that, so this brings it back down near body text, just bold. */
+	.refine-sec-title {
+		font-size: 1em;
+		margin-block: 0.8em 0.3em;
+	}
+	.refine-sec-title:first-child { margin-block-start: 0; }
+
 	.refine-col-body { max-height: 60vh; overflow: auto; }
 
 	.refine-raw-text { white-space: pre-wrap; }
@@ -46,7 +55,9 @@
 	.refine-s-num { color: var(--muted, currentColor); font-size: 0.85em; }
 
 	.refine-sentence, .refine-raw-seg, .refine-bullet, .refine-ask { cursor: pointer; border-radius: 0.2em; }
-	.refine-bullet, .refine-ask { padding: 0.15em 0.3em; margin-inline-start: -0.3em; }
+	/* No negative margin here: it used to pull the LI left into the space the
+	   list reserves for its own number/bullet marker, clipping "10." to "0.". */
+	.refine-bullet, .refine-ask { padding: 0.15em 0.3em; }
 
 	.refine-hit { background: color-mix(in srgb, var(--ok) 28%, transparent); }
 	.refine-selected { outline: 2px solid var(--ok); outline-offset: 1px; }

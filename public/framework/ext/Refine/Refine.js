@@ -64,7 +64,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 			$picker = div.c("refine-picker", () => {
 				span.c("refine-picker-label").text("Run: ");
 				select.c("refine-picker-select", $sel => {
-					runs.forEach(r => option.attr("value", r.id ?? r.dir).text(r.label ?? r.id ?? r.dir));
+					runs.forEach(r => option().attr("value", r.id ?? r.dir).text(r.label ?? r.id ?? r.dir));
 				}).on("change", function(){
 					const r = find_run(this.el.value);
 					state.run = r?.dir ?? this.el.value;
@@ -122,7 +122,9 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		const { coverage, flags } = parse_coverage(coverageMd);
 		const rawSegments = split_raw(raw);
 		matchMap = match_sentences(sentences, rawSegments);
-		const flagged_asks = new Set(flags.map(f => String(f.ask).trim()));
+		// Ask refs come as plain numbers from brief.md ("4") but as "#4" from
+		// coverage.md's own flags table — digits-only on both sides so they match.
+		const flagged_asks = new Set(flags.map(f => String(f.ask).replace(/\D/g, "")));
 
 		if (!sentences.length && !raw){
 			$state.text("Nothing here yet — Server/refine.mjs hasn't run on this dictation.");
@@ -134,7 +136,13 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		const n_asks = coverage.filter(r => /^ask\b/i.test(r.to)).length;
 		const n_context = coverage.filter(r => /^context only/i.test(r.to)).length;
 		const n_dropped = coverage.filter(r => /^dropped/i.test(r.to)).length;
-		$state.text(`${sentences.length} sentence${sentences.length === 1 ? "" : "s"} · ${n_asks} → asks · ${n_context} context · ${n_dropped} dropped · ${flags.length} flag${flags.length === 1 ? "" : "s"}`);
+		// Anything not asks/context/dropped (mostly "unclassified", a model pass
+		// gave up) — named only when it happens, so the common case stays the
+		// exact one-line shape asked for.
+		const n_other = coverage.length - n_asks - n_context - n_dropped;
+		$state.text(`${sentences.length} sentence${sentences.length === 1 ? "" : "s"} · ${n_asks} → asks · ${n_context} context · ${n_dropped} dropped`
+			+ (n_other > 0 ? ` · ${n_other} unclassified` : "")
+			+ ` · ${flags.length} flag${flags.length === 1 ? "" : "s"}`);
 
 		cols.raw.empty(() => {
 			div.c("refine-raw-text", () => {
@@ -156,7 +164,7 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 
 		cols.structured.empty(() => {
 			structured.forEach(sec => {
-				h3.c("refine-sec-title").text(sec.title);
+				if (sec.title) h3.c("refine-sec-title").text(sec.title);
 				ul.c("refine-sec-list", () => {
 					sec.bullets.forEach(b => {
 						const $li = li.c("refine-bullet");
@@ -189,31 +197,37 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		$coverage.empty(() => {
 			h3.c("refine-coverage-title").text("Coverage — every sentence, where it went");
 			table.c("refine-coverage-table", () => {
-				thead(() => tr(() => { th.text("S#"); th.text("Sentence"); th.text("→"); }));
+				thead(() => tr(() => { th().text("S#"); th().text("Sentence"); th().text("→"); }));
 				tbody(() => {
 					coverage.forEach(row => {
 						const dropped = /^dropped/i.test(row.to);
 						tr.c(dropped ? "refine-dropped" : "", () => {
-							td.text("S" + row.n);
-							td.text(row.sentence);
-							td.text(row.to);
+							td().text("S" + row.n);
+							td().text(row.sentence);
+							td().text(row.to);
 						}).on("click", () => highlight([row.n]));
 					});
 				});
 			});
 			if (!coverage.length) p.c("refine-empty").text("No coverage.md for this run.");
 
-			h3.c("refine-coverage-title").text("Flags — a word or strength its cited sentences don't contain");
+			h3.c("refine-coverage-title").text("Flags — an ask that may have drifted from what was said");
 			if (flags.length){
 				table.c("refine-flags-table", () => {
-					thead(() => tr(() => { th.text("Ask"); th.text("Word"); th.text("Why"); }));
-					tbody(() => flags.forEach(f => tr(() => { td.text(f.ask); td.text(f.word); td.text(f.why); })));
+					thead(() => tr(() => { th().text("Ask"); th().text("Flag"); th().text("Detail"); }));
+					tbody(() => flags.forEach(f => tr(() => { td().text(f.ask); td().text(f.word); td().text(f.why); })));
 				});
 			} else {
 				p.c("refine-empty").text("None.");
 			}
 
-			if (refineJson) p.c("refine-json-note").text(`Models: ${Object.entries(refineJson.models ?? {}).map(([k, v]) => `${k}=${v}`).join(", ") || "—"}. Cost: $${(refineJson.cost_usd ?? 0).toFixed(2)}.`);
+			if (refineJson){
+				// cost_usd is one number in this module's own fixture, but a
+				// {clean, structured, …, total} breakdown from the real tool.
+				const cost = typeof refineJson.cost_usd === "number" ? refineJson.cost_usd : (refineJson.cost_usd?.total ?? 0);
+				const models = Object.entries(refineJson.models ?? {}).map(([k, v]) => `${k}=${Array.isArray(v) ? v.join("+") : v}`).join(", ") || "—";
+				p.c("refine-json-note").text(`Models: ${models}. Cost: $${cost.toFixed(2)}.`);
+			}
 		});
 	}
 
@@ -222,17 +236,20 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		$box.el.querySelectorAll(".refine-selected").forEach(el => el.classList.remove("refine-selected"));
 		sourceEl?.classList.add("refine-selected");
 
-		let first = null;
+		let first_clean = null, first_raw = null;
 		cites.forEach(n => {
 			const s = cols.clean.el.querySelector(`.refine-sentence[data-s="${n}"]`);
-			if (s){ s.classList.add("refine-hit"); first ??= s; }
+			if (s){ s.classList.add("refine-hit"); first_clean ??= s; }
 			const seg = matchMap.get(n);
 			if (seg != null){
 				const r = cols.raw.el.querySelector(`.refine-raw-seg[data-seg="${seg}"]`);
-				r?.classList.add("refine-hit");
+				if (r){ r.classList.add("refine-hit"); first_raw ??= r; }
 			}
 		});
-		first?.scrollIntoView({ block: "nearest" });
+		// Both columns scroll on their own (`.refine-col-body { overflow: auto }`), so
+		// each needs its own scrollIntoView — one call only moves the column it's in.
+		first_clean?.scrollIntoView({ block: "nearest" });
+		first_raw?.scrollIntoView({ block: "nearest" });
 	}
 
 	load();
@@ -240,14 +257,21 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 	return $box;
 }
 
-/* clean.md: "S3. text…" blocks separated by a blank line; a trailing HTML
- * comment (the word-overlap check line) is not a sentence. */
+/* clean.md: "S3. text…" markers, one per line — `Server/refine.mjs` writes
+ * them one sentence per line, with no blank line between; this also reads the
+ * blank-line-separated shape (this module's own fixture) the same way. A
+ * sentence's text is whatever sits between its own marker and the next one
+ * (or the end of the file for the last sentence), so neither spacing style
+ * nor a leading "# heading" line trips it up. */
 export function parse_clean(md){
-	const body = (md || "").replace(/^#.*(\r?\n)+/, "");
-	return body.split(/\r?\n\s*\r?\n/).map(b => b.trim()).filter(Boolean)
-		.map(b => b.match(/^S(\d+)\.\s+([\s\S]+)$/))
-		.filter(Boolean)
-		.map(m => ({ n: Number(m[1]), text: m[2].replace(/\s+/g, " ").trim() }));
+	const body = md || "";
+	const markers = [...body.matchAll(/^S(\d+)\.\s*/gm)];
+	return markers.map((m, i) => {
+		const start = m.index + m[0].length;
+		const end = i + 1 < markers.length ? markers[i + 1].index : body.length;
+		const text = body.slice(start, end).replace(/\r?\n\s*<!--[\s\S]*$/, "").replace(/\s+/g, " ").trim();
+		return { n: Number(m[1]), text };
+	}).filter(s => s.text);
 }
 
 /* A trailing `[S3, S7]` is the citation; everything before it is the text. */
@@ -257,15 +281,22 @@ export function parse_cites(text){
 	return { text: text.slice(0, m.index).trim(), cites: m[1].split(",").map(s => Number(s.trim())).filter(n => n > 0) };
 }
 
-/* structured.md: "## Section" headings, "- bullet [S…]" lines under them. */
+/* structured.md: "## Section" headings, "- bullet [S…]" lines under them —
+ * but `Server/refine.mjs` today writes a flat list with no headings at all,
+ * so a bullet found before any "##" (or when there is never one) goes into
+ * one untitled section rather than being silently dropped. */
 export function parse_structured(md){
 	const sections = [];
 	let current = null;
+	const start_default = () => { current = { title: "", bullets: [] }; sections.push(current); };
 	for (const line of (md || "").split(/\r?\n/)){
 		const h = line.match(/^##\s+(.+)$/);
 		if (h){ current = { title: h[1].trim(), bullets: [] }; sections.push(current); continue; }
-		const b = line.match(/^-\s+(.+)$/);
-		if (b && current) current.bullets.push(parse_cites(b[1]));
+		const b = line.match(/^[-*]\s+(.+)$/);
+		if (b){
+			if (!current) start_default();
+			current.bullets.push(parse_cites(b[1]));
+		}
 	}
 	return sections;
 }
