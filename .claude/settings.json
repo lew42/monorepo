@@ -2,6 +2,9 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "env": {
+    "MAX_MCP_OUTPUT_TOKENS": "150000"
+  },
   "enabledMcpjsonServers": [
     "site"
   ],

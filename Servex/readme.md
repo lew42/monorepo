@@ -183,6 +183,8 @@ shortcut — if it works for them it works for yours. Six are the servers'
 `append_log`) and five are the agents' (`spawn_agent`, `send_to_agent`,
 `interrupt_agent`, `list_agents`, `stop_agent`), the second five handed in by
 `agents/tools.js` as one array, and one is the monitor's (`system_health`).
+`agents/tools.js` now also hands in the jobs, ops and module-expert tools
+(`ask_expert`, `list_experts`, `load_module`, `readme_modules`), so the count above is a floor.
 
 ## Watch out
 

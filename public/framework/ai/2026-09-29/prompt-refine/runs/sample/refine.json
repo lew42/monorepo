@@ -1,0 +1,46 @@
+{
+  "at": "2026-09-29T15:07:57-05:00",
+  "input": "public/framework/ai/2026-09-29/prompt-refine/runs/sample/raw.txt",
+  "out": "public/framework/ai/2026-09-29/prompt-refine/runs/sample",
+  "models": {
+    "clean": "claude-haiku-4-5-20251001",
+    "structured": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "pick": "claude-haiku-4-5-20251001",
+    "brief": "claude-sonnet-5",
+    "coverage": "claude-sonnet-5"
+  },
+  "collab": false,
+  "mock": false,
+  "structured_winner": "sonnet",
+  "cost_usd": {
+    "clean": 0.13429270000000001,
+    "structured": {
+      "haiku": 0.0406537,
+      "sonnet": 0.1038872
+    },
+    "pick": 0.0341637,
+    "brief": 0.1027972,
+    "coverage": 0,
+    "total": 0.415795
+  },
+  "word_counts": {
+    "raw": 522,
+    "clean": 459,
+    "structured": 272,
+    "brief": 262
+  },
+  "clean_overlap_ratio": 1,
+  "coverage": {
+    "sentences": 9,
+    "cited": 9,
+    "context_only": 0,
+    "dropped": 0,
+    "unclassified": 0,
+    "flags": 5,
+    "thin_citations": 0
+  },
+  "coverage_only_rerun_at": "2026-09-29T15:11:59-05:00"
+}

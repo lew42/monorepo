@@ -54,6 +54,13 @@ brief, sub-card and relay. The next agent reads the whole conversation there, ra
 rather than relying on your summary, and you don't need to paste the words (the owner,
 2026-09-25: never lose the raw transcriptions).
 
+**If the requirements page itself was made from a long dictation, it should already carry a
+`coverage.md` beside it** (`node Server/refine.mjs`, `Server/doc/refine.md`) — open that before
+relaying anything down, so you can see whether a detail the owner actually said got dropped or
+tightened into a rule on the way to you. When you write a minion's own `requirements.md` from a
+dictated ask, run the same tool rather than hand-summarizing, and pass its `coverage.md` along
+with the brief.
+
 **One task, and only one.** If more work arrives for this task, it goes in the next brief. A
 mastermind that has taken five additions has stopped being able to land anything.
 
@@ -105,6 +112,8 @@ at the top, its numbered deliverables, its fence and its length budget, and is t
 
 **Run any command you put in a brief once yourself first** — an import path, a route pattern, a
 port. Thirty seconds of yours saves a retry apiece across every minion.
+
+A question about one module goes to its expert if `list_experts` has one (`ask_expert`). For several modules, spawn a mastermind with `readme_modules`.
 
 Pick the model per piece: **Haiku** scans, **Sonnet** builds, **Opus** judges. Under budget
 pressure step down the ladder, not the work, and say in the log how it went.

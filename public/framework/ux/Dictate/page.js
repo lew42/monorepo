@@ -31,13 +31,14 @@ export default new Doc({
 	icon: "mic",
 
 	files: "Dictate.js capture.js pcm-worklet.js Dictate.css page.js readme.md",
-	notes: "handover decisions silence",
+	notes: "handover decisions silence https-lan",
 
 	children: [
 		"demo",
 		demo.page("words", words, {
 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
 		"playground",
+		"variants",
 	],
 
 	content(){
@@ -45,9 +46,9 @@ export default new Doc({
 		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
 		pg.widget();
 
-		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `whisper (local)` when `whisper-server` is running on this machine, `Chrome's built-in recognition` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
+		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `Whisper on the PC` when `whisper-server` is running on this machine, `the browser's recognizer` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
 
-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline.");
+		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
 
 		demo.exhibit({
 			page: this,
