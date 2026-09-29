@@ -222,9 +222,31 @@ export class Page extends PageLog {
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
+		// My folder's own page.jsonl (Log.js listing()), IF something already loaded it,
+		// says which file makes `name`, so the probe that would 404 is skipped. Not
+		// fetched here: every folder the Router walks would pay a fetch, and a folder
+		// with no log a 404. A name it does not list keeps the probe order below: a
+		// stale list must never hide a real page.
+		const [listing, docs] = [Page.loaded_listing(this.url), Page.loaded_listing(this.md_dir())];
+		const kind = listing?.pages.get(name);
+		const md = !listing?.folder(name) && docs?.files.includes(name + ".md");
+
+		if (kind === "jsonl") {
+			const page = await Page.jsonl(this.url + name + "/");
+			if (page) return this.add(name, page).load_all_children(levels);
+		}
+
+		const doc = md && await this.child_md(name, levels);
+		if (doc) return doc;
+
 		const page = await Page.load(this.url + name + "/", 0);
 		if (page) return this.add(name, page).load_all_children(levels);
 
+		return md ? null : this.child_md(name, levels);
+	}
+
+	// `name.md` beside me, as a page — the last probe, or the first when my list names it.
+	async child_md(name, levels){
 		const file = await Page.file(this.md_dir() + name + ".md");
 		return file ? this.add(name, { ...file, folder: this.md_dir() }).load_all_children(levels) : null;
 	}
@@ -408,8 +430,11 @@ export class Page extends PageLog {
 	// ⚠ THE SPA FALLBACK ANSWERS EVERY MISS WITH index.html AT 200, so `res.ok` is not
 	//   "the file is there" — the CONTENT-TYPE is the 404. The identical guard is in
 	//   Page.file() above, in imagine/paging/stage.js and in make/made.js.
-	static async read_json(url){
-		const res = await fetch(url).catch(() => null);
+	// `opts` passes straight to `fetch` — e.g. `{ priority: "low" }`, so a big census
+	// file (directory.json) never queues ahead of the page's own small requests on
+	// a slow connection (ai/2026-09-29/slow-card-fix/).
+	static async read_json(url, opts){
+		const res = await fetch(url, opts).catch(() => null);
 		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return null;
 		return res.json().catch(() => null);
 	}
@@ -549,6 +574,27 @@ export class Page extends PageLog {
 		return this;
 	}
 
+	// An ancestor drawn by ext/Doc (its top-level well-and-tabs shell, or one of its
+	// nested tab-panel sections) already gives a Files tab to the same directory this
+	// page's own Folder link would open — a second way there is just noise. Checked
+	// by the ancestor's own DOM class, not `instanceof Doc`: core/Page doesn't (and
+	// shouldn't) import ext/Doc. Measured 2026-09-29: 50px of dead space (a 22px row
+	// plus its 28px flow gap) on every doc-page section.
+	// ⚠ `page.view` is the VIEW WRAPPER (`div.c(...)` returns a `View`, not a raw
+	//   element) — its class list lives at `page.view.el.classList`, one level down.
+	//   A first version read `page.view.classList` (always undefined) and measured
+	//   the Folder link still there after "shipping" the fix. `this.chain()` itself
+	//   is safe to use here even though this ancestor Doc's own `tabs()` fills its
+	//   panel on a microtask (ext/tabs/tabs.js): by the time that microtask runs
+	//   `first.render()`, the ancestor's own `div.c(...)` call already returned and
+	//   assigned `.view`, so every ancestor in the chain has it set.
+	in_doc(){
+		return this.chain().slice(0, -1).some(page => {
+			const cls = page.view?.el?.classList;
+			return cls?.contains("doc-page") || cls?.contains("doc-section");
+		});
+	}
+
 	render(){
 		if (this.view) return this.view;
 
@@ -563,11 +609,12 @@ export class Page extends PageLog {
 			// owner's "any path slash fs" route (2026-09-28), linked from every page
 			// template so it never needs a second click through a parent's Files
 			// tab. Never on the /fs/ view itself: that page overrides render() whole
-			// and never reaches here (ext/files/fs.js).
+			// and never reaches here (ext/files/fs.js). Never inside a Doc page's
+			// chrome either (in_doc(), above): its Files tab is the same trip.
 			// ⚠ `this.url` — a page with no real address (a synthetic sidebar group,
 			//   built before naming() ever ran) gets no link rather than one pointing
 			//   at "undefinedfs/". Found on the site's own hidden nav tree, 2026-09-28.
-			if (this.url)
+			if (this.url && !this.in_doc())
 				a.c("page-fs-link", () => { icon("folder_open"); span("Folder"); })
 					.href(this.url + "fs/")
 					.style({ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: "var(--subtle)", textDecoration: "none" });
