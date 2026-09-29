@@ -1,0 +1,18 @@
+{"title": "page.jsonl, in full", "icon": "data_object", "description": "Every line the format knows: files, a placed note, a linked child, a removed file."}
+{"file": "content.js"}
+{"file": "note.md"}
+{"file": "unplaced.md"}
+{"file": "child/page.jsonl"}
+{"place": ["content.js", "note.md"]}
+{"file":"later.md"}
+{"file":"later.md","gone":true}
+{"file":"readme.md"}
+{"file":"content.js","gone":true}
+{"file":"note.md","gone":true}
+{"file":"unplaced.md","gone":true}
+{"file":"child/page.jsonl","gone":true}
+{"file":"readme.md","gone":true}
+{"file":"content.js"}
+{"file":"note.md"}
+{"file":"unplaced.md"}
+{"file":"child/page.jsonl"}

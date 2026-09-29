@@ -1,8 +1,15 @@
-{"title": "page.jsonl", "icon": "data_object", "description": "A page with no page.js: one log file, read a line at a time."}
-{"file": "content.js"}
-{"file": "note.md"}
-{"file": "unplaced.md"}
-{"file": "child/page.jsonl"}
-{"place": ["content.js", "note.md"]}
-{"file":"later.md"}
-{"file":"later.md","gone":true}
+{"title": "Notes", "label": "jsonl", "icon": "description", "description": "A page with no page.js: one log file, read a line at a time."}
+{"place": "note.md"}
+{"file":"child/page.jsonl"}
+{"file":"content.js"}
+{"file":"note.md"}
+{"file":"readme.md"}
+{"file":"unplaced.md"}
+{"file":"full/page.jsonl"}
+{"file":"content.js","gone":true}
+{"file":"unplaced.md","gone":true}
+{"file":"child/page.jsonl","gone":true}
+{"file":"readme.md"}
+{"file":"child/"}
+{"file":"child/"}
+{"file":"readme.md"}
