@@ -1,0 +1,1 @@
+`DrawerSelect` — while the drawer is open on its tabs, hovering a content element brightens it and a click selects it (data attributes, one at a time) and opens the Element tab. Also `item(el)`, the `{kind, label, text, selector}` a chip carries, and `path(el)`, the selector that finds the element again. [doc/select.md](/framework/ext/drawer/doc/select/).

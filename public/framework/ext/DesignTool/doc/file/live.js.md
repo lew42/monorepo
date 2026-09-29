@@ -14,7 +14,7 @@ timer. Measured on a 30-step shrink: the panel still reads 1282px the instant
 the resize stops, and 702px 800ms later — one analysis for the drag.
 
 Affordable either way, because `analyze()` is ~25µs/node — see
-[Cost](../../docs/cost/) — but cheap is not free at 60Hz.
+[Cost](../../doc/cost/) — but cheap is not free at 60Hz.
 
 ## It releases itself, because nothing else will
 

@@ -22,6 +22,8 @@ export default new Doc({
 Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
 
 ## Watch out
+- A note name may nest (`"guide/setup"`) — each interior segment becomes its own real, bookmarkable page, and the Docs tab draws a folder tree instead of its usual vertical tab bar the moment any note does: [doc/tree/nesting.md](./doc/tree/nesting.md)
+- `.../docs/...` resolves to `.../doc/...` automatically and fixes the address bar, so a typed-out-of-habit "docs" doesn't 404: [doc/tree/redirect/docs.md](./doc/tree/redirect/docs.md)
 - A Doc nested inside another Doc's tab panel draws its own strip as a left rail (`.tabs.vertical`), never a second well — automatic, no flag: [doc/decisions.md](./doc/decisions.md)
 - `files:` goes stale silently — a file not listed is simply absent from the tab: [doc/files.md](./doc/files.md)
 - Every tab draws two `h1`s (the well's and the routed page's) — DesignTool flags every Doc; still open: [doc/decisions.md](./doc/decisions.md)
@@ -32,6 +34,6 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 - A method or property page shows a small **⋯** right after its own title, but only when a design collaboration actually named it — `decisions.js`'s `decision_menu(module, name)` checks the shared `public/framework/ai/collab/decisions.jsonl` (one cached fetch per page load, nothing at all when it finds no record) and, opened, fetches that ONE run's own `collab.jsonl` for the ask, the winner and its vote count. `module()` reads the module path straight off `this.url`, so nothing at the call site has to name it. Contract: `/framework/ai/2026-09-28/collab-rounds/collab-format.md`.
 
 ## More
-- [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared
+- [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared · [`doc/tree/redirect/history.md`](./doc/tree/redirect/history.md) why the address-bar fix uses `replaceState`, not `pushState`
 - `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. The page is at `/api/<name>/` (the tab) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
 - Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc), `decisions.js` (the ⋯ menu, above)

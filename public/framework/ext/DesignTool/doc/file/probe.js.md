@@ -40,7 +40,7 @@ content cut off, 12 of the site's 79 high-severity clips.
 ## Addresses are `:nth-child()` paths, not walk indices
 
 Covered in full — this is the file that produces the path every other tool in
-the module resolves. See [Addressing](../../docs/addressing/).
+the module resolves. See [Addressing](../../doc/addressing/).
 
 ## Improvements
 

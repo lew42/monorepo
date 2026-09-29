@@ -1,18 +1,34 @@
 import { Doc, md, code, h2, h3, drawer, div, span, button, p } from "/app.js";
+import tabs from "./tabs.js";
 
 export default new Doc({
 	meta: import.meta,
 	title: "Drawer",
-	description: "The right rail — one per document, opened by anything, shut only by its own ✕.",
+	description: "The right rail — one per document, opened by the ☰ on every page or by anything else, shut only by its own ✕.",
 	// ⚠ Measured against the loaded font, not guessed: `right_panel_open` is not in this
 	// Material Icons build and rendered as 384px of literal word, which forced the whole
 	// framework sidebar from 231px to 344px through `min-width: auto`.
 	icon: "view_sidebar",
 
-	files: "drawer.js drawer.css page.js readme.md",
-	notes: "decisions",
+	files: "drawer.js drawer.css menu.js tabs.js select.js page.js readme.md",
+	notes: "tabs select decisions",
+	children: ["walkthrough"],
 
 	content(){
+
+		h2("The ☰ and its tabs");
+
+		md("Every page has a **☰** in its top right. It opens this drawer on five tabs (a sixth, Element, appears while something is selected), and the open tab is in the url (`?drawer=sessions`), so a reload lands on it. Try them:");
+
+		div.c("flex gap wrap", () => {
+			tabs.shown().filter(t => t.name !== "element").forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));
+		});
+
+		md("How a tab is added, where a message is sent, and `drawer.page()`: [doc/tabs.md](/framework/ext/drawer/doc/tabs/).");
+
+		md("**With the drawer open, click any paragraph on this page.** It is selected, the Element tab shows what it is, and *Ask about this* puts it in the AI tab's input as a chip: [doc/select.md](/framework/ext/drawer/doc/select/).");
+
+		h2("Fill it yourself");
 
 		code.js(`import { drawer } from "/app.js";
 

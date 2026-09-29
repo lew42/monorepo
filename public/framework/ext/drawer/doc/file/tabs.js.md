@@ -1,0 +1,1 @@
+`DrawerTabs` — the five tabs, their route word (`?drawer=<name>`, written with `history.replaceState`), and the context each tab is drawn with: the app, `drawer.page()`, the open card. Each tab file under `tabs/` is imported the first time it is shown. [doc/tabs.md](/framework/ext/drawer/doc/tabs/).

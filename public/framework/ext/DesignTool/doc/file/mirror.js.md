@@ -2,7 +2,7 @@ The offending element itself, twice, at its own size — broken on the left,
 fixed on the right. The whole-page before/after (`twin.js`) answers "is it
 different"; at 0.5× on a 1280px screen the difference is a few pixels
 somewhere. This file answers *what exactly is wrong, and what exactly fixes
-it* — see [Addressing](../../docs/addressing/) for why that's possible at all.
+it* — see [Addressing](../../doc/addressing/) for why that's possible at all.
 
 ```js
 mirror(issue, { root });                          // the live element, now

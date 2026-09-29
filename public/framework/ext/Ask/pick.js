@@ -124,7 +124,7 @@ export function label(el){
  *       module:    { url, text } }  // the framework module that owns its class prefix
  */
 export async function context(el, { app } = {}){
-	const { url: page, dir } = page_at(el, app);
+	const { url: page, dir, file } = page_at(el, app);
 
 	const about = {
 		page,
@@ -134,6 +134,10 @@ export async function context(el, { app } = {}){
 		classes: [...el.classList].join(" "),
 		html: el.outerHTML.slice(0, 600),
 	};
+
+	// The page.js that drew it, when a Page on the way up knows its own module (ext/drawer's
+	// properties view shows it).
+	if (file) about.file = file;
 
 	const [readme, module] = await Promise.all([nearest_readme(dir ?? page), module_url(el)]);
 
@@ -229,6 +233,7 @@ function page_at(el, app){
 	return {
 		url: url.endsWith("/") ? url : url.replace(/[^/]*$/, ""),
 		dir: owner?.meta ? new URL(".", owner.meta.url).pathname : null,
+		file: owner?.meta ? new URL(owner.meta.url).pathname : null,
 	};
 }
 
