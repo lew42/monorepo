@@ -33,7 +33,7 @@ export default class PageFiles extends Page {
 			a.c("layout-close", () => icon("close")).href(this.parent?.url ?? "/");
 
 			// First paint is this folder's own files (one request); the whole tree, a
-			// folder's page.jsonl at a time, then replaces it. `this.selected` (set by
+			// folder's file list (files.jsonl) at a time, then replaces it. `this.selected` (set by
 			// `route()` below) rides along on BOTH paints, so a deep link shows the
 			// right file selected even in the fast, partial first paint.
 			const dir = this.folder ?? this.url;
@@ -49,7 +49,7 @@ export default class PageFiles extends Page {
 
 	draw_files(names, dir){
 		if (names === null)
-			return p.c("muted", "This server has no file list (no `page.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
+			return p.c("muted", "This server has no file list (no `files.jsonl`, no `/directory.json`) — /fs/ only works on the dev server, never on the live site.");
 		if (!names.length)
 			return p.c("muted", "No files under " + dir + ".");
 		return files({ url: location.origin + "/" }, names.join(" "), { fill: true, open: 1, select: this.selected });
@@ -104,7 +104,7 @@ export default class PageFiles extends Page {
 	// as paths relative to the site root — what `files()` wants when handed
 	// `{ url: location.origin + "/" }` instead of a page's own `import.meta`. The
 	// same walk `PageMarkdown` does (`core/Page/Markdown.js`): each folder's own
-	// page.jsonl, a level at a time in parallel up to `PageMarkdown.budget` folders
+	// file list (files.jsonl, or a jsonl page's page.jsonl), a level at a time in parallel up to `PageMarkdown.budget` folders
 	// (the rest from one directory.json read), into child pages too, and every
 	// file, not only the markdown ones. `depth` is what makes the two-step paint in
 	// `render()` above possible — `1` for "just this folder, fast", nothing for
