@@ -113,21 +113,29 @@ async function live_agents(){
 }
 
 /** `can_stop(entry)` — entry is one value from `.worktrees.json` ({name, path, branch, pid, …}).
- *  Returns `{ok, why}`; `why` is always a plain sentence, ok or not. */
+ *  Returns `{ok, why, reason}`; `why` is always a plain sentence, ok or not. `reason` is a short
+ *  machine code a caller can branch on without parsing `why` — `on-landing.mjs` uses it to skip
+ *  nagging the card over "not-merged", the one reason that fixes itself (this loop's own next
+ *  tick, once `merge.mjs` lands the branch, sees it merged and sweeps the server then). */
 export async function can_stop(entry){
 	const task = find_task_for_worktree(entry.path);
-	if (!task) return { ok: false, why: `no task.jsonl names this worktree (${entry.path}) in its line 1` };
+	if (!task) return { ok: false, reason: "no-task", why: `no task.jsonl names this worktree (${entry.path}) in its line 1` };
 	if (!task.landed_at || !String(task.outcome ?? "").trim())
-		return { ok: false, why: `task ${task.key} has not landed (no landed_at + outcome yet)` };
+		return { ok: false, reason: "not-landed", why: `task ${task.key} has not landed (no landed_at + outcome yet)` };
 	if (!is_merged(entry.branch))
-		return { ok: false, why: `branch ${entry.branch || "(none)"} is not merged into michael/dev yet` };
+		return { ok: false, reason: "not-merged", why: `branch ${entry.branch || "(none)"} is not merged into michael/dev yet` };
 	const mastermind = task.agent || null;
 	const agents = await live_agents();
-	const live = a => !["stopped", "gone"].includes(a.state);
-	const blockers = agents.filter(a => live(a)
-		&& (a.id === mastermind || a.parent === mastermind || (a.cwd && norm(a.cwd) === norm(entry.path))));
-	if (blockers.length) return { ok: false, why: `still working: ${blockers.map(a => a.id).join(", ")}` };
-	return { ok: true, why: `${task.key} landed ${task.landed_at}, ${entry.branch} merged, no live agent working there` };
+	// "Live" here means WORKING right now, not merely "not stopped yet" — the agent that landed
+	// this task normally goes straight to `idle`, not `stopped` (nothing stops it), so treating
+	// idle as a blocker would keep every worktree's server up forever, the exact bug this was
+	// built to fix. `mastermind` can be null (the task's line 1 never named an `agent`) — guarded
+	// so that never turns into "every parentless agent in the system blocks this one".
+	const acting = a => a.state === "working" || a.state === "starting";
+	const blockers = agents.filter(a => acting(a)
+		&& ((mastermind && (a.id === mastermind || a.parent === mastermind)) || (a.cwd && norm(a.cwd) === norm(entry.path))));
+	if (blockers.length) return { ok: false, reason: "busy", why: `still working: ${blockers.map(a => a.id).join(", ")}` };
+	return { ok: true, reason: null, why: `${task.key} landed ${task.landed_at}, ${entry.branch} merged, no live agent working there` };
 }
 
 /** Every registered worktree server: stop ones that are safe (worktree dir gone, or `can_stop`

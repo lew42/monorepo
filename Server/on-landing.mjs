@@ -78,13 +78,16 @@ try {
 	try {
 		const entry = entry_for_task_dir(dir);
 		if (entry) {
-			const { ok, why } = await can_stop(entry);
+			const { ok, reason, why } = await can_stop(entry);
 			if (ok) {
 				const r = spawnSync(process.execPath, [path.join(root, "Server/worktree-down.mjs"), entry.name], { encoding: "utf8", windowsHide: true });
 				append(task, `worktree-down: ${entry.name} - ${(r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed")}`);
 			} else {
 				append(task, `worktree-down: kept ${entry.name} running - ${why}`);
-				if (card) {
+				// "not-merged" fixes itself once merge.mjs lands the branch — this loop's own next
+				// tick sweeps it then, no one needs to act — so only every OTHER reason (still
+				// busy, no task found) is worth a line on the card.
+				if (card && reason !== "not-merged") {
 					let untracked = "";
 					try {
 						const st = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });
