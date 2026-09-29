@@ -1,0 +1,133 @@
+@layer site {
+
+	/* THE THREE-REGION ROW. A grid, not flex, so the centre column can be given the
+	   most room without every card in the rails fighting it for space — `minmax(0, …)`
+	   on all three tracks is what stops a wide iframe or a long title blowing the row
+	   wider than the page (the same trap `2-equal`'s own recipe warns about in
+	   layouts.json). Stacks at the rail's own floor, same number the layout standard
+	   uses for a sidebar row (`2-sidebar`'s wire, 40rem) — a phone gets three full-width
+	   sections in reading order: left, centre, right. */
+	.std-explorer {
+		display: grid;
+		grid-template-columns: minmax(0, 18em) minmax(0, 2fr) minmax(0, 18em);
+		gap: var(--gap);
+		align-items: start;
+	}
+
+	@media (max-width: 40rem) {
+		.std-explorer { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	.std-explorer-rail { min-width: 0; }
+	.std-explorer-rail h3 { margin-block-end: 0.4em; }
+
+	.std-explorer-cards {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 0.6em;
+	}
+
+	/* A CARD — the whole thing is the link (`.std-explorer-card` IS the `<a>`), so a
+	   drawing or an iframe inside it must never take the click; explorer.css is the
+	   one place that turns both off, rather than repeating `pointer-events: none` at
+	   every call site. */
+	.std-explorer-card {
+		display: block;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		overflow: hidden;
+		text-decoration: none;
+		color: inherit;
+		background: var(--surface);
+	}
+
+	.std-explorer-card:hover { border-color: var(--accent, currentColor); }
+	.std-explorer-card.is-active { border-color: var(--accent, currentColor); border-width: 2px; }
+
+	.std-explorer-card .std-frame,
+	.std-explorer-card .std-explorer-draw iframe { pointer-events: none; }
+
+	.std-explorer-card-label {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15em;
+		padding: 0.5em 0.6em;
+	}
+
+	.std-explorer-card-title { font-weight: 600; }
+	.std-explorer-card-count { font-size: 0.85em; color: var(--subtle); }
+
+	/* A pure category (no wire, no real page) — a plain tile with a count, so the
+	   eye still has a picture-shaped thing to scan even where there is no drawing. */
+	.std-explorer-pic-cat {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3em;
+		aspect-ratio: 16 / 9;
+		background: var(--tint, var(--pad-bg, #0000000d));
+		color: var(--subtle);
+	}
+
+	/* THE IFRAME FRAME — the same "draw it real size, then shrink with a container
+	   query zoom" trick Layout.js's own `.std-frame`/`.std-draw` already uses (its own
+	   header comment has the measurements), so a wireframe card and a real-page card
+	   land at the same height with nothing measured in JS. */
+	.std-explorer-frame {
+		container-type: inline-size;
+		aspect-ratio: var(--w) / var(--h);
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.std-explorer-draw {
+		width: calc(var(--w) * 1px);
+		height: calc(var(--h) * 1px);
+		zoom: calc(100cqw / (var(--w) * 1px));
+	}
+
+	.std-explorer-draw iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+	/* THE CENTRE — the selected item, real size (well, real page, shrunk to the
+	   column it is given). Its iframe DOES take clicks — it is not inside a link. */
+	.std-explorer-centre { min-width: 0; }
+	.std-explorer-centre-head h2 { margin-block-end: 0.2em; }
+
+	.std-explorer-pic-big { border: 1px solid var(--line); border-radius: 0.4em; overflow: hidden; }
+	.std-explorer-pic-big .std-explorer-draw iframe { pointer-events: auto; }
+
+	.std-explorer-empty { padding: 2em; text-align: center; }
+
+	/* THE CRUMB — one link per level; `chevron_right` between them is the framework's
+	   own icon font, the same one every other crumb on the site already loads. */
+	.std-explorer-crumbs {
+		display: flex;
+		align-items: center;
+		gap: 0.2em;
+		flex-wrap: wrap;
+		margin-block-end: 0.6em;
+	}
+
+	.std-explorer-crumb {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2em;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.std-explorer-crumb:hover { color: var(--accent, currentColor); }
+
+	/* DELIVERABLE 7's FALLBACK — a small strip under the centre, not the ☰ drawer
+	   (see page.js's own comment and the final report for why). */
+	.std-explorer-props {
+		margin-block-start: 1em;
+		padding: 0.8em 1em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		background: var(--surface);
+	}
+
+	.std-explorer-props p { margin: 0.2em 0; }
+}

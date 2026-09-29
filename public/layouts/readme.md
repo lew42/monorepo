@@ -37,6 +37,9 @@ that is the whole feature.
   2026-09-18: an app shell, what a click does to your screen, a horizontal band, a blog at
   3440, a magazine page, a deck cut into regions — arrangements played with before they earned
   an id above
+- [/layouts/explorer/](/layouts/explorer/) — **every layout on the site, walked as one tree**:
+  a left rail of siblings, the one you picked large in the middle, its variants on the right —
+  click a variant and it becomes the new middle, with its own url at every step
 
 Adding a layout is **one object in `layouts.json`** — no page, no CSS.
 [`doc/naming.md`](/layouts/doc/naming/) has the shape and the three questions that decide whether
