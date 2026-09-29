@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/24/system-design/",
+ "widths": {
+  "1280": {
+   "empty": 0.347,
+   "widest_text": 3628,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 398,
+   "narrow_share": 0.04
+  },
+  "1920": {
+   "empty": 0.417,
+   "widest_text": 3861,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 398,
+   "narrow_share": 0.075
+  },
+  "2560": {
+   "empty": 0.442,
+   "widest_text": 4344,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 398,
+   "narrow_share": 0.075
+  },
+  "3440": {
+   "empty": 0.542,
+   "widest_text": 4344,
+   "widest_text_sample": "Fixed. Cause: another agent saved a page",
+   "overflow_x": false,
+   "items": 398,
+   "narrow_share": 0.952
+  }
+ },
+ "errors": []
+}

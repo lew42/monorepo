@@ -35,3 +35,7 @@
 {"log":{"at":"2026-09-28T14:46:54-05:00","task":"ai2-real-pages","msg":"landed: inbox rows can be real pages (Page, Servex)"}}
 {"log":{"at":"2026-09-28T15:09:44-05:00","task":"source-library","msg":"landed — the source library, web fan-out, research-skill lesson rule, and /docs/->/doc/ + nested doc tree, all four merged onto michael/dev"}}
 {"log":{"at":"2026-09-28T15:11:09-05:00","task":"review-turns","msg":"landed — review.mjs runs four logged turns (findings/answers/replies/rulings) with a usefulness score on the Collab scoreboard and a live Reviews view; built on collab-rounds, landed the same session"}}
+{"log":{"at":"2026-09-28T14:42:03-05:00","task":"page-drawer/m1","msg":"landed — a menu button on every page opens the drawer on five routed tabs (AI, Sessions, Dictation, Settings, Admin); committed on worktree/page-drawer"}}
+{"log":{"at":"2026-09-28T14:55:37-05:00","task":"page-drawer/m2","msg":"landed — select any element while the drawer is open, its properties on the Element tab, a chip that sends it as context; tab strip wraps"}}
+{"log":{"at":"2026-09-28T15:22:00-05:00","task":"page-drawer","msg":"landed — ☰ on every page, drawer tabs (AI, Sessions, Dictation, Settings, Admin, Element), select any element + context chip; walkthrough at /framework/ext/drawer/walkthrough/; applied to the main tree, uncommitted"}}
+{"log":{"at":"2026-09-28T22:42:19-05:00","task":"commit-live-system","msg":"task opened — commit ~326 uncommitted files on michael/dev in named groups, main tree, no push"}}

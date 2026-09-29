@@ -1,0 +1,693 @@
+[
+ {
+  "task": "alpha-flip",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/alpha-flip/",
+  "title": "The alpha-fill flip: make the invisible buttons/pills visible site-wide, on the color-stacks lab's evidence. Promote the --shade/paper/fill-",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The site is off opaque button fills.** 101 invisible pairs / 504 elements -> **19 / 50**, same 76 pages, same bar. Not one of the 50 is a control you cannot see.\n\n![the demo toolbar, before](toolbar"
+  ]
+ },
+ {
+  "task": "audit-fixes",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/audit-fixes/",
+  "title": "W3b - three targeted fixes from the site audit: the 2026-08-08 crash, six missing orienting lines/nav, Panel demo near-empty at 400",
+  "status": "landed"
+ },
+ {
+  "task": "blog-arch",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/blog-arch/",
+  "title": "R1 blog ARCHITECTURE: answer three unknowns with a working prototype at /blog/ and recommend. 1) Meta tags that actually work - prototype a ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Three answers, and a working blog at [/blog/](/blog/).**\n\n**1. Meta tags: YES, the hybrid works.** A post ships a real `index.html` carrying the og:/twitter: tags as bytes, and its last line is the "
+  ]
+ },
+ {
+  "task": "blog-build",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/blog-build/",
+  "title": "TASK B10 - build the REAL /blog/ from the two landed verdicts (R1 blog-arch architecture + E2 blogx shell verdicts). /blog/ is the Magazine ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The real blog is live at [/blog/](/blog/)** — a magazine front, three sections, six posts, and one shell borrowed whole from the site.\n\n![the front at 3440](front-3440.png)\n\n**The structure.** `/blo"
+  ]
+ },
+ {
+  "task": "blog-layouts",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/blog-layouts/",
+  "title": "TASK E2 - blog LAYOUT exploration lab at /imagine/blogx/. A browsable tree of blog shell candidates, each a full working mock, each with a o",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Eight blog shells at [/imagine/blogx/](/imagine/blogx/), judged at 3440 first.** All eight render the same eight posts, so the only variable on screen is the layout. Every card, row and chip is a re"
+  ]
+ },
+ {
+  "task": "blog-program",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/blog-program/",
+  "title": "Blog program for job prospecting: blog architecture (per-post index.html with working meta tags, file structure, un-centered 3440 reading la",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "OWNER: committed 343d720 + merged origin (gitignore union) + PUSHED 09f0f30 to origin/michael/dev - backup done, commit-as-we-go now standing practice. 3 new streams dispatched: Y7 youtube lab, CF8 cl",
+   "OWNER standing directive: idle capacity becomes critique waves - analyze what we built, suggest improvements; saved to memory; will fire after current harvests instead of quiet holds"
+  ],
+  "left_open": [
+   "**Improve-everything program: 20 landings, 9 pushes, everything verified and linked** — the full improve rotation over every lab and system built this week, then the roadmaps those improvers wrote, ex"
+  ]
+ },
+ {
+  "task": "cloudflare-mcp",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/cloudflare-mcp/",
+  "title": "is there an Mcp for cloudflare, so you can setup and configure these cloudflare services without me? if so, make a note of that on the imagi",
+  "status": "landed"
+ },
+ {
+  "task": "cms-thinking",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/cms-thinking/",
+  "title": "let's lean into Cloudflare apis. spawn some minions to explore cloudflare apis, like D1, durableobjects, and provides UI for creating and ma",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**A working CMS out of two seams that already existed — and the argument for not adding a backend yet.** No new dependency, no server change, nothing committed.\n\n![](shots/thinking.png)\n\n**The verdict"
+  ]
+ },
+ {
+  "task": "col-styles",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/col-styles/",
+  "title": "the page columns system, do we have control over how this renders? demonstrate every hook, build styled variants",
+  "status": "landed"
+ },
+ {
+  "task": "color-stacks",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/color-stacks/",
+  "title": "I want to explore color variations of all our UI. we have buttons, and tags, and cards, and the color permutations of stacking certain color",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Floors are opaque; fills are alpha.** The lab ships: a live 72-cell matrix that measures itself, a four-rung alpha ladder, and a site-wide scan that found **101 distinct invisible pairs (504 element"
+  ]
+ },
+ {
+  "task": "cols-lab",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/cols-lab/",
+  "title": "In our layout explorations, we need to thoroughly explore 2 and 3 column layouts, at all resolutions. the flex.auto system that breaks at a ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**`.flex.auto` holds a ratio at 3440 and cannot stop, and its stack point is not a place.** The suspicion is half right — and the half that is right is the worse half. Six words shipped as a proposal-"
+  ]
+ },
+ {
+  "task": "critique-blog",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/critique-blog/",
+  "title": "Adversarial critique of today's two headline deliverables: the homepage (/) and the blog (/blog/ + all six posts + section pages). Browse co",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**20 ranked improvements to the homepage and the blog, none applied — this task edited nothing outside its own directory.**\n\nBrowsed cold at 400 / 1920 / 3440 in light and dark (30 headless shots), re"
+  ]
+ },
+ {
+  "task": "critique-fixes",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/critique-fixes/",
+  "title": "Execute the critique wave's accepted fixes - 8 verified findings from critique-blog + critique-imagine: root social meta, tooling post opene",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Eight accepted critique fixes, all executed at the cause — one of them refuted in part.**\n\nEvery fix was re-run against the critique's own repro. Both keepers measured unchanged, before the first ed"
+  ]
+ },
+ {
+  "task": "critique-imagine",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/critique-imagine/",
+  "title": "Adversarial critique of today's /imagine/ additions: youtube (5 labs), cms (thinking, edit, services, welcome), blogx (8 shells), decks (9 c",
+  "status": "landed"
+ },
+ {
+  "task": "critique-web-resume",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/critique-web-resume/",
+  "title": "hiring-lens critique of /web/ (guide tier) and /resume/: browse cold from homepage, judge whether /web/ should stay linked, check /resume/ l",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Verdict: show /web/, fix its invisible toolbar first. /resume/ ships live placeholder contact info — fix before anyone else opens it.**\n\n15 improvements ranked (#1-#15), 5 keeper shots in shots/, re"
+  ]
+ },
+ {
+  "task": "decks-lab",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/decks-lab/",
+  "title": "I want to stress the need for presentational layouts (think slide deck designs), that utilize the space better. try slicing the 3440 in vari",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Nine slide-grade cuts at [/imagine/decks/](/imagine/decks/)** - six ratios, a persistent-vs-swap head to head on identical content, and a real 6-slide deck about the framework. 75 loads at 400/1920/"
+  ]
+ },
+ {
+  "task": "delete-core-new",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/delete-core-new/",
+  "title": "delete public/framework/core/new/0/ and core/new/starter/ per simplify audit #1; grep for citations first, rewrite dead links inline, update",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Deleted core/new/0/ and core/new/starter/** (simplify audit #1) — 78 files, 468KB (25 files/179KB + 53 files/289KB); core/new/1/ untouched per DO-NOT-TOUCH. Zero code imports found (audit's claim co"
+  ]
+ },
+ {
+  "task": "demo-clips",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/demo-clips/",
+  "title": "Execute step 1 of the demo-merge proposal: kill the 17 fixed-height demo clips (16 demo.tree config keys + 1 inline demo.app style), add min",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**17/17 fixed-height demo clips killed.** `demo.tree()`'s `height:` config key is gone -- `min:` is a floor (`min-height`, never a ceiling), matching the shell.js prototype. `app.css`'s `.demo-app-pag"
+  ]
+ },
+ {
+  "task": "demo-merge",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/demo-merge/",
+  "title": "D3 - demo system audit + page.demo() prototype + the merge proposal. Compact the demo system: kill the source expando, more configurable, re",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**page.demo() prototyped, and the demo system audited to numbers.** 14 render variants, 584 call sites, 17 fixed-height clips (6 of 8 sampled pages cut content at 1920 - worst hides 74%), and the widt"
+  ]
+ },
+ {
+  "task": "demo-merge-2",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/demo-merge-2/",
+  "title": "Execute steps 2-5 of the demo-merge proposal: expando dies, dead+split deleted, the four sugars become thin wrappers over page.demo(), bare ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**14 render variants to 6 — steps 2-5 of the demo-merge landed.** `demo(fn)`, `page.demo()`, `mini()`, and three engines (`stage`, `demo.app`, `layout.bar`). 231 call sites moved onto one shell by cha"
+  ]
+ },
+ {
+  "task": "demo-urls-audit",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/demo-urls-audit/",
+  "title": "the evidence for a pending decision: should demo.app()'s new urls: false option become the DEFAULT? enumerate every demo.app() call site, sa",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Flip the default — every audited call site wants urls:false, zero exceptions.** 91 real render call sites found (84 raw `demo.app(` + 47 raw `demo.tree({` grep hits, minus jsdoc/doc-string matches, "
+  ]
+ },
+ {
+  "task": "demo-urls-flip",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/demo-urls-flip/",
+  "title": "flip demo.app()'s urls default to false, per the unanimous demo-urls-audit (91/91 call sites want it)",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Flipped `demo.app()`'s `urls` default to `false`** - the audit's unanimous 91/91 call. `app.js`'s mark() now runs `if (this.urls !== true) this.unlink()`; `shell.js:86`'s page.demo() gets the one ex"
+  ]
+ },
+ {
+  "task": "doc-file-prune",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/doc-file-prune/",
+  "title": "execute the doc-file verdict's prune: delete 37 unreachable doc/file mds, fix the 1 wrong View.js.md doc, verify 334 reachable / 0 unreachab",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Prune executed: 37 deleted, 1 doc fixed, 1 bonus token cleanup.** Deleted the 37 unreachable doc/file mds from the verdict -- 1 true orphan (`ext/Timeline/doc/file/ai.js.md`), 22 dead-on-arrival und"
+  ]
+ },
+ {
+  "task": "doc-file-verdict",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/doc-file-verdict/",
+  "title": "doc/file/*.md question: 371 files, 734KB, 19% of framework markdown - who reads them, orphan count, staleness sample of 12, value sample of ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Verdict: prune-orphans-only, 37 of 371 files (~34KB, 10%).** The renderer is ext/Doc's Files tab: Doc.files_section() -> browser() -> ext/files/files.js's files(meta, this.files, {about}), where abo"
+  ]
+ },
+ {
+  "task": "eager-load-cost",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/eager-load-cost/",
+  "title": "quantify the eager-child-load cost and sketch the lazy alternative as a PROPOSAL",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Eager overhead is real: 60-85pct of route modules fetched on every hot url draw nothing.** Measured via raw CDP (cold cache, private :8095, no new deps) across 5 urls -- / and /blog/ are cheap, but "
+  ]
+ },
+ {
+  "task": "homepage",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/homepage/",
+  "title": "TASK W3c - the homepage, rebuilt for job prospecting. The fold at 1000px, all three widths, holds the thesis, ONE compact live demo, the lat",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The front page shows the framework instead of describing it.** `/` graded 2/2/2 in the site audit - hero text and five link cards, no live demo, a 40em column on a 3440 screen. It grades **3/3/3** n"
+  ]
+ },
+ {
+  "task": "json-pages",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/json-pages/",
+  "title": "look into page.json based pages. for now, we'll need a parent page to initiate the handoff/load of the json. however, we could, like the Ite",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**JSON pages landed — a page tree that exists as data.** `page.json` is the snapshot, `page.jsonl` the append-only delta log. Loading is fetch-then-replay; compacting writes the replayed state back as"
+  ]
+ },
+ {
+  "task": "lazy-children",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/lazy-children/",
+  "title": "Implement the lazy-children (nav stub) proposal from ai/2026-08-30/eager-load-cost/proposal.md: children: accepts nav stubs stored as data, ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Lazy children shipped as a load DEPTH, not a nav stub -- /framework/ went from 261 page.js modules and 1.08 MB to 57 and 279 KB, with the same 53 cards on screen.**\n\n| url | before | after | cut |\n|"
+  ]
+ },
+ {
+  "task": "post-dashboard",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/post-dashboard/",
+  "title": "write the blog post at public/blog/ai/dashboard/ about the /framework/ai/ dashboard system",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "BLOCKING (not mine to fix, flagging for blog-build/owner): public/blog/Post.js render() line ~88 - div.c(\"blog-read\", () => { this.head(); this.read(); }) is a block-bodied arrow with no return, so th"
+  ],
+  "left_open": [
+   "**[The AI dashboard](/blog/ai/dashboard/) — written and verified, blocked on a shared one-line bug that is not mine to fix.**\n\n700-word post grounded in `ext/AITask/readme.md` + `ext/JSONL/readme.md`:"
+  ]
+ },
+ {
+  "task": "post-generators",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/post-generators/",
+  "title": "TASK - write the blog post at public/blog/systems/layout-generators/ - the two generators (styles/layouts/space, core/Page/generator), shown",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The post is written and verified everywhere my own fence reaches.** [`public/blog/systems/layout-generators/`](/blog/systems/layout-generators/) - 893 words (~4.5 min), 2 machines shown not told: `s"
+  ]
+ },
+ {
+  "task": "post-hello",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/post-hello/",
+  "title": "write a blog post about the whole framework, try to introduce it better. keep the posts simple, visual, link to the things. slug framework/h",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Hello, lew42 shipped** - the flagship whole-framework post, 3 parts, ~1,150 words of prose.\n\n![the post at 1920](post-1920.png)\n\n- [The post](/blog/framework/hello-lew42/) - listed and active in [th"
+  ]
+ },
+ {
+  "task": "post-panel",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/post-panel/",
+  "title": "TASK - write the blog post at public/blog/systems/panel-playground/ - the two wireframing tools, honestly distinct (a fresh audit found they",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The post is written and verified end to end.** [`/blog/systems/panel-playground/`](/blog/systems/panel-playground/) - 694 words (~3.5min read), Panel and Playground shown honestly distinct per this "
+  ]
+ },
+ {
+  "task": "post-tooling",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/post-tooling/",
+  "title": "Write the blog post at public/blog/ai/claude-tooling/. Contract: slug ai/claude-tooling, title 'MCP, Playwright, and skills', single part. H",
+  "status": "landed"
+ },
+ {
+  "task": "research-depictions",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-depictions/",
+  "title": "Research round 1: ancient depictions rumored to show aliens/anomalous craft. Build public/imagine/research/depictions/ (log.jsonl + page.js ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Depictions research round 1 landed** -- 8 subjects, 40 log entries (finding 16, theory 8, opinion 8, question 8), 35 distinct sources, credence mix established 16 / contested 8 / fringe 7 / speculat"
+  ]
+ },
+ {
+  "task": "research-depictions-2",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-depictions-2/",
+  "title": "Round 2 on ancient depictions: deepen public/imagine/research/depictions/ - invented-tradition recency signature (Blue Star Kachina and othe",
+  "status": "landed"
+ },
+ {
+  "task": "research-disclosure",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-disclosure/",
+  "title": "research round 1: the modern UAP/disclosure arc — AATIP/Navy videos, 2021 ODNI report, Grusch/AARO, NDAA + records act, Age of Disclosure do",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**41 log entries across 6 threads, 29 distinct sources** on the modern UAP/disclosure arc (2017 NYT/AATIP -> Navy videos -> 2021 ODNI report -> Grusch/AARO -> NDAA records-act fight -> Age of Disclosu"
+  ]
+ },
+ {
+  "task": "research-disclosure-2",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-disclosure-2/",
+  "title": "Round 2 on the disclosure research arc: deepen public/imagine/research/disclosure/ - maritime case, FY2027 NDAA/UAPDA, a resolved-case metho",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Round 2 landed: 31 new validated entries (72 total), 3 new pages, 2 pages updated on credence-moving news.** New: [PURSUE](/imagine/research/disclosure/pursue-disclosure/) (Trumps Feb 2026 order, th"
+  ]
+ },
+ {
+  "task": "research-round-3",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-round-3/",
+  "title": "Round 3 of the /imagine/research/ program — the CONVERGENCE round. Rewrite theories/synthesis/ into the program's capstone essay across all ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The convergence round landed — the program now reads as one work.** [theories/synthesis/](/imagine/research/theories/synthesis/) is rewritten as the capstone across all four topics and 320 entries, "
+  ]
+ },
+ {
+  "task": "research-stone",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-stone/",
+  "title": "Research round 1: precisely carved stone of ancient origin. Dir public/imagine/research/stone/ — log.jsonl (findings/sources/theories/questi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Landed: precisely-carved-stone research round 1** -- 65 log entries (finding 23, theory 17, opinion 13, question 9, source 3; established 32, contested 17, fringe 8, speculation 8) across 6 subjects"
+  ]
+ },
+ {
+  "task": "research-stone-2",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-stone-2/",
+  "title": "Research round 2 on carved stone: deepen public/imagine/research/stone/ (round 1: 65 entries, 6 subjects). Chase round 1's open questions --",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Round 2 landed: 65 -> 104 entries, a 7th subject, and the Dunn answer.** 39 new validated entries (25 sources across academic, museum, and enthusiast domains) chased round 1's open questions: no ind"
+  ]
+ },
+ {
+  "task": "research-system",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-system/",
+  "title": "Refine the research system by wiring it to a live program: build /imagine/research/ as the front over four topic logs (findings stream, topi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The research program has a front, and the research system has a second shape.** [/imagine/research/](/imagine/research/) reads all four minions log.jsonl files live — 180 entries at landing, streami"
+  ]
+ },
+ {
+  "task": "research-theories",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-theories/",
+  "title": "Research round 1: the major theories (Younger Dryas impact, lost ice-age civilization, ancient astronauts, catastrophism vs gradualism, inte",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The five major theories, summarized and assessed** at public/imagine/research/theories/ -- one index page, five theory pages, one synthesis page, plus a 34-entry log.jsonl (26 distinct sources, 0 sc"
+  ]
+ },
+ {
+  "task": "research-theories-2",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/research-theories-2/",
+  "title": "Round 2 on the grand theories: current YD 2024-2026 literature both directions, Gobekli/Karahan Tepe newest excavation findings, stress-test",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Round 2 landed: 23 new validated entries (34 -> 57), 15 new distinct sources.** [The Major Theories](/imagine/research/theories/) - [Younger Dryas (updated)](/imagine/research/theories/younger-dryas"
+  ]
+ },
+ {
+  "task": "root-folds",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/root-folds/",
+  "title": "topic-root above-the-fold pass: for the 12 fenced topic roots, restructure so the 1000px fold shows title + one orienting line + a COMPACT l",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Nine of the twelve topic roots re-ordered so the 1000px fold carries title + one orienting line + a live demo + the section's nav.** Reorder only - nothing was written, nothing was deleted; what the"
+  ]
+ },
+ {
+  "task": "simplify-audit",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/simplify-audit/",
+  "title": "spawn some minions to analyze the thoroughness and simplicity of our styles, UI, layouts, etc. we need to greatly simplify our framework. I'",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The styles are not the problem.** The whole utility vocabulary is 6.8 KB; the framework carries **4,887 KB of prose against 2,860 KB of code (63%)**. Any plan that starts with the CSS is optimising "
+  ]
+ },
+ {
+  "task": "site-audit",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/site-audit/",
+  "title": "whole-site audit: every framework page at 400/1920/3440, graded on above-the-fold experience (title+orienting line, navigation, something sh",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Audited all 741 real pages under / + /framework/ + /notes/ (live tree walk) at 400/1920/3440 for above-the-fold experience.** 741 urls crawled = 741 rows in audit.json (both numbers agree). Every 0-"
+  ]
+ },
+ {
+  "task": "streaming-pages",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/streaming-pages/",
+  "title": "look into streaming pages. when the editor gets better, I'd like to be able to create realtime streaming UI/ux/presentation, whatever. anyth",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Pages stream.** Edit in one window; every other window has redrawn it **5 ms** later, with no reload and no navigation. [`/imagine/stream/`](/imagine/stream/) — open any of the three in two windows."
+  ]
+ },
+ {
+  "task": "web-resume-fixes",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/web-resume-fixes/",
+  "title": "four S-sized fixes from the web/resume critique: resume og card, resume<->blog cross-links, sticky Depth/Motion bar overlap, /web/ layout.ba",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**All four S-sized fixes landed and verified live.**\n\n1. **/resume/ og card** — [`public/resume/index.html`](/resume/index.html) (new, hand-written like the root's own — one page doesn't earn a stampe"
+  ]
+ },
+ {
+  "task": "youtube-lab",
+  "date": "2026-08-30",
+  "link": "/framework/ai/2026-08-30/youtube-lab/",
+  "title": "make a YouTube sub page on our imagine page. explore the YouTube playback API. if I wanted to create navigation around the YouTube video, co",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The YouTube lab landed** - five labs on the IFrame Player API at [/imagine/youtube/](/imagine/youtube/), one shared `cues()` engine, nothing touching Google until you press play.\n\n![](yt-course-1920"
+  ]
+ },
+ {
+  "task": "cols-promote",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/cols-promote/",
+  "title": "Promote .cols.half and .cols.main-aside from the cols lab into framework.css per doc/adoption.md; migrate the 6 listed call sites; verify pi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Promoted `.cols.half` and `.cols.main-aside` into framework.css**, beside the flex words, with the lab's exact mechanics (percentage basis, grow-by-weight, rem floor, the max/stack trick) and a one-"
+  ]
+ },
+ {
+  "task": "drafts-and-glass",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/drafts-and-glass/",
+  "title": "cms/edit drafts via page.store() + colstyles fourth look (Glass, if it earns its place)",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Both S items shipped.** cms/edit drafts now survive a reload via `page.store()` — typed text patches the store on a 400ms debounce, a quiet \"draft · restored\" note + Discard button appear once one i"
+  ]
+ },
+ {
+  "task": "generator-export",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/generator-export/",
+  "title": "The generator roadmap's endgame: export a generated tree as real page.js files. An Export control writes the current tree to disk as a real ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The generator can now write its tree out as real `page.js` files.** One click under the spec box turns the tree you are looking at into a directory of ordinary modules under [`/imagine/generated/<na"
+  ]
+ },
+ {
+  "task": "generator-round-2",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/generator-round-2/",
+  "title": "Build the three top roadmap items the 08-31 generator improver left: 1) copy-address button (XS), 2) spec-box feedback for unrecognized word",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Generator wave 7 — a copy button, a quiet teacher, a shelf for your own trees.** The three roadmap items wave 6 left, all three built. `MODEL` untouched at **3** — `gen.js`/`rules.js` read-only, nev"
+  ]
+ },
+ {
+  "task": "improve-blog-mag",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-blog-mag/",
+  "title": "Improve the blog and the magazine: look, brainstorm, build. Read + drive /blog/ and /imagine/mag/ at all widths, rank 8-12 improvements each",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Three things the blog could not do before, and one the magazine could not say.**\n\nA reader can now **subscribe**, see **how long a post is** before opening it, and **keep reading** at the bottom of "
+  ]
+ },
+ {
+  "task": "improve-cms-stream",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-cms-stream/",
+  "title": "Improve the CMS + streaming labs: look, brainstorm, build. LOOK at /imagine/cms/ and /imagine/stream/. Append.js is now WIRED in server.js, ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "BRAINSTORM 11/11 (S, CUT) - a services screen that really runs wrangler. Out of fence and the owner holds the token by design.",
+   "TEARDOWN - the private 8098 instance (pid 41520, the only node I started) is stopped and 8098 is free. Note for the record: :80 was never listening during this session, so the owners dev server was no"
+  ],
+  "left_open": [
+   "**The delta loop is real, measured end to end — and the log now folds into the snapshot instead of being thrown away.**\n\nEverything below was proven headless on a **private `PORT=8098` instance**, whi"
+  ]
+ },
+ {
+  "task": "improve-feeds-vary",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-feeds-vary/",
+  "title": "Improve the feeds + vary labs: look, brainstorm, build. LOOK at /imagine/feeds/ and the three original vary labs (scroll, tone, place) at 40",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Two builds, both proven headless; the verdict audit came back clean.**\n\n![](shot.png)\n\n### 1. `feeds/live` is actually live now\n\nIt was a one-shot `fetch()` on a page named \"Live.\" The `rpc:append` "
+  ]
+ },
+ {
+  "task": "improve-gallery-screens-shells",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-gallery-screens-shells/",
+  "title": "improve pass on /imagine/gallery/, /imagine/screens/, /imagine/shells/ - look, brainstorm 8-12 ranked improvements, build top 2-3 S/M total",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Built the top 2 of 12 brainstormed improvements.** Gallery got a client-side title filter over its three big card walls (Layouts 13, Column shapes 9, Recipes 10) — `input()` above `wall()`, filterin"
+  ]
+ },
+ {
+  "task": "improve-game-team",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-game-team/",
+  "title": "Improve the game and team experiences under /imagine/ — look at both live at every width, brainstorm 8-12 ranked improvements each, then bui",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Six additions across the two experiences, every one proven headless.**\n\n![the second ending](shots/keep-ending-long.png)\n\n**The world** — [/imagine/game/](/imagine/game/)\n\n- [**A Journal column**](/"
+  ]
+ },
+ {
+  "task": "improve-generator",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-generator/",
+  "title": "TASK - improve the page generator: look, brainstorm, build. LOOK first (drive it live): /framework/core/Page/generator/ (5 behavior words, s",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Generator wave 6 — a library, a costume, and a memory.** Three additions, each a control or data, no new `page.js` per state. `MODEL` is still **3**: `gen.js` and `rules.js` were not touched and all"
+  ]
+ },
+ {
+  "task": "improve-scenes-yt",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/improve-scenes-yt/",
+  "title": "Improve the 3D scenes and the YouTube labs: look, brainstorm, build. Drive /imagine/scenes/ (foyer + 4 worlds + gallery room, slot model, sp",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**The cue engine escaped the video player — and now drives the 3D pager.**\n\nThe flagship is cross-lab: `/imagine/scenes/tour/` imports `Cues` and `Clock` from `/imagine/youtube/cues.js` *unchanged* an"
+  ]
+ },
+ {
+  "task": "mag-game-round-2",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/mag-game-round-2/",
+  "title": "The two remaining S items from the 08-31 improvers' roadmaps: mag read-state via page.store() (mark on visit, quiet mark + N of 6 read line ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Mag remembers what you've read; the game gained a voice of your own and a keyboard.**\n\n![Two articles read, a quiet mark on each, and Reset](shots/mag-read-state.png)\n\n- [**Mag — read state**](/imag"
+  ]
+ },
+ {
+  "task": "page-store",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/page-store/",
+  "title": "Build page.store() in core per the approved proposal: Page.prototype.store() returning {get, set, patch, clear} keyed `lew42:` + (store_key ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**`page.store()` is core, and `/imagine/store.js` is gone.**\n\nOne method on `Page` plus one part class beside it (`Page.Store`): `get(fallback)` / `set(data)` / `patch(part)` / `clear()`, keyed `lew42"
+  ]
+ },
+ {
+  "task": "polish-vary-decks-blogx",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/polish-vary-decks-blogx/",
+  "title": "polish three /imagine/ labs (vary/colstyles, decks, blogx): look, brainstorm 8-12 ranked, build top 2-3 S/M; colstyles item-selector general",
+  "status": "landed"
+ },
+ {
+  "task": "qa-2026-08-31",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/qa-2026-08-31/",
+  "title": "Fresh-eyes integration QA over everything landed today (7 waves): generator pileup, blog pileup, decks, mag, /imagine/generated/seed-7/, cms",
+  "status": "landed"
+ },
+ {
+  "task": "research-audit",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/research-audit/",
+  "title": "research round 4, question 4: audit the program's own inputs -- sample 60 entries across the four research logs, fetch each url, classify VE",
+  "status": "landed"
+ },
+ {
+  "task": "research-repairs",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/research-repairs/",
+  "title": "execute the repairs the self-audit demanded: resolve the 2 genuinely-suspect entries (Saqqara Bird wind-tunnel, Dogon-Sirius mundane channel",
+  "status": "landed"
+ },
+ {
+  "task": "research-round-4",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/research-round-4/",
+  "title": "research round 4: pick top two open questions from the capstone by what would most change a credence, dig them foreground, append credence-d",
+  "status": "landed"
+ },
+ {
+  "task": "research-round-5",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/research-round-5/",
+  "title": "Round 5 of the research program: follow the strongest open leads from round 4 (Nimitz radar-tape removal, 2016 blind Younger-Dryas test disp",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Round 5 landed: chased round 4's three strongest open leads to their primary sources, no new fronts.** 13 new entries (4 [disclosure](/imagine/research/disclosure/log.jsonl), 9 [theories](/imagine/r"
+  ]
+ },
+ {
+  "task": "research-round-6",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/research-round-6/",
+  "title": "Round 6 of /imagine/research/ is the SYNTHESIS round: read all 358 entries across the four logs plus the capstone, aggregate the cross-topic",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Round 6 landed — five cross-topic patterns and one new falsifiable hypothesis.**\n\n[What Recurs](/imagine/research/theories/patterns/) — the round-6 page, linked from [The Major Theories](/imagine/re"
+  ]
+ },
+ {
+  "task": "small-wins-sweep",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/small-wins-sweep/",
+  "title": "five XS/S items from 08-31 improvers' ranked roadmaps: blog sitemap.xml, blog prev/next in multi-part posts, blog section labels on index, i",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**All five landed — every one derived from the manifest it already had, nothing duplicated.**\n\n- [**`/blog/sitemap.xml`**](/blog/sitemap.xml) — generated by `meta.mjs` from `posts.js`, same pattern as"
+  ]
+ },
+ {
+  "task": "undo-proposal",
+  "date": "2026-08-31",
+  "link": "/framework/ai/2026-08-31/undo-proposal/",
+  "title": "PROPOSAL ONLY, build nothing. Design undo for the /imagine/stream delta contract. Weigh three shapes with MEASUREMENTS over a synthetic 200-",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "**Undo for the delta stream: replay wins, and it needs no contract change.** A proposal, not a build — `stream.js`, `json.js` and `Server/` are untouched. The roadmap called undo \"a contract change\"; "
+  ]
+ },
+ {
+  "skipped": []
+ }
+]

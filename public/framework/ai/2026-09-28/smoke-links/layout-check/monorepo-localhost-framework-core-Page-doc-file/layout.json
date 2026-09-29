@@ -1,0 +1,47 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/doc/file/",
+ "widths": {
+  "1280": {
+   "empty": 0.948,
+   "widest_text": 391,
+   "widest_text_sample": "404 — nothing matches \"/framework/core/P",
+   "overflow_x": false,
+   "items": 14,
+   "narrow_share": 1
+  },
+  "1920": {
+   "empty": 0.972,
+   "widest_text": 416,
+   "widest_text_sample": "404 — nothing matches \"/framework/core/P",
+   "overflow_x": false,
+   "items": 14,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.968,
+   "widest_text": 468,
+   "widest_text_sample": "404 — nothing matches \"/framework/core/P",
+   "overflow_x": false,
+   "items": 14,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.976,
+   "widest_text": 468,
+   "widest_text_sample": "404 — nothing matches \"/framework/core/P",
+   "overflow_x": false,
+   "items": 14,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Error: 404 — nothing matches \"/framework/core/Page/doc/file/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framew",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Error: 404 — nothing matches \"/framework/core/Page/doc/file/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framew",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Error: 404 — nothing matches \"/framework/core/Page/doc/file/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framew",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Error: 404 — nothing matches \"/framework/core/Page/doc/file/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framew"
+ ]
+}

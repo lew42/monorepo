@@ -1,0 +1,15 @@
+# Minion: roles — one skill per role, each hears only its role
+
+Rules shared by all minions: `../common.md`. Owner's words: `../requirements.md` and the card dir `public/framework/ai/2026/09/25/one-recursive-agent-system-the-same-pair/` (its role table is the spec).
+**Fence:** `Servex/agents/Global.js`, `Servex/agents/global.test.mjs`, `Servex/agents/policy.js`, `Servex/agents/policy.test.mjs`, `Servex/agents/roles.js`, `Servex/agents/card-assistant.md`, `Servex/agents/master-assistant.md`, a NEW file `.claude/skills/every-prompt/page-assistant.md`, new files under `Servex/agents/doc/`. ⚠ Do NOT edit `.claude/skills/every-prompt/SKILL.md`: the main tree has uncommitted edits to it. Write the merged text into the new `page-assistant.md` and put in proof.md the one line SKILL.md should gain to point at it. Private Servex port **8390**.
+
+## Deliverables
+1. **One skill per role, scoped by directory** (D2). The page assistant, root included, loads one text: `every-prompt` merged with `card-assistant.md`, into `page-assistant.md`. Its scope (its directory) is given in the first message. Layers.js (the pairs minion's file) reads `Servex/agents/card-assistant.md` today, so keep that path working (make it the merged text or a thin include). `roles.js` keeps `master-assistant`, `manager`, `card-assistant` as aliases, and gains the words `page-assistant` / `page-mastermind`.
+2. **Each agent hears only its role** (D3). Remove the every-card feed from `Global.js`: the root assistant hears the owner's page-less prompts, plus the landings and blocks of its direct children. Everything else it reads on demand.
+3. **Parent and child talk both ways** (D4). Prove one child mastermind messaging its parent and the reverse (a policy test and a live exchange on the private Servex). Let `mastermind-servex-N` ids count as the mastermind: today `task-mastermind-recursive-pairs` is refused when it messages `mastermind-servex-3`. Siblings stay unable to talk (per the table); note in proof.md that a shared file is their channel.
+4. **Assistants make safe quick edits** (D5, the rules), written in `page-assistant.md`: only files inside its own directory that no claim covers (`list_claims`), in a pooled worktree (`take_worktree`), smoke-tested and merged with `node Server/merge.mjs <path>`, then `return_worktree`. Never michael/dev directly.
+5. **The same reaper for idle task masterminds, after 15 minutes** (Global.js's reaper): a `task-mastermind-*` idle 15 minutes is stopped. Wake on message already exists: prove a stopped one wakes on a message.
+6. **Inbox watch lines** in `page-assistant.md`: a VS Code tab runs one `Monitor` on its inbox (`logs/inbox/<id>.jsonl` under Servex's log dir) with no expiry, re-armed at the start of each turn. (The inbox minion builds the inbox itself.)
+
+## Proof (in proof.md)
+Tests green; the live parent-child exchange, both directions, on your private Servex; a prompt on some card no longer reaching the root assistant; the reaper stopping an idle task mastermind (env-shortened for the run, and say so) and its wake on a message.

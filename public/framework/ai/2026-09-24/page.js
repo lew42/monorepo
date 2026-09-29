@@ -8,11 +8,12 @@ export default new Page({
 	meta: import.meta,
 	title: "2026-09-24",
 	icon: "history",
+	children: ["concurrency", "assistant-layers", "servex-mastermind", "inventory"],
 
 	// ⚠ ONLY task dirs that have their own `page.js` are named here. Everything else
 	//   is left undeclared so `route()` below builds it live from its task.jsonl —
 	//   a declared name skips route(), which is exactly what a page.js dir wants and
-	//   exactly what a log-only dir must not have. None yet today, so no `children:`.
+	//   exactly what a log-only dir must not have.
 
 	route(name){
 		if (name.includes(".") || has_page_js(this.name, name)) return;

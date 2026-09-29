@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" font-family="system-ui, sans-serif" font-size="15">
+  <style>
+    .card{fill:#fff;stroke:#555;stroke-width:1.5}
+    .rail{fill:#f4f4f4;stroke:#999;stroke-width:1}
+    .obj{fill:#f3f7ff;stroke:#4a6fb5;stroke-width:1.2}
+    .t{fill:#222}.s{fill:#666;font-size:13px}.l{fill:#2d5bb5}
+    .on{fill:#3a9a3a}.off{fill:#bbb}.work{fill:#e07a1f}
+    .btn{fill:#fff;stroke:#4a6fb5}
+    .note{fill:#8a3a3a;font-size:12px}
+    @media (prefers-color-scheme: dark){
+      .card{fill:#1e1e1e;stroke:#aaa} .rail{fill:#262626;stroke:#666} .obj{fill:#1b2333;stroke:#6f8fd0}
+      .t{fill:#eee} .s{fill:#aaa} .l{fill:#8fb0ff} .btn{fill:#1e1e1e} .note{fill:#e59a9a}
+    }
+  </style>
+
+  <!-- the rail row -->
+  <text class="s" x="20" y="24">In the rail: one short line</text>
+  <rect class="rail" x="20" y="34" width="250" height="52" rx="6"/>
+  <text class="t" x="34" y="56" font-weight="600">Servex</text>
+  <text class="s" x="34" y="76">running · 11 agents, 3 working</text>
+  <text class="note" x="20" y="108">not: "RedirectStandardError cannot use</text>
+  <text class="note" x="20" y="124">ShellExecute..." (a log line is not a state)</text>
+
+  <!-- the card -->
+  <rect class="card" x="300" y="14" width="640" height="440" rx="10"/>
+  <text class="t" x="324" y="46" font-size="22" font-weight="700">Servex</text>
+  <text class="s" x="324" y="68">The always-on process that runs the dev servers, the agents and the cards.</text>
+  <text class="t" x="324" y="94"><tspan class="on">●</tspan> Running · 2 of 13 projects online · 11 agents · machine calm</text>
+
+  <!-- the objects -->
+  <rect class="obj" x="324" y="110" width="360" height="220" rx="8"/>
+  <text class="s" x="338" y="130">Objects, live</text>
+  <text class="t" x="338" y="154"><tspan class="l">Servex</tspan> ×1 <tspan class="on">●</tspan></text>
+  <text class="t" x="354" y="178">├ projects: <tspan class="l">Project</tspan> ×13  <tspan class="on">●●</tspan><tspan class="off">●●●●●●●●●●●</tspan></text>
+  <text class="t" x="354" y="200">├ agents: <tspan class="l">Agent</tspan> ×11  <tspan class="work">●●●</tspan><tspan class="on">●●●●●●●</tspan><tspan class="off">●</tspan></text>
+  <text class="t" x="354" y="222">├ cards: <tspan class="l">Card</tspan> ×394</text>
+  <text class="t" x="354" y="244">├ dispatcher: <tspan class="l">Dispatcher</tspan> ×1</text>
+  <text class="t" x="354" y="266">├ monitor: <tspan class="l">Monitor</tspan> ×1</text>
+  <text class="t" x="354" y="288">└ proxy, ports, log, stream, mcp  ▸</text>
+  <rect class="btn" x="600" y="140" width="68" height="22" rx="4"/>
+  <text class="l" x="610" y="156" font-size="13">+ New</text>
+  <text class="s" x="338" y="318">click a name → its class page · a count → the list</text>
+
+  <!-- the checklist -->
+  <text class="s" x="704" y="130">Done, and next</text>
+  <text class="t" x="704" y="154">☑ card folders</text>
+  <text class="t" x="704" y="176">☑ survives a restart</text>
+  <text class="t" x="704" y="198">☑ health monitor</text>
+  <text class="t" x="704" y="220">☑ hidden-window rule</text>
+  <text class="t" x="704" y="242">☐ hide all 16 files</text>
+  <text class="t" x="704" y="264">☐ 40% agent recycle</text>
+  <text class="t" x="704" y="286">☐ ask_module</text>
+  <text class="t" x="704" y="308">☐ Dispatcher sees revivals</text>
+
+  <!-- one click down -->
+  <line x1="324" y1="350" x2="916" y2="350" stroke="#999" stroke-width="1"/>
+  <text class="s" x="324" y="376">One click down, never on this screen:</text>
+  <text class="l" x="324" y="400">Tasks ▸    Chat ▸    Cost ▸    readme ▸    doc/ ▸</text>
+  <text class="s" x="324" y="432">Every name above is a link: a class, an instance, a task, an agent.</text>
+</svg>

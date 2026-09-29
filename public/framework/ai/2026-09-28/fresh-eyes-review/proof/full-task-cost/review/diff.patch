@@ -1,0 +1,614 @@
+diff --git a/Server/doc/task-cost.md b/Server/doc/task-cost.md
+new file mode 100644
+index 00000000..5a5df89e
+--- /dev/null
++++ b/Server/doc/task-cost.md
+@@ -0,0 +1,81 @@
++# task-cost — what a task cost, in dollars
++
++`Server/task-cost.mjs` works out how many dollars a task cost. The total includes the agent that ran
++the task and every agent it spawned, and their spawns in turn. It writes that figure into the
++task's own `task.jsonl`, and the AI board shows it on the task card. We count dollars, not tokens,
++because each model charges a different price per token.
++
++```
++node Server/task-cost.mjs public/framework/ai/2026-09-24/loose-ends   one task
++node Server/task-cost.mjs --date 2026-09-24                          every task of that day
++node Server/task-cost.mjs --agent minion-card-view                   every task this agent counts toward
++  --dry          print the table, write nothing
++  --root <repo>  whose public/framework/ai/ to read (default: the repo the script is in)
++```
++
++## When to run it
++
++Run it when a task lands, and again any time after. Running it twice does no harm. It adds a
++new line only when the figure has changed, and the newest line always wins. Servex can call
++`--agent <id>` after each `result` event. That mode stays silent when it works. For an agent it
++has never heard of, it prints one line to stderr and exits 0.
++
++## What it writes
++
++```json
++{"assign": {"cost_usd": 12.3456, "cost": {"root": "task-mastermind-live-card", "agents": 7, "own_usd": 6.59, "minions_usd": 5.75, "parent_task": null, "open": 1, "at": "…"}}}
++```
++
++- `cost_usd` is the root agent plus all of its descendants.
++- `own_usd` is the root agent alone, and `minions_usd` is everything below it.
++- `agents` says how many agents were added up.
++- `open` counts the agents that have not stopped yet. While it is above zero, the figure can still grow.
++- `parent_task` names another task that already includes this one (see below). When it is set,
++  a day total or a group total must skip this task.
++
++A task with no Servex agent behind it gets **no line at all**. That covers a browser tab or a
++plain CLI session. The board shows such a task as "not tracked", never as $0, because $0 would
++be a lie.
++
++## How a task finds its agent
++
++1. Take line 1 of `task.jsonl`, and read `assign.session_id` from it.
++2. Find the row in `%LOCALAPPDATA%\lew42\servex\registry.json` that has the same `session_id`.
++   If none does, use the row whose `id` equals `assign.tab`.
++3. That row is the task's **root**. Its descendants are every row whose `parent` leads back to
++   the root.
++
++## How an agent's cost is read
++
++Each agent has a log at `%LOCALAPPDATA%\lew42\servex\logs\agent-<id>.jsonl`. Its `result` lines
++carry a `cost` field. That cost is a **running total** for one process: it only grows. So the
++agent's cost is its **last** `cost` value.
++
++There is one exception. If a value is ever *smaller* than the one before it, the process
++restarted and began counting from zero again. The tool banks the earlier total and keeps adding.
++
++- A result line that appears twice (the same `at` and the same `cost`, from a replayed log)
++  counts only once.
++- A resumed session whose total carries on from where it stopped just keeps growing, so it is
++  never counted twice.
++- Agents are keyed by their id. An agent that comes back under the same id after a restart
++  keeps adding to the same figure.
++
++## Counting a tree once: `parent_task`
++
++- **The same root.** Two task dirs can map to the same agent. For example,
++  `2026-09-24/ai2-dashboard` and `2026-09-24/task-cost` are both run by
++  `task-mastermind-ai2-dashboard`. Both get the same full figure. The **later** task (by line
++  1's `requested_at`) gets `parent_task` set to the earlier task's `<date>/<slug>`.
++- **An ancestor.** If a task's root agent was spawned by another task's root agent, the other
++  task's figure already includes this one. `parent_task` names that other task.
++
++## Watch out
++
++- **In-process subagents are hidden inside `own_usd`.** A mastermind that used the Agent tool
++  instead of Servex `spawn_agent` has no registry children. Its minions' cost is still
++  included, because the SDK's running total counts subagents, but all of it shows under
++  `own_usd`, and `minions_usd` reads $0. `2026-09-24/live-card` is an example. There is no
++  honest way to split that cost from the Servex log alone.
++- **A task with no agents shows $0 for minions.** That is the true figure when the task spawned
++  nothing (`2026-09-24/md-pages`).
+diff --git a/Server/task-cost.mjs b/Server/task-cost.mjs
+new file mode 100644
+index 00000000..ff70f914
+--- /dev/null
++++ b/Server/task-cost.mjs
+@@ -0,0 +1,168 @@
++// task-cost.mjs — the dollar cost of a task: its Servex root agent plus every agent it spawned.
++// Appends one `assign` line with `cost_usd` to the task's task.jsonl (only when the figure changed).
++// Read the doc first: Server/doc/task-cost.md
++//
++// usage:
++//   node Server/task-cost.mjs <task-dir>            one task (path to its dir)
++//   node Server/task-cost.mjs --date 2026-09-24     every task dir of that day
++//   node Server/task-cost.mjs --agent <agent-id>    every task (last 7 days) whose root is this agent or an
++//                                                   ancestor of it — Servex calls this after a result; quiet
++//   --dry            print the table, append nothing
++//   --root <repo>    the repo whose public/framework/ai/ holds the tasks (default: this script's repo)
++import { readFileSync, readdirSync, existsSync, writeFileSync, mkdtempSync } from "node:fs";
++import { join, resolve, dirname, basename } from "node:path";
++import { fileURLToPath } from "node:url";
++import { tmpdir } from "node:os";
++import { execFileSync } from "node:child_process";
++
++const here = dirname(fileURLToPath(import.meta.url));
++const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
++
++// ---- arguments ----
++const args = process.argv.slice(2);
++const flag = name => { const i = args.indexOf(name); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
++const dry = args.includes("--dry"); if (dry) args.splice(args.indexOf("--dry"), 1);
++const date = flag("--date");
++const agent = flag("--agent");
++const root = resolve(flag("--root") || join(here, ".."));
++const AI = join(root, "public", "framework", "ai");
++if (!date && !agent && !args[0]) { console.error("usage: node Server/task-cost.mjs <task-dir> | --date YYYY-MM-DD | --agent <id>  [--dry] [--root <repo>]"); process.exit(2); }
++
++// ---- reading ----
++const lines = file => existsSync(file)
++	? readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)
++	: [];
++
++// Every task dir in the ai/ tree (dated dirs only), with its line-1 assign.
++function allTasks(){
++	const out = [];
++	for (const d of readdirSync(AI, { withFileTypes: true })) {
++		if (!d.isDirectory() || !/^\d{4}-\d{2}-\d{2}$/.test(d.name)) continue;
++		for (const t of readdirSync(join(AI, d.name), { withFileTypes: true })) {
++			if (!t.isDirectory()) continue;
++			const dir = join(AI, d.name, t.name);
++			if (existsSync(join(dir, "task.jsonl"))) out.push(dir);
++		}
++	}
++	return out;
++}
++const taskKey = dir => `${basename(dirname(dir))}/${basename(dir)}`;
++
++// ---- the registry ----
++const registry = JSON.parse(readFileSync(join(SERVEX, "registry.json"), "utf8"));
++const rows = Array.isArray(registry) ? registry : Object.entries(registry).map(([id, r]) => ({ id, ...r }));
++const byId = new Map(rows.map(r => [r.id, r]));
++const children = new Map();
++for (const r of rows) if (r.parent) (children.get(r.parent) || children.set(r.parent, []).get(r.parent)).push(r.id);
++
++// Line 1's session_id → the registry row with that session_id; else line 1's tab === row id.
++function rootOf(dir){
++	let first = {};
++	try { first = JSON.parse(readFileSync(join(dir, "task.jsonl"), "utf8").replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0]).assign || {}; } catch {}
++	const row = (first.session_id && rows.find(r => r.session_id === first.session_id)) || (first.tab && byId.get(first.tab));
++	return { root: row?.id || null, requested_at: first.requested_at || "" };
++}
++
++// The root plus every descendant (parent links), each once.
++function tree(id){
++	const seen = new Set(), stack = [id];
++	while (stack.length) { const a = stack.pop(); if (seen.has(a)) continue; seen.add(a); stack.push(...(children.get(a) || [])); }
++	return [...seen];
++}
++function ancestors(id){
++	const out = [], seen = new Set();
++	let p = byId.get(id)?.parent;
++	while (p && !seen.has(p)) { out.push(p); seen.add(p); p = byId.get(p)?.parent; }
++	return out;
++}
++
++// An agent's cost. A result line's `cost` is the RUNNING total of one process, so the last value
++// is the cost — unless a value drops, which means the process restarted: bank what came before.
++function agentCost(id){
++	// A result line seen twice (same time, same cost — a replay) counts once; a resumed session
++	// whose total CONTINUES just keeps growing, so it is never banked twice.
++	let banked = 0, last = 0;
++	const seen = new Set();
++	for (const o of lines(join(SERVEX, "logs", `agent-${id}.jsonl`))) {
++		if (o.type !== "result" || typeof o.cost !== "number") continue;
++		const k = `${o.at}|${o.cost}`;
++		if (seen.has(k)) continue;
++		seen.add(k);
++		if (o.cost < last) banked += last;
++		last = o.cost;
++	}
++	return banked + last;
++}
++
++// ---- which task already counts this one (parent_task) ----
++// Another task whose root is an ANCESTOR of mine already includes me. Two tasks with the SAME root:
++// the earlier (by line-1 requested_at, then key) owns it; the later points at it.
++const mapped = allTasks().map(dir => ({ dir, key: taskKey(dir), ...rootOf(dir) })).filter(t => t.root);
++function parentTask(me){
++	const same = mapped.filter(t => t.root === me.root && t.key !== me.key)
++		.filter(t => t.requested_at < me.requested_at || (t.requested_at === me.requested_at && t.key < me.key))
++		.sort((a, b) => a.requested_at.localeCompare(b.requested_at) || a.key.localeCompare(b.key));
++	if (same.length) return same[0].key;
++	for (const a of ancestors(me.root)) {
++		const hit = mapped.filter(t => t.root === a).sort((x, y) => x.requested_at.localeCompare(y.requested_at) || x.key.localeCompare(y.key))[0];
++		if (hit) return hit.key;
++	}
++	return null;
++}
++
++const r2 = n => Math.round(n * 100) / 100, r4 = n => Math.round(n * 10000) / 10000;
++
++function cost(dir){
++	const me = { dir, key: taskKey(dir), ...rootOf(dir) };
++	if (!me.root) return { key: me.key, tracked: false };
++	const ids = tree(me.root);
++	const own = agentCost(me.root);
++	const total = ids.reduce((s, id) => s + agentCost(id), 0);
++	return {
++		key: me.key, dir, tracked: true,
++		cost_usd: r4(total),
++		cost: { root: me.root, agents: ids.length, own_usd: r2(own), minions_usd: r2(total - own),
++			parent_task: parentTask(me), open: ids.filter(id => byId.get(id)?.state !== "stopped").length, at: "NOW" },
++	};
++}
++
++// The figure the task already carries (later assign lines win).
++function current(dir){
++	const merged = {};
++	for (const o of lines(join(dir, "task.jsonl"))) if (o.assign) Object.assign(merged, o.assign);
++	return merged;
++}
++
++function append(c){
++	const was = current(c.dir);
++	if (was.cost_usd === c.cost_usd && was.cost?.open === c.cost.open && was.cost?.parent_task === c.cost.parent_task) return "unchanged";
++	const tmp = join(mkdtempSync(join(tmpdir(), "task-cost-")), "line.json");
++	writeFileSync(tmp, JSON.stringify([{ assign: { cost_usd: c.cost_usd, cost: c.cost } }]));
++	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), join(c.dir, "task.jsonl"), tmp], { stdio: "pipe" });
++	return "appended";
++}
++
++// ---- run ----
++function recentDirs(days){
++	const since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
++	return allTasks().filter(d => basename(dirname(d)) >= since);
++}
++if (agent && !byId.has(agent)) { console.error(`task-cost: unknown agent ${agent} — nothing to do`); process.exit(0); }
++const dirs = agent
++	? (() => { const chain = new Set([agent, ...ancestors(agent)]); return recentDirs(7).filter(d => chain.has(rootOf(d).root)); })()
++	: date
++	? (existsSync(join(AI, date)) ? readdirSync(join(AI, date), { withFileTypes: true }).filter(d => d.isDirectory() && existsSync(join(AI, date, d.name, "task.jsonl"))).map(d => join(AI, date, d.name)) : [])
++	: [resolve(args[0])];
++
++const $ = n => "$" + n.toFixed(2);
++const table = [["task", "root", "agents", "own", "minions", "total", "open", "parent_task", "action"]];
++for (const dir of dirs) {
++	let c;
++	try { c = cost(dir); } catch (e) { if (agent) { console.error(`task-cost: ${taskKey(dir)}: ${e.message}`); continue; } throw e; }
++	if (!c.tracked) { table.push([c.key, "not tracked", "", "", "", "", "", "", ""]); continue; }
++	const action = dry ? "dry" : append(c);
++	table.push([c.key, c.cost.root, String(c.cost.agents), $(c.cost.own_usd), $(c.cost.minions_usd), $(c.cost_usd), String(c.cost.open), c.cost.parent_task || "", action]);
++}
++if (agent && !dry) process.exit(0); // quiet on success
++const w = table[0].map((_, i) => Math.max(...table.map(r => r[i].length)));
++for (const r of table) console.log(r.map((v, i) => v.padEnd(w[i])).join("  ").trimEnd());
+diff --git a/public/framework/ext/AITask/AITask.js b/public/framework/ext/AITask/AITask.js
+index 1e54a3d2..5fbd2512 100644
+--- a/public/framework/ext/AITask/AITask.js
++++ b/public/framework/ext/AITask/AITask.js
+@@ -11,6 +11,7 @@ import { progress, spend } from "./stats.js";
+ import { segments, current, links_row } from "./card.js";
+ import { shot_wall } from "./shots.js";
+ import { chat } from "../Ask/chat.js";
++import { breakdown } from "./cost.js";
+ import { streamed as reply_streamed } from "../Ask/reply.js";
+ import { fold } from "./message.js";
+ 
+@@ -255,6 +256,9 @@ export class AITask extends Page {
+ 	   below them. */
+ 	refresh(m){
+ 		this.$live.empty(() => {
++			// One line, above the answer: what the answer cost is read WITH it (the owner:
++			// "then we can compare outcomes"), and below a long outcome it was off-screen.
++			this.cost(m);
+ 			this.outcome(m);
+ 			this.links(m);
+ 			this.status(m);
+@@ -305,6 +309,11 @@ export class AITask extends Page {
+ 				.append(() => { span.c("ai-box"); span(s); })));
+ 	}
+ 
++	/** What this task cost in dollars — its Servex agent plus every agent under it:
++	    the root, its own share, its minions', how many agents. "Not tracked" when the
++	    log carries no `cost_usd` (`Server/task-cost.mjs` writes it). See cost.js. */
++	cost(m){ return breakdown(m); }
++
+ 	/** Nothing by default — the hook a task's own page.js fills. */
+ 	extra(m){}
+ 
+diff --git a/public/framework/ext/AITask/card.js b/public/framework/ext/AITask/card.js
+index 7d3f958a..412f8cc8 100644
+--- a/public/framework/ext/AITask/card.js
++++ b/public/framework/ext/AITask/card.js
+@@ -1,6 +1,7 @@
+ import { div, span, a } from "../../core/View/View.js";
+ import { Page } from "../../core/Page/Page.class.js";
+-import { dur, progress, quiet, spend, state } from "./stats.js";
++import { dur, progress, quiet, state } from "./stats.js";
++import { cost_figure } from "./cost.js";
+ import { reply } from "../Ask/reply.js";
+ 
+ /* One task, as a row — who | what | figures, at one type size: hierarchy is
+@@ -57,12 +58,14 @@ const route = (url, m) => (web_url(url) ? String(url ?? "") : dir(m) + url)
+ 	.replace(/^(\/framework\/ai\/\d{4}-\d{2}-\d{2}\/[\w-]+\/[\w-]+)\.md(?=$|#)/, "$1/");
+ 
+ // [value, label] pairs, so the figures column aligns instead of cramming a dotted line.
++// ⚠ The cost is dollars from `cost_usd` (Server/task-cost.mjs) or a muted "not
++//   tracked" — never the old token count, and never $0 (cost.js says why).
+ const figures = m => {
+ 	if (!m) return [];
+ 	const done = m.agents?.filter(x => x.outcome).length ?? 0, total = m.agents?.length;
+ 	const idle = quiet(m);
+ 	return [
+-		spend(m),
++		cost_figure(m),
+ 		m.window?.after != null && [Math.round(m.window.after * 100) + "%", "of window"],
+ 		total && [done < total ? `${done}/${total}` : String(total), total === 1 ? "agent" : "agents"],
+ 		idle && [idle, "quiet"],
+@@ -123,7 +126,7 @@ export const manifest_card = t => div.c("ai-card surface", () => {
+ 	}).style("--gap", "0.25em");
+ 
+ 	div.c("ai-figures", () => {
+-		figures(t.m).forEach(([value, label]) => div(() => { span(value); span.c("muted", " " + label); }));
++		figures(t.m).forEach(([value, label]) => div(() => { span(value).ac(!label && "muted"); if (label) span.c("muted", " " + label); }));
+ 		if (t.m?.model) div.c("muted", short_model(t.m.model));
+ 	});
+ 
+diff --git a/public/framework/ext/AITask/cost.js b/public/framework/ext/AITask/cost.js
+new file mode 100644
+index 00000000..87b2f2d1
+--- /dev/null
++++ b/public/framework/ext/AITask/cost.js
+@@ -0,0 +1,100 @@
++import { div, span, a } from "../../core/View/View.js";
++
++/* What a task cost, in dollars — the `cost_usd` a task's log carries once
++   `Server/task-cost.mjs` has summed its Servex agent and every agent under it.
++
++   ⚠ No `cost_usd` means NOT TRACKED, never $0: a task run from a tab or a plain
++   CLI session has no Servex agent, so nothing measured it. Showing $0 there would
++   read as "free" and pull every total down with a number nobody measured.
++
++   `cost.open > 0` means some agent under the task is still running, so the
++   figure can still grow — it wears a "+" and the words "so far". */
++
++export const money = usd => "$" + usd.toFixed(2);
++
++/** A task's own cost as `{ usd, open, cost }`, or null when it isn't tracked. */
++export const cost_of = m => typeof m?.cost_usd === "number"
++	? { usd: m.cost_usd, open: m.cost?.open ?? 0, cost: m.cost ?? {} } : null;
++
++/** The card's figure: `[value, label]`, the same pair shape the card's other figures use. */
++export const cost_figure = m => {
++	const c = cost_of(m);
++	if (!c) return ["not tracked", ""];
++	return c.open ? [money(c.usd) + "+", "so far"] : [money(c.usd), "cost"];
++};
++
++/* `<date>/<slug>` — the key a task's `cost.parent_task` names another task by. */
++const key_of = t => String(t.url ?? "").split("/").filter(Boolean).slice(-2).join("/");
++
++/**
++ * The sum of a set of task rows (`{ url, m }`, the board's own row shape).
++ *
++ * ⚠ A task whose `cost.parent_task` is ALSO in this set is skipped: its parent's
++ *   figure already includes it, so counting both would count it twice. A child
++ *   whose parent is NOT in the set (another day, another effort) is counted —
++ *   otherwise its money would vanish from every total that doesn't hold its parent.
++ */
++export function total(rows){
++	const keys = new Set(rows.map(key_of));
++	const sum = { usd: 0, tracked: 0, untracked: 0, nested: 0, open: 0 };
++	rows.forEach(t => {
++		const c = cost_of(t.m);
++		if (!c) return sum.untracked++;
++		if (c.cost.parent_task && keys.has(c.cost.parent_task)) return sum.nested++;
++		sum.usd += c.usd;
++		sum.tracked++;
++		if (c.open) sum.open++;
++	});
++	return sum;
++}
++
++const untracked = n => n ? ` · ${n} task${n === 1 ? "" : "s"} not tracked` : "";
++
++/** One line: `$41.20 today · 3 tasks not tracked`. Silent when there are no tasks. */
++export const total_line = (rows, label) => {
++	const s = total(rows);
++	if (!rows.length) return;
++	return div(() => {
++		span(s.tracked ? money(s.usd) + (s.open ? "+" : "") : "no cost tracked");
++		span.c("muted", " " + label + untracked(s.untracked));
++	});
++};
++
++/** The day's total, then what each effort (`group`) spent — every effort a link to its own board. */
++export const day_costs = rows => div.c("flex v", () => {
++	total_line(rows, "today");
++
++	const by = new Map();
++	rows.forEach(t => {
++		const g = t.m?.group;
++		if (g) by.set(g, [...(by.get(g) ?? []), t]);
++	});
++	const parts = [...by].map(([g, list]) => [g, total(list)]).filter(([, s]) => s.tracked)
++		.sort((x, y) => y[1].usd - x[1].usd);
++	if (parts.length) div.c("flex gap wrap", () => {
++		span.c("muted", "by effort:");
++		parts.forEach(([g, s]) => {
++			a.c("ai-link", g.replaceAll("-", " ") + " " + money(s.usd) + (s.open ? "+" : ""))
++				.href("/framework/ai/effort/" + g + "/");
++		});
++	}).style("--gap", ".5em");
++});
++
++/** The task page's breakdown: the root agent, its own cost, its minions', how many agents. */
++export function breakdown(m){
++	const c = cost_of(m);
++	if (!c) return div.c("muted", "Cost: not tracked — this task's log has no cost line. A task Servex ran gets one from Server/task-cost.mjs; a tab or a CLI session never does.");
++	const { root, agents, own_usd, minions_usd, parent_task, at } = c.cost;
++	return div(() => {
++		span(money(c.usd) + (c.open ? "+ so far" : ""));
++		span.c("muted", " — " + [
++			root && "root " + root,
++			own_usd != null && "own " + money(own_usd),
++			minions_usd != null && "minions " + money(minions_usd),
++			agents != null && agents + " agent" + (agents === 1 ? "" : "s"),
++			c.open && c.open + " still open",
++			parent_task && "counted in " + parent_task,
++			at && "as of " + new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
++		].filter(Boolean).join(" · "));
++	});
++}
+diff --git a/public/framework/ext/AITask/dashboard.js b/public/framework/ext/AITask/dashboard.js
+index cf4cf04b..d48a5035 100644
+--- a/public/framework/ext/AITask/dashboard.js
++++ b/public/framework/ext/AITask/dashboard.js
+@@ -9,6 +9,7 @@ import { state } from "./stats.js";
+ import { when } from "./card.js";
+ import { highlights, more } from "./highlights.js";
+ import { needs_all, needs_strip } from "./needs.js";
++import { day_costs, total_line } from "./cost.js";
+ 
+ /* The day dashboard and the ai index rail, over the same rows. A task directory
+    speaks through its files: requirements.md alone is PROPOSED, a manifest with
+@@ -189,6 +190,10 @@ function groups(rows_of){
+ 	if (!found.some(([, rows]) => rows.length))
+ 		return p.c("muted", "Nothing yet — a task appears when its directory holds a requirements.md or a task.jsonl.");
+ 
++	// What the day cost, and what each effort in it cost — only tasks that ran
++	// (a manifest), so a brief nobody started is not "not tracked". cost.js.
++	day_costs(rows_of.filter(t => t.m));
++
+ 	found.forEach(([title, rows]) => {
+ 		if (!rows.length) return;
+ 		if (title === "Proposed") return fold(`${title} — ${rows.length} not started`, () => list(rows));
+@@ -338,8 +343,12 @@ export function effort_board(page, slug){
+ 	return div.c("ai-effort", async $e => {
+ 		const list = (await all_tasks()).filter(t => t.m?.group === slug);
+ 
+-		$e.append(() => list.length ? dated(list)
+-			: p.c("muted", "No task claims this effort — a task joins one by naming it as `group` in its log."));
++		// The effort's cost across every day first — cost.js.
++		$e.append(() => {
++			if (!list.length) return void p.c("muted", "No task claims this effort — a task joins one by naming it as `group` in its log.");
++			total_line(list, "on this effort, every day");
++			dated(list);
++		});
+ 
+ 		page?.app?.router?.mark_links();
+ 	});
+diff --git a/public/framework/ext/AITask/doc/cost.md b/public/framework/ext/AITask/doc/cost.md
+new file mode 100644
+index 00000000..511d2b91
+--- /dev/null
++++ b/public/framework/ext/AITask/doc/cost.md
+@@ -0,0 +1,53 @@
++# What a task cost — `cost_usd`
++
++Every task card shows what the task cost, in dollars. Dollars and not tokens,
++because each model charges a different price per token, so a token count
++cannot be compared across tasks — a dollar can (the owner, 2026-09-24).
++
++## Where the number comes from
++
++A task run by Servex has a Servex agent, and that agent may have started
++minions, which may have started their own. `Server/task-cost.mjs` adds up the
++agent and **every agent under it**, and appends the result to the task's own
++`task.jsonl` as one line:
++
++```json ai/<date>/<slug>/task.jsonl
++{"assign": {"cost_usd": 41.94, "cost": {"root": "task-mastermind-loose-ends", "agents": 172,
++  "own_usd": 8.58, "minions_usd": 33.36, "parent_task": null, "open": 9, "at": "…"}}}
++```
++
++The view only reads that line. It never computes a cost itself, so the board,
++the day page and the task page always agree with each other. How the tool
++finds the agent and sums it: `Server/doc/task-cost.md`.
++
++## What each place shows
++
++- **The card** — `$41.94 cost`. When `cost.open` is above zero, some agent
++  under the task is still running and the figure can still grow, so it reads
++  `$41.94+ so far`.
++- **The day page** — first line: the day's total and how many of its tasks are
++  not tracked. Under it, what each effort (a task's `group`) spent that day,
++  each one a link to that effort's board.
++- **An effort's board** (`/framework/ai/effort/<slug>/`) — the same sum, across
++  every day that effort has run.
++- **The task page**, top of the Report tab, above the outcome — the total, then the root agent, its own
++  share, its minions' share, and how many agents were summed.
++
++## Not tracked is not $0
++
++A task run from a VS Code tab or a plain CLI session has no Servex agent, so
++nothing measured what it spent. It shows a muted **not tracked**, never `$0`:
++a zero would read as "free" and would quietly pull every total down. Totals
++count only tracked tasks and name the rest beside the figure
++("3 tasks not tracked"), so a total is never mistaken for the whole story.
++
++## Nothing is counted twice
++
++If one task's root agent was started by another task's agent, the child's cost
++is already inside the parent's figure. The tool marks it with
++`cost.parent_task` (`<date>/<slug>` of the parent). A total skips such a task
++**when its parent is in the same total**; when the parent is not (it ran on
++another day, or under another effort), the child is counted, or its money would
++be missing from that total altogether.
++
++The code is `cost.js`; its demo is the Task cost section of this module's page.
+diff --git a/public/framework/ext/AITask/page.js b/public/framework/ext/AITask/page.js
+index bb772252..b1479e31 100644
+--- a/public/framework/ext/AITask/page.js
++++ b/public/framework/ext/AITask/page.js
+@@ -2,6 +2,24 @@ import { Doc, md, code, demo, AITask } from "/app.js";
+ import { manifest_card, segments } from "./card.js";
+ import { usage_rail } from "./usage.js";
+ import { progress } from "./stats.js";
++import { day_costs, breakdown } from "./cost.js";
++
++/* Three tasks as the cost view sees them: a finished one, one whose agents are
++   still running (the figure can grow), and one run from a tab (nothing measured it).
++   loose-ends carries its real figures from 2026-09-24, rounded; the other two are made up. */
++const COSTED = [
++	{ title: "loose-ends", url: "/framework/ai/2026-09-24/loose-ends/", m: {
++		requested_at: "2026-09-24T09:10:00-05:00", model: "claude-opus-5-5", group: "ai-log", step: 3,
++		steps: ["read every note", "decide or close", "report"], now: "closing the last three notes",
++		cost_usd: 41.94, cost: { root: "task-mastermind-loose-ends", agents: 172, own_usd: 8.58, minions_usd: 33.36, parent_task: null, open: 9 } } },
++	{ title: "md-pages", url: "/framework/ai/2026-09-24/md-pages/", m: {
++		requested_at: "2026-09-24T10:02:00-05:00", landed_at: "2026-09-24T11:40:00-05:00", model: "claude-opus-5-5", group: "pages",
++		outcome: "Every .md file under public/ renders as a page.",
++		cost_usd: 12.53, cost: { root: "task-mastermind-md-pages", agents: 3, own_usd: 7.1, minions_usd: 5.43, parent_task: null, open: 0 } } },
++	{ title: "servex-startup-note", url: "/framework/ai/2026-09-24/servex-startup-note/", m: {
++		requested_at: "2026-09-24T08:30:00-05:00", landed_at: "2026-09-24T08:41:00-05:00", model: "claude-sonnet-5", group: "pages",
++		outcome: "A one-line note on how Servex starts." } },
++];
+ 
+ export default new Doc({
+ 	meta: import.meta,
+@@ -11,9 +29,9 @@ export default new Doc({
+ 
+ 	subject: AITask,
+ 	properties: "src",
+-	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status checklist unparsed extra shots figures chat composer log",
+-	notes:      "asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
+-	files:      "AITask.js ai.css asks.js board.js card.js compose.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
++	methods:    "content session legacy base requirements report asks decisions streamed refresh outcome links head status cost checklist unparsed extra shots figures chat composer log",
++	notes:      "cost asks ranking decisions-tab highlights manifest effort starting-work pace template waves decisions",
++	files:      "AITask.js ai.css asks.js board.js card.js compose.js cost.js conversation.js dashboard.js decisions.js decisions.mjs effort.js highlights.js message.js needs.js prompt.js rank.js shots.js stats.js usage.js page.js readme.md",
+ 	overview:   [
+ 		{ title: "Task card", content(){
+ 			demo(() => {
+@@ -37,6 +55,14 @@ export default new Doc({
+ 				} });
+ 			}, "The same running card whose newest log line is two hours old. A silence over 30 minutes joins the figures as `2h 0m quiet` — computed in the browser from the log the card already holds, and worded as a silence because nothing here can tell a crash from a long think.");
+ 		} },
++		{ title: "Task cost", content(){
++			demo(() => { COSTED.forEach(manifest_card); },
++				"Each card's figure is dollars: what the task's Servex agent and every agent under it spent. A `+ so far` means some of those agents are still running. A task run from a tab or a plain CLI session has no Servex agent, so it says **not tracked** — never $0. [doc/cost.md](/framework/ext/AITask/doc/cost/).");
++			demo(() => { day_costs(COSTED); },
++				"The day page's first line: the day's total, how many tasks nothing measured, and what each effort (a task's `group`) spent — each one a link to that effort's board, which leads with the same sum across every day.");
++			demo(() => { breakdown(COSTED[0].m); },
++				"The task's own page, Report tab: the total split into the root agent's own share and its minions', and how many agents were summed.");
++		} },
+ 		{ title: "Usage pace", content(){
+ 			demo(() => {
+ 				usage_rail({ utilization: { limits: [
+diff --git a/public/framework/ext/AITask/readme.md b/public/framework/ext/AITask/readme.md
+index 912ffb70..b3d5e178 100644
+--- a/public/framework/ext/AITask/readme.md
++++ b/public/framework/ext/AITask/readme.md
+@@ -11,7 +11,7 @@ export default new AITask({
+     extra(){ md("what this one uniquely needs to say"); },
+ });
+ ```
+-A task's page is up to five tabs — **Asks · Requirements · Decisions · Report · Session**: `report()` is the outline — `asks` builds Asks; `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements; `decisions` builds Decisions, and only when the log carries any — override any one. **Asks is first and opens by default whenever the log carries any** — what the owner asked for outranks what a session did about it; without asks, Report opens. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
++A task's page is up to five tabs — **Asks · Requirements · Decisions · Report · Session**: `report()` is the outline — `asks` builds Asks; `cost`, `outcome`, `links`, `status`, `checklist`, `extra`, `shots`, `figures` build Report; `chat` + `log` build Session; `head` builds Requirements; `decisions` builds Decisions, and only when the log carries any — override any one. **Asks is first and opens by default whenever the log carries any** — what the owner asked for outranks what a session did about it; without asks, Report opens. A task dir is never declared in `children:` either way: no `page.js` of its own gets this template through its day's `route()` fallback, and one WITH its own `page.js` is found the same way, ahead of the fallback.
+ 
+ A landing that produced something worth going back to adds one more line, and the front page grows a card for it:
+ 
+@@ -45,6 +45,7 @@ Anything only the owner can do says so, and says how long it will take — those
+ ```
+ 
+ ## Watch out
++- **Cost is dollars from one `cost_usd` line, or "not tracked" — never $0.** `Server/task-cost.mjs` writes it (the task's Servex agent plus every agent under it); a tab or CLI session has none. Totals skip a task whose `cost.parent_task` is in the same total — [doc/cost.md](./doc/cost.md).
+ - The Asks tab IS the requirements report — a card's own line is its status and `n of m tasks landed`, counted from the serving tasks' `landed_at`, and the two can disagree on purpose — [doc/asks.md](./doc/asks.md).
+ - **An ask's `conclusion` outranks everything else as the card's title** — the owner's own words, "lead with the conclusion as the title; if I'm curious I drill down and see what I asked" — and `summary` moves down to the sheet under "you asked" once it does. `minutes` is a second, separate field from `needs.minutes`: how long the CARD takes to read, not how long the owner's own errand takes — [doc/asks.md](./doc/asks.md).
+ - The Asks wall is grouped by an ask's optional `topic`, in the order the topics first appear; each band is its own grid, so each has its own detail sheet and closing has to sweep all of them — [doc/asks.md](./doc/asks.md).

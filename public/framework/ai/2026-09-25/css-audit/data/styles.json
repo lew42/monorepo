@@ -1,0 +1,1060 @@
+{
+ "module": "framework/framework.css + framework/styles + public/styles.css",
+ "paths": [
+  "framework/framework.css",
+  "framework/styles",
+  "styles.css",
+  "framework/start",
+  "framework/faq",
+  "framework/versus",
+  "framework/doc",
+  "framework/util",
+  "framework/audit"
+ ],
+ "lines": {
+  "css": 3162,
+  "jsBlocks": 6
+ },
+ "clusters": [
+  {
+   "id": "layer-decl-and-reset",
+   "file": "framework/framework.css",
+   "from": 1,
+   "to": 46,
+   "lines": 46,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the one @layer statement plus the browser-default reset; every page needs it",
+   "saves": 0
+  },
+  {
+   "id": "colour-and-size-tokens",
+   "file": "framework/framework.css",
+   "from": 47,
+   "to": 138,
+   "lines": 92,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the theme vocabulary (--prim/--ink/--surface/--line/--wash/--tint/--size); 45 of these lines are comment",
+   "saves": 0
+  },
+  {
+   "id": "alpha-ladder",
+   "file": "framework/framework.css",
+   "from": 139,
+   "to": 162,
+   "lines": 24,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "shade/paper/fill primitives; --fill-aNN is read 35+ places outside this file",
+   "saves": 0
+  },
+  {
+   "id": "lighten-darken-aliases",
+   "file": "framework/framework.css",
+   "from": 163,
+   "to": 196,
+   "lines": 34,
+   "verdict": "DUPLICATE",
+   "target": "--shade-a08/a16/a32 and --paper-a08/a16/a32 (framework.css:139-147)",
+   "evidence": "lines 189-195 are declared aliases of those six tokens (`--darken-1: var(--shade-a08)`); only readers are 20 `var(--lighten|darken-N)` uses elsewhere that can say the primitive",
+   "saves": 8
+  },
+  {
+   "id": "radius-status-font-tokens",
+   "file": "framework/framework.css",
+   "from": 197,
+   "to": 224,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "--radius, --error/--ok/--warn/--hot, --column, --sidebar, --font, --mono each have external readers (grep var(--error) 52, --ok 37, --warn 30)",
+   "saves": 0
+  },
+  {
+   "id": "pad-gap-flow-clamps",
+   "file": "framework/framework.css",
+   "from": 225,
+   "to": 263,
+   "lines": 39,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the one spacing knob; the owner wants container-unit padding, so this is where the curve is edited",
+   "saves": 0
+  },
+  {
+   "id": "pad-card-clamp",
+   "file": "framework/framework.css",
+   "from": 264,
+   "to": 305,
+   "lines": 42,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "a second spacing curve, deliberately; 7 external readers. Candidate to fold into --pad once --pad uses container units",
+   "saves": 0
+  },
+  {
+   "id": "gap-rungs",
+   "file": "framework/framework.css",
+   "from": 306,
+   "to": 342,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "--gap-70/50/35/25 have 16/56/50/23 external reads",
+   "saves": 0
+  },
+  {
+   "id": "base-theme-body-app-type-scale",
+   "file": "framework/framework.css",
+   "from": 343,
+   "to": 437,
+   "lines": 95,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "html/body/.app shell and h1-h6 scale; every page depends on them",
+   "saves": 0
+  },
+  {
+   "id": "surface-and-card",
+   "file": "framework/framework.css",
+   "from": 438,
+   "to": 502,
+   "lines": 65,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".surface/.card is THE card shell the rest of the site should reuse (framework.css:456, :489)",
+   "saves": 0
+  },
+  {
+   "id": "wash-tint-classes",
+   "file": "framework/framework.css",
+   "from": 503,
+   "to": 509,
+   "lines": 7,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "classes paired with tokens so `wash`/`tint` cannot silently paint nothing; wash in 160 files",
+   "saves": 0
+  },
+  {
+   "id": "darken-ground-classes",
+   "file": "framework/framework.css",
+   "from": 510,
+   "to": 534,
+   "lines": 25,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".darken-1/2/3 declare --field-bg with the fill; 3/4/1 users, the pairing is the point",
+   "saves": 0
+  },
+  {
+   "id": "muted",
+   "file": "framework/framework.css",
+   "from": 535,
+   "to": 543,
+   "lines": 9,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".muted read in 345 files",
+   "saves": 0
+  },
+  {
+   "id": "icons",
+   "file": "framework/framework.css",
+   "from": 544,
+   "to": 563,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Material Icons ligature requirements; not optional",
+   "saves": 0
+  },
+  {
+   "id": "code-pre-kbd",
+   "file": "framework/framework.css",
+   "from": 564,
+   "to": 591,
+   "lines": 28,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "pre/code split; every doc page",
+   "saves": 0
+  },
+  {
+   "id": "blockquote-table-mark",
+   "file": "framework/framework.css",
+   "from": 592,
+   "to": 628,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "UA defaults that are wrong; the table wrapper fixes horizontal page scroll",
+   "saves": 0
+  },
+  {
+   "id": "control-grammar-notes-and-size-words",
+   "file": "framework/framework.css",
+   "from": 629,
+   "to": 697,
+   "lines": 69,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".size-small/-regular/-large (framework.css:694-696) are the one size knob; 23/11/15 files use them",
+   "saves": 0
+  },
+  {
+   "id": "control-grammar-rules",
+   "file": "framework/framework.css",
+   "from": 698,
+   "to": 817,
+   "lines": 120,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "one box for button/select/input/summary; replaces five hand-made boxes",
+   "saves": 0
+  },
+  {
+   "id": "pad-class",
+   "file": "framework/framework.css",
+   "from": 818,
+   "to": 822,
+   "lines": 5,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".pad means exactly padding: var(--pad) — the owner's stated definition",
+   "saves": 0
+  },
+  {
+   "id": "all-pad",
+   "file": "framework/framework.css",
+   "from": 823,
+   "to": 823,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "grep of c(\"...all-pad...\") / class=\"...all-pad...\" in public/**/*.js outside ai/2026-*: 0 real callers; only prose in alex/styles/flex/page.js:47, arya/styles/page.js:57, edric/style/spacing/page.js:19,62 describing it",
+   "saves": 1
+  },
+  {
+   "id": "mb-and-select-auto",
+   "file": "framework/framework.css",
+   "from": 824,
+   "to": 831,
+   "lines": 8,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".mb has 23 files, select.auto opts a toolbar select out of width:100%",
+   "saves": 0
+  },
+  {
+   "id": "flex-words",
+   "file": "framework/framework.css",
+   "from": 832,
+   "to": 872,
+   "lines": 41,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".flex + wrap/auto/v/reverse/split/basis/flex-1; ~94 c() callers use flex+split alone",
+   "saves": 0
+  },
+  {
+   "id": "cols-and-measure",
+   "file": "framework/framework.css",
+   "from": 873,
+   "to": 937,
+   "lines": 65,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".cols (framework.css:881) and .measure (:925) are the canonical ratio-row and reading-column words",
+   "saves": 0
+  },
+  {
+   "id": "table-equal",
+   "file": "framework/framework.css",
+   "from": 938,
+   "to": 958,
+   "lines": 21,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "one live caller (imagine/platform/mvp/page.js:215) but it cannot be replaced by a base table rule",
+   "saves": 0
+  },
+  {
+   "id": "grid-masonry-packed",
+   "file": "framework/framework.css",
+   "from": 959,
+   "to": 1017,
+   "lines": 59,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".grid/.grid.auto/.grid.three/.masonry/.packed; ~18 c() callers of grid three, masonry 31 files",
+   "saves": 0
+  },
+  {
+   "id": "gap-words",
+   "file": "framework/framework.css",
+   "from": 1018,
+   "to": 1037,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".gap and the rungs; .gap-2em has 20 tutorial callers (arya/edric)",
+   "saves": 0
+  },
+  {
+   "id": "zoom-ladder-used",
+   "file": "framework/framework.css",
+   "from": 1038,
+   "to": 1053,
+   "lines": 16,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".zoom-25/50/75/100/150 have callers (ui/controls/page.js:75 zoom-75, styles/layers/util/page.js:111-112 zoom-100/150)",
+   "saves": 0
+  },
+  {
+   "id": "zoom-175-200",
+   "file": "framework/framework.css",
+   "from": 1054,
+   "to": 1055,
+   "lines": 2,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "grep `zoom-175|zoom-200` in public/**/*.js,*.css outside ai/2026-*: only prose (arya/notes/page.js:107, arya/styles/page.js:65, edric/style/utilities/page.js:29); no c()/class call. The comment at :1045 already calls them zero-call",
+   "saves": 2
+  },
+  {
+   "id": "zoom-responsive-capitalize-checkered-first-last",
+   "file": "framework/framework.css",
+   "from": 1056,
+   "to": 1081,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "zoom-responsive has castin/styles/page.js:98; checkered 13 files; the first/last-child collapse is load-bearing sitewide",
+   "saves": 0
+  },
+  {
+   "id": "flow-rhythm-and-prose-links",
+   "file": "framework/framework.css",
+   "from": 1082,
+   "to": 1161,
+   "lines": 80,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".flow owl and in-prose link look; every doc/markdown page",
+   "saves": 0
+  },
+  {
+   "id": "skin-header",
+   "file": "styles.css",
+   "from": 1,
+   "to": 11,
+   "lines": 11,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "file header comment for the site layer",
+   "saves": 0
+  },
+  {
+   "id": "nav-link",
+   "file": "styles.css",
+   "from": 12,
+   "to": 31,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "inert on the live nav but still the swatch on /framework/styles/elements/text/; callers in core/new/1/agents/a11y/page.js, eric/page.js",
+   "saves": 0
+  },
+  {
+   "id": "logo-and-brand",
+   "file": "styles.css",
+   "from": 32,
+   "to": 55,
+   "lines": 24,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "app.js and core/Sidebar/Sidebar.js emit .logo/.brand-logo/.brand-text",
+   "saves": 0
+  },
+  {
+   "id": "sidebar-tuning",
+   "file": "styles.css",
+   "from": 56,
+   "to": 81,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "site-specific rail knobs (--gutter, row padding) the framework Sidebar reads",
+   "saves": 0
+  },
+  {
+   "id": "code-block-padding",
+   "file": "styles.css",
+   "from": 82,
+   "to": 86,
+   "lines": 5,
+   "verdict": "DUPLICATE",
+   "target": ".pad (framework.css:822)",
+   "evidence": "`.code-block { padding: var(--pad, var(--pad, 1em)) }` is `.pad` with a redundant fallback repeated twice; grep of class code-block in .js: no real call, only audit md docs",
+   "saves": 5
+  },
+  {
+   "id": "topic-shell",
+   "file": "styles.css",
+   "from": 87,
+   "to": 121,
+   "lines": 35,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".page.topic sets --measure and padding:0 for every topic page",
+   "saves": 0
+  },
+  {
+   "id": "home-front",
+   "file": "styles.css",
+   "from": 122,
+   "to": 254,
+   "lines": 133,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "page-specific homepage grid areas and breakpoints; only /page.js wears .page-homepage",
+   "saves": 0
+  },
+  {
+   "id": "framework-landing",
+   "file": "styles.css",
+   "from": 255,
+   "to": 269,
+   "lines": 15,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "page--framework rules that replaced three inline max-widths",
+   "saves": 0
+  },
+  {
+   "id": "topic-sidebar-placement",
+   "file": "styles.css",
+   "from": 270,
+   "to": 309,
+   "lines": 40,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "placement of .topic > .sidebar and overflow rules; not expressible as a class",
+   "saves": 0
+  },
+  {
+   "id": "body-theme-1",
+   "file": "styles.css",
+   "from": 310,
+   "to": 321,
+   "lines": 12,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "used by alex/examples/subpage/nested/page.js, alex/examples/subpage/page.js, alex/framework/app/page.js (tutorial callers)",
+   "saves": 0
+  },
+  {
+   "id": "app-shell-ground",
+   "file": "styles.css",
+   "from": 322,
+   "to": 333,
+   "lines": 12,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the one ground on .app; everything paints over it",
+   "saves": 0
+  },
+  {
+   "id": "page-link-block",
+   "file": "styles.css",
+   "from": 334,
+   "to": 335,
+   "lines": 2,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "one tutorial caller (alex/examples/subpage/nested/page.js)",
+   "saves": 0
+  },
+  {
+   "id": "md-first-column",
+   "file": "styles.css",
+   "from": 336,
+   "to": 341,
+   "lines": 6,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "docs-table opinion that md.css must not own",
+   "saves": 0
+  },
+  {
+   "id": "theme-paper",
+   "file": "framework/styles/layers/theme/guide/paper.css",
+   "from": 1,
+   "to": 50,
+   "lines": 50,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "a theme is tokens; documented example theme",
+   "saves": 0
+  },
+  {
+   "id": "theme-terminal",
+   "file": "framework/styles/layers/theme/guide/terminal.css",
+   "from": 1,
+   "to": 52,
+   "lines": 52,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "a theme is tokens; documented example theme",
+   "saves": 0
+  },
+  {
+   "id": "theme-lew42-tokens-and-type",
+   "file": "framework/styles/layers/theme/lew42/lew42.css",
+   "from": 1,
+   "to": 114,
+   "lines": 114,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the live site's skin: tokens, heading scale, code sizing",
+   "saves": 0
+  },
+  {
+   "id": "range-slider-look",
+   "file": "framework/styles/layers/theme/lew42/lew42.css",
+   "from": 115,
+   "to": 157,
+   "lines": 43,
+   "verdict": "GENERALIZE",
+   "target": "one shared input[type=range] look in framework.css base",
+   "evidence": "the same track+thumb recipe (webkit + moz, twice each) is also written at framework/styles/elements/forms/page.js:7-12 as `.range-soft`; two range looks for one control",
+   "saves": 20
+  },
+  {
+   "id": "cols-variants",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 76,
+   "to": 127,
+   "lines": 52,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "thirds/golden/two-one/rail-main-aside are used by core/Layout/layouts.js",
+   "saves": 0
+  },
+  {
+   "id": "cols-row-base",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 1,
+   "to": 75,
+   "lines": 75,
+   "verdict": "DUPLICATE",
+   "target": ".cols (framework.css:881-900)",
+   "evidence": ".cols-row declares the identical --cols-n/--cols-sum/--cols-fixed/--cols-floor/--cols-stack vars and the same flex: var(--cols-w) 1 max(...) rule; core/Layout/layouts.js callers can wear `cols`",
+   "saves": 44
+  },
+  {
+   "id": "cols-cell-card",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 128,
+   "to": 140,
+   "lines": 13,
+   "verdict": "DUPLICATE",
+   "target": ".card (framework.css:456,489-491)",
+   "evidence": ".cols-cell is surface bg + 1px --line border + --radius + padding + column gap: exactly .card",
+   "saves": 12
+  },
+  {
+   "id": "cols-name-note",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 141,
+   "to": 142,
+   "lines": 2,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "lab typography",
+   "saves": 0
+  },
+  {
+   "id": "chip",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 143,
+   "to": 153,
+   "lines": 11,
+   "verdict": "GENERALIZE",
+   "target": "shared .chip component (see generalize.chip)",
+   "evidence": ".cols-px is a mono pill with tinted bg, radius, nowrap: a chip",
+   "saves": 11
+  },
+  {
+   "id": "cols-read-screen-strip",
+   "file": "framework/styles/layouts/cols/cols.css",
+   "from": 154,
+   "to": 191,
+   "lines": 38,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "lab readouts and the matrix strip, page-specific",
+   "saves": 0
+  },
+  {
+   "id": "layouts-preview-and-full",
+   "file": "framework/styles/layouts/layouts.css",
+   "from": 1,
+   "to": 44,
+   "lines": 44,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".layout-full and .layout-close are the full-screen mode used by core/Page/overview/full/page.js",
+   "saves": 0
+  },
+  {
+   "id": "space-lab",
+   "file": "framework/styles/layouts/space/space.css",
+   "from": 1,
+   "to": 76,
+   "lines": 76,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the space lab's own layout; only styles/layouts/space/ pages wear space-*",
+   "saves": 0
+  },
+  {
+   "id": "rules-demo-frame",
+   "file": "framework/styles/rules/rules.css",
+   "from": 1,
+   "to": 9,
+   "lines": 9,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "demo spacing",
+   "saves": 0
+  },
+  {
+   "id": "rules-card",
+   "file": "framework/styles/rules/rules.css",
+   "from": 10,
+   "to": 19,
+   "lines": 10,
+   "verdict": "DUPLICATE",
+   "target": ".card (framework.css:456,489-491)",
+   "evidence": ".rules-card = surface bg + --line border + --radius + `> * + *` margin owl: exactly .card's rules",
+   "saves": 10
+  },
+  {
+   "id": "rules-verdict-stage",
+   "file": "framework/styles/rules/rules.css",
+   "from": 20,
+   "to": 33,
+   "lines": 14,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "demo chrome",
+   "saves": 0
+  },
+  {
+   "id": "stacks-lab",
+   "file": "framework/styles/stacks/stacks.css",
+   "from": 1,
+   "to": 158,
+   "lines": 158,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the stacking study paints its own fills, pills and cards on purpose to show the ladder; replacing them with .card would change the subject",
+   "saves": 0
+  },
+  {
+   "id": "layer-restate",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 1,
+   "to": 1,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "`grep -rn '^@layer base, theme, site, util' public --include=*.css` shows framework.css:11 declares it and says it is the ONLY statement (framework.css:1-4); this copy adds nothing",
+   "saves": 1
+  },
+  {
+   "id": "color-island-swatch-chip",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 2,
+   "to": 15,
+   "lines": 14,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the two-island light-dark demo, the study's subject",
+   "saves": 0
+  },
+  {
+   "id": "color-fail-ok",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 16,
+   "to": 17,
+   "lines": 2,
+   "verdict": "DUPLICATE",
+   "target": "`.card` + --card-edge (framework.css:489)",
+   "evidence": "`border-inline-start: 3px solid var(--error|--ok)` is the status edge .card draws from --card-edge",
+   "saves": 2
+  },
+  {
+   "id": "color-wall-ramp-bars",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 18,
+   "to": 40,
+   "lines": 23,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "study layout",
+   "saves": 0
+  },
+  {
+   "id": "takeaway-callout",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 41,
+   "to": 49,
+   "lines": 9,
+   "verdict": "GENERALIZE",
+   "target": "shared .takeaway component",
+   "evidence": "same 3px --prim edge + 0.8em inset + --measure cap rewritten at nesting.css:78, anchors.css:116",
+   "saves": 9
+  },
+  {
+   "id": "color-sliders-accent-rows",
+   "file": "framework/styles/system/studies/color/color-study.css",
+   "from": 50,
+   "to": 118,
+   "lines": 69,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "study layout",
+   "saves": 0
+  },
+  {
+   "id": "layer-restate",
+   "file": "framework/styles/system/studies/color/sections/sections.css",
+   "from": 1,
+   "to": 1,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "same grep as color-study.css:1; framework.css:11 is the only declaration",
+   "saves": 1
+  },
+  {
+   "id": "color-sections",
+   "file": "framework/styles/system/studies/color/sections/sections.css",
+   "from": 2,
+   "to": 94,
+   "lines": 93,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "study layout; probes and grounds are the subject",
+   "saves": 0
+  },
+  {
+   "id": "lists-cols-rows-drop",
+   "file": "framework/styles/system/studies/lists/lists.css",
+   "from": 1,
+   "to": 76,
+   "lines": 76,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "list pattern lab; role=button rule is the lab's own",
+   "saves": 0
+  },
+  {
+   "id": "chip",
+   "file": "framework/styles/system/studies/lists/lists.css",
+   "from": 77,
+   "to": 83,
+   "lines": 7,
+   "verdict": "GENERALIZE",
+   "target": "shared .chip component",
+   "evidence": ".lists-seg-btn is a small radius+border toggle pill; same shape as .size-chip (size.css:91-101)",
+   "saves": 7
+  },
+  {
+   "id": "lists-acc-crumbs-inbox-launcher",
+   "file": "framework/styles/system/studies/lists/lists.css",
+   "from": 84,
+   "to": 127,
+   "lines": 44,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "list pattern lab",
+   "saves": 0
+  },
+  {
+   "id": "size-header",
+   "file": "framework/styles/system/studies/size/size.css",
+   "from": 1,
+   "to": 27,
+   "lines": 27,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "header comment",
+   "saves": 0
+  },
+  {
+   "id": "size-lab-size-words",
+   "file": "framework/styles/system/studies/size/size.css",
+   "from": 28,
+   "to": 30,
+   "lines": 3,
+   "verdict": "DUPLICATE",
+   "target": ".size-small/.size-regular/.size-large (framework.css:694-696)",
+   "evidence": ".size-lab.size-small { --size: 0.75 } re-declares the identical token value the global words already set",
+   "saves": 3
+  },
+  {
+   "id": "size-lab-stage-row-display",
+   "file": "framework/styles/system/studies/size/size.css",
+   "from": 31,
+   "to": 90,
+   "lines": 60,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the size study's own container and rows",
+   "saves": 0
+  },
+  {
+   "id": "chip",
+   "file": "framework/styles/system/studies/size/size.css",
+   "from": 91,
+   "to": 101,
+   "lines": 11,
+   "verdict": "GENERALIZE",
+   "target": "shared .chip component",
+   "evidence": ".size-chip is fit-content pill, 999px radius, --fill-a08, aria-pressed border: a toggle chip",
+   "saves": 11
+  },
+  {
+   "id": "size-readout",
+   "file": "framework/styles/system/studies/size/size.css",
+   "from": 102,
+   "to": 109,
+   "lines": 8,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "study readout",
+   "saves": 0
+  },
+  {
+   "id": "layer-restate",
+   "file": "framework/styles/system/studies/spacing/nesting/nesting.css",
+   "from": 1,
+   "to": 1,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "same grep as color-study.css:1",
+   "saves": 1
+  },
+  {
+   "id": "nesting-variants",
+   "file": "framework/styles/system/studies/spacing/nesting/nesting.css",
+   "from": 2,
+   "to": 77,
+   "lines": 76,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the nesting study's variants are its subject",
+   "saves": 0
+  },
+  {
+   "id": "takeaway-callout",
+   "file": "framework/styles/system/studies/spacing/nesting/nesting.css",
+   "from": 78,
+   "to": 83,
+   "lines": 6,
+   "verdict": "GENERALIZE",
+   "target": "shared .takeaway component",
+   "evidence": "same callout as color-study.css:41",
+   "saves": 6
+  },
+  {
+   "id": "close-brace",
+   "file": "framework/styles/system/studies/spacing/nesting/nesting.css",
+   "from": 84,
+   "to": 84,
+   "lines": 1,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "closing brace of the layer",
+   "saves": 0
+  },
+  {
+   "id": "theme-tokens-press-phosphor-bloom-oled-riso",
+   "file": "framework/styles/system/studies/themes/themes.css",
+   "from": 1,
+   "to": 187,
+   "lines": 187,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "each theme is a token set; the `color/background/font-family` trio in each is the generalize.theme-shell",
+   "saves": 0
+  },
+  {
+   "id": "themes-demo-scaffold",
+   "file": "framework/styles/system/studies/themes/themes.css",
+   "from": 188,
+   "to": 245,
+   "lines": 58,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "the mini-UI that displays each theme",
+   "saves": 0
+  },
+  {
+   "id": "layer-restate",
+   "file": "framework/styles/system/studies/type/anchors/anchors.css",
+   "from": 1,
+   "to": 1,
+   "lines": 1,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "same grep as color-study.css:1",
+   "saves": 1
+  },
+  {
+   "id": "type-anchors-study",
+   "file": "framework/styles/system/studies/type/anchors/anchors.css",
+   "from": 2,
+   "to": 115,
+   "lines": 114,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "study layout; the anchor styles compared are the subject",
+   "saves": 0
+  },
+  {
+   "id": "takeaway-callout",
+   "file": "framework/styles/system/studies/type/anchors/anchors.css",
+   "from": 116,
+   "to": 121,
+   "lines": 6,
+   "verdict": "GENERALIZE",
+   "target": "shared .takeaway component",
+   "evidence": "same callout as color-study.css:41",
+   "saves": 6
+  },
+  {
+   "id": "close-brace",
+   "file": "framework/styles/system/studies/type/anchors/anchors.css",
+   "from": 122,
+   "to": 122,
+   "lines": 1,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "closing brace of the layer",
+   "saves": 0
+  },
+  {
+   "id": "range-soft",
+   "file": "framework/styles/elements/forms/page.js",
+   "from": 7,
+   "to": 12,
+   "lines": 6,
+   "verdict": "DUPLICATE",
+   "target": "the framework's range look (see lew42.css:130-156)",
+   "evidence": "js css`` block: a second range-slider recipe (`.range-soft`) beside the theme's own",
+   "saves": 6
+  }
+ ],
+ "totals": {
+  "DUPLICATE": 148,
+  "GENERALIZE": 93,
+  "KEEP": 2920,
+  "DELETE": 7
+ },
+ "proposal": "framework.css is already lean in rules: of 1,161 lines only 3 are unused (.all-pad, .zoom-175, .zoom-200), and the six --lighten/--darken aliases are the only redundant tokens; most of its bulk is explanatory comment, which should move to doc/ rather than be deleted. The real savings are outside it: styles/layouts/cols/cols.css re-implements framework.css's .cols (44 lines), and five study sheets re-write the card, the status edge, the takeaway callout, the chip and the size words that already exist or should exist once. Build four shared components once in framework.css (.chip, .takeaway, a progress/meter bar, a theme-shell base rule) and let ai2, talk, v3, blog, imagine and the studies wear them instead of each writing 20-40 lines. Delete the four restated `@layer base, theme, site, util;` lines here (and the 40+ others across public/, since framework.css:11 says it is the only one), and collapse the two range-slider recipes into one. To make --pad follow container width as the owner wants, edit only the one clamp at framework.css:259 and let --pad-card fold into it, because every .pad and .card already reads those tokens.",
+ "generalize": [
+  {
+   "name": "progress-bar (meter + fill)",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:414",
+    "framework/ai2/ai2.css:423",
+    "framework/ext/AITask/ai.css:452",
+    "imagine/imagine.css:140",
+    "imagine/imagine.css:538",
+    "imagine/importance/importance.css:126"
+   ]
+  },
+  {
+   "name": "card-shell (use .card, framework.css:456)",
+   "wouldReplace": [
+    "framework/ai/v/3/v3.css:447",
+    "framework/core/Search/Search.css:160",
+    "framework/dev/DevBar/devbar.css:333",
+    "framework/dev/DevBar/devbar.css:466",
+    "framework/ext/AITask/ai.css:562",
+    "alex/styles.css:25",
+    "framework/styles/layouts/cols/cols.css:131",
+    "framework/styles/rules/rules.css:11"
+   ]
+  },
+  {
+   "name": "chip / tag / pill",
+   "wouldReplace": [
+    "blog/blog.css:360",
+    "framework/ai/talk/talk.css:110",
+    "framework/ai/v/3/v3.css:261",
+    "framework/ai2/ai2.css:1048",
+    "framework/core/Layout/Layout.css:32",
+    "framework/core/Page/generator/generator.css:181",
+    "framework/core/Page/generator/generator.css:264",
+    "framework/styles/layouts/cols/cols.css:145",
+    "framework/styles/system/studies/size/size.css:92"
+   ]
+  },
+  {
+   "name": "dictate widget restyle (one ux/Dictate compact/overlay mode instead of per-page overrides)",
+   "wouldReplace": [
+    "framework/ai/talk/talk.css:28",
+    "framework/ai/talk/talk.css:35",
+    "framework/ai/talk/talk.css:45",
+    "framework/ext/Ask/ask.css:166",
+    "framework/ai/v/2/v2.css:212"
+   ]
+  },
+  {
+   "name": "header-bar (.head row: title left, actions right)",
+   "wouldReplace": [
+    "blog/blog.css:56",
+    "framework/ai/talk/talk.css:27",
+    "framework/ai/v/2/v2.css:52",
+    "framework/ai/v/3/v3.css:71",
+    "alex/styles.css:9"
+   ]
+  },
+  {
+   "name": "takeaway-callout (3px --prim edge + inset + --measure)",
+   "wouldReplace": [
+    "framework/styles/system/studies/color/color-study.css:41",
+    "framework/styles/system/studies/spacing/nesting/nesting.css:78",
+    "framework/styles/system/studies/type/anchors/anchors.css:116"
+   ]
+  },
+  {
+   "name": "theme-shell (one base rule for `color/background/font-family` on a .theme-*)",
+   "wouldReplace": [
+    "framework/styles/layers/theme/guide/paper.css:40",
+    "framework/styles/layers/theme/guide/terminal.css:29",
+    "framework/styles/layers/theme/lew42/lew42.css:79",
+    "framework/styles/system/studies/themes/themes.css:48",
+    "framework/styles/system/studies/themes/themes.css:80",
+    "framework/styles/system/studies/themes/themes.css:111"
+   ]
+  },
+  {
+   "name": "range-slider look",
+   "wouldReplace": [
+    "framework/styles/layers/theme/lew42/lew42.css:130",
+    "framework/styles/elements/forms/page.js:7"
+   ]
+  }
+ ],
+ "risk": "low — the DELETEs have no callers, and the DUPLICATEs are lab/study sheets on the styles pages, though .cols-row is read by core/Layout/layouts.js so that swap needs one look at /framework/core/Layout/."
+}

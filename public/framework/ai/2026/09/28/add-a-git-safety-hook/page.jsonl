@@ -1,0 +1,2 @@
+{"class":"/framework/ai2/card.js","title":"Add a git-safety hook?","type":"card","id":"2026/09/28/add-a-git-safety-hook","created":"2026-09-28T14:20:07-05:00","by":"minion-waiting-sweep","tags":[]}
+{"ask":{"id":"a-mulmu67czi","title":"Add a git-safety hook?","question":"May I add a hook in .claude/settings.json that blocks git stash, checkout --, and reset --hard in the main tree (worktrees stay unaffected), since the written rule alone was broken today?","options":["yes","no"],"at":"2026-09-28T14:20:29-05:00"}}

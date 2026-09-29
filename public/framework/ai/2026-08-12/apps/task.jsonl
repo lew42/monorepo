@@ -1,3 +1,4 @@
 {"assign": {"group": "apps"}}
 {"action":{"at":"2026-08-30T12:02:08-05:00","did":"edit","files":["public/framework/ai/2026-08-12/apps/columns/page.js"]}}
 {"action":{"at":"2026-08-30T12:03:18-05:00","did":"edit","files":["public/framework/ai/2026-08-12/apps/navigation/page.js"]}}
+{"assign":{"landed_at":"2026-09-24T17:34:42-05:00","outcome":"**Closed by the loose-ends sweep, 2026-09-24** — superseded by the 2026-08-12 overhaul, which landed; its demo pages live on under the framework. [loose-ends](/framework/ai/2026-09-24/loose-ends/)"}}

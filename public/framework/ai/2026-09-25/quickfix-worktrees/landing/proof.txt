@@ -1,0 +1,109 @@
+Proof: Server/merge.mjs on scratch repos (2026-09-26T00:14:06.920Z)
+merge.mjs: C:\Code\lew42\worktrees\quickfix-worktrees\Server\merge.mjs
+
+a-clean: the main tree has no uncommitted edits
+  before: (clean)
+  merge.mjs exit 0
+      | Merge made by the 'ort' strategy.
+      |  A.txt | 2 +-
+      |  B.txt | 2 +-
+      |  2 files changed, 2 insertions(+), 2 deletions(-)
+  after:  (clean)
+  PASS  exit 0
+  PASS  a merge commit landed (two parents)
+  PASS  A and B carry the branch's lines
+  PASS  the tree is clean afterwards
+
+b-other-hunk: main has an uncommitted edit to A, in a different hunk
+  before:  M A.txt f720a88b785f
+  merge.mjs exit 0
+      | the main tree has uncommitted edits to A.txt; three-way merging each file into the working tree instead
+      |   WRITE    A.txt — both changed: merged cleanly
+      |   WRITE    B.txt — main tree unchanged from base: takes the branch's version
+      | applied over uncommitted edits, not committed: the owner commits
+      | A.txt
+      | B.txt
+  after:   M A.txt 4dd22a05b4a4;  M B.txt 4035bbe6a02e; ?? .merge-landed.json e7aa763b01a7
+  PASS  exit 0
+  PASS  it said: applied over uncommitted edits, not committed
+  PASS  A keeps BOTH edits
+  PASS  B got the branch's edit
+  PASS  nothing staged
+  PASS  no commit made (HEAD unchanged)
+  PASS  .merge-landed.json records the branch head
+  PASS  git stash list unchanged
+
+c-same-lines: main has an uncommitted edit to the SAME line of A
+  before:  M A.txt 97a5ecb109c7
+  merge.mjs exit 4
+      | the main tree has uncommitted edits to A.txt; three-way merging each file into the working tree instead
+      |   CONFLICT A.txt — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+      |   WRITE    B.txt — main tree unchanged from base: takes the branch's version
+      | refused: 1 file(s) conflict; nothing was touched:
+      |   A.txt — 1 conflicting hunk(s): the main tree's edits and the branch change the same lines
+  after:   M A.txt 97a5ecb109c7
+  PASS  exit 4 (refused)
+  PASS  the main tree's diff is byte-identical before and after
+  PASS  the dirty files' hashes are identical before and after
+  PASS  B was not touched either
+  PASS  HEAD unchanged, stash list unchanged
+  PASS  no .merge-landed.json
+
+d-conflict: michael/dev committed its own change to A line 2; no dirt
+  before: (clean)
+  merge.mjs exit 4
+      | refused: worktree/x conflicts with michael/dev; nothing was touched. Conflicting files:
+      | A.txt
+  after:  (clean)
+  PASS  exit 4 (refused by merge-tree)
+  PASS  merge-tree named A.txt
+  PASS  nothing touched: tree clean, HEAD unchanged, no MERGE_HEAD
+
+e-adjacent-line: main has an uncommitted edit to A line 3, directly under the branch's line 2
+  before:  M A.txt f69893025592
+  merge.mjs exit 0
+      | the main tree has uncommitted edits to A.txt; three-way merging each file into the working tree instead
+      |   WRITE    A.txt — both changed: merged cleanly, 1 adjacent-line block(s) settled line by line
+      |   WRITE    B.txt — main tree unchanged from base: takes the branch's version
+      | applied over uncommitted edits, not committed: the owner commits
+      | A.txt
+      | B.txt
+  after:   M A.txt 112927e7ed64;  M B.txt 4035bbe6a02e; ?? .merge-landed.json 2c32eabfc10e
+  PASS  exit 0
+  PASS  A keeps BOTH edits (line 2 from the branch, line 3 from the owner)
+  PASS  A is exactly the base with line 2 from the branch and line 3 from the owner, nothing else
+  PASS  B got the branch's edit
+  PASS  nothing staged
+  PASS  no commit made (HEAD unchanged)
+  PASS  git stash list unchanged
+
+e0-apply-control: case e's starting state, given to the OLD path (git apply --check)
+  git apply --check exit 1: error: patch failed: A.txt:1 / error: A.txt: patch does not apply
+  PASS  git apply refuses it, so case e could only pass with merge-file
+
+f-crlf: main's A has CRLF line endings plus an owner edit in another hunk
+  before:  M A.txt f720a88b785f
+  merge.mjs exit 0
+      | the main tree has uncommitted edits to A.txt; three-way merging each file into the working tree instead
+      |   WRITE    A.txt — both changed: merged cleanly (CRLF kept)
+      |   WRITE    B.txt — main tree unchanged from base: takes the branch's version
+      | applied over uncommitted edits, not committed: the owner commits
+      | A.txt
+      | B.txt
+  after:   M A.txt 4dd22a05b4a4;  M B.txt 4035bbe6a02e; ?? .merge-landed.json 4cd35c743571
+  PASS  exit 0
+  PASS  A keeps BOTH edits
+  PASS  every line of A still ends in CRLF
+  PASS  nothing staged, HEAD and stash unchanged
+
+pool: Pool.landed() for case b's worktree = true (expected true); for case c's = false (expected false)
+
+SUMMARY
+  PASS  a-clean: the main tree has no uncommitted edits
+  PASS  b-other-hunk: main has an uncommitted edit to A, in a different hunk
+  PASS  c-same-lines: main has an uncommitted edit to the SAME line of A
+  PASS  d-conflict: michael/dev committed its own change to A line 2; no dirt
+  PASS  e-adjacent-line: main has an uncommitted edit to A line 3, directly under the branch's line 2
+  PASS  e0-apply-control: git apply refuses case e
+  PASS  f-crlf: main's A has CRLF line endings plus an owner edit in another hunk
+  PASS  pool: applied head counts as merged

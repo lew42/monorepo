@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Stale pages: live reload not keeping pages current","type":"request","id":"2026/09/24/ai-dashboard/stale-pages-live-reload-not-keeping-page","created":"2026-09-24T22:03:00-05:00","by":"agent","tags":[]}
+{"message":{"by":"manager-ai-dashboard","text":"Taken. One Opus agent is investigating why a reload can leave a stale page, for example a sidebar link that doesn't update. It only diagnoses. It also checks how this overlaps the mic-cancel card. I'll bring you the cause and the smallest fix.","kind":"reply","at":"2026-09-24T22:03:13-05:00"}}
+{"message":{"by":"manager-ai-dashboard","text":"Stopped my investigation. Another agent already found the cause: a reload is skipped when Block is ticked, and postponed while the mic is busy. It also added an \"out of date\" reload pill in Socket.js. Nothing more from me on this.","kind":"reply","at":"2026-09-24T22:04:41-05:00"}}
+{"title":"Live reload: open pages go stale"}

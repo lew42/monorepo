@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-28/fresh-eyes-review/proof/gate-refused.txt",
+ "widths": {
+  "1280": {
+   "empty": 0.9,
+   "widest_text": 1237,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.931,
+   "widest_text": 1272,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.947,
+   "widest_text": 1272,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.962,
+   "widest_text": 1272,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

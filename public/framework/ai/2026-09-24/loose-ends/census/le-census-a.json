@@ -1,0 +1,271 @@
+[
+ {
+  "task": "apps",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/apps/",
+  "title": "Apps demos (columns, editor, navigation, panes)",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "layouts",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/layouts/",
+  "title": "Layouts task",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "stage",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/stage/",
+  "title": "Stage task",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "strategy",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/strategy/",
+  "title": "Employer-ready framework strategy and master plan",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "unify",
+  "date": "2026-08-12",
+  "link": "/framework/ai/2026-08-12/unify/",
+  "title": "Unify task",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "dashboard",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/dashboard/",
+  "title": "Daily page as a dashboard of work",
+  "status": "landed"
+ },
+ {
+  "task": "editor-panels",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/editor-panels/",
+  "title": "Integrate panels into ext/Editor",
+  "status": "landed"
+ },
+ {
+  "task": "improve-daily-task-dashboard",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/improve-daily-task-dashboard/",
+  "title": "Fix dashboard UI and author layout-design skill",
+  "status": "landed"
+ },
+ {
+  "task": "log-feed",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/log-feed/",
+  "title": "Reverse-chron task log feed",
+  "status": "landed"
+ },
+ {
+  "task": "manifest-vs-log",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/manifest-vs-log/",
+  "title": "What session.json holds vs the log",
+  "status": "landed"
+ },
+ {
+  "task": "panel",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/panel/",
+  "title": "ext/Panel Blender-style panel system",
+  "status": "landed"
+ },
+ {
+  "task": "persistence",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/persistence/",
+  "title": "Persistence stack (Item/List/Saver/Draggable/Editor)",
+  "status": "unlanded",
+  "left_open": [
+   "task.jsonl has only a group line and no landed_at"
+  ]
+ },
+ {
+  "task": "renames",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/renames/",
+  "title": "Ext dir capitalization renames",
+  "status": "landed"
+ },
+ {
+  "task": "sessions",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/sessions/",
+  "title": "Record what spawned agents did; AILogs plugin",
+  "status": "landed"
+ },
+ {
+  "task": "task-previews",
+  "date": "2026-08-13",
+  "link": "/framework/ai/2026-08-13/task-previews/",
+  "title": "Richer task preview cards + preview bridge",
+  "status": "landed"
+ },
+ {
+  "task": "ai-dashboard",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/ai-dashboard/",
+  "title": "Usage rail + task cards",
+  "status": "landed"
+ },
+ {
+  "task": "ai-page",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/ai-page/",
+  "title": "Timeline core, ai page, AITask rename",
+  "status": "landed"
+ },
+ {
+  "task": "board-smoke",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/board-smoke/",
+  "title": "Board smoke test",
+  "status": "landed"
+ },
+ {
+  "task": "board-start",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/board-start/",
+  "title": "Start work from the browser",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Still open: nothing streams the spawned session's progress except its own log lines, so a task that forgets to log looks dead"
+  ]
+ },
+ {
+  "task": "browser-cli-bridge",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/browser-cli-bridge/",
+  "title": "ext/Ask browser to Claude session bridge",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "tool scoping still open for Mike"
+  ]
+ },
+ {
+  "task": "dev-toolbar",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/dev-toolbar/",
+  "title": "Site-wide dev rail behind Ctrl+\\",
+  "status": "landed"
+ },
+ {
+  "task": "editor-panel-review",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/editor-panel-review/",
+  "title": "Review of ext/Editor and ext/Panel",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Both modules work, and neither exists — 13 files, 1,568 lines, zero commits."
+  ]
+ },
+ {
+  "task": "efforts",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/efforts/",
+  "title": "Efforts as top unit on /framework/ai/",
+  "status": "landed"
+ },
+ {
+  "task": "figma-layouts",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/figma-layouts/",
+  "title": "Four new layouts from Figma",
+  "status": "landed"
+ },
+ {
+  "task": "framework-clock",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/framework-clock/",
+  "title": "Live Panel clock on the front door",
+  "status": "landed"
+ },
+ {
+  "task": "jsonl",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/jsonl/",
+  "title": "ext/JSONL and task.jsonl",
+  "status": "landed"
+ },
+ {
+  "task": "layout-space",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/layout-space/",
+  "title": "Browsable layout space",
+  "status": "landed"
+ },
+ {
+  "task": "layout-system",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/layout-system/",
+  "title": "LayoutTool second tier and docs",
+  "status": "landed"
+ },
+ {
+  "task": "layout-tool",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/layout-tool/",
+  "title": "ext/LayoutTool numeric layout analyzer",
+  "status": "landed"
+ },
+ {
+  "task": "timeline",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/timeline/",
+  "title": "ext/Timeline design",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "design delivered — awaiting green-light on waves 1–3"
+  ]
+ },
+ {
+  "task": "vision-haiku-opus",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/vision-haiku-opus/",
+  "title": "Haiku/Opus vision comparison",
+  "status": "landed"
+ },
+ {
+  "task": "vision-report",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/vision-report/",
+  "title": "Vision model comparison report",
+  "status": "landed"
+ },
+ {
+  "task": "vision-sonnet",
+  "date": "2026-08-14",
+  "link": "/framework/ai/2026-08-14/vision-sonnet/",
+  "title": "Sonnet vision analysis of layouts",
+  "status": "landed"
+ },
+ {
+  "skipped": [
+   "2026-08-12/page.js",
+   "2026-08-13/page.js",
+   "2026-08-14/page.js",
+   "2026-08-14/day.jsonl"
+  ]
+ }
+]

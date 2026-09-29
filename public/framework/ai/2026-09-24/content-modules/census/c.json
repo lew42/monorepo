@@ -1,0 +1,1075 @@
+[
+ {
+  "name": "task card (manifest card)",
+  "what": "One task on the day board: title link, status dot, the step bar, figures and a reply box.",
+  "source": "public/framework/ext/AITask/card.js:91",
+  "classes": [
+   ".ai-card",
+   ".surface",
+   ".ai-card-title",
+   ".ai-figures"
+  ],
+  "render": "import { manifest_card } from '/framework/ext/AITask/card.js'; manifest_card({ title: 'Demo task', url: '/framework/ai/', name: 'demo', brief: 'A task that has not started.', m: null });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "ai.css:562 own grid, padding via .surface",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "inbox card (ai2 row)",
+   "tile (v3)",
+   "highlight card"
+  ],
+  "notes": "Three-column grid capped at 60em; title ::after spreads the link over the whole card."
+ },
+ {
+  "name": "highlight card",
+  "what": "A small card a finished task marks as its best result: icon, title link, one line, a log link.",
+  "source": "public/framework/ext/AITask/highlights.js:63",
+  "classes": [
+   ".ai-hl",
+   ".surface",
+   ".ai-hl-wall"
+  ],
+  "render": "import { highlights } from '/framework/ext/AITask/highlights.js'; highlights([{ url: '/framework/ai/2026-09-24/demo/', m: { highlight: { title: 'A demo highlight', line: 'One sentence about it.', url: '/framework/ai/' } } }]);",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "gap-50 gap-70 (own rule, ai.css:669)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "task card",
+   "v3 tile"
+  ],
+  "notes": "Sits in an auto grid `.ai-hl-wall`, 20em columns."
+ },
+ {
+  "name": "needs-you strip",
+  "what": "A box listing every thing only the owner can do, shortest first, with minutes.",
+  "source": "public/framework/ext/AITask/needs.js:94",
+  "classes": [
+   ".ai-needs",
+   ".ai-need",
+   ".ai-need-mins",
+   ".surface"
+  ],
+  "render": "import { needs_strip } from '/framework/ext/AITask/needs.js'; needs_strip([{ what: 'Log in to the host', minutes: 5, id: 'x', url: '/framework/ai/', label: 'demo' }]);",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "--pad + 3px prim start border (ai.css:207)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ask card in Needs column",
+   "ai2 needs column"
+  ],
+  "notes": "Draws nothing when empty."
+ },
+ {
+  "name": "ask card",
+  "what": "A question or report from an agent to the owner: needs line, title, two clamped lines, status chip, links, a screenshot.",
+  "source": "public/framework/ext/AITask/asks.js:265",
+  "classes": [
+   ".ai-ask",
+   ".surface",
+   ".ai-ask-status",
+   ".ai-ask-foot"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 3,
+  "padding": "--pad (ai.css:103)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "decision row",
+   "ai2 inbox card",
+   "v3 tile"
+  ],
+  "notes": "Needs a loaded task log (asks(m, base, to_prompt, redraw)); not drawn standalone. Click opens .ai-ask-sheet under it."
+ },
+ {
+  "name": "ask sheet",
+  "what": "The panel that opens under an ask card with the full question, the weighed options and the task.",
+  "source": "public/framework/ext/AITask/asks.js:426",
+  "classes": [
+   ".ai-ask-sheet",
+   ".surface",
+   ".ai-ask-decision"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "--pad (ai.css:172)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "decision body"
+  ],
+  "notes": "Spans the full grid row (.ai-ask-detail grid-column 1 / -1)."
+ },
+ {
+  "name": "decision row",
+  "what": "One decision with an Approve / Improve verdict: a line you click to open the options, the rule and a note box.",
+  "source": "public/framework/ext/AITask/decisions.js:72",
+  "classes": [
+   ".ai-decision",
+   ".ai-decision-line",
+   ".ui-decision-option",
+   ".ai-decision-status"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 2,
+  "padding": "hairline top + --gap-35 top pad; no side pad (ai.css:270)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ask card",
+   "ux decision (ui-decision-*)"
+  ],
+  "notes": "Reuses ui-decision-* classes from the ux tier inside an ai- wrapper. v2.css re-declares the same rules under .v2 (duplicate CSS, also `.ai-group-title`, `.ai-rank-grip`)."
+ },
+ {
+  "name": "fold (expando bar)",
+  "what": "A clickable bar over a hidden body, built only on first open.",
+  "source": "public/framework/ext/AITask/message.js:15",
+  "classes": [
+   ".ai-fold",
+   ".ai-fold-bar",
+   ".wash",
+   ".ai-fold-body"
+  ],
+  "render": "import { fold } from '/framework/ext/AITask/message.js'; fold('Click to open', () => { p('The hidden body.'); });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 4,
+  "padding": ".25em .75em raw (ai.css:319)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2 details .ai2-said",
+   "v3 details .v3-day-row",
+   "native details"
+  ],
+  "notes": "Four copies of the same idea: ai-fold, ai2-said/ai2-toc (details), v3-day-row (details), v2-earlier (details)."
+ },
+ {
+  "name": "transcript message",
+  "what": "One agent message or tool result: text, thinking (folded), tool call line, result, image.",
+  "source": "public/framework/ext/AITask/message.js:36",
+  "classes": [
+   ".ai-msg",
+   ".ai-tool",
+   ".ai-result",
+   ".ai-img"
+  ],
+  "render": "import { message } from '/framework/ext/AITask/message.js'; message({ type: 'assistant', message: { content: 'Hello from an agent.' } });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 2,
+  "padding": "none (flow)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai2 chat line"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "turn (transcript turn)",
+  "what": "One prompt-and-answer turn in a replay or live feed, with a meta row.",
+  "source": "public/framework/ext/AITask/feed.js:129",
+  "classes": [
+   ".ai-turn",
+   ".wash",
+   ".ai-meta",
+   ".ai-cmd"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 2,
+  "padding": ".5em .75em raw (feed.css:8) but ai.css:395 says gap-50 no pad",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai2 chat turn"
+  ],
+  "notes": "Two rules for .ai-turn (ai.css and feed.css) disagree on padding; feed.css wins by load order."
+ },
+ {
+  "name": "owner prompt bubble (ai-you)",
+  "what": "The owner's own message in a chat replay, a bordered box that lights up when selected.",
+  "source": "public/framework/ext/AITask/conversation.js:182",
+  "classes": [
+   ".ai-you",
+   ".surface",
+   ".ai-cmd"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "--gap-70 (ai.css:402)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2 chat-you",
+   ".v3-tile-owner"
+  ],
+  "notes": "Three different ways to mark the owner's words."
+ },
+ {
+  "name": "prompt rail row",
+  "what": "One line in the chat rail: prompt text ellipsised, time on the right.",
+  "source": "public/framework/ext/AITask/conversation.js:288",
+  "classes": [
+   ".ai-prompt",
+   ".ai-prompt-text",
+   ".ai-prompt-at",
+   ".ai-chat-rail"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "ai.css:375 own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2 rail row",
+   "v3 compact tile"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "screenshot thumb",
+  "what": "A 4:3 thumbnail of a screenshot a worker logged, linking to full size, with fallback.",
+  "source": "public/framework/ext/AITask/shots.js:19",
+  "classes": [
+   ".ai-shot",
+   ".ai-shot-frame",
+   ".ai-shot-label"
+  ],
+  "render": "import { shot_thumb } from '/framework/ext/AITask/shots.js'; shot_thumb({ path: 'nope.png', label: 'demo shot', width: 800 });",
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "none, label margin gap-35",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai-ask-pic"
+  ],
+  "notes": "Shows 'no image' off localhost."
+ },
+ {
+  "name": "usage meter",
+  "what": "A bar gauge for one usage limit with a clock marker and 'on pace for' note.",
+  "source": "public/framework/ext/AITask/usage.js:42",
+  "classes": [
+   ".ai-meter",
+   ".ai-gauge",
+   ".ai-track",
+   ".ai-fill",
+   ".ai-mark"
+  ],
+  "render": "import { usage_rail } from '/framework/ext/AITask/usage.js'; usage_rail({ utilization: { limits: [{ kind: 'session', group: 'session', percent: 40, resets_at: new Date(Date.now() + 3e6).toISOString() }] } });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "none",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai2-ov-usage-row (ai2 overview bars)"
+  ],
+  "notes": "ai2 redraws the same bar with its own ai2-ov-usage-* classes (overview.js:198): a twin."
+ },
+ {
+  "name": "group heading (ai-group)",
+  "what": "A small uppercase title with a count above a group of cards.",
+  "source": "public/framework/ext/AITask/board.js:50",
+  "classes": [
+   ".ai-group",
+   ".ai-group-title",
+   ".ai-count",
+   ".ai-header"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('ai-group-title muted', () => { span('Landed'); span.c('ai-count', ' 3'); });",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 6,
+  "padding": "none",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai2-ov-head",
+   "v3-day-head",
+   "v2-head"
+  ],
+  "notes": "Four heading styles for the same job."
+ },
+ {
+  "name": "timeline day line",
+  "what": "A rule with a day label in the day timeline.",
+  "source": "public/framework/ext/AITask/dashboard.js:136",
+  "classes": [
+   ".ai-timeline",
+   ".ai-day-line"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/"
+  ],
+  "used_count": 1,
+  "padding": "none",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "v3-axis-hour",
+   "v3-day-head"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "link chip",
+  "what": "A boxed link to a task or file.",
+  "source": "public/framework/ext/AITask/asks.js:338",
+  "classes": [
+   ".ai-link",
+   ".ai-links",
+   ".ai2-link",
+   ".v2-link"
+  ],
+  "render": "import { a } from '/app.js'; a.c('ai-link', 'a link').href('/framework/ai/');",
+  "used_in": [
+   "/framework/ai/",
+   "/framework/ai2/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 3,
+  "padding": "ai.css own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2-link",
+   "v2-link",
+   ".page-link"
+  ],
+  "notes": "Three link classes, one job."
+ },
+ {
+  "name": "inbox row (rail preview)",
+  "what": "The two-line preview in the AI 2 rail: title, time, author and last sentence; always the same height.",
+  "source": "public/framework/ai2/card.js:28",
+  "classes": [
+   ".ai2-row",
+   ".ai2-row-head",
+   ".ai2-row-foot",
+   ".ai2-dot"
+  ],
+  "render": "import { row } from '/framework/ai2/card.js'; div.c('ai2-row', () => row({ title: 'Demo card', at: new Date().toISOString(), author: 'owner', text: 'The card says one thing.', said: [], refined: '' }));",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 3,
+  "padding": ".55em .7em raw (ai2.css:298)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3 tile",
+   "v3 compact tile",
+   "ai-card",
+   "ai-ask"
+  ],
+  "notes": "The site's main duplication: the same card as task card, inbox row, v3 tile and ask card."
+ },
+ {
+  "name": "inbox full card",
+  "what": "The whole card on the page: title, flag button, who and time, refined words, chips, your words, sketches, links.",
+  "source": "public/framework/ai2/card.js:51",
+  "classes": [
+   ".ai2-full",
+   ".ai2-full-head",
+   ".ai2-refined",
+   ".ai2-chip",
+   ".ai2-said",
+   ".ai2-proposal"
+  ],
+  "render": "import { full } from '/framework/ai2/card.js'; div.c('ai2-full', () => full({ title: 'Demo', at: new Date().toISOString(), author: 'owner', kind: 'prompt', text: 'Say it once.', refined: '', names: ['a-name'], said: ['Hello.'], proposals: [{ title: 'Sketch', shape: ['One idea.'] }], links: [{ url: '/framework/ai2/', label: 'AI 2' }] }, { held(){}, flag(){}, unflag(){} }));",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 3,
+  "padding": "--pad (ai2.css:482)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3 detail",
+   "ai-ask-sheet"
+  ],
+  "notes": "Scrolls itself (overflow-y auto)."
+ },
+ {
+  "name": "sub-card table of contents",
+  "what": "A fold listing every task, proposal and paragraph in a card's log, each a link row.",
+  "source": "public/framework/ai2/card.js:116",
+  "classes": [
+   ".ai2-toc",
+   ".ai2-toc-row",
+   ".ai2-toc-title"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": ".5em .6em raw (ai2.css:607)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3 day rows",
+   "ai-decision-line"
+  ],
+  "notes": "Needs sub_rows(entries) from inbox.js."
+ },
+ {
+  "name": "flag box",
+  "what": "One line for typing what is wrong with a card.",
+  "source": "public/framework/ai2/card.js:158",
+  "classes": [
+   ".ai2-flag-box",
+   ".ai2-flag-input",
+   ".ai2-flag"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai-decision-input",
+   "ask-reply"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "proposal quote (sketch)",
+  "what": "The assistant's first sketch, marked by a start border.",
+  "source": "public/framework/ai2/card.js:88",
+  "classes": [
+   ".ai2-proposal"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "padding-inline-start .7em, 2px border (ai2.css:682)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai-decision-rule",
+   "ai-ask-decision (2px prim border)"
+  ],
+  "notes": "Three separate left-border quotes with different colors and paddings."
+ },
+ {
+  "name": "name chip",
+  "what": "A small pill naming a page or thing the assistant minted.",
+  "source": "public/framework/ai2/card.js:74",
+  "classes": [
+   ".ai2-chips",
+   ".ai2-chip"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('ai2-chips flex wrap gap-25', () => { span.c('ai2-chip', 'a-name'); });",
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "v3-tile-author",
+   "ai-count",
+   ".ai2-ov-pill"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "overview column",
+  "what": "One of the AI 2 overview columns (Needs, Reports, Landed, Live): header, count, new-items pill, scrolling rows.",
+  "source": "public/framework/ai2/overview.js:45",
+  "classes": [
+   ".ai2-ov-col",
+   ".ai2-ov-head",
+   ".ai2-ov-body",
+   ".ai2-ov-pill",
+   ".ai2-ov-empty"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "--ai2-ov-pad (ai2.css:793)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3 board",
+   "ai-asks-tab topic"
+  ],
+  "notes": "Built by a streaming function; needs a live source, not standalone."
+ },
+ {
+  "name": "overview row",
+  "what": "One line in an overview column: title link, one clamped line and time.",
+  "source": "public/framework/ai2/overview.js:88",
+  "classes": [
+   ".ai2-ov-row",
+   ".ai2-ov-row-title",
+   ".ai2-ov-row-line",
+   ".ai2-ov-row-when"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block .5em only (ai2.css:856)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2-row",
+   "v3-tile-compact",
+   "ai-need"
+  ],
+  "notes": "Third one-line-row style in this realm; a bare div.c built outside its parent has once drawn into the page root (comment at overview.js:82)."
+ },
+ {
+  "name": "overview usage bar",
+  "what": "A labelled usage bar in the overview.",
+  "source": "public/framework/ai2/overview.js:198",
+  "classes": [
+   ".ai2-ov-usage-row",
+   ".ai2-ov-usage-track",
+   ".ai2-ov-usage-fill"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai-meter"
+  ],
+  "notes": "Duplicate of the AITask usage meter."
+ },
+ {
+  "name": "live item",
+  "what": "A row in the Live card: state, name, one line, clear button.",
+  "source": "public/framework/ai2/live.js:198",
+  "classes": [
+   ".ai2-live-item",
+   ".ai2-live-state",
+   ".ai2-live-name",
+   ".ai2-live-line",
+   ".ai2-live-bar"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block .3em (ai2.css:1037)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai-need",
+   "v3-agents-row"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "chat line",
+  "what": "One line of a conversation with a card: who, text, and a reply/update variant.",
+  "source": "public/framework/ai2/chat.js:36",
+  "classes": [
+   ".ai2-chat",
+   ".ai2-chat-who",
+   ".ai2-chat-text",
+   ".ai2-chat-you",
+   ".ai2-script"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai-turn",
+   "ai-you"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "composer",
+  "what": "The microphone and text box where the owner talks to the assistant.",
+  "source": "public/framework/ai2/compose.js:81",
+  "classes": [
+   ".ai2-compose",
+   ".ai2-field",
+   ".ai2-mic",
+   ".ai2-compose-send"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai2/"
+  ],
+  "used_count": 1,
+  "padding": "own (ai2.css:127)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3-compose"
+  ],
+  "notes": "Needs speech and a servex stream, so not standalone. A twin of v3's composer (ai/v/3/compose.js:37)."
+ },
+ {
+  "name": "v3 tile (inbox card)",
+  "what": "A card in the v3 board: icon and title on one row, one sentence, the author. Big when it needs the owner.",
+  "source": "public/framework/ai/v/3/page.js:1185",
+  "classes": [
+   ".card",
+   ".v3-tile",
+   ".v3-tile-big",
+   ".v3-tile-head",
+   ".v3-tile-title",
+   ".v3-tile-sentence",
+   ".v3-tile-author"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('card v3-tile v3-tile-big', () => { div.c('v3-tile-head flex v-center gap', () => div.c('v3-tile-title', 'Demo')); div.c('v3-tile-sentence', 'One sentence.'); div.c('v3-tile-foot flex v-center', () => span.c('v3-tile-author', 'mastermind')); });",
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 2,
+  "padding": "framework .card (--pad-card)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "inbox row",
+   "ask card",
+   "task card"
+  ],
+  "notes": "Only kind here that wears the framework .card; every other one hand-rolls its padding."
+ },
+ {
+  "name": "v3 compact row",
+  "what": "The ordinary one-line inbox row: icon, bold title, author.",
+  "source": "public/framework/ai/v/3/page.js:1188",
+  "classes": [
+   ".v3-tile-compact",
+   ".v3-inbox-card"
+  ],
+  "render": "import { div, span } from '/app.js'; div.c('v3-tile-compact', () => { div.c('v3-tile-title', 'Compact row'); span.c('v3-tile-author muted', 'you'); });",
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 2,
+  "padding": "own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2-row",
+   "ai2-ov-row",
+   "ai-prompt"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "v3 day row",
+  "what": "A collapsible summary row for one day (or one group) on the v3 board.",
+  "source": "public/framework/ai/v/3/page.js:950",
+  "classes": [
+   ".v3-day-row",
+   ".v3-day-summary",
+   ".v3-day-body"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": ".35em .7em raw (v3.css:313)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai-fold",
+   "ai2-toc"
+  ],
+  "notes": "A details element wearing a card ground."
+ },
+ {
+  "name": "agents strip chip",
+  "what": "A chip for one running or idle agent; on = selected.",
+  "source": "public/framework/ai/v/3/agents.js:83",
+  "classes": [
+   ".v3-agents-row",
+   ".v3-agents-idle",
+   ".v3-agents-rows"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "v3.css:172 own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2-live-item",
+   "v3-view-btn",
+   "ai2-chip"
+  ],
+  "notes": "Reads an agent host stream, not standalone."
+ },
+ {
+  "name": "view button",
+  "what": "A small toggle button in the v3 toolbar (sort / view).",
+  "source": "public/framework/ai/v/3/page.js:696",
+  "classes": [
+   ".v3-view-btn",
+   ".on",
+   ".v2-density-btn"
+  ],
+  "render": "import { button } from '/app.js'; button.c('v3-view-btn on', 'Grid').attr('type', 'button');",
+  "used_in": [
+   "/framework/ai/v/3/",
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 2,
+  "padding": "v3.css:111 own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v2-density-btn",
+   "panel-btn"
+  ],
+  "notes": "Three toolbar buttons that do the same thing."
+ },
+ {
+  "name": "axis time item",
+  "what": "Hour line, collapsed-gap break or card slot on the v3 timeline axis.",
+  "source": "public/framework/ai/v/3/page.js:1265",
+  "classes": [
+   ".v3-axis-item",
+   ".v3-axis-hour",
+   ".v3-axis-break",
+   ".v3-axis-list"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "margin scales with gap (0.2em/min)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "ai-day-line"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "undo toast",
+  "what": "A bar with a message and Undo, at the bottom of the board.",
+  "source": "public/framework/ai/v/3/page.js:1096",
+  "classes": [
+   ".v3-toast",
+   ".v3-toast-msg",
+   ".v3-toast-undo"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "margin-top .5em",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [],
+  "notes": ""
+ },
+ {
+  "name": "ask answer buttons",
+  "what": "The row of option buttons that answers an ask from a v3 card.",
+  "source": "public/framework/ai/v/3/ask.js:39",
+  "classes": [
+   ".v3-ask",
+   ".v3-ask-options",
+   ".v3-ask-block"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block-start var(--gap)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai-decision-acts",
+   "ask-reply"
+  ],
+  "notes": ""
+ },
+ {
+  "name": "v3 composer",
+  "what": "The talk box under the v3 board.",
+  "source": "public/framework/ai/v/3/compose.js:37",
+  "classes": [
+   ".v3-compose",
+   ".v3-compose-row",
+   ".v3-compose-input",
+   ".v3-compose-send"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/3/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block-start .5em",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ai2-compose"
+  ],
+  "notes": "Twin of ai2/compose.js."
+ },
+ {
+  "name": "v2 panel / topic",
+  "what": "A bordered box with a head and a list of note, agent, need and ask rows.",
+  "source": "public/framework/ai/v/2/page.js:100",
+  "classes": [
+   ".v2",
+   ".v2-panel",
+   ".v2-topic",
+   ".v2-row",
+   ".v2-note",
+   ".v2-agent",
+   ".v2-ask"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ai/v/2/"
+  ],
+  "used_count": 1,
+  "padding": "calc(.4rem*--size) calc(.55rem*--size) (v2.css:46)",
+  "bleeds": "yes: .v2 bleed",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   "ai-needs",
+   "ai-ask"
+  ],
+  "notes": "Own size variable --size; padding is in rem, not the framework's --pad."
+ },
+ {
+  "name": "panel (Panel item)",
+  "what": "A resizable box that holds content and can split into more panels; the building block of the layout lab.",
+  "source": "public/framework/ext/Panel/workspace.js:120",
+  "classes": [
+   ".panel",
+   ".panel-bar",
+   ".panel-body",
+   ".panel-items"
+  ],
+  "render": "import { panel } from '/framework/ext/Panel/workspace.js'; panel({ text: 'A panel' });",
+  "used_in": [
+   "/framework/ext/Panel/",
+   "/framework/ext/Panel/playground/"
+  ],
+  "used_count": 3,
+  "padding": "panel.css own, --panel-hug",
+  "bleeds": "yes: 0px hug/fill seams by design",
+  "interactive": true,
+  "duplicates": [
+   "card",
+   ".surface",
+   "column page"
+  ],
+  "notes": "panel() signature is `seed`; check the seed shape in vocab.js before relying on { text }."
+ },
+ {
+  "name": "panel toolbar button",
+  "what": "A square icon button on a panel's overlay toolbar.",
+  "source": "public/framework/ext/Panel/toolbar.js:56",
+  "classes": [
+   ".panel-btn",
+   ".panel-handle",
+   ".panel-tool",
+   ".panel-zoom",
+   ".panel-gap"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 1,
+  "padding": "toolbar.css own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "v3-view-btn",
+   "v2-density-btn"
+  ],
+  "notes": "Needs a panel item."
+ },
+ {
+  "name": "panel properties row",
+  "what": "A labelled knob (range, output) in the properties region.",
+  "source": "public/framework/ext/Panel/properties.js:211",
+  "classes": [
+   ".panel-props",
+   ".panel-props-row",
+   ".panel-knob",
+   ".panel-knob-range",
+   ".panel-knob-out"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 2,
+  "padding": "controls.css own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [
+   "ux control rows"
+  ],
+  "notes": "Needs a focused panel."
+ },
+ {
+  "name": "panel template block",
+  "what": "A ready-made content block dropped into a panel: stat, clock, rail, contents list, brand.",
+  "source": "public/framework/ext/Panel/templates.js:56",
+  "classes": [
+   ".panel-t",
+   ".panel-t-stat",
+   ".panel-t-rail",
+   ".panel-t-toc",
+   ".panel-t-brand",
+   ".panel-t-cell"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Panel/"
+  ],
+  "used_count": 2,
+  "padding": "templates.css own",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "stat tile",
+   "toc"
+  ],
+  "notes": "Draws inside a panel only."
+ },
+ {
+  "name": "workspace",
+  "what": "Three-region shell: panels, toolbar and viewport list.",
+  "source": "public/framework/ext/Panel/Workspace/Workspace.js:23",
+  "classes": [
+   ".panel-workspace"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Panel/Workspace/"
+  ],
+  "used_count": 1,
+  "padding": "workspace.css own",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [],
+  "notes": "A class, not a function; not standalone."
+ },
+ {
+  "name": "doc well (page title block)",
+  "what": "The title strip at the top of every Doc page.",
+  "source": "public/framework/ext/Doc/Doc.js:270",
+  "classes": [
+   ".doc-well",
+   ".doc-title",
+   ".doc-section",
+   ".doc-page"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Doc/",
+   "every module Docs tab"
+  ],
+  "used_count": 1,
+  "padding": ".doc-section --pad-y 1.5em (Doc.css:74)",
+  "bleeds": "no",
+  "interactive": false,
+  "duplicates": [
+   "h1 .page-head"
+  ],
+  "notes": "Doc has no exhibit or callout blocks of its own; those live in ext/demo (part B). It only builds tabs, well and files browser."
+ },
+ {
+  "name": "doc files browser",
+  "what": "A files panel wrapped in .doc-files with panel-height 42em.",
+  "source": "public/framework/ext/Doc/Doc.js:136",
+  "classes": [
+   ".doc-files",
+   ".files"
+  ],
+  "render": null,
+  "used_in": [
+   "/framework/ext/Doc/"
+  ],
+  "used_count": 1,
+  "padding": "padding-block 1em (Doc.css:90)",
+  "bleeds": "no",
+  "interactive": true,
+  "duplicates": [],
+  "notes": ""
+ }
+]

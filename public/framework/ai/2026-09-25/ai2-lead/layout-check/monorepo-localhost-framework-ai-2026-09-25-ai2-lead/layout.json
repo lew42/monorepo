@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-25/ai2-lead/",
+ "widths": {
+  "1280": {
+   "empty": 0.477,
+   "widest_text": 678,
+   "widest_text_sample": "You talk; AI 2 turns what you said into ",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 0.375
+  },
+  "1920": {
+   "empty": 0.361,
+   "widest_text": 800,
+   "widest_text_sample": "You talk; AI 2 turns what you said into ",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.474,
+   "widest_text": 900,
+   "widest_text_sample": "You talk; AI 2 turns what you said into ",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.611,
+   "widest_text": 900,
+   "widest_text_sample": "You talk; AI 2 turns what you said into ",
+   "overflow_x": false,
+   "items": 32,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

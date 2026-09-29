@@ -1,0 +1,687 @@
+[
+ {
+  "task": "importance",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/importance/",
+  "title": "Build an \"importance\" system for questions, options and caveats: a typed graph (node/edge/judgment) stored as committed JSONL, a load/append",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-page-cms",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/mastermind-page-cms/",
+  "title": "be a mastermind, fix this shit. i want a full CMS-like page creation experience, what is this little malfunctional tree? i shouldn't need UP",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Owner verdict on /imagine/paging/make/: barely works, buttons seem to do nothing, no idea what a made page looks like, up/down buttons instead of drag and drop, 8em-ish spacing at 3440."
+  ],
+  "left_open": [
+   "Three decisions left for the owner: the gap token (3.07x), the pad token, the 40em measure at 3440.",
+   "paging-spacing-3440 follow-up landed: the four stale 3em quotes fixed; imagine/design/size/size.css live copy DELETED (the lab now reads the standard via var(), so it can never disagree again); landing.md, size/page.js and spacing/decision.md say 2.5em with the date.",
+   "Agent total 288k tokens for the follow-up.",
+   "Fixer A follow-up landed: dead set_default() deleted from build/words.js, three comments retuned, grep across public/ (excluding ai logs) empty, Make and Build load clean."
+  ]
+ },
+ {
+  "task": "page-cms",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/page-cms/",
+  "title": "Make /imagine/paging/make/ ONE CMS-like page creation screen: three panes (page tree, live page, settings), drag-and-drop sorting through ex",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "LEFT OPEN, with reasons."
+  ]
+ },
+ {
+  "task": "page-data-children-proposal",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/page-data-children-proposal/",
+  "title": "PROPOSAL doc for the two core seams Make and cms/json both hand-built: children as a data source, and Page.redraw(). One new doc page at cor",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Real cost: two new names on Page (child_source, source_children()), which is what the owner is being asked to approve."
+  ]
+ },
+ {
+  "task": "paging-spacing-3440",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/paging-spacing-3440/",
+  "title": "when the imagine/paging/make/ page gets 3440, the (owl-based?) spacing (gap?) becomes huge (%?). the text is restrained to --measure? so... ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "FOLLOW-UP, fence widened to public/imagine/design/: the four stale 3em quotes are fixed."
+  ]
+ },
+ {
+  "task": "self-evident-critique",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-critique/",
+  "title": "Can a newcomer misunderstand Make or Importance? Read each screen cold, press every control once at 1280/1920/3440 and once at 400, rank the",
+  "status": "landed"
+ },
+ {
+  "task": "self-evident-critique-2",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-critique-2/",
+  "title": "Round two: what still misleads a newcomer on Make and Importance after the fixes. Re-run round one's ten gestures cold at 1280 and 3440 with",
+  "status": "landed"
+ },
+ {
+  "task": "self-evident-critique-3",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-critique-3/",
+  "title": "Round three: does anything above minor remain on Make and Importance? Cold read both screens at 1280 and 400, re-run round two's eleven find",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "(b) The faint ruled strips to the right of the last column at 1280 and 3440 are the dev server's own .dev-bar, parked at x=1280 / off-screen by design - the ui-test skill's own warning, and not part of the page."
+  ]
+ },
+ {
+  "task": "self-evident-fixes",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-fixes/",
+  "title": "self-evident-fixes",
+  "status": "unlanded"
+ },
+ {
+  "task": "self-evident-fixes-2",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-fixes-2/",
+  "title": "self-evident-fixes-2",
+  "status": "unlanded"
+ },
+ {
+  "task": "self-evident-minors",
+  "date": "2026-09-13",
+  "link": "/framework/ai/2026-09-13/self-evident-minors/",
+  "title": "self-evident-minors - the seven minor findings round three left: fix 1-7 in order, smallest change each, re-shoot the critic's gesture after",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "One real catch: verifying finding 1 on the cold-loaded (owner's) picked page wrote nest: \"blog-post\" straight to made/notes/page.json - nest_to() on a made page writes through with no Save button.",
+   "Lesson for the next agent: a nest-chip click on a MADE page is a write, not a preview - probe it on a zzz-probe page, never on the owner's own picked row."
+  ]
+ },
+ {
+  "task": "importance-reuse",
+  "date": "2026-09-14",
+  "link": "/framework/ai/2026-09-14/importance-reuse/",
+  "title": "Close the first half of the owner's item 4 (overlay / trace): seed a second topic with a bot so the Carfax caveat is reused across two conte",
+  "status": "landed"
+ },
+ {
+  "task": "ai-log-asks",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/ai-log-asks/",
+  "title": "the ai log page for this session should show everything i've asked for (summarized, but linking to the original prompt from the session), li",
+  "status": "landed"
+ },
+ {
+  "task": "ask-element",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/ask-element/",
+  "title": "I believe there's this ask widget, like ext/ask that is an AI powered chat system and it hasn't been used a ton, it was put into the dev bar",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "- A follow-up question in the same panel resends the whole preamble rather than leaning on the resumed transcript."
+  ]
+ },
+ {
+  "task": "asks-critic",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/asks-critic/",
+  "title": "Press every control on the Asks tab and the Session tab of /framework/ai/2026-09-17/mastermind-layout-browser/ headless at 400/1280/1920/344",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "minion-skill and page-cms, which carry no asks, still open on Report.",
+   "FIXED 2 - level 2 is now the quote, then per serving task: state, the outcome's headline, its deliverable pills, and up to six decision lines; the full landing report and the remaining log lines are one fold below ('the full report - 4 more log lines')."
+  ]
+ },
+ {
+  "task": "browser-critic",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/browser-critic/",
+  "title": "Press every control on /layouts/browse/ headless at 400/1280/1920/3440 against the owner's sentences, judge the page as a stranger would, fi",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "FINDING 5 - the five layouts the owner already approved contradict themselves on screen: a badge reads 'approved by the owner, 2026-09-01' and 57px above it the verdict line reads 'No verdict yet.' page.js:verdict_line()",
+   "On the five owner-approved items the box reads 'No verdict cast here yet.' then 'It was approved by the owner, 2026-09-01, before this page existed.' - one statement instead of two contradicting ones.",
+   "Closing it means either folding two of the three widths away at 400 or putting the verdict above the picture, and which of those an item page is for is the owner's call, not a critic's."
+  ],
+  "left_open": [
+   "That was the one finding left open from this task's first pass.",
+   "LEFT OPEN, with the measurement - on a phone the two buttons sit 1,043px down an item page, past three stacked pictures.",
+   "LEFT OPEN, with the measurement - a single borrowed picture fills 614px of a 1766px row at 1920, leaving 1,150px empty beside it."
+  ]
+ },
+ {
+  "task": "calls-core",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/calls-core/",
+  "title": "Two calls the mastermind made, built into core: (1) elastic columns freeze at the ceiling - Page.css line ~300 flex fallback becomes 0 0 cla",
+  "status": "landed"
+ },
+ {
+  "task": "calls-styles",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/calls-styles/",
+  "title": "for those things that you said are my calls, the spacing ladder, the column count, just make a decision and document the alternative, or mak",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Both of the owner's parked calls made, not left waiting."
+  ],
+  "left_open": [
+   "Left: nothing deliberately deferred - both calls the owner asked for are made and documented."
+  ]
+ },
+ {
+  "task": "cleanup-1",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/cleanup-1/",
+  "title": "Five small loose ends tonight's landings left outside their fences: cms d1 screenshot, Tree branch-row link, AITask ai.css.md doc fix, layou",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Two items (2 and 3) turned out already partly resolved by concurrent work; both were verified against the live site rather than taken on faith, and the real remaining gap in each was found and fixed instead."
+  ]
+ },
+ {
+  "task": "color-lighten-darken",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/color-lighten-darken/",
+  "title": "Lighten/darken tokens, the accent's contrast, and the box-and-padding rule: add --lighten-1/2/3 and --darken-1/2/3 to the theme layer (reuse",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The owner ALREADY has lighten/darken: framework.css ':root' carries --shade-aNN (black at an alpha) and --paper-aNN (white at an alpha), four rungs that double 04/08/16/32, plus --fill-aNN which picks between them by color-scheme."
+  ]
+ },
+ {
+  "task": "core-data-children",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/core-data-children/",
+  "title": "Apply Seam 1 from core/Page/doc/data-children.md: `children` may be a function that returns a promise. Core gets declare(list) + child_sourc",
+  "status": "landed"
+ },
+ {
+  "task": "core-seam-docs",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/core-seam-docs/",
+  "title": "Two small fixes left behind by the core-data-children landing: 1) rewrite the now-false sentences in /imagine/paging/doc/persistence.md desc",
+  "status": "landed"
+ },
+ {
+  "task": "decisions-system",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/decisions-system/",
+  "title": "Every decision as a claim tree with approve or improve, produced by the skills, closing the loop back to the rule: the decision verb in Task",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Every decision is now a claim tree the owner can Approve or Improve, and an Improve goes back to the rule that caused it.",
+   "A verdict is the owner's press, its own line, never an edit.",
+   "The two verdicts already in this log were pressed by the build as its smoke test, not by the owner; the Improve says so in its own note, and the newest press always wins."
+  ],
+  "left_open": [
+   "Left for the owner."
+  ]
+ },
+ {
+  "task": "design-system",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/design-system/",
+  "title": "why do the ai cards use custom padding? i thought we're trying to build a minimal design system. if we need a new tool in the toolbox, we ca",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Named in framework.css and on the page; changing a shipped clamp is not additive and is the owner call."
+  ]
+ },
+ {
+  "task": "editor-select",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/editor-select/",
+  "title": "One selection scheme over Make's middle, one right sidebar that shows only the selected thing, Panel's floating bar gone, Make's tree on ux/",
+  "status": "landed"
+ },
+ {
+  "task": "even-columns",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/even-columns/",
+  "title": "N even columns computed from the room, fixed navigation, and pages that slide. The owner: 'I want to focus on N even columns. I think it was",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "LEFT OPEN, deliberately: (1) floor vs round - floor never goes below the recommendation but leaves up to recommended-1 px of slack per column (1055 against 828 at 3440, ~227px of each column is padding past the prose measure); round fills tighter and can go under."
+  ]
+ },
+ {
+  "task": "imagine-integration",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/imagine-integration/",
+  "title": "Ask a minion to look into how to integrate all our imagine things with the core framework. Estimate the complexity, recommend renaming or re",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Everything else is in the table; the six live tools are L and the owner decides."
+  ],
+  "left_open": [
+   "Left for the owner."
+  ]
+ },
+ {
+  "task": "imagine-rail",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/imagine-rail/",
+  "title": "Sort the /imagine/ rail into four groups (tools, worlds, shapes, studies) per the proposal's Move 1 -- one file, zero urls move, zero links ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Moves 2 and 3 from the same proposal (folding the design studies into the design system; moving the shape labs into /layouts/) are size M and explicitly the owner's call, untouched here."
+  ]
+ },
+ {
+  "task": "layout-browser",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/layout-browser/",
+  "title": "Build /layouts/browse/ - every layout on the site in one place, in three tiers (Global, Sections, Components), each item a picture card with",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-layout-browser",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/mastermind-layout-browser/",
+  "title": "Okay, mastermind, I'm about to go to the gym. I want you to work on some things while I'm gone. [...] Get to work. Don't stop. I expect you ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verified: /layouts/page.js children + one md() line, readme Use line, items.json 99/45/24/30, verdicts.jsonl empty (owner is the only writer).",
+   "The core change (one declaration in Page.css) is NOT applied: which of three tunings is the owner's call, and the lab shows the difference; my recommendation for the report is the 34cqi tuning (still AND fills 3440).",
+   "The browser is done for this run: 99 items, every control pressed at four widths, verdicts await the owner.",
+   "Awaiting the owner: verdicts in the browser; which nav tuning; whether the Reader should centre or span at 3440; the core seam is one revert away."
+  ],
+  "left_open": [
+   "Left open, it became the newest UNLANDED mastermind run, which is what say.mjs state reads: a fresh session would have been shown a four-day-old handover as current state.",
+   "Dispatched core-data-children (port 8095) with the atomic-edit rule; the phone-verdict placement goes back to the critic as a follow-up: verdict pair above the pictures under 40rem.",
+   "Harvest: browser-critic follow-up landed (338k tokens total, 51 min).",
+   "Applied the practice builder's five skill notes: layout (a region that can SPEND the leftover), finish-task (the shot verb takes temp-root files only), css (a container query on its own declaring box never fires; headings trickle from the theme at (0,2,0) like buttons)."
+  ]
+ },
+ {
+  "task": "minion-skill",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/minion-skill/",
+  "title": "I don't know if you have a minion skill maybe when you're spawning minions you should have a rough skill that just points them at the specif",
+  "status": "landed"
+ },
+ {
+  "task": "nav-stability",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/nav-stability/",
+  "title": "Measure how much the navigation jumps when a column opens, then show a row that never jumps. Four columns pages at 1280/1920/3440, a lab at ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Which one core takes is the owner's call, written up in proposal.md and doc/decisions.md rather than decided here."
+  ],
+  "left_open": [
+   "Left for the owner, with the reason."
+  ]
+ },
+ {
+  "task": "pages-in-d1",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/pages-in-d1/",
+  "title": "The owner's words (2026-09-17, 22:40): Can we store pages in SQLite? On cloudflares D1? What is required to get that working? Look for past ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open — the CMS wall draws a broken image for the new card (no screenshot registered for it; costs nothing, throws nothing) — fixing it needs more than this task's one-children:-word-plus-one-line fence in cms/page.js allows.",
+   "Parent /imagine/cms/ links to /imagine/cms/d1/ correctly; its previews() wall draws a broken image for the new card (no SHOTS entry, no console error) -- left open, named in decisions.md, because fixing it needs more than the one children: word + one line this task's fence allows in cms/page.js.",
+   "Wrote public/imagine/cms/d1/doc/decisions.md: the table, the route (including why PUT is safe re: likes), why no page id for likes, the proof numbers, what was left open and why, and the owner's deploy checklist verbatim from the scout report as the closing three lines."
+  ]
+ },
+ {
+  "task": "paging-fix",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/paging-fix/",
+  "title": "Press every demo under /imagine/paging/ except make/ headless at 400/1280/1920/3440, fix each finding inside the fence, mark superseded prem",
+  "status": "landed"
+ },
+ {
+  "task": "polish-critic",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/polish-critic/",
+  "title": "Press the color study (/imagine/design/color/), the Ask demo (/framework/ext/Ask/) and the navigation lab (/imagine/design/navigation/) head",
+  "status": "landed"
+ },
+ {
+  "task": "practice-critic",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/practice-critic/",
+  "title": "Judge the three practice layouts at /layouts/practice/ the way the owner will: measure them headless at 400/1000/1280/1440/1920/3440 against",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The Reader's margin used to take the whole leftover at 3440 and lay four blocks across it — 905px and 1,483px of dead ground under two of them.",
+   "At 3440 the margin takes the whole leftover (2,213px) and lays four blocks across it in ONE grid row, so the row is as tall as the tallest block: measured tails of 905px and 1,483px under two of the four, and the margin region as a whole ends 726px above the article's bottom.",
+   "The leftover was spent on WIDTH, and a margin has no more content when it is wider - it just has more empty.",
+   "The leftover goes to two equal page gutters - 792px each side at 3440 - which a reader reads as a margin."
+  ]
+ },
+ {
+  "task": "practice-layouts",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/practice-layouts/",
+  "title": "Three big, polished, responsive layouts that span 3440, with their small forms, every decision one click down. A new /layouts/practice/ inde",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Nobody has approved these — that is the owner's call by name."
+  ],
+  "left_open": [
+   "- [Reader](/layouts/practice/reader/) — the layout standard's own article at the measure, with the wide screen's leftover spent on a sticky table of contents, four real wire drawings and five real caveats.",
+   "Catalog = approved 1 (the page grid: gutters, measure, wide takes the leftover, bleed is paint) with approved 4 inside its middle band.",
+   "Fixed by making the middle track the measure itself and the margin minmax(17rem, 1fr), and by laying the margin out as a four-block wall (1 / 1 / 2 / 4 columns) so the leftover is spent rather than left.",
+   "The lesson is the brief's own sentence: a third region either earns the leftover or it is just where the room ran out."
+  ]
+ },
+ {
+  "task": "ranked-lists",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/ranked-lists/",
+  "title": "Your report page should read: 'Cloudflare API setup - 5 mins', or whatever.. if you need something from me like that, and it's quick and eas",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Owner items lead the board, and every list here can be dragged into the order that matters.",
+   "{\"id\":\"owner-items-first\",\"at\":\"2026-09-18T00:11:35-05:00\",\"topic\":\"Owner items\",\"summary\":\"A report page says what it needs from you and how long it will take, so the quick ones get done first.\",\"quote\":\"Your report page should read: \\\"Cloudflare API setup - 5 mins\\\", or whatever.."
+  ]
+ },
+ {
+  "task": "shell-lab",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/shell-lab/",
+  "title": "A persistent, resizable left sidebar, a viewport beside it, and a tree of homepage designs derived one change at a time — /layouts/shell/",
+  "status": "landed"
+ },
+ {
+  "task": "spacing-census",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/spacing-census/",
+  "title": "Census every spacing value (padding/gap/margin) the site's CSS declares, classify each as token/token-x-N/control-em/raw/zero, write census.",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open: a follow-up census of .style(\"--gap\", value) calls that override the token itself for a subtree — a different question from a gap:/padding: declaration, noted in census.md's methodology section."
+  ]
+ },
+ {
+  "task": "sqlite-scout",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/sqlite-scout/",
+  "title": "Look into whether we got SQL working. For this task, your message should read: SQLite (not?) working. One item, I click on it if I'm interes",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "npx wrangler d1 list needs a login — the one owner item, ~5 min.",
+   "This IS the owner item: create a Cloudflare API token (or run wrangler login interactively) before any real D1 database can be listed or created."
+  ]
+ },
+ {
+  "task": "tree-component",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/tree-component/",
+  "title": "Search the framework for a tree UI component. We want a tree UI component to be the basis of the page interaction drag and drop. So compare ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Inside a Doc's detail column the stage is 556px wide and the rail measured 168px, so a row carrying a grip, a caret, an icon, a star, a + and a x had about 30px left for its label - every row read 'S...'."
+  ]
+ },
+ {
+  "task": "type-color-study",
+  "date": "2026-09-17",
+  "link": "/framework/ai/2026-09-17/type-color-study/",
+  "title": "Build two pages: /imagine/design/color/sections/ (where two grounds meet -- every pairing stacked, every nesting, each cell labelled with th",
+  "status": "landed"
+ },
+ {
+  "task": "approve-any-page",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/approve-any-page/",
+  "title": "Approve / Improve on any page: ext/Ask's floating ? gains Approve/Improve keyed by the page's own url in the shared verdicts.jsonl; the appr",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "The test verdict was then deleted from verdicts.jsonl (the owner is the only real writer) and the private server killed by its exact PID.",
+   "Reuses /layouts/browse/verdicts.js's own Verdicts singleton and file (public/layouts/verdicts.jsonl) rather than a second store — one owner-approved library, not one per realm (the alternative, and why it loses, is in doc/decisions.md).",
+   "Cleaned up the test write from public/layouts/verdicts.jsonl (the owner is the only writer) — deleted the one line this proof appended, re-verified the file no longer carries it, and confirmed the mark/library both go back to unjudged."
+  ],
+  "left_open": [
+   "Updated verdict.js's own doc comment (it had a forward-looking TODO for exactly this) to say so instead of describing it as pending."
+  ]
+ },
+ {
+  "task": "browse-on-browse",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/browse-on-browse/",
+  "title": "Merge 5 of the overlap study: rebuild /layouts/browse/'s hand-rolled 644-line card wall on core's this.browse(), keeping everything the brow",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Pre-existing - the same 404 would fire the exact same way if the owner approved one of those 5 from the page's OWN ext/Ask corner control, unrelated to this task's changes.",
+   "verdicts.jsonl copied then restored to its exact prior state (absent - it 404'd before and after; the owner is the only writer)."
+  ]
+ },
+ {
+  "task": "cleanup-2",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/cleanup-2/",
+  "title": "Three items: (1) approved library's thumbnails 404 for approved-* items because library_card() assumes the wrong picture field, (2) merge Pa",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open, on purpose: none of the three items had anything left — each was small enough to finish and verify within its own fence."
+  ]
+ },
+ {
+  "task": "conclusions-first",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/conclusions-first/",
+  "title": "an ask's conclusion is the card's title, what-was-asked moves one click down, minutes shows beside status when digging in takes longer, the ",
+  "status": "landed"
+ },
+ {
+  "task": "dead-nav",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/dead-nav/",
+  "title": "Three findings from today's studies: (1) ext/toc invisible on all 23 call sites - fix or declare dead, (2) app.js built-in top nav hidden on",
+  "status": "landed"
+ },
+ {
+  "task": "edit-mode",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/edit-mode/",
+  "title": "one switch for edit mode vs production mode: dev-rail toggle, every editor control reads it instead of its own socket check, prove productio",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left deliberately: imagine/cms/json, imagine/importance and imagine/design/lists carry the identical writable() = !Socket.singleton().disabled pattern but sit outside the rg this brief scoped the fence to — named in doc/decisions.md as the same conversion, not yet done."
+  ]
+ },
+ {
+  "task": "imagine-move-2",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/imagine-move-2/",
+  "title": "Move 2 of ai/2026-09-17/imagine-integration/proposal.md: the 13 /imagine/design/ studies join the design system - 9 (+ a 10th, lists/, that ",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Final rg scan confirms zero live old-url references remain anywhere outside framework/ai/: the only 8 remaining imagine/design/<name>/ mentions are all explicitly dated moved-from citations in prose, none inside working link syntax."
+  ]
+ },
+ {
+  "task": "imagine-move-3",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/imagine-move-3/",
+  "title": "Move 3 of ai/2026-09-17/imagine-integration/proposal.md: the seven shape labs under /imagine/ join /layouts/ (imagine/layouts first, deleted",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "- The 25 remaining imagine/layouts mentions across the repo are intentional history (each one says \"deleted\"/\"gone\"/\"retired\", dated) — not live links, not scrubbed."
+  ]
+ },
+ {
+  "task": "link-tracking",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/link-tracking/",
+  "title": "the path would break if we drag and drop a page from one place to another. Maybe we need an import tracking system so that for any page we t",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Needs the owner: restart the dev server."
+  ],
+  "left_open": [
+   "BUG FOUND AND FIXED (pre-existing, not mine): real.js's removed() left a stray ' ,' line when an insert-then-remove round trip (add a child, then undo, on a page whose title: sits mid-line) happened - rest.trim() read a lone leftover comma as real content and kept the line."
+  ]
+ },
+ {
+  "task": "list-shapes",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/list-shapes/",
+  "title": "list-shapes: six single-column list shapes (rows, title bar, accordion, drill-down, inbox rail, launcher) over the team data, drag-to-reassi",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Accordion drag onto Systems header worked (2->1/2->3) though a stray .lists-drop-over outline was left on Research header after the drop -- cosmetic only, left open (over() clears the class but the accordion rebuild races the browsers own hover-state repaint; not chased further).",
+   "No fix needed; not left open, resolved."
+  ]
+ },
+ {
+  "task": "memery-scout",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/memery-scout/",
+  "title": "if each topic page were an actual team, then users could join specific meme topic pages. Look into what exists of the memery/topic-community",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "owner's 2026-09-04 brief (framework/ai/2026-09-04/mastermind-platform/requirements.md) says it outright: the original working concept was called a meme, topic is the better term."
+  ]
+ },
+ {
+  "task": "mobile-lists",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/mobile-lists/",
+  "title": "mobile-lists - nesting is padding: the same content as cards-in-cards and as a list, measured at 400",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The decisive pair agrees: at 400, the page's own readout for (a) says 295px left for text, an independent headless measurement of the same DOM element says 294.78px — both round to 295."
+  ]
+ },
+ {
+  "task": "overlap-study",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/overlap-study/",
+  "title": "study the overlap between the framework code and the imagine stuff. If there's similar work across lots of areas, identify opportunities to ",
+  "status": "landed"
+ },
+ {
+  "task": "page-json-core",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/page-json-core/",
+  "title": "a page declares whether it has data (data: true / data: {...}); page.json is both the page's data and its directory; a directory with only a",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "- Make's children() seam — decision 5's honest limit above; moving the nine urls is the owner's call, not mine."
+  ]
+ },
+ {
+  "task": "paging-ladder",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/paging-ladder/",
+  "title": "paging.css carries 131 of the site's 1,894 hand-typed spacing numbers, 1.7x the next-worst file. Classify every one against the framework/st",
+  "status": "landed"
+ },
+ {
+  "task": "real-page-move",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/real-page-move/",
+  "title": "Real pages move on disk when dragged in Make: an rpc:move beside rpc:rm, Make opened with ?real=<url> showing that real subtree as a second ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Needs the owner: restart the dev server."
+  ]
+ },
+ {
+  "task": "related-sidebar",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/related-sidebar/",
+  "title": "a right sidebar for related topics on a page: related: on Page, resolved through a url loader so a renamed target updates itself; two first ",
+  "status": "landed"
+ },
+ {
+  "task": "reply-in-place",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/reply-in-place/",
+  "title": "reply-in-place - a reply and a microphone on every item of the hierarchy; the reply reaches Claude with that item as its context, and the an",
+  "status": "landed"
+ },
+ {
+  "task": "report-order",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/report-order/",
+  "title": "make the report this whole visual navigation — a hierarchy of requests and tasks and projects and links and previews. Order it and rank it i",
+  "status": "landed"
+ },
+ {
+  "task": "sidebar-filter",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/sidebar-filter/",
+  "title": "Two merges from the overlap study: wire ux/Filter into core/Sidebar's tree (typing narrows rows, keeping ancestors visible; clear restores f",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Headless proof on the module's own \"five levels\" demo: 12 rows visible, narrowed to 2 on typing syn (JS the ancestor, Syntax the match), back to 12 on Escape with JS still open; zero console errors at 400/1280/3440 across six pages.",
+   "headless proof, PORT=8133, core/Sidebar's own 'five levels' demo (root: sample()): 9 top-level rows; opened JS by hand -> 12 visible rows; typed 'syn' -> 2 visible (JS the ancestor, Syntax the match; HTML confirmed hidden, no match no descendant match); Escape -> 12 restored, JS still open."
+  ]
+ },
+ {
+  "task": "site-sidebar-tree",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/site-sidebar-tree/",
+  "title": "The site sidebar renders the tree: persistent, resizable, deep, the desktop shell (core/Sidebar consumes ux/Tree; resize + remember + reset;",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "Left open, with reasons:"
+  ]
+ },
+ {
+  "task": "site-study",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/site-study/",
+  "title": "assembler role: validate eight Haiku scout files under scouts/, reconcile ext-a/ext-b against the real public/framework/ext/*/page.js list, ",
+  "status": "landed"
+ },
+ {
+  "task": "spatial-trees",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/spatial-trees/",
+  "title": "spatial layouts, kind of like flow charts, automatic layouts where you can add items -- Whimsical does a good job. First, a tree generator -",
+  "status": "landed"
+ },
+ {
+  "task": "stage-cap",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/stage-cap/",
+  "title": "One small fix from the site study's stage verdict: cap the per-card max in ext/catalog/browse.css's `.browse-band > .page-previews` from a b",
+  "status": "landed"
+ },
+ {
+  "task": "steps-demo",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/steps-demo/",
+  "title": "Two-column demo-plus-steps layout: revive the stepwise demo system the owner remembers, ship demo.steps() in ext/demo, apply it to ux/Tree a",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "A follow-up should add one line there so a future page does not have to remember the import itself.",
+   "This is a fence-driven deviation from the brief literal wording, resolved rather than parked - codecode skill 8 (no black magic / minimal), css skill 4 (no inline styles for static decisions).",
+   "decision: demo.steps() outer wrapper is always .ac(\"wide\") (page grid leftover track), reusing the .rail word for the steps column so the narrow-width collapse (order:-1, steps first) is zero new CSS - layout skill 1/3, styles/doc/layout-system.md."
+  ]
+ },
+ {
+  "task": "tree-fixes",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/tree-fixes/",
+  "title": "Four small ux/Tree and core/Sidebar-caller fixes left by today's site-sidebar-tree and real-page-move landings: leaf awareness in Tree.node_",
+  "status": "landed-with-leftovers",
+  "left_open": [
+   "The remaining 7 are the in-fence candidates."
+  ]
+ },
+ {
+  "task": "workflow-wall",
+  "date": "2026-09-18",
+  "link": "/framework/ai/2026-09-18/workflow-wall/",
+  "title": "do we have user interfaces built out for that yet? And how would that look? I know we have demo apps where we can see the URL changing and c",
+  "status": "landed"
+ },
+ {
+  "skipped": [
+   "2026-09-18/worktree-test"
+  ]
+ }
+]
