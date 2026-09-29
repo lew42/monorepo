@@ -73,18 +73,33 @@ So starting a process costs under a second, and a resume costs the same as a fre
 an idle assistant alive saves that second and costs about **230 MB** each: three idle assistants
 held 694 MB, and 0 MB once the 5-minute stop had run.
 
-## Why a fresh assistant is small
+## Why a fresh assistant is small — and why the number moved (updated 2026-09-29)
 
 A fresh assistant used to begin at about **60k tokens** before it said a word. Most of that was
 not ours: the account's claude.ai connectors (Figma, Google Drive, Claude Docs, about 40k tokens of
 tool descriptions) and the auto-memory file load into every session, even one started with no
 settings files. An assistant now starts with those turned off, with every Servex tool it does not
-use left out of its tool list, and with only `Read`, `Edit`, `Write` and `Bash` built in. It begins
-at about **11k** (Sonnet). The root's `master-assistant` gets the same treatment in Global.js and has no built-in tools at all: it began at 52k and now begins at about **4k**.
+use left out of its tool list, and with only `Read`, `Edit`, `Write` and `Bash` built in. The
+root's `master-assistant` gets the same treatment in Global.js and has no built-in tools at all:
+it began at 52k and now begins at about **4k** — that number has stayed put.
 
-`Bash` is about 5k of that. It stays because a safe quick edit has to commit, smoke-test and merge
-inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merge.mjs`,
-`return_worktree`). `SERVEX_ASSISTANT_BASH=0` removes it, and quick edits with it, for about 6k.
+**A plain page's assistant has not.** It measured about **11k** (Sonnet) on 2026-09-28
+(`pairs/proof.txt`). Measured again on 2026-09-29 (`fix2/spike.txt`), with no change to this
+module's own code, it is **14–16k** — and `SERVEX_ASSISTANT_BASH=0` (which used to bring it to
+about 6k, see below) now only reaches **10–11k**, no longer reliably under 10k either
+(`fix2/proof.md` has the numbers). The fix2 task tested this directly: it reverted every file in
+its own fence, and even `Layers.js` and the deleted `card-assistant.md`, all the way back to the
+exact code that measured 11k on 2026-09-28, and re-ran the same proof on the same day (2026-09-29)
+— the number came back **13–15k anyway**. So the jump is not this module's own tool list, its
+system text, or anything the two "fix" rounds changed: it is the fixed cost of a Claude Code
+session that has `Bash` on, which grew by about 3–5k tokens somewhere else — most likely Claude
+Code's own per-session overhead (more installed skills, more registered tools) — between those two
+dates, on this machine, independent of this file. Nobody has chased that down yet.
+
+`Bash` is what is left to weigh. It stays because a safe quick edit has to commit, smoke-test and
+merge inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merge.mjs`,
+`return_worktree`). `SERVEX_ASSISTANT_BASH=0` removes it, and quick edits with it, in exchange for
+the difference above — real, but no longer a guaranteed trip under 10k on its own.
 
 ## Watch out
 
@@ -103,8 +118,17 @@ inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merg
 ## Known limits
 
 These are known and left as they are for now (the fresh-eyes review, findings 8 to 10; the second
-review's findings 10 and 11 add two more, below).
+review's findings 6, 7, 10 and 11 add more, below).
 
+- **A pair is started by the first prompt, not spawned by a parent mastermind.** The owner asked
+  for a child pair to be spawned BY its parent's mastermind; instead, the first prompt on any page
+  mints the pair itself, with its own assistant as the live parent (`Layers.js`'s `record()`) —
+  the tree link exists only as a `parent` field written into `layers.json` afterward, not as an
+  actual spawn relationship.
+- **The root reads a second text.** Deliverable 2 said the root assistant loads the same one skill
+  file every page assistant does; instead it reads its own `master-assistant.md`
+  (`Global.js`'s `system("master-assistant.md")`). Defensible — the root really is a different
+  agent, on a different tier — but it is a second file to keep true, not the promised one.
 - **A plain page's chat lives inside the site.** It is `public<page>ai/chat.jsonl`, so every page
   that is spoken on gains an `ai/` folder in the live-reloaded tree, and `/framework/`'s lands in
   the task-log directory `public/framework/ai/`. A path under Servex's home would avoid both.

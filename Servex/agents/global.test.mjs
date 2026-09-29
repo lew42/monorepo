@@ -329,5 +329,16 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	t(JSON.parse(fs.readFileSync(path.join(HOME, "global.json"), "utf8")).mastermind.session_id === "s-mm", "admitted: its session id is remembered");
 }
 
+{
+	/* fresh-eyes review (second round), finding 5: master-assistant's own roles.js row must
+	 * stay pinned to its pre-recursive-pairs posture, so a future re-alias into page-assistant's
+	 * fast/bypass row (as briefly happened) is caught by a test, not just re-read by eye. */
+	const { defaults, canonical } = await import("./roles.js");
+	t(canonical("master-assistant") === "master-assistant", "master-assistant resolves to its own row, not an alias of page-assistant");
+	const posture = defaults("master-assistant");
+	t(posture.model === "claude-opus-5-5" && posture.effort === "high" && posture.permission_mode === "plan",
+		`spawn_agent({role: "master-assistant"}) keeps its old posture: architect/high/plan (got ${JSON.stringify(posture)})`);
+}
+
 fs.rmSync(HOME, { recursive: true, force: true });
 console.log(`global: ${n} checks passed`);
