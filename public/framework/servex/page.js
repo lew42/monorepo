@@ -13,9 +13,9 @@ export default new Doc({
 	icon: "hub",
 
 	notes: "roles",
-	children: "fs",
-
-	children: "lifecycle",
+	// One key: two `children:` keys merged in side by side (fs, then lifecycle), and
+	// the second silently replaced the first, so fs/ fell back to the plain folder view.
+	children: "fs lifecycle",
 
 	content(){
 		md("**Servex is the one process on this machine that stays up** (port 80). It runs the Claude agents, starts and watches the dev servers, and owns every log file. It is not the [dev server](/framework/dev/) — that only reloads this site's pages.");
