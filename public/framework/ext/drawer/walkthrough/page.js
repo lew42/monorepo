@@ -22,6 +22,14 @@ const STEPS = [
 		say: "With something selected, \"Ask about this\" drops it into the AI tab's input as a chip — it rides along as context for whatever you ask next." },
 	{ title: "Dictation, Settings, Admin", pic: "tab-dictation-1280.png", open: "/framework/",
 		say: "The rest of the drawer's tabs: Dictation for voice input, Settings and Admin for the rest." },
+	{ title: "On a phone: ☰ is the page's nav", pic: "phone-nav-400.png", open: "/framework/",
+		say: "On a phone, the ☰ at the top right opens this page's own navigation again — the home links on the home page, the framework sidebar under /framework/." },
+	{ title: "On a phone: the bottom rail", pic: "phone-rail-400.png", open: "/framework/",
+		say: "A small bar at the bottom of every page: ✦ AI to talk, ⋯ More for the drawer's tabs." },
+	{ title: "✦ AI: say it, get a card", pic: "phone-sheet-cards-400.png", open: "/framework/",
+		say: "Tap ✦ and a sheet slides up and listens. Each sentence you finish becomes its own small prompt card." },
+	{ title: "When the mic can't start, it says why", pic: "phone-mic-error-400.png", open: "/framework/ux/Dictate/doc/https-lan/",
+		say: "If the mic can't turn on — plain http on the Wi-Fi, permission denied, no mic, Whisper not answering — the sheet says so and how to fix it. The start sound only plays once the mic is really on." },
 ];
 
 const from_hash = () => Math.max(0, Math.min(STEPS.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
@@ -29,7 +37,7 @@ const from_hash = () => Math.max(0, Math.min(STEPS.length - 1, (parseInt(locatio
 export default new Page({
 	meta: import.meta,
 	title: "The drawer, step by step",
-	description: "Seven real screenshots: the ☰, the AI tab, Sessions, a reload that keeps its tab, selecting content, \"Ask about this\", and the rest of the tabs — click Next through all of it.",
+	description: "Eleven real screenshots: the ☰, the AI tab, Sessions, a reload that keeps its tab, selecting content, \"Ask about this\", and the rest of the tabs on desktop — then on a phone, the ☰ navigation, the bottom rail, the ✦ AI sheet, and what happens when the mic can't start.",
 	icon: "slideshow",
 
 	content(){
