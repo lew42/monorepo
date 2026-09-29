@@ -43,6 +43,21 @@
 		display: none;
 	}
 
+	/* NO STRAY "FOLDER" LABEL ANYWHERE IN AI 2 (brief D, brief E — the owner, 2026-09-29: "the
+	   folder icon at the top above the AI2 page just looks way out of place and takes up a
+	   bunch of space"). Every page with a real address gets one free, straight from core
+	   (`Page.class.js`'s own "any path slash fs" link) — right, for a plain content page; wrong
+	   here, where it sits above the AI 2 title, above the Overview's grid, and above every card
+	   (including the Live card), doing nothing anyone asked for. Every one of this module's own
+	   pages carries "ai2" somewhere in its class list (the root shell, the overview, a card, a
+	   card's own tab pages), so one attribute selector covers all of them at once instead of a
+	   separate rule per page shape; every other page on the site keeps its link.
+	   ⚠ `!important`: `Page.class.js` writes this link's `display: inline-flex` as an INLINE
+	   style, which beats a plain rule at any specificity or layer order. */
+	.page[class*="ai2"] > .page-fs-link {
+		display: none !important;
+	}
+
 	/* `--ai2-rail` is the grip's px override; `em` is the default because a rail
 	   is sized by its own text (331px at 1280).
 	   ⚠ `grid-template-rows: minmax(0, 1fr)` — WITHOUT IT NOTHING SCROLLS. A
@@ -349,6 +364,12 @@
 	/* Beside "+ New card" — a checkbox, not a button, so its own state reads at
 	   a glance without a click (item 10). */
 	.ai2-auto {
+		gap: 0.3em;
+	}
+
+	/* THE "NEEDS REVIEW" FILTER (brief E) — a checkbox beside "+ New card", same shape as
+	   the auto-transcribe one right above it, so the toolbar reads as one row of controls. */
+	.ai2-review {
 		gap: 0.3em;
 	}
 
@@ -815,6 +836,27 @@
 		color: var(--error);
 	}
 
+	/* "REVIEWED ✓" (brief E, §5) — an OBVIOUS control, on purpose (contract-v2: "an obvious
+	   'Reviewed ✓' control that clears the flag"), so it wears the site's own filled-button
+	   look rather than sitting quiet like the flag glyph beside it. Pushed to the far end of
+	   the head row so it never crowds the title. */
+	.ai2-reviewed {
+		flex: none;
+		padding: 0.15em 0.7em;
+		border: 1px solid var(--prim);
+		border-radius: 0.3em;
+		background: none;
+		color: var(--prim);
+		font: inherit;
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	.ai2-reviewed:hover {
+		background: var(--prim);
+		color: white;
+	}
+
 	.ai2-sentence {
 		margin-block: 0.2em;
 		color: color-mix(in srgb, currentColor 80%, transparent);
@@ -1019,6 +1061,15 @@
 	/* two tabs is a rail: ext/tabs hides a bar of ONE, never ours */
 	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
 
+	/* THE TAB ORDER READS "Needs you · Inbox · Overview" (2026-09-29), but Inbox stays FIRST
+	   in the MARKUP on purpose — `page.js`'s own comment on `route()` says why: ext/tabs'
+	   fallback rule lights whichever tab is the bar's DOM `:first-child` once nothing else
+	   matches (a card url matches no tab's own href), so keeping Inbox first in the markup is
+	   what makes a card page light Inbox. `order` only changes where each one PAINTS. */
+	.ai2-tab-needs { order: 1; }
+	.ai2-tab-inbox { order: 2; }
+	.ai2-tab-overview { order: 3; }
+
 	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
 	   card; while it is the active page it takes the whole shell and scrolls by itself. */
 	.ai2:has(.ai2-overview-page.active-page) { grid-template-columns: minmax(0, 1fr); }
@@ -1031,7 +1082,22 @@
 	}
 	/* the tab already names this view */
 	.ai2-overview-page > .page-title { display: none; }
+	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
 	.ai2-overview-page > .ai2-overview { margin: 0; }
+
+	/* NEEDS YOU — NOT a routed child (it lives AT the bare root url, not one click in), so it
+	   cannot use the `.active-page` trick on a CHILD the way Overview does above. It is a
+	   plain sibling of `.ai2-shell`, shown only while the ROOT page itself is the active leaf
+	   (bare url, nothing routed under it) and hidden — along with the whole rail — the moment
+	   any child route (Inbox, Overview, a card) takes over. Same `:has()` engine, one level up. */
+	.ai2-needs { display: none; }
+	.page:has(> .ai2-shell).active-page > .ai2-needs {
+		display: block;
+		height: 100%;
+		overflow-y: auto;
+		padding: var(--pad);
+	}
+	.page:has(> .ai2-shell).active-page > .ai2-shell { display: none; }
 
 	.ai2-overview {
 		padding: var(--pad);
