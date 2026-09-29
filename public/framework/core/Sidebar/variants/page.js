@@ -17,7 +17,7 @@ export default new Page({
 
 	content(){
 
-		a.c("page-link").href("walkthrough/").text("Walk through all of this, step by step →");
+		a.c("page-link").href("/framework/core/Sidebar/variants/walkthrough/").text("Walk through all of this, step by step →");
 		p("The owner, thinking out loud about the left rail: “help me understand this by creating multiple variants that exemplify what I'm saying…” These are exactly that — things to look at, not a decision yet. Every one is the real Sidebar component, at real size, beside a real nav tree. Click a card to open it full-screen.");
 
 		h2("What the top of the rail says");
