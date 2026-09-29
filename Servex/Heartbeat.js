@@ -34,6 +34,14 @@ export default class Heartbeat {
 
     get agents(){ return this.servex.agents; }
 
+    /* taskloop-gate, 2026-09-29: the opt-in test, shared with TaskLoop.js so
+     * a boot sweep never touches a task from before this feature existed.
+     * `state` is a task's line-1 assign (or TaskLoop's merged assign, which
+     * carries line 1's fields through unchanged either way). */
+    opted_in(state){
+        return !!state && (state.heartbeat === true || Date.parse(state.requested_at) >= this.since);
+    }
+
     /* Hooks on the INSTANCE, the same way Servex's spawn gate wraps `spawn`. */
     start(){
         const a = this.agents, watch = a.watch.bind(a), stop = a.stop.bind(a);
@@ -139,7 +147,7 @@ export default class Heartbeat {
             if (o.log?.heartbeat === "revive") revives.push(Date.parse(o.log.at));
             if (o.log?.heartbeat === "escalated") escalated = true;
         }
-        if (!first || !(first.heartbeat === true || Date.parse(first.requested_at) >= this.since)) return null;
+        if (!this.opted_in(first)) return null;
         const owner = first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === first.session_id)?.id;
         if (!owner) return null;
         const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;

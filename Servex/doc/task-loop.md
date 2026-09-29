@@ -23,6 +23,10 @@ the live site's.
 
 ## Chase
 
+Only a task that opted in is chased (the heartbeat's own `opted_in()` test, so a first live boot
+never wakes an old task), and chase itself never revives a stopped/gone/errored agent — it leaves
+that to the heartbeat's own rationed, gated triage, and just logs "left to heartbeat".
+
 Once a task is open and either quiet past the timer or its owning agent has stopped or is gone
 (the registry row for the agent named on the task's own line 1, or found by matching session id),
 the loop sends that agent one neutral message, the same status check the heartbeat sends: *"Status

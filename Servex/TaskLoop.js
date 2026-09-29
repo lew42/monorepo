@@ -62,6 +62,9 @@ export default class TaskLoop {
             for (const file of this.find_task_files()){
                 const info = this.read_task(file);
                 if (!info || info.landed || info.closed) continue;
+                // taskloop-gate, 2026-09-29: only a task that opted in (same test as Heartbeat's
+                // boot sweep) is chased — never wake a task from before this feature existed.
+                if (!this.servex.heartbeat?.opted_in(info.state)) continue;
                 open++;
 
                 const mtime = fs.statSync(file).mtimeMs;
@@ -72,8 +75,8 @@ export default class TaskLoop {
                 const gone = this.agent_gone(info.state, registry);
                 const due = !info.last_chase_at || now - Date.parse(info.last_chase_at) >= this.gap_min * 60000;
 
-                if (info.last_chase === 0 && (quiet_expired || gone) && due) await this.chase(file, info, 1, mtime);
-                else if (info.last_chase === 1 && due) await this.chase(file, info, 2, mtime);
+                if (info.last_chase === 0 && (quiet_expired || gone) && due) await this.chase(file, info, 1, mtime, gone);
+                else if (info.last_chase === 1 && due) await this.chase(file, info, 2, mtime, gone);
                 else if (info.last_chase >= 2 && due && escalations < this.max_escalations){
                     escalations++;
                     await this.escalate(file, info, mtime);
@@ -151,13 +154,19 @@ export default class TaskLoop {
 
     /* ── acting ───────────────────────────────────────────────────────── */
 
-    async chase(file, info, n, mtime){
+    /* Never revives: `agents.send()` on a stopped/gone id wakes it (see
+     * Agents.js `send()`/`wake()`), which the Heartbeat already does properly
+     * — opt-in gated, rationed (2/hour, 5/day), and never for a deliberate
+     * stop. So a live agent still gets the queued check here; a stopped, gone
+     * or errored one is left to the Heartbeat's own triage instead. */
+    async chase(file, info, n, mtime, gone){
         const id = this.owning_agent_id(info.state, this.servex.agents.registry_list());
         const text = `Task ${this.slug(file)} has been quiet since ${this.at(mtime)}. ${CHECK}`;
         let woke;
-        if (id) try { this.servex.agents.send(id, text, { from: "servex-task-loop" }); woke = `woke ${id}`; }
+        if (!id) woke = "could not wake: no owning agent found";
+        else if (gone) woke = "left to heartbeat";
+        else try { this.servex.agents.send(id, text, { from: "servex-task-loop" }); woke = `woke ${id}`; }
         catch (e){ woke = `could not wake: ${e.message || e}`; }
-        else woke = "could not wake: no owning agent found";
         await this.write_line(file, { log: { at: stamp(), msg: `task-loop chase ${n} of 2: ${woke}`, chase: n } });
         this.totals.chased++;
     }
