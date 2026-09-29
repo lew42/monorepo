@@ -1,25 +1,34 @@
 import { Page, Sidebar, div, a, img, h1, p, blockquote } from "/app.js";
 import Framework from "/framework/page.js";
 import Core from "/framework/core/page.js";
+import Section from "/framework/core/Section/page.js";
+import navPreview from "../preview-nav.js";
 
 // Invented — a stand-in for a page whose real title runs long, so this
 // variant has something to truncate. No real page on the site has a title
 // this long today; that is the point.
 const LONG_TITLE = "Section wrapper, catalog & generator overview";
 
-/* Variant C — like B, but the word is a SHORT label instead of the page's
- * real title: Sidebar.css already truncates a long .brand-title with an
- * ellipsis (it has to, for the search box above it to keep its own room),
- * so the fix here is one attribute — a `title=""` tooltip with the full
- * text — not a second word. */
+// The word's own rule: a real SHORT name if the page has one — its own
+// `short:` field, or (no page on the site sets one yet) its directory name
+// — falling back to the full title only when neither exists. Sidebar.css's
+// own ellipsis is what catches the rest: a short name that still runs long
+// truncates exactly the way variant B's word already does.
+function short_name(page){
+	return page.short ?? page.name ?? page.title;
+}
+
+/* Variant C — like B, but the word is Section's own SHORT name ("Section",
+ * its directory), not the long title. The long title still lives on the
+ * page — the H1 below, and the tooltip on the word itself. */
 export function header(){
 	return div.c("brand", () => {
 		a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href(Framework.url).ac("brand-logo");
-		a(LONG_TITLE).href(Core.url).ac("brand-title").attr("title", LONG_TITLE);
+		a(short_name(Section)).href(Section.url).ac("brand-title").attr("title", LONG_TITLE);
 	});
 }
 
-export const blurb = "Like B, but the word truncates with an ellipsis and a full-title tooltip — for a long page title.";
+export const blurb = "Like B, but the word is a real short name (“Section”) with the long title as its tooltip.";
 
 export default new Page({
 	meta: import.meta,
@@ -29,7 +38,7 @@ export default new Page({
 
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a stage owns the whole screen"); },
 
-	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", header)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", () => { header(); navPreview(Core); })); },
 
 	render(){
 		return this.view ??= div.c("page sidebar-variant-c topic flex fill hides-nav", () => {
@@ -45,9 +54,11 @@ export default new Page({
 
 					h1(LONG_TITLE);
 
-					p("The word in the rail is the exact same long title as the H1 below, but the rail already clips a long .brand-title with an ellipsis, so it just reads as “Section wrapper…” there. Hover it to see the full title, same as any truncated label on the site.");
+					p("The H1 says the full, imagined long title — “" + LONG_TITLE + "”. The word in the rail does NOT truncate that string; it's a real short name instead: Section's own page (“Section”, its directory name — a page's own `short:` field would win if it had one). Hover the word to see the full title in a tooltip.");
 
-					p("Trade-off: truncating protects the rail's own layout — the fold arrows and the footer never move — but a chopped title reads as a mystery until you hover it.");
+					p("Ellipsis truncation — what variant B's word would do to this same long title — is the fallback for a page with no short name and no `short:` field, not the plan.");
+
+					p("Trade-off: a short name reads clean on every page, but someone has to write one for every page that needs it — truncation asks nothing of anyone and is always there as the fallback.");
 				});
 			});
 		});

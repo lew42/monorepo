@@ -1,6 +1,7 @@
 import { Page, Sidebar, div, a, img, h1, p, blockquote } from "/app.js";
 import Framework from "/framework/page.js";
 import Core from "/framework/core/page.js";
+import navPreview from "../preview-nav.js";
 
 /* Variant B — one level down. The logo now goes to the PARENT (Framework),
  * not all the way home — and the word becomes the current page's own title,
@@ -27,7 +28,7 @@ export default new Page({
 
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a stage owns the whole screen"); },
 
-	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", header)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", () => { header(); navPreview(Core); })); },
 
 	render(){
 		return this.view ??= div.c("page sidebar-variant-b topic flex fill hides-nav", () => {

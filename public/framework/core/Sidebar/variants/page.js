@@ -1,4 +1,4 @@
-import { Page, h1, p } from "/app.js";
+import { Page, p } from "/app.js";
 
 export default new Page({
 	meta: import.meta,
@@ -9,8 +9,6 @@ export default new Page({
 	children: "a b c d",
 
 	content(){
-
-		h1("Sidebar variants");
 
 		p("The owner, thinking out loud about the left rail: “help me understand this by creating multiple variants that exemplify what I'm saying…” These four are exactly that — things to look at, not a decision yet. Every one is the real Sidebar component, at real size, beside a real nav tree. Click a card to open it full-screen.");
 

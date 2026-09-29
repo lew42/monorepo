@@ -1,5 +1,6 @@
 import { Page, Sidebar, div, a, img, h1, p, blockquote } from "/app.js";
 import Framework from "/framework/page.js";
+import navPreview from "../preview-nav.js";
 
 /* Variant A — today. The logo always goes all the way home ("/"); the word
  * beside it is the site's own name, "Framework", and always points to
@@ -26,7 +27,7 @@ export default new Page({
 	// on screen: the demo one this page builds.
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a stage owns the whole screen"); },
 
-	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", header)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", () => { header(); navPreview(Framework); })); },
 
 	render(){
 		return this.view ??= div.c("page sidebar-variant-a topic flex fill hides-nav", () => {

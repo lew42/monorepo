@@ -1,25 +1,27 @@
-import { Page, Sidebar, div, a, span, img, h1, p, blockquote } from "/app.js";
+import { Page, View, Sidebar, div, a, span, img, h1, p, blockquote } from "/app.js";
 import Framework from "/framework/page.js";
 import Core from "/framework/core/page.js";
+import navPreview from "../preview-nav.js";
 
-/* Variant D — a breadcrumb. Instead of picking ONE word for the top of the
- * rail (the parent, in B/C), show BOTH hops as two small links under the
- * logo: it answers "how far home" directly, which variant A leaves open. */
+View.stylesheet(import.meta, "../variants.css");
+
+/* Variant D — a breadcrumb, beside the logo. Instead of picking ONE word for
+ * the top of the rail (the parent, in B/C), show BOTH hops as two small
+ * links on the SAME line as the logo: it answers "how far home" directly,
+ * which variant A leaves open. */
 export function header(){
-	return div(() => {
-		div.c("brand", () => {
-			a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href("/").ac("brand-logo");
-		}).style({ paddingBottom: "0" });
+	return div.c("brand", () => {
+		a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href("/").ac("brand-logo");
 
-		div.c("flex gap", () => {
-			a(Framework.title).href(Framework.url).style({ fontSize: "0.78em", opacity: "0.75", textDecoration: "none" });
-			span("›").style({ fontSize: "0.78em", opacity: "0.5" });
-			a(Core.title).href(Core.url).style({ fontSize: "0.78em", opacity: "0.75", textDecoration: "none" });
-		}).style({ padding: "0 var(--gutter) 1.2em" });
+		div.c("variant-crumbs", () => {
+			a(Framework.title).href(Framework.url).ac("variant-crumb");
+			span("›").ac("variant-crumb-sep");
+			a(Core.title).href(Core.url).ac("variant-crumb");
+		});
 	});
 }
 
-export const blurb = "Logo alone on top; a small breadcrumb — Framework › Core — underneath, each word its own link.";
+export const blurb = "Logo and a small breadcrumb — Framework › Core — on the SAME line, each word its own link.";
 
 export default new Page({
 	meta: import.meta,
@@ -29,7 +31,7 @@ export default new Page({
 
 	container(){ return this.mounts_in(this.app.$pages, "app.$pages — a stage owns the whole screen"); },
 
-	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", header)); },
+	preview(nav){ return this.preview_card(nav, () => div.c("sidebar variant-thumb", () => { header(); navPreview(Core); })); },
 
 	render(){
 		return this.view ??= div.c("page sidebar-variant-d topic flex fill hides-nav", () => {
@@ -45,9 +47,9 @@ export default new Page({
 
 					h1("Core");
 
-					p("This spells out A's own observation instead of picking one meaning for it: the logo alone always goes all the way home, and a small breadcrumb under it — Framework › Core — shows every stop in between, each one its own link.");
+					p("This spells out A's own observation instead of picking one meaning for it: the logo alone always goes all the way home, and a small breadcrumb beside it — Framework › Core — shows every stop in between, each one its own link. Both marks share the same row the logo and word already had, in the rail's own text colour, underlined only on hover.");
 
-					p("Trade-off: two links tell you exactly where you are, but the strip needs a second line under the logo — today's rail has no room budgeted for one.");
+					p("Trade-off: two links tell you exactly where you are, but there's less room for either word before it has to truncate than a single word (B/C) gets.");
 				});
 			});
 		});

@@ -1,0 +1,31 @@
+@layer theme {
+
+	/* Variant D only. The breadcrumb sits IN `.sidebar .brand`'s own row,
+	   beside the logo — not a second line under it — so it only ever costs
+	   the rail the room a normal word already costs. If "Framework › Core"
+	   is too long for what's left after the logo, it truncates instead of
+	   wrapping or pushing the toggle button off the edge. */
+	.variant-crumbs {
+		display: flex;
+		align-items: baseline;
+		gap: 0.3em;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	/* Same family as `.brand-title` (Sidebar.css) — inherits the rail's own
+	   ink, no default blue-link colour, no underline until hover — just a
+	   little smaller, since there are two of these instead of one word. */
+	.variant-crumb {
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.85em;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.variant-crumb:hover { text-decoration: underline; }
+
+	.variant-crumb-sep { opacity: 0.55; font-size: 0.85em; flex: 0 0 auto; }
+}
