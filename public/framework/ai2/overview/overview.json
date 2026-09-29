@@ -1,5 +1,5 @@
 {
-	"built_at": "2026-09-29T04:56:59.542Z",
+	"built_at": "2026-09-29T05:00:10.478Z",
 	"unfiled": 331,
 	"concepts": [
 		{
@@ -1311,7 +1311,7 @@
 					"words_url": "/framework/ai/2026-09-28/figma-sept-frame/",
 					"asked_at": "2026-09-28T13:00:39-05:00",
 					"landed_at": null,
-					"hours": 10.9,
+					"hours": 11,
 					"cost_usd": 45.7048,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/figma-sept-frame/",
@@ -1335,7 +1335,7 @@
 					"words_url": "/framework/ai/2026-09-24/chat-ext-extract/",
 					"asked_at": "2026-09-24T21:48:09-05:00",
 					"landed_at": null,
-					"hours": 98.1,
+					"hours": 98.2,
 					"cost_usd": 0.9803,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-24/chat-ext-extract/",
