@@ -68,6 +68,12 @@ const now_iso = () => {
 export const queued = agent => !!agent && (agent.queued === true || agent.card?.()?.state === "queued");
 
 const ROLES = ["assistant", "manager"];
+/* ONE ROOT ASSISTANT (recursive-pairs fix, 2026-09-29): the page `/` has no
+ * `assistant-root` of its own. Its assistant IS Global.js's `master-assistant`,
+ * on the architect tier; Global starts, stops and resumes it, never Layers. */
+export const ROOT_ASSISTANT = "master-assistant";
+/* The one assistant text every page's assistant reads (a card's included). */
+export const ASSISTANT_TEXT = path.join(REPO, ".claude", "skills", "every-prompt", "page-assistant.md");
 
 export default class Layers {
 
@@ -88,6 +94,7 @@ export default class Layers {
 	/* `features` says "this Servex has card agents": the card view shows its agent panel only then. */
 	install(){
 		this.load(); this.listen(); this.tools(); this.route(); this.watch();
+		this.servex.agents.layers = this;   // policy.js reads a manager's recorded parent through this
 		this.servex.on?.("admitted", (spec, agent) => this.admitted(spec, agent));
 		this.wakes();
 		this.servex.log?.append?.("features", { card_agents: 1, page_agents: 1 })?.catch?.(() => {});
@@ -156,6 +163,8 @@ export default class Layers {
 		const cards = this.state.cards;
 		if (cards[key]){
 			if (cards[key].parent === undefined){ cards[key].parent = this.parent_id(key); this.save(); }
+			/* A record written before the fix named the root's assistant `assistant-root`. */
+			if (key === "/" && cards[key].assistant.id !== ROOT_ASSISTANT){ cards[key].assistant = { id: ROOT_ASSISTANT, session_id: null, cwd: this.repo }; this.save(); }
 			return cards[key];
 		}
 		const parent = this.parent_id(key);
@@ -166,7 +175,7 @@ export default class Layers {
 		while (taken.has(`assistant-${base}${suffix}`) || taken.has(`manager-${base}${suffix}`)) suffix = `-${++n}`;
 		cards[key] = {
 			parent,
-			assistant: { id: `assistant-${base}${suffix}`, session_id: null, cwd: this.repo },
+			assistant: { id: key === "/" ? ROOT_ASSISTANT : `assistant-${base}${suffix}`, session_id: null, cwd: this.repo },
 			manager: { id: `manager-${base}${suffix}`, session_id: null, cwd: this.repo }
 		};
 		this.save();
@@ -326,8 +335,9 @@ export default class Layers {
 
 	/* An assistant runs LEAN: no settings files (so no CLAUDE.md, memory, skills,
 	 * hooks or user MCP servers in its context) and only the built-in tools a
-	 * quick edit needs; its brief is its system prompt. The root's runs on the
-	 * architect tier (the owner: "the root assistant runs on Opus"). */
+	 * quick edit needs; its brief is its system prompt. The root's assistant is
+	 * not spawned from here: it is Global's master-assistant, on the architect
+	 * tier (the owner: "the root assistant runs on Opus"). */
 	spec(key, role){
 		const rec = this.record(key);
 		if (role === "assistant"){
@@ -338,13 +348,14 @@ export default class Layers {
 			const bash = process.env.SERVEX_ASSISTANT_BASH !== "0";
 			const builtin = ["Read", "Edit", "Write", ...(bash ? ["Bash"] : [])];
 			const card_only = is_page(key) && key !== "/" ? [] : ["card_reply", "card_set", "add_item", "amend_bubble"];
+			/* append_log: page-assistant.md's "a card the owner asked for opens on their screen" line. */
 			const servex = [...card_only, "page_reply", "create_card", "ask_manager", "send_to_agent", "card_summary",
-				"list_claims", ...(bash ? ["take_worktree", "return_worktree"] : [])].map(t => `mcp__servex__${t}`);
+				"list_claims", "append_log", ...(bash ? ["take_worktree", "return_worktree"] : [])].map(t => `mcp__servex__${t}`);
 			/* Every other Servex tool is DENIED, which takes it out of the tool list the
 			 * model is sent: about 70 tool schemas it would carry in every request. */
 			const deny = (this.servex.mcp?.tools ?? []).map(t => `mcp__servex__${t.name}`).filter(t => !servex.includes(t));
 			return {
-				role: "card-assistant", model: model(key === "/" ? "architect" : "fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
+				role: "card-assistant", model: model("fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
 				system: this.system(),
 				setting_sources: [],
 				/* Measured 2026-09-28 (pairs/proof.txt): without these two a fresh assistant
@@ -362,7 +373,7 @@ export default class Layers {
 	system(){
 		let screen = "";
 		try { screen = brief(this.servex); } catch (e){ screen = `(the one-screen brief failed: ${e.message})`; }
-		return fs.readFileSync(path.join(HERE, "card-assistant.md"), "utf8") + "\n\n" + screen;
+		return fs.readFileSync(ASSISTANT_TEXT, "utf8") + "\n\n" + screen;
 	}
 
 	/* Who this agent is and how it answers, for a fresh start. A card assistant's
@@ -394,6 +405,7 @@ export default class Layers {
 	 * `live` first so the id is free to reuse. An assistant first makes room
 	 * under the cap. */
 	open(key, role, prompt){
+		if (key === "/" && role === "assistant") return this.root_assistant();
 		const slot = this.record(key)[role];
 		const live = this.live(slot.id);
 		if (live) return live;
@@ -422,6 +434,19 @@ export default class Layers {
 		return agent;
 	}
 
+	/* The root's assistant is Global's `master-assistant`: Global starts it (fresh
+	 * once a day, else resumed) and reaps it; Layers only hands it words. Without
+	 * Global (a bare host), `agents.get` is the generic wake. */
+	root_assistant(){
+		const global = this.servex.global;
+		const agent = global?.master ? global.master() : this.servex.agents.get?.(ROOT_ASSISTANT);
+		if (!agent) throw new Error(`${ROOT_ASSISTANT} is not running and nothing here can start it`);
+		this.touch(ROOT_ASSISTANT);
+		return agent;
+	}
+
+	is_root_assistant(id){ return id === ROOT_ASSISTANT; }
+
 	/* A fresh start's first message: the context's log, then who it is. */
 	first(key, role){
 		if (role === "manager") return this.manager_prompt(key);
@@ -440,7 +465,8 @@ export default class Layers {
 	 * starts, the least recently used idle ones are stopped (session kept). One
 	 * that is mid-turn is never stopped; if all are, the cap is exceeded and logged. */
 	make_room(except){
-		const running = Object.values(this.state.cards).map(r => this.live(r.assistant.id)).filter(a => a && a.id !== except);
+		const running = Object.values(this.state.cards).filter(r => !this.is_root_assistant(r.assistant.id))
+			.map(r => this.live(r.assistant.id)).filter(a => a && a.id !== except);
 		const over = running.length - (this.max_assistants - 1);
 		if (over <= 0) return;
 		const idle = running.filter(a => a.state !== "working" && a.state !== "starting")
@@ -478,7 +504,7 @@ export default class Layers {
 		if (!wake) return;
 		agents.wake = id => {
 			const who = this.owner(id);
-			if (!who || this.live(id)) return wake(id);
+			if (!who || this.live(id) || this.is_root_assistant(id)) return wake(id);
 			const agent = this.open(who.card, who.role);
 			return queued(agent) ? this.door(id) : agent;
 		};
@@ -615,6 +641,7 @@ export default class Layers {
 		for (const [key, rec] of Object.entries(this.state.cards)){
 			this.sync(key);
 			for (const role of ROLES){
+				if (this.is_root_assistant(rec[role].id)) continue;   // Global's to stop and resume
 				const agent = this.live(rec[role].id);
 				if (!agent) continue;
 				if (agent.state === "working" || agent.state === "starting"){ this.touched.set(agent.id, now); continue; }
@@ -652,6 +679,7 @@ export default class Layers {
 	recycle(id){
 		const who = this.owner(id);
 		if (!who) return { ok: false, error: `${id} is not a page or card agent` };
+		if (this.is_root_assistant(id)) return { ok: false, error: `${id} is started and stopped by Global.js (fresh once a day), not recycled here` };
 		this.recycling.delete(id);
 		this.checkpoint.delete(id);
 		try { if (this.live(id)) this.servex.agents.stop(id); } catch {}

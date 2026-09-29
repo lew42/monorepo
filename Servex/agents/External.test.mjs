@@ -122,6 +122,32 @@ check("a card line with no `prompt` key is ignored outright", () => {
 	assert.equal(lines_of("vscode-x").length, 2);
 });
 
+// ── an id that belongs to one of Servex's own agents is refused ──────────
+{
+	const reg = agents.reg(), rows = reg.read();
+	rows["assistant-foo"] = { id: "assistant-foo", role: "card-assistant", state: "stopped", session_id: "real-sess" };
+	reg.save(rows);
+	const out = JSON.parse(call("register_session", { id: "assistant-foo", session_id: "tab-sess" }));
+	check("register_session refuses a stopped agent's id, with a clear error, and leaves its row alone", () => {
+		assert.equal(out.ok, false);
+		assert.match(out.error, /refused: "assistant-foo" already belongs to one of Servex's own agents \(found in the registry\)/);
+		const row = reg.read()["assistant-foo"];
+		assert.equal(row.kind, undefined);
+		assert.equal(row.session_id, "real-sess");
+		assert.equal(external.has("assistant-foo"), false, "a send to it still wakes the agent, never an inbox");
+	});
+	agents.live.set("minion-live", { id: "minion-live", state: "idle" });
+	agents.layers = { owner: id => id === "manager-dictate" ? { card: "/framework/ux/Dictate/", role: "manager" } : null };
+	check("…and a running agent's id, and a page pair's minted id", () => {
+		assert.throws(() => external.register({ id: "minion-live", session_id: "s" }), /found in the running agents/);
+		assert.throws(() => external.register({ id: "manager-dictate", session_id: "s" }), /found in the page pairs/);
+		agents.live.delete("minion-live"); delete agents.layers;
+	});
+	check("re-registering an external id still works (a tab after a Servex restart)", () => {
+		assert.equal(external.register({ id: "vscode-x", session_id: "sess-new" }).session_id, "sess-new");
+	});
+}
+
 fs.rmSync(dir, { recursive: true, force: true });
 delete process.env.SERVEX_HOME;
 console.log(`external: ${checks} checks passed`);

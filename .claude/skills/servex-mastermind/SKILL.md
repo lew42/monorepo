@@ -55,12 +55,13 @@ pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid
 (`$CLAUDE_CODE_SESSION_ID`). After that, `list_agents` lists you, `send_to_agent` reaches you, and
 the owner's words on any card you create go to you too — all as lines appended to your own inbox
 file, `logs/inbox/<id>.jsonl` under Servex's home. You are not a live agent Servex holds open, so
-nothing pushes those lines to you: watch for them yourself, with one `Monitor` call tailing that
-file, re-armed at the start of every turn (a Monitor expires — 30 minutes at most — so treat "still
-watching" as a habit, not a one-time setup):
+nothing pushes those lines to you: watch for them yourself, with **one** `Monitor` call whose
+command tails that file. A Monitor cannot run forever: it stops after its `timeout_ms`, and 30
+minutes (`1800000`) is the most the tool allows, so pass that. **Re-arm it at the start of every
+turn**, and again whenever its expiry notice arrives:
 
 ```
-tail -f <SERVEX_HOME>/logs/inbox/<your id>.jsonl
+tail -n 0 -F <SERVEX_HOME>/logs/inbox/<your id>.jsonl
 ```
 
 Full design: `Servex/agents/doc/external.md`.

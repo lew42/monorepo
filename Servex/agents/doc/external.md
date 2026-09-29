@@ -32,9 +32,16 @@ every other log). One line per message:
 {"from": "mastermind-servex", "text": "…", "reply_to": "log agent-host", "at": "2026-09-28T14:02:03-05:00"}
 ```
 
-Read it the same way any long log is read — tail it. A tab does this with one `Monitor` call that
-never really "expires" in practice: it is re-armed at the start of every turn. The
-`servex-mastermind` skill (`.claude/skills/servex-mastermind/SKILL.md`) has the exact command.
+Read it the same way any long log is read — tail it. A tab does this with one `Monitor` call.
+A Monitor cannot run forever: it stops after its `timeout_ms`, and 30 minutes (`1800000`) is the
+most the tool allows. So the tab passes that, and re-arms it at the start of every turn and
+whenever its expiry notice arrives. The `servex-mastermind` skill
+(`.claude/skills/servex-mastermind/SKILL.md`) has the exact command.
+
+**An id already taken is refused.** `register_session` refuses an id that belongs to one of
+Servex's own agents: a registry row that is not external, a running agent, or a page pair's
+minted id in `layers.json`. Otherwise a message to that agent would land in a file instead of
+waking it. The error says so and suggests `vscode-<your task>`.
 
 ## The one line in `Agents.send()`
 
@@ -59,14 +66,13 @@ An external id is never in `live`, so `send()`'s first branch always falls throu
 session `wake()` could reopen — checking `external.has(id)` before `wake()` is what keeps a real
 send to a real external agent from ever reaching `wake()`'s "never got a session" throw.
 
-## Policy needed no change
+## Policy: an external id messages, it does not spawn
 
-`send_to_agent`'s policy check (`policy.js`, outside this fence) already buckets any id it does not
-recognise as `kind: "worker"` — the same bucket a minion or a helper falls into. An external id is
-addressed exactly like a live worker agent already was: the owner, `mastermind-servex` and the
-`dispatcher` may always message it, and anyone else may once it has messaged them within the last
-30 minutes (the `reply` rule). Nothing about registering as external needed a new row in that
-table.
+`policy.js` reads a registered external id as `kind: "external"`. Any agent may message one, and
+it may message anyone, like the owner's own tab. It may **not** spawn: `spawn()` refuses it,
+because anything that can call `register_session` would otherwise get "spawn anything". A tab
+that needs a spawn calls `spawn_agent` with no id of its own (as the owner) or asks
+`mastermind-servex`. Proof: `policy.test.mjs`.
 
 ## What is not covered
 

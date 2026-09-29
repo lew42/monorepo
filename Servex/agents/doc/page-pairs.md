@@ -12,9 +12,16 @@ private Servex: [`pairs/proof.txt`](/framework/ai/2026-09-25/recursive-pairs/pai
 
 | where you speak | its assistant | its manager | the manager's parent |
 |---|---|---|---|
-| `/` (the root) | `assistant-root`, Opus | `manager-root` | none |
+| `/` (the root) | `master-assistant`, Opus (Global.js's) | `manager-root` | none |
 | `/framework/ux/Dictate/` | `assistant-dictate`, Sonnet | `manager-dictate` | `manager-ux` |
 | a card, `2026/09/24/fix-the-sidebar` | `assistant-fix-the-sidebar`, Sonnet | `manager-fix-the-sidebar` | `manager-root` |
+
+**There is one root assistant.** The page `/` resolves to `master-assistant`, which Global.js starts
+(fresh once a day, otherwise resumed) and stops after 15 quiet minutes. Layers never spawns an
+`assistant-root`, never counts it toward the cap of 4, and only hands it the words. It answers the
+root page with `page_reply` and hands work to `manager-root` with `ask_manager`. It also hears the
+owner's page-less prompts and the landings and blocks of the root's direct children: a card's
+manager, or a top-level page's manager (its `parent` in `layers.json` is `manager-root`).
 
 An id is `assistant-` or `manager-` plus the page's last path segment, lower-cased. A second page
 ending in the same word gets `-2`. Ids are minted once and kept in `layers.json`, with each
@@ -60,7 +67,7 @@ answer, on a private Servex ([`proof.txt`](/framework/ai/2026-09-25/recursive-pa
 | running (warm) | 2.3 s |
 | stopped, then **resumed** by its session id | 3.1 s |
 | started **fresh** from the page's log (Sonnet) | 3.1 to 3.6 s |
-| started fresh, the Opus root | 3.9 to 4.1 s |
+| started fresh, the Opus root (`master-assistant`, 2026-09-29) | 5.6 s |
 
 So starting a process costs under a second, and a resume costs the same as a fresh start. Keeping
 an idle assistant alive saves that second and costs about **230 MB** each: three idle assistants
@@ -73,7 +80,7 @@ not ours: the account's claude.ai connectors (Figma, Google Drive, Claude Docs, 
 tool descriptions) and the auto-memory file load into every session, even one started with no
 settings files. An assistant now starts with those turned off, with every Servex tool it does not
 use left out of its tool list, and with only `Read`, `Edit`, `Write` and `Bash` built in. It begins
-at about **11k** (Sonnet) and **8k** (the Opus root).
+at about **11k** (Sonnet). The root's `master-assistant` gets the same treatment in Global.js and has no built-in tools at all: it began at 52k and now begins at about **4k**.
 
 `Bash` is about 5k of that. It stays because a safe quick edit has to commit, smoke-test and merge
 inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merge.mjs`,
@@ -86,5 +93,23 @@ inside its worktree (`take_worktree`, `node Server/smoke.mjs`, `node Server/merg
   task-log module's own files.
 - A stopped agent's session id is copied into `layers.json` only while it runs. Before 2026-09-28
   the sweep copied it back from the stopped agent, which silently undid every recycle.
-- The assistant's brief is `card-assistant.md`, its whole system prompt. It does not load skills:
-  an assistant runs with no settings files.
+- The assistant's brief is [`page-assistant.md`](../../../.claude/skills/every-prompt/page-assistant.md)
+  (in the `every-prompt` skill), its whole system prompt; `Layers.js` reads it directly. It does
+  not load skills: an assistant runs with no settings files.
+- A manager's live parent is its own assistant (so a landing wakes the assistant). Its tree parent,
+  for policy and for the root's feed, is the `parent` in `layers.json`: `policy.js` falls back to
+  it, so `manager-<card>` and `manager-root` may message each other.
+
+## Known limits
+
+These are known and left as they are for now (the fresh-eyes review, findings 8 to 10).
+
+- **A plain page's chat lives inside the site.** It is `public<page>ai/chat.jsonl`, so every page
+  that is spoken on gains an `ai/` folder in the live-reloaded tree, and `/framework/`'s lands in
+  the task-log directory `public/framework/ai/`. A path under Servex's home would avoid both.
+- **Quick-edit rules are prompt text only.** "Only inside your own directory, and only where no
+  claim covers it" is written in `page-assistant.md`; no code checks the edited paths against the
+  scope or the claims before `merge.mjs` runs.
+- **The ids say `manager-`, not `mastermind-`.** The owner named the pair's second agent
+  `mastermind-<page>`; the ids are `manager-<page>` (and `roles.js` keeps `manager` as an alias of
+  `page-mastermind`). This is a naming decision, not the owner's word, and should be said so.

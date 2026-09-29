@@ -24,11 +24,10 @@ more rows in the same shape. (`names.md` itself is frozen for this task — thre
 **The actual text a page assistant reads** is `.claude/skills/every-prompt/page-assistant.md` — the
 `every-prompt` front-desk text merged with the old `card-assistant.md`, because the job is the same
 at every scope: turn words into UI fast, hand real work to your page's mastermind, and (new) make a
-safe one-file quick edit yourself when nothing claims it. `Servex/agents/card-assistant.md` — the
-literal file `Layers.js` reads with `fs.readFileSync` for a spawned card assistant — carries the
-same merged content (a plain `.md` system prompt has no `import`, and a card assistant has no
-file-read tool to follow a pointer, so "keep the path working" means keeping the text there, not a
-redirect).
+safe one-file quick edit yourself when nothing claims it. `Layers.js` reads that one file
+(`ASSISTANT_TEXT`) as a spawned assistant's system prompt; the old copy,
+`Servex/agents/card-assistant.md`, is deleted (2026-09-29), so there is one text to keep true.
+The root page's assistant is `master-assistant`, with its own text, `master-assistant.md`.
 
 ## The every-card feed is gone (Global.js)
 
@@ -36,22 +35,24 @@ Before: `master-assistant` heard every fresh prompt on every card, plus every `l
 `error`/`task` message from ANY card, batched every 20 seconds. That was the whole point of
 `Global.listen()` subscribing to `cards.on(...)` for everything.
 
-Now: nothing is forwarded for a fresh prompt at all — every page already has its OWN assistant
-hearing its own prompts (Layers.js), so a second copy reaching the root added nothing but noise.
+Now: a fresh prompt is forwarded only when it is **page-less** (`Global.page_less()`): spoken on a
+card no page pair hears (an id under four segments, such as a day's page or a lobby group card),
+or on any card when Layers is off. Every other page already has its OWN assistant hearing its own
+prompts (Layers.js), so a second copy reaching the root added nothing but noise. A send to the
+page `/` goes straight from Layers to `master-assistant`, which is that page's assistant.
 What's left is `landed`/`blocked`/`error` (the `"task"` kind — a queued-state change — is dropped
 too: it is not something the owner needs to see at the root) from a **direct child of the root
 pair** only: `Global.direct_child(id)` checks the reporting agent's own `.parent` field against
 `"dispatcher"` (where a `task-mastermind` gets spawned from today), `mastermind-servex`, or
-`master-assistant` itself. A grandchild's report — a task-mastermind's own child, or a sub-card two
+`master-assistant` itself, and also counts a card's or a top-level page's manager, whose
+`layers.json` parent is `manager-root` (its live parent is its own assistant). A grandchild's report — a task-mastermind's own child, or a sub-card two
 levels down — is not forwarded; that page's own assistant is who should hear it, and the root can
 still `list_cards`/`list_agents` on demand.
 
-**Left open, and why:** the owner's words describing this ("the root assistant hears the owner's
-page-less prompts") point at a prompt spoken with NO page selected at all — that channel is
-`Assistant.js`'s existing `assistant-fast` lobby (`file_to_group`, words with no card), which lives
-outside this fence entirely and was not touched. Folding that into the same root pair is real work
-for whoever owns `Assistant.js` next; `page-assistant.md` already describes both postures so that
-merge, when it happens, is a doc change more than a design one.
+**Still separate:** words spoken with no card selected at all go first to `Assistant.js`'s
+`assistant-fast` lobby, which files them onto a group card (`file_to_group`). When that group card
+has a short id, no pair hears it, so it is page-less and reaches `master-assistant`. Folding the
+lobby itself into the root is work for whoever owns `Assistant.js` next.
 
 ## `mastermind-servex-N` counts as the mastermind (policy.js, D4)
 
@@ -67,6 +68,13 @@ Parent/child messaging between two masterminds (a task-mastermind spawning a CHI
 task-mastermind) needed no new rule — the tree rule (`this.parent(from) === to || this.parent(to)
 === from`) has always applied to any agent, not just minions; only a proof that it holds for two
 `task-mastermind-*` ids specifically was missing, and `policy.test.mjs` now has it.
+
+**A page manager's tree parent is its recorded one.** A manager is spawned with its own assistant
+as its live `parent` (it must keep waking that assistant), so the tree rule alone never linked
+`manager-<card>` to `manager-root`. `Policy.parent()` stays the live parent, and `Policy.tree()`
+also accepts the manager's `parent` in `layers.json` (read through `agents.layers`, which
+`Layers.install()` sets). So a card's manager and `manager-root` message each other both ways,
+and so do `manager-dictate` and `manager-ux`. `policy.test.mjs` proves it on the real Layers ids.
 
 **Siblings still cannot talk directly** (by the card's own table: nothing routes manager-to-manager
 or page-mastermind-to-page-mastermind sideways) — two sibling page pairs coordinate through a

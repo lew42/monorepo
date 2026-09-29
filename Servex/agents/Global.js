@@ -30,12 +30,13 @@ const today = () => new Date().toLocaleDateString("en-CA");
  * narrowed 2026-09-25/28 by the recursive-pairs work, doc/page-roles.md).
  *
  * - `master-assistant` (architect tier, medium effort) is the root page's own
- *   assistant — `page-assistant.md`'s root case. It no longer hears every
- *   card: only a landing, block or error from a DIRECT CHILD of the root is
- *   batched to it, at most one message every 20 seconds, and it stays silent
- *   unless it earns a line. Every other page now has its own assistant
- *   hearing its own prompts (Layers.js), so there is nothing left for the
- *   root to hear there.
+ *   assistant: a send to the page `/` reaches it straight from Layers.js
+ *   (ROOT_ASSISTANT), and Layers never spawns a second one. It no longer hears
+ *   every card: only the owner's page-less prompts (`page_less()`) and a
+ *   landing, block or error from a DIRECT CHILD of the root (`direct_child()`)
+ *   are batched to it, at most one message every 20 seconds, and it stays
+ *   silent unless it earns a line. Every other page has its own assistant
+ *   hearing its own prompts (Layers.js).
  * - `mastermind-servex` (architect tier) is the persistent systems architect. It
  *   already exists; Global never makes a second one. It is resumed under the same
  *   id from its recorded session, and spawned fresh only when there is none.
@@ -116,9 +117,17 @@ export default class Global {
 		let agent = this.live(id);
 		if (agent && started === day) return this.touch(id, agent);
 		if (agent){ try { agent.stop(); } catch {} this.agents.live.delete(id); }   // a new day: recycled
+		const master_tools = ["card_reply", "send_to_agent", "list_claims", "page_reply", "ask_manager"].map(t => `mcp__servex__${t}`);
 		const spec = { id, role: "master-assistant", name: "", model: model("architect"), effort: "medium",
 			permission_mode: "bypassPermissions", system: this.system("master-assistant.md"),
-			allowed_tools: ["mcp__servex__card_reply", "mcp__servex__send_to_agent", "mcp__servex__list_claims"] };
+			/* page_reply and ask_manager: it is also the page `/`'s assistant (Layers.js ROOT_ASSISTANT). */
+			allowed_tools: master_tools,
+			/* LEAN, like a page assistant (Layers.spec): no settings files, no claude.ai connectors,
+			 * no auto-memory, no built-in tools (it reads no files), and every other Servex tool
+			 * denied so its schema is not sent. Measured 2026-09-29 (fix/proof.txt): it began
+			 * at about 52k tokens without these. */
+			setting_sources: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+			sdk: { tools: [], disallowedTools: (this.servex.mcp?.tools ?? []).map(t => `mcp__servex__${t.name}`).filter(t => !master_tools.includes(t)) } };
 		this.master_day = day;
 		agent = started === day && saved.session_id && !agent
 			? this.agents.spawn({ ...spec, resume: saved.session_id, cwd: saved.cwd ?? REPO })
@@ -285,10 +294,36 @@ export default class Global {
 	 * "direct children only" instead of "every card" again by another name. */
 	direct_child(id){
 		const parent = this.agents.live?.get(id)?.parent;
-		return parent === "dispatcher" || parent === this.mastermind_id || parent === this.master_id;
+		if (parent === "dispatcher" || parent === this.mastermind_id || parent === this.master_id) return true;
+		return this.top_manager(id);
+	}
+
+	/* A top-level page's or a card's manager (`manager-<card>`, `manager-framework`):
+	 * spawned by its own assistant, so its live parent says nothing about the tree —
+	 * but its layers.json `parent` is the root's manager. A deeper page's manager
+	 * (`manager-dictate`, parent `manager-ux`) is not a direct child. */
+	top_manager(id){
+		const layers = this.servex.layers, who = layers?.owner?.(id);
+		if (!who || who.role !== "manager" || who.card === "/") return false;
+		const root = layers.state?.cards?.["/"];
+		const parent = layers.state.cards[who.card]?.parent;
+		return !!parent && (parent === root?.manager?.id || parent === this.master_id);
+	}
+
+	/* A PAGE-LESS PROMPT: a fresh owner prompt on a card no page pair hears —
+	 * Layers keys a pair on a root card (four path segments), so a shorter id (a
+	 * day's own page, a lobby group card) reaches nobody else. With Layers off,
+	 * every prompt is page-less. This is the one part of the old every-card feed
+	 * that is kept (recursive-pairs fix, 2026-09-29). A send to the page `/`
+	 * reaches master-assistant straight from Layers, not through here. */
+	page_less(card){
+		const layers = this.servex.layers;
+		if (!layers?.root) return true;
+		try { return !layers.root(card); } catch { return true; }
 	}
 
 	heard(card, line = {}, info = {}){
+		if (info.fresh && line.prompt && this.page_less(card)) return this.queue(`card ${card}: ${line.prompt.text ?? line.prompt.raw ?? ""}`, "owner");
 		const m = line.message;
 		if (m && HEARD.includes(m.kind) && this.direct_child(m.by)) this.queue(`card ${card}, ${m.kind} from ${m.by ?? "someone"}: ${m.text ?? ""}`, "servex");
 	}

@@ -44,7 +44,39 @@ t(m("minion-a", "tab-editor").rule === "external", "a worker may message an exte
 t(m("task-mastermind-x", "tab-editor").rule === "external", "a task-mastermind may message an external id too");
 t(m("tab-editor", "minion-a").rule === "external" || m("tab-editor", "minion-a").rule === "owner", "an external id messages freely, owner-like");
 t(!m("minion-a", "some-other-worker").ok, "an UNregistered id is still an ordinary stranger — external is not a loophole for every id");
-t(p.spawn("tab-editor", "manager").ok, "an external id may spawn like the owner");
+{
+	const out = p.spawn("tab-editor", "minion");
+	t(!out.ok && /external id \(a registered tab\) may message anyone, but not spawn/.test(out.why), "an external id may message, not spawn: " + out.why);
+	t(!p.spawn("tab-editor", "manager").ok, "not even a manager");
+	t(m("tab-editor", "manager-fix-the-sidebar").ok && m("tab-editor", "mastermind-servex").ok, "but it still messages anyone, like the owner");
+}
+// Page-pair parentage (fix item 3): the REAL Layers, its real ids, a real layers.json in a scratch dir.
+{
+	const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+	const { default: Layers } = await import("./Layers.js");
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "policy-pairs-"));
+	fs.mkdirSync(path.join(dir, "public/framework/ux/Dictate"), { recursive: true });
+	const CARD = "2026/09/24/fix-the-sidebar";
+	const live = new Map();
+	const agents = { live, spawn(){ throw new Error("no spawns here"); }, send(){}, stop(){} };
+	const servex = { agents, cards: { canonical: id => id === CARD ? id : null, on(){} }, mcp: { tool(){} } };
+	const L = new Layers({ servex, file: path.join(dir, "layers.json"), repo: dir, watch(){} }).install();
+	for (const k of [CARD, "/framework/ux/Dictate/"]) L.record(k);
+	// the runtime spawn parent of a manager is its own assistant, as Layers.spec() sets it
+	for (const [k, rec] of Object.entries(L.state.cards)) live.set(rec.manager.id, { parent: rec.assistant.id, state: "idle" });
+	const pp = new Policy({ agents });
+	t(L.state.cards[CARD].manager.id === "manager-fix-the-sidebar" && L.state.cards["/"].manager.id === "manager-root", "real ids: manager-fix-the-sidebar, manager-root");
+	t(pp.parent("manager-fix-the-sidebar") === "assistant-fix-the-sidebar", "the live parent stays the card's own assistant");
+	t(pp.message("manager-fix-the-sidebar", "manager-root").rule === "tree", "a card's manager messages manager-root (tree, from layers.json)");
+	t(pp.message("manager-root", "manager-fix-the-sidebar").rule === "tree", "manager-root messages a card's manager (tree)");
+	t(pp.message("manager-dictate", "manager-ux").rule === "tree" && pp.message("manager-ux", "manager-dictate").rule === "tree", "a page's manager and its parent page's manager, both ways");
+	t(pp.message("manager-framework", "manager-root").rule === "tree", "a top-level page's manager to manager-root");
+	t(!pp.message("manager-dictate", "manager-root").ok, "a grandchild is not the root's child");
+	t(!pp.message("manager-fix-the-sidebar", "manager-dictate").ok, "siblings across the tree are still refused");
+	t(!pp.message("assistant-dictate", "manager-ux").ok, "an assistant gets no recorded parent: only managers do");
+	t(pp.message("manager-fix-the-sidebar", "assistant-fix-the-sidebar").ok, "a manager still reaches its own assistant");
+	fs.rmSync(dir, { recursive: true, force: true });
+}
 // reply rule
 t(!m("minion-b", "helper-c").ok, "no reply yet");
 const now = Date.now();

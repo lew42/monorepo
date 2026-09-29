@@ -47,6 +47,22 @@ export class Policy {
 
 	parent(id){ return this.agents?.live?.get(id)?.parent ?? null; }
 
+	/* A page manager's RECORDED parent (Layers.js, layers.json): the parent page's
+	 * manager, `manager-root` for a card or a top-level page. Its live spawn
+	 * parent is its own assistant (it must keep waking that assistant), so the
+	 * tree rule falls back to this one (recursive-pairs fix, 2026-09-29). */
+	recorded_parent(id){
+		try {
+			const layers = this.agents?.layers, who = layers?.owner?.(id);
+			return who?.role === "manager" ? layers.state.cards[who.card]?.parent ?? null : null;
+		} catch { return null; }
+	}
+
+	tree(from, to){
+		return this.parent(from) === to || this.parent(to) === from
+			|| this.recorded_parent(from) === to || this.recorded_parent(to) === from;
+	}
+
 	/* `from` just messaged `to`: remember it, so `to` may answer. */
 	heard(from, to, now = Date.now()){ this.told.set(`${to}→${from}`, now); }
 
@@ -69,11 +85,12 @@ export class Policy {
 		 * refused for it the way it would be for another internal agent. */
 		if(this.kind(to) === "external") return ok("external");
 		const f = this.kind(from);
-		/* And the reverse: a registered tab speaks WITH the owner's own reach — the
-		 * owner is exactly who a tab is, whether or not it happened to register. */
+		/* And the reverse: a registered tab MESSAGES with the owner's own reach — the
+		 * owner is exactly who a tab is. It may not SPAWN (spawn() below): anything
+		 * that can call register_session would otherwise get "spawn anything". */
 		if(f === "owner" || f === "external") return ok(f);
 		if(f === "system" || f === "servex") return ok("system");
-		if(this.parent(from) === to || this.parent(to) === from) return ok("tree");
+		if(this.tree(from, to)) return ok("tree");
 		if(now - (this.told.get(`${from}→${to}`) ?? -Infinity) < REPLY_MS) return ok("reply");
 		if(this.table(from, to)) return ok("table");
 		const may = { assistant: "its own manager, master-assistant or mastermind-servex", manager: "its own assistant or mastermind-servex",
@@ -87,11 +104,12 @@ export class Policy {
 	spawn(caller = null, role){
 		if(this.off()) return { ok: true, rule: "off" };
 		const f = this.kind(caller);
-		if(["owner", "servex", "system", "external"].includes(f)) return { ok: true };
+		if(["owner", "servex", "system"].includes(f)) return { ok: true };
 		const deny = why => {
 			const entry = { at: new Date().toISOString(), from: caller, to: `spawn ${role}`, why: `${caller} may not ${why}` };
 			this.refuse(entry); return { ok: false, why: entry.why };
 		};
+		if(f === "external") return deny(`spawn agents: an external id (a registered tab) may message anyone, but not spawn. Spawn from the tab itself with no id (as the owner), or ask mastermind-servex.`);
 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
 		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
@@ -102,8 +120,9 @@ export class Policy {
 	rules(){ return [
 		{ from: "owner", may: "message anyone; spawn anything" },
 		{ from: "dispatcher, mastermind-servex(-N)", may: "message anyone; spawn anything" },
-		{ from: "a registered external id (a VS Code tab)", may: "message anyone, like the owner; spawn anything" },
+		{ from: "a registered external id (a VS Code tab)", may: "message anyone, like the owner; spawn nothing" },
 		{ from: "any agent", may: "message an external id, its parent, its own children, and anyone who messaged it in the last 30 minutes" },
+		{ from: "manager-X", may: "message its recorded parent page's manager (layers.json `parent`, manager-root for a card) and its child pages' managers: the tree rule" },
 		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },

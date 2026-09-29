@@ -302,10 +302,19 @@ const pagents = {
 	stop(id){ pcalls.push({ verb: "stop", id }); pagents.live.get(id).state = "stopped"; }
 };
 const ptools = new Map(), proutes = new Map();
-const pservex = { cards, agents: pagents, log, mcp: { tool(def){ ptools.set(def.name, def); } },
+/* A fake Global: `master()` is the ONE root assistant, on the architect tier. */
+const pglobal = { starts: 0, master(){
+	const live = pagents.live.get("master-assistant");
+	if (live && live.state !== "stopped") return live;
+	this.starts++;
+	const a = { id: "master-assistant", model: "claude-opus-5-5", state: "idle", session_id: "master-sess", context: 8000, turns: 0 };
+	pagents.live.set(a.id, a);
+	return a;
+} };
+const pservex = { cards, agents: pagents, log, global: pglobal, mcp: { tool(def){ ptools.set(def.name, def); } },
 	dashboard: { router: { get(p, ...h){ proutes.set("GET " + p, h.at(-1)); }, post(p, ...h){ proutes.set("POST " + p, h.at(-1)); }, options(){} } } };
 const pfile = path.join(dir, "pages.json");
-fs.writeFileSync(pfile, JSON.stringify({ cards: { [A]: { assistant: { id: "assistant-fix-the-sidebar", session_id: "old", cwd: repo }, manager: { id: "manager-fix-the-sidebar", session_id: null, cwd: repo } } } }));
+fs.writeFileSync(pfile, JSON.stringify({ cards: { "/": { parent: null, assistant: { id: "assistant-root", session_id: "stale", cwd: repo }, manager: { id: "manager-root", session_id: null, cwd: repo } }, [A]: { assistant: { id: "assistant-fix-the-sidebar", session_id: "old", cwd: repo }, manager: { id: "manager-fix-the-sidebar", session_id: null, cwd: repo } } } }));
 const P = new Layers({ servex: pservex, file: pfile, repo, idle_ms: 1000, manager_idle_ms: 3000, max_assistants: 2,
 	system(){ return "SYSTEM"; }, watch(){}, session_exists: () => true }).install();
 const pspawns = () => pcalls.filter(c => c.verb === "spawn");
@@ -319,7 +328,7 @@ check("a pair for any page: ids from the last segment, root for /, each records 
 	assert.deepEqual([rec.assistant.id, rec.manager.id, rec.parent], ["assistant-dictate", "manager-dictate", "manager-ux"]);
 	assert.equal(P.state.cards["/framework/ux/"].parent, "manager-framework");
 	assert.equal(P.state.cards["/framework/"].parent, "manager-root");
-	assert.deepEqual([P.state.cards["/"].assistant.id, P.state.cards["/"].manager.id, P.state.cards["/"].parent], ["assistant-root", "manager-root", null]);
+	assert.deepEqual([P.state.cards["/"].assistant.id, P.state.cards["/"].manager.id, P.state.cards["/"].parent], ["master-assistant", "manager-root", null]);
 	assert.equal(pspawns().length, 0, "recording a pair spawns nothing");
 });
 
@@ -372,22 +381,41 @@ check("/api/page-agents: the card-agents row shape for the page", () => {
 });
 
 P.page_ai({ page: "/", text: "what is running?" });
-check("the root pair: assistant-root on the architect tier (Opus)", () => {
-	const s = pspawns().at(-1).spec;
-	assert.deepEqual([s.id, s.model], ["assistant-root", "claude-opus-5-5"]);
+check("one root assistant: a send to / reaches master-assistant (Global's, Opus); Layers spawns no assistant-root", () => {
+	assert.equal(pglobal.starts, 1, "Global started it once");
+	assert.ok(!pspawns().some(c => c.spec.id === "assistant-root" || c.spec.id === "master-assistant"), "Layers spawned neither");
+	const to = pcalls.filter(c => c.verb === "send" && c.id === "master-assistant");
+	assert.deepEqual([to.length, to[0].text, to[0].note.reply_to], [1, "what is running?", "page /"]);
+	assert.equal(pagents.live.get("master-assistant").model, "claude-opus-5-5");
 	assert.ok(fs.existsSync(path.join(repo, "public/ai/chat.jsonl")));
+	assert.deepEqual(get_agents("/").map(r => [r.id, r.role]), [["master-assistant", "assistant"], ["manager-root", "manager"]]);
+	assert.equal(P.recycle("master-assistant").ok, false, "its lifecycle is Global's");
+});
+P.page_ai({ page: "/", text: "and again" });
+check("a second send to / goes to the same master-assistant, not a new start", () => {
+	assert.equal(pglobal.starts, 1);
+	assert.equal(pcalls.filter(c => c.verb === "send" && c.id === "master-assistant").at(-1).text, "and again");
+});
+P.ask_manager({ card: "/", text: "look into it", from: "master-assistant" });
+check("the root's manager is manager-root, its runtime parent master-assistant", () => {
+	const m = pspawns().at(-1).spec;
+	assert.deepEqual([m.id, m.parent], ["manager-root", "master-assistant"]);
+	P.stop("manager-root");
 });
 
-const root_reply = await pcall("page_reply", { page: "/notes/", text: "from the root" }, "assistant-root");
+const root_reply = await pcall("page_reply", { page: "/notes/", text: "from the root" }, "master-assistant");
 check("the root assistant may reply anywhere", () => assert.equal(root_reply.ok, true));
 
 check("at most max_assistants live: the least recently used idle one is stopped first", () => {
 	pagents.live.get("assistant-dictate").state = "idle";
-	pagents.live.get("assistant-root").state = "idle";
+	pagents.live.get("master-assistant").state = "idle";
 	P.touched.set("assistant-dictate", Date.now() - 5000);   // older
+	P.touched.set("master-assistant", Date.now() - 9000);    // oldest, but not Layers' to count
+	P.max_assistants = 1;                                     // Dictate alone fills it: the root does not count
 	P.page_ai({ page: "/notes/", text: "a note" });
+	P.max_assistants = 2;
 	assert.ok(pcalls.some(c => c.verb === "stop" && c.id === "assistant-dictate"));
-	assert.ok(!pcalls.some(c => c.verb === "stop" && c.id === "assistant-root"));
+	assert.ok(!pcalls.some(c => c.verb === "stop" && c.id === "master-assistant"), "the root assistant is Global's: never counted, never stopped here");
 	assert.equal(pspawns().at(-1).spec.id, "assistant-notes");
 });
 
@@ -481,6 +509,25 @@ check("a send on a card's page goes into the card", () => {
 		`import L from ${JSON.stringify(new URL("./Layers.js", import.meta.url).href)}; console.log(new L().file)`],
 		{ env: { ...process.env, SERVEX_LAYERS_FILE: alt }, encoding: "utf8", windowsHide: true }).trim();
 	check("SERVEX_LAYERS_FILE moves the state file", () => assert.equal(out, alt));
+}
+
+{
+	const { ASSISTANT_TEXT } = await import("./Layers.js");
+	const text = Layers.prototype.system.call({ servex: {} });
+	check("one assistant text: Layers reads .claude/skills/every-prompt/page-assistant.md, and card-assistant.md is gone", () => {
+		assert.match(ASSISTANT_TEXT.replace(/\\/g, "/"), /\.claude\/skills\/every-prompt\/page-assistant\.md$/);
+		assert.ok(text.startsWith(fs.readFileSync(ASSISTANT_TEXT, "utf8")));
+		assert.ok(!fs.existsSync(new URL("./card-assistant.md", import.meta.url)));
+		assert.doesNotMatch(text, /no file-read tool|no general repo tools/);
+	});
+	check("the text names only tools the assistant has: every mcp tool it names is in its allowed list", () => {
+		const s = P.spec("/notes/", "assistant");
+		const card = P.spec(A, "assistant");
+		const has = new Set([...s.allowed_tools, ...card.allowed_tools].map(t => t.replace("mcp__servex__", "")));
+		const named = new Set([...fs.readFileSync(ASSISTANT_TEXT, "utf8").split("## If you are a VS Code tab")[0].matchAll(/`([a-z_]+)(?:\(|`)/g)].map(m => m[1])
+			.filter(n => /_/.test(n) && !["page_path", "from_url"].includes(n)));
+		for (const n of named) assert.ok(has.has(n), `page-assistant.md names ${n}, which no assistant has`);
+	});
 }
 
 fs.rmSync(dir, { recursive: true, force: true });

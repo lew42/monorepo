@@ -19,10 +19,11 @@ import { place, stamp } from "../home.js";
  *     they append one line to the id's own INBOX FILE instead:
  *     `logs/inbox/<id>.jsonl`, under Servex's own log dir (`home.js`'s
  *     `place()`, so `SERVEX_HOME` moves it with everything else Servex owns).
- *   - the outside session reads its inbox with one long-lived `Monitor`
- *     (a tail, never a poll) — `.claude/skills/servex-mastermind/SKILL.md`
- *     says how, and how to re-arm it (a Monitor call always expires
- *     eventually; 30 minutes is the longest the tool allows).
+ *   - the outside session reads its inbox with one `Monitor` tailing it (a
+ *     tail, never a poll). A Monitor always expires: 30 minutes
+ *     (`timeout_ms: 1800000`) is the most the tool allows, so the tab re-arms
+ *     it at the start of each turn and on each expiry notice
+ *     (`.claude/skills/servex-mastermind/SKILL.md`, `every-prompt/page-assistant.md`).
  *
  * Plain code, no Claude session of its own — the same shape as `Layers.js`
  * and `Cards.js`: one module `Servex.js` installs once, that adds its own MCP
@@ -67,6 +68,13 @@ export default class External {
 		if (!id || typeof id !== "string") throw new Error("register_session needs an `id` — a short, readable word, never a uuid.");
 		if (!session_id) throw new Error("register_session needs `session_id` — this session's own Claude session uuid (in a terminal, $CLAUDE_CODE_SESSION_ID).");
 		const rows = this.reg().read();
+		/* An id that already belongs to one of Servex's own agents is refused: its row
+		 * would turn into an inbox, and a message to it would land in a file instead of
+		 * waking that agent (fresh-eyes review, finding 5). */
+		const taken = rows[id] && rows[id].kind !== "external" ? "the registry"
+			: this.servex.agents.live?.has?.(id) ? "the running agents"
+			: this.servex.agents.layers?.owner?.(id) ? "the page pairs (layers.json)" : null;
+		if (taken) throw new Error(`register_session refused: "${id}" already belongs to one of Servex's own agents (found in ${taken}). Pick another id, such as vscode-<your task>.`);
 		const row = {
 			...(rows[id] ?? {}),
 			id, kind: "external", state: "external", session_id,
@@ -137,13 +145,13 @@ export default class External {
 				+ " (`kind: \"external\"`); `send_to_agent` to your id, and the owner's words on any card you create with"
 				+ " `create_card` (its `by` is you), are appended to your own inbox file instead of trying to reach a live"
 				+ " process — there is none, you already are one. Read the inbox with one `Monitor` tailing"
-				+ " `logs/inbox/<your id>.jsonl` under Servex's home; that call expires (30 minutes at most), so re-arm it"
-				+ " at the start of every turn. Returns the registry row Servex now holds for you.",
+				+ " `logs/inbox/<your id>.jsonl` under Servex's home, with `timeout_ms: 1800000` (30 minutes, the most a Monitor"
+				+ " allows; it cannot run forever). Re-arm it at the start of every turn and whenever it expires. Returns the registry row Servex now holds for you.",
 			inputSchema: { type: "object", required: ["id", "session_id"], properties: {
 				id: { type: "string", description: "The id you want to be addressed by from now on — a short, readable word, e.g. `vscode-recursive-pairs`. Never a uuid." },
 				session_id: { type: "string", description: "This session's own Claude session uuid, so a resume can still find you. In a terminal, $CLAUDE_CODE_SESSION_ID." }
 			} },
-			handler: (args = {}) => JSON.stringify(this.register(args), null, 2)
+			handler: (args = {}) => { try { return JSON.stringify(this.register(args), null, 2); } catch (e){ return JSON.stringify({ ok: false, error: String(e.message || e) }); } }
 		});
 	}
 }

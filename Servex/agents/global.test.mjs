@@ -147,10 +147,11 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const hear = (card, line, info) => f.listeners.forEach(fn => fn(card, line, info));
+	f.servex.layers = { root: id => id.split("/").length >= 4 ? id : null };   // a pair hears every root card
 
-	// fresh prompts on cards: never forwarded any more
-	hear("a", { prompt: { text: "one" } }, { fresh: true });
-	hear("b", { prompt: { text: "two" } }, { fresh: true });
+	// fresh prompts on cards a page pair hears: never forwarded any more
+	hear("2026/09/24/a", { prompt: { text: "one" } }, { fresh: true });
+	hear("2026/09/24/b/sub", { prompt: { text: "two" } }, { fresh: true });
 	await wait(120);
 	t(!f.sent.some(s => s.id === "master-assistant"), "fresh card prompts are no longer forwarded to the root");
 
@@ -193,6 +194,61 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	hear("g", { message: { kind: "landed", by: "task-mastermind-x", text: "five" } });
 	await wait(120);
 	t(f.spawned.filter(s => s.id === "master-assistant").pop().resume === "m-sid", "batching resumes the master");
+	clearInterval(g.reap_timer);
+}
+
+// Fix items 1-2 (2026-09-29): the owner's PAGE-LESS prompts reach master-assistant,
+// and a top-level page's manager (the REAL Layers' ids and layers.json) is a direct child.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const hear = (card, line, info) => f.listeners.forEach(fn => fn(card, line, info));
+	const to_master = () => f.sent.filter(s => s.id === "master-assistant");
+
+	// no Layers at all: nobody else hears a prompt, so every one is page-less
+	hear("2026/09/24/a", { prompt: { text: "no layers here" } }, { fresh: true });
+	await wait(120);
+	t(to_master().at(-1)?.text === "card 2026/09/24/a: no layers here" && to_master().at(-1).note.from === "owner", "with Layers off, a prompt reaches the root, from the owner");
+
+	const { default: Layers } = await import("./Layers.js");
+	const repo = fs.mkdtempSync(path.join(os.tmpdir(), "global-layers-"));
+	const L = new Layers({ servex: f.servex, file: path.join(repo, "layers.json"), repo, watch(){} });
+	L.load();
+	f.servex.layers = L;
+	for (const k of ["2026/09/24/fix-the-sidebar", "/framework/", "/framework/ux/Dictate/"]) L.record(k);
+	const n = to_master().length;
+
+	hear("2026/09/24/fix-the-sidebar", { prompt: { text: "a card's own words" } }, { fresh: true });
+	hear("2026/09/24/fix-the-sidebar/wider", { prompt: { text: "a sub-card's words" } }, { fresh: true });
+	hear("2026/09/24/fix-the-sidebar", { prompt: { text: "not fresh" } }, { fresh: false });
+	hear("2026/09", { prompt: { text: "spoken on the month, no card" } }, { fresh: true });
+	await wait(120);
+	const got = to_master().slice(n).map(s => s.text).join(" | ");
+	t(got === "card 2026/09: spoken on the month, no card", "only the page-less prompt reaches the root: " + JSON.stringify(got));
+
+	// landings: a card's manager and a top-level page's manager are direct children (parent manager-root in layers.json);
+	// a deeper page's manager (parent manager-ux) is not. Their LIVE parent is their own assistant, as Layers spawns them.
+	for (const [id, parent] of [["manager-fix-the-sidebar", "assistant-fix-the-sidebar"], ["manager-framework", "assistant-framework"], ["manager-dictate", "assistant-dictate"]])
+		f.servex.agents.live.set(id, f.add({ id, parent }));
+	t(L.state.cards["2026/09/24/fix-the-sidebar"].parent === "manager-root" && L.state.cards["/framework/ux/Dictate/"].parent === "manager-ux", "the real recorded parents");
+	t(g.direct_child("manager-fix-the-sidebar") && g.direct_child("manager-framework"), "a card's and a top-level page's manager are direct children");
+	t(!g.direct_child("manager-dictate") && !g.direct_child("manager-root") && !g.direct_child("assistant-framework"), "a deeper page's manager, the root's own manager and an assistant are not");
+	const m = to_master().length;
+	hear("2026/09/24/fix-the-sidebar", { message: { kind: "landed", by: "manager-fix-the-sidebar", text: "sidebar shipped" } });
+	hear("2026/09/24/fix-the-sidebar", { message: { kind: "landed", by: "manager-dictate", text: "a grandchild's landing" } });
+	await wait(120);
+	const landed = to_master().slice(m).map(s => s.text).join(" | ");
+	t(landed === "card 2026/09/24/fix-the-sidebar, landed from manager-fix-the-sidebar: sidebar shipped", "manager-<card>'s landing reaches the root; the deeper one's does not: " + JSON.stringify(landed));
+	// a STOPPED card manager is still a direct child: layers.json, not the live map, decides
+	f.servex.agents.live.delete("manager-fix-the-sidebar");
+	t(g.direct_child("manager-fix-the-sidebar"), "a stopped card manager still counts");
+
+	const master = f.spawned.find(s => s.id === "master-assistant");
+	t(["page_reply", "ask_manager", "card_reply"].every(k => master.allowed_tools.includes(`mcp__servex__${k}`)), "master-assistant can answer the page / and hand work to manager-root");
+	t(master.model === "claude-opus-5-5", "master-assistant runs on the architect tier (Opus)");
+	t(Array.isArray(master.setting_sources) && !master.setting_sources.length && master.sdk?.tools?.length === 0 && master.env?.ENABLE_CLAUDEAI_MCP_SERVERS === "false", "master-assistant starts lean, like a page assistant");
+	fs.rmSync(repo, { recursive: true, force: true });
 	clearInterval(g.reap_timer);
 }
 
