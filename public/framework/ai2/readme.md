@@ -24,10 +24,30 @@ outlines, using these cards." Every change here is judged against that sentence.
 - **Done, 2026-09-25:** a resurfaced row shows a one-line "what happened" bar; clicking it
   opens the card's Activity tab (`…/<card>/activity/`: every card tab is a routed child page now), and the bar
   clears once seen. [`doc/cards.md`](./doc/cards.md), `activity.js`.
-- **Open, later:** the list filter is not in the url yet. At 3440 the opened
-  card leaves empty space beside it. The chat's `···` and `⚙` have no labels.
-- **Uncommitted:** these files carry edits from about seven agents; mastermind-servex owns the
-  checkpoint commit.
+- **Done, 2026-09-28** (lead-2): a group row keeps its place after a reload
+  ([ai2-row-vanish](/framework/ai/2026-09-28/ai2-row-vanish/)); an inbox row can be a real site page,
+  Page and Servex so far: any log line with `"page": "<path>"` bumps it, and it opens at
+  `/framework/ai2/framework/core/Page/` (`real.js`, [ai2-real-pages](/framework/ai/2026-09-28/ai2-real-pages/));
+  the Floating page view is behind the "Floating page view (try it)" word, shown only on cards it
+  changes (`floating.js`, `workspace.js`); a card's own `content.js` ([doc/cards.md](./doc/cards.md));
+  rail rows use the default card padding and one cadence ([ai2-rail-rhythm](/framework/ai/2026-09-28/ai2-rail-rhythm/)).
+- **Open, first — checkpoint 2026-09-28, 11:50 PM.** From card
+  [2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va](/framework/ai2/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/),
+  step 1 (the rail's rhythm) is landed as `82c93dda`. Next:
+  2. **Top tabs on the AI 2 root**, like a class doc page: the title "AI 2", then **Inbox · Overview**, each routed.
+  3. **Overview = a grid or catalog of what was asked against what was done**, so unfinished work stops
+     disappearing. Full-width sections with text above and below; use `ui/section` once
+     task-mastermind-section-variants builds it. Data: the open-tasks sweep
+     ([/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/](/framework/ai2/2026/09/25/open-tasks-where-each-one-is-and-what-ne/)),
+     task logs' `landed_at` and `outcome`, and the owner's prompts in `.claude/prompts/*.jsonl`.
+     Later: size cards by weight, a `{"weight": 1|2|3}` card line (latest wins, missing = 2; organization's rule).
+- **Open, later:** remove the composer at the bottom of a card once page-drawer's `into_card` is merged
+  (the drawer's AI tab holds it). The drawer following a real page is called but not yet seen in a
+  picture. The list filter is not in the url. The chat's `···` and `⚙` have no labels. Tasks in class
+  folders: [proposal](/framework/ai/2026-09-28/ai2-real-pages/proposal-tasks.md), mastermind-servex-3's call.
+- **Landing, a caveat:** `Server/merge.mjs`'s link-following smoke fails on pages the Live panel links
+  (task pages throw `this[verb] is not a function`; page-drawer's m1/m2 404). Not AI 2's; when only those
+  fail, check that AI 2's files match the merge base and land by hand.
 
 One page at [`/framework/ai2/`](/framework/ai2/). **The default view is the inbox** (you
 preferred it, 2026-09-23): a narrow rail down the left, with a one-line box you talk to at its
