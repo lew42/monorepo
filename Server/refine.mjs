@@ -78,7 +78,7 @@ function repoRoot() {
 }
 
 function parseArgs(argv) {
-	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false, coverageOnly: null };
+	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false, coverageOnly: null, repairOnly: null, repairRounds: 1 };
 	const rest = [];
 	for (let i = 0; i < argv.length; i++) {
 		const a = argv[i];
@@ -87,6 +87,9 @@ function parseArgs(argv) {
 		else if (a === "--collab") args.collab = true;
 		else if (a === "--mock") args.mock = true;
 		else if (a === "--coverage-only") args.coverageOnly = argv[++i];
+		else if (a === "--repair-only") args.repairOnly = argv[++i];
+		else if (a === "--repair-rounds") args.repairRounds = Number(argv[++i]);
+		else if (a === "--no-repair") args.repairRounds = 0;
 		else rest.push(a);
 	}
 	args.input = rest[0];
@@ -229,7 +232,9 @@ async function draftStructured(modelId, sentences, cwd, mock, index) {
 		+ `terminology. Group related sentences under one bullet where that helps. Do not add any idea that\n`
 		+ `is not in the transcript, and do not turn a hedge ("maybe", "I think", "I guess") into a flat claim.\n\n`
 		+ `Every bullet MUST end with the sentence numbers it is based on, in this exact form: [S3, S7].\n`
-		+ `Use only sentence numbers that appear below — never invent one.\n\n`
+		+ `Cite each sentence individually — never a range like [S6-S9]; a range hides which specific\n`
+		+ `sentence supports which part of the bullet. Use only sentence numbers that appear below —\n`
+		+ `never invent one.\n\n`
 		+ `Cleaned transcript:\n"""\n${cleanTextForPrompt(sentences)}\n"""\n\n`
 		+ `Output ONLY the outline (Markdown bullets), nothing else.`;
 	const r = await askOnce(prompt, { model: modelId, cwd });
@@ -237,24 +242,43 @@ async function draftStructured(modelId, sentences, cwd, mock, index) {
 }
 
 // Without --collab: one cheap judge call picks a base draft (or merges) and says which model it
-// started from, so the scoreboard still has a winner to record.
-async function judgePick(drafts, cwd, mock) {
+// started from, so the scoreboard still has a winner to record. `caveats` (2026-09-29, collab's
+// tie fallback below) is optional extra context from a vote that couldn't cleanly decide — empty
+// for the normal, non-collab path.
+async function judgePick(drafts, cwd, mock, caveats = []) {
 	if (mock || drafts.length === 1) {
 		const first = drafts[0];
 		return { md: first.md, winner: first.name, cost_usd: 0 };
 	}
 	const body = drafts.map(d => `Draft "${d.name}":\n"""\n${d.md}\n"""`).join("\n\n");
+	const caveatLine = caveats.length ? `A vote on these drafts couldn't cleanly decide; the voters left these caveats — weigh\nthem in: ${caveats.map(c => `"${c}"`).join("; ")}\n\n` : "";
 	const prompt = `${drafts.length} drafts of the same outline exist (${drafts.map(d => `"${d.name}"`).join(", ")}), made by\n`
 		+ `different models from the same source sentences. Pick the best one as your base, or merge the\n`
 		+ `best parts of the others into it — keep every [S#] citation exactly as written, never invent one,\n`
 		+ `never drop an idea that was in a draft. The FIRST line of your answer must be exactly:\n`
 		+ `WINNER: <the draft name you started from>\n`
-		+ `Then the final outline (Markdown bullets), and nothing else.\n\n${body}`;
+		+ `Then the final outline (Markdown bullets), and nothing else.\n\n${caveatLine}${body}`;
 	const r = await askOnce(prompt, { model: JUDGE_MODEL, cwd });
 	const m = /^WINNER:\s*(\S+)/.exec(r.answer.trim());
 	const winner = m && drafts.some(d => d.name === m[1]) ? m[1] : drafts[0].name;
 	const md = r.answer.replace(/^WINNER:\s*\S+\s*\n?/, "").trim() + "\n";
 	return { md, winner, cost_usd: r.cost_usd };
+}
+
+// A vote's caveat is "the one improvement I'd make" — actually WORTH something only if it gets
+// worked into the winning text, not just listed under it as a footnote nobody reads (2026-09-29,
+// the owner on runs/b: "$0.31 for nothing" — the vote cost real money and its caveats were never
+// applied). One cheap call, skipped entirely (and free) when there's nothing to apply.
+async function applyCaveats(draftMd, caveats, cwd, mock) {
+	if (mock || !caveats.length) return { md: draftMd, cost_usd: 0 };
+	const prompt = `This outline won a vote among several models' drafts of the same source. The voter(s) also left\n`
+		+ `these caveats — the one improvement each would make. Revise the outline to address any caveat\n`
+		+ `that's actually warranted; keep every [S#] citation exactly as written (never invent one, never a\n`
+		+ `range like [S6-S9]), and leave anything a caveat didn't mention unchanged. Output ONLY the final\n`
+		+ `outline (Markdown bullets), nothing else.\n\n`
+		+ `Caveats:\n${caveats.map(c => `- ${c}`).join("\n")}\n\nOutline:\n"""\n${draftMd}\n"""`;
+	const r = await askOnce(prompt, { model: JUDGE_MODEL, cwd });
+	return { md: r.answer.trim() + "\n", cost_usd: r.cost_usd };
 }
 
 // With --collab: reuse Server/collab.mjs's own vote — pre-seed each draft as that phase's
@@ -282,12 +306,26 @@ async function collabPick(drafts, outDir, cwd, mock) {
 	if (r.status !== 0) throw new Error(`refine.mjs: collab.mjs failed (exit ${r.status}):\n${r.stderr || r.stdout}`);
 	const jsonlPath = path.join(collabDir, "collab.jsonl");
 	const lines = fs.readFileSync(jsonlPath, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+	const decision = [...lines].reverse().find(l => l.decision?.status === "decided")?.decision;
 	const winnerLine = [...lines].reverse().find(l => l.winner)?.winner;
 	if (!winnerLine || !winnerLine.pick) throw new Error(`refine.mjs: collab.mjs run at ${collabDir} produced no winner (see ${jsonlPath})`);
-	const winner = drafts.find(d => d.name === winnerLine.pick) || drafts[0];
 	const caveats = (winnerLine.caveats || []).filter(Boolean);
-	const md = winner.md.trim() + (caveats.length ? `\n\n**Caveats from the vote:**\n${caveats.map(c => `- ${c}`).join("\n")}\n` : "\n");
-	return { md, winner: winner.name, cost_usd: winnerLine.cost || 0, collabDir: path.relative(outDir, collabDir).replaceAll("\\", "/") };
+	const collabDirRel = path.relative(outDir, collabDir).replaceAll("\\", "/");
+
+	// Fix (2026-09-29, owner on runs/b: a 1-1 tie broken by collab.mjs's own "cheaper member" rule
+	// spent $0.31 to land on an arbitrary pick — price is not a quality signal). `tie_rule` is set
+	// on the decision line whenever tallyVotes() had to break a tie (by caveat-count or by price);
+	// on a tie, don't trust that pick — fall back to the same cheap judge call the non-collab path
+	// uses, so the tied vote's own spend at least buys a real, quality-based decision, and feed it
+	// the tied vote's caveats so nothing from it goes to waste.
+	if (decision?.tie_rule) {
+		const judged = await judgePick(drafts, cwd, mock, caveats);
+		return { md: judged.md, winner: judged.winner, cost_usd: (winnerLine.cost || 0) + judged.cost_usd, collabDir: collabDirRel, tie_broken_by: "judge" };
+	}
+
+	const winner = drafts.find(d => d.name === winnerLine.pick) || drafts[0];
+	const applied = await applyCaveats(winner.md, caveats, cwd, mock);
+	return { md: applied.md, winner: winner.name, cost_usd: (winnerLine.cost || 0) + applied.cost_usd, collabDir: collabDirRel, caveats_applied: caveats.length };
 }
 
 // ---- step 3: brief.md — numbered asks for a mastermind ----------------------------------------
@@ -303,7 +341,9 @@ async function stepBrief(structuredMd, cwd, mock) {
 		+ `Rules:\n`
 		+ `- Keep the owner's own names and words for things; never invent new terminology.\n`
 		+ `- Every ask ends with the sentence numbers it is based on, exactly as the outline already has them,\n`
-		+ `  like [S3, S7] — carry these over, never invent a new one and never drop one that applies.\n`
+		+ `  like [S3, S7] — carry these over, never invent a new one and never drop one that applies. Cite\n`
+		+ `  each sentence individually — never a range like [S6-S9]; a range hides which specific sentence\n`
+		+ `  supports which part of the ask.\n`
 		+ `- If the outline hedges ("maybe", "I think", "I guess"), phrase the ask as "the owner suggests ...",\n`
 		+ `  never as a flat instruction. A suggestion must never read like a rule.\n`
 		+ `- Number the asks 1, 2, 3, ... — one ask per idea, don't merge unrelated ideas into one ask.\n\n`
@@ -330,7 +370,21 @@ function parseAsks(briefMd) {
 	return asks;
 }
 
-const citationsIn = text => [...text.matchAll(/\bS(\d+)\b/g)].map(m => Number(m[1]));
+// Fix (2026-09-29, B's scoring of runs/b): a range like "[S6-S9]" or "[S6–S9]" used to read as
+// just S6 and S9 — every sentence INSIDE the range (S7, S8) showed up as uncited, so 4 of 6
+// "dropped" rows in that run were wrong; the sentence wasn't dropped, it was cited by a range the
+// parser didn't expand. Expand a range first (either dash), THEN scan whatever's left for plain
+// S# citations, so a mix like "[S3, S6-S9, S12]" reads as {3,6,7,8,9,12}.
+const RANGE_RE = /\bS(\d+)\s*[-–]\s*S(\d+)\b/g;
+function citationsIn(text) {
+	const out = new Set();
+	for (const m of text.matchAll(RANGE_RE)) {
+		const a = Number(m[1]), b = Number(m[2]);
+		for (let n = Math.min(a, b); n <= Math.max(a, b); n++) out.add(n);
+	}
+	for (const m of text.replace(RANGE_RE, " ").matchAll(/\bS(\d+)\b/g)) out.add(Number(m[1]));
+	return [...out];
+}
 const STRENGTH_WORDS = ["must", "never", "always", "only"];
 
 // Fix (2026-09-29, owner review of runs/sample: "7 flags on 7 asks... the real catch is buried
@@ -482,7 +536,7 @@ async function buildCoverage(rawText, sentences, asks, cwd, mock) {
 	const contextOnly = rows.filter(r => r.dest === "context only").length;
 	const cited = rows.length - dropped - contextOnly - unclassified;
 	return {
-		md, cost_usd: classifyCost,
+		md, rows, cost_usd: classifyCost,
 		numbers: {
 			sentences: rows.length, cited, context_only: contextOnly, dropped, unclassified,
 			flags: flagRows.length, thin_citations: flagRows.filter(f => f.kind === "thin citation").length,
@@ -522,14 +576,178 @@ async function runCoverageOnly(dir, mock) {
 	console.log(`refine.mjs --coverage-only: wrote ${outDir}\\coverage.md — ${coverage.numbers.sentences} sentences (${coverage.numbers.dropped} dropped, ${coverage.numbers.unclassified} unclassified, ${coverage.numbers.flags} flag(s), ${coverage.numbers.thin_citations} thin), classify cost $${coverage.cost_usd.toFixed(4)}`);
 }
 
+// ---- the repair round: coverage catches a drop, this fixes it -------------------------------
+//
+// The owner's own words (runs/c: 23 real asks dropped out of 121 sentences): "we need to make
+// sure we don't do that." Catching a drop in coverage.md isn't enough by itself — this round
+// closes the loop: after coverage runs, if anything is dropped or thin, ONE Sonnet call reads the
+// brief plus just those sentences and writes ONLY the new or amended asks needed to cover them,
+// then coverage is rebuilt against the repaired brief. `brief-v1.md` keeps the pre-repair version
+// so the two can be diffed; `refine.json`'s `repair` records dropped/thin before -> after.
+
+// New asks get NEXT sequential numbers, in order given; an "AMEND <n>" targeting a real existing
+// ask number replaces that ask's text in place (same number); an "AMEND <n>" whose number doesn't
+// match anything real is treated as new rather than silently dropped (a model citing the wrong
+// number is a model mistake, not a reason to lose the fix).
+function mergeRepair(briefMd, repairAnswer) {
+	const original = parseAsks(briefMd);
+	const byN = new Map(original.map(a => [a.n, a.text]));
+	const originalNs = new Set(original.map(a => a.n));
+	let nextN = Math.max(0, ...original.map(a => a.n)) + 1;
+	const notes = [];
+
+	const lines = repairAnswer.split(/\r?\n/);
+	const entries = [];
+	let cur = null;
+	for (const line of lines) {
+		const m = /^(NEW|AMEND)\s+(\d+)\.\s*(.*)$/.exec(line.trim());
+		if (m) { if (cur) entries.push(cur); cur = { kind: m[1], n: Number(m[2]), text: m[3] }; }
+		else if (cur && line.trim()) cur.text += " " + line.trim();
+	}
+	if (cur) entries.push(cur);
+
+	for (const e of entries) {
+		if (!e.text.trim()) continue;
+		if (e.kind === "AMEND" && originalNs.has(e.n)) { byN.set(e.n, e.text.trim()); notes.push(`amended ask #${e.n}`); }
+		else { byN.set(nextN, e.text.trim()); notes.push(`${e.kind === "AMEND" ? `amend targeted ask #${e.n}, which doesn't exist — added as new` : "new"} ask #${nextN}`); nextN++; }
+	}
+
+	const md = [...byN.keys()].sort((a, b) => a - b).map(n => `${n}. ${byN.get(n)}`).join("\n") + "\n";
+	return { md, notes };
+}
+
+// --mock stand-in: demonstrates BOTH merge paths for $0 — a THIN sentence (already cited by a
+// real ask, per its own `citingAsk`) amends that same ask; a DROPPED sentence (cited by no one)
+// becomes a new ask.
+function mockRepair(problemSentences) {
+	return problemSentences.map((s, i) => s.citingAsk
+		? `AMEND ${s.citingAsk}. mock: amended to also cover this. [S${s.n}]`
+		: `NEW ${900 + i}. mock: a new ask for a previously ${s.reason}. [S${s.n}]`
+	).join("\n") + "\n";
+}
+
+async function repairBrief(briefMd, problemSentences, cwd, mock) {
+	if (mock) return { answer: mockRepair(problemSentences), cost_usd: 0 };
+	const list = problemSentences.map(s => `S${s.n} (${s.reason}). ${s.text}`).join("\n");
+	const prompt = `A brief made from a dictation dropped, or only thinly covered, some of the owner's sentences.\n`
+		+ `Fix ONLY those gaps — do not touch or restate anything already well covered.\n\n`
+		+ `Rules:\n`
+		+ `- Keep the owner's own names and words; never invent new terminology.\n`
+		+ `- Every new or amended ask ends with the sentence numbers it is based on, like [S12, S15] —\n`
+		+ `  cite each sentence individually, never a range like [S12-S15].\n`
+		+ `- If the sentence hedges ("maybe", "I think", "I guess"), phrase it as "the owner suggests ...",\n`
+		+ `  never as a flat instruction.\n`
+		+ `- If an EXISTING ask already covers most of this idea and just needs to also cite the missing\n`
+		+ `  sentence, or be reworded because its citation was "thin" (it didn't actually reflect what that\n`
+		+ `  sentence said), output "AMEND <that ask's exact number>. <the FULL, corrected ask text>".\n`
+		+ `  Otherwise output a brand new ask as "NEW <any number>. <the ask text>" — the number you give a\n`
+		+ `  new ask is ignored and reassigned, but an AMEND number must be a real ask number from below.\n`
+		+ `- Output ONLY NEW/AMEND lines, nothing else — no commentary, no restating what was already fine.\n\n`
+		+ `The existing brief:\n"""\n${briefMd}\n"""\n\n`
+		+ `Sentences that need fixing:\n${list}\n`;
+	const r = await askOnce(prompt, { model: BRIEF_MODEL, cwd });
+	return { answer: r.answer, cost_usd: r.cost_usd };
+}
+
+// Runs up to `maxRounds` repair rounds against `briefMd`, rebuilding coverage each time to see
+// what's still dropped/thin. Stops early the moment nothing is left to fix (the common case, and
+// the cheap one — a round with nothing to fix costs $0, since coverage's own classifier only runs
+// when something is uncited). Returns the FINAL brief and coverage always matching each other —
+// if the loop stopped because it ran out of rounds rather than running out of problems, one more
+// coverage build happens after the loop so the reported numbers are never one round stale.
+async function runRepair(rawText, sentences, briefMd, cwd, mock, maxRounds) {
+	let currentBrief = briefMd;
+	let firstCoverage = null, finalCoverage = null;
+	let roundsRun = 0, repairCost = 0, problemsRemained = true;
+	const notes = [];
+
+	for (let round = 0; round < maxRounds; round++) {
+		const asks = parseAsks(currentBrief);
+		const coverage = await buildCoverage(rawText, sentences, asks, cwd, mock);
+		if (round === 0) firstCoverage = coverage;
+		finalCoverage = coverage;
+		const problems = coverage.rows.filter(r => r.dest.startsWith("dropped") || r.dest.includes("(thin)"));
+		if (!problems.length) { problemsRemained = false; break; }
+
+		const problemSentences = problems.map(r => {
+			const citing = /ask #(\d+)/.exec(r.dest); // set for a thin citation (an ask cited it); absent for a drop (no one cited it)
+			return { n: r.n, text: r.text, reason: r.dest, citingAsk: citing ? Number(citing[1]) : null };
+		});
+		const repair = await repairBrief(currentBrief, problemSentences, cwd, mock);
+		repairCost += repair.cost_usd;
+		const merged = mergeRepair(currentBrief, repair.answer);
+		currentBrief = merged.md;
+		notes.push(...merged.notes.map(n => `round ${round + 1}: ${n}`));
+		roundsRun++;
+	}
+	if (roundsRun > 0 && problemsRemained) {
+		// Ran out of rounds with problems still open — the loop's last coverage build was against
+		// the brief BEFORE that final round's repair; rebuild once more so nothing reported is stale.
+		finalCoverage = await buildCoverage(rawText, sentences, parseAsks(currentBrief), cwd, mock);
+	}
+	return { brief: currentBrief, changed: roundsRun > 0, firstCoverage, finalCoverage, roundsRun, repairCost, notes };
+}
+
+function repairInfoFrom(repair) {
+	return {
+		rounds_run: repair.roundsRun, cost_usd: Number(repair.repairCost.toFixed(6)),
+		dropped_before: repair.firstCoverage.numbers.dropped, thin_before: repair.firstCoverage.numbers.thin_citations,
+		dropped_after: repair.finalCoverage.numbers.dropped, thin_after: repair.finalCoverage.numbers.thin_citations,
+		notes: repair.notes,
+	};
+}
+
+// ---- --repair-only <dir>: run the repair round (and rebuild coverage) against a run dir's own
+// EXISTING brief.md, without re-running clean/structured/brief — the model spend left is the
+// repair call(s) plus, if anything is still uncited afterward, the classifier. brief-v1.md is
+// written only if it doesn't already exist, so a second --repair-only run never overwrites the
+// true original with an already-once-repaired brief. -------------------------------------------
+
+async function runRepairOnly(dir, mock, rounds) {
+	const root = repoRoot();
+	const outDir = path.resolve(dir);
+	const rawText = fs.readFileSync(path.join(outDir, "raw.txt"), "utf8");
+	const sentences = parseNumberedSentences(fs.readFileSync(path.join(outDir, "clean.md"), "utf8"));
+	const briefMd = fs.readFileSync(path.join(outDir, "brief.md"), "utf8");
+
+	console.log(`refine.mjs --repair-only: running up to ${rounds} repair round(s)...`);
+	const repair = await runRepair(rawText, sentences, briefMd, root, mock, rounds);
+
+	if (repair.changed) {
+		const v1Path = path.join(outDir, "brief-v1.md");
+		if (!fs.existsSync(v1Path)) fs.writeFileSync(v1Path, briefMd);
+		fs.writeFileSync(path.join(outDir, "brief.md"), repair.brief);
+	}
+	fs.writeFileSync(path.join(outDir, "coverage.md"), repair.finalCoverage.md);
+
+	const info = repairInfoFrom(repair);
+	const refineJsonPath = path.join(outDir, "refine.json");
+	let refineJson = {};
+	try { refineJson = JSON.parse(fs.readFileSync(refineJsonPath, "utf8")); } catch { /* no prior refine.json — write a minimal one below */ }
+	const prevCoverageCost = refineJson.cost_usd?.coverage || 0;
+	const prevRepairCost = refineJson.cost_usd?.repair || 0;
+	refineJson.coverage = repair.finalCoverage.numbers;
+	refineJson.repair = info;
+	refineJson.cost_usd = refineJson.cost_usd || {};
+	refineJson.cost_usd.coverage = repair.finalCoverage.cost_usd;
+	refineJson.cost_usd.repair = info.cost_usd;
+	if (typeof refineJson.cost_usd.total === "number") refineJson.cost_usd.total = Number((refineJson.cost_usd.total - prevCoverageCost - prevRepairCost + repair.finalCoverage.cost_usd + info.cost_usd).toFixed(6));
+	refineJson.repair_only_rerun_at = now();
+	fs.writeFileSync(refineJsonPath, JSON.stringify(refineJson, null, 2) + "\n");
+
+	console.log(`refine.mjs --repair-only: wrote ${outDir}\\coverage.md${repair.changed ? " and brief.md (brief-v1.md kept)" : " (nothing to repair)"} — dropped ${info.dropped_before} -> ${info.dropped_after}, thin ${info.thin_before} -> ${info.thin_after}, ${repair.roundsRun} round(s), cost $${info.cost_usd.toFixed(4)}`);
+}
+
 // ---- main ---------------------------------------------------------------------------------
 
 async function main() {
 	const args = parseArgs(process.argv.slice(2));
 	if (args.coverageOnly) { await runCoverageOnly(args.coverageOnly, args.mock); return; }
+	if (args.repairOnly) { await runRepairOnly(args.repairOnly, args.mock, args.repairRounds); return; }
 	if (!args.input) {
-		console.error("usage: node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock]");
+		console.error("usage: node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair]");
 		console.error("   or: node Server/refine.mjs --coverage-only <dir> [--mock]");
+		console.error("   or: node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]");
 		process.exit(1);
 	}
 	const root = repoRoot();
@@ -578,25 +796,39 @@ async function main() {
 	fs.writeFileSync(path.join(outDir, "brief.md"), brief.md);
 
 	console.log("refine.mjs: building coverage.md...");
-	const asks = parseAsks(brief.md);
-	const coverage = await buildCoverage(rawText, clean.sentences, asks, cwd, args.mock);
+	let coverage, finalBriefMd = brief.md, repairInfo = null;
+	if (args.repairRounds > 0) {
+		const repair = await runRepair(rawText, clean.sentences, brief.md, cwd, args.mock, args.repairRounds);
+		coverage = repair.finalCoverage;
+		if (repair.changed) {
+			fs.writeFileSync(path.join(outDir, "brief-v1.md"), brief.md);
+			finalBriefMd = repair.brief;
+			fs.writeFileSync(path.join(outDir, "brief.md"), finalBriefMd);
+		}
+		repairInfo = repairInfoFrom(repair);
+	} else {
+		const asks = parseAsks(brief.md);
+		coverage = await buildCoverage(rawText, clean.sentences, asks, cwd, args.mock);
+	}
 	costs.coverage = coverage.cost_usd;
+	costs.repair = repairInfo ? repairInfo.cost_usd : 0;
 	fs.writeFileSync(path.join(outDir, "coverage.md"), coverage.md);
 
 	const wordCount = t => wordsOf(t).length;
-	const totalCost = (costs.clean || 0) + Object.values(costs.structured).reduce((s, c) => s + c, 0) + (costs.pick || 0) + (costs.brief || 0) + (costs.coverage || 0);
+	const totalCost = (costs.clean || 0) + Object.values(costs.structured).reduce((s, c) => s + c, 0) + (costs.pick || 0) + (costs.brief || 0) + (costs.coverage || 0) + (costs.repair || 0);
 	const refineJson = {
 		at: now(), input: args.input, source_file: resolved.sourceFile.replaceAll("\\", "/"), out: path.relative(root, outDir).replaceAll("\\", "/"),
-		models: { clean: CLEAN_MODEL, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : JUDGE_MODEL, brief: BRIEF_MODEL, coverage: COVERAGE_MODEL },
-		collab: args.collab, mock: args.mock, structured_winner: pick.winner,
+		models: { clean: CLEAN_MODEL, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : JUDGE_MODEL, brief: BRIEF_MODEL, coverage: COVERAGE_MODEL, repair: BRIEF_MODEL },
+		collab: args.collab, mock: args.mock, structured_winner: pick.winner, tie_broken_by: pick.tie_broken_by || null,
 		cost_usd: { ...costs, total: Number(totalCost.toFixed(6)) },
-		word_counts: { raw: wordCount(rawText), clean: wordCount(clean.md), structured: wordCount(pick.md), brief: wordCount(brief.md) },
+		word_counts: { raw: wordCount(rawText), clean: wordCount(clean.md), structured: wordCount(pick.md), brief: wordCount(finalBriefMd) },
 		clean_overlap_ratio: ratio,
 		coverage: coverage.numbers,
+		repair: repairInfo,
 	};
 	fs.writeFileSync(path.join(outDir, "refine.json"), JSON.stringify(refineJson, null, 2) + "\n");
 
-	console.log(`refine.mjs: wrote ${outDir} — total cost $${totalCost.toFixed(4)}, ${coverage.numbers.sentences} sentences (${coverage.numbers.dropped} dropped, ${coverage.numbers.flags} flag(s)), overlap ${ratio}`);
+	console.log(`refine.mjs: wrote ${outDir} — total cost $${totalCost.toFixed(4)}, ${coverage.numbers.sentences} sentences (${coverage.numbers.dropped} dropped, ${coverage.numbers.flags} flag(s)), overlap ${ratio}${repairInfo ? `, repair ${repairInfo.dropped_before}->${repairInfo.dropped_after} dropped` : ""}`);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
