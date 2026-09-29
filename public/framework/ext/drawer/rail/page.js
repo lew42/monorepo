@@ -13,16 +13,16 @@ const shot = name => new URL("shots/" + name, import.meta.url).href;
 export default new Page({
 	meta: import.meta,
 	title: "Mobile bottom rail",
-	description: "Below 52em: an ✦ AI button that opens a listening sheet, and a ☰ that reaches the drawer's tabs — the two ways into ext/drawer on a phone.",
+	description: "Below 52em: an ✦ AI button that opens a listening sheet, and an ⋯ More that reaches the drawer's tabs — the two ways into ext/drawer on a phone.",
 	icon: "smartphone",
 
 	content(){
 
 		h2("What it is");
 
-		md("Below 52em (about 832px), every page grows a small bar pinned to the bottom of the screen — two buttons: **✦** opens a listening sheet, **☰** opens this same drawer on its tabs. Above 52em neither one exists; the side drawer's own ☰ (top right) is the whole story there.");
+		md("Below 52em (about 832px), every page grows a small bar pinned to the bottom of the screen — two buttons: **✦** opens a listening sheet, **⋯ More** opens this same drawer on its tabs. Not a second ☰: the page's own ☰ already lives at the top of the screen there (deliverable 1's fix), so this button names what it actually is instead of repeating that glyph. Above 52em neither button exists; the side drawer's own ☰ (top right) is the whole story there.");
 
-		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ☰ Menu buttons, page content unobstructed above them")
+		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ⋯ More buttons, page content unobstructed above them")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
 
 		md("**Tap ✦** and a small sheet slides up: it starts listening right away ([`ux/Dictate`](/framework/ux/Dictate/), its own `mode: \"open\"`), and every finished sentence becomes its own card — the list grows as you keep talking.");
@@ -49,6 +49,14 @@ class MyChecklistSheet extends DrawerRailSheet {
         // rail or the sheet needs to know this happened
     }
 }`);
+
+		md("The rail's own second button changed once already — it launched as a second ☰ \"Menu,\" and the task mastermind judged that a repeated glyph reads as \"do this again,\" not \"here's something else,\" now that the page's own ☰ lives at the top. Nothing was deleted: `menu_icon`/`menu_label`/`menu_title` are prototype fields, and `DrawerRail.V1` is the old look, kept as a subclass rather than a comment saying what used to be here:");
+
+		code.js(`import { DrawerRail } from "/framework/ext/drawer/rail.js";
+
+// menu.js calls \`rail(app)\`, which builds \`new DrawerRail({ app })\`.
+// A caller that wants the old look builds the variant class instead:
+new DrawerRail.V1({ app });   // ☰ "Menu", verbatim`);
 
 		h2("Why a normal flex row, not position: fixed");
 

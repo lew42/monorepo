@@ -5,10 +5,17 @@ import tabs from "./tabs.js";
 View.stylesheet(import.meta, "rail.css");
 
 /* THE MOBILE BOTTOM RAIL — below 52em only, the drawer's other way in (mobile-nav,
-   2026-09-29). Two controls: ✦ opens a small listening sheet (below), ☰ opens the
+   2026-09-29). Two controls: ✦ opens a small listening sheet (below), ⋯ opens the
    same right-side drawer every page already has (menu.js's own button, reachable
    here because that fixed corner button now steps aside for the page's own ☰ on a
    page with a sidebar — drawer.css, `.app:has(.sidebar) .drawer-menu`).
+
+   ⚠ `⋯ "More"`, not a second `☰ "Menu"` (the task mastermind, 2026-09-29): the
+   page's own ☰ is now the thing at the top of the screen on mobile (deliverable
+   1), so a SECOND ☰ down here read as "do this again" rather than "here's
+   something else." `menu_icon`/`menu_label`/`menu_title` are prototype fields,
+   not hard-coded in `menu_button()`, so the ☰/"Menu" look is not deleted — it
+   is `DrawerRail.V1` below, one subclass away.
 
    ⚠ A NORMAL flex child of `.app`, never `position: fixed` — `.app` is a
    `height: 100%; flex-direction: column` box with `.pages` as its one growing
@@ -52,14 +59,17 @@ export class DrawerRail extends View {
 			.click(() => this.open_sheet());
 	}
 
-	// ☰ — the drawer's own tabs (AI, Sessions, Dictation, Settings, Admin), the
-	// exact button menu.js already draws; this is just another way to reach it.
+	// The drawer's own tabs (AI, Sessions, Dictation, Settings, Admin), the exact
+	// button menu.js already draws; this is just another way to reach it. The
+	// icon/label/title are prototype fields (below), not written here, so a
+	// variant (`DrawerRail.V1`) can restore the old ☰ "Menu" look by overriding
+	// three values instead of this whole method.
 	menu_button(){
 		return button.c("drawer-rail-menu").attr("type", "button")
-			.attr("aria-label", "Menu — AI, sessions, dictation, settings")
+			.attr("title", this.menu_title).attr("aria-label", this.menu_title)
 			.append(() => {
-				span.c("drawer-rail-menu-icon", "☰");
-				span.c("drawer-rail-menu-label", "Menu");
+				span.c("drawer-rail-menu-icon", this.menu_icon);
+				span.c("drawer-rail-menu-label", this.menu_label);
 			})
 			.click(() => tabs.toggle());
 	}
@@ -145,6 +155,23 @@ export class DrawerRailSheet extends View {
 }
 
 DrawerRail.Sheet = DrawerRailSheet;
+
+// ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
+// rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
+// the look by overriding three values instead of copying the whole method.
+DrawerRail.prototype.menu_icon = "⋯";
+DrawerRail.prototype.menu_label = "More";
+DrawerRail.prototype.menu_title = "AI sessions, dictation, settings, admin";
+
+/* v1 — the ☰ "Menu" button this replaced (the task mastermind, 2026-09-29: a
+   second ☰ down here, once the page's own ☰ moved to the top for deliverable 1,
+   read as "the same button twice"). Not deleted — `new DrawerRail.V1({ app })`
+   in place of `rail(app)`'s `new DrawerRail({ app })` brings it back verbatim. */
+export class DrawerRailV1 extends DrawerRail {}
+DrawerRailV1.prototype.menu_icon = "☰";
+DrawerRailV1.prototype.menu_label = "Menu";
+DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";
+DrawerRail.V1 = DrawerRailV1;
 
 // One rail per document, built the first time a page asks for it — same shape as
 // drawer.js's own singleton. Called from menu.js, so app.js needs no change: the

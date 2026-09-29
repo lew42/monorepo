@@ -81,12 +81,24 @@ do.
 
 ## The mobile bottom rail (2026-09-29)
 
-`rail.js`/`rail.css` — below 52em, an ✦ button (a listening sheet) and a ☰ (this
-same drawer's tabs), pinned to the bottom of the screen. The side drawer above
-was not a template to copy for this: it is `position: fixed`, so it has to
-restate its own width as a `padding-inline-end` reservation on `.app`
-(`--rail-push`) to keep the page from sitting behind it — two numbers, kept in
-sync by hand.
+`rail.js`/`rail.css` — below 52em, an ✦ button (a listening sheet) and a second
+button (this same drawer's tabs), pinned to the bottom of the screen. The side
+drawer above was not a template to copy for this: it is `position: fixed`, so
+it has to restate its own width as a `padding-inline-end` reservation on
+`.app` (`--rail-push`) to keep the page from sitting behind it — two numbers,
+kept in sync by hand.
+
+- **The second button reads ⋯ "More", not ☰ "Menu" (the task mastermind,
+  2026-09-29, judging the first shots).** It launched as a second ☰, copying
+  menu.js's own glyph and label — but deliverable 1 (this same day) moved the
+  page's OWN ☰ to the top of the screen on mobile, so a second ☰ down here at
+  the bottom read as "press this again," not "here's something else," even
+  though it opens a different thing (the drawer, not the page's nav). `⋯
+  "More"` names what it actually is: a way to reach everything that doesn't
+  fit as its own button. The old glyph/label/title are prototype fields
+  (`menu_icon`, `menu_label`, `menu_title`), not hard-coded in `menu_button()`,
+  so nothing was deleted — `DrawerRail.V1` (a two-line subclass, `rail.js`)
+  restores the ☰ "Menu" look verbatim for anyone who wants it back.
 
 - **A plain, non-fixed flex child of `.app`, not `position: fixed` (the
   option actually chosen).** `.app` is already `height: 100%; display: flex;
