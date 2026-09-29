@@ -40,6 +40,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
 - Below `26rem` the rail is the whole sheet; that breakpoint mirrors `--rail-floor`'s default by hand · [doc/decisions.md](./doc/decisions.md)
 - `drawer()` runs on every redraw — a listener on the returned rail is wired once, behind a flag · [doc/decisions.md](./doc/decisions.md)
 - `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside DevBar (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)
+- Below 52em, the ☰ hides itself when the page has its own `.sidebar` (`core/Sidebar`) — that panel draws a native ☰ in the same corner, and the two used to fight for every tap. `.drawer-menu-v1` on `.app` brings this one back there too · [doc/decisions.md](./doc/decisions.md)
 
 ## More
 
