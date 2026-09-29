@@ -34,6 +34,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place } from "./home.js";
+import { ensure_deps } from "./ensure-deps.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ENTRY = path.join(HERE, "index.js");
@@ -167,6 +168,9 @@ async function restart(force){
  * quickly; a child that stayed up past HEALTHY resets it, because one crash
  * after an hour of work is not a loop. */
 function start(backoff){
+    /* Guard (2026-09-29): a missing express or agent SDK is a crash loop no restart can fix —
+     * reinstall it first (rate-limited; Servex/ensure-deps.mjs says why). */
+    try { ensure_deps(path.join(HERE, ".."), note); } catch (e) { note(`dependency check failed: ${e.message}`); }
     const began = Date.now();
     const out = fs.openSync(OUT, "a");
 

@@ -11,6 +11,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = path.join(ROOT, ".worktrees.json");
@@ -91,6 +92,13 @@ if (status.trim()) {
 	write_registry(registry);
 	process.exit(0);
 }
+
+/* GUARD (2026-09-29): `git worktree remove` deletes THROUGH a junction. A worktree whose
+   node_modules is a link into the main checkout would take the main tree's copy with it (how
+   the main node_modules was emptied on 09-22 and 09-29). Refuse, and keep the registry entry so
+   the sweep keeps saying so until someone removes the link. */
+try { refuse_links_into_main(entry.path, "git worktree remove"); }
+catch (e) { console.error(e.message); console.error(`worktree-down: server stopped; the worktree is left in place at ${entry.path}.`); process.exit(1); }
 
 try {
 	execFileSync("git", ["worktree", "remove", entry.path], { cwd: ROOT, stdio: "inherit", windowsHide: true });
