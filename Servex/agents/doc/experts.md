@@ -30,7 +30,7 @@ token**, not 4 (core/Page: 169k characters is ~75k tokens).
 
 | verb | does |
 |---|---|
-| `load_module(modules)` | the reading, as data: chain (deduplicated across modules), files, on-demand list, hashes |
+| `load_module(modules)` | the reading, as data: chain (deduplicated across modules), files, on-demand list, hashes. As an MCP tool its ~78k-token output needs `MAX_MCP_OUTPUT_TOKENS`, set to 150000 in `.claude/settings.json`'s `env` |
 | `readme(modules)` | the same, formatted as one prompt text — the "read me" verb |
 | `build(host, module, {model})` | runs the reading into a session, records a **base** row |
 | `build(host, module, {extra, from})` | forks a base, feeds more files, records a **derived** row |
