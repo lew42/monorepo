@@ -88,6 +88,8 @@ written out in full in `agents/assistant.md`, its whole system prompt.
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
+**Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
+
 **Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
 
 ## Is the machine melting? — the monitor and the spawn queue
