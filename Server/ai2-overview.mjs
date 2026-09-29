@@ -113,7 +113,9 @@ function findOwnerQuote(request, prompts) {
 	if (head.length < 10) return null; // too short to match safely
 	for (const text of prompts) {
 		const low = text.toLowerCase();
-		if (low.includes(head) || head.includes(low.slice(0, 40))) return text;
+		const promptHead = low.slice(0, 40);
+		if (low.includes(head)) return text;
+		if (promptHead.length >= 20 && head.includes(promptHead)) return text;
 	}
 	return null;
 }
@@ -121,9 +123,24 @@ function findOwnerQuote(request, prompts) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+// A match word counts only as a WHOLE word (or whole hyphenated/dotted token),
+// never a plain substring — "mic" must not hit "michael/dev", and "page.js"
+// must not hit every request that happens to mention a page.js file in
+// passing. \b doesn't stop at "." or "/", so this builds the boundary by hand.
+function containsWord(hay, word) {
+	const esc = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const re = new RegExp(`(?:^|[^a-z0-9])${esc}(?:$|[^a-z0-9])`, "i");
+	return re.test(hay);
+}
+
 function conceptFor(task) {
-	const hay = `${task.slug} ${task.group || ""} ${task.request || ""}`.toLowerCase();
-	for (const c of CONCEPTS) if (c.match.some(w => hay.includes(w))) return c.id;
+	// The slug and group are the task's own filing, chosen once, on purpose —
+	// far less noisy than the free-text request. Try them first; only fall
+	// back to the request when neither names a concept.
+	const named = `${task.slug} ${task.group || ""}`.toLowerCase();
+	for (const c of CONCEPTS) if (c.match.some(w => containsWord(named, w))) return c.id;
+	const requested = (task.request || "").toLowerCase();
+	for (const c of CONCEPTS) if (c.match.some(w => containsWord(requested, w))) return c.id;
 	return null;
 }
 

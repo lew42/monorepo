@@ -1,6 +1,6 @@
 {
-	"built_at": "2026-09-29T04:53:55.853Z",
-	"unfiled": 325,
+	"built_at": "2026-09-29T04:56:25.063Z",
+	"unfiled": 331,
 	"concepts": [
 		{
 			"id": "servex",
@@ -26,7 +26,7 @@
 					"words_url": "/framework/ai/2026-09-28/task-loop/",
 					"asked_at": "2026-09-28T14:09:43-05:00",
 					"landed_at": null,
-					"hours": 9.7,
+					"hours": 9.8,
 					"cost_usd": 12.2215,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/task-loop/",
@@ -38,7 +38,7 @@
 					"words_url": "/framework/ai/2026-09-25/recursive-pairs/",
 					"asked_at": "2026-09-28T13:46:43-05:00",
 					"landed_at": null,
-					"hours": 10.1,
+					"hours": 10.2,
 					"cost_usd": 29.1857,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-25/recursive-pairs/",
@@ -56,18 +56,6 @@
 					"cost_usd": null,
 					"outcome": "Landed — 326 uncommitted files went from git status --short down to about 10-12 (that count keeps moving; other agents are writing live), i…",
 					"result_url": "/framework/ai/2026-09-28/commit-live-system/groups.md",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-28/collab-rounds",
-					"quote": "Server/collab.mjs runner: phases, Servex members, tally, --mock, doc",
-					"words_url": "/framework/ai/2026-09-28/collab-rounds/",
-					"asked_at": "2026-09-28T13:53:05-05:00",
-					"landed_at": "2026-09-28T14:42:48-05:00",
-					"hours": 0.8,
-					"cost_usd": 23.6841,
-					"outcome": "Collab landed: cheap agents work a question in rounds and vote, and the page shows every decision. Live run · ⋯ on a doc page · how to run…",
-					"result_url": "/framework/ext/Collab/",
 					"state": "done"
 				},
 				{
@@ -200,18 +188,6 @@
 					"cost_usd": 21.5013,
 					"outcome": "Agents can now fork themselves, wait on each other, and survive a Servex restart. Merged into michael/dev as 230171d5, plus b6c5d5c0 (resta…",
 					"result_url": "/framework/ai/2026-09-24/concurrency/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-24/md-open",
-					"quote": "Test the md pages with a demo in ext/markdown. Where does a clicked markdown link open — one column deep vs three? No t…",
-					"words_url": "/framework/ai/2026-09-24/md-open/",
-					"asked_at": "2026-09-24T17:36:45-05:00",
-					"landed_at": "2026-09-24T17:54:31-05:00",
-					"hours": 0.3,
-					"cost_usd": 8.043,
-					"outcome": "A clicked markdown link now opens where the page that holds it decides: navigate, next column, or swapped in place. The same three links op…",
-					"result_url": "/framework/ext/markdown/open/",
 					"state": "done"
 				},
 				{
@@ -359,30 +335,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-22/prompt-lifecycle",
-					"quote": "prompt-lifecycle - your words become names, cards and a proposal while you are still talking. A Servex-hosted fast assi…",
-					"words_url": "/framework/ai/2026-09-22/prompt-lifecycle/",
-					"asked_at": "2026-09-22T16:52:11-05:00",
-					"landed_at": "2026-09-22T17:14:23-05:00",
-					"hours": 0.4,
-					"cost_usd": null,
-					"outcome": "Your spoken words become names, cards and a pre-proposal while you are still talking — median 2.05 seconds.",
-					"result_url": "/framework/ai/2026-09-22/prompt-lifecycle/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/board-from-events",
-					"quote": "Run log-model's fold for real: an Agents strip on /framework/ai/v/3/ fed live from Servex's /agents and /api/stream, an…",
-					"words_url": "/framework/ai/2026-09-22/board-from-events/",
-					"asked_at": "2026-09-22T16:17:53-05:00",
-					"landed_at": "2026-09-22T16:47:55-05:00",
-					"hours": 0.5,
-					"cost_usd": null,
-					"outcome": "A Servex-hosted agent now appears on the AI board with nobody writing a card for it. An Agents strip sits under the toolbar on every view o…",
-					"result_url": "/framework/ai/v/3/",
-					"state": "done"
-				},
-				{
 					"task": "2026-09-22/naming-checks",
 					"quote": "The naming rules live in the appender, so no agent can bypass them: checks in Log.append for name/rename/approve/disput…",
 					"words_url": "/framework/ai/2026-09-22/naming-checks/",
@@ -405,31 +357,66 @@
 					"outcome": "A worktree can now register itself with Servex and the proxy reaches it — proven end to end, and npm ci no longer hangs on Windows. Two rou…",
 					"result_url": "/framework/ai/2026-09-22/mastermind-servex/",
 					"state": "done"
+				},
+				{
+					"task": "2026-09-22/sub-mastermind-live",
+					"quote": "sub-mastermind-live: wake_parent on Agents so a child's landing wakes its parent, prove the parking then the fix, regis…",
+					"words_url": "/framework/ai/2026-09-22/sub-mastermind-live/",
+					"asked_at": "2026-09-22T16:07:45-05:00",
+					"landed_at": "2026-09-22T16:24:59-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "A child's landing now wakes its parent, and it's proven both ways. Agents.wakeparent(child, kind) in Servex/agents/Agents.js sends a parent…",
+					"result_url": "/framework/ai/2026-09-22/sub-mastermind-live/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-22/worktree-proof",
+					"quote": "worktree-proof: node Server/worktree-up.mjs proof-1 - up time and size vs 3.1s/274MB; through the proxy at proof-1.loca…",
+					"words_url": "/framework/ai/2026-09-22/worktree-proof/",
+					"asked_at": "2026-09-22T15:51:36-05:00",
+					"landed_at": "2026-09-22T16:08:52-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "A worktree built a real fix, proved the proxy has a gap, and tore itself down clean — worktree-design's own numbers held almost exactly. Up…",
+					"result_url": "/framework/ai/2026-09-22/worktree-proof/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-22/spawn-role",
+					"quote": "spawn-role — an agent's posture comes from its role, and a registry says who is alive",
+					"words_url": "/framework/ai/2026-09-22/spawn-role/",
+					"asked_at": "2026-09-22T15:54:31-05:00",
+					"landed_at": "2026-09-22T16:03:35-05:00",
+					"hours": 0.2,
+					"cost_usd": null,
+					"outcome": "Landed: spawnagent({role}) loads a skill before its first turn, and a registry says who's alive.",
+					"result_url": "http://127.0.0.1:8090/agents",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-22/servex-integrate",
+					"quote": "Connect the two landed halves: Servex.js constructs Agents and registers tools.js through the MCP seam, the agent log s…",
+					"words_url": "/framework/ai/2026-09-22/servex-integrate/",
+					"asked_at": "2026-09-22T15:23:08-05:00",
+					"landed_at": "2026-09-22T15:47:29-05:00",
+					"hours": 0.4,
+					"cost_usd": null,
+					"outcome": "Servex is now one always-on process that holds the Claude agents, owns every log, streams it all live, and keeps itself alive.",
+					"result_url": "/framework/ai/2026-09-22/servex-integrate/",
+					"state": "done"
 				}
 			],
-			"done_count": 41,
+			"done_count": 34,
 			"stale_count": 0,
-			"cost_usd": 204.63
+			"cost_usd": 172.91
 		},
 		{
 			"id": "page",
 			"name": "Page",
 			"icon": "description",
 			"url": "/framework/core/Page/",
-			"open": [
-				{
-					"task": "2026-09-24/chat-ext-extract",
-					"quote": "Build all of the chat logic (scroll, dictation compose, markdown, role labels) as one reusable extension, for example p…",
-					"words_url": "/framework/ai/2026-09-24/chat-ext-extract/",
-					"asked_at": "2026-09-24T21:48:09-05:00",
-					"landed_at": null,
-					"hours": 98.1,
-					"cost_usd": 0.9803,
-					"outcome": "",
-					"result_url": "/framework/ai/2026-09-24/chat-ext-extract/",
-					"state": "open"
-				}
-			],
+			"open": [],
 			"done": [
 				{
 					"task": "2026-09-28/page-drawer",
@@ -444,18 +431,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-28/ai2-real-pages",
-					"quote": "we could render the actual page class right there in the inbox. And so the inbox is sort of just a different navigation…",
-					"words_url": "/framework/ai/2026-09-28/ai2-real-pages/",
-					"asked_at": "2026-09-28T14:29:54-05:00",
-					"landed_at": "2026-09-28T14:47:01-05:00",
-					"hours": 0.3,
-					"cost_usd": 6.0093,
-					"outcome": "An inbox row can now be a real page: the Page class opens its own page in the AI 2 detail area.",
-					"result_url": "/framework/ai2/framework/core/Page/",
-					"state": "done"
-				},
-				{
 					"task": "2026-09-28/organization",
 					"quote": "See owner-words.md: an organization card with the most important things first, every earlier audit linked, paging first…",
 					"words_url": "/framework/ai/2026-09-28/organization/",
@@ -465,18 +440,6 @@
 					"cost_usd": 37.4906,
 					"outcome": "core/Page: Make a page and Layout tabs; object card live; one card ranks everything.",
 					"result_url": "/framework/ai2/2026/09/28/organization-what-matters-most-paging-fi/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-25/overview-fix",
-					"quote": "URGENT. On the Dictate card the Overview shows all 13 requests as unticked To do and 0 Delivered, as a flat list with n…",
-					"words_url": "/framework/ai/2026-09-25/overview-fix/",
-					"asked_at": "2026-09-25T18:13:25-05:00",
-					"landed_at": "2026-09-25T18:27:26-05:00",
-					"hours": 0.2,
-					"cost_usd": 1.7444,
-					"outcome": "Every card's Overview now counts delivered work correctly and shows real titles. System design 4 of 4 · AI dashboard 9 of 12 · Dictate 11 o…",
-					"result_url": "/framework/ai/2026-09-25/overview-fix/",
 					"state": "done"
 				},
 				{
@@ -504,15 +467,15 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-24/content-modules",
-					"quote": "Content modules: census every card/widget kind into one catalog; question, decision and quotation cards as modules plac…",
-					"words_url": "/framework/ai/2026-09-24/content-modules/",
-					"asked_at": "2026-09-24T17:30:23-05:00",
-					"landed_at": "2026-09-24T17:45:11-05:00",
-					"hours": 0.2,
-					"cost_usd": 8.6661,
-					"outcome": "Content modules landed: question, decision and quotation cards any page can place with one line, and a catalog of every card kind on the si…",
-					"result_url": "/framework/ux/Content/catalog/",
+					"task": "2026-09-24/md-open",
+					"quote": "Test the md pages with a demo in ext/markdown. Where does a clicked markdown link open — one column deep vs three? No t…",
+					"words_url": "/framework/ai/2026-09-24/md-open/",
+					"asked_at": "2026-09-24T17:36:45-05:00",
+					"landed_at": "2026-09-24T17:54:31-05:00",
+					"hours": 0.3,
+					"cost_usd": 8.043,
+					"outcome": "A clicked markdown link now opens where the page that holds it decides: navigate, next column, or swapped in place. The same three links op…",
+					"result_url": "/framework/ext/markdown/open/",
 					"state": "done"
 				},
 				{
@@ -525,42 +488,6 @@
 					"cost_usd": 4.8812,
 					"outcome": "Markdown files now render as pages. Add md/ to any page's url. /framework/ext/Panel/md/ lists every markdown file in the module, and /frame…",
 					"result_url": "/framework/ext/Panel/md/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-20/studies-honest",
-					"quote": "public/framework/styles/system/studies/page.js still declares nine children whose page.js files are gone (404s). Check…",
-					"words_url": "/framework/ai/2026-09-20/studies-honest/",
-					"asked_at": "2026-09-20T10:20:30-05:00",
-					"landed_at": "2026-09-20T10:25:22-05:00",
-					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "All nine studies restored — zero dead links, not five write-offs. The index at /framework/styles/system/studies/ advertised nine studies (s…",
-					"result_url": "/framework/styles/system/studies/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-19/health-quiet",
-					"quote": "health-quiet: nine malformed JSONL lines and two rule exceptions silence 850 of 861 warnings in tonight's page-health l…",
-					"words_url": "/framework/ai/2026-09-19/health-quiet/",
-					"asked_at": "2026-09-19T21:14:28-05:00",
-					"landed_at": "2026-09-19T21:34:19-05:00",
-					"hours": 0.3,
-					"cost_usd": null,
-					"outcome": "Updated after a coordinator review: the real defect is fixed too, not just the two symptoms. Eleven broken log lines across five files are…",
-					"result_url": "/framework/ai/2026-09-19/health-quiet/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-19/health-triage",
-					"quote": "Read the ~1000-line health watcher log for 2026-09-19, sort real defects from rule noise and mid-edit snapshots, verify…",
-					"words_url": "/framework/ai/2026-09-19/health-triage/",
-					"asked_at": "2026-09-19T20:49:16-05:00",
-					"landed_at": "2026-09-19T21:01:00-05:00",
-					"hours": 0.2,
-					"cost_usd": null,
-					"outcome": "1,040 health-watcher lines from tonight collapse to 11 distinct things — 3 real bugs still in the log, 2 rules that are mostly noise, and 6…",
-					"result_url": "/framework/ai/2026-09-19/health-triage/",
 					"state": "done"
 				},
 				{
@@ -612,18 +539,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-18/link-tracking",
-					"quote": "the path would break if we drag and drop a page from one place to another. Maybe we need an import tracking system so t…",
-					"words_url": "/framework/ai/2026-09-18/link-tracking/",
-					"asked_at": "2026-09-18T14:40:00-05:00",
-					"landed_at": "2026-09-18T13:37:07-05:00",
-					"hours": -1,
-					"cost_usd": null,
-					"outcome": "A move in Make no longer breaks a link or an import. core/Page/tools/links.mjs walks the whole site (2,381 files, 0.45s) and writes public/…",
-					"result_url": "/framework/core/Page/tools/links.mjs",
-					"state": "done"
-				},
-				{
 					"task": "2026-09-18/site-study",
 					"quote": "assembler role: validate eight Haiku scout files under scouts/, reconcile ext-a/ext-b against the real public/framework…",
 					"words_url": "/framework/ai/2026-09-18/site-study/",
@@ -645,18 +560,6 @@
 					"cost_usd": null,
 					"outcome": "Move 3 landed: the seven /imagine/ shape labs are now at /layouts/. shells, screens, sections, blogx, mag and decks moved whole (git mv, no…",
 					"result_url": "/layouts/labs/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-17/ranked-lists",
-					"quote": "Your report page should read: 'Cloudflare API setup - 5 mins', or whatever.. if you need something from me like that, a…",
-					"words_url": "/framework/ai/2026-09-17/ranked-lists/",
-					"asked_at": "2026-09-18T00:02:39-05:00",
-					"landed_at": "2026-09-18T00:30:34-05:00",
-					"hours": 0.5,
-					"cost_usd": null,
-					"outcome": "Owner items lead the board, and every list here can be dragged into the order that matters.",
-					"result_url": "/framework/ai/",
 					"state": "done"
 				},
 				{
@@ -756,30 +659,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-08-29/imagine-program",
-					"quote": "Continuous mastermind: resizable columns + hug/fill words, generator default width, cross-page preview nav (browsable l…",
-					"words_url": "/framework/ai/2026-08-29/imagine-program/",
-					"asked_at": "2026-08-29T13:35:34-05:00",
-					"landed_at": "2026-09-08T09:14:33-05:00",
-					"hours": 235.6,
-					"cost_usd": null,
-					"outcome": "Closed on 2026-09-08 at the owner's stand-down — the loop was holding at evening cadence awaiting steer and its session ended. Its own clos…",
-					"result_url": "/imagine/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-06/mastermind-graduate",
-					"quote": "ok, do it, but don't ask for my approval. you make the call, you're the mastermind. begin. (the owner, on the four reco…",
-					"words_url": "/framework/ai/2026-09-06/mastermind-graduate/",
-					"asked_at": "2026-09-06T09:20:02-05:00",
-					"landed_at": "2026-09-08T09:14:33-05:00",
-					"hours": 47.9,
-					"cost_usd": null,
-					"outcome": "Closed on 2026-09-08 at the owner's stand-down — this run's session ended without a landing line. What it produced, per its own log: 33 min…",
-					"result_url": "/framework/ai/2026-09-06/",
-					"state": "done"
-				},
-				{
 					"task": "2026-09-08/blog-playwright",
 					"quote": "Write the blog post at /blog/ai/playwright/ from the research summary, the ten demos and tonight's own use of Playwrigh…",
 					"words_url": "/framework/ai/2026-09-08/blog-playwright/",
@@ -790,11 +669,119 @@
 					"outcome": "The Playwright post is live — /blog/ai/playwright/, \"Playwright: a browser you can write to\", 1,809 words, an 8 minute read, five sections…",
 					"result_url": "/blog/ai/playwright/",
 					"state": "done"
+				},
+				{
+					"task": "2026-09-08/websites-db",
+					"quote": "Build /websites/ — the corpus: one json per site under public/websites/site/<name>.json with five jpeg shots, the Node…",
+					"words_url": "/framework/ai/2026-09-08/websites-db/",
+					"asked_at": "2026-09-08T00:11:06-05:00",
+					"landed_at": "2026-09-08T00:38:43-05:00",
+					"hours": 0.5,
+					"cost_usd": null,
+					"outcome": "/websites/ is live — the corpus, its class, its json and its tools, with three real sites in it. One record per site (site/<name>.json), fi…",
+					"result_url": "/websites/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/paging-lean",
+					"quote": "The owner, 2026-09-06 11:40: \"these paging toolbars links don't really show anything meaningful... also, on this paging…",
+					"words_url": "/framework/ai/2026-09-06/paging-lean/",
+					"asked_at": "2026-09-06T12:11:17-05:00",
+					"landed_at": "2026-09-06T12:46:42-05:00",
+					"hours": 0.6,
+					"cost_usd": null,
+					"outcome": "The demo is the page now — the h1 is gone and the stage starts at the top. Three things, each measured.",
+					"result_url": "/imagine/paging/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/graduate-3",
+					"quote": "Slice 3 of the graduate plan: one copy of every word list (core/Page/words.js), the arrangement word points at the core…",
+					"words_url": "/framework/ai/2026-09-06/graduate-3/",
+					"asked_at": "2026-09-06T11:12:54-05:00",
+					"landed_at": "2026-09-06T12:07:10-05:00",
+					"hours": 0.9,
+					"cost_usd": null,
+					"outcome": "One copy of every word list, the demo has an address, and the tabs are flush. Eleven things, each measured.",
+					"result_url": "/framework/core/Page/doc/words/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/section-b",
+					"quote": "core/Section: a sub page that starts empty and picks an approved layout. Section extends Page; starts as a default div…",
+					"words_url": "/framework/ai/2026-09-06/section-b/",
+					"asked_at": "2026-09-06T11:15:06-05:00",
+					"landed_at": "2026-09-06T11:48:16-05:00",
+					"hours": 0.6,
+					"cost_usd": null,
+					"outcome": "core/Section lands — a page you put inside a page, that picks an approved layout.",
+					"result_url": "/framework/core/Section/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/graduate-2",
+					"quote": "Slice 2 of the graduate plan: the paging lab imports core's words and deletes its own copy - blocks.js re-exports, stag…",
+					"words_url": "/framework/ai/2026-09-06/graduate-2/",
+					"asked_at": "2026-09-06T10:24:11-05:00",
+					"landed_at": "2026-09-06T11:08:41-05:00",
+					"hours": 0.7,
+					"cost_usd": null,
+					"outcome": "The paging lab is a reader of core's words now — and half of slice 2 turned out not to be a copy at all.",
+					"result_url": "/imagine/paging/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/layout-a",
+					"quote": "Slice A of the layout plan: public/framework/core/Layout/ - Layout.js (Layout extends Page, View parts named PageLayout…",
+					"words_url": "/framework/ai/2026-09-06/layout-a/",
+					"asked_at": "2026-09-06T10:20:18-05:00",
+					"landed_at": "2026-09-06T11:07:46-05:00",
+					"hours": 0.8,
+					"cost_usd": null,
+					"outcome": "core/Layout landed — thirty arrangements you can browse, every one proven at seven widths.",
+					"result_url": "/framework/core/Layout/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/spacing-constants",
+					"quote": "Convert hand-typed spacing constants (padding/margin/gap/row-gap/column-gap/inset) in page.js files to the spacing ramp…",
+					"words_url": "/framework/ai/2026-09-06/spacing-constants/",
+					"asked_at": "2026-09-06T09:22:56-05:00",
+					"landed_at": "2026-09-06T10:31:30-05:00",
+					"hours": 1.1,
+					"cost_usd": null,
+					"outcome": "421 of 447 hand-typed spacing constants across 93 page.js files now read the ramp (--pad-ramp / --gap-ramp / --flow-ramp), as calc(var(--to…",
+					"result_url": "/framework/ai/2026-09-06/spacing-constants/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/layout-study",
+					"quote": "Census every layout-ish thing on the site (ext/layout, ext/Playground, ext/Panel, ext/demo, styles/layouts, /imagine/la…",
+					"words_url": "/framework/ai/2026-09-06/layout-study/",
+					"asked_at": "2026-09-06T10:00:23-05:00",
+					"landed_at": "2026-09-06T10:17:23-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "Nineteen places on this site answer \"how is a page arranged\". The plan makes four. Read-only study — nothing outside this dir changed excep…",
+					"result_url": "/framework/ai/2026-09-06/layout-study/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-06/graduate-1",
+					"quote": "Slice 1 of the graduate plan: core/Page gains the six page words - words(), word_classes(), the render() stamps, conten…",
+					"words_url": "/framework/ai/2026-09-06/graduate-1/",
+					"asked_at": "2026-09-06T09:46:02-05:00",
+					"landed_at": "2026-09-06T10:16:21-05:00",
+					"hours": 0.5,
+					"cost_usd": null,
+					"outcome": "Core Page now speaks the six words, and not one page on the site says one. A page may declare navigation, width, arrangement, surface, back…",
+					"result_url": "/framework/core/Page/",
+					"state": "done"
 				}
 			],
-			"done_count": 131,
+			"done_count": 105,
 			"stale_count": 1,
-			"cost_usd": 96.15
+			"cost_usd": 86.79
 		},
 		{
 			"id": "view",
@@ -996,6 +983,18 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-09-06/search-tidy",
+					"quote": "three loose ends the search build left outside its fence: rewrite /imagine/platform/omnibox/page.js, fix core/page.js's…",
+					"words_url": "/framework/ai/2026-09-06/search-tidy/",
+					"asked_at": "2026-09-06T10:56:17-05:00",
+					"landed_at": "2026-09-06T11:25:04-05:00",
+					"hours": 0.5,
+					"cost_usd": null,
+					"outcome": "Three loose ends closed, plus one mid-task course correction from the owner.",
+					"result_url": "/imagine/platform/omnibox/",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-06/site-errors",
 					"quote": "two pre-existing console errors: this.words is not a function on styles/layouts/*, and ux/Auth/'s demo.exhibit({}) call…",
 					"words_url": "/framework/ai/2026-09-06/site-errors/",
@@ -1150,21 +1149,9 @@
 					"outcome": "A baseline that names the bug, a click table whose two numbers agree, and a one-rule replacement for the canvas chrome.",
 					"result_url": "/framework/ai/2026-08-27/pg-ux-research/",
 					"state": "done"
-				},
-				{
-					"task": "2026-08-27/view-tc",
-					"quote": "look into the .tc() and .toggle_class() methods on View, and implement the .tc(\"class\", bool) variant for easier toggli…",
-					"words_url": "/framework/ai/2026-08-27/view-tc/",
-					"asked_at": "2026-08-27T16:12:00-05:00",
-					"landed_at": "2026-08-27T16:17:35-05:00",
-					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "View.tc(cls, force) shipped. cls still splits on spaces; force omitted flips (unchanged), true adds, false removes (native classList.toggle…",
-					"result_url": "/framework/core/View/",
-					"state": "done"
 				}
 			],
-			"done_count": 106,
+			"done_count": 111,
 			"stale_count": 1,
 			"cost_usd": 0
 		},
@@ -1236,6 +1223,18 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-09-18/link-tracking",
+					"quote": "the path would break if we drag and drop a page from one place to another. Maybe we need an import tracking system so t…",
+					"words_url": "/framework/ai/2026-09-18/link-tracking/",
+					"asked_at": "2026-09-18T14:40:00-05:00",
+					"landed_at": "2026-09-18T13:37:07-05:00",
+					"hours": -1,
+					"cost_usd": null,
+					"outcome": "A move in Make no longer breaks a link or an import. core/Page/tools/links.mjs walks the whole site (2,381 files, 0.45s) and writes public/…",
+					"result_url": "/framework/core/Page/tools/links.mjs",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-18/workflow-wall",
 					"quote": "do we have user interfaces built out for that yet? And how would that look? I know we have demo apps where we can see t…",
 					"words_url": "/framework/ai/2026-09-18/workflow-wall/",
@@ -1272,7 +1271,7 @@
 					"state": "done"
 				}
 			],
-			"done_count": 8,
+			"done_count": 9,
 			"stale_count": 0,
 			"cost_usd": 0
 		},
@@ -1288,7 +1287,7 @@
 					"words_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
 					"asked_at": "2026-09-28T22:45:53-05:00",
 					"landed_at": null,
-					"hours": 1.1,
+					"hours": 1.2,
 					"cost_usd": 1.9419,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/ai2-workspace-word/",
@@ -1300,7 +1299,7 @@
 					"words_url": "/framework/ai/2026-09-28/waiting-on-you/",
 					"asked_at": "2026-09-28T14:11:02-05:00",
 					"landed_at": null,
-					"hours": 9.7,
+					"hours": 9.8,
 					"cost_usd": 14.1704,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-28/waiting-on-you/",
@@ -1324,10 +1323,22 @@
 					"words_url": "/framework/ai/2026-09-25/chat-merge/",
 					"asked_at": "2026-09-25T15:34:21-05:00",
 					"landed_at": null,
-					"hours": 80.3,
+					"hours": 80.4,
 					"cost_usd": 0.9945,
 					"outcome": "",
 					"result_url": "/framework/ai/2026-09-25/chat-merge/",
+					"state": "open"
+				},
+				{
+					"task": "2026-09-24/chat-ext-extract",
+					"quote": "Build all of the chat logic (scroll, dictation compose, markdown, role labels) as one reusable extension, for example p…",
+					"words_url": "/framework/ai/2026-09-24/chat-ext-extract/",
+					"asked_at": "2026-09-24T21:48:09-05:00",
+					"landed_at": null,
+					"hours": 98.1,
+					"cost_usd": 0.9803,
+					"outcome": "",
+					"result_url": "/framework/ai/2026-09-24/chat-ext-extract/",
 					"state": "open"
 				}
 			],
@@ -1342,6 +1353,18 @@
 					"cost_usd": null,
 					"outcome": "The AI front page is a wall of 81 highlights, grouped by day — /framework/ai/: what is running, the usage windows, then a card for every th…",
 					"result_url": "/framework/ai/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-28/ai2-real-pages",
+					"quote": "we could render the actual page class right there in the inbox. And so the inbox is sort of just a different navigation…",
+					"words_url": "/framework/ai/2026-09-28/ai2-real-pages/",
+					"asked_at": "2026-09-28T14:29:54-05:00",
+					"landed_at": "2026-09-28T14:47:01-05:00",
+					"hours": 0.3,
+					"cost_usd": 6.0093,
+					"outcome": "An inbox row can now be a real page: the Page class opens its own page in the AI 2 detail area.",
+					"result_url": "/framework/ai2/framework/core/Page/",
 					"state": "done"
 				},
 				{
@@ -1378,6 +1401,18 @@
 					"cost_usd": null,
 					"outcome": "Fixed. ux/Content/Concepts/Concepts.js href() built a tile's link from folderurl() (where the concept pages' FILES live, under /framework/a…",
 					"result_url": "/framework/ux/Content/Concepts/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-25/overview-fix",
+					"quote": "URGENT. On the Dictate card the Overview shows all 13 requests as unticked To do and 0 Delivered, as a flat list with n…",
+					"words_url": "/framework/ai/2026-09-25/overview-fix/",
+					"asked_at": "2026-09-25T18:13:25-05:00",
+					"landed_at": "2026-09-25T18:27:26-05:00",
+					"hours": 0.2,
+					"cost_usd": 1.7444,
+					"outcome": "Every card's Overview now counts delivered work correctly and shows real titles. System design 4 of 4 · AI dashboard 9 of 12 · Dictate 11 o…",
+					"result_url": "/framework/ai/2026-09-25/overview-fix/",
 					"state": "done"
 				},
 				{
@@ -1597,6 +1632,18 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-09-24/content-modules",
+					"quote": "Content modules: census every card/widget kind into one catalog; question, decision and quotation cards as modules plac…",
+					"words_url": "/framework/ai/2026-09-24/content-modules/",
+					"asked_at": "2026-09-24T17:30:23-05:00",
+					"landed_at": "2026-09-24T17:45:11-05:00",
+					"hours": 0.2,
+					"cost_usd": 8.6661,
+					"outcome": "Content modules landed: question, decision and quotation cards any page can place with one line, and a catalog of every card kind on the si…",
+					"result_url": "/framework/ux/Content/catalog/",
+					"state": "done"
+				},
+				{
 					"task": "2026-09-24/agent-chat",
 					"quote": "It would be cool if I could click into [an agent] and then send it messages just from my browser, on the live tab or th…",
 					"words_url": "/framework/ai/2026-09-24/agent-chat/",
@@ -1655,47 +1702,11 @@
 					"outcome": "Per-card storage, sub-cards in a third column, and the footer/scrollbar fix are built and proven — all committed on the worktree branch for…",
 					"result_url": "/framework/ai2/",
 					"state": "done"
-				},
-				{
-					"task": "2026-09-22/ai2-master-detail",
-					"quote": "AI 2 becomes a list on the left and one persistent page on the right; nothing ever jumps. Master-detail with URL select…",
-					"words_url": "/framework/ai/2026-09-22/ai2-master-detail/",
-					"asked_at": "2026-09-22T18:32:01-05:00",
-					"landed_at": "2026-09-22T19:37:36-05:00",
-					"hours": 1.1,
-					"cost_usd": null,
-					"outcome": "Round 2: the composer is one line, every row says who, and you can talk into a card.",
-					"result_url": "/framework/ai2/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/card-to-task-proof",
-					"quote": "Make a page at /framework/ai/2026-09-22/card-to-task/proof/ that says hello and the time. Nothing more than that for no…",
-					"words_url": "/framework/ai/2026-09-22/card-to-task-proof/",
-					"asked_at": "2026-09-22T19:07:14-05:00",
-					"landed_at": "2026-09-22T19:11:03-05:00",
-					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "Landed: a proof page that says hello and the time, nothing else. card-to-task/proof/ is a single h1 reading \"hello — \" plus new Date().toLo…",
-					"result_url": "/framework/ai/2026-09-22/card-to-task/proof/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/board-declutter",
-					"quote": "this ai dashboard has way too much bullshit. 1) there's like... 200px of dead space at the top. 2) Todays' board? Every…",
-					"words_url": "/framework/ai/2026-09-22/board-declutter/",
-					"asked_at": "2026-09-22T17:37:58-05:00",
-					"landed_at": "2026-09-22T18:47:31-05:00",
-					"hours": 1.2,
-					"cost_usd": null,
-					"outcome": "The grid is hidden, nothing on the board touches the rail any more, the gap above the chrome line is gone — and the blank page you got when…",
-					"result_url": "/framework/ai/2026-09-22/board-declutter/",
-					"state": "done"
 				}
 			],
-			"done_count": 149,
+			"done_count": 169,
 			"stale_count": 0,
-			"cost_usd": 205.26
+			"cost_usd": 222.66
 		},
 		{
 			"id": "dictation",
@@ -1741,30 +1752,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-24/layout-names",
-					"quote": "Loose ends brief 3 (layouts get names, not numbers; shape labs into /layouts/; verdict above the picture) and brief 7 (…",
-					"words_url": "/framework/ai/2026-09-24/layout-names/",
-					"asked_at": "2026-09-24T17:40:10-05:00",
-					"landed_at": "2026-09-24T17:50:38-05:00",
-					"hours": 0.2,
-					"cost_usd": 5.954,
-					"outcome": "Layouts have names, not numbers, and Make shows the description and reorders from the keyboard. Merged into michael/dev (24d1df92).",
-					"result_url": "/framework/core/Layout/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-22/system-retro",
-					"quote": "Seriously think through the whole AI system - mastermind, master assistant, fast assistant, transcribing - and produce…",
-					"words_url": "/framework/ai/2026-09-22/system-retro/",
-					"asked_at": "2026-09-22T19:58:41-05:00",
-					"landed_at": "2026-09-22T20:16:39-05:00",
-					"hours": 0.3,
-					"cost_usd": null,
-					"outcome": "The end-of-day retro is done: the report, four docs, one screen, $552.14 total.",
-					"result_url": "/framework/ai/2026-09-22/system-retro/",
-					"state": "done"
-				},
-				{
 					"task": "2026-09-19/whisper-autostart",
 					"quote": "add Server/plugins/Whisper.js so the owner-facing dev server starts whisper-server by itself: adopts one already runnin…",
 					"words_url": "/framework/ai/2026-09-19/whisper-autostart/",
@@ -1801,42 +1788,6 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-09-04/research-data",
-					"quote": "Research where each kind of data lives so the site stays static and the platform stays cheap: classify platform data, f…",
-					"words_url": "/framework/ai/2026-09-04/research-data/",
-					"asked_at": "2026-09-04T14:55:20-05:00",
-					"landed_at": "2026-09-04T15:12:19-05:00",
-					"hours": 0.3,
-					"cost_usd": null,
-					"outcome": "Where each kind of data lives, so the site stays static and the platform stays cheap. Recommendation: (A) static+git first, D1 for identity…",
-					"result_url": "/imagine/platform/research/data/verdict/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-04/research-realtime",
-					"quote": "What real-time substrate serves text chat first and grows to voice, recording and transcripts - legally?",
-					"words_url": "/framework/ai/2026-09-04/research-realtime/",
-					"asked_at": "2026-09-04T14:55:50-05:00",
-					"landed_at": "2026-09-04T15:07:51-05:00",
-					"hours": 0.2,
-					"cost_usd": null,
-					"outcome": "Real-time substrate researched: text-first DO chat, growing to voice legally — verdict · log, 36 lines. MVP: one hibernating Durable Object…",
-					"result_url": "/imagine/platform/research/realtime/verdict/",
-					"state": "done"
-				},
-				{
-					"task": "2026-09-01/themes-browser",
-					"quote": "I feel like we need some alternate UI themes. how do we create a better theme browser for all these things? maybe colum…",
-					"words_url": "/framework/ai/2026-09-01/themes-browser/",
-					"asked_at": "2026-09-01T06:38:45+00:00",
-					"landed_at": "2026-09-01T06:50:44+00:00",
-					"hours": 0.2,
-					"cost_usd": null,
-					"outcome": "The theme browser is the page. /imagine/design/themes/ — a columns tree under /imagine/: a rail of themes, the wall open beside it at first…",
-					"result_url": "/imagine/design/themes/",
-					"state": "done"
-				},
-				{
 					"task": "2026-08-31/improve-game-team",
 					"quote": "Improve the game and team experiences under /imagine/ — look at both live at every width, brainstorm 8-12 ranked improv…",
 					"words_url": "/framework/ai/2026-08-31/improve-game-team/",
@@ -1847,59 +1798,11 @@
 					"outcome": "Six additions across the two experiences, every one proven headless.",
 					"result_url": "/imagine/game/journal/",
 					"state": "done"
-				},
-				{
-					"task": "2026-08-30/research-theories-2",
-					"quote": "Round 2 on the grand theories: current YD 2024-2026 literature both directions, Gobekli/Karahan Tepe newest excavation…",
-					"words_url": "/framework/ai/2026-08-30/research-theories-2/",
-					"asked_at": "2026-08-30T19:22:05-05:00",
-					"landed_at": "2026-08-30T19:41:46-05:00",
-					"hours": 0.3,
-					"cost_usd": null,
-					"outcome": "Round 2 landed: 23 new validated entries (34 -> 57), 15 new distinct sources. The Major Theories - Younger Dryas (updated) - Lost Civilizat…",
-					"result_url": "/imagine/research/theories/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-30/research-disclosure-2",
-					"quote": "Round 2 on the disclosure research arc: deepen public/imagine/research/disclosure/ - maritime case, FY2027 NDAA/UAPDA,…",
-					"words_url": "/framework/ai/2026-08-30/research-disclosure-2/",
-					"asked_at": "2026-08-30T19:31:39-05:00",
-					"landed_at": "2026-08-30T19:38:00-05:00",
-					"hours": 0.1,
-					"cost_usd": null,
-					"outcome": "Round 2 landed: 31 new validated entries (72 total), 3 new pages, 2 pages updated on credence-moving news. New: PURSUE (Trumps Feb 2026 ord…",
-					"result_url": "/imagine/research/disclosure/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-30/blog-layouts",
-					"quote": "TASK E2 - blog LAYOUT exploration lab at /imagine/blogx/. A browsable tree of blog shell candidates, each a full workin…",
-					"words_url": "/framework/ai/2026-08-30/blog-layouts/",
-					"asked_at": "2026-08-30T11:15:01-05:00",
-					"landed_at": "2026-08-30T11:58:38-05:00",
-					"hours": 0.7,
-					"cost_usd": null,
-					"outcome": "Eight blog shells at /imagine/blogx/, judged at 3440 first. All eight render the same eight posts, so the only variable on screen is the la…",
-					"result_url": "/imagine/blogx/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-17/rename-manifest",
-					"quote": "Inventory every reference to LayoutTool in this repo so a later agent can rename it to DesignTool in one atomic sweep.…",
-					"words_url": "/framework/ai/2026-08-17/rename-manifest/",
-					"asked_at": "2026-08-17T00:00:00-05:00",
-					"landed_at": "2026-08-17T01:30:00-05:00",
-					"hours": 1.5,
-					"cost_usd": null,
-					"outcome": "1,166 references across 307 files. Manifest complete: 95 files in directory (19 subdirs), 1,097 exact LayoutTool refs, 47 variants in histo…",
-					"result_url": "/framework/ai/2026-08-17/rename-manifest/manifest.md",
-					"state": "done"
 				}
 			],
-			"done_count": 16,
+			"done_count": 7,
 			"stale_count": 0,
-			"cost_usd": 37.86
+			"cost_usd": 31.91
 		},
 		{
 			"id": "research",
@@ -1918,6 +1821,18 @@
 					"cost_usd": 30.256,
 					"outcome": "Facts, disputes, and abstaining landed in every collab run (michael/dev f51ad82a, 153009fd). A facts phase now runs first: members list fou…",
 					"result_url": "/framework/ext/Collab/?src=/framework/ai/2026-09-28/collab-facts/real-run-2/collab.jsonl",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-28/collab-rounds",
+					"quote": "Server/collab.mjs runner: phases, Servex members, tally, --mock, doc",
+					"words_url": "/framework/ai/2026-09-28/collab-rounds/",
+					"asked_at": "2026-09-28T13:53:05-05:00",
+					"landed_at": "2026-09-28T14:42:48-05:00",
+					"hours": 0.8,
+					"cost_usd": 23.6841,
+					"outcome": "Collab landed: cheap agents work a question in rounds and vote, and the page shows every decision. Live run · ⋯ on a doc page · how to run…",
+					"result_url": "/framework/ext/Collab/",
 					"state": "done"
 				},
 				{
@@ -1965,6 +1880,18 @@
 					"hours": 0.4,
 					"cost_usd": null,
 					"outcome": "Topic cards went from stat tiles to the owner's 3-column card — kept, height cost measured and accepted. /imagine/research/'s four topic ca…",
+					"result_url": "/imagine/research/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-04/imagine-research",
+					"quote": "Review /imagine/research/ (rank 1 in the paging critique: 41% wide, 1856px dead, depth 9, scroll 14517/1392, 368 entrie…",
+					"words_url": "/framework/ai/2026-09-04/imagine-research/",
+					"asked_at": "2026-09-04T19:56:44-05:00",
+					"landed_at": "2026-09-04T20:15:34-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "Rank 1 in the paging critique (41% wide, 1856px dead, depth 9, scroll 14517/1392, 368 entries in one column) is now clear and one screen de…",
 					"result_url": "/imagine/research/",
 					"state": "done"
 				},
@@ -2026,6 +1953,30 @@
 					"cost_usd": null,
 					"outcome": "Verdict: embed YouTube now, defer videos.insert upload. The site's existing labs (/imagine/youtube/, /imagine/feeds/video/) already use onl…",
 					"result_url": "/imagine/platform/research/video/verdict/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-04/research-data",
+					"quote": "Research where each kind of data lives so the site stays static and the platform stays cheap: classify platform data, f…",
+					"words_url": "/framework/ai/2026-09-04/research-data/",
+					"asked_at": "2026-09-04T14:55:20-05:00",
+					"landed_at": "2026-09-04T15:12:19-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "Where each kind of data lives, so the site stays static and the platform stays cheap. Recommendation: (A) static+git first, D1 for identity…",
+					"result_url": "/imagine/platform/research/data/verdict/",
+					"state": "done"
+				},
+				{
+					"task": "2026-09-04/research-realtime",
+					"quote": "What real-time substrate serves text chat first and grows to voice, recording and transcripts - legally?",
+					"words_url": "/framework/ai/2026-09-04/research-realtime/",
+					"asked_at": "2026-09-04T14:55:50-05:00",
+					"landed_at": "2026-09-04T15:07:51-05:00",
+					"hours": 0.2,
+					"cost_usd": null,
+					"outcome": "Real-time substrate researched: text-first DO chat, growing to voice legally — verdict · log, 36 lines. MVP: one hibernating Durable Object…",
+					"result_url": "/imagine/platform/research/realtime/verdict/",
 					"state": "done"
 				},
 				{
@@ -2125,6 +2076,30 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-08-30/research-depictions",
+					"quote": "Research round 1: ancient depictions rumored to show aliens/anomalous craft. Build public/imagine/research/depictions/…",
+					"words_url": "/framework/ai/2026-08-30/research-depictions/",
+					"asked_at": "2026-08-30T18:41:00-05:00",
+					"landed_at": "2026-08-30T19:58:00-05:00",
+					"hours": 1.3,
+					"cost_usd": null,
+					"outcome": "Depictions research round 1 landed -- 8 subjects, 40 log entries (finding 16, theory 8, opinion 8, question 8), 35 distinct sources, creden…",
+					"result_url": "/imagine/research/depictions/",
+					"state": "done"
+				},
+				{
+					"task": "2026-08-30/research-theories-2",
+					"quote": "Round 2 on the grand theories: current YD 2024-2026 literature both directions, Gobekli/Karahan Tepe newest excavation…",
+					"words_url": "/framework/ai/2026-08-30/research-theories-2/",
+					"asked_at": "2026-08-30T19:22:05-05:00",
+					"landed_at": "2026-08-30T19:41:46-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "Round 2 landed: 23 new validated entries (34 -> 57), 15 new distinct sources. The Major Theories - Younger Dryas (updated) - Lost Civilizat…",
+					"result_url": "/imagine/research/theories/",
+					"state": "done"
+				},
+				{
 					"task": "2026-08-30/research-stone-2",
 					"quote": "Research round 2 on carved stone: deepen public/imagine/research/stone/ (round 1: 65 entries, 6 subjects). Chase round…",
 					"words_url": "/framework/ai/2026-08-30/research-stone-2/",
@@ -2149,6 +2124,18 @@
 					"state": "done"
 				},
 				{
+					"task": "2026-08-30/research-disclosure-2",
+					"quote": "Round 2 on the disclosure research arc: deepen public/imagine/research/disclosure/ - maritime case, FY2027 NDAA/UAPDA,…",
+					"words_url": "/framework/ai/2026-08-30/research-disclosure-2/",
+					"asked_at": "2026-08-30T19:31:39-05:00",
+					"landed_at": "2026-08-30T19:38:00-05:00",
+					"hours": 0.1,
+					"cost_usd": null,
+					"outcome": "Round 2 landed: 31 new validated entries (72 total), 3 new pages, 2 pages updated on credence-moving news. New: PURSUE (Trumps Feb 2026 ord…",
+					"result_url": "/imagine/research/disclosure/",
+					"state": "done"
+				},
+				{
 					"task": "2026-08-30/research-system",
 					"quote": "Refine the research system by wiring it to a live program: build /imagine/research/ as the front over four topic logs (…",
 					"words_url": "/framework/ai/2026-08-30/research-system/",
@@ -2161,57 +2148,33 @@
 					"state": "done"
 				},
 				{
-					"task": "2026-08-30/research-theories",
-					"quote": "Research round 1: the major theories (Younger Dryas impact, lost ice-age civilization, ancient astronauts, catastrophis…",
-					"words_url": "/framework/ai/2026-08-30/research-theories/",
-					"asked_at": "2026-08-30T18:44:00-05:00",
-					"landed_at": "2026-08-30T18:55:30-05:00",
+					"task": "2026-08-30/research-stone",
+					"quote": "Research round 1: precisely carved stone of ancient origin. Dir public/imagine/research/stone/ — log.jsonl (findings/so…",
+					"words_url": "/framework/ai/2026-08-30/research-stone/",
+					"asked_at": "2026-08-30T18:40:20-05:00",
+					"landed_at": "2026-08-30T19:00:03-05:00",
+					"hours": 0.3,
+					"cost_usd": null,
+					"outcome": "Landed: precisely-carved-stone research round 1 -- 65 log entries (finding 23, theory 17, opinion 13, question 9, source 3; established 32,…",
+					"result_url": "/imagine/research/stone/",
+					"state": "done"
+				},
+				{
+					"task": "2026-08-30/research-disclosure",
+					"quote": "research round 1: the modern UAP/disclosure arc — AATIP/Navy videos, 2021 ODNI report, Grusch/AARO, NDAA + records act,…",
+					"words_url": "/framework/ai/2026-08-30/research-disclosure/",
+					"asked_at": "2026-08-30T18:41:59-05:00",
+					"landed_at": "2026-08-30T18:55:51-05:00",
 					"hours": 0.2,
 					"cost_usd": null,
-					"outcome": "The five major theories, summarized and assessed at public/imagine/research/theories/ -- one index page, five theory pages, one synthesis p…",
-					"result_url": "/imagine/research/theories/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-18/livereload-research",
-					"quote": "Using ext/Research, write the LiveReload report: .js updates, css updates, .json and .jsonl updates, parallel work sess…",
-					"words_url": "/framework/ai/2026-08-18/livereload-research/",
-					"asked_at": "2026-08-18T17:14:28-05:00",
-					"landed_at": "2026-08-18T17:42:44-05:00",
-					"hours": 0.5,
-					"cost_usd": null,
-					"outcome": "LiveReload — 7 conclusions, argued by 7 minions into 52 nodes, 10 votes, 14 verdicts — the report (conclusions first, every claim opens). C…",
-					"result_url": "/framework/research/livereload/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-18/research-system",
-					"quote": "Build ext/Research — data core (verbs, validation, append-only jsonl), a Node CLI + MCP tools that write it, and the li…",
-					"words_url": "/framework/ai/2026-08-18/research-system/",
-					"asked_at": "2026-08-18T17:14:28-05:00",
-					"landed_at": "2026-08-18T17:42:44-05:00",
-					"hours": 0.5,
-					"cost_usd": null,
-					"outcome": "ext/Research data core + writers — verbs.js (the schema, imported by browser and Node), store.mjs, research.mjs CLI (open say vote verdict…",
-					"result_url": "/framework/ext/Research/",
-					"state": "done"
-				},
-				{
-					"task": "2026-08-17/instructions-overhaul",
-					"quote": "mastermind: CLAUDE.md rewrite, skills overhaul, readme retreat via Fable minions, pacing rule, catalog rail, DesignTool…",
-					"words_url": "/framework/ai/2026-08-17/instructions-overhaul/",
-					"asked_at": "2026-08-17T14:25:00-05:00",
-					"landed_at": "2026-08-17T15:25:00-05:00",
-					"hours": 1,
-					"cost_usd": null,
-					"outcome": "Instructions overhaul landed — CLAUDE.md 36 lines; skills rebuilt as reference (code, css, layout, mastermind) + trigger (new-task, new-pag…",
-					"result_url": "/framework/ai/2026-08-17/instructions-overhaul/rail.png",
+					"outcome": "41 log entries across 6 threads, 29 distinct sources on the modern UAP/disclosure arc (2017 NYT/AATIP -> Navy videos -> 2021 ODNI report ->…",
+					"result_url": "/imagine/research/disclosure/",
 					"state": "done"
 				}
 			],
-			"done_count": 25,
+			"done_count": 35,
 			"stale_count": 0,
-			"cost_usd": 40.87
+			"cost_usd": 64.55
 		}
 	]
 }

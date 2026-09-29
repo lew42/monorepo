@@ -1,30 +1,18 @@
 # overview.json — how it is built
 
-`Server/ai2-overview.mjs` writes `public/framework/ai2/overview/overview.json`. The Overview
+`Server/ai2-overview.mjs` reads every task's `task.jsonl` (~800) plus the owner's own prompts in
+`.claude/prompts/*.jsonl`, and writes `public/framework/ai2/overview/overview.json`. The Overview
 tab's page reads that file straight off disk; it does no computing of its own.
 
-**What it reads:** every `public/framework/ai/<date>/<slug>/task.jsonl` (about 800 of them —
-merging each one's `assign` lines, latest value per key wins), plus the owner's own prompts in
-`.claude/prompts/*.jsonl` (only lines with `"author":"owner"`).
-
 **How a task joins a concept:** the seven concepts (Servex, Page, View, App, AI 2, Dictation,
-Research & Collab) are listed at the top of the script, most important first, each with a list of
-match words. A task's slug, group and request text are joined into one lowercase string; the task
-joins the FIRST concept whose word list appears anywhere in that string. A task that matches none
-of the seven is left out and only counted, in `unfiled` — it is never forced into the wrong
-bucket, and no new concept is invented.
+Research & Collab), most important first, each list match words at the top of the script. A task
+joins the FIRST concept whose word matches its slug or group as a whole word; only if neither
+names one does its request text get tried too (request text is the noisiest of the three). No
+match at all leaves the task out, counted in `unfiled`.
 
-**Open vs. done:** a task with no `landed_at` and requested in the last 7 days is `open`. Older
-unlanded tasks are dropped from the list and only counted, in that concept's `stale_count`. A
-landed task is `done`; the newest 30 per concept are kept in the file, `done_count` is the true
-total.
+**Open vs. done:** unlanded and requested in the last 7 days = open; older unlanded = dropped,
+counted in `stale_count`. Landed = done; newest 30 kept, `done_count` is the true total.
 
-**The owner's own words:** when a task's `request` clearly matches a line in the prompt log (the
-first 40 characters of one contains the other), the ASK's `quote` is the prompt's own text instead
-of a paraphrase. No match is fine — most tasks won't have one.
+**To rerun it:** `node Server/ai2-overview.mjs` from the repo root, under a second.
 
-**To rerun it:** `node Server/ai2-overview.mjs` from the repo root. It takes well under a second
-and prints a per-concept open/done/cost line, the same numbers this task's log recorded.
-
-**To change a concept:** edit the `CONCEPTS` array at the top of the script — add match words, or
-change a concept's `url` if its real page moves. Nothing else in the script needs to change.
+**To change a concept:** edit `CONCEPTS` at the top of the script.
