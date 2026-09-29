@@ -1,0 +1,45 @@
+{
+  "at": "2026-09-29T15:26:22-05:00",
+  "input": "C:/Users/mike/AppData/Local/Temp/claude/C--Code-lew42-monorepo/a918d03d-6afe-4958-b425-20e9eba998ef/scratchpad/pr-c-raw.txt",
+  "out": "public/framework/ai/2026-09-29/prompt-refine/runs/c",
+  "models": {
+    "clean": "claude-haiku-4-5-20251001",
+    "structured": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "pick": "claude-haiku-4-5-20251001",
+    "brief": "claude-sonnet-5",
+    "coverage": "claude-sonnet-5"
+  },
+  "collab": false,
+  "mock": false,
+  "structured_winner": "haiku",
+  "cost_usd": {
+    "clean": 0.16332570000000002,
+    "structured": {
+      "haiku": 0.0476997,
+      "sonnet": 0.1408002
+    },
+    "pick": 0.04829170000000001,
+    "brief": 0.1719212,
+    "coverage": 0.1992252,
+    "total": 0.771264
+  },
+  "word_counts": {
+    "raw": 2356,
+    "clean": 2116,
+    "structured": 703,
+    "brief": 781
+  },
+  "clean_overlap_ratio": 0.978,
+  "coverage": {
+    "sentences": 121,
+    "cited": 56,
+    "context_only": 42,
+    "dropped": 23,
+    "unclassified": 0,
+    "flags": 25,
+    "thin_citations": 7
+  }
+}

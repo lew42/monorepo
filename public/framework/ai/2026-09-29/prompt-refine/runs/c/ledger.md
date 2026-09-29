@@ -105,3 +105,43 @@
 - **Items in the ledger:** 54.
 - **The tab's result:** 38 kept, 4 changed, 5 stricter, 7 dropped.
 - **Raw words passed along:** yes, word for word, with the exact passage named.
+
+## The tool's brief, first pass, scored against the same ledger
+
+- **The run:** `node Server/refine.mjs`, plain run (no `--collab`), $0.77 in total.
+- **Files:** the first-pass brief, 35 asks (kept as `brief-v1.md` once the repair round rewrites `brief.md`), and its `coverage.md`.
+- **What is listed:** only the ledger items the tool did not keep. Every other item is `kept`.
+
+| # | Ledger item | Tool status | The tool's words |
+|---|---|---|---|
+| 3 | "Grok, both Groks really" | changed | #2 "Grok". Groq, the second company, is lost. The tab got this right. |
+| 8 | "right now we're using Claude Code SDK for spawning minions … fundamentally integrated" | changed | #7 "Make the harness work … with … Claude Code SDK for spawning minions". The way it works today is misread as a requirement. |
+| 9 | "work with the Servex mastermind … make sure he's involved and kind of has like a review" | changed | #7 "integration with the Servex mastermind". The architect's review of the plan is lost. |
+| 18 | "this is sort of what we want to be able to do on any card at any time" | dropped | The tab dropped it too. |
+| 20 | "the file context in terms of just when to list files" | changed | #24 lists the other harness parts, but not file context. |
+| 27 | "it was broken when I clicked on it a few minutes ago" | dropped | coverage.md **caught** this one (S35). |
+| 30 | "you'd probably get the exact same outcome … it's possible you get fresh insight" | changed | #8 "a fresh agent … can provide fresh insight". The owner's hedge is lost, the same miss the tab made. |
+| 32 | "Is the space used properly? … the right things in the right order? … able to find everything" | changed | #9 "screenshots, UX and layout questions, and navigation". The three questions are gone. The tab kept all four. |
+| 41 | "you probably want to have either option. If it has a background, it probably should have … padding" | stricter | #20 "If it has a background, it needs padding". "Probably should" became "needs". |
+| 46 | "maybe the page … specifies its weight … bigger cards naturally get sorted to the top. I haven't really thought about that yet" | dropped | coverage.md **caught** this one (S80). |
+| 47 | "an agent switching UI for … the dictation widget … we'll save that for another task" | stricter | #26 "Build an agent switching UI". The owner deferred it; the brief makes it part of this job. |
+| 49 | "we need that whole assistant … process for every page" | dropped | — |
+| 50 | "we don't necessarily need to choose the model [of the assistant] … maybe … a configuration for it somewhere" | dropped | — |
+| 51 | "right now we're calling it like the manager I'm not sure if we should just call it a mastermind" | changed | #32 "Make sure the manager or mastermind sees everything". This is garbled: in the dictation, the *assistant* sees everything. The naming question is not asked. |
+
+**Where the tool did better than the tab:**
+
+- It kept #17 exactly as the owner said it: "does this make sense, is it true, is it logical, can we dispute it". It added no "useful even if wrong".
+- It kept #34 ("highly prioritized … foundational") and #38 (space per card, rows or columns), which the tab dropped.
+- It kept #53, "clean up the transcription" and relay it, today's whole task, which the tab dropped.
+- It added no budget.
+
+**`coverage.md`, first pass:**
+
+- It says 23 of 121 sentences were dropped and 42 were context only.
+- 20 of those 23 "dropped" rows, and 23 of the 42 "context only" rows, are inside a range the brief cites (`[S108-S115]`). That is the range-citation bug again.
+- Of its 3 genuine uncited "dropped" rows, 2 match this ledger (#27 and #46).
+- The third, S72 "too many boxes", is in ask #21, which cites S73 instead. That is a miscited sentence, not a drop.
+- It caught 2 of the 5 real drops. The other 3 (#18, #49, #50) sit inside cited ranges, so the bug hid them.
+
+**Tally, first pass:** 40 kept, 7 changed, 2 stricter, 5 dropped.
