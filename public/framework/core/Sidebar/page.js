@@ -22,6 +22,8 @@ export default new Doc({
 	description: "A brand over a tree of links, resizable by its own edge. Not owned by any layout — any page can render one.",
 	icon: "view_sidebar",
 
+	children: "variants",
+
 	subject: Sidebar,
 
 	properties: "root pages brand brand_url logo logo_url app",

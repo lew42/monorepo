@@ -39,7 +39,7 @@ export default new Page({
 | **Standard** | one column, 300–1000px — the site's own default | a page that says nothing (\`doc/words.md\`) |
 | **Split** | two columns, any proportion, stacks on mobile | \`arrangement: "main-aside"\` ([Layout catalogue](/framework/core/Layout/main-aside/)) |
 | **Columns** | three or more standard columns, responsive | \`this.columns({ even: true })\` ([\`doc/columns.md\`](/framework/core/Page/doc/columns/)) |
-| **Floating page** | an inner left sidebar beside a page that scrolls on its own | not built yet — [stub](/framework/core/Page/layout/floating/) |
+| **Floating page** | an inner left sidebar beside a page that scrolls on its own | \`floating()\` ([\`core/Page/layout/floating/\`](/framework/core/Page/layout/floating/)) |
 | **Top-down shape** | background · padding · full-bleed | today spread over [\`doc/words.md\`](/framework/core/Page/doc/words/), \`doc/columns.md\` and styles' \`layout-system.md\` |`);
 
 		md("> **Word collision.** The owner's *wide* (two columns) and *fill* (three or more) are not core's `width: \"wide\"` (one full track, no second column) or a column's own `fill` (take the leftover, no ceiling). Reusing those words here would make every doc ambiguous — that's why this page says **Split** and **Columns** instead. `doc/columns.md`'s six width words are a different vocabulary again, for a column's own width inside a `columns()` row.");
