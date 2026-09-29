@@ -10,13 +10,14 @@ This audit checks three of the owner's long dictations from 2026-09-28. Each one
 | [A: organization mastermind](runs/a/ledger.md) | 59 | 44 | 9 | 2 | 4 | 54 | 2 | yes, word for word |
 | [B: consensus](runs/b/ledger.md) (`--collab`) | 38 | 28 | 5 | 2 | 3 | 28 | 1 | yes, word for word |
 | [C: harness research](runs/c/ledger.md), tool's first pass | 54 | 38 | 4 | 5 | 7 | 40 | 5 | yes, word for word |
-| C, tool after its repair round | 54 | — | — | — | — | *pending* | *pending* | — |
+| C, tool after its repair round ($0.26 more) | 54 | — | — | — | — | 42 | 2 | — |
 
 **The tool's other two outcomes.** The table above has no columns for "changed" and "stricter", so here they are for the tool:
 
 - A: 2 changed, 1 stricter.
 - B: 9 changed, 0 stricter.
 - C, first pass: 7 changed, 2 stricter.
+- C, after repair: 7 changed, 3 stricter. The repair round brought back 3 of the 5 drops, but one came back as a rule ("Bigger icon cards should naturally sort to the top", where the owner had said "I haven't really thought about that yet").
 
 **How to read a ledger row.** Each ask is one thing the owner said they wanted, quoted in their own words. It gets one of four marks:
 
@@ -87,19 +88,24 @@ The tab never lost the raw words. Every brief had a verbatim `owner-words.md` be
 
 `coverage.md` is the tool's own audit. It maps every sentence of the dictation to an ask, or marks it "context only" or "dropped".
 
-| | A | B | C, first pass |
-|---|---|---|---|
-| Real drops (my ledger) | 2 | 1 | 5 |
-| Real drops `coverage.md` flagged | 0 | 0 | 2 (the broken page; bigger cards sort to the top) |
-| False "dropped" rows | 2 in the first build ("I'm gonna send this off"); 0 after the rebuild | 4 of 6 | 20 of 23 |
-| Suggestion made into a rule, caught | 0 of 1 | — | 0 of 2 |
+| | A | B | C, first pass | C, after repair |
+|---|---|---|---|---|
+| Real drops (my ledger) | 2 | 1 | 5 | 2 |
+| Real drops `coverage.md` flagged | 0 | 0 | 2 (the broken page; bigger cards sort to the top) | 0 |
+| False "dropped" rows | 2 in the first build ("I'm gonna send this off"); 0 after the rebuild | 4 of 6 | 20 of 23 | 0 of 1 |
+| Suggestion made into a rule, caught | 0 of 1 | — | 0 of 2 | 0 of 3 |
 
 **What it got wrong, found by this audit:**
 
 1. **Range citations break the count.** A brief that cites `[S15-S21]` counts only S15 and S21 (`citationsIn`, refine.mjs line 333). Every sentence in between shows as uncited, then gets called "context only" or "dropped". This caused 20 of C's 23 "dropped" rows and 4 of B's 6. It also hid real drops inside the ranges. Reported to the task mastermind, and being fixed. B's numbers above come from the file before that fix.
 2. **Sentence-level coverage hides part-drops.** A long spoken sentence carries several ideas. It counts as covered if any one of them is cited. A's S28 ("nothing left on the table") and S67 (six layout ideas, including the measure) both show "covered" while part of each is lost. Most of my `changed` items live here.
 3. **A hedge lost without a strength word goes unflagged.** "Doesn't seem like a bad way to go" became "Organize by methods and properties". "It probably should have padding" became "it needs padding". Only must, never, always and only are checked.
-4. **"Context only" still drops things the mastermind needs.** "I'm gonna keep transcribing in a minute" is context, but the tab passed it on ("More dictation may follow") and the tool's brief did not.
+4. **"Context only" hides the owner's hedges and handoffs.** In C after repair, the brief hardened three hedges, and each of them is filed as "context only":
+   - "I haven't really thought about that yet" (S81);
+   - "we'll save that for another task" (S96);
+   - "the assistant would see everything" (S113; the brief gives it to the manager).
+
+   In A, "I'm gonna keep transcribing in a minute" is context too. The tab passed it on ("More dictation may follow"); the tool's brief did not.
 5. **The first build flagged the owner's "send this off" as a dropped ask.** That was a false alarm, and it is fixed in the rebuild.
 
 **What it got right:**
@@ -120,10 +126,12 @@ The tab never lost the raw words. Every brief had a verbatim `owner-words.md` be
 
 **The tab** never lost the owner's words, because it always passed them along verbatim. But its summaries regularly turned the owner's doubts into rules (ONE, never, "set in config", a $15 budget, model names), and each dictation lost 3 to 7 asks. Some of those were the very goals the design should be judged by.
 
-**The tool** kept more of what the owner said than the tab did on A and C, and the same on B (54, 28 and 40 kept, against the tab's 44, 28 and 38), and it almost never hardened a hedge. But its own audit, `coverage.md`, cannot yet be trusted: range citations broke it, and it misses drops inside long sentences. It caught 2 of 8 real drops, and raised false alarms by the dozen.
+**The tool** kept more of what the owner said than the tab did on A and C, and the same on B (54, 28 and 40 kept, against the tab's 44, 28 and 38), and it hardened fewer hedges (1, 0 and 2 times, against the tab's 2, 2 and 5). But its own audit, `coverage.md`, cannot yet be trusted: range citations broke it, and it misses drops inside long sentences. Before its repair round, it caught 2 of 8 real drops and raised false alarms by the dozen. The repair round (C, $0.26) cut C's drops from 5 to 2, but made one hedge into a rule. Neither the first pass nor the repair saw the 2 drops that remain, because each sits inside a long sentence that counts as covered.
+
+**`--collab`** (B) added no quality for its $0.31. The vote was a 1-to-1 tie broken by price, and neither caveat was applied.
 
 **The one change that would help most:** check coverage per *ask in the ledger*, not per sentence. Split each long sentence into its separate ideas first, then check each idea against the brief. That is what this audit did by hand, and it is where every miss in this report was found.
 
 ---
 
-*Cost: runs a $0.75, b $0.97 (with `--collab`), c $0.77. Ledgers and runs are in [`runs/`](runs/). Minion-b, 2026-09-29.*
+*Cost: runs a $0.75, b $0.97 (with `--collab`), c $0.96 (with the $0.26 repair round). Ledgers and runs are in [`runs/`](runs/). Minion-b, 2026-09-29.*
