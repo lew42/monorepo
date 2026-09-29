@@ -1,0 +1,79 @@
+/* The mobile bottom rail (rail.js) — below 52em only, hidden entirely above it.
+   A normal flex child of `.app`, not `position: fixed`: `.app` is a 100%-height
+   column with `.pages` as its one growing row (framework.css), so this bar being
+   the LAST child of that column already takes its own space and `.pages` shrinks
+   to fit above it — no separate token to keep in sync. doc/decisions.md. */
+@layer theme {
+
+	.drawer-rail { display: none; }
+
+	@media (max-width: 52em) {
+		.drawer-rail {
+			display: flex; flex: 0 0 auto;
+			gap: 0.4em;
+			/* `env()`'s own fallback, not `max()` alone — a browser that has never
+			   heard of `env()` reads the second argument as invalid and drops the
+			   WHOLE declaration, leaving no bottom padding at all on a phone with
+			   a home-indicator strip. */
+			padding: 0.35em 0.6em calc(0.35em + env(safe-area-inset-bottom, 0px));
+			background: var(--surface);
+			border-top: 1px solid var(--line);
+		}
+	}
+
+	.drawer-rail-ai, .drawer-rail-menu {
+		flex: 1 1 0;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1em;
+		min-block-size: 0;   /* the theme gives every button a 44px touch floor */
+		padding: 0.3em 0.5em;
+		font: inherit; font-size: 0.7em; line-height: 1.2;
+		color: var(--subtle);
+		background: none;
+		border: 0;
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer-rail-ai:hover, .drawer-rail-menu:hover { background: var(--fill-a08); }
+	.drawer-rail-ai-icon, .drawer-rail-menu-icon { font-size: 1.3em; line-height: 1; }
+	.drawer-rail-ai { color: var(--prim); }
+	.drawer-rail-ai-label, .drawer-rail-menu-label { font-weight: 600; }
+
+	/* THE SHEET. Slides up from the same edge the rail sits on, over the rail
+	   too (a bottom sheet that left the tab bar showing under it would read as
+	   two floors) — closing it (✕) is the only way back to the rail. */
+	.drawer-rail-sheet {
+		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
+		display: none; flex-direction: column;
+		max-block-size: 70vh;
+		gap: calc(var(--gap) * 0.6);
+		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
+		background: var(--surface);
+		color: var(--ink);
+		border-top: 1px solid var(--line);
+		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
+		box-shadow: 0 -0.3em 1em var(--fill-a16);
+		transform: translateY(100%);
+		transition: transform 0.18s;
+	}
+	@media (max-width: 52em) {
+		.drawer-rail-sheet.on { display: flex; transform: none; }
+	}
+
+	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
+	.drawer-rail-sheet-title { font-weight: 600; }
+
+	.drawer-rail-sheet-mic { flex: 0 0 auto; }
+
+	.drawer-rail-sheet-cards {
+		flex: 1 1 auto; min-block-size: 0; overflow-y: auto;
+		gap: 0.4em;
+	}
+	.drawer-rail-sheet-card {
+		flex: 0 0 auto;
+		padding: 0.5em 0.6em;
+		font-size: 0.9em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+	}
+}

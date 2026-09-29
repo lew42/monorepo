@@ -1,6 +1,7 @@
 import { button } from "/framework/core/View/View.js";
 import tabs from "./tabs.js";
 import select from "./select.js";
+import rail from "./rail.js";
 
 /* THE ☰ — a menu button in the top right of every page (the owner, 2026-09-28: "each
    page could have like a little menu button in the top right… that kind of makes it
@@ -30,6 +31,12 @@ export default function menu(app){
 	// so the rail never paints unstyled and slides.
 	const routed = tabs.routed();
 	if (routed) app.styles_loaded().then(() => tabs.open(routed));
+
+	// The mobile bottom rail (rail.js) — the drawer's other way in below 52em, on
+	// every page. Hidden entirely above that breakpoint (rail.css), so this is
+	// free to call here unconditionally rather than app.js needing to know about
+	// a second piece of drawer chrome.
+	rail(app);
 
 	return $menu;
 }

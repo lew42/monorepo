@@ -10,9 +10,9 @@ export default new Doc({
 	// framework sidebar from 231px to 344px through `min-width: auto`.
 	icon: "view_sidebar",
 
-	files: "drawer.js drawer.css menu.js tabs.js select.js page.js readme.md",
+	files: "drawer.js drawer.css menu.js tabs.js select.js rail.js rail.css page.js readme.md",
 	notes: "tabs select decisions",
-	children: ["walkthrough"],
+	children: ["walkthrough", "rail"],
 
 	content(){
 
@@ -27,6 +27,10 @@ export default new Doc({
 		md("How a tab is added, where a message is sent, and `drawer.page()`: [doc/tabs.md](/framework/ext/drawer/doc/tabs/).");
 
 		md("**With the drawer open, click any paragraph on this page.** It is selected, the Element tab shows what it is, and *Ask about this* puts it in the AI tab's input as a chip: [doc/select.md](/framework/ext/drawer/doc/select/).");
+
+		h2("On a phone");
+
+		md("Below 52em the ☰ in the corner steps aside — a page with its own left-side sidebar draws its own ☰ there instead, so mobile nav and this drawer stop fighting for the same corner. A small bar at the bottom of the screen is the drawer's other way in: [Mobile bottom rail](/framework/ext/drawer/rail/) — the ✦ button, a voice-to-cards sheet, screenshots and the layout decision behind it.");
 
 		h2("Fill it yourself");
 

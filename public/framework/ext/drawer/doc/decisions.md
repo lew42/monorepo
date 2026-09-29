@@ -79,6 +79,48 @@ do.
   rather than being retyped by every caller. Handing back the two views keeps
   `empty(fn)`, the blessed re-capture form, at the call site.
 
+## The mobile bottom rail (2026-09-29)
+
+`rail.js`/`rail.css` — below 52em, an ✦ button (a listening sheet) and a ☰ (this
+same drawer's tabs), pinned to the bottom of the screen. The side drawer above
+was not a template to copy for this: it is `position: fixed`, so it has to
+restate its own width as a `padding-inline-end` reservation on `.app`
+(`--rail-push`) to keep the page from sitting behind it — two numbers, kept in
+sync by hand.
+
+- **A plain, non-fixed flex child of `.app`, not `position: fixed` (the
+  option actually chosen).** `.app` is already `height: 100%; display: flex;
+  flex-direction: column` with `.pages` as its one growing row
+  (`framework.css`) — so a bar that is simply the LAST child of that column,
+  `flex: 0 0 auto`, already takes its own space and `.pages` shrinks to fit
+  above it. One layout fact (the column has three rows now, not two), nothing
+  to compute, nothing that can drift out of sync the way `--rail-push` can.
+- **The alternative the brief asked to weigh: full-height, independently-
+  scrolling sections for the whole page (rejected).** This would mean giving
+  every page a snap-scrolling, fixed-viewport-height section model instead of
+  the one long scrolling column `.pages` already is — a rewrite of how every
+  page on the site scrolls, to solve a problem ("reserve one bar's height")
+  that flexbox already solves for free. Only worth it if the rail needed to be
+  full-screen or independently scrollable itself, which it does not: it is a
+  few centimetres tall and fixed in height.
+- **A near-alternative also considered and rejected: `position: fixed` with a
+  manual `padding-block-end` reservation on `.pages`, mirroring the side
+  drawer's own `--rail-push` token.** Works, but only by re-deriving the exact
+  bookkeeping problem the flex-child answer skips entirely — a token to write,
+  a token to read, and a media query in two files that have to agree on the
+  bar's height. Chosen only when a bar needs to float OVER content on
+  purpose (the side drawer does, this one does not).
+- **The sheet itself IS `position: fixed`** (`.drawer-rail-sheet`), because it
+  is a modal-style overlay that is meant to cover content, including the rail
+  itself, while it is open — the one place in this pair where "cover, don't
+  reserve" is the right call.
+- **No error banner of its own in the sheet.** `ux/Dictate` already shows an
+  honest, specific message beside its own mic button — no device, no
+  permission, no engine reachable — and a second sentence here said the exact
+  same thing a few lines down. Mic feedback (the sound only once the mic is
+  truly on, the wording of each message) is `ux/Dictate`'s job; this sheet
+  only supplies where its widget lives and what a finished sentence becomes.
+
 ## What will bite you
 
 - **⚠ The rail mounts inside `.app`, never on `<body>`.** `color-scheme` is forced
