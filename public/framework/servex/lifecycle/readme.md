@@ -26,6 +26,5 @@ root and copying `counts.json` here as `data.json` again. How each number is cou
 - This is a **snapshot, not a live view** — the system keeps starting and stopping things while
   you read it, so a re-run a minute later gives slightly different numbers. That is expected,
   not a bug in the count.
-- The reaper that would close all this automatically is a separate, later piece of the same
-  brief ([`ai/2026-09-29/lifecycle/`](/framework/ai/2026-09-29/lifecycle/)) — this page only
-  counts, it does not stop anything.
+- **The reaper is live now.** It closes a task's own leftovers on landing, and sweeps everything
+  else on the heartbeat. What it does and what it never touches: `Servex/doc/lifecycle.md`.

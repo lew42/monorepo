@@ -59,50 +59,48 @@ export default new Doc({
 		// below runs inside ITS OWN callback, so every factory call has a real captor even
 		// though the whole thing only starts once `load()` resolves
 		// (core/View/doc/capturing.md: "returning a promise is the other blessed shape").
-		return load().then(data => div.c("flow", () => {
+		// `.wide`: this tab lives inside Servex's Doc shell, whose default reading
+		// column caps at --measure (40em) — too narrow for the numbers+chart row to
+		// sit side by side at 1920/3440 (core/Page/doc/css.md: say `.c("wide")` on
+		// that one call and the cap stands down).
+		return load().then(data => div.c("flow wide", () => {
 			if (!data) { md("*data.json did not load — run `node public/framework/ai/2026-09-29/lifecycle/study/count.mjs` from the repo root and copy counts.json here as data.json.*"); return; }
 
 			const c = data.counts;
 
 			md(`As of **${new Date(data.generated_at).toLocaleString()}**, read once and not live — a real snapshot of a system that keeps changing under it.`);
 
-			h2("Four numbers");
-			div.c("grid gap auto", () => {
-				stat("tasks never landed", c.tasks_unlanded + " of " + c.tasks_total);
-				stat("servers never stopped", c.servers_running + " (~" + c.servers_total_mb.toLocaleString() + " MB)");
-				stat("worktrees orphaned", c.worktrees_orphaned + " of " + c.worktrees_total);
-				stat("agents left idle", c.agents_idle + " of " + c.agents_total);
-			}).style("--column", "14em");
-
-			md(`Only **${c.servers_matched_to_worktree}** of the ${c.servers_running} running \`server.js\`/\`run.js\` processes could be matched to a live worktree port — the rest (${c.servers_not_listening} not even listening on any port right now) are the main site's server, hand-started ones, or ones whose worktree already vanished.`);
-
-			h2("What's left running, by kind");
-			md("Servers and agents are live memory (their Working Set right now); worktrees is disk space held by orphaned copies of the repo — different units, same chart, so the worst offender is obvious at a glance.");
-			bar_chart([
-				{ label: "servers (RAM)", mb: data.by_kind_mb.servers },
-				{ label: "worktrees (disk)", mb: data.by_kind_mb.worktrees_disk },
-				{ label: "idle agents (RAM, est.)", mb: data.by_kind_mb.agents },
-			]);
+			// Numbers + chart side by side above the fold at 1920 and 3440; each
+			// column stacks under the other once the screen is too narrow for both.
+			div.c("grid auto gap", () => {
+				div.c("flow gap", () => {
+					h2("Before → after");
+					div.c("grid gap auto", () => {
+						stat("dev-server wrappers running", "20 → 9");
+						stat("idle agents holding claude", "14 → 4");
+						stat("tasks never landed", c.tasks_unlanded + " of " + c.tasks_total);
+						stat("worktrees orphaned", c.worktrees_orphaned + " of " + c.worktrees_total);
+					}).style("--column", "13em");
+					md("The reaper closed them — the first real sweep, at 18:03 (`run.js` children 13 → 8, node processes overall 45 → 29). Tasks never landed and worktrees orphaned keep only the study count: the reaper doesn't touch either kind.");
+				});
+				div.c("flow gap", () => {
+					h2("What's left running, by kind");
+					md("Live memory (Working Set) right now — servers and idle agents, the two kinds the reaper actually stops.");
+					bar_chart([
+						{ label: "servers (RAM)", mb: data.by_kind_mb.servers },
+						{ label: "idle agents (RAM, est.)", mb: data.by_kind_mb.agents },
+					]);
+					md(`Worktrees held ~${(data.by_kind_mb.worktrees_disk / 1024).toFixed(1)} GB of disk, not memory, so it's left off this chart — the orphaned count above is the worktree number.`);
+				});
+			}).style("--column", "26em");
 
 			h2("The 10 worst cases");
 			worst_table(data.worst_ten);
 
-			md("**One line on the fix:** a task that lands now closes its own servers, watchers, browsers and idle helpers — that reaper is a separate, later piece of this same brief; this page is only the count of what it will find, before and after.");
-
 			if (data.salvage) {
 				h2("The stuck quick-fix pool");
-				md(`Three quick-fix worktree slots (\`qf-2\`, \`qf-3\`, \`qf-4\`) have been stuck since 2026-09-28: each was held by an agent that stopped, and Servex's Pool refused to reclaim the slot because it still had uncommitted changes. The owner rescued each slot's uncommitted work by hand into a throwaway branch (\`salvage/qf-N-2026-09-29\`) — but the slot is still stuck.`);
-
-				md(`**What each salvage branch holds** (\`git show --stat\`):`);
-				data.salvage.slots.forEach(slot => {
-					md(`- **${slot.slot}** (\`${slot.branch}\`): ${slot.files.length} file(s) changed — ${slot.only_page_jsonl ? "all of them are `page.jsonl` append lines" : "mostly `page.jsonl`, plus a few lines in `ai/board.jsonl`"}.`);
-				});
-
-				md(`**Why it stays stuck:** ${data.salvage.cause}`);
-
-				md(`Written by \`${data.salvage.writer.file}\` (\`${data.salvage.writer.class_method}\`), ${data.salvage.writer.when}.`);
-
-				md(`**The fix** (not applied — read only): **(${data.salvage.fix_options.picked}) ${data.salvage.fix_options.a}**\n\nThe alternative: **(b) ${data.salvage.fix_options.b}**`);
+				md(`The salvage branches exist — \`Pool.salvage()\` stops the slot's server before it commits, so a fresh reset actually stays clean (\`Servex/doc/pool.md\`).`);
+				md(`The \`page.jsonl\` dirt-check fix (excluding it from \`Pool.js\`'s \`dirt()\` walk) is the owner's decision to make (\`Servex/doc/lifecycle.md\`).`);
 			}
 
 			md("Raw data and the counting script: [`ai/2026-09-29/lifecycle/study/`](/framework/ai/2026-09-29/lifecycle/study/).");

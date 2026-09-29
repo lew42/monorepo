@@ -19,12 +19,9 @@ export default new Doc({
 - **Cards** — each card gets an assistant that answers you and a manager that does the work.
 - **Dev servers & proxy** — every project gets a fixed port, reachable at \`<name>.localhost\`.
 - **Restart** — \`node Servex/sustain.mjs\` starts it and starts it again whenever it dies.
-- **MCP tools** — the door every Claude session uses, at \`http://127.0.0.1:8090/mcp\`.`);
+- **MCP tools** — the door every Claude session uses, at \`http://127.0.0.1:8090/mcp\`.
+- **Lifecycle** — what's left running (servers, agents, worktrees) and the reaper that closes it: [Lifecycle](/framework/servex/lifecycle/)`);
 
 		md("Detail for every part: `Servex/readme.md` and `Servex/agents/readme.md`.");
-
-		h2("How much is left running");
-
-		md("A count of what the system starts and never shuts down — tasks, servers, worktrees, agents: [Lifecycle](/framework/servex/lifecycle/)");
 	},
 });
