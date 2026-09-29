@@ -1,5 +1,4 @@
-import { Doc, md, h2, small, div, a } from "/app.js";
-import Concepts from "/framework/ux/Content/Concepts/Concepts.js";
+import { Doc, md, h2, small, div, a, icon, span, details, summary } from "/app.js";
 import { view } from "./ObjectView.js";
 import { agents } from "./live.js";
 
@@ -12,6 +11,20 @@ import { agents } from "./live.js";
  * manager/mastermind, minted from that path, the moment the owner first
  * speaks or types on it (Servex/agents/Layers.js).
  */
+
+// ONE set of tiles — icon, name, one-line meaning, all in the same card,
+// reusing the site's own icon-card classes (ux/Content/content.css) rather
+// than a bullet list repeating the same five names underneath.
+const PARTS = [
+	{ name: "Dictation", icon: "mic", href: "doc/dictation/", blurb: "the microphone on every page, and where its words go" },
+	{ name: "Fast assistant", icon: "bolt", href: "doc/assistant/", blurb: "the small, quick session that answers a card right away" },
+	{ name: "Manager / mastermind", icon: "engineering", href: "doc/manager/", blurb: "the bigger session, kept for a card's whole life, that does the work" },
+	{ name: "Sessions & the SDK", icon: "key", href: "doc/sessions/", blurb: "how a session id is made, saved, and resumed later" },
+	{ name: "The agents list, live", icon: "groups", href: "agents/", blurb: "everything above, fetched from Servex and shown as it runs" },
+];
+
+const ACTIVE = new Set(["working", "idle"]);
+
 export default new Doc({
 	meta: import.meta,
 	title: "The page-based AI system",
@@ -24,31 +37,39 @@ export default new Doc({
 	content(){
 		md("**Every page path is a context.** A card's directory (`ai/<date>/<slug>/`) is not just where its log lives — the moment the owner talks or types on it, Servex mints that path its own fast assistant and its own manager, and both keep the same session id for as long as the card is alive. The five parts below are how that works; [Servex](/framework/servex/) documents the agents themselves.");
 
-		new Concepts({ items: [
-			{ name: "Dictation", icon: "mic", href: "doc/dictation/" },
-			{ name: "Fast assistant", icon: "bolt", href: "doc/assistant/" },
-			{ name: "Manager / mastermind", icon: "engineering", href: "doc/manager/" },
-			{ name: "Sessions & the SDK", icon: "key", href: "doc/sessions/" },
-			{ name: "The agents list, live", icon: "groups", href: "agents/" },
-		] });
-
-		// One line each — what to expect one click in, before clicking.
-		md(`- **Dictation** — the microphone that lives on every page, and where its words go.
-- **Fast assistant** — the small, quick session that answers a card right away.
-- **Manager / mastermind** — the bigger session, kept for a card's whole life, that does the work.
-- **Sessions & the SDK** — how a session id is made, saved, and resumed later.
-- **The agents list, live** — everything above, fetched from Servex and shown as it runs right now.`);
+		div.c("ux-content-icards", () => {
+			PARTS.forEach(p => a.c("ux-content-icard w2", () => {
+				icon(p.icon);
+				span(p.name);
+				small.c("muted", p.blurb);
+			}).attr("href", p.href));
+		});
 
 		// SHOW, DON'T JUST LINK — the very thing this page is about, right here: real
-		// agents, fetched live, rendered as the nested `.property` rows above. Fails
-		// soft (live.js): no Servex running paints one plain sentence, never an error.
+		// agents, fetched live, rendered as nested `.property` rows (ObjectView.js).
+		// Fails soft (live.js): no Servex running paints one plain sentence, never an
+		// error. `GET /api/agents` answers with EVERY agent this process has ever
+		// held, most of them long stopped (thousands, after a few days uptime) — so
+		// this keeps only `working`/`idle`, newest first, capped at 8, each row
+		// collapsed to its id/role/state until clicked open.
 		h2("Live right now");
 		div.c("card pad", $box => {
 			agents().then(rows => $box.append(() => {
 				if (rows === null) return void small.c("muted", "Servex is not answering on this machine — nothing to show.");
-				if (!rows.length) return void small.c("muted", "No agents running right now.");
-				view(rows.slice(0, 3));
-				if (rows.length > 3) a.c("page-link", `+ ${rows.length - 3} more →`).href("agents/");
+
+				const active = rows.filter(r => ACTIVE.has(r.state))
+					.sort((x, y) => new Date(y.started_at) - new Date(x.started_at));
+				const shown = active.slice(0, 8);
+
+				div.c("flex v gap-25", () => {
+					small.c("muted", `${active.length} live of ${rows.length} registered`);
+					if (!shown.length) small.c("muted", "Nothing working or idle right now.");
+					shown.forEach(row => details.c("ai-row", () => {
+						summary(`${row.id} · ${row.role} · ${row.state}`);
+						div.c("ai-row-body", () => view(row));
+					}));
+					a.c("page-link", "The full list →").href("agents/");
+				});
 			}));
 		});
 	},
