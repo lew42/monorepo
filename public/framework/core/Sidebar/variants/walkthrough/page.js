@@ -25,6 +25,8 @@ const STEPS = [
 		say: "Either the app swaps one rail as pages change (E), or every page keeps its own rail and an `active` class hides the rest (F)." },
 	{ title: "The floating page", pic: "floating-1920-top.png", open: "/framework/core/Page/layout/floating/",
 		say: "A different kind of page, not a sidebar variant: its own inner left nav, in a gray well, beside a white page that scrolls past it." },
+	{ title: "AI 2 uses the same layout", pic: "ai2-system-design-floating.png", open: "/framework/ai2/2026/09/24/system-design/?view=workspace",
+		say: "AI 2 uses the same layout: here is System design in it. The card's own tabs and sub-cards become the left nav; the card's content becomes the white page beside it." },
 	{ title: "Which one?", open: "/framework/core/Sidebar/variants/",
 		say: "None of this decides anything by itself — the choice among A–F lives on the task's card, as a Decision, for the owner." },
 ];
