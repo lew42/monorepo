@@ -115,6 +115,19 @@ export default class PageFiles {
             return;
         }
         if (skip(name)) return;
+
+        /* A folder that arrives all at once — a git merge or checkout landing a whole new
+         * subtree in one burst — can skip the individual "this folder appeared" event
+         * entirely (Windows' recursive watch has a fixed buffer; a big enough burst
+         * overflows it and drops events, watch.js's own doc comment). If even ONE event
+         * for ANYTHING inside that folder survives, this catches it up here: `dir` (the
+         * folder the surviving event landed in) gets its own page.jsonl, with its FULL
+         * current listing, the moment we see anything happen inside it — not just when
+         * its own arrival was the thing observed. No parent-chain walking needed: once
+         * `dir`'s page.jsonl is created, that write is itself a new-file event, which the
+         * `name === PAGE` branch above already reacts to by telling `dir`'s OWN parent —
+         * so a whole new nested tree heals one level at a time as its own events land. */
+        this.ensure(dir);
         this.ensure(file);   // a brand-new covered folder gets its own log right away (deliverable 3)
         this.sync(dir, name);
         // page.js in a subfolder changes how the PARENT lists that subfolder
