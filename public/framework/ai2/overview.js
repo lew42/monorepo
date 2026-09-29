@@ -1,6 +1,6 @@
 import { div, span, small, a, button, p } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { servex_base, say, author_word } from "./inbox.js";
+import { servex_base, servex_fetch, servex_up, say, author_word } from "./inbox.js";
 import { clock } from "./faces.js";
 import { task_words } from "./groups.js";
 
@@ -166,7 +166,7 @@ const renderers = new Map([
  *  push on this wire the way a log append has one. */
 async function agents_now(base){
 	try {
-		const list = await (await fetch(`${base}/agents`)).json();
+		const list = await (await servex_fetch(`${base}/agents`)).json();
 		return Array.isArray(list) ? list : [];
 	} catch { return []; }
 }
@@ -175,7 +175,7 @@ async function agents_now(base){
  *  its own cadence (`check-claude-usage`); this page only ever reads it. */
 export async function usage_bars(){
 	try {
-		const data = await (await fetch("/framework/ai/usage.json")).json();
+		const data = await (await servex_fetch("/framework/ai/usage.json")).json();
 		return (data?.utilization?.limits ?? []).filter(l => l.kind !== "weekly_scoped" || l.percent > 0)
 			.slice(0, 3).map(l => ({ kind: l.kind, percent: l.percent, severity: l.severity }));
 	} catch { return []; }
@@ -187,13 +187,14 @@ export async function usage_bars(){
  *  `demux()` only ever subscribes to `"log"` frames, so `"agent"` frames pass
  *  through untouched until something else listens for them, here). */
 function agent_feed(base, on_event){
-	let source;
-	try { source = new EventSource(`${base}/api/stream`); }
-	catch { return () => {}; }
-	const handler = msg => { try { on_event(JSON.parse(msg.data)); } catch {} };
-	source.addEventListener("agent", handler);
-	source.onerror = () => {};
-	return () => source.close();
+	let source, stopped = false;
+	servex_up().then(ok => {
+		if (!ok || stopped) return;
+		try { source = new EventSource(`${base}/api/stream`); } catch { return; }
+		source.addEventListener("agent", msg => { try { on_event(JSON.parse(msg.data)); } catch {} });
+		source.onerror = () => {};
+	});
+	return () => { stopped = true; source?.close(); };
 }
 
 export function usage_bar(l){

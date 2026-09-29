@@ -73,8 +73,10 @@
 	     to its measure and hand the sub-card everything else; both hold their
 	     own prose at the measure on the text itself (`.ai2-full-card > *`), so
 	     neither needs the column to do it. */
+	/* ⚠ `2fr` (layout-unify, 2026-09-24): the sub-card's column also carries the chat,
+	     so card | sub-card | chat come out as thirds (the block at the end of this file). */
 	.ai2:has(.ai2-sub > .page.active-page) {
-		grid-template-columns: var(--ai2-rail) minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-columns: var(--ai2-rail) minmax(0, 1fr) var(--ai2-subw, minmax(0, 2fr));
 	}
 
 	.ai2-sub {
@@ -137,99 +139,6 @@
 		font-size: 0.85em;
 		background: var(--surface);
 		border-block-end: 1px solid var(--line);
-	}
-
-	.ai2-compose {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: 0.35em;
-	}
-
-	/* The field and the microphone are ONE control: the mic is absolutely placed
-	   at the field's right end and the input reserves room for it. */
-	.ai2-field {
-		position: relative;
-		flex: 1;
-		min-width: 0;
-		display: flex;
-	}
-
-	.ai2-compose-input {
-		width: 100%;
-		padding-inline-end: 2.4em;
-	}
-
-	.ai2-mic {
-		position: absolute;
-		inset-inline-end: 0.15em;
-		top: 50%;
-		transform: translateY(-50%);
-		gap: 0;
-	}
-
-	.ai2-mic .ux-dictate-btn {
-		padding: 0 0.25em;
-		border: 0;
-		background: none;
-		line-height: 1;
-	}
-
-	.ai2-compose-send,
-	.ai2-compose-more {
-		flex: none;
-		white-space: nowrap;
-	}
-
-	.ai2-compose-more {
-		padding: 0 0.45em;
-		border: 0;
-		background: none;
-		color: inherit;
-		font: inherit;
-		line-height: 1;
-		opacity: 0.45;
-		cursor: pointer;
-	}
-
-	.ai2-compose.open .ai2-compose-more { opacity: 1; }
-
-	/* EVERYTHING ELSE, OUT OF FLOW. `ux/Dictate`'s engine name, its status and
-	   its "stop after a pause" box are moved here bodily by `compose.js` — one
-	   node, not a copy — and the note with them. `position: absolute`, so
-	   opening this cannot move a single row in the rail.
-
-	   ⚠ `visibility`, NOT `display`, and this is not a style choice. Dictate's
-	   own markup wears the `flex v` utilities, and `@layer util` beats
-	   `@layer theme` at any specificity — so a `display: none` here loses to
-	   `.flex { display: flex }` and the popover stays laid out, invisible,
-	   covering whatever is under it. It was covering "+ New card" and "notes":
-	   both buttons were `checkVisibility() === true` and `elementFromPoint` at
-	   their own centre returned `SPAN.ux-dictate-engine`, so a real click did
-	   nothing and Playwright's own click timed out after 30 s with the right
-	   element resolved. `visibility` is not a property any utility sets, and
-	   `pointer-events: none` is what actually gives the click back. */
-	.ai2-compose > .ux-dictate-info,
-	.ai2-compose-note {
-		position: absolute;
-		z-index: 4;
-		inset-inline: 0;
-		top: calc(100% + 0.3em);
-		padding: 0.5em 0.6em;
-		background: var(--surface);
-		border: 1px solid var(--line);
-		border-radius: 0.3em;
-		box-shadow: 0 4px 12px rgb(0 0 0 / 0.18);
-		visibility: hidden;
-		pointer-events: none;
-	}
-
-	.ai2-compose-note { top: calc(100% + 5.2em); }
-
-	.ai2-compose.open > .ux-dictate-info,
-	.ai2-compose.open > .ai2-compose-note {
-		visibility: visible;
-		pointer-events: auto;
 	}
 
 	/* THE WORDS UNDER THE COMPOSER — one line when the rail is wide enough, else
@@ -395,8 +304,9 @@
 		background: var(--fill-a04);
 	}
 
-	/* `.active` is `Router.mark_links()`'s — the selection is never drawn here. */
-	.ai2-row.active {
+	/* `.active` is `Router.mark_links()`'s — the selection is never drawn here. `.in-path`
+	   is the same card with one of its tab pages open (`…/<card>/activity/`). */
+	.ai2-row:is(.active, .in-path) {
 		background: var(--surface);
 		border-inline-start-color: var(--prim);
 	}
@@ -494,6 +404,43 @@
 		font-size: 0.88em;
 		line-height: 1.4;
 		overflow-wrap: anywhere;
+	}
+
+	/* THE FACE OF A CARD: a bar and a dollar figure (meter.js). The bar is a
+	   track with a fill; a running one pulses, a finished one is solid. */
+	.ai2-meter-line {
+		margin-block-start: 0.3em;
+	}
+
+	/* SHORT, never the row's width (the owner, 2026-09-25: "a 2,000-pixel line across my
+	   screen as a progress bar makes no sense"). Its count sits beside it in words. */
+	.ai2-meter {
+		flex: 0 0 4em;
+		min-width: 0;
+		height: 0.4em;
+		border-radius: 0.2em;
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.ai2-meter-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: var(--accent, currentColor);
+	}
+
+	.ai2-meter.live .ai2-meter-fill {
+		animation: ai2-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes ai2-pulse {
+		50% { opacity: 0.45; }
+	}
+
+	.ai2-meter-cost {
+		flex: none;
+		font-size: 0.8em;
+		white-space: nowrap;
 	}
 
 	/* Everything no group holds yet: one quiet word that opens the old list. */
@@ -646,8 +593,12 @@
 	.ai2-full { grid-row: 2; }
 	.ai2-foot { grid-row: 3; }
 
+	/* ⚠ `margin: 0`: the page is `.flow`, whose zero-specificity `* + *` rhythm put
+	   a 32-48px empty band above the first region (more on a sub-card, where the
+	   clamped --flow is larger). The three regions butt; padding is their own. */
 	.page.ai2-card-page > * {
 		grid-column: 1 / -1;
+		margin: 0;
 	}
 
 	.ai2-full {
@@ -662,7 +613,7 @@
 	   (ext/AITask's ai.css), so their tables, steps bar and shots are wide.
 	   On the text, never on the scrolling box, so the scrollbar stays at the
 	   column's edge. */
-	.ai2-full-card > * {
+	:is(.ai2-full-card, .ai2-card-tabs > .tab-panel) > :is(.ai2-text, .ai2-refined, .ai2-summary, .ai2-tally, p) {
 		max-width: var(--measure);
 	}
 
@@ -680,12 +631,70 @@
 		overflow-y: hidden;
 	}
 
-	.ai2-cost :is(th, td):not(:first-child) {
-		white-space: nowrap;
+	/* A GROUP'S ONE SCREEN (tasks.js `group_faces()`): a sentence, then one
+	   row per task — what was asked, what it cost, what happened. The rest
+	   folds under the row. */
+	.ai2-faces-sum {
+		margin: 0 0 var(--gap-50);
+		font-weight: 600;
 	}
 
-	.ai2-cost-sum {
+	.ai2-face {
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-face-head {
+		display: grid;
+		gap: 0.2em;
+		padding-block: var(--gap-50);
+		cursor: pointer;
+	}
+
+	.ai2-face-asked {
+		align-items: baseline;
+		min-width: 0;
+	}
+
+	.ai2-face-q {
+		flex: none;
+		font-size: 0.75em;
+		text-transform: uppercase;
+		opacity: 0.6;
+	}
+
+	.ai2-face-said {
+		min-width: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
 		font-weight: 600;
+		text-align: start;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-face-out.done::before {
+		content: "✓ ";
+	}
+
+	.ai2-face-full {
+		padding: var(--gap-50);
+		border-radius: 0.25em;
+		background: var(--line);
+	}
+
+	.ai2-face-text {
+		margin: 0;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		font: inherit;
+	}
+
+	.ai2-face-body {
+		padding-block-end: var(--gap);
 	}
 
 	/* The chat is running text too: its lines and its box keep the measure,
@@ -697,12 +706,12 @@
 	/* THE TRANSCRIPT FOOTER — the live words, pinned to the bottom, never moving
 	   (the owner, 2026-09-22: "I don't like that my words disappear… that card
 	   could have, in a footer, the transcription — the last paragraph always on
-	   screen"). Its height is FIXED: the words scroll inside `.ai2-script`, so
+	   screen"). Its height is FIXED: the words scroll inside `.chatbox-log`, so
 	   ten sentences and one sentence leave the ideas above in exactly the same
 	   place.
 	   ⚠ ONE CONTROL HEIGHT PLUS ONE RUNG OF PADDING (the owner, 2026-09-22: "way
 	     taller than it needs to be… it should be flush or bordered properly").
-	     Two things were fighting: `.ai2-script`'s flat `5.5em` reserved almost
+	     Two things were fighting: `.chatbox-log`'s flat `5.5em` reserved almost
 	     three lines even for a silent card, and its own padding (`0.5em`)
 	     didn't match `.ai2-full`'s (`var(--pad)`), so the grey ground's inset
 	     read as arbitrary against the column above it rather than a deliberate
@@ -713,36 +722,6 @@
 		padding: var(--gap-25) var(--pad);
 		background: var(--tint);
 		border-block-start: 1px solid var(--line);
-	}
-
-	/* ⚠ `min-height`, not `height` — the old fixed `5.5em` reserved room for
-	   three lines even on a card nobody has spoken into yet; `$partial` (the
-	   grey guess) is always in the DOM so `:empty` can never match it, which
-	   is why this is a floor, not a collapse. */
-	/* ⚠ The max grew from 3.5em to 30vh on 2026-09-23: the footer became the
-	   card's chat (chat.js), and a chat you can only see two lines of is not
-	   one. It still starts at one line and only grows once there is talk. */
-	.ai2-script {
-		min-height: 1.5em;
-		max-height: 30vh;
-		overflow-y: auto;
-		margin-block-end: 0.35em;
-		font-size: 0.9em;
-	}
-
-	.ai2-said-line {
-		margin-block: 0.15em;
-	}
-
-	/* The guess, still moving. Empty collapses the line, so an idle card shows
-	   no stray row. */
-	.ai2-said-partial:empty {
-		display: none;
-	}
-
-	.ai2-said-partial {
-		margin-block: 0.15em;
-		font-style: italic;
 	}
 
 	/* `title:` is the card's ID, for the tab and the framework, not the reader —
@@ -823,6 +802,9 @@
 	.ai2-toc-row:hover {
 		background: var(--fill-a04);
 	}
+
+	.ai2-toc-row.ai2-toc-done .ai2-toc-title { text-decoration: line-through; opacity: 0.7; }
+	.ai2-toc-row.ai2-toc-done .icon { color: var(--accent, currentColor); }
 
 	.ai2-toc-row.active {
 		background: var(--surface);
@@ -940,12 +922,12 @@
 		.page--ai2.active-ancestor .ai2-rail { display: none; }
 		.page--ai2.active-ancestor .ai2-detail { display: block; }
 
-		/* Screen 3: a sub-card is open. The CARD page itself (not the root) is
-		   now the one with a deeper active page beneath it — that is what
-		   "active-ancestor" means one level down — so its own column stands
-		   aside for the sub column. */
-		.ai2-detail:has(.ai2-card-page.active-ancestor) { display: none; }
-		.ai2:has(.ai2-detail .ai2-card-page.active-ancestor) .ai2-sub { display: block; }
+		/* Screen 3: a sub-card is open, in the sub column — so the card's own column
+		   stands aside for it. ⚠ Keyed on the SUB column, not on the card being
+		   `.active-ancestor`: a card's tab pages (`…/<card>/activity/`, the tiny
+		   tabs) make it an ancestor too, and they draw inside the card itself. */
+		.ai2:has(.ai2-sub > .page:is(.active-page, .active-ancestor)) .ai2-detail { display: none; }
+		.ai2:has(.ai2-sub > .page:is(.active-page, .active-ancestor)) .ai2-sub { display: block; }
 
 		/* The card page has no padding of its own, so the link carries its own
 		   inset — it sat at 0px from the screen's edge (padding check, 2026-09-24). */
@@ -1235,25 +1217,6 @@
 
 /* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */
 @layer theme {
-	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
-	.ai2-chat {
-		margin-block: 0.2em;
-	}
-
-	.ai2-chat-who {
-		font-weight: 600;
-		margin-inline-end: 0.45em;
-	}
-
-	.ai2-chat-you .ai2-chat-who {
-		color: var(--prim);
-	}
-
-	.ai2-chat-update {
-		font-size: 0.85em;
-		opacity: 0.65;
-	}
-
 	/* THE LIVE ROW — one line taller than a card row, and always that height:
 	   title, the usage bars, one line of what is running. */
 	.ai2-live-bars {
@@ -1315,6 +1278,13 @@
 		font-style: italic;
 	}
 
+	/* A free worktree slot: bold, so what is free reads at a glance. */
+	.ai2-live-state.ai2-live-ready {
+		color: var(--prim);
+		font-weight: 700;
+		opacity: 1;
+	}
+
 	.ai2-live-state.ai2-live-blocked {
 		color: var(--error);
 		opacity: 1;
@@ -1354,7 +1324,7 @@
 		overflow: visible;
 	}
 
-	.ai2-card-live .ai2-script {
+	.ai2-card-live .chatbox-log {
 		max-height: none;
 		overflow: visible;
 	}
@@ -1370,12 +1340,12 @@
 		flex-direction: column;
 	}
 
-	.ai2-card-live .ai2-foot > .ai2-compose {
+	.ai2-card-live .ai2-foot > .chatbox-compose {
 		order: -1;
 		margin-block-end: 0.35em;
 	}
 
-	.ai2-card-live .ai2-script {
+	.ai2-card-live .chatbox-log {
 		display: flex;
 		flex-direction: column-reverse;
 		justify-content: flex-end;
@@ -1426,11 +1396,10 @@
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			grid-template-rows: auto auto auto auto minmax(0, 1fr);
 			grid-template-areas:
-				"head  head"
-				"use   run"
-				"tasks run"
-				"chat  run"
-				".     run";
+				"head head"
+				"run  tasks"
+				"run  chat"
+				"run  .";
 			align-content: start;
 			align-items: start;
 			column-gap: var(--gap);
@@ -1460,11 +1429,10 @@
 		.page.ai2-card-page.ai2-card-live {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 			grid-template-areas:
-				"head  head head"
-				"use   run  agent"
-				"tasks run  agent"
-				"chat  run  agent"
-				".     run  agent";
+				"head head  head"
+				"run  agent tasks"
+				"run  agent chat"
+				"run  agent .";
 		}
 
 		/* live.js reads this to know the column is here (`wide()`). */
@@ -1476,10 +1444,9 @@
 			grid-template-columns: repeat(4, minmax(0, 1fr));
 			grid-template-rows: auto auto auto minmax(0, 1fr);
 			grid-template-areas:
-				"head  head head  head"
-				"use   run  agent chat"
-				"tasks run  agent chat"
-				".     run  agent chat";
+				"head head  head head"
+				"run  agent tasks chat"
+				"run  agent .     chat";
 		}
 
 		.ai2-card-live .ai2-foot { margin-block-start: 0; }
@@ -1493,6 +1460,20 @@
 	.page.ai2-card-page.ai2-card-live.ai2-live-takeover {
 		display: block;
 	}
+
+	/* Idle agents fold into one line; a row inside keeps the list look. */
+	.ai2-live-idle > summary { cursor: pointer; color: var(--muted, inherit); padding-block: 0.4em; }
+	.ai2-talk-more { display: block; }
+
+	/* USAGE at the top of the rail: three bars with the pace marker, no notes. */
+	.ai2-usage-top { padding-block-end: 0.5em; }
+	.ai2-usage-top .ai-usage { display: flex; gap: 0.75em; }
+	.ai2-usage-top .ai-meter { flex: 1; min-width: 0; font-size: 0.8em; }
+	/* Time left shows (the owner, 2026-09-25: "always show the time remaining"); the pace projection does not fit. */
+	.ai2-usage-top .ai-note { display: block; font-size: 0.9em; white-space: nowrap; }
+	.ai2-usage-top .ai-proj { display: none; }
+	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
+	.ai2-live-on { font-weight: 600; }
 
 	.ai2-live-takeover :is(.ai2-live-section, .ai2-foot) {
 		display: none;
@@ -1587,6 +1568,10 @@
 @layer theme {
 	/* The picker sizes to its word — framework.css gives form controls the
 	   whole row, which crushed the title beside it to one letter a line. */
+	/* The card's Actions menu sits at the head's right edge, so its list opens leftward. */
+	.ai2-actions { flex: none; margin-inline-start: auto; }
+	.ai2-actions .ui-menu-list { left: auto; right: 0; white-space: nowrap; }
+
 	.ai2-type {
 		flex: none;
 		width: auto;
@@ -1677,5 +1662,379 @@
 
 	.ai2-agent-fill.hot {
 		background: #d9534f;
+	}
+}
+
+/* ── ONE LAYOUT FOR EVERY CARD: the chat is the right-hand column (layout-unify, 2026-09-24) ──
+   Three edits had left the chat flipping between a right column and a footer (a
+   container query at 60em that the card fell under the moment a sub-card opened),
+   two chats on screen at once, and a sub-card's short body over a white void.
+   One rule set now, for a card and a sub-card at any depth:
+
+     window under 40em   one screen at a time; the chat is the card's footer
+     no sub-card open    card | chat              the chat is a third of the room right of the rail
+     a sub-card open     card | sub-card | chat   thirds; the chat is the DEEPEST card's own,
+                                                  the parent card's chat steps aside
+
+   The switch is the WINDOW's width — the same 40em every other AI 2 phone rule uses —
+   never the column's, so opening a sub-card can never send the chat to the bottom.
+   The chat's log is its one scroll box (ext/Chat's smart scroll); the box under it grows.
+   Seams (card.js `Card.seam()`): card | chat writes `--ai2-chat`, card | sub-card writes
+   `--ai2-subw`; each moves only the two columns beside it. The Live card has its own grid. */
+@layer theme {
+	.page.ai2-sub-page { position: relative; }
+	.ai2-foot > .grip,
+	.page.ai2-sub-page > .grip { display: none; }
+
+	@media (width >= 40em) {
+		/* A top-level card has the whole room: a third of it is the chat. */
+		.page.ai2-card-page:not(.ai2-card-live) {
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
+			grid-template-rows: auto minmax(0, 1fr);
+		}
+
+		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
+		   so half of it is the same third. */
+		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live) {
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot {
+			position: relative;
+			grid-column: 2;
+			grid-row: 1 / -1;
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			padding-block: var(--pad);
+			border-block-start: 0;
+			border-inline-start: 1px solid var(--line);
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > * { max-width: none; }
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .chatbox-compose { flex: none; }
+
+		/* The log takes the column's height and is the only thing in it that scrolls. */
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .chatbox-log {
+			flex: 1 1 0;
+			min-height: 0;
+			max-height: none;
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .grip,
+		.page.ai2-sub-page > .grip { display: block; }
+
+		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
+		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page > .ai2-foot {
+			display: none;
+		}
+	}
+
+	/* ── a top-level card's two tabs (card.js `draw()`) ──
+	   The strip and the mark are ext/tabs' own. The tabs are links with no href
+	   (an href would be routed), so the pointer is stated here; the panel's 3em
+	   top pad is for a document, too much under a card's head. */
+	.ai2-card-tabs { margin-block-start: var(--gap-50); }
+	.ai2-card-tabs > .tab-bar > .tab { cursor: pointer; }
+	/* ⚠ `inherit`: ext/tabs sets `--measure: none` on every panel, so the card's prose ran 1770px wide at 3440. */
+	.ai2-card-tabs > .tab-panel { padding-top: var(--gap); --measure: inherit; }
+
+	/* A heading over each group of requests on the Tasks tab. */
+	.ai2-toc-group {
+		font-size: 0.85em;
+		font-weight: 600;
+		margin-block: 0 0.3em;
+	}
+
+	/* The groups as columns: one on a phone, two at 1920, three at 3440. */
+	.ai2-toc-groups {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 26em), 1fr));
+		align-items: start;
+		gap: var(--gap);
+		margin-block-start: var(--gap);
+	}
+
+	.ai2-summary-head { display: block; }
+	.ai2-tally-go { cursor: pointer; text-decoration: underline; }
+}
+
+/* THE OUTLINE (outline.js): status, then one checklist. Rows are a tick, the
+   title, the time asked and a link to the proof. */
+@layer theme {
+	.ai2-full-name {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 0.2em var(--gap-50);
+	}
+
+	.ai2-full-name > .ai2-full-title { flex: none; }
+
+	.ai2-state {
+		font-size: 0.9em;
+		white-space: nowrap;
+	}
+
+	.ai2-state-dot { margin-inline-end: 0.3em; color: var(--line); }
+	.ai2-state.live .ai2-state-dot { color: var(--accent, currentColor); animation: ai2-pulse 1.4s ease-in-out infinite; }
+	.ai2-state.done .ai2-state-dot { color: var(--accent, currentColor); }
+
+	.ai2-ol-about, .ai2-ol-status { max-width: var(--measure); }
+	.ai2-ol { max-width: 60em; }
+
+	.ai2-ol-status { font-weight: 600; }
+
+	.ai2-ol { margin-block-start: var(--gap); }
+
+	.ai2-ol-head {
+		font-weight: 700;
+		padding-block-end: 0.3em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-ol-row {
+		display: grid;
+		grid-template-columns: 1.4em minmax(0, 1fr) auto 5em;
+		align-items: baseline;
+		gap: 0 var(--gap-50);
+		padding-block: 0.35em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-ol-mark { color: var(--accent, currentColor); }
+	.ai2-ol-time { white-space: nowrap; }
+	.ai2-ol-proof { white-space: nowrap; grid-column: 4; }
+
+	/* The count grid: three numbers you read at a glance, and they are the list's filter. */
+	.ai2-ol-grid {
+		display: flex;
+		gap: var(--gap-50);
+		margin-block-end: var(--gap-50);
+	}
+	.ai2-ol-count {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		min-width: 6em;
+		padding: 0.4em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		background: none;
+		cursor: pointer;
+		text-align: start;
+	}
+	.ai2-ol-count.on { border-color: var(--accent, currentColor); box-shadow: inset 0 0 0 1px var(--accent, currentColor); }
+	.ai2-ol-n { font-size: 1.6em; font-weight: 700; line-height: 1.1; }
+	.ai2-ol-name { font-size: 0.85em; }
+	.ai2-ol-list { border-block-start: 1px solid var(--line); }
+	.ai2-ol.show-open .ai2-ol-row.done,
+	.ai2-ol.show-done .ai2-ol-row.open { display: none; }
+	.ai2-ol-row.live .ai2-ol-mark { animation: ai2-pulse 1.4s ease-in-out infinite; }
+
+	/* A card summed up by its requests: the groups sit side by side on a wide screen, and a
+	   group the filter empties goes with its rows. */
+	.ai2-ol.ai2-ol-requests { max-width: none; }
+	.ai2-ol-requests .ai2-toc-groups { margin-block-start: var(--gap-50); }
+	.ai2-ol-requests .ai2-ol-row { grid-template-columns: 1.4em minmax(0, 1fr) auto; }
+	.ai2-ol-requests .ai2-ol-row.done .ai2-ol-title { color: var(--muted, inherit); }
+	.ai2-topics { margin-block-start: var(--gap); max-width: 60em; }
+	.ai2-topics .ai2-ol-row { grid-template-columns: 1.4em minmax(0, 1fr) auto; }
+	.ai2-ol.show-open .ai2-toc-section:not(:has(.ai2-ol-row.open)),
+	.ai2-ol.show-done .ai2-toc-section:not(:has(.ai2-ol-row.done)) { display: none; }
+}
+
+/* ── Live: the assistant is one row (ai2-lead audit, 2026-09-25) ──
+   The owner: "don't render the fast assistant's chat messages inline, taking space. Show the
+   assistant as a small card or row, and clicking it opens its chat." The chat is folded inside
+   `.ai2-live-assistant`; that fold takes the chat's grid slot, and the chat's own box styling
+   (border, margin) applies only once it is open. */
+@layer theme {
+	.ai2-live-assistant { max-width: var(--measure); margin-block-start: var(--gap); }
+	.ai2-live-assistant-row {
+		cursor: pointer;
+		padding: 0.5em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		font-weight: 600;
+	}
+	.ai2-live-assistant[open] > .ai2-live-assistant-row { border-end-start-radius: 0; border-end-end-radius: 0; }
+	.ai2-live-assistant > .ai2-foot { margin-block-start: 0; }
+	@container ai2-live (min-width: 60em) {
+		.ai2-card-live .ai2-live-assistant { grid-area: chat; }
+		.ai2-card-live .ai2-live-assistant > .ai2-foot { grid-area: auto; margin-block-start: 0; border-start-start-radius: 0; border-start-end-radius: 0; border-block-start: 0; }
+	}
+}
+
+/* Live with no agent clicked: the agent column leaves the grid (live.js `place()`). */
+@layer theme {
+	.ai2-live-nosel .ai2-live-talk-col { display: none; }
+	@container ai2-live (min-width: 95em) {
+		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-areas: "head head" "run tasks" "run chat" "run .";
+		}
+	}
+	@container ai2-live (min-width: 130em) {
+		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-areas: "head head head" "run tasks chat" "run . chat";
+		}
+	}
+}
+
+/* The rail's own name, above the usage bars. */
+@layer theme {
+	.ai2-rail-name { margin: 0 0 0.3em; font-size: 0.9em; }
+	/* The workspace word sits at the name's far end (workspace.js). */
+	.ai2-top > .ai2-rail-name { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5em; }
+	.ai2-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }
+}
+
+/* ── TINY TOP TABS, FULL BLEED (card.js `tiny_tabs()`) ─────────────────────────
+   Opt-in per card: a `{"layout": "tabs"}` line in its page.jsonl. Every section of
+   the card is a tab and one shows at a time, edge to edge with no padding. The chat
+   is not a tab: it keeps its right-hand column (the card's usual grid, unchanged here).
+   The strip is small on purpose: 0.75em type, one line, stuck to the top while the panel scrolls. */
+@layer theme {
+	.page.ai2-card-page:has(> .ai2-full > .ai2-full-card > .ai2-tiny-tabs) > .ai2-full {
+		grid-column: 1;
+		padding: 0;
+	}
+
+	.ai2-full-card:has(> .ai2-tiny-tabs) > .ai2-full-head {
+		padding: var(--gap-25) var(--gap-50);
+	}
+
+	.ai2-tiny-bar {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		display: flex;
+		overflow-x: auto;
+		overflow-y: hidden;
+		background: var(--tint);
+		border-block: 1px solid var(--line);
+		font-size: 0.75em;
+		line-height: 1.2;
+		white-space: nowrap;
+	}
+
+	.ai2-tiny-tab {
+		padding: 0.35em 0.8em;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+		opacity: 0.7;
+		border-block-end: 2px solid transparent;
+	}
+
+	.ai2-tiny-tab:hover { opacity: 1; }
+
+	.ai2-tiny-tab[aria-selected="true"] {
+		opacity: 1;
+		font-weight: 600;
+		border-block-end-color: var(--prim);
+	}
+
+	/* The panel holds the tab PAGES (card.js `route()`): each is a routed child page
+	   wearing the framework's `.pad`, so its content keeps the page's own inset while
+	   the strip above runs edge to edge. One track, the whole width: not core's page grid. */
+	.ai2-tiny-panel { --measure: none; }
+
+	.page.ai2-tab-page {
+		display: block;
+		max-width: none;
+	}
+
+	.page.ai2-tab-page > .page-title { display: none; }
+
+	/* The title is hidden, so the body is first on screen: no flow gap above it. */
+	.page.ai2-tab-page > .ai2-tab-body { margin-block-start: 0; }
+
+	.ai2-tab-body > * + * { margin-block-start: var(--gap-50); }
+}
+
+/* The outline is the panel's `.default`: shown until a tab page is routed beside it —
+   the same rule ext/tabs keeps for `.tab-panel`, in `util` beside core's arrangement contract. */
+@layer util {
+	.ai2-tiny-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+/* WHAT HAPPENED (activity.js): the one-line bar under a resurfaced row, and the
+   Activity tab it opens. The bar is a quiet tinted strip in the accent colour,
+   clipped to one line; the full words are one click away. A new event wears the
+   same left edge as the bar, and the word "new". */
+@layer theme {
+	.ai2-news {
+		margin-block-start: 0.35em;
+		padding: 0.15em 0.45em;
+		border-inline-start: 2px solid var(--prim);
+		background: var(--fill-a04);
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+	.ai2-news:hover { background: var(--surface); }
+	.ai2-news-who { font-weight: 600; }
+
+	.ai2-act-sum { display: block; margin-block-end: 0.6em; }
+	.ai2-act-row {
+		padding: 0.45em 0.7em;
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+	}
+	.ai2-act-row.ai2-act-new { border-inline-start-color: var(--prim); background: var(--fill-a04); }
+	.ai2-act-who { font-weight: 600; flex: none; }
+	.ai2-act-where { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.ai2-act-mark { flex: none; }
+	.ai2-act-when { margin-inline-start: auto; flex: none; }
+	.ai2-act-mark {
+		font-size: 0.75em;
+		font-weight: 600;
+		text-transform: uppercase;
+		color: var(--prim);
+	}
+	.ai2-act-what {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 4;
+		overflow: hidden;
+		overflow-wrap: anywhere;
+	}
+}
+
+/* A REAL SITE PAGE IN THE DETAIL COLUMN (real.js) — the page itself, full height and
+   the whole width, scrolling inside its own box the way a card page does. The real
+   page keeps its own classes; only the box around it is ours. */
+@layer theme {
+	.page.ai2-real {
+		display: block;
+		height: 100%;
+		min-height: 0;
+		overflow: auto;
+		padding: 0;
+	}
+
+	.page.ai2-real > .ai2-real-top { min-height: 100%; }
+
+	.ai2-real-none { padding: var(--pad); }
+
+	.ai2-real-path {
+		display: block;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 }

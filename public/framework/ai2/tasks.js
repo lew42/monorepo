@@ -1,6 +1,8 @@
-import { div, section, span, small, a } from "/framework/core/View/View.js";
+import { div, p, pre, button, details, summary, section, span, small, a } from "/framework/core/View/View.js";
 import { icon } from "/framework/core/View/View.js";
 import { when } from "./faces.js";
+import { plain, headline } from "./inbox.js";
+import { money, cost_of } from "/framework/ext/AITask/cost.js";
 
 /**
  * A CARD'S DETAIL IS THE REAL TASK PAGE (the owner, 2026-09-24: "When I click a
@@ -44,6 +46,93 @@ export function task_section(m, { head = true } = {}){
 			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { known_files: m.files } : {}); }))
 				.catch(() => $body.append(() => { small.c("muted").text("The task page could not be drawn here — open it instead."); }));
 		});
+	});
+}
+
+/* ── THE GROUP'S ONE SCREEN (the owner, 2026-09-24: "what was asked, what
+   happened, what it cost, in one screen") ─────────────────────────────────
+   A group card is a sentence and one row per task. A row's face is three
+   things — the owner's words (first line), the agents and the money, and one
+   sentence of outcome. Steps, report and agents fold one click down. */
+
+const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+
+/** One member task as plain data — also what the card's redraw signature reads. */
+export function face_row(groups, m){
+	const t = groups.task_member(m.base);
+	const c = cost_of(t);
+	const ag = t?.cost?.agents;
+	return {
+		base: m.base, files: m.files, title: m.title,
+		asked: String(t?.request ?? "").trim(),
+		agents: Array.isArray(ag) ? ag.length : (ag ?? 0),
+		usd: c?.usd ?? null, open: !!c?.open,
+		own: c?.cost.own_usd ?? null, minions: c?.cost.minions_usd ?? null,
+		landed: !!t?.landed_at,
+		said: t?.landed_at && t?.outcome ? headline(t.outcome) : plain(t?.now ?? "") || "no update yet",
+	};
+}
+
+/** `3 tasks · 27 agents · $58.40 · 2 done` — the one sentence at the top. */
+export function face_sentence(rows, sum){
+	const bits = [plural(rows.length, "task")];
+	const agents = rows.reduce((n, r) => n + r.agents, 0);
+	if (agents) bits.push(plural(agents, "agent"));
+	bits.push(sum?.tracked ? money(sum.usd) + (sum.open ? "+" : "") : "cost not tracked");
+	bits.push(rows.filter(r => r.landed).length + " done");
+	return bits.join(" · ");
+}
+
+/** The whole group face. `state` (the card's) remembers what the reader opened across redraws. */
+export function group_faces(rows, sum, state){
+	state.open ??= new Set(); state.said ??= new Set();
+	div.c("ai2-cost ai2-faces", () => {
+		p.c("ai2-faces-sum").text(face_sentence(rows, sum));
+		rows.forEach(r => face(r, state));
+	});
+}
+
+function face(r, state){
+	details.c("ai2-face", $d => {
+		if (state.open.has(r.base)) $d.attr("open", "");
+		let filled = false;
+		const fill = () => {
+			if (filled || !$d.el.open) return;
+			filled = true;
+			$d.append(() => { div.c("ai2-face-body", () => { task_section({ base: r.base, files: r.files }, { head: false }); }); });
+		};
+		summary.c("ai2-face-head", () => {
+			const first = r.asked.split("\n")[0] || r.title || "A task";
+			const more = r.asked.length > first.length;
+			div.c("ai2-face-asked flex gap-25", () => {
+				span.c("ai2-face-q").text("asked");
+				button.c("ai2-face-said").attr("type", "button")
+					.attr("title", more ? "open the whole request" : "the request")
+					.text(first).click(e => {
+						e.preventDefault(); e.stopPropagation();
+						const $full = $d.el.querySelector(".ai2-face-full");
+						state.said.has(r.base) ? state.said.delete(r.base) : state.said.add(r.base);
+						if ($full) $full.hidden = !state.said.has(r.base);
+					});
+			});
+			div.c("ai2-face-cost", () => {
+				const bits = [];
+				if (r.agents) bits.push(plural(r.agents, "agent"));
+				bits.push(r.usd == null ? "not tracked" : money(r.usd) + (r.open ? "+" : ""));
+				span.c("ai2-face-money").text(bits.join(" · "));
+				if (r.own != null) small.c("muted").text(" mastermind " + money(r.own) + " · minions " + money(r.minions ?? 0));
+			});
+			div.c("ai2-face-out" + (r.landed ? " done" : "")).text(r.said);
+			const full = div.c("ai2-face-full", () => { pre.c("ai2-face-text").text(r.asked); });
+			full.el.hidden = !state.said.has(r.base);
+		});
+		$d.on("toggle", () => {
+			const now = $d.el.open;
+			if (now === state.open.has(r.base)) return fill();
+			now ? state.open.add(r.base) : state.open.delete(r.base);
+			fill();
+		});
+		fill();
 	});
 }
 

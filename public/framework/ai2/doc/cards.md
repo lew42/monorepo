@@ -30,17 +30,100 @@ method calls it; anything else is kept as data. The methods are the vocabulary:
 
 A new kind of line is a new method on `Card`. Nothing else has to change.
 
+- `{"type": "refined", "text", …}` is **not** a retype: `Card.set()` keeps it whole as the
+  card's summary (latest wins). Through core's `set()` it would have made the card a
+  "refined" and overwritten the card's own `text` and `by`.
+
+## The tabs (2026-09-25)
+
+A top-level card draws its tabs with `ext/tabs`' own classes (not `Page.tabs()`, which routes
+each tab to a child url — a card's children are its requests). A request has no tabs.
+
+- **Overview** — the head, the bar and cost, what the card is, its summary (the latest
+  refined reading; else, if the card has no words of its own, the first thing you said into
+  it), and one line: "13 requests, 0 done — see Tasks".
+- **Tasks** — the requests, and below them the task pages of the agents working on them.
+  Shown only when it has something in it.
+- **Activity** (always there) — every line in the card and its requests, newest first; the
+  lines you have not seen are marked "new".
+
+**Each tab is a url.** Overview is the card's own address; Tasks and Activity are child pages,
+`…/<card id>/tasks/` and `…/<card id>/activity/` (`card.js` `tab_route()`), the same shape as a
+tiny-tab card's `…/now/usage/`. So a reload and Back land on the tab, and nothing is kept in
+localStorage. A request with the same name as a tab keeps the name.
+
+**What happened, in the rail** (`activity.js`). A row whose newest line is newer than
+`ai2-seen:<card id>` shows one line under its preview: who, then what. Clicking it opens
+Activity; opening Activity stores the card's newest time there, and the line goes. A card
+never opened counts as seen up to a day ago.
+
+**Grouping.** Append `{"group": "Dictation box"}` to a request's own `page.jsonl` and the
+Tasks tab puts it under that heading; the latest line wins. Groups show in the order they
+first appear; requests with no group go last, under "Other"; a card with no groups shows
+one flat list. The line is read from each request's own file, so it shows the next time
+you open the card. ⚠ It is the same key `groups.js` uses to file a card into a
+`groups.json` group; a heading word that is not a group id there files nothing.
+
+**Delivered.** A request counts as delivered when its latest `status` is done, or a
+`manager-…` message in its log begins "Landed" or "Done", or one of its `item` lines is done.
+A row's title is the sub-card's own `title` line, never its slug. A sub-card nothing was
+asked in (no prompt, message, item or ask type — System design's topic stubs) is a
+**topic**: listed, never counted as to do. A group card's own task pages count beside its requests. The
+same read that finds its group decides it. A card with requests and no `item` lines of its
+own is summed up by them on Overview: Delivered · To do · All, then each group with its
+requests ticked (overview-fix, 2026-09-25: a day of landed work had read "0 Delivered").
+
 ## What the page writes, and where
 
 All writes go through Servex, never to a file directly:
 
 - **+ New card** → `POST /card/create {title, by: "owner"}`, then opens it listening.
-- **+ sub-card** → `POST /card/create {parent: <card id>, title}`.
+- **+ request** → `POST /card/create {parent: <card id>, title}`.
 - **The type picker** → `POST /card/append?id=` with `{"type": "question"}`.
 - **clear** → `{"status": "archived"}`. Nothing is deleted.
 - **A sentence typed or spoken into a card** → one prompt record,
   `{"prompt": {"raw", "text", "via", "on", "url"}}`, on the card. The same sentence still goes
   to `/log/prompts` too, because that is what the fast assistant reads.
+
+## A card's own content.js
+
+A card can draw anything. Put a `content.js` in the card's folder, import any modules from the
+site in it, and render them. One line in the card's `page.jsonl` places it:
+
+```js
+{"place": {"module": "content.js"}}
+```
+
+`core/Page/Log.js` `draw_module()` imports the file when the card draws. If its default export
+has a `render` method (a View), it is constructed as `new Default({ page, ...data })`. Anything
+else is called as `content(page, box, data)`. `data` is every other key on the `place` line. The
+box is already captured, so factory calls inside the function land in the card:
+
+```js
+import files from "/framework/ext/files/files.js";
+import Quotation from "/framework/ux/Content/Quotation/Quotation.js";
+
+export default function content(page, box, data){
+	new Quotation({ text: "Each card could have a content.js…" });
+	files(import.meta, "content.js page.jsonl", { route: false });
+}
+```
+
+Import by root-absolute path (`/framework/…`), and resolve the card's own files against
+`import.meta`, never the document. The example card is
+[`2026/09/28/example-a-card-s-content-js`](/framework/ai2/2026/09/28/example-a-card-s-content-js/): its
+[`content.js`](/framework/ai/2026/09/28/example-a-card-s-content-js/content.js) shows the owner's words as a
+Quotation and the card's own folder as a file browser. A card with `{"layout": "tabs"}` gets each
+placed module as its own tab, named after the file.
+
+## The workspace view (an experiment, off by default)
+
+Add `?view=workspace` to any AI 2 url, or press **workspace** at the top of the rail. An opened
+card's detail area then becomes a Floating page (`floating.js`): the card's tabs and its
+sub-cards are a left nav, and the page sits centred beside it, capped at 64em. The chat column
+stays where it is. A request (a sub-card) keeps its usual look. Press **workspace** again to
+turn it off. With it off, nothing on the page changes. Why it works this way:
+[`decisions.md`](./decisions.md#the-workspace-view-an-experiment-behind-a-url-switch-2026-09-28).
 
 ## When Servex is down
 

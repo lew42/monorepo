@@ -440,12 +440,12 @@ silently, with every number still agreeing.
 
 The owner, 2026-09-22 19:54: *"way taller than it needs to be, grey background that abruptly
 stops with a border on top; it should be flush or bordered properly."* Two separate things were
-adding up: `.ai2-script`'s flat `5.5em` reserved almost three lines even for a card nobody has
+adding up: `.chatbox-log`'s flat `5.5em` reserved almost three lines even for a card nobody has
 spoken into, and its own padding (`0.5em`) did not match `.ai2-full`'s (`var(--pad)`), so the
 grey ground's inset read as arbitrary rather than a deliberate edge lined up with the column
 above it. Fixed: `.ai2-foot`'s padding is `var(--gap-25) var(--pad)` — a real "rung" (the
 framework's own word for the `--gap-*` tokens) on the block axis, matching the column's own
-inset on the inline axis; `.ai2-script` is a `clamp`-like floor/ceiling (`min-height: 1.5em`,
+inset on the inline axis; `.chatbox-log` is a `clamp`-like floor/ceiling (`min-height: 1.5em`,
 `max-height: 3.5em`) instead of a flat reservation. Measured: the footer is 64–70px tall now
 (both widths), down from roughly 180px combining the old fixed script height and its composer.
 
@@ -545,3 +545,31 @@ The owner, 2026-09-24: "What took so many tokens? I want to see token cost on th
 **Dollars, not tokens**, because each model charges a different price per token; the figure is `Server/task-cost.mjs`'s, never computed here. **A group row shows its sum in place of its "N tasks" count**, not beside it: all three words wrapped three group titles and pushed the Live card below the fold at 1920×1080. The alternative, a second line under each group, costs the same height. The count is one click away, since the group's card lists every task. **A group's card opens with a two-column table**, each task's name with its mastermind / minions split under it, then its total. Four columns made the names one word per line in a half column at 1280. Rows sort by cost, largest first. ⚠ **What the table draws is part of `draw_sig()`** (`cost_model()` feeds both): the card-page-flicker fix skips a redraw whose signature has not changed, the card first draws before the group's task logs load, and without cost in the signature the table never appeared on the live site. **Who spent it, agent by agent with each model, lives once**, in the task page's Report tab (`ext/AITask/cost.js`), which the card embeds. It is not repeated in the card's head.
 
 **The card page is one track wide.** A card page is a `.page`, and core's page grid put everything in its 640px main track at the left of a 1,312px column (1920). Now the page is `minmax(0, 1fr)`, the measure sits on the card's own text, the chat and the task pages' prose (`ai.css` caps those itself), and the tables, the steps bar and the task pages run the full width. **With a sub-card open, the card and the sub-card split the room half each.** Until now the card clamped to its measure and the sub-card took the rest. The alternative, the sub-card at a fixed width and the card taking the rest, reads the ask the other way round; say if you want it.
+
+# The element audit, 2026-09-25
+
+The owner: "Every pixel on every column of every page needs to be as simple and useful as
+possible." Every element on the rail, a card and Live was weighed (keep, move to a menu, fold, or
+remove). The table, with a reason for each:
+[`ai/2026-09-25/ai2-lead/audit.md`](/framework/ai/2026-09-25/ai2-lead/audit.md). The short
+version: the bars are short and say what they count, the header's controls are one Actions
+menu, the tabs show only when Tasks has something, a card is a three-number grid over one
+filtered list with to-do first, and Live opens no chat until you click. Walkthrough:
+[`/framework/ai/2026-09-25/ai2-lead/`](/framework/ai/2026-09-25/ai2-lead/).
+
+# The rail is one timeline; a card made for you opens on your screen (2026-09-25)
+
+- **One timeline.** Groups, the Live card and cards share one list sorted by last-updated only; each row shows its time top-right. A card's time is its newest sub-card's; a landing merges into the card of the same name; two rows with the same title under two minutes apart are one. Alternative rejected: groups pinned on top (the owner: "they seem sticky").
+- **Focus.** `{"type": "focus", "ref": "<card id>"}` on the Live card's log (`append_log`, name `cards/live`) sends every open AI 2 page to that card. It is live-only, never replayed, and ignored after two minutes. Alternative rejected: a new Servex route. The Live log already streams to every open page, so no restart was needed.
+- **A clock from the future counts as unknown.** A hand-typed day-log time (21:10 -07:00 for a 15:53 -05:00 landing) pinned its row to the top.
+
+# The workspace view: an experiment behind a url switch (2026-09-28)
+
+- **The switch is the url, `?view=workspace`, flipped by a full navigation.** The rail's `workspace` word reloads the same page with the switch flipped, so a card never redraws from one layout into the other. Alternative rejected: a pushState and a re-render of the open card, which can leave a half-switched card on screen. While on, every AI 2 link you click keeps the switch (`workspace.js` `keep()`), and so does every navigation AI 2 makes itself (`workspace.url()`).
+- **Off changes nothing.** Proven against the committed files, served in place of the edited ones: the card, its head, its tab strip, its panel, its chat and the rail measured the same box at 1920 and 3440 on System design, the example card, a group, the Now card and the root. Task log: [`ai2-workspace`](/framework/ai/2026-09-28/ai2-workspace/).
+- **The nav and the page centre together, as one unit.** The owner asked for a page "horizontally centered with a left sidebar of its own". Alternative rejected: the nav flush left and the page centred in the rest, which leaves a wide gap between them at 3440.
+- **`floating.js` is one file with its stylesheet inside it** (added once to the document, in `@layer site`), so it moves into core/Page's Layout tab in one step. Alternative rejected: `floating.css` beside it.
+
+## Open
+
+- Reserve the `floating-` prefix in `styles/css-scopes.txt` (outside this task's fence): `floating-   /framework/ai2/floating.js (moving to core/Page Layout)`.
