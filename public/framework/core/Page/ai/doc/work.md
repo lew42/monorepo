@@ -36,9 +36,13 @@ div.c("card pad", $box => page_work_strip($box, { match: ["your", "keywords"] })
 
 One line, same shape used on [`ux/Dictate/`](/framework/ux/Dictate/) and this page
 (`core/Page/ai/page.js`, `ux/Dictate/page.js` — both read the real call). Name a few
-words about the page's own topic in `match`; add an `ancestors` entry per parent page
-whose own work should show, collapsed, one click up. Full shape and both views:
-`work.js`'s own top comment.
+words about the page's own topic in `match`, and pass `page: this` (from inside
+`content()`) so the collapsed "Parent: …" rows come from the real page tree —
+`page.parent`, walked all the way to the root — instead of a hand-typed list
+(review-2.md finding 7, 2026-09-29 fix round 2). Each ancestor's own match is a
+`work_match` property set on that page's `Doc`/`Page` definition; a page that never
+declares one falls back to its own last url segment (`/framework/ux/` → `ux`). Full
+shape and both views: `work.js`'s own top comment.
 
 ## If cards start carrying a real tag
 

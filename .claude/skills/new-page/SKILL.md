@@ -33,6 +33,7 @@ These are the mechanics. What the page is, where it goes and what goes on it, to
    ```
    A module index is `new Doc({ … })` instead (`documentation` skill). Never name a page
    method `render()` — it collides with core; `draw()`, `report()` are free.
+   New pages place `page_work(page)` (`core/Page/ai/work.js`) in `content()` by default — the one line that shows the page's own open tasks and agents; skip it only if the page truly has no topic to match keywords against. Detail: [`core/Page/ai/doc/work.md`](/framework/core/Page/ai/doc/work/).
 4. **Route everything.** Anything a reader can see or open on the page — a doc swapped in place, a
    tab, a detail — has its own url (a child page, or `history.pushState` to one that reloads to
    the same view). A view with no address loses the reader's place on reload. `swap_link` does it

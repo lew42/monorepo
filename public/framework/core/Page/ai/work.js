@@ -23,8 +23,21 @@
  *
  * `opts`:
  *   match      string[]  — keywords for THIS page's own topic.
- *   ancestors  {title, url, match: string[]}[]  — one entry per parent page
- *              that should get its own collapsed row, oldest last.
+ *   page       the calling page instance (pass `this` from inside `content()`) —
+ *              its `page.parent` chain, walked all the way to the root, IS the
+ *              ancestor list; no page has to type its own parents out by hand
+ *              any more (review-2.md finding 7, 2026-09-29 fix round 2. Before
+ *              this, `ancestors` was a hand-typed array here — every page that
+ *              opted in had to repeat its own parent chain, and it stopped
+ *              wherever the person writing it stopped typing, which is exactly
+ *              the bug: ux/Dictate/page.js's list stopped at "ux", so
+ *              Framework's own work never showed). Each ancestor supplies its
+ *              own match: a `work_match` array PROPERTY set right on that page's
+ *              `Doc`/`Page` definition (any key in a `new Doc({...})` object
+ *              becomes an instance property — `Page.class.js`'s `assign()`),
+ *              or, with no `work_match` declared, its own last url segment
+ *              (e.g. "/framework/ux/" → "ux") — the same practical stand-in
+ *              `match` itself is, until cards carry a real tag.
  *   extra      {title, url, done, at, icon}[]  — work this live match can't
  *              reach (a pre-card task.jsonl, or anything off Servex entirely).
  *              Named explicitly because there is no live index of it.
@@ -49,14 +62,35 @@ function hit(row, keys){
 	// Only the id's own last segment is this row's OWN name.
 	const leaf = norm(row.id).split("/").pop();
 	const hay = norm(row.title) + " " + leaf + " " + norm(row.role) + " " + norm((row.tags ?? []).join(" "));
-	return keys.some(k => hay.includes(norm(k)));
+	const has = k => hay.includes(norm(k));
+	// "whisper" on its own is too loose a word — real cards named "Composer" and
+	// "Chat replies" matched it and had nothing to do with Dictate (review-2.md
+	// finding 9). It only counts as a hit together with "dictat" or "mic" also
+	// hitting; every other keyword still matches completely on its own.
+	return keys.some(k => norm(k) === "whisper" ? has("dictat") || has("mic") : has(k));
+}
+
+// Two cards can carry the same title (seen live on Dictate: five separate "proof
+// card (open-mic's JFK clip test)" rows, review-2.md finding 9) — one row per
+// title is enough, and the newest (by `last`, falling back to `created`) is the
+// one worth showing. Order of what SURVIVES doesn't matter here; `fill_rows`
+// sorts everything again by date right after this runs.
+function dedupe_by_title(cardRows){
+	const newest = new Map();
+	for (const c of cardRows){
+		const key = norm(c.title);
+		const at = String(c.last ?? c.created ?? "");
+		if (!newest.has(key) || at > String(newest.get(key).last ?? newest.get(key).created ?? "")) newest.set(key, c);
+	}
+	return [...newest.values()];
 }
 
 /** One topic's open cards + live agents. `null` pieces mean Servex didn't answer. */
 async function topic(keys){
 	const [cardRows, agentRows] = await Promise.all([cards("open"), agents()]);
+	const matched = cardRows === null ? null : cardRows.filter(c => hit(c, keys));
 	return {
-		cards: cardRows === null ? null : cardRows.filter(c => hit(c, keys)),
+		cards: matched === null ? null : dedupe_by_title(matched),
 		agents: agentRows === null ? null : agentRows.filter(r => ACTIVE.has(r.state) && hit(r, keys)),
 	};
 }
@@ -131,8 +165,29 @@ function strip_label(own, extra, ancResults){
 	return `This page: ${mine}` + (parents ? ` — parents: ${parents}` : "");
 }
 
+// A page's own last url segment, the DEFAULT match for an ancestor that never
+// declared its own `work_match` — e.g. "/framework/ux/" → ["ux"]. The site root
+// has no segment at all, so it gets `[]`, and `hit()` already treats an empty
+// keyword list as "no match" — a harmless, silent last entry, not a special case.
+function default_match(page){
+	const seg = (page?.url ?? "").split("/").filter(Boolean).pop();
+	return seg ? [seg.toLowerCase()] : [];
+}
+
+// Every ancestor from the nearest parent up to the root — `page.parent`, walked
+// (review-2.md finding 7). Replaces the old hand-typed `ancestors:` array: a
+// page's place in the TREE is now the one source, so nobody re-types their own
+// parent chain, and nobody can stop it short by forgetting a grandparent.
+function ancestors_of(page){
+	const list = [];
+	for (let p = page?.parent; p; p = p.parent)
+		list.push({ title: p.title ?? p.name ?? p.url, url: p.url, match: p.work_match ?? default_match(p) });
+	return list;
+}
+
 async function gather(opts){
-	const { match = [], ancestors = [], extra = [] } = opts;
+	const { match = [], page = null, extra = [] } = opts;
+	const ancestors = ancestors_of(page);
 	const [own, ancResults] = await Promise.all([
 		topic(match),
 		Promise.all(ancestors.map(anc => topic(anc.match).then(data => ({ ...anc, data })))),

@@ -72,6 +72,9 @@ export default new Doc({
 		div.c("card pad", $box => page_work($box, WORK_OPTS));
 		md("**View B** (a one-line strip; click to open the same block):");
 		div.c("card pad", $box => page_work_strip($box, WORK_OPTS));
+			// [fix-2026-09-29-2 finding 8] the answer to "opt-in or automatic?" used to
+			// live one click down, in doc/work.md, and never on this page itself.
+			md("**Doc pages opt in with one line** — `ext/Doc` pages don't get this block automatically; a page places `page_work()` itself. Why, and how: [`doc/work.md`](doc/work/).");
 
 		// SHOW, DON'T JUST LINK — the very thing this page is about, right here: real
 		// agents, fetched live, rendered by the default instance view (ux/Content/Object/DefaultView.js).

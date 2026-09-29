@@ -1,4 +1,4 @@
-import { Page, Doc, md, div, code } from "/app.js";
+import { Page, Doc, md, div, code, a, span, small } from "/app.js";
 import { mini } from "../../ext/demo/mini.js";
 import { object } from "../../ux/Content/Object/Object.js";
 import { page_object } from "./object.js";
@@ -20,6 +20,25 @@ import { item } from "../../ui/item/item.js";
 // what the old "JS, last" pair did. `labels` is a nav entry and `render` is how a page
 // draws its own box, so both had a band already (measured 2026-08-26). It is also why
 // `columns` moved UP rather than the five standing alone.
+// [fix-2026-09-29-2 finding 2] "How a url becomes a page" was a paragraph one click
+// down in the Docs tab — the owner called it "foundational to understanding what
+// goes where", so it gets a picture on the Overview itself, not just a link. Seven
+// tiles, same order and words as doc/loading.md's own numbered list ("The order, in
+// one glance") — keep the two in sync if that list ever changes. Each tile links to
+// its own step by id; today a cross-page click still lands at the TOP of
+// doc/loading/ (Router.js's activate() always resets scroll — see the ⚠ note next
+// to it), same as any other link to that page, so the url is exact even though the
+// scroll isn't yet.
+const STEPS = [
+	{ n: 1, name: "Memory", word: "cached", id: "step-1" },
+	{ n: 2, name: "Declared jsonl", word: "file", id: "step-2" },
+	{ n: 3, name: "md/ · fs/", word: "built-in", id: "step-3" },
+	{ n: 4, name: "route()", word: "dynamic", id: "step-4" },
+	{ n: 5, name: "page.js", word: "import", id: "step-5" },
+	{ n: 6, name: "Bare .md", word: "fallback", id: "step-6" },
+	{ n: 7, name: "Not found", word: "404", id: "step-7" },
+];
+
 const BANDS = {
 	"Building blocks":      "columns tabs vtabs list wall prose",
 	"Pages are navigation": "page children mounts replace route folders labels",
@@ -57,7 +76,11 @@ export default new Doc({
 	properties: "meta title children content url name label icon card classes "
 		+ "description parent app view loading route regions depth related",
 
-	notes: "navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions",
+	// [fix-2026-09-29-2 finding 1] "loading" was never in this list, so its url fell
+	// through the page.js probe to the bare-.md fallback and 404'd. First on purpose:
+	// "how a url becomes a page" is the one doc a reader needs before any other note
+	// makes sense (loading-study.md; the owner called it "foundational").
+	notes: "loading navigation layout-overview watch-out more-features jsonl declaring labels css layout columns words roles panels previews findings markdown open decisions",
 
 	// Doc.overview_section()'s default calls catalog() — a rail, wrong for a wall this
 	// size. This override keeps the section's real children (the `overview:` list above,
@@ -182,6 +205,20 @@ export default new Doc({
 		+ "jsonl/page.jsonl jsonl/full/page.jsonl",
 
 	content(){
+		// Show, don't tell (finding 2): the loading order as a strip of small linked
+		// tiles, above everything else on the page — one click into the full doc.
+		div.c("wide flex gap-25", () => {
+			STEPS.forEach(s => a.c("card pad flex gap-25 v-center").href(`/framework/core/Page/doc/loading/#${s.id}`)
+				.style({ textDecoration: "none", color: "var(--ink)" })
+				.append(() => {
+					span.c("muted", String(s.n));
+					div.c("flex v", () => {
+						span(s.name).style({ fontWeight: "700" });
+						small.c("muted", s.word);
+					});
+				}));
+		}).style("--gap", "0.75em");
+
 		div.c("wide grid three gap", () => {
 			md("A page is a folder holding a `page.js` or a `page.jsonl`. Each card below is one block, shown running. Start here, or at [Make a page](/framework/core/Page/make/) for the five ways to build one, or [Layout](/framework/core/Page/layout/) for how to shape one; every method is in the [API](/framework/core/Page/api/).");
 			code.js(`export default new Page({

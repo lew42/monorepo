@@ -6,26 +6,32 @@ as its own step, each one handed to the page found in the step before it.
 
 ## The order, in one glance
 
-1. **Memory** — if this name is already in `this.children` (even set to `null`, meaning
+1. <a id="step-1"></a>**Memory** — if this name is already in `this.children` (even set to `null`, meaning
    "not loaded yet"), that answer wins and nothing below runs.
    `Page.class.js:203`, inside [`child()`](/framework/core/Page/doc/method/child.md).
-2. **A declared `page.jsonl`** — if something already told this page that the name is a
+2. <a id="step-2"></a>**A declared `page.jsonl`** — if something already told this page that the name is a
    `page.jsonl` child (a `children:` string, or a `file` line), it is loaded from that file.
    `Page.class.js:208-211`.
-3. **`md/` and `fs/`** — every page has these two built-in children: its markdown files as
+3. <a id="step-3"></a>**`md/` and `fs/`** — every page has these two built-in children: its markdown files as
    pages, and its raw files, full screen. Checked before anything dynamic, so they always exist.
    `Page.class.js:215` and `Page.class.js:220`.
-4. **`route(name)`** — if the page defines a `route()` method, it gets first refusal on any
+4. <a id="step-4"></a>**`route(name)`** — if the page defines a `route()` method, it gets first refusal on any
    name nobody has declared. `Page.class.js:222-223`; the mechanism in full:
    [`core/Page/dynamic/`](/framework/core/Page/dynamic/).
-5. **`page.js`** — try importing `page.js` from that folder. `Page.class.js:225-226`, which
+5. <a id="step-5"></a>**`page.js`** — try importing `page.js` from that folder. `Page.class.js:225-226`, which
    calls [`Page.load()`](/framework/core/Page/doc/method/load.md) at `Page.class.js:396-398`.
-6. **A bare `.md` file** — last try: a markdown file with that name, wrapped as a page.
+6. <a id="step-6"></a>**A bare `.md` file** — last try: a markdown file with that name, wrapped as a page.
    `Page.class.js:228-229`, via `Page.file()` at `Page.class.js:373-388`.
-7. **Not found** — nothing matched, so `child()` returns `null`. The url's own walk
+7. <a id="step-7"></a>**Not found** — nothing matched, so `child()` returns `null`. The url's own walk
    ([`Router.load_segments()`](/framework/core/Router/), `Router.js:79-88`) stops there and
    falls back to `location.assign(url)` — a real navigation, which the site's own 404 or SPA
    fallback answers.
+
+<!-- The Overview's seven-tile strip (core/Page/page.js, finding 2, 2026-09-29 fix round
+     2) links to these anchors. Today a cross-page click still lands at the TOP of this
+     page — Router.js's activate() always resets scroll on navigation — so the tile's
+     own id is exact even though the landing spot isn't yet; fixing that is a Router
+     change, out of this task's fence. -->
 
 **The walk IS the loader.** The Router doesn't resolve a url in one shot; it calls
 `page = await page.child(name)` once per path segment, and each call runs the seven steps

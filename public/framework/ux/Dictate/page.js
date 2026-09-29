@@ -71,11 +71,14 @@ export default new Doc({
 		// after the overview it belongs to. A one-line strip (View B): this
 		// page's main topic is the mic, not its own AI tasks, so it stays
 		// closed until asked for (page-work-data.md names the match method
-		// and why it's a keyword guess, not a real field, today).
+		// and why it's a keyword guess, not a real field, today). `page: this`
+		// walks `page.parent` up to the root for the collapsed "Parent: …"
+		// rows — no more hand-typed `ancestors:` that stopped at "ux" and
+		// never showed Framework's own work (review-2.md finding 7).
 		h2("What's in flight");
 		div.c("card pad", $box => page_work_strip($box, {
 			match: ["dictat", "mic", "whisper"],
-			ancestors: [{ title: "ux", url: "/framework/ux/", match: ["ux/"] }],
+			page: this,
 		}));
 
 		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
