@@ -1,4 +1,5 @@
 import { View, div, h1, h2, a, p, pre, span, button, style } from "/framework/core/View/View.js";
+import { Docs } from "/docs.js";
 
 /* THE SERVEX DASHBOARD — every project on this machine, every Claude agent
  * Servex is holding, and what all of them are saying right now.
@@ -18,6 +19,10 @@ import { View, div, h1, h2, a, p, pre, span, button, style } from "/framework/co
  * browser reconnects by itself when Servex restarts. */
 
 style(`
+.servex-nav { display: flex; gap: 1.1em; padding: 0.8em 1.4em 0; }
+.servex-nav a { color: #9ecbff; text-decoration: none; font-size: 0.85em; }
+.servex-nav a:hover { text-decoration: underline; }
+
 .servex-head { padding: 1.2em 1.4em 0.6em; }
 .servex-head h1 { margin: 0; font-size: 1.6em; letter-spacing: 0.02em; }
 .servex-head p { margin: 0.3em 0 0; color: #8b93a1; font-size: 0.85em; }
@@ -86,24 +91,69 @@ const ask = (url, options) => fetch(url, options).then(r => r.json()).catch(() =
 
 let open_log = "servex";
 let $agents, $projects, $picker, $tail;
+let $dashboard, $docs, docs_view;
+
+// Two views, one page: "/" (and anything not starting with /docs) is the
+// dashboard below; "/docs" and "/docs/<path>" is the Docs tab. A real <a
+// href> so ctrl-click/open-in-new-tab still work, with the plain click
+// intercepted into pushState so it never reloads the page.
+function nav_link(text, href){
+	return a(text).href(href).click(event => {
+		event.preventDefault();
+		navigate(href);
+	});
+}
+
+function navigate(path){
+	if (path !== location.pathname) history.pushState({}, "", path);
+	route();
+}
+
+function route(){
+	const on_docs = location.pathname === "/docs" || location.pathname.startsWith("/docs/");
+
+	if (on_docs){
+		$dashboard.hide();
+		$docs.show();
+		// "/docs/Servex/ext/openrouter/" -> "Servex/ext/openrouter"; "/docs" or
+		// "/docs/" alone -> "" (nothing picked yet).
+		docs_view.select(location.pathname.replace(/^\/docs\/?/, "").replace(/\/+$/, ""));
+	} else {
+		$docs.hide();
+		$dashboard.show();
+	}
+}
 
 View.body().append(() => {
 
-	div.c("servex-head", () => {
-		h1("Servex");
-		p(`The always-on process. It starts these servers, holds the Claude agents, owns every log, and answers MCP at ${location.origin}/mcp — so no Claude session ever has to start a dev server itself, and any of them can steer an agent running in here.`);
+	div.c("servex-nav", () => {
+		nav_link("Dashboard", "/");
+		nav_link("Docs", "/docs/");
 	});
 
-	div.c("servex-main", () => {
-		$agents = div.c("servex-agents");
-		$projects = div.c("servex-projects");
-		div.c("servex-logs", () => {
-			h2.c("servex-h2", "Logs");
-			$picker = div.c("servex-picker");
-			$tail = pre.c("servex-tail");
+	$dashboard = div.c("servex-dash", () => {
+		div.c("servex-head", () => {
+			h1("Servex");
+			p(`The always-on process. It starts these servers, holds the Claude agents, owns every log, and answers MCP at ${location.origin}/mcp — so no Claude session ever has to start a dev server itself, and any of them can steer an agent running in here.`);
+		});
+
+		div.c("servex-main", () => {
+			$agents = div.c("servex-agents");
+			$projects = div.c("servex-projects");
+			div.c("servex-logs", () => {
+				h2.c("servex-h2", "Logs");
+				$picker = div.c("servex-picker");
+				$tail = pre.c("servex-tail");
+			});
 		});
 	});
+
+	docs_view = Docs(navigate);
+	$docs = docs_view;
 });
+
+window.addEventListener("popstate", route);
+route();
 
 /* ── agents — the pushed half ──────────────────────────────────────────── */
 
