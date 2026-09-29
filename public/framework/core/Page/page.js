@@ -33,11 +33,13 @@ export default new Doc({
 
 	subject: Page,
 	// Tab order, top to bottom of `bar()` below: Overview · Make a page · Layout ·
-	// Generator · API · Docs · Files · Old. `make` and `layout` are new top tabs
-	// (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
+	// Navigation · Generator · API · Docs · Files · Old. `make` and `layout` are new
+	// top tabs (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
+	// `navigation` added 2026-09-29 (page-system task): persistent vs switching, the
+	// levels that stack, the class-doc go-to, the alternatives.
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before.
-	children: "make layout generator old jsonl/page.jsonl",
+	children: "make layout navigation generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
