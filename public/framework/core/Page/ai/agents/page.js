@@ -1,5 +1,5 @@
 import { Page, md, h2, small, div } from "/app.js";
-import { view } from "../ObjectView.js";
+import { view } from "/framework/ux/Content/Object/DefaultView.js";
 import { agents } from "../live.js";
 
 /* THE LIVE DEBUG WIDGET. Two things, both real JS structures rendered as

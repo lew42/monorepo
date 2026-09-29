@@ -1,6 +1,8 @@
-import { Doc, md, h2, small, div, a, icon, span, details, summary } from "/app.js";
-import { view } from "./ObjectView.js";
+import { Doc, View, md, h2, small, div, a, icon, span, details, summary } from "/app.js";
+import { view } from "/framework/ux/Content/Object/DefaultView.js";
 import { agents } from "./live.js";
+
+View.stylesheet(import.meta, "ai.css");   // the `.ai-row` rows below (the stand-in ObjectView.js used to load it)
 
 /**
  * core/Page/ai/ — the BRIDGE between Servex (the always-on process that runs
@@ -46,7 +48,7 @@ export default new Doc({
 		});
 
 		// SHOW, DON'T JUST LINK — the very thing this page is about, right here: real
-		// agents, fetched live, rendered as nested `.property` rows (ObjectView.js).
+		// agents, fetched live, rendered by the default instance view (ux/Content/Object/DefaultView.js).
 		// Fails soft (live.js): no Servex running paints one plain sentence, never an
 		// error. `GET /api/agents` answers with EVERY agent this process has ever
 		// held, most of them long stopped (thousands, after a few days uptime) — so

@@ -20,9 +20,8 @@ class, route) for the next agent who extends this.
   prompt routing is sorted out (the owner, 2026-09-29).
 - The live widgets (`agents/page.js`) fail soft: with Servex not running, they show one
   plain sentence, never a console error.
-- `ObjectView.js` here is a stand-in for item-ui's real default instance view
-  (`/framework/ux/Content/Object/DefaultView.js`, not landed yet) — same `view(thing)`
-  call, so swapping it in later is a one-line import change.
+- Live values are drawn by the default instance view, [`ux/Content/Object`](/framework/ux/Content/Object/)
+  (`DefaultView.js`'s `view(thing)`), which replaced this folder's stand-in `ObjectView.js`.
 
 **More.** `doc/where.md` (the file-by-file map), `doc/sessions.md` (session ids and the
 SDK's own classes), `doc/dictation.md`, `doc/assistant.md`, `doc/manager.md`.
