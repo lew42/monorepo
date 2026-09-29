@@ -27,7 +27,13 @@ node Server/decide.mjs then      --file … --id d-… --option <id> [--child d-
 node Server/decide.mjs recommend --file … --id d-… --option <id> --confidence 0.7 --why "…" --source <id>
 ```
 
-Every call answers `{ok, next, missing}`. Keep going until you see `appended: true`. You can give several parts in one call with `--json`. A refusal (`ok:false`) says what is wrong: fix that part and repeat the call.
+Every call answers `{ok, next, missing}`. Keep going until you see `appended: true`. A refusal (`ok:false`) says what is wrong: fix that part and repeat the call. An unknown flag is refused too, with the list of flags that verb knows.
+
+**Several at once is fine — pass JSON, never JSON-looking text:**
+```sh
+node Server/decide.mjs options --file … --id d-x --json '[{"id":"a","text":"Proxy it","caveats":["Unmeasured"],"then":[]},{"id":"b","text":"Build our own","caveats":["Costly"],"then":[]}]'
+```
+`--json` takes an array (the options, caveats or children of that verb) or an object with the flags' names as keys. `--options`, `--caveats` and `--then` also parse JSON (`--caveats '{"a":["…"],"b":["…"]}'`). Text that starts like JSON in `--option`, `--caveat` or `--why` is refused instead of being turned into an id.
 
 **Where it goes:** the card's or task's `page.jsonl`. To show it, add one `{"place":{"module":"/framework/ux/Content/Decision/Decisions.js"}}` line.
 

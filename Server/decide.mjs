@@ -13,9 +13,12 @@
 //   node Server/decide.mjs recommend --file … --id d-x --option a --confidence 0.7 --why "…" --source id [--source id]
 //   node Server/decide.mjs status|show <id> --file …   ·   list --file …   ·   drop <id> --file …
 //
-// Any verb also takes `--json '<object>'` with the same fields, so several parts go in one call:
-//   options  {"id","options":[{"id"?, "text", "caveats"?:[…], "then"?:[…]}]}
-//   caveats  {"id","caveats":{"<option>":[…]}}      then {"id","then":{"<option>":[…]}}
+// Several parts in one call: `--json '<object or array>'`. An object uses the flags' names; an array
+// is the verb's list —
+//   options  --json '[{"id"?, "text", "caveats"?:[…], "then"?:[…]}, …]'   (or --options '<same>')
+//   caveats  --json '[{"option":"a","caveats":[…]}, …]'   or --caveats '{"a":[…],"b":[…]}'
+//   then     --json '[{"option":"a","then":[…]}, …]'      or --then '{"a":[],"b":["d-y"]}'
+// An unknown flag, or text that looks like JSON where plain text belongs, is refused.
 // Import it as a module: `import * as decide from "./decide.mjs"` — every verb is a function
 // `(file, args) → {ok, …}` (the verb `then` is the function `follow`) that throws a DecideError when refused. Detail: Server/doc/decide.md.
 
@@ -31,6 +34,11 @@ export function now(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off < 0 ? "-" : "+"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
 }
+
+/* Something that looks like JSON is never turned into text or an id: stripping it to letters
+ * made `[{"id":"a",…}]` into one option called "idatextaidbtextb" (2026-09-29). */
+const looks_json = s => typeof s === "string" && /^\s*[\[{]/.test(s);
+const plain = (s, what) => { if (looks_json(s)) refuse(`${what} looks like JSON (${String(s).slice(0, 40)}…): pass JSON through --options/--caveats/--then/--json, which parse it, not as plain text`); return s; };
 
 const slug = (s, words = 5) => String(s).toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().split(/[\s-]+/).filter(Boolean).slice(0, words).join("-");
 
@@ -99,6 +107,23 @@ function get_option(d, oid){
 	const o = d.options.find(o => o.id === oid);
 	if (!o) refuse(`${d.id} has no option ${JSON.stringify(oid)}; its options are ${d.options.map(o => o.id).join(", ") || "(none yet)"}`);
 	return o;
+}
+
+/* Caveats or children for several options at once. Accepts {"<option>": [...]},
+ * [{"option": "<id>", "<key>": [...]}, ...], or a plain list for the one --option. */
+function per_option(v, option, key){
+	if (v && !Array.isArray(v) && typeof v === "object") return v;
+	const list = [v ?? []].flat();
+	if (list.length && list.every(x => x && typeof x === "object" && !Array.isArray(x))) {
+		const map = {};
+		for (const x of list) {
+			if (!x.option) refuse(`each item of the ${key} list names its option: {"option": "<id>", "${key}": [...]}`);
+			map[x.option] = [...(map[x.option] ?? []), ...[x[key] ?? []].flat()];
+		}
+		return map;
+	}
+	if (option == null) refuse(`which option? give --option <id>, or a JSON object keyed by option id`);
+	return { [option]: list };
 }
 
 /* ── what is still missing, in walk order ── */
@@ -188,27 +213,32 @@ export function create(file, a){
 export function options(file, a){
 	const drafts = read_drafts(file), d = get_draft(drafts, file, a.id);
 	const list = [a.options ?? a.option ?? []].flat();
-	if (!list.length) refuse("no options given: --option \"<text>\" (repeat it), or --json {options:[{text}]}");
+	if (!list.length) refuse("no options given: --option \"<text>\" (repeat it), or --options '[{\"id\":\"a\",\"text\":\"…\"}]'");
+	// All checked before any is added, so a refused call changes nothing.
+	const add = [];
 	for (const raw of list) {
 		const o = typeof raw === "string" ? { text: raw } : raw;
-		const text = String(o.text ?? o.say ?? "").trim();
+		if (!o || typeof o !== "object") refuse(`an option must be text or {id?, text, caveats?, then?}; got ${JSON.stringify(raw)}`);
+		const text = plain(String(o.text ?? o.say ?? "").trim(), "option text");
 		if (!text) refuse("an option has no text");
-		const oid = o.id ? String(o.id) : slug(text, 3);
-		if (d.options.some(x => x.id === oid)) refuse(`${d.id} already has an option ${oid}; give this one another id`);
+		const oid = o.id != null ? String(o.id) : slug(text, 3);
+		if (!/^[a-z0-9][a-z0-9-]*$/i.test(oid)) refuse(`option id ${JSON.stringify(oid)}: letters, digits and dashes only`);
+		if ([...d.options, ...add].some(x => x.id === oid)) refuse(`${d.id} already has an option ${oid}; give this one another id`);
 		const opt = { id: oid, text };
-		if (o.caveats || o.caveat) opt.caveats = [o.caveats ?? o.caveat].flat().map(String).filter(s => s.trim());
+		if (o.caveats || o.caveat) opt.caveats = [o.caveats ?? o.caveat].flat().map(String).map(c => plain(c.trim(), "a caveat")).filter(Boolean);
 		if (o.then) opt.then = [o.then].flat().map(String);
-		d.options.push(opt);
+		add.push(opt);
 	}
+	d.options.push(...add);
 	return settle(file, drafts, d, a.by);
 }
 
 export function caveats(file, a){
 	const drafts = read_drafts(file), d = get_draft(drafts, file, a.id);
-	const map = a.caveats && !Array.isArray(a.caveats) ? a.caveats : { [a.option]: [a.caveats ?? a.caveat].flat() };
+	const map = per_option(a.caveats ?? a.caveat, a.option, "caveats");
 	for (const [oid, list] of Object.entries(map)) {
 		const o = get_option(d, oid);
-		const add = [list].flat().filter(x => x != null).map(String).map(s => s.trim()).filter(Boolean);
+		const add = [list].flat().filter(x => x != null).map(String).map(s => plain(s.trim(), "a caveat")).filter(Boolean);
 		if (!add.length) refuse(`no caveat given for ${oid}: every option costs or risks something — say what`);
 		o.caveats = [...(o.caveats ?? []), ...add];
 	}
@@ -218,7 +248,7 @@ export function caveats(file, a){
 /* Named `follow`, not `then`: a module exporting `then` is a thenable, and import() calls it. */
 export function follow(file, a){
 	const drafts = read_drafts(file), d = get_draft(drafts, file, a.id);
-	const map = a.then && !Array.isArray(a.then) ? a.then : { [a.option]: [a.then ?? a.child ?? []].flat() };
+	const map = per_option(a.then ?? a.child ?? [], a.option, "then");
 	const known = known_ids(file);
 	for (const [oid, list] of Object.entries(map)) {
 		const o = get_option(d, oid);
@@ -240,7 +270,7 @@ export function recommend(file, a){
 		if (!Number.isFinite(c) || c < 0 || c > 1) refuse(`confidence must be a number from 0 to 1; got ${JSON.stringify(a.confidence)}`);
 		d.confidence = c;
 	}
-	if (a.why != null) { if (!String(a.why).trim()) refuse("why is empty"); d.why = String(a.why).trim(); }
+	if (a.why != null) { if (!String(a.why).trim()) refuse("why is empty"); d.why = plain(String(a.why).trim(), "why"); }
 	const src = [a.sources ?? a.source ?? []].flat().map(String).map(s => s.trim()).filter(Boolean);
 	if (src.length) d.sources = [...new Set([...(d.sources ?? []), ...src])];
 	if (a.status) { if (!["open", "decided"].includes(a.status)) refuse("status is open or decided"); d.status = a.status; }
@@ -288,32 +318,56 @@ export const verbs = { create, options, caveats, then: follow, recommend, status
 
 /* ── the command line ── */
 
-function parse(argv){
+/* The flags each verb knows; anything else is refused with this list, never silently kept. */
+export const FLAGS = {
+	create:    ["file", "json", "by", "id", "question", "rank", "depends-on"],
+	options:   ["file", "json", "by", "id", "option", "options"],
+	caveats:   ["file", "json", "by", "id", "option", "caveat", "caveats"],
+	then:      ["file", "json", "by", "id", "option", "child", "then"],
+	recommend: ["file", "json", "by", "id", "option", "confidence", "why", "source", "sources", "status", "decided-by"],
+	status: ["file", "id"], show: ["file", "id"], drop: ["file", "id"], list: ["file"],
+};
+const JSON_FLAGS = new Set(["json", "options", "caveats", "then", "sources"]);	// parsed when the value starts with [ or {
+const ARRAY_OF = { options: "options", caveats: "caveats", then: "then" };	// what a bare --json array means, per verb
+
+export function parse(verb, argv){
 	const a = {}, pos = [];
+	const known = FLAGS[verb] ?? [];
 	const many = new Set(["option", "caveat", "child", "source"]);
 	for (let i = 0; i < argv.length; i++) {
 		const t = argv[i];
 		if (!t.startsWith("--")) { pos.push(t); continue; }
-		const k = t.slice(2).replace(/-/g, "_"), v = argv[i + 1]?.startsWith("--") || i + 1 >= argv.length ? true : argv[++i];
-		if (k === "json") Object.assign(a, JSON.parse(v));
+		const flag = t.slice(2);
+		if (!known.includes(flag)) refuse(`unknown flag --${flag} for ${verb}; known: ${known.map(f => "--" + f).join(" ")}`);
+		const k = flag.replace(/-/g, "_");
+		if (i + 1 >= argv.length || argv[i + 1].startsWith("--")) refuse(`--${flag} needs a value`);
+		let v = argv[++i];
+		if (JSON_FLAGS.has(k) && /^\s*[\[{]/.test(v)) {
+			try { v = JSON.parse(v); } catch (e) { refuse(`--${flag} is not valid JSON: ${e.message}`); }
+		}
+		if (k === "json") {
+			if (Array.isArray(v)) { if (!ARRAY_OF[verb]) refuse("--json as an array only fits options, caveats or then"); a[ARRAY_OF[verb]] = v; }
+			else if (v && typeof v === "object") Object.assign(a, v);
+			else refuse("--json takes a JSON object or array");
+		}
 		else if (many.has(k)) (a[k] ??= []).push(v);
 		else a[k] = v;
 	}
-	if (a.child) a.then = a.child;
-	if (a.source) a.sources = a.source;
+	if (a.child) a.then = [...[a.then ?? []].flat(), ...a.child];
+	if (a.source) a.sources = [...[a.sources ?? []].flat(), ...a.source];
 	return { a, pos };
 }
 
 async function main(){
 	const [verb, ...rest] = process.argv.slice(2);
-	const { a, pos } = parse(rest);
 	if (!verbs[verb]) { console.log(JSON.stringify({ ok: false, error: `verbs: ${Object.keys(verbs).join(" ")}` })); process.exit(2); }
-	if (!a.file) { console.log(JSON.stringify({ ok: false, error: "--file <page.jsonl> is required" })); process.exit(2); }
-	if (pos[0] && !a.id) a.id = pos[0];
-	if (verb === "options" && a.option && !a.options) a.options = a.option;
-	else if (Array.isArray(a.option)) a.option = a.option.at(-1);
-	if (verb === "caveats" && a.caveat) a.caveats = a.caveat;
 	try {
+		const { a, pos } = parse(verb, rest);
+		if (!a.file) refuse("--file <page.jsonl> is required");
+		if (pos[0] && !a.id) a.id = pos[0];
+		if (verb === "options" && a.option) a.options = [...[a.options ?? []].flat(), ...a.option];
+		else if (Array.isArray(a.option)) { if (a.option.length > 1) refuse(`${verb} takes one --option; for several, give --${verb} a JSON object keyed by option id`); a.option = a.option[0]; }
+		if (verb === "caveats" && a.caveat) a.caveats = [...[a.caveats ?? []].flat(), ...a.caveat];
 		console.log(JSON.stringify(verbs[verb](a.file, a), null, verb === "list" || verb === "show" ? 2 : 0));
 	} catch (e) {
 		if (!(e instanceof DecideError)) throw e;
