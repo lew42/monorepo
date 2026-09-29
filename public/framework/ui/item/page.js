@@ -26,9 +26,9 @@ const folder_tree = () => div.c("surface pad", () => {
 	});
 });
 
-/* Seven small, named boxes, side by side — every genuinely different way to wear
+/* Eight small, named boxes, side by side — every genuinely different way to wear
  * the class, on the one page the owner asked to see them on rather than split
- * across seven child pages (page skill: a variant earns a child page by being a
+ * across eight child pages (page skill: a variant earns a child page by being a
  * DIFFERENT THING, not a different value — these are all the same thing, `.item`,
  * with different options, which is the Disclosure/variants page's own reasoning). */
 const variants = () => div.c("wide grid gap auto", $wall => {
@@ -37,6 +37,7 @@ const variants = () => div.c("wide grid gap auto", $wall => {
 	cell("plain", () => ui.item({ name: "Plain row" }));
 	cell("with icon", () => ui.item({ icon: "star", name: "Starred" }));
 	cell("inline — item(…).ac(\"inline\")", () => ui.item({ icon: "label", name: "chip" }).ac("inline"));
+	cell("boxed — item(…).ac(\"boxed\")", () => ui.item({ icon: "settings", name: "Settings" }).ac("boxed"));
 	cell("link, arrow end", () => ui.item({ icon: "description", name: "readme.md", href: "/framework/ui/item/", end: "arrow" }));
 	cell("menu end", () => ui.item({ icon: "description", name: "options.js", end: "menu" }));
 	cell("expandable", () => ui.item({ icon: "folder", name: "assets", children: [
@@ -69,7 +70,7 @@ export default new Page({
 			note: "`core` and `ui` start open (`open: true` in the data); `ext` starts shut — click its row to open it, no code involved. `View.js`, `Page`, `files` and `demo` carry `end: \"arrow\"` because each is a link (`href` is set); `readme.md` carries `end: \"menu\"` instead, to show the other end a row can have — `item()` only draws that button, wiring what it does is the caller's.",
 		});
 
-		md("## Seven ways to wear it");
+		md("## Eight ways to wear it");
 
 		md("Same class, same three slots — icon, name, end — every box below is one call to `ui.item()` with a different set of options.");
 

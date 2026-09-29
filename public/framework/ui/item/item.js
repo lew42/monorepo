@@ -4,8 +4,10 @@ import { css } from "../parts.js";
 /**
  * item({ icon, name, href, end, open, children }) — one row: an optional icon, then
  * a name. Put the class `.item` on anything and this is the whole layout system: it
- * fills its row by default. Add `.inline` yourself (`item({ … }).ac("inline")`) to
- * make it hug its own content instead, like a chip sitting inside a line of text.
+ * fills its row by default, flat — no border, no background, a light hover wash.
+ * Add `.inline` yourself (`item({ … }).ac("inline")`) to make it hug its own content
+ * instead, like a chip sitting inside a line of text; add `.boxed` for the ordinary
+ * button look (background, border) framework.css gives every plain control.
  *
  *   item({ icon: "description", name: "readme.md", href: "/readme.md" })
  *   item({ icon: "folder", name: "core", open: true, children: [
@@ -77,15 +79,38 @@ function end_part(end){
  * side padding measured wider than the icon+name it was framing at 400px — the
  * button padding is right for a control read alone, not for a dense tree of them. */
 css(`@layer theme {
+	/* FLAT BY DEFAULT. framework.css's own box rule reads a plain summary element as
+	   a control (background, border, a 2.4em floor, an inset-shadow hover) — right
+	   for a lone button, wrong for a tree, where it made every branch row a grey
+	   boxed bar next to the flat leaf rows below it (the owner, 2026-09-29: "reads
+	   like a stack of buttons instead of a file tree"). The class .item beats a bare
+	   summary selector on specificity alone, in the same layer, so these lines win
+	   regardless of load order — reset every property that rule set, not just the
+	   ones that looked wrong in a screenshot, or the leftover would resurface on
+	   hover (the inset shadow survives a background/border reset on its own,
+	   because nothing had reset it too — NO BACKTICKS IN THIS COMMENT, it lives
+	   inside a css(...) template literal and one backtick blanks the whole site). */
 	.item {
 		display: flex; align-items: center; gap: 0.5em;
-		width: 100%; box-sizing: border-box;
+		width: 100%; box-sizing: border-box; min-height: 0;
 		padding: 0.3em 0.6em; border-radius: var(--radius);
 		color: inherit; text-decoration: none;
+		background: none; border: none; box-shadow: none;
 	}
 	.item.inline { display: inline-flex; width: auto; }
 
 	a.item:hover, summary.item:hover { background: var(--wash); }
+
+	/* A click still focuses a real anchor or summary row, and the UA's own focus ring
+	   is the same boxed look this whole rule exists to turn off — only a KEYBOARD
+	   focus draws the ring now. */
+	.item:focus { outline: none; }
+	.item:focus-visible { outline: 2px solid var(--prim); outline-offset: -2px; }
+
+	/* The boxed look, back as an opt-in — the exact rule .item resets above, so
+	   .item.boxed reads identically to a plain button on this site. */
+	.item.boxed { background-color: var(--fill-a08); border: 1px solid var(--fill-a32); }
+	.item.boxed:hover { border-color: var(--prim); box-shadow: inset 0 0 0 999px var(--fill-a08); }
 
 	/* The UA's own disclosure triangle is one bullet too many now that .item-caret
 	   draws the fold inside the row — Firefox and Chrome both drop it under

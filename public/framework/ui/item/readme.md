@@ -21,7 +21,10 @@ ui.item({ icon: "folder", name: "core", open: true, children: [
 draws its own content instead. `end` is `"menu"` (a ⋯ button — wire its click yourself, this only
 draws it), `"arrow"` (a plain →, for a link row), or a function for anything else. Add `.inline`
 yourself (`ui.item({ … }).ac("inline")`) for a row that hugs its own content instead of filling
-the line — a chip inside a line of text rather than a row in a list.
+the line — a chip inside a line of text rather than a row in a list. Add `.boxed` for the
+background-and-border look every plain `<button>` on the site already has — `.item` is flat by
+default (no border, no background, a light hover wash), because a tree of boxed rows reads as a
+stack of buttons, not a tree.
 
 ## Watch out
 
