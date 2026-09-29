@@ -2,10 +2,21 @@
 
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
+## The sub-systems
+
+[layout](./layout/) — the layout system: navigation and the parent, the page's own room, inside the page
+[navigation](./navigation/) — persistent vs switching, the levels that stack, the go-to pattern
+[make](./make/) — making a page, five ways; agents use the `create_page` tool (Servex)
+[storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md)
+[ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK
+[dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
+
+This readme is the text version; the rendered page is designed from it ([how](./make/readme-page/)).
+
 ## Index
 
 [make](./make/) — five ways to make a page, each with its code and its live result — start here
-[layout](./layout/) — the layout hub: the five shapes, how to choose one, and every layout page on the site
+[layout](./layout/) — the layout system: concepts top down, every kind of layout, how to decide
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
 [jsonl](./jsonl/) — a page described by `page.jsonl` lines instead of a `page.js`, trimmed to the two-line case
 [overview](./overview/) — the wall of one picture card per page building block
@@ -27,9 +38,9 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 ## Read next
 
-**Layout** — [layout](./layout/), the hub: the five shapes, how to choose one, and every layout page on the site.
+**Layout** — [layout](./layout/), the layout system: concepts top down, every kind of layout, how to decide, the research worth keeping.
 
-**Navigation** — [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
+**Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
 

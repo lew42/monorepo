@@ -36,10 +36,12 @@ export default new Doc({
 	// Navigation · Generator · API · Docs · Files · Old. `make` and `layout` are new
 	// top tabs (proposal.md rewrite order items 2 and 3); `old` moved last (item 6).
 	// `navigation` added 2026-09-29 (page-system task): persistent vs switching, the
-	// levels that stack, the class-doc go-to, the alternatives.
+	// levels that stack, the class-doc go-to, the alternatives. `ai` (the page-based AI
+	// system) and `dynamic` (a url with no page.js, loaded through an ancestor's
+	// route()) added the same day, so every sub-system the readme lists is a tab.
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before.
-	children: "make layout navigation generator old jsonl/page.jsonl",
+	children: "make layout navigation ai dynamic generator old jsonl/page.jsonl",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,
@@ -98,7 +100,7 @@ export default new Doc({
 	// order always puts api/doc/files right after whatever was declared — which is
 	// why "old" could never move past them without this override.
 	bar(){
-		return ["overview", "make", "layout", "navigation", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "layout", "navigation", "ai", "dynamic", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 
