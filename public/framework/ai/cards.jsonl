@@ -1,3 +1,4 @@
+{"id":"2026/09/28/shared-browser-launcher-no-popups","title":"Shared browser launcher, no popups","type":"request","status":"open","tags":[],"created":"2026-09-28T12:26:10-05:00","last":"2026-09-28T22:48:11-05:00"}
 {"id":"2026/09/28/commit-the-live-system-code","title":"Commit the live system code","type":"request","status":"open","tags":[],"created":"2026-09-28T12:26:10-05:00","last":"2026-09-28T22:46:55-05:00"}
 {"id":"2026/09/28/inbox-rows-are-the-real-pages-page-class","title":"Inbox rows are the real pages (Page class, Servex…)","type":"request","status":"open","tags":[],"created":"2026-09-28T14:27:50-05:00","last":"2026-09-28T22:45:53-05:00"}
 {"id":"2026/09/28/in-flight-tonight-5-tasks-stalled-2-rest","title":"In flight tonight: 5 tasks stalled, 2 restarted","type":"note","status":"open","tags":[],"created":"2026-09-28T22:41:36-05:00","last":"2026-09-28T22:41:36-05:00"}
@@ -30,7 +31,6 @@
 {"id":"2026/09/28/figma-sept-2026/5-2-col-sidebar-content","title":"5 2-Col: Sidebar + Content","type":"note","status":"open","tags":["figma"],"created":"2026-09-28T13:01:01-05:00","last":"2026-09-28T13:01:01-05:00"}
 {"id":"2026/09/28/figma-sept-2026/6-ui-controls","title":"6 UI Controls","type":"note","status":"open","tags":["figma"],"created":"2026-09-28T13:01:01-05:00","last":"2026-09-28T13:01:01-05:00"}
 {"id":"2026/09/28/figma-sept-2026/7-task-management-ai-patterns","title":"7 Task Management & AI Patterns","type":"note","status":"open","tags":["figma"],"created":"2026-09-28T13:01:01-05:00","last":"2026-09-28T13:01:01-05:00"}
-{"id":"2026/09/28/shared-browser-launcher-no-popups","title":"Shared browser launcher, no popups","type":"request","status":"open","tags":[],"created":"2026-09-28T12:26:10-05:00","last":"2026-09-28T12:26:15-05:00"}
 {"id":"2026/09/28/our-own-ai-harness-on-openrouter-researc","title":"Our own AI harness on OpenRouter: research","type":"request","status":"open","tags":[],"created":"2026-09-28T12:05:25-05:00","last":"2026-09-28T12:05:25-05:00"}
 {"id":"2026/09/24/system-design","title":"System design","type":"group","status":"open","tags":[],"created":"2026-09-24T18:18:15-05:00","last":"2026-09-28T11:36:05-05:00"}
 {"id":"2026/09/25/quick-fix-worktrees-smoke-test-then-merg","title":"Quick-fix worktrees: smoke test, then merge in seconds","type":"request","status":"open","tags":[],"created":"2026-09-25T17:16:30-05:00","last":"2026-09-25T19:21:58-05:00"}
