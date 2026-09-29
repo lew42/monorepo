@@ -74,6 +74,19 @@ export async function post_prompt(entry, url = "http://127.0.0.1:8090/log/prompt
  *     dictate(() => this.$input, { on_start: () => this.open() });
  *     // or: new Dictate({ on_text: text => … })   // no box — just the words
  *
+ * **`on_guess(text)`** — optional, does nothing when unset: the still-moving grey
+ * guess, fired every partial resend (whisper) or interim result (the browser
+ * engine), text `""` the instant a segment closes. `on_text(chunk)` (above) is
+ * still the settled-chunk hook — `on_guess` only adds the in-between guess a
+ * caller building its own transcript view (`ux/Dictate/playground/`) needs.
+ *
+ * **`on_meter(level)`** — optional, does nothing when unset: the SAME smoothed
+ * 0..1 number `on_level()` already writes to `--ux-dictate-level` (this button's
+ * own tiny bar), handed to a caller that wants a bigger meter of its own
+ * (`ux/Dictate/playground/`'s audio source panel) — one number, two bars, never
+ * two smoothing calculations to keep in sync. whisper only; the browser engine
+ * has no raw stream to read a level from (`doc/decisions.md`).
+ *
  * **Engines, tried in order:** whisper.cpp running locally on this machine
  * (`http://127.0.0.1:8178`, checked with a fast health request) — private, and
  * on an RTX 4070 SUPER an 11-second clip transcribes in about a tenth of a
@@ -312,6 +325,7 @@ export default class Dictate extends View {
 	on_level(level){
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
+		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
 	}
 
@@ -350,6 +364,10 @@ export default class Dictate extends View {
 	async partial_tick(){
 		this.last_partial_at = performance.now();
 		if (this.inflight) return;   // a resend is already in flight — SKIP this tick, never queue
+		/* ⚠ QUIET ALREADY? DO NOT START A GUESS. The pause that closes this segment is about to fire, and
+		   whisper-server answers ONE request at a time — so the final would sit behind this guess
+		   (measured 68 ms of a 167 ms wait, about half of all segment ends). */
+		if (this.has_speech && performance.now() - this.last_loud_at > this.skip_partial_after_ms) return;
 		const epoch = this.segment_epoch;
 		const samples = this.capture.snapshot();
 		if (!this.worth_sending(samples)) return;
@@ -359,7 +377,7 @@ export default class Dictate extends View {
 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
 		// The segment may have closed WHILE this was in flight — a stale partial
 		// must never paint over a segment that has already gone final.
-		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); }
+		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); this.on_guess?.(text); }
 	}
 
 	async close_segment(){
@@ -370,6 +388,7 @@ export default class Dictate extends View {
 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
 		this.partial_text = "";
 		this.draw_caption();
+		this.on_guess?.("");   // the growing guess is gone — a caller mirroring it clears too
 		if (!this.worth_sending(samples)) return;
 
 		// Let a partial resend for the OLD segment finish first — whisper-server
@@ -410,10 +429,15 @@ export default class Dictate extends View {
 		const form = new FormData();
 		form.append("file", wav, "segment.wav");
 		form.append("response_format", "json");
+		const t_sent = performance.now();
 		const r = await fetch_timeout(this.whisper_url + "/inference", { method: "POST", body: form }, 20000);
 		if (!r.ok) throw new Error("whisper-server answered " + r.status);
 		const body = await r.json();
-		return (body.text ?? "").trim();
+		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
+		this.whisper_ms = this.t_result - t_sent;
+		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
+		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
+		return (body.text ?? "").replace(/\s+/g, " ").trim();
 	}
 
 	/** **The debug seam.** Off unless you turn it on, in the console of the tab
@@ -482,6 +506,7 @@ export default class Dictate extends View {
 		}
 		this.partial_text = interim.trim();
 		this.draw_caption();
+		this.on_guess?.(this.partial_text);
 	}
 
 	browser_error(error){
@@ -587,7 +612,8 @@ Dictate.prototype.log_fallback_file = "framework/ai/prompts.jsonl";    // dev-se
 Dictate.prototype.lang = "en-US";
 Dictate.prototype.pause_ms = 700;        // silence this long closes a segment
 Dictate.prototype.max_segment_ms = 15000; // or this much talking, whichever comes first
-Dictate.prototype.resend_ms = 1500;       // how often the growing segment is re-sent while listening
+Dictate.prototype.skip_partial_after_ms = 300;  // no resend once the speaker has been quiet this long — the final is next
+Dictate.prototype.resend_ms = 900;        // how often the growing segment is re-sent while listening (was 1500; measured Whisper answers in ~70 ms, so the wait between guesses WAS the delay)
 Dictate.prototype.silence_at = 0.01;      // rough RMS floor — a starting guess, doc/decisions.md
 Dictate.prototype.speech_floor = 0.02;    // a 20ms frame louder than this counts as speech
 Dictate.prototype.min_speech_ms = 120;    // a segment with less speech than this is never sent — doc/silence.md

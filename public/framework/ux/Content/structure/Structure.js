@@ -4,7 +4,7 @@ import { div, a, span, h4, ul, li, icon } from "../../../core/View/View.js";
  * Structured content: four pieces, each one decision.
  *
  *   iconCard({ name, icon, weight, href })   a big icon with its name below. weight 1 | 2 | 3
- *   section({ title, items, bg })            a titled row of 3–5 icon cards, heaviest first.
+ *   section({ title, items, bg })            a titled row of icon cards, heaviest first.
  *                                            bg: true → a background, so padding;
  *                                            bg: false → no background, no padding.
  *   outline(items, { bg })                   a nested list; an item is "text" or
