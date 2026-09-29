@@ -97,3 +97,31 @@
 - **Items in the ledger:** 59.
 - **The tab's result:** 44 kept, 9 changed, 2 stricter, 4 dropped.
 - **Raw words passed along:** yes, word for word.
+
+## The tool's brief, scored against the same ledger
+
+- **The run:** `node Server/refine.mjs` on lines 151 and 170 joined. Plain run (no `--collab`), $0.75 in total.
+- **Files:** [`brief.md`](brief.md) (38 asks) and [`coverage.md`](coverage.md).
+- **What is listed:** only the ledger items the tool did not keep. Every other item is `kept`.
+
+| # | Ledger item | Tool status | The tool's words |
+|---|---|---|---|
+| 19 | "making sure there's nothing … left on the table" | dropped | coverage.md maps that whole sentence (S28) to ask #15, but #15 says nothing about it. The sentence counts as covered while this idea in it is lost. |
+| 29 | "data grids is another thing we're going to have to work on" | changed | #19 "also work on data grids". The owner meant later; the tool makes it part of this job. |
+| 33 | "I'm gonna keep transcribing in a minute" | dropped | Not in the brief (coverage marks it "context only"), so the mastermind is not told that more dictation is coming. |
+| 42 | "just that measure of just paragraph reading width" | changed | #25 keeps the toolbar and multi-column content, but loses the measure. |
+| 56 | "organizing by methods and properties doesn't seem like a bad way to go" | stricter | #37 "Organize by methods and properties". The hedge is gone, and no flag caught it, because "doesn't seem like a bad way" is not a strength word. |
+
+**Where the tool did better than the tab:** it kept #10 (sizing, scale, grouping), #12 (the framework and core pages), #16 (a jump point on every module page), #17 (naming is ongoing), #20 (a full site audit in turn), #23 (lists), #28 (inline or full width), #41 (where the page skill stands), #49 (both alignments look awkward; an open problem), #51 (the page is the path) and #52 ("unclear if it's still using this"). It also added no model names or budget, and it marked hedges as "the owner suggests".
+
+**What the tool added or garbled:**
+
+- #23 "Add the idea about columns and dictating what size column to this work". The owner's "I had an idea about that. We could add that to this" was only a lead-in to the next sentence. The tool made it an ask of its own (a thin citation, S64).
+- #4 "linking back to and referencing the organization mastermind". This is a loose reading of S11.
+
+**The false alarms in `coverage.md`:**
+
+- It marks S48 and S95, "I'm gonna send this off", as **dropped, because it is an actionable handoff**. That is wrong. It is the owner pressing send, not an ask.
+- 36 flags. About 30 are "new words" that are only the tool's own framing ("owner", "suggests", "starting", "treat") or inflections ("stacks", "ironed"). None of them is a real change of meaning.
+
+**Tally:** 54 kept, 2 changed, 1 stricter, 2 dropped.
