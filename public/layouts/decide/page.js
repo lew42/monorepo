@@ -23,7 +23,7 @@ export default new Page({
 	children: "equal short centred amount servex",
 
 	content(){
-		md("**Answer these five questions in order, and the layout usually picks itself.** Each one is a judgement, not a rule: the answers under it are the usual ones, and a page can have a reason to pick something else.");
+		md("**Answer these five questions in order, and the layout usually picks itself.** Each one is a judgement, not a rule: the answers under it are the usual ones, and a page can have a reason to pick something else. Live demos of the fourth question are below the questions.");
 
 		div.c("grid auto gap wide", () => QUESTIONS.forEach((q, i) => {
 			div.c("card flex v gap-50", () => {

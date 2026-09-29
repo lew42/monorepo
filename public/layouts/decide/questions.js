@@ -1,6 +1,6 @@
-/* The layout decision questions: ONE copy, read by the page (/layouts/decide/) and written out
-   as questions.md for Server/ask-each.mjs. The same list, in prose, sits in the `layout` skill
-   under "Choosing a layout". Change one, change all three.
+/* The layout decision questions, read by the page (/layouts/decide/). gen-questions.mjs writes
+   questions.md from this file for Server/ask-each.mjs. The same list, in prose, sits in the
+   `layout` skill under "Choosing a layout (before sizing)"; change that one by hand.
 
    Each question is a judgement, worded with examples, never a do/don't rule: the owner
    (2026-09-28, 11:15 PM) warned that a rule gets followed too literally. The answers are the

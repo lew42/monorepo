@@ -1,4 +1,4 @@
-import { View, div, md, h3, p, ul, li, img, figure, figcaption } from "/app.js";
+import { View, div, md, h3, p, img, figure, figcaption } from "/app.js";
 
 View.stylesheet(import.meta, "decide.css");
 
@@ -10,13 +10,14 @@ View.stylesheet(import.meta, "decide.css");
 
    `live(fn)` wraps the demo in `.std-decide-live`, a hook with no CSS of its own: shoot.mjs
    screenshots exactly that element. It claims `wide`, because three columns of content never
-   live in the reading track (the layout skill, question 2).
+   live in the reading track (the layout skill, "The five questions" (sizing), question 2).
 
    The content is real: Servex and its three parts, from /framework/servex/. */
 
 export function pictures(meta, slug){
 	const here = new URL("./shots/", meta.url).pathname;
-	div.c("grid auto gap wide", () => {
+	// One picture per row: the 3440 shot is a wide strip, unreadable at half width.
+	div.c("flex v gap wide", () => {
 		for (const w of [1920, 3440]){
 			figure.c("flex v gap-35", () => {
 				img().attr("src", `${here}${slug}-${w}.jpg`).attr("alt", `The demo below, at ${w}px wide`).attr("loading", "lazy")
@@ -24,7 +25,7 @@ export function pictures(meta, slug){
 				figcaption.c("muted", `At ${w}px wide`);
 			});
 		}
-	}).style("--column", "24rem");
+	});
 }
 
 export function live(fn){
@@ -34,9 +35,9 @@ export function live(fn){
 
 // The three parts of Servex, each about the same length on purpose (the equal-height demo).
 export const PARTS = [
-	{ title: "Servers", body: "Servex starts the dev server for every project on this machine, gives each one a fixed port, and restarts it when it crashes. A project is reached at its own name, like monorepo.localhost, and starts on the first request." },
-	{ title: "Agents", body: "Every Claude session the owner starts from the dashboard runs inside Servex, with its own id, so it can be watched, paused, resumed or stopped from any tab. Agents talk to each other through Servex, never through the browser." },
-	{ title: "Cards", body: "Each task gets a card on the dashboard: what was asked, what the agent is doing now, and what it delivered. A question for the owner waits on its card until it is answered, so nothing is lost overnight." },
+	{ title: "Servers", body: "Servex starts the dev server for every project on this machine, gives each one a fixed port, and restarts it when it crashes. A project is reached at its own name, like monorepo.localhost, and starts on the first request. Nobody has to remember which port belongs to which project, or start anything by hand before opening it. When a server dies, its last lines of log are kept, so the reason is on screen the next time anyone looks." },
+	{ title: "Agents", body: "Every Claude session the owner starts from the dashboard runs inside Servex, with its own id, so it can be watched, paused, resumed or stopped from any tab. Agents talk to each other through Servex, never through the browser. Each agent gets its tools as plain functions inside Servex, so it never has to call back into its own host over the network, and a restart of Servex brings every agent back where it was." },
+	{ title: "Cards", body: "Each task gets a card on the dashboard: what was asked, what the agent is doing now, and what it delivered. A question for the owner waits on its card until it is answered, so nothing is lost overnight. A card can hold sub-cards, pictures and live widgets, and every line on it is kept in one append-only file, so the history of a task can always be read back in order." },
 ];
 
 export function column(part){
@@ -53,4 +54,3 @@ export function title_column({ centred }){
 	});
 }
 
-export { ul, li };

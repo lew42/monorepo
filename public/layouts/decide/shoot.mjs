@@ -1,9 +1,12 @@
 /* node public/layouts/decide/shoot.mjs <base url>
    Screenshots each demo's `.std-decide-live` element at 1920 and 3440 into <demo>/shots/.
-   Headless Playwright (a global npm module, imported by absolute file url). */
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+   Headless Playwright. Run gen-questions.mjs too after changing questions.js. */
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { execSync } from "node:child_process";
+import { fileURLToPath, pathToFileURL } from "node:url";
+// Playwright is a GLOBAL npm module here, not a repo dependency: find it at run time.
+const root = execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim();
+const { chromium } = await import(pathToFileURL(path.join(root, "playwright", "index.mjs")).href);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const base = process.argv[2] ?? "http://localhost:80";
 const browser = await chromium.launch();
