@@ -142,6 +142,16 @@ export default class Layers {
 		});
 	}
 
+	/* THE DRAWER'S CHIP, IN WORDS — the elements picked on the page before this
+	 * prompt was sent (ext/drawer/select.js's `item()`: `{kind, label, text,
+	 * selector}`), as one short labelled block per element. Without this the
+	 * assistant sees only the sentence and not what it was about — the chip
+	 * showed on screen, but the words alone reached here (2026-09-29). */
+	selected_block(context){
+		if (!Array.isArray(context) || !context.length) return "";
+		return context.map(c => `[Selected: ${c.label ?? c.kind ?? "element"} (${c.selector ?? "?"})]\n${String(c.text ?? "").trim()}`).join("\n\n") + "\n\n";
+	}
+
 	/* A fresh assistant already read the prompt in its first message, so only a
 	 * live or resumed one is sent it. A prompt spoken on a sub-card says which. */
 	heard(card, prompt){
@@ -151,7 +161,8 @@ export default class Layers {
 		const agent = this.assistant(card);
 		if (!was && !held && (agent.layers_fresh || (queued(agent) && this.pending.get(slot.id)?.fresh))) return agent;
 		const on = prompt.on && prompt.on !== card ? `(on ${prompt.on}) ` : "";
-		this.deliver(slot.id, on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
+		const selected = this.selected_block(prompt.context);
+		this.deliver(slot.id, selected + on + (prompt.text ?? prompt.raw ?? ""), { from: "owner", reply_to: `card ${card}` });
 		this.touch(slot.id);
 		return agent;
 	}

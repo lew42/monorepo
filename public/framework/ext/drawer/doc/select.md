@@ -35,5 +35,6 @@ The page's own assistant answers; there is no agent per element. `selector` find
 - **The hover and selection are data attributes** (`data-drawer-hover`, `data-drawer-selected`), not classes. The element's classes are what the Element tab reports and what ext/Ask maps to a module; a `drawer-` class would name ext/drawer as the owner of everything you select.
 - **`lighten` is invisible on white.** Hover is one lighten rung. Selection adds a hairline ring so it still shows on a white card.
 - What counts as content is one list, `DrawerSelect.CONTENT` in `select.js`. Add `data-selectable` to anything else that should count.
+- **On a card (`/framework/ai2/…`), the chip's context has to survive the trip through Servex.** The chat send goes `ai.js`'s `post_card()` → `ai2/inbox.js`'s `card_prompt()` → `Servex/cards/Cards.js`'s `append()`, which stores it on the prompt line in the card's own `page.jsonl`; `Servex/agents/Layers.js`'s `heard()` then turns it into a `[Selected: <label> (<selector>)]` block ahead of the words before the card's assistant ever sees them. One function, `post_card()`, carries every send — typed or dictated — so there is only one place this can be dropped (it was, until 2026-09-29).
 
 Suggestions are this chat for now; there is no suggest-an-edit UI yet.
