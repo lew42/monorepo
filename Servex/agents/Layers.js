@@ -112,11 +112,28 @@ export default class Layers {
 
 	// ── hearing the owner ────────────────────────────────────────────────────
 
+	/* Dictation arrives in fragments: one spoken thought can land as several
+	 * prompt lines a second or two apart, and the assistant used to answer each
+	 * one (2026-09-24, card layout-columns). So a card's prompts wait until the
+	 * owner has been quiet for SERVEX_PROMPT_QUIET_MS (default 4 s), then go out
+	 * joined as one. 0 sends each one at once, as before. */
 	listen(){
+		const quiet = Number(process.env.SERVEX_PROMPT_QUIET_MS ?? 4000);
+		const waiting = new Map();   // card → { prompt, texts, timer }
+		const flush = card => {
+			const w = waiting.get(card); waiting.delete(card);
+			if (w) this.heard(card, { ...w.prompt, text: w.texts.join(" "), raw: undefined });
+		};
 		this.servex.cards.on((id, line, info) => {
 			if (!line?.prompt || !info?.fresh) return;
 			const card = this.root(id);
-			if (card) this.heard(card, line.prompt);
+			if (!card) return;
+			if (!(quiet > 0)) return void this.heard(card, line.prompt);
+			const w = waiting.get(card) ?? { prompt: line.prompt, texts: [] };
+			w.texts.push(line.prompt.text ?? line.prompt.raw ?? "");
+			clearTimeout(w.timer);
+			w.timer = setTimeout(() => flush(card), quiet);
+			waiting.set(card, w);
 		});
 	}
 
@@ -141,7 +158,7 @@ export default class Layers {
 		if (role === "assistant") return {
 			role: "card-assistant", model: model("fast"), effort: "low", permission_mode: "bypassPermissions", urgent: true,
 			system: this.system(),
-			allowed_tools: ["card_reply", "create_card", "card_set", "ask_manager", "send_to_agent", "card_summary"].map(t => `mcp__servex__${t}`)
+			allowed_tools: ["card_reply", "create_card", "card_set", "add_item", "amend_bubble", "ask_manager", "send_to_agent", "card_summary"].map(t => `mcp__servex__${t}`)
 		};
 		return { role: "card-manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions", parent: rec.assistant.id };
 	}
@@ -384,7 +401,42 @@ export default class Layers {
 				return { ok: true, card: id };
 			});
 
-		tool("ask_manager", "Hand work to this card's manager. Make a request, question or task sub-card first with create_card, holding the owner's own words, and pass its id as `card`.",
+		tool("add_item", "Add one line to the card's outline, or update it: `title` is a short plain name for one thing the owner asked (never a cut-off prompt), `id` a short slug (the same id again updates the line: set `done` true and `proof` to a link when it is delivered). `asked_at` defaults to now. Only your own card or one of its sub-cards.",
+			{ card: str, id: str, title: str, asked_at: str, done: { type: "boolean" }, proof: str }, ["card", "id", "title"],
+			({ card, id: item, title, asked_at, done, proof }, caller) => {
+				this.allowed(caller, card);
+				const id = this.servex.cards.canonical(card);
+				this.servex.cards.append(id, { item: { id: item, title, asked_at: asked_at ?? new Date().toISOString(), done: !!done, ...(proof ? { proof } : {}) } });
+				return { ok: true, card: id };
+			});
+
+		tool("amend_bubble", "Amend a chat bubble as a light, lossless cleanup of the owner's raw prompt pieces. `of` = the prompt ids the bubble is merged from; `sections` = one per core concept: `## Title` then a `- [ ] item` checklist (`- [x]` when done or decided), each with the `from` ids it came from; optional `text` = the whole markdown. Nothing is dropped; the raw prompts stay in the log. Only your own card or one of its sub-cards.",
+			{ card: str, of: { type: "array", items: str }, text: str,
+				sections: { type: "array", items: { type: "object", properties: { text: str, from: { type: "array", items: str } }, required: ["text"] } } }, ["card", "of", "sections"],
+			({ card, of, sections, text }, caller) => {
+				this.allowed(caller, card);
+				const id = this.servex.cards.canonical(card);
+				if (!Array.isArray(of) || !of.length) throw new Error("`of` must list at least one prompt id");
+				if (!Array.isArray(sections) || !sections.length) throw new Error("`sections` must hold at least one section");
+				const raw = new Map();
+				for (const l of this.log_text(id).split("\n")) { try { const p = JSON.parse(l).prompt; if (p?.id) raw.set(p.id, String(p.raw ?? p.text ?? "")); } catch {} }
+				for (const p of of) if (!raw.has(p)) throw new Error(`"${p}" is not a prompt id on card ${id}`);
+				sections.forEach((s, i) => {
+					const from = s.from ?? [], body = String(s.text ?? "").trim();
+					for (const p of from) if (!of.includes(p)) throw new Error(`section ${i + 1}: "${p}" is in \`from\` but not in \`of\``);
+					if (!from.length) {
+						if (body.split(/\s+/).filter(Boolean).length >= 8) throw new Error(`section ${i + 1} cites no \`from\` pieces; only a short heading (under 8 words) may`);
+						return;
+					}
+					const size = from.reduce((n, p) => n + raw.get(p).trim().length, 0);
+					if (body.length < size * 0.6) throw new Error(`section ${i + 1} is shorter than 60% of its raw pieces (${body.length} of ${size} characters): nothing may be dropped`);
+				});
+				const curated = text ?? sections.map(s => s.text).join("\n\n");
+				this.servex.cards.append(id, { type: "refined", of, sections, text: curated, by: caller ?? "owner", at: new Date().toISOString() });
+				return { ok: true, card: id };
+			});
+
+		tool("ask_manager", "Hand work to this card's manager. Make a request, question or task sub-card first with create_card, holding the owner's own words, and pass its id as `card`. Pass the path to the card's directory so the manager can read the whole chat, raw words included; your summary may follow, never replace it.",
 			{ card: str, text: str }, ["card", "text"],
 			({ card, text }, caller) => { this.allowed(caller, card); return this.ask_manager({ card, text, from: caller ?? "owner" }); });
 

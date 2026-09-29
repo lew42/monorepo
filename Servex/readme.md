@@ -67,7 +67,9 @@ its environment, restart-on-crash with a doubling backoff, `start` `stop`
 `restart` `logs`, and every line it prints going into the log writer. Not pm2 —
 Servex *is* the always-on process, and a second daemon under it is one too many.
 Whisper is one of these (`Process.Whisper`), with the same four boot cases the
-dev server's own plugin handles.
+dev server's own plugin handles. It runs with Silero voice-activity detection
+(`--vad`), so silence and noise return empty text instead of a made-up "Thank you";
+the model file is `models/ggml-silero-v5.1.2.bin` beside the Whisper model.
 
 A project's dev server **outlives Servex**: it is started through `orphan.mjs`
 (hidden, and out of reach of a tree kill), and when Servex comes back it
@@ -85,6 +87,8 @@ written out in full in `agents/assistant.md`, its whole system prompt.
 
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
+
+**Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
 
 ## Is the machine melting? — the monitor and the spawn queue
 
@@ -121,6 +125,11 @@ Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:
   from there into `logs/<name>.jsonl` as before
 - `logs/reports/` — Node's crash report, if Servex ever dies natively again
   (the 0xC0000409 exits left no trace before); `logs/gate.log` is the gate's
+- `logs/windows.jsonl` — every real popup window `Server/window-watch.mjs` ever catches (owning
+  process conhost/cmd/powershell/node/bash/claude, title, pid, parent chain); it runs forever,
+  started by hand for now (`node Server/window-watch.mjs`, launched hidden via `orphan.mjs`) —
+  wiring it into Servex's own supervision, so it starts and gets adopted automatically like a dev
+  server, waits for the next batched Servex restart
 
 `SERVEX_HOME` moves both. Nothing Servex writes ever lands in git.
 
@@ -191,6 +200,11 @@ shortcut — if it works for them it works for yours. Six are the servers'
   times, on 2026-09-22. The one that works and opens nothing:
   `powershell -NoProfile -Command "Start-Process -FilePath node -ArgumentList 'Servex/sustain.mjs' -WorkingDirectory 'C:/Code/lew42/monorepo' -WindowStyle Hidden -PassThru"`,
   which hands back the real pid.
+- **`powershell.exe -WindowStyle Hidden` still flashes a console once, at logon.**
+  PowerShell hides its own window a moment *after* Windows has already created and
+  shown it — proven with an `EnumWindows` probe on 2026-09-28, by triggering the
+  registered logon task and watching a real visible window appear. The fix is
+  `Servex/hidden-launch.vbs`, run through `wscript.exe` — see below.
 - **Nothing supervises the keeper.** That is the honest floor of any restart
   chain, and why `sustain.mjs` does one thing. Surviving a machine reboot wants a
   Scheduled Task that runs it at logon — see below.
@@ -203,13 +217,17 @@ logon it runs `sustain.mjs`, hidden, from the repo root. It is registered on the
 owner's machine (2026-09-24). To set it up again, paste this into PowerShell:
 
 ```powershell
-$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -WindowStyle Hidden -Command "cd ''C:\Code\lew42\monorepo''; node Servex/sustain.mjs"'
+$a = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument '//B "C:\Code\lew42\monorepo\Servex\hidden-launch.vbs"'
 $t = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 Register-ScheduledTask -TaskName 'Servex' -Action $a -Trigger $t -Force
 ```
 
 Check it with `Get-ScheduledTask Servex` (state `Ready`). If Servex is already
 running when the task fires, the second `sustain.mjs` refuses and exits — no clash.
+
+The action runs the `.vbs` wrapper, not `powershell.exe -WindowStyle Hidden`
+directly — see the "Watch out" bullet above for why (the direct form flashes a
+visible console for a moment at logon; the `.vbs` wrapper does not).
 
 The port-80 gate needs nothing registered of its own. After a reboot the
 Scheduled Task starts `sustain.mjs`, the keeper starts Servex, and Servex

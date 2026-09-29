@@ -262,9 +262,20 @@ export class Agents {
 	 * re-woken. ⚠ `Agent.send()` on a stopped INSTANCE still throws: the live
 	 * card's route turns that throw into a 409. */
 	send(id, text, note){
+		id = this.holder(id);
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
 		return this.wake(id).send(text, note);
+	}
+
+	/* "mastermind-servex" is a ROLE: when a fresh session holds it as
+	 * mastermind-servex-N (the old one stood down at a full context), a message
+	 * to the role goes to the newest live holder instead of waking the old one. */
+	holder(id){
+		if (id !== "mastermind-servex") return id;
+		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
+		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
+		return best?.id ?? id;
 	}
 
 	wake(id){
@@ -373,7 +384,7 @@ export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-ass
 /* Only while the layers run: with `SERVEX_NO_LAYERS` set nothing respawns them,
  * so revive() treats them like any other agent. */
 export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
-	SELF_RESTARTED.ids.includes(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
+	SELF_RESTARTED.ids.includes(id) || /^mastermind-servex-\d+$/.test(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));

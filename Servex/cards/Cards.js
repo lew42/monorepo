@@ -3,6 +3,7 @@ import path from "path";
 import express from "express";
 import { fileURLToPath } from "url";
 import { stamp } from "../home.js";
+import { parse_lines, fold_card, summary } from "../../public/framework/ai2/fold.js";
 
 /* CARDS — one folder per card, one append-only `page.jsonl` per folder.
  *
@@ -31,6 +32,7 @@ export default class Cards {
 
 	initialize(){
 		this.root ??= ROOT;
+		setTimeout(() => this.index_soon(), 2000);   // boot: make sure the static index matches the folders
 		this.base ??= "/framework/ai/";
 		this.queues = new Map();          // file path -> promise chain: one writer per file
 		this.legacies = null;             // legacy id -> card id, built on first use
@@ -113,7 +115,23 @@ export default class Cards {
 		const next = (this.queues.get(at) ?? Promise.resolve()).then(() =>
 			fs.promises.appendFile(at, JSON.stringify(obj) + "\n"));
 		this.queues.set(at, next.catch(() => {}));
+		next.then(() => this.index_soon()).catch(() => {});
 		return next;
+	}
+
+	/* THE STATIC INDEX: `ai/cards.jsonl`, one summary per line, rewritten (debounced)
+	 * after any card write. AI 2 reads it as a plain file, so the rail needs no
+	 * Servex and no walk of 400 folders. Servex only KEEPS it fresh. */
+	index_soon(){
+		clearTimeout(this.index_timer);
+		this.index_timer = setTimeout(async () => {
+			try {
+				const rows = await this.list({ view: "all" });
+				const file = path.join(this.root, "cards.jsonl"), text = rows.map(r => JSON.stringify(r)).join("\n") + "\n";
+				if (fs.existsSync(file) && fs.readFileSync(file, "utf8") === text) return;   // unchanged: no write, no reload
+				await fs.promises.writeFile(file, text);
+			} catch {}
+		}, 1000);
 	}
 
 	/* `mkdir` without `recursive` fails if the folder exists, which makes it an
@@ -182,40 +200,12 @@ export default class Cards {
 		return this.parse(await fs.promises.readFile(this.file(card), "utf8"));
 	}
 
-	parse(text){
-		return text.split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return { bad: l }; } });
-	}
+	parse(text){ return parse_lines(text); }
 
-	/* Latest wins, line by line. `absorb` is the vocabulary; a key it does not
-	 * know is kept as plain data, latest wins, so a new line shape never breaks a read. */
+	/* Latest wins, line by line — `ai2/fold.js` is the vocabulary, shared with the browser. */
 	async fold(id){
 		const lines = await this.read(id);
-		if (!lines) return null;
-		const state = { id: this.canonical(id), title: "", type: "card", tags: [], status: "open", created: null, by: null,
-			messages: [], prompts: [], cites: [], attached: [], children: [], legacy: [] };
-		for (const line of lines) this.absorb(state, line);
-		state.last = [state.created, state.messages.at(-1)?.at, state.prompts.at(-1)?.at].filter(Boolean).sort().at(-1) ?? null;
-		return state;
-	}
-
-	absorb(state, line){
-		for (const [key, value] of Object.entries(line)){
-			if (key === "message") state.messages.push(value);
-			else if (key === "prompt"){
-				const had = state.prompts.find(p => p.id === value?.id);
-				had ? Object.assign(had, value) : state.prompts.push({ ...value });
-			}
-			else if (key === "cites"){ for (const ref of [].concat(value)) if (!state.cites.includes(ref)) state.cites.push(ref); }
-			else if (key === "attach"){ if (!state.attached.includes(value)) state.attached.push(value); }
-			else if (key === "detach") state.attached = state.attached.filter(a => a !== value);
-			else if (key === "legacy") state.legacy.push(value);
-			else if (key === "file"){
-				const child = `${state.id}/${String(value).replace(/\/page\.jsonl$/, "")}`;
-				if (!state.children.includes(child)) state.children.push(child);
-			}
-			else if (key === "class" || key === "id") continue;
-			else state[key] = value;
-		}
+		return lines ? fold_card(this.canonical(id), lines) : null;
 	}
 
 	async attached(id){ return (await this.fold(id))?.attached ?? []; }
@@ -270,12 +260,12 @@ export default class Cards {
 		const out = [];
 		for (const id of await this.walk()){
 			const s = await this.fold(id);
-			const summary = { id, title: s.title, type: s.type, status: s.status, tags: s.tags, created: s.created, last: s.last };
+			const row = summary(s);
 			const want = tag ?? (["today", "open", "all"].includes(view) ? null : view);
 			if (want ? s.tags.includes(want)
 				: view === "open" ? s.status !== "done"
 				: view === "today" ? [s.created, s.last].some(t => String(t ?? "").startsWith(day))
-				: true) out.push(summary);
+				: true) out.push(row);
 		}
 		return out.sort((a, b) => String(b.last).localeCompare(String(a.last)));
 	}
