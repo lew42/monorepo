@@ -349,17 +349,31 @@ export class Agents {
 		if (this.no_wake || process.env.SERVEX_DISABLE_WAKE) return;
 		if (!child.parent || child.parent === child.id) return;
 		if (child.one_shot && child.woke) return;
-		let parent;
-		try { parent = this.get(child.parent); }
-		catch { return; }
 		/* A fork's answer IS the payload, so it goes whole (to 4000 chars) — the
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
 		child.woke = true;
-		try { parent.send(body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
-		catch {}
+		this.inbox(child, kind, text);
+		if (this.closing) return;   // Servex is shutting down (Heartbeat.stop): the inbox has it; revive nobody
+		/* Through the HOST's send(), which revives a stopped parent — `get(parent).send()`
+		 * threw "has stopped" into an empty catch, and results were lost (task-loop, 09-29). */
+		try { this.send(child.parent, body, { from: child.id, reply_to: `log agent-${child.parent}` }); }
+		catch (e){ this.store().append("servex", { type: "wake-failed", child: child.id, parent: child.parent, error: String(e.message || e) }).catch(() => {}); }
+	}
+
+	/* A child's result also lands in its parent's task dir as inbox.jsonl
+	 * ({at, from, kind, text}), so a stop, a restart or the reaper cannot lose it.
+	 * The parent's dir: the heartbeat's owner map, the live parent's own task, or
+	 * the directory above the child's own task dir when that holds a task.jsonl. */
+	inbox(child, kind, text){
+		try {
+			const up = child.task?.dir && path.dirname(path.resolve(child.task.dir));
+			const dir = this.task_dir_of?.(child.parent) ?? this.live.get(child.parent)?.task?.dir
+				?? (up && fs.existsSync(path.join(up, "task.jsonl")) ? up : null);
+			if (dir) fs.appendFileSync(path.join(dir, "inbox.jsonl"), JSON.stringify({ at: stamp(), from: child.id, kind, text: text ?? null }) + "\n");
+		} catch (e){ this.store().append("servex", { type: "inbox-failed", child: child.id, error: String(e.message || e) }).catch(() => {}); }
 	}
 }
 

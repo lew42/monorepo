@@ -9,6 +9,7 @@ import Events from "../Server/Events.js";
 import Log from "./Log.js";
 import Monitor from "./Monitor.js";
 import TaskLoop from "./TaskLoop.js";
+import Heartbeat from "./Heartbeat.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
 import MCP, { loopback } from "./MCP.js";
@@ -180,6 +181,13 @@ export default class Servex extends Events {
          * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+
+        /* THE HEARTBEAT (task-loop/heartbeat, 2026-09-29): a task owner silent
+         * SERVEX_HEARTBEAT_SILENT_MIN (5) gets a neutral status check; one that died
+         * is triaged and revived; the card hears only when that fails. A minion stuck
+         * at the spawn gate wakes its parent. `SERVEX_NO_HEARTBEAT=1` skips it. */
+        this.heartbeat = new this.constructor.Heartbeat({ servex: this });
+        if (!process.env.SERVEX_NO_HEARTBEAT) this.heartbeat.start();
         /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
         if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
 
@@ -587,6 +595,11 @@ export default class Servex extends Events {
             description: "The task loop's latest tick: how many tasks are open today, how many are quiet, and running"
                 + " totals chased/escalated since this Servex started."
         }, () => JSON.stringify(this.task_loop.status()));
+
+        this.mcp.tool("heartbeat_status", {
+            description: "The heartbeat: every watched task owner, how long it has been silent, whether a status check is"
+                + " waiting on an answer or it is mid-tool; minions held at the spawn gate; revives queued."
+        }, () => JSON.stringify(this.heartbeat.status(), null, 1));
     }
 
     health(){
@@ -726,6 +739,7 @@ export default class Servex extends Events {
         const down = () => {
             try { this.monitor?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
+            try { this.heartbeat?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
@@ -887,6 +901,7 @@ Servex.Global = Global;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.TaskLoop = TaskLoop;
+Servex.Heartbeat = Heartbeat;
 Servex.Pool = Pool;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
