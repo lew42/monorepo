@@ -1,0 +1,9 @@
+/* ObjectView — a live JS value as nested, dot-prefixed rows. One rule: a
+   nested value sits one notch in from its own row, with a thin rule to
+   follow the eye down. Everything else is existing utility classes
+   (flex v / flex v-center gap-10) — see the css skill before adding here. */
+@layer theme {
+	.ai-ov-key { font-family: var(--mono, monospace); flex: none; }
+	.ai-ov-row .ai-ov { padding-inline-start: 1.1em; border-inline-start: 1px solid var(--line); margin-inline-start: .2em; }
+	.ai-ov-val { font-family: var(--mono, monospace); overflow-wrap: anywhere; }
+}
