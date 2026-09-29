@@ -3,6 +3,7 @@ import ContentModule from "../ContentModule.js";
 
 /* The option wall's look is ui/decision's (three-way chosen marking, contrast numbers). */
 import "../../../ui/decision/decision.js";
+View.stylesheet(import.meta, "decision.css");
 
 /**
  * class Decision extends ContentModule — an ask, its options (each with a caveat), and the
@@ -13,6 +14,11 @@ import "../../../ui/decision/decision.js";
  *   new Decision({ page, log, ...legacyRecord })   // {id|title, chose, over|alternative, why}
  *
  * A legacy task.jsonl decision is normalized to the same shape, its `chose` pre-selected.
+ *
+ * A record written by Server/decide.mjs also carries rank, confidence, recommended (an option
+ * id), sources, depends_on and each option's `then`; they show as a head row, a
+ * "recommended" mark and a sources line. `nested` (option id → child records, given by
+ * Decisions.js) draws each child decision INSIDE the option that leads to it.
  */
 export default class Decision extends ContentModule {
 
@@ -20,7 +26,7 @@ export default class Decision extends ContentModule {
 	 * legacy record: options = chose + over (or alternative), chosen = chose. */
 	static normalize(d){
 		d = d.decision ?? d;
-		const say = o => typeof o === "string" ? { say: o } : { say: o.say ?? o.title ?? String(o.id ?? ""), caveat: o.caveat ?? o.why, key: o.id };
+		const say = o => typeof o === "string" ? { say: o } : { say: o.say ?? o.text ?? o.title ?? String(o.id ?? ""), caveat: o.caveat ?? o.caveats?.join(" ") ?? o.why, key: o.id, then: o.then };
 		const humanize = s => /s/.test(s) ? s : String(s).replace(/[-_]+/g, " ").replace(/^./, c => c.toUpperCase());
 		const words = d.ask ?? d.question ?? d.about ?? d.title ?? d.topic ?? d.what ?? d.id ?? "Decision";
 
@@ -35,7 +41,11 @@ export default class Decision extends ContentModule {
 				if (hit) chosen = hit.say; else options.unshift({ say: chosen });
 			}
 
-			return { id: d.id, ask: humanize(words), options, why: d.because ?? d.why, chosen: typeof chosen === "string" ? chosen : undefined };
+			// decide.mjs's fields — absent on older records, and then nothing extra is drawn.
+			const extra = {};
+			for (const k of ["rank", "confidence", "recommended", "sources", "depends_on", "status", "decided_by"]) if (d[k] != null) extra[k] = d[k];
+
+			return { id: d.id, ask: humanize(words), options, why: d.because ?? d.why, chosen: typeof chosen === "string" ? chosen : undefined, ...extra };
 		}
 
 		const over = d.over ?? (d.alternative ? [d.alternative] : []);
@@ -65,14 +75,47 @@ export default class Decision extends ContentModule {
 
 	draw(){
 		return this.empty(() => {
+			this.head();
 			if (this.ask && !this.bare) div.c("ux-content-ask", this.ask);
 			this.wall();
 			if (this.why && !this.legacy_why) p.c("ui-decision-because", this.why);
+			this.cited();
 		});
 	}
 
+	/* Rank, confidence and status as one quiet row; nothing for a record that has none. */
+	head(){
+		const bits = [];
+		if (this.rank != null) bits.push(["ux-content-rank", `Rank ${this.rank}`]);
+		if (this.confidence != null) bits.push(["ux-content-confidence", `${Math.round(this.confidence * 100)}% confident`]);
+		if (this.status === "decided") bits.push(["ux-content-status", `Decided${this.decided_by ? " by " + this.decided_by : ""}`]);
+		if (bits.length) div.c("ux-content-decision-head", () => bits.forEach(([c, t]) => span.c(c, t)));
+	}
+
+	cited(){
+		if (this.sources?.length) p.c("ux-content-sources", "Sources: " + this.sources.join(", "));
+	}
+
 	wall(){
-		return ul.c("ui-decision-options", () => this.options.forEach(o => li(() => this.option(o))));
+		return ul.c("ui-decision-options", () => this.options.forEach(o => {
+			const kids = this.kids(o);
+			const $li = li(() => {
+				this.option(o);
+				if (kids.length) this.branch(o, kids);
+			});
+			if (kids.length) $li.ac("ux-content-branch");
+		}));
+	}
+
+	/* The child decisions an option leads to: from `nested` (Decisions.js), by option id. */
+	kids(o){ return (o.key != null && this.nested?.[this.id]?.[o.key]) || []; }
+
+	/* "Choose this → then decide:" and each child, drawn as a whole Decision of its own. */
+	branch(o, kids){
+		return div.c("ux-content-then", () => {
+			div.c("ux-content-then-label", `If “${o.say}” → then decide:`);
+			kids.forEach(k => new this.constructor({ ...k, page: this.page, log: this.log, card: this.card, by: this.by, readonly: this.readonly, nested: this.nested }));
+		});
 	}
 
 	option(o){ return new (this.readonly ? this.constructor.Shown : this.constructor.Option)({ decision: this, option: o }); }
@@ -101,6 +144,7 @@ Decision.Option = class DecisionOption extends View {
 		this.wire(say);
 
 		if (chosen) span.c("ui-decision-mark", "chosen");
+		else if (this.option.key != null && this.option.key === this.decision.recommended) span.c("ui-decision-mark ux-content-recommended", "recommended");
 		div.c("ui-decision-say", say);
 		if (caveat) p.c("ux-content-caveat", caveat);
 		if (chosen && why) p.c("ui-decision-why", why);

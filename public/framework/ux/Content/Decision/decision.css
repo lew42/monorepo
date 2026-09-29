@@ -1,0 +1,27 @@
+@layer theme {
+
+	/* Rank, confidence, status: one quiet row of chips above the ask. */
+	.ux-content-decision-head { display: flex; flex-wrap: wrap; gap: .4em; font-size: .85em; }
+	.ux-content-decision-head > span { background: var(--wash); border-radius: .3em; padding: .1em .55em; }
+	.ux-content-rank { font-weight: 700; }
+
+	.ux-content-sources { color: var(--subtle); font-size: .85em; }
+	.ux-content-recommended::before { content: "★ "; }
+
+	/* An option that leads to more decisions is a column: the option, then its children. */
+	.ux-content-branch { display: flex; flex-direction: column; gap: var(--gap-50); min-width: 0; }
+	.ux-content-branch > button.ux-content-option { height: auto; }
+	/* Beside a branch, a plain option keeps its own height instead of stretching to the branch's. */
+	.ui-decision-options:has(> .ux-content-branch) { align-items: start; }
+
+	/* The children sit on a tinted ground with a rule on the left, so the nesting reads at a glance. */
+	.ux-content-then {
+		display: flex; flex-direction: column; gap: var(--gap);
+		background: var(--tint, var(--wash)); border-inline-start: 3px solid var(--prim);
+		border-radius: .4em; padding: var(--pad-card, 1em); min-width: 0;
+	}
+	.ux-content-then-label { font-size: .85em; font-weight: 700; color: var(--subtle); }
+
+	/* The list of top-level decisions: a gap between each, most foundational first. */
+	.ux-content-decisions { display: flex; flex-direction: column; gap: calc(var(--gap) * 2); min-width: 0; }
+}
