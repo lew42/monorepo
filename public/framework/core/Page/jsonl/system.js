@@ -1,4 +1,4 @@
-import { p, h2, div, a, span, icon, pre } from "/app.js";
+import { p, h2, h3, div, a, span, icon, pre } from "/app.js";
 
 /* Placed by the line {"place": {"module": "system.js"}} — level 1 of the page.jsonl
    SYSTEM, not just the format. The owner, 2026-09-29: "the core slash page slash, maybe
@@ -30,13 +30,37 @@ function tile(name, ic, meaning, href){
 		});
 }
 
-export default function(page, box, data){
+// Placed in TWO parts, so the v1 note can sit between them (the `placed` line at the
+// end of page.jsonl sets the order: tiles, note.md, source). A placement with no `part`
+// draws both, as it did before that line existed.
+//   {"module": "system.js", "part": "tiles"}   intro + the five tiles + the example's heading
+//   {"module": "system.js", "part": "source"}  this page's own page.jsonl, fetched live
+export default function(page, box, data = {}){
+	if (data.part !== "source") tiles();
+	if (data.part === "tiles") example_heading();
+	if (data.part !== "tiles") source(page);
+}
+
+function tiles(){
 	p("`page.jsonl` isn't just a file format — it's a whole system: who is allowed to add a line, when each writer's line actually lands, what happens when two lines collide, and how big these files are allowed to get. This page is a live `page.jsonl` page, so it can show its own system instead of just describing one.");
 
-	div.c("flex wrap gap-50", () => TILES.forEach(t => tile(t.name, t.ic, t.meaning, t.href)));
+	// An even grid INSIDE the reading column (a page.jsonl page draws in `main`, and
+	// `width: "wide"` does not reach log_view): Format, the one to read first, spans
+	// every track; the other four share the tracks below it — 2 × 2 at 1920.
+	div.c("grid auto gap", () => TILES.forEach((t, i) => {
+		const $t = tile(t.name, t.ic, t.meaning, t.href);
+		if (i === 0) $t.style({ gridColumn: "1 / -1" });
+	})).style("--column", "16rem");
+}
 
+function example_heading(){
+	h3("The smallest example");
+	p.c("muted", "The two lines this page began with: line 1 builds it, and `{\"place\": \"note.md\"}` draws the paragraph below.");
+}
+
+function source(page){
 	h2("This page's own file");
-	p("Below is `page.jsonl` for the folder you're looking at right now, fetched live — every tile above, the note beneath, and the files listed at the bottom of this page all came from these exact lines. Nothing here is a mockup.");
+	p("Below is `page.jsonl` for the folder you're looking at right now, fetched live — every tile above, the note, and the files listed at the bottom of this page all came from these exact lines. Nothing here is a mockup.");
 	const $source = pre.c("page-log-source", "…loading…");
 	$source.style({ "white-space": "pre-wrap", "overflow-wrap": "anywhere" });
 	fetch(page.jsonl_url).then(res => res.text()).then(text => $source.text(text.trim()));
