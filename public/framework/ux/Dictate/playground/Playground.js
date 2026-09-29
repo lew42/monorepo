@@ -1,11 +1,12 @@
 import { View, div, span, button, select, option, a } from "../../../core/View/View.js";
 import Dictate, { remember_device, remembered_device } from "../Dictate.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 View.stylesheet(import.meta, "Playground.css");
 
 // Servex's fast assistant — not always up (`server-port` sibling task). A failed request
 // here is EXPECTED until Servex restarts; the rules fallback below is what covers it.
-const TIDY_URL = "http://127.0.0.1:8090/api/tidy";
+const TIDY_URL = servex_url("/api/tidy");
 
 // How much already-cleaned text rides along as `before` — enough for the assistant to
 // see the sentence it is joining, not the whole transcript.

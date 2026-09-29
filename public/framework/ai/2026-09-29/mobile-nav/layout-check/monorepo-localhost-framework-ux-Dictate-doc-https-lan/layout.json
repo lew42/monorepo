@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/doc/https-lan/",
+ "widths": {
+  "1280": {
+   "empty": 0.542,
+   "widest_text": 600,
+   "widest_text_sample": ") is reachable by anyone on this Wi-Fi, ",
+   "overflow_x": false,
+   "items": 96,
+   "narrow_share": 0.448
+  },
+  "1920": {
+   "empty": 0.688,
+   "widest_text": 638,
+   "widest_text_sample": ") is reachable by anyone on this Wi-Fi, ",
+   "overflow_x": false,
+   "items": 96,
+   "narrow_share": 0.781
+  },
+  "2560": {
+   "empty": 0.733,
+   "widest_text": 718,
+   "widest_text_sample": ") is reachable by anyone on this Wi-Fi, ",
+   "overflow_x": false,
+   "items": 96,
+   "narrow_share": 0.781
+  },
+  "3440": {
+   "empty": 0.789,
+   "widest_text": 718,
+   "widest_text_sample": ") is reachable by anyone on this Wi-Fi, ",
+   "overflow_x": false,
+   "items": 96,
+   "narrow_share": 0.781
+  }
+ },
+ "errors": []
+}

@@ -10,8 +10,32 @@ const listeners = new Map();
    for callers in public/ finds none. Same live path as Socket.reload(). */
 Socket.prototype.ask_event = function(e){ listeners.get(e.id)?.(e); };
 
+/* SAME-ORIGIN FALLBACK for a phone on the LAN — `dev/Socket/Socket.js`'s own dev
+ * socket refuses any non-loopback connection ON PURPOSE (see its doc comment),
+ * so `edit()` is always false off localhost. `Server/plugins/Ask.js`'s `POST
+ * /ask/turn` is the narrower door built for exactly this: one Claude turn, the
+ * SAME tools and the SAME `--resume` as `rpc:ask` runs — not a downgraded one
+ * (the owner's call, 2026-09-29) — guarded instead by that route's own `lan()`
+ * check, loopback or this machine's Wi-Fi, never the open internet. Probed once,
+ * at load, and the check is JSON-or-not, never a status code: a static host can
+ * answer any status for an unknown route (this site's own production host
+ * answers 405, not 404), so only a JSON body proves a real `/ask/turn` is behind
+ * it. `ext/drawer/tabs.js`'s own DEV flag reuses this exact probe (`ask_probe`,
+ * `http_ask_ready`) instead of sending a second one — one fetch per page load,
+ * not two (review, 2026-09-29). Skipped on localhost entirely — `edit()`
+ * already covers it, so there is nothing for this probe to add there, and no
+ * reason to add the network noise. */
+export let http_ask_ready = false;
+export const ask_probe = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname)
+	? Promise.resolve()
+	: fetch(location.origin + "/ask/turn", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
+		.then(r => { http_ask_ready = (r.headers.get("content-type") ?? "").includes("json"); })
+		.catch(() => {});
+
 // The one switch every editor control reads — ext/Ask/edit.js's doc/decisions.md.
-export function available(){ return edit(); }
+// True on localhost with edit mode on (the dev socket), OR off localhost once the
+// `/ask/turn` probe above has come back — see its comment.
+export function available(){ return edit() || http_ask_ready; }
 
 /**
  * One turn of a Claude Code session, from the browser.
@@ -39,13 +63,12 @@ export function available(){ return edit(); }
  *
  *     await ask("What is wrong with this card's layout?", { shot: ".preview-card" });
  *
- * ⚠ Rejects off localhost, or with edit mode off in the dev rail. Guard with
- * `available()` and render the fallback; never let a page depend on this.
+ * ⚠ Off localhost this rides `POST /ask/turn` instead of the socket (see
+ * `available()`'s comment) — same turn, no streaming, no `shot`. Throws when
+ * neither door is open; guard with `available()` and render the fallback,
+ * never let a page depend on this.
  */
 export async function ask(prompt, opts = {}){
-	const socket = Socket.singleton();
-	if (!edit()) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
-
 	if (typeof opts.shot === "string") opts = { ...opts, shot: { url: location.href, selector: opts.shot } };
 
 	/* A picked element rides in the PROMPT, not in the system line: the server slices
@@ -58,6 +81,18 @@ export async function ask(prompt, opts = {}){
 		opts = { ...opts, context: `the element ${opts.context.selector}, on ${opts.context.home ?? opts.context.page}` };
 	}
 
+	if (!edit()){
+		if (!http_ask_ready) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
+		const res = await fetch(location.origin + "/ask/turn", { method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ text: prompt, context: opts.context, task: opts.task, resume: opts.resume, shot: opts.shot }),
+			signal: AbortSignal.timeout(60000) });
+		const reply = await res.json().catch(() => ({ error: `ask(): HTTP ${res.status}` }));
+		if (reply?.error) throw new Error(reply.error);
+		return reply;
+	}
+
+	const socket = Socket.singleton();
 	const id = crypto.randomUUID();
 	if (opts.on) listeners.set(id, opts.on);
 

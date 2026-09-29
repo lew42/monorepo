@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+import { lan, safe_host } from "./MCP.js";
 
 const HOME = process.env.WHISPER_HOME || path.join(process.env.LOCALAPPDATA || "", "lew42", "whisper");
 const EXE = path.join(HOME, "bin", "whisper-server.exe");
@@ -68,6 +69,13 @@ export default class Whisper {
      * (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this route exists
      * so a LAN client can reach it.
      *
+     * Guarded by `lan()` AND `safe_host()` (`MCP.js`) — the same checks `/ask/turn`
+     * and `/servex/*` use: loopback or this machine's own Wi-Fi, AND a `Host`
+     * header that actually names this machine (closes DNS rebinding). Loopback-only
+     * guards (`Recordings.js`, `Screenshots.js`) do NOT apply here on purpose — this
+     * route exists so a LAN client can reach it — but "any LAN client" is not "anyone
+     * who can reach this port," which a forwarded router would otherwise make true.
+     *
      * Forwards the request bytes and its `content-type` untouched — a whisper `/inference`
      * POST is `multipart/form-data` with a boundary in that header, and re-building the
      * multipart body instead of forwarding it verbatim would be strictly more code for no
@@ -75,7 +83,16 @@ export default class Whisper {
      * `Dictate.detect_engine()` already reads as "not reachable" (it only checks `r.ok`)
      * and falls back to the browser's own engine — nothing new for that caller to learn. */
     route() {
+        const guard = (req, res) => {
+            const from = req.socket.remoteAddress;
+            if (lan(from) && safe_host(req.headers.host)) return true;
+            console.warn(`Whisper: REFUSED ${req.originalUrl} from ${from} (Host: ${req.headers.host}) — loopback/LAN only.`);
+            res.status(403).json({ error: "loopback/LAN only; refused " + from });
+            return false;
+        };
+
         this.server.router.post("/whisper/inference", this.server.express.raw({ type: "*/*", limit: "30mb" }), async (req, res) => {
+            if (!guard(req, res)) return;
             try {
                 const r = await fetch(`http://127.0.0.1:${PORT}/inference`, {
                     method: "POST",
@@ -93,6 +110,7 @@ export default class Whisper {
         });
 
         this.server.router.get("/whisper/", async (req, res) => {
+            if (!guard(req, res)) return;
             try {
                 const r = await fetch(`http://127.0.0.1:${PORT}/`, { signal: AbortSignal.timeout(1500) });
                 res.status(r.status).send(await r.text());

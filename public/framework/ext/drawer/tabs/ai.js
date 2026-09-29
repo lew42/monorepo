@@ -4,6 +4,7 @@ import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
 import { ask, available } from "/framework/ext/Ask/Ask.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
 import { DEV } from "../tabs.js";
 
@@ -20,7 +21,6 @@ import { DEV } from "../tabs.js";
      (ai/2026-09-25/recursive-pairs/interface.md); until Servex answers it, the dev
      bar's Ask route (ext/Ask), so a message still gets an answer today. */
 
-const PAGE_AI = "http://servex.localhost/api/page-ai";
 export const MODELS = ["haiku", "sonnet", "opus", "fable"];
 const MODEL_KEY = "lew42-drawer-model";
 
@@ -37,10 +37,48 @@ const as_text = context => Array.isArray(context)
 	? context.map(c => `${c.label ?? c.kind ?? "element"} (${c.selector ?? "?"}): ${String(c.text ?? "").slice(0, 300)}`).join("\n")
 	: context ?? undefined;
 
+/* ⚠ NO REPLY EVER SHOWED (mastermind, 2026-09-29): `POST /api/page-ai` answers at
+ * once with `{ok, assistant, manager}` and no text — the assistant's own answer
+ * lands a few seconds later, appended by Servex to the page's own chat log, a flat
+ * JSONL file at `<page>ai/chat.jsonl` (one line per turn: `{"prompt":{id,text,at,by}}`
+ * then `{"message":{by,text,at,kind:"reply"}}`). `send()` used to return the moment
+ * the POST answered, so both the sheet and the desktop drawer showed "sent" and
+ * then nothing, forever. This polls that same log, same-origin, until an assistant
+ * reply dated at or after this prompt's own send time shows up. `cache: "no-store"`:
+ * the file is growing under us, and a cached miss from the FIRST check (the file may
+ * not exist a split second before the prompt line lands) must never stick. */
+const REPLY_POLL_MS = 1500;
+const REPLY_TIMEOUT_MS = 90000;
+
+async function page_reply(page, since){
+	const url = String(page ?? "/").replace(/\/?$/, "/") + "ai/chat.jsonl";
+	const deadline = Date.now() + REPLY_TIMEOUT_MS;
+	while (Date.now() < deadline){
+		try {
+			const res = await fetch(url, { cache: "no-store" });
+			if (res.ok){
+				const lines = (await res.text()).split("\n").filter(Boolean);
+				for (const line of lines){
+					let row; try { row = JSON.parse(line); } catch { continue; }
+					const msg = row.message;
+					if (msg?.kind === "reply" && String(msg.by ?? "").startsWith("assistant") && new Date(msg.at) >= since) return msg.text;
+				}
+			}
+		} catch {}
+		await new Promise(r => setTimeout(r, REPLY_POLL_MS));
+	}
+	return null;
+}
+
 /**
  * Send one message from the drawer. Resolves `{via, text?, session_id?, note}`:
- * `via` is "card", "page-ai" or "ask"; `text` is a reply when the route gives one
- * back at once (only Ask does); `note` is one line to show the reader.
+ * `via` is "card", "page-ai" or "ask"; `note` is one line to show the reader.
+ * `text` is the reply — for "ask" the route hands it back at once; for "page-ai"
+ * the POST itself answers with no text, so this waits (polling the page's own
+ * `ai/chat.jsonl`, up to 90s) for the assistant's own reply and returns that.
+ * `on({text})` fires once with a "waiting…" line while that poll runs, the same
+ * shape Ask's own streaming chunks use, so a caller that shows `on` chunks live
+ * needs no special case for either route.
  *
  *     await send({ page: "/framework/ux/Dictate/", text: "why two buttons?",
  *                  context: [{ kind: "p", label: "this paragraph", text: "…", selector: "main p" }] });
@@ -60,10 +98,16 @@ export async function send({ page = drawer.page(), text, context, card, thread, 
 	// fresh conversation goes to the page's assistant. Off the dev server there is no
 	// Servex to call (and an http:// call from an https:// page is blocked anyway).
 	if (!thread && DEV) try {
-		const res = await fetch(PAGE_AI, { method: "POST", headers: { "content-type": "application/json" },
+		const sent_at = new Date();
+		const res = await fetch(servex_url("/api/page-ai"), { method: "POST", headers: { "content-type": "application/json" },
 			body: JSON.stringify({ page, text, from: "owner", context }), signal: AbortSignal.timeout(4000) });
 		const out = res.ok && (res.headers.get("content-type") ?? "").includes("json") ? await res.json() : null;
-		if (out?.ok) return { via: "page-ai", ...out, note: "sent to this page's assistant" };
+		if (out?.ok){
+			on?.({ text: "waiting for the page's assistant…" });
+			const reply = await page_reply(page, sent_at);
+			return { via: "page-ai", ...out, text: reply ?? undefined,
+				note: reply ? "answered by this page's assistant" : "no reply after 90 s" };
+		}
 	} catch {}
 
 	// The fallback: one turn of the dev bar's Ask bridge, on this tab's dev server.
@@ -113,9 +157,24 @@ function turn($list, who, text){
 	return $text;
 }
 
+/* THE AI TAB'S OWN LIVE THREAD, if it is open on a card right now — one module-level
+   slot (this tab is a singleton, like the drawer itself), read by `ai2/card.js`'s
+   `sync_global_ai()` so a reply streaming in reaches this tab's thread too, without
+   rebuilding the whole tab (which would wipe whatever the reader is mid-typing in its
+   own composer below). `null` whenever the tab is shut, or open on something that is
+   not a card. */
+let live_card = null;
+
+/** Called from `ai2/card.js` on every redraw of the card this tab might be open on —
+ *  a no-op unless this tab is showing exactly that card right now. */
+export function sync_card_thread(id){
+	if (live_card?.id === id) live_card.sync();
+}
+
 export default function ai({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
-	let $list;
+	let $list, talk, $hint;
+	live_card = card ? { id: card.id, sync: () => talk?.sync() } : null;
 
 	div.c("drawer-ai flex v", () => {
 		div.c("drawer-ai-head flex v-center split wrap", () => {
@@ -130,12 +189,31 @@ export default function ai({ page, card, tabs }){
 			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
 		});
 
-		$list = div.c("drawer-ai-list flex v");
-		(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
-		// The hint goes as soon as the first message is sent.
-		const $hint = !thread?.history?.length && small.c("drawer-ai-empty muted", card
-			? "Say or type anything; the card's own chat, on the page, shows the reply."
-			: "Ask anything about this page. Sessions lists this page's saved threads.");
+		/* THE THREAD. ON A CARD (one-ai, 2026-09-29): this tab used to draw its own
+		   empty, throwaway list of turns EVEN THOUGH `send()` below already posted
+		   into the card's real, persisted log — the SAME route the card's own page
+		   and the mobile ✦ sheet (`ext/drawer/rail.js`) post through — so the exact
+		   same conversation looked like two different, differently-remembered ones
+		   depending on which door you talked through. It now reuses `ai2/chat.js`,
+		   the exact widget the ✦ sheet already shows, reading the card's own
+		   `chat_entries()` — one thread, seen the same way everywhere.
+		   ⚠ Imported lazily, HERE, not at this file's top: this tab loads on every
+		   page's drawer, and most opens are not on a card — loading AI 2's own chat
+		   module for those would be dead weight paid on every other page. */
+		if (card){
+			const $thread = div.c("drawer-ai-list flex v");
+			import("/framework/ai2/chat.js").then(m => {
+				$thread.empty(() => { talk = m.default({ source: () => card.chat_entries(), re: () => card.id }); });
+				talk.sync();
+			});
+		} else {
+			$list = div.c("drawer-ai-list flex v");
+			(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
+			// The hint goes as soon as the first message is sent. Card side: the real
+			// thread above already says "nothing yet" its own way (or shows what is
+			// there), so there is nothing for a second, local hint to add.
+			$hint = !thread?.history?.length && small.c("drawer-ai-empty muted", "Ask anything about this page. Sessions lists this page's saved threads.");
+		}
 
 		// THE CHIPS — what the next message is about, like the open file an IDE shows in its
 		// chat box: each element picked on the page (the Element tab's "Ask about this"),
@@ -153,17 +231,23 @@ export default function ai({ page, card, tabs }){
 		chips();
 		const context = () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined;
 
-		// ON A CARD the message goes where the card's own footer sends it (`send()` with
-		// `card`) and the reply lands in the card's chat; on a page it is answered here.
-		// `deliver(entry)` answers true when the message went; the composer then shows
-		// `sent` or `failed` in its own box.
+		// ON A CARD the message goes where the card's own footer used to send it
+		// (`send()` with `card`), and the reply now lands in the SAME thread drawn
+		// above — `talk.sync()` right after is what picks it up without waiting for
+		// the next unrelated redraw; on a page it is answered here as before.
+		// `deliver(entry)` answers true when the message went; the composer then
+		// shows `sent` or `failed` in its own box.
 		composer({
 			placeholder: card ? "talk into this card" : "ask about this page",
-			sent: card ? "sent — the reply lands in the card's chat" : "sent",
+			sent: card ? "sent — the reply lands in the thread above" : "sent",
 			failed: card ? "Servex is not answering, so nothing was sent" : "not sent",
-			on_text: text => { $hint?.el.remove(); turn($list, "you", text); },
+			on_text: text => { $hint?.el.remove(); if (!card) turn($list, "you", text); },
 			deliver: card
-				? async entry => (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok
+				? async entry => {
+					const ok = (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok;
+					talk?.sync();
+					return ok;
+				}
 				: async entry => {
 					let streamed = "";
 					const $reply = turn($list, "assistant", "_thinking…_");

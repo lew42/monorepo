@@ -39,7 +39,15 @@ export class DrawerRail extends View {
 	// none }` above 52em (measured: the bar showed at 1920 too, css skill's own
 	// warning about this exact trap). The component owns its display; rail.css
 	// says `flex` only inside the media query that is allowed to say so.
+	// `compact` (a prototype field, below) is what tells rail.css whether to draw
+	// small icon-only buttons with ✦ on the thumb (right) side — the default now
+	// — or the original full look (icon + text label, ✦ on the left):
+	// `DrawerRail.V2` sets `compact = false` to bring that original look back
+	// verbatim, one class away, never deleted (the owner tested the ✦ sheet on a
+	// phone and found no reply ever came; while fixing that, the rail itself grew
+	// a second, shorter design — mobile-nav, 2026-09-29).
 	render(){
+		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
 		this.ai_button();
 		this.menu_button();
 		this.watch_breakpoint();
@@ -100,17 +108,45 @@ export class DrawerRail extends View {
 /** THE SHEET — a small panel that slides up from the bottom, starts listening the
  *  moment it opens (`mode: "open"`, ux/Dictate's own live-open-mic mode: the mic
  *  stays on, nothing is ever written into a box, every finished sentence reaches
- *  `on_text` instead), and turns each one into its own little card.
+ *  `on_text` instead).
+ *
+ *  ONE AI, NOT TWO (one-ai, 2026-09-29; `ai2/doc/one-ai.md` has the full finding).
+ *  On a CARD PAGE (`/framework/ai2/…`), this sheet now talks into that card's own
+ *  session — the exact route the card's own (now-removed) composer used
+ *  (`ext/drawer/tabs/ai.js`'s `send({card, text})`, called here, never edited) —
+ *  and shows that card's own persisted thread (`ai2/chat.js`, reused, reading the
+ *  card's `chat_entries()`), so a sentence said here is the SAME conversation the
+ *  card's Overview and the desktop drawer's AI tab show, not a second one.
+ *  On any OTHER page, each finished sentence becomes its own small "prompt item"
+ *  card, local to this sheet only.
+ *
+ *  ⚠ NO RESPONSES (the owner tested the phone, 2026-09-29): saying something into
+ *  this sheet on a PLAIN page used to only draw the local card — it never sent
+ *  the sentence anywhere, so nothing could ever answer. `card(text)` below now
+ *  sends every finished sentence through `ext/drawer/tabs/ai.js`'s own `send()` —
+ *  the exact route the desktop drawer's AI tab uses (page-ai, then the `/ask/turn`
+ *  bridge) — and shows the reply under that sentence's own card. On a card page,
+ *  the sentence is echoed into the thread AT ONCE (posting can take a moment, and
+ *  a phone has no live socket to redraw the thread on its own) and `talk.sync()`
+ *  runs again once the send resolves, the same order `tabs/ai.js`'s own card
+ *  composer uses. A send that fails still leaves the "not sent — <note>" mark
+ *  (review #3, 2026-09-29) rather than the sentence just vanishing.
  *
  *  Dictate is used only through its public API — `new Dictate({...})` — never
  *  its internals; this module owns none of the microphone, the engine choice or
  *  the error wording (ux/Dictate/readme.md is the one place for that).
  *
  *  THE SEAM: override `card(text)` for a variant that wants a different shape
- *  for a finished utterance (a checkbox item, a chip, a row with a delete
- *  button) — everything else here (opening, closing, wiring the mic, showing
- *  an error) stays the same. */
-export class DrawerRailSheet extends View {
+ *  for a finished utterance on a PLAIN page (a checkbox item, a chip, a row with
+ *  a delete button) — everything else here (opening, closing, wiring the mic,
+ *  showing an error, the card-page merge above) stays the same.
+ *
+ *  Kept reachable as `DrawerRail.SheetV1` — this is the whole sheet exactly as it
+ *  shipped earlier today, before the reply fix and the links footer. The default,
+ *  `DrawerRail.Sheet` (below), is this class plus one more thing: a row of links
+ *  to the full drawer (Sessions, Dictation, Settings, "Open full AI"), because a
+ *  phone still needs a way to reach what this small sheet doesn't show. */
+export class DrawerRailSheetV1 extends View {
 
 	// ⚠ No error UI of its own — `ux/Dictate` already shows an honest, specific
 	// message beside its own mic button the moment something goes wrong (no
@@ -121,9 +157,10 @@ export class DrawerRailSheet extends View {
 	// message — is `ux/Dictate`'s own job, not this sheet's.
 	render(){
 		this.head();
+		// Filled by `sync_card()` below, on every open: either the card's own real
+		// chat thread, or the old empty-state + growing list of local prompt cards.
+		this.$thread = div.c("drawer-rail-sheet-thread");
 		this.$mic = div.c("drawer-rail-sheet-mic");
-		this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
-		this.$cards = div.c("drawer-rail-sheet-cards flex v");
 	}
 
 	head(){
@@ -133,12 +170,22 @@ export class DrawerRailSheet extends View {
 		});
 	}
 
+	// The card the page under this sheet belongs to, or null — the exact duck
+	// type `ext/drawer/tabs.js`'s own `context()` uses ("is the active page AI
+	// 2's card.js"), read fresh on every open since this sheet is built once but
+	// the page underneath it changes as the reader navigates.
+	active_card(){
+		const active = this.rail?.app?.router?.active;
+		return active?.shell?.ai2 && active.id && typeof active.subs === "function" ? active : null;
+	}
+
 	// First open: build the Dictate widget INSIDE this sheet (`code` skill §1 —
 	// captured now, in a real callback, never as a bare statement left to
 	// whatever captor happens to be current at click time) and start it right
 	// away. A later open just restarts listening on the widget already here.
 	open(){
 		this.ac("on");
+		this.sync_card();
 		this.dictate ? this.dictate.start() : this.listen();
 		return this;
 	}
@@ -156,17 +203,145 @@ export class DrawerRailSheet extends View {
 		this.dictate.start();
 	}
 
-	// THE ONE METHOD a variant overrides. Default: one small "prompt item" card
-	// per finished utterance, newest at the bottom, the list growing as the
-	// owner keeps talking (the owner's own words, 2026-09-29: "little prompt
-	// cards"). Never wipes `$cards` — each call only adds one.
+	// Which thread `$thread` shows right now — rebuilt only when the card actually
+	// changed (a fresh open on the same card just re-syncs the existing thread).
+	// `ai2/chat.js` is imported lazily, HERE, not at the top of this module: this
+	// sheet sits on every page below 52em (rail.js is loaded on all of them), and
+	// most opens are on a page that is not a card at all — loading AI 2's own chat
+	// module for those would be dead weight paid on every phone.
+	sync_card(){
+		const card = this.active_card();
+		const id = card?.id ?? null;
+		if (id === this.card_id){ this.talk?.sync(); return; }
+		this.card_id = id;
+		this.card_ref = card;
+		if (!card){
+			this.talk = null;
+			this.$thread.empty(() => {
+				this.$empty = div.c("drawer-rail-sheet-empty muted", "Say something — it shows up here as its own card.");
+				this.$cards = div.c("drawer-rail-sheet-cards flex v");
+			});
+			return;
+		}
+		const token = this.sync_token = (this.sync_token ?? 0) + 1;
+		import("/framework/ai2/chat.js").then(m => {
+			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
+			this.$thread.empty(() => {
+				this.talk = m.default({ source: () => card.chat_entries(), re: () => card.id });
+			});
+			// ⚠ `chat()` BUILDS AN EMPTY BOX — it only paints once `sync()` runs (every
+			// caller in `ai2/card.js` does the same right after constructing one).
+			// Skipping this left the sheet showing the mic and nothing above it, even
+			// on a card with a long history (found in this task's own proof shots).
+			this.talk.sync();
+		});
+	}
+
+	// THE ONE METHOD a variant overrides, for a PLAIN page (no active card) —
+	// the default local "prompt item" card, one per finished sentence, never
+	// wiping `$cards`. On a card page the sentence instead posts into that
+	// card's own session, the same place its own composer used to send it, and
+	// the reply lands in the very thread `$thread` is already showing.
+	//
+	// ⚠ NO RESPONSES (the owner tested the phone, 2026-09-29): on a plain page
+	// this used to only draw the local card and send nothing at all, so no
+	// reply could ever come back — the owner said "can you hear me?" and never
+	// heard anything. Both branches now go through `tabs/ai.js`'s own `send()`
+	// (the same route the desktop drawer's AI tab uses: page-ai, then the
+	// `/ask/turn` bridge for a card, or over `/ask/turn` directly for a page)
+	// and show the reply under this sentence's own card. `send()`'s result
+	// used to be thrown away on the card branch too (review #3): from a phone
+	// Servex is often unreachable, and the spoken sentence just vanished — no
+	// card, no error. `not_sent()` below shows it instead, so a failed send
+	// still leaves something to see.
 	card(text){
-		this.$empty.hide();
-		this.$cards.append(() => { div.c("drawer-rail-sheet-card").text(text); });
+		if (this.card_ref){
+			// Echoed AT ONCE, before `send()` even starts — a phone has no live
+			// socket to redraw the card's thread on its own, so without this the
+			// sentence stayed invisible until something else happened to redraw
+			// the page (review #3, 2026-09-29). Removed once `sync()` below has
+			// drawn the real, persisted turn in its place.
+			const $echo = this.echo(text);
+			import("./tabs/ai.js").then(async m => {
+				const r = await m.send({ card: this.card_ref.id, text, via: "voice" });
+				if (!r.ok) this.not_sent(text, r.note);
+				this.talk?.sync();
+				$echo?.remove();
+			});
+			return;
+		}
+		this.$empty?.hide();
+		let $item, $wait;
+		this.$cards?.append(() => {
+			$item = div.c("drawer-rail-sheet-card", () => {
+				div.c("drawer-rail-sheet-card-text", text);
+				// `send()` can now sit for up to 90s polling the page's own chat log
+				// for a page-ai reply (mastermind, 2026-09-29) — this placeholder is
+				// what tells the reader something is actually happening, replaced
+				// the moment `send()` resolves either way.
+				$wait = div.c("drawer-rail-sheet-card-reply muted", "waiting for the page's assistant…");
+			});
+		});
+		import("./tabs/ai.js").then(async m => {
+			const r = await m.send({ text, via: "voice" });
+			$wait?.remove();
+			$item?.append(() => {
+				r.via === "none"
+					? span.c("muted", "not sent — " + (r.note || "Servex is not answering"))
+					: div.c("drawer-rail-sheet-card-reply muted", r.text ?? r.note ?? "");
+			});
+		});
+	}
+
+	// A placeholder line shown the instant a sentence is said on a card page,
+	// before `send()` has even reached the server — `$thread` may otherwise sit
+	// empty or unchanged for a second or more, which reads as "nothing heard."
+	echo(text){
+		let $line;
+		this.$thread.append(() => { $line = div.c("drawer-rail-sheet-pending muted", "you: " + text); });
+		return $line;
+	}
+
+	// A sentence `send()` could not deliver — shown right in the thread box, so
+	// it sits where the reply would have gone rather than disappearing.
+	not_sent(text, note){
+		this.$thread.append(() => {
+			div.c("drawer-rail-sheet-card", () => {
+				div.c("drawer-rail-sheet-card-text", text);
+				span.c("muted", "not sent — " + (note || "Servex is not answering"));
+			});
+		});
+	}
+}
+
+/** THE DEFAULT SHEET — `DrawerRailSheetV1` (above) plus one more thing: a short
+ *  row of links to the parts of the full drawer this small sheet doesn't try to
+ *  reproduce (Sessions, Dictation, Settings, "Open full AI"). No feature parity
+ *  with the desktop drawer — tapping a link opens the REAL drawer on that tab and
+ *  closes this sheet, rather than growing a second copy of each tab in here. */
+export class DrawerRailSheet extends DrawerRailSheetV1 {
+	render(){
+		super.render();
+		this.links();
+	}
+
+	links(){
+		return div.c("drawer-rail-sheet-links flex wrap", () => {
+			this.link("Sessions", "sessions");
+			this.link("Dictation", "dictation");
+			this.link("Settings", "settings");
+			this.link("Open full AI", "ai");
+		});
+	}
+
+	link(label, tab){
+		return button.c("drawer-rail-sheet-link", label).attr("type", "button")
+			.click(() => { this.close(); tabs.open(tab); });
 	}
 }
 
 DrawerRail.Sheet = DrawerRailSheet;
+DrawerRail.SheetV1 = DrawerRailSheetV1;
 
 // ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
 // rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
@@ -184,6 +359,18 @@ DrawerRailV1.prototype.menu_icon = "☰";
 DrawerRailV1.prototype.menu_label = "Menu";
 DrawerRailV1.prototype.menu_title = "Menu — AI, sessions, dictation, settings";
 DrawerRail.V1 = DrawerRailV1;
+
+/* v2 — the whole earlier rail, verbatim: icon-and-text-label buttons at full
+   height, ✦ on the LEFT (source order, `compact = false` turns off the
+   `order:` swap in rail.css), opening the earlier full sheet (`SheetV1`, no
+   links footer). Built while fixing the "no reply ever came" bug and the new
+   icon-only rail with ✦ on the thumb (right) side (the primary action) —
+   `new DrawerRail.V2({ app })` in place of `rail(app)`'s default brings the
+   whole earlier design back, one class away, nothing deleted. */
+export class DrawerRailV2 extends DrawerRail {}
+DrawerRailV2.prototype.compact = false;
+DrawerRailV2.Sheet = DrawerRailSheetV1;
+DrawerRail.V2 = DrawerRailV2;
 
 // One rail per document, built the first time a page asks for it — same shape as
 // drawer.js's own singleton. Called from menu.js, so app.js needs no change: the

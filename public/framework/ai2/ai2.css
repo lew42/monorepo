@@ -805,6 +805,19 @@
 		display: none;
 	}
 
+	/* "Folder" TWICE (one-ai, 2026-09-29): core's own page chrome
+	   (`core/Page/Page.class.js` `render()`) draws a "📁 Folder" link on EVERY
+	   page, before that page's own `content()` ever runs — so a card page showed
+	   it once for the AI 2 shell it sits inside AND again for itself, one above
+	   "AI 2" and one above "← all cards". The card's own fold ("More…") already
+	   has its own way into the folder (`draw_folder()`), so the card's copy is
+	   the redundant one; the shell's stays as the one, real way in.
+	   ⚠ `!important`: core sets this with `.style()`, an inline style, which
+	   nothing but `!important` can beat (`css` skill's own cascade order). */
+	.page.ai2-card-page > .page-fs-link {
+		display: none !important;
+	}
+
 	.ai2-full-title {
 		font-weight: 700;
 		font-size: 1.2em;
@@ -1901,7 +1914,14 @@
 		gap: 0.2em var(--gap-50);
 	}
 
-	.ai2-full-name > .ai2-full-title { flex: none; }
+	/* ⚠ NOT `flex: none` (found 2026-09-29, "title runs under Actions"):
+	   `.ai2-full-name` is itself shrunk to `min-width: 0` by its parent flex row,
+	   but a `flex-shrink: 0` title inside it refuses to follow — the title kept
+	   its full one-line width and ran straight under the Actions button at
+	   400px, the exact "flex-shrink defaults to 1" trap in reverse (`code` skill
+	   §7). Letting it shrink and wrap (its own `overflow-wrap: anywhere`, above)
+	   is what stacking the state badge onto its own line below now depends on. */
+	.ai2-full-name > .ai2-full-title { flex: 1 1 auto; min-width: 0; }
 
 	.ai2-state {
 		font-size: 0.9em;

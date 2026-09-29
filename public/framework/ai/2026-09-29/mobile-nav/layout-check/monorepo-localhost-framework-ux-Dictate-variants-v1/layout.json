@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/variants/v1/",
+ "widths": {
+  "1280": {
+   "empty": 0.636,
+   "widest_text": 598,
+   "widest_text_sample": "so I was thinking we should build the pl",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 0.311
+  },
+  "1920": {
+   "empty": 0.734,
+   "widest_text": 636,
+   "widest_text_sample": "so I was thinking we should build the pl",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.756,
+   "widest_text": 716,
+   "widest_text_sample": "so I was thinking we should build the pl",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.82,
+   "widest_text": 716,
+   "widest_text_sample": "so I was thinking we should build the pl",
+   "overflow_x": false,
+   "items": 45,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

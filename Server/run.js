@@ -11,12 +11,13 @@ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server bro
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";
-import Ask from "./plugins/Ask.js";
+import Ask, { AskRoute } from "./plugins/Ask.js";
 import CardAnswer from "./plugins/CardAnswer.js";
 import MCP from "./plugins/MCP.js";
 import Recordings from "./plugins/Recordings.js";
 import Research from "./plugins/Research.js";
 import Screenshots from "./plugins/Screenshots.js";
+import ServexProxy from "./plugins/ServexProxy.js";
 import Start from "./plugins/Start.js";
 import Whisper from "./plugins/Whisper.js";
 import Tab from "./plugins/SocketServer/Tab.js";
@@ -40,6 +41,8 @@ Server.use(Recordings);
 Server.use(Research);   // registers its tools on MCP — after it
 Server.use(Screenshots);
 Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
+Server.use(ServexProxy);   // /servex/* → Servex, for a phone on the LAN — Server/plugins/ServexProxy.js
+Server.use(AskRoute);   // POST /ask/turn — the AI drawer's one Claude turn, for a phone on the LAN — Server/plugins/Ask.js
 
 new Server();
 
