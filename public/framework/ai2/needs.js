@@ -117,19 +117,41 @@ function reply_control(n, on_done){
 	}
 }
 
-function need_row(n, on_done){
-	div.c("ai2-need ai2-need-" + n.kind, $row => {
+/* ONE BIG PLAIN LINE PER ITEM (mastermind's judged fix, 2026-09-29 — the first pass had this
+   backwards): `n.title` is the SHORT one — the card's own title, "Add a git-safety hook?" — and
+   `n.question` is the raw, often-long ask it was placed with, "May I add a hook in
+   .claude/settings.json that…". The headline is the short title, plain (not a link-blue
+   underline — the row's head anchor carries no default link style, `ai2.css`); the full question
+   is one quiet line under it, never cut; the control sits at the right of the same row when it
+   fits (`ai2.css`'s `.ai2-need` flex-wraps it below at a narrower width). */
+function need_row(n){
+	let $row;
+	$row = div.c("ai2-need ai2-need-" + n.kind, () => {
 		a.c("ai2-need-head").href(n.url).append(() => {
 			icon(KIND_ICON[n.kind] ?? "flag");
 			div.c("ai2-need-body", () => {
-				span.c("ai2-need-line").text(short_title(n.question || n.title));
-				small.c("ai2-need-meta muted").text([KIND_LABEL[n.kind], n.title, when(n.at)].filter(Boolean).join(" · "));
+				div.c("ai2-need-headline flex v-center gap-25", () => {
+					if (n.kind === "blocker") span.c("ai2-need-blocker-flag").text("Blocker");
+					span.c("ai2-need-title").text(n.title || short_title(n.question));
+				});
+				// The full ask, ONE quiet line (mastermind's judged fix, 2026-09-29: "one muted
+				// line" — CSS truncates it with an ellipsis rather than wrapping to three or
+				// four, which is most of why only ~6 items fit above the fold at 1920 instead
+				// of the wanted 8-10; the whole sentence is still there in `title=`, and never
+				// lost — it is also the card link's own visible text, one click away). Shown
+				// only when it says more than the title already does (the "card" pseudo-ask's
+				// `question` IS its `title`).
+				if (n.question && n.question !== n.title)
+					small.c("ai2-need-question muted").attr("title", n.question).text(n.question);
+				small.c("ai2-need-meta muted").text([KIND_LABEL[n.kind], when(n.at)].filter(Boolean).join(" · "));
 			});
 		});
-		if (n.control === "decision" && n.options?.length) decision_control(n, () => remove($row));
-		else if (n.control === "reply") reply_control(n, () => remove($row));
+		div.c("ai2-need-control", () => {
+			if (n.control === "decision" && n.options?.length) decision_control(n, remove);
+			else if (n.control === "reply") reply_control(n, remove);
+		});
 	});
-	function remove($row){ $row.el.remove(); needs_soon(); }
+	function remove(){ $row.el.remove(); needs_soon(); }
 }
 
 /** The whole tab: nothing but the ranked list (deliverable 1 — "nothing else on the tab"). */

@@ -1,4 +1,4 @@
-import { div, span, small, a, h3, label, input, details, summary } from "/app.js";
+import { div, span, small, p, a, h3, label, input, details, summary } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { when } from "./faces.js";
 import { money } from "/framework/ext/AITask/cost.js";
@@ -32,14 +32,34 @@ const hours = h => typeof h !== "number" ? "" : h < 1 ? Math.max(1, Math.round(h
 // $0 means "not tracked" in the task logs more often than "free", so it is left out.
 const usd = n => typeof n === "number" && n > 0 ? money(n) : "";
 
-/** One ask: the owner's own words (to where they were said), a state word, the result. */
+/** THE SHORT TITLE (mastermind's judged fix, 2026-09-29 — brief D asked for "the task's title,
+ *  or a 5-8 word summary", never raw dictation, and the first pass still quoted it whole).
+ *  `overview.json` carries no title field of its own (`Server/ai2-overview.mjs` builds it from
+ *  the main tree's `.claude/prompts`, which this worktree does not have, so it cannot be
+ *  rebuilt here to add one) — only the task's slug, which in this codebase's own naming
+ *  convention already reads as a short, plain title once its dashes become spaces
+ *  ("ai2-overview" → "Ai2 overview"), the same fallback `card.js`'s `sub_title()` uses for a
+ *  sub-card with no title line of its own. */
+function slug_title(task){
+	const slug = String(task ?? "").split("/").pop() || "";
+	return slug.replace(/-+/g, " ").replace(/^./, c => c.toUpperCase()) || "Untitled";
+}
+
+/** One ask: a short title, a state word, the result — the owner's own raw words are ONE CLICK
+ *  away (a `<details>`), never the headline. */
 function ask(it){
 	div.c("ai2-ov-ask", () => {
 		div.c("ai2-ov-ask-main", () => {
 			const $q = it.words_url ? a.c("ai2-ov-quote").href(it.words_url) : span.c("ai2-ov-quote");
-			$q.text("“" + (it.quote || it.task || "…") + "”");
+			$q.text(slug_title(it.task));
 			span.c("ai2-ov-state ai2-ov-state-" + String(it.state || "open").replace(/\W+/g, "-")).text(it.state || "open");
 			if (it.result_url) a.c("ai2-ov-result").href(it.result_url).attr("title", "what was made").text("result →");
+		});
+		// THE OWNER'S OWN RAW WORDS, one click away — never the headline (brief D: "the full
+		// quote one click away").
+		if (it.quote) details.c("ai2-ov-quote-full", () => {
+			summary.c("muted").text("the full words");
+			p.c("ai2-ov-quote-text").text("“" + it.quote + "”");
 		});
 		// THE TIMELINE STRIP — one small line; ai2.css shows it on hover or when the toggle is on.
 		const parts = [
