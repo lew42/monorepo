@@ -43,6 +43,8 @@ export default new Page({
 
 					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 
+					p("Instead of picking one meaning for the top of the rail, this variant shows both: the logo goes all the way home, and a small breadcrumb beside it shows every stop in between.");
+
 					blockquote("“There's like two different kind of go home, but how far home.”");
 
 					h1("Core");

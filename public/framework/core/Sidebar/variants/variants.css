@@ -28,4 +28,66 @@
 	.variant-crumb:hover { text-decoration: underline; }
 
 	.variant-crumb-sep { opacity: 0.55; font-size: 0.85em; flex: 0 0 auto; }
+
+	/* rail/page.js (E and F). Two stages side by side at 1920+; the util `flow`
+	   on the page wraps them to one-above-the-other itself once they don't fit,
+	   so this only needs to say how each stage's own INSIDE looks. */
+	.variant-rail-pair {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.5em;
+		align-items: flex-start;
+	}
+
+	.variant-rail-stage {
+		flex: 1 1 32em;
+		min-width: 0;
+	}
+
+	.variant-rail-tabs {
+		display: flex;
+		gap: 0.5em;
+		margin: 0.6em 0 0.8em;
+	}
+
+	/* THE BOX every rail lives in. Fixed height because this demo has no page
+	   content beside the rail to stretch it — the real Sidebar (both stages)
+	   normally gets its height from a full-screen stage (a/b/c/d do exactly
+	   that); here the box itself hands out the height instead. `position:
+	   relative` is what lets F stack three rails on top of each other and show
+	   only one. */
+	.variant-rail-box {
+		position: relative;
+		height: 24rem;
+		display: flex;
+		overflow: hidden;
+	}
+
+	.variant-rail-slot { flex: 1 1 auto; min-width: 0; display: flex; }
+
+	/* F only: all three rails exist at once, stacked exactly on top of each
+	   other; `.active` is the only one CSS shows. This is the whole hide/show
+	   this variant is about — nothing in the JS decides what's visible. */
+	.variant-rail-page {
+		position: absolute;
+		inset: 0;
+		display: none;
+	}
+	.variant-rail-page.active { display: flex; }
+
+	/* Both stages: the Sidebar here is not inside a full-screen `.topic` stage
+	   (a/b/c/d's own trick), so it never gets `.topic > .sidebar`'s width rule
+	   or a real viewport to be `100dvh` tall against. These two lines are that
+	   same sizing, given to a boxed rail instead of a full screen one — the
+	   resize handle (`Sidebar.grab()`) does not care which. */
+	.variant-rail-slot > .sidebar,
+	.variant-rail-page > .sidebar {
+		flex: 0 0 var(--sidebar);
+		height: 100%;
+	}
+	.variant-rail-slot .sidebar-rail,
+	.variant-rail-page .sidebar-rail {
+		position: static;
+		height: 100%;
+	}
 }

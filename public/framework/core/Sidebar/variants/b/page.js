@@ -40,6 +40,8 @@ export default new Page({
 
 					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 
+					p("This variant moves the logo down one level, so it goes to the page ABOVE this one, and lets the word at the top become this page's own name instead of the site's.");
+
 					blockquote("“What I was actually thinking is that instead of the M logo linking home and the word framework linking to the framework, we could just repeat that pattern. So now the M logo links to the framework if we're on like a sub framework page and then the word could become whatever page we're on.”");
 
 					h1("Core");

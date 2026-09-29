@@ -39,6 +39,8 @@ export default new Page({
 
 					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 
+					p("This is what the top of the rail says today: a logo that always goes home, and a word beside it that always says “Framework”.");
+
 					blockquote("“The pattern that we used before on the framework page is that the logo… links to the home page… And then the word framework next to it was kind of like… go back to the framework page. And so there's like two different kind of go home, but how far home.”");
 
 					h1("Sidebar");

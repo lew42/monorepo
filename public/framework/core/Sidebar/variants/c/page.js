@@ -50,6 +50,8 @@ export default new Page({
 
 					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 
+					p("Like B, but when a page's real title is too long for the rail, the word up top shows a short name instead of truncating it.");
+
 					blockquote("“I'm not sure how long page titles can get — there's not a lot of room in the left sidebar, especially if that kind of site name or whatever is pretty big text and we don't want to compete with the H1.”");
 
 					h1(LONG_TITLE);
