@@ -84,6 +84,8 @@ Leave that window open; the component finds it on the next 🎤 press.
 
 ## More
 
+- **Starting a new round? Read [`doc/handover.md`](/framework/ux/Dictate/doc/handover/) first** — where the pieces live (`ext/Chat/Mic.js`
+  is Dictate's too), every setting, the rules learned the hard way, how to test, what is open
 - [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
   the same box under `ui-contrast ui-compact`
 - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the

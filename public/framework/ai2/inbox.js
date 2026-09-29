@@ -1,6 +1,7 @@
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
+import { fold_card, parse_lines, summary } from "./fold.js";
 
 export { fold };
 
@@ -108,6 +109,24 @@ export async function say(id, word, { note, quote } = {}){
 const PINNED_SERVEX = new URLSearchParams(location.search).get("servex");
 export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || "http://127.0.0.1:8090";
 
+/* SERVEX IS OPTIONAL. Everything that reads is a static file (below); Servex is
+   for writes, live agents and the push. `servex_up()` asks it ONCE — and never
+   on a host that is not a dev machine (production is static: no request at
+   all). Every Servex call goes through `servex_fetch`, which rejects at once
+   when it is down, so a caller's own `.catch` runs and nothing else hits the
+   network. Chrome itself prints one line for the one refused probe. */
+const dev_host = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$)/.test(location.hostname);
+let up = null;
+export const servex_up = () => up ??= ((PINNED_SERVEX || dev_host)
+	? fetch(servex_base() + "/log/features?n=1").then(r => r.ok).catch(() => false)
+	: Promise.resolve(false));
+servex_up.known = false;
+servex_up().then(ok => (servex_up.known = ok));
+export const servex_fetch = async (url, init) => {
+	if (!(await servex_up())) throw new TypeError("Servex is not running");
+	return fetch(url, init);
+};
+
 /**
  * ONE EVENTSOURCE PER BASE, DEMUXED BY LOG NAME. `prompts` was the only log
  * this page ever read live; a card's own `cards/<slug>` (decision
@@ -150,7 +169,7 @@ export function log_stream(name, { base = servex_base(), fallback } = {}){
 	streams.set(key, stream);
 	stream.on = reader => { stream.readers.add(reader); return () => stream.readers.delete(reader); };
 
-	stream.ready = fetch(`${base}/log/${name}?n=400`).then(r => (r.ok ? r.json() : null)).catch(() => null)
+	stream.ready = servex_fetch(`${base}/log/${name}?n=400`).then(r => (r.ok ? r.json() : null)).catch(() => null)
 		.then(list => {
 			if (Array.isArray(list)){
 				stream.ok = true;
@@ -168,11 +187,15 @@ export function log_stream(name, { base = servex_base(), fallback } = {}){
 
 /** Every agent moment Servex pushes (`event: agent`), on the SAME connection. */
 export function agent_frames(fn, base = servex_base()){
-	const source = demux(base);
-	if (!source) return () => {};
-	const handler = msg => { try { fn(JSON.parse(msg.data)); } catch {} };
-	source.addEventListener("agent", handler);
-	return () => source.removeEventListener("agent", handler);
+	let off = () => {}, stopped = false;
+	servex_up().then(ok => {
+		const source = ok && !stopped && demux(base);
+		if (!source) return;
+		const handler = msg => { try { fn(JSON.parse(msg.data)); } catch {} };
+		source.addEventListener("agent", handler);
+		off = () => source.removeEventListener("agent", handler);
+	});
+	return () => { stopped = true; off(); };
 }
 
 export const prompt_stream = (base = servex_base()) => log_stream("prompts", { base, fallback: PROMPTS_FALLBACK });
@@ -218,15 +241,17 @@ export function today_str(){
 export class Day extends JSONL {
 	landings = [];
 	opened = [];   // `task opened — …` lines: what the Live card calls a task in progress
+	pages = [];    // lines carrying `"page": "/framework/…/"` — an event on that page (real.js)
 	log(value){
 		super.log(value);
+		if (typeof value?.page === "string") this.pages.push({ path: value.page, at: value.at, by: value.by, task: value.task, what: value.msg });
 		if (/^task opened\b/.test(value?.msg ?? "")) this.opened.push({ task: value.task, at: value.at,
 			sentence: (value.msg ?? "").replace(/^task opened[\s—–-]+/, "") });
 		if (!/^landed\b/.test(value?.msg ?? "")) return;
 		this.landings.push({ task: value.task, at: value.at, date: this.date,
 			sentence: (value.msg ?? "").replace(/^landed[\s—–-]+/, "") });
 	}
-	reset(){ this.landings = []; this.opened = []; return super.reset(); }
+	reset(){ this.landings = []; this.opened = []; this.pages = []; return super.reset(); }
 }
 
 export const day_log = (date = today_str()) =>
@@ -334,7 +359,7 @@ export const type_icon = type => TYPE_ICON[type] ?? "forum";
  */
 let ready = null;
 export function cards_ready(){
-	return ready ??= fetch(servex_base() + "/log/features?n=20")
+	return ready ??= servex_fetch(servex_base() + "/log/features?n=20")
 		.then(r => (r.ok ? r.json() : []))
 		.then(list => Array.isArray(list) && list.some(e => e?.cards))
 		.catch(() => false)
@@ -347,7 +372,7 @@ cards_ready.known = false;
 async function servex_json(path, body){
 	if (!(await cards_ready())) return null;
 	const init = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
-	const r = await fetch(servex_base() + path, init).catch(() => null);
+	const r = await servex_fetch(servex_base() + path, init).catch(() => null);
 	if (!r || !(r.headers.get("content-type") ?? "").includes("json")) return null;
 	return r.json().catch(() => null);
 }
@@ -359,9 +384,40 @@ export const create_card = ({ parent, title = "New card", type = "card" } = {}) 
 /** `POST /card/append?id=` — one line onto a card, `{"type": …}`, `{"status": …}`, `{"prompt": …}`. */
 export const append_card = (id, line) => servex_json("/card/append?id=" + encodeURIComponent(id), line);
 
-/** `GET /card?id=` — the card's folded state, or null. An OLD id resolves too:
- *  the answer's `id` is then the card's canonical folder id. */
-export const resolve_card = id => servex_json("/card?id=" + encodeURIComponent(id)).then(s => (s?.id ? s : null));
+/* ── READS ARE STATIC FILES (no Servex) ───────────────────────────────────
+ * Production is a static site, so the list and every card's state come off
+ * plain files: `ai/cards.jsonl` (one summary per line; Servex only keeps it
+ * fresh) and each card's own `page.jsonl`. The index replaces walking ~400
+ * folders. Missing index: walk the year → month → day pages, top-level cards
+ * only. Servex answers only what a file cannot: writes, live agents, push. */
+const AI_ROOT = new URL("../ai/", import.meta.url).pathname;
+const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok && !(r.headers.get("content-type") ?? "").includes("html") ? r.text() : "")).catch(() => "");
+
+async function walk_cards(){
+	const kids = async dir => parse_lines(await read_text(AI_ROOT + dir + "page.jsonl")).filter(l => l.file).map(l => dir + l.file.replace(/page\.jsonl$/, ""));
+	let dirs = ["2026/"];
+	for (let depth = 0; depth < 2; depth++) dirs = (await Promise.all(dirs.map(kids))).flat();   // → day folders
+	const ids = (await Promise.all(dirs.map(kids))).flat().map(d => d.replace(/\/$/, ""));
+	const rows = await Promise.all(ids.map(async id => fold_card(id, parse_lines(await read_text(AI_ROOT + id + "/page.jsonl")))));
+	return rows.map(summary);
+}
+
+/** Every card's summary, or null when there is neither an index nor a walkable tree. */
+export async function static_cards(){
+	const text = await read_text(AI_ROOT + "cards.jsonl");
+	const rows = text ? parse_lines(text).filter(r => r.id) : await walk_cards().catch(() => []);
+	return rows.length ? rows : null;
+}
+
+/** One card's folded state, read off its `page.jsonl` — no Servex. An OLD (non-folder) id
+ *  still asks Servex, which alone knows the legacy map. */
+export async function resolve_card(id){
+	if (is_folder_id(id)){
+		const text = await read_text(AI_ROOT + id + "/page.jsonl");
+		if (text) return fold_card(id, parse_lines(text));
+	}
+	return servex_json("/card?id=" + encodeURIComponent(id)).then(s => (s?.id ? s : null));
+}
 
 /**
  * THE OWNER'S WORDS, AS A RECORD OF THEIR OWN (the owner, 2026-09-24: "Every
@@ -403,7 +459,7 @@ export class CardList {
 	card(id){ return this.by_id.get(id) ?? null; }
 
 	async refresh(){
-		const list = await servex_json("/cards?view=all");
+		const list = await static_cards();
 		const ok = Array.isArray(list);
 		const next = ok ? list : [];
 		if (ok === this.ok && JSON.stringify(next) === JSON.stringify(this.cards)) return this;
@@ -491,7 +547,14 @@ export function items({ board, folders, prompts, landed, says }){
 	const from_folders = !!folders?.ok;
 	// Top-level cards only: a sub-card is listed inside its own card, and a
 	// view (`view/all/`) lists every one.
-	if (from_folders) folders.cards.filter(c => c.id.split("/").length === 4).forEach(c => add(folder_item(c)));
+	/* A CARD IS AS NEW AS ITS NEWEST SUB-CARD (the owner, 2026-09-25: "any update to a child
+	   bumps the parent's last-updated"), so a topic touched deep down rises in the rail. */
+	const newest = new Map();
+	if (from_folders) folders.cards.forEach(c => {
+		const top = c.id.split("/").slice(0, 4).join("/"), t = c.last ?? c.created;
+		if (Date.parse(t ?? 0) > Date.parse(newest.get(top) ?? 0)) newest.set(top, t);
+	});
+	if (from_folders) folders.cards.filter(c => c.id.split("/").length === 4).forEach(c => add({ ...folder_item(c), at: newest.get(c.id) ?? c.last ?? c.created }));
 
 	if (!from_folders) board.forEach(c => add({
 		id: c.id,
@@ -555,10 +618,11 @@ export function items({ board, folders, prompts, landed, says }){
 
 	landed.forEach(l => {
 		const url = `/framework/ai/${l.date}/${l.task}/`;
-		const known = by_id.get(l.task);
+		// A landing whose task has a card folder of the same name IS that card: one row, bumped.
+		const known = by_id.get(l.task) ?? (from_folders ? [...by_id.values()].find(x => x.folder && x.id.split("/").pop() === l.task) : null);
 		if (known){
 			known.landed = l.sentence;
-			known.at = known.at ?? l.at;
+			known.at = Date.parse(l.at ?? 0) > Date.parse(known.at ?? 0) ? l.at : known.at;
 			if (!known.links.some(k => k.url === url)) known.links.push({ url, label: "Task page" });
 			return;
 		}
@@ -573,6 +637,9 @@ export function items({ board, folders, prompts, landed, says }){
 	});
 
 	const list = [...by_id.values()];
+	// A clock from the future is a hand-typed mistake (a day-log line said 21:10 -07:00 for a
+	// 15:53 -05:00 landing, 2026-09-25) and would pin its row to the top forever: it counts as unknown.
+	list.forEach(it => { if (Date.parse(it.at ?? 0) > Date.now() + 10 * 60 * 1000) it.at = null; });
 	list.forEach(it => {
 		// ⚠ ALWAYS unread — nothing marks a card read any more, and the `read`
 		// lines already in `verdicts.jsonl` are not replayed. See `Says` above.
@@ -589,7 +656,21 @@ export function items({ board, folders, prompts, landed, says }){
 	// `.archived` off the returned array (still a plain array everywhere else) to show them
 	// again, greyed, without a second call or a second shape.
 	const archived = list.filter(it => it.status === "archived");
-	const shown = list.filter(it => it.status !== "archived").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+	const sorted = list.filter(it => it.status !== "archived").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+	/* NEVER TWELVE OF THE SAME (the owner, 2026-09-25: "recycle the old one if it happened within
+	   the last minute or two"). Two rows with the same title less than two minutes apart are one
+	   row: the newer is kept, and the older one's words go under it. */
+	const last_seen = new Map();
+	const shown = sorted.filter(it => {
+		const key = String(it.title ?? "").trim().toLowerCase(), t = Date.parse(it.at ?? 0);
+		const kept = key && last_seen.get(key);
+		if (kept && Math.abs(Date.parse(kept.at ?? 0) - t) < 2 * 60 * 1000){
+			if (it.transcript?.length) (kept.transcript ??= []).push(...it.transcript);
+			return false;
+		}
+		if (key) last_seen.set(key, it);
+		return true;
+	});
 	shown.archived = archived;
 	return shown;
 }

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawn } from "node:child_process";
 
 const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
 
@@ -174,8 +175,13 @@ const run = async () => {
 		await guard("syntax-guard", async () => (await import("./syntax-guard.mjs")).default(file));
 		await guard("health-guard", async () => (await import("./health-guard.mjs")).default(file, agent));
 		await guard("hold-guard",   async () => (await import("./hold-guard.mjs")).default(file, agent));
+		await guard("naming-guard", async () => (await import("./naming-guard.mjs")).default(file, agent));
 		const r = file && rel(file);
 		if (!r) return;
+		// A proposal (a brief, or an ai/todo.md entry) wakes the clarity agent once it settles; Server/clarity.mjs waits and dedupes.
+		if (/(^|\/)requirements\.md$|^public\/framework\/ai\/todo\.md$/.test(r.replaceAll("\\", "/"))) try {
+			spawn(process.execPath, [path.join(root, "Server", "clarity.mjs"), "proposal", file], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+		} catch {}
 		const by_path = find_task_by_path(file);
 		// Pin a subagent to its own task from its FIRST in-dir write — which is the
 		// task.jsonl line `new-task` has it write — even though that write itself is
@@ -213,6 +219,12 @@ const run = async () => {
 			}));
 			return;
 		}
+		// A landed task gets its layout-check once, with no agent spending a turn: detached, so the hook stays instant.
+		if (s.landed_at) try {
+			const d = path.dirname(task);
+			if (!fs.existsSync(path.join(d, "layout-check")))
+				spawn(process.execPath, [path.join(root, "Server", "on-landing.mjs"), d], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+		} catch {}
 		if (s.landed_at || !Array.isArray(s.steps) || !(Number(s.step) < s.steps.length)) return;
 		console.log(JSON.stringify({
 			decision: "block",

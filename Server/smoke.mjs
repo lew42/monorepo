@@ -28,7 +28,7 @@
  * the files that matter; a missing data file such as usage.json is not a crash).
  * The port comes from .worktrees.json at the main repo root, or --port / --base.
  * Exit 0 = all clean, 1 = an error was seen, 2 = bad usage or no server answering. */
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -67,7 +67,7 @@ const SKIP_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "pd
 	"md", "json", "jsonl", "mp4", "mp3", "wav", "woff", "woff2", "ttf", "otf", "css", "js", "map"]);
 
 let browser;
-try { browser = await chromium.launch({ channel: "chromium" }); } catch (e) { usage("cannot start Playwright: " + e.message); }
+try { browser = await launch(); } catch (e) { usage("cannot start Playwright: " + e.message); }
 const context = await browser.newContext();
 let bad = 0;
 const loaded = new Set();   // normalized pathnames already loaded or queued this run, seeds and followed alike

@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/28/organization-what-matters-most-paging-fi/",
+ "widths": {
+  "1280": {
+   "empty": 0.264,
+   "widest_text": 3630,
+   "widest_text_sample": "For mastermind-servex-3: section 5 answe",
+   "overflow_x": false,
+   "items": 459,
+   "narrow_share": 0.092
+  },
+  "1920": {
+   "empty": 0.296,
+   "widest_text": 3627,
+   "widest_text_sample": "My half is committed (f250ef84 on worktr",
+   "overflow_x": false,
+   "items": 459,
+   "narrow_share": 0.122
+  },
+  "2560": {
+   "empty": 0.322,
+   "widest_text": 4080,
+   "widest_text_sample": "My half is committed (f250ef84 on worktr",
+   "overflow_x": false,
+   "items": 459,
+   "narrow_share": 0.124
+  },
+  "3440": {
+   "empty": 0.422,
+   "widest_text": 4080,
+   "widest_text_sample": "My half is committed (f250ef84 on worktr",
+   "overflow_x": false,
+   "items": 459,
+   "narrow_share": 0.961
+  }
+ },
+ "errors": [
+  "1920: TypeError: this[verb] is not a function",
+  "2560: TypeError: this[verb] is not a function",
+  "1280: TypeError: this[verb] is not a function",
+  "3440: TypeError: this[verb] is not a function"
+ ]
+}

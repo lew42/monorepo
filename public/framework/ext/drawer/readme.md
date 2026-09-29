@@ -15,6 +15,12 @@ drawer.close();       // what the ✕ calls
 drawer.showing();     // is it open
 ```
 
+## The ☰ and its tabs
+
+Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It opens this drawer on five routed tabs — AI, Sessions, Dictation, Settings, Admin (`tabs.js`, `tabs/*.js`), plus Element while something is selected; off the dev server only AI, Sessions and Dictation show; `?drawer=sessions` opens on Sessions. The tab model, `send()` and `drawer.page()` · [doc/tabs.md](./doc/tabs.md)
+
+While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+
 ## Sharing it
 
 One box, any number of callers — `ext/layout` fills it with a selected element's words, `ext/Panel` with a panel's properties, and whoever filled last owns what is showing.
@@ -37,6 +43,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
 
 ## More
 
-- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [doc/file/](./doc/file/) — one note per file
-- Files that matter: `drawer.js` (shell, push, ✕, the width), `drawer.css` (strip, sheet, z-index), `page.js` (live demo)
+- [Walkthrough](/framework/ext/drawer/walkthrough/) — seven screenshots, click Next through the whole rail
+- [Overview](/framework/ext/drawer/) · [doc/decisions.md](./doc/decisions.md) — the split from `ext/layout`, why only the ✕ closes it, every trap in full · [Files](/framework/ext/drawer/files/) — one note per file
+- Files that matter: `drawer.js` (shell, push, ✕, the width, `page()`), `drawer.css` (strip, sheet, z-index, the ☰), `menu.js` (the ☰), `tabs.js` + `tabs/` (the tabs), `select.js` (selecting on the page), `page.js` (live demo)
 - The resize edge is `ext/grip`, shared with `dev/DevBar` — mounted inside the rail's box, so a shut rail takes it with it

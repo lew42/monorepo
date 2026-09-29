@@ -40,7 +40,7 @@ process.on("SIGTERM", () => { stopAll(); process.exit(0); });
 
 console.log("[dev] applying worker/schema.sql + worker/seed.sql to the local D1 …");
 for (const file of ["worker/schema.sql", "worker/seed.sql"]) {
-    const result = spawnSync(`npx --yes wrangler d1 execute local-dev --local -c wrangler.dev.jsonc --file=./${file}`, { shell: true, encoding: "utf8" });
+    const result = spawnSync(`npx --yes wrangler d1 execute local-dev --local -c wrangler.dev.jsonc --file=./${file}`, { shell: true, encoding: "utf8", windowsHide: true });
     if (result.status !== 0) {
         console.error(`[dev] ${file} failed:\n${result.stdout}\n${result.stderr}`);
         process.exit(1);
@@ -51,13 +51,13 @@ console.log("[dev] local D1 ready — five fake users (alice owner, bob moderato
 if (await isListening(PORT)) {
     console.log(`[dev] :${PORT} is already answering — assuming node server.js is running there; not starting a second one.`);
 } else {
-    const server = spawn(process.execPath, ["server.js"], { env: { ...process.env, PORT: String(PORT) } });
+    const server = spawn(process.execPath, ["server.js"], { env: { ...process.env, PORT: String(PORT) }, windowsHide: true });
     prefixed("server", server);
     children.push(server);
     console.log(`[dev] node server.js  → http://localhost:${PORT}`);
 }
 
-const wrangler = spawn(`npx --yes wrangler dev -c wrangler.dev.jsonc --port ${API_PORT}`, { shell: true });
+const wrangler = spawn(`npx --yes wrangler dev -c wrangler.dev.jsonc --port ${API_PORT}`, { shell: true, windowsHide: true });
 prefixed("wrangler", wrangler);
 children.push(wrangler);
 console.log(`[dev] wrangler dev    → http://localhost:${API_PORT}   (the whole site + identity, rooms and likes; DEV_LOGIN=1)`);

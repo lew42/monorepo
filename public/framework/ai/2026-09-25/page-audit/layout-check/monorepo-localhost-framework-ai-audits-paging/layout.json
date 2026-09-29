@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/audits/paging/",
+ "widths": {
+  "1280": {
+   "empty": 0.54,
+   "widest_text": 597,
+   "widest_text_sample": "A read-only look at how a page on this s",
+   "overflow_x": false,
+   "items": 277,
+   "narrow_share": 0.614
+  },
+  "1920": {
+   "empty": 0.721,
+   "widest_text": 635,
+   "widest_text_sample": "A read-only look at how a page on this s",
+   "overflow_x": false,
+   "items": 277,
+   "narrow_share": 0.693
+  },
+  "2560": {
+   "empty": 0.771,
+   "widest_text": 714,
+   "widest_text_sample": "A read-only look at how a page on this s",
+   "overflow_x": false,
+   "items": 277,
+   "narrow_share": 0.722
+  },
+  "3440": {
+   "empty": 0.821,
+   "widest_text": 714,
+   "widest_text_sample": "A read-only look at how a page on this s",
+   "overflow_x": false,
+   "items": 277,
+   "narrow_share": 0.722
+  }
+ },
+ "errors": []
+}

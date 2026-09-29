@@ -255,7 +255,7 @@ function supervise(){
 		// error must never even reach a candidate; it just doesn't restart.
 		for (const file of files) {
 			if (!fs.existsSync(file)) continue;   // deleted — nothing to check, nothing to block on
-			const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
+			const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8", windowsHide: true });
 			if (result.status !== 0) {
 				console.error(`[supervisor] ${path.relative(__dirname, file)} — syntax error, not restarting:\n${result.stderr}`);
 				return;
@@ -283,6 +283,7 @@ function supervise(){
 		const candidate = fork(entry_for_this_boot(), [], {
 			stdio: ["ignore", "pipe", "pipe", "ipc"], cwd: __dirname,
 			env: { ...process.env, PORT: String(port), BOOT_TEST: "1" },
+			windowsHide: true,
 		});
 		current_candidate = candidate;
 		const tail = [];

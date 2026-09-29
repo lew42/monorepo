@@ -27,11 +27,13 @@ export const ROLES = {
 	"task-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "task-mastermind",  alias: "sub-mastermind", tier: "manager", model: model("manager"),  effort: "medium", permission_mode: "bypassPermissions" },
 	mastermind:         { skill: "servex-mastermind", prefix: "mastermind",       tier: "architect", model: model("architect"), effort: "high", permission_mode: "acceptEdits" },
 	assistant:          { skill: "every-prompt",     prefix: "assistant",        alias: "every-prompt",   tier: "fast", model: model("fast"),  effort: "low",  permission_mode: "acceptEdits" },
-	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "fast",      model: model("fast"), effort: "high", permission_mode: "plan" },
+	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* The card layers (Layers.js): a card's manager loads sub-mastermind and is recycled for the
 	 * card's whole life; a card's assistant brings its own system brief (card-assistant.md). */
 	manager:            { skills: ["sub-mastermind", "page"], prefix: "manager",          tier: "manager",   model: model("manager"),   effort: "medium", permission_mode: "bypassPermissions" },
 	"card-assistant":   { skill: null,                prefix: "assistant",        tier: "fast",      model: model("fast"),      effort: "low",    permission_mode: "bypassPermissions" },
+	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
+	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 

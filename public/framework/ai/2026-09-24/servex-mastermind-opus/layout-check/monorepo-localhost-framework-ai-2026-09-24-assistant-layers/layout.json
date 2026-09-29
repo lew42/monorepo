@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-24/assistant-layers/",
+ "widths": {
+  "1280": {
+   "empty": 0.602,
+   "widest_text": 750,
+   "widest_text_sample": "┄ dashed: both card assistants are heard",
+   "overflow_x": false,
+   "items": 29,
+   "narrow_share": 0.414
+  },
+  "1920": {
+   "empty": 0.769,
+   "widest_text": 798,
+   "widest_text_sample": "┄ dashed: both card assistants are heard",
+   "overflow_x": false,
+   "items": 29,
+   "narrow_share": 0.862
+  },
+  "2560": {
+   "empty": 0.759,
+   "widest_text": 898,
+   "widest_text_sample": "┄ dashed: both card assistants are heard",
+   "overflow_x": false,
+   "items": 29,
+   "narrow_share": 0.862
+  },
+  "3440": {
+   "empty": 0.821,
+   "widest_text": 898,
+   "widest_text_sample": "┄ dashed: both card assistants are heard",
+   "overflow_x": false,
+   "items": 29,
+   "narrow_share": 0.862
+  }
+ },
+ "errors": []
+}

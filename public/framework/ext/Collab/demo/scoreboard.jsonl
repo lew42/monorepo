@@ -1,0 +1,12 @@
+{"score": {"at": "2026-09-28T13:00:00-05:00", "collab": "demo-research-1", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:00:00-05:00", "collab": "demo-research-1", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
+{"score": {"at": "2026-09-28T13:05:00-05:00", "collab": "demo-research-2", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:05:00-05:00", "collab": "demo-research-2", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
+{"score": {"at": "2026-09-28T13:10:00-05:00", "collab": "demo-research-3", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:10:00-05:00", "collab": "demo-research-3", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 3, "won": true, "cost": 0.030}}
+{"score": {"at": "2026-09-28T13:15:00-05:00", "collab": "demo-research-4", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:15:00-05:00", "collab": "demo-research-4", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
+{"score": {"at": "2026-09-28T13:20:00-05:00", "collab": "demo-research-5", "decision": "d-1", "member": "haiku-a", "model": "claude-haiku-4-5-20251001", "votes": 0, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:20:00-05:00", "collab": "demo-research-5", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}
+{"score": {"at": "2026-09-28T13:25:00-05:00", "collab": "demo-research-6", "decision": "d-1", "member": "haiku-c", "model": "claude-haiku-4-5-20251001", "votes": 1, "won": false, "cost": 0.040}}
+{"score": {"at": "2026-09-28T13:25:00-05:00", "collab": "demo-research-6", "decision": "d-1", "member": "sonnet-b", "model": "claude-sonnet-5", "votes": 2, "won": true, "cost": 0.030}}

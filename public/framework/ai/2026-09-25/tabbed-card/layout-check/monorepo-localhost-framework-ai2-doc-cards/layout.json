@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/doc/cards/",
+ "widths": {
+  "1280": {
+   "empty": 0.679,
+   "widest_text": 305,
+   "widest_text_sample": "16 running (2 working) · 2 tasks · The a",
+   "overflow_x": false,
+   "items": 356,
+   "narrow_share": 0.034
+  },
+  "1920": {
+   "empty": 0.782,
+   "widest_text": 386,
+   "widest_text_sample": "No card by that name yet — it may still ",
+   "overflow_x": false,
+   "items": 356,
+   "narrow_share": 0.07
+  },
+  "2560": {
+   "empty": 0.784,
+   "widest_text": 577,
+   "widest_text_sample": "No card by that name yet — it may still ",
+   "overflow_x": false,
+   "items": 356,
+   "narrow_share": 0.07
+  },
+  "3440": {
+   "empty": 0.838,
+   "widest_text": 639,
+   "widest_text_sample": "No card by that name yet — it may still ",
+   "overflow_x": false,
+   "items": 356,
+   "narrow_share": 1
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

@@ -1,31 +1,13 @@
-import { execSync } from "child_process";
-import { createRequire } from "module";
 import os from "os";
 import path from "path";
-
-let driver;
-
-/* ⚠ Playwright resolves from the GLOBAL install, never package.json — a browser
- * driver is tooling for the person at the keyboard. Absent, `shot` says so and
- * the turn is refused rather than silently going blind. */
-function chromium(){
-    if (driver !== undefined) return driver;
-    try {
-        const root = execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim();
-        driver = createRequire(path.join(root, "index.js"))("playwright").chromium;
-    } catch {
-        driver = null;
-    }
-    return driver;
-}
+import { browser as launch } from "../browser.mjs";
 
 /** One element of one page, as a png on disk, so a headless turn can look at it. */
 export default async function shot({ url, selector, width = 1400, height = 1000 }){
-    const launcher = chromium();
-    if (!launcher) throw new Error("shot(): playwright is not installed globally — `npm i -g playwright`.");
-
     const file = path.join(os.tmpdir(), `ask-shot-${Date.now()}.png`);
-    const browser = await launcher.launch();
+    let browser;
+    try { browser = await launch(); }
+    catch (e) { throw new Error("shot(): " + e.message); }
 
     try {
         const page = await browser.newPage({ viewport: { width, height } });

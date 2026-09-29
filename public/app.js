@@ -3,6 +3,7 @@ import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
+import "./framework/ext/Classify/Classify.js";
 
 /* ⚠ The default resource-timing buffer holds ~250 entries and then silently stops
  * recording, so a long-lived tab would stop recognising its own files as loaded
@@ -58,6 +59,10 @@ const app = window.app = new App({
 			// The toggle lives in sidebar FOOTERS now; this applies the reader's
 			// stored mode on routes that don't render one.
 			mode.apply(this);
+
+			// The ☰ in the top right of every page: opens ext/drawer on its tabs
+			// (AI, Sessions, Dictation, Settings, Admin). ext/drawer/doc/tabs.md.
+			menu(this);
 		});
 
 		// Ctrl + \ — the dev rail, on <body> beside the shell rather than inside it.
@@ -76,6 +81,7 @@ const app = window.app = new App({
 	navigated(page){
 		this.socket.rpc("hello", page.url);
 		devbar.refresh();
+		menu.navigated();
 	},
 });
 
@@ -131,6 +137,8 @@ import "./framework/ext/catalog/browse.js";
 // until 2026-08-16 and could only open it for its own selection — so a panel's
 // properties and a selected element's words are the same surface. See ext/drawer.
 export { default as drawer } from "./framework/ext/drawer/drawer.js";
+// The ☰ on every page (render() calls it). Down here beside the drawer it opens; imports hoist.
+import menu from "./framework/ext/drawer/menu.js";
 
 // files() shows real files on disk, fetched — so a "here is a whole project"
 // section can't drift from the project. toc() reads a page's own headings.

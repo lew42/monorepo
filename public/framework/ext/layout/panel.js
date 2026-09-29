@@ -56,10 +56,15 @@ export function deselect(){
    this, same as deselecting and the click listener below (which fires on the ✕ itself
    and reopened the rail a millisecond after it shut). `open()`, above, is the one path
    still allowed to `show()`. decisions.md. */
-const redraw = () => { if (drawer.showing()) show(); };
+/* ⚠ And only a rail showing THIS module's content (2026-09-28, page-drawer): the drawer
+   is shared, and this click listener fires on every click on the page — so without the
+   check, any click replaced whatever another caller had open (the ☰'s tabs) with
+   "nothing selected", and the ☰ could never shut its own drawer. */
+let fill = null;
+const redraw = () => { if (drawer.showing() && drawer.filled_by?.() === fill) show(); };
 
 function show(){
-	const $rail = drawer(($slot, $body) => {
+	const $rail = drawer(fill = ($slot, $body) => {
 		$slot.empty(() => head($sel));
 		$body.empty(() => body($sel, contexts.get(host) || [], show));
 	});

@@ -1,0 +1,1186 @@
+{
+ "module": "framework/ai2 + framework/ai",
+ "paths": [
+  "framework/ai2",
+  "framework/ai"
+ ],
+ "lines": {
+  "css": 3488,
+  "jsBlocks": 1
+ },
+ "clusters": [
+  {
+   "id": "ai2/shell-grid",
+   "file": "framework/ai2/ai2.css",
+   "from": 1,
+   "to": 111,
+   "lines": 111,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "AI 2's own app shell (rail | card | sub-card grid, one-scrollbar rule); nothing in core builds this exact three-column inbox.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/rail-composer",
+   "file": "framework/ai2/ai2.css",
+   "from": 112,
+   "to": 143,
+   "lines": 32,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The rail box and the one-line composer that must never grow; specific to this inbox.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/composer-chrome-row",
+   "file": "framework/ai2/ai2.css",
+   "from": 144,
+   "to": 218,
+   "lines": 75,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Container-query rules that keep the action row to two tidy lines; specific to the rail head (the @property freezes a gap, a trick found nowhere else).",
+   "saves": 0
+  },
+  {
+   "id": "ai2/text-buttons",
+   "file": "framework/ai2/ai2.css",
+   "from": 219,
+   "to": 253,
+   "lines": 35,
+   "verdict": "GENERALIZE",
+   "target": "text-button (borderless, faded, brighter on hover) in framework.css",
+   "evidence": ".ai2-word, .ai2-clear (333), .ai2-flag (742), .ai2-face-said, .ai2-ov-clear, v3 .v3-toast-undo and v2 .v2-dismiss all re-write the same 'button with no box, opacity .55 -> 1 on hover' look; no such word exists in framework.css (grep of framework.css for 'opacity: 0.55' finds nothing).",
+   "saves": 25
+  },
+  {
+   "id": "ai2/new-pill-and-stream",
+   "file": "framework/ai2/ai2.css",
+   "from": 254,
+   "to": 288,
+   "lines": 35,
+   "verdict": "GENERALIZE",
+   "target": "float-pill (an absolutely placed .prim button that shows with .on) in framework.css",
+   "evidence": ".ai2-new here and .ai2-ov-pill (1044) are the same floating '+N new' pill written twice; both lean on .prim (framework.css:811) and only add position.",
+   "saves": 12
+  },
+  {
+   "id": "ai2/preview-rows",
+   "file": "framework/ai2/ai2.css",
+   "from": 289,
+   "to": 387,
+   "lines": 99,
+   "verdict": "GENERALIZE",
+   "target": "list-row (link row with a 3px status edge, hover wash, .active mark) + status-dot",
+   "evidence": "Row shell (.ai2-row), the dot (.ai2-dot, same as v3 .v3-dot, v2 .v2-dot, talk .talk-task-dot) and the row parts repeat in ai2 toc rows (766), overview rows (1062) and live items (1243). The status edge is what .card does with --card-edge (framework.css:489) but a row is not a card, so it needs its own one-time component.",
+   "saves": 45
+  },
+  {
+   "id": "ai2/group-row",
+   "file": "framework/ai2/ai2.css",
+   "from": 388,
+   "to": 398,
+   "lines": 11,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Three lines that make a group row a little heavier than a normal preview; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/group-what-line",
+   "file": "framework/ai2/ai2.css",
+   "from": 399,
+   "to": 407,
+   "lines": 9,
+   "verdict": "DELETE",
+   "target": "",
+   "evidence": "grep -F 'ai2-group-what' and 'ai2-group-line' over every non-dated .js under public/ finds nothing (the only 'ai2-group-' class built is 'ai2-group-row', ai2/page.js:371).",
+   "saves": 9
+  },
+  {
+   "id": "ai2/card-meter",
+   "file": "framework/ai2/ai2.css",
+   "from": 408,
+   "to": 442,
+   "lines": 35,
+   "verdict": "DUPLICATE",
+   "target": ".ai-meter / .ai-track (ext/AITask/ai.css:452 and :469)",
+   "evidence": "A 0.4em-high rounded track with a fill is exactly '.ai-track { height: .4em; border-radius: 999px; background: color-mix(...) }' at ext/AITask/ai.css:469; v3.css:568-570 already reuses .ai-meter/.ai-track. Only the pulse animation is new.",
+   "saves": 28
+  },
+  {
+   "id": "ai2/unfiled-head",
+   "file": "framework/ai2/ai2.css",
+   "from": 443,
+   "to": 449,
+   "lines": 7,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "One quiet clickable heading; six lines.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/tasks-inside-card",
+   "file": "framework/ai2/ai2.css",
+   "from": 450,
+   "to": 497,
+   "lines": 48,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Overrides ext/tabs' double-axis scroller and lets embedded task pages be content; specific to how AI 2 embeds task pages.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/who-pill",
+   "file": "framework/ai2/ai2.css",
+   "from": 498,
+   "to": 520,
+   "lines": 23,
+   "verdict": "GENERALIZE",
+   "target": "chip (small rounded label with optional accent variant) in framework.css",
+   "evidence": ".ai2-who, .ai2-chip/.ai2-link (848), v3 .v3-chip (258) and talk .talk-chip/.talk-task (66-117) are all the same small pill; framework.css has no chip class (grep 'chip' finds only comments).",
+   "saves": 30
+  },
+  {
+   "id": "ai2/detail-region",
+   "file": "framework/ai2/ai2.css",
+   "from": 521,
+   "to": 537,
+   "lines": 17,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The right-hand detail box that hides overflow so only one scrollbar exists; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/empty-state",
+   "file": "framework/ai2/ai2.css",
+   "from": 538,
+   "to": 546,
+   "lines": 9,
+   "verdict": "DUPLICATE",
+   "target": ".pad (framework.css:822)",
+   "evidence": ".ai2-empty { padding: var(--pad) } is character for character what .pad is; the small margin on its child is 3 lines.",
+   "saves": 4
+  },
+  {
+   "id": "ai2/detail-hide-empty",
+   "file": "framework/ai2/ai2.css",
+   "from": 547,
+   "to": 561,
+   "lines": 15,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The :has() rule that hides the empty state while a card page is routed in; specific to the Router marks.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/card-page-grid",
+   "file": "framework/ai2/ai2.css",
+   "from": 562,
+   "to": 607,
+   "lines": 46,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The three-row grid (back / body / foot) that makes the card page's regions butt; page-specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/card-text-and-cost",
+   "file": "framework/ai2/ai2.css",
+   "from": 608,
+   "to": 630,
+   "lines": 23,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Measure on the text only and a horizontally scrolling cost strip; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/faces-accordion",
+   "file": "framework/ai2/ai2.css",
+   "from": 631,
+   "to": 696,
+   "lines": 66,
+   "verdict": "GENERALIZE",
+   "target": "disclosure-list (a clickable summary row that opens a body) in framework.css",
+   "evidence": ".ai2-face-* re-implements a details/summary accordion by hand (nowrap ellipsis, pointer cursor, head/body padding) as v2 .v2-ask/.v2-agent summaries (92-126) do; framework.css only styles bare summary (framework.css:749).",
+   "saves": 40
+  },
+  {
+   "id": "ai2/card-foot",
+   "file": "framework/ai2/ai2.css",
+   "from": 697,
+   "to": 723,
+   "lines": 27,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The chat footer's own band and measure; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/card-head-bits",
+   "file": "framework/ai2/ai2.css",
+   "from": 724,
+   "to": 765,
+   "lines": 42,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Title, meta, flag star and sentence colour for the card head; the flag is a text-button (see that cluster) but the rest is specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/toc-rows",
+   "file": "framework/ai2/ai2.css",
+   "from": 766,
+   "to": 830,
+   "lines": 65,
+   "verdict": "GENERALIZE",
+   "target": "list-row (same component as preview-rows)",
+   "evidence": ".ai2-toc-row (border-bottom, hover fill, .active surface) is the .ai2-row look again.",
+   "saves": 45
+  },
+  {
+   "id": "ai2/sub-back-and-said-head",
+   "file": "framework/ai2/ai2.css",
+   "from": 831,
+   "to": 847,
+   "lines": 17,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Back link spacing and a summary size tweak; 17 lines, specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/chips",
+   "file": "framework/ai2/ai2.css",
+   "from": 848,
+   "to": 862,
+   "lines": 15,
+   "verdict": "GENERALIZE",
+   "target": "chip (see who-pill)",
+   "evidence": ".ai2-chip / .ai2-link are a bordered rounded pill, same as .ai2-who and v3 .v3-chip.",
+   "saves": 10
+  },
+  {
+   "id": "ai2/proposal-and-flag-input",
+   "file": "framework/ai2/ai2.css",
+   "from": 863,
+   "to": 878,
+   "lines": 16,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Left-edge quote bar and block inputs for the proposal area; small and specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/selection-flag",
+   "file": "framework/ai2/ai2.css",
+   "from": 879,
+   "to": 899,
+   "lines": 21,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "A fixed-position pill that follows a text selection; unverified whether ux/Popover (/framework/ux/Popover/) could carry it, so kept.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/back-and-mobile",
+   "file": "framework/ai2/ai2.css",
+   "from": 900,
+   "to": 935,
+   "lines": 36,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The <40em one-screen-at-a-time rules for the whole page; specific to this layout.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/overview-shell",
+   "file": "framework/ai2/ai2.css",
+   "from": 936,
+   "to": 984,
+   "lines": 49,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The four-column overview page shell, including its Router-mark hiding rules; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/overview-pad-token",
+   "file": "framework/ai2/ai2.css",
+   "from": 985,
+   "to": 992,
+   "lines": 8,
+   "verdict": "GENERALIZE",
+   "target": "a container-unit --pad token in framework.css (e.g. --pad-cq)",
+   "evidence": "--ai2-ov-pad: calc(clamp(1em, 2.6cqi - 1.1em, 4em) * var(--size,1)) is --pad (framework.css:259) with cqi in place of %; this is the owner's 'padding that scales with its column' and belongs in framework.css once.",
+   "saves": 6
+  },
+  {
+   "id": "ai2/overview-columns",
+   "file": "framework/ai2/ai2.css",
+   "from": 993,
+   "to": 1005,
+   "lines": 13,
+   "verdict": "DUPLICATE",
+   "target": ".flex + .flex-1 (framework.css:832, :856)",
+   "evidence": ".ai2-ov-cols { display:flex; flex:1 1 auto; min-height:0 } and .ai2-ov-col { flex:1 1 0; min-width:0 } are .flex and .flex-1; only overflow-y and padding remain.",
+   "saves": 10
+  },
+  {
+   "id": "ai2/overview-heads-and-empty",
+   "file": "framework/ai2/ai2.css",
+   "from": 1006,
+   "to": 1043,
+   "lines": 38,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Collapsed column, head, title, count, body and empty text for the overview; small page-specific detail.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/overview-pill",
+   "file": "framework/ai2/ai2.css",
+   "from": 1044,
+   "to": 1061,
+   "lines": 18,
+   "verdict": "GENERALIZE",
+   "target": "float-pill (see new-pill-and-stream)",
+   "evidence": ".ai2-ov-pill is the second copy of the floating '+N new' pill.",
+   "saves": 12
+  },
+  {
+   "id": "ai2/overview-rows",
+   "file": "framework/ai2/ai2.css",
+   "from": 1062,
+   "to": 1127,
+   "lines": 66,
+   "verdict": "GENERALIZE",
+   "target": "list-row (see preview-rows)",
+   "evidence": ".ai2-ov-row/.ai2-ov-link/.ai2-ov-row-* are the preview-row again with different font sizes.",
+   "saves": 45
+  },
+  {
+   "id": "ai2/usage-bars",
+   "file": "framework/ai2/ai2.css",
+   "from": 1128,
+   "to": 1168,
+   "lines": 41,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar (track + fill + .crit/.hot state) in framework.css",
+   "evidence": ".ai2-ov-usage-track/fill/critical repeat the bar written in card-meter (408), live-bars (1215), agent-bar (1625) and v3 footer's .ai-track.",
+   "saves": 32
+  },
+  {
+   "id": "ai2/overview-stream-and-top",
+   "file": "framework/ai2/ai2.css",
+   "from": 1169,
+   "to": 1194,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The feed lines and the top strip of the overview; small and specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/overview-rows-as-columns",
+   "file": "framework/ai2/ai2.css",
+   "from": 1195,
+   "to": 1204,
+   "lines": 10,
+   "verdict": "DUPLICATE",
+   "target": ".masonry (framework.css:997-998)",
+   "evidence": ".ai2-ov-rows { column-width:16rem; column-gap:… } and '> .ai2-ov-row { break-inside: avoid }' are .masonry { columns: var(--column); gap } and .masonry > * { break-inside: avoid }.",
+   "saves": 8
+  },
+  {
+   "id": "ai2/overview-mobile",
+   "file": "framework/ai2/ai2.css",
+   "from": 1205,
+   "to": 1214,
+   "lines": 10,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The <40em stacking rules for the overview.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/live-bars",
+   "file": "framework/ai2/ai2.css",
+   "from": 1215,
+   "to": 1242,
+   "lines": 28,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar (see usage-bars)",
+   "evidence": ".ai2-live-bar > span is a fill inside a track with a critical state — the third copy.",
+   "saves": 24
+  },
+  {
+   "id": "ai2/live-items",
+   "file": "framework/ai2/ai2.css",
+   "from": 1243,
+   "to": 1301,
+   "lines": 59,
+   "verdict": "GENERALIZE",
+   "target": "list-row (see preview-rows) with a state word",
+   "evidence": ".ai2-live-item (a four-column grid row with border-bottom) and .ai2-live-state/name/line are the same row again. The state classes (working/blocked/not-started) are built dynamically in live.js, so they stay.",
+   "saves": 30
+  },
+  {
+   "id": "ai2/live-card-layout",
+   "file": "framework/ai2/ai2.css",
+   "from": 1302,
+   "to": 1363,
+   "lines": 62,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Makes the chat log a reversed column inside the Live card; specific.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/live-grid",
+   "file": "framework/ai2/ai2.css",
+   "from": 1364,
+   "to": 1494,
+   "lines": 131,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Container-query named-area grid (2/3/4 columns) for the Live card; one-of-a-kind dashboard arrangement. Unverified whether core columns could express it.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/talk-shell",
+   "file": "framework/ai2/ai2.css",
+   "from": 1495,
+   "to": 1514,
+   "lines": 20,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Talkable-row and box look for the per-agent chat.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/talk-form",
+   "file": "framework/ai2/ai2.css",
+   "from": 1515,
+   "to": 1531,
+   "lines": 17,
+   "verdict": "DUPLICATE",
+   "target": ".flex .v-center .gap + .flex-1 (framework.css:832, :868, :1036, :856)",
+   "evidence": ".ai2-talk-form { display:flex; align-items:center; gap } is .flex.v-center.gap; .ai2-talk-input { flex:1; min-width:0 } is .flex-1; .ai2-talk-send is nowrap+flex:none.",
+   "saves": 14
+  },
+  {
+   "id": "ai2/talk-status",
+   "file": "framework/ai2/ai2.css",
+   "from": 1532,
+   "to": 1542,
+   "lines": 11,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Status line with :empty hiding; ten lines.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/misc-controls-index-railfoot",
+   "file": "framework/ai2/ai2.css",
+   "from": 1543,
+   "to": 1612,
+   "lines": 70,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Type select, sub-card input, index page and rail foot: small tweaks each, and the last carries the <40em rule.",
+   "saves": 0
+  },
+  {
+   "id": "ai2/agent-bars",
+   "file": "framework/ai2/ai2.css",
+   "from": 1613,
+   "to": 1653,
+   "lines": 41,
+   "verdict": "GENERALIZE",
+   "target": "progress-bar (see usage-bars); the wrapper is .flex.v.gap-25 (framework.css:832, :865, :1036)",
+   "evidence": ".ai2-agent-bar/.ai2-agent-fill is the fourth bar; .ai2-agents is a plain vertical flex.",
+   "saves": 20
+  },
+  {
+   "id": "ai2/chat-column-arrangement",
+   "file": "framework/ai2/ai2.css",
+   "from": 1654,
+   "to": 1713,
+   "lines": 60,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "One layout for every card: card | chat, or card | sub-card | chat, switched on window width; the core of this page's design.",
+   "saves": 0
+  },
+  {
+   "id": "v3/layer-and-notes",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 1,
+   "to": 23,
+   "lines": 23,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Opening comment and layer; documentation of the earlier CSS audit.",
+   "saves": 0
+  },
+  {
+   "id": "v3/board-base",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 24,
+   "to": 57,
+   "lines": 34,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": ".v3 container and its base variables; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/head-and-title",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 58,
+   "to": 83,
+   "lines": 26,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Board head; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/ways-out",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 84,
+   "to": 105,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Link strip in the head; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/view-switch",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 106,
+   "to": 139,
+   "lines": 34,
+   "verdict": "GENERALIZE",
+   "target": "segmented-control (a row of buttons, one .on) in framework.css",
+   "evidence": ".v3-views/.v3-view-btn and .v3-live-btn and v2 .v2-density-btn (v2.css:31) are the same 'pill group where one is on' control.",
+   "saves": 20
+  },
+  {
+   "id": "v3/more-and-agents",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 140,
+   "to": 185,
+   "lines": 46,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "More drawer and agent strip in the head; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/card-wall",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 186,
+   "to": 198,
+   "lines": 13,
+   "verdict": "DUPLICATE",
+   "target": ".wall (core/Page/Page.css:1066)",
+   "evidence": ".v3-cards { grid-template-columns: repeat(auto-fill, minmax(min(var(--v3-track,24em),100%),1fr)) } is exactly .wall (Page.css:1066-1069, reading --column) plus align-items:start.",
+   "saves": 11
+  },
+  {
+   "id": "v3/wall-padding",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 199,
+   "to": 218,
+   "lines": 20,
+   "verdict": "DUPLICATE",
+   "target": ".pad (framework.css:822)",
+   "evidence": ".v3-cards, .v3-now, .v3-days, .v3-prompts { padding: var(--pad) } is .pad; the rest of the block is the story of why.",
+   "saves": 1
+  },
+  {
+   "id": "v3/prompts",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 219,
+   "to": 257,
+   "lines": 39,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Prompt rows and their container query; specific to that tab.",
+   "saves": 0
+  },
+  {
+   "id": "v3/chips",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 258,
+   "to": 276,
+   "lines": 19,
+   "verdict": "GENERALIZE",
+   "target": "chip (see ai2 who-pill)",
+   "evidence": ".v3-chip is a bordered pill with a locked state; same component as ai2 chips.",
+   "saves": 12
+  },
+  {
+   "id": "v3/prompt-card-and-judge",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 277,
+   "to": 298,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Judging buttons that appear on hover; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/days",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 299,
+   "to": 323,
+   "lines": 25,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Timeline days; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/sort-and-tiles",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 324,
+   "to": 354,
+   "lines": 31,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Sort controls and the tile face; tiles already wear .card.",
+   "saves": 0
+  },
+  {
+   "id": "v3/tile-big",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 355,
+   "to": 363,
+   "lines": 9,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Span-2 tile; nine lines.",
+   "saves": 0
+  },
+  {
+   "id": "v3/status-dots",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 364,
+   "to": 375,
+   "lines": 12,
+   "verdict": "GENERALIZE",
+   "target": "status-dot (ok/warn/prim/error) in framework.css",
+   "evidence": ".v3-dot + variants repeat ai2 .ai2-dot, v2 .v2-dot and talk .talk-task-dot. Variants are built dynamically ('v3-dot-' + status, page.js) so they are not unused.",
+   "saves": 8
+  },
+  {
+   "id": "v3/tile-preview",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 376,
+   "to": 387,
+   "lines": 12,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Preview lines inside a tile; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/split-inbox",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 388,
+   "to": 451,
+   "lines": 64,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The inbox/right-column split view and its full-bleed sizing; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/tile-colours",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 452,
+   "to": 488,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Tile ground via color-mix; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/back-to-top",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 489,
+   "to": 525,
+   "lines": 37,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Floating back-to-top and its counter; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/compact-tile",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 526,
+   "to": 555,
+   "lines": 30,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Compact tile row for the axis view; nearest sibling is the list-row idea, unverified.",
+   "saves": 0
+  },
+  {
+   "id": "v3/footer-usage",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 556,
+   "to": 596,
+   "lines": 41,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Already reuses .ai-meter/.ai-track from ext/AITask/ai.css:452-469 and only shrinks them.",
+   "saves": 0
+  },
+  {
+   "id": "v3/axis-see-back",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 597,
+   "to": 623,
+   "lines": 27,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Timeline axis flash, see-link and mobile back; small.",
+   "saves": 0
+  },
+  {
+   "id": "v3/mobile",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 624,
+   "to": 652,
+   "lines": 29,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The <40em split rules.",
+   "saves": 0
+  },
+  {
+   "id": "v3/detail",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 653,
+   "to": 674,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Detail column look; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/detail-text-and-code",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 675,
+   "to": 696,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Resets for pasted markdown inside a detail.",
+   "saves": 0
+  },
+  {
+   "id": "v3/two-columns-demo",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 697,
+   "to": 704,
+   "lines": 8,
+   "verdict": "DUPLICATE",
+   "target": ".grid.auto + --column (framework.css:967)",
+   "evidence": ".v3-two { display:grid; gap; grid-template-columns: repeat(auto-fit, minmax(min(18em,100%),1fr)) } is .grid.auto.gap with --column:18em.",
+   "saves": 5
+  },
+  {
+   "id": "v3/bleed-page",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 705,
+   "to": 751,
+   "lines": 47,
+   "verdict": "GENERALIZE",
+   "target": "a page word for 'this page is an app, hide the title, zero the gutter' (e.g. .page.bleed) in core/Page/Page.css",
+   "evidence": ".page:has(> .v3) > .page-title{display:none}, padding-block-start:0, and --gutter-x:0px/--pad-y:0px are written again for v2 (v2.css:127-143) and AI 2 (ai2.css:27-37).",
+   "saves": 40
+  },
+  {
+   "id": "v3/now-heard-count-verdict",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 752,
+   "to": 827,
+   "lines": 76,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "The Now tab, stale banner, heard text, counts and verdicts; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v3/ask-block",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 828,
+   "to": 837,
+   "lines": 10,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Ask block spacing.",
+   "saves": 0
+  },
+  {
+   "id": "v3/toast",
+   "file": "framework/ai/v/3/v3.css",
+   "from": 838,
+   "to": 868,
+   "lines": 31,
+   "verdict": "GENERALIZE",
+   "target": "toast (a .card row that shows and auto-fades) in framework.css or ux/",
+   "evidence": ".v3-toast plus its [hidden] workaround; a toast is needed on any page, not just V3.",
+   "saves": 20
+  },
+  {
+   "id": "v2/layout-and-header",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 1,
+   "to": 30,
+   "lines": 30,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "v2 base, top line and usage; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v2/density-switch",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 31,
+   "to": 43,
+   "lines": 13,
+   "verdict": "GENERALIZE",
+   "target": "segmented-control (see v3 view-switch)",
+   "evidence": ".v2-density-btn is the same one-of-N pill group.",
+   "saves": 8
+  },
+  {
+   "id": "v2/panel-grid",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 44,
+   "to": 45,
+   "lines": 2,
+   "verdict": "DUPLICATE",
+   "target": ".grid.auto.gap (framework.css:967)",
+   "evidence": ".v2-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(min(20em,100%),1fr)) } is .grid.auto with --column:20em.",
+   "saves": 2
+  },
+  {
+   "id": "v2/panel-look",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 46,
+   "to": 51,
+   "lines": 6,
+   "verdict": "DUPLICATE",
+   "target": ".card (framework.css:456-461, :489)",
+   "evidence": ".v2-panel, .v2-topic { background; border:1px solid var(--line); border-radius; padding } is .card; with .size-small for the dense form.",
+   "saves": 5
+  },
+  {
+   "id": "v2/panel-head-and-fold",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 52,
+   "to": 60,
+   "lines": 9,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Uppercase head strip with a fold cursor; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v2/rows",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 61,
+   "to": 71,
+   "lines": 11,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Note/agent/need rows; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v2/dot",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 72,
+   "to": 77,
+   "lines": 6,
+   "verdict": "GENERALIZE",
+   "target": "status-dot (see v3)",
+   "evidence": ".v2-dot/.v2-landed/.v2-building; v2-open is unused in JS but the state may be built dynamically, so kept (unverified).",
+   "saves": 5
+  },
+  {
+   "id": "v2/dismiss-button",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 78,
+   "to": 91,
+   "lines": 14,
+   "verdict": "GENERALIZE",
+   "target": "text-button (see ai2 text-buttons)",
+   "evidence": ".v2-dismiss is the boxless button again.",
+   "saves": 8
+  },
+  {
+   "id": "v2/asks-and-summaries",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 92,
+   "to": 126,
+   "lines": 35,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Disclosure rows for asks and agents; nearest sibling is disclosure-list, unverified.",
+   "saves": 0
+  },
+  {
+   "id": "v2/bleed-page",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 127,
+   "to": 144,
+   "lines": 18,
+   "verdict": "GENERALIZE",
+   "target": "page.bleed word (see v3 bleed-page)",
+   "evidence": "Same :has() page hacks as v3.css:705-750.",
+   "saves": 12
+  },
+  {
+   "id": "v2/more-links",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 145,
+   "to": 163,
+   "lines": 19,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Details marker and link rows; small.",
+   "saves": 0
+  },
+  {
+   "id": "v2/decision-overrides",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 164,
+   "to": 205,
+   "lines": 42,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Overrides of ext/AITask decision classes inside v2; specific.",
+   "saves": 0
+  },
+  {
+   "id": "v2/ask-reply",
+   "file": "framework/ai/v/2/v2.css",
+   "from": 206,
+   "to": 215,
+   "lines": 10,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Reply form sizing overrides; 'ask-reply-note' is unused in JS but shares one selector list with two used classes.",
+   "saves": 0
+  },
+  {
+   "id": "talk/talk-shell",
+   "file": "framework/ai/talk/talk.css",
+   "from": 1,
+   "to": 14,
+   "lines": 14,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Talk page width and layer.",
+   "saves": 0
+  },
+  {
+   "id": "talk/talk-head-and-mic",
+   "file": "framework/ai/talk/talk.css",
+   "from": 15,
+   "to": 48,
+   "lines": 34,
+   "verdict": "GENERALIZE",
+   "target": "dictate-in-field (mic inside a text field) in ux/Dictate/Dictate.css",
+   "evidence": ".talk-head positions the mic and overrides .ux-dictate-btn / caption; AI 2's composer needs the same mic inside the field. Also .talk-mic has no use in talk/*.js (grep 'talk-mic' finds none) so lines 28 and 124 are dead.",
+   "saves": 15
+  },
+  {
+   "id": "talk/title-and-partial",
+   "file": "framework/ai/talk/talk.css",
+   "from": 49,
+   "to": 65,
+   "lines": 17,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Title and partial-transcript line.",
+   "saves": 0
+  },
+  {
+   "id": "talk/task-chips",
+   "file": "framework/ai/talk/talk.css",
+   "from": 66,
+   "to": 104,
+   "lines": 39,
+   "verdict": "GENERALIZE",
+   "target": "chip + status-dot (see ai2 who-pill)",
+   "evidence": ".talk-task-* is a status pill with a dot and colour states, built dynamically (talk.js:134 'talk-task-' + state).",
+   "saves": 20
+  },
+  {
+   "id": "talk/chips-and-mobile",
+   "file": "framework/ai/talk/talk.css",
+   "from": 105,
+   "to": 127,
+   "lines": 23,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Chip row and the <40em head.",
+   "saves": 0
+  },
+  {
+   "id": "health/health-page",
+   "file": "framework/ai/health/health.css",
+   "from": 1,
+   "to": 23,
+   "lines": 23,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "Small reader page for Server/health.mjs; nothing shared.",
+   "saves": 0
+  },
+  {
+   "id": "compose/compose",
+   "file": "framework/ai/v/3/compose.css",
+   "from": 1,
+   "to": 22,
+   "lines": 22,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "composer() look; loaded on every page by design, so it is its own sheet.",
+   "saves": 0
+  },
+  {
+   "id": "archive/dated-task-dirs",
+   "file": "framework/ai/2026-*/**",
+   "from": 1,
+   "to": 521,
+   "lines": 521,
+   "verdict": "KEEP",
+   "target": "",
+   "evidence": "12 css files (520 lines) plus one 1-line css`` block in dated task demos (e.g. ai/2026-09-19/devbar-chat/test/chat-test.css, 142 lines); archived work products, not the live UI - unverified, best handled by the archive policy rather than a CSS rewrite.",
+   "saves": 0
+  }
+ ],
+ "totals": {
+  "DUPLICATE": 133,
+  "GENERALIZE": 866,
+  "KEEP": 2481,
+  "DELETE": 9
+ },
+ "proposal": "Most of AI 2 is not one big mistake but the same five small things written over and over: a progress bar (four copies in ai2.css, one more in v3), a boxless text button, a link row with a status edge, a small rounded chip, and a status dot. Build each once in framework.css (the bar can start from ext/AITask/ai.css:469, which already exists), then delete the copies; that is roughly 300 lines out of AI 2 alone. Next, swap the hand-written layouts for words that already exist: .wall for the V3 card grid, .grid.auto for v3's two-column demo and v2's panel row, .masonry for the overview's columns, .card for v2's panels, .pad for the empty state, and .flex/.flex-1 for the overview columns and the talk form. Nine lines of group-what/line CSS are provably unused and can go at once. What stays is the genuinely page-specific part: the rail | card | sub-card | chat grid, the Live card's 2/3/4-column container grid, and the phone one-screen-at-a-time rules. Finally, add two general things the owner already wants: a container-unit --pad token (ai2.css:985 is the prototype) and a page word for 'this page is an app, hide the title and zero the gutter', which v2, v3 and AI 2 all write by hand.",
+ "generalize": [
+  {
+   "name": "progress-bar",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:408",
+    "framework/ai2/ai2.css:1128",
+    "framework/ai2/ai2.css:1215",
+    "framework/ai2/ai2.css:1613",
+    "framework/ai/v/3/v3.css:556"
+   ]
+  },
+  {
+   "name": "text-button",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:219",
+    "framework/ai2/ai2.css:742",
+    "framework/ai2/ai2.css:1107",
+    "framework/ai/v/2/v2.css:78",
+    "framework/ai/v/3/v3.css:867"
+   ]
+  },
+  {
+   "name": "list-row",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:289",
+    "framework/ai2/ai2.css:766",
+    "framework/ai2/ai2.css:1062",
+    "framework/ai2/ai2.css:1243",
+    "framework/ai/v/3/v3.css:526"
+   ]
+  },
+  {
+   "name": "chip",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:498",
+    "framework/ai2/ai2.css:848",
+    "framework/ai/v/3/v3.css:258",
+    "framework/ai/talk/talk.css:66",
+    "framework/ai/talk/talk.css:110"
+   ]
+  },
+  {
+   "name": "status-dot",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:346",
+    "framework/ai/v/3/v3.css:364",
+    "framework/ai/v/2/v2.css:72",
+    "framework/ai/talk/talk.css:91"
+   ]
+  },
+  {
+   "name": "float-pill",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:254",
+    "framework/ai2/ai2.css:1044"
+   ]
+  },
+  {
+   "name": "segmented-control",
+   "wouldReplace": [
+    "framework/ai/v/3/v3.css:106",
+    "framework/ai/v/2/v2.css:31"
+   ]
+  },
+  {
+   "name": "disclosure-list",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:631",
+    "framework/ai/v/2/v2.css:92"
+   ]
+  },
+  {
+   "name": "page.bleed (app page word)",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:27",
+    "framework/ai/v/3/v3.css:705",
+    "framework/ai/v/2/v2.css:127"
+   ]
+  },
+  {
+   "name": "--pad-cq token",
+   "wouldReplace": [
+    "framework/ai2/ai2.css:985"
+   ]
+  },
+  {
+   "name": "dictate-in-field",
+   "wouldReplace": [
+    "framework/ai/talk/talk.css:15"
+   ]
+  },
+  {
+   "name": "toast",
+   "wouldReplace": [
+    "framework/ai/v/3/v3.css:838"
+   ]
+  }
+ ],
+ "risk": "medium — the bar, row and chip components touch four sheets and must be built and proven once before any copy is deleted; the DUPLICATE/DELETE swaps are low risk."
+}

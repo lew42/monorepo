@@ -25,7 +25,14 @@ export class JSONL {
 	unparsed = 0;
 
 	constructor(...args){ this.assign(...args); }
-	assign(...args){ return Object.assign(this, ...args); }
+	/* A field never replaces a method: `{"assign":{"agent": "…"}}` once overwrote the `agent()`
+	 * verb and every later `agent` line threw "this[verb] is not a function" (2026-09-28). Such a
+	 * field is kept in `this.fields` instead. */
+	assign(...args){
+		for (const arg of args) for (const [key, value] of Object.entries(arg ?? {}))
+			typeof this[key] === "function" ? ((this.fields ??= {})[key] = value) : (this[key] = value);
+		return this;
+	}
 
 	/** Text in, entries out. Anything that isn't JSON lands in `bad`, never in the log. */
 	static parse(text, bad = []){

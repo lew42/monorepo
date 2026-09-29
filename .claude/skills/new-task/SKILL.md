@@ -31,7 +31,7 @@ If your brief names a task dir, Servex already opened it: log there and skip ste
 
 **`group` is the effort** — the thread this belongs to, which outlives the day; reuse an existing slug (`ai-log`, `layout`, `panels`, `vision`, `apps`, `web-ui`), or omit it and the task files under *loose*. ⚠ **`session_id` is not optional** — without it the detail page has no transcript and renders no log at all.
 
-**Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, the ANSI byte, the double-encoded em dash, the hand-typed clock and the un-re-parsed file: fifteen dated incidents over five weeks, ranked in [the 2026-09-19 skill audit](/framework/ai/2026-09-19/system-eval/). Verified 2026-09-21 against an em dash, a quote, a backslash, a `*/` glob and a Windows path.
+**Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, ANSI-byte, em-dash and hand-typed-clock traps.
 
 **What a line IS: one JSON object, one verb.** The verbs are `assign` `log` `action` `agent`
 `chat` `shot` `ask` `decision` `verdict` `rank`; `log` is `{at, msg}`; an invented verb or key
@@ -40,9 +40,9 @@ on an `ask` — is [`ext/JSONL/doc/task-jsonl.md`](/framework/ext/JSONL/doc/task
 ⚠ `note` is the one exception: it is `/framework/ai/v/2/`'s own board verb and renders as nothing
 on any other task's log.
 
-**`steps` — the outline IS the progress bar.** `steps` is the proposal outline from `requirements.md`; `step` is the 1-based index of the one underway — the card's segmented bar, its `3/8` and the detail checklist all derive from those two fields, so nothing can disagree.
-Aim for **5–10 steps**; bump `step` when one genuinely finishes, carrying a `now` line that says what's happening *inside* it.
-Land with `step` at the last index; `landed_at` reads as all-checked whatever `step` says.
+**`steps` — write the plan now, before the first edit.** `steps` is the outline (5–10 short steps, from `requirements.md`); `step` is the 1-based index of the one underway. The card's bar and checklist derive from those two fields.
+
+**Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
 
 - `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Append one line, creating the file if the day is new:
 
@@ -68,16 +68,17 @@ Each refresh, also append the snapshot to `public/framework/ai/usage.jsonl`:
 
 ⚠ **Append, never rewrite** — `usage.jsonl` is shared and append-only; a Write to it destroys every other agent's samples.
 
-## 3. While working, log — don't just narrate
+## 3. While working, log
 
-⚠ **An append streams to the open tab over the socket (no reload); creating the task DIR full-reloads every tab that has read `directory.json`.** Log milestones, not keystrokes. (Verified 2026-08-18: `/framework/research/livereload/`.)
+Log milestones, not keystrokes; an append streams to the open tab (creating the task DIR full-reloads every tab). Decisions, caveats and measurements are written **when they happen**, not at the end:
 
-- `{"assign": {"now": "<one line>"}}` — whenever what-you're-doing changes; the card displays it.
-- `{"log": {"at": "<ISO>", "msg": "…"}}` — findings, decisions, verification results.
-- `{"action": {"at": "<ISO>", "did": "run", "files": ["…"]}}` — hand-write for `run` deeds ONLY; edits log themselves via the `PostToolUse` hook (absent a `hooks` key in `.claude/settings.json`, log them by hand as `did: "write|edit|run"`).
-- `{"agent": {"kind": "agent|cli", "task": "<one line>", "model": "…"}}` at dispatch; resend with the same `task` plus `outcome`, `tokens`, `duration_ms` when it lands (TaskJSONL merges by `task`).
-- `{"assign": {"links": [{"url": "…", "label": "…"}]}}` — as soon as an output is viewable, not at landing; `assign` replaces the whole array, so resend the full list.
+- `{"decision": {"at": "<ISO>", "question": "…", "options": ["…"], "chose": "…", "why": "…"}}` — every fork in the road, alternative named.
+- `{"log": {"at": "<ISO>", "msg": "…"}}` — a caveat, a finding, a verification result.
+- `{"agent": {"kind": "agent|cli", "task": "…", "model": "…"}}` at dispatch; resend with the same `task` plus `outcome` when it lands. (Edits log themselves via a hook; token cost is written by Servex — never sum it by hand.)
+- `{"assign": {"links": [{"url": "…", "label": "…"}]}}` as soon as an output is viewable; `assign` replaces the whole array, so resend it all.
 - Wide work → the `fork-claude-session` skill; a spawned distinct project gets its own task dir with your `group`.
+
+The detail lives here and in `doc/`; the page shows the thing, never the log.
 
 ### ⚠ A page nobody links to does not exist
 

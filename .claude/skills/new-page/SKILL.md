@@ -5,6 +5,9 @@ description: Run every time you create a page.js — the blessed shape, the pare
 
 # New page
 
+These are the mechanics. What the page is, where it goes and what goes on it, top-down, is the
+`page` skill. Load that first.
+
 1. **Answer `layout`'s five questions in one line** — container, size, own layout, regions,
    preview — before writing the file.
 2. **The file:**

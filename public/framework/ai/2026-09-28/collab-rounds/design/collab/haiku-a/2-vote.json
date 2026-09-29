@@ -1,0 +1,4 @@
+{
+  "pick": "sonnet-b",
+  "caveat": "fetch() is ambitious—if network/markdown conversion becomes unwieldy, move it to a separate Fetcher class and keep Source as the data model; as proposed, though, sonnet-b covers the full workflow agents need"
+}

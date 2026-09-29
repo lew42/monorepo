@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/2026/09/24/prompt-mechanics-2/",
+ "widths": {
+  "1280": {
+   "empty": 0.263,
+   "widest_text": 8050,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 484,
+   "narrow_share": 0.033
+  },
+  "1920": {
+   "empty": 0.367,
+   "widest_text": 8567,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 484,
+   "narrow_share": 0.062
+  },
+  "2560": {
+   "empty": 0.405,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 484,
+   "narrow_share": 0.062
+  },
+  "3440": {
+   "empty": 0.509,
+   "widest_text": 9638,
+   "widest_text_sample": "Most agents need nothing beyond a fresh ",
+   "overflow_x": false,
+   "items": 484,
+   "narrow_share": 0.762
+  }
+ },
+ "errors": []
+}

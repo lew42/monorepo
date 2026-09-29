@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Dictate/playground/walkthrough/",
+ "widths": {
+  "1280": {
+   "empty": 0.401,
+   "widest_text": 716,
+   "widest_text_sample": "It's right at the top of the plain Dicta",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 0.292
+  },
+  "1920": {
+   "empty": 0.323,
+   "widest_text": 790,
+   "widest_text_sample": "It's right at the top of the plain Dicta",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  },
+  "2560": {
+   "empty": 0.496,
+   "widest_text": 888,
+   "widest_text_sample": "It's right at the top of the plain Dicta",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  },
+  "3440": {
+   "empty": 0.623,
+   "widest_text": 888,
+   "widest_text_sample": "It's right at the top of the plain Dicta",
+   "overflow_x": false,
+   "items": 48,
+   "narrow_share": 1
+  }
+ },
+ "errors": []
+}

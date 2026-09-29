@@ -16,7 +16,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
  * A resume must run in the session's ORIGINAL cwd, and mastermind-servex was made there. */
 const REPO = path.join(HERE, "../..");
 const HEARD = ["task", "landed", "blocked", "error"];
-const WORKER = /^(minion|helper|fork)/;
+/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. */
+const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher)/;
+const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
@@ -115,7 +117,25 @@ export default class Global {
 		return this.touch(id, this.remember(agent, "master"));
 	}
 
+	/* THE HOLDER. "mastermind-servex" is a role: when the owner starts a fresh
+	 * session for it as mastermind-servex-N (the old one stood down at a full
+	 * context), the highest N in the registry holds it, and a boot or a wake
+	 * resumes THAT session, never the retired one. */
+	holder(){
+		const n = id => +(/^mastermind-servex-(\d+)$/.exec(id)?.[1] ?? -1);
+		let ids = [...this.agents.live.keys()];
+		try { ids = ids.concat(Object.keys((this.agents.reg?.() ?? new Registry()).read())); } catch {}
+		return ids.filter(id => n(id) >= 0).sort((x, y) => n(y) - n(x))[0] ?? this.mastermind_id;
+	}
+
 	mastermind(){
+		const h = this.holder();
+		if (h !== this.mastermind_id){
+			const live = this.live(h);
+			if (live) return live;
+			const row = this.registry_row(h);
+			if (row?.session_id) return this.touch(h, this.agents.reopen(row));
+		}
 		const id = this.mastermind_id;
 		const live = this.live(id);
 		if (live) return live;
@@ -202,8 +222,8 @@ export default class Global {
 	sweep(now = Date.now()){
 		for (const agent of [...this.agents.live.values()]){
 			if (agent.state !== "idle") continue;
-			const worker = WORKER.test(agent.role ?? "") || WORKER.test(agent.id ?? "");
-			const global = agent.id === this.master_id || agent.id === this.mastermind_id;
+			const worker = is_worker(agent);
+			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id) || /^task-mastermind-/.test(agent.id);   // 15 min idle; a message wakes them
 			if (!worker && !global) continue;
 			if (worker && !(agent.turns >= 1)) continue;
 			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : this.idle_ms)) continue;

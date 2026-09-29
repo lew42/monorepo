@@ -50,7 +50,7 @@ else {
 		try {
 			return JSON.parse(execFileSync("powershell", ["-NoProfile", "-Command",
 				`ConvertTo-Json -Compress -InputObject @(Get-CimInstance Win32_Process -Filter "ParentProcessId=${pid}" | Select-Object ProcessId,Name)`],
-				{ encoding: "utf8" }) || "[]");
+				{ encoding: "utf8", windowsHide: true }) || "[]");
 		} catch { return []; }
 	};
 

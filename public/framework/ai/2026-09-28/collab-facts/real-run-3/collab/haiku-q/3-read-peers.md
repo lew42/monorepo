@@ -1,0 +1,5 @@
+# Read Peers
+
+**Sonnet-r:** Found the key absence—`review.md` contains **no rule** saying "shared CSS change → always take a before/after screenshot," which is stronger than saying screenshots are only for "full" size. Also explicitly positioned `--no-review` as a loud, logged exception, not a routine judgment call any agent should reach for, reinforcing that the gate is mechanical and the mastermind-only escape hatch is rare and documented, not discretionary per agent confidence.
+
+**Haiku-p:** Cited real-world precedent (GitButler's principle: "screenshots only if visible") and emphasized that size assignment depends on **visual impact**, not CSS scope alone—a CSS refactor might stay "light" even if it touches many files, provided the visible output doesn't change. Also walked through concrete examples of none/light/full categories tied to visual change, making it clear the mastermind's judgment is about whether a CSS change warrants *escalating* the review tier, not whether to skip review once a tier is assigned.

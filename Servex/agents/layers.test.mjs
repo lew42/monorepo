@@ -7,6 +7,8 @@ import os from "node:os";
 import path from "node:path";
 import Layers from "./Layers.js";
 
+process.env.SERVEX_PROMPT_QUIET_MS = "0";     // the checks below expect each prompt at once; the pause is proven by pause-proof.mjs in the servex-mastermind task
+
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; };
 
@@ -142,6 +144,29 @@ check("card_set refused for another card's assistant, allowed on its own sub-car
 	assert.equal(refused.ok, false);
 	assert.equal(allowed.ok, true);
 	assert.deepEqual(logs.get(A_SUB).slice(-2), [{ type: "request" }, { title: "Wider" }]);
+});
+
+const pid = (card, text) => logs.get(card).find(l => l.prompt?.text === text).prompt.id;
+const P1 = pid(A, "make the sidebar wider"), P2 = pid(A, "and darker");
+const amend = (card, args, caller = "assistant-fix-the-sidebar") => call("amend_bubble", { card, ...args }, caller);
+const good = await amend(A, { of: [P1, P2], sections: [{ text: "Make the sidebar wider", from: [P1] }, { text: "And darker.", from: [P2] }, { text: "## Sidebar" }] });
+const short = await amend(A, { of: [P1], sections: [{ text: "wide", from: [P1] }] });
+const wrong = await amend(A, { of: [P1], sections: [{ text: "Make the sidebar wider", from: [P1] }] }, "assistant-new-logo");
+const unknown = await amend(A, { of: ["p-nope"], sections: [{ text: "x" }] });
+const outside = await amend(A, { of: [P1], sections: [{ text: "And darker.", from: [P2] }] });
+check("amend_bubble: accepted appends one refined line", () => {
+	assert.equal(good.ok, true);
+	const line = logs.get(A).at(-1);
+	assert.deepEqual([line.type, line.of, line.by, line.text], ["refined", [P1, P2], "assistant-fix-the-sidebar", "Make the sidebar wider\n\nAnd darker.\n\n## Sidebar"]);
+});
+check("amend_bubble: refuses too short, wrong card, unknown id, from outside of", () => {
+	const len = logs.get(A).length;
+	assert.deepEqual([short.ok, wrong.ok, unknown.ok, outside.ok], [false, false, false, false]);
+	assert.match(short.error, /shorter than 60%/);
+	assert.match(wrong.error, /own card/);
+	assert.match(unknown.error, /not a prompt id/);
+	assert.match(outside.error, /not in `of`/);
+	assert.equal(logs.get(A).length, len);
 });
 
 check("recycle -> next spawn has no resume, starts from the last summary", () => {

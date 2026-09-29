@@ -1,0 +1,567 @@
+[
+ {
+  "task": "accept-buttons",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/accept-buttons/",
+  "title": "Accept/Reject buttons on every accept-screen row → verdicts.jsonl via the dev socket (twin.js pattern); rows show accepted/rejected + revert",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "A click writes one `{\"verdict\":{\"id\",\"accept\",\"at\"}}` line to `verdicts.jsonl` over the dev socket, following `ext/DesignTool/audit/twin.js:85-91` exactly (the write RPC WRITES, not appends: fetch the file as text, add a line, resend whole — comment at the top",
+   "On load, latest verdict per id wins; each card shows an accepted/rejected tag, a rejected card repeats its revert line under a \"to apply\" label."
+  ]
+ },
+ {
+  "task": "ai-board-fix",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ai-board-fix/",
+  "title": "Task page shows the answer first on one screen: reorder report(), fold the feed to prompts, links pills, hide the rail when routed, one-line",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Coordinator follow-up: fresh headless load of layout-primitives/ (own page.js, undeclared) rendered the GENERIC viewer -- confirmed a real race, async route() proven unfixable (route()s return value goes straight to add() with a plain if, no await; core/new/1/"
+  ]
+ },
+ {
+  "task": "ai-board-review",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ai-board-review/",
+  "title": "Investigate the AI dashboard/reporting: what is logged, see it at 900/1440, diagnose causes, propose tabs · custom content · messages · sub-",
+  "status": "landed"
+ },
+ {
+  "task": "ai-card-mobile",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ai-card-mobile/",
+  "title": "Fix the worst mobile-only regression found by the 2026-08-17 mobile sweep: /framework/ai/ scores 82/B at 1280 and 58/F at 390 -- a task card",
+  "status": "landed"
+ },
+ {
+  "task": "ai-logs-guard",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ai-logs-guard/",
+  "title": "Close the AI-logs disclosure hole: GET /ai-logs/:id (Server/plugins/AILogs.js) answered the LAN and streamed ~/.claude/projects transcripts ",
+  "status": "landed"
+ },
+ {
+  "task": "ai-rail",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ai-rail/",
+  "title": "Fix the /framework/ai/ catalog rail proportion — 474px of 1280 in row mode, and a 731px-wide/45%-tall block above the content below 64em (ai",
+  "status": "landed"
+ },
+ {
+  "task": "band-rederive",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/band-rederive/",
+  "title": "Three taste bands still don't measure what they claim -- `measure`, `contrast` and possibly `scale` -- and you may now re-derive them, becau",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**VERIFIED, and the tier's SPREAD grew while its mean stood still — which is the signature a re-derivation should have.** `tests/` — the 23 declared-verdict layouts — **23/23 at 400, 1280, 1920 and 3440**, so no rule with a written verdict moved in either dire"
+  ]
+ },
+ {
+  "task": "claude-md-minimal",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/claude-md-minimal/",
+  "title": "Rewrite CLAUDE.md to be absolutely minimal under three new laws (less is more / clarity / prioritize); analyze all skills against them; fix ",
+  "status": "landed"
+ },
+ {
+  "task": "css-skill",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/css-skill/",
+  "title": "css skill + new-css-class + css-scopes.txt; documentation principles; proposal refresh",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Left: code rename, finish rewrite, layout skill, readme retreat — awaiting Mike."
+  ]
+ },
+ {
+  "task": "day-page-ux",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/day-page-ux/",
+  "title": "Day page UX: one scroll region (fix the two scrollbars at the cause), strip → clickable now-first overview (active with now+steps, landed ro",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict, identical from the whole page @900 and from one cropped .ai-card @900: 'the pill-outlined effort tags read as the interactive elements while the actual primary entry point reads as inert label text' -- the task NAME had no link treatment."
+  ]
+ },
+ {
+  "task": "depth-sample",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/depth-sample/",
+  "title": "Are ext/Panel's (and 4 other pages') findings below depth 20 real or false positives? Sample by hand before the depth-raise decision is publ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict on all 16: REAL.",
+   "Verdict on raising depth is explicitly Mike's (RULE#1, same class of call the node cap would have been) -- this task delivers the sample, not the decision.",
+   "Recommendation: raising depth looks like it would make the audit more useful, not noisier, on this evidence; verdict is explicitly Mike's (RULE#1)."
+  ]
+ },
+ {
+  "task": "designtool-rename",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/designtool-rename/",
+  "title": "go ahead and rename the LayoutTool to DesignTool, so we can have all the design elements, layout being a big piece.",
+  "status": "landed"
+ },
+ {
+  "task": "designtool-ui",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/designtool-ui/",
+  "title": "for the LayoutTool, we shouldn't have 2 screens. also, the whole devbar is very cluttered, it's not visually clear what is selected, what we",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict: B is DELETED from the rail; `report.js` survives untouched for the two pages with room for it.",
+   "rubric-v2's verdict is NOT YET (the baseline fails to reproduce itself: ICC 0.510) so a vision number cannot sit next to a measured one; $0.035-0.17/image next to a ResizeObserver is a bill wired to a gesture; Ask.available() is false off localhost."
+  ]
+ },
+ {
+  "task": "designtool-ui-build",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/designtool-ui-build/",
+  "title": "Build the single-screen DesignTool interface that ai/2026-08-17/designtool-ui/design.md specifies, fix the remaining bad-highlight causes (B",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "⚠ One trap, and it shipped blank once before I caught it: the observer must watch app.$app.el, NEVER document.querySelector('.app') — width.js runs inside App.render() and the shell does not reach the document until inject(), several awaits later, so the query",
+   "The `looks` column from a committed vision.json is step 12 of design.md's build order, explicitly first to cut, and it is BLOCKED anyway: rubric-v2's verdict is NOT YET because the baseline does not reproduce itself (ICC 0.510), so a vision number placed besid"
+  ]
+ },
+ {
+  "task": "devbar-structure",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/devbar-structure/",
+  "title": "build something into the devbar that shows what kind of classes or page structures we have? Sometimes there are nested pages? — plus an hone",
+  "status": "landed"
+ },
+ {
+  "task": "ext-doc-rename",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ext-doc-rename/",
+  "title": "rename ext/doc to ext/Doc and doc.css to Doc.css",
+  "status": "landed"
+ },
+ {
+  "task": "framework-css-load",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/framework-css-load/",
+  "title": "move the framework.css load from View.js to app.js (prepend); fly links it; docs; verify",
+  "status": "landed"
+ },
+ {
+  "task": "generator-compound",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/generator-compound/",
+  "title": "Does the generator's self-improving loop compound? Run round 3 baseline sweep at current committed weights, credit()+proposal() to refit, ro",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT: the second turn of the crank PLATEAUS."
+  ]
+ },
+ {
+  "task": "human-ranking",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/human-ranking/",
+  "title": "Three scoring tiers have been measured against each other and none is trustworthy as ground truth, so build the page where Mike ranks the 18",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**The replay refuses to guess:** if a verdict names a pair that is not the comparison the sort had reached, `broke` reports its index and the page renders a warning instead of a plausible-but-wrong order.",
+   "Verified by corrupting verdict 5 — the duel disappears and the page says the file is inconsistent.",
+   "The replay also refuses to guess: a verdict naming a pair the sort had not reached makes the page say the file is inconsistent rather than render a plausible-but-wrong order."
+  ]
+ },
+ {
+  "task": "instructions-overhaul",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/instructions-overhaul/",
+  "title": "mastermind: CLAUDE.md rewrite, skills overhaul, readme retreat via Fable minions, pacing rule, catalog rail, DesignTool research review",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "5/6 so far: Ask 130→28, Saver 116→27, Timeline 113→28, DT/audit 65→28, DT/widths 79→26; taste pending",
+   "7/8 so far: catalog 229→25, depth 166→28, drawer 98→29, editor 145→28, files 125→29, highlight 154→26, layout 121→28; demo pending"
+  ]
+ },
+ {
+  "task": "layout-primitives",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layout-primitives/",
+  "title": "Build the five layout primitives (.page .rail .wall .stage .solo), migrate report page + Doc.css + catalog browse, tabs overflow fix; before",
+  "status": "landed"
+ },
+ {
+  "task": "layout-system",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layout-system/",
+  "title": "Investigate the site-wide layout problems at 900/1440/3440, find the causing rules, propose a SIMPLE page layout system (≤5 primitives) with",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Prior art (layout-hunt/audit.md, styles/doc/measure.md, wall-polish) all diagnosed correctly and all end pending Mikes verdict — the site is still broken because the two site-wide decisions were never taken, not because nobody looked."
+  ]
+ },
+ {
+  "task": "layout-wave-2",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layout-wave-2/",
+  "title": "Fix vision-after's broken clusters at the cause: strip scoped to card rails, --subtle one step, tabs fade not thin scrollbar, delete span 2,",
+  "status": "landed"
+ },
+ {
+  "task": "layout-wave-3",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layout-wave-3/",
+  "title": "Wave 3 from the sweep harvest: reach-through so wrappers can claim wide (subgrid/contents, ≤3 rules or stop), delete the bare-card guard, .m",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Tab strip verdict: 2 of the 3 are about the RIGHT edge, which has carried a 2em fade since wave 2, and one of them writes 'SESSI…' - describing the fade while calling it a clip."
+  ]
+ },
+ {
+  "task": "layouts-redesign",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/layouts-redesign/",
+  "title": "our styles/layouts/ page's layout SUCKS. it has 1 item in the first row. 3 items in the second. all the items in the flex and grid sections ",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict: at 3440 the wall used 1450px of 3440 (panel body shrink-wrap beat the width:100% workaround) leaving ~2000px of gutter; at 390 the panel row REFUSED TO STACK, giving the rail 220px of 390 and the wall 155px — one card per row, unusable; 1 card in row ",
+   "VERDICT 3440: much better and it looks good — 6 columns, the whole 29-card catalog inside ~1700px so you really do see all the things at once; four bands read as grouped sets; every card is one legible quarter-scale desktop with its footer visible and no scrol",
+   "VERDICT 1280: clean, 2 columns of ~390px cards, rail 192px sticky."
+  ]
+ },
+ {
+  "task": "ledger-attribution",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ledger-attribution/",
+  "title": "Fix .claude/hooks/ledger.mjs find_task() to attribute edits by the edited file's own path (walk up for a directory containing task.jsonl) in",
+  "status": "landed"
+ },
+ {
+  "task": "loss-budget",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/loss-budget/",
+  "title": "Diagnose where the generator's ~33 points are lost before fitting further: capture rate()'s per-band output for every roll across the round-",
+  "status": "landed"
+ },
+ {
+  "task": "mastermind-shots",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/mastermind-shots/",
+  "title": "you are a mastermind. create a new task for a ScreenshotTool. first, spawn an Opus minion to investigate recent screenshot tasks... design t",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Smoke-tested the accept page: fresh deep link renders the generic viewer (tabs work, outcome first) instead of its own page.js — the cold has_page_js cache; sent ai-board-fix a fix (await directory.json in route()).",
+   "ai-board-fix follow-up landed: fresh deep link now opens a task's own page.js (sync XHR fallback in has_page_js — a smell to revisit: Router does not await route(); the cause fix is RULE#1 surgery).",
+   "Verdict: v2 stays default; intent should damp class (maybe), not suppress."
+  ]
+ },
+ {
+  "task": "mobile-sweep",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/mobile-sweep/",
+  "title": "Crawl every page at 390 and 720 (mobile-to-mega has never been measured below 1280); analyze() each, compare against the committed 1280 base",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict: site is NOT broken on a phone (0 new zero-size/unreachable anywhere -- the worst failure class never appeared) but is NOT yet meeting the mobile-to-mega objective either -- 12 pages take a genuinely new high-severity hit at 390, worst being /framework"
+  ]
+ },
+ {
+  "task": "orphan-sweep",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/orphan-sweep/",
+  "title": "RULE#13 sweep: find every page.js under public/framework/ that no parent declares in children:, and every dangling children: declaration wit",
+  "status": "landed"
+ },
+ {
+  "task": "panel-simplify",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/panel-simplify/",
+  "title": "A deletion task: ext/Panel's workspace.js back under 200 lines with no capability lost — the first objective is clean, simple solutions Mike",
+  "status": "landed"
+ },
+ {
+  "task": "port-fly-depth-resume",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/port-fly-depth-resume/",
+  "title": "Port C:/Code/lew42com/public/fly/ into this repo; find the 3D scroll demo and build a similar widget for this site; create /public/resume/ f",
+  "status": "landed"
+ },
+ {
+  "task": "proposal-followups",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/proposal-followups/",
+  "title": "skill-notes.md; proposal update (ASAP, two-tier skills, doc route decided); prepend framework.css + strip @layer restatements + View footgun",
+  "status": "landed"
+ },
+ {
+  "task": "readme-retreat",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/readme-retreat/",
+  "title": "every framework readme to the new ≤30-line index shape; history moved verbatim to doc/decisions.md; one Fable minion per readme",
+  "status": "landed"
+ },
+ {
+  "task": "remeasure-diff",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/remeasure-diff/",
+  "title": "Judge sweep → remeasure by meaning on the 8 pages that moved: regressions (wave + rule) vs pre-existing vs noise vs new content; the true ve",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT: better, narrowly and provably.",
+   "[**The verdict, the ledger and wave 4**](/framework/ai/2026-08-17/remeasure-diff/proposal.md) — every new `broken` on the eight pages classified, then six items, cause → fix → class: the `code` chip · `wide` still reaches nothing (12 of 19 pages, one word in `"
+  ]
+ },
+ {
+  "task": "rename-manifest",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/rename-manifest/",
+  "title": "Inventory every reference to LayoutTool in this repo so a later agent can rename it to DesignTool in one atomic sweep. Produce a manifest wi",
+  "status": "landed"
+ },
+ {
+  "task": "report",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/report/",
+  "title": "Mike has been away for hours, a dozen tasks have landed, and the dashboard shows them chronologically as logs — build the one page that show",
+  "status": "landed"
+ },
+ {
+  "task": "report-full",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/report-full/",
+  "title": "Mike says /framework/ai/2026-08-17/report/ is split 50/50 with the rail, sitting full-width above the content instead of beside it — make th",
+  "status": "landed"
+ },
+ {
+  "task": "rubric-v2",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/rubric-v2/",
+  "title": "Harden the rubric before we bet the site on it: (1) measure the baseline's own repeatability by re-scoring all 18 frozen images blind, (2) s",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**Verdict: delete `overall` as a scored axis and derive it.** Free reliability, one less number, and it makes room for the contrast split without exceeding six axes (RULE#18: deleting beats adding).",
+   "**REOPENING one vision-baseline verdict (RULE#2, new evidence).** 'taste.json is closer to how pages look' does not replicate on ORDERING.",
+   "So the fix list from vision-baseline stands -- the four calibration bugs are real and `width-used` is still the top one -- but 'taste beats math at ranking' was a difference measured inside the baseline's own noise, and only the MAE/bias half of that verdict h"
+  ]
+ },
+ {
+  "task": "screenshot-tool",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/screenshot-tool/",
+  "title": "ScreenshotTool: log every screenshot + the AI's design feedback, per region, per width, per model, per prompt; browsable report with prompts",
+  "status": "landed"
+ },
+ {
+  "task": "settle-study",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/settle-study/",
+  "title": "How many of this site's audit findings are facts about the 350ms frame() delay? Dispatched by mastermind-layout.",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Verdict on the global RULE#1 fix left to Mike."
+  ]
+ },
+ {
+  "task": "shared-heading",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/shared-heading/",
+  "title": "14 ui/* pages plus web/layout/tracks/ all drop identically from 83-92 to 76 at 390, gaining the same new heading-offset finding. Find the on",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT: false positive.",
+   "No CSS/JS touched (stage.js, stage.css, polish.js, Page.class.js all left as-is -- correctly, per the false-positive verdict)."
+  ]
+ },
+ {
+  "task": "shots-history",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/shots-history/",
+  "title": "Investigate the recent screenshot/vision tasks: inventory, the analysis Mike loved + its exact prompt, the gap vs his ask, mechanics, and a ",
+  "status": "landed"
+ },
+ {
+  "task": "shots-in-log",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/shots-in-log/",
+  "title": "Make screenshots taken outside the repo show up in the AI task log dashboard, keyed off a log-line convention -- plumbing only, scoring late",
+  "status": "landed"
+ },
+ {
+  "task": "skills-check",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/skills-check/",
+  "title": "Check the revamped skills: hooks wiring, stale old-name references, every improvements.md, mastermind skill wording, skill health; fewer rul",
+  "status": "landed"
+ },
+ {
+  "task": "skills-tidy",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/skills-tidy/",
+  "title": "Apply the skills-check verdicts: hooks readme repair, stale skill names, prune absorbed improvements, dev-rail line into layout, mastermind ",
+  "status": "landed"
+ },
+ {
+  "task": "sweep-harvest",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/sweep-harvest/",
+  "title": "Cluster the sweep's 280 findings by cause (file:line), class broken/maybe, one-line fixes + deletions, wave 3 ranked, prompt feedback",
+  "status": "landed"
+ },
+ {
+  "task": "tab-bar-mobile",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/tab-bar-mobile/",
+  "title": "336px-tall .tabs.block .tab-bar on /framework/ext/catalog/ at 390 (341 at 720, normal 57 at 1280) — a blank grey band no LayoutTool rule cat",
+  "status": "landed"
+ },
+ {
+  "task": "task-status",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/task-status/",
+  "title": "A task page shows history and a report but never says where the task is right now — add the current-status line, above the fold, from m.now ",
+  "status": "landed"
+ },
+ {
+  "task": "tier-calibration",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/tier-calibration/",
+  "title": "The measurement tier is inaccurate in four identified ways -- fix the MECHANISMS, never tune thresholds to make the 18 baseline images agree",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "**THE TIER IS FROZEN AND VERIFIED BEFORE THE REGENERATION, per the brief.** `tests/` — the 23 declared-verdict layouts, the ground truth that scores the analyzer rather than the analyzer scoring itself — **passes 23/23 at 400, 1280, 1920 AND 3440**, so no rule",
+   "**FINAL VERIFICATION, all of it re-run after the last edit rather than before it.** `tests/` **23/23 at 400, 1280, 1920 and 3440** — unchanged through the `gutter`, `heading-offset`, `metrics` and highlight changes, so no rule with a written verdict moved in e"
+  ]
+ },
+ {
+  "task": "ui-wall",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/ui-wall/",
+  "title": "/framework/ui/ holds 19 components on one flat line and Mike wants it organized most-useful-first with variants one click inside, so that cl",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT, from the shots, not the score."
+  ]
+ },
+ {
+  "task": "vision-after",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-after/",
+  "title": "Re-shoot the 6 pilot pages × 3 widths after the layout wave (Sonnet, page-level); diff findings before/after; cluster what remains by cause;",
+  "status": "landed"
+ },
+ {
+  "task": "vision-baseline",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-baseline/",
+  "title": "Establish an Image + Scoring baseline, per image, the source of truth -- like LLM training data -- so we can test cheaper models AND test ag",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "Shoot harness: global Playwright 1.62.1 (LAW#4, no npm dep), chromium headless, one context, viewport 1280x800 dsf 1, addInitScript window.$BLOCKRELOAD=true, goto waitUntil:'load' (never networkidle -- the reload socket never idles), +500ms, await document.fon",
+   "**Verdict: Haiku cannot carry this work at any price.**",
+   "**THE VERDICT, in two sentences (deliverable 3).** **`taste.json` is closer to how pages actually look** -- MAE 7.22 against my baseline versus math's 12.78, and math's score is *anti*-correlated with appearance (Pearson **-0.393**), because it counts findings"
+  ]
+ },
+ {
+  "task": "vision-browse",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-browse/",
+  "title": "18 vision analyses are recorded in vision-baseline/baseline.json (image, hash, overall, five axis scores, one sentence of prose per axis) an",
+  "status": "landed"
+ },
+ {
+  "task": "vision-browse-page",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-browse-page/",
+  "title": "Build ext/DesignTool/vision/page.js: browse a run's vision.jsonl - thumb, url/width/region, model, tokens/cost, prose, findings badges, prom",
+  "status": "landed"
+ },
+ {
+  "task": "vision-direction",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-direction/",
+  "title": "Direction-first fixes (increase/decrease + property + amount), turn 2 translates EVERY finding to a delta or an explicit retract given the c",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "30 findings · 4 decls (precision **0.88**) · 20 retracts (precision **0.95**) · 6 markup-only\n\n$3.64 total · **$0.121 per finding**\n\n**Verdict: decl precision 0.88 ≥ 0.6 — preview/accept path opens.**\n\n- [quality.md](/framework/ai/2026-08-17/vision-direction/)",
+   "Measurements behind the verdict: 'dispatched' darkest glyph pixel rgb(135)=3.59:1 and .muted-on---subtle computes 2.96:1, both under AA, against turn 2's asserted 5.02:1/5.41:1 - it dropped the .muted multiplier, the exact hazard framework.css:225 warns about.",
+   "readme.md: prompts line names v4 + css-v3, and the verdict line now carries BOTH measurements (0.17 and 0.25) plus the new headline - ask for a direction and you get 0.93, ask the same blind turn for a declaration and you get 0.25."
+  ]
+ },
+ {
+  "task": "vision-fixes",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-fixes/",
+  "title": "Findings gain a fix line; turn 2 reads the page CSS + css/layout skills and returns {sel,decl,why,class,ladder_rung} + skill notes; run 6 pa",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT: v3 does NOT become default."
+  ]
+ },
+ {
+  "task": "vision-measure",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-measure/",
+  "title": "Turn 2 gets probe measurements (rects, computed styles, contrast) + the css that actually cascades; css-v4 delta-or-retract; replay the 6 pn",
+  "status": "landed"
+ },
+ {
+  "task": "vision-pilot",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-pilot/",
+  "title": "pilot run of vision-runner: 6 pages x 3 widths x (page + <=4 regions), Sonnet/critique-full-v1, then 12 page-shots through Opus and 3 throug",
+  "status": "landed"
+ },
+ {
+  "task": "vision-prompts",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-prompts/",
+  "title": "Prompt experiment: critique-v1 (short) and a new checklist-v1 (targeted) on the 6 pilot pages @1280, Sonnet, same run as critique-full-v1; n",
+  "status": "landed"
+ },
+ {
+  "task": "vision-remeasure",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-remeasure/",
+  "title": "Re-shoot the 19-page sweep corpus after three waves (same prompt), diff broken counts by script; the wide Before/After pngs for the accept s",
+  "status": "landed"
+ },
+ {
+  "task": "vision-runner",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-runner/",
+  "title": "Build ext/DesignTool/vision/run.mjs + prompts/: headless runner, regions x widths, fresh claude -p session per image, vision.jsonl per shot ",
+  "status": "landed"
+ },
+ {
+  "task": "vision-sweep",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/vision-sweep/",
+  "title": "Sweep ~18 template pages x 390/1280/3440 page-level (Sonnet, critique-full-v1); cards-vs-page comparison on 2 pages with numbers; note.md wi",
+  "status": "landed"
+ },
+ {
+  "task": "wall-polish",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/wall-polish/",
+  "title": "Two catalog walls (/framework/ui/, /framework/styles/layouts/) read well and each has one visual weakness left: ragged rows (fix: uniform th",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT, from the shots.",
+   "HONEST VERDICT logged above: uniform height's real cost is ~12 other ui/ cards now showing visible dead space that used to just be a shorter box (left alone, out of this task's two-item scope), and 390 mobile pays that same cost with no row to fix in a single "
+  ]
+ },
+ {
+  "task": "weak-cards",
+  "date": "2026-08-17",
+  "link": "/framework/ai/2026-08-17/weak-cards/",
+  "title": "Fix the two weakest layouts cards (stack, sidebar) called out by Mike after today's layouts redesign; conform space/'s card; decide doc/file",
+  "status": "landed-with-leftovers",
+  "waiting_on_owner": [
+   "VERDICT — stack and sidebar.",
+   "VERDICT: still no second responsibility big enough to split out.",
+   ".measure was never touched — the fix was giving it a page to sit inside, per the redesign's own 'content, not CSS' verdict."
+  ]
+ },
+ {
+  "skipped": [
+   "high-fixes"
+  ]
+ }
+]

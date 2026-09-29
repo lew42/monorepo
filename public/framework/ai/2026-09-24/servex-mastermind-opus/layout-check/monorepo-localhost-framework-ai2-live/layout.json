@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/live/",
+ "widths": {
+  "1280": {
+   "empty": 0.508,
+   "widest_text": 441,
+   "widest_text_sample": "now shoots every width, builds a contact",
+   "overflow_x": false,
+   "items": 773,
+   "narrow_share": 0.005
+  },
+  "1920": {
+   "empty": 0.517,
+   "widest_text": 469,
+   "widest_text_sample": "now shoots every width, builds a contact",
+   "overflow_x": false,
+   "items": 773,
+   "narrow_share": 0.022
+  },
+  "2560": {
+   "empty": 0.482,
+   "widest_text": 536,
+   "widest_text_sample": "You are on duty. The next message will b",
+   "overflow_x": false,
+   "items": 832,
+   "narrow_share": 0.02
+  },
+  "3440": {
+   "empty": 0.54,
+   "widest_text": 602,
+   "widest_text_sample": "You are on duty. The next message will b",
+   "overflow_x": false,
+   "items": 832,
+   "narrow_share": 0.465
+  }
+ },
+ "errors": []
+}

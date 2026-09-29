@@ -1,5 +1,5 @@
 import { div, span, small, button } from "/app.js";
-import { servex_base } from "./inbox.js";
+import { servex_base, servex_fetch } from "./inbox.js";
 
 /**
  * THE CARD'S AGENTS: one row for each agent working on this card (its assistant
@@ -22,7 +22,7 @@ const ACTIONS = [
 ];
 
 let ready = null;
-const has_route = () => ready ??= fetch(url("/log/features?n=50"))
+const has_route = () => ready ??= servex_fetch(url("/log/features?n=50"))
 	.then(r => (r.ok ? r.json() : []))
 	.then(list => Array.isArray(list) && list.some(e => e?.card_agents))
 	.catch(() => false);
@@ -46,7 +46,7 @@ export default function agents_panel(card_id){
 				small.c("muted").text(`${short(a.context)} tokens · ${pct == null ? "?" : pct}% of ${short(a.window)}`);
 				ACTIONS.forEach(([verb, label, title]) => {
 					button.c("ai2-word").attr("type", "button").attr("title", title).text(label)
-						.click(() => fetch(url(`/api/agent/${encodeURIComponent(a.id)}/${verb}`), { method: "POST" })
+						.click(() => servex_fetch(url(`/api/agent/${encodeURIComponent(a.id)}/${verb}`), { method: "POST" })
 							.catch(() => null).then(refresh));
 				});
 			});
@@ -55,7 +55,7 @@ export default function agents_panel(card_id){
 
 	function refresh(){
 		if (!$box.el.isConnected && refresh.seen) return clearInterval(refresh.timer);
-		return fetch(url(path))
+		return servex_fetch(url(path))
 			.then(r => (r.ok && (r.headers.get("content-type") ?? "").includes("json") ? r.json() : null))
 			.catch(() => null)
 			.then(list => { if (Array.isArray(list)) paint(list); });
@@ -67,4 +67,36 @@ export default function agents_panel(card_id){
 		refresh().then(() => { refresh.seen = true; });
 	});
 	return $box;
+}
+
+/* WHAT A CARD'S AGENTS COST — the sum of `cost` over `/api/card-agents` (every
+   message sent from the card to its assistant and its manager, through the
+   SDK; the same agent turns also count inside a master session, and that
+   double count is wanted). `null` until Servex answers with a `cost` field:
+   an older Servex sends none. Fetched one card at a time, cached 30 s. */
+const costs = new Map();
+let queue = Promise.resolve();
+
+export function agent_cost(card_id, then){
+	const hit = costs.get(card_id);
+	if (hit && Date.now() - hit.at < 30000) return hit.usd;
+	if (!hit?.busy){
+		costs.set(card_id, { ...hit, busy: true, at: hit?.at ?? 0 });
+		queue = queue.then(async () => {
+			let usd = null;
+			try {
+				// The number: `cost` on Servex's `/api/agents` records for this card's assistant and manager, found by name (`assistant-<slug>`, `manager-<slug>`).
+				const r = await servex_fetch(url("/api/agents"));
+				const list = r.ok && (r.headers.get("content-type") ?? "").includes("json") ? await r.json() : [];
+				const slug = card_id.split("/").pop();
+				const mine = Array.isArray(list) ? list.filter(a => (a.id === "assistant-" + slug || a.id === "manager-" + slug) && typeof a.cost === "number") : [];
+				const spent = mine.reduce((n, a) => n + a.cost, 0);
+				if (spent > 0) usd = spent;
+			} catch {}
+			const changed = usd !== hit?.usd;
+			costs.set(card_id, { usd, at: Date.now() });
+			if (changed) then?.();
+		});
+	}
+	return hit?.usd ?? null;
 }

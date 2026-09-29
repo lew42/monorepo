@@ -50,9 +50,30 @@ drawer.refresh = () => { if (fill && drawer.showing()) fill($slot, $body); };
 drawer.close = () => {
 	$rail?.rc("on");
 	$shell?.style("--drawer", "");
+	// Said out loud, so a caller that wrote state somewhere else (the menu's `?drawer=`
+	// word in the url, tabs.js) can take it back when the ✕ shuts the rail.
+	window.dispatchEvent(new Event("drawer-close"));
 };
 
 drawer.showing = () => !!$rail?.hc("on");
+
+// Whose content is showing: the fill function last handed to `drawer()`. The menu
+// compares it with its own, so its ☰ can tell "open on my tabs" from "open on a
+// selection's words" and toggle only the first.
+drawer.filled_by = () => fill;
+
+/* THE PAGE THE DRAWER IS ABOUT — a site path with a trailing slash. Normally the
+   address bar's; a host that shows a different page inside itself (AI 2 embedding a
+   real page in its detail area) sets it, and `null` hands it back to the address bar.
+   No argument reads it. Every tab reads this, never `location.pathname`, and a change
+   fires `drawer-page` so the open tab redraws (tabs.js). doc/tabs.md. */
+let about = null;
+drawer.page = function(path){
+	if (!arguments.length) return about ?? location.pathname;
+	about = path ? String(path).replace(/\/?$/, "/") : null;
+	window.dispatchEvent(new Event("drawer-page"));
+	return drawer.page();
+};
 
 // What the grip writes on every move: clamp it, put it on the shell, hand it back so the
 // number that gets remembered is the one that was actually applied.
@@ -80,7 +101,7 @@ function build(){
 	$rail.append(() => {
 		div.c("drawer-head flex v-center split", () => {
 			$slot = div.c("drawer-slot flex v-center");
-			button.c("drawer-x", "✕").click(drawer.close).attr("title", "Close");
+			button.c("drawer-x", "✕").click(() => drawer.close()).attr("title", "Close");
 		});
 
 		$body = div.c("drawer-body flex v");

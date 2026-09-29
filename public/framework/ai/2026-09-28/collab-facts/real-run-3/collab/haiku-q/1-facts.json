@@ -1,0 +1,62 @@
+[
+  {
+    "id": "size-none-no-review",
+    "text": "Size 'none' (CSS or docs only, ≤20 lines, no new file) requires nobody's review — the merge gate passes without any review at all",
+    "certainty": "settled"
+  },
+  {
+    "id": "size-light-full-require-review",
+    "text": "Any change size 'light' or 'full' requires a passing review or the merge gate refuses, loudly",
+    "certainty": "settled"
+  },
+  {
+    "id": "screenshots-full-only",
+    "text": "Screenshots at 1280, 1920, 3440 are required only for size 'full' (new page, module, tool, or Servex change) — not for 'light' and definitely not for 'none'",
+    "certainty": "settled"
+  },
+  {
+    "id": "css-shared-size-depends",
+    "text": "A shared CSS change is size 'none' if it's ≤20 lines and touches no new file; otherwise it's 'light' or 'full' depending on what it affects",
+    "certainty": "settled"
+  },
+  {
+    "id": "css-no-auto-screenshots",
+    "text": "Shared CSS changed never automatically triggers a screenshot requirement; screenshots depend on the size category, not the file type",
+    "certainty": "settled"
+  },
+  {
+    "id": "fix-finding-unanswered-blocks",
+    "text": "A [fix] finding with no answer yet blocks the merge gate, even if review passes for all other findings",
+    "certainty": "settled"
+  },
+  {
+    "id": "mastermind-may-lower-size",
+    "text": "The task mastermind may lower a computed size category only with --why \"self-evident: <reason>\" at review time, logged as a decision line",
+    "certainty": "settled"
+  },
+  {
+    "id": "no-review-flag-exists",
+    "text": "The merge gate can be skipped with --no-review \"why\", but the gate prints !!! loud warnings and the reason is recorded",
+    "certainty": "settled"
+  },
+  {
+    "id": "skip-gate-rare-not-forbidden",
+    "text": "Skipping the review gate with --no-review is technically allowed, but the warnings suggest it is rare and only for exceptional cases",
+    "certainty": "likely"
+  },
+  {
+    "id": "mastermind-judgment-on-safety",
+    "text": "Whether an agent should lower size, skip review, or rely on self-evident reasoning is a mastermind's judgment call, not an agent's unilateral decision",
+    "certainty": "likely"
+  },
+  {
+    "id": "hardness-is-category-based",
+    "text": "The review gate is hard when size is 'light' or 'full' (always refuse without review); the decision to lower size or invoke --no-review is the mastermind's discretion",
+    "certainty": "settled"
+  },
+  {
+    "id": "review-stale-blocks",
+    "text": "A review older than the branch's head (unless that head descends from the review's head with all fixes answered) blocks the merge",
+    "certainty": "settled"
+  }
+]

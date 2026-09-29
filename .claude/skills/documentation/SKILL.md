@@ -3,15 +3,16 @@ name: documentation
 description: Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each). Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.
 ---
 
-# Documentation
+# Documentation — the final review
 
-**Post-task, conclusive, minimal.** Document once the decisions are made — authoritative,
-simple, clear, for posterity. No deliberation or back-and-forth in a readme; it names what
-*is*, in summary, and links a doc only when the detail is genuinely needed. Three laws apply:
-less is more, clarity is the exception, prioritize. Then run **`finish-task`**.
+Read the directory's readme index first — it lists what exists — before working with anything in that directory.
 
-Everything here is writing files: no registration, no build. `./doc/` is a convention that
-stands on its own; `ext/Doc` is how it becomes browsable when the module has a `page.js`.
+How to write anything the owner reads (show the structure first, few words) is the `content`
+skill. Load it first.
+
+Decisions, caveats and measurements were already written while you worked (`decision` and `log` lines in `task.jsonl`; a `doc/<topic>.md` when a trap earned its own page). This pass **reviews that the touched module's docs are current — it adds nothing new.** Fix what is stale, delete what is wrong, move deliberation to `doc/decisions.md`, then run **`finish-task`**. The laws apply: less is more, clarity first, prioritize.
+
+Everything here is writing files: no registration, no build. `./doc/` stands on its own; `ext/Doc` makes it browsable when the module has a `page.js`.
 
 ## 1. `readme.md` — the reader's index
 
@@ -21,6 +22,9 @@ length is justified, it's fine. Shape:
 
 ```md
 # Panel — one line: what it is, for whom
+
+## Index
+[`child`](./child/) — what it is and what you'd use it for   (one line per child module)
 
 ## Use
 one snippet, the common case
@@ -32,6 +36,8 @@ one snippet, the common case
 - [Overview](/framework/ext/Panel/) · [`doc/decisions.md`](./doc/decisions.md) · [`doc/generator.md`](./doc/generator.md)
 - Files that matter: `Panel.js` (the class), `templates.css` (what a template looks like)
 ```
+
+The first section of a directory readme with child modules is `## Index`, one line per child: `[name](./name/) — what it is and what you'd use it for`.
 
 Mostly suggestions, minimal direction. No rules that might need breaking — they mislead the
 next agent. Every important `doc/*.md` gets one summary line here, linked. Deliberation,
@@ -51,34 +57,10 @@ a leaf demo page stays a plain `Page`. Pass the class, never an instance.
 
 A new `doc/<name>.md` is in the Docs rail only once `page.js` names it (`notes:`; a new file goes in
 `files:`) — `ext/Doc` declares, it does not crawl.
-⚠ An unregistered `doc/<name>.md` still RESOLVES at `/module/doc/<name>/` — `Page.file()` is the last-resort fallback — but only after `Page.load()` misses, so every load logs `404 …/<name>/page.js` in the console. A brief that says "zero console errors" reads that as a defect. Add the name to `notes:` (one word), or say in the report that the one 404 is the fallback's documented cost (2026-09-13, `core/Page/doc/data-children.md`).
-⚠ The pretty `/module/doc/<name>/` route exists only where something registers it. A **Doc**-based
-module does; a plain **Page**-based module can, by adding a small `doc/page.js` with a `route()` —
-what the paging realm ships, copied to `/imagine/mag/doc/page.js` (2026-09-05). Without one, link
-the literal file path — `./doc/decisions.md` from inside the module, absolute **with `.md`** from
-outside; the pretty form 404s in console while a static server's SPA fallback masks it with a 200
-(bit ext/Panel 2026-08-19 and ux-graduations 2026-08-21 — twice). Prefer the `doc/page.js` when the
-module can afford one extra small file: verified live, the `.md` link leaves the SPA entirely (the
-url ends in `.md`, zero `.page` elements in the DOM) while the routed pretty url resolves in-app
-both directions, real title, no console errors.
-Written along the way when a caveat surfaces, or at the end. **Prefer an absolute link**
-(`/framework/core/View/api/capture/`) for anything that might be read from more than one url —
-a relative link only resolves correctly against the FILE that fetched it (`md.resolve()`
-rebases against the fetch url, not the page showing it), so it is right only inside a `doc/*.md`
-that is always read the same way. Never cite a line number; cite the method or selector.
-`doc/decisions.md` holds the record; `doc/<topic>.md` holds a trap or a design worth its own url.
+⚠ An unregistered `doc/<name>.md` still resolves at `/module/doc/<name>/` but logs one `404 …/page.js` in the console — add its name to `notes:`.
+Every `.md` link opens rendered at `/<module>/md/doc/<name>/` ([`core/Page/doc/markdown.md`](/framework/core/Page/doc/markdown.md)); link with an absolute path, and cite a method or selector, never a line number. `doc/decisions.md` holds the record; `doc/<topic>.md` holds a trap or design worth its own url.
 
-A Doc's routes: `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at
-`/module/api/<name>/` — both per-name. `files:` entries have **no per-name route at all**; they
-render inside the one shared `/module/files/` browser (`Doc.files_section()`), so checking
-`/module/files/<path>/` for one will 404 (ranked-lists, 2026-09-17). For a `note()`-shaped page
-(`const note = (title, file, description) => [title, { description, content(){ return
-md.file(import.meta, file); } }]`) the URL slugifies from the **title**, and the `.md` loads from
-the first argument — a note named `critique` but titled "The critic's pass" routes to
-`/doc/the-critics-pass/`, not `/doc/critique/` (practice-critic, 2026-09-17). This `note()` form
-is a simpler alternative to a hand-written `doc/page.js` with a `route()` for a plain Page-based
-module — declare the notes as children with real titles and descriptions on the cards, and the
-pretty url resolves in-app with no extra file (layout-a, 2026-09-06).
+A Doc's `notes:` land at `/module/doc/<name>/`, `methods:`/`properties:` at `/module/api/<name>/`; `files:` have **no per-name route** (they render in the shared `/module/files/` browser). For a `note()`-shaped page the URL slugifies from the **title**, not the file name.
 
 ## Before finish-task
 

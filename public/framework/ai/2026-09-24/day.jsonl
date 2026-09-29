@@ -1,2 +1,56 @@
 {"log":{"at":"2026-09-24T13:12:24-05:00","task":"servex-startup-note","msg":"task opened — the Servex readme's startup-task command, made to work in PowerShell"}}
 {"log":{"at":"2026-09-24T13:13:01-05:00","task":"servex-startup-note","msg":"landed — Servex logon task registered; readme gives the PowerShell command"}}
+{"log":{"at":"2026-09-24T16:44:09-05:00","task":"handoff2","msg":"ai/handoff2.md written — the MVP list, the page.jsonl/card design, and how to ask session 731a9d1f"}}
+{"log":{"at":"2026-09-24T16:59:08-05:00","task":"servex-mastermind-opus","msg":"task opened — masterminds on Opus 5.5 medium, no cap; first tab-to-Servex mastermind test"}}
+{"log":{"at":"2026-09-24T16:59:57-05:00","task":"helper-fixes","msg":"task opened — two fast-assistant fixes in a worktree, first tab-started mastermind test"}}
+{"log":{"at":"2026-09-24T17:03:21-05:00","task":"helper-fixes","msg":"landed — fast assistant never promises an unstarted helper; helpers report back to it; branch worktree/helper-fixes @ c598bbbb, not merged"}}
+{"log":{"at":"2026-09-24T17:12:04-05:00","task":"servex-crash","msg":"task opened — the 0xC0000409 Servex crash, and making a restart invisible to the owner"}}
+{"log":{"at":"2026-09-24T17:15:21-05:00","task":"live-card","msg":"task opened — Live card on AI 2: one column, three usage bars with pace markers, honest stale tasks"}}
+{"log":{"at":"2026-09-24T17:15:35-05:00","task":"md-pages","msg":"task opened — markdown files render as pages (/<module>/md/<name>)"}}
+{"log":{"at":"2026-09-24T17:20:38-05:00","task":"live-card","msg":"landed — Live card is one scroll with three pace meters; stale tasks read 'not started'; merged adb67dd5 into michael/dev"}}
+{"log":{"at":"2026-09-24T17:21:35-05:00","task":"agent-chat","msg":"task opened — click an agent on the Live card and message it from the browser"}}
+{"log":{"at":"2026-09-24T17:26:24-05:00","task":"card-folders","msg":"task opened — one folder per card, create_card, cards as shared memory between agents"}}
+{"log":{"at":"2026-09-24T17:26:29-05:00","task":"page-jsonl","msg":"task opened — page.jsonl as the default page format (module A, worktree page-cards)"}}
+{"log":{"at":"2026-09-24T17:27:26-05:00","task":"ai2-dashboard","msg":"task opened — gather every owner ask about the dashboards, then improve /framework/ai2/ carefully"}}
+{"log":{"at":"2026-09-24T17:27:41-05:00","task":"loose-ends","msg":"task opened — loose-ends sweep: census of every task since 2026-08-08, decide the owner-blocked items"}}
+{"log":{"at":"2026-09-24T17:28:31-05:00","task":"concurrency","msg":"task opened — fork_self, wait_for_agent, resume/fork spawns, registry sweep, collaboration design"}}
+{"log":{"at":"2026-09-24T17:29:26-05:00","task":"agent-chat","msg":"landed — click a running agent on the Live card to message it; route POST /api/agents/:id/message merged 5a827c78; Servex restart pending"}}
+{"log":{"at":"2026-09-24T17:30:27-05:00","task":"content-modules","msg":"task opened: content modules (census, question/decision/quotation cards, placed by page.jsonl)"}}
+{"log":{"at":"2026-09-24T17:30:35-05:00","task":"servex-crash","msg":"landed — a port-80 gate makes a Servex restart or crash a slow page instead of an error page (0 errors across 8 kills); crash cause not found, crash reports now on"}}
+{"log":{"at":"2026-09-24T17:31:38-05:00","task":"md-pages","msg":"landed — every page has md/: markdown files render as pages, .md links open them"}}
+{"log":{"at":"2026-09-24T17:33:39-05:00","task":"live-card-wide","msg":"task opened — Live card uses wide screens in columns, text at reading width, agent opens as a column"}}
+{"log":{"at":"2026-09-24T17:35:27-05:00","task":"loose-ends","msg":"landed — ~60 owner-parked items decided or closed; 5 remain the owner's; 7 briefs sent to card live"}}
+{"log":{"at":"2026-09-24T17:36:45-05:00","task":"md-open","msg":"task opened — where a clicked markdown link opens: the page decides"}}
+{"log":{"at":"2026-09-24T17:39:20-05:00","task":"core-columns","msg":"task opened — nav 34cqi, fill yields + head pad, nested Doc section"}}
+{"log":{"at":"2026-09-24T17:40:10-05:00","task":"layout-names","msg":"task opened — layouts named not numbered; Make description + keyboard reorder"}}
+{"log":{"at":"2026-09-24T17:45:11-05:00","task":"content-modules","msg":"landed: question/decision/quotation modules placed by one page.jsonl line; card catalog of 75 kinds; commit 9894e897 on worktree/page-cards"}}
+{"log":{"at":"2026-09-24T17:50:38-05:00","task":"layout-names","msg":"landed — layouts named not numbered (old urls redirect), verdict above picture, Make loads + description + Alt+arrow reorder; merged 24d1df92"}}
+{"log":{"at":"2026-09-24T17:53:24-05:00","task":"live-card-wide","msg":"landed — Live card fills wide screens in columns, text at reading width, agent opens beside the list or takes over the card; merged eca9ceb7"}}
+{"log":{"at":"2026-09-24T17:53:31-05:00","task":"inventory","msg":"task opened - inventory of everything built, and a reorganization plan (nothing moved)"}}
+{"log":{"at":"2026-09-24T17:54:31-05:00","task":"md-open","msg":"landed — the page decides where a clicked link opens: navigate, next column, or swap in place; ai2 scroll fix on the way"}}
+{"log":{"at":"2026-09-24T17:55:35-05:00","task":"ai2-dashboard","msg":"landed — owner-asks.md (92 dashboard asks, with status); AI 2 overview fits the screen, rail head fits the rail; zero padding changes on 4 pages; merged 19c0f548"}}
+{"log":{"at":"2026-09-24T17:56:55-05:00","task":"servex-monitor","msg":"task opened — a Servex machine monitor: CPU/RAM/GPU sampler, system_health tool, a hot flag that queues new agents"}}
+{"log":{"at":"2026-09-24T17:57:04-05:00","task":"core-columns","msg":"landed — columns freeze at a third of the row (three fit at 1280), fill yields; 8 untouched pages identical before/after; merged 7a1c4e5f"}}
+{"log":{"at":"2026-09-24T17:58:45-05:00","task":"task-cost","msg":"task opened — dollar cost per task, summed over its minions, shown on cards, the day and each group"}}
+{"log":{"at":"2026-09-24T18:02:13-05:00","task":"page-jsonl","msg":"landed — page.jsonl is a page format (core/Page/Log.js), merged with card folders and content modules as f5c58ba8"}}
+{"log":{"at":"2026-09-24T18:02:23-05:00","task":"inventory","msg":"landed - 375 things inventoried by 29 Sonnet minions ($8.56); strategy page with map, 9 clusters, 12 ranked moves; the pending prune must repoint families.js first"}}
+{"log":{"at":"2026-09-24T18:03:53-05:00","task":"card-consolidation","msg":"landed: card plan (75 to 36 kinds, 19 to 5 padding rules) merged to michael/dev 296081f0; the merges are deferred for budget"}}
+{"log":{"at":"2026-09-24T18:05:40-05:00","task":"recipe-lab","msg":"task opened - three staffing recipes on one brief, judged blind"}}
+{"log":{"at":"2026-09-24T18:05:59-05:00","task":"task-audit","msg":"landed — 176/184 tasks audited (Sonnet); ranked page + top ten; Sonnet medium 5/5 vs low 2/5; 8 of tonight's running tasks not covered"}}
+{"log":{"at":"2026-09-24T18:09:03-05:00","task":"concurrency","msg":"landed — fork_self, wait_for_agent, resume/fork, revive on restart, wake on message, node jobs; merged 230171d5 + b6c5d5c0"}}
+{"log":{"at":"2026-09-24T18:12:48-05:00","task":"task-cost","msg":"landed — dollar cost per task (agent + minions) on every card, the day total and each effort; Servex hook merged, live after next restart"}}
+{"log":{"at":"2026-09-24T18:13:31-05:00","task":"card-folders","msg":"landed — every card is its own folder under ai/2026/, made only by create_card; 326 old cards migrated; merged 8c4d0cf1"}}
+{"log":{"at":"2026-09-24T18:14:03-05:00","task":"live-reply","msg":"task opened — replying on the Live card scrolled usage away"}}
+{"log":{"at":"2026-09-24T18:14:03-05:00","task":"live-reply","msg":"landed — Live chat box on top, newest first; replying no longer scrolls usage away; merged 2cbe3493"}}
+{"log":{"at":"2026-09-24T18:17:36-05:00","task":"servex-monitor","msg":"landed — system_health tool, a hot flag that tells mastermind-servex, and a spawn queue while the machine is strained; merged b3fec0a2, live at next restart"}}
+{"log":{"at":"2026-09-24T18:40:06-05:00","task":"ai2-groups","msg":"landed — AI 2 opens on seven familiar groups; a card shows the real task page; today's 27 tasks filed"}}
+{"log":{"at":"2026-09-24T18:40:49-05:00","task":"live-preview","msg":"landed — Live preview ends with the last reply, no agent id; merged 347140a2"}}
+{"log":{"at":"2026-09-24T18:53:47-05:00","task":"servex-crash","msg":"landed again — dev servers survive a Servex restart, the proxy never sends HTML to a script or MCP call (0 console errors across 8 kills); likely crash cause = port exhaustion by the proxy, fixed; merged 7b9ee818"}}
+{"log":{"at":"2026-09-24T19:16:59-05:00","task":"assistant-layers","msg":"landed — an assistant and a manager on every card, master-assistant and mastermind-servex across cards; proven 12/12 on a private Servex; merged d447febd, live at the next Servex restart"}}
+{"log":{"at":"2026-09-24T19:36:01-05:00","task":"popups","msg":"landed — remaining spawns hidden, counts flat"}}
+{"log":{"at":"2026-09-24T19:46:44-05:00","task":"voice-double-post","msg":"landed — card-relayed owner message no longer drawn twice"}}
+{"log":{"at":"2026-09-24T19:50:10-05:00","task":"card-page-flicker","msg":"landed — no-change redraws skipped (61/4994 mutations -> 0)"}}
+{"log":{"at":"2026-09-24T20:13:43-05:00","task":"ai2-cost-fill","msg":"landed — cost on every AI 2 group, task and agent; per-task cost split by time; detail pages fill the page; scroll and task-page breaks fixed"}}
+{"log":{"at":"2026-09-24T21:48:09-05:00","task":"chat-ext-extract","msg":"task opened — extract ai2 chat + composer into ext/Chat"}}
+{"log":{"at":"2026-09-24T22:03:09-05:00","task":"layout-unify","msg":"task opened — one coherent AI 2 card layout: chat on the right, one scroll area"}}
+{"log":{"at":"2026-09-24T22:16:15-05:00","task":"layout-unify","msg":"landed — one AI 2 card layout: the chat is the right-hand column, one scroll area"}}

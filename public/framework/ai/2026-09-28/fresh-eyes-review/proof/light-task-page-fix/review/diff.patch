@@ -1,0 +1,43 @@
+diff --git a/public/framework/ai2/tasks.js b/public/framework/ai2/tasks.js
+index 2c2c2c1f..24b1fc8e 100644
+--- a/public/framework/ai2/tasks.js
++++ b/public/framework/ai2/tasks.js
+@@ -41,7 +41,7 @@ export function task_section(m, { head = true } = {}){
+ 		});
+ 		else a.c("ai2-link page-link").href(m.base).text("open the task page");
+ 		div.c("ai2-task-body", $body => {
+-			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { listing: m.files } : {}); }))
++			aitask().then(AITask => $body.append(() => { AITask.into(m.base, m.files ? { known_files: m.files } : {}); }))
+ 				.catch(() => $body.append(() => { small.c("muted").text("The task page could not be drawn here — open it instead."); }));
+ 		});
+ 	});
+diff --git a/public/framework/ext/AITask/AITask.js b/public/framework/ext/AITask/AITask.js
+index a3ac7ec7..30a905d0 100644
+--- a/public/framework/ext/AITask/AITask.js
++++ b/public/framework/ext/AITask/AITask.js
+@@ -102,7 +102,7 @@ export class AITask extends Page {
+ 	    page that shows a task without navigating to it (AI 2's card column).
+ 	    `base` is the task dir's url, `/framework/ai/<date>/<slug>/`; it builds
+ 	    the same page the day's `route()` builds, and runs its own `content()`,
+-	    so nothing here is a copy of the view. Pass `{ listing }` (the dir's file
++	    so nothing here is a copy of the view. Pass `{ known_files }` (the dir's file
+ 	    names) when you have them, and a missing `requirements.md` is never
+ 	    fetched. Returns the page. */
+ 	static into(base, ...args){
+@@ -150,9 +150,13 @@ export class AITask extends Page {
+ 	base(){ return this.src ? this.src.replace(/[^/]*$/, "") : new URL(".", this.meta.url).pathname; }
+ 
+ 	async requirements(){
+-		// `listing`, when the caller knows the dir's listing (`into()`'s callers
+-		// do): no fetch for a file that is not there, so no 404 in the console.
+-		if (this.listing && !this.listing.includes("requirements.md")) return null;
++		// `known_files`, when the caller knows the dir's file names (`into()`'s
++		// callers do): no fetch for a file that is not there, so no 404 in the console.
++		// ⚠ NOT `listing`: core/Page/Log.js gives every page a `listing()` METHOD, so
++		//   on a standalone task page `this.listing` was that function, `.includes`
++		//   threw, and every task page drew its title and nothing else (2026-09-24);
++		//   on an embedded one the option shadowed the method instead.
++		if (Array.isArray(this.known_files) && !this.known_files.includes("requirements.md")) return null;
+ 		const res = await fetch(this.base() + "requirements.md").catch(() => null);
+ 		return res?.ok && !res.headers.get("content-type")?.includes("html") ? res.text() : null;
+ 	}

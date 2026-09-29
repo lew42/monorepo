@@ -1,0 +1,4 @@
+{"class":"/framework/ai2/card.js","title":"Chat log: scroll, duplicates, left/right","type":"request","id":"2026/09/24/prompt-mechanics-2/chat-log-scroll-duplicates-left-right","created":"2026-09-24T21:14:40-05:00","by":"agent","tags":["prompts"]}
+{"message":{"by":"manager-prompt-mechanics-2","text":"Taken: one Sonnet minion is doing all three fixes: no scroll yanking, no duplicate lines, and your words on the right with the assistant's on the left. I'll report when it lands.","kind":"reply","at":"2026-09-24T21:14:51-05:00"}}
+{"message":{"by":"manager-prompt-mechanics-2","text":"Landed, live on the main tree. The chat only follows new lines if you're already near the bottom. Your message now shows once, as its own paragraph, once Servex logs it (the temporary copy that doubled it is gone). Your words are on the right, the assistant's on the left, and the speaker labels are removed.","kind":"reply","at":"2026-09-24T21:16:08-05:00"}}
+{"group":"Chat messages"}

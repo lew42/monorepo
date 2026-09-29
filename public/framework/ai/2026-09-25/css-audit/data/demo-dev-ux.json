@@ -1,0 +1,1512 @@
+{
+  "module": "framework/ext(demo,small) + dev + ux + ui",
+  "paths": [
+    "framework/ext/demo",
+    "framework/dev",
+    "framework/ux",
+    "framework/ui",
+    "framework/ext (all except Panel, AITask, tabs, catalog, Research)"
+  ],
+  "lines": {
+    "css": 3712,
+    "jsBlocks": 716
+  },
+  "clusters": [
+    {
+      "id": "demo-box-shell",
+      "file": "framework/ext/demo/demo.css",
+      "from": 1,
+      "to": 18,
+      "lines": 18,
+      "verdict": "DUPLICATE",
+      "target": ".surface (framework.css:456)",
+      "evidence": "`.demo` = border 1px var(--line) + radius + var(--surface) background, the exact three declarations .surface paints at framework.css:456-461",
+      "saves": 5
+    },
+    {
+      "id": "demo-bar-row",
+      "file": "framework/ext/demo/demo.css",
+      "from": 19,
+      "to": 35,
+      "lines": 17,
+      "verdict": "DUPLICATE",
+      "target": ".flex + .gap-50 + .tint (framework.css:832, 1034, 508)",
+      "evidence": "`.demo-bar` is display:flex + gap calc(var(--gap)*.5) + background var(--tint); only padding/font-size are its own",
+      "saves": 5
+    },
+    {
+      "id": "demo-btn",
+      "file": "framework/ext/demo/demo.css",
+      "from": 36,
+      "to": 54,
+      "lines": 19,
+      "verdict": "DUPLICATE",
+      "target": "button / .btn control grammar (framework.css:706-718)",
+      "evidence": "`.demo-btn` re-declares padding, radius, fill(--fill-a08), border and hover that the base control box already gives every button",
+      "saves": 10
+    },
+    {
+      "id": "demo-panes-source-notes",
+      "file": "framework/ext/demo/demo.css",
+      "from": 55,
+      "to": 158,
+      "lines": 104,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the demo's own pane geometry (code / html / note / source) — page-specific layout",
+      "saves": 0
+    },
+    {
+      "id": "demo-app-frame",
+      "file": "framework/ext/demo/app.css",
+      "from": 1,
+      "to": 128,
+      "lines": 128,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the fake browser frame (url bar, nav, page list) — the demo's own picture; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "demo-mini-pictures",
+      "file": "framework/ext/demo/mini.css",
+      "from": 1,
+      "to": 199,
+      "lines": 199,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "wireframe thumbnails; the tail rule .demo-mini--full looks unused by grep but mini.js:25 builds the class as \"demo-mini--\"+word, so it is NOT deletable",
+      "saves": 0
+    },
+    {
+      "id": "demo-stage-handle",
+      "file": "framework/ext/demo/stage.css",
+      "from": 1,
+      "to": 158,
+      "lines": 158,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "resizable stage + device/zoom dials — the demo's own tool; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "demo-shell",
+      "file": "framework/ext/demo/shell.css",
+      "from": 1,
+      "to": 127,
+      "lines": 127,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "demo chrome around the stage; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "demo-steps",
+      "file": "framework/ext/demo/steps.css",
+      "from": 1,
+      "to": 34,
+      "lines": 34,
+      "verdict": "GENERALIZE",
+      "target": "stepper (one Steps component, ui/ or ux/)",
+      "evidence": "`.demo-step` current/done states are the same idea as ux/Wizard/Wizard.js:13-25's css block; two steppers, neither reusable",
+      "saves": 20
+    },
+    {
+      "id": "demo-exhibit",
+      "file": "framework/ext/demo/exhibit.css",
+      "from": 1,
+      "to": 26,
+      "lines": 26,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "one small exhibit frame; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "header-layer",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 1,
+      "to": 18,
+      "lines": 18,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "layer open + comment block",
+      "saves": 0
+    },
+    {
+      "id": "dev-bar-rail",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 19,
+      "to": 50,
+      "lines": 32,
+      "verdict": "GENERALIZE",
+      "target": "side-rail (fixed inline-end panel: surface, border-start, z-index) shared with ext/drawer/drawer.css:22",
+      "evidence": "`.dev-bar` (devbar.css:19-50) and `.drawer` (drawer.css:22-36) both are position:fixed; inset-block:0; inline-end; --surface; border-inline-start:1px --line; sliding — two rails, one shape",
+      "saves": 14
+    },
+    {
+      "id": "head-pathbar-x",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 51,
+      "to": 138,
+      "lines": 88,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the bar's own head/path chrome; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "dev-tab-crumb",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 139,
+      "to": 180,
+      "lines": 42,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "tab/crumb strip at the bar's 0.8rem scale; unverified: sized and skimmed by selector list, rules not compared one by one (ext/tabs has a tab strip; equivalence not proven)",
+      "saves": 0
+    },
+    {
+      "id": "size-issue-outline",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 181,
+      "to": 282,
+      "lines": 102,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "viewport-size presets, issue rows and outline mode — DevBar-only features",
+      "saves": 0
+    },
+    {
+      "id": "mobile-media",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 283,
+      "to": 332,
+      "lines": 50,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "narrow-width rail rules",
+      "saves": 0
+    },
+    {
+      "id": "says-card-flash",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 333,
+      "to": 410,
+      "lines": 78,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the 'says' card and its flash/caret keyframes; same row shape as .dev-chat-card but a different job; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "chat-linkback-list",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 411,
+      "to": 465,
+      "lines": 55,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "chat list wrapper; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "chat-card-row",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 466,
+      "to": 486,
+      "lines": 21,
+      "verdict": "GENERALIZE",
+      "target": "list-row-button (a full-width clickable row with wash fill + prim hover)",
+      "evidence": "`.dev-chat-card` (devbar.css:466-486) and `.dev-chat-minion` (508-518) declare the identical row: width:100%, padding var(--pad-card), background var(--wash), radius .35em, prim-tinted hover; the same shape reappears at .dev-says-card",
+      "saves": 14
+    },
+    {
+      "id": "chat-back-btn",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 487,
+      "to": 495,
+      "lines": 9,
+      "verdict": "DUPLICATE",
+      "target": "button base (framework.css:706-718) + hover 778-782",
+      "evidence": "`.dev-chat-back` = padding, --wash fill, transparent border, radius, prim hover — all of it is the base control box",
+      "saves": 8
+    },
+    {
+      "id": "chat-reader-body",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 496,
+      "to": 507,
+      "lines": 12,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "scrolling reader pane, rem type on purpose (doc/decisions.md 'no 11px chat')",
+      "saves": 0
+    },
+    {
+      "id": "chat-minion-row",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 508,
+      "to": 518,
+      "lines": 11,
+      "verdict": "GENERALIZE",
+      "target": "list-row-button (same as chat-card-row)",
+      "evidence": "see chat-card-row: identical declarations at devbar.css:466-486",
+      "saves": 8
+    },
+    {
+      "id": "chat-compose-shell",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 519,
+      "to": 523,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "composer border-top + gap",
+      "saves": 0
+    },
+    {
+      "id": "chat-input-send",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 524,
+      "to": 541,
+      "lines": 18,
+      "verdict": "DUPLICATE",
+      "target": "textarea field box (framework.css:706-718, 729-732)",
+      "evidence": "`.dev-chat-input` = padding, --surface fill, 1px --line border, --radius, inherited font: the field grammar already paints it",
+      "saves": 10
+    },
+    {
+      "id": "chat-media",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 542,
+      "to": 549,
+      "lines": 8,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "narrow-width rule",
+      "saves": 0
+    },
+    {
+      "id": "util-tail",
+      "file": "framework/dev/DevBar/devbar.css",
+      "from": 550,
+      "to": 560,
+      "lines": 11,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the one @layer util rule",
+      "saves": 0
+    },
+    {
+      "id": "claim-ring-tag",
+      "file": "framework/dev/Claim/claim.css",
+      "from": 1,
+      "to": 66,
+      "lines": 66,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the 'a session drives this tab' ring, tag and blinking dot with reduced-motion guard — one feature; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "ask-chat-classes",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 1,
+      "to": 30,
+      "lines": 30,
+      "verdict": "GENERALIZE",
+      "target": "chat-thread + composer (ext/Chat chatbox-*)",
+      "evidence": "`.chat .chat-list .chat-turn .chat-body .chat-form .chat-input .chat-send` (ask.css:4-21) restate what ext/Chat/Chat.css:123-217 (.chatbox-log/.chatbox-reply/.chatbox-you) and devbar.css:411-541 (.dev-chat-*) already draw: three chat UIs",
+      "saves": 25
+    },
+    {
+      "id": "ask-pick-ui",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 31,
+      "to": 59,
+      "lines": 29,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the element-picking overlay (ask-picking / ask-pick-box) — unique feature",
+      "saves": 0
+    },
+    {
+      "id": "ask-chips",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 60,
+      "to": 73,
+      "lines": 14,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "page chip + x; no chip class exists in framework.css or styles; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "ask-float-panel",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 74,
+      "to": 115,
+      "lines": 42,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "floating ask button + panel; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "ask-verdict",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 116,
+      "to": 143,
+      "lines": 28,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "Approve/Improve mark and buttons — layout-browser feature",
+      "saves": 0
+    },
+    {
+      "id": "ask-reply-box",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 144,
+      "to": 170,
+      "lines": 27,
+      "verdict": "GENERALIZE",
+      "target": "composer (textarea + send + dictate, ext/Chat Composer)",
+      "evidence": "`.ask-reply-*` (ask.css:144-199) and `.chatbox-compose*` (Chat.css:7-116) are two composers",
+      "saves": 20
+    },
+    {
+      "id": "ask-mic",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 171,
+      "to": 179,
+      "lines": 9,
+      "verdict": "DUPLICATE",
+      "target": ".ux-dictate-btn.listening + @keyframes ux-dictate-pulse (ux/Dictate/Dictate.css:13, 29)",
+      "evidence": "`.ask-mic.listening` + `@keyframes ask-mic-pulse` re-implement the listening/pulse look Dictate.css already ships for every mic",
+      "saves": 9
+    },
+    {
+      "id": "ask-reply-notes-input",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 180,
+      "to": 199,
+      "lines": 20,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "reply notes/foot/input; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "ask-demo-fold",
+      "file": "framework/ext/Ask/ask.css",
+      "from": 200,
+      "to": 209,
+      "lines": 10,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "demo output and fold; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "chatbox-compose",
+      "file": "framework/ext/Chat/Chat.css",
+      "from": 1,
+      "to": 116,
+      "lines": 116,
+      "verdict": "GENERALIZE",
+      "target": "composer (shared with ask-reply-box)",
+      "evidence": "see ask.css:144-199; `.chatbox-mic .ux-dictate-btn` (50-59) is already the right reuse of Dictate",
+      "saves": 30
+    },
+    {
+      "id": "chatbox-log",
+      "file": "framework/ext/Chat/Chat.css",
+      "from": 117,
+      "to": 218,
+      "lines": 102,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the canonical chat log the other two chat UIs should adopt; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "depth-scene",
+      "file": "framework/ext/depth/depth.css",
+      "from": 1,
+      "to": 139,
+      "lines": 139,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "3D layer scene and sliders (58-113 is the one big rule); page-specific",
+      "saves": 0
+    },
+    {
+      "id": "dt-card",
+      "file": "framework/ext/DesignTool/DesignTool.css",
+      "from": 1,
+      "to": 17,
+      "lines": 17,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "audit card",
+      "saves": 0
+    },
+    {
+      "id": "dt-score-badge",
+      "file": "framework/ext/DesignTool/DesignTool.css",
+      "from": 18,
+      "to": 25,
+      "lines": 8,
+      "verdict": "GENERALIZE",
+      "target": "badge (ui/badge/badge.js:5-19)",
+      "evidence": "`.dt-badge .dt-ok .dt-warn .dt-bad` is a coloured pill with ok/warn/error states — ui/badge is the once-built component",
+      "saves": 6
+    },
+    {
+      "id": "dt-panels",
+      "file": "framework/ext/DesignTool/DesignTool.css",
+      "from": 26,
+      "to": 179,
+      "lines": 154,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "DesignTool's own panels, mirror stage, spotlight and live pane; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "journey",
+      "file": "framework/ext/DesignTool/journey/journey.css",
+      "from": 1,
+      "to": 7,
+      "lines": 7,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "tiny; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "dt-vb-browse",
+      "file": "framework/ext/DesignTool/vision/vision.css",
+      "from": 1,
+      "to": 59,
+      "lines": 59,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "vision browser (dt-vb-*); unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "doc-page",
+      "file": "framework/ext/Doc/Doc.css",
+      "from": 1,
+      "to": 92,
+      "lines": 92,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the Doc page shell (tabs / well / sections); unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "drag-ghost-placeholder",
+      "file": "framework/ext/Draggable/draggable.css",
+      "from": 1,
+      "to": 30,
+      "lines": 30,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the one drag look every sortable inherits (Tree.css layers on top of it)",
+      "saves": 0
+    },
+    {
+      "id": "drawer-header",
+      "file": "framework/ext/drawer/drawer.css",
+      "from": 1,
+      "to": 19,
+      "lines": 19,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "comment + shell reservation",
+      "saves": 0
+    },
+    {
+      "id": "drawer-rail",
+      "file": "framework/ext/drawer/drawer.css",
+      "from": 20,
+      "to": 50,
+      "lines": 31,
+      "verdict": "GENERALIZE",
+      "target": "side-rail (shared with .dev-bar, devbar.css:19)",
+      "evidence": "`.drawer` drawer.css:22-36 declares position:fixed, --surface, --ink, border-inline-start, slide transform — the shape of `.dev-bar`",
+      "saves": 12
+    },
+    {
+      "id": "drawer-parts",
+      "file": "framework/ext/drawer/drawer.css",
+      "from": 51,
+      "to": 70,
+      "lines": 20,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "head / body / close button; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "dropdown-trigger",
+      "file": "framework/ext/Dropdown/dropdown.css",
+      "from": 1,
+      "to": 39,
+      "lines": 39,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "trigger restyle of the base button; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "dropdown-list",
+      "file": "framework/ext/Dropdown/dropdown.css",
+      "from": 40,
+      "to": 83,
+      "lines": 44,
+      "verdict": "GENERALIZE",
+      "target": "menu (ui/menu/menu.js:6-32)",
+      "evidence": "`.dropdown-list` / `.dropdown-option` (dropdown.css:40-77) and the `.ui-menu` css block (menu.js:6-32) are two menu popups",
+      "saves": 30
+    },
+    {
+      "id": "editor",
+      "file": "framework/ext/editor/editor.css",
+      "from": 1,
+      "to": 35,
+      "lines": 35,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "editor node/bar; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "files-shell",
+      "file": "framework/ext/files/files.css",
+      "from": 1,
+      "to": 15,
+      "lines": 15,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "three-pane file shell",
+      "saves": 0
+    },
+    {
+      "id": "file-tree",
+      "file": "framework/ext/files/files.css",
+      "from": 16,
+      "to": 42,
+      "lines": 27,
+      "verdict": "GENERALIZE",
+      "target": "tree (ui/tree `.ui-tree-*`, ui/tree/tree.js:7-82)",
+      "evidence": "ux/Tree/Tree.css:1-6 states 'everything a tree looks like is `.ui-tree-*`'; `.file-tree .file-dir-name .file-name.selected` (files.css:18-40) is a parallel tree look",
+      "saves": 22
+    },
+    {
+      "id": "file-source-about",
+      "file": "framework/ext/files/files.css",
+      "from": 43,
+      "to": 57,
+      "lines": 15,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "source pane and blank state",
+      "saves": 0
+    },
+    {
+      "id": "grip",
+      "file": "framework/ext/grip/grip.css",
+      "from": 1,
+      "to": 78,
+      "lines": 78,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the drag-strip and pill; single owner of resize grips (DevBar leans on it); unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "syntax-theme",
+      "file": "framework/ext/highlight/highlight.css",
+      "from": 1,
+      "to": 115,
+      "lines": 115,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "syntax colours from --syn-* tokens; a theme, not a layout",
+      "saves": 0
+    },
+    {
+      "id": "layout-tool",
+      "file": "framework/ext/layout/layout.css",
+      "from": 1,
+      "to": 114,
+      "lines": 114,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the layout picker bar/knobs; .layout-btn (48-59) resembles base button but was not compared; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "md-details",
+      "file": "framework/ext/markdown/md.css",
+      "from": 1,
+      "to": 25,
+      "lines": 25,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "markdown details/error; tiny",
+      "saves": 0
+    },
+    {
+      "id": "timeline",
+      "file": "framework/ext/Timeline/Timeline.css",
+      "from": 1,
+      "to": 129,
+      "lines": 129,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "h/v/reverse orientation rules mirror each other (lines 10-73, 107-110 are 8 near-identical pairs) — could collapse with logical properties; unverified: sized and skimmed by selector list, rules not compared one by one; a separate `.ui-timeline` exists at ui/timeline/timeline.js:7-26",
+      "saves": 0
+    },
+    {
+      "id": "toc-rail",
+      "file": "framework/ext/toc/toc.css",
+      "from": 1,
+      "to": 115,
+      "lines": 115,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the sticky ToC rail; 84 of the lines sit inside one @media (min-width:82em)",
+      "saves": 0
+    },
+    {
+      "id": "content-wall",
+      "file": "framework/ux/Content/content.css",
+      "from": 1,
+      "to": 8,
+      "lines": 8,
+      "verdict": "DUPLICATE",
+      "target": ".grid.auto with --column:22em (framework.css:967)",
+      "evidence": "`.ux-content-wall` = display:grid; gap:var(--gap); repeat(auto-fit, minmax(min(22em,100%),1fr)) — .grid.auto is minmax(min(var(--column),100%),1fr)",
+      "saves": 5
+    },
+    {
+      "id": "content-parts",
+      "file": "framework/ux/Content/content.css",
+      "from": 9,
+      "to": 48,
+      "lines": 40,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "content-block buttons/fields/quote; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "catalog-open",
+      "file": "framework/ux/Content/catalog/catalog.css",
+      "from": 1,
+      "to": 4,
+      "lines": 4,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "layer + comment",
+      "saves": 0
+    },
+    {
+      "id": "catalog-head-nums",
+      "file": "framework/ux/Content/catalog/catalog.css",
+      "from": 5,
+      "to": 12,
+      "lines": 8,
+      "verdict": "GENERALIZE",
+      "target": "stat-tile (big number + caption)",
+      "evidence": "`.ux-content-catalog-num/-big` (catalog.css:8-11) and `.ux-content-plan-num/-big` (plan.css:8-10) are the same tile written twice",
+      "saves": 8
+    },
+    {
+      "id": "catalog-rest",
+      "file": "framework/ux/Content/catalog/catalog.css",
+      "from": 13,
+      "to": 73,
+      "lines": 61,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "breaks, wall, tiles, detail; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "plan-open",
+      "file": "framework/ux/Content/plan/plan.css",
+      "from": 1,
+      "to": 6,
+      "lines": 6,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "layer + lede",
+      "saves": 0
+    },
+    {
+      "id": "plan-nums",
+      "file": "framework/ux/Content/plan/plan.css",
+      "from": 7,
+      "to": 11,
+      "lines": 5,
+      "verdict": "GENERALIZE",
+      "target": "stat-tile (see catalog.css:8-11)",
+      "evidence": "duplicate of catalog num/big",
+      "saves": 8
+    },
+    {
+      "id": "plan-rest",
+      "file": "framework/ux/Content/plan/plan.css",
+      "from": 12,
+      "to": 74,
+      "lines": 63,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "plan wall/merges/tables/proposed skin; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "dictate-listening",
+      "file": "framework/ux/Dictate/Dictate.css",
+      "from": 1,
+      "to": 14,
+      "lines": 14,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "THE dictate widget; owner-named, built once, everything else should reuse it",
+      "saves": 0
+    },
+    {
+      "id": "dictate-level-bar",
+      "file": "framework/ux/Dictate/Dictate.css",
+      "from": 15,
+      "to": 25,
+      "lines": 11,
+      "verdict": "GENERALIZE",
+      "target": "level-meter (a bar whose height/width is one --level number)",
+      "evidence": "`.ux-dictate-level` height:calc(4px + var(--ux-dictate-level)*16px); ui/progress has a page.js demo (page.js:59) but no shared css for it",
+      "saves": 6
+    },
+    {
+      "id": "dictate-pulse-status",
+      "file": "framework/ux/Dictate/Dictate.css",
+      "from": 26,
+      "to": 37,
+      "lines": 12,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "pulse keyframes and status colours",
+      "saves": 0
+    },
+    {
+      "id": "popover-core",
+      "file": "framework/ux/Popover/Popover.css",
+      "from": 1,
+      "to": 45,
+      "lines": 45,
+      "verdict": "GENERALIZE",
+      "target": "popover-surface (shared with ui/tooltip/tooltip.js:6-43)",
+      "evidence": "`.ux-popover[role=tooltip]` (Popover.css:46) and the `.ui-tooltip` css block (tooltip.js:6-43) are two tooltip surfaces",
+      "saves": 25
+    },
+    {
+      "id": "popover-hostile-fixtures",
+      "file": "framework/ux/Popover/Popover.css",
+      "from": 46,
+      "to": 84,
+      "lines": 39,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "the 'hostile' test fixtures (clip/scroll/sticky) used by page.js — demo-only",
+      "saves": 0
+    },
+    {
+      "id": "tree-drag-star-acts",
+      "file": "framework/ux/Tree/Tree.css",
+      "from": 1,
+      "to": 60,
+      "lines": 60,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "only what a class adds to ui/tree (grip, drop line, star, row buttons); the file's own header says so; drag placeholder rides draggable.css",
+      "saves": 0
+    },
+    {
+      "id": "ux-index-flag",
+      "file": "framework/ux/ux.css",
+      "from": 1,
+      "to": 35,
+      "lines": 35,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "one flag on the index wall",
+      "saves": 0
+    },
+    {
+      "id": "ui-controls",
+      "file": "framework/ui/controls/controls.css",
+      "from": 1,
+      "to": 55,
+      "lines": 55,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "demo of resetting the lew42 button skin (:is(button,.btn) at 18-25 is the deliberate reset the page shows)",
+      "saves": 0
+    },
+    {
+      "id": "background-wall",
+      "file": "framework/ui/background/page.css",
+      "from": 1,
+      "to": 36,
+      "lines": 36,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "demo wall cards; unverified: sized and skimmed by selector list, rules not compared one by one",
+      "saves": 0
+    },
+    {
+      "id": "Ask-chat-small",
+      "file": "framework/ext/Ask/chat.js",
+      "from": 124,
+      "to": 126,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Ask-reply-small",
+      "file": "framework/ext/Ask/reply.js",
+      "from": 146,
+      "to": 148,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "demo-exhibit-small",
+      "file": "framework/ext/demo/exhibit.js",
+      "from": 167,
+      "to": 167,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "DesignTool-DesignTool-small",
+      "file": "framework/ext/DesignTool/DesignTool.js",
+      "from": 163,
+      "to": 164,
+      "lines": 2,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "DesignTool-polish-small",
+      "file": "framework/ext/DesignTool/polish.js",
+      "from": 140,
+      "to": 140,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "DesignTool-rules-small",
+      "file": "framework/ext/DesignTool/rules.js",
+      "from": 133,
+      "to": 134,
+      "lines": 2,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "taste-read-small",
+      "file": "framework/ext/DesignTool/taste/read.js",
+      "from": 265,
+      "to": 266,
+      "lines": 2,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "tests-cases-189",
+      "file": "framework/ext/DesignTool/tests/cases.js",
+      "from": 189,
+      "to": 207,
+      "lines": 19,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "Doc-page-small",
+      "file": "framework/ext/Doc/page.js",
+      "from": 70,
+      "to": 72,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Draggable-page-119",
+      "file": "framework/ext/Draggable/page.js",
+      "from": 119,
+      "to": 125,
+      "lines": 7,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "editor-page-216",
+      "file": "framework/ext/editor/page.js",
+      "from": 216,
+      "to": 281,
+      "lines": 66,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "highlight-page-small",
+      "file": "framework/ext/highlight/page.js",
+      "from": 21,
+      "to": 52,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "3 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "layout-page-small",
+      "file": "framework/ext/layout/page.js",
+      "from": 68,
+      "to": 70,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "toc-page-49",
+      "file": "framework/ext/toc/page.js",
+      "from": 49,
+      "to": 55,
+      "lines": 7,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "DevBar-log-small",
+      "file": "framework/dev/DevBar/log.js",
+      "from": 107,
+      "to": 108,
+      "lines": 2,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "DevBar-page-small",
+      "file": "framework/dev/DevBar/page.js",
+      "from": 83,
+      "to": 91,
+      "lines": 4,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "4 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Socket-page-small",
+      "file": "framework/dev/Socket/page.js",
+      "from": 46,
+      "to": 46,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Auth-Auth-small",
+      "file": "framework/ux/Auth/Auth.js",
+      "from": 8,
+      "to": 10,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Course-page-small",
+      "file": "framework/ux/Course/page.js",
+      "from": 73,
+      "to": 73,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "Pagination-page-61",
+      "file": "framework/ux/Pagination/page.js",
+      "from": 61,
+      "to": 67,
+      "lines": 7,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "Wizard-Wizard-13",
+      "file": "framework/ux/Wizard/Wizard.js",
+      "from": 13,
+      "to": 25,
+      "lines": 13,
+      "verdict": "GENERALIZE",
+      "target": "stepper (shared with demo/steps.css)",
+      "evidence": "same current/done step states as ext/demo/steps.css:15-29",
+      "saves": 8
+    },
+    {
+      "id": "accordion-accordion-small",
+      "file": "framework/ui/accordion/accordion.js",
+      "from": 5,
+      "to": 8,
+      "lines": 4,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "alert-alert-6",
+      "file": "framework/ui/alert/alert.js",
+      "from": 6,
+      "to": 15,
+      "lines": 10,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "avatar-avatar-3",
+      "file": "framework/ui/avatar/avatar.js",
+      "from": 3,
+      "to": 31,
+      "lines": 29,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "background-background-47",
+      "file": "framework/ui/background/background.js",
+      "from": 47,
+      "to": 183,
+      "lines": 137,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "badge-badge-5",
+      "file": "framework/ui/badge/badge.js",
+      "from": 5,
+      "to": 19,
+      "lines": 15,
+      "verdict": "GENERALIZE",
+      "target": "badge (ui/badge — the once-built one)",
+      "evidence": "the badge component itself; `.dt-badge` (DesignTool.css:20-25) should wear it",
+      "saves": 8
+    },
+    {
+      "id": "card-page-small",
+      "file": "framework/ui/card/page.js",
+      "from": 74,
+      "to": 98,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "3 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "controls-page-small",
+      "file": "framework/ui/controls/page.js",
+      "from": 68,
+      "to": 68,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "crumbs-crumbs-small",
+      "file": "framework/ui/crumbs/crumbs.js",
+      "from": 3,
+      "to": 8,
+      "lines": 4,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "2 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "crumbs-page-small",
+      "file": "framework/ui/crumbs/page.js",
+      "from": 60,
+      "to": 60,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "decision-decision-27",
+      "file": "framework/ui/decision/decision.js",
+      "from": 27,
+      "to": 88,
+      "lines": 62,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "dialog-dialog-7",
+      "file": "framework/ui/dialog/dialog.js",
+      "from": 7,
+      "to": 12,
+      "lines": 6,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "kbd-kbd-7",
+      "file": "framework/ui/kbd/kbd.js",
+      "from": 7,
+      "to": 14,
+      "lines": 8,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "kbd-kbd-small",
+      "file": "framework/ui/kbd/kbd.js",
+      "from": 4,
+      "to": 4,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "kbd-page-small",
+      "file": "framework/ui/kbd/page.js",
+      "from": 53,
+      "to": 55,
+      "lines": 4,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "2 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "menu-menu-6",
+      "file": "framework/ui/menu/menu.js",
+      "from": 6,
+      "to": 32,
+      "lines": 27,
+      "verdict": "GENERALIZE",
+      "target": "menu (shared with ext/Dropdown)",
+      "evidence": "see dropdown.css:40-77 — two menu popups",
+      "saves": 15
+    },
+    {
+      "id": "pagination-page-68",
+      "file": "framework/ui/pagination/page.js",
+      "from": 68,
+      "to": 74,
+      "lines": 7,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "pagination-page-small",
+      "file": "framework/ui/pagination/page.js",
+      "from": 62,
+      "to": 66,
+      "lines": 2,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "2 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "panel-page-32",
+      "file": "framework/ui/panel/page.js",
+      "from": 32,
+      "to": 42,
+      "lines": 11,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "panel-panel-5",
+      "file": "framework/ui/panel/panel.js",
+      "from": 5,
+      "to": 9,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "ui-parts-14",
+      "file": "framework/ui/parts.js",
+      "from": 14,
+      "to": 21,
+      "lines": 8,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    },
+    {
+      "id": "progress-page-small",
+      "file": "framework/ui/progress/page.js",
+      "from": 59,
+      "to": 59,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "table-page-small",
+      "file": "framework/ui/table/page.js",
+      "from": 32,
+      "to": 50,
+      "lines": 3,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "3 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "table-table-small",
+      "file": "framework/ui/table/table.js",
+      "from": 4,
+      "to": 13,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "2 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "timeline-timeline-7",
+      "file": "framework/ui/timeline/timeline.js",
+      "from": 7,
+      "to": 26,
+      "lines": 20,
+      "verdict": "GENERALIZE",
+      "target": "timeline (one, shared with ext/Timeline)",
+      "evidence": "two timeline implementations: ext/Timeline/Timeline.css (130 lines) and this block (20)",
+      "saves": 0
+    },
+    {
+      "id": "toolbar-page-small",
+      "file": "framework/ui/toolbar/page.js",
+      "from": 108,
+      "to": 108,
+      "lines": 1,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "1 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "tooltip-tooltip-6",
+      "file": "framework/ui/tooltip/tooltip.js",
+      "from": 6,
+      "to": 43,
+      "lines": 38,
+      "verdict": "GENERALIZE",
+      "target": "popover-surface (shared with ux/Popover)",
+      "evidence": "see Popover.css:46 `.ux-popover[role=tooltip]`",
+      "saves": 20
+    },
+    {
+      "id": "tree-tree-7",
+      "file": "framework/ui/tree/tree.js",
+      "from": 7,
+      "to": 82,
+      "lines": 76,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "THE tree look (`.ui-tree-*`); files.css and Tree.css defer to or should defer to it",
+      "saves": 0
+    },
+    {
+      "id": "words-page-small",
+      "file": "framework/ui/words/page.js",
+      "from": 130,
+      "to": 144,
+      "lines": 5,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "2 tiny css`` snippet(s), 1-4 lines each (often a demo sample string or one utility rule); unverified",
+      "saves": 0
+    },
+    {
+      "id": "words-words-18",
+      "file": "framework/ui/words/words.js",
+      "from": 18,
+      "to": 82,
+      "lines": 65,
+      "verdict": "KEEP",
+      "target": "",
+      "evidence": "component/demo css`` block, read for size only; unverified against framework.css",
+      "saves": 0
+    }
+  ],
+  "totals": {
+    "DUPLICATE": 98,
+    "GENERALIZE": 563,
+    "KEEP": 3767,
+    "DELETE": 0
+  },
+  "proposal": "Almost none of this CSS is dead: the one grep-suspect rule (.demo-mini--full) is built dynamically in mini.js:25, so nothing is safe to delete, and no DELETE is claimed. The proven waste is duplicates of the base button, field and .surface rules (demo-btn, dev-chat-back, dev-chat-input, .demo box) plus .ux-content-wall being a .grid.auto with --column:22em, and those can simply drop their declarations. The bigger win is building things once: one side-rail (DevBar and drawer), one chat thread + composer (Ask, Chat and the dev-bar chat are three), one menu, one popover/tooltip surface, one stat tile, one stepper, one level-meter and one list-row button. Dictate is already the single mic widget, so ask.css should just wear it instead of re-drawing the listening pulse. Timeline, DevBar tabs, files.css and the ui/* css blocks were only skimmed and are left KEEP-unverified; a second pass with a rule-by-rule diff against framework.css would find more.",
+  "generalize": [
+    {
+      "name": "side-rail",
+      "wouldReplace": [
+        "framework/dev/DevBar/devbar.css:19",
+        "framework/ext/drawer/drawer.css:22"
+      ]
+    },
+    {
+      "name": "chat-thread-and-composer",
+      "wouldReplace": [
+        "framework/ext/Ask/ask.css:4",
+        "framework/ext/Ask/ask.css:144",
+        "framework/ext/Chat/Chat.css:7",
+        "framework/dev/DevBar/devbar.css:411"
+      ]
+    },
+    {
+      "name": "list-row-button",
+      "wouldReplace": [
+        "framework/dev/DevBar/devbar.css:466",
+        "framework/dev/DevBar/devbar.css:508",
+        "framework/dev/DevBar/devbar.css:333"
+      ]
+    },
+    {
+      "name": "menu",
+      "wouldReplace": [
+        "framework/ext/Dropdown/dropdown.css:40",
+        "framework/ui/menu/menu.js:6"
+      ]
+    },
+    {
+      "name": "popover-surface",
+      "wouldReplace": [
+        "framework/ux/Popover/Popover.css:46",
+        "framework/ui/tooltip/tooltip.js:6"
+      ]
+    },
+    {
+      "name": "stat-tile",
+      "wouldReplace": [
+        "framework/ux/Content/catalog/catalog.css:8",
+        "framework/ux/Content/plan/plan.css:8"
+      ]
+    },
+    {
+      "name": "stepper",
+      "wouldReplace": [
+        "framework/ext/demo/steps.css:6",
+        "framework/ux/Wizard/Wizard.js:13"
+      ]
+    },
+    {
+      "name": "level-meter",
+      "wouldReplace": [
+        "framework/ux/Dictate/Dictate.css:15",
+        "framework/ui/progress/page.js:59"
+      ]
+    },
+    {
+      "name": "tree (ui/tree only)",
+      "wouldReplace": [
+        "framework/ext/files/files.css:16"
+      ]
+    },
+    {
+      "name": "badge",
+      "wouldReplace": [
+        "framework/ext/DesignTool/DesignTool.css:18"
+      ]
+    },
+    {
+      "name": "timeline (one)",
+      "wouldReplace": [
+        "framework/ext/Timeline/Timeline.css:1",
+        "framework/ui/timeline/timeline.js:7"
+      ]
+    }
+  ],
+  "risk": "low for the DUPLICATE drops (base controls already paint them); medium for the GENERALIZE merges — chat, menu and popover each have several live callers"
+}

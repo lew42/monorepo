@@ -9,6 +9,8 @@ import Events from "../Server/Events.js";
 import Log from "./Log.js";
 import Monitor from "./Monitor.js";
 import TaskLoop from "./TaskLoop.js";
+import Usage from "./Usage.js";
+import Pool from "./Pool.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
@@ -24,6 +26,7 @@ import Cards from "./cards/Cards.js";
 import Layers from "./agents/Layers.js";
 import Global from "./agents/Global.js";
 import agent_tools from "./agents/tools.js";
+import tidy from "./agents/tidy.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -177,6 +180,8 @@ export default class Servex extends Events {
          * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+        /* The usage bars: claude-usage.py every 15 min, hidden (Usage.js). */
+        if (!process.env.SERVEX_NO_USAGE) this.usage = new Usage({ repo: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..") }).start();
 
         /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
@@ -185,6 +190,10 @@ export default class Servex extends Events {
             this.layers = new this.constructor.Layers({ servex: this }).install();
             this.global = new this.constructor.Global({ servex: this }).install();
         }
+
+        /* THE WORKTREE POOL (quickfix-worktrees, 2026-09-25): one warm worktree any agent
+         * takes with take_worktree. Pool.js and doc/pool.md. `SERVEX_NO_POOL=1` boots without it. */
+        if (!process.env.SERVEX_NO_POOL) this.pool = new this.constructor.Pool({ servex: this }).start();
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
@@ -329,7 +338,8 @@ export default class Servex extends Events {
         const runner = new Process.Whisper({
             name: "whisper", log: this.log, model, port,
             command: path.join(home, "bin", "whisper-server.exe"),
-            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port)]
+            args: ["-m", model, "--host", "127.0.0.1", "--port", String(port),
+                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin")]
         });
 
         this.processes.set("whisper", runner);
@@ -453,6 +463,18 @@ export default class Servex extends Events {
 
         this.cards.routes(router, cors);
 
+        /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
+         * model call that cleans up a chunk of dictated text near-verbatim
+         * (typos, capitalization, punctuation, fillers only — never a
+         * rewrite). See Servex/agents/tidy.js for the prompt and options. */
+        router.options("/api/tidy", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/tidy", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
+            res.json(await tidy(body));
+        });
+
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
 
         /* The dashboard's first paint. After this it hears about every change on
@@ -493,6 +515,9 @@ export default class Servex extends Events {
 
         /* The machine monitor's latest sample, verdict, flag and spawn queue. */
         router.get("/api/system", cors, (req, res) => res.json(this.health()));
+
+        /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
+        router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
     }
 
     tools(){
@@ -528,6 +553,7 @@ export default class Servex extends Events {
          * tools on one door; nothing about them is special-cased here. */
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
+        for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
 
 
         this.mcp.tool("system_health", {
@@ -861,6 +887,7 @@ Servex.Global = Global;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.TaskLoop = TaskLoop;
+Servex.Pool = Pool;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;

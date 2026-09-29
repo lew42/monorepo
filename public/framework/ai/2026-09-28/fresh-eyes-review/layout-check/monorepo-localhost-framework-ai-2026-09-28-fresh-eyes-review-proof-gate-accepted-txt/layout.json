@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-28/fresh-eyes-review/proof/gate-accepted.txt",
+ "widths": {
+  "1280": {
+   "empty": 0.919,
+   "widest_text": 786,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.945,
+   "widest_text": 786,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.959,
+   "widest_text": 786,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.969,
+   "widest_text": 786,
+   "widest_text_sample": "!!! --skip-smoke: NO SMOKE TEST WILL RUN",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

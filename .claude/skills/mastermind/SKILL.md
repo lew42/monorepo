@@ -10,6 +10,32 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
+**When the owner says how the system should work, write it into this skill (or the skill it
+belongs to) right away, without being asked** (the owner, 2026-09-24). Write it as
+**instruction, not restriction**: say it with the certainty the owner said it with. Most things
+are suggestions ("you could", "you should usually", "consider"). "Never" and "always" are only for
+what has actually broken something and will again. A rule stated more firmly than it is known
+makes agents rigid in exactly the cases it didn't foresee.
+
+**Every request the owner makes gets a card first, before anything is dispatched** (the owner,
+2026-09-25: "when I send a message, whether in the VS Code sidebar or wherever, I want you to add a
+card to that list very quickly"). Use `create_card` (a Servex tool; from a tab whose tool list is
+stale, `POST http://127.0.0.1:8090/card/create {title, type, by}`), then one `{"group": …}` line
+(`POST /card/append?id=<id>`) so it files under a familiar group. Then dispatch, and have the
+mastermind report on that card. **Answer the owner on the card too, not in chat** (the owner,
+2026-09-25: "put your response in the card; I don't want to read your chat anymore"). Keep it
+short: `card_reply`, or `POST /card/append?id=<id>` with a `message` line. The chat reply is one
+line pointing at the card.
+
+**Where your words go: files for the next agent, cards for the owner** (the owner, 2026-09-28: "whatever you're doing should be through the lens of a task"). Write what a future agent needs into files it will find: the task's directory, a readme, a doc. Tell the owner on the task's dashboard card. Put anything you need from the owner on that card as a question (`card_reply`, or a sub-card of type `question`). It then stays in the dashboard's **Waiting on you** list until it is answered, so a question the owner misses today is still there tomorrow. The chat or VS Code sidebar gets one line pointing at the card, or nothing.
+
+**Work the owner didn't ask for goes to [`ai/todo.md`](/framework/ai/todo.md), not into a
+spawn** (the owner, 2026-09-24: "we need to prioritize; anything not specifically requested
+goes into ai/todo.md"). A follow-up, a brief an audit produced, or an idea a mastermind had: add
+it there with one line and a link, and let the owner pick. What you can still do without asking
+is finish what was asked, including the small fixes it needs to work. `ai/readme.md` points at
+todo.md, so keep it current when an item lands or is dropped.
+
 ## Spawning — `spawn_agent` on Servex, the CLI as the fallback
 
 Never the in-process Agent tool: nobody else can reach, message or reopen one, it shares your session id, and it is lost when the tab is (the owner, 2026-09-19). Servex holds sessions in one long-running process and exposes them as MCP tools, so any session anywhere can steer a running agent — and a child's completion arrives as an **event addressed to its parent**, which is what stops a parent parking.
@@ -17,6 +43,43 @@ Never the in-process Agent tool: nobody else can reach, message or reopen one, i
 - **Spawn** — `spawn_agent {role, name, prompt}` on Servex's `/mcp`; `model`, `effort` and `cwd` override the role's defaults, and `role` loads that role's skill before the agent's first turn. Then `send_message`, `interrupt_agent`, `stop_agent` and `list_agents`, from anywhere. The seam is [`Servex/agents/readme.md`](../../../Servex/agents/readme.md); the six roles are [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
 - **Fallback, when Servex is down** — `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json`, run from the repo root; `claude --resume <id> -p` for a follow-up; a preloaded library and its forks are the `fork-claude-session` skill. ⚠ Those two permission flags are the whole difference between a minion that works and one that cannot write or run anything (five minions, $8.50, nothing written, 2026-09-19).
 - **Record** — the agent's id and its `session_id` go in the brief and in the task's `task.jsonl` launch line. That one field is what makes the work resumable later.
+
+## Grouping work: how many masterminds, how many worktrees (the owner, 2026-09-24)
+
+Before you spawn anything, sort the open work into groups. These are judgment calls, not rules:
+
+- **Related tasks share one task mastermind and one worktree.** Tasks that touch the same files or
+  the same idea (three fixes to one card, a feature and its docs) go in one batch. One mastermind
+  holds the context once, instead of three each rebuilding it.
+- **Separate projects get separate masterminds and separate worktrees.** Separate code with
+  separate context stays apart, so neither one's half-done state can break the other.
+- **Two modules that must work together (A uses B): two masterminds, ONE worktree.** Each
+  mastermind owns its own directory, so they never write the same files. Sharing the tree lets A
+  simply import B, with no merging and no special loading to reach into another checkout. Each one
+  may have minions draft a few proposals and merge the best parts. When both have a first version,
+  **keep them alive** and tell each to read the other's module (`send_to_agent`): "A, read what B
+  built; B, read what A built. Adjust your side, and say what you need from the other." Repeat
+  until the seam works. Then you smoke-test the seam yourself.
+- One mastermind per group, all groups at once. There is no cap on how many run in parallel; the
+  budget rule below is the limit.
+
+**Always consider which branch each agent, and the owner, is looking at** (the owner,
+2026-09-24). The owner sees the live site, which is `michael/dev` in the main tree. A task
+mastermind sees its own worktree branch, cut when it started. So a bug report can be stale in
+either direction: the owner's "it's broken" may already be fixed on the branch, or a fix merged
+since the mastermind branched may not be in its tree yet, and it goes on to fix something already
+fixed. When you pass on a report, say where it was seen (the live site, `michael/dev` at commit
+X) and when. Tell the mastermind to reproduce it on current `michael/dev` first, merging it into
+its branch if the branch is behind, before it changes anything.
+
+**Keep everything moving; never block the session** (the owner, 2026-09-24: "be very careful to
+manage concurrency, not block the session, keep things moving"). `spawn_agent` returns at once.
+A child's "done" reaches you as an event if you are its Servex parent. From a tab, which is not a
+Servex agent, run a background watcher on the agent's state so the notice still arrives. Every
+child and every background process needs a way to reach you, because a missed notice stalls the
+next step as surely as a blocking wait does. Long-running helpers (servers, the page-health
+watcher `Server/health-supervisor.mjs`, Playwright) run in the background and report; the session
+only reads what they report.
 
 ## First objective — minimize the chaos
 
@@ -72,6 +135,28 @@ would ask about. That is what a `decision` line's `options` are for, and what a 
 
 ## Budget — one rule, every window
 
+**The weekly window: stay under pace early, so the end of the week is not starved** (the owner,
+2026-09-24: "we got over-paced about halfway through last week and had to really rein in all of
+the token spending; I'd rather stay under pace early in the week"). You own this number. For the
+first half of the weekly window, keep weekly used% clearly below elapsed%, and say the gap in every
+report. Money not spent early is there for the second half; money spent early is gone. Prefer
+to stay comfortably under **both** windows (the owner, the same evening, after a swarm ran the
+5-hour window over pace: "we want to stay comfortably under each of these windows"). When a
+swarm is running, check usage every few landings, not just at the top of a cycle. A fan-out
+of dozens of minions can move the week by several points in an hour. When you stand down, stop
+the fan-outs first (audits, reviews, censuses), let the core work land lean, and stop anything
+that has only just started, since stopping it loses nothing.
+
+**The one time to spend freely** (the owner, 2026-09-25): a 5-hour window is about to reset
+with much of it unused, the week is well under pace, and nothing planned needs that budget. Unused
+window time is simply lost, so use it on experiments: several agents on the same problem, a
+consensus of agents, or variants compared. Measure whether they beat a single agent, and record
+the result (the recipe lab's question).
+
+**A research question, a plan with rivals, or a naming choice goes to a collab**
+(`node Server/collab.mjs`, about $1.50 to $2 for 3 cheap members). The sub-mastermind skill says
+when and how, and its model scoreboard is at `/framework/ext/Collab/`.
+
 **Aim about 20 points under the pace line, on average** (the owner, 2026-09-18: "it's better to
 have somebody doing something than just sitting around doing nothing"). Run `check-claude-usage`
 at the top of every cycle and compare used% to elapsed% on every window. The 20-point gap is the
@@ -94,6 +179,36 @@ judgment looks off, deploy a second on the same question rather than reading it 
 window is at its pace line, a Sonnet builds what an Opus would have, a Haiku scans, and a lower
 effort is tried before a smaller model; a critic pass can be a Sonnet too. Try it and say how it
 went in the log — a Sonnet that did an Opus job is a finding worth more than the tokens saved.
+
+**Watch which model is good for what, and keep a record** (the owner, 2026-09-24: "pay attention to
+the quality of results of the different models; if we can get Sonnet minions to do things for a
+third the cost, let's do that"). Every fan-out spot-checks a few of its minions' results and
+logs the model, the cost per item, and how many were right. Big scaffolding, censuses and
+per-item audits go to Sonnet by default, in parallel. **Fan out wide when the budget allows:** 150
+items can mean 150 minions, but run them in waves of at most about 20, because each agent is its
+own process on the owner's machine. Measured 2026-09-24 ([task-audit](/framework/ai/2026-09-24/task-audit/)):
+per-task audits by Sonnet at LOW effort got 2 of 5 spot-checked rows right, and every miss was a
+false "never done". At MEDIUM, with the rule "prove it's missing before you say so", it got 5 of 5,
+for $0.20 a row. Haiku would not have done.
+
+**Redundant variants are allowed when they are cheap** (the owner, 2026-09-24: "if we can spawn 10
+Sonnet minions and 20% of the time we get a 20% better outcome, it might be worth it"). For work
+where the result varies a lot from run to run (a layout, a design, a hard bug), several cheap
+minions may build the same thing independently, and you keep the best one or merge the best
+parts. Decide with the arithmetic: the cost of N runs against how often the best run beats a
+single run. Log both, so the next decision is measured instead of guessed. Don't do it for
+mechanical work, where every run comes out the same. **The owner judges quality; you judge
+cost.** Measure every recipe in dollars (not tokens, because models are priced differently, and
+a parent task's cost includes all its children's). Offer your best guess on quality, clearly
+marked as a guess, and say "about the same" when it is. For design work, show the variants
+side by side, unlabelled, and let the owner pick (the recipe lab, 2026-09-24).
+
+**System changes are tested before they touch the live system.** A mastermind with an
+improvement to the whole system tests it in a worktree. For a change to Servex itself, it boots
+a private Servex from the worktree on another port (task-mastermind-live-card did this
+2026-09-24) and proves it there first. Only the one live Servex can't be forked, so a change to
+it gets extra scrutiny, and it goes live only through `node Servex/sustain.mjs --restart`, which
+refuses while agents are working.
 
 ## Each cycle
 
@@ -138,6 +253,24 @@ its memory and is worth keeping: continue a minion by messaging its session id
 another. Cheap Haiku and Sonnet minions can be researchers you keep alive to throw questions
 at: they load many files and do the grunt work while the mastermind decides.
 
+**Delegate for parallelism or a fresh context, never for expertise a skill can carry** (the owner, 2026-09-25: "the new agent loses all the context"). For a page, a card or a layout, load the `page` skill and do it yourself. Hand work off only when it can run beside yours, or when your context is too full or off-subject to do it well. A warm specialist (below) is worth messaging for the context it holds, not for a skill you could load.
+
+**Your masterminds are specialists; delegate to them and keep your own context small** (the
+owner, 2026-09-24). A task mastermind that built part of the system has that part loaded. The
+next question about that part goes to it (`send_to_agent`, since Servex agents stay alive after
+they land), not into your own context. A big context window is not free: an agent gets
+distracted by whatever sits in its context. So keep every context minimal and on one subject,
+and pick where to start from:
+
+- **Same subject, context still clean** → message the warm specialist.
+- **Same subject, but its context has filled with unrelated history** → start from a checkpoint:
+  fork its session (`claude -p --resume <session_id> --fork-session`), so the copy asks the new
+  question and the original is not bloated further.
+- **A new subject** → a fresh agent that starts from the module's `readme.md`, then its `doc/`.
+  A readme is the checkpoint for everyone: what the thing is and which files matter. When a fresh
+  agent needs more than the readme to get going, the readme is missing something, and the
+  `documentation` skill is how that agent fixes it before landing.
+
 Text alone is a lot less useful than text beside the thing it explains. A blurb that does not
 relate to something the reader can see, a wall of screenshots at random scales, a paragraph
 that says what a demo would show — each is the failure the owner keeps naming. Prefer a demo the
@@ -147,15 +280,15 @@ until it loses the essence of the thing has not become simpler.
 
 ## Briefs — every brief opens with the three laws and a length budget
 
-Every brief tells the minion to load the `minion` skill first; the brief itself then carries only what is specific to this task.
+Every brief tells the minion to load the `minion` skill first; the brief itself then carries only what is specific to this task. It gives the path to the card's directory (`public/framework/ai/<card id>/`). Whoever gets the work, whether a mastermind, a manager, a minion or another card, reads the owner's raw words there, not only your summary (the owner, 2026-09-25).
 
 Less is more (ASAP), clarity is the exception, prioritize. Say what the deliverable is and how
 long it may be — a report is a screen; a page leads with the thing itself. Then, from the
 2026-08-16 run (31 agents, nine correctly refuted their brief):
 
 - **Running ONE task is a task mastermind's job, not yours.** What that role is handed, what it
-  reports back, and the one rule that stops it parking (its minions run in its own foreground, or
-  are Servex-hosted agents whose completion is an event addressed to it) are the `sub-mastermind`
+  reports back, and how it keeps everything moving (its minions are Servex-hosted agents whose
+  completion is an event addressed to it; nothing blocks its turn) are the `sub-mastermind`
   skill and [`tiers-design/doc/roles.md`](/framework/ai/2026-09-22/tiers-design/doc/roles.md).
 - ⚠ **Write every follow-up so a COLD agent can execute it** — file:line, never "as you did
   before". Do not gate a worker on a wait at all when you can dispatch it after the prerequisite

@@ -1,17 +1,26 @@
-import { Page, View, div, p, span, small, a, button, label, input, details, summary } from "/app.js";
+import { Page, View, div, p, span, small, a, button, label, input, details, summary, h1, h4 } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
 import { Groups } from "./groups.js";
 import { task_of, task_region } from "./tasks.js";
 import { when } from "./faces.js";
 import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
-import { row, full, flag_box, toc, sub_full } from "./faces.js";
-import { Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id } from "./inbox.js";
+import { row, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
+import { news_of, group_news } from "./activity.js";
+import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+
+/* Servex down: the page is read-only — the write buttons quietly go away. */
+servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
 import chat from "./chat.js";
-import { LIVE, live_model, live_row, live_full } from "./live.js";
+import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
+import { progress_of, meter } from "./meter.js";
+import { agent_cost } from "./agents.js";
+import workspace from "./workspace.js";
+import { RealPage, page_events, page_face, real_title } from "./real.js";
+import { unseen } from "./activity.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -55,7 +64,18 @@ export default new Page({
 	   Router does not know about is one the nav cannot get you out of (the
 	   owner, same day: "we can't just have these buttons that when clicked
 	   switch the view manually"). */
+	/* THE TWO TABS, LIKE A CLASS DOC PAGE (the owner, 2026-09-28: "the title, and then some
+	   tabs for like inbox, but over then maybe an overview"). ext/tabs' own look and ext/Doc's
+	   well, drawn by hand: the panels are this page's own routed children, not a `tabs()` set.
+	   Inbox is this url, so a card url (which runs through it) still lights Inbox. */
 	content(){
+		div.c("ai2-head", () => {
+			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
+			div.c("tabs block", () => div.c("tab-bar", () => {
+				a.c("tab tab-default").href(this.url).text("Inbox");
+				a.c("tab").href(this.url + "overview/").text("Overview");
+			}));
+		});
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
 	},
 
@@ -72,6 +92,9 @@ export default new Page({
 		// pages too (`Card.Folder`), each reading the next one down from the
 		// folder, so nothing is probed. `view` is reserved like `overview`.
 		if (/^\d{4}$/.test(id)) return new Card.Folder({ id, title: id, shell: this });
+		// A REAL SITE PAGE, shown here as itself: `framework/core/Page/` is the page at
+		// `/framework/core/Page/` — the same Page object and view (real.js).
+		if (id === "framework") return new RealPage({ path: "/framework/", title: "framework", shell: this });
 		if (id === "view") return this.views_page ??= views_page(this);
 		return card_page(this, id);
 	},
@@ -79,10 +102,19 @@ export default new Page({
 
 const RAIL_KEY = "ai2-rail-w";
 const AUTO_KEY = "ai2-auto-transcribe";
+const LIVEVIEW_KEY = "ai2-live-default";
+
+/* ⚠ Storage can throw (a private window, blocked site data) and a bare read here stopped the
+   whole rail drawing. Every read and write on this page goes through `store`. */
+const store = {
+	get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+	set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+	drop: k => { try { localStorage.removeItem(k); } catch {} },
+};
 
 /** On by default (item 10) — a card you just opened starts listening unless
  *  you turned this off, remembered in this browser like `DEVICE_KEY`. */
-const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
+const auto_transcribe = () => store.get(AUTO_KEY) !== "off";
 
 /* The id "+ New card" just minted, waiting for its page to be built.
    ⚠ NOT a `?new=1` in the url, which is the obvious way and is silently wrong:
@@ -92,15 +124,15 @@ const auto_transcribe = () => localStorage.getItem(AUTO_KEY) !== "off";
      was asked for, cannot be read at the wrong moment. */
 // It lives on the page itself (`page.opening`), because `card.js` reads it too.
 
-/* The four columns by importance, as a page of its own — it mounts in the
-   detail column like a card does, and `ai2.css` hands it the whole width while
-   it is the active page. */
+/* The Overview tab: one big card per concept (overview.js), as a page of its own — it
+   mounts in the detail column like a card does, and `ai2.css` hands it the whole width
+   while it is the active page. */
 function overview_page(root){
 	return new Page({
 		title: "Overview",
 		url: root.url + "overview/",
 		classes: "ai2-overview-page",
-		content(){ overview(root, root.ai2); },
+		content(){ overview(); },
 	});
 }
 
@@ -110,6 +142,19 @@ function board(page){
 	const day = day_log();
 	const stream = prompt_stream();
 	const live = live_model({ prompts: stream, day });
+	/* A CARD MADE FOR YOU OPENS ON YOUR SCREEN (the owner, 2026-09-25: "if I say 'create a new card',
+	   you put a card called New card and FOCUS it on my screen, and whatever I ask you to do starts
+	   populating"). An agent writes `{"type": "focus", "ref": "<card id>"}` to the Live card's log
+	   (`append_log` name `cards/live`); every open AI 2 page hears it over the push stream and
+	   goes to that card. Live pushes only, never a replay: a focus older than two minutes, or one
+	   already followed, is ignored. Other new cards never jump the screen. */
+	const followed = new Set();
+	live.log.on(e => {
+		if (e?.type !== "focus" || !e.ref || followed.has(e.ref + e.at)) return;
+		if (Date.now() - Date.parse(e.at ?? 0) > 2 * 60 * 1000) return;
+		followed.add(e.ref + e.at);
+		folders.refresh?.().finally(() => page.app?.router?.go(workspace.url(page.url + String(e.ref).replace(/^\/+|\/+$/g, "") + "/")));
+	});
 	// Every card folder, as Servex lists them; `board.jsonl` is only read when this is not `ok`.
 	const folders = new CardList();
 	// The familiar groups the work is filed under — `groups.json`, `groups.js`.
@@ -119,12 +164,18 @@ function board(page){
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
 	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
+	const at_of = new Map();       // row id (a group's as "group:<id>") → when it was last updated
 	const group_rows = new Map();  // group id → { $row, sig }
+	const page_rows = new Map();   // a real page's path → { $row, sig } (real.js)
 	const waiting = new Set();     // ids that arrived while the list was busy
 	const watching = new Set();    // the card pages on screen, each watching for its own card
 	const list_watchers = new Set();   // the overview's own subscription onto this list
-	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived;
+	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
 	let $groups, $pinned, $unfiled, $unfiled_head, $list;
+	// THE ONE THING SHOWING IN `$detail` — a top-level card (`open()`'s `h.top`), never a sub-card
+	// beside it: drilling into a request must not hide the workspace word for the card still open
+	// next to it. `null` while nothing top-level is open (the bare inbox, a real site page, a view).
+	let ws_owner = null;
 
 	/* `bleed` is the page grid's own word for "the whole region" — without it
 	   this draws inside the prose track and the rail and the page share 52em. */
@@ -136,14 +187,26 @@ function board(page){
 			   Nothing else — the owner counted the rows above the first card and
 			   called it "a third of my screen". */
 			div.c("ai2-top", () => {
+				// The rail names itself (the owner, 2026-09-25): "a small H4 above the progress bars that
+				// says AI inbox. This is the inbox mode, and it identifies this as the navigation rail."
+				h4.c("ai2-rail-name", () => {
+					span("AI inbox");
+					// THE WORKSPACE VIEW, an experiment (workspace.js): a full navigation to this same
+					// page with `?view=workspace` flipped. `target` keeps the Router's hands off it.
+					// ⚠ SHOWN ONLY WHEN IT WOULD DO SOMETHING (the owner, 2026-09-28: "what is this
+					// workspace link?? it doesn't do anything") — hidden here at rest, then toggled by
+					// `render_ws()`, which only ever runs for a TOP-LEVEL card (`open()`'s `h.top`), never
+					// for a sub-card beside it, a real site page, or the bare inbox. `.el.hidden` starts
+					// true so a slow first paint never flashes a dead-looking word.
+					$ws = a.c("ai2-word ai2-ws-word").attr("target", "_self").attr("hidden", "")
+						.click(e => { e.preventDefault(); location.assign(workspace.flipped()); })
+						.on("pointerenter", e => { e.currentTarget.href = workspace.flipped(); });
+				});
+				usage_head(live);
 				// Typed-only (item 10) — the mic lives on the card's own page now,
 				// one per card, so it never talks into whatever happens to be open.
 				composer({ placeholder: "say anything — it starts a new card", mic: false });
 				div.c("ai2-chrome flex v-center gap-25", () => {
-					// "Reachable... and back" (deliverable 7) — closes whatever card
-					// is open (a real navigation to the root) and drops the manual
-					// inbox toggle, so the overview is what shows either way.
-					a.c("ai2-word ai2-ov-back page-link").href(page.url + "overview/").text("overview");
 					// A blank workspace that listens: the card exists on the board
 					// the moment you press this, and the url becomes its own.
 					button.c("ai2-newcard").attr("type", "button")
@@ -157,12 +220,15 @@ function board(page){
 							if (!id) return;
 							if (made?.ok) await folders.refresh();
 							page.opening = id;
-							page.app?.router?.go(page.url + id + "/");
+							page.app?.router?.go(workspace.url(page.url + id + "/"));
 						});
+					// LIVE IS THE DEFAULT VIEW. The "Live" toggle that sat here is gone (ai2-lead
+					// audit, 2026-09-25): it looked like a link to Live, and the Live row just below
+					// already is one. A stored "off" from it is still honoured.
 					label.c("ai2-auto flex v-center gap-25 muted").attr("title", "a new card starts listening on its own — turn off to start it silent").append(() => {
 						const $auto = input().attr("type", "checkbox");
 						$auto.el.checked = auto_transcribe();
-						$auto.on("change", e => localStorage.setItem(AUTO_KEY, e.target.checked ? "on" : "off"));
+						$auto.on("change", e => store.set(AUTO_KEY, e.target.checked ? "on" : "off"));
 						// "-transcribe" is its own span so a rail dragged narrow can say just
 						// "auto" and keep the head at two lines (ai2.css, `.ai2-auto-tail`).
 						span(() => { span("auto"); span.c("ai2-auto-tail").text("-transcribe"); });
@@ -180,8 +246,9 @@ function board(page){
 				$rows = div.c("ai2-rows", () => {
 					$groups = div.c("ai2-groups");
 					$pinned = div.c("ai2-pinned");
-					$unfiled = details.c("ai2-unfiled", () => {
-						$unfiled_head = summary.c("ai2-unfiled-head muted");
+					$groups.el.before($pinned.el);
+					$unfiled = div.c("ai2-unfiled", () => {
+						$unfiled_head = div.c("ai2-unfiled-head muted");
 						$list = div.c("ai2-list");
 					});
 				});
@@ -197,12 +264,12 @@ function board(page){
 				// rail's edge at its default width — a filter on this list, like archived.
 				$notes = button.c("ai2-word").attr("type", "button")
 					.attr("title", "only the mastermind's notes to you")
-					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); if (only_notes) $unfiled.el.open = true; relist(); });
+					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
 				$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
 					.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
 			});
-			grip({ from: "start", write: size, done: w => localStorage.setItem(RAIL_KEY, w + "px"),
-				reset: () => { localStorage.removeItem(RAIL_KEY); size(); } });
+			grip({ from: "start", write: size, done: w => store.set(RAIL_KEY, w + "px"),
+				reset: () => { store.drop(RAIL_KEY); size(); } });
 		});
 
 		// ⚠ THE MIDDLE COLUMN IS `page.$pages` — core's own word for "where my
@@ -230,13 +297,16 @@ function board(page){
 	});
 
 	page.$pages = $detail;
+	// With the workspace view on, every AI 2 link clicked in here keeps `?view=workspace` (workspace.js).
+	$shell.el.addEventListener("click", e => workspace.keep(e));
+	// LIVE IS THE DEFAULT VIEW — the bare address goes to it once per load (Back returns here, no loop).
+	if (location.pathname === page.url && store.get(LIVEVIEW_KEY) !== "off" && !page.went_live){
+		page.went_live = true;
+		setTimeout(() => page.app?.router?.go(workspace.url(page.url + "live/")), 0);
+	}
 	page.$sub = $sub;
 
-	// The fold remembers itself in this browser; closed until you open it.
-	const UNFILED_KEY = "ai2-unfiled";
-	try { $unfiled.el.open = localStorage.getItem(UNFILED_KEY) === "open"; } catch {}
-	$unfiled.on("toggle", () => { try { localStorage.setItem(UNFILED_KEY, $unfiled.el.open ? "open" : "closed"); } catch {} });
-	size(parseInt(localStorage.getItem(RAIL_KEY), 10) || null);
+	size(parseInt(store.get(RAIL_KEY), 10) || null);
 
 	/* ── the rail's width ───────────────────────────────────────────────── */
 
@@ -246,6 +316,20 @@ function board(page){
 		const w = px ? Math.round(Math.max(200, Math.min(px, innerWidth - 320))) : null;
 		$shell.style("--ai2-rail", w ? w + "px" : "");
 		return w;
+	}
+
+	/* THE WORKSPACE WORD — called from `open()`/`close()` below, whenever the top-level
+	   card in `$detail` changes. `ws_owner` is null for anything that toggle can never
+	   affect (the bare inbox, a real site page, the Live page, an old non-folder card),
+	   so the word simply stays hidden for all of them — no per-page special-casing here. */
+	function render_ws(){
+		const eligible = !!ws_owner?.ws;
+		$ws.el.hidden = !eligible;
+		if (!eligible) return;
+		$ws.el.classList.toggle("on", workspace.on);
+		$ws.el.href = workspace.flipped();
+		$ws.el.title = workspace.title;
+		$ws.text(workspace.label());
 	}
 
 	/* ── drawing the list ───────────────────────────────────────────────── */
@@ -265,7 +349,9 @@ function board(page){
 		// A thing filed in a group is shown THROUGH its group, never twice.
 		// ...EXCEPT one active in the last half hour: a card the owner just made must be in sight at the top, as its own row, even when it is filed in a group (the group row rises too).
 		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
-		const pool = list.filter(it => !groups.filed(it) || fresh(it));
+		// A group's own card IS its group row: never a second row beside it.
+		const group_cards = new Set((groups.list ?? []).map(g => g.card));
+		const pool = list.filter(it => !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
 		const base = only_notes ? pool.filter(it => it.kind === "note") : pool;
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
@@ -289,6 +375,8 @@ function board(page){
 		list.push(it);
 		list.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
+		// What bumped each row, while it is new to you (activity.js) — part of the row's signature.
+		list.forEach(it => { it.news = news_of(it, groups.folds); });
 		// Archived cards are findable too — a card page left open on one the
 		// owner just cleared should still draw it (greyed, via `full()`), not
 		// suddenly say "no card by that name".
@@ -311,16 +399,19 @@ function board(page){
 		list_watchers.forEach(fn => fn(list));
 	}
 
-	/* WHAT A ROW COST — the dollars of the task it points at (a landed task, or a
-	   card whose `task` or link names one), as `$4.74`, or `$4.74+` while an agent
-	   on it still runs. Written onto the item itself, so the whole-record
-	   signature in `refill()` redraws the row when the figure moves. A card with
-	   no task has no cost anyone measured, so it shows none — never `$0`. */
+	/* WHAT A ROW SHOWS — a progress bar and one dollar figure, written onto the item
+	   itself so the whole-record signature in `refill()` redraws the row when either
+	   moves. The dollars are the card's task when it has one, else what its own
+	   agents spent (`agents.js` `agent_cost()`); nothing recorded yet is null. */
 	function row_cost(it){
 		if (it.kind === "live") return null;
 		const url = task_of(it) ?? task_of(groups.folds.get(it.id)?.fold);
-		const c = cost_of(groups.task_member(url));
-		return c ? money(c.usd) + (c.open ? "+" : "") : null;
+		const t = groups.task_member(url);
+		const c = cost_of(t);
+		it.usd = c ? c.usd : (it.folder ? agent_cost(it.id, () => paint()) : null);
+		it.usd_open = !!c?.open;
+		it.progress = progress_of(t, it.status);
+		return null;
 	}
 
 	/* Let the waiting cards in, and apply the sort — which is the ONLY moment
@@ -341,12 +432,7 @@ function board(page){
 		// A box whose rows already stand in this order is left alone: re-appending
 		// an in-place row still removes and re-adds it, dropping hover, focus and
 		// a text selection, and each one is a mutation for nothing.
-		[[$pinned, id => id === LIVE], [$list, id => id !== LIVE]].forEach(([$box, mine]) => {
-			const want = shown.filter(mine).map(id => rows.get(id).$row.el);
-			const have = [...$box.el.children].filter(c => c.classList.contains("ai2-row"));
-			if (want.length === have.length && want.every((el, i) => el === have[i])) return;
-			want.forEach(el => $box.el.appendChild(el));
-		});
+		here.forEach(it => at_of.set(it.id, it.at));
 		draw_groups(true);
 
 		pill();
@@ -369,23 +455,66 @@ function board(page){
 			let rec = group_rows.get(g.id);
 			if (!rec){
 				rec = { sig: null };
-				$groups.append(() => { rec.$row = a.c("ai2-row ai2-group-row").href(page.url + g.card + "/"); });
+				$list.append(() => { rec.$row = a.c("ai2-row ai2-group-row").href(page.url + g.card + "/"); });
 				group_rows.set(g.id, rec);
 			}
 			const latest = groups.latest(g.id);
 			const size = groups.members(g.id).filter(m => m.kind !== "said");
-			const spent = groups.cost(g.id);
-			const sig = JSON.stringify([g, latest, size.length, spent]);
+			const tasks_cost = groups.cost(g.id);
+			// The name is the card's LATEST title (Servex reads the newest `title` line); groups.json only names it first.
+			const name = folders.card(g.card)?.title || g.name;
+			// Money: the member tasks, else what the card's own assistant + manager spent (agents.js).
+			const agents = tasks_cost?.tracked ? null : agent_cost(g.card, () => draw_groups());
+			const spent = tasks_cost?.tracked ? tasks_cost : (agents ? { tracked: true, usd: agents, open: false } : tasks_cost);
+			const news = group_news(g, latest, groups.at(g));
+			const sig = JSON.stringify([g, name, latest, size.length, spent, news]);
 			if (rec.sig === sig) return;
 			rec.sig = sig;
-			rec.$row.empty(() => { group_face(g, latest, size, spent); });
+			rec.$row.empty(() => { group_face(g, latest, size, spent, name); if (news) news_bar(news); });
 		});
-		const next = order.map(g => g.id);
-		if (next.join() !== group_order.join() && (force || quiet() || !group_order.length)){
-			group_order = next;
-			group_order.forEach(id => $groups.el.appendChild(group_rows.get(id).$row.el));
-			page.app?.router?.mark_links?.();
-		}
+		order.forEach(g => at_of.set("group:" + g.id, groups.at(g)));
+		draw_pages();
+		order_rows(force);
+	}
+
+	/* THE REAL PAGES — one row per site page an event has named (`"page": "/framework/…/"`
+	   on a line of the day log or a task log). The row is a link to that page shown here,
+	   at `/framework/ai2/<its path>`; it sorts by its newest event, like everything else. */
+	function draw_pages(){
+		page_events(day, groups).forEach((evs, path) => {
+			let rec = page_rows.get(path);
+			if (!rec){
+				rec = { sig: null };
+				$list.append(() => { rec.$row = a.c("ai2-row ai2-page-row").href(page.url + path.slice(1)); });
+				page_rows.set(path, rec);
+			}
+			real_title(path, page.app?.router, () => draw_groups());
+			at_of.set("page:" + path, evs[0].at);
+			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
+			if (rec.sig === sig) return;
+			rec.sig = sig;
+			rec.$row.empty(() => { page_face(path, evs); });
+		});
+	}
+
+	/* ONE TIMELINE, NEWEST FIRST (the owner, 2026-09-25: "nothing sticky… a topic not mentioned
+	   in a while sinks and comes back when it's referenced"). Groups, the Live card and cards
+	   share one list, sorted by when each was last updated and nothing else. The order is
+	   applied only when the list is quiet (or `force`d by a flush that is moving rows anyway),
+	   so nothing jumps under the pointer. */
+	function order_rows(force){
+		const entries = [
+			...shown.filter(id => rows.has(id)).map(id => [at_of.get(id), rows.get(id).$row.el]),
+			...[...group_rows].map(([id, rec]) => [at_of.get("group:" + id), rec.$row.el]),
+			...[...page_rows].map(([path, rec]) => [at_of.get("page:" + path), rec.$row.el]),
+		].sort((x, y) => (Date.parse(y[0] ?? 0) || 0) - (Date.parse(x[0] ?? 0) || 0));
+		const want = entries.map(e => e[1]);
+		const have = [...$list.el.children].filter(c => c.classList.contains("ai2-row"));
+		if (want.length === have.length && want.every((el, i) => el === have[i])) return;
+		if (!force && !quiet() && group_order.length) return;
+		group_order = want;
+		want.forEach(el => $list.el.appendChild(el));
+		page.app?.router?.mark_links?.();
 	}
 
 	/* A group's preview: its icon and name, the newest member's own words
@@ -401,20 +530,17 @@ function board(page){
 	     all three words made the line wide enough to wrap three group titles
 	     and push the Live card below the fold at 1920×1080. The count is still
 	     one click away — the group's card lists every task and its cost. */
-	function group_face(g, latest, members, spent){
-		const tasks = members.filter(m => m.kind === "task").length, cards = members.length - tasks;
-		const size = [tasks && tasks + (tasks === 1 ? " task" : " tasks"), cards && cards + (cards === 1 ? " card" : " cards")];
-		const usd = spent?.tracked && money(spent.usd) + (spent.open ? "+" : "");
-		div.c("ai2-row-head flex v-center gap-25", () => {
+	function group_face(g, latest, members, spent, name = g.name){
+		/* The same face as any card: name, a bar (member tasks landed of all), the money. */
+		const tasks = members.filter(m => m.kind === "task");
+		const done = tasks.filter(m => m.landed).length;
+		div.c("ai2-row-head flex gap-25", () => {
 			icon(g.icon);
-			span.c("ai2-row-title").text(g.name);
-			small.c("ai2-row-when muted").text([...(usd ? [usd] : size), latest && when(latest.at)].filter(Boolean).join(" · "));
+			span.c("ai2-row-title").text(name);
+			small.c("ai2-row-when muted").text(when(groups.at(g)));   // last updated, top-right, on every row
 		});
-		if (!latest) return void small.c("ai2-group-line muted").text("Nothing yet.");
-		const words = latest.kind === "said" ? "You said: " + latest.words
-			: latest.kind === "task" && !latest.landed ? latest.words || latest.title
-			: latest.title || latest.words;
-		div.c("ai2-group-what").text(words);
+		meter({ pct: tasks.length ? Math.round(100 * done / tasks.length) : 0, live: tasks.length > done, done, total: tasks.length, unit: "tasks" },
+			spent?.tracked ? spent.usd : null, !!spent?.open);
 	}
 
 	function pill(){
@@ -426,15 +552,15 @@ function board(page){
 		const n = visible().length;
 		const count_sig = n + "|" + only_notes + "|" + stream.ok;
 		if (count_sig !== count.sig) $count.empty(() => {
-			span.c("ai2-unread-count").text(String(n));
-			span.c("muted").text(only_notes ? "notes" : "cards");
+			// No "328 cards" count (ai2-lead audit, 2026-09-25): it answered nothing anyone asked.
 			if (!stream.ok) span.c("ai2-off muted").text("· the assistant is off");
 		});
 		count.sig = count_sig;
 		document.title = n ? "(" + n + ") AI 2" : "AI 2";
 
 		const loose = visible().filter(it => it.id !== LIVE).length;
-		$unfiled_head.text("Not filed yet (" + loose + ")");
+		// No "Cards (N)" heading: groups and cards are one timeline now, so it headed nothing.
+		$unfiled_head.el.hidden = true;
 
 		const a_n = list.archived.length;
 		$archived.el.hidden = !a_n && !show_archived;
@@ -467,6 +593,19 @@ function board(page){
 		rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live");
 		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it); });
 	}
+
+	/* THE BAR OPENS ACTIVITY, NOT OVERVIEW. The row is a link to the card, and a link
+	   cannot hold another link, so the bar's click is caught here — before the Router's
+	   own document listener — and goes to the card's Activity page, `…/<card>/activity/`
+	   (card.js `tab_route()`). */
+	$rows.on("click", e => {
+		const bar = e.target.closest?.(".ai2-news");
+		const $a = bar?.closest("a.ai2-row:not(.ai2-page-row)");   // a page row's bar just opens the page
+		if (!$a || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
+		e.preventDefault();
+		e.stopPropagation();
+		page.app?.router?.go(workspace.url($a.getAttribute("href") + "activity/"));
+	});
 
 	$rows.on("pointerenter", () => { hovering = true; });
 	$rows.on("pointerleave", () => { hovering = false; draw_groups(); });
@@ -533,10 +672,18 @@ function board(page){
 		open(h){
 			watching.add(h);
 			current = h;
+			// `h.top` — only a top-level card (or the old, never-eligible `card_page()`) sets
+			// this; a sub-card opening beside it must never touch the word for the card still
+			// open in `$detail`.
+			if (h.top){ ws_owner = h; render_ws(); }
 			paint();
 			return h;
 		},
-		close(h){ watching.delete(h); if (current === h) current = null; },
+		close(h){
+			watching.delete(h);
+			if (current === h) current = null;
+			if (ws_owner === h){ ws_owner = null; render_ws(); }
+		},
 		repaint: paint,
 		live,
 		// The card folders — `card.js` reads sub-card titles off this, and asks
@@ -658,7 +805,7 @@ function card_page(root, id){
 			if (id === LIVE) $box = div.c("ai2-full");
 			else div.c("ai2-full", () => { $box = div.c("ai2-full-card"); $tasks = div.c("ai2-tasks"); });
 
-			div.c("ai2-foot", () => {
+			const foot = () => div.c("ai2-foot", () => {
 				talk = chat({ source, keep: mine });
 				// ⚠ `re` is a FUNCTION, asked fresh on every send: this composer
 				// belongs to this card and nothing else, and saying so once here
@@ -669,10 +816,17 @@ function card_page(root, id){
 					re: () => id,
 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
 					on_text: text => talk.echo(text),
-					on_partial: text => talk.partial(text),
 					autostart: fresh && auto_transcribe(),   // a brand-new card opens listening, unless turned off
 				});
 			});
+			/* ON LIVE THE ASSISTANT IS ONE ROW, and pressing it opens the chat (the owner,
+			   2026-09-25: "don't render the fast assistant's chat messages inline, taking space.
+			   Show the assistant as a small card or row, and clicking it opens its chat"). */
+			if (id === LIVE) details.c("ai2-live-assistant", () => {
+				summary.c("ai2-live-assistant-row").text("Assistant: ask it about what is running");
+				foot();
+			});
+			else foot();
 		},
 
 		// A sub-card's own address — a task, a proposal, a transcript paragraph,
@@ -693,7 +847,9 @@ function card_page(root, id){
 				history.replaceState({}, "", url);
 				root.app?.router?.load(url);
 			});
-			handle = root.ai2.open({ id, draw, on, $box });
+			// `top: true` — this IS what fills `$detail`; `ws: false` — the old, non-folder card
+			// page (and the Live page) has no floating view, so the workspace word never shows here.
+			handle = root.ai2.open({ id, draw, on, $box, top: true, ws: false });
 			// A LIVE UPDATE ON THIS CARD'S OWN LOG redraws the table of contents
 			// (and the body, in case a `refined` or `task` line just landed) —
 			// `sig` carries the log's length precisely so this cannot loop with
@@ -715,7 +871,6 @@ function card_page(root, id){
 		deactivated(){
 			root.ai2.close(handle);
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
-			talk?.partial("");
 			stop_clog?.();
 			stop_live?.();
 		},
@@ -769,7 +924,7 @@ function sub_card_page(root, id, sub, clog){
 			div.c("ai2-foot", () => {
 				// Its own chat: only what was said into THIS sub-card, and the replies to it.
 				talk = chat({ source: () => clog.entries, keep: e => refs(e).includes(re()) });
-				box = composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text), on_partial: text => talk.partial(text) });
+				box = composer({ re, placeholder: "talk into this sub-card", on_text: text => talk.echo(text) });
 			});
 		},
 
@@ -780,7 +935,6 @@ function sub_card_page(root, id, sub, clog){
 
 		deactivated(){
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
-			talk?.partial("");
 			stop_clog?.();
 		},
 	});

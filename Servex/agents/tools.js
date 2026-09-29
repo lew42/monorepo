@@ -136,6 +136,7 @@ return [
 		},
 		["id", "text"],
 		({ id, text, ...note }, ctx = {}) => {
+			id = agents.holder?.(id) ?? id;
 			const ruling = policy.message(ctx.caller ?? null, id);
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			const from = ctx.caller ?? note.from;

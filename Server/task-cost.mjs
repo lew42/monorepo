@@ -166,6 +166,12 @@ function cost(dir){
 	const branch = [];
 	for (const c of children.get(me.root) || []) if (mine(bornAt(c))) branch.push(...tree(c));
 
+	// The spend series: every step of this task's share, root and minions, for the graph.
+	const series = [
+		...(rootSteps || []).filter(x => mine(x.t)),
+		...branch.flatMap(id => agentSteps(id) || []),
+	].sort((a, b) => a.t - b.t).map(x => ({ t: new Date(x.t).toISOString(), usd: r4(x.usd) }));
+
 	const row = id => byId.get(id) ?? {};
 	const agents = [
 		{ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) },
@@ -178,7 +184,7 @@ function cost(dir){
 	// Can still grow: a minion that has not stopped, or the root while this task owns its "now".
 	const open = agents.slice(1).filter(a => !closed(a.id)).length + (!closed(me.root) && mine(Date.now()) ? 1 : 0);
 	return {
-		key: me.key, dir, tracked: true,
+		key: me.key, dir, tracked: true, series,
 		cost_usd: r4((own ?? 0) + minions),
 		cost: { root: me.root, agents, own_usd: r2(own ?? 0), minions_usd: r2(minions),
 			parent_task: parentTask(me), open,
@@ -193,7 +199,15 @@ function current(dir){
 	return merged;
 }
 
+// spend.json beside task.jsonl: the static series the Spend graph reads (production has no Servex).
+function writeSeries(c){
+	const f = join(c.dir, "spend.json"), body = JSON.stringify({ total: c.cost_usd, points: c.series });
+	if (existsSync(f) && readFileSync(f, "utf8") === body) return;
+	writeFileSync(f, body);
+}
+
 function append(c){
+	writeSeries(c);
 	const was = current(c.dir);
 	if (was.cost_usd === c.cost_usd && was.cost?.open === c.cost.open && was.cost?.parent_task === c.cost.parent_task
 		&& JSON.stringify(was.cost?.agents) === JSON.stringify(c.cost.agents)) return "unchanged";

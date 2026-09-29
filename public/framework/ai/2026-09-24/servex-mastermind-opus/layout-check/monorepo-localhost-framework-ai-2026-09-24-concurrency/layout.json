@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026-09-24/concurrency/",
+ "widths": {
+  "1280": {
+   "empty": 0.474,
+   "widest_text": 722,
+   "widest_text_sample": "coordination tools only: spawn, send, fo",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.3
+  },
+  "1920": {
+   "empty": 0.648,
+   "widest_text": 768,
+   "widest_text_sample": "coordination tools only: spawn, send, fo",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.625
+  },
+  "2560": {
+   "empty": 0.726,
+   "widest_text": 864,
+   "widest_text_sample": "coordination tools only: spawn, send, fo",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.8
+  },
+  "3440": {
+   "empty": 0.792,
+   "widest_text": 864,
+   "widest_text_sample": "coordination tools only: spawn, send, fo",
+   "overflow_x": false,
+   "items": 40,
+   "narrow_share": 0.8
+  }
+ },
+ "errors": []
+}

@@ -72,8 +72,12 @@ function common_dir(paths){
  *
  * A string leaf is a file and holds its FETCHABLE path; an object is a directory.
  * Insertion order is declaration order, which is the order the author wants them
- * read in. */
-function nest(paths, cut){
+ * read in.
+ *
+ * Exported (2026-09-28) so ext/Doc can group nested note names the same way, for its
+ * own tree of real routed pages — additive only, `files()`'s own signature and
+ * behavior are unchanged. */
+export function nest(paths, cut){
 	const root = {};
 
 	paths.forEach(path => {

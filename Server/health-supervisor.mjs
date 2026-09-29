@@ -146,6 +146,7 @@ function spawn_child(){
 		stdio: "inherit",
 		cwd: ROOT,
 		env: { ...process.env, HEALTH_BASE },
+		windowsHide: true,
 	});
 	child = c;
 	write_heartbeat();

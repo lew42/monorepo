@@ -99,7 +99,7 @@ function check(n, claim, ok, detail){
  *    leaves the real one holding the port forever. */
 {
     const grandchild = `const {spawn}=require("child_process");`
-        + `const c=spawn(process.execPath,["-e","require('net').createServer().listen(PORT_HERE,'127.0.0.1')"],{stdio:"ignore"});`
+        + `const c=spawn(process.execPath,["-e","require('net').createServer().listen(PORT_HERE,'127.0.0.1')"],{stdio:"ignore",windowsHide:true});`
         + `setInterval(()=>{},1000);`;
 
     const held = await new Promise(done => { const s = net.createServer(); s.listen(0, "127.0.0.1", () => { const p = s.address().port; s.close(() => done(p)); }); });
@@ -127,7 +127,7 @@ function check(n, claim, ok, detail){
     const before = Date.now();
 
     const posters = ["a", "b"].map(who => new Promise((done, fail) => {
-        const child = spawn(process.execPath, [path.join(import.meta.dirname, "proof-poster.mjs"), BASE, name, who, "200"], { stdio: "inherit" });
+        const child = spawn(process.execPath, [path.join(import.meta.dirname, "proof-poster.mjs"), BASE, name, who, "200"], { stdio: "inherit", windowsHide: true });
         child.on("exit", code => code === 0 ? done(who) : fail(new Error(`poster ${who} exited ${code}`)));
     }));
 

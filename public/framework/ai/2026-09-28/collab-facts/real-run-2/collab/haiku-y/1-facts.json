@@ -1,0 +1,42 @@
+[
+  {
+    "id": "card-reply-length",
+    "text": "card_reply text for direct questions should be one or two sentences maximum, rarely three — a confirmation, never substantive explanation. Substantive replies go on board cards as Note: prefixed entries, not in chat replies.",
+    "certainty": "settled"
+  },
+  {
+    "id": "mastermind-spawn-depth-two",
+    "text": "A task mastermind may never spawn a second task mastermind as of now. Depth stops at two (mastermind → minions, never mastermind → mastermind → minions) until one measured run proves a three-deep tree can report failure upward.",
+    "certainty": "settled"
+  },
+  {
+    "id": "spawn-gate-is-conditional",
+    "text": "The two-level depth rule is explicitly conditional: 'until one measured run proves a three-deep tree can report failure upward'. It is the current guard, not a permanent architectural law.",
+    "certainty": "settled"
+  },
+  {
+    "id": "merge-mjs-process-not-forbid",
+    "text": "A minion or sub-mastermind must never commit to the main branch or push. They work in a worktree, commit on their own branch, and hand the owner a branch name and diffstat. The merge step — running Server/merge.mjs — is the owner's responsibility, not the agent's.",
+    "certainty": "settled"
+  },
+  {
+    "id": "merge-mjs-owns-landing",
+    "text": "Server/merge.mjs is the MECHANISM that lands branches — it reads task.jsonl, checks the review gate, and merges. Plain git merge is not forbidden; git merge is just not the agent's step to run. The process IS enforced: a minion that tries git merge on main breaks the shared tree.",
+    "certainty": "settled"
+  },
+  {
+    "id": "edge-case-worktree-rule-override",
+    "text": "In a worktree branch, a sub-mastermind IS allowed to commit and may be required to. The 'never commit' rule applies only to the main branch. A worktree is isolated, so commits there do not touch shared state.",
+    "certainty": "settled"
+  },
+  {
+    "id": "edge-case-reply-length-substantive",
+    "text": "When a substantive explanation is needed (not just a yes/no or confirmation), put it on a board card as a Note: entry, not in the chat reply. The reply itself stays to one line pointing at the card.",
+    "certainty": "settled"
+  },
+  {
+    "id": "edge-case-spawn-research-task",
+    "text": "A sub-mastermind spawning minions for a task is normal and required. The 'never spawn a second mastermind' rule blocks nested masterminds (a mastermind spawning another mastermind for a sub-task), not minions spawning minions.",
+    "certainty": "likely"
+  }
+]

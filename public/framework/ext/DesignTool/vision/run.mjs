@@ -11,12 +11,12 @@
  * $0.13 cache write. Omitted (the CLI default): $0.060, because 46k of skills and
  * CLAUDE.md are re-read for every image. Measured 2026-08-17.
  */
-import { spawn, execSync } from "child_process";
-import { createRequire } from "module";
+import { spawn } from "child_process";
 import { randomUUID, createHash } from "crypto";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
+import { browser as launch } from "../../../../../Server/browser.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SYSTEM = "You are a visual design critic. You are given one screenshot and asked about it. Judge only what is in the image; never open or read any other file.";
@@ -51,15 +51,6 @@ const PUBLIC = path.resolve("public");
 // A shot the dev server can serve. Outside public/ there is no url — keep the disk path.
 const site = f => f.startsWith(PUBLIC + path.sep) ? "/" + path.relative(PUBLIC, f).split(path.sep).join("/") : f;
 const read = id => fs.readFileSync(path.join(HERE, "prompts", id + ".md"), "utf8").trim();
-
-/* ⚠ Playwright resolves from the GLOBAL install, never package.json (Shot.js's ten lines). */
-let driver;
-function chromium(){
-    if (driver !== undefined) return driver;
-    try { driver = createRequire(path.join(execSync("npm root -g", { encoding: "utf8" }).trim(), "index.js"))("playwright").chromium; }
-    catch { driver = null; }
-    return driver;
-}
 
 main().catch(e => { console.error(e); process.exit(1); });
 
@@ -128,9 +119,7 @@ function reuse(done, dry){
 }
 
 async function capture(done){
-    const launcher = chromium();
-    if (!launcher) throw new Error("playwright is not installed globally — `npm i -g playwright`.");
-    const browser = await launcher.launch();
+    const browser = await launch();
     const shots = [];
     let page = null, navs = 0;
 

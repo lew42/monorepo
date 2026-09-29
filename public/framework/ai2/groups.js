@@ -31,20 +31,30 @@ export class Member extends TaskJSONL {
 			for (const at of [v?.at, v?.requested_at, v?.landed_at])
 				if (at && (!this.last_at || Date.parse(at) > Date.parse(this.last_at))) this.last_at = at;
 		}
+		// ⚠ An `assign` naming a verb (`{"assign":{"agent":…}}`, waiting-on-you, 2026-09-28) replays
+		//   as a FIELD over that verb's method, and the next `{"agent":…}` line threw
+		//   "this[verb] is not a function" on every AI 2 load. The method wins back.
+		for (const verb of Object.keys(entry ?? {}))
+			if (typeof this[verb] !== "function" && typeof this.constructor.prototype[verb] === "function") delete this[verb];
+		// AN EVENT ON A PAGE: any line whose value names `"page": "/framework/…/"` (real.js).
+		for (const [verb, v] of Object.entries(entry ?? {})){
+			if (typeof v?.page === "string") (this.pages ??= []).push({ path: v.page, at: v.at ?? this.last_at, by: v.by, task: this.date + "/" + this.slug,
+				what: v.msg ?? v.text ?? v.question ?? v.about ?? v.summary ?? v.title ?? verb });
+		}
 		if (typeof entry?.group === "string" && Object.keys(entry).length === 1){
 			this.member_of = entry.group;
 			return this;
 		}
 		return super.apply(entry);
 	}
-	reset(){ this.member_of = null; this.last_at = null; return super.reset(); }
+	reset(){ this.member_of = null; this.last_at = null; this.pages = []; return super.reset(); }
 }
 
 /** What a task says in a preview — never its slug. Landed: its landing
     headline. Running: its request's first sentence, and what it is doing now. */
 export function task_words(m){
-	if (m.landed_at && m.outcome) return { title: headline(m.outcome), words: "", landed: true };
-	return { title: first_sentence(plain(m.request ?? "")) || "A task", words: plain(m.now ?? ""), landed: !!m.landed_at };
+	if (m.landed_at && m.outcome) return { title: m.title ?? headline(m.outcome), words: "", landed: true };
+	return { title: m.title ?? (first_sentence(plain(m.request ?? "")) || "A task"), words: plain(m.now ?? ""), landed: !!m.landed_at };
 }
 
 /** What a card says in a preview: its title, and the last thing said into it. */
@@ -212,8 +222,20 @@ export class Groups {
 	latest(gid){ return this.members(gid)[0] ?? null; }
 
 	/** The groups, the one with the newest activity first. A group with none sorts by its card's own birth. */
+	/** When a group was last updated: the newest of its members and of its own card's lines —
+	    as the card index (`cards.jsonl`) has them, a sub-card counting as for any card.
+	    ⚠ THE INDEX IS WHAT MAKES THIS KNOWN AT FIRST PAINT. Members are read one log at a
+	    time; without it a group had no time for seconds after every (live-)reload and sorted
+	    to the bottom of ~350 rows, then jumped back up — "it was there and then it wasn't…
+	    a few seconds later it just popped back" (ai2-row-vanish, 2026-09-28). */
+	at(g){
+		const index = (this.folders?.cards ?? []).filter(c => c.id === g.card || c.id.startsWith(g.card + "/")).map(c => c.last ?? c.created);
+		const times = [this.latest(g.id)?.at, this.folds.get(g.card)?.fold?.created, ...index].filter(Boolean);
+		return times.sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
+	}
+
 	ordered(){
-		const at = g => Date.parse(this.latest(g.id)?.at ?? this.folds.get(g.card)?.fold?.created ?? 0) || 0;
+		const at = g => Date.parse(this.at(g) ?? 0) || 0;
 		return [...this.list].sort((a, b) => at(b) - at(a));
 	}
 }

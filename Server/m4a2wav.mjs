@@ -1,9 +1,9 @@
 // m4a2wav.mjs <in.m4a> <out.wav> — decode with headless Chromium's Web Audio (no ffmpeg on this machine), resample to 16 kHz mono, write 16-bit PCM WAV.
-import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 const [inp, out] = process.argv.slice(2);
 const bytes = fs.readFileSync(inp);
-const browser = await chromium.launch();
+const browser = await launch();
 const page = await browser.newPage();
 await page.goto("about:blank");
 const pcm = await page.evaluate(async (b64) => {
