@@ -1,4 +1,4 @@
-import { Page, md, p, div, span } from "/app.js";
+import { Page, md, p, div, span, a } from "/app.js";
 import { section } from "./section.js";
 
 export default new Page({
@@ -38,6 +38,8 @@ export default new Page({
 		});
 
 		md.details(import.meta, "readme.md", "Readme, and doc/decisions.md for the full record");
+
+		a.c("page-link").href("/framework/core/Sidebar/variants/walkthrough/").text("See it in the walkthrough →");
 	},
 
 	preview(nav){

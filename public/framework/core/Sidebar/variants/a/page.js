@@ -5,11 +5,15 @@ import navPreview from "../preview-nav.js";
 /* Variant A — today. The logo always goes all the way home ("/"); the word
  * beside it is the site's own name, "Framework", and always points to
  * /framework/ — however many levels deep you are, both marks answer the
- * SAME question, "where is home", never "where am I". */
-export function header(){
+ * SAME question, "where is home", never "where am I".
+ *
+ * `root` defaults to Framework so variant A itself never has to pass one; the
+ * rail page (`../rail/page.js`) reuses this exact shape for its own pretend
+ * pages, passing whichever root's word it wants beside the logo. */
+export function header(root = Framework){
 	return div.c("brand", () => {
 		a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href("/").ac("brand-logo");
-		a(Framework.title).href(Framework.url).ac("brand-title");
+		a(root.title).href(root.url).ac("brand-title");
 	});
 }
 
@@ -37,17 +41,17 @@ export default new Page({
 			div.c("pages", () => {
 				div.c("default flow pad", () => {
 
-					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
+					h1("Sidebar");
 
 					p("This is what the top of the rail says today: a logo that always goes home, and a word beside it that always says “Framework”.");
 
 					blockquote("“The pattern that we used before on the framework page is that the logo… links to the home page… And then the word framework next to it was kind of like… go back to the framework page. And so there's like two different kind of go home, but how far home.”");
 
-					h1("Sidebar");
-
 					p("This is today's rail, rebuilt here with the real Sidebar component: it looks the same on every page in the framework, however many levels deep you click into. The tree beside it is the real /framework/ tree — click into it and the rows fold open for real.");
 
 					p("Trade-off: the word never changes, so it never has to worry about a long title or truncation — but it also never tells you which page you're actually on.");
+
+					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 				});
 			});
 		});

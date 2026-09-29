@@ -41,17 +41,17 @@ export default new Page({
 			div.c("pages", () => {
 				div.c("default flow pad", () => {
 
-					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
+					h1("Core");
 
 					p("Instead of picking one meaning for the top of the rail, this variant shows both: the logo goes all the way home, and a small breadcrumb beside it shows every stop in between.");
 
 					blockquote("“There's like two different kind of go home, but how far home.”");
 
-					h1("Core");
-
 					p("This spells out A's own observation instead of picking one meaning for it: the logo alone always goes all the way home, and a small breadcrumb beside it — Framework › Core — shows every stop in between, each one its own link. Both marks share the same row the logo and word already had, in the rail's own text colour, underlined only on hover.");
 
 					p("Trade-off: two links tell you exactly where you are, but there's less room for either word before it has to truncate than a single word (B/C) gets.");
+
+					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 				});
 			});
 		});

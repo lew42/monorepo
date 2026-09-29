@@ -1,7 +1,8 @@
-import { Page, Sidebar, View, div, a, img, h2, h3, p, button, blockquote, code } from "/app.js";
+import { Page, Sidebar, View, div, h1, h2, h3, p, button, blockquote, code } from "/app.js";
 import Framework from "/framework/page.js";
 import Core from "/framework/core/page.js";
 import SidebarModule from "/framework/core/Sidebar/page.js";
+import { header as brand_header } from "../a/page.js";
 
 View.stylesheet(import.meta, "../variants.css");
 
@@ -15,15 +16,6 @@ const PRETEND = [
 	{ name: "Sidebar", root: SidebarModule },
 ];
 
-// The real rail's own header shape (variant A's `header()`, copied): a logo image
-// that links home, and the page's own title as a link beside it — never a button.
-function brand_header(root){
-	return () => div.c("brand", () => {
-		a(() => img().attr("src", Sidebar.favicon()).attr("alt", "")).href("/").ac("brand-logo");
-		a(root.title).href(root.url).ac("brand-title");
-	});
-}
-
 /* E — ONE Sidebar, owned by the stage (standing in for "the app"). A click on a
  * pretend-page button empties the ONE rail slot and builds a fresh Sidebar with
  * that page's header and tree inside it — the rail itself never moves, only what
@@ -32,7 +24,7 @@ function stage_e(app){
 	let $rail;
 
 	function show(entry){
-		$rail.empty(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }));
+		$rail.empty(() => new Sidebar({ app, header: () => brand_header(entry.root), root: entry.root }));
 	}
 
 	return div.c("variant-rail-stage", () => {
@@ -45,7 +37,7 @@ function stage_e(app){
 		p("The code — one rail slot, rebuilt on every click:");
 		code.fn(() => {
 			function show(entry){
-				$rail.empty(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }));
+				$rail.empty(() => new Sidebar({ app, header: () => brand_header(entry.root), root: entry.root }));
 			}
 		});
 	});
@@ -69,7 +61,7 @@ function stage_f(app){
 		div.c("variant-rail-box", () => PRETEND.forEach(entry => {
 			const $pg = div.c("variant-rail-page").attr("data-name", entry.name);
 			$pages.push($pg);
-			$pg.append(() => new Sidebar({ app, header: brand_header(entry.root), root: entry.root }).ac("variant-rail"));
+			$pg.append(() => new Sidebar({ app, header: () => brand_header(entry.root), root: entry.root }).ac("variant-rail"));
 		}));
 		show(PRETEND[0].name);
 
@@ -94,6 +86,8 @@ export default new Page({
 
 	render(){
 		return this.view ??= div.c("page sidebar-variant-rail flow pad", () => {
+
+			h1("Who owns the rail?");
 
 			p("Two ways to swap the left rail: the app owns one rail (E), or each page owns its own (F). They look the same; only the code differs.");
 

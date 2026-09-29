@@ -49,7 +49,11 @@ export function section(classes = "", build){
 css(`@layer theme {
 	.ui-section {
 		position: relative;
-		border: 1px solid var(--line);
+		/* --fill-a32, not --line — --line (0.15 alpha) is barely there on a big
+		   screen (framework.css's own note on the same trade-off for a control's
+		   hairline); a32 is the next rung up and still reads as a quiet outline,
+		   never a heavy box. */
+		border: 1px solid var(--fill-a32);
 		padding: var(--pad-card);
 	}
 

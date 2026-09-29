@@ -36,13 +36,16 @@ import { div, nav, a, span } from "/framework/core/View/View.js";
  *     page (the well is wider than the page's `--floating-measure` cap). Scroll the ambient page
  *     and that gray top strip is the first thing to go — the white page's own top edge then
  *     scrolls up and off, clipped by the viewport, exactly like any normal block.
- *   - The nav is `position: sticky; top: 0` — it already was, in the version this replaces — so
- *     at rest its top lines up with the page's top (both start after the same padding-top), and
- *     once you scroll it stays pinned to the viewport top while the page scrolls past beside it.
+ *   - The nav is `position: sticky; top: var(--pad)` — the SAME padding the well's own top has,
+ *     so at rest its top lines up with the page's top, and once you scroll, the nav's top stays
+ *     ONE PADDING below the viewport top (never `top: 0`, which would butt it against the very
+ *     edge of the screen the instant you scroll, out of line with everything else in the well).
  *     Its own colours are untouched.
  *   - The page itself is `background: var(--surface)` (white in light mode) with its own padding,
  *     so there is no seam — no border, no shadow, no gap — between the gray well and the white
  *     page; the colour change alone is the edge.
+ *   - The page carries its own `min-height`, at least as tall as the well's visible room, so a
+ *     short tab's white page still fills the well instead of leaving a gray void underneath it.
  *
  * Written for AI 2's workspace view (`?view=workspace` on a card) and lifted here into core/Page's
  * Layout tab as its "Floating page" word — this is the ONE copy; `ai2/floating.js` re-exports it,
@@ -104,7 +107,6 @@ Floating.css = `
 	.floating-well {
 		background: var(--fill-a16);
 		padding: var(--pad);
-		padding-top: var(--pad);
 	}
 	/* Fills the whole region at rest, even when the current tab is short. NOT a
 	   percentage: this box's ancestor is a CSS-grid row sized "auto" (Page.css sets
@@ -139,7 +141,7 @@ Floating.css = `
 	}
 	.floating-nav {
 		position: sticky;
-		top: 0;
+		top: var(--pad);
 		display: flex;
 		flex-direction: column;
 		gap: 0.15em;
@@ -168,9 +170,13 @@ Floating.css = `
 		letter-spacing: 0.05em;
 		opacity: 0.65;
 	}
-	/* The page: white, its own padding, no border — the colour change alone is the seam. */
+	/* The page: white, its own padding, no border — the colour change alone is the seam.
+	   min-height matches the well's own visible room (its min-height, minus the well's
+	   padding on the page's own top and bottom) so a short tab's white page still fills
+	   the well instead of leaving a gray gap under it. */
 	.floating-page {
 		min-width: 0;
+		min-height: calc(var(--floating-min-height, 100dvh) - 2 * var(--pad));
 		background: var(--surface);
 		padding: var(--pad-card);
 	}

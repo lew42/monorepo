@@ -38,17 +38,17 @@ export default new Page({
 			div.c("pages", () => {
 				div.c("default flow pad", () => {
 
-					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
+					h1("Core");
 
 					p("This variant moves the logo down one level, so it goes to the page ABOVE this one, and lets the word at the top become this page's own name instead of the site's.");
 
 					blockquote("“What I was actually thinking is that instead of the M logo linking home and the word framework linking to the framework, we could just repeat that pattern. So now the M logo links to the framework if we're on like a sub framework page and then the word could become whatever page we're on.”");
 
-					h1("Core");
-
 					p("Pretend this is /framework/core/: the logo now points back up to Framework, the word says “Core” and points at this page itself, and the tree below is Core's own ten children instead of the whole framework.");
 
 					p("Trade-off: the word now says something different on every page, so it has to share the top of the rail with the H1 just below it — kept smaller and lighter here so the H1 still wins.");
+
+					a("← Sidebar variants").href("/framework/core/Sidebar/variants/");
 				});
 			});
 		});

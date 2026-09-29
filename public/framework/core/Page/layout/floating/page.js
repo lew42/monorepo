@@ -74,6 +74,7 @@ export default new Page({
 	render(){
 		return this.view ??= div.c("page flow full page--floating", () => {
 			div.c("bleed", () => { this.floating_page(); });
+			a.c("page-link").href("/framework/core/Sidebar/variants/walkthrough/").text("See it in the walkthrough →");
 		});
 	},
 

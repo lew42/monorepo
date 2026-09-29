@@ -7,10 +7,10 @@ import { Wizard } from "/framework/ux/Wizard/Wizard.js";
 const shot = name => new URL("../../../../ai/2026-09-28/section-variants/walkthrough/shots/" + name, import.meta.url).href;
 
 const STEPS = [
-	{ title: "The section element", pic: "section-1920.png", after: "section-hover-1920.png", open: "/framework/core/Sidebar/variants/",
+	{ title: "The section element", pic: "section-1920.png", after: "section-hover-1920.png", open: "/framework/ui/section/",
 		say: "A thin border marks each section. Hover one and it shows its class names, so browsing the page teaches you what to call things." },
-	{ title: "Four ways to take the sidebar", pic: "variants-index.png", open: "/framework/core/Sidebar/variants/",
-		say: "Four pages, each a real Sidebar, each taking over the left rail a different way." },
+	{ title: "Four variants of the top of the rail", pic: "variants-index.png", open: "/framework/core/Sidebar/variants/",
+		say: "Four variants of the top of the rail (A–D), plus who owns the rail — each page a real Sidebar, each taking over the left rail a different way." },
 	{ title: "Variant A", pic: "variant-a.png", open: "/framework/core/Sidebar/variants/a/",
 		say: "The logo and the word sit together at the top; the nav tree below is plain and quiet." },
 	{ title: "Variant B", pic: "variant-b.png", open: "/framework/core/Sidebar/variants/b/",
@@ -35,8 +35,8 @@ const from_hash = () => Math.max(0, Math.min(STEPS.length - 1, (parseInt(locatio
 
 export default new Page({
 	meta: import.meta,
-	title: "Sidebar variants, step by step",
-	description: "A walkthrough of the six sidebar variants and the floating page: the section element, the index, A–D, B at two widths, who owns the rail, and the floating page.",
+	title: "Section, sidebar variants and the floating page, step by step",
+	description: "A walkthrough of the section element, four variants of the top of the rail (A–D), plus who owns the rail, and the floating page.",
 	icon: "slideshow",
 
 	content(){

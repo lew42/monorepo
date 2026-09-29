@@ -10,7 +10,7 @@ function pick(children, names){
 export default new Page({
 	meta: import.meta,
 	title: "Sidebar variants",
-	description: "Five pages about the left rail, to look at, not a decision — four on what the top says, one on who owns it.",
+	description: "Four variants of the top of the rail (A–D), plus who owns the rail — to look at, not a decision.",
 	icon: "view_sidebar",
 
 	children: "a b c d rail walkthrough",
