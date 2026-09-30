@@ -65,7 +65,7 @@ export default class Sessions {
 			/* THE FLOOR (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
 			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter). */
-			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 12000),
+			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
 			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), clients: new Map(), buffers: new Map() };
 	}
 
@@ -234,6 +234,10 @@ export default class Sessions {
 			this.hold(s, line);
 			const q = quiet_ms == null ? null : Number(quiet_ms);
 			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`);
+		} else if (this.held.get(s.id)?.lines.length){
+			/* Typed while spoken words are still held: they all go together, in order (review note 4). */
+			this.hold(s, line);
+			this.release(s, "then typed this");
 		} else {
 			s.fast_re = line.at;
 			this.send(s, "fast", `[on ${site}] ${text}`);

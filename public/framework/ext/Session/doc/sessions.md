@@ -40,7 +40,7 @@ A `say` with `via: "voice"` and a `floor` is **held** from both assistants. It i
 lines and assistants at once, when the owner has been quiet `SERVEX_SESSION_ANSWER_QUIET_MS`
 (2.5 s): either the line itself arrives that quiet (`quiet_ms`), or a later `quiet` event says so
 (`ux/Dictate/floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
-event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (12 s). The released message ends with
+event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message ends with
 `(the owner has stopped: quiet for 2.6 s)`. A typed line, or one from a page too old to send
 `floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/2026-09-30/dictation-stream/proof/sessions-test.txt).
 

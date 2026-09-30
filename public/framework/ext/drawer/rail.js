@@ -731,6 +731,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	forget_session(){
 		this.stop_watch?.(); this.stop_watch = null;
 		this.stop_stream?.(); this.stop_stream = null;
+		this.stop_quiet?.(); this.stop_quiet = null;
 		this.session = null; this.session_file = null;
 		try { sessionStorage.removeItem(SESSION_KEY); } catch {}
 	}

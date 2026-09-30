@@ -23,7 +23,7 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
 ## Watch out
 
 - It needs Servex (`Servex/agents/Sessions.js`, routes `/api/session/new|say|nav|quiet` and `/api/session/<id>/stream`). A Servex that has not been restarted since this landed answers 404.
-- A page that never calls `report_quiet()` still works: a held line is released after 12 s anyway.
+- A page that never calls `report_quiet()` still works: a held line is released after 8 s anyway.
 - Each Start spawns two real agents, so the demo costs a few cents a press.
 - Replies are the agents' own final text for a turn, written into the file by Servex; there is no reply tool. The fast one's `(listening)` and short fillers are written as invisible `{skip}` lines instead.
 
