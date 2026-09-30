@@ -146,7 +146,11 @@ return [
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			const from = ctx.caller ?? note.from;
 			policy.heard(from ?? "owner", id);
-			return card(agents.send(id, text, { ...note, from }));
+			const sent = card(agents.send(id, text, { ...note, from }));
+			/* a peer message between task masterminds: the sender's parent gets a copy, so no interface between tasks is invisible */
+			const up = ruling.rule === "peer" && policy.parent(from);
+			if (up && up !== id) try { agents.send(up, `copy: ${from} -> ${id}: ${text}`, { from: "servex-peer-copy" }); } catch {}
+			return sent;
 		}),
 
 	tool("interrupt_agent",
