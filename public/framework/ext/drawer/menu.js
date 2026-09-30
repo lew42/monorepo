@@ -41,7 +41,9 @@ export default function menu(app){
 	return $menu;
 }
 
-// App's `navigated()` seam: the drawer's tabs follow the page.
-menu.navigated = () => tabs.navigated();
+// App's `navigated()` seam: the drawer's tabs follow the page, and so does the
+// mobile ✦ sheet's own header path and open voice session (`ext/drawer/rail.js`'s
+// `navigated()`, voice-on-panel 2026-09-29).
+menu.navigated = () => { tabs.navigated(); rail.navigated?.(); };
 
 export { menu, tabs };

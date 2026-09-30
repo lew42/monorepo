@@ -94,7 +94,13 @@
 	}
 
 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
+	.drawer-rail-sheet-heading { gap: 0.3em; min-inline-size: 0; }
 	.drawer-rail-sheet-title { font-weight: 600; }
+	/* The current page path (voice-on-panel, 2026-09-29: "Ask, by voice ·
+	   /framework/"), set on every open (`update_path()`) and again on every
+	   in-app navigation (`DrawerRail.navigated()`). Long paths wrap under the
+	   title rather than push the ✕ off the edge of a 400px phone. */
+	.drawer-rail-sheet-path { font-size: 0.85em; overflow-wrap: anywhere; }
 
 	/* THE THREAD — either a card's own persisted chat (`ai2/chat.js`, one-ai
 	   2026-09-29) or, on a plain page, the local empty-state + growing list of
@@ -167,4 +173,15 @@
 		cursor: pointer;
 	}
 	.drawer-rail-sheet-link:hover { background: var(--fill-a16); }
+
+	/* NEW SESSION — a PRIMARY action (the owner, 2026-09-29: "it's a primary
+	   action"), so it wears the same accent colour the ✦ button itself uses
+	   (`--prim`) instead of the other links' plain grey. */
+	.drawer-rail-sheet-new {
+		color: var(--prim-ink, #fff);
+		background: var(--prim);
+		border-color: var(--prim);
+		font-weight: 600;
+	}
+	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
 }

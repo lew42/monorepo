@@ -147,6 +147,38 @@ async function post_card(entry){
 const recap = (history = []) => "Earlier in this thread:\n" + history.filter(c => c.text).slice(-4)
 	.map(c => `${c.role}: ${String(c.text).slice(0, 170)}`).join("\n");
 
+/* NEW SESSION for the page's (or card's) own fast assistant — the ✦ sheet's
+ * "New session" button (`ext/drawer/rail.js`). On `DrawerRailSheetPanel` (the
+ * default sheet) a PLAIN page's sentence goes through a real voice session now
+ * (`ext/Session/Session.js`, wired in `rail.js`), which has its own, separate
+ * reset (`rail.js`'s own `forget_session()`) — this function is called for
+ * that sheet's CARD branch only. `DrawerRail.SheetLinksV1`, the earlier
+ * page-ai-bridge sheet kept reachable, still calls this for a plain page too,
+ * so both cases stay here. `POST /api/page-ai` carries no session id of its
+ * own; the page's (or card's) assistant is a real Claude Code session that
+ * Servex's Layers.js resumes by ITS OWN session id, kept server-side. The only
+ * way to make the next message start a fresh one is to ask Servex to forget
+ * that id: `GET /api/page-agents` (or `/api/card-agents`) finds the assistant's
+ * agent id, then `POST /api/agent/<id>/recycle` forgets its session (Layers.js's
+ * own `recycle()` — "stop it and forget its session; its id is kept, and it
+ * restarts fresh"). Off the dev server (`!DEV`) there is no Servex to ask, so
+ * this only clears the sheet on screen; the caller (rail.js) does that part. */
+export async function new_session({ page, card } = {}){
+	if (!DEV) return { ok: false, note: "No assistant reachable here, so only this screen was cleared." };
+	try {
+		const list_url = card ? `/api/card-agents?card=${encodeURIComponent(card)}` : `/api/page-agents?page=${encodeURIComponent(page)}`;
+		const res = await fetch(servex_url(list_url), { cache: "no-store", signal: AbortSignal.timeout(4000) });
+		const rows = res.ok ? await res.json() : [];
+		const assistant = Array.isArray(rows) ? rows.find(r => r.role === "assistant") : null;
+		if (!assistant) return { ok: true, note: "no session yet — the next message starts fresh anyway" };
+		const out = await fetch(servex_url(`/api/agent/${assistant.id}/recycle`), { method: "POST", signal: AbortSignal.timeout(4000) })
+			.then(r => r.ok ? r.json() : { ok: false });
+		return { ok: !!out.ok, note: out.ok ? "the assistant will start a fresh session next time" : "could not reset the session" };
+	} catch {
+		return { ok: false, note: "Servex is not answering, so only this screen was cleared." };
+	}
+}
+
 /* THE AI TAB'S OWN LIVE THREAD, if it is open on a card right now — one module-level
    slot (this tab is a singleton, like the drawer itself), read by `ai2/card.js`'s
    `sync_global_ai()` so a reply streaming in reaches this tab's thread too, without
