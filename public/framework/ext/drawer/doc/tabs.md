@@ -8,7 +8,7 @@
 
 | Tab | What it shows | Built from |
 |---|---|---|
-| AI | A chat about this page: a model picker, the conversation, and the one-line composer with its microphone | the site's chat composer, [`ext/Chat`](/framework/ext/Chat/), imported, with the tab's own `deliver(entry)` |
+| AI | The page's [inbox](/framework/ext/drawer/doc/inbox/) (notes left here, each with a Clear), then a chat about this page: a model picker, the conversation, and the one-line composer with its microphone | the site's chat composer, [`ext/Chat`](/framework/ext/Chat/), imported, with the tab's own `deliver(entry)` |
 | Sessions | Every saved thread on this page. Click one and the AI tab carries on that thread | the dev bar Ask's store, `<page>ai/<slug>/task.jsonl` |
 | Dictation | The dictation playground | [`ux/Dictate/playground/`](/framework/ux/Dictate/playground/) |
 | Settings | Edit mode, the reload block, the width line, the x-ray outline | the dev bar's own controls |

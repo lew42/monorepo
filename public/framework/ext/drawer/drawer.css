@@ -233,4 +233,20 @@
 	.drawer-props-title { margin: 0; }
 	.drawer-props-where { gap: 0.35em; }
 	.drawer-props-link { overflow-wrap: anywhere; }
+
+	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
+	.drawer-inbox { flex: none; gap: 0.35em; }
+	.drawer-inbox[hidden] { display: none; }   /* .flex would otherwise beat [hidden] */
+	.drawer-inbox-row {
+		gap: 0.2em;
+		padding: 0.4em 0.4em 0.4em 0.6em;
+		border-radius: 0.5em;
+		background: var(--fill-a08);
+	}
+	.drawer-inbox-head { gap: 0.5em; }
+	.drawer-inbox-from { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9em; }
+	.drawer-inbox-text { overflow-wrap: anywhere; }
+	.drawer-inbox-age { flex: none; }
+	.drawer .drawer-inbox-clear, .drawer .drawer-inbox-add { flex: none; min-block-size: 0; padding: 0.15em 0.55em; font-size: 0.85em; }
+	.drawer-inbox-input { inline-size: 100%; }
 }

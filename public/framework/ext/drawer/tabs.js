@@ -92,6 +92,8 @@ export class DrawerTabs {
 		window.addEventListener("drawer-close", () => this.write(null));
 		// A host changed the page the drawer is about (drawer.page()) — the open tab redraws.
 		window.addEventListener("drawer-page", () => { if (this.mine()) drawer.refresh(); });
+		// The inbox (inbox.js) left or cleared a note: the AI tab's label shows the new count.
+		window.addEventListener("drawer-inbox", e => this.label_ai(e.detail.n));
 	}
 	assign(...args){ return Object.assign(this, ...args); }
 
@@ -158,15 +160,28 @@ export class DrawerTabs {
 		return { app: this.app, tabs: this, page: url, card };
 	}
 
+	/** "AI", or "AI · 2" while the page's inbox has open notes (inbox.js). */
+	label_ai(n){
+		if (!this.$ai?.el.isConnected) return;
+		this.$ai.text(n ? `AI · ${n}` : "AI");
+		this.$ai.el.title = n ? `${n} open note${n === 1 ? "" : "s"} in this page's inbox` : "";
+	}
+
 	fill($slot, $body){
 		$slot.empty(() => {
 			div.c("drawer-tabs flex", () => {
-				this.shown().forEach(t => button.c("drawer-tab", t.label).attr("type", "button")
-					.ac(t === this.current && "on").click(() => this.open(t.name)));
+				this.shown().forEach(t => {
+					const $b = button.c("drawer-tab", t.label).attr("type", "button")
+						.ac(t === this.current && "on").click(() => this.open(t.name));
+					if (t.name === "ai") this.$ai = $b;
+				});
 				a.c("drawer-tab drawer-files-link", "Files").href(this.files_href())
 					.attr("title", "This page's own files, full screen");
 			});
 		});
+
+		// The open notes in this page's inbox, as a count on the AI label ("AI · 2").
+		import("./inbox.js").then(m => m.count(drawer.page())).then(n => this.label_ai(n)).catch(() => {});
 
 		// ⚠ The tab's file is imported, and an await drops the captor — so the body is
 		// captured NOW and filled in a callback (code skill §1).

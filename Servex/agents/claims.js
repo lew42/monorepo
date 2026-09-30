@@ -19,7 +19,9 @@ export class Claims {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
-	defaults(){ return { agents: null, file: DEFAULT() }; }
+	defaults(){ return { agents: null, file: DEFAULT(), on: null }; }
+	// Tell `on(event, row)` ("claimed" | "released"); a throw there never breaks a claim.
+	told(event, row){ try { this.on?.(event, row); } catch {} }
 
 	read(){ try { return JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return {}; } }
 	write(rows){
@@ -45,6 +47,7 @@ export class Claims {
 					+ `${held.change ? ` (${held.change})` : ""}. Ask mastermind-servex before starting.` };
 		rows[key] = { thing, change, agent, card, at: new Date().toISOString() };
 		this.write(rows);
+		if (held?.agent !== agent) this.told("claimed", rows[key]);
 		return { ok: true, key, ...(held && held.agent !== agent ? { took_over: held.agent } : {}) };
 	}
 
@@ -54,14 +57,17 @@ export class Claims {
 		if (held.agent !== agent && this.alive(held.agent)) return { ok: false, why: `${thing_of(held)} is held by ${held.agent}, not ${agent}.` };
 		delete rows[key];
 		this.write(rows);
+		this.told("released", held);
 		return { ok: true, released: true };
 	}
 
 	release_all(agent){
 		const rows = this.read();
 		const mine = Object.keys(rows).filter(k => rows[k].agent === agent);
+		const gone = mine.map(k => rows[k]);
 		for (const k of mine) delete rows[k];
 		if (mine.length) this.write(rows);
+		for (const row of gone) this.told("released", row);
 		return { ok: true, released: mine.length };
 	}
 

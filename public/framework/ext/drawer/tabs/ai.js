@@ -8,6 +8,7 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
 import { DEV } from "../tabs.js";
+import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
 
 /* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`) is `ChatPanel` (`ext/Chat`): the
    log, the composer and the mic as ONE widget, the exact one the mobile ✦ sheet
@@ -222,6 +223,7 @@ export default function ai({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let panel, $hint;
 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
+	const inbox = new DrawerInbox({ page });
 
 	div.c("drawer-ai flex v", () => {
 		div.c("drawer-ai-head flex v-center split wrap", () => {
@@ -234,7 +236,9 @@ export default function ai({ page, card, tabs }){
 				$pick.el.value = model();
 				$pick.on("change", () => model($pick.el.value));
 			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
+			if (DEV) inbox.button();
 		});
+		inbox.view();
 
 		const { view: $chips, context } = chips_row(tabs);
 
