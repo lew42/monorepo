@@ -7,7 +7,7 @@ import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
 import { news_of, group_news } from "./activity.js";
-import { inbox_order, plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+import { inbox_order, plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 
 /* Servex down: the page is read-only — the write buttons quietly go away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
@@ -97,8 +97,11 @@ export default new Page({
 
 	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
 	   in it is a real file, and claiming it would answer a 404 with a card page that can
-	   never load. `overview`, `needs`, `log` and `live` are reserved: no card can be called
-	   any of them. `live` is an ordinary card page whose card comes from `live.js`. */
+	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
+	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
+	   `now` (followup.md item 2, 2026-09-30) is a REAL card folder, `ai/now/`, routed the
+	   same plain way as any other card id below — the only thing special about it is that
+	   `board()` also pins its preview at the top of the rail, imported by hand. */
 	route(id){
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
@@ -109,6 +112,7 @@ export default new Page({
 		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
 		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
+		if (id === "now") return this.now_page ??= card_page(this, "now");
 		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`,
 		// sub-cards one segment deeper, any depth. The year, month and day are
 		// pages too (`Card.Folder`), each reading the next one down from the
@@ -470,7 +474,9 @@ function board(page){
 		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
 		// A group's own card IS its group row: never a second row beside it.
 		const group_cards = new Set((groups.list ?? []).map(g => g.card));
-		const pool = list.filter(it => !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
+		// "now" is pinned in `$pinned` (`render_pinned()`) — it is in `list` only so its own
+		// card page can find it in `by_id`, never as a second, ordinary row here.
+		const pool = list.filter(it => it.id !== "now" && !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
 		let base = only_notes ? pool.filter(it => it.kind === "note") : pool;
 		// DELIVERABLE 4 — AUTOMATIC RESOLUTION: a resolved row (`rules.js`'s `is_resolved()`,
 		// this task's one written-down rule) leaves the Inbox itself, same as the brief asks —
@@ -515,6 +521,10 @@ function board(page){
 		const it = live.item();
 		it.unread = true;
 		list.push(it);
+		// THE NOW CARD joins the same list too, so its own `/framework/ai2/now/` page can find
+		// it in `by_id` below — `visible()` is what keeps it OUT of the ordinary rows, since
+		// `render_pinned()` is its only row, in `$pinned`.
+		if (now_item) list.push(now_item);
 		// A card row's importance badge is its highest open need (needs.js); a stalled-ask row
 		// brings its own. Then one order: score 60+ on top, the rest newest first (inbox.js).
 		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id); });
@@ -776,6 +786,32 @@ function board(page){
 		return rec;
 	}
 
+	/* THE ONE PINNED ROW — the Now card. `now_item` is built once from `resolve_card("now")`'s
+	   fold, in the SAME `it` shape `full()` (faces.js) already knows how to draw — `text`,
+	   `links`, `kind`, `flag` — so the card's own `/framework/ai2/now/` page (`card_page()`
+	   below) can find it. `paint()` pushes `now_item` into `list`, exactly like the Live card's
+	   own `live.item()` does, which is what puts it in `by_id` for that page; `visible()`
+	   excludes id `"now"` from the ordinary rail list right below, since this function is its
+	   only row — filled into `$pinned`, above `$groups`, so `order_rows()`/`flush()` never
+	   touch it and it is simply always first. */
+	let now_item = null;
+	function build_now_item(fold){
+		const said = [...(fold.messages ?? []).map(m => ({ at: m.at, text: m.text ?? m.raw })),
+			...(fold.prompts ?? []).map(p => ({ at: p.at, text: p.text ?? p.raw }))]
+			.filter(x => x.text).sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).at(-1);
+		now_item = { id: "now", kind: "card", icon: "push_pin", title: plain(fold.title || "Now"),
+			at: fold.last ?? fold.created, text: said?.text ?? "", links: [], flag: null, author: fold.by,
+			unread: false, status: "open" };
+	}
+	function render_pinned(){
+		if (!now_item) return;
+		$pinned.empty(() => { a.c("ai2-row ai2-row-pinned").href(page.url + "now/")
+			.empty(() => row({ ...now_item, sub: first_sentence(plain(now_item.text)) }, {})); });
+		// A cold load straight onto `/framework/ai2/now/` marks the Router during `activate()`,
+		// before this fetch has landed — the same race `flush()`'s own comment names, below.
+		page.app?.router?.mark_links?.();
+	}
+
 	/** DELIVERABLES 2 AND 3's two buttons on a plain row (`faces.js` `row()`'s `on`) — built
 	 *  once per `rec`, not once per redraw, so a click during a redraw never reaches a stale
 	 *  closure. Both mutate `it` OPTIMISTICALLY (the write is fire-and-forget, the same
@@ -792,8 +828,27 @@ function board(page){
 			archive(){
 				archive_row(it);
 				it.status = "archived";
+				// ⚠ 2026-09-30 FIX (the owner: "pressing × only toggled read/unread and the row
+				// stayed — it must archive: the row leaves the Inbox"). `refill()` alone only
+				// re-styles THIS row in place (the `.ai2-archived` class, a dim look) — it never
+				// removes it from `visible()`'s output, so the row sat there, barely changed,
+				// until some later poll happened to rebuild `list` from fresh server data. Moving
+				// it from `list` into `list.archived` right here — the exact split `items()`
+				// itself makes once the real data catches up — and calling `flush()` (which
+				// already knows how to remove a row whose id `visible()` no longer returns) makes
+				// it leave AT ONCE, the same as any other structural change. It still exists: the
+				// Log's own "archived" filter and the rail's search both read `list.archived`.
+				// ⚠ BY ID, NOT BY REFERENCE — `list` is rebuilt from scratch (new plain objects)
+				// on every real `paint()`, so by the time a click lands, this row's own closure
+				// `it` is almost always a stale copy no longer `===` anything currently in
+				// `list`; `indexOf(it)` silently found nothing and archiving never removed the
+				// row (proved headless, `test-archive.mjs`, before this fix).
+				const idx = list.findIndex(x => x.id === it.id);
+				const removed = idx >= 0 ? list.splice(idx, 1)[0] : it;
+				removed.status = "archived";
+				(list.archived ??= []).push(removed);
 				rec.sig = null;
-				refill(rec, it);
+				flush();
 				// A folder card's row comes from `folders.cards` (polled every 20s) — asking
 				// now is what makes the grey "archived" state show up at once instead of lagging.
 				folders.soon();
@@ -890,6 +945,14 @@ function board(page){
 	folders.start();
 	groups.on(paint);
 	groups.start({ folders, socket: page.app?.socket });
+
+	// THE NOW CARD — pinned above everything, including the Live row (followup.md item 2,
+	// 2026-09-30: "a quick card to go to and edit right now… pinned at the top of the rail,
+	// above Live, and imported by hand, not found by a scan"). `resolve_card` reads its real
+	// folder (`ai/now/page.jsonl`, Servex-made) directly by id — never through `folders`'s own
+	// scan, which only walks dated card folders — and `$pinned` already sits above `$groups`
+	// in the DOM (declared where the shell is built, above), so filling it is the whole fix.
+	resolve_card("now").then(fold => { if (fold){ build_now_item(fold); render_pinned(); paint(); } });
 
 	// THE "NEEDS REVIEW" FILTER READS THE SAME SHARED SCAN THE NEEDS YOU TAB DOES (needs.js) —
 	// so when that scan refreshes (a poll, or right after answering something), the filtered
