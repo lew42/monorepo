@@ -117,6 +117,10 @@ reloads once. If the branch changed `Servex/`, it goes live only after
 force-push, and never rewrite history. The rest of the never-list git has earned:
 [version-control.md](/framework/ai/2026-09-22/tiers-design/doc/version-control.md).
 
+## You coordinate your module (the owner, 2026-09-30)
+
+Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. Before touching a module someone else has claimed, message its coordinator.
+
 ## Split the task, fence the minions
 
 A minion is for work that fills a turn. An edit of a few lines (a rule added to a skill, a link, a caption, a fix a reviewer named by line) you make yourself, now: a minion spawned for it waits in the memory queue for longer than the edit takes and holds the slot a real minion needs (2026-09-30, a two-line edit queued at position 9). The same holds when memory is short: a minion that has waited at the spawn gate for about 5 minutes on a piece you could build in one turn, you dequeue (stop_agent works on a queued id) and build yourself, with one log line saying so.
