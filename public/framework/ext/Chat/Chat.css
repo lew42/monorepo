@@ -323,4 +323,53 @@
 	.chatbox-mark { font-size: 0.95em; }
 	.chatbox-mark-ok { color: var(--ok); }
 	.chatbox-mark-unclear { color: var(--warn); }
+
+	/* DRILL IN (Drill.js, doc/drill.md) — the Open button a selected card grows,
+	   and the shell it opens: full screen (fixed, over the ✦ sheet at z 41), or
+	   over the desktop drawer at its full height (.chatbox-drill-in-drawer:
+	   the .drawer is position: fixed, so it is the containing block). */
+	.chatbox-open-btn {
+		display: inline-block;
+		margin-block-start: 0.3em; margin-inline-start: 0.4em;
+		font: inherit; font-size: 0.8em;
+		padding: 0.15em 0.5em;
+	}
+	.chatbox-rename-btn { display: inline-block; }   /* beside Open, on one row */
+	.chatbox-drill {
+		position: fixed; inset: 0; z-index: 50;
+		display: flex; flex-direction: column;
+		background: var(--surface); color: var(--ink);
+	}
+	.chatbox-drill.chatbox-drill-in-drawer { position: absolute; }
+	.chatbox-drill-head {
+		flex: 0 0 auto;
+		display: flex; align-items: center; gap: 0.75em;
+		/* The same centred column as the page below it, on a wide screen. */
+		padding-block: 0.6em; padding-inline: max(var(--pad-card), (100% - 40em) / 2);
+		border-block-end: 1px solid var(--line);
+	}
+	.chatbox-drill-back { flex: 0 0 auto; font: inherit; padding: 0.3em 0.7em; }
+	.chatbox-drill-heading { min-inline-size: 0; }
+	.chatbox-drill-crumbs { font-size: 0.85em; color: var(--subtle); overflow-wrap: anywhere; }
+	.chatbox-drill-crumb {
+		font: inherit; color: inherit; background: none; border: 0; padding: 0;
+		text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+	}
+	.chatbox-drill-title { margin: 0; font-size: 1.15em; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+	.chatbox-drill-body { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding: var(--pad-card); }
+	.chatbox-drill-page {
+		max-inline-size: 40em; margin-inline: auto;
+		display: flex; flex-direction: column; gap: 0.75em;
+	}
+	.chatbox-drill-card {
+		display: block; inline-size: 100%; text-align: start;
+		font: inherit; color: inherit;
+		padding: var(--pad-card);
+		background: var(--tint); border: 1px solid var(--line); border-radius: var(--radius);
+	}
+	.chatbox-drill-deep { cursor: pointer; }
+	.chatbox-drill-deep:hover { background: var(--wash); }
+	.chatbox-drill-more { display: block; margin-block-start: 0.4em; font-size: 0.85em; color: var(--prim-ink); }
+	.chatbox-drill-text > :first-child { margin-block-start: 0; }
+	.chatbox-drill-text > :last-child { margin-block-end: 0; }
 }
