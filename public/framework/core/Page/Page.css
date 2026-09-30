@@ -1063,10 +1063,15 @@
 	   The default `stretch`, not `start` (the owner, 2026-09-04): `start` made every
 	   row a skyline of uneven card bottoms, which reads worse than the short cards'
 	   empty lower halves. It was `start` from 2026-08-17 to 2026-09-04. */
+	/* ⚠ `align-items: start` (2026-09-29, the previews fix) — grid's own default is
+	     `stretch`, which drags every SHORT card in a row down to match its tallest
+	     neighbour: a one-line preview grew a card-height of dead white space under it.
+	     A card's own height is its content's; only the row's WIDTH is the wall's to say. */
 	.wall, .page-previews:where(:not(.page)) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(var(--column, 18em), 100%), 1fr));
 		gap: var(--gap);
+		align-items: start;
 	}
 	.wall > *, .page-previews > * { margin: 0; }
 
@@ -1176,7 +1181,13 @@
 		display: flex;
 		flex-direction: column;
 		align-items: stretch;
-		gap: calc(var(--gap) * 0.6);   /* was gap 0.6em - 2026-09-05 ramps */
+		/* ⚠ A SMALL, FIXED gap (2026-09-29, the previews fix) — not a share of `--gap`
+		     (which reaches 2.4em at 3440). The label has to read as the THUMB's own
+		     caption, not just another item in the wall's rhythm: this gap is the whole
+		     of what says "mine", so it stays small while `--gap` between cards (the
+		     wall's own grid, above) stays clearly bigger — at least 2× this, always,
+		     because `--gap` never drops under 1em. */
+		gap: 0.35em;
 		text-decoration: none;
 		color: inherit;
 		border-radius: var(--radius);
@@ -1217,6 +1228,29 @@
 	   ⚠ `--thumb-max: none` (the catalog rail) used to make `height` invalid so it
 	     fell back to `auto`. `--stage: auto` is the same escape hatch, said out loud. */
 	.page-preview-thumb { aspect-ratio: var(--stage, 16 / 10); }
+
+	/* A LIVE RENDER — a `zoom-*` board (core/Page/overview/*'s own `preview()`
+	   overrides, the whole reason for this rule, 2026-09-29) — has its OWN natural
+	   height at that zoom, and forcing it into the fixed aspect above is exactly
+	   "many layout preview cards are broken" (the owner): a one-line board got
+	   stretched to match a chattier neighbour, and a tall one got silently cropped.
+	   `max-height` (above) is still the one cap, so the wall still has a ceiling —
+	   but past it the thumb fades, `.capped` (set by `preview_card()`,
+	   Page.class.js, once a rendered thumb is actually taller than its cap), never
+	   a hard cut.
+	   ⚠ SCOPED to `[class*="zoom-"]` on purpose, not every thumb: a PICTURE with no
+	     natural height of its own — `ext/demo/mini.js`'s diagrams (absolutely
+	     positioned INTO this box on purpose, mini.css) and a real screenshot
+	     (`.design-shot` below, `.journey-shot`, `.notes-thumb`) — still wants the
+	     fixed aspect, and never carries a `zoom-*` wrapper, so neither is touched. */
+	.page-preview-thumb:has(> [class*="zoom-"]) {
+		aspect-ratio: auto;
+		height: auto;
+	}
+	.page-preview-thumb.capped {
+		mask-image: linear-gradient(to bottom, black calc(100% - 2em), transparent);
+		-webkit-mask-image: linear-gradient(to bottom, black calc(100% - 2em), transparent);
+	}
 
 	/* `.design-shot` — a real screenshot filling a `.page-preview-thumb` box, cropped to
 	   it, instead of sitting at the image's own natural size inside it. Landed with the

@@ -31,7 +31,9 @@ export default new Page({
 	group: "The box",
 	description: "render() owes three things: set this.view, carry .page, never nest a second one.",
 
-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-25", board)); },
+	// `zoom-50`, matching every other "The box" card (2026-09-29, the previews fix —
+	// a wall reads one shared zoom, never a mix the reader has to notice and correct for).
+	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50", board)); },
 
 	content(){
 		md("Overriding `render()` owes three silent things: set `this.view`, carry the `.page` class, and never nest a second `.page` — a nested one pads its grid again, inside the first. **Broken** is labelled below; look at its doubled padding.");

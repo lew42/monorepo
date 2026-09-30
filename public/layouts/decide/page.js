@@ -25,6 +25,9 @@ export default new Page({
 	content(){
 		md("**Answer these five questions in order, and the layout usually picks itself.** Each one is a judgement, not a rule: the answers under it are the usual ones, and a page can have a reason to pick something else. Live demos of the fourth question are below the questions.");
 
+		// `alignItems: "start"` (2026-09-29, the previews fix) — grid's own default
+		// `stretch` drags every short question card down to match its longest
+		// neighbour; each card's height is its own answer's, not the row's.
 		div.c("grid auto gap wide", () => QUESTIONS.forEach((q, i) => {
 			div.c("card flex v gap-50", () => {
 				h3(() => { icon(q.icon); span(` ${i + 1}. ${q.ask}`); });
@@ -32,7 +35,7 @@ export default new Page({
 				ul(() => q.answers.forEach(x => li(x)));
 				div.c("muted", () => md(q.example));
 			});
-		})).style("--column", "17rem");
+		})).style({ "--column": "17rem", "alignItems": "start" });
 
 		md("**The demos.** The fourth question is where most pages go wrong, so it has four live demos: three columns that match, the same with one short column, the fix, and a little content against a lot. The last card is the five questions asked of a real page, one at a time.");
 		this.previews().style("--column", "18rem");

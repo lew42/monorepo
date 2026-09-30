@@ -21,6 +21,7 @@ same things as tiles ([why both](/framework/core/Page/make/readme-page/)).
 - [The approved five](/layouts/doc/studies/approved/) — the closed set a new page picks from.
 - [Width words](/framework/core/Page/overview/width/) — how wide a column is, in six words.
 - [Floating page](/framework/core/Page/layout/floating/) — an inner left sidebar beside a page that scrolls on its own.
+- [Switcher](/framework/core/Page/layout/switcher/) — a routed list switches the content beside it (vertical tabs, a file tree, a left nav are its three skins); collapses to a mobile dropdown with no active-class rewrite.
 
 **3. Inside the page — sections, cards, padding, spacing, gap**
 - [Sections](/framework/styles/sections/) — content bands inside one page: hero, stats, pricing, faq.

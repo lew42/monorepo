@@ -55,6 +55,7 @@ const LEVELS = [
 		{ name: "The approved five", icon: "verified", href: "/layouts/doc/studies/approved/", line: "The closed set a new page picks from." },
 		{ name: "Width words", icon: "settings_ethernet", href: "/framework/core/Page/overview/width/", line: "How wide a column is, in six words." },
 		{ name: "Floating page", icon: "flip_to_front", href: "/framework/core/Page/layout/floating/", line: "An inner sidebar beside a page that scrolls alone." },
+		{ name: "Switcher", icon: "view_sidebar", href: "/framework/core/Page/layout/switcher/", line: "A routed list switches the content beside it — tabs, a tree, a left nav." },
 	] },
 	{ title: "3. Inside the page", items: [
 		{ name: "Sections", icon: "view_day", href: "/framework/styles/sections/", line: "Content bands inside one page: hero, pricing, faq." },
@@ -95,7 +96,7 @@ export default new Page({
 	icon: "dashboard_customize",
 	width: "wide",
 
-	children: "floating v2 v1",
+	children: "floating switcher v2 v1",
 
 	content(){
 		md("**Layout is a system, not a class.** Read it top down, the order a page is built in: where the page sits among other pages, how it divides its own room, then how the things inside it are laid out.");
