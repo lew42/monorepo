@@ -1,0 +1,230 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "400": {
+   "empty": 0.229,
+   "widest_text": 396,
+   "widest_text_sample": "Keep whisper-server + add one Servex soc",
+   "overflow_x": false,
+   "items": 43,
+   "narrow_share": 0.023,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 14,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 14
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-head",
+     "y": 51,
+     "h": 55,
+     "share": 0.055,
+     "ink": 0.438,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-needs",
+     "y": 134,
+     "h": 816,
+     "share": 0.816,
+     "ink": 0.813,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.335,
+   "widest_text": 813,
+   "widest_text_sample": "Will you authorize the Gmail connector i",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.102,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 19
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-head",
+     "y": 0,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.525,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-needs",
+     "y": 88,
+     "h": 912,
+     "share": 0.912,
+     "ink": 0.677,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.514,
+   "widest_text": 870,
+   "widest_text_sample": "Will you authorize the Gmail connector i",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.373,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 33,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 33
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-head",
+     "y": 0,
+     "h": 63,
+     "share": 0.063,
+     "ink": 0.263,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-needs",
+     "y": 102,
+     "h": 898,
+     "share": 0.898,
+     "ink": 0.505,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.728,
+   "widest_text": 975,
+   "widest_text_sample": "Will you authorize the Gmail connector i",
+   "overflow_x": false,
+   "items": 59,
+   "narrow_share": 0.407,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "ai2-head",
+     "y": 0,
+     "h": 70,
+     "share": 0.07,
+     "ink": 0.212,
+     "big_empty": false
+    },
+    {
+     "cls": "ai2-needs",
+     "y": 115,
+     "h": 885,
+     "share": 0.885,
+     "ink": 0.277,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

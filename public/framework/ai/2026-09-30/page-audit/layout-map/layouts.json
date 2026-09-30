@@ -1,0 +1,202 @@
+{
+  "layouts": [
+    {
+      "name": "Doc page (top tabs beside the title)",
+      "defined_in": [
+        "public/framework/ext/Doc/Doc.js",
+        "public/framework/ext/Doc/Doc.css",
+        "public/framework/ext/Doc/page.js"
+      ],
+      "api": "new Doc({ meta: import.meta, title, subject, methods, properties, notes, files, overview, content(){} }) — Doc extends Page (Doc.js:29); a page opts in by being a Doc instance instead of a plain Page.",
+      "dom_marker": ".page.doc-page > .tabs > .tab-bar",
+      "page_js_count": 74,
+      "page_js_count_grep": "rg -l \"new Doc\\(\" public --glob \"page.js\"",
+      "examples": [
+        "/framework/ext/Doc/",
+        "/framework/dev/Socket/",
+        "/framework/ux/Wizard/"
+      ],
+      "tab_alignment": {
+        "position": "beside the title, in the same row as the title well",
+        "css_rule": ".page.doc-page { display: flex; flex-wrap: wrap; } .page.doc-page > .tabs { display: contents; } .page.doc-page > .tabs > .tab-bar { background: var(--well); flex: 1 1 24em; align-items: flex-end; } (Doc.css:11-24, 66-87)"
+      }
+    },
+    {
+      "name": "Column pages (page split into side-by-side columns)",
+      "defined_in": [
+        "public/framework/core/Page/Page.class.js",
+        "public/framework/core/Page/Page.css",
+        "public/framework/core/Page/overview/columns/",
+        "public/framework/core/Page/doc/columns.md"
+      ],
+      "api": "this.columns({ even = false, fit = \"floor\" } = {}) called from a page's initialize() (Page.class.js:803); sets this.columnar = true.",
+      "dom_marker": ".page.columns (host), .page.column (each child), .page.columns .page-column-body",
+      "page_js_count": 42,
+      "page_js_count_grep": "rg -l \"\\.columns\\(\" public --glob \"page.js\"",
+      "examples": [
+        "/framework/core/Page/overview/columns/finder/",
+        "/framework/core/Page/overview/columns/uses/inbox/",
+        "/layouts/labs/blogx/finder/"
+      ],
+      "tab_alignment": null
+    },
+    {
+      "name": "Inner left nav / switcher (vertical tab rail)",
+      "defined_in": [
+        "public/framework/core/Page/layout/switcher/switcher.css",
+        "public/framework/core/Page/layout/switcher/page.js",
+        "public/framework/ext/tabs/switcher.js (the actual method — core/ only holds the skin/docs since imports flow down)"
+      ],
+      "api": "import \"/framework/ext/tabs/switcher.js\"; then this.switcher(\"guide api reference\", { skin: \"tree\" | \"nav\" }) — wraps this.tabs(names).ac(\"vertical\").",
+      "dom_marker": ".switcher (container-type: inline-size), skins .switcher-skin-tree / .switcher-skin-nav; collapses to .switcher-drop (a <details>) under 30em",
+      "page_js_count": 2,
+      "page_js_count_grep": "rg -l \"\\.switcher\\(\" public --glob \"page.js\" (real non-demo caller: public/framework/ux/Auth/Auth.js, which is not a page.js)",
+      "examples": [
+        "/framework/core/Page/layout/switcher/",
+        "/framework/core/Page/layout/switcher/cmp-w-index/",
+        "ux/Auth (Auth.js, not a routed page)"
+      ],
+      "tab_alignment": {
+        "position": "vertical rail down the left side — it IS the nav, not a title-adjacent strip",
+        "css_rule": "n/a (no top-tab positioning rule; see switcher.css for the rail layout)"
+      }
+    },
+    {
+      "name": "Floating page (persistent left nav beside a capped-width page)",
+      "defined_in": [
+        "public/framework/core/Page/layout/floating/floating.js",
+        "public/framework/core/Page/layout/floating/page.js"
+      ],
+      "api": "import floating from \".../layout/floating/floating.js\"; floating(box, { nav: [{label, href, active}], content: fn }) — a factory function (class Floating), not a Page subclass; box may be null to draw into the current captor.",
+      "dom_marker": ".floating-well (outer well), .floating (grid), .floating-nav, .floating-page",
+      "page_js_count": 2,
+      "page_js_count_grep": "rg -l \"\\bfloating\\(\" public --glob \"page.js\"",
+      "examples": [
+        "/framework/core/Page/layout/floating/",
+        "/framework/core/Page/layout/v1/",
+        "AI 2 workspace view (ai2/floating.js re-export, per floating.js header comment)"
+      ],
+      "tab_alignment": {
+        "position": "not tabs — a sticky left nav (.floating-nav, position: sticky; top: var(--pad)), collapsing to a top strip under 44em",
+        "css_rule": "@container floating (width < 44em) { .floating-nav { flex-direction: row; grid-column: 1/-1; } }"
+      }
+    },
+    {
+      "name": "AI 2 shell (inbox/rail dashboard)",
+      "defined_in": [
+        "public/framework/ai2/page.js",
+        "public/framework/ai2/ai2.css"
+      ],
+      "api": "Not a reusable API other pages opt into — it is this one Page's own content(), building .ai2-head (doc-well + tabs) and .ai2 (rail/detail/sub grid) directly; a view joins it only via route() inside page.js.",
+      "dom_marker": ".ai2-head (or .page[class*=\"ai2\"])",
+      "page_js_count": 1,
+      "page_js_count_grep": "grep for ai2-head / \"tabs block\" across **/page.js — only public/framework/ai2/page.js builds this shell",
+      "examples": [
+        "/framework/ai2/ (Needs you)",
+        "/framework/ai2/inbox/",
+        "/framework/ai2/overview/"
+      ],
+      "tab_alignment": {
+        "position": "right-aligned (a bug, not a design choice)",
+        "css_rule": "public/framework/ai2/ai2.css:1082-1084 sets .ai2-tab-needs{order:1} .ai2-tab-inbox{order:2} .ai2-tab-overview{order:3} on the three real tabs (added 2026-09-29 for an inbox-lighting trick). public/framework/ext/tabs/tabs.css:133 appends a filler pseudo-element to every .tabs.block bar — .tabs.block > .tab-bar::after { content:\"\"; flex:1; border-bottom:1px solid var(--line); } — with no order of its own, so it defaults to order:0. Flex sorts by order first, so the flex:1 filler (meant only to extend the rule past the last tab) sorts BEFORE the three tabs and eats all the free space, shoving the tabs flush right. Confirmed live: getComputedStyle(bar,'::after').order === \"0\". No other .tabs.block strip on the site sets per-tab order, so this is the only page affected."
+      }
+    },
+    {
+      "name": "browse() — filter rail + wall of bands",
+      "defined_in": [
+        "public/framework/ext/catalog/browse.js (Page.prototype.browse)",
+        "public/framework/ext/catalog/browse.css"
+      ],
+      "api": "page.browse(bands, tokens, options) — bands = { Label: \"child child\" }; tokens = CSS custom props (e.g. --column); options = { cap, facets, search, rail }. Called from content().",
+      "dom_marker": ".browse (outer row), .browse-wall, .browse-band > .page-previews",
+      "page_js_count": 6,
+      "page_js_count_grep": "grep -rl \"\\.browse(\" public --include=page.js",
+      "examples": [
+        "/framework/core/Layout/",
+        "/framework/ext/catalog/",
+        "/layouts/browse/"
+      ],
+      "tab_alignment": null
+    },
+    {
+      "name": "catalog() — persistent card rail beside a routed child page",
+      "defined_in": [
+        "public/framework/ext/catalog/catalog.js (Page.prototype.catalog)",
+        "public/framework/ext/catalog/catalog.css"
+      ],
+      "api": "initialize(){ this.catalog(); } — no args, called at construction; turns the page's own content() into an \"intro\" child and rewrites this.content to render the split view.",
+      "dom_marker": ".page-catalog (row) containing .page-previews (the rail wall) and .page-catalog-pages (routed region)",
+      "page_js_count": 25,
+      "page_js_count_grep": "grep -rl \"\\.catalog(\" public --include=page.js",
+      "examples": [
+        "/framework/core/Page/overview/rail/",
+        "/framework/ext/catalog/",
+        "/framework/styles/elements/code/"
+      ],
+      "tab_alignment": null
+    },
+    {
+      "name": "demo.tree() — a live Page preview card in a wall",
+      "defined_in": [
+        "public/framework/ext/demo/exhibit.js:135 (demo.tree = config => ({...}))",
+        "public/framework/ext/demo/doc/method/tree.md"
+      ],
+      "api": "new Page(demo.tree({ meta: import.meta, tree: treeFn, rail: true, min: \"18em\" })) — tree must be a function (never an already-built Page), because Page memoizes .view.",
+      "dom_marker": ".page-preview.tree-preview (card; .page-preview-thumb holds the live half-scale box()); the wall grid itself is the shared .page-previews grid defined in Page.class.js",
+      "page_js_count": 50,
+      "page_js_count_grep": "grep -rl \"demo\\.tree(\" public --include=page.js",
+      "examples": [
+        "/framework/core/Page/overview/docs/",
+        "/framework/core/Page/overview/wall/",
+        "/framework/core/Page/overview/catalog/"
+      ],
+      "tab_alignment": null,
+      "note": "browse(), catalog() and demo.tree() all ultimately draw the same card shape (.page-preview) inside the one shared .page-previews grid — they are different arrangements of one card wall, not three different card shapes."
+    },
+    {
+      "name": "Site shell / .page.standard (the default page shape)",
+      "defined_in": [
+        "public/app.js (App.render() builds .app.theme-lew42 > .pages)",
+        "public/framework/core/Sidebar/Sidebar.js",
+        "public/framework/core/Page/Page.class.js:645"
+      ],
+      "api": "Automatic — every Page renders div.c(\"page flow\", ...).ac(this.classes ?? \"standard\") unless the page sets its own classes: (e.g. \"full\", \"topic\") to opt out. Sidebar is opt-in per app via new Sidebar({ brand, root: this }), not wired globally in app.js.",
+      "dom_marker": ".page.standard (the shell region is .app / .pages in app.js)",
+      "page_js_count": "not a meaningful opt-in count — this is the default for every page that does NOT set classes:; 150 page.js files override it with classes: (grep -rl \"classes:\" public --include=page.js), and the remaining large majority stay .standard by doing nothing",
+      "page_js_count_grep": "grep -rl \"classes:\" public --include=page.js",
+      "examples": [
+        "/framework/core/Page/overview/prose/",
+        "/framework/core/Page/overview/list/",
+        "/framework/core/Page/overview/labels/"
+      ],
+      "tab_alignment": null
+    }
+  ],
+  "realms": [
+    {
+      "realm": "/imagine/",
+      "finding": "Almost entirely built on the shared layout APIs. The hub pages use plain Page + content() + this.previews() inside /imagine/'s own columns() host. Tab-style children use the real ext/tabs API directly (this.tabs().ac(\"vertical\") or this.tabs(\"alpha beta gamma delta\")). /imagine/cms/doc/page.js is default .page.standard with route(). The one deliberate custom shell is /imagine/scenes/page.js (and its Scene subclass): it sets scenic: true / width: \"full\" and owns its own 3D build()/tick() render loop, explicitly opting out of the columns host — documented as intentional. /imagine/platform/research/** pages use Program.Topic (ext/Research), a different shared abstraction, not a hand-rolled shell."
+    },
+    {
+      "realm": "/layouts/",
+      "finding": "Mixed, appropriately, since the realm's subject is layouts itself. public/layouts/page.js and most labs/* pages use plain Page + this.previews()/this.browse() (public/layouts/browse/page.js explicitly notes it used to hand-roll its grid and was migrated onto ext/catalog's browse()). The genuinely custom shell is public/layouts/shell/page.js: it overrides render() itself, builds a drag-resizable rail + viewport via its own Shell.js, and documents the three obligations core/Page imposes on anyone who does this (set this.view, carry .page, never nest a second .page). public/layouts/labs/shells/** pages are also deliberately custom, one Shell instance per whole-app-chrome shape being demonstrated — the lab's explicit purpose, not an oversight."
+    }
+  ],
+  "reimplementations": [
+    {
+      "file": "public/web/nav/tabs/page.js",
+      "what": "Hand-builds .tabs/.tab-bar/.tab markup and a .tab-panel region itself via a local tabs() helper, plus its own mini Page instances as the demo app.",
+      "should_use": "this.tabs() (ext/tabs) — the file says so itself: it's hand-wired only because this is a demo-app sandbox with no real Router for tabs() to talk to. Not a bug in place, but a real re-implementation if copied outside a demo context."
+    },
+    {
+      "file": "public/framework/styles/layouts/toc-studio/page.js",
+      "what": "Wires .tabs .tab-bar .tab markup by hand for a category strip.",
+      "should_use": "this.tabs() — self-documented as unavoidable here because this.tabs() mutates the page it's called on and this frame renders three times (for twin/thumbnail views), so a deliberate, explained exception rather than a miss."
+    },
+    {
+      "file": "public/imagine/codrops/page.js",
+      "what": "Builds its own .grid.auto card wall with a hand-written demo_card() method, grouped by mechanism, instead of this.previews().",
+      "should_use": "this.previews() (or a grouped variant of it) — plausible genuine re-implementation, though defensible since it needs mechanism-based grouping that previews() doesn't natively support."
+    }
+  ]
+}

@@ -1,0 +1,306 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/",
+ "widths": {
+  "400": {
+   "empty": 0.487,
+   "widest_text": 267,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 207,
+   "narrow_share": 0.28,
+   "tab_rows": 6,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 51,
+     "h": 67,
+     "share": 0.067,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 118,
+     "h": 161,
+     "share": 0.161,
+     "ink": 0.585,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 280,
+     "h": 8661,
+     "share": 8.661,
+     "ink": 0.279,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.618,
+   "widest_text": 283,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 245,
+   "narrow_share": 0.592,
+   "tab_rows": 3,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.658,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.658,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 86,
+     "h": 3174,
+     "share": 3.174,
+     "ink": 0.16,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Pages are navigation7",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.734,
+   "widest_text": 456,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 245,
+   "narrow_share": 0.963,
+   "tab_rows": 2,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.613,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.613,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 77,
+     "h": 2763,
+     "share": 2.763,
+     "ink": 0.151,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Pages are navigation7",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.799,
+   "widest_text": 475,
+   "widest_text_sample": ". Each card below is one block, shown ru",
+   "overflow_x": false,
+   "items": 245,
+   "narrow_share": 0.963,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 87,
+     "h": 2419,
+     "share": 2.419,
+     "ink": 0.13,
+     "big_empty": true
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Building blocks6",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "flex",
+     "text": "Pages are navigation7",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}
