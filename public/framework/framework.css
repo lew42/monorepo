@@ -406,13 +406,28 @@
        ⚠ A rail sized DELIBERATELY drops the floor to 0 (dev/DevBar does, for its
          viewport presets): the floor guards a default width against a small screen,
          and a width computed FROM the viewport needs no guarding. Without that, a
-         "390" preset silently lands on 416 and the button lies. */
+         "390" preset silently lands on 416 and the button lies.
+       `--shell-top/-left/-right/-bottom` are `dev/DevShell`'s four tokens (from
+         `core/Shell`'s `frame: true` — Shell.js's own `watch_frame()`): the dark
+         dev shell PUSHES the page in on all four sides instead of covering it,
+         the same way `--devbar` already does on one. Closed, `dev/DevShell`'s own
+         CSS makes the shell `display: none`, which reports zero size, so every one
+         of these four reads `0px` again with no extra rule needed here — "off" IS
+         "exactly as before". `--shell-right` joins the existing inline-end sum
+         (the dev shell and the old rail never both reserve space, since only one
+         of them is ever open); `--shell-left` is the first INLINE-START reservation
+         this file has needed, so it gets the same floor the inline-end sum already
+         has. Top and bottom get no floor — a header/footer region is one thin
+         line (about 2rem), never the whole window, so there is nothing to guard. */
     .app {
         height: 100%; display: flex; flex-direction: column;
-        padding-inline-end: min(calc(var(--drawer, 0px) + var(--devbar, 0px)), max(0px, 100% - var(--rail-floor, 26rem)));
+        padding-inline-end: min(calc(var(--drawer, 0px) + var(--devbar, 0px) + var(--shell-right, 0px)), max(0px, 100% - var(--rail-floor, 26rem)));
+        padding-inline-start: min(var(--shell-left, 0px), max(0px, 100% - var(--rail-floor, 26rem)));
+        padding-block-start: var(--shell-top, 0px);
+        padding-block-end: var(--shell-bottom, 0px);
         /* `--rail-ease` so a rail being DRAGGED can turn the easing off — a width
            written every frame trails the pointer by 0.18s and reads as lag. */
-        transition: padding-inline-end var(--rail-ease, 0.18s);
+        transition: padding var(--rail-ease, 0.18s);
     }
 
     /* ---- the type scale: six levels, and that's the whole vocabulary --------

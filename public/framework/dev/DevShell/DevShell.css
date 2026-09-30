@@ -1,0 +1,69 @@
+/* DevShell.css — the dark dev shell's own look, kept small on purpose: the
+   grid, the dark theme, the push into `.app`, the 34em stack and every resize
+   rail already come from `core/Shell/Shell.css`. This file only styles the
+   few things that are DevShell's own: opening/closing, the head line's
+   layout, the tab row, and the thin footer's two readouts. Nothing here
+   restyles what framework.css or Shell.css already style — the owner's own
+   words, 2026-09-30: "we can probably scrap most of the dev bar's CSS and
+   lean into our current CSS". Design record: readme.md, doc/decisions.md. */
+@layer theme {
+
+	/* Mounted once, on <body>, like `dev/DevBar`'s own rail — `dev-shell-open`
+	   on <html> is the WHOLE open/closed state. Closed is `display: none`,
+	   which is also why `.app`'s push clears itself for free: a display:none
+	   region reports zero size to `CoreShell`'s own ResizeObserver
+	   (`watch_frame()`, Shell.js), so every `--shell-*` token it writes is
+	   already 0 before this rule even runs. */
+	:root:not(.dev-shell-open) .dev-shell-root { display: none; }
+
+	.dev-shell-head-line {
+		width: 100%;
+		gap: 0.5em;
+		font-family: var(--mono);
+		font-size: 0.8rem;
+	}
+
+	/* `pathbar()`'s own box is the first child, always — grow it so the
+	   buttons after it (hint, block, hold, edit, v1, ✕) sit at the head's
+	   trailing edge instead of hugging the path. */
+	.dev-shell-head-line > :first-child { flex: 1 1 auto; min-width: 0; }
+
+	.dev-shell-hint { color: var(--subtle); white-space: nowrap; }
+
+	.dev-shell-v1, .dev-shell-x {
+		font-family: var(--mono);
+		font-size: 0.75rem;
+		border: 1px solid var(--line);
+		border-radius: 0.25em;
+		padding: 0.1em 0.5em;
+		background: none;
+		color: inherit;
+	}
+
+	/* One group, right-aligned: the first button in it carries the margin. */
+	.dev-shell-v1 { margin-inline-start: auto; }
+
+	.dev-shell-tree, .dev-shell-body { padding: 0.75em; font-size: 0.85rem; }
+
+	.dev-shell-tabs-wrap { min-height: 0; }
+	.dev-shell-body { min-height: 0; overflow: auto; }
+
+	.dev-shell-tabs {
+		border-block-end: 1px solid var(--line);
+		padding-inline: 0.5em;
+	}
+
+	.dev-shell-tab {
+		background: none; border: none; color: var(--subtle);
+		padding: 0.5em 0.75em; font-family: var(--mono); font-size: 0.8rem;
+		border-block-end: 2px solid transparent;
+	}
+
+	.dev-shell-tab.on { color: var(--ink); border-block-end-color: var(--prim); }
+
+	.dev-shell-foot { font-family: var(--mono); font-size: 0.75rem; }
+
+	.dev-shell-val.ok { color: var(--ok); }
+	.dev-shell-val.warn { color: var(--warn); }
+	.dev-shell-val.off { color: var(--subtle); }
+}

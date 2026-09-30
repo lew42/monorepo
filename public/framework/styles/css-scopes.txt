@@ -125,6 +125,8 @@ ux-wizard-   ux/Wizard
 # dev
 claim-       dev/Claim
 dev-         dev/DevBar
+dev-shell-   dev/DevShell (the dark shell, Ctrl + \; `dev-` above is DevBar's own, registered
+             2026-09-30)
 
 # ui — one component, one prefix: ui-<component>-*
 ui-          ui/
