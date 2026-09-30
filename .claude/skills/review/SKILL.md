@@ -41,6 +41,8 @@ Answer in this order, one system at a time:
 9. **Flow** — the Flow section of layout/questions.md.
 10. **Words** — the Words section of content/questions.md.
 
+A review whose diff changes no page (review.mjs size `light`, no shots) answers Requirements and Words only; a page change answers every system.
+
 ## Read each shot in horizontal bands
 
 Look at every shot from the top down, one horizontal band at a time (the owner, 2026-09-30). For each band ask: what share of the screen does it take, is that the right size, is its padding right, is space wasted, did anything wrap that shouldn't? `layout.json`'s `bands` gives each band's `share` and `ink`, so check your eye against it.
@@ -51,6 +53,7 @@ One line per question: `yes`, `no` or `n/a`, then the evidence.
 
 - Evidence is a shot and where on it (`shots/home/1200.png, top band`), or a number from `layout.json` (`tab_rows 3 at 400`).
 - A question marked `[measured: …]` is answered by that number. If there is no `layout.json`, write `not measured` and judge it from the shot.
+- When a question's subject is absent (no tabs, no columns, no live items), answer `n/a` in one word, with no evidence, so the whole pass stays under a screen.
 - `no` on anything the owner asked for, or on a rule's core, is a fix. A small thing is a note.
 
 ## The report
