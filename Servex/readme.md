@@ -96,6 +96,8 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
 
+**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md).
+
 **Budgets**: at 100% of a task's budget its mastermind and parent are told once and new spawns under it are refused; at 150% its minions stop. See [`doc/budget.md`](./doc/budget.md).
 
 **A worktree page never speaks as the owner.** A post whose Origin is a worktree (its port or `<name>.localhost`, from `.worktrees.json`) is `via: "worktree:<name>"`: a `/log/<name>` line is stamped with it and wakes neither the assistant nor the dispatcher; a card post (`/card/*`, `/log/cards/*`) or a Live-card message from there is answered as a stub, written nowhere (`Servex.via()`).

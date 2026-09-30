@@ -236,7 +236,9 @@ export class Agents {
 		const out = { revived: [], told: [], gone: [], legacy: [] };
 		this.mark_legacy_stops(reg);
 		for (const row of reg.list()){
-			if (this.live.has(row.id) || row.state === "stopped") continue;
+			/* A DORMANT row had no process to lose: it stays dormant, and the first
+			 * message reopens it (send -> wake -> reopen), never the boot. */
+			if (this.live.has(row.id) || row.state === "stopped" || row.state === "dormant") continue;
 			if (self_restarted(row.id)){
 				if (row.state !== "gone") out.gone.push(row.id);
 				continue;
@@ -458,6 +460,23 @@ export class Agents {
 
 	list(){ return [...this.live.values()].map(agent => agent.card()); }
 
+	/* THE WORKING CAP (dormant-idle, 2026-09-30): at most `working_cap` agents
+	 * WORKING at once (SERVEX_WORKING_CAP, default 5). Every working agent counts
+	 * for itself, so a task mastermind with two working minions holds three of
+	 * the five. Not counted: the standing front desk (assistants, managers,
+	 * master-assistant, voice sessions, the Dispatcher stand-in) and an agent
+	 * blocked in wait_for_agent. Global.admit() queues a new spawn above it. */
+	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 5; }
+	working(){
+		return [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
+			&& !a.waiting_on && !STANDING.test(a.id ?? "") && a instanceof Agents.Agent);
+	}
+	counts(){
+		const all = [...this.live.values()].filter(a => a instanceof Agents.Agent);
+		const n = s => all.filter(a => a.state === s).length;
+		return { working: this.working().length, cap: this.working_cap, idle: n("idle"), dormant: n("dormant") };
+	}
+
 	/* Every event from every agent passes through here on its way to the log.
 	 * Override it — the dashboard's socket, a test's stdout — and you see the
 	 * whole switchboard. */
@@ -621,6 +640,9 @@ export const SELF_RESTARTED = { prefixes: ["assistant-", "manager-", "master-ass
 export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
 	SELF_RESTARTED.ids.includes(id) || /^mastermind-servex-\d+$/.test(id) || SELF_RESTARTED.prefixes.some(prefix => id.startsWith(prefix)));
 
+/* The standing front desk: never counted against the working cap. */
+export const STANDING = /^(assistant-|manager-|master-assistant|session-|dispatcher$)/;
+
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
 
@@ -666,7 +688,7 @@ Agents.Agent = class Agent {
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
 		else { this.session_id ??= randomUUID(); this.minted = true; }
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
-		this.pump();
+		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
 		this.emit({ type: "agent_msg", from: "host", reply_to: null, text: this.prompt, first: true });
 		this.queue.push(this.turn(this.prompt));
@@ -693,12 +715,12 @@ Agents.Agent = class Agent {
 	/* Resolves when this agent is idle (turn over, nothing queued) or stopped
 	 * — at once if it already is. `settle()` is what resolves it. */
 	idle(){
-		if (this.state === "idle" || this.state === "stopped") return Promise.resolve(true);
+		if (this.state === "idle" || this.state === "stopped" || this.state === "dormant") return Promise.resolve(true);
 		return new Promise(resolve => (this.waiters ??= []).push(resolve));
 	}
 
 	settle(){
-		if (this.state !== "idle" && this.state !== "stopped") return;
+		if (this.state !== "idle" && this.state !== "stopped" && this.state !== "dormant") return;
 		(this.waiters ?? []).splice(0).forEach(resolve => resolve(true));
 	}
 
@@ -784,6 +806,7 @@ Agents.Agent = class Agent {
 
 	send(text, { from, reply_to, priority } = {}){
 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
+		if (this.state === "dormant") this.awaken(from);
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
 		this.queue.push(this.turn(this.envelope(text, { from, reply_to }), priority));
 		this.state = "working";
@@ -792,12 +815,79 @@ Agents.Agent = class Agent {
 	}
 
 	async interrupt(){
+		if (this.state === "dormant") return this;   // no process, no turn to cut
 		try { await this.query.interrupt(); }
 		catch (e){ this.emit({ type: "error", where: "interrupt", text: String(e.message || e) }); }
 		this.state = "idle";
 		this.host?.register?.(this);
 		this.settle();
 		return this;
+	}
+
+	/* DORMANT (dormant-idle, 2026-09-30). An idle agent's claude process EXITS, and
+	 * everything else stays: this same object in `live`, its id, session id, spec,
+	 * sdk hooks and in-process MCP servers, and its registry row (state `dormant`).
+	 * The next `send()` resumes the session in place (`awaken()`), so a dormant
+	 * agent answers to its id exactly as an idle one did, a few seconds later. An
+	 * idle process held 250-400 MB; a dormant one holds nothing. It is not a stop:
+	 * no result event, no parent wake, and the heartbeat and lifecycle still count
+	 * it alive. Refused while a background task runs (a Bash or Monitor it waits on
+	 * would die with the process). Global.sweep() calls it after 3 idle minutes. */
+	sleep(why = "idle"){
+		if (this.state !== "idle" || this.one_shot || !this.session_id) return false;
+		if (this.bg_tasks > 0) return false;
+		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+		this.queue.close();
+		try { this.query.close(); } catch {}
+		try { this.aborter.abort(); } catch {}
+		this.state = "dormant";
+		this.dormant_at = stamp();
+		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns });
+		this.host?.register?.(this);
+		this.settle();
+		return true;
+	}
+
+	/* A dormant agent's session, resumed in place: a new claude process on the
+	 * same session id, cwd, model, tools and options. Nothing is sent here; the
+	 * caller's `send()` pushes the turn that woke it. */
+	awaken(by){
+		if (this.state !== "dormant") return this;
+		const slept = this.dormant_at;
+		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0 });
+		this.start();
+		this.emit({ type: "awake", by: by ?? null, slept_since: slept });
+		this.host?.register?.(this);
+		return this;
+	}
+
+	/* COMPACTION (dormant-idle, 2026-09-30). `/compact` as a turn of its own: the
+	 * CLI summarises the conversation and continues from the summary, so the
+	 * context, the process and the next resume all shrink. It is not a turn anyone
+	 * asked for, so it wakes no parent and keeps the last turn's words. Run at the
+	 * end of a turn when the context passes `compact_tokens` (200k) or the process
+	 * passes `compact_mb` (500 MB, measured by Global.sweep). */
+	compact(why = "context"){
+		if (this.state !== "idle" || this.one_shot || this.compacting) return false;
+		this.compacting = { why, before: this.context ?? null, rss_mb: this.rss_mb ?? null, at: Date.now() };
+		this.emit({ type: "compacting", why, context: this.context ?? null, rss_mb: this.rss_mb ?? null });
+		this.queue.push(this.turn("/compact"));
+		this.state = "working";
+		this.host?.register?.(this);
+		return true;
+	}
+
+	/* Why this agent should compact now, or null. Once per turn: a summary still
+	 * over the line is not compacted again until it has done more work. */
+	oversized(){
+		const tokens = this.host?.compact_tokens ?? (Number(process.env.SERVEX_COMPACT_TOKENS) || 200000);
+		const mb = this.host?.compact_mb ?? (Number(process.env.SERVEX_COMPACT_MB) || 500);
+		/* The front desk is never compacted: Layers.js restarts a page's assistant and manager
+		 * FRESH from a checkpoint instead ("fresh, not compacted" — the owner). */
+		if (this.one_shot || this.compacted_turn === this.turns || STANDING.test(this.id ?? "")) return null;
+		if ((this.context ?? 0) > tokens) return "context";
+		if ((this.rss_mb ?? 0) > mb) return "memory";
+		return null;
 	}
 
 	/* Three things end a session, and a long-lived host needs all three: close the
@@ -862,14 +952,17 @@ Agents.Agent = class Agent {
 		return event;
 	}
 
-	async pump(){
+	/* `gen` is which process this pump reads: a dormant agent's old process ends
+	 * AFTER the new one started (awaken), and its end must not touch the new one. */
+	async pump(gen = this.gen){
+		const mine = () => gen === this.gen;
 		try {
-			for await (const message of this.query) this.receive(message);
+			for await (const message of this.query){ if (!mine()) break; this.receive(message); }
 		} catch (e){
-			// the abort that `stop()` itself fires is not news — and would wake a parent with a false "error"
-			if (this.state !== "stopped") this.emit({ type: "error", where: "session", text: String(e.message || e) });
+			// the abort that `stop()` or `sleep()` itself fires is not news — and would wake a parent with a false "error"
+			if (mine() && this.state !== "stopped" && this.state !== "dormant") this.emit({ type: "error", where: "session", text: String(e.message || e) });
 		}
-		if (this.state === "stopped") return;
+		if (!mine() || this.state === "stopped" || this.state === "dormant") return;
 		this.state = "stopped";
 		this.host?.register?.(this);
 		this.settle();
@@ -880,6 +973,9 @@ Agents.Agent = class Agent {
 	 * unrecognised type is dropped, never thrown on. */
 	receive(message){
 		if (message.type === "system" && message.subtype === "init") return this.began(message);
+		if (message.type === "system" && message.subtype === "background_tasks_changed")
+			return void (this.bg_tasks = (message.tasks ?? []).filter(t => !t.ambient).length);
+		if (message.type === "system" && message.subtype === "compact_boundary") return this.boundary(message);
 		if (message.type === "stream_event") return this.delta(message);
 		if (message.type === "assistant") return this.assistant(message);
 		if (message.type === "result") return this.result(message);
@@ -893,6 +989,14 @@ Agents.Agent = class Agent {
 		this.emit({ type: "transcript", text: `session ${message.session_id} · ${message.model} · ${message.permissionMode}`, meta: true });
 		// the row needs the session id NOW: a host killed during this first turn must still be able to revive it
 		this.host?.register?.(this);
+	}
+
+	/* The CLI compacted (our `/compact`, or its own auto-compact mid-turn). */
+	boundary(message){
+		const m = message.compact_metadata ?? {};
+		this.last_usage = null;
+		this.context = m.post_tokens ?? null;
+		this.emit({ type: "compacted", trigger: m.trigger ?? null, pre_tokens: m.pre_tokens ?? null, post_tokens: m.post_tokens ?? null });
 	}
 
 	delta(message){
@@ -927,6 +1031,7 @@ Agents.Agent = class Agent {
 	 * further input"; without that check a watcher reads the gap between two
 	 * queued turns as "finished" and acts on a half-done agent. */
 	result(message){
+		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
 		this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
@@ -969,6 +1074,26 @@ Agents.Agent = class Agent {
 		 * Servex stops it; waiters already have its words (settle() above), and the
 		 * session stays resumable — a message still wakes it (no `stopped_by`). */
 		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
+		/* Grown past a threshold: compact before anything else arrives. */
+		else if (this.state === "idle"){ const why = this.oversized(); if (why) setImmediate(() => this.compact(why)); }
+	}
+
+	/* The end of a `/compact` turn: logged, no parent woken, the last turn's words kept. */
+	compact_done(message){
+		const c = this.compacting;
+		this.compacting = null;
+		this.compacted_turn = this.turns;
+		this.cost = message.total_cost_usd ?? this.cost;
+		this.queued = message.queued_turn_count ?? 0;
+		this.state = this.queued > 0 ? "working" : "idle";
+		this.said = [];
+		this.log({ at: stamp(), agent: this.id, type: "compact", ok: !message.is_error, why: c.why, before: c.before, after: this.context ?? null,
+			rss_mb_before: c.rss_mb, duration_ms: Date.now() - c.at, cost: this.cost });
+		this.host?.register?.(this);
+		this.settle();
+		/* Compacted for MEMORY: a process keeps the heap it grew, so restart it
+		 * from the compacted session (checkpoint-and-restart). */
+		if (c.why === "memory" && this.state === "idle" && this.sleep("compacted")) this.awaken("compaction");
 	}
 };
 

@@ -163,7 +163,7 @@ route();
  * transcript is showing — one at a time, because two live streams side by side
  * is two things to read at once. */
 const cards = new Map(), rows = new Map();
-let open_agent = null, $count, $rows;
+let open_agent = null, $count, $rows, cap = 5;
 
 function agent_row(card){
 	const views = {};
@@ -249,8 +249,11 @@ function add_row(card){
 }
 
 function count(){
-	const live = [...cards.values()].filter(c => c.state !== "stopped").length;
-	$count.text(`Agents — ${live} live of ${cards.size}`);
+	const all = [...cards.values()], live = all.filter(c => c.state !== "stopped" && c.state !== "gone").length;
+	/* the working cap (Servex/doc/dormant.md): the front desk does not count */
+	const working = all.filter(c => (c.state === "working" || c.state === "starting") && !/^(assistant-|manager-|master-assistant|session-|dispatcher$)/.test(c.id)).length;
+	const dormant = all.filter(c => c.state === "dormant").length;
+	$count.text(`Agents — working ${working}/${cap} · ${dormant} dormant · ${live} live of ${cards.size}`);
 }
 
 /* The live wire. The first paint comes from `/api/agents` because a page opened
@@ -259,6 +262,7 @@ function count(){
  * event, so nothing has to be reloaded to see a new one. */
 async function agents(){
 	band();
+	cap = Number((await ask("/api/system"))?.sample?.agents?.cap?.match?.(/\/(\d+)/)?.[1]) || cap;
 	(await ask("/api/agents") || []).forEach(card => { cards.set(card.id, card); add_row(card); });
 
 	const source = new EventSource("/api/stream");

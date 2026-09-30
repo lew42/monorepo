@@ -115,10 +115,13 @@ export default class Monitor extends Events {
         const Agent = this.servex?.constructor?.Agents?.Agent;
         const live = [...(this.servex?.agents?.live?.values() ?? [])]
             .filter(a => (!Agent || a instanceof Agent) && a.state !== "stopped");
+        const c = this.servex?.agents?.counts?.();   // the working cap (dormant-idle, 2026-09-30)
         return {
             total: live.length,
             working: live.filter(a => a.state === "working" || a.state === "starting").length,
-            idle_holding_claude: live.filter(a => a.state === "idle").length
+            idle_holding_claude: live.filter(a => a.state === "idle").length,
+            dormant: live.filter(a => a.state === "dormant").length,
+            cap: c ? `working ${c.working}/${c.cap}` : null
         };
     }
 
@@ -232,7 +235,9 @@ export default class Monitor extends Events {
     verdict(sample = this.sample){
         if (!sample) return "No sample yet: the monitor takes its first one 5 seconds after Servex starts.";
         const gpu = sample.gpu?.temp != null ? `, GPU ${sample.gpu.temp} °C` : "";
-        const idle = `${sample.agents.idle_holding_claude} idle agent${sample.agents.idle_holding_claude === 1 ? "" : "s"} holding claude`;
+        const idle = (sample.agents.cap ? `${sample.agents.cap}, ` : "")
+            + `${sample.agents.idle_holding_claude} idle agent${sample.agents.idle_holding_claude === 1 ? "" : "s"} holding claude`
+            + (sample.agents.dormant ? `, ${sample.agents.dormant} dormant` : "");
         if (this.flag) return `HOT: ${this.flag.reason}. ${idle}.`;
         return `Calm: CPU ${sample.cpu ?? "?"}%, ${sample.ram_free_gb} GB free${gpu}, ${idle}.`;
     }

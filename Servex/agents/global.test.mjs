@@ -23,7 +23,8 @@ function fake_servex({ registry = {}, live = [] } = {}){
 	const spawned = [], sent = [], logged = [], tools = new Map(), listeners = [];
 	const agent = spec => ({ ...spec, state: spec.state ?? "idle", turns: spec.turns ?? 0,
 		stop(){ this.state = "stopped"; },
-		send(text, note){ if (this.state === "stopped") throw new Error("stopped"); sent.push({ id: this.id, text, note }); return this; } });
+		sleep(){ if (this.state !== "idle") return false; this.state = "dormant"; return true; },
+		send(text, note){ if (this.state === "stopped") throw new Error("stopped"); if (this.state === "dormant"){ this.state = "idle"; this.awoken = (this.awoken ?? 0) + 1; } sent.push({ id: this.id, text, note }); return this; } });
 	const agents = {
 		live: new Map(), policy: { rules: () => [], refused: [] },
 		reg: () => ({ read: () => registry }),
@@ -186,14 +187,14 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	master.session_id = "m-sid"; g.remember(master, "master");
 	const mm = f.servex.agents.live.get("mastermind-servex");
 	mm.session_id = "mm-sid"; g.remember(mm, "mastermind");
-	g.sweep(Date.now() + g.idle_ms + 1000);
-	t(master.state === "stopped" && mm.state === "stopped", "master and mastermind stopped when idle");
+	g.sweep(Date.now() + g.dormant_ms + 1000);
+	t(master.state === "dormant" && mm.state === "dormant", "master and mastermind go dormant when idle");
+	const spawns = f.spawned.length;
 	f.servex.agents.send("mastermind-servex", "hello", { from: "owner" });
-	const back = f.spawned.filter(s => s.id === "mastermind-servex").pop();
-	t(back.resume === "mm-sid" && f.sent.pop().text === "hello", "a message resumes mastermind-servex");
+	t(mm.awoken === 1 && f.sent.pop().text === "hello" && f.spawned.length === spawns, "a message awakens the same mastermind-servex object in place, no new spawn");
 	hear("g", { message: { kind: "landed", by: "task-mastermind-x", text: "five" } });
 	await wait(120);
-	t(f.spawned.filter(s => s.id === "master-assistant").pop().resume === "m-sid", "batching resumes the master");
+	t(master.awoken === 1 && f.sent.filter(s => s.id === "master-assistant").pop().text.includes("five"), "batching awakens the dormant master");
 	clearInterval(g.reap_timer);
 }
 
@@ -264,10 +265,10 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const tm = f.add({ id: "task-mastermind-recursive-pairs", role: "task-mastermind", state: "idle", parent: "dispatcher", turns: 3, session_id: "tm-sid" });
 	f.servex.agents.live.set(tm.id, tm);
 	g.sweep(Date.now());
-	t(tm.state === "idle", "not reaped before idle_ms");
-	g.sweep(Date.now() + g.idle_ms + 1000);
-	t(tm.state === "stopped", "an idle task-mastermind is stopped after idle_ms (15 minutes by default)");
-	t(f.logged.some(l => l.type === "reaped" && l.id === "task-mastermind-recursive-pairs"), "its stop is logged like a worker's");
+	t(tm.state === "idle", "not dormant before dormant_ms");
+	g.sweep(Date.now() + g.dormant_ms + 1000);
+	t(tm.state === "dormant", "an idle task-mastermind goes dormant after dormant_ms (3 minutes), child or no child");
+	t(f.logged.some(l => l.type === "dormant" && l.id === "task-mastermind-recursive-pairs"), "its dormancy is logged");
 	clearInterval(g.reap_timer);
 }
 
@@ -283,11 +284,28 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const mgr = a({ id: "manager-x", role: "manager", state: "idle", turns: 3 });
 	const now = Date.now();
 	g.sweep(now);
-	t(done.state === "idle", "not reaped before reap_ms");
-	g.sweep(now + g.reap_ms + 1);
-	t(done.state === "stopped" && f.logged.some(l => l.type === "reaped" && l.id === "minion-done"), "idle finished minion reaped and logged");
-	t(fresh.state === "idle" && busy.state === "working" && mgr.state === "idle", "no turn, working, or manager: kept");
+	t(done.state === "idle", "not dormant before dormant_ms");
+	g.sweep(now + g.dormant_ms + 1);
+	t(done.state === "dormant" && f.logged.some(l => l.type === "dormant" && l.id === "minion-done"), "idle finished minion goes dormant, logged");
+	t(fresh.state === "dormant" && mgr.state === "dormant", "every role goes dormant: a turn-less minion and a manager too");
+	t(busy.state === "working", "a working agent is kept");
 	clearInterval(g.reap_timer);
+}
+
+// The working cap: a new spawn waits while `working_cap` agents work; a wake and the front desk never wait
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex, cap: 30, min_free_mb: 10 });
+	let working = 5;
+	f.servex.agents.working = () => Array.from({ length: working });
+	f.servex.agents.working_cap = 5;
+	t(g.admit({ role: "minion", parent: "task-mastermind-x" }, 8000) === "working 5/5: waits for a working agent to end its turn", "the sixth working spawn is held");
+	t(g.admit({ role: "minion", resume: "sid" }, 8000) === null, "a resume (a wake) is never held by the cap");
+	t(g.admit({ role: "minion", resume: "sid", fork: true }, 8000) !== null, "a fork is a new process: held");
+	t(g.admit({ role: "manager", id: "manager-x" }, 8000) === null && g.admit({ role: "assistant" }, 8000) === null, "the front desk is never held");
+	working = 4;
+	t(g.admit({ role: "minion" }, 8000) === null, "4 working: admitted");
 }
 
 // The admission check: memory, then a ceiling a live parent's child skips

@@ -87,7 +87,7 @@ export default class Registry {
 	sweep(live, boot){
 		const rows = this.read();
 		const dead = Object.values(rows).filter(row =>
-			!["stopped", "gone"].includes(row.state) && row.pid
+			!["stopped", "gone", "dormant"].includes(row.state) && row.pid   // dormant: no process to lose, a message reopens it
 			&& (row.pid === process.pid ? row.boot === boot && !live.has(row.id) : !alive(row.pid)));
 		return this.bury(dead.map(row => row.id), "host process exited");
 	}
