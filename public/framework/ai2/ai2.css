@@ -291,6 +291,35 @@
 		display: block;
 	}
 
+	/* THE "N UPDATED ↑" PILL (the owner, 2026-09-30, verbatim: "a small ... pill") — it says some
+	   ROW ALREADY ON SCREEN has new activity and a tap will re-sort (never silently, while
+	   you're looking — `page.js`'s `order_rows()`). Small and quiet on purpose — a plain outline
+	   chip, not `.prim`'s loud filled button (review finding, 2026-09-30: "the loudest thing on
+	   the page"); the owner is not asked to act on it, only told it exists.
+	   ⚠ STICKY AND IN THE FLOW, unlike `.ai2-new` above — the first version floated over the rows
+	   the exact same way and sat on top of the Live row's own head, hiding it (an earlier review
+	   finding). `page.js` mounts it as the FIRST CHILD of `.ai2-rows` (the scrolling box), so
+	   `position: sticky` pins it to that box's own top edge and the row below it is simply pushed
+	   down, never covered. `[hidden]` is a plain attribute here (`$el.hidden = …`), not the `.on`
+	   class `.ai2-new` uses. */
+	.ai2-updated {
+		display: none;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		width: fit-content;
+		margin-block-end: var(--gap-35, 0.5em);
+		font-size: 0.8em;
+		padding: 0.25em 0.7em;
+		border-radius: 999px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		color: var(--subtle);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+	}
+	.ai2-updated:hover { color: var(--ink); border-color: var(--prim); }
+	.ai2-updated:not([hidden]) { display: inline-flex; }
+
 	/* The box the pill floats over, so its `top` means the top of the ROWS and
 	   not the top of the rail, where the composer is. */
 	.ai2-stream {
@@ -437,11 +466,15 @@
 	     `<length>`, top of this file): `--gap-35` is re-declared on every element
 	     in that element's own `em`, so the 0.85em "what happened" bar got 4.76px
 	     and the title's head 5.6px — the same word, three different steps. */
-	.ai2-rows .ai2-row {
+	/* `.ai2-log-rows` reuses the exact same rule (the owner, 2026-09-30: "the same layout, the
+	   same CSS" across Inbox and the Log). */
+	.ai2-rows .ai2-row,
+	.ai2-log-rows .ai2-row {
 		--ai2-step: var(--gap-35);
 	}
 
-	.ai2-rows .ai2-row > * + * {
+	.ai2-rows .ai2-row > * + *,
+	.ai2-log-rows .ai2-row > * + * {
 		margin-block-start: var(--ai2-step);
 	}
 
@@ -1074,14 +1107,47 @@
 	/* two tabs is a rail: ext/tabs hides a bar of ONE, never ours */
 	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
 
-	/* THE TAB ORDER READS "Needs you · Inbox · Overview" (2026-09-29), but Inbox stays FIRST
-	   in the MARKUP on purpose — `page.js`'s own comment on `route()` says why: ext/tabs'
-	   fallback rule lights whichever tab is the bar's DOM `:first-child` once nothing else
-	   matches (a card url matches no tab's own href), so keeping Inbox first in the markup is
-	   what makes a card page light Inbox. `order` only changes where each one PAINTS. */
-	.ai2-tab-needs { order: 1; }
-	.ai2-tab-inbox { order: 2; }
-	.ai2-tab-overview { order: 3; }
+	/* THE NEEDS-YOU TAB'S COUNT (the owner, 2026-09-30: "a small count badge on the tab when
+	   something's truly waiting") — a small pill, never a wall of red; hidden at zero.
+	   ⚠ `:not([hidden])`, not a bare `display: inline-flex` — a plain rule here beats the
+	   browser's own `[hidden] { display: none }` (equal specificity, author beats UA regardless
+	   of layers — the exact trap `.ai2-need-err` already names below, review finding 2026-09-30:
+	   a bare `display: inline-flex` left a small empty pill on the tab at zero). */
+	.ai2-tab-badge {
+		display: none;
+		align-items: center; justify-content: center;
+		min-width: 1.4em; height: 1.4em; padding-inline: 0.35em;
+		margin-inline-start: 0.4em;
+		border-radius: 999px;
+		font-size: 0.75em; font-weight: 700;
+		background: var(--prim); color: var(--on-prim, #fff);
+	}
+	.ai2-tab-badge:not([hidden]) { display: inline-flex; }
+
+	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
+	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
+	   `page.js`'s own comment on `route()` says why: ext/tabs' fallback rule lights whichever
+	   tab is the bar's DOM `:first-child` once nothing else matches (a card url matches no
+	   tab's own href), so keeping Inbox first in the markup is what makes a card page light
+	   Inbox. `order` only changes where each one PAINTS. */
+	.ai2-tab-inbox { order: 1; }
+	.ai2-tab-needs { order: 2; }
+	.ai2-tab-log { order: 3; }
+	.ai2-tab-overview { order: 4; }
+
+	/* ⚠ THE TAB LABELS WERE PINNED TO THE FAR RIGHT (the owner, 2026-09-30: "I'm not sure why
+	   they got aligned right. Those kinds of things should never happen") — not from anything
+	   about alignment, but from `order`: every real `.tab` above was given an explicit `order`
+	   (1-4), and `.tabs.block > .tab-bar::after` (`tabs.css`) — the trailing hairline that fills
+	   whatever space the tabs don't use — has NO `order` of its own, so it defaults to `0`,
+	   lower than every tab. A flex item with the lowest `order` paints FIRST: the invisible
+	   spacer (`flex: 1`, all the leftover width) landed before the tabs instead of after them,
+	   shoving the actual labels to the far end of the bar. Doc's own tab strip never sets
+	   `order` on its tabs, so it never hit this — same markup, same classes, only this page
+	   added per-tab ordering. Giving the spacer the highest order restores the normal reading:
+	   title, then tabs immediately beside it (same placement as every class doc page), then the
+	   empty hairline soaking up whatever is left. */
+	.ai2-head .tab-bar::after { order: 5; }
 
 	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
 	   card; while it is the active page it takes the whole shell and scrolls by itself. */
@@ -1098,19 +1164,20 @@
 	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
 	.ai2-overview-page > .ai2-overview { margin: 0; }
 
-	/* NEEDS YOU — NOT a routed child (it lives AT the bare root url, not one click in), so it
-	   cannot use the `.active-page` trick on a CHILD the way Overview does above. It is a
-	   plain sibling of `.ai2-shell`, shown only while the ROOT page itself is the active leaf
-	   (bare url, nothing routed under it) and hidden — along with the whole rail — the moment
-	   any child route (Inbox, Overview, a card) takes over. Same `:has()` engine, one level up. */
-	.ai2-needs { display: none; }
-	.page:has(> .ai2-shell).active-page > .ai2-needs {
+	/* NEEDS YOU AND THE LOG — routed children now (2026-09-30: Inbox moved BACK to the bare
+	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
+	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
+	   whole shell — no rail, no sub column — while they are the active page. */
+	/* One block for both — same four rules, repeated (review finding, 2026-09-30). */
+	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) { grid-template-columns: minmax(0, 1fr); }
+	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
+	.page:is(.ai2-needs-page, .ai2-log-page) {
 		display: block;
 		height: 100%;
 		overflow-y: auto;
 		padding: var(--pad);
 	}
-	.page:has(> .ai2-shell).active-page > .ai2-shell { display: none; }
+	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
 
 	.ai2-overview {
 		padding: var(--pad);
@@ -1349,6 +1416,63 @@
 	   tab is ever embedded narrower): the control takes the row's full width on its own line. */
 	@media (width < 34em) {
 		.ai2-need-control { flex-basis: 100%; max-width: none; }
+	}
+}
+
+/* ── the Log tab (ai2-log, 2026-09-30) ─────────────────────────────────────
+   "EVERYTHING IN FLIGHT" (the owner, verbatim: "anything that's being worked on should show
+   up in there... each card in on the log should have a status"). One row per TASK, the exact
+   same row shape the rail draws (`.ai2-row`, `.ai2-row-head`, `.ai2-row-title`,
+   `.ai2-row-when` — all bare classes, styled once, above, and reused here rather than
+   restated), with one thing added: the status dot. `log.js` is the data and the draw. */
+@layer theme {
+	.ai2-log-list { max-width: 56em; position: relative; }
+
+	.ai2-log-rows {
+		container: ai2-log-rows / inline-size;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ai2-log-line {
+		display: block;
+		font-size: 0.9em;
+		overflow-wrap: anywhere;
+	}
+
+	/* THE SAME "N UPDATED ↑" PILL AS THE RAIL (the owner: the reorder fix "applies to both") —
+	   `log.js` puts BOTH classes on its button (`ai2-updated ai2-log-updated`), so every rule
+	   above (position, size, colour) already applies; this adds only the one thing that differs,
+	   the gap below it before the first row (simplified, review finding 2026-09-30 — it used to
+	   restate `.ai2-updated`'s position/size/shadow rules with barely different numbers). */
+	.ai2-log-updated { margin-block-end: var(--gap-35, 0.5em); }
+
+	/* GREEN = DONE, YELLOW FLASHING = IN PROGRESS, RED = STALLED (the owner, verbatim: "the
+	   yellow flashing is sort of like in progress and green should be done"). `visibility`
+	   is never used here the way `.ai2-dot` (unread) uses it — a status dot is always
+	   meaningful, so it is always shown, just three different colours. */
+	.ai2-status-dot {
+		width: 0.65em;
+		height: 0.65em;
+		border-radius: 50%;
+		flex: none;
+		position: relative;
+		top: 0.425em;   /* same optical centring as `.ai2-row-head > .ai2-dot`, above */
+	}
+	.ai2-status-done { background: var(--success, #2e7d32); }
+	.ai2-status-failed { background: var(--error); }
+	.ai2-status-progress {
+		background: var(--warning, #c99a00);
+		animation: ai2-status-flash 1.4s ease-in-out infinite;
+	}
+	@keyframes ai2-status-flash {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.35; }
+	}
+	/* A reader who asked the OS to cut down on motion never gets an insistently blinking dot —
+	   it still reads "in progress" by colour alone, just steady. */
+	@media (prefers-reduced-motion: reduce) {
+		.ai2-status-progress { animation: none; }
 	}
 }
 

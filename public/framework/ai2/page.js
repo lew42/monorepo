@@ -14,6 +14,7 @@ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.cr
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
 import needs_view, { watch_needs } from "./needs.js";
+import log_view from "./log.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
@@ -58,49 +59,62 @@ export default new Page({
 	   card page into `children` and the sidebar walks that map. */
 	leaf: true,
 
-	/* THE DEFAULT VIEW IS NEEDS YOU (the owner, 2026-09-29: "a prioritized view of what's
-	   needed from me... I don't even want to look at it because it's just so [much]"). What
-	   was the default — the rail + a card's own page — moved to its own address, `inbox/`;
-	   everything that used to load at the bare url (Live, most of all) still does, one click
-	   in. The four-column-turned-one-column overview stays at `overview/`. EVERY view here is
-	   a url, never a class flipped by a button (the owner, 2026-09-23: "we can't just have
-	   these buttons that when clicked switch the view manually").
-	   ⚠ CARD PAGES STILL LIVE AT `this.url + id + "/"`, unchanged — moving them under
-	     `inbox/` would break every link to one already written across this codebase and the
-	     card logs themselves. So "Inbox lights for a card url" is a CSS trick, not a url
-	     change: both "Needs you" and "Inbox" wear `.tab-default` (ext/tabs' own "not really a
-	     match" flag — see `.tab-bar` rules, `tabs.css`), so neither's `.in-path` (every route
-	     starts with the root url, and Inbox's own `.../inbox/`) fires for the other's address;
-	     with nothing left to match, `ext/tabs`' own fallback lights the tab-bar's DOM
-	     `:first-child` — which is Inbox, kept first in the markup on purpose (`ai2.css`'
-	     `order` then draws it visually second). A card route matches no tab's own href, so it
-	     always falls through to that same fallback: Inbox lights. */
+	/* THE DEFAULT VIEW IS INBOX AGAIN (the owner, 2026-09-30: "the AI 2 root is confusing and
+	   jumpy" — Needs You as the bare-url default, tried 2026-09-29, is reverted). The rail + a
+	   card's own page is back at the bare url, same as every day before 2026-09-29; "Needs
+	   you" moved to its own address, `needs/`, drawn exactly like `overview/` — a routed page
+	   that takes over the whole shell. EVERY view here is a url, never a class flipped by a
+	   button (the owner, 2026-09-23: "we can't just have these buttons that when clicked
+	   switch the view manually").
+	   ⚠ CARD PAGES STILL LIVE AT `this.url + id + "/"`, unchanged. Inbox alone wears
+	     `.tab-default` (ext/tabs' own "not really a match" flag — see `.tab-bar` rules,
+	     `tabs.css`) because its href IS the root url, a prefix of every other route — without
+	     it `.in-path` would light Inbox for a card, Needs you or Overview too. With nothing
+	     else matching, `ext/tabs`' own fallback lights the tab-bar's DOM `:first-child` — which
+	     is Inbox, kept first in the markup on purpose (`ai2.css`'s `order` then draws it
+	     wherever it visually belongs). A card route matches no tab's own href, so it always
+	     falls through to that same fallback: Inbox lights, same as the bare url itself. */
 	content(){
+		let $needs_badge;
 		div.c("ai2-head", () => {
 			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
 			div.c("tabs block", () => div.c("tab-bar", () => {
-				a.c("tab tab-default ai2-tab-inbox").href(this.url + "inbox/").text("Inbox");
-				a.c("tab tab-default ai2-tab-needs").href(this.url).text("Needs you");
+				a.c("tab tab-default ai2-tab-inbox").href(this.url).text("Inbox");
+				a.c("tab ai2-tab-needs").href(this.url + "needs/").append(() => {
+					span("Needs you");
+					// A SMALL COUNT, never a wall of red — the owner, 2026-09-30: "a small count
+					// badge on the tab when something's truly waiting". Hidden at 0, same shared
+					// scan (`watch_needs`) the tab's own list and the rail's filter both read, so
+					// it can never disagree with either.
+					$needs_badge = small.c("ai2-tab-badge").attr("hidden", "");
+				});
+				a.c("tab ai2-tab-log").href(this.url + "log/").text("Log");
 				a.c("tab ai2-tab-overview").href(this.url + "overview/").text("Overview");
 			}));
 		});
-		// NOTHING ELSE ON THIS TAB (deliverable 1) — `needs.js` owns the whole list; CSS shows
-		// this div and hides `.ai2-shell` (the rail) only while THIS page is the active leaf,
-		// i.e. the bare url — the same `:has(.active-page)` trick `overview/` already uses.
-		div.c("ai2-needs", () => { needs_view(); });
+		// THE RAIL IS ALWAYS MOUNTED (reverted 2026-09-29's root-level "Needs you" swap) — every
+		// route, including the bare url, shows it; `needs/` and `overview/` take over the whole
+		// shell instead, the same `:has(.active-page)` trick `overview/` already used.
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
+		watch_needs(s => {
+			const n = s.rows.length;
+			$needs_badge.el.hidden = !n;
+			if (n) $needs_badge.text(String(n));
+		});
 	},
 
-	/* A card's own address — or the overview's. ⚠ A name with a dot in it is a
-	   real file, and claiming it would answer a 404 with a card page that can
-	   never load. `overview` and `live` are reserved: no card can be called
-	   either. `live` is an ordinary card page whose card comes from `live.js`. */
+	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
+	   in it is a real file, and claiming it would answer a 404 with a card page that can
+	   never load. `overview`, `needs`, `log` and `live` are reserved: no card can be called
+	   any of them. `live` is an ordinary card page whose card comes from `live.js`. */
 	route(id){
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
-		// WHAT USED TO BE THE BARE URL: the rail + whatever is open beside it (today, that
-		// still means Live loads automatically the first time, exactly as before — see
-		// `board()`'s own comment on `LIVEVIEW_KEY`).
+		if (id === "needs") return this.needs_page ??= needs_page(this);
+		if (id === "log") return this.log_page ??= log_page(this);
+		// THE OLD ADDRESS STILL WORKS (2026-09-29 to 2026-09-30, briefly the default) — a link
+		// or a bookmark made during that window still opens the same rail-and-card view the
+		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
 		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
 		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`,
@@ -149,6 +163,31 @@ function overview_page(root){
 		url: root.url + "overview/",
 		classes: "ai2-overview-page",
 		content(){ overview(); },
+	});
+}
+
+/* The Needs you tab (was the bare url, 2026-09-29 to 2026-09-30): one ranked list of
+   everything waiting on the owner, `needs_view()` (needs.js), as a page of its own — it takes
+   over the whole shell like Overview does, right below. */
+function needs_page(root){
+	return new Page({
+		title: "Needs you",
+		url: root.url + "needs/",
+		classes: "ai2-needs-page",
+		content(){ needs_view(); },
+	});
+}
+
+/* The Log tab (the owner, 2026-09-30): everything in flight, one row per task, each with a
+   status dot — `log_view()` (log.js). It reads the SAME task list Overview and a card's own
+   Tasks tab already load (`root.ai2.on_tasks`, the group-cost hook below), so nothing is
+   fetched twice; it takes over the whole shell like Overview and Needs you do. */
+function log_page(root){
+	return new Page({
+		title: "Log",
+		url: root.url + "log/",
+		classes: "ai2-log-page",
+		content(){ log_view(root.ai2.on_tasks); },
 	});
 }
 
@@ -208,7 +247,17 @@ function board(page){
 	const waiting = new Set();     // ids that arrived while the list was busy
 	const watching = new Set();    // the card pages on screen, each watching for its own card
 	const list_watchers = new Set();   // the overview's own subscription onto this list
-	let $shell, $count, $pill, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
+	// THE ORDER NEVER MOVES ON ITS OWN WHILE YOU ARE LOOKING (the owner, 2026-09-30: "the rail
+	// reorders live and jumps as cards get new lines"). `applied_at` is a snapshot of each
+	// row's `at_of` the LAST TIME the DOM was actually reordered; `pending_ids` is everyone
+	// whose `at_of` has since moved on — shown as a count on `$updated`, never applied to the
+	// DOM, until a tap on that pill (or a fresh load) asks for it. See `order_rows()`.
+	let applied_at = new Map();
+	const pending_ids = new Set();
+	// A fresh mount keeps applying every reorder for a couple of seconds while the board, the
+	// groups and the task folders each finish their own first load — see `order_rows()`.
+	const settle_until = Date.now() + 2500;
+	let $shell, $count, $pill, $updated, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
 	let $groups, $pinned, $unfiled, $unfiled_head, $list;
 	// THE ONE THING SHOWING IN `$detail` — a top-level card (`open()`'s `h.top`), never a sub-card
 	// beside it: drilling into a request must not hide the workspace word for the card still open
@@ -300,6 +349,13 @@ function board(page){
 				// previews should primarily be GROUPS, familiar groups"), then the
 				// Live card, then — folded and quiet — everything no group holds yet.
 				$rows = div.c("ai2-rows", () => {
+					// NEW ACTIVITY ON A ROW ALREADY ON SCREEN — never moves it out from under you
+					// on its own; this pill says how many rows have new activity, and a tap
+					// re-sorts. ⚠ STICKY, INSIDE the scrolling box, NOT `.ai2-new`'s floating
+					// `position: absolute` — that sat on top of the Live row's own head, hiding it
+					// (review finding 3, 2026-09-30). Sticky pushes the row below it down instead.
+					$updated = button.c("ai2-updated").attr("type", "button").attr("hidden", "")
+						.click(() => order_rows(true));
 					$groups = div.c("ai2-groups");
 					$pinned = div.c("ai2-pinned");
 					$groups.el.before($pinned.el);
@@ -355,10 +411,10 @@ function board(page){
 	page.$pages = $detail;
 	// With the workspace view on, every AI 2 link clicked in here keeps `?view=workspace` (workspace.js).
 	$shell.el.addEventListener("click", e => workspace.keep(e));
-	// LIVE IS INBOX'S DEFAULT — `inbox/` goes to it once per load (Back returns here, no loop).
-	// This used to fire on the bare `/framework/ai2/` url; that address now belongs to Needs
-	// you (2026-09-29), and this redirect moved one level down with Inbox, unchanged otherwise.
-	if (location.pathname === page.url + "inbox/" && store.get(LIVEVIEW_KEY) !== "off" && !page.went_live){
+	// LIVE IS INBOX'S DEFAULT — the bare url (Inbox again, 2026-09-30) goes to it once per load
+	// (Back returns here, no loop); the old `inbox/` address still works too, for a link or a
+	// bookmark made during the 2026-09-29 to 2026-09-30 window when that was the real address.
+	if ((location.pathname === page.url || location.pathname === page.url + "inbox/") && store.get(LIVEVIEW_KEY) !== "off" && !page.went_live){
 		page.went_live = true;
 		setTimeout(() => page.app?.router?.go(workspace.url(page.url + "live/")), 0);
 	}
@@ -475,16 +531,27 @@ function board(page){
 		return null;
 	}
 
-	/* Let the waiting cards in, and apply the sort — which is the ONLY moment
-	   any row moves. `to_top` is the pill's own press: the owner asked for them,
-	   so put them where they can be seen. */
+	/* Let the waiting cards in — a STRUCTURAL change (a row appearing or leaving) is the only
+	   thing `flush()` itself forces a reorder for, because a brand new row has no old position
+	   to preserve and a removed one leaves nothing behind to jump. `to_top` is the pill's own
+	   press (new cards, or the owner's explicit ask) and always forces one too. An EXISTING row
+	   simply moving because its `at` changed is NOT forced here — `order_rows()` (called via
+	   `draw_groups()` below) defers that behind the "N updated ↑" pill on its own, exactly like
+	   it does for the ordinary `paint()` → `draw_groups()` path that runs when the list is not
+	   quiet. ⚠ Before this, `flush()` ALWAYS forced a reorder, so the rail still jumped on
+	   every quiet poll — a card's `at` moving is common (a group's member updates, a real page's
+	   new event) and used to resort the instant the pointer merely sat off the rail, which is
+	   most of an owner's actual reading time (2026-09-30 proof:
+	   `/framework/ai/2026-09-30/ai2-inbox-log-fix/rail-stability-proof.md`). */
 	function flush(to_top){
 		const here = visible();
 		const by_id = new Map(here.map(it => [it.id, it]));
 		waiting.clear();
 
+		const had_new = here.some(it => !rows.has(it.id));
 		$list.append(() => { here.forEach(it => { if (!rows.has(it.id)) rows.set(it.id, make(it)); }); });
-		rows.forEach((rec, id) => { if (!by_id.has(id)){ rec.$row.el.remove(); rows.delete(id); } });
+		let removed = false;
+		rows.forEach((rec, id) => { if (!by_id.has(id)){ rec.$row.el.remove(); rows.delete(id); removed = true; } });
 
 		// `appendChild` MOVES a node that is already in the tree, so this is the
 		// sort applied to the DOM that already exists, with nothing rebuilt. The
@@ -494,7 +561,7 @@ function board(page){
 		// an in-place row still removes and re-adds it, dropping hover, focus and
 		// a text selection, and each one is a mutation for nothing.
 		here.forEach(it => at_of.set(it.id, it.at));
-		draw_groups(true);
+		draw_groups(!!to_top || had_new || removed);
 
 		pill();
 		if (to_top) $rows.el.scrollTo({ top: 0 });
@@ -565,24 +632,61 @@ function board(page){
 		});
 	}
 
-	/* ONE TIMELINE, NEWEST FIRST (the owner, 2026-09-25: "nothing sticky… a topic not mentioned
-	   in a while sinks and comes back when it's referenced"). Groups, the Live card and cards
-	   share one list, sorted by when each was last updated and nothing else. The order is
-	   applied only when the list is quiet (or `force`d by a flush that is moving rows anyway),
-	   so nothing jumps under the pointer. */
+	/* ONE TIMELINE, NEWEST FIRST — BUT THE ORDER NEVER MOVES WHILE YOU ARE LOOKING (the owner,
+	   2026-09-30: "the rail reorders live and jumps as cards get new lines"). Groups, the Live
+	   card and cards share one list, sorted by when each was last updated. The OLD rule
+	   reordered the moment the pointer happened to be off the rail and the scroll position was
+	   at the top (`quiet()`) — which is most of the time the owner is actually reading the
+	   detail column beside it, so the rail kept jumping under a gaze that was never on it.
+	   ⚠ THE NEW RULE: a reorder is only EVER applied (1) the first time this list has any order
+	   at all (`!group_order.length` — a fresh load, or right after a reload), (2) when `force`d
+	   — `flush()` passes `true` for a row that is genuinely NEW (nothing on screen to jump: it
+	   has no old position to move away from), and the "N updated ↑" pill's own tap does too. Any
+	   other change in ORDER ALONE — an existing row simply moving because its `at` changed —
+	   is counted into `pending_ids` and shown as a count on `$updated`, DOM untouched, until one
+	   of those two moments. `applied_at` is a snapshot of every row's `at_of` from the last time
+	   the DOM was actually reordered, which is what lets a later call tell "moved since" from
+	   "always was there". */
 	function order_rows(force){
 		const entries = [
-			...shown.filter(id => rows.has(id)).map(id => [at_of.get(id), rows.get(id).$row.el]),
-			...[...group_rows].map(([id, rec]) => [at_of.get("group:" + id), rec.$row.el]),
-			...[...page_rows].map(([path, rec]) => [at_of.get("page:" + path), rec.$row.el]),
-		].sort((x, y) => (Date.parse(y[0] ?? 0) || 0) - (Date.parse(x[0] ?? 0) || 0));
-		const want = entries.map(e => e[1]);
+			...shown.filter(id => rows.has(id)).map(id => [id, at_of.get(id), rows.get(id).$row.el]),
+			...[...group_rows].map(([id, rec]) => ["group:" + id, at_of.get("group:" + id), rec.$row.el]),
+			...[...page_rows].map(([path, rec]) => ["page:" + path, at_of.get("page:" + path), rec.$row.el]),
+		].sort((x, y) => (Date.parse(y[1] ?? 0) || 0) - (Date.parse(x[1] ?? 0) || 0));
+		const want = entries.map(e => e[2]);
 		const have = [...$list.el.children].filter(c => c.classList.contains("ai2-row"));
-		if (want.length === have.length && want.every((el, i) => el === have[i])) return;
-		if (!force && !quiet() && group_order.length) return;
-		group_order = want;
-		want.forEach(el => $list.el.appendChild(el));
-		page.app?.router?.mark_links?.();
+		const in_place = want.length === have.length && want.every((el, i) => el === have[i]);
+
+		// Drop anything that left the list (archived, filtered out) from the pending count, then
+		// add anyone whose `at` moved since the order on screen was last applied.
+		const ids_now = new Set(entries.map(e => e[0]));
+		for (const id of [...pending_ids]) if (!ids_now.has(id)) pending_ids.delete(id);
+		entries.forEach(([id, at]) => { if (applied_at.has(id) && applied_at.get(id) !== (at ?? null)) pending_ids.add(id); });
+
+		// STILL LOADING COUNTS AS A RELOAD, NOT "THE OWNER IS LOOKING" (review finding, 2026-09-30:
+		// a fresh load showed "1 updated ↑" immediately — several independent streams (the board,
+		// the groups, the task folders) each arrive and call `paint()` on their own, so an early
+		// `order_rows()` call can apply a PROVISIONAL `at` for a group before its own task data has
+		// loaded, then a later call within the same first second or two corrects it — a real
+		// change in the data, but not one the owner had any chance to be reading yet). A short
+		// grace window after mount keeps applying freely, same as "re-sort on reload" already
+		// promises; `settle_until` is set once, below, from `Date.now()` at mount.
+		const should_apply = force || !group_order.length || Date.now() < settle_until;
+		if (!in_place && !should_apply) return update_updated_pill();   // defer — leave the DOM exactly as it is
+
+		if (!in_place){
+			group_order = want;
+			want.forEach(el => $list.el.appendChild(el));
+			page.app?.router?.mark_links?.();
+		}
+		applied_at = new Map(entries.map(([id, at]) => [id, at]));
+		pending_ids.clear();
+		update_updated_pill();
+	}
+
+	function update_updated_pill(){
+		$updated.el.hidden = !pending_ids.size;
+		if (pending_ids.size) $updated.text(pending_ids.size + " updated ↑");
 	}
 
 	/* A group's preview: its icon and name, the newest member's own words
