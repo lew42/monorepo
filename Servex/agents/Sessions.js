@@ -4,9 +4,15 @@ import { fileURLToPath } from "node:url";
 import { place } from "../home.js";
 import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
+import { session_facts } from "./Agents.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
+/* A refined line's `level` (the audio task's format, 2026-09-29): `clean` = the owner's
+ * words with the fillers gone, `edit` = rewritten for clarity, `summary` = the gist.
+ * ext/Session/Session.js exports the same list as LEVELS. */
+export const LEVELS = ["clean", "edit", "summary"];
+
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
 /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
@@ -28,9 +34,20 @@ export const now_ms = () => {
  *   line 1   {"session": {id, home, at, host, fast, smart, backing: {fast, smart}}}
  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?}}
  *            {"nav":  {at, from, to}}
+ *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
  *
  * Every page the session touches gets ONE pointer line in its own `page.jsonl`:
- * `{"session": {id, file, at}}`.
+ * `{"session": {id, file, at}}`; `session_summary` appends a fresh one with the
+ * title and summary (the latest pointer for an id wins). The title and summary
+ * themselves are `<home>ai/<session>.summary.json`.
+ *
+ * LIFE (memory first): /new and resume spawn NOTHING. The first say spawns the FAST
+ * agent and sends it the line at once; the SMART one is spawned on the next tick and
+ * loads its big context while the fast one answers. A pair that hears nothing for 5
+ * minutes is stopped (`SERVEX_SESSION_IDLE_MS`); the next say resumes it by its backing
+ * session id. At most 2 pairs are live machine-wide (`SERVEX_SESSION_MAX_PAIRS`): a
+ * third stops the oldest idle one first. A /new on a page whose session spoke in the
+ * last hour returns THAT session (`SERVEX_SESSION_RESUME_MS`).
  *
  * REPLIES need no tool: each agent's final text for a turn is read off its event
  * stream (the host's `watch()` seam) and written here as its chat line, `re` = the
@@ -43,6 +60,8 @@ export default class Sessions {
 
 	defaults(){
 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
+			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
+			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2),
 			map: {}, by_agent: new Map(), waiting: new Map() };
 	}
 
@@ -51,6 +70,8 @@ export default class Sessions {
 		this.load();
 		this.listen();
 		this.route();
+		this.sweeper = setInterval(() => this.sweep(), Math.min(60000, Math.max(1000, this.idle_ms / 4)));
+		this.sweeper.unref?.();
 		return this;
 	}
 
@@ -58,7 +79,7 @@ export default class Sessions {
 
 	load(){
 		try { this.map = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.map = {}; }
-		for (const [id, s] of Object.entries(this.map)){ this.by_agent.set(s.fast, { id, role: "fast" }); this.by_agent.set(s.smart, { id, role: "smart" }); }
+		for (const [id, s] of Object.entries(this.map)) for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
 	}
 
 	save(){
@@ -92,7 +113,20 @@ export default class Sessions {
 		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
 	}
 
-	write(s, line){ this.append(this.disk(s.file), line); }
+	write(s, line){
+		this.append(this.disk(s.file), line);
+		s.last_at = now_ms();
+		this.save();
+	}
+
+	/* The last `n` lines of a session's file, as text: the context a FRESH agent gets
+	 * when its old Claude session cannot be resumed. */
+	tail(s, n = 40){
+		try { return fs.readFileSync(this.disk(s.file), "utf8").split("\n").filter(l => l.trim()).slice(-n).join("\n"); }
+		catch { return ""; }
+	}
+
+	summary_file(s){ return this.disk(s.file.replace(/\.jsonl$/, ".summary.json")); }
 
 	/* One pointer per session per page, never one per sentence. */
 	point(s, site){
@@ -109,19 +143,74 @@ export default class Sessions {
 		const asked = page_path(at);
 		if (!asked) throw Object.assign(new Error(`"${at}" is not a page path`), { status: 400 });
 		const home = this.nearest(asked);
+		const [last] = this.recent({ page: home, host, limit: 1 });
+		if (last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });
 		let id;
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = `${home}ai/${id}.jsonl`;
-		const s = { id, home, file, at: now_ms(), host, path: asked, visited: [] };
-		const fast = this.spawn(s, "fast"), smart = this.spawn(s, "smart");
-		Object.assign(s, { fast: fast.id, smart: smart.id, backing: { fast: fast.session_id ?? null, smart: smart.session_id ?? null } });
+		/* No agents yet: the first say spawns them (wake). */
+		const s = { id, home, file, at: now_ms(), host, path: asked, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
 		this.map[id] = s;
-		this.by_agent.set(s.fast, { id, role: "fast" });
-		this.by_agent.set(s.smart, { id, role: "smart" });
-		this.write(s, { session: { id, home, at: s.at, host, fast: s.fast, smart: s.smart, backing: s.backing } });
+		this.write(s, { session: { id, home, at: s.at, host, fast: null, smart: null, backing: s.backing } });
 		this.point(s, home);
 		this.save();
-		return { ok: true, session: id, home, file };
+		const previous = last ? { session: last.session, title: last.title, summary: last.summary, at: last.last_at } : null;
+		return { ok: true, session: id, home, file, resumed: false, previous };
+	}
+
+	/* Continue any session by id. Nothing spawns until the next say. */
+	resume({ session } = {}){
+		const s = this.get(session);
+		const { title = null, summary = null } = this.summary_of(s);
+		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true, title, summary, at: s.at, last_at: s.last_at ?? s.at };
+	}
+
+	/* Sessions started on, or passing through, `page` (its nearest folder), newest
+	 * first, from one host only. A session's last line is `last_at`. */
+	recent({ page = "/", host = null, limit = 10 } = {}){
+		const at = this.nearest(page_path(page) ?? "/");
+		return Object.values(this.map)
+			.filter(s => (s.host ?? null) === (host ?? null) && (s.home === at || (s.visited ?? []).includes(at)))
+			.map(s => ({ session: s.id, home: s.home, ...this.summary_of(s), at: s.at, last_at: s.last_at ?? s.at }))
+			.sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at))
+			.slice(0, Math.max(1, Number(limit) || 10));
+	}
+
+	summary_of(s){
+		try { const j = JSON.parse(fs.readFileSync(this.summary_file(s), "utf8")); return { title: j.title ?? null, summary: j.summary ?? null }; }
+		catch { return { title: s.title ?? null, summary: s.summary ?? null }; }
+	}
+
+	// ── what the smart assistant writes (tools.js: session_summary, session_line) ──
+
+	/* A title (at most 6 words) and a one-line summary: the index of a session. */
+	summarize({ session, title, summary } = {}){
+		const s = this.get(session);
+		title = String(title ?? "").trim().replace(/\s+/g, " ");
+		summary = String(summary ?? "").trim().replace(/\s+/g, " ");
+		if (!title || !summary) throw Object.assign(new Error("title and summary are both required"), { status: 400 });
+		const words = title.split(" ").length;
+		if (words > 6) throw Object.assign(new Error(`the title is ${words} words; at most 6`), { status: 400 });
+		const at = now_ms();
+		Object.assign(s, { title, summary });
+		fs.mkdirSync(path.dirname(this.summary_file(s)), { recursive: true });
+		fs.writeFileSync(this.summary_file(s), JSON.stringify({ id: s.id, home: s.home, title, summary, at, visited: s.visited ?? [] }, null, 2));
+		this.append(path.join(this.disk(s.home), "page.jsonl"), { session: { id: s.id, file: s.file, at, title, summary } });
+		this.save();
+		return { ok: true, session: s.id, title, summary, at };
+	}
+
+	/* A line from the smart assistant. `re` alone: a reply to that owner line. `re` +
+	 * `level`: a REFINED version of it, drawn under the raw words. */
+	line({ session, text, re, level } = {}){
+		const s = this.get(session);
+		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
+		if (level != null && !LEVELS.includes(level)) throw Object.assign(new Error(`level must be one of ${LEVELS.join(", ")}`), { status: 400 });
+		if (level != null && !re) throw Object.assign(new Error("a refined line needs `re`, the owner line's at"), { status: 400 });
+		const line = { at: now_ms(), session: s.id, path: s.path, from: { kind: "assistant", id: "smart", agent: s.smart }, via: "text", text,
+			...(re ? { re } : {}), ...(level ? { level } : {}) };
+		this.write(s, { chat: line });
+		return { ok: true, at: line.at };
 	}
 
 	say({ session, path: at, text, via = "text" } = {}){
@@ -132,7 +221,10 @@ export default class Sessions {
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text };
 		this.write(s, { chat: line });
 		s.fast_re = line.at;
+		this.wake(s, "fast");
 		this.send(s, "fast", `[on ${site}] ${text}`);
+		/* The smart one spawns on the NEXT tick, so the fast one's process starts first and alone. */
+		setImmediate(() => { try { this.wake(s, "smart"); } catch (e){ console.error(`sessions: ${e.message}`); } });
 		this.gather(s, line);
 		return { ok: true, at: line.at, answered_by: [
 			{ kind: "assistant", id: "fast", agent: s.fast }, { kind: "assistant", id: "smart", agent: s.smart }] };
@@ -163,6 +255,7 @@ export default class Sessions {
 			const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
 			s.smart_re = w.lines[w.lines.length - 1].at;
 			this.save();
+			this.wake(s, "smart");
 			this.send(s, "smart", nav + w.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n"));
 		}, this.quiet_ms);
 		this.waiting.set(s.id, w);
@@ -178,8 +271,9 @@ export default class Sessions {
 	brief(role){ return fs.readFileSync(path.join(HERE, `session-${role}.md`), "utf8"); }
 
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
-	spawn(s, role){
-		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`;
+	spawn(s, role, { resume = null, context = "" } = {}){
+		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
+			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
 		const spec = role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
 			 * no tools, and no Servex door (`mcp_url: ""`). Its brief is its whole system prompt. */
@@ -193,7 +287,63 @@ export default class Sessions {
 			permission_mode: "bypassPermissions", cwd: this.repo,
 			system: { type: "preset", preset: "claude_code", append: this.brief("smart") + where }
 		};
-		return this.servex.agents.spawn(spec);
+		return this.servex.agents.spawn({ ...spec, ...(s[role] ? { id: s[role] } : {}), ...(resume ? { resume } : {}) });
+	}
+
+	// ── sleep and wake ───────────────────────────────────────────────────────
+
+	awake(s, role){
+		const a = this.servex.agents.live.get(s[role]);
+		return !!a && a.state !== "stopped";
+	}
+
+	/* Spawn one agent of the pair if it is not live: RESUME its Claude session when that
+	 * session's file still exists; else start fresh, given the session file's last 40
+	 * lines when it had a session before. A new pair first makes room (max_pairs).
+	 * Each spawn writes a `backing` line (the latest one wins). */
+	wake(s, role){
+		if (this.awake(s, role)) return false;
+		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
+		const old = s.backing?.[role];
+		const can = !!(old && session_facts(old).cwd);
+		const how = can ? "resume" : old ? "fresh" : "new";
+		const agent = this.spawn(s, role, can ? { resume: old } : { context: old ? this.tail(s, 40) : "" });
+		s[role] = agent.id;
+		this.by_agent.set(agent.id, { id: s.id, role });
+		(s.backing ??= {})[role] = agent.session_id ?? null;
+		delete s.asleep_at;
+		this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, how: { [role]: how } } });
+		return true;
+	}
+
+	/* Stop both agents of a session; their Claude sessions stay on disk for the next say. */
+	sleep(s, why){
+		for (const role of ["fast", "smart"]) if (this.awake(s, role)) try { this.servex.agents.stop(s[role]); } catch {}
+		s.asleep_at = now_ms();
+		s.asleep_why = why;
+		this.save();
+	}
+
+	live_pairs(){ return Object.values(this.map).filter(x => this.awake(x, "fast") || this.awake(x, "smart")); }
+
+	/* At most `max_pairs` live pairs machine-wide: stop the oldest IDLE one (neither agent
+	 * mid-turn) until there is room. If every live pair is mid-turn, go over rather than cut one off. */
+	room(s){
+		for (;;){
+			const live = this.live_pairs().filter(x => x !== s);
+			if (live.length < this.max_pairs) return;
+			const idle = live.filter(x => !["fast", "smart"].some(r => this.servex.agents.live.get(x[r])?.state === "working"))
+				.sort((a, b) => Date.parse(a.last_at ?? a.at) - Date.parse(b.last_at ?? b.at));
+			if (!idle.length) return console.error(`sessions: ${live.length} pairs live and all busy; ${s.id} goes over the cap`);
+			this.sleep(idle[0], `room for ${s.id}`);
+		}
+	}
+
+	/* A pair that heard nothing for `idle_ms` is stopped. */
+	sweep(){
+		const t = Date.now();
+		for (const s of this.live_pairs())
+			if (t - Date.parse(s.last_at ?? s.at) >= this.idle_ms) this.sleep(s, "idle");
 	}
 
 	/* The host's watch() seam: a turn's end on one of our agents is its reply. */
@@ -221,13 +371,20 @@ export default class Sessions {
 		const router = this.servex.dashboard?.router;
 		if (!router) return;
 		const cors = (req, res, next) => { res.set({ "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "content-type" }); next(); };
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"]]){
+		/* The browser's host: the dev server's proxy forwards it (x-forwarded-host); a page on
+		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
+		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
-				try { res.json(this[fn](await body(req))); }
+				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : b)); }
 				catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 			});
 		}
+		router.get("/api/sessions", cors, (req, res) => {
+			try { res.json({ ok: true, sessions: this.recent({ page: req.query.page ?? "/", limit: req.query.limit, host: host_of(req, { host: req.query.host }) }) }); }
+			catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
 		router.get("/api/session/:id", cors, (req, res) => {
 			const s = this.map[req.params.id];
 			s ? res.json({ ok: true, ...s }) : res.status(404).json({ ok: false, error: "no such session" });
