@@ -171,6 +171,18 @@
 	.drawer-ai-panel .ux-dictate-widget-card {
 		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
 	}
+	/* THE THREAD'S OWN CEILING, un-capped too (one-dictation, 2026-09-30): the CARD
+	   above already grows to fill the drawer's real height, but `Widget.css`'s own
+	   `.ux-dictate-widget-thread { max-block-size: 22em }` is sized for a STANDALONE
+	   widget on a page, not one already living inside a flex column many times that
+	   tall — measured live at 1920×1080: the card correctly reached the bottom of the
+	   drawer, but the thread stopped growing at 22em and the composer sat stranded
+	   under it, leaving ~570px of empty card below Send (exactly the "huge empty
+	   area" CLAUDE.md law 6 — "one of everything" — and this task's own brief warn
+	   about). `flex: 1 1 auto` (already on the thread, Widget.css) does the rest: it
+	   grows to fill whatever the card has left, and the composer (no flex rule, so
+	   its natural size) stays pinned at the bottom. */
+	.drawer-ai-panel .ux-dictate-widget-thread { max-block-size: none; }
 	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
 	.drawer-turn-who { font-size: 0.85em; }
 	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
