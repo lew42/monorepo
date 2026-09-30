@@ -253,7 +253,12 @@ export default class Global {
 			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // 3 min (node-reliability, 09-30), and its reap is logged
 			if (!worker && !global && !task_mastermind) continue;
 			if (worker && !(agent.turns >= 1)) continue;
-			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : task_mastermind ? this.task_idle_ms : this.idle_ms)) continue;
+			/* 3 min only while it WAITS ON A CHILD (working, or queued for memory): its child's report
+			 * resumes it. With no child it keeps 15 min, or the heartbeat reads the stop as a death and
+			 * revives it round and round (review, 2026-09-30). */
+			const waiting = task_mastermind && ([...this.agents.live.values()].some(c => c.parent === agent.id && c.state !== "stopped")
+				|| (this.servex.queue ?? []).some(e => e.spec?.parent === agent.id));
+			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : waiting ? this.task_idle_ms : this.idle_ms)) continue;
 			try { agent.stop(); } catch {}
 			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
 		}

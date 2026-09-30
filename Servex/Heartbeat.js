@@ -158,10 +158,11 @@ export default class Heartbeat {
         if (!this.opted_in(first)) return null;
         /* The LATEST assign's agent owns it (a fresh session that took the task over writes its own
          * assign line), then that id's resumed successor, if any (Agents.successor, 2026-09-30). */
-        const session_id = state.session_id ?? first.session_id;
-        const named = state.agent ?? first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === session_id)?.id;
+        const named = state.agent ?? first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === (state.session_id ?? first.session_id))?.id;
         const owner = named && (this.agents.successor?.(named) ?? named);
         if (!owner) return null;
+        // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
+        const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
         const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
         return { owner, session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
@@ -179,8 +180,9 @@ export default class Heartbeat {
     }
 
     children(id){
-        return [...[...this.agents.live.values()].filter(a => a.parent === id && a.state !== "stopped"),
-            ...(this.servex.queue ?? []).filter(e => e.spec.parent === id)];
+        const up = p => p && (this.agents.successor?.(p) ?? p);   // a child spawned before a resume names the old id
+        return [...[...this.agents.live.values()].filter(a => up(a.parent) === id && a.state !== "stopped"),
+            ...(this.servex.queue ?? []).filter(e => up(e.spec.parent) === id)];
     }
 
     /* ── triage: find why, fix it, escalate only when the fix fails ─── */

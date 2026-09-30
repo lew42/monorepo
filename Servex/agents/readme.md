@@ -51,8 +51,8 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
   agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
   the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
-  An idle task mastermind is released after 3 minutes (`SERVEX_TASK_IDLE_MS`), so its queued
-  minions get its memory; mastermind-servex keeps 15, the owner's assistants are never released.
+  An idle task mastermind that waits on a child (working or queued) is released after 3 minutes
+  (`SERVEX_TASK_IDLE_MS`), so its queued minions get its memory; with no child it keeps 15; mastermind-servex keeps 15, the owner's assistants are never released.
 - **Nothing revives what was ended on purpose.** Every path that reopens an agent (a message, a
   child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
   an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and

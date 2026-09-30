@@ -482,7 +482,9 @@ export default class Servex extends Events {
 
         router.post("/log/cards/:slug", cors, express.json({ limit: "1mb" }), async (req, res) => {
             try {
-                const outcome = await this.log.append(`cards/${req.params.slug}`, this.stamp_via(req));
+                const via = this.via(req);   // a card log line wakes listeners beyond the assistant: a worktree page's is stubbed, like /card
+                if (via) return res.json({ ok: true, stubbed: true, via, note: "a worktree page's card line: written nowhere, nobody woken" });
+                const outcome = await this.log.append(`cards/${req.params.slug}`, req.body ?? {});
                 res.status(outcome.ok ? 200 : 409).json(outcome);
             } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
         });
