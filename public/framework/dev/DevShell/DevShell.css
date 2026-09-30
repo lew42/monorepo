@@ -34,12 +34,36 @@
 	   clamp's own 18rem default as the fallback) sidestep the percentage
 	   entirely, so `1fr` gets the real leftover width and `right` lands
 	   flush against the window's own edge. doc/decisions.md. */
-	.dev-shell-root .core-shell-grid {
-		grid-template-columns:
-			var(--core-shell-left-w, 18rem)
-			1fr
-			var(--core-shell-right-w, 18rem);
+	@media (width >= 34em) {
+		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid {
+			grid-template-columns:
+				var(--core-shell-left-w, 18rem)
+				1fr
+				var(--core-shell-right-w, 18rem);
+		}
 	}
+
+	/* BELOW 34em (a phone): the left region goes, the right one is a bottom
+	   sheet the full width of the screen, and the head keeps only what fits on
+	   one line — the path, the toggles, v1 and ✕. The width presets and the
+	   shortcut hint are a desktop's. Measured at 400: with the three-column
+	   rule above left unscoped, both sides were 288px boxes stacked over the page. */
+	@media (width < 34em) {
+		.dev-shell-root .core-shell-left,
+		.dev-shell-root .dev-shell-hint,
+		.dev-shell-root .dev-width { display: none; }
+		.dev-shell-root .core-shell-right { max-height: 45vh; width: auto; }
+		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	/* Above the site's own fixed chrome (the ☰ at the top right sat over the head). */
+	.dev-shell-root.core-shell-frame, .dev-shell-root .core-shell-frame { z-index: 60; }
+
+	/* ⚠ And the regions FILL those tracks. Shell.css sizes each region itself
+	   with `clamp(12rem, …, 50%)`; inside a definite 18rem track that 50% is
+	   9rem, so the clamp's 12rem floor won and the dark rail stopped 6rem short
+	   of the window's edge, leaving a white strip (1920 shot, 2026-09-30). */
+	.dev-shell-root :is(.core-shell-left, .core-shell-right) { width: auto; }
 
 	.dev-shell-head-line {
 		flex: 1 1 auto;
