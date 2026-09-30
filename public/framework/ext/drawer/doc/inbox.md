@@ -6,7 +6,7 @@
 
 **It is for coordination, never chat.** If a mastermind coordinates the page's module, a note goes straight to that mastermind, and the inbox names it at the top ("Coordinated by …"). The page inbox is the fallback, for when nobody does.
 
-![A coordinated module: the note went straight to its mastermind](/framework/ai/2026-09-30/page-inbox/shots/coordinated-400.png)
+![A coordinated module: the note went straight to its mastermind](/framework/ext/drawer/doc/inbox-coordinated.png)
 
 ## What a row shows
 
