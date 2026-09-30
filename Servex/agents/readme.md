@@ -55,7 +55,8 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
   child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
   an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and
   one whose directory is gone (said plainly, not as the SDK's "libc" error). `send_to_agent` with
-  `revive: true` overrides the first two. Proof: `revive-guard-proof.mjs`.
+  `revive: true` overrides the first two, and the owner answering an agent's question on a card
+  passes it. A message to the `mastermind-servex` role asks the same guard. Proof: `revive-guard-proof.mjs`.
 - **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
   agent whose host died during its first turn can be resumed.
 

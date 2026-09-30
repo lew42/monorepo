@@ -152,7 +152,11 @@ export default class Global {
 			const live = this.live(h);
 			if (live) return live;
 			const row = this.registry_row(h);
-			if (row?.session_id) return this.touch(h, this.agents.reopen(row));
+			if (row?.session_id){
+				const no = this.agents.blocked?.(row);   // the revive guard (Agents.blocked): stopped on purpose, or its cwd is gone
+				if (no) throw new Error(`${h} was not woken: ${no.text}.`);
+				return this.touch(h, this.agents.reopen(row));
+			}
 		}
 		const id = this.mastermind_id;
 		const live = this.live(id);

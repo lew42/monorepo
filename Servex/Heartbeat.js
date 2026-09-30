@@ -49,7 +49,8 @@ export default class Heartbeat {
         a.stop = (id, opts) => { if (!this.stopped_by.has(id)) this.stopped_by.set(id, { by: opts?.by ?? "in-process", at: stamp() }); return stop(id, opts); };
         a.stopped_on_purpose = id => this.stopped_by.get(id);   // wake_parent never revives these (rule 4c.2)
         a.task_dir_of = id => { for (const [f, w] of this.watch) if (w.owner === id) return path.dirname(f); };
-        a.find_task_dir = row => this.find_task_dir(row);   // the revive guard's last resort (Agents.task_dir_for)
+        a.find_task_dir = row => this.find_task_dir(row);
+        a.forget_stop = id => this.stopped_by.delete(id);   // the revive guard's last resort (Agents.task_dir_for)
         this.servex.on?.("admitted", spec => this.admitted.add(spec));
         const run = () => this.tick().catch(e => this.servex.say?.(`heartbeat: ${e.message || e}`));
         this.timer = setInterval(run, Math.min(60000, this.silent_ms / 3));

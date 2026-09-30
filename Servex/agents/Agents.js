@@ -311,6 +311,7 @@ export class Agents {
 			this.store().append("servex", { type: "revive-refused", id, why: no.why, text: no.text, from: note?.from ?? null }).catch(() => {});
 			throw new Error(`Agent ${id} was not woken: ${no.text}.${no.why === "cwd-gone" ? "" : " Pass revive: true to wake it anyway."}`);
 		}
+		if (note?.revive) this.forget_stop?.(id);   // woken on purpose: the heartbeat's in-memory mark goes too
 		return this.wake(id).send(text, note);
 	}
 
@@ -390,8 +391,11 @@ export class Agents {
 			if (by){ rows[id] = { ...rows[id], stopped_by: by, stopped_at: stamp(), state: rows[id].state === "gone" ? "gone" : "stopped" }; this.reg().save(rows); }
 			return { card: () => ({ id, state: rows[id].state, stopped_by: rows[id].stopped_by ?? null }) };
 		}
-		if (by){ agent.stopped_by = by; agent.stopped_at = stamp(); }
-		return agent.stop();
+		if (!by) return agent.stop();
+		agent.stopped_by = by; agent.stopped_at = stamp();
+		const out = agent.stop();
+		this.register(agent);   // Agent.stop() returns early for one already stopped (reaped idle): the mark must still be written
+		return out;
 	}
 
 	list(){ return [...this.live.values()].map(agent => agent.card()); }

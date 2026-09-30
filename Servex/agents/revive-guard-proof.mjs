@@ -55,6 +55,26 @@ reopened.length = 0;
 e = tries("m-gone-row");
 check("stopped on purpose (persisted in the registry): a message does NOT wake it", !!e && !reopened.length, e);
 
+/* review fix 1: stop_agent on an agent ALREADY stopped (reaped idle) still writes stopped_by */
+const idle = { id: "m-reaped", state: "stopped", session_id: "s-reaped", cwd, task: { dir: open }, stop(){ return this; }, card(){ return { id: this.id }; } };
+host.live.set(idle.id, idle);
+host.stop("m-reaped", { by: "owner" });
+check("stop_agent on an already-stopped (reaped) agent records stopped_by", host.reg().read()["m-reaped"]?.stopped_by === "owner");
+reopened.length = 0;
+e = tries("m-reaped");
+check("…and a message then does not wake it", !!e && !reopened.length, e);
+host.live.delete(idle.id);
+
+/* review fix 3: a NEW agent reusing an old id does not inherit the old landed task dir */
+const rows0 = host.reg().read();
+rows0["m-reuse"] = row("m-reuse", { session_id: "old-session", task_dir: landed });
+host.reg().save(rows0);
+host.reg().write({ id: "m-reuse", state: "idle", session_id: "new-session", cwd });
+check("a reused id with a new session does not inherit the old task_dir", host.reg().read()["m-reuse"].task_dir === null);
+host.reg().write({ id: "m-reuse", state: "idle", session_id: "new-session", cwd, task: { dir: open } });
+host.reg().write({ id: "m-reuse", state: "stopped", session_id: "new-session", cwd });
+check("the same session keeps its task_dir across a reopen", host.reg().read()["m-reuse"].task_dir === path.resolve(open));
+
 /* wake_parent: a child's done-notice to a parent stopped on purpose goes to the inbox only */
 host.send_calls = 0; const real = host.send.bind(host); host.send = (...a) => { host.send_calls++; return real(...a); };
 host.wake_parent({ id: "minion-x", parent: "m-gone-row", last_text: "done" }, "done");

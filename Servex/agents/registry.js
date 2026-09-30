@@ -62,7 +62,8 @@ export default class Registry {
 	write(agent){
 		const rows = this.read();
 		const row = this.row(agent);
-		row.task_dir ??= rows[agent.id]?.task_dir ?? null;   // a reopened session has no `task` spec; keep its dir
+		// a reopened session has no `task` spec; keep its dir — only for the SAME session (a reused id is a new agent)
+		if (!row.task_dir && rows[agent.id]?.session_id && rows[agent.id].session_id === row.session_id) row.task_dir = rows[agent.id].task_dir ?? null;
 		rows[agent.id] = row;
 		this.save(rows);
 		return rows[agent.id];
