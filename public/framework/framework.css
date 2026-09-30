@@ -561,6 +561,15 @@
        line-height 1 so it never grows the line box. */
     .icon { font-size: 1.25em; line-height: 1; flex: 0 0 auto; }
 
+    /* The square frame any icon-in-a-box borrows — a button, a rail item, a list
+       row's own icon slot. One token, read by ui/icon and (later) ui/item, so
+       raising a CONTAINER's font-size scales the icon (1.25em above, same
+       ancestor) and this frame together. 1.6em leaves room for a background and
+       still-visible padding around the 1.25em glyph; a tighter row (ui/item's
+       own tree rows, which need the frame closer to the text beside it) reads a
+       smaller number locally rather than shrinking this one for everybody. */
+    :root { --icon-frame: 1.6em; }
+
     /* ---- code ---------------------------------------------------------
        `pre` is a BLOCK and `code` is INLINE, so they get different padding. Four
        stylesheets independently overrode a single shared value before this split;
