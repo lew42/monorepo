@@ -7,6 +7,8 @@
  * Its dev server and health watcher are stopped (worktree-down.mjs for a registered one; any node
  * process whose command line names the worktree otherwise), then `git worktree remove` (never
  * --force) and `git branch -d` (only a merged branch). One line per worktree: pruned / skip: why.
+ * It never stops a server in the MAIN tree: :3104 is Servex's, and :8137 is on the keep list
+ * (the owner's phone; a hand-started server there is not a leftover).
  * Why (node-reliability, 2026-09-30): 76 worktrees had piled up, 52 already merged; pruned 38.
  * Every spawn sets windowsHide. */
 import { execFileSync, spawnSync } from "node:child_process";
@@ -40,12 +42,12 @@ for (const w of trees.slice(1)) {
 	const name = path.basename(w.path), p = slash(w.path);
 	const status = () => git(w.path, "status", "--porcelain").stdout.split(/\r?\n/).filter(Boolean).map(l => ({ x: l.slice(0, 2), f: l.slice(3).replace(/^"|"$/g, "") }));
 	let why = null;
-	if (!w.branch) why = "no branch (detached)";
+	if (!fs.existsSync(w.path)) why = "missing on disk (its entry is cleared by the git worktree prune at the end)";
+	else if (!w.branch) why = "no branch (detached)";
 	else if (w.locked) why = "locked";
 	else if (pool.has(p)) why = "a pool slot (the Pool removes its own)";
 	else if (git(MAIN, "merge-base", "--is-ancestor", w.branch, BASE).status !== 0) why = `branch not merged into ${BASE}`;
-	else if (live.some(c => c.startsWith(p))) why = "a live agent works there";
-	else if (!fs.existsSync(w.path)) why = "missing on disk (run git worktree prune)";
+	else if (live.some(c => c === p || c.startsWith(p + "/"))) why = "a live agent works there";
 	else { const other = status().filter(s => !LOG(s.f)); if (other.length) why = `${other.length} changed file(s), e.g. ${other[0].f}`; }
 	if (why) { console.log(`skip   ${name}: ${why}`); continue; }
 	if (DRY) { console.log(`would  ${name}`); continue; }
@@ -56,8 +58,8 @@ for (const w of trees.slice(1)) {
 	if (registry[name]) spawnSync(process.execPath, [path.join(MAIN, "Server", "worktree-down.mjs"), name], { cwd: MAIN, encoding: "utf8", windowsHide: true });
 	else stop_node_in(w.path);
 	if (fs.existsSync(w.path)) { const r = git(MAIN, "worktree", "remove", w.path); if (r.status !== 0) { console.log(`FAILED ${name}: ${(r.stderr || r.stdout).trim().split("\n").pop()}`); continue; } }
-	git(MAIN, "branch", "-d", w.branch);
-	pruned++; console.log(`pruned ${name}`);
+	const b = git(MAIN, "branch", "-d", w.branch);
+	pruned++; console.log(`pruned ${name}${b.status ? `  (branch ${w.branch} kept: ${(b.stderr || b.stdout).trim().split("\n")[0]})` : ""}`);
 }
 git(MAIN, "worktree", "prune");
 console.log(`${DRY ? "dry run" : `${pruned} pruned`}; ${trees.length - 1 - (DRY ? 0 : pruned)} worktree(s) remain`);

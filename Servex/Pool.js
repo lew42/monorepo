@@ -279,7 +279,10 @@ export default class Pool extends Events {
             /* A leftover branch with no worktree, already merged, is deleted and its name reused (`branch -d`
              * refuses an unmerged one, which keeps the name). Without this all nine names filled with
              * leftovers and take_worktree failed with "No worktree could be made ready" (2026-09-30). */
-            try { execFileSync("git", ["branch", "-d", `worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); return id; } catch {}
+            try {
+                execFileSync("git", ["merge-base", "--is-ancestor", `worktree/${id}`, this.base], { cwd: this.main, windowsHide: true, stdio: "ignore" });   // merged into the BASE, not just main's HEAD
+                execFileSync("git", ["branch", "-d", `worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); return id;
+            } catch {}
         }
         return null;
     }
