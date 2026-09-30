@@ -82,10 +82,22 @@ export class Groups {
 		this.readers = new Set();
 		this.task_files = new Map();   // "<date>/<slug>" → the task folder's file names
 		this.looking = new Map();      // base → "pending" | "done": task_at() asked for its listing
+		// ⚠ MEMBERS() CACHE (ai2-hang, 2026-09-30) — `members(gid)` walks every task and
+		// every fold and sorts the result; before this, ONE `paint()` called it 6-8 times
+		// per group (once inside `ordered()`'s sort via `at()`→`latest()`, once from
+		// `latest()` direct, once for `size`, once inside `cost()`, once more from the
+		// `at_of` loop's own `at()` call) — a CPU profile of `/framework/ai2/` found
+		// `groups.js`'s `at()`, its index array and `card_words()` among the top hand full
+		// of self-time functions. `_rev` is bumped every time `changed()` fires — the one
+		// place that always means "tasks, folds or task_files really changed" — so the
+		// cache can never serve a stale answer, only skip re-doing work nothing asked to
+		// change. Detail: ai/2026-09-30/inbox-ext/ai2-hang/profile.md.
+		this._rev = 0;
+		this._members_cache = new Map();   // group id → { rev, out }
 	}
 
 	on(fn){ this.readers.add(fn); return () => this.readers.delete(fn); }
-	changed(){ clearTimeout(this.timer); this.timer = setTimeout(() => this.readers.forEach(fn => fn(this)), 50); }
+	changed(){ this._rev++; clearTimeout(this.timer); this.timer = setTimeout(() => this.readers.forEach(fn => fn(this)), 50); }
 
 	/** `folders` is AI 2's `CardList`; `socket` (optional) says when a new task dir appears. */
 	async start({ folders, socket } = {}){
@@ -241,6 +253,8 @@ export class Groups {
 	members(gid){
 		const g = this.by_id?.get(gid);
 		if (!g) return [];
+		const cached = this._members_cache.get(gid);
+		if (cached && cached.rev === this._rev) return cached.out;
 		const out = [];
 		for (const m of this.tasks.values()) if (m.member_of === gid && m.loaded)
 			out.push({ kind: "task", id: m.slug, base: `/framework/ai/${m.date}/${m.slug}/`, files: m.files, at: m.last_at, ...task_words(m) });
@@ -253,7 +267,9 @@ export class Groups {
 			const w = card_words(own);
 			if (w.said_at) out.push({ kind: "said", id: g.card, at: w.said_at, title: "", words: w.words });
 		}
-		return out.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		out.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		this._members_cache.set(gid, { rev: this._rev, out });
+		return out;
 	}
 
 	/** The task a card points at, as a member-shaped `{ base, files }` — or

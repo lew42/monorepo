@@ -31,3 +31,4 @@
 {"log":{"at":"2026-09-30T14:50:00-05:00","task":"ai2-inbox-read/minion-ai2-inbox","msg":"task opened — AI 2 Inbox: Needs-you chip, read/unread + archive + auto-resolve (rules.js), search, Now card wording fix"}}
 {"at":"2026-09-30T15:16:09-05:00","task":"2026-09-30/design-code","msg":"/framework/design/ and /framework/code/ live; skills are thin pointers; graded rules handed on"}
 {"log":{"at":"2026-09-30T15:22:30-05:00","task":"ai2-inbox-read","msg":"landed — Inbox read/unread, archive, auto-resolve, search, Needs-you chip, Now wording fix. /framework/ai2/"}}
+{"log":{"at":"2026-09-30T16:18:07-05:00","task":"inbox-ext/ai2-hang","msg":"landed — AI 2's load hang: two redraw hot spots found by a CPU profile and cached (Groups.members in groups.js, place()'s layout re-measure in live.js)."}}

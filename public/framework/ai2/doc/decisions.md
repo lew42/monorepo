@@ -617,3 +617,32 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
   `order` on its tabs and never hit this. Fix: `order: 5` on the spacer, one rule, no markup
   change. Alternative rejected: dropping `order` from the tabs and fixing the DOM order itself —
   would have broken the `tab-default`/fallback trick that lights Inbox for a card url.
+
+# The load hang — cache, don't recompute, on every redraw (2026-09-30)
+
+The owner: *"I think the page just crashed… it's having a hard time loading."* A CPU profile
+(`ai/2026-09-30/inbox-ext/ai2-hang/profile.md`) found two functions redoing the same work on
+every single `paint()` instead of once:
+
+- **`Groups.members(gid)` now caches its answer**, invalidated by a `_rev` counter `changed()`
+  bumps whenever tasks or folds actually change. Before this, one screen update called it 6-8
+  times per group — inside `ordered()`'s sort (via `at()` → `latest()`), again from `latest()`
+  directly, again for the member count, again inside `cost()`, and once more from the `at_of`
+  loop — each time re-walking every task and every card filed under that group and re-sorting
+  them. `latest()`, `cost()` and `at()` all call `members()` internally, so they all got faster
+  for free; no other method's signature changed. Alternative rejected: caching at each of those
+  call sites separately — more code, more places to get the invalidation wrong.
+- **`live.js`'s `place()` stopped re-measuring layout on every redraw.** `wide()` reads a CSS
+  custom property with `getComputedStyle()`, which forces the browser to stop and recompute the
+  whole page's layout — correct to check, wrong to check on every redraw of the Live card, which
+  is the page's own default view. It was the single biggest self-time entry in the whole profile
+  (748.9ms of 20s). Now only the card's own `ResizeObserver` (an actual resize) or the very first
+  call re-measures; an ordinary redraw (new data, a click, "← Live") reuses the last known
+  answer. Alternative rejected: debouncing the call instead of caching it — still pays the forced
+  layout on every redraw, just less densely.
+
+Left for later, not built here: the Live card's own preview object still triggers a full DOM
+rebuild on nearly every `paint()`, because its signature (`JSON.stringify`) includes time-based
+usage percentages that tick almost every call. Fixing that touches `card_page()`'s `draw()` in
+`page.js` more broadly than this task's fence (`ai2/**`, `ext/drawer/**`) asked for — a good next
+step for whoever turns `board()`'s closure into a class.
