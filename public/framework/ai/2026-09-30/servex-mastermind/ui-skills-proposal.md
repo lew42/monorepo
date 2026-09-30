@@ -52,3 +52,23 @@ Companions stay as they are: `naming`, `review`, `clarity`, `ui-test`. `review` 
 - Every skill keeps its `questions.md` beside its rules, so `review` and `/framework/ai/review/` keep working; the count goes from 4 question files to 6.
 - Each aspect can be refined alone: a finding about a toolbar changes `controls` only; a finding about a rail changes `navigation` only.
 - Later, `/framework/ui/` (under construction) documents the same six names, one page each; `/framework/styles/` stays the CSS style guide that `style` points at.
+
+## One design, not three (the owner, 2026-09-30: coordinate)
+
+The skill tree above, the AI page's authoring section and the review questions are the same thing seen three ways, so each has one home and the others point at it:
+
+| Thing | Home | Who reads it |
+|---|---|---|
+| The rule (how to do it) | `.claude/skills/<aspect>/SKILL.md` | the agent doing the work |
+| The check (was it done) | `.claude/skills/<aspect>/questions.md` beside its rule | `review`, and `/framework/ai/review/` renders them |
+| The effect (what it looks like) | `/framework/ai/skills/<aspect>/` and the module's own page: a live example, simple first, then the complex one | the owner, a new agent |
+
+The AI page never restates a rule: it shows the effect and links the rule. A new question goes in `questions.md`, never on a page.
+
+## CLAUDE.md: what gives awareness, what goes one click down
+
+CLAUDE.md is a skill that loads by itself, so it is the only awareness an agent has before it asks. That decides the split:
+
+- **In CLAUDE.md (51 lines today, keep it near that):** the laws; the presentation rule; the "ask before" list; the traps that never throw; and **one line per system that has an effect**: its name, the effect in half a sentence, and the link to its page. Today that map names Server, Servex, the ai/ log and the asks ledger. It does not name: `#Page` references (ext/Mention), the page inbox, cards and the object log, the review gate (a page change with no report is refused), the readme chain, budgets and dormancy (Servex), the four screenshot widths. Each of those is one line, or an agent learns it by breaking it.
+- **One click down (never in CLAUDE.md):** how to do any of it (the skill), why it is that way (the doc), what it looks like (the page). A rule that changes what an agent does on its first turn belongs in CLAUDE.md; a rule that only matters once it is doing that kind of work belongs in the skill that loads for it.
+- **The audit the AI page's CLAUDE.md tab shows:** the live file; for each system named, a link that resolves; for each system that exists and is not named, a proposed line. Drafts go on a card; the owner applies them.
