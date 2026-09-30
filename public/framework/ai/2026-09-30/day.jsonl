@@ -29,3 +29,5 @@
 {"log":{"at":"2026-09-30T14:59:17-05:00","task":"one-dictation-system","msg":"task opened — one dictation sidebar everywhere on the fast/smart pair; plan posted"}}
 {"log":{"at":"2026-09-30T15:11:28-05:00","task":"needs-rail","msg":"landed — a stalled ask is now an Inbox row (course correction from the Needs-you rail; that view stays unchanged)"}}
 {"log":{"at":"2026-09-30T14:50:00-05:00","task":"ai2-inbox-read/minion-ai2-inbox","msg":"task opened — AI 2 Inbox: Needs-you chip, read/unread + archive + auto-resolve (rules.js), search, Now card wording fix"}}
+{"at":"2026-09-30T15:16:09-05:00","task":"2026-09-30/design-code","msg":"/framework/design/ and /framework/code/ live; skills are thin pointers; graded rules handed on"}
+{"log":{"at":"2026-09-30T15:22:30-05:00","task":"ai2-inbox-read","msg":"landed — Inbox read/unread, archive, auto-resolve, search, Needs-you chip, Now wording fix. /framework/ai2/"}}
