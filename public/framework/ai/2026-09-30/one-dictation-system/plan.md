@@ -1,6 +1,6 @@
 # Plan: one dictation system
 
-**The goal:** one component, the **dictation sidebar**, is the same code on every surface. It is the one Widget (merged in 5c1b7d15) plus the fast/smart session wiring that today lives only inside the ✦ sheet (`ext/drawer/rail.js`).
+**The goal:** one component, the **dictation sidebar**, is the same code on every surface. It is the one Widget (already merged) plus the fast/smart session wiring that today lives only inside the ✦ sheet (`ext/drawer/rail.js`).
 
 ## What changes, surface by surface
 
@@ -10,15 +10,23 @@
 | **Desktop right sidebar = ☰ drawer AI tab** (`tabs/ai.js`) | Widget; a plain page goes to the old page assistant (`POST /api/page-ai`); has a model chooser | The same dictation sidebar at full height; the model chooser is gone |
 | **AI 2 card sidebar** (a card page with the drawer open) | The reply comes from `assistant-<card>`, the old single assistant | The same dictation sidebar, with `start({path, card})` on the pair |
 | **VS Code prompts** (`POST /api/page-ai`, Servex `Layers.js`) | Spawn or wake `assistant-<card>` / the page assistant | Say into the page's or card's pair session, so they show up in the same chat |
+| **Dev bar chat mode** (`dev/DevBar/`: ask.js, says.js, log.js) | Its own ask and chat log | The same dictation sidebar |
+| **The Shell's page sidebar** (task-mastermind-dev-shell's build) | Not built yet | The Shell puts this component in each page's sidebar |
 
-## Small merges, in order (each one screenshot-checked on every surface before the next)
+Rendering stays minimal and efficient: one component, drawn once per surface, and no second copy of the thread.
 
-0. **Baseline, read-only.** Reproduce the owner's evidence on the live site. On `/framework/ai2/2026/09/30/now-one-inbox-everywhere-and-refined-pro/`, say one line and record which code path sends it and which agent answers. Shoot every surface at 400 and 1920: that's the "before" set.
-1. **Lift, no visible change.** Move the pair wiring (start, say, watch, stream, resume offer, own-ats dedupe, floor, reactions) out of rail.js into one module the sheet uses. Every "after" shot should match "before".
-2. **Desktop sidebar on it.** tabs/ai.js uses the same module for pages AND cards, at full height. The model chooser and the page-ai and `send({card})` branches are deleted.
-3. **Card sidebar on it.** Whatever step 0 found still reaching `assistant-<card>` from a card page moves to the pair.
-4. **Servex: `/api/page-ai` onto the pair** (with the ext/Session owner). It needs a Servex restart. Then the old page/card assistant spawn in Layers.js retires.
-5. **Phone sheet: resizable, collapses to one line.**
+## Small merges, in order (each one screenshot-checked on every surface before the next; tick a box only once its merge lands and its shots pass)
+
+- [ ] 0. **Baseline, read-only.** Reproduce the owner's evidence on the live site. On `/framework/ai2/2026/09/30/now-one-inbox-everywhere-and-refined-pro/`, say one line and record which code path sends it and which agent answers. Shoot every surface at 400 and 1920: that's the "before" set.
+- [ ] 1. **Lift, no visible change.** Move the pair wiring (start, say, watch, stream, resume offer, own-ats dedupe, floor, reactions) out of rail.js into one module the sheet uses. Every "after" shot should match "before".
+- [ ] 2. **Desktop sidebar on it.** tabs/ai.js uses the same module for pages AND cards, at full height. The model chooser and the page-ai and `send({card})` branches are deleted.
+- [ ] 3. **Card sidebar on it.** Whatever step 0 found still reaching `assistant-<card>` from a card page moves to the pair.
+- [ ] 4. **Servex: `/api/page-ai` onto the pair** (with the ext/Session owner). It needs a Servex restart. Then the old page/card assistant spawn in Layers.js retires.
+- [ ] 5. **Phone sheet: resizable, collapses to one line.**
+- [ ] 6. **Dev bar chat mode on it.** Its ask/chat log becomes the same component. Agree the seam with task-mastermind-dev-shell so the Shell's page sidebar uses it too.
+- [ ] 7. **Show how it's made.** A readme, plus a page with the live widget on each surface, saying how the chat sidebar is created there.
+
+**Next, after this lands (not now): threaded conversations.** A chat bubble is clickable and opens its thread. On desktop the thread expands in place and you drag the sidebar wider; on mobile it takes over the sheet.
 
 ## What could regress, and how each merge checks it
 
