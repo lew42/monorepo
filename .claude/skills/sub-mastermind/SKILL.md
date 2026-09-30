@@ -48,6 +48,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 ## Quick fixes: take, write, smoke-test, merge, return
 
 1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
+- **Commit early in a pool worktree.** A taken pool worktree is not yet restart-safe: on 2026-09-30 the pool reclaimed qf-9 across a Servex restart, deleting the directory, branch and server while a minion was writing in it. Commit after every finished piece, so a reclaim loses minutes, not the task.
 2. Write into `path` and commit there.
 3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
 4. Call `return_worktree(id)` when done or unused.
