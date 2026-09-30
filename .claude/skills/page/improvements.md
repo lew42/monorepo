@@ -1,0 +1,3 @@
+# Page skill — improvements
+
+- 2026-09-30 (cards-and-logs/wire): a `page.jsonl` verb named the same as a Page PROPERTY silently wins — `core/Page/card/mini-pages/MiniPages.js` has a `card(data)` method (its own page.jsonl verb) that shadowed `this.card` (the CSS-class string `nav()` reads for `preview_card()`), so `nav().card` became a function and `.ac(function)` threw `arg.split is not a function` the first time that page appeared in a preview wall. The skill should warn: before adding a page.jsonl verb or an instance method, check it isn't already one of Page's own properties (`title children content url name label icon card classes description parent app view loading route regions depth related`, from core/Page/page.js's own `properties:` list).

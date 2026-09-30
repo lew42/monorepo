@@ -1,0 +1,129 @@
+@layer theme {
+
+/* ===== Grounds — four backgrounds a card can sit on (the owner, 2026-09-29):
+   "if a background is like white, you could have a different colored
+   background card, like a light gray or a dark themed card, or even maybe a
+   strong hue, like a primary color." All four reuse framework.css's own
+   tokens — nothing here invents a colour:
+
+     default     .card              var(--surface)
+     light gray  .card.card-gray    var(--darken-1)
+     dark        .card.card-dark    var(--bg)   — an ALWAYS-DARK ISLAND
+     strong hue  .card.card-prim    var(--prim) — an ALWAYS-LIGHT ISLAND
+
+   "Always-dark/light island" is framework.css's own mechanism (line ~155
+   there): forcing `color-scheme` flips --ink / --line / every --fill-aNN
+   rung UNDERNEATH this element, in both page modes, so text stays readable
+   without a single hand-picked colour. styles/sections/tone.js already
+   proved this exact four-name set for a full-width band; these two classes
+   are the same idea at card scale. doc/system.md has the contrast table.
+
+   `--prim` is `#FF6157` in framework.css, but this theme (lew42.css) overrides
+   it to `#FF8F60` (a mid-bright orange) — that live, rendered colour is the
+   one that matters for contrast, not framework.css's fallback. It is dark
+   enough that the usual "dark ground gets light ink" rule fails it: light
+   --ink on --prim measured about 2.5:1 (2026-09-30 review), below the 4.5:1
+   floor. Dark ink on --prim measures 4.69:1 (getComputedStyle, both page
+   modes — text rgb(63,63,63) on background rgb(255,143,96), 2026-09-30),
+   which passes but not by much — a darker step on `--prim` would fail it
+   again. `.card-prim` forces `color-scheme: light` instead of `dark` — the
+   opposite flip from `.card-dark` — so `--ink` resolves to its dark,
+   light-mode value even when the page itself is in dark mode.
+
+   `.card-gray` used `--wash` first, but `--wash` is also the page's own
+   ground in this theme — a `.card-gray` placed straight on the page (not
+   nested inside another card) painted nothing, just a faint outline
+   (2026-09-30 review). `--darken-1` is an alpha step (black/white at low
+   opacity — framework.css's lighten/darken ladder, line ~189) instead of a
+   flat colour, so it reads as a visible step darker than WHATEVER ground
+   sits under it — the page, a white card, or nested inside another card.
+   doc/system.md says the same. */
+.card-gray { background: var(--darken-1); }
+
+/* ⚠ `color-scheme: dark` alone is not enough (found 2026-09-30, the mini-pages
+   "Going deep" card): `--ink` is `light-dark(...)` (framework.css), and
+   `light-dark()` resolves using the color-scheme of the element the `color`
+   PROPERTY is declared on — not wherever the custom property is read. Nothing
+   here ever declares `color` directly, so every descendant just INHERITS the
+   already-resolved light-mode color from whatever light ancestor set it,
+   before this island ever flips. Stating `color: var(--ink)` here, ON the
+   island itself, forces that resolution to happen HERE, where color-scheme
+   really is dark — then every plain-text descendant (h3, p) inherits the
+   correct value. A `visited`/`hover` link inside is unaffected either way:
+   framework.css already declares THEIR colors directly on the `a` (not
+   inherited), so those were resolving right all along. */
+.card-dark { background: var(--bg); color-scheme: dark; }
+.card-prim { background: var(--prim); color-scheme: light; }
+
+/* ⚠ `.card.card-dark`, not `.card-dark` alone: when the card itself IS the
+   link (`a.card.card-dark` — exactly what mini-pages/MiniPages.js draws),
+   `a.card`'s own `color: inherit` (below, "a whole card as a link") is ONE
+   class + ONE tag, which beats a single-class `.card-dark` selector on
+   specificity alone — the first version of this fix looked right in the
+   CSS file and did nothing in the browser, still dark-on-dark, because of
+   exactly this. Two classes (`.card.card-dark`) outranks one class plus one
+   tag, so this wins regardless of which rule comes first in the file. */
+.card.card-dark, .card.card-prim { color: var(--ink); }
+
+/* Nest a plain .card ON one of these and it would go invisible
+   (surface-on-surface, wash-on-wash) — so a plain .card directly inside
+   another card switches to the OTHER neutral ground, generalizing the rule
+   content.css:181-183 already states for icon cards. Dark and strong-hue
+   already read against anything, so a card explicitly given one of the
+   three ground classes keeps it (the :not() below only catches the cards
+   that made no choice of their own). */
+.card:not(.card-gray, .card-dark, .card-prim) > .card:not(.card-gray, .card-dark, .card-prim) { background: var(--wash); }
+.card-gray > .card:not(.card-gray, .card-dark, .card-prim) { background: var(--surface); }
+
+/* ===== Nesting — level 1, 2, 3 are boxes; level 4 and deeper drop the box
+   (the owner: "after the third level, you're maxing out your padding
+   space... a big heading and the content underneath at the same
+   indentation, no extra box"). The LEVEL NUMBER is set in JS, one class per
+   level, the box added or left off there too — CSS alone cannot count how
+   many `.card`s an element sits inside without a separate :is() chain per
+   depth, and that chain would need to be rewritten by hand for a 6th level.
+   card/log/LogView.js already made this same call for a log group; doc/system.md
+   says why the JS-set class won over a pure CSS selector. */
+.card-level-4, .card-level-5 { margin-block-start: var(--gap); }
+.card-level-5 { color: var(--subtle); }
+
+/* ===== Scale — .size-small / .size-regular / .size-large already exist
+   site-wide (framework.css) and a card reads them for free: --pad-card is
+   already `calc(... * var(--size))`. Nothing new needed here; doc/system.md's
+   table says what content fits each size. */
+
+/* ===== Title, header and menu patterns ===================================
+   None and heading need no new CSS — a bare .card, or an h3/h4 inside one,
+   both already look finished (framework.css's own :where(.card) > * rhythm).
+   These four cover what is left: a header bar with room for an icon, a
+   title and a "more" menu button; a whole card as a click target; and a
+   native <details> card that expands in place. */
+
+.card-head { display: flex; align-items: center; gap: 0.5em; }
+.card-head .card-head-title { flex: 1; font-weight: 700; }
+
+/* A small round icon button for the "···" menu — the same reset shape
+   LogView.js already uses to turn framework's control grammar (grey fill,
+   border, a 2.4em floor) back into a plain icon. */
+.card-menu-btn {
+	border: none; background: none; box-shadow: none;
+	padding: 0.3em; min-height: 0; width: auto; min-width: 0; border-radius: 50%;
+	color: inherit; text-decoration: none;
+}
+.card-menu-btn:hover { background: var(--fill-a08); }
+
+/* A whole card as a link: framework.css's own link colour/underline is for
+   prose, not a card, so this resets both and adds a hover ring — the same
+   "feels clickable, not like a blue link" a page preview already gives. */
+a.card { cursor: pointer; display: block; color: inherit; text-decoration: none; }
+a.card:hover { box-shadow: 0 0 0 1px var(--line); }
+
+/* An expandable card: the native <details>/<summary> marker replaced with
+   plain bold text, no triangle — the same "not a control" reset
+   LogView.js's summary rule uses, so an expandable card and a log group
+   look like one family. */
+details.card > summary { cursor: pointer; list-style: none; font-weight: 700; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card[open] > summary { margin-block-end: var(--gap); }
+
+}

@@ -76,6 +76,10 @@ sidebar-     core/Sidebar
 omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
 brand-       core/Sidebar
 looks-       core/Page/overview/columns/examples/looks
+card-        core/Page/card (card-gray/-dark/-prim the three new grounds, card-level-N the
+             nesting depth classes, card-head/-head-title/-menu-btn the header-bar-with-menu
+             pattern — bare .card itself stays the framework's, in the block above)
+log-         core/Page/card/log
 
 # ext
 ai-          ext/AITask
