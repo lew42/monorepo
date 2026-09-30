@@ -219,9 +219,11 @@ export default class Dictate extends View {
 		return Recognition ? "browser" : null;
 	}
 
+	/* Whisper is the normal case, so it says nothing (the owner, 2026-09-29: the
+	 * label "just takes up space"). Only the fallback names itself, because it
+	 * transcribes worse and the reader should know why. */
 	name_engine(){
-		const name = this.engine === "whisper" ? "Whisper on the PC" : "the browser's recognizer";
-		this.$engine.text(name + this.keyboard_hint());
+		this.$engine.text(this.engine === "whisper" ? "" : "the browser's recognizer" + this.keyboard_hint());
 	}
 
 	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
