@@ -2,13 +2,13 @@
 
 ![A paragraph selected on the page, and its properties in the drawer's Element tab](/framework/ext/drawer/doc/select.png)
 
-**While the drawer is open, you can click any content on the page to select it** — a paragraph, a heading, a list item, a question, a card. Hovering brightens it a little; a click keeps it selected, one at a time, and the drawer's **Element** tab shows what it is and where it lives. Escape, or a click on empty page, clears it.
+**Turn on inspect mode (the drawer's Settings tab, off by default — 2026-09-30) and you can click any content on the page to select it** — a paragraph, a heading, a list item, a question, a card. Hovering brightens it a little; a click keeps it selected, one at a time, and the drawer's **Element** tab shows what it is and where it lives. Escape, or a click on empty page, clears it.
 
 **"💬 Ask about this"** puts the element on the AI tab's input as a chip, *this paragraph ✕*, the way an editor shows the open file in its chat box. Every message you send carries the chips as context, until you remove them with ✕.
 
 ## What stays the same
 
-- **With the drawer shut, nothing changes.** A click on a paragraph does nothing, text selects as usual, and links work.
+- **With the drawer shut, or with inspect mode off, nothing changes.** A click on a paragraph does nothing, text selects as usual, links work, and a dropdown (a card's Actions menu) opens normally. Before 2026-09-30 this ran any time the drawer was open on its own tabs, which meant clicking Actions selected the button instead of opening its menu — `doc/decisions.md`.
 - Links, buttons and inputs always keep their own clicks.
 - Nothing inside the drawer, the dev bar, the site's navigation or the page's tab bar is ever selectable.
 - A drag that selects text is reading, not choosing, so it selects no element.
