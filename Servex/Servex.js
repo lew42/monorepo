@@ -197,7 +197,7 @@ export default class Servex extends Events {
         }
         /* THE PROCESS MONITOR (process-monitor, 2026-09-30): every process, ours vs.
          * everything else, RAM and CPU per task, orphans reaped. Processes.js says how. */
-        if (!process.env.SERVEX_NO_PROCESSES) this.processes = new this.constructor.Processes({ servex: this }).start();
+        if (!process.env.SERVEX_NO_PROCESSES) this.procmon = new this.constructor.Processes({ servex: this }).start();
 
         /* THE TASK LOOP (task-loop, 2026-09-28): every SERVEX_TASKLOOP_EVERY_MIN
          * minutes, chase an open task quiet past SERVEX_TASKLOOP_QUIET_MIN, or whose
@@ -585,8 +585,8 @@ export default class Servex extends Events {
 
         /* The process monitor: the latest snapshot and an hour of 10-second points
          * (`?history=0` leaves them out). The Live card draws its graph from it. */
-        router.get("/api/processes", cors, (req, res) => res.json(this.processes
-            ? this.processes.summary({ history: req.query.history !== "0" }) : { off: "SERVEX_NO_PROCESSES=1" }));
+        router.get("/api/processes", cors, (req, res) => res.json(this.procmon
+            ? this.procmon.summary({ history: req.query.history !== "0" }) : { off: "SERVEX_NO_PROCESSES=1" }));
 
         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
@@ -654,7 +654,7 @@ export default class Servex extends Events {
                 + " the top 5 processes by CPU, claude/node/chrome counts, live agents (working, and idle ones still holding a"
                 + " claude process), GPU load/temperature/fan, and a one-line verdict. While the flag is up, new agents are"
                 + " queued instead of started — `queue` lists them. The three optional numbers change the flag's thresholds"
-                + " for this Servex until it restarts. `processes` is the process monitor: RAM and CPU that are ours vs. everything"
+                + " for this Servex until it restarts. `processes` is the process monitor (this.procmon): RAM and CPU that are ours vs. everything"
                 + " else, per task, and orphaned processes (Servex/doc/processes.md).",
             inputSchema: { type: "object", properties: {
                 hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
@@ -689,7 +689,7 @@ export default class Servex extends Events {
     }
 
     health(){
-        const processes = this.processes ? { line: this.processes.line(), ...this.processes.summary({ history: false }) } : null;
+        const processes = this.procmon ? { line: this.procmon.line(), ...this.procmon.summary({ history: false }) } : null;
         if (!this.monitor) return { verdict: "The monitor is off (SERVEX_NO_MONITOR=1).", processes, queue: this.queued() };
         const h = this.monitor.health();
         return { ...h, verdict: processes ? `${h.verdict} ${processes.line}` : h.verdict, processes, queue: this.queued() };
@@ -985,7 +985,7 @@ export default class Servex extends Events {
         const down = () => {
             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
             try { this.monitor?.stop(); } catch {}
-            try { this.processes?.stop(); } catch {}
+            try { this.procmon?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
