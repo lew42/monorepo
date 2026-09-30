@@ -11,7 +11,7 @@ export default new Doc({
 	icon: "view_sidebar",
 
 	files: "drawer.js drawer.css menu.js tabs.js select.js rail.js rail.css page.js readme.md",
-	notes: "tabs select decisions",
+	notes: "tabs select inbox sheet decisions",
 	children: ["walkthrough", "rail"],
 
 	content(){
