@@ -142,7 +142,13 @@ export default class Heartbeat {
 
     files(){
         const out = new Set(this.servex.task_loop?.find_task_files() ?? []);
-        for (const a of this.agents.live.values()) if (a.task?.dir) out.add(path.join(a.task.dir, "task.jsonl"));
+        /* A RESUMED agent has no `task` spec: its task dir is on its registry row (kept for the same
+         * session), so a resumed task mastermind's own task is watched and budgeted too (cards-and-logs, 09-30). */
+        let rows = {}; try { rows = this.agents.reg?.().read() ?? {}; } catch {}
+        for (const a of this.agents.live.values()){
+            const dir = a.task?.dir ?? (a.state !== "stopped" ? rows[a.id]?.task_dir : null);
+            if (dir) out.add(path.join(dir, "task.jsonl"));
+        }
         /* ONE ROW PER TASK: the task loop gives absolute paths, an agent's task.dir is often
          * repo-relative, so the same file came in twice (mastermind-servex-9, 2026-09-30). */
         const one = new Map();
