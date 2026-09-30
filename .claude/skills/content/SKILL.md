@@ -54,6 +54,7 @@ has its own page (a class, a method, a named system), link it there, so simple s
 familiar concepts rather than re-explaining them. Link where the link helps the reader, not every
 mention.
 
+- **Name a familiar system by its reference** (ext/Mention, 2026-09-30): write `#Page` (or `#[Page layout]` for a name with a space, `#Servex/lifecycle` for a child page), not "the page system". `@` is for people and agents. It renders as an icon link; add a missing name to `ext/Mention/maps/refs.js`.
 - **Document where the code lives.** A method is explained on its class's page; a Servex system on
   the Servex page. Other pages state the fact in one line and link.
 - **The tip of the iceberg comes first.** The most important thing leads, and very often that's the
