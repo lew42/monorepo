@@ -1,0 +1,117 @@
+[
+  {
+    "name": "4 backfill: one started line per folder of an old session",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "4 backfill is idempotent and append-only",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "9 an unanswered owner line gets one Servex line on install",
+    "ok": true,
+    "detail": "Servex restarted; this line wasn't answered. Say it again."
+  },
+  {
+    "name": "9 ... and only once",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8 project_of: phone ip:port -> monorepo",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8 project_of: monorepo.localhost -> monorepo",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8 project_of: other port -> other",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8 the PC sees the phone's session (resume check uses the same list)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8 another site never sees it",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "8+4 /new from the PC within the hour resumes the phone's old session",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "6 dir_log accepts a repo folder",
+    "ok": true,
+    "detail": "Servex/agents/ai/log.jsonl"
+  },
+  {
+    "name": "6 dir_log still accepts a site path",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "6 a folder outside the repo is refused",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "12 session_line refuses a level with no re",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "4 floor + cues are stored on the owner's line",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "4 while speaking: the fast reply is held, no line",
+    "ok": true,
+    "detail": "held=true"
+  },
+  {
+    "name": "4 while speaking: the smart gap keeps restarting",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "4 /floor done releases the held fast reply at once",
+    "ok": true,
+    "detail": "1 ms"
+  },
+  {
+    "name": "4 after done: the smart one answers too",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "4 a say with no floor is not held",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "11 a room() stop writes ended in every folder, with the title",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "2 the idle sweep skips a pair with a working agent",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "append-only: the session file only grew (line 1 is still the session line)",
+    "ok": true,
+    "detail": ""
+  }
+]

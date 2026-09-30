@@ -1,0 +1,50 @@
+{
+  "out": [
+    {
+      "name": "the owner's sentence shows exactly ONCE, not twice",
+      "ok": true,
+      "detail": "1 bubble(s)"
+    },
+    {
+      "name": "no console/page errors",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "a session over an hour old: the resume line shows, labelled with its age",
+      "ok": true,
+      "detail": "Earlier talk · 1 day ago"
+    },
+    {
+      "name": "a session under an hour old: NO resume line (it continues on the first word instead)",
+      "ok": true,
+      "detail": "0 choice line(s)"
+    },
+    {
+      "name": "New session's next sentence sends fresh: true",
+      "ok": true,
+      "detail": "[{\"path\":\"/framework/ext/Session/\",\"host\":\"localhost:50881\",\"fresh\":true}]"
+    },
+    {
+      "name": "the chat pane shows its placeholder before Start",
+      "ok": true,
+      "detail": "Replies appear here"
+    },
+    {
+      "name": "the Recent list is visible in the same view",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "zero console errors at 1920px",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "shots": [
+    "sheet-no-dupe-400.png",
+    "sheet-resume-old-400.png",
+    "sheet-resume-recent-400.png",
+    "session-page-1920.png"
+  ]
+}

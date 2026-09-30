@@ -1,0 +1,62 @@
+{
+  "at": "2026-09-29T18:36:08-05:00",
+  "input": "public/framework/ai/2026-09-29/voice-sessions/refine-640/input.txt",
+  "source_file": "C:/Code/lew42/monorepo/public/framework/ai/2026-09-29/voice-sessions/refine-640/input.txt",
+  "out": "public/framework/ai/2026-09-29/voice-sessions/refine-640",
+  "models": {
+    "clean": "claude-haiku-4-5-20251001",
+    "structured": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "pick": "claude-haiku-4-5-20251001",
+    "brief": "claude-sonnet-5",
+    "coverage": "claude-sonnet-5",
+    "repair": "claude-sonnet-5"
+  },
+  "collab": false,
+  "mock": false,
+  "structured_winner": "sonnet",
+  "tie_broken_by": null,
+  "cost_usd": {
+    "clean": 0.13273669999999999,
+    "structured": {
+      "haiku": 0.0593047,
+      "sonnet": 0.1254632
+    },
+    "pick": 0.0461357,
+    "brief": 0.14646119999999999,
+    "coverage": 0,
+    "repair": 0.133819,
+    "total": 0.643921
+  },
+  "word_counts": {
+    "raw": 1046,
+    "clean": 935,
+    "structured": 568,
+    "brief": 632
+  },
+  "clean_overlap_ratio": 0.993,
+  "coverage": {
+    "sentences": 41,
+    "cited": 41,
+    "context_only": 0,
+    "dropped": 0,
+    "unclassified": 0,
+    "flags": 13,
+    "thin_citations": 0
+  },
+  "repair": {
+    "rounds_run": 1,
+    "cost_usd": 0.133819,
+    "dropped_before": 0,
+    "thin_before": 4,
+    "dropped_after": 0,
+    "thin_after": 0,
+    "notes": [
+      "round 1: amended ask #8",
+      "round 1: amended ask #13",
+      "round 1: amended ask #15"
+    ]
+  }
+}

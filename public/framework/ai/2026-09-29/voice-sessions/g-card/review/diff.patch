@@ -1,0 +1,180 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 217fe75e..a8a18042 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -191,6 +191,19 @@ export default class Sessions {
+ 	disk(site){ return path.join(this.repo, "public", ...site.split("/").filter(Boolean)); }
+ 	is_dir(site){ try { return fs.statSync(this.disk(site)).isDirectory(); } catch { return false; } }
+ 
++	/* A CARD id (voice-sessions, card sessions): a path under `/framework/ai/`, such as
++	 * `2026/09/29/audio-a-library-of-audio-parts-transcrip`, naming an AI 2 card's own folder.
++	 * `card_home()` turns it into that folder's site path, `/framework/ai/<card>/`, and returns
++	 * null for anything unsafe (`..`, a backslash) or any id whose `page.jsonl` is not actually
++	 * there — a card session's home must be a real card, never guessed. */
++	card_home(card){
++		const id = String(card ?? "").trim().replace(/^\/+|\/+$/g, "");
++		if (!id || id.includes("..") || id.includes("\\") || id.includes("\0")) return null;
++		const home = `/framework/ai/${id}/`;
++		try { return fs.statSync(path.join(this.disk(home), "page.jsonl")).isFile() ? home : null; }
++		catch { return null; }
++	}
++
+ 	/* The nearest page that exists on disk, walking up: a route with no folder of its own
+ 	 * (a query view, a typo) still gets a home, never a 404. */
+ 	nearest(site){
+@@ -266,10 +279,22 @@ export default class Sessions {
+ 
+ 	// ── the three verbs ──────────────────────────────────────────────────────
+ 
+-	create({ path: at, host = null, fresh = false } = {}){
++	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
++	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
++	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
++	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
++	create({ path: at, card, host = null, fresh = false } = {}){
+ 		const asked = page_path(at);
+ 		if (!asked) throw Object.assign(new Error(`"${at}" is not a page path`), { status: 400 });
+-		const home = this.nearest(asked), project = this.project_of(host);
++		let home = this.nearest(asked);
++		if (card != null && card !== ""){
++			home = this.card_home(card);
++			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no public/framework/ai/${card}/page.jsonl)`), { status: 400 });
++		}
++		const project = this.project_of(host);
++		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on
++		 * the card's own home only ever finds sessions of that card, since every one of them was
++		 * homed there too. */
+ 		const [last] = this.recent({ page: home, project, limit: 1 });
+ 		/* `fresh: true` (voice-fixes review item 1, the "New session" button): always start over,
+ 		 * even when a session on this page spoke within `resume_ms`. */
+@@ -278,9 +303,10 @@ export default class Sessions {
+ 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
+ 		const file = `${home}ai/${id}.jsonl`;
+ 		/* No agents yet: the first say spawns them (wake). */
+-		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
++		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
++			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
+ 		this.map[id] = s;
+-		this.write(s, { session: { id, home, at: s.at, project, host, fast: null, smart: null, backing: s.backing } });
++		this.write(s, { session: { id, home, at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
+ 		this.point(s, home);
+ 		this.save();
+ 		const previous = last ? { session: last.session, title: last.title, summary: last.summary, at: last.last_at } : null;
+@@ -448,6 +474,8 @@ export default class Sessions {
+ 	/* Held open with no prompt: each one's first turn is the owner's first line. */
+ 	spawn(s, role, { resume = null, context = "" } = {}){
+ 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
++			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
++				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
+ 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
+ 		const spec = role === "fast" ? {
+ 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
+@@ -572,8 +600,15 @@ export default class Sessions {
+ 			});
+ 		}
+ 		router.get("/api/sessions", cors, (req, res) => {
+-			try { res.json({ ok: true, sessions: this.recent({ page: req.query.page ?? "/", limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) }); }
+-			catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
++			try {
++				let page = req.query.page ?? "/";
++				if (req.query.card){
++					page = this.card_home(req.query.card);
++					if (!page) throw Object.assign(new Error(`"${req.query.card}" is not a known card`), { status: 400 });
++				}
++				res.json({ ok: true, sessions: this.recent({ page, limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) });
++			}
++			catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
+ 		});
+ 		router.get("/api/session/:id", cors, (req, res) => {
+ 			const s = this.map[req.params.id];
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index a9a81890..a9d5b96e 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -4,6 +4,8 @@ The owner is talking to the site, usually by voice on a phone, while moving betw
+ 
+ A FAST assistant hears the same words and answers in a second with a one-line acknowledgement. You are the one who thinks.
+ 
++If this session is about a card (you were told its id and its `page.jsonl` path), its decisions and handoffs follow the card's own log: write `dir_log` and `task` lines into the card's folder, the same as any other folder this session is about.
++
+ **1. Know what is in flight, and route to it.** Before you start any work, look at what is already running: the Servex tool `list_agents` (every agent, its role, its parent, its state), and the first lines of the newest `task.jsonl` files under `public/framework/ai/<today>/` (and yesterday's), which say what each task is, who runs it, who started it and on which page. When the owner talks, on ANY page, about work that was started elsewhere, send the words to the mastermind already doing it with `send_to_agent`. Never start a duplicate. Related work goes to that same mastermind, or into its worktree. A mastermind that has finished can still be reached: `send_to_agent` wakes it, because everything it did is logged.
+ 
+ **2. Only you and the fast assistant see the owner's raw words.** A mastermind never gets them. It gets a POLISHED message: the owner's asks, numbered, in the owner's own words, with nothing dropped and a "maybe" kept as a suggestion, never turned into a rule. For a long dictation (more than a few sentences), make it with `node Server/refine.mjs <raw.txt> --out <task dir>/refine` (see `Server/doc/refine.md`); its `coverage.md` lets anyone check that every sentence reached the brief. Show the owner what you understood: post the refined text with the Servex tool `session_line`, giving `re` (the `at` of the owner's line: each line you hear is prefixed `[on /page/ at <at>]`) and a `level`: `clean` (the words with the fillers gone), `edit` (rewritten clearly) or `summary` (the gist). Then the owner sees raw → revised.
+diff --git a/public/framework/ext/Session/Session.js b/public/framework/ext/Session/Session.js
+index c0ea933d..2d530297 100644
+--- a/public/framework/ext/Session/Session.js
++++ b/public/framework/ext/Session/Session.js
+@@ -12,7 +12,13 @@ import { servex_url } from "/framework/dev/servex_url.js";
+  *
+  * One ✦ press is one session. Its whole conversation is one file under the page it
+  * started on, `<home>ai/<session>.jsonl`, and `watch()` polls that file. A press on a
+- * page whose session spoke in the last hour continues that session (`resumed: true`). */
++ * page whose session spoke in the last hour continues that session (`resumed: true`).
++ *
++ * A CARD session: pass `card`, a card id like `2026/09/29/audio-a-library-of-…` (the id
++ * `ai2/`'s pages already use), and the session's home becomes that card's own folder,
++ * `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file sits
++ * beside the card's `page.jsonl`, and the ✦ sheet can be the card's home page. `path` is
++ * still kept as where the owner actually stood. See `doc/sessions.md` for the shape. */
+ 
+ /** A refined line's `level`: the owner's words cleaned, edited, or summed up. */
+ export const LEVELS = ["clean", "edit", "summary"];
+@@ -28,9 +34,10 @@ async function post(verb, body){
+ /** A session for `path`: the one that spoke there in the last hour (`resumed: true`), else a new one
+  *  with `previous` = the page's most recent older session `{session, title, summary, at}` or null.
+  *  `fresh: true` (the "New session" button, voice-fixes review item 1) always starts a new one,
+- *  even when a session on this page spoke in the last hour. */
+-export const start = ({ path = location.pathname, host = location.host, fresh } = {}) =>
+-	post("new", { path, host, ...(fresh ? { fresh: true } : {}) });
++ *  even when a session on this page spoke in the last hour. `card` (a card id) makes the session's
++ *  home that card's own folder instead — see the file header. */
++export const start = ({ path = location.pathname, host = location.host, card, fresh } = {}) =>
++	post("new", { path, host, ...(card ? { card } : {}), ...(fresh ? { fresh: true } : {}) });
+ 
+ /** Continue any session by id; its assistants wake if they slept. */
+ export const resume = session => post("resume", { session });
+diff --git a/public/framework/ext/Session/doc/sessions.md b/public/framework/ext/Session/doc/sessions.md
+index b9ed8567..eea1ec80 100644
+--- a/public/framework/ext/Session/doc/sessions.md
++++ b/public/framework/ext/Session/doc/sessions.md
+@@ -58,16 +58,27 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
+ 
+ | Route | Body | Answer |
+ |---|---|---|
+-| `POST /api/session/new` | `{path, host?}` | `{ok, session, home, file, resumed, previous}` (see below) |
++| `POST /api/session/new` | `{path, card?, host?, fresh?}` | `{ok, session, home, file, resumed, previous}` (see below) |
+ | `POST /api/session/resume` | `{session}` | `{ok, session, home, file, resumed: true, title, summary, at, last_at}` |
+ | `POST /api/session/say` | `{session, path, text, via, floor?, cues?}` | `{ok, at, answered_by: [{kind, id: "fast", agent}, {kind, id: "smart", agent}]}` at once |
+ | `POST /api/session/nav` | `{session, from, to}` | `{ok}` |
+ | `POST /api/session/floor` | `{session, floor}` | `{ok, floor, released}`: `"done"` writes a held fast reply |
+ | `GET /api/sessions?page=/x/&limit=10&host=` | | `{ok, sessions: [{session, home, title, summary, at, last_at}]}`, newest first: the sessions named in that folder's `ai/log.jsonl`, or whose `home`/`visited` in `sessions.json` names it |
++| `GET /api/sessions?card=<id>&limit=10&host=` | | the same shape, but only that card's sessions (same as `?page=` on the card's own folder) |
+ | `GET /api/session/<id>` | | the session's record |
+ 
+ **`/new` continues a recent session.** If a session from the same project started on this page, or passed through it, and its last line is less than an hour old (`SERVEX_SESSION_RESUME_MS`), `/new` returns that session with `resumed: true`. Otherwise it makes a new one, and `previous` is the page's most recent older session, `{session, title, summary, at}`, or `null`.
+ 
++### Card sessions
++
++`/new` takes an optional `card`, a card id such as `2026/09/29/audio-a-library-of-audio-parts-transcrip` (the same id `ai2/` pages use). With `card`:
++
++- The session's `home` becomes the card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file is `/framework/ai/<card>/ai/<session>.jsonl`, beside that card's `page.jsonl`. `path` is unchanged: still where the owner actually stood when they pressed ✦.
++- `card` must name a real card — `card_home()` in `Sessions.js` refuses anything with `..` or a backslash, and anything whose `public/framework/ai/<card>/page.jsonl` is not actually there, with a 400 explaining why.
++- **Resume is per card, the same one-hour rule as a page**: a second `/new` with the same `card` within the hour continues that card's session (unless `fresh`), and `GET /api/sessions?card=<id>` lists only that card's sessions.
++- **The pair gets the card as context**, appended to their opening prompt (`spawn()`'s `where`): the fast assistant gets one line, "This session is about card `<id>`."; the smart assistant is also told the path of the card's `page.jsonl` and to read it first for the card's history.
++- **The folder index lines land on the card**, through the exact same `presence()`/`point()` code a page uses — nothing is copied into `page.jsonl` itself. `card` is also stored on the session record (`sessions.json` and the file's first `session` line), so a session is always traceable back to its card even after a restart.
++
+ **Project, not host.** A session stores the browser's host (`x-forwarded-host` from the dev server's `/servex/` proxy, `Server/plugins/ServexProxy.js`; else the `host` in the body; else the request's `Host`) as information, and the **project** it resolves to, which is what `/new` and `/api/sessions` filter by (`project_of()` in `Sessions.js`): a `<name>.localhost` host is that name; an `ip:port` is the Servex project serving that port (its port registry); anything else is the project this repo is. So the phone on `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same sessions ("any new session knows everything"), and two different sites never mix.
+ 
+ A `say` from a different page than the last one also writes a `nav` line first.
+diff --git a/public/framework/ext/Session/readme.md b/public/framework/ext/Session/readme.md
+index e31a8efd..aa199f0a 100644
+--- a/public/framework/ext/Session/readme.md
++++ b/public/framework/ext/Session/readme.md
+@@ -28,6 +28,7 @@ await resume(rows[0].session);                          // continue one
+ - Sessions are listed and resumed per **project**, not per host: the phone on `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same ones; two different sites never mix ([doc/sessions.md](./doc/sessions.md)).
+ - For the ✦ sheet (`ext/drawer/rail.js`): `start()` on the first sentence, `recent(page, {limit: 1})` on open for the one-line resume offer, `resume(id)` when it is tapped, and `say({floor, cues})` + `floor()` for the floor.
+ - `start({path, fresh: true})` always begins a new session, even if this page spoke within the last hour — that is what the ✦ sheet's "New session" button sends on its next sentence, so the button actually starts fresh instead of silently continuing.
++- `start({path, card})` makes an AI 2 card the session's home (`/framework/ai/<card>/`) instead of the nearest folder to `path`, so a card page can be a voice session's home too: [doc/sessions.md](./doc/sessions.md#card-sessions).
+ 
+ ## More
+ 
