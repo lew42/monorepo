@@ -43,3 +43,7 @@ The proof of each guard, run on scratch copies: [guards/proof.md](/framework/ai/
 ## Tell the worktree which task it is for
 
 `node Server/worktree-up.mjs <slug> --task <task dir>` (or `LEW_TASK=<task dir>`) writes `worktree` into that task's `task.jsonl`. When the task lands, `Server/on-landing.mjs` uses it to stop the worktree's server. Without it, the landing matches the task's folder name or branch against `.worktrees.json`. Everything a worktree starts is also recorded in Servex's creation log: [Servex/doc/lifecycle.md](../../Servex/doc/lifecycle.md).
+
+## A merge never rewrites a live log
+
+An append-only `*.jsonl` (a `task.jsonl`, `cards.jsonl`) can gain a line while `merge.mjs` runs, for example the landing line of the task being merged. When the main tree has uncommitted edits, `merge.mjs` plans each file first and writes it afterwards. At write time it reads every `.jsonl` again and keeps any line that was appended in between, and it never deletes a live log. Proof: `node Server/jsonl-keep.mjs --proof`. Why: on 2026-09-29 a merge reset readme-chain's `task.jsonl` and lost its landing line.

@@ -465,7 +465,7 @@ export class Agents {
 		 * whole turn's text, not only its last block. Any other wake is a headline. */
 		const fork = child.one_shot && (kind === "done" || kind === "blocked");
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
-		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 300)}`;
+		const body = fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`;
 		child.woke = true;
 		this.inbox(child, kind, text);
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
