@@ -41,6 +41,7 @@ One box, any number of callers — `ext/layout` fills it with a selected element
 - Mount inside `.app`, never on `<body>` — colour-scheme and `--drawer` are read there · [doc/decisions.md](./doc/decisions.md)
 - `rem`, not `em`: an `em` width reserves the wrong strip · [doc/decisions.md](./doc/decisions.md)
 - `position: fixed` opts out of the push — `.page.layout-full` reads the shared `--rail-push` token (`.app`, drawer.css) instead of restating the reservation; `.app`'s own copy in framework.css is still the direct formula · [doc/decisions.md](./doc/decisions.md)
+- The ✦ sheet is never given a measured height on open: it grows with its content up to half the screen. A measure taken at open ran before the chat panel was built and froze the sheet at about 150 px, header and links only (sheet-regression, 2026-09-30). A dragged height is kept, but never below 40% of the screen. The links sit behind **More** in the sheet's header, so the conversation and the mic come first
 - Below `26rem` the rail is the whole sheet; that breakpoint mirrors `--rail-floor`'s default by hand · [doc/decisions.md](./doc/decisions.md)
 - `drawer()` runs on every redraw — a listener on the returned rail is wired once, behind a flag · [doc/decisions.md](./doc/decisions.md)
 - `z-index: 40`: over `.demo.max` (30), under the mode button (60); it docks beside DevBar (`--devbar`), not under it · [doc/decisions.md](./doc/decisions.md)

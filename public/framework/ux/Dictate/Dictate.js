@@ -14,6 +14,45 @@ View.stylesheet(import.meta, "Dictate.css");
  * never leaves the machine and, on this GPU, answers in well under a second. */
 const Recognition = globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition;
 
+/* GIVE THE MIC BACK WHEN THE PAGE IS HIDDEN (mic-hijack, 2026-09-30). On a phone,
+ * switching apps left a live dictation holding the microphone for seconds and
+ * then "bugged out", so the next app's own dictation did not work. Every Dictate
+ * whose mic is on (connecting or listening) is in LIVE. When the page is hidden
+ * (visibilitychange, or pagehide on a real navigation away), each one stops
+ * (the words said so far still finish) and its tracks and AudioContext are
+ * released AT ONCE, not after the last segment is sent. When the page shows
+ * again, each one that was live restarts itself and says "resumed". Cross-app
+ * dictation would need a PWA with a background process, or a native app. */
+const LIVE = new Set();
+const PAUSED = new Set();   // live when the page was hidden: restarted when it shows again
+const release_on_hide = () => {
+	for (const d of [...LIVE]){
+		d.stop();
+		d.mic?.stop();
+		try { d.rec?.abort?.(); } catch {}
+	}
+};
+const resume_on_show = () => {
+	if (document.visibilityState !== "visible") return;
+	for (const d of [...PAUSED]){
+		PAUSED.delete(d);
+		if (!d.el?.isConnected || d.state === "listening" || d.state === "connecting") continue;
+		// Still sending the last words (whisper): try again once that finishes.
+		if (d.state === "transcribing"){ PAUSED.add(d); setTimeout(resume_on_show, 300); continue; }
+		d.resumed = true;
+		d.start();
+	}
+};
+if (globalThis.document){
+	document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "hidden"){
+			for (const d of LIVE) PAUSED.add(d);
+			release_on_hide();
+		} else resume_on_show();
+	});
+	globalThis.addEventListener?.("pagehide", release_on_hide);
+}
+
 /** **Which microphone**, remembered in this browser. The test bench at
  *  `ai/2026-09-22/dictate-silence/` writes the owner's pick here, and every
  *  `Dictate` on the site reads it — so choosing a microphone once, in one place,
@@ -381,10 +420,12 @@ export default class Dictate extends View {
 	set_state(state){
 		const was_listening = this.state === "listening";
 		this.state = state;
+		(state === "listening" || state === "connecting") ? LIVE.add(this) : LIVE.delete(this);
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
 		else if (state !== "listening" && was_listening) floor.mic_off(this);
 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
 		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
+		if (state === "listening" && this.resumed){ this.resumed = false; this.$status.text("resumed — listening…"); }
 		if (state === "listening" && !was_listening) this.on_listening?.();
 	}
 
@@ -394,6 +435,7 @@ export default class Dictate extends View {
 		this.hide_countdown();
 		this.mic?.stop();
 		floor.mic_off(this);
+		LIVE.delete(this);
 		this.state = "error";
 		this.$button.rc("listening transcribing connecting");
 		this.$status.ac("error").text(msg);
@@ -436,6 +478,9 @@ export default class Dictate extends View {
 	 * resend fires roughly every `resend_ms` (only one of the three per tick).
 	 * For either engine: the opt-in "stop after a pause" countdown. */
 	heartbeat(){
+		// Taken off the page while its mic was on (a navigation that removed it,
+		// a panel rebuilt): stop and release, so no path leaves a track running.
+		if (!this.el.isConnected){ this.stop(); this.mic?.stop(); try { this.rec?.abort?.(); } catch {} return; }
 		const now = performance.now();
 		if (this.engine === "whisper"){
 			if (this.has_speech && now - this.last_loud_at >= this.pause_ms) this.close_segment("pause");
