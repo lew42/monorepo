@@ -1,0 +1,1601 @@
+diff --git a/.claude/skills/content/SKILL.md b/.claude/skills/content/SKILL.md
+index e2c384af..531dc952 100644
+--- a/.claude/skills/content/SKILL.md
++++ b/.claude/skills/content/SKILL.md
+@@ -62,3 +62,5 @@ mention.
+ Before sending, ask: could the owner get this in ten seconds? If not, cut it until they can, and
+ move the rest one click down (a linked doc or a folded section). A reply to the owner is one screen
+ at most, and usually a few lines.
++
++Review questions for this system: [questions.md](questions.md) (the review skill asks them).
+diff --git a/.claude/skills/content/questions.md b/.claude/skills/content/questions.md
+new file mode 100644
+index 00000000..52383105
+--- /dev/null
++++ b/.claude/skills/content/questions.md
+@@ -0,0 +1,17 @@
++# Content — review questions
++
++The content skill's rules, worded as questions a reviewer answers yes, no or n/a from the screenshots or the page's source; the `review` skill asks them.
++
++## Words
++
++1. Is each thing shown before it is told: files as a tree, an object as its live instance, a task as its checklist, a layout as a screenshot? [content: let the layout say it]
++2. Does the layout itself show the structure (hierarchy, proximity, grouping), with no sentence spent explaining it? [content: let the layout say it]
++3. Is every paragraph 60 words or fewer? [owner 2026-09-30]
++4. Could the owner get the page's point in ten seconds? [content: the length check]
++5. Does every title say exactly what its thing is? [content: words, when they earn it]
++6. Does every picture carry at most a one-line caption? [content: words, when they earn it]
++7. Is each concept named once, the same way every time? [content: name each concept once; CLAUDE.md: the same name every time]
++8. Does every mention of a concept with its own page link to that page, and every named file or module link to its page on the site? [content: connect the dots; CLAUDE.md: presentation]
++9. Where there is a file of words (a readme, a doc, a report), does a picture or a live widget sit beside it? [owner 2026-09-30] [CLAUDE.md: show it with the widget, then use words]
++10. Does the most important thing lead, usually the list of what this is made of, with detail one click down? [content: the tip of the iceberg comes first]
++11. Is the text written in full, plain sentences a new coder can follow, never clipped fragments or undefined jargon? [CLAUDE.md: law 2, clear beats brief]
+diff --git a/.claude/skills/css/SKILL.md b/.claude/skills/css/SKILL.md
+index 2af13de9..2cd0fd0f 100644
+--- a/.claude/skills/css/SKILL.md
++++ b/.claude/skills/css/SKILL.md
+@@ -111,3 +111,5 @@ in the module's `doc/decisions.md`; a token or a word you already have beats bot
+ Reminders: `layout` before sizing anything; `new-task` if you haven't opened one;
+ `documentation` then `finish-task` when done. Improve this skill:
+ [`improvements.md`](improvements.md).
++
++Review questions for this system: [questions.md](questions.md) (the review skill asks them).
+diff --git a/.claude/skills/css/questions.md b/.claude/skills/css/questions.md
+new file mode 100644
+index 00000000..a70bc6b5
+--- /dev/null
++++ b/.claude/skills/css/questions.md
+@@ -0,0 +1,27 @@
++# CSS — review questions
++
++The css skill's rules, worded as questions a reviewer answers yes, no or n/a from the screenshots, `layout.json` or the page's source; the `review` skill asks them. Colour and contrast live here because tokens, light and dark, and the theme are this skill's.
++
++## Spacing and padding
++
++1. At 400, is the padding stacked at the left edge of the first heading and paragraph 3em or less? [css: the padding law] [owner 2026-09-30] [measured: layout.json left_stack]
++2. Is no box padded inside a padded box inside a padded box, so nested levels don't add up to a big clunky block? [layout: nesting, grounds and padding] [owner 2026-09-30] [measured: layout.json left_stack.layers]
++3. Is padding opted in where needed: a region `.pad`, a framed box `.card`, a deliberate no `.bleed` — and never `.pad` on a card? [css: the one-line rule for which spacing word]
++4. Does text never sit at 0 from an edge: the viewport, the nav rail, the ToC column, or any box that paints its own ground? [css: text never sits at 0 from an edge]
++5. Does every gap, pad and rhythm come from the spacing clamp (`--pad`, `--gap`, `--flow`, the `--gap-70/50/35/25` rungs), never a constant and never a multiplier? [css: the padding law; layout: spacing is one knob]
++6. Does every control (a chip, a button, a nav item) keep its own `em` padding and height, never a spacing clamp or a `vw` value? [css: a spacing clamp is never the size of a control]
++7. Does a box with padding also have a different ground, so nothing floats in midair off its siblings' margins? [layout: boxes, padding and contrast]
++8. Does a bled container keep `.pad` on the content inside it, so only paint touches the edge? [layout: bleed is for paint]
++9. Is every rule inside one of the layers `base theme site util`, with no new layer name and no unlayered rule? [css: 3. layers; CLAUDE.md: traps]
++10. Is the CSS as small as it can be: an existing class, token or layout word first, no inline static styles, no class that doesn't exist? [css: write as little new CSS as you can; the ladder]
++
++## Colour and contrast
++
++11. Does body text reach 4.5:1 against its ground, and large text and UI shapes 3:1? [layout: say the ratio out loud]
++12. Does accent-coloured text still reach its ratio? [layout: the accent is the pair most likely to fail]
++13. Are colours tokens (`--surface`, `--wash`, `--ink`, the lighten and darken steps), never literal colours in a component? [css: ownership, a token override not a new component]
++14. Does every box meant to read as a box actually differ from its parent's ground (not `--wash` on the page, which paints nothing)? [css caveats: --wash is the page ground]
++15. Does the page work in dark mode as well as light, with `light-dark()` tokens rather than a second theme? [css: ownership, light and dark are modes of one theme]
++16. Is every seam where two grounds meet a deliberate choice, reading as one page's sections rather than two pages? [layout: color meets color]
++17. Is there one repeated anchor (an eyebrow, a coloured mark) kept identical wherever it appears? [layout: repetition is the strongest tool]
++18. Is muted text made with the `.muted` class, never `var(--muted)` as a colour? [css caveats: --muted is a percentage]
+diff --git a/.claude/skills/layout/SKILL.md b/.claude/skills/layout/SKILL.md
+index 09ca3280..a35342e4 100644
+--- a/.claude/skills/layout/SKILL.md
++++ b/.claude/skills/layout/SKILL.md
+@@ -387,3 +387,5 @@ with the don'ts beside them. Open the **one** you need; don't read the catalog.
+ ## The layout never jumps (the owner, 2026-09-22)
+ 
+ "The layout should never jump. Write that into your layout laws." A dashboard or workspace keeps persistent navigation and persistent work areas: nothing the reader is looking at moves because something else arrived. New items in a live list wait behind a "N new" pill unless the list is already at its top; a selected thing opens in its own column, never by expanding in place; a full navigation to a new page is the one allowed transition. Prove it with a measurement (the top edge of the thing being read, before and after three arrivals) before landing anything live.
++
++Review questions for this system: [questions.md](questions.md) (the review skill asks them).
+diff --git a/.claude/skills/layout/questions.md b/.claude/skills/layout/questions.md
+new file mode 100644
+index 00000000..e5cf7f8e
+--- /dev/null
++++ b/.claude/skills/layout/questions.md
+@@ -0,0 +1,45 @@
++# Layout — review questions
++
++The layout skill's rules, worded as questions a reviewer answers yes, no or n/a from the screenshots, `layout.json` or the page's source; the `review` skill asks them.
++
++## Layout
++
++1. At 3440, does the page fill the width with several columns, or a navigation column beside a centred main one, rather than one narrow column on an empty screen? [layout: defaults, work at 3440 as well as 1280]
++2. Does the page use one of the approved layouts (Standard, Split, Columns, Tile wall, Rail + content, Docs three-region), or say it is a new proposal? [layout: C5]
++3. For every region and box: is its width right for its content at 400, 1200, 1920 and 3440? [page: step 4, how wide is it; layout: question 2]
++4. For every region and box: does it take padding only because it needs it (a region `.pad`, a framed box `.card`, a deliberate no `.bleed`)? [page: step 4, does it need padding]
++5. For every region and box: does text keep room from every neighbour's edge and ground? [page: step 4, how does it meet its neighbours]
++6. Do two or more columns of content sit in `wide` or `bleed`, never squeezed into the reading column? [layout: question 2]
++7. Does each band of the screen take a share that matches its importance — no band both big and nearly empty? [owner 2026-09-30] [measured: layout.json bands[].share, bands[].ink, bands[].big_empty]
++8. Do columns side by side have roughly equal content, or is a short column's hole turned into weight (centred) or spent on more content? [layout: C4]
++9. Is dead space answered by a new region or accepted as a gutter, never by widening a reading column past its measure? [layout: the two bounds rules]
++10. Is content scaled to its box: nothing large in a small column, nothing tiny alone in a huge band? [layout: content scale follows the box]
++11. Does a wall of cards end on a full or balanced last row at every width, with no lone card and no reserved blank tracks? [layout: auto-fill vs auto-fit]
++12. Do flush-stacked rows share one rounded outline, and do rounded cards stand apart with a gap? [layout: rounded corners and gaps go together]
++
++## Sizing
++
++13. Is every box auto height, with a fixed height only where content cannot grow (an icon, media of known size, a full-viewport shell, a deliberate scroll area)? [layout: leave the defaults alone, height]
++14. Are previews auto height, as tall as their content, never cropped or padded out to a fixed height? [layout: previews are auto height]
++15. Does every bounded box (a hero, a viewport band, an equal-height row, a scrolling rail) say what happens to longer content: scroll, clip or truncate? [layout: some boxes grow, some cannot]
++16. Is every scrollbar on the page one that was meant (a log, a code block, a rail), with no surprise scrolling box? [layout: scrollbars are a decision]
++17. Is a band above the first navigation budgeted in height (`vh`), so it never pushes the navigation below the fold? [layout: question 2, height above the first nav]
++18. Does every track have a floor and a ceiling, so nothing overflows at 400 or collapses? [layout: the two bounds rules] [measured: layout.json overflow_x]
++19. Do sizes meant to follow the text use `em`, and floors use `rem`? [layout: leave the defaults alone; question 3, floors in rem]
++
++## Wrapping
++
++20. Does every tab bar, title, button row and nav row sit on one line where it was meant to? [owner 2026-09-30] [measured: layout.json wraps]
++21. Is there no wrap that appears only under 1920 — a row that is one line at 1920 and two at 1200? [owner 2026-09-30] [measured: layout.json wraps, compared across widths]
++22. Where a row does wrap (a control row, a chip row), is it `flex wrap` by design and does it wrap cleanly? [layout: only a control row takes flex wrap]
++23. At 400, does every full-row item stack into one column rather than crushing a track to a sliver? [layout caveats: a full-row item's inside must be able to stack]
++24. Is no preview description clipped where the same child shows at two widths (a wall card and a rail item)? [layout: question 5, 45 characters]
++
++## Flow
++
++25. Does the order top to bottom match priority: the most important thing is what the eye lands on first? [layout: before the first factory call, focus and visual hierarchy]
++26. Is nothing hidden off-screen: no content past the right edge, under a fixed overlay, or below an inner scroller nobody will find? [layout: look at it, then cycle] [measured: layout.json overflow_x]
++27. Does each box keep one rhythm (`.flow` for prose, `flex v gap` for UI), and does a wall in prose keep the prose's rhythm? [layout: rhythm, one system per box]
++28. Does each label sit clearly closer to its own card than to the next one? [layout: association by proximity]
++29. Does a live page stay still as items arrive, with new items waiting behind an "N new" pill? [layout: the layout never jumps]
++30. Does no prose line run past the measure at any width? [layout: look at it, then cycle] [measured: layout.json widest_text]
+diff --git a/.claude/skills/page/SKILL.md b/.claude/skills/page/SKILL.md
+index 4723b161..14115f82 100644
+--- a/.claude/skills/page/SKILL.md
++++ b/.claude/skills/page/SKILL.md
+@@ -126,3 +126,5 @@ First ask: what content, and how much? A little or a lot; images, video, navigat
+ **A page for every template and every variant, down to a button or one CSS class.** Each type is a Page and each variant a child Page (`ai/audits/paging/types/`, built from a `types.json` node by one factory), so each has its own URL, comments and soon its own agent.
+ 
+ No flow-chart module exists yet. Full audit: /framework/ai/audits/paging/ (Round 2).
++
++Review questions for this system: [questions.md](questions.md) (the review skill asks them).
+diff --git a/.claude/skills/page/questions.md b/.claude/skills/page/questions.md
+new file mode 100644
+index 00000000..add882e9
+--- /dev/null
++++ b/.claude/skills/page/questions.md
+@@ -0,0 +1,33 @@
++# Page — review questions
++
++The page skill's rules, worded as questions a reviewer answers yes, no or n/a from the screenshots, `layout.json` or the page's source; the `review` skill asks them.
++
++## Page structure
++
++1. Does the page's title or first line say, in one sentence, what the page is and who it is for? [page: step 1, what is it]
++2. Is the first thing under the title the page's core concepts, as linked icon tiles or a short list of linked items? [page: step 5a, concepts first]
++3. Does the content run in priority order, top to bottom: what it is, then its state, then what needs doing, then what was done, then detail? [page: step 5, content in priority order]
++4. Does what is still open come before what is finished? [page: step 5, open before done]
++5. Does the parent page's `children:` name this page, so it is reachable by clicking? [page: creating a new page, 1]
++6. Does every view a click reaches (a tab, a selected item, an open panel) have its own URL, so a reload or the back button lands in the same place? [page: creating a new page, 2; CLAUDE.md: route everything]
++7. Does the page use a layout word or an approved type, rather than page-specific CSS for its shape? [page: which kind of page is this?]
++8. Is every item, label and button self-evident: would the owner know what it is and does without reading more? [page: two tests, self-evident]
++9. Does every element earn its space: nothing repeats what a neighbour already shows, and no small control sits alone on a wide empty row? [page: two tests, necessary]
++10. Is each piece in its best form: a number or grid rather than a sentence, one filtered list rather than two lists, a structure shown rather than described? [page: step 6, best form]
++11. Does every section have a title that makes the whole section clear? [page: step 6; CLAUDE.md: clarity is familiar structure]
++12. Where a working version was restructured, is the old version still reachable to compare against? [page: never destroy a viable version]
++
++## Navigation
++
++First, identify: list every navigation technique on the page — tabs, a rail (side navigation column), a bottom rail, a sidebar, a sheet, a modal, full screen. Plain links need not be listed. Write the list, then answer only the questions for the techniques found; the rest are n/a.
++
++13. Identify: which techniques does the page use? (Answer with the list, not yes or no.) [owner 2026-09-30]
++14. Tabs: does the tab bar fit on 1 row at 1920, at most 2 rows at 1200, and at most 3 rows at 400? [owner 2026-09-30] [measured: layout.json tab_rows]
++15. Tabs: does every tab have its own URL, so a reload lands on the same tab? [CLAUDE.md: route everything]
++16. Tabs: is every tab useful, and are many tabs grouped (sub-tabs, a rail, one click down) rather than stacked into rows? [owner 2026-09-30]
++17. Rail or sidebar: does it sit beside a centred main column at 3440, and fold away or stack cleanly at 400? [layout: defaults, navigation beside a centred main]
++18. Rail or sidebar: does the page keep the rail and its work area still, so nothing the reader is looking at jumps when something arrives or is selected? [layout: the layout never jumps]
++19. Bottom rail, or any fixed overlay: does the page leave room for it, so it never covers the last row of content? [layout: a permanent fixed overlay owes the shell the strip it stands on]
++20. Sheet or modal: does it have its own URL, and does closing it return to exactly where the reader was? [CLAUDE.md: route everything] [owner 2026-09-30]
++21. Full screen: is there a visible way back out, and does it have its own URL? [owner 2026-09-30]
++22. Does a selected item open in its own column or view, never by expanding in place and pushing the rest down? [layout: the layout never jumps]
+diff --git a/.claude/skills/review/SKILL.md b/.claude/skills/review/SKILL.md
+new file mode 100644
+index 00000000..2a4a45c1
+--- /dev/null
++++ b/.claude/skills/review/SKILL.md
+@@ -0,0 +1,80 @@
++---
++name: review
++description: Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof. Invoke on "review", "use your review skill", "fresh-eyes review", "review this page", or when Server/review.mjs starts you.
++---
++
++# Review: one reviewer, every system, one pass
++
++You are a fresh reviewer. You did not build this work, and you don't fix it: you answer questions about it, each with proof, and write one report.
++
++## Load first
++
++1. The `page`, `layout`, `css` and `content` skills — the rules.
++2. Their questions, the same rules worded as yes/no checks: [page](../page/questions.md) · [layout](../layout/questions.md) · [css](../css/questions.md) · [content](../content/questions.md). All of them, live: [/framework/ai/review/](/framework/ai/review/).
++
++## What you are given
++
++```
++<taskdir>/
++├── requirements.md        the brief; it names the owner's own words — read those too
++├── shots/<page>/
++│   ├── 400.png 1200.png 1920.png 3440.png   one per width
++│   ├── sheet.png          all four side by side — look at this first
++│   └── layout.json        the --bands numbers: tab_rows, left_stack, bands, wraps
++└── (the diff, in your prompt)
++```
++
++The shots are already taken when you start (by the task mastermind, or by `Server/review.mjs` with `node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/`). Don't run it yourself.
++
++## The order
++
++Answer in this order, one system at a time:
++
++1. **Requirements** — one question per numbered ask in `requirements.md`, in the owner's words: "met?" These questions live here, not in a questions.md.
++2. **Page structure** — the Page structure section of page/questions.md.
++3. **Navigation** — the Navigation section of page/questions.md; its first question is identify: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
++4. **Layout** — the Layout section of layout/questions.md.
++5. **Sizing** — the Sizing section of layout/questions.md.
++6. **Wrapping** — the Wrapping section of layout/questions.md.
++7. **Spacing and padding** — the Spacing and padding section of css/questions.md.
++8. **Colour and contrast** — the Colour and contrast section of css/questions.md.
++9. **Flow** — the Flow section of layout/questions.md.
++10. **Words** — the Words section of content/questions.md.
++
++A review whose diff changes no page (review.mjs size `light`, no shots) answers Requirements and Words only; a page change answers every system.
++
++## Read each shot in horizontal bands
++
++Look at every shot from the top down, one horizontal band at a time (the owner, 2026-09-30). For each band ask: what share of the screen does it take, is that the right size, is its padding right, is space wasted, did anything wrap that shouldn't? `layout.json`'s `bands` gives each band's `share` and `ink`, so check your eye against it.
++
++## How to answer
++
++One line per question: `yes`, `no` or `n/a`, then the evidence.
++
++- Evidence is a shot and where on it (`shots/home/1200.png, top band`), or a number from `layout.json` (`tab_rows 3 at 400`).
++- A question marked `[measured: …]` is answered by that number. If there is no `layout.json`, write `not measured` and judge it from the shot.
++- When a question's subject is absent (no tabs, no columns, no live items), answer `n/a` in one word, with no evidence, so the whole pass stays under a screen.
++- `no` on anything the owner asked for, or on a rule's core, is a fix. A small thing is a note.
++
++## The report
++
++Write the file your prompt names: `<taskdir>/review/report.md` for a review with shots; a review with no page (no shots) writes `<taskdir>/review.md` in the same shape, with only the Requirements and Words sections. `Server/review.mjs` parses its top, so keep this shape exactly:
++
++```
++verdict: fix
++1. [fix] The tab bar wraps to 3 rows at 1200 (page 14) — layout.json tab_rows 3.
++2. [note] The intro paragraph runs 80 words (content 3) — shots/home/1920.png, band 2.
++
++## Requirements
++- 1 "Screenshots belong to the task" — yes — shots/ holds four widths per page
++## Page structure
++- page 1 — yes — shots/home/1920.png: the title says what it is
++## Navigation
++- page 13 — tabs, a sidebar
++- page 14 — no — layout.json tab_rows 3 at 1200
++…one section per system, in the order above
++```
++
++The first line is exactly `verdict: pass` or `verdict: fix`. Then the numbered findings, `[fix]` or `[note]`, one or two sentences each, naming the question and its evidence. Then one `## <System>` section per system, every question answered.
++
++Then stop. You don't edit the work.
+diff --git a/Server/doc/review.md b/Server/doc/review.md
+index 105b2670..9b659b83 100644
+--- a/Server/doc/review.md
++++ b/Server/doc/review.md
+@@ -55,15 +55,59 @@ still reads only `task.jsonl`, so it keeps working with zero changes.
+ 
+ ## The size (turn 1)
+ 
+-| Size | When | Who reviews | What it looks at |
+-|---|---|---|---|
+-| **none** | only CSS or docs changed, 20 lines or fewer, no new file | nobody | — |
+-| **light** | code changed, but no new page, module or Servex part | a fresh Sonnet | the brief and the diff: does it do what was asked, is anything broken, is there a simpler way |
+-| **full** | a new page, module, tool or Servex change | a fresh Opus | the light questions, plus screenshots at 1280, 1920, 3440 and four UX questions: is the space used well, is the order right, can the reader find everything, is the navigation clear |
++Size decides WHO reviews — nothing more. What they're shown (screenshots or not) is a separate
++question, covered next, because it depends on whether a page was touched, not on size.
++
++| Size | When | Who reviews |
++|---|---|---|
++| **none** | only CSS or docs changed, 20 lines or fewer, no new file | nobody |
++| **light** | code changed, but no new page, module or Servex part | a fresh Sonnet |
++| **full** | a new page, module, tool or Servex change | a fresh Opus |
+ 
+ The task mastermind may lower the size only with `--why "self-evident: <one line>"` (logged as a
+ `{"decision":...}` line so the reason survives); raising it needs no reason.
+ 
++## Screenshots and the review skill (also turn 1)
++
++Any review — `light` or `full` — whose diff changes at least one `page.js`/`page.jsonl` gets
++screenshots FIRST, at four widths — 400, 1200, 1920 and 3440 (a phone size, a size just past
++mobile, a common desktop size, and the widest common screen) — via:
++
++```
++node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/
++```
++
++`--bands` (`Server/layout-check.mjs`'s own header) adds, for every width: `tab_rows` (did a tab
++bar wrap into more than one row), `left_stack` (the padding stacked at the page's own left edge,
++layer by layer), `bands` (every top-level section's share of the screen, and how much of that
++share actually has content on it), and `wraps` (anything that wrapped to a second line when it
++looks like it shouldn't have). This is skipped if every page already has all four widths' pngs
++under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is appended
++to `task.jsonl`:
++
++```json
++{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"]}}
++```
++
++The reviewer is then told to load the `review` skill (`.claude/skills/review/SKILL.md`) and
++follow it: read the brief, the owner's own words, the diff, the shots and each page's
++`layout.json`, and ask one fixed list of questions per system — page structure, navigation,
++layout, sizing, wrapping, spacing and padding, colour and contrast, flow — in that order, each
++answered with a screenshot region or a `layout.json` number as its evidence. It writes
++`<taskdir>/review/report.md` instead of the plain `review.md`. Every one of those questions is
++documented, live, at [/framework/ai/review/](/framework/ai/review/) — read straight from the
++skills' own `questions.md` files by `node Server/review.mjs --questions`, which `main()` also
++runs at the start of every review, so that page never goes stale even if nobody runs the command
++by hand.
++
++A review whose diff touches no page — most `light` reviews, and a `full` review of something
++that isn't a page, like a new Servex tool — keeps the plain prompt this always used (read the
++brief and the diff, say what's wrong) and writes the plain `<taskdir>/review.md`, exactly as
++before this. Either way, `task.jsonl`'s `{"review":...}` line's `file` names whichever one was
++actually used, and gains `report` and `shots` pointers (both `null` when no page was touched).
++`parseReview` (exported) reads both files the same way, so `--turns`, `--rule`, `--score`,
++`--status` and `merge.mjs`'s gate are all unchanged — they only ever read `task.jsonl`.
++
+ ## Answering a finding (turn 2)
+ 
+ The author answers every finding in `task.jsonl`, never argues with it in chat. A `[fix]` finding
+@@ -91,7 +135,10 @@ own mistake mid-task; caught and corrected the same way, an appended corrective
+ 
+ `Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last
+ commit, or has a `[fix]` finding with no answer yet. The refusal names the one command above to
+-run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`.
++run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`. A branch that
++also touches a page is refused unless that review has its own page report (`review/report.md`,
++with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
++gets is not enough for a page.
+ 
+ `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
+ board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index 4039ea0c..884e4bf6 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -7,10 +7,12 @@
+  *
+  * `--no-review "why"` is also a flag, alongside the ones above — see below.
+  *
+- * REVIEW GATE (2026-09-28, fresh-eyes-review), before the smoke test: a light or full-size branch
+- * (`Server/review.mjs`'s `sizeOf`) needs a review newer than its head with every `[fix]` finding
+- * answered, or the merge refuses with the one command to fix that; `--no-review "why"` or `--main`
+- * skip it, loudly.
++ * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
++ * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
++ * than its head with every `[fix]` finding answered, or the merge refuses with the one command to
++ * fix that; a branch that also touches a page (`pageUrlFor`) needs that review's own page report
++ * (`review/report.md`, with shots at 400/1200/1920/3440), not just the plain review.md a non-page
++ * change gets; `--no-review "why"` or `--main` skip it, loudly.
+  *
+  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
+  * branch touches, from `git diff --name-only BASE...branch`, is turned into that page's own site
+@@ -41,7 +43,7 @@ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+-import { sizeOf, status as reviewStatus, diffStat } from "./review.mjs";
++import { sizeOf, status as reviewStatus, diffStat, pageUrlFor } from "./review.mjs";
+ import { keepLive } from "./jsonl-keep.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
+ 
+@@ -70,17 +72,8 @@ const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { re
+ const lockFile = path.join(MAIN, ".merge.lock");
+ const lines = s => s.split(/\r?\n/).filter(Boolean);
+ 
+-/* A changed page.js/page.jsonl's own site url, or null. The no-build site has no routing table
+- * besides "the url IS the directory that holds the page.js" (same rule health.mjs's
+- * nearest_page_url() walks live) — except an AI card folder, which core/Page's own AITask
+- * renders under /framework/ai2/, never at its filesystem path. */
+-const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
+-function pageUrlFor(f){
+-	const card = CARD_RE.exec(f);
+-	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
+-	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
+-	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
+-}
++// pageUrlFor (a changed page.js/page.jsonl's own site url, or null) is imported from review.mjs
++// above, next to sizeOf — the review gate needs the exact same rule, so there is only one copy.
+ 
+ // The worktree's own dev server — same lookup smoke.mjs makes, so a screenshot loads the branch's
+ // own pages, not the main tree's.
+@@ -140,6 +133,11 @@ function reviewGate(branch, head){
+ 	const rs = reviewStatus(best.td);
+ 	// Name which findings, not just how many — so whoever reads the refusal doesn't have to go hunting.
+ 	if (/unanswered/.test(rs)) return `refused: ${branch}'s review has an unanswered finding (${rs}); run: ${cmd}`;
++	// A branch that touches a page needs the page-shaped report (screenshots at all four widths,
++	// every layout question answered), not just the plain brief-and-diff review.md a non-page
++	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
++	if (nameStatus.some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
++		return `refused: ${branch} changes a page and its review has no report (review/report.md, with shots at 400/1200/1920/3440); run: ${cmd}`;
+ 	return null;
+ }
+ 
+diff --git a/Server/review.mjs b/Server/review.mjs
+index a4036cdb..ce58eab9 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -1,14 +1,32 @@
+ /* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]`
+  * Fresh eyes on a finished task: an agent that never saw the author's conversation reads only the
+- * brief, the diff and (for a new page/module) screenshots, then says pass or fix. Why fresh: an
++ * brief, the diff and (for a page it touched) screenshots, then says pass or fix. Why fresh: an
+  * agent that reviews its own code agrees with itself.
+  *
+  * SIZE (`sizeOf`, exported): `none` — only .css/.md changed, 20 changed lines or fewer, no added
+  * file: no agent runs, review.md just says so. `light` — code changed, but no new page/module/
+  * Servex file: a fresh Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs
+- * module, or anything under Servex/: a fresh Opus also gets 1280/1920/3440 screenshots and the four
+- * layout questions. `--size` may only RAISE the computed size; lowering it needs `--why`, logged as
+- * a `{"decision":…}` line so the reason survives.
++ * module, or anything under Servex/: a fresh Opus. `--size` may only RAISE the computed size;
++ * lowering it needs `--why`, logged as a `{"decision":…}` line so the reason survives.
++ *
++ * SHOTS: any review — `light` or `full` — whose diff touches a page (`pageUrlFor` finds one) gets
++ * screenshots first, at `WIDTHS` (400, 1200, 1920, 3440) via `Server/layout-check.mjs --bands`,
++ * saved to `<taskdir>/shots/<page-slug>/` (`400.png` … `sheet.png` … `layout.json`, the last
++ * carrying `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page
++ * already has all four pngs there — the task mastermind may have shot them first. One
++ * `{"shots":{...}}` line is appended to task.jsonl naming every page, the shots dir, the first
++ * page's sheet, every page's sheet, and every `layout.json` that exists.
++ *
++ * REVIEWER: when shots were taken, the prompt tells the reviewer to load the `review` skill — its
++ * own absolute path, resolved from the tree THIS file lives in (`new URL("../.claude/skills/
++ * review/SKILL.md", import.meta.url)`), so a worktree's copy reviews with the worktree's own copy
++ * of the skill — and follow it: read the brief, the owner's words, the diff, `shots/` and each
++ * page's `layout.json`, then write `<taskdir>/review/report.md`. A review that touches no page
++ * keeps the plain brief-and-diff prompt and writes `<taskdir>/review.md`, same as always. Either
++ * file's first line is `verdict: pass` or `verdict: fix`, then findings `N. [fix] …` / `N. [note]
++ * …`; `parseReview` (exported) reads both the same way into one `{"review":{…}}` line appended to
++ * the task's task.jsonl — its `file` names whichever file was actually used, plus `report` and
++ * `shots` pointers when shots were taken.
+  *
+  * DIFF: normally `git diff michael/dev...<branch>` run INSIDE the worktree (default: cwd) — the
+  * worktree shares the main repo's objects, so `michael/dev` is visible from there. `--range A..B`
+@@ -18,15 +36,22 @@
+  * The reviewer is a brand-new Servex agent (`spawn_agent` over the loopback MCP at
+  * http://127.0.0.1:8090/mcp, then `wait_for_agent`, then `stop_agent` — the same three calls
+  * `Server/clarity.mjs` makes) — never a `resume` or `fork`, so it truly has not seen the author's
+- * turns. It writes `<taskdir>/review.md` (first line `verdict: pass` or `verdict: fix`, then
+- * findings `N. [fix] …` / `N. [note] …`) and this script parses that (`parseReview`, exported) into
+- * one `{"review":{…}}` line appended to the task's task.jsonl.
++ * turns.
+  *
+  * `--status <taskdir>` (no other args) prints one phrase for the dashboard card: `reviewed: pass`,
+  * `reviewed: 2 fixed, 1 declined`, `reviewed: 1 unanswered`, or `not reviewed` (`status`, exported;
+  * see doc/review.md for how a finding is answered). Every Node spawn here sets `windowsHide: true`.
+  * Never throws: a Servex problem becomes a `fix` finding saying so, not a crash.
+  *
++ * `--questions` reads every skill dir's own `questions.md` under `.claude/skills` (plus the review
++ * skill's own SKILL.md, if it ever carries numbered questions the same way) and writes one file
++ * everyone else reads live:
++ * `public/framework/ai/review/questions.json` — every review question, grouped by system, in the
++ * review's own order (requirements, page structure, navigation, layout, sizing, wrapping, spacing
++ * and padding, colour and contrast, flow, then anything else not on that list). `main()` runs this
++ * at the start of every review too, so the file never goes stale even if nobody runs it by hand.
++ * The page at `/framework/ai/review/` reads it.
++ *
+  * TURNS (doc/review.md has the picture): the findings above are phase 1 of four, all logged to a
+  * NEW file, `<taskdir>/review.jsonl` (task.jsonl's own `{"review":…}` line is untouched, still what
+  * merge.mjs's gate reads). `node Server/review.mjs --turns <taskdir>` mirrors the author's
+@@ -43,7 +68,11 @@ import { fileURLToPath } from "node:url";
+ 
+ const BASE = "michael/dev";
+ const MCP = "http://127.0.0.1:8090/mcp";
+-const WIDTHS = [1280, 1920, 3440];
++const WIDTHS = [400, 1200, 1920, 3440];
++// The review order every system's questions sort into (Server/review.mjs --questions, and the
++// review skill's own "## The order"). Anything not on this list (content's "Words" today) sorts
++// after it, in the order its file put it.
++const SYSTEM_ORDER = ["Requirements", "Page structure", "Navigation", "Layout", "Sizing", "Wrapping", "Spacing and padding", "Colour and contrast", "Flow"];
+ const lines = s => s.split(/\r?\n/).filter(Boolean);
+ const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
+ const git = (cwd, ...a) => run("git", a, cwd);
+@@ -149,6 +178,96 @@ export function parseReply(text) {
+ 	return out;
+ }
+ 
++/* Every top-level `[...]` bracket in a line, as [start, end) spans over the FULL string (`]`
++ * included) — tracking nesting depth, because a rule tag can itself contain a balanced `[]`
++ * (layout/questions.md's own `[measured: layout.json bands[].share, ...]`, an array-index
++ * notation, would truncate at that inner `]` under a simple non-greedy regex). A bracket pair
++ * immediately followed by `(` is a markdown link (`[page](../page/questions.md)`, in the review
++ * skill's own "## Load first" list), never a rule tag, and is skipped. */
++function bracketSpans(line) {
++	const spans = [];
++	let depth = 0, start = -1;
++	for (let i = 0; i < line.length; i++) {
++		if (line[i] === "[") { if (depth === 0) start = i; depth++; }
++		else if (line[i] === "]") {
++			depth--;
++			if (depth === 0 && start >= 0) { if (line[i + 1] !== "(") spans.push([start, i + 1]); start = -1; }
++		}
++	}
++	return spans;
++}
++
++/* One questions.md's own numbered lists, grouped by its `## <Heading>` sections. A line only
++ * counts as a review question if it carries at least one `[...]` rule tag — a plain numbered
++ * step (like the `review` skill's own "## Load first" list) has no tag and is skipped, so this
++ * is safe to run over any skill file, not just a real questions.md. A fenced ```...``` block (the
++ * review skill's own example report, which has lines shaped like "1. [fix] ...") is skipped
++ * whole, since "[fix]"/"[note]" there are finding kinds, not rule tags. Exported for testing. */
++export function parseQuestionsFile(text) {
++	const systems = [];
++	let current = null, inFence = false;
++	for (const raw of text.split(/\r?\n/)) {
++		const line = raw.trim();
++		if (/^```/.test(line)) { inFence = !inFence; continue; }
++		if (inFence) continue;
++		const h = /^#{2,3}\s+(.+)$/.exec(line);
++		if (h) { current = { heading: h[1].trim(), questions: [] }; systems.push(current); continue; }
++		const m = /^(\d+)\.\s*(.+)$/.exec(line);
++		if (!m || !current) continue;
++		const spans = bracketSpans(m[2]);
++		if (!spans.length) continue;
++		const rules = spans.map(([a, b]) => m[2].slice(a + 1, b - 1).trim());
++		let qtext = "";
++		let last = 0;
++		for (const [a, b] of spans) { qtext += m[2].slice(last, a); last = b; }
++		qtext += m[2].slice(last);
++		current.questions.push({ n: Number(m[1]), text: qtext.trim(), rules });
++	}
++	return systems.filter(s => s.questions.length);
++}
++
++// The root of whichever tree THIS COPY of review.mjs lives in — resolved from import.meta.url,
++// never git's own idea of "the repo". `git rev-parse --git-common-dir` is shared by every worktree
++// of a repo, so from inside a worktree it points at the MAIN tree: a worktree's --questions run
++// with --range used to read the main tree's skills (which may have no questions.md yet) and write
++// an empty questions.json there — invisible to `git status` run in the worktree that ran it.
++// --questions must stay inside the tree it was actually run from.
++function selfRoot() { return path.dirname(path.dirname(fileURLToPath(import.meta.url))); }
++
++/* `--questions` (also run by main() at the start of every review): every skill dir under
++ * `.claude/skills` that has its own `questions.md`, plus the review skill's own SKILL.md (in case
++ * it ever grows numbered questions the same way), read live and written to one file the
++ * `/framework/ai/review/` page reads — never hand-edited. Written only when the systems/questions
++ * actually changed (everything except `generated_at`) — a review run should not dirty git with a
++ * new timestamp every time it runs. Exported for testing. */
++export function questionsCmd(root) {
++	const skillsDir = path.join(root, ".claude/skills");
++	const systems = [];
++	let dirs = [];
++	try { dirs = fs.readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
++	for (const skill of dirs.sort()) {
++		const file = path.join(skillsDir, skill, "questions.md");
++		if (!fs.existsSync(file)) continue;
++		const rel = path.relative(root, file).replaceAll("\\", "/");
++		for (const s of parseQuestionsFile(fs.readFileSync(file, "utf8"))) systems.push({ skill, file: rel, heading: s.heading, questions: s.questions });
++	}
++	const reviewSkillFile = path.join(skillsDir, "review", "SKILL.md");
++	if (fs.existsSync(reviewSkillFile)) {
++		const rel = path.relative(root, reviewSkillFile).replaceAll("\\", "/");
++		for (const s of parseQuestionsFile(fs.readFileSync(reviewSkillFile, "utf8"))) systems.push({ skill: "review", file: rel, heading: s.heading, questions: s.questions });
++	}
++	const rank = h => { const i = SYSTEM_ORDER.findIndex(o => o.toLowerCase() === h.toLowerCase()); return i < 0 ? SYSTEM_ORDER.length : i; };
++	systems.sort((a, b) => rank(a.heading) - rank(b.heading));
++	const outPath = path.join(root, "public/framework/ai/review/questions.json");
++	let prev = null;
++	try { prev = JSON.parse(fs.readFileSync(outPath, "utf8")); } catch {}
++	if (prev && JSON.stringify(prev.systems) === JSON.stringify(systems)) return { generated_at: prev.generated_at, note: prev.note, systems, unchanged: true };
++	const out = { generated_at: now(), note: "generated by review.mjs --questions from the files named in source; never edit by hand", systems };
++	fs.mkdirSync(path.dirname(outPath), { recursive: true });
++	fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + "\n");
++	return out;
++}
++
+ /* The dashboard's one-phrase answer, from task.jsonl: the newest {"review":…} line (not an
+  * answer), plus every {"review":{"answer":…}} line that answers a finding — `[fix]` or `[note]`,
+  * since requirements.md's own deliverable 2 says the author answers EVERY finding, not just the
+@@ -367,6 +486,22 @@ function buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotPath
+ 		+ `Make no code edits. One pass, then stop.`;
+ }
+ 
++// The review skill's own absolute path, resolved from the tree THIS FILE lives in — never the
++// main tree — so a worktree's copy of review.mjs hands its reviewer the worktree's own copy of
++// the skill (a worktree may be mid-edit on the skill itself).
++function reviewSkillPath() { return fileURLToPath(new URL("../.claude/skills/review/SKILL.md", import.meta.url)); }
++
++// A page review's prompt: point the reviewer at the review skill (which already knows the report
++// shape and every system's questions) instead of restating any of that here.
++function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotsDir) {
++	const rel = p => path.relative(root, p).replaceAll("\\", "/");
++	const files = [rel(path.join(taskDir, "requirements.md")), ...ownerWordsFiles.map(rel), ...(cardDir ? [rel(cardDir)] : []), rel(diffPath), rel(shotsDir) + "/"];
++	return `Load the review skill at ${reviewSkillPath().replaceAll("\\", "/")} and follow it — you are the fresh-eyes reviewer it describes.\n\n`
++		+ `Read: ${files.join(", ")} (and each page's own layout.json inside ${rel(shotsDir)}/<page>/, as evidence under the layout, sizing, wrapping and spacing questions).\n\n`
++		+ `Write ${rel(path.join(taskDir, "review", "report.md"))} in the exact shape the review skill gives.\n\n`
++		+ `Make no code edits. One pass, then stop.`;
++}
++
+ async function main() {
+ 	const argv = process.argv.slice(2);
+ 	if (argv[0] === "--status") { console.log(status(path.resolve(argv[1]))); return; }
+@@ -374,6 +509,12 @@ async function main() {
+ 	if (argv[0] === "--rule") { ruleCmd(argv[1], argv[2], argv[3], argv[4]); return; }
+ 	if (argv[0] === "--score") { scoreCmd(argv[1]); return; }
+ 	if (argv[0] === "--backfill") { backfillCmd(); return; }
++	if (argv[0] === "--questions") {
++		const out = questionsCmd(selfRoot());
++		const counts = `${out.systems.length} system(s), ${out.systems.reduce((n, s) => n + s.questions.length, 0)} question(s)`;
++		console.log(out.unchanged ? `review.mjs --questions: unchanged (${counts})` : `review.mjs --questions: ${counts} -> public/framework/ai/review/questions.json`);
++		return;
++	}
+ 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
+ 	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model");
+ 	const [taskDirArg, worktreeArg] = argv;
+@@ -391,6 +532,10 @@ async function main() {
+ 	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
+ 	const head = range ? git(cwd, "rev-parse", rangeB).stdout.trim() : git(worktreeDir, "rev-parse", "HEAD").stdout.trim();
+ 
++	// So the questions page never goes stale, even for someone who never runs --questions by hand.
++	// Always this tree's own copy (selfRoot()), never `root` (the main tree, from --git-common-dir).
++	try { questionsCmd(selfRoot()); } catch (e) { console.log(`review.mjs: --questions failed to refresh questions.json — ${String(e?.message || e).slice(0, 150)}`); }
++
+ 	const { nameStatus: status_, numstat } = diffStat(cwd, spec);
+ 	const files = status_.map(x => x.f);
+ 	const computed = sizeOf(status_, numstat);
+@@ -416,24 +561,29 @@ async function main() {
+ 	const diffPath = path.join(taskDir, "review", "diff.patch");
+ 	fs.writeFileSync(diffPath, git(cwd, "diff", "--no-renames", spec).stdout);
+ 
+-	let shotFiles = [];
+-	if (size === "full") {
+-		const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
++	// A page review: the diff touches at least one page.js/page.jsonl (pageUrlFor finds a URL for
++	// it). Every page review — `light` or `full` — gets screenshots at the four widths and uses
++	// the review skill; anything else keeps the plain brief-and-diff prompt, same as always.
++	const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
++	const pageReview = pages.length > 0;
++	const shotsDir = path.join(taskDir, "shots");
++	if (pageReview) {
+ 		const HOST = "http://monorepo.localhost";
+-		const already = pages.length && pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(taskDir, "layout-check", slug(HOST + p), `${w}.png`))));
+-		if (pages.length && already) shotFiles = pages.map(p => path.join(taskDir, "layout-check", slug(HOST + p), "sheet.png"));
+-		else if (pages.length) {
+-			const found = worktreeBase(root, worktreeDir);
++		const found = worktreeBase(root, worktreeDir);
++		const base = found ?? HOST;
++		const already = pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
++		if (already) console.log(`review.mjs: shots already present for every page under ${path.relative(root, shotsDir)} — skipping layout-check`);
++		else {
+ 			// Falling back to the MAIN site's URL when this worktree has no .worktrees.json entry
+ 			// would screenshot the wrong tree with no sign of it — say so instead of staying silent.
+ 			if (!found) console.log(`review.mjs: no worktree entry for ${worktreeDir} in .worktrees.json — screenshotting the MAIN site instead, not this worktree's own copy`);
+-			const base = found ?? HOST;
+-			const shots = path.join(taskDir, "review", "shots");
+-			fs.mkdirSync(shots, { recursive: true });
+-			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--out", shots]);
++			fs.mkdirSync(shotsDir, { recursive: true });
++			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--bands", "--out", shotsDir]);
+ 			console.log(lc.stdout + lc.stderr);
+-			shotFiles = pages.map(p => path.join(shots, slug(base + p), "sheet.png"));
+ 		}
++		const sheets = pages.map(p => `shots/${slug(base + p)}/sheet.png`);
++		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
++		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands } });
+ 	}
+ 
+ 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
+@@ -451,24 +601,30 @@ async function main() {
+ 
+ 	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5");
+ 	const name = path.basename(taskDir).replace(/[^a-z0-9-]+/gi, "-").slice(0, 40);
+-	const prompt = buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotFiles, size);
++	// A page review writes review/report.md and asks the reviewer to load the review skill;
++	// everything else keeps the plain prompt and review.md, exactly as before this task.
++	const reviewRelFile = pageReview ? "review/report.md" : "review.md";
++	const reviewPath = path.join(taskDir, reviewRelFile);
++	const prompt = pageReview
++		? buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotsDir)
++		: buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, [], size);
+ 	let verdict = "fix", findings = [{ n: 1, kind: "fix", text: "the reviewer never ran" }], cost = 0;
+-	// a stale review.md from a previous run must never be read as if it answered THIS head
+-	try { fs.unlinkSync(path.join(taskDir, "review.md")); } catch {}
++	// a stale report from a previous run must never be read as if it answered THIS head
++	try { fs.unlinkSync(reviewPath); } catch {}
+ 	try {
+ 		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root });
+ 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
+ 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
+ 		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
+ 		await mcp("stop_agent", { id: spawned.id }, 20000);
+-		const reviewPath = path.join(taskDir, "review.md");
+ 		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));
+-		else findings = [{ n: 1, kind: "fix", text: "the reviewer wrote no review.md" }];
++		else findings = [{ n: 1, kind: "fix", text: `the reviewer wrote no ${reviewRelFile}` }];
+ 	} catch (e) {
+ 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];
+-		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
++		fs.mkdirSync(path.dirname(reviewPath), { recursive: true });
++		fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
+ 	}
+-	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: "review.md" };
++	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: reviewRelFile, report: pageReview ? reviewRelFile : null, shots: pageReview ? "shots/" : null };
+ 	appendJSON(taskJsonl, { review });
+ 	writePhase1(taskDir, review);
+ 	console.log(`review.mjs: size ${size} — ${branch} — ${verdict}, ${findings.length} finding(s), $${cost}`);
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index b1a11c8e..0a4d3ef3 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -16,7 +16,7 @@ export default new Page({
+ 
+ 	// One nav link, whatever the date children say: the rail below is the way in.
+ 	leaf: true,
+-	children: "process council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
++	children: "process review council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
+ 
+ 	// The board IS the dashboard — catalog's previews() override, split-screen for free.
+ 	// content() becomes the "intro" child catalog() adds (readme.md's own note) — the
+diff --git a/public/framework/ai/review/doc/decisions.md b/public/framework/ai/review/doc/decisions.md
+new file mode 100644
+index 00000000..ae703b3f
+--- /dev/null
++++ b/public/framework/ai/review/doc/decisions.md
+@@ -0,0 +1,57 @@
++# Decisions — how `--questions` reads a `questions.md` file without being fooled by it
++
++## A numbered line only counts as a question if it has a rule tag
++
++`.claude/skills/review/SKILL.md`'s own "## Load first" section is a numbered list too ("1. The
++page, layout, css and content skills — the rules."), but it's a set of instructions, not a
++review question, and it carries no `[...]` bracket. `Server/review.mjs`'s `parseQuestionsFile()`
++skips any numbered line with zero brackets, so scanning a file that happens to have OTHER
++numbered lists nearby (any skill's `SKILL.md`, not just `review`'s) is safe by construction —
++no special-casing which headings to skip, just "does this line name a rule."
++
++The same function also skips a fenced ` ``` ` code block outright, because the review skill's own
++example report inside one has lines shaped like `1. [fix] The tab bar wraps...` — a genuine
++bracket, but a finding's KIND, not a rule tag, and it would otherwise be picked up as a fake
++question.
++
++## Balanced brackets, not a non-greedy regex
++
++The simplest bracket extractor, `/\[([^\]]+)\]/g`, breaks on `layout/questions.md`'s own line 7:
++
++```
++7. Does each band ... ? [owner 2026-09-30] [measured: layout.json bands[].share, bands[].ink, bands[].big_empty]
++```
++
++`bands[]` is an array-index notation INSIDE the outer `[measured: ...]` bracket. A non-greedy
++match stops at the FIRST `]` it sees, which is the empty one right after `bands[` — so the
++"rule" comes out as `measured: layout.json bands[`, and the rest of the line
++(`.share, bands[].ink, bands[].big_empty]`) is left stuck onto the question's own text, visible
++to anyone reading the rendered page.
++
++`bracketSpans()` in `Server/review.mjs` tracks bracket NESTING DEPTH instead of using a regex at
++all: depth goes up on `[`, down on `]`, and a bracket segment only ends when depth returns to
++zero. `bands[].share` never confuses it, because the inner `[]` only takes depth from 1 to 2 and
++back to 1 — still inside the outer bracket, never mistaken for its end.
++
++## A markdown link is not a rule tag
++
++The review skill's own "## Load first" section links to each questions.md:
++`[page](../page/questions.md) · [layout](../layout/questions.md) · ...` — square brackets, so a
++plain bracket scanner reads `page`, `layout`, `css`, `content` as four "rule tags" on one numbered
++line, and that line (not a real question at all) would show up on the page as a garbled fifth
++system. The fix: a bracket immediately followed by `(` is a markdown link's TEXT half, not a rule
++tag, and `bracketSpans()` skips it. Caught by reading the actual `questions.json` this produced
++before writing the page that reads it — the file had 10 "systems" instead of the expected 9,
++and the 10th was this exact line.
++
++## The source line is text, not a link
++
++Every system's questions.json entry names its `file` — `.claude/skills/page/questions.md`, for
++example. That path is real on disk but outside `public/`, the one folder `Server/Server.js`
++actually serves (`express.static("public")`). There is no URL anywhere on this site that resolves
++to it, unlike `Servex/`/`Server/` files, which get their own dev-only viewer
++(`Server/plugins/DevSource.js`, `file_link()`'s special case for those two folders). Building the
++same thing for `.claude/skills/` would be a real second feature, and it's outside this task's
++fence (`Server/review.mjs`, `Server/doc/review.md`, `public/framework/ai/review/`, one word in
++`public/framework/ai/page.js`) — so the page names the file as plain text, honestly not-a-link,
++rather than pointing at a URL that 404s.
+diff --git a/public/framework/ai/review/files.jsonl b/public/framework/ai/review/files.jsonl
+new file mode 100644
+index 00000000..8f195efb
+--- /dev/null
++++ b/public/framework/ai/review/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"questions.json"}
++{"file":"page.js"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ai/review/page.js b/public/framework/ai/review/page.js
+new file mode 100644
+index 00000000..47124033
+--- /dev/null
++++ b/public/framework/ai/review/page.js
+@@ -0,0 +1,85 @@
++import { Page, p, div, h2, span } from "/app.js";
++import Concepts from "../../ux/Content/Concepts/Concepts.js";
++import { page_work_strip } from "/framework/core/Page/ai/work.js";
++
++/* Every system's questions, read live from `questions.json` — which `node Server/review.mjs
++ * --questions` generates from the skills' own `questions.md` files (never copied here by hand,
++ * so a new rule brings its question with it automatically). The review skill asks these same
++ * questions, in this same order, of every finished task. */
++
++// A name only the newer "Symbols" icon set has renders as its literal word (new-page skill) — so
++// every name here is one already used live elsewhere on this site (grepped, not guessed).
++const SYSTEM_ICON = {
++	Requirements: "rule",
++	"Page structure": "view_quilt",
++	Navigation: "explore",
++	Layout: "dashboard",
++	Sizing: "aspect_ratio",
++	Wrapping: "format_align_left",
++	"Spacing and padding": "padding",
++	"Colour and contrast": "contrast",
++	Flow: "timeline",
++	Words: "list_alt",
++};
++
++const anchor = heading => heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
++
++export default new Page({
++	meta: import.meta,
++	title: "Review questions",
++	description: "Every question a fresh reviewer asks, per system, in the order it asks them.",
++	icon: "fact_check",
++
++	content(){
++		p("Every question a fresh reviewer asks, per system, in the order it asks them.");
++
++		// Capture every box now, synchronously — content() is about to hit an await
++		// (the fetch below), and nothing built after that would land here.
++		const $tiles = div.c("flex wrap gap-50");
++		// The page's own wide track (core/Page/Page.css: `.page > .wide { grid-column:
++		// wide }`) so the wall of systems fills a 3440 screen instead of sitting in the
++		// narrow reading column; `.masonry` (framework.css) packs the cards into as many
++		// columns as `--column` allows, zero JS (layout skill: lean into columns). `26em`
++		// overrides the framework.css 14em tile default, inline on the box (a runtime
++		// token override, css skill) — 14em wrapped "Navigation" mid-word and squeezed
++		// every question to ~5 words a line; a card here holds full sentences.
++		const $sections = div.c("wide masonry").style("--column", "26em");
++		const $note = p.c("muted");
++
++		fetch(new URL("questions.json", import.meta.url)).then(r => r.json()).then(data => {
++			const systems = data.systems || [];
++
++			// The first thing on the page: what it's made of, as linked icon tiles
++			// (page skill, step 5a) — one per system, jumping to that system's own
++			// section below rather than to a separate child page.
++			$tiles.append(() => new Concepts({
++				items: systems.map(s => ({ name: s.heading, icon: SYSTEM_ICON[s.heading] || "label", href: "#" + anchor(s.heading) })),
++			}));
++
++			// Each system is one framed box (`card pad flow` — css skill: a framed box takes
++			// `.card`, which carries its own padding; `.flow` for the stack of questions
++			// inside it) so `.masonry` above has real boxes to pack into columns.
++			$sections.append(() => systems.forEach(s => {
++				div.c("card pad flow", () => {
++					h2(s.heading).attr("id", anchor(s.heading));
++					s.questions.forEach(q => div.c("flex v gap-25", () => {
++						p(`${q.n}. ${q.text}`);
++						// The rule(s) behind the question, as a quiet tag — .muted is the
++						// existing de-emphasis class (css skill), never a new one.
++						span.c("muted", q.rules.join(" · "));
++					}));
++					// Not a clickable link: `.claude/skills/` is outside `public/`, the one
++					// folder this site actually serves (Server/Server.js), so there is no
++					// URL for it to point at — named here for whoever opens it in an editor.
++					span.c("muted", `Source: ${s.file}`);
++				});
++			}));
++
++			const when = data.generated_at ? new Date(data.generated_at).toLocaleString() : "unknown";
++			$note.text(`Generated from the skills' questions.md files by node Server/review.mjs --questions — last run ${when}.`);
++		}).catch(e => $note.text(`Could not load questions.json (${e.message}) — run node Server/review.mjs --questions.`));
++
++		h2("What's in flight");
++		div.c("card pad", $box => page_work_strip($box, { match: ["review"], page: this }));
++	},
++});
+diff --git a/public/framework/ai/review/questions.json b/public/framework/ai/review/questions.json
+new file mode 100644
+index 00000000..c193a140
+--- /dev/null
++++ b/public/framework/ai/review/questions.json
+@@ -0,0 +1,649 @@
++{
++  "generated_at": "2026-09-30T13:14:23-05:00",
++  "note": "generated by review.mjs --questions from the files named in source; never edit by hand",
++  "systems": [
++    {
++      "skill": "page",
++      "file": ".claude/skills/page/questions.md",
++      "heading": "Page structure",
++      "questions": [
++        {
++          "n": 1,
++          "text": "Does the page's title or first line say, in one sentence, what the page is and who it is for?",
++          "rules": [
++            "page: step 1, what is it"
++          ]
++        },
++        {
++          "n": 2,
++          "text": "Is the first thing under the title the page's core concepts, as linked icon tiles or a short list of linked items?",
++          "rules": [
++            "page: step 5a, concepts first"
++          ]
++        },
++        {
++          "n": 3,
++          "text": "Does the content run in priority order, top to bottom: what it is, then its state, then what needs doing, then what was done, then detail?",
++          "rules": [
++            "page: step 5, content in priority order"
++          ]
++        },
++        {
++          "n": 4,
++          "text": "Does what is still open come before what is finished?",
++          "rules": [
++            "page: step 5, open before done"
++          ]
++        },
++        {
++          "n": 5,
++          "text": "Does the parent page's `children:` name this page, so it is reachable by clicking?",
++          "rules": [
++            "page: creating a new page, 1"
++          ]
++        },
++        {
++          "n": 6,
++          "text": "Does every view a click reaches (a tab, a selected item, an open panel) have its own URL, so a reload or the back button lands in the same place?",
++          "rules": [
++            "page: creating a new page, 2; CLAUDE.md: route everything"
++          ]
++        },
++        {
++          "n": 7,
++          "text": "Does the page use a layout word or an approved type, rather than page-specific CSS for its shape?",
++          "rules": [
++            "page: which kind of page is this?"
++          ]
++        },
++        {
++          "n": 8,
++          "text": "Is every item, label and button self-evident: would the owner know what it is and does without reading more?",
++          "rules": [
++            "page: two tests, self-evident"
++          ]
++        },
++        {
++          "n": 9,
++          "text": "Does every element earn its space: nothing repeats what a neighbour already shows, and no small control sits alone on a wide empty row?",
++          "rules": [
++            "page: two tests, necessary"
++          ]
++        },
++        {
++          "n": 10,
++          "text": "Is each piece in its best form: a number or grid rather than a sentence, one filtered list rather than two lists, a structure shown rather than described?",
++          "rules": [
++            "page: step 6, best form"
++          ]
++        },
++        {
++          "n": 11,
++          "text": "Does every section have a title that makes the whole section clear?",
++          "rules": [
++            "page: step 6; CLAUDE.md: clarity is familiar structure"
++          ]
++        },
++        {
++          "n": 12,
++          "text": "Where a working version was restructured, is the old version still reachable to compare against?",
++          "rules": [
++            "page: never destroy a viable version"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "page",
++      "file": ".claude/skills/page/questions.md",
++      "heading": "Navigation",
++      "questions": [
++        {
++          "n": 13,
++          "text": "Identify: which techniques does the page use? (Answer with the list, not yes or no.)",
++          "rules": [
++            "owner 2026-09-30"
++          ]
++        },
++        {
++          "n": 14,
++          "text": "Tabs: does the tab bar fit on 1 row at 1920, at most 2 rows at 1200, and at most 3 rows at 400?",
++          "rules": [
++            "owner 2026-09-30",
++            "measured: layout.json tab_rows"
++          ]
++        },
++        {
++          "n": 15,
++          "text": "Tabs: does every tab have its own URL, so a reload lands on the same tab?",
++          "rules": [
++            "CLAUDE.md: route everything"
++          ]
++        },
++        {
++          "n": 16,
++          "text": "Tabs: is every tab useful, and are many tabs grouped (sub-tabs, a rail, one click down) rather than stacked into rows?",
++          "rules": [
++            "owner 2026-09-30"
++          ]
++        },
++        {
++          "n": 17,
++          "text": "Rail or sidebar: does it sit beside a centred main column at 3440, and fold away or stack cleanly at 400?",
++          "rules": [
++            "layout: defaults, navigation beside a centred main"
++          ]
++        },
++        {
++          "n": 18,
++          "text": "Rail or sidebar: does the page keep the rail and its work area still, so nothing the reader is looking at jumps when something arrives or is selected?",
++          "rules": [
++            "layout: the layout never jumps"
++          ]
++        },
++        {
++          "n": 19,
++          "text": "Bottom rail, or any fixed overlay: does the page leave room for it, so it never covers the last row of content?",
++          "rules": [
++            "layout: a permanent fixed overlay owes the shell the strip it stands on"
++          ]
++        },
++        {
++          "n": 20,
++          "text": "Sheet or modal: does it have its own URL, and does closing it return to exactly where the reader was?",
++          "rules": [
++            "CLAUDE.md: route everything",
++            "owner 2026-09-30"
++          ]
++        },
++        {
++          "n": 21,
++          "text": "Full screen: is there a visible way back out, and does it have its own URL?",
++          "rules": [
++            "owner 2026-09-30"
++          ]
++        },
++        {
++          "n": 22,
++          "text": "Does a selected item open in its own column or view, never by expanding in place and pushing the rest down?",
++          "rules": [
++            "layout: the layout never jumps"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "layout",
++      "file": ".claude/skills/layout/questions.md",
++      "heading": "Layout",
++      "questions": [
++        {
++          "n": 1,
++          "text": "At 3440, does the page fill the width with several columns, or a navigation column beside a centred main one, rather than one narrow column on an empty screen?",
++          "rules": [
++            "layout: defaults, work at 3440 as well as 1280"
++          ]
++        },
++        {
++          "n": 2,
++          "text": "Does the page use one of the approved layouts (Standard, Split, Columns, Tile wall, Rail + content, Docs three-region), or say it is a new proposal?",
++          "rules": [
++            "layout: C5"
++          ]
++        },
++        {
++          "n": 3,
++          "text": "For every region and box: is its width right for its content at 400, 1200, 1920 and 3440?",
++          "rules": [
++            "page: step 4, how wide is it; layout: question 2"
++          ]
++        },
++        {
++          "n": 4,
++          "text": "For every region and box: does it take padding only because it needs it (a region `.pad`, a framed box `.card`, a deliberate no `.bleed`)?",
++          "rules": [
++            "page: step 4, does it need padding"
++          ]
++        },
++        {
++          "n": 5,
++          "text": "For every region and box: does text keep room from every neighbour's edge and ground?",
++          "rules": [
++            "page: step 4, how does it meet its neighbours"
++          ]
++        },
++        {
++          "n": 6,
++          "text": "Do two or more columns of content sit in `wide` or `bleed`, never squeezed into the reading column?",
++          "rules": [
++            "layout: question 2"
++          ]
++        },
++        {
++          "n": 7,
++          "text": "Does each band of the screen take a share that matches its importance — no band both big and nearly empty?",
++          "rules": [
++            "owner 2026-09-30",
++            "measured: layout.json bands[].share, bands[].ink, bands[].big_empty"
++          ]
++        },
++        {
++          "n": 8,
++          "text": "Do columns side by side have roughly equal content, or is a short column's hole turned into weight (centred) or spent on more content?",
++          "rules": [
++            "layout: C4"
++          ]
++        },
++        {
++          "n": 9,
++          "text": "Is dead space answered by a new region or accepted as a gutter, never by widening a reading column past its measure?",
++          "rules": [
++            "layout: the two bounds rules"
++          ]
++        },
++        {
++          "n": 10,
++          "text": "Is content scaled to its box: nothing large in a small column, nothing tiny alone in a huge band?",
++          "rules": [
++            "layout: content scale follows the box"
++          ]
++        },
++        {
++          "n": 11,
++          "text": "Does a wall of cards end on a full or balanced last row at every width, with no lone card and no reserved blank tracks?",
++          "rules": [
++            "layout: auto-fill vs auto-fit"
++          ]
++        },
++        {
++          "n": 12,
++          "text": "Do flush-stacked rows share one rounded outline, and do rounded cards stand apart with a gap?",
++          "rules": [
++            "layout: rounded corners and gaps go together"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "layout",
++      "file": ".claude/skills/layout/questions.md",
++      "heading": "Sizing",
++      "questions": [
++        {
++          "n": 13,
++          "text": "Is every box auto height, with a fixed height only where content cannot grow (an icon, media of known size, a full-viewport shell, a deliberate scroll area)?",
++          "rules": [
++            "layout: leave the defaults alone, height"
++          ]
++        },
++        {
++          "n": 14,
++          "text": "Are previews auto height, as tall as their content, never cropped or padded out to a fixed height?",
++          "rules": [
++            "layout: previews are auto height"
++          ]
++        },
++        {
++          "n": 15,
++          "text": "Does every bounded box (a hero, a viewport band, an equal-height row, a scrolling rail) say what happens to longer content: scroll, clip or truncate?",
++          "rules": [
++            "layout: some boxes grow, some cannot"
++          ]
++        },
++        {
++          "n": 16,
++          "text": "Is every scrollbar on the page one that was meant (a log, a code block, a rail), with no surprise scrolling box?",
++          "rules": [
++            "layout: scrollbars are a decision"
++          ]
++        },
++        {
++          "n": 17,
++          "text": "Is a band above the first navigation budgeted in height (`vh`), so it never pushes the navigation below the fold?",
++          "rules": [
++            "layout: question 2, height above the first nav"
++          ]
++        },
++        {
++          "n": 18,
++          "text": "Does every track have a floor and a ceiling, so nothing overflows at 400 or collapses?",
++          "rules": [
++            "layout: the two bounds rules",
++            "measured: layout.json overflow_x"
++          ]
++        },
++        {
++          "n": 19,
++          "text": "Do sizes meant to follow the text use `em`, and floors use `rem`?",
++          "rules": [
++            "layout: leave the defaults alone; question 3, floors in rem"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "layout",
++      "file": ".claude/skills/layout/questions.md",
++      "heading": "Wrapping",
++      "questions": [
++        {
++          "n": 20,
++          "text": "Does every tab bar, title, button row and nav row sit on one line where it was meant to?",
++          "rules": [
++            "owner 2026-09-30",
++            "measured: layout.json wraps"
++          ]
++        },
++        {
++          "n": 21,
++          "text": "Is there no wrap that appears only under 1920 — a row that is one line at 1920 and two at 1200?",
++          "rules": [
++            "owner 2026-09-30",
++            "measured: layout.json wraps, compared across widths"
++          ]
++        },
++        {
++          "n": 22,
++          "text": "Where a row does wrap (a control row, a chip row), is it `flex wrap` by design and does it wrap cleanly?",
++          "rules": [
++            "layout: only a control row takes flex wrap"
++          ]
++        },
++        {
++          "n": 23,
++          "text": "At 400, does every full-row item stack into one column rather than crushing a track to a sliver?",
++          "rules": [
++            "layout caveats: a full-row item's inside must be able to stack"
++          ]
++        },
++        {
++          "n": 24,
++          "text": "Is no preview description clipped where the same child shows at two widths (a wall card and a rail item)?",
++          "rules": [
++            "layout: question 5, 45 characters"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "css",
++      "file": ".claude/skills/css/questions.md",
++      "heading": "Spacing and padding",
++      "questions": [
++        {
++          "n": 1,
++          "text": "At 400, is the padding stacked at the left edge of the first heading and paragraph 3em or less?",
++          "rules": [
++            "css: the padding law",
++            "owner 2026-09-30",
++            "measured: layout.json left_stack"
++          ]
++        },
++        {
++          "n": 2,
++          "text": "Is no box padded inside a padded box inside a padded box, so nested levels don't add up to a big clunky block?",
++          "rules": [
++            "layout: nesting, grounds and padding",
++            "owner 2026-09-30",
++            "measured: layout.json left_stack.layers"
++          ]
++        },
++        {
++          "n": 3,
++          "text": "Is padding opted in where needed: a region `.pad`, a framed box `.card`, a deliberate no `.bleed` — and never `.pad` on a card?",
++          "rules": [
++            "css: the one-line rule for which spacing word"
++          ]
++        },
++        {
++          "n": 4,
++          "text": "Does text never sit at 0 from an edge: the viewport, the nav rail, the ToC column, or any box that paints its own ground?",
++          "rules": [
++            "css: text never sits at 0 from an edge"
++          ]
++        },
++        {
++          "n": 5,
++          "text": "Does every gap, pad and rhythm come from the spacing clamp (`--pad`, `--gap`, `--flow`, the `--gap-70/50/35/25` rungs), never a constant and never a multiplier?",
++          "rules": [
++            "css: the padding law; layout: spacing is one knob"
++          ]
++        },
++        {
++          "n": 6,
++          "text": "Does every control (a chip, a button, a nav item) keep its own `em` padding and height, never a spacing clamp or a `vw` value?",
++          "rules": [
++            "css: a spacing clamp is never the size of a control"
++          ]
++        },
++        {
++          "n": 7,
++          "text": "Does a box with padding also have a different ground, so nothing floats in midair off its siblings' margins?",
++          "rules": [
++            "layout: boxes, padding and contrast"
++          ]
++        },
++        {
++          "n": 8,
++          "text": "Does a bled container keep `.pad` on the content inside it, so only paint touches the edge?",
++          "rules": [
++            "layout: bleed is for paint"
++          ]
++        },
++        {
++          "n": 9,
++          "text": "Is every rule inside one of the layers `base theme site util`, with no new layer name and no unlayered rule?",
++          "rules": [
++            "css: 3. layers; CLAUDE.md: traps"
++          ]
++        },
++        {
++          "n": 10,
++          "text": "Is the CSS as small as it can be: an existing class, token or layout word first, no inline static styles, no class that doesn't exist?",
++          "rules": [
++            "css: write as little new CSS as you can; the ladder"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "css",
++      "file": ".claude/skills/css/questions.md",
++      "heading": "Colour and contrast",
++      "questions": [
++        {
++          "n": 11,
++          "text": "Does body text reach 4.5:1 against its ground, and large text and UI shapes 3:1?",
++          "rules": [
++            "layout: say the ratio out loud"
++          ]
++        },
++        {
++          "n": 12,
++          "text": "Does accent-coloured text still reach its ratio?",
++          "rules": [
++            "layout: the accent is the pair most likely to fail"
++          ]
++        },
++        {
++          "n": 13,
++          "text": "Are colours tokens (`--surface`, `--wash`, `--ink`, the lighten and darken steps), never literal colours in a component?",
++          "rules": [
++            "css: ownership, a token override not a new component"
++          ]
++        },
++        {
++          "n": 14,
++          "text": "Does every box meant to read as a box actually differ from its parent's ground (not `--wash` on the page, which paints nothing)?",
++          "rules": [
++            "css caveats: --wash is the page ground"
++          ]
++        },
++        {
++          "n": 15,
++          "text": "Does the page work in dark mode as well as light, with `light-dark()` tokens rather than a second theme?",
++          "rules": [
++            "css: ownership, light and dark are modes of one theme"
++          ]
++        },
++        {
++          "n": 16,
++          "text": "Is every seam where two grounds meet a deliberate choice, reading as one page's sections rather than two pages?",
++          "rules": [
++            "layout: color meets color"
++          ]
++        },
++        {
++          "n": 17,
++          "text": "Is there one repeated anchor (an eyebrow, a coloured mark) kept identical wherever it appears?",
++          "rules": [
++            "layout: repetition is the strongest tool"
++          ]
++        },
++        {
++          "n": 18,
++          "text": "Is muted text made with the `.muted` class, never `var(--muted)` as a colour?",
++          "rules": [
++            "css caveats: --muted is a percentage"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "layout",
++      "file": ".claude/skills/layout/questions.md",
++      "heading": "Flow",
++      "questions": [
++        {
++          "n": 25,
++          "text": "Does the order top to bottom match priority: the most important thing is what the eye lands on first?",
++          "rules": [
++            "layout: before the first factory call, focus and visual hierarchy"
++          ]
++        },
++        {
++          "n": 26,
++          "text": "Is nothing hidden off-screen: no content past the right edge, under a fixed overlay, or below an inner scroller nobody will find?",
++          "rules": [
++            "layout: look at it, then cycle",
++            "measured: layout.json overflow_x"
++          ]
++        },
++        {
++          "n": 27,
++          "text": "Does each box keep one rhythm (`.flow` for prose, `flex v gap` for UI), and does a wall in prose keep the prose's rhythm?",
++          "rules": [
++            "layout: rhythm, one system per box"
++          ]
++        },
++        {
++          "n": 28,
++          "text": "Does each label sit clearly closer to its own card than to the next one?",
++          "rules": [
++            "layout: association by proximity"
++          ]
++        },
++        {
++          "n": 29,
++          "text": "Does a live page stay still as items arrive, with new items waiting behind an \"N new\" pill?",
++          "rules": [
++            "layout: the layout never jumps"
++          ]
++        },
++        {
++          "n": 30,
++          "text": "Does no prose line run past the measure at any width?",
++          "rules": [
++            "layout: look at it, then cycle",
++            "measured: layout.json widest_text"
++          ]
++        }
++      ]
++    },
++    {
++      "skill": "content",
++      "file": ".claude/skills/content/questions.md",
++      "heading": "Words",
++      "questions": [
++        {
++          "n": 1,
++          "text": "Is each thing shown before it is told: files as a tree, an object as its live instance, a task as its checklist, a layout as a screenshot?",
++          "rules": [
++            "content: let the layout say it"
++          ]
++        },
++        {
++          "n": 2,
++          "text": "Does the layout itself show the structure (hierarchy, proximity, grouping), with no sentence spent explaining it?",
++          "rules": [
++            "content: let the layout say it"
++          ]
++        },
++        {
++          "n": 3,
++          "text": "Is every paragraph 60 words or fewer?",
++          "rules": [
++            "owner 2026-09-30"
++          ]
++        },
++        {
++          "n": 4,
++          "text": "Could the owner get the page's point in ten seconds?",
++          "rules": [
++            "content: the length check"
++          ]
++        },
++        {
++          "n": 5,
++          "text": "Does every title say exactly what its thing is?",
++          "rules": [
++            "content: words, when they earn it"
++          ]
++        },
++        {
++          "n": 6,
++          "text": "Does every picture carry at most a one-line caption?",
++          "rules": [
++            "content: words, when they earn it"
++          ]
++        },
++        {
++          "n": 7,
++          "text": "Is each concept named once, the same way every time?",
++          "rules": [
++            "content: name each concept once; CLAUDE.md: the same name every time"
++          ]
++        },
++        {
++          "n": 8,
++          "text": "Does every mention of a concept with its own page link to that page, and every named file or module link to its page on the site?",
++          "rules": [
++            "content: connect the dots; CLAUDE.md: presentation"
++          ]
++        },
++        {
++          "n": 9,
++          "text": "Where there is a file of words (a readme, a doc, a report), does a picture or a live widget sit beside it?",
++          "rules": [
++            "owner 2026-09-30",
++            "CLAUDE.md: show it with the widget, then use words"
++          ]
++        },
++        {
++          "n": 10,
++          "text": "Does the most important thing lead, usually the list of what this is made of, with detail one click down?",
++          "rules": [
++            "content: the tip of the iceberg comes first"
++          ]
++        },
++        {
++          "n": 11,
++          "text": "Is the text written in full, plain sentences a new coder can follow, never clipped fragments or undefined jargon?",
++          "rules": [
++            "CLAUDE.md: law 2, clear beats brief"
++          ]
++        }
++      ]
++    }
++  ]
++}
+diff --git a/public/framework/ai/review/readme.md b/public/framework/ai/review/readme.md
+new file mode 100644
+index 00000000..1906d50c
+--- /dev/null
++++ b/public/framework/ai/review/readme.md
+@@ -0,0 +1,44 @@
++# Review questions — every question a fresh reviewer asks, per system, read live from the skills' own rules
++
++The `review` skill asks nine systems of questions, in order: requirements, page structure,
++navigation, layout, sizing, wrapping, spacing and padding, colour and contrast, flow, then
++anything else (today, content's own "Words"). This page shows every one of them, live — never a
++copy typed out by hand, so a new rule in a skill's `questions.md` shows up here the moment it's
++written.
++
++## Use
++
++`node Server/review.mjs --questions` reads every skill's own `questions.md` (plus the review
++skill's own `SKILL.md`, in case it ever grows numbered questions the same way) and writes
++[`questions.json`](questions.json), which this page fetches and renders. `main()` in
++`Server/review.mjs` also runs this at the start of every real review, so the file — and this page
++— never go stale even if nobody runs the command by hand.
++
++To add a question: add a numbered line to the owning skill's `questions.md`, in the shape
++`N. <question>? [<skill>: <rule>]` (a second bracket, `[measured: layout.json <field>]`, is
++allowed when the review skill can answer it from a number instead of an eyeball). Re-run
++`--questions`, or just run a review — no other file to touch.
++
++## Watch out
++
++- A numbered line with no `[...]` bracket is a plain step, not a question, and is skipped —
++  this is what keeps the review skill's own "## Load first" numbered list (no brackets) out of
++  this page's count: [`doc/decisions.md`](./doc/decisions.md)
++- A rule tag can contain its own balanced `[]` (`layout: questions.md`'s
++  `[measured: layout.json bands[].share, ...]`) — a naive bracket regex truncates at the FIRST
++  `]`, which is that inner one, and leaves the rest of the line stuck on the question's text.
++  `Server/review.mjs`'s `bracketSpans()` tracks nesting depth instead: [`doc/decisions.md`](./doc/decisions.md)
++- A markdown link (`[page](../page/questions.md)`, in the review skill's own "## Load first"
++  list) looks exactly like a rule tag to a bracket scanner — skipped because a real rule tag is
++  never immediately followed by `(`: [`doc/decisions.md`](./doc/decisions.md)
++- Each system's "Source: …" line is plain text, not a link — `.claude/skills/` is outside
++  `public/`, the only folder this site's dev server actually serves
++  (`Server/Server.js`'s `express.static("public")`), so there is no URL for it to point at.
++  Open it in an editor instead: [`doc/decisions.md`](./doc/decisions.md)
++
++## More
++
++- [The page itself](/framework/ai/review/) — the systems as tiles, then every question
++- `.claude/skills/review/SKILL.md` — the review skill that asks these questions, and how
++- `Server/doc/review.md` — the four-turn review process this page's questions feed into
++- Files that matter: `page.js` (show, don't tell), `questions.json` (generated — never hand-edit)

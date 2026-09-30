@@ -1,0 +1,496 @@
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 0363dc58..fa7082f0 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -35,6 +35,7 @@ import agent_tools from "./agents/tools.js";
+ import { directory_tools } from "./agents/directory.js";
+ import tidy from "./agents/tidy.js";
+ import hitl from "./agents/hitl.js";
++import Inbox from "./agents/inbox.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -503,6 +504,7 @@ export default class Servex extends Events {
+             res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" });
+         });
+         this.cards.routes(router, cors);
++        (this.inbox ??= new Inbox()).routes(router, cors, express.json({ limit: "64kb" }));   // every page's inbox: agents/inbox.js, doc/inbox.md
+ 
+         /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
+          * model call that cleans up a chunk of dictated text near-verbatim
+@@ -634,6 +636,7 @@ export default class Servex extends Events {
+         for (const tool of this.cards.tools()) this.mcp.tool(tool);
+         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
++        for (const tool of (this.inbox ??= new Inbox()).tools()) this.mcp.tool(tool);   // drop, clear, inbox
+ 
+ 
+         this.mcp.tool("system_health", {
+diff --git a/Servex/agents/inbox.js b/Servex/agents/inbox.js
+new file mode 100644
+index 00000000..e706f0cd
+--- /dev/null
++++ b/Servex/agents/inbox.js
+@@ -0,0 +1,133 @@
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { page_path } from "./Layers.js";
++
++const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
++/* Local time with its offset and milliseconds, as Sessions.js writes it (not imported:
++ * Sessions.js pulls in the agent SDK, and this file must load on its own). */
++const now_ms = () => {
++	const d = new Date(), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
++	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 23) + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
++};
++const bad = (why, status = 400) => Object.assign(new Error(why), { status });
++
++/* EVERY PAGE HAS AN INBOX (page-inbox, 2026-09-30; Servex/doc/inbox.md).
++ *
++ * Anyone, an agent or the owner, can leave a note on any page. The note is one line
++ * in that page's own AI log, `<page dir>/ai/log.jsonl` (the file the drawer and the
++ * voice sessions already use), never in page.jsonl, which is the page's content:
++ *
++ *   {"inbox":   {"id": "n-…", "from": "<agent id | owner>", "text": "…", "at": "<local ISO>"}}
++ *   {"cleared": {"id": "n-…", "by": "<who>", "at": "…"}}
++ *
++ * Append only: a note is open until a `cleared` line names its id. Servex is the only
++ * writer (the `drop` and `clear` tools, and `POST /api/inbox/drop|clear` for a page's
++ * form), so two drops never tear a line. The drawer reads the file as a static file,
++ * so the inbox shows on a static host too; only writing needs Servex. */
++export class Inbox {
++
++	constructor(...args){ this.assign({ repo: REPO }, ...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	/* A folder as `{disk, name}`: a site path (`/framework/core/Page/`, served from
++	 * `public/`), or a repo folder (`Servex/agents`). It must exist: a note on a page
++	 * that isn't there would be read by nobody. */
++	folder(where){
++		const raw = String(where ?? "").trim().replace(/\\/g, "/");
++		if (!raw) throw bad("path is required: a site path like /framework/core/Page/ or a repo folder like Servex/agents");
++		const site = page_path(raw.replace(/^\/?public\//, "/"));
++		if (raw.startsWith("/") && site){
++			const disk = path.join(this.repo, "public", ...site.split("/").filter(Boolean));
++			if (this.is_dir(disk)) return { disk, name: site };
++		}
++		const rel = raw.replace(/^\/+|\/+$/g, ""), disk = path.resolve(this.repo, rel);
++		if (rel && !path.relative(path.resolve(this.repo), disk).startsWith("..") && this.is_dir(disk)) return { disk, name: rel + "/" };
++		throw bad(`"${where}" is not a folder of the site (/framework/core/Page/) or the repo (Servex/agents)`, 404);
++	}
++	is_dir(disk){ try { return fs.statSync(disk).isDirectory(); } catch { return false; } }
++	file(at){ return path.join(at.disk, "ai", "log.jsonl"); }
++
++	append(file, line){
++		fs.mkdirSync(path.dirname(file), { recursive: true });
++		let lead = "";
++		try { const size = fs.statSync(file).size; if (size){ const fd = fs.openSync(file, "r"), b = Buffer.alloc(1); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
++		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
++	}
++
++	id(){ return "n-" + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5); }
++
++	/* Leave a note. `from` is the caller Servex stamped, never a field the model typed. */
++	drop({ path: where, text, from = "owner" } = {}){
++		text = String(text ?? "").trim();
++		if (!text) throw bad("text is required");
++		if (text.length > 4000) throw bad(`text is ${text.length} characters; at most 4000`);
++		const at = this.folder(where);
++		const line = { inbox: { id: this.id(), from: String(from || "owner"), text, at: now_ms() } };
++		this.append(this.file(at), line);
++		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.inbox };
++	}
++
++	/* Clear a note: one `cleared` line, nothing rewritten. Clearing a note that is not
++	 * open (unknown, or already cleared) is refused, so a typo'd id says so. */
++	clear({ path: where, id, by = "owner" } = {}){
++		if (!id) throw bad("id is required: the note's id, as drop answered or list shows it");
++		const at = this.folder(where);
++		if (!this.open(at).some(n => n.id === id)) throw bad(`no open note "${id}" on ${at.name}`, 404);
++		const line = { cleared: { id: String(id), by: String(by || "owner"), at: now_ms() } };
++		this.append(this.file(at), line);
++		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.cleared };
++	}
++
++	/* The open notes on one page, newest first. */
++	open(at){
++		let lines = [];
++		try { lines = fs.readFileSync(this.file(at), "utf8").split("\n"); } catch {}
++		const notes = new Map();
++		for (const l of lines){
++			let j; try { j = JSON.parse(l); } catch { continue; }
++			if (j?.inbox?.id) notes.set(j.inbox.id, j.inbox);
++			else if (j?.cleared?.id) notes.delete(j.cleared.id);
++		}
++		return [...notes.values()].reverse();
++	}
++	list({ path: where } = {}){ const at = this.folder(where); return { ok: true, path: at.name, open: this.open(at) }; }
++
++	/* The MCP tools, in `mcp.tool()`'s shape. A tab (no caller) is the owner. */
++	tools(){
++		const who = ctx => ctx?.caller ?? "owner";
++		const json = f => (args = {}, ctx) => { try { return JSON.stringify(f(args, ctx)); } catch (e){ return JSON.stringify({ ok: false, why: e.message }); } };
++		const PATH = { type: "string", description: "The page: a site path like `/framework/core/Page/`, or a repo folder like `Servex/agents`." };
++		const schema = (properties, required) => ({ type: "object", required, properties });
++		return [
++			{ name: "drop", description: "Leave a note in any page's inbox: \"leave a note here\" for that path. It shows at the top of the page's AI tab until someone clears it."
++				+ " Written as one line in `<page>/ai/log.jsonl`; `from` is you. Returns the note's id.",
++				inputSchema: schema({ path: PATH, text: { type: "string", description: "The note, in plain words." } }, ["path", "text"]),
++				handler: json((a, ctx) => this.drop({ path: a.path, text: a.text, from: who(ctx) })) },
++			{ name: "clear", description: "Clear one note from a page's inbox, by the id `drop` gave (or `inbox` lists). Appends a `cleared` line; nothing is rewritten.",
++				inputSchema: schema({ path: PATH, id: { type: "string", description: "The note's id, `n-…`." } }, ["path", "id"]),
++				handler: json((a, ctx) => this.clear({ path: a.path, id: a.id, by: who(ctx) })) },
++			{ name: "inbox", description: "The open notes in one page's inbox, newest first.",
++				inputSchema: schema({ path: PATH }, ["path"]),
++				handler: json(a => this.list({ path: a.path })) }
++		];
++	}
++
++	/* `POST /api/inbox/drop {path, text}` and `POST /api/inbox/clear {path, id}`, for a
++	 * page's own form. A browser is the owner; `from` may name an agent that posts. */
++	routes(router, cors, json){
++		const send = (res, f) => { try { res.json(f()); } catch (e){ res.status(e.status || 500).json({ ok: false, why: e.message }); } };
++		for (const verb of ["drop", "clear"]) router.options(`/api/inbox/${verb}`, cors, (req, res) => res.status(204).end());
++		router.post("/api/inbox/drop", cors, json, (req, res) => send(res, () => this.drop({ path: req.body?.path, text: req.body?.text, from: req.body?.from || "owner" })));
++		router.post("/api/inbox/clear", cors, json, (req, res) => send(res, () => this.clear({ path: req.body?.path, id: req.body?.id, by: req.body?.by || "owner" })));
++		/* A page with no folder of its own (a card, a query view) has an empty inbox, not a
++		 * 404: the drawer asks on every open, and a 404 is a console error on the page. */
++		router.options("/api/inbox", cors, (req, res) => res.status(204).end());
++		router.get("/api/inbox", cors, (req, res) => send(res, () => {
++			try { return this.list({ path: req.query?.path }); }
++			catch (e){ if (e.status === 404) return { ok: true, path: req.query?.path ?? null, open: [], none: e.message }; throw e; }
++		}));
++	}
++}
++
++export default Inbox;
+diff --git a/Servex/doc/inbox.md b/Servex/doc/inbox.md
+new file mode 100644
+index 00000000..5677eac4
+--- /dev/null
++++ b/Servex/doc/inbox.md
+@@ -0,0 +1,32 @@
++# Every page has an inbox
++
++**Anyone, an agent or the owner, can leave a note on any page.** The note shows at the top of that page's AI tab (the drawer) until someone clears it. The view: [ext/drawer/doc/inbox.md](/framework/ext/drawer/doc/inbox/).
++
++## The tools
++
++| Tool | What it does |
++|---|---|
++| `drop(path, text)` | Leave a note. `from` is you, stamped by Servex. Answers the note's `id`. |
++| `clear(path, id)` | Clear one open note. An id that isn't open is refused. |
++| `inbox(path)` | The open notes, newest first. |
++
++`path` is a site path (`/framework/core/Page/`) or a repo folder (`Servex/agents`). It must exist.
++
++## The routes, for a page's own form
++
++- `POST /api/inbox/drop` with `{path, text}` (a browser is the owner; an optional `from` names an agent)
++- `POST /api/inbox/clear` with `{path, id}`
++- `GET /api/inbox?path=…`: a path with no folder answers an empty list, never a 404
++
++## The file
++
++One line per event, in `<page dir>/ai/log.jsonl`, the page's AI log:
++
++```
++{"inbox":   {"id": "n-g7yptezx", "from": "minion-layout-audit", "text": "…", "at": "2026-09-30T13:38:33.857-05:00"}}
++{"cleared": {"id": "n-g7yptezx", "by": "owner", "at": "2026-09-30T13:40:02.114-05:00"}}
++```
++
++Append only. A note is open until a `cleared` line names its id. Servex is the only writer, so two drops never tear a line. Never `page.jsonl`: that is the page's content.
++
++Code: [`agents/inbox.js`](../agents/inbox.js), wired with two lines in `Servex.js` (`tools()` and the router). New tools and routes go live only after a Servex restart.
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 0164f0e8..bf426187 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -102,6 +102,8 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
+ 
+ **Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
+ 
++**Inbox** — `agents/inbox.js`: every page has one. `drop(path, text)` leaves a note on any page, `clear(path, id)` clears it; the page's AI tab shows the open ones. One line each in `<page>/ai/log.jsonl`. See [`doc/inbox.md`](./doc/inbox.md).
++
+ **Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).
+ 
+ ## Is the machine melting? — the monitor and the spawn queue
+diff --git a/public/framework/ext/drawer/doc/files.jsonl b/public/framework/ext/drawer/doc/files.jsonl
+index fb86340b..5a8740aa 100644
+--- a/public/framework/ext/drawer/doc/files.jsonl
++++ b/public/framework/ext/drawer/doc/files.jsonl
+@@ -6,3 +6,6 @@
+ {"file":"tabs.png"}
+ {"file":"file/page.jsonl"}
+ {"file":"file/"}
++{"file":"sheet.md"}
++{"file":"inbox.md"}
++{"file":"inbox.png"}
+diff --git a/public/framework/ext/drawer/doc/inbox.md b/public/framework/ext/drawer/doc/inbox.md
+new file mode 100644
+index 00000000..3382837b
+--- /dev/null
++++ b/public/framework/ext/drawer/doc/inbox.md
+@@ -0,0 +1,28 @@
++# Inbox
++
++![A note in the page's inbox, at the top of the AI tab: who left it, how long ago, Clear](/framework/ext/drawer/doc/inbox.png)
++
++**Every page has an inbox.** Anyone can leave a note on any page: an agent, or you. The note shows at the top of that page's AI tab until someone clears it. While notes are open, the tab's label counts them: **AI · 2**.
++
++## What a row shows
++
++One row per open note, newest first: **who left it · how long ago · Clear**, with the note itself underneath. With no open notes, nothing is drawn at all.
++
++## Leaving a note
++
++- **You:** the **Leave a note** button in the AI tab's head row. Type, then Enter (Escape puts it away).
++- **An agent:** Servex's `drop(path, text)` tool. `clear(path, id)` clears one, and `inbox(path)` lists them.
++- **A page's own form:** `POST /api/inbox/drop` with `{path, text}`.
++
++All three write through Servex, the only writer: [Servex/doc/inbox.md](/Servex/doc/inbox.md).
++
++## Where the notes live
++
++In the page's own AI log, `<page>/ai/log.jsonl`, one line each. A note is `{"inbox": {id, from, text, at}}`, and clearing it appends `{"cleared": {id, by, at}}`. Nothing is rewritten: a note is open until a `cleared` line names it. The notes never go in `page.jsonl`, which is the page's content.
++
++## Watch out
++
++- The drawer reads the notes through Servex (`GET /api/inbox?path=`), so **off the dev machine the inbox isn't drawn**. That is on purpose: a static-file fetch would log a 404 on every page without notes.
++- A page with no folder of its own (a card, a query view) has an empty inbox, not an error.
++- Only the desktop AI tab shows the inbox. The phone's ✦ sheet (`rail.js`) does not, yet.
++- The code: [`inbox.js`](../inbox.js), wired with one line in [`tabs/ai.js`](../tabs/ai.js); the count is `label_ai()` in [`tabs.js`](../tabs.js).
+diff --git a/public/framework/ext/drawer/doc/inbox.png b/public/framework/ext/drawer/doc/inbox.png
+new file mode 100644
+index 00000000..e4a65b69
+Binary files /dev/null and b/public/framework/ext/drawer/doc/inbox.png differ
+diff --git a/public/framework/ext/drawer/doc/tabs.md b/public/framework/ext/drawer/doc/tabs.md
+index a98adf90..21606b1e 100644
+--- a/public/framework/ext/drawer/doc/tabs.md
++++ b/public/framework/ext/drawer/doc/tabs.md
+@@ -8,7 +8,7 @@
+ 
+ | Tab | What it shows | Built from |
+ |---|---|---|
+-| AI | A chat about this page: a model picker, the conversation, and the one-line composer with its microphone | the site's chat composer, [`ext/Chat`](/framework/ext/Chat/), imported, with the tab's own `deliver(entry)` |
++| AI | The page's [inbox](/framework/ext/drawer/doc/inbox/) (notes left here, each with a Clear), then a chat about this page: a model picker, the conversation, and the one-line composer with its microphone | the site's chat composer, [`ext/Chat`](/framework/ext/Chat/), imported, with the tab's own `deliver(entry)` |
+ | Sessions | Every saved thread on this page. Click one and the AI tab carries on that thread | the dev bar Ask's store, `<page>ai/<slug>/task.jsonl` |
+ | Dictation | The dictation playground | [`ux/Dictate/playground/`](/framework/ux/Dictate/playground/) |
+ | Settings | Edit mode, the reload block, the width line, the x-ray outline | the dev bar's own controls |
+diff --git a/public/framework/ext/drawer/drawer.css b/public/framework/ext/drawer/drawer.css
+index 6411823c..cbaa92de 100644
+--- a/public/framework/ext/drawer/drawer.css
++++ b/public/framework/ext/drawer/drawer.css
+@@ -233,4 +233,19 @@
+ 	.drawer-props-title { margin: 0; }
+ 	.drawer-props-where { gap: 0.35em; }
+ 	.drawer-props-link { overflow-wrap: anywhere; }
++
++	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
++	.drawer-inbox { flex: none; gap: 0.35em; }
++	.drawer-inbox-row {
++		gap: 0.2em;
++		padding: 0.4em 0.4em 0.4em 0.6em;
++		border-radius: 0.5em;
++		background: var(--fill-a08);
++	}
++	.drawer-inbox-head { gap: 0.5em; }
++	.drawer-inbox-from { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9em; }
++	.drawer-inbox-text { overflow-wrap: anywhere; }
++	.drawer-inbox-age { flex: none; }
++	.drawer .drawer-inbox-clear, .drawer .drawer-inbox-add { flex: none; min-block-size: 0; padding: 0.15em 0.55em; font-size: 0.85em; }
++	.drawer-inbox-input { inline-size: 100%; }
+ }
+diff --git a/public/framework/ext/drawer/inbox.js b/public/framework/ext/drawer/inbox.js
+new file mode 100644
+index 00000000..e9c96b16
+--- /dev/null
++++ b/public/framework/ext/drawer/inbox.js
+@@ -0,0 +1,98 @@
++import { div, span, button, input, small } from "/framework/core/View/View.js";
++import { servex_base, servex_fetch } from "/framework/ai2/inbox.js";
++
++/* THE PAGE'S INBOX, at the top of the drawer's AI tab (page-inbox, 2026-09-30).
++ *
++ * Any agent (Servex's `drop` tool) or the owner (the "Leave a note" button here, which
++ * posts to `POST /api/inbox/drop`) can leave a note on any page. This draws the open
++ * ones, newest first: from · text · age · Clear. Nothing at all when there are none.
++ * The notes live in `<page>/ai/log.jsonl`; Servex is the only writer and answers the
++ * reads too (`GET /api/inbox`), so off the dev machine the inbox simply isn't drawn.
++ * Docs: doc/inbox.md · Servex/doc/inbox.md. */
++
++// A page's folder path: the url without its query or hash, ending in "/".
++export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
++
++// The open notes on a page, newest first; [] when Servex is not running.
++export async function notes(page){
++	try {
++		const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(folder(page))}`);
++		return r.ok ? ((await r.json()).open ?? []) : [];
++	} catch { return []; }
++}
++
++// How many are open — the count on the AI tab's label.
++export const count = page => notes(page).then(n => n.length);
++
++// "3m", "2h", "4d": how long ago a note was left.
++export function age(at){
++	const s = Math.max(0, (Date.now() - Date.parse(at)) / 1000);
++	return s < 60 ? "now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
++}
++
++export class DrawerInbox {
++	constructor(...args){ this.assign({ page: location.pathname, open: [] }, ...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	post(verb, body){
++		return servex_fetch(`${servex_base()}/api/inbox/${verb}`, { method: "POST",
++			headers: { "content-type": "application/json" }, body: JSON.stringify({ path: folder(this.page), ...body }) })
++			.then(r => r.json());
++	}
++
++	// Tell the tab strip the new count (tabs.js listens), then redraw.
++	changed(){
++		window.dispatchEvent(new CustomEvent("drawer-inbox", { detail: { page: folder(this.page), n: this.open.length } }));
++		this.draw();
++	}
++
++	load(){ return notes(this.page).then(open => { this.open = open; this.changed(); }); }
++
++	drop(text){ return this.post("drop", { text }).then(() => this.load()); }
++	clear(id){ return this.post("clear", { id }).then(() => this.load()); }
++
++	/* The small "Leave a note" button, for the AI tab's head row. It opens a one-line
++	 * input at the top of the inbox; Enter leaves the note, Escape puts it away. */
++	button(){
++		return button.c("drawer-inbox-add", "Leave a note").attr("type", "button")
++			.attr("title", "A note on this page, for any agent (or you) to pick up and clear")
++			.click(() => { this.writing = !this.writing; this.draw(); });
++	}
++
++	// The block itself. Captured now, filled when the notes arrive (no DOM after an await).
++	view(){
++		this.$box = div.c("drawer-inbox flex v");
++		this.draw();
++		this.load();
++		return this.$box;
++	}
++
++	draw(){
++		const $box = this.$box;
++		if (!$box) return;
++		$box.empty(() => {
++			if (this.writing){
++				const $in = input.c("drawer-inbox-input").attr("placeholder", "Leave a note on this page, then Enter").attr("aria-label", "Leave a note");
++				$in.on("keydown", e => {
++					if (e.key === "Escape"){ this.writing = false; this.draw(); }
++					if (e.key !== "Enter" || !$in.el.value.trim()) return;
++					this.writing = false;
++					this.drop($in.el.value.trim());
++				});
++				setTimeout(() => $in.el.focus());
++			}
++			// Two lines: who and when, with Clear, over the note itself (the drawer is narrow).
++			this.open.forEach(n => div.c("drawer-inbox-row flex v", () => {
++				div.c("drawer-inbox-head flex v-center", () => {
++					span.c("drawer-inbox-from", n.from);
++					small.c("drawer-inbox-age muted", age(n.at)).attr("title", n.at);
++					button.c("drawer-inbox-clear", "Clear").attr("type", "button").click(() => this.clear(n.id));
++				});
++				span.c("drawer-inbox-text", n.text);
++			}));
++		});
++		$box.el.hidden = !this.writing && !this.open.length;
++	}
++}
++
++export default DrawerInbox;
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index 468eca32..80f370b2 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -21,6 +21,8 @@ Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It o
+ 
+ While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
+ 
++**Every page has an inbox**, at the top of the AI tab: notes any agent (Servex's `drop` tool) or you (**Leave a note**) left on this page, each with a Clear; the tab reads **AI · 2** while two are open (`inbox.js`) · [doc/inbox.md](./doc/inbox.md)
++
+ ## On a phone
+ 
+ Below 52em a page with its own left-side sidebar (`core/Sidebar`) draws its own ☰ in that same top-right corner, so this drawer's fixed ☰ steps aside there instead of covering it. A small bar pinned to the bottom of the screen (`rail.js`, `rail.css`) is this drawer's other way in on a phone: an **✦** button opens a small sheet — the same log-plus-composer-plus-mic widget the desktop drawer's AI tab builds (`ext/Chat`'s `ChatPanel`) — and an **⋯ "More"** button opens this same drawer on its tabs, not a second ☰, since the page's own ☰ already lives at the top of the screen there. The sheet's header always names the page it is about ("Ask, by voice · /framework/", kept current as you navigate) and carries a **New session** button beside its other links. On a **plain page**, a finished sentence goes into a real [voice session](/framework/ext/Session/) — one per browser tab, followed from page to page, answered by a fast and a smart assistant — and "New session" drops it so the next thing said starts fresh. On a **card page** (`/framework/ai2/…`) the sentence still goes straight into that card's own persisted thread, unchanged, and "New session" only resets that card's own assistant. The old ☰ "Menu" look stays reachable as `DrawerRail.V1` — screenshots, the seam and the layout decision behind it: [Mobile bottom rail](/framework/ext/drawer/rail/). **The sheet's own top edge is a resize handle** (`ext/grip`'s `axis: "y"`) — drag it to change how much of the screen it takes; the size you let go of is remembered per device and read back on the next open (`grip-everywhere`, 2026-09-29 — `ext/grip/doc/decisions.md`). **Swipe it to the top and it becomes a page**: the whole screen, its own url (`?sheet=full`) and a ‹ Back; the phone's own back steps it down (full → open → closed) and never leaves the site · [doc/sheet.md](./doc/sheet.md)
+diff --git a/public/framework/ext/drawer/tabs.js b/public/framework/ext/drawer/tabs.js
+index fcb9aa97..f810bae7 100644
+--- a/public/framework/ext/drawer/tabs.js
++++ b/public/framework/ext/drawer/tabs.js
+@@ -92,6 +92,8 @@ export class DrawerTabs {
+ 		window.addEventListener("drawer-close", () => this.write(null));
+ 		// A host changed the page the drawer is about (drawer.page()) — the open tab redraws.
+ 		window.addEventListener("drawer-page", () => { if (this.mine()) drawer.refresh(); });
++		// The inbox (inbox.js) left or cleared a note: the AI tab's label shows the new count.
++		window.addEventListener("drawer-inbox", e => this.label_ai(e.detail.n));
+ 	}
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+@@ -158,16 +160,29 @@ export class DrawerTabs {
+ 		return { app: this.app, tabs: this, page: url, card };
+ 	}
+ 
++	/** "AI", or "AI · 2" while the page's inbox has open notes (inbox.js). */
++	label_ai(n){
++		if (!this.$ai?.el.isConnected) return;
++		this.$ai.text(n ? `AI · ${n}` : "AI");
++		this.$ai.el.title = n ? `${n} open note${n === 1 ? "" : "s"} in this page's inbox` : "";
++	}
++
+ 	fill($slot, $body){
+ 		$slot.empty(() => {
+ 			div.c("drawer-tabs flex", () => {
+-				this.shown().forEach(t => button.c("drawer-tab", t.label).attr("type", "button")
+-					.ac(t === this.current && "on").click(() => this.open(t.name)));
++				this.shown().forEach(t => {
++					const $b = button.c("drawer-tab", t.label).attr("type", "button")
++						.ac(t === this.current && "on").click(() => this.open(t.name));
++					if (t.name === "ai") this.$ai = $b;
++				});
+ 				a.c("drawer-tab drawer-files-link", "Files").href(this.files_href())
+ 					.attr("title", "This page's own files, full screen");
+ 			});
+ 		});
+ 
++		// The open notes in this page's inbox, as a count on the AI label ("AI · 2").
++		import("./inbox.js").then(m => m.count(drawer.page())).then(n => this.label_ai(n)).catch(() => {});
++
+ 		// ⚠ The tab's file is imported, and an await drops the captor — so the body is
+ 		// captured NOW and filled in a callback (code skill §1).
+ 		const tab = this.current, ctx = this.context();
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index baec85ff..078c47b7 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -8,6 +8,7 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ import drawer from "../drawer.js";
+ import { DEV } from "../tabs.js";
++import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+ 
+ /* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`) is `ChatPanel` (`ext/Chat`): the
+    log, the composer and the mic as ONE widget, the exact one the mobile ✦ sheet
+@@ -222,6 +223,7 @@ export default function ai({ page, card, tabs }){
+ 	const thread = card ? null : tabs.thread;
+ 	let panel, $hint;
+ 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
++	const inbox = new DrawerInbox({ page });
+ 
+ 	div.c("drawer-ai flex v", () => {
+ 		div.c("drawer-ai-head flex v-center split wrap", () => {
+@@ -234,7 +236,9 @@ export default function ai({ page, card, tabs }){
+ 				$pick.el.value = model();
+ 				$pick.on("change", () => model($pick.el.value));
+ 			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
++			if (DEV) inbox.button();
+ 		});
++		inbox.view();
+ 
+ 		const { view: $chips, context } = chips_row(tabs);
+ 

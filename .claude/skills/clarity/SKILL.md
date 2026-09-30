@@ -30,6 +30,8 @@ You are given one **target**: a landed task's dir, or a proposal (a `requirement
 
 ## Look at it as the owner would
 
+**Look at it in your own headless page, never in the owner's tab.** Use `mcp__site__shot` (a fresh headless chromium) or `Server/browser.mjs`; never `mcp__site__pages`, `claim` or `eval` on a connected tab (2026-09-30: clarity-look-ai2-3 claimed the owner's tab and put the red border around the site while the owner was using it).
+
 Pieces can each be right while the whole screen is wrong. Every agent's screenshot proved its own piece, and nobody looked at the whole card. So:
 
 1. Shoot every page the task changed, whole and never cropped to an element, as the owner reaches it by clicking from the rail: `node Server/layout-check.mjs <url> --out <your scratch dir>`, then read its `1920.png`. The prompt lists the pages. An AI 2 change always includes the rail, the card it changed, and one done card.

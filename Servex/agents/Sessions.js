@@ -12,6 +12,28 @@ const REPO = path.join(HERE, "../..");
  * words with the fillers gone, `edit` = rewritten for clarity, `summary` = the gist.
  * ext/Session/Session.js exports the same list as LEVELS. */
 export const LEVELS = ["clean", "edit", "summary"];
+/* Is the owner still talking? Stamped by the composer (ext/Chat/doc/floor.md). */
+export const FLOORS = ["speaking", "done"];
+
+/* `<dir>/ai/log.jsonl`: a MINIMAL index of AI work in one folder, presence only, each line
+ * pointing at its detail file. These three shapes and nothing else (voice-sessions item 8). */
+export const DIR_LOG = {
+	session:  { need: ["id", "event", "file"], may: ["title", "at"], event: ["started", "ended"] },
+	task:     { need: ["dir", "event"], may: ["title", "at"], event: ["opened", "landed"] },
+	decision: { need: ["text", "file"], may: ["at"] }
+};
+
+export function check_dir_line(line){
+	const keys = Object.keys(line ?? {});
+	if (keys.length !== 1 || !DIR_LOG[keys[0]]) throw Object.assign(new Error(`a log.jsonl line is ONE of ${Object.keys(DIR_LOG).join(", ")}`), { status: 400 });
+	const kind = keys[0], rule = DIR_LOG[kind], body = line[kind];
+	if (!body || typeof body !== "object") throw Object.assign(new Error(`${kind} must be an object`), { status: 400 });
+	for (const k of rule.need) if (!String(body[k] ?? "").trim()) throw Object.assign(new Error(`${kind}.${k} is required`), { status: 400 });
+	for (const k of Object.keys(body)) if (!rule.need.includes(k) && !rule.may.includes(k))
+		throw Object.assign(new Error(`${kind}.${k} is not allowed; ${kind} takes ${[...rule.need, ...rule.may].join(", ")}`), { status: 400 });
+	if (rule.event && !rule.event.includes(body.event)) throw Object.assign(new Error(`${kind}.event is ${rule.event.join(" or ")}`), { status: 400 });
+	return { [kind]: { ...body, at: body.at ?? now_ms() } };
+}
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
@@ -31,15 +53,19 @@ export const now_ms = () => {
  * thinking, the decisions, the masterminds). Everything is one file,
  * `public<home>ai/<session>.jsonl`, that the browser polls:
  *
- *   line 1   {"session": {id, home, at, host, fast, smart, backing: {fast, smart}}}
- *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?}}
+ *   line 1   {"session": {id, home, at, project, host, fast, smart, backing: {fast, smart}}}
+ *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
  *            {"nav":  {at, from, to}}
  *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
  *
- * Every page the session touches gets ONE pointer line in its own `page.jsonl`:
- * `{"session": {id, file, at}}`; `session_summary` appends a fresh one with the
- * title and summary (the latest pointer for an id wins). The title and summary
- * themselves are `<home>ai/<session>.summary.json`.
+ * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
+ * `ai/log.jsonl`, `{"session": {id, event: "started", title, file, at}}`; every one of
+ * those folders gets `event: "ended"` (with the latest title) whenever the pair stops,
+ * and the home a fresh `started` line whenever `session_summary` changes the title (the
+ * latest line for an id wins). Both files are APPEND-ONLY: a follow() reader must never
+ * be sent a line twice. Sessions are listed per PROJECT (project_of()), not per host.
+ * Only presence goes there, never steps; `dir_log()` below validates every line. The
+ * title and summary themselves are `<home>ai/<session>.summary.json`.
  *
  * LIFE (memory first): /new and resume spawn NOTHING. The first say spawns the FAST
  * agent and sends it the line at once; the SMART one is spawned on the next tick and
@@ -61,17 +87,21 @@ export default class Sessions {
 	defaults(){
 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
-			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2),
-			/* THE FLOOR (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
+			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
+			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
 			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
-			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter). */
+			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
+			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
 			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
-			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), clients: new Map(), buffers: new Map() };
+			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), floor_timers: new Map(),
+			thoughts: new Map(), clients: new Map(), buffers: new Map() };
 	}
 
 	install(){
 		this.file ??= place("sessions.json");
 		this.load();
+		this.backfill();
+		this.unanswered();
 		this.listen();
 		this.route();
 		this.sweeper = setInterval(() => this.sweep(), Math.min(60000, Math.max(1000, this.idle_ms / 4)));
@@ -83,8 +113,73 @@ export default class Sessions {
 
 	load(){
 		try { this.map = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { this.map = {}; }
-		for (const [id, s] of Object.entries(this.map)) for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
+		for (const [id, s] of Object.entries(this.map)){
+			delete s.floor;   // a floor from before a restart is stale: nobody is still talking into it
+			for (const role of ["fast", "smart"]) if (s[role]) this.by_agent.set(s[role], { id, role });
+		}
 	}
+
+	/* Every folder a session belongs to: its home, then each page it passed through. */
+	folders(s){ return [...new Set([s.home, ...(s.visited ?? [])].filter(Boolean))]; }
+
+	ids_in(site){
+		try {
+			return new Set(fs.readFileSync(path.join(this.disk(site), "ai", "log.jsonl"), "utf8").split("\n")
+				.map(l => { try { return JSON.parse(l).session?.id; } catch { return null; } }).filter(Boolean));
+		} catch { return new Set(); }
+	}
+
+	/* ONCE, on install (review item 4): a session made before the folder index existed has no
+	 * line in its folders' `ai/log.jsonl`. Append one `started` line for each; append only,
+	 * never a rewrite (a follow() reader of that file must never be sent a line twice). */
+	backfill(){
+		let wrote = 0;
+		for (const s of Object.values(this.map)) for (const site of this.folders(s)){
+			if (!this.is_dir(site) || this.ids_in(site).has(s.id)) continue;
+			this.append(path.join(this.disk(site), "ai", "log.jsonl"),
+				{ session: { id: s.id, event: "started", title: this.summary_of(s).title, file: s.file, at: s.at ?? now_ms() } });
+			wrote++;
+		}
+		console.log(`sessions: backfilled ${wrote} ai/log.jsonl line${wrote === 1 ? "" : "s"} from sessions.json`);
+		return wrote;
+	}
+
+	/* On install (review item 9): a session whose last chat line is the owner's was cut off by
+	 * the restart; say so in its file, so the owner sees it instead of waiting. */
+	unanswered(){
+		let n = 0;
+		for (const s of Object.values(this.map)){
+			let last = null;
+			try {
+				for (const l of fs.readFileSync(this.disk(s.file), "utf8").split("\n")){
+					try { const j = JSON.parse(l); if (j.chat) last = j.chat; } catch {}
+				}
+			} catch { continue; }
+			if (last?.from?.kind !== "owner") continue;
+			this.append(this.disk(s.file), { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
+				text: "Servex restarted; this line wasn't answered. Say it again.", re: last.at } });
+			n++;
+		}
+		if (n) console.log(`sessions: ${n} session${n === 1 ? "" : "s"} had an unanswered line at restart`);
+		return n;
+	}
+
+	/* The PROJECT a browser host belongs to (review item 8), so the phone on
+	 * `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same sessions:
+	 * `<name>.localhost` is that name; an ip:port is the Servex project serving that port;
+	 * anything else is the project this repo is. */
+	project_of(host){
+		const h = String(host ?? "").trim().toLowerCase();
+		const i = h.lastIndexOf(":"), name = i > 0 ? h.slice(0, i) : h, port = i > 0 ? h.slice(i + 1) : "";
+		if (name.endsWith(".localhost")) return name.slice(0, -".localhost".length).split(".").pop();
+		const projects = this.servex?.projects ?? [];
+		const by_port = port && projects.find(p => String(p.port) === port);
+		if (by_port) return by_port.name;
+		const own = projects.find(p => p.dir && path.resolve(p.dir) === path.resolve(this.repo));
+		return own?.name ?? path.basename(path.resolve(this.repo));
+	}
+
+	project(s){ return s.project ?? this.project_of(s.host); }
 
 	save(){
 		fs.mkdirSync(path.dirname(this.file), { recursive: true });
@@ -101,6 +196,19 @@ export default class Sessions {
 
 	disk(site){ return path.join(this.repo, "public", ...site.split("/").filter(Boolean)); }
 	is_dir(site){ try { return fs.statSync(this.disk(site)).isDirectory(); } catch { return false; } }
+
+	/* A CARD id (voice-sessions, card sessions): a path under `/framework/ai/`, such as
+	 * `2026/09/29/audio-a-library-of-audio-parts-transcrip`, naming an AI 2 card's own folder.
+	 * `card_home()` turns it into that folder's site path, `/framework/ai/<card>/`, and returns
+	 * null for anything unsafe (`..`, a backslash) or any id whose `page.jsonl` is not actually
+	 * there — a card session's home must be a real card, never guessed. */
+	card_home(card){
+		const id = String(card ?? "").trim().replace(/^\/+|\/+$/g, "");
+		if (!id || id.includes("..") || id.includes("\\") || id.includes("\0")) return null;
+		const home = `/framework/ai/${id}/`;
+		try { return fs.statSync(path.join(this.disk(home), "page.jsonl")).isFile() ? home : null; }
+		catch { return null; }
+	}
 
 	/* The nearest page that exists on disk, walking up: a route with no folder of its own
 	 * (a query view, a typo) still gets a home, never a 404. */
@@ -133,30 +241,79 @@ export default class Sessions {
 
 	summary_file(s){ return this.disk(s.file.replace(/\.jsonl$/, ".summary.json")); }
 
-	/* One pointer per session per page, never one per sentence. */
+	/* A folder, as `{disk, name}`: a site path (`/framework/ext/`, served from `public/`), or
+	 * any repo folder (`public/framework/ext`, `Servex/agents`), since much of what a session
+	 * decides is about Servex itself (review item 6). */
+	folder(dir){
+		const raw = String(dir ?? "").trim().replace(/\\/g, "/");
+		const site = raw.replace(/^\/?public\//, "/");
+		if (site.startsWith("/")){
+			const at = page_path(site.endsWith("/") ? site : site + "/");
+			if (at && this.is_dir(at)) return { disk: this.disk(at), name: at };
+		}
+		const rel = raw.replace(/^\/+|\/+$/g, ""), disk = path.resolve(this.repo, rel);
+		const inside = rel && !path.relative(path.resolve(this.repo), disk).startsWith("..");
+		try { if (inside && fs.statSync(disk).isDirectory()) return { disk, name: rel + "/" }; } catch {}
+		throw Object.assign(new Error(`"${dir}" is not a folder of the site (/framework/ext/) or the repo (Servex/agents)`), { status: 400 });
+	}
+
+	/* One validated line into `<dir>/ai/log.jsonl` (the dir_log tool). */
+	dir_log({ dir, line } = {}){
+		const at = this.folder(dir), checked = check_dir_line(typeof line === "string" ? JSON.parse(line) : line);
+		this.append(path.join(at.disk, "ai", "log.jsonl"), checked);
+		return { ok: true, file: `${at.name}ai/log.jsonl`, line: checked };
+	}
+
+	presence(s, site, event){
+		this.append(path.join(this.disk(site), "ai", "log.jsonl"),
+			{ session: { id: s.id, event, title: s.title ?? null, file: s.file, at: now_ms() } });
+	}
+
+	/* One `started` line per session per folder, never one per sentence — UNLESS the pair
+	 * had stopped and is now waking (`s.ended`, voice-fixes review item 4): the latest line
+	 * for an id wins, so a folder visited before the sleep must get a fresh `started` when
+	 * the session passes through it again, or that folder keeps showing it as `ended`
+	 * forever even while it is live there. `nav()` calls this before `wake()` clears
+	 * `s.ended`, so this still sees it. */
 	point(s, site){
 		const page = this.nearest(site);
-		if ((s.visited ??= []).includes(page)) return;
-		s.visited.push(page);
-		this.append(path.join(this.disk(page), "page.jsonl"), { session: { id: s.id, file: s.file, at: now_ms() } });
+		const seen = (s.visited ??= []).includes(page);
+		if (seen && !s.ended) return;
+		if (!seen) s.visited.push(page);
+		this.presence(s, page, "started");
 		this.save();
 	}
 
 	// ── the three verbs ──────────────────────────────────────────────────────
 
-	create({ path: at, host = null } = {}){
+	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
+	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
+	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
+	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
+	create({ path: at, card, host = null, fresh = false } = {}){
 		const asked = page_path(at);
 		if (!asked) throw Object.assign(new Error(`"${at}" is not a page path`), { status: 400 });
-		const home = this.nearest(asked);
-		const [last] = this.recent({ page: home, host, limit: 1 });
-		if (last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });
+		let home = this.nearest(asked);
+		if (card != null && card !== ""){
+			home = this.card_home(card);
+			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no public/framework/ai/${card}/page.jsonl)`), { status: 400 });
+		}
+		const project = this.project_of(host);
+		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on
+		 * the card's own home only ever finds sessions of that card, since every one of them was
+		 * homed there too. */
+		const [last] = this.recent({ page: home, project, limit: 1 });
+		/* `fresh: true` (voice-fixes review item 1, the "New session" button): always start over,
+		 * even when a session on this page spoke within `resume_ms`. */
+		if (!fresh && last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });
 		let id;
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = `${home}ai/${id}.jsonl`;
 		/* No agents yet: the first say spawns them (wake). */
-		const s = { id, home, file, at: now_ms(), host, path: asked, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
+			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
 		this.map[id] = s;
-		this.write(s, { session: { id, home, at: s.at, host, fast: null, smart: null, backing: s.backing } });
+		this.write(s, { session: { id, home, at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
 		this.point(s, home);
 		this.save();
 		const previous = last ? { session: last.session, title: last.title, summary: last.summary, at: last.last_at } : null;
@@ -170,12 +327,17 @@ export default class Sessions {
 		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true, title, summary, at: s.at, last_at: s.last_at ?? s.at };
 	}
 
-	/* Sessions started on, or passing through, `page` (its nearest folder), newest
-	 * first, from one host only. A session's last line is `last_at`. */
-	recent({ page = "/", host = null, limit = 10 } = {}){
+	/* Sessions started on, or passing through, `page` (its nearest folder), newest first,
+	 * from one PROJECT only (the phone and the PC share one; two sites never mix). The ids
+	 * come from that folder's `ai/log.jsonl`, plus, as a fallback, every session whose
+	 * `home` or `visited` in sessions.json names the folder. */
+	recent({ page = "/", project, host = null, limit = 10 } = {}){
 		const at = this.nearest(page_path(page) ?? "/");
-		return Object.values(this.map)
-			.filter(s => (s.host ?? null) === (host ?? null) && (s.home === at || (s.visited ?? []).includes(at)))
+		project ??= this.project_of(host);
+		const ids = this.ids_in(at);
+		for (const s of Object.values(this.map)) if (this.folders(s).includes(at)) ids.add(s.id);
+		return [...ids].map(id => this.map[id]).filter(Boolean)
+			.filter(s => this.project(s) === project)
 			.map(s => ({ session: s.id, home: s.home, ...this.summary_of(s), at: s.at, last_at: s.last_at ?? s.at }))
 			.sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at))
 			.slice(0, Math.max(1, Number(limit) || 10));
@@ -196,11 +358,11 @@ export default class Sessions {
 		if (!title || !summary) throw Object.assign(new Error("title and summary are both required"), { status: 400 });
 		const words = title.split(" ").length;
 		if (words > 6) throw Object.assign(new Error(`the title is ${words} words; at most 6`), { status: 400 });
-		const at = now_ms();
+		const at = now_ms(), changed = title !== s.title;
 		Object.assign(s, { title, summary });
 		fs.mkdirSync(path.dirname(this.summary_file(s)), { recursive: true });
 		fs.writeFileSync(this.summary_file(s), JSON.stringify({ id: s.id, home: s.home, title, summary, at, visited: s.visited ?? [] }, null, 2));
-		this.append(path.join(this.disk(s.home), "page.jsonl"), { session: { id: s.id, file: s.file, at, title, summary } });
+		if (changed) this.presence(s, s.home, "started");
 		this.save();
 		return { ok: true, session: s.id, title, summary, at };
 	}
@@ -211,33 +373,40 @@ export default class Sessions {
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		if (level != null && !LEVELS.includes(level)) throw Object.assign(new Error(`level must be one of ${LEVELS.join(", ")}`), { status: 400 });
-		if (level != null && !re) throw Object.assign(new Error("a refined line needs `re`, the owner line's at"), { status: 400 });
+		/* Never guessed (review item 12): a refinement attached to the wrong owner line is worse than none. */
+		if (level != null && !re) throw Object.assign(new Error("a refined line needs `re`, the `at` of the owner line it refines"), { status: 400 });
 		const line = { at: now_ms(), session: s.id, path: s.path, from: { kind: "assistant", id: "smart", agent: s.smart }, via: "text", text,
 			...(re ? { re } : {}), ...(level ? { level } : {}) };
 		this.write(s, { chat: line });
 		return { ok: true, at: line.at };
 	}
 
-	say({ session, path: at, text, via = "text", raw, floor, quiet_ms } = {}){
+	/* `floor` and `cues` (ext/Chat/doc/floor.md) are optional and stored on the owner's line;
+	 * a say with no floor counts as "done", as before the floor existed. `raw` is what Whisper
+	 * heard when the clean-up changed it; `quiet_ms` is how long the owner had been quiet. */
+	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms } = {}){
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
+		if (floor != null && !FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
 		const site = page_path(at) ?? s.path;
 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
-			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}), ...(floor ? { floor } : {}) };
+			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
+			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}) };
 		this.write(s, { chat: line });
+		this.set_floor(s, floor ?? "done");
 		this.wake(s, "fast");
 		/* The smart one spawns on the NEXT tick, so the fast one's process starts first and alone. */
 		setImmediate(() => { try { this.wake(s, "smart"); } catch (e){ console.error(`sessions: ${e.message}`); } });
 		if (via === "voice" && floor){
 			/* A spoken line from a page that reports the floor: held until the owner is quiet. */
-			this.hold(s, line);
+			this.hold_thought(s, line);
 			const q = quiet_ms == null ? null : Number(quiet_ms);
-			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`);
-		} else if (this.held.get(s.id)?.lines.length){
+			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release_thought(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`);
+		} else if (this.thoughts.get(s.id)?.lines.length){
 			/* Typed while spoken words are still held: they all go together, in order (review note 4). */
-			this.hold(s, line);
-			this.release(s, "then typed this");
+			this.hold_thought(s, line);
+			this.release_thought(s, "then typed this");
 		} else {
 			s.fast_re = line.at;
 			this.send(s, "fast", `[on ${site}] ${text}`);
@@ -260,40 +429,75 @@ export default class Sessions {
 		return { ok: true };
 	}
 
+	/* THE FLOOR (ext/Chat/doc/floor.md; the page assistant does the same in Assistant.heard()).
+	 * While the latest floor is "speaking", the FAST reply is held in memory (`held`, the
+	 * newest one only) and the smart quiet gap keeps restarting; "done" writes the held reply.
+	 * Like Assistant's `floor_wait_ms`, 8 s of "speaking" with nothing new counts as "done",
+	 * so a dropped mic never swallows a reply. */
+	floor({ session, floor } = {}){
+		const s = this.get(session);
+		if (!FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
+		const released = this.set_floor(s, floor);
+		return { ok: true, floor, released };
+	}
+
+	speaking(s){ return s.floor === "speaking"; }
+
+	set_floor(s, floor){
+		s.floor = floor;
+		clearTimeout(this.floor_timers.get(s.id));
+		if (floor !== "speaking") return this.release(s);
+		const t = setTimeout(() => this.set_floor(s, "done"), this.floor_wait_ms);
+		this.floor_timers.set(s.id, t);
+		t.unref?.();
+		return false;
+	}
+
+	release(s){
+		const h = this.held.get(s.id);
+		if (!h) return false;
+		this.held.delete(s.id);
+		this.write(s, { chat: { at: now_ms(), ...h } });
+		return true;
+	}
+
 	/* The smart assistant hears a thought, not its fragments: lines gathered over a
-	 * quiet gap (Layers.hear()'s pattern), with where the owner went since. */
+	 * quiet gap (Layers.hear()'s pattern), with where the owner went since. The gap
+	 * restarts while the owner still has the floor. */
 	gather(s, line){
 		const w = this.waiting.get(s.id) ?? { lines: [] };
 		w.lines.push(line);
 		clearTimeout(w.timer);
-		w.timer = setTimeout(() => {
+		const fire = () => {
+			if (this.speaking(s)){ w.timer = setTimeout(fire, this.quiet_ms); return; }
 			this.waiting.delete(s.id);
 			const moves = (s.moves ?? []).splice(0);
 			const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
 			s.smart_re = w.lines[w.lines.length - 1].at;
 			this.save();
 			this.wake(s, "smart");
-			this.send(s, "smart", nav + w.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n"));
-		}, this.quiet_ms);
+			this.send(s, "smart", nav + w.lines.map(l => `[on ${l.path} at ${l.at}] ${l.text}`).join("\n"));
+		};
+		w.timer = setTimeout(fire, this.quiet_ms);
 		this.waiting.set(s.id, w);
 	}
 
 	/* HELD until the owner stops (the floor): every spoken line waits here; both assistants hear
 	 * the whole thought at once on release, with how it ended as the last line. */
-	hold(s, line){
-		const h = this.held.get(s.id) ?? { lines: [] };
+	hold_thought(s, line){
+		const h = this.thoughts.get(s.id) ?? { lines: [] };
 		h.lines.push(line);
 		clearTimeout(h.timer);
-		h.timer = setTimeout(() => { try { this.release(s, `no quiet event for ${Math.round(this.hold_max_ms / 1000)} s`); } catch (e){ console.error(`sessions: ${e.message}`); } }, this.hold_max_ms);
+		h.timer = setTimeout(() => { try { this.release_thought(s, `no quiet event for ${Math.round(this.hold_max_ms / 1000)} s`); } catch (e){ console.error(`sessions: ${e.message}`); } }, this.hold_max_ms);
 		h.timer.unref?.();
-		this.held.set(s.id, h);
+		this.thoughts.set(s.id, h);
 	}
 
-	release(s, why){
-		const h = this.held.get(s.id);
+	release_thought(s, why){
+		const h = this.thoughts.get(s.id);
 		if (!h?.lines.length) return false;
 		clearTimeout(h.timer);
-		this.held.delete(s.id);
+		this.thoughts.delete(s.id);
 		const moves = (s.moves ?? []).splice(0);
 		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
 		const said = h.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n");
@@ -314,7 +518,7 @@ export default class Sessions {
 		const n = Math.max(0, Math.round(Number(ms) || 0));
 		this.write(s, { quiet: { at: now_ms(), ms: n, ...(mic_off ? { mic_off: true } : {}), path: page_path(at) ?? s.path } });
 		const released = (mic_off || n >= this.answer_quiet_ms)
-			&& this.release(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`);
+			&& this.release_thought(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`);
 		return { ok: true, released };
 	}
 
@@ -330,6 +534,8 @@ export default class Sessions {
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
 	spawn(s, role, { resume = null, context = "" } = {}){
 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
+			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
+				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
 		const spec = role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
@@ -364,11 +570,14 @@ export default class Sessions {
 		const old = s.backing?.[role];
 		const can = !!(old && session_facts(old).cwd);
 		const how = can ? "resume" : old ? "fresh" : "new";
-		const agent = this.spawn(s, role, can ? { resume: old } : { context: old ? this.tail(s, 40) : "" });
+		let agent;
+		try { agent = this.spawn(s, role, can ? { resume: old } : { context: old ? this.tail(s, 40) : "" }); }
+		catch (e){ this.sleep(s, "failed revive"); throw e; }
 		s[role] = agent.id;
 		this.by_agent.set(agent.id, { id: s.id, role });
 		(s.backing ??= {})[role] = agent.session_id ?? null;
 		delete s.asleep_at;
+		if (s.ended){ delete s.ended; this.presence(s, s.home, "started"); }
 		this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, how: { [role]: how } } });
 		return true;
 	}
@@ -378,6 +587,13 @@ export default class Sessions {
 		for (const role of ["fast", "smart"]) if (this.awake(s, role)) try { this.servex.agents.stop(s[role]); } catch {}
 		s.asleep_at = now_ms();
 		s.asleep_why = why;
+		/* `ended`, with the latest title, in EVERY folder the session reached, on every stop
+		 * (idle, room(), a failed revive): no folder shows it untitled and running forever. */
+		if (!s.ended){
+			s.ended = true;
+			s.title = this.summary_of(s).title ?? s.title ?? null;
+			for (const site of this.folders(s)) if (this.is_dir(site)) this.presence(s, site, "ended");
+		}
 		this.save();
 	}
 
@@ -389,18 +605,21 @@ export default class Sessions {
 		for (;;){
 			const live = this.live_pairs().filter(x => x !== s);
 			if (live.length < this.max_pairs) return;
-			const idle = live.filter(x => !["fast", "smart"].some(r => this.servex.agents.live.get(x[r])?.state === "working"))
+			const idle = live.filter(x => !this.busy(x))
 				.sort((a, b) => Date.parse(a.last_at ?? a.at) - Date.parse(b.last_at ?? b.at));
 			if (!idle.length) return console.error(`sessions: ${live.length} pairs live and all busy; ${s.id} goes over the cap`);
 			this.sleep(idle[0], `room for ${s.id}`);
 		}
 	}
 
-	/* A pair that heard nothing for `idle_ms` is stopped. */
+	busy(s){ return ["fast", "smart"].some(r => this.servex.agents.live.get(s[r])?.state === "working"); }
+
+	/* A pair that heard nothing for `idle_ms` is stopped, unless one of its agents is
+	 * mid-turn: a smart turn that reads, refines and spawns can outlast 5 minutes (review item 2). */
 	sweep(){
 		const t = Date.now();
 		for (const s of this.live_pairs())
-			if (t - Date.parse(s.last_at ?? s.at) >= this.idle_ms) this.sleep(s, "idle");
+			if (t - Date.parse(s.last_at ?? s.at) >= this.idle_ms && !this.busy(s)) this.sleep(s, "idle");
 	}
 
 	/* The host's watch() seam: a turn's end on one of our agents is its reply. */
@@ -427,7 +646,9 @@ export default class Sessions {
 		 * most of the time just listening"): the fast one's `(listening)`, or a filler line, is kept
 		 * as an invisible `{skip}` line and never drawn. */
 		if (who.role === "fast" && is_filler(text)) return this.write(s, { skip: { at: now_ms(), role: who.role, text, ...(re ? { re } : {}) } });
-		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "assistant", id: who.role, agent: agent.id }, via: "text", text, ...(re ? { re } : {}) } });
+		const chat = { session: s.id, path: s.path, from: { kind: "assistant", id: who.role, agent: agent.id }, via: "text", text, ...(re ? { re } : {}) };
+		if (who.role === "fast" && this.speaking(s)) return void this.held.set(s.id, chat);   // the owner is still talking
+		this.write(s, { chat: { at: now_ms(), ...chat } });
 	}
 
 	/* TOKEN BY TOKEN (the owner, 2026-09-30): a reply's text so far, per agent, pushed WHOLE to the
@@ -484,7 +705,7 @@ export default class Sessions {
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
 		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["quiet", "quiet"]]){
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : b)); }
@@ -492,8 +713,15 @@ export default class Sessions {
 			});
 		}
 		router.get("/api/sessions", cors, (req, res) => {
-			try { res.json({ ok: true, sessions: this.recent({ page: req.query.page ?? "/", limit: req.query.limit, host: host_of(req, { host: req.query.host }) }) }); }
-			catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+			try {
+				let page = req.query.page ?? "/";
+				if (req.query.card){
+					page = this.card_home(req.query.card);
+					if (!page) throw Object.assign(new Error(`"${req.query.card}" is not a known card`), { status: 400 });
+				}
+				res.json({ ok: true, sessions: this.recent({ page, limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) });
+			}
+			catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 		});
 		router.get("/api/session/:id", cors, (req, res) => {
 			const s = this.map[req.params.id];

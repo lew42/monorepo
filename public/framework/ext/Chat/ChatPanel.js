@@ -4,6 +4,11 @@ import { composer } from "./Composer.js";
 import { watch as watch_session } from "/framework/ext/Session/Session.js";
 import { rename_options } from "/framework/ux/Rename/Rename.js";
 import { marks } from "/framework/ux/Understand/Understand.js";
+import { ChatDrill } from "./Drill.js";
+
+// A stable name per panel on a page, in build order — the same on a reload, so
+// a drilled-in url (#chat=panel-2~…) finds the same panel again (doc/drill.md).
+let panels = 0;
 
 View.stylesheet(import.meta, "Chat.css");
 
@@ -77,7 +82,11 @@ export class ChatPanel extends View {
 			// own ask, reused as-is.
 			marks: this.marks ? marks : undefined,
 			on_unclear: (c, m) => this.handle_unclear(c, m),
+			// DRILL IN (doc/drill.md): "Open" on a selected card takes it full
+			// screen, routed. `drill: false` = no button, exactly v1.
+			on_open: this.drill === false ? undefined : card => this.drilled.open(card),
 		});
+		if (this.drill !== false) this.drilled = new ChatDrill({ panel: this, session: this.session ?? this.watch ?? "panel-" + (++panels) });
 
 		// ⚠ THE LINE A FUTURE REFINE-LEVEL OPTION EXTENDS (voice-sessions
 		// coordination, 2026-09-29 — `ext/drawer/tabs/ai.js` and `rail.js` both
@@ -126,7 +135,7 @@ export class ChatPanel extends View {
 	}
 
 	/** Draw whatever is new since the last call — same contract as `chat().sync()`. */
-	sync(){ this.talk.sync(); return this; }
+	sync(){ this.talk.sync(); this.drilled?.check(); return this; }
 
 	/** An assistant's reply while it is still being written (`chat().stream()`); `""` removes it. */
 	stream(who, text){ this.talk.stream(who, text); return this; }

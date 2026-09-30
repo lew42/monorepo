@@ -5,7 +5,7 @@ import { execFile, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import Events from "../Server/Events.js";
 import { refuse_links_into_main } from "../Server/junction-guard.mjs";
-import { stamp } from "./home.js";
+import { stamp, HOME } from "./home.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = p => String(p).split(path.sep).join("/");
@@ -172,41 +172,72 @@ export default class Pool extends Events {
      * agent that could not get one made its own worktree by hand, with node_modules junctions
      * into the main tree. That is what emptied the main node_modules at 13:46.
      *
-     * A holder is dead only when the Servex agent registry says "stopped" or "gone". A holder
-     * the registry does not know (a CLI session, a person) is left alone. The hand-back is
-     * give_back() itself, so the check is exactly return_worktree's: a slot with uncommitted
-     * changes or unmerged commits is refused, kept, and named, never discarded. */
+     * "Taken" lives in .worktree-pool.json, so it survives a restart. A taken slot stays taken
+     * until ALL of these hold (pool-taken, 2026-09-30):
+     *   1. its holder is "stopped" or "gone" in the Servex registry (one the registry does not
+     *      know — a CLI session, a person — is never reclaimed);
+     *   2. no live agent works in it or is queued to (cwd inside the slot), and no live agent
+     *      descends from the holder (a minion writes by absolute path from anywhere);
+     *   3. it holds no changes of its own and no commits outside michael/dev — give_back()'s
+     *      own check, so a slot with work is refused, KEPT and named.
+     * Reclaim never salvages (it did until 2026-09-30, and twice that day moved a working
+     * minion's files out from under it: qf-9 at 12:53 and 13:23). Salvage is by hand only:
+     * `node Servex/Lifecycle.js --salvage qf-N`. */
     async reclaim(){
-        const rows = this.holders();
-        const dead = id => { const r = rows.find(r => r.id === id || r.name === id); return !!r && (r.state === "stopped" || r.state === "gone"); };
+        const rows = this.holders(), queued = this.queued_cwds();
         const reclaimed = [], kept = [];
-        for (const slot of this.slots.filter(s => s.state === "taken" && dead(s.taken_by))){
-            const holder = slot.taken_by;
+        for (const slot of this.slots.filter(s => s.state === "taken")){
+            const holder = slot.taken_by, held = this.held(slot, rows, queued);
+            if (held){
+                if (held.dead) { kept.push({ id: slot.id, holder, why: held.why }); this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${held.why}`, holder); }
+                continue;
+            }
             try {
                 await this.give_back(slot.id);
                 if (!(await this.answers(slot.url))){ this.remove(slot); this.top_up(); }   // handed back, but its server is dead: make a fresh one
                 reclaimed.push(slot.id);
                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
             } catch (e) {
-                // SALVAGE (lifecycle, 2026-09-29): the work is committed to a salvage/ branch that is never
-                // merged or deleted, the slot is reset to the base, then removed and replaced. Nothing is lost.
-                try {
-                    const s = await this.salvage(slot, holder);
-                    this.remove(slot);
-                    this.top_up();
-                    reclaimed.push(slot.id);
-                    this.say(`pool: ${slot.id} reclaimed from stopped ${holder}; ${s.what}`, { id: slot.id, from: holder, salvage: s.branch });
-                } catch (e2) {
-                    const why = String(e2.message || e.message).split("\n")[0].replace(/^Refused: /, "");
-                    kept.push({ id: slot.id, holder, why });
-                    this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}`, { id: slot.id, from: holder });
-                }
+                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "");
+                kept.push({ id: slot.id, holder, why });
+                this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, holder);
             }
         }
         return { reclaimed, kept };
     }
 
-    /* A dead holder's slot, emptied without losing anything: its server is stopped FIRST (the
+    /* The sweep asks every 5 minutes: a kept slot's reason is said once, and again only when it changes. */
+    once(slot, msg, holder){
+        if (slot.kept_msg === msg) return;
+        slot.kept_msg = msg;
+        this.say(msg, { id: slot.id, from: holder });
+    }
+
+    /* Why a taken slot is still held, or null when rules 1 and 2 above let it go.
+     * `dead` is true when only rule 2 keeps it (the holder itself has stopped). */
+    held(slot, rows, queued = []){
+        const LIVE = ["idle", "working", "queued", "starting"];
+        const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
+        if (!row) return { why: `${slot.taken_by} is not a Servex agent` };
+        if (row.state !== "stopped" && row.state !== "gone") return { why: `${slot.taken_by} is ${row.state}` };
+        const inside = cwd => { const c = slash(path.resolve(String(cwd || "."))).toLowerCase(), p = slash(path.resolve(slot.path)).toLowerCase(); return !!cwd && (c === p || c.startsWith(p + "/")); };
+        const worker = rows.find(r => LIVE.includes(r.state) && inside(r.cwd));
+        if (worker) return { dead: true, why: `${worker.id} (${worker.state}) works in it` };
+        if (queued.some(inside)) return { dead: true, why: "a queued spawn will work in it" };
+        const kids = new Set([row.id]);
+        for (let grew = true; grew;){ grew = false; for (const r of rows) if (r.parent && kids.has(r.parent) && !kids.has(r.id)){ kids.add(r.id); grew = true; } }
+        const child = rows.find(r => r.id !== row.id && kids.has(r.id) && LIVE.includes(r.state));
+        if (child) return { dead: true, why: `${child.id}, under ${row.id}, is ${child.state}` };
+        return null;
+    }
+
+    /* The cwd of every spawn still waiting at the memory gate (not in the registry yet). A seam for tests. */
+    queued_cwds(){
+        try { return JSON.parse(fs.readFileSync(path.join(HOME, "spawn-queue.json"), "utf8")).map(e => e.spec?.cwd).filter(Boolean); } catch { return []; }
+    }
+
+    /* BY HAND ONLY (node Servex/Lifecycle.js --salvage qf-N; reclaim() never calls it since 2026-09-30).
+     * A dead holder's slot, emptied without losing anything: its server is stopped FIRST (the
      * wrapper, whose /T takes run.js with it — a running server keeps appending page.jsonl lines,
      * so the tree went dirty again seconds after a hand reset on 09-29), then its uncommitted
      * files and unmerged commits go to `salvage/<slot>-<date>`, never merged, never deleted,
@@ -216,9 +247,21 @@ export default class Pool extends Events {
         this.kill(slot.watcher_pid, /health-supervisor/i);
         this.kill(slot.server_pid, this.server_cmd(slot));
         for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);   // the server's noise stays out of salvage
+        /* Live logs that michael/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
+         * unrelated board.jsonl churn into salvage/qf-6-2026-09-30-2. Their diff is kept aside as a patch in
+         * .worktree-logs/, never committed here, and the file goes back to HEAD. A NEW *.jsonl is the task's own and stays in. */
+        const logs = (await this.git(slot.path, ["diff", "--name-only", "HEAD", "--", "*.jsonl"])).out.split("\n").filter(Boolean);
+        let aside = null;
+        if (logs.length){
+            aside = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
+            fs.mkdirSync(path.dirname(aside), { recursive: true });
+            fs.writeFileSync(aside, execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...logs], { windowsHide: true, maxBuffer: 256 << 20 }));
+            for (const file of logs) this.restore(slot, file);
+        }
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
         const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
-        if (!status && !commits) return { branch: null, what: "nothing to salvage" };
+        const kept = aside ? `; ${logs.length} live log(s) left out, their diff kept at ${slash(aside)}` : "";
+        if (!status && !commits) return { branch: null, what: `nothing to salvage${kept}`, aside };
         const files = status ? status.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
         const numstat = (await this.git(slot.path, ["diff", "--numstat"])).out;
         const noise = files.length > 0 && files.every(f => f.endsWith("page.jsonl")) && !/^\d+\t[1-9]/m.test(numstat) && !commits;
@@ -232,9 +275,9 @@ export default class Pool extends Events {
             await step(["commit", "-m", `salvage: ${slot.id}, held by ${holder} (stopped) — kept here, never merged`]);
         }
         await step(["checkout", "-B", slot.branch, this.base]);
-        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}`;
+        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}${kept}`;
         try { await this.servex?.lifecycle?.salvaged(slot, holder, branch, what); } catch {}
-        return { branch, what, noise };
+        return { branch, what, noise, aside };
     }
 
     /* The Servex agent registry's rows ({ id, name, state }), or none without a Servex. A seam for tests. */

@@ -34,6 +34,7 @@ This file and every `readme.md` bring a topic to your attention; the detail is i
 - `public/framework/readme.md` → `core/` `ext/` `styles/` `ui/` `web/` — each dir's readme is its entry
 - `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)
 - `Server/` — dev server only
+- `Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review. Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`
 - Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo
 
 ## The site is live while you edit it (the owner, 2026-09-19)

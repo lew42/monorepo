@@ -159,6 +159,10 @@ never set it, so its bubbles stayed raw); a
 revision pair still only draws for a LINE that carries `re` + `level`, never for a
 mode alone.
 
+## Drill in: open a card as its own small page (2026-09-30)
+
+A selected card that holds something grows an **Open ⤢** button. It takes the chat full screen (on desktop, over the drawer at its full height) with a Back button, and a card inside opens one level deeper. Each level has its own url (`#chat=<session>~<at>/…`), so reload and the back button land in the same place. `drill: false` is v1. How it works, and how a card maps to a page: [doc/drill.md](./doc/drill.md). Try it: [/framework/ext/Chat/drill/](/framework/ext/Chat/drill/).
+
 ## Watch out
 - A caller's clean-up hook is `on_clean`, never `on_revised`: View's constructor copies every option onto the instance, so an `on_revised` option (even `undefined`) hid `ComposerMic`'s own method, and clean mode silently never swapped anything (fixed 2026-09-30; `Mic.js`, `on_revised`).
 - Live bubbles are not log lines: `chat()` lifts them out and puts them back at the end around every real line it draws, so `mergeable()` never sees one.

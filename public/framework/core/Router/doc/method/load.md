@@ -5,7 +5,7 @@ Resolve a path, wait for what the new page needs, activate it. Returns a boolean
 Three callers, and they are the three ways a url changes:
 
 - `App.js:58` — the first paint.
-- `Router.js:12` — `popstate` (Back/Forward).
+- `Router.js` `popped()` — `popstate` (Back/Forward), only when the path changed: an entry that differs only in `?query` or `#hash` (the phone's ✦ sheet, `ext/drawer/rail.js`) keeps the page as it is.
 - `Router.js:44` — `go()`, i.e. a click.
 
 ## Necessity

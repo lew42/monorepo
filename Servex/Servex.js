@@ -32,6 +32,7 @@ import Sessions from "./agents/Sessions.js";
 import Global from "./agents/Global.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
+import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
 import hitl from "./agents/hitl.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -629,6 +630,7 @@ export default class Servex extends Events {
          * `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`. Ten
          * tools on one door; nothing about them is special-cased here. */
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
+        for (const tool of directory_tools(this.agents)) this.mcp.tool(tool);   // ask_directory: agents/directory.js
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows

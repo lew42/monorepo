@@ -9,6 +9,8 @@ The owner, 2026-09-25: "I don't want to read things. I want to see the thing I w
 Some words are okay: a title that makes it evident, a caption. When I see a three-page response,
 it makes me want to throw up."
 
+**A title is 5–8 words and starts with the familiar concept** (the owner, 2026-09-30): "Page: the card system", "Dictation: clean mode", never a sentence. The reader recognises the concept first, then the specific thing.
+
 ## Let the layout say it
 
 The reader should understand the structure from where things sit: hierarchy, proximity,
@@ -62,3 +64,5 @@ mention.
 Before sending, ask: could the owner get this in ten seconds? If not, cut it until they can, and
 move the rest one click down (a linked doc or a folded section). A reply to the owner is one screen
 at most, and usually a few lines.
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).

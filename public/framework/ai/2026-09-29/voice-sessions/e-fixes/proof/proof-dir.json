@@ -1,0 +1,42 @@
+[
+  {
+    "name": "1 spawned urgent, so the gate never returns a stand-in",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1 the spawn names the caller as parent",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1 ...but the READY turn wakes nobody (live parent cleared until the question)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1 the question is sent with the parent restored",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "12 plan mode + no write tools",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1 a stand-in (no idle/emit) is a clear error, not a crash",
+    "ok": true,
+    "detail": "ask_directory: Servex did not start the agent (queued); ask again in a minute."
+  },
+  {
+    "name": "3 after a stop, a follow-up reopens the SAME agent by its saved session",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "12 at most 2 live directory masterminds per session",
+    "ok": true,
+    "detail": "2 live, oldest idle stopped"
+  }
+]

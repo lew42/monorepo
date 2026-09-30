@@ -22,7 +22,7 @@ function seed(n){
 // A box that pretends to be a host of a given size, so the panel's `--chatbox-panel-max`
 // (a percentage of ITS OWN height, or a fixed vh) has something real to be capped inside.
 function frame(width, height, cb){
-	div.c("card pad").style({ width: width + "px", height: height ? height + "px" : "", display: "flex", flexDirection: "column" }).append(cb);
+	div.c("card pad").style({ width: width + "px", maxWidth: "100%", height: height ? height + "px" : "", display: "flex", flexDirection: "column" }).append(cb);
 }
 
 export default new Page({
@@ -79,6 +79,8 @@ export default new Page({
 				panel.say({ chat: { at: "2026-09-29T20:01:30Z", from: { kind: "assistant" }, text: "# Objective marks for each statement\nSounds good, I'll mark each sentence as we go." } });
 			});
 		}, "Select any bubble (the last one has a heading — its own title to rename); the revision pair (`re` + `level`) draws the tidied-up line right under its raw words; the hedging sentence should pick up a yellow question mark and its own clarification card once `marks()` answers (fixtures today, `/api/hitl` once Servex is restarted).");
+
+		md("**Drill in (2026-09-30):** a card with something inside opens as its own full-screen page, routed. Its demo has its own page: [Drill in](/framework/ext/Chat/drill/).");
 
 		p("**v1, kept reachable:** before `ChatPanel`, the drawer's AI tab wired `chat()` and `composer()` by hand, with the log's own fixed `30vh` ceiling — that assembly still works, unchanged, below. `ChatPanel` is v2: the same two parts, now one class, a variable ceiling instead of a fixed one.");
 

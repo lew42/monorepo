@@ -103,6 +103,14 @@ own throwaway static server — which `shot` cannot reach either.
 branching (`:has()`, width `@media`), not volume. A new sheet or a new conditional needs its reason
 in the module's `doc/decisions.md`; a token or a word you already have beats both.
 
+## Icons (icon-system, 2026-09-30)
+
+- The glyph is always `icon("name")` (span.material-icons.icon). Material Icons are fixed width: every glyph is a square 1em box, so a row of icons lines up with no help.
+- Inline with text: plain `.icon` (1.25em, line-height 1, vertical-align -0.15em). Never add your own nudge.
+- Frame it only for one of three reasons: a click target, centring inside a taller box, or a grid of equal slots. Then use `.ui-icon-frame`, not your own width, height or padding.
+- Buttons: `.ui-icon-btn` (flush), `+ .ui-icon-btn-bg` (backed); toggle state is `aria-pressed`, never a class. A row of them: `.ui-icon-rail`. Icon + label rows: `ui.item()`.
+- Everything is in em off `--icon-frame`, so a bigger container font-size scales icon, frame and padding together. A new px size or padding on an icon is a one-off: check [/framework/ui/icon/](/framework/ui/icon/) first (detail in its doc/icons.md).
+
 ## Read when it applies
 
 - [`caveats.md`](caveats.md) — what has bitten, one line each, with where the detail is.
@@ -111,3 +119,5 @@ in the module's `doc/decisions.md`; a token or a word you already have beats bot
 Reminders: `layout` before sizing anything; `new-task` if you haven't opened one;
 `documentation` then `finish-task` when done. Improve this skill:
 [`improvements.md`](improvements.md).
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).

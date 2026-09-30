@@ -39,6 +39,10 @@ export function release(){
    it on boot. Per TAB, which is exactly the scope of a claim. */
 export function reclaim(){
 	const held = sessionStorage.getItem(KEY);
+	/* ⚠ Only an automated browser gets its ring back. The owner's own window never does
+	   (2026-09-30: a stale claim kept re-ringing the owner's tabs on every reload and
+	   every page, long after the agent that claimed it was gone). Drop the stale claim. */
+	if (held && !navigator.webdriver){ sessionStorage.removeItem(KEY); return; }
 	if (held) paint(...Object.values(JSON.parse(held)));
 }
 

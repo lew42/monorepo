@@ -37,8 +37,10 @@ export default new Doc({
 	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real
 	// component with its own band-worthy card, but it landed the same day the bands
 	// were declared even and adding a fifth to any of them breaks that — item-ui
-	// task, 2026-09-29.
-	children: names.join(" ") + " background scale section item",
+	// task, 2026-09-29. `icon` too, the same reason: a real, band-worthy component
+	// (three classes around the site's existing icon()) appended rather than
+	// inserted into Marks, which is already five — icon-system task, 2026-09-30.
+	children: names.join(" ") + " background scale section item icon",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right

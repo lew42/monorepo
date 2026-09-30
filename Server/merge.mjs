@@ -7,10 +7,12 @@
  *
  * `--no-review "why"` is also a flag, alongside the ones above — see below.
  *
- * REVIEW GATE (2026-09-28, fresh-eyes-review), before the smoke test: a light or full-size branch
- * (`Server/review.mjs`'s `sizeOf`) needs a review newer than its head with every `[fix]` finding
- * answered, or the merge refuses with the one command to fix that; `--no-review "why"` or `--main`
- * skip it, loudly.
+ * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
+ * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
+ * than its head with every `[fix]` finding answered, or the merge refuses with the one command to
+ * fix that; a branch that also touches a page (`pageUrlFor`) needs that review's own page report
+ * (`review/report.md`), not just the plain review.md a non-page change gets; `--no-review "why"`
+ * or `--main` skip it, loudly.
  *
  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
  * branch touches, from `git diff --name-only BASE...branch`, is turned into that page's own site
@@ -41,7 +43,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { sizeOf, status as reviewStatus, diffStat } from "./review.mjs";
+import { sizeOf, status as reviewStatus, diffStat, pageUrlFor } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
@@ -70,17 +72,8 @@ const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { re
 const lockFile = path.join(MAIN, ".merge.lock");
 const lines = s => s.split(/\r?\n/).filter(Boolean);
 
-/* A changed page.js/page.jsonl's own site url, or null. The no-build site has no routing table
- * besides "the url IS the directory that holds the page.js" (same rule health.mjs's
- * nearest_page_url() walks live) — except an AI card folder, which core/Page's own AITask
- * renders under /framework/ai2/, never at its filesystem path. */
-const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
-function pageUrlFor(f){
-	const card = CARD_RE.exec(f);
-	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
-	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
-	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
-}
+// pageUrlFor (a changed page.js/page.jsonl's own site url, or null) is imported from review.mjs
+// above, next to sizeOf — the review gate needs the exact same rule, so there is only one copy.
 
 // The worktree's own dev server — same lookup smoke.mjs makes, so a screenshot loads the branch's
 // own pages, not the main tree's.
@@ -140,6 +133,11 @@ function reviewGate(branch, head){
 	const rs = reviewStatus(best.td);
 	// Name which findings, not just how many — so whoever reads the refusal doesn't have to go hunting.
 	if (/unanswered/.test(rs)) return `refused: ${branch}'s review has an unanswered finding (${rs}); run: ${cmd}`;
+	// A branch that touches a page needs the page-shaped report (screenshots at all four widths,
+	// every layout question answered), not just the plain brief-and-diff review.md a non-page
+	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
+	if (nameStatus.some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
+		return `refused: ${branch} changes a page and its review has no report (review/report.md); run: ${cmd}`;
 	return null;
 }
 

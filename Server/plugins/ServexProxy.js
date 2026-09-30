@@ -54,6 +54,7 @@ export default class ServexProxy {
 
 			try {
 				const headers = { ...req.headers };
+				headers["x-forwarded-host"] ??= req.headers.host;   // Servex keys voice sessions by the browser's host
 				delete headers.host;
 				delete headers["content-length"];
 
