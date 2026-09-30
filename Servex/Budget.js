@@ -11,8 +11,8 @@ import { stamp } from "./home.js";
  *   cost    — the task's running cost, `cost_usd` on its assign lines
  *             (Server/task-cost.mjs writes it after every agent result: the
  *             root agent's share plus every minion it spawned).
- *   budget  — `budget_usd` on an assign line, else the first "$N" after the
- *             word "budget" in its requirements.md, else a default by the
+ *   budget  — `budget_usd` on an assign line, else a line starting "Budget: $N"
+ *             in its requirements.md, else a default by the
  *             owner's role (DEFAULTS). No budget, no enforcement.
  *   100%    — the owner AND the owner's own parent hear once: land what you
  *             have, or write in task.jsonl why you need more and how much
@@ -32,7 +32,7 @@ const FROM = "servex-budget";
 export function budget_of(state, dir, role){
 	if (Number(state.budget_usd) > 0) return { usd: Number(state.budget_usd), from: "assign" };
 	try {
-		const m = fs.readFileSync(path.join(dir, "requirements.md"), "utf8").match(/budget[^$\n]{0,40}\$\s*(\d+(?:\.\d+)?)/i);
+		const m = fs.readFileSync(path.join(dir, "requirements.md"), "utf8").match(/^[\s*#>-]*budget\W{0,4}\$\s*(\d+(?:\.\d+)?)/im);   // a line that STARTS "Budget: $N", never prose about budgets
 		if (m) return { usd: Number(m[1]), from: "requirements.md" };
 	} catch {}
 	return DEFAULTS[role] ? { usd: DEFAULTS[role], from: `default for ${role}` } : null;
@@ -66,13 +66,15 @@ export default class Budget {
 	get agents(){ return this.heartbeat.agents; }
 
 	row(id){ return this.agents.live.get(id) ?? this.agents.reg().read()[id]; }
+	/* a parent recorded before a resume still names the old id: read it as the new one */
+	up(id){ return id && (this.agents.successor?.(id) ?? id); }
 
 	descendants(id){
 		const out = [], seen = new Set([id]);
 		for (let grew = true; grew;){
 			grew = false;
 			for (const a of this.agents.live.values())
-				if (!seen.has(a.id) && seen.has(a.parent) && a.state !== "stopped"){ seen.add(a.id); out.push(a); grew = true; }
+				if (!seen.has(a.id) && seen.has(this.up(a.parent)) && a.state !== "stopped"){ seen.add(a.id); out.push(a); grew = true; }
 		}
 		return out;
 	}
@@ -82,7 +84,7 @@ export default class Budget {
 	 * (a revive) and a spawn with no parent are never refused. */
 	refuse(spec = {}){
 		if (!spec.parent || spec.resume || !this.capped.size) return null;
-		for (let id = spec.parent, hops = 0; id && hops < 12; id = this.row(id)?.parent, hops++){
+		for (let id = this.up(spec.parent), hops = 0; id && hops < 12; id = this.up(this.row(id)?.parent), hops++){
 			const c = this.capped.get(id);
 			if (c) return `budget: ${c.slug} spent $${c.cost.toFixed(2)} of $${c.usd.toFixed(2)} — land it, or raise budget_usd in its task.jsonl (an assign line); no new spawns under ${id} until then`;
 		}
@@ -120,6 +122,8 @@ export default class Budget {
 				line.msg = `over 150%: stopped ${stopped.length} minion(s); ${owner} is left running to land`;
 				const text = `${slug} is at ${$(cost)} against a budget of ${$(budget.usd)} (${Math.round(100 * cost / budget.usd)}%). Servex stopped its minions${stopped.length ? ` (${stopped.join(", ")})` : ""}; ${owner} can still land.`;
 				try { this.agents.send(owner, text, { from: FROM }); } catch {}
+				const parent = this.up(this.row(owner)?.parent);   // the 100% step was skipped (first seen past 150%): the parent still hears once
+				if (parent && !(t.told.get(budget.usd) ?? new Set()).has("reached")) try { this.agents.send(parent, text, { from: FROM }); } catch {}
 				await this.hb.post("live", text);
 			}
 			await this.hb.servex.task_loop.write_line(file, { log: line });

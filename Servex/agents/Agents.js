@@ -379,9 +379,9 @@ export class Agents {
 	 * follows its session to whoever holds it now (same session_id, or resumed_from it),
 	 * newest first; chains resolve (a -> a-2 -> a-3). An id nobody resumed stays itself. */
 	successor(id){
-		if (!id) return id;
-		const rows = this.reg().read(), seen = new Set([id]);
 		const running = x => { const a = this.live.get(x); return a && a.state !== "stopped"; };
+		if (!id || running(id)) return id;   // the hot path (every send): no disk read for a running id
+		const rows = this.reg().read(), seen = new Set([id]);
 		const sess = x => this.live.get(x)?.session_id ?? rows[x]?.session_id;
 		const started = x => String(this.live.get(x)?.started_at ?? rows[x]?.started_at ?? "");
 		let cur = id;

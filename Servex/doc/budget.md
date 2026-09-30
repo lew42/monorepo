@@ -5,8 +5,8 @@ every heartbeat tick, for every open task.
 
 - **Its cost** is `cost_usd` on the task's assign lines (`Server/task-cost.mjs` writes it: the
   mastermind's share plus every minion it spawned).
-- **Its budget** is `budget_usd` on an assign line; else the first `$N` after the word
-  "budget" in its `requirements.md`; else $15 for a task mastermind and $5 for a minion.
+- **Its budget** is `budget_usd` on an assign line; else a line in its `requirements.md` that starts
+  `Budget: $N`; else $15 for a task mastermind and $5 for a minion.
 
 ## The three rules
 
