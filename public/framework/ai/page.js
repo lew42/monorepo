@@ -3,7 +3,7 @@ import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/fr
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
-import { TABS, tab_page } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
+import { TABS, tab_page, readme_chain, heading } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -30,7 +30,11 @@ export default new Page({
 			// The same top tabs as a module's docs (the owner, 2026-09-30). The first
 			// tab owns this url; each tab's page is routed below (tab_page, overview.js).
 			// ⚠ The default tab is never routed to: tabs() only looks it up, so add it now.
-			if (!this.children.has(TABS[0])) this.add(TABS[0], tab_page(this, TABS[0]));
+			// ⚠ Add every tab now, not only the default: the strip labels a tab from its
+			// page's `label`, and only once `loading` says every child is real, so a tab
+			// added late reads as its bare url name ("skills") until it is opened.
+			for (const t of TABS) if (!this.children.has(t)) this.add(t, tab_page(this, t));
+			this.loading ??= Promise.resolve();
 			this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
 			return;
 		}
@@ -137,6 +141,11 @@ function concept_page(parent, c){
 			md(c.items.map(i => "- " + i).join("\n"));
 			md("Code: " + links(c.code));
 			if (c.servex.length) md("In Servex: " + links(c.servex));
+			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
+			if (c.slug === "readmes"){
+				heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
+				readme_chain("public/framework/ai/");
+			}
 		},
 	});
 }
