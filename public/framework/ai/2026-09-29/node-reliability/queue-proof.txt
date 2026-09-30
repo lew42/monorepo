@@ -10,5 +10,6 @@ PASS  finishing roles go first: the reviewer started, the minion still waits —
 PASS  wait_for_agent on a queued id waited for it to start, then answered — {"id":"reviewer-follow","state":"idle","timed_out":false,"waited_ms":0,"words":null,"turns":1,"cost":0}
 PASS  a resume of a live session returns the live agent, with the prompt delivered
 PASS  the queue file is empty once everything started
+PASS  a reviewer stops itself when its one turn ends; a minion stays idle — reviewer stopped, minion idle
 
-12/12 passed
+13/13 passed

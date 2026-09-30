@@ -926,8 +926,16 @@ Agents.Agent = class Agent {
 		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
 		 * already carried it to the parent — so it stops itself. */
 		if (this.one_shot) setImmediate(() => this.stop());
+		/* ONE-PASS ROLES (node-reliability, 2026-09-29): a reviewer, clarity or checker
+		 * does one job, then used to sit idle holding ~300 MB until someone noticed
+		 * (4 times in 20 minutes on 09-29). Once its turn ends with nothing queued,
+		 * Servex stops it; waiters already have its words (settle() above), and the
+		 * session stays resumable — a message still wakes it (no `stopped_by`). */
+		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 	}
 };
+
+export const ONE_PASS = ["reviewer", "clarity", "checker"];
 
 /* The open end of the session: an async iterable that waits instead of
  * finishing, so `query()` never sees the prompt stream end and never closes. */

@@ -61,7 +61,8 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
   instead of started, and the queue is saved to `spawn-queue.json` beside the registry. A held
   spawn gets its id at once, so `wait_for_agent` on it waits for it to start. Asking again for the
   same id, session or role+name joins the entry already queued, and one session never runs in two
-  processes. Reviewers, clarity and checkers start first, with 1 GB free. Proof: `queue-proof.mjs`.
+  processes. Reviewers, clarity and checkers start first, with 1 GB free, and stop themselves when
+  their one turn ends (a message still wakes them). Proof: `queue-proof.mjs`.
 - **A retired `mastermind-servex-N` is the role.** A message or a child's report for a stopped
   one goes to the live holder. Rows stopped before the revive guard are marked `stopped_by: "legacy"`
   at boot.

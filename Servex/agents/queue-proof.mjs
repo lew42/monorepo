@@ -78,6 +78,14 @@ const again = two.agents.spawn({ id: "task-mastermind-lifecycle-5", resume: "3c8
 check("a resume of a live session returns the live agent, with the prompt delivered", again === live && live.sent.at(-1) === "status?");
 check("the queue file is empty once everything started", JSON.parse(fs.readFileSync(two.g.queue_file, "utf8")).length === 0);
 
+/* one-pass roles stop themselves once their turn ends (a bare Agent, no SDK) */
+const bare = role => Object.assign(Object.create(Agents.Agent.prototype), { id: role + "-x", role, turns: 0, state: "working", said: [],
+	queue: { close(){} }, query: { close(){} }, aborter: { abort(){} }, emit(){}, settle(){} });
+const rv = bare("reviewer"), mn = bare("minion");
+rv.result({ usage: {} }); mn.result({ usage: {} });
+await new Promise(r => setImmediate(r));
+check("a reviewer stops itself when its one turn ends; a minion stays idle", rv.state === "stopped" && mn.state === "idle", `reviewer ${rv.state}, minion ${mn.state}`);
+
 fs.rmSync(tmp, { recursive: true, force: true });
 const failed = results.filter(x => !x).length;
 console.log(`\n${results.length - failed}/${results.length} passed`);
