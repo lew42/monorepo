@@ -1,0 +1,57 @@
+{"log":{"at":"2026-09-29T00:09:13-05:00","task":"dictate-lag","msg":"landed — dictation send wait 4 s to 2.5 s; Servex card prompt hold 4 s to 1.5 s"}}
+{"log":{"at":"2026-09-29T13:17:03-05:00","task":"task-loop/heartbeat","msg":"landed — Servex heartbeat: status check for silent task owners, revive for dead ones, card only when that fails (worktree/task-loop, not merged)"}}
+{"log":{"at":"2026-09-29T13:22:12-05:00","task":"openrouter-brain","msg":"landed — Servex/ext/openrouter/ (readme, snapshot, sources index, decisions stub, skill), land-tested against a fresh Haiku"}}
+{"log":{"at":"2026-09-29T13:27:41-05:00","task":"task-loop","msg":"landed: the Servex heartbeat (status check, revive, escalate), the task loop, landing checks and the worktree-server sweep, merged"}}
+{"log":{"at":"2026-09-29T13:43:31-05:00","task":"chip-context-fix","msg":"task opened — fix the drawer AI chip: selected-element context never reaches the assistant on the dictation send path"}}
+{"log":{"at":"2026-09-29T15:02:54-05:00","task":"chip-context-fix","msg":"landed — the drawer's selected-element chip now reaches the card-assistant; card_prompt() carries context, Layers.js's heard() adds a [Selected: …] block, proven headless, merged to michael/dev, Servex restarted"}}
+{"log":{"at":"2026-09-29T15:03:59-05:00","task":"mobile-nav","msg":"task opened — mobile ☰ back to the page nav, bottom AI rail, mic errors, Dictate variants"}}
+{"log":{"at":"2026-09-29T15:16:26-05:00","task":"readme-chain","msg":"task opened — readme_chain(dir) helper so spawned-for-a-directory agents open with root-down readmes"}}
+{"log":{"at":"2026-09-29T15:38:04-05:00","task":"summary-styles","msg":"task opened — full-width Disclosure/summary style variants"}}
+{"log":{"at":"2026-09-29T15:40:26-05:00","task":"layout-explorer","msg":"landed — /layouts/explorer/: three-column layout tree, routed, merged to michael/dev"}}
+{"log":{"at":"2026-09-29T15:44:12-05:00","task":"readme-chain","msg":"landed — readme_chain(dir)/first_prompt(dir, extras) wired into fresh task-mastermind and card-assistant/manager spawns, documented, proved on /framework/ux/Dictate/, merged to michael/dev, Servex restarted"}}
+{"log":{"at":"2026-09-29T15:52:02-05:00","task":"summary-styles","msg":"landed — Disclosure/variants, full-width summary/details styles"}}
+{"log":{"at":"2026-09-29T15:54:00-05:00","task":"audit-skills","msg":"landed — skills audit: new-task/new-page trigger gaps confirmed, orchestrator skills invisible to the per-task log, two dead/untracked skill dirs found"}}
+{"log":{"at":"2026-09-29T15:58:26-05:00","task":"prompt-refine","msg":"landed: Server/refine.mjs (clean, structured, brief, coverage, repair) plus an audit of the tab relays; over budget at $47"}}
+{"log":{"at":"2026-09-29T16:01:49-05:00","task":"item-ui","msg":"task opened - icon items + object views"}}
+{"log":{"at":"2026-09-29T16:05:55-05:00","task":"mobile-nav","msg":"landed — phone ☰ is the page nav again; ✦ AI bottom rail with a listening sheet; mic errors; Dictate variants"}}
+{"log":{"at":"2026-09-29T16:18:47-05:00","task":"item-ui/b-census","msg":"landed — census.md: 37 of 77 framework classes worth a debug view, reviewed 3 fixed/1 noted"}}
+{"log":{"at":"2026-09-29T16:20:39-05:00","task":"module-experts","msg":"landed: Page expert live (ask_expert core/Page, 3 s, $0.03); four ways measured; readme-as-page example; readme and Layout hub handed to page-system"}}
+{"log":{"at":"2026-09-29T16:26:34-05:00","task":"file-system","msg":"task opened — ext/fs File/Directory objects, /fs file+line links, roomy explorer"}}
+{"log":{"at":"2026-09-29T16:34:46-05:00","task":"node-modules-guard/guards","msg":"landed — four guards (scripts, keeper, hook, pool reclaim) so node_modules cannot be emptied through a link again; committed on worktree/node-modules-guard, unmerged"}}
+{"log":{"at":"2026-09-29T16:36:27-05:00","task":"node-modules-guard","msg":"landed — cause proven (hand mklink + git worktree remove --force); junction guards, pre-respawn reinstall, sweep, pool reclaim merged 62f2fe92"}}
+{"log":{"at":"2026-09-29T16:37:06-05:00","task":"item-ui/c-views","msg":"landed — DefaultView + track(): any object becomes a lazy click-to-expand item tree, Page opts in, the Page and App objects are live proof"}}
+{"log":{"at":"2026-09-29T16:38:06-05:00","task":"decide-tool","msg":"landed: Server/decide.mjs + decide skill + nested Decision view; OpenRouter decisions seeded on the brain card"}}
+{"log":{"at":"2026-09-29T16:40:27-05:00","task":"item-ui","msg":"landed - ui/item icon items + DefaultView/track object views, merged eff18e61"}}
+{"log":{"at":"2026-09-29T16:52:55-05:00","task":"restart-outside-tree","msg":"landed — --restart hops outside Servex's own process tree via WMI, verified live"}}
+{"log":{"at":"2026-09-29T16:56:28-05:00","task":"slow-card-fix","msg":"task opened — gzip the dev server + stop card pages blocking on the 3.3MB directory.json"}}
+{"log":{"at":"2026-09-29T16:56:48-05:00","task":"file-system/minion-a","msg":"landed — ext/filesystem: FsFile/FsDir data classes, file_link, a right-click menu; ext/files rebuilt on top"}}
+{"log":{"at":"2026-09-29T17:02:10-05:00","task":"page-files-log","msg":"task opened: each folder page.jsonl lists its own files; readers leave directory.json"}}
+{"log":{"at":"2026-09-29T17:06:49-05:00","task":"dictate-spacing","msg":"landed — Dictate page spacing fix: 133px -> 21px gap at 400px, Folder link removed from Doc pages, tabs wrap"}}
+{"log":{"at":"2026-09-29T17:16:55-05:00","task":"file-system/minion-c","msg":"landed — the four system pages link their files with file_link; Servex/Server source is now readable in /fs/, dev server only"}}
+{"log":{"at":"2026-09-29T17:17:06-05:00","task":"waiting-on-you","msg":"landed: Needs you tab + card_ask; an answer wakes the asker (merged 7ca26c8f, proven live)"}}
+{"log":{"at":"2026-09-29T17:22:50-05:00","task":"slow-card-fix","msg":"landed — gzip'd the dev server (directory.json 3.3MB -> ~150KB), added a fetch priority hint, measured before/after, caught and fixed a CPU fire the first draft caused"}}
+{"log":{"at":"2026-09-29T17:34:15-05:00","task":"page-files-log/writer","msg":"landed — every covered folder gets its own page.jsonl now (2,870, up from 464), page.js folders included, backfill proved idempotent, boot no longer blocks on it, .gitattributes merge=union proved"}}
+{"log":{"at":"2026-09-29T17:35:33-05:00","task":"recursive-pairs","msg":"landed — every page has its own assistant and manager; VS Code tab inbox; merged 062156e1, live Servex restarted"}}
+{"log":{"at":"2026-09-29T17:35:34-05:00","task":"page-files-log/readers","msg":"landed — pages read their own folder's page.jsonl; no page fetches directory.json"}}
+{"log":{"at":"2026-09-29T17:57:16-05:00","task":"lifecycle/build","msg":"landed — creation log, reaper, keep list, pool salvage on worktree/lifecycle (4500ebe8), awaiting the parent's merge"}}
+{"log":{"at":"2026-09-29T18:11:34-05:00","task":"nested-tasks","msg":"landed — task tree at /framework/ext/AITask/tree/ (Lanes; Outline, Flow), parent_task + after on line 1"}}
+{"log":{"at":"2026-09-29T18:12:46-05:00","task":"page-files-log/measure","msg":"landed — measured the card page's phone load before/after the page.jsonl fix: Fast 3G still never shows the table in 90s, and Wi-Fi now moves MORE bytes across 1,300+ tiny requests instead of one directory.json; result.md has the table"}}
+{"log":{"at":"2026-09-29T18:17:20-05:00","task":"lifecycle","msg":"landed — reaper + creation log + keep list; servers 20→8, idle agents 14→4"}}
+{"log":{"at":"2026-09-29T18:18:10-05:00","task":"audio","msg":"task opened: framework/audio/ library, transcription vs refinement vs dictation"}}
+{"log":{"at":"2026-09-29T18:22:35-05:00","task":"page-files-merge-fix","msg":"task opened: a folder that arrives by a git merge gets no page.jsonl (no addDir event) — fixing Server/plugins/PageFiles.js"}}
+{"log":{"at":"2026-09-29T18:25:53-05:00","task":"page-files-merge-fix","msg":"landed — a folder that arrives by a git merge now gets its own page.jsonl too (commit 67aa2689)"}}
+{"log":{"at":"2026-09-29T18:30:06-05:00","task":"file-system","msg":"landed — ext/filesystem (FsFile, FsDir, file_link), /fs beside the site nav with #L line links and a phone switcher, system pages link their files; walkthrough at file-system/walkthrough/"}}
+{"log":{"at":"2026-09-29T18:32:39-05:00","task":"mobile-nav","msg":"landed again — phone ✦ answers; one AI on card pages; compact rail; /servex + /ask/turn on the home Wi-Fi"}}
+{"log":{"at":"2026-09-29T18:45:25-05:00","task":"page-files-log/files-jsonl","msg":"landed — folder file lists moved to files.jsonl (2,430), jsonl pages keep page.jsonl; card page 74 -> 46 listing requests"}}
+{"log":{"at":"2026-09-29T18:48:54-05:00","task":"c-chat","msg":"landed — ChatPanel wired into the drawer's AI tab and the mobile sheet, v1 kept reachable"}}
+{"log":{"at":"2026-09-29T18:50:57-05:00","task":"c-chat","msg":"landed — ChatPanel wired into the drawer's AI tab and the mobile sheet, both draw the universal chat line (via marks, fix-replace, place cards), v1 kept reachable, screenshots prove small-then-capped-and-scrolling at 1920 and 400"}}
+{"log":{"at":"2026-09-29T19:01:00-05:00","task":"page-files-log","msg":"landed: each folder lists its own files (files.jsonl, or a card page.jsonl); readers off directory.json"}}
+{"log":{"at":"2026-09-29T19:21:20-05:00","task":"grip-everywhere","msg":"task opened — grip() works on both axes (x/y), sheet gets a draggable top handle"}}
+{"log":{"at":"2026-09-29T19:42:52-05:00","task":"voice-sessions/c-roles","msg":"landed — the roles table reconciled, the echo-pattern and log-to-follow decisions written down"}}
+{"log":{"at":"2026-09-29T19:55:23-05:00","task":"refine-today","msg":"task opened — batch-refine the owner's 41 long dictations from today with Server/refine.mjs, one dashboard card summarizing all"}}
+{"log":{"at":"2026-09-29T19:55:38-05:00","task":"reply-latency","msg":"task opened — trace + time every hop of a fast-assistant reply, deliver one table + fixes"}}
+{"log":{"at":"2026-09-29T20:11:21-05:00","task":"reply-latency","msg":"landed — hop-by-hop reply-latency table + fixes posted to the mobile-nav card and to task-mastermind-voice-sessions"}}
+{"log":{"at":"2026-09-29T20:12:30-05:00","task":"audio","msg":"landed: framework/audio/, ux/Revise, one ChatPanel in drawer and sheet (b1b82d33); two follow-on briefs written"}}
+{"log":{"at":"2026-09-29T20:16:20-05:00","task":"ask-turn-quiet","msg":"landed — ext/Ask's /ask/turn probe is now lazy; AI 2 cards on the LAN stop logging a console error on load"}}
+{"log":{"at":"2026-09-29T20:19:16-05:00","task":"voice-sessions/b-slice2","msg":"landed: voice sessions slice 2, no leaks + fast first (merged), titles/refined lines/ai log.jsonl/host (0ac19ab2)"}}
+{"log":{"at":"2026-09-29T20:32:42-05:00","task":"decided-default","msg":"landed — decisions decided by default (decide.mjs), scroll-safe undoable tap in the Decision widget, traced who acts on a chose line"}}
