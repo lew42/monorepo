@@ -6,13 +6,13 @@
 
 ## Who coordinates a module
 
-A task mastermind that takes a module claims it with `claim_topic`, topic = the module path (`core/Page`, `ext/drawer`, `Servex/agents`), and releases it at landing (`release_topic`). `list_claims` is the lookup. Taking or releasing the claim writes one line into the module's own `ai/log.jsonl`:
+A task mastermind that takes a module claims it with `claim_topic`, topic = the module path (`core/Page`, `ext/drawer`, `Servex/agents`), and releases it at landing (`release_topic`). `list_claims` is the lookup. Taking or releasing the claim writes one line into the module's own `page.jsonl`:
 
 ```
-{"coordinator": {"agent": "task-mastermind-doc-pass", "task": "public/framework/ai/2026-09-30/doc-pass", "topic": "ext/Doc", "event": "claimed", "at": "…"}}
+{"inbox": {"coordinator": {"agent": "task-mastermind-doc-pass", "task": "public/framework/ai/2026-09-30/doc-pass", "topic": "ext/Doc", "event": "claimed"}, "at": "…"}}
 ```
 
-`drop(path, text)` looks for the most specific live claim whose topic contains `path`. If there is one, the note goes to that mastermind (`send_to_agent`), and its line lands in the module's `ai/log.jsonl` with `path` and `routed_to`; it never shows in a page inbox. Only when nobody coordinates the module (or the coordinator can't be reached) does the note wait in the page's inbox.
+`drop(path, text)` looks for the most specific live claim whose topic contains `path`. If there is one, the note goes to that mastermind (`send_to_agent`), and its line lands in the module's `page.jsonl` with `path` and `routed_to`; it never shows in a page inbox. Only when nobody coordinates the module (or the coordinator can't be reached) does the note wait in the page's inbox.
 
 ## The tools
 
@@ -32,13 +32,15 @@ A task mastermind that takes a module claims it with `claim_topic`, topic = the 
 
 ## The file
 
-One line per event, in `<page dir>/ai/log.jsonl`, the page's AI log:
+One line per event, appended to the page's own `page.jsonl` (the owner: "append to that module's page.jsonl and it just goes into its inbox"). A card is a page.jsonl too, so every card has an inbox. Every line uses the one key `inbox`, which the page loaders keep as plain data:
 
 ```
 {"inbox":   {"id": "n-g7yptezx", "from": "minion-layout-audit", "text": "…", "at": "2026-09-30T13:38:33.857-05:00"}}
-{"cleared": {"id": "n-g7yptezx", "by": "owner", "at": "2026-09-30T13:40:02.114-05:00"}}
+{"inbox": {"id": "n-g7yptezx", "cleared": {"by": "owner", "at": "2026-09-30T13:40:02.114-05:00"}}}
 ```
 
-Append only. A note is open until a `cleared` line names its id. Servex is the only writer, so two drops never tear a line. Never `page.jsonl`: that is the page's content.
+Append only. A note is open until a line with its id and `cleared` arrives. Servex is the only writer, so two drops never tear a line.
+
+**A plain folder is never written into.** A folder with a `page.js` is safe: it is always loaded by its page.js. But a folder with neither a page.js nor a page.jsonl (a `doc/`, a `shots/`) would become a jsonl page if its page.jsonl began with an inbox line ([writers.md](/framework/core/Page/jsonl/md/doc/writers/)). So a drop there goes to the nearest page above it.
 
 Code: [`agents/inbox.js`](../agents/inbox.js), wired in `Servex.js` (constructor, `tools()`, the router); the coordinator lines come from `claims.js`'s `on` hook, set in `Global.claims()`. New tools and routes go live only after a Servex restart.

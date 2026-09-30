@@ -15,16 +15,24 @@ const bad = (why, status = 400) => Object.assign(new Error(why), { status });
 /* EVERY PAGE HAS AN INBOX (page-inbox, 2026-09-30; Servex/doc/inbox.md).
  *
  * Anyone, an agent or the owner, can leave a note on any page. The note is one line
- * in that page's own AI log, `<page dir>/ai/log.jsonl` (the file the drawer and the
- * voice sessions already use), never in page.jsonl, which is the page's content:
+ * appended to that page's own `page.jsonl` (the owner, 2026-09-30: "append to that
+ * module's page.jsonl and it just goes into its inbox"). A card is already a page.jsonl,
+ * so every card has an inbox too. Every line uses the ONE key `inbox`, so a page.jsonl
+ * reader (core/Page/Log.js, ai2/fold.js) only ever sees one data key it can ignore:
  *
- *   {"inbox":   {"id": "n-…", "from": "<agent id | owner>", "text": "…", "at": "<local ISO>"}}
- *   {"cleared": {"id": "n-…", "by": "<who>", "at": "…"}}
+ *   {"inbox": {"id": "n-…", "from": "<agent id | owner>", "text": "…", "at": "<local ISO>"}}
+ *   {"inbox": {"id": "n-…", "cleared": {"by": "<who>", "at": "…"}}}
+ *   {"inbox": {"coordinator": {"agent", "task", "topic", "event"}, "at": "…"}}
+ *
+ * ⚠ A page.jsonl whose line 1 is not a `file` line makes its folder a jsonl PAGE (the
+ * loader and Server/plugins/PageFiles.js both read it that way). A folder with a page.js
+ * is safe: it is always listed and loaded by its page.js. A plain public folder with
+ * neither is not, so `folder()` walks a site path up to the nearest real page.
  *
  * COORDINATION, NOT CHAT (the owner, 2026-09-30). Work on one module is coordinated by one
  * mastermind: the one holding a `claim_topic` on it (topic = the module path, `core/Page`).
  * A drop on a path inside a claimed module goes straight to that coordinator
- * (`agents.send`), and its line lands in the MODULE's ai/log.jsonl marked `routed_to`;
+ * (`agents.send`), and its line lands in the MODULE's page.jsonl marked `routed_to`;
  * only when nobody coordinates the module does it sit in the page's inbox. Taking or
  * releasing a claim writes `{"coordinator": {agent, task, topic, event, at}}` there too
  * (claims.js calls `coordinator()` below).
@@ -47,14 +55,21 @@ export class Inbox {
 		const site = page_path(raw.replace(/^\/?public\//, "/"));
 		if (raw.startsWith("/") && site){
 			const disk = path.join(this.repo, "public", ...site.split("/").filter(Boolean));
-			if (this.is_dir(disk)) return { disk, name: site };
+			if (this.is_dir(disk)) return this.page_of({ disk, name: site });
 		}
 		const rel = raw.replace(/^\/+|\/+$/g, ""), disk = path.resolve(this.repo, rel);
 		if (rel && !path.relative(path.resolve(this.repo), disk).startsWith("..") && this.is_dir(disk)) return { disk, name: rel + "/" };
 		throw bad(`"${where}" is not a folder of the site (/framework/core/Page/) or the repo (Servex/agents)`, 404);
 	}
 	is_dir(disk){ try { return fs.statSync(disk).isDirectory(); } catch { return false; } }
-	file(at){ return path.join(at.disk, "ai", "log.jsonl"); }
+	is_page(disk){ return fs.existsSync(path.join(disk, "page.js")) || fs.existsSync(path.join(disk, "page.jsonl")); }
+	// A site folder that isn't a page (doc/, shots/) hands its notes to the nearest page above it.
+	page_of(at){
+		let { disk, name } = at;
+		while (name !== "/" && !this.is_page(disk)){ disk = path.dirname(disk); name = name.replace(/[^/]+\/$/, ""); }
+		return { disk, name };
+	}
+	file(at){ return path.join(at.disk, "page.jsonl"); }
 
 	append(file, line){
 		fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -90,13 +105,13 @@ export class Inbox {
 	}
 
 	/* A claim was taken or released (claims.js `on`): one coordinator line in the module's
-	 * own ai/log.jsonl, when the topic names a folder. The latest line for a topic wins. */
+	 * own page.jsonl, when the topic names a folder. The latest line for a topic wins. */
 	coordinator(event, row){
 		const at = this.module_of(row?.thing ?? row?.topic);
 		if (!at) return null;
 		const agents = this.servex?.agents;
 		const task = agents?.task_dir_of?.(row.agent) ?? agents?.live?.get(row.agent)?.task?.dir ?? row.card ?? null;
-		const line = { coordinator: { agent: row.agent, task, topic: row.thing ?? row.topic, event, at: now_ms() } };
+		const line = { inbox: { coordinator: { agent: row.agent, task, topic: row.thing ?? row.topic, event }, at: now_ms() } };
 		this.append(this.file(at), line);
 		return line;
 	}
@@ -119,12 +134,12 @@ ${text}`,
 				const home = this.module_of(boss.topic) ?? at;
 				const line = { inbox: { id: this.id(), from: from_, text, at: now_ms(), path: at.name, routed_to: boss.agent } };
 				this.append(this.file(home), line);
-				return { ok: true, file: `${home.name}ai/log.jsonl`, ...line.inbox };
+				return { ok: true, file: `${home.name}page.jsonl`, ...line.inbox };
 			} catch (e){ /* the coordinator can't be reached: the note waits in the page's inbox instead */ }
 		}
 		const line = { inbox: { id: this.id(), from: from_, text, at: now_ms() } };
 		this.append(this.file(at), line);
-		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.inbox, ...(boss ? { coordinator: boss.agent } : {}) };
+		return { ok: true, file: `${at.name}page.jsonl`, ...line.inbox, ...(boss ? { coordinator: boss.agent } : {}) };
 	}
 
 	/* Clear a note: one `cleared` line, nothing rewritten. Clearing a note that is not
@@ -133,9 +148,9 @@ ${text}`,
 		if (!id) throw bad("id is required: the note's id, as drop answered or list shows it");
 		const at = this.folder(where);
 		if (!this.open(at).some(n => n.id === id)) throw bad(`no open note "${id}" on ${at.name}`, 404);
-		const line = { cleared: { id: String(id), by: String(by || "owner"), at: now_ms() } };
+		const line = { inbox: { id: String(id), cleared: { by: String(by || "owner"), at: now_ms() } } };
 		this.append(this.file(at), line);
-		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.cleared };
+		return { ok: true, file: `${at.name}page.jsonl`, id: String(id), ...line.inbox.cleared };
 	}
 
 	/* The open notes on one page, newest first. */
@@ -145,8 +160,10 @@ ${text}`,
 		const notes = new Map();
 		for (const l of lines){
 			let j; try { j = JSON.parse(l); } catch { continue; }
-			if (j?.inbox?.id && !j.inbox.routed_to) notes.set(j.inbox.id, j.inbox);   // a routed note went to its coordinator
-			else if (j?.cleared?.id) notes.delete(j.cleared.id);
+			const n = j?.inbox;
+			if (!n?.id) continue;                                   // a coordinator line, or not an inbox line at all
+			if (n.cleared) notes.delete(n.id);
+			else if (!n.routed_to && n.text) notes.set(n.id, n);    // a routed note went to its coordinator
 		}
 		return [...notes.values()].reverse();
 	}
@@ -161,7 +178,7 @@ ${text}`,
 		return [
 			{ name: "drop", description: "Coordination, never chat: leave a note on any page, only when it is necessary (the owner asked you to tell another agent, a handoff)."
 				+ " If a mastermind coordinates that page's module (holds a claim_topic on it), the note goes straight to that mastermind (`routed_to` in the answer)."
-				+ " Otherwise it waits in the page's inbox, at the top of its AI tab, until someone clears it. One line in `ai/log.jsonl`; `from` is you.",
+				+ " Otherwise it waits in the page's inbox, at the top of its AI tab, until someone clears it. One line in the page's `page.jsonl`; `from` is you.",
 				inputSchema: schema({ path: PATH, text: { type: "string", description: "The note, in plain words." } }, ["path", "text"]),
 				handler: json((a, ctx) => this.drop({ path: a.path, text: a.text, from: who(ctx) })) },
 			{ name: "clear", description: "Clear one note from a page's inbox, by the id `drop` gave (or `inbox` lists). Appends a `cleared` line; nothing is rewritten.",

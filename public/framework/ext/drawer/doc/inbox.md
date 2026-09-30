@@ -22,7 +22,7 @@ All three write through Servex, the only writer. The tools, the routing and the 
 
 ## Where the notes live
 
-In the page's own AI log, `<page>/ai/log.jsonl`, one line each. A note is `{"inbox": {id, from, text, at}}`, and clearing it appends `{"cleared": {id, by, at}}`. Nothing is rewritten: a note is open until a `cleared` line names it. The notes never go in `page.jsonl`, which is the page's content.
+In the page's own `page.jsonl`, one line each, all under the key `inbox`. A note is `{"inbox": {id, from, text, at}}`, and clearing it appends `{"inbox": {id, cleared: {by, at}}}`. Nothing is rewritten. A card is a page.jsonl too, so every card has an inbox. A folder that isn't a page (a `doc/`) gives its notes to the page above it.
 
 ## Watch out
 

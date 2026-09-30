@@ -8,7 +8,7 @@ import { servex_base, servex_fetch } from "/framework/ai2/inbox.js";
  * ones, newest first: from · text · age · Clear. Nothing at all when there are none.
  * The inbox is for coordination, never chat: when a mastermind coordinates this page's
  * module (holds a claim on it), a drop goes straight to it, and its id shows on top.
- * The notes live in `<page>/ai/log.jsonl`; Servex is the only writer and answers the
+ * The notes live in the page's own `page.jsonl`; Servex is the only writer and answers the
  * reads too (`GET /api/inbox`), so off the dev machine the inbox simply isn't drawn.
  * Docs: doc/inbox.md · Servex/doc/inbox.md. */
 
