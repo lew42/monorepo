@@ -63,7 +63,7 @@ export default new Doc({
 	// `jsonl` stays declared here, at its existing url — "Make a page › page.jsonl"
 	// links to it, same as before. `settings` (same day, tabs-settings task): tabs
 	// that manage themselves via a `tab` line, and a page's own nav switch.
-	children: "make layout navigation ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl audit",
+	children: "make layout navigation ai dynamic weight card generator old jsonl/page.jsonl settings/page.jsonl ext/page.jsonl audit",
 	overview: Object.values(BANDS).flatMap(b => b.split(" ")).join(" "),
 
 	// Every member, in the order a reader meets them: the tree, then rendering,

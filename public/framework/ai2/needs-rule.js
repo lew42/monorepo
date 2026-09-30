@@ -145,49 +145,85 @@ export function card_needs(id, lines, meta = {}){
 
 export default card_needs;
 
-/* ── IMPORTANCE — one number, 1-100, for anything waiting on the owner ──────────────────
- * (asks-ledger/view, 2026-09-30: brief D)
+/** A HEARTBEAT NOTICE IS NOT ACTIVITY (item A, 2026-09-30: "servex-heartbeat: minion-x its
+ *  agent is not running: it was stopped on purpose" bumped old cards to the top of the Inbox).
+ *  Servex checking in on itself is not the owner, or an agent, doing anything — so it must
+ *  never move a card's or a task's own last-activity time, the one thing every row here sorts
+ *  and scores by. Shared here so every reader of raw lines (`inbox.js`'s card folds,
+ *  `groups.js`'s task lines) skips the same lines the same way. Matched by `by` — the exact
+ *  author every heartbeat message writes — or, for a shape with no `by` at all (a task-loop's
+ *  own escalation line), by its own words starting with the same name. */
+export const is_heartbeat_line = v => {
+	const by = String(v?.by ?? "");
+	const text = String(v?.text ?? v?.msg ?? "");
+	return by === "servex-heartbeat" || text.startsWith("servex-heartbeat");
+};
+
+/* ── IMPORTANCE — one number, 0-100, for anything the owner might see in the Inbox
+ * (INBOX ZERO, the owner, 2026-09-30 16:35: "the Inbox shows only what is truly pressing:
+ * score ≥ 90... the score decays with age... a somewhat important thing that just happened
+ * may show briefly, [and] after about a day it drops below 90, unless it is super-important
+ * and still pressing"). This replaces the earlier "≥50" scale (asks-ledger/view, brief D).
  *
- * Every list that ranks what needs the owner — the Needs you tab (`needs.js`), the Inbox's
- * score badge (`inbox.js`), and the asks ledger's own page — calls this ONE function, so a
- * blocker always outranks a question and a stalled ask always outranks a quiet FYI, wherever
- * the row ends up drawn. Pure: no DOM, no fetch. `item` is whatever the caller already
- * built — a `card_needs()` row (`kind`, `title`, `question`, `from`), or a folded stalled ask
- * (`kind: "stalled"`, `status_at`, `cost`) — and `now` is a Date or epoch-ms the caller
- * supplies, so a test can fix it.
+ * Every list that ranks a row — the Inbox (`inbox.js` `items()`, computed AT READ TIME, never
+ * written anywhere), the Needs you tab (`needs.js`), and the asks ledger's own page — calls
+ * this ONE function, so nothing can rank a row two different ways. Pure: no DOM, no fetch.
+ * `item` is whatever the caller already built — a `card_needs()` row (`kind`, `title`,
+ * `question`, `from`, `at`), a folded stalled ask (`kind: "stalled"`, `status_at`, `cost`), or
+ * a plain Inbox row (`kind: "card"|"note"|"landed"|"prompt"`, `at` its real last activity —
+ * never a `servex-heartbeat` notice, `is_heartbeat_line()` above) — and `now` is a Date or
+ * epoch-ms the caller supplies, so a test can fix it.
  *
- * THE SCALE (every number below is a constant in `IMPORTANCE`, so it can be retuned without
- * reading the function body):
+ * THE RULE, IN WORDS (every number below is a constant in `IMPORTANCE`, so it can be retuned
+ * without reading the function body):
  *
- *   90-100  BLOCKER        a key, money, something destructive: `item.kind === "blocker"`
- *                          (card_needs already decided this with `is_blocker()`), or the
- *                          item's own words trip `is_blocker()` or `BLOCKER_WORDS` here.
- *   70-89   BLOCKING ASK   an open Question or Decision (`kind: "question"|"decision"`)
- *                          whose `from` agent is live right now (`item.from_live === true`)
- *                          — rises the longer it has sat (`item.at` against `now`).
- *   60-80   STALLED ASK    `kind: "stalled"`: rises with how long it has been silent
- *                          (`item.hours_silent`, or `item.status_at`/`item.at` against `now`)
- *                          and, once known, with `item.cost` — a $20 ask silent for an hour
- *                          scores as high as a free one silent for a day.
- *   40-59   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
- *                          unknown — nothing is known to be sitting idle waiting on it.
- *   20-40   DECIDED        the system already chose something and is only telling you
- *                          (`kind: "decision_made"` — an "I chose X" FYI, not a question).
- *    1-19   FYI            `kind: "fyi"`: worth knowing, nothing to do.
- *
- * An item whose `kind` matches none of these falls back to `IMPORTANCE.DEFAULT` (10) — saying
- * nothing about a row's urgency is cheaper than guessing it into the middle of the list. */
+ *   97-100  BLOCKER          a key, money, something destructive: `item.kind === "blocker"`
+ *                            (card_needs already decided this with `is_blocker()`), or the
+ *                            item's own words trip `is_blocker()` or `BLOCKER_WORDS` here.
+ *                            NEVER DECAYS — still 97+ no matter how old the row is, because
+ *                            it is still open right now.
+ *   90-96   BLOCKED          an open Question or Decision (`kind: "question"|"decision"`)
+ *                            whose `from` agent is live right now (`item.from_live === true`)
+ *                            — rises the longer it has sat (`item.at` against `now`).
+ *                            NEVER DECAYS either, same reason.
+ *   90-99   FRESH            anything else at all — EXCEPT a stalled ask, which never gets
+ *                            this lift (item B: the owner has nothing to do about one no
+ *                            matter how recently it stalled) — whose `at` is inside the last
+ *                            `FRESH_HOURS` (~a day): "may show briefly." Fades on a straight
+ *                            line back down to the row's own resting score (below) by
+ *                            `FRESH_HOURS` old. A raw "You said…" row that never became a
+ *                            card (`kind: "prompt"`) gets the same lift on a much shorter
+ *                            `PROMPT_FRESH_HOURS` (~an hour) instead — item C: it is "current"
+ *                            only while the owner is still talking about it, not for a day. A
+ *                            row that is only a heartbeat notice never gets this either — its
+ *                            real `at` (heartbeat lines skipped) is however old the last REAL
+ *                            line on it actually is.
+ *   < 90    RESTING (what is left once nothing is fresh or pressing)
+ *     40-55   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
+ *                            unknown — nothing is known to be sitting idle waiting on it.
+ *     15-35   STALLED ASK    `kind: "stalled"`: Servex revives the quiet owner agent itself
+ *                            (CLAUDE.md law 5) — rises only with how long it has been silent
+ *                            (`item.hours_silent`, or `item.status_at`/`item.at` against
+ *                            `now`) and, once known, with `item.cost`.
+ *       30     DECIDED       the system already chose something and is only telling you
+ *                            (`kind: "decision_made"` — an "I chose X" FYI, not a question).
+ *       10     FYI / DEFAULT `kind: "fyi"`, or anything `importance()` does not specifically
+ *                            know — a note, a card that just updated, a landed task nobody
+ *                            asked the owner about. Saying nothing about a row's urgency is
+ *                            cheaper than guessing it into the Inbox. */
 export const IMPORTANCE = {
-	BLOCKER: 95,
-	BLOCKING_ASK_BASE: 70, BLOCKING_ASK_MAX: 89,
-	PLAIN_ASK_BASE: 40, PLAIN_ASK_MAX: 59,   // below every stalled ask (60+): nothing live is waiting on these
-	ASK_HOURS_FULL: 6,        // hours an open question/decision has sat that alone reaches the top of its band
-	STALLED_BASE: 60, STALLED_MAX: 80,
+	BLOCKER_BASE: 97, BLOCKER_MAX: 100,
+	BLOCKED_BASE: 90, BLOCKED_MAX: 96,
+	ASK_HOURS_FULL: 6,         // hours a live-blocked ask has sat that alone reaches the top of its band
+	PLAIN_ASK_BASE: 40, PLAIN_ASK_MAX: 55,
+	STALLED_BASE: 15, STALLED_MAX: 35,   // never ≥90 on its own (item B) — blocker_signal is the one way out
 	STALLED_HOURS_FULL: 24,   // hours silent that alone reaches the top of the stalled band
 	STALLED_COST_FULL: 20,    // dollars spent that alone reaches the top of the stalled band
 	DECIDED: 30,
 	FYI: 10,
 	DEFAULT: 10,
+	FRESH_FLOOR: 90, FRESH_MAX: 99, FRESH_HOURS: 24,   // "may show briefly… drops below 90 after about a day"
+	PROMPT_FRESH_HOURS: 1,    // item C: a raw "You said…" row is "current" for about an hour, not a day
 };
 
 /** A few more words than `is_blocker`'s own "block" — the ones the owner named directly
@@ -201,9 +237,14 @@ function blocker_signal(item){
 	return is_blocker(text) || BLOCKER_WORDS.test(text);
 }
 
+/** ⚠ NO TIMESTAMP IS NEVER "JUST NOW" — `Infinity`, not 0 (fixed while building the freshness
+ *  lift below: a `place` line with no `at` at all used to read as 0 hours old, so `fresh_bonus()`
+ *  scored it 99 forever, the opposite of what a missing timestamp should mean). Every caller
+ *  below already clamps its own fraction with `Math.min(1, …)`, so `Infinity` safely becomes
+ *  "as old as this ever gets" instead of quietly becoming "brand new". */
 function hours_since(at, now){
 	const t = at ? Date.parse(at) : NaN;
-	if (!Number.isFinite(t)) return 0;
+	if (!Number.isFinite(t)) return Infinity;
 	const n = now instanceof Date ? now.getTime() : Number(now ?? Date.now());
 	return Math.max(0, (n - t) / 3600000);
 }
@@ -226,20 +267,57 @@ function stalled_score(item, now){
 	return Math.round(IMPORTANCE.STALLED_BASE + frac * (IMPORTANCE.STALLED_MAX - IMPORTANCE.STALLED_BASE));
 }
 
-function ask_score(item, now){
-	const live = !!item?.from_live;
-	const base = live ? IMPORTANCE.BLOCKING_ASK_BASE : IMPORTANCE.PLAIN_ASK_BASE;
-	const max = live ? IMPORTANCE.BLOCKING_ASK_MAX : IMPORTANCE.PLAIN_ASK_MAX;
+/** A LIVE-BLOCKED ask (an agent is actually waiting right now): 90-96, rising the longer it
+ *  has sat. NEVER DECAYS with the row's overall age — it is pressing for as long as it stays
+ *  open, which is exactly what `card_needs()` already stops listing once it is answered. */
+function blocked_score(item, now){
 	const frac = Math.min(1, hours_since(item?.at, now) / IMPORTANCE.ASK_HOURS_FULL);
-	return Math.round(base + frac * (max - base));
+	return Math.round(IMPORTANCE.BLOCKED_BASE + frac * (IMPORTANCE.BLOCKED_MAX - IMPORTANCE.BLOCKED_BASE));
+}
+
+/** A PLAIN ask (nobody confirmed to be blocked on it): the same "longer sat, higher" curve as
+ *  `blocked_score()`, just capped under 90 — `from_live` is what actually moves a row into the
+ *  pressing band, not how long it has waited. */
+function plain_ask_score(item, now){
+	const frac = Math.min(1, hours_since(item?.at, now) / IMPORTANCE.ASK_HOURS_FULL);
+	return Math.round(IMPORTANCE.PLAIN_ASK_BASE + frac * (IMPORTANCE.PLAIN_ASK_MAX - IMPORTANCE.PLAIN_ASK_BASE));
+}
+
+/** THE FRESHNESS LIFT (INBOX ZERO's decay rule, the owner, 2026-09-30 16:35) — a straight line
+ *  from `FRESH_MAX` right now down to `FRESH_FLOOR` at `window` hours old (`FRESH_HOURS` for
+ *  most kinds, the shorter `PROMPT_FRESH_HOURS` for a raw "You said…" row — item C), then
+ *  nothing: "a somewhat important thing that just happened may show briefly… after about a
+ *  day it drops below 90." `importance()` below is what decides WHICH kinds ever get this —
+ *  never a `stalled` row (item B), and never a row whose `at` is a `servex-heartbeat` notice,
+ *  because that notice was never allowed to become the row's `at` in the first place
+ *  (`is_heartbeat_line()` above, applied where `at` is computed: `inbox.js`, `groups.js`). */
+function fresh_bonus(at, now, window = IMPORTANCE.FRESH_HOURS){
+	const hours = hours_since(at, now);
+	if (hours >= window) return 0;
+	const frac = 1 - hours / window;
+	return Math.round(IMPORTANCE.FRESH_FLOOR + frac * (IMPORTANCE.FRESH_MAX - IMPORTANCE.FRESH_FLOOR));
 }
 
 export function importance(item, now = Date.now()){
 	const kind = item?.kind;
-	if (kind === "blocker" || blocker_signal(item)) return IMPORTANCE.BLOCKER;
+	// A blocker never decays — 100 when a live agent is also waiting on it, else 97.
+	if (kind === "blocker" || blocker_signal(item)) return item?.from_live ? IMPORTANCE.BLOCKER_MAX : IMPORTANCE.BLOCKER_BASE;
+	// item B: a stalled ask is never lifted by freshness — the owner has nothing to do about
+	// one no matter how recently it stalled. `blocker_signal` above is the one way out.
 	if (kind === "stalled") return stalled_score(item, now);
-	if (kind === "decision_made") return IMPORTANCE.DECIDED;
-	if (kind === "fyi") return IMPORTANCE.FYI;
-	if (kind === "decision" || kind === "question") return ask_score(item, now);
-	return IMPORTANCE.DEFAULT;
+	if (kind === "decision" || kind === "question")
+		return item?.from_live ? blocked_score(item, now) : Math.max(plain_ask_score(item, now), fresh_bonus(item?.at, now));
+	if (kind === "decision_made") return Math.max(IMPORTANCE.DECIDED, fresh_bonus(item?.at, now));
+	if (kind === "fyi") return Math.max(IMPORTANCE.FYI, fresh_bonus(item?.at, now));
+	// item C, 2026-09-30: a raw "You said…" row — a voice transcription that never became a
+	// real card (`inbox.js`'s own fallback title) — is "a current event" for a few minutes
+	// (the owner's own words: dictating is something "I'm currently working on"), not for a
+	// whole day like everything else's freshness lift — a row from hours ago (the owner's
+	// 12:48 and 1:05 PM examples) is stale, not current. A `prompt` that DID become a real
+	// card already shows up as that card (`kind: "card"`) instead, so this only ever catches
+	// the orphaned ones, on `PROMPT_FRESH_HOURS` instead of the usual `FRESH_HOURS`.
+	if (kind === "prompt") return Math.max(IMPORTANCE.DEFAULT, fresh_bonus(item?.at, now, IMPORTANCE.PROMPT_FRESH_HOURS));
+	// Every other kind (card, note, landed, and anything not yet named): its own resting score
+	// is the flat DEFAULT, lifted only while it is genuinely recent.
+	return Math.max(IMPORTANCE.DEFAULT, fresh_bonus(item?.at, now));
 }

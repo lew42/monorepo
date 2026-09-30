@@ -506,6 +506,28 @@
 		top: 0.425em;
 	}
 
+	/* THE ARCHIVE × — the same stretch bug the dot had, and the same fix (commit
+	   9ecda14e, michael/dev, 2026-09-30): `.ai2-row-head` is a flex row with no
+	   `v-center`, so it stretches every child — including a bare `<button>`, which
+	   also carries the browser's own touch-target minimum height on top of that —
+	   into a tall grey rectangle instead of a small "×" sitting on the title's
+	   first line. Scoped to the preview row only: the Live card's own ✕
+	   (`.ai2-live-item .ai2-clear`) sits in a grid, not this flex row, and keeps
+	   its own sizing. */
+	.ai2-row-head > .ai2-clear {
+		align-self: flex-start;
+		min-block-size: 0;
+		block-size: 1.35em;   /* matches .ai2-row-title's own line-height */
+		/* A bare `<button>` also carries the browser's own padding and content-box
+		   sizing on top of the stretch — without these three `block-size` alone
+		   still left it tall (the same trap the dot's own box-sizing/font/line-height
+		   reset, just above, exists for). */
+		box-sizing: border-box;
+		padding-block: 0;
+		line-height: 1;
+	}
+
+
 	/* THE CADENCE — one step between every part of a row, whichever parts it has.
 	   (0,2,0), so it beats each part's own older margin (`.ai2-news`,
 	   `.ai2-meter-line`), which still apply wherever those parts appear outside

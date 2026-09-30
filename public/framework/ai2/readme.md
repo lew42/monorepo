@@ -8,6 +8,14 @@ outlines, using these cards." Every change here is judged against that sentence.
 **What you have asked of this page, word for word, and whether it is done:
 [`doc/owner-asks.md`](./doc/owner-asks.md).** Read it before changing the layout.
 
+**2026-09-30, the load hang.** The owner: "the AI 2 page just crashed… having a hard time
+loading." A CPU profile found the cause: `Groups.members()` (`groups.js`) and `place()`'s
+`wide()` (`live.js`) were each redoing the same expensive work on every single screen update
+instead of once. Both now cache their answer and only redo it when the underlying data (or the
+card's own size) actually changes. Nothing on screen changed — same rows, same Live card, same
+order, just far less repeated work to draw them. [`doc/decisions.md`](./doc/decisions.md#the-load-hang--cache-dont-recompute-on-every-redraw-2026-09-30),
+[`ai/2026-09-30/inbox-ext/ai2-hang/profile.md`](/framework/ai/2026-09-30/inbox-ext/ai2-hang/profile.md).
+
 **2026-09-30, latest.** The owner, verbatim, in
 [`ai/2026-09-30/page-audit/owner-words.md`](/framework/ai/2026-09-30/page-audit/owner-words.md):
 Inbox is the default tab again (Needs you as the bare-url default, from 2026-09-29, lasted one

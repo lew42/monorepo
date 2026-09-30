@@ -8,11 +8,12 @@ import { importance, silent_hours } from "./needs-rule.js";
 
 export { fold };
 
-/** THE INBOX ORDER (asks-ledger, 2026-09-30). A row scoring HOT or more on `importance()`
- *  (needs-rule.js: a stalled ask, a blocker, a question a live agent waits on) sits on top,
- *  highest first; everything else stays newest first. `page.js` sorts with this same function
- *  after it sets each card row's own score, so there is one order, never two. */
-export const HOT = 60;
+/** THE INBOX ORDER (INBOX ZERO, 2026-09-30). A row scoring HOT (≥90 on `importance()`,
+ *  needs-rule.js: a blocker, a question a live agent is blocked on, or anything else while it
+ *  is still fresh) sits on top, highest first; everything else stays newest first. `page.js`
+ *  sorts with this same function after it sets each card row's own score, so there is one
+ *  order, never two. */
+export const HOT = 90;
 const hot = it => (it.score >= HOT ? it.score : 0);
 export const inbox_order = (a, b) => (hot(b) - hot(a)) || (Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 
@@ -672,9 +673,20 @@ function threads(entries){
  * tasks" and the two agree: every source contributes an id, and an id that two
  * sources share contributes it once.
  */
-export function items({ board, folders, prompts, landed, says }){
+/**
+ * `groups` (optional — `Groups`, `groups.js`, passed by `page.js` when it has one built) is
+ * how a folder-card row gets its REAL last-activity time instead of the server index's own
+ * `last`, which still counts a `servex-heartbeat` notice as activity the same naive way
+ * `fold.js`'s `state.last` does (item A, 2026-09-30). `groups.real_at(id)` returns the
+ * fold-based recompute once that card's raw lines have been fetched (`Groups.read_cards()`
+ * fetches every card touched in the last two days — every card that could plausibly be a hot
+ * Inbox row) and `null` otherwise, so this always has a safe fallback to the index. Omitting
+ * `groups` entirely (a caller that has none built yet) behaves exactly as before.
+ */
+export function items({ board, folders, prompts, landed, says, groups }){
 	const by_id = new Map();
 	const add = item => { by_id.set(item.id, item); return item; };
+	const real_at = id => groups?.real_at(id) ?? null;
 
 	/* THE CARD FOLDERS REPLACE THE BOARD when Servex answers — every board card
 	   was migrated into a folder (`Servex/cards/migrate.mjs`), so reading both
@@ -686,10 +698,10 @@ export function items({ board, folders, prompts, landed, says }){
 	   bumps the parent's last-updated"), so a topic touched deep down rises in the rail. */
 	const newest = new Map();
 	if (from_folders) folders.cards.forEach(c => {
-		const top = c.id.split("/").slice(0, 4).join("/"), t = c.last ?? c.created;
+		const top = c.id.split("/").slice(0, 4).join("/"), t = real_at(c.id) ?? c.last ?? c.created;
 		if (Date.parse(t ?? 0) > Date.parse(newest.get(top) ?? 0)) newest.set(top, t);
 	});
-	if (from_folders) folders.cards.filter(c => c.id.split("/").length === 4).forEach(c => add({ ...folder_item(c), at: newest.get(c.id) ?? c.last ?? c.created }));
+	if (from_folders) folders.cards.filter(c => c.id.split("/").length === 4).forEach(c => add({ ...folder_item(c), at: newest.get(c.id) ?? real_at(c.id) ?? c.last ?? c.created }));
 
 	if (!from_folders) board.forEach(c => add({
 		id: c.id,

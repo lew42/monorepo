@@ -1,4 +1,10 @@
-# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/), [`core/Sidebar`](/framework/core/Sidebar/) and [`/layouts/shell/`](/layouts/shell/) (`ext/Playground` also used it, deleted 2026-09-06 — see `core/Layout`).
+# grip — a rail's resize edge: a strip just inside the edge it drags, and a pill that rides your pointer. No permanent handle. Shared by [`ext/drawer`](/framework/ext/drawer/), [`dev/DevBar`](/framework/dev/DevBar/), [`core/Sidebar`](/framework/core/Sidebar/), [`/layouts/shell/`](/layouts/shell/) and [`ai2`](/framework/ai2/) (`ext/Playground` also used it, deleted 2026-09-06 — see `core/Layout`).
+
+**Names** (grip-zones, 2026-09-30) — so "where's the resize handle?" has one answer: this
+widget is **the grip**, and it lives here, at `ext/grip`. Where it sits in AI 2's inbox, it
+drags the edge between two named layouts — the **preview rail** (a flush stack of card
+previews, one per line, the persistent list you pick from — [flush stack](/framework/design/layout/doc/rules.md), [list and detail](/framework/core/Layout/list-and-detail/)) and the **detail**
+(whichever card's own page opens beside it). Both names are the site's own, not new coinage.
 
 ## Use
 
@@ -22,7 +28,8 @@ grip({
 - `from` picks the pointer arithmetic (which edge of the PARENT is pinned); `mirror` (defaults to matching `from`) picks which side the strip and its lit line sit on. Every rail wants the default. A grip whose OWN box is repositioned every frame by the caller, not flush against a moving rail edge — `ai/v/3`'s column split — passes `mirror: false` to keep the line under its own local start regardless of `from` · [doc/decisions.md](./doc/decisions.md)
 - A start-docked rail is stamped `.grip-start` and `grip.css` mirrors strip, lit line AND pill together; never flip the strip in your own stylesheet, which leaves the line 10px off the boundary · [doc/decisions.md](./doc/decisions.md)
 - The pill's `top` is relative to the grip's OWN box, not the viewport — grip.js reads `getBoundingClientRect().top` on every move and subtracts it, or the pill lags by however far the grip sits down the page · [doc/decisions.md](./doc/decisions.md)
-- Mount it **inside** the rail's box, never straddling the edge — a strip hanging outside survives the shut rail's slide as an invisible `ew-resize` column down every page, and `setPointerCapture` swallows the whole gesture, not just the click · [doc/decisions.md](./doc/decisions.md)
+- Mount it **inside** the rail's box. A plain, unmirrored grip never straddles its edge — a strip hanging outside survives a SHUT rail's slide as an invisible `ew-resize` column down every page, and `setPointerCapture` swallows the whole gesture, not just the click. `.grip-start` is the one exception, on purpose, below · [doc/decisions.md](./doc/decisions.md)
+- **Two invisible zones, not one** (grip-zones, 2026-09-30): a ~50px SHOW zone (`.grip-near`, toggled by grip.js from `document`) just makes the line and the pill visible from further away — no hit-target, steals no click. The real GRAB zone is the small `.grip` box itself, and on a `.grip-start` dock (every master–detail split so far — AI 2's rail, the Playground tree) it is asymmetric: mostly reaching OUT across the boundary (`--grip-out`, ~8px, into the sibling pane, which has no scrollbar to lose), pulled back to ~1px on its own interior side (`--grip-in`) — that interior side is where a scrolling rail keeps its OWN scrollbar, flush against the same edge. Touch is unchanged: no `.grip-near`, and `.grip-start` resets back to flush-and-symmetric under `(pointer: coarse), (hover: none)` · [doc/decisions.md](./doc/decisions.md)
 - `html.grip-sizing` carries `--rail-ease: 0s`; without it the shell's push trails the pointer by 0.18s · [doc/decisions.md](./doc/decisions.md)
 - The width is measured from the rail's **own** inline-end edge, not `innerWidth` — a rail parked beside another one would size past the pointer · [doc/decisions.md](./doc/decisions.md)
 - `rem`, never `em`: a grab target does not scale with the type beside it · [doc/decisions.md](./doc/decisions.md)

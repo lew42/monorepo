@@ -4,6 +4,7 @@ import picker from "/framework/ai/v/versions.js";   // the versions, and the one
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 import { TABS, SYSTEM_PARTS, tab_page, readme_chain, heading } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+import { fold_card, parse_lines } from "/framework/ai2/fold.js";   // the Now card's own small reader (followup.md item 2)
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -84,6 +85,16 @@ export default new Page({
 		const concept = CONCEPTS.find(c => c.slug === name);
 		if (concept) return concept_page(this, concept);
 
+		// THE PINNED NOW CARD (followup.md item 2, 2026-09-30) — wins here, ahead of
+		// `board_route()`, which would otherwise claim "now" as one of the old v3 board's
+		// own five view words (`VIEW_WORDS`, `ai/v/3/page.js`) and show something empty:
+		// the owner already saw that happen (`/framework/ai/now/` rendered blank before
+		// this). `ai/now/page.jsonl` is a real Servex-made card folder — read directly
+		// with `fold.js`'s own small parser (no `ai2/card.js` `Card` class or its `shell`
+		// needed for a one-note read), same content AI 2's own `/framework/ai2/now/`
+		// shows (`ai2/page.js`, `card_page(this, "now")`).
+		if (name === "now") return now_page(this);
+
 		const board_view = board_route(this, name);
 		if (board_view) return board_view;
 
@@ -135,6 +146,25 @@ export default new Page({
 		});
 	},
 });
+
+/* THE NOW CARD, read straight from its own folder (followup.md item 2, 2026-09-30) — the
+   same content `/framework/ai2/now/` shows, without needing AI 2's own `Card` class or its
+   `shell`. `$box` is captured HERE, synchronously, and filled in the `.then()` callback
+   (the site's own no-DOM-after-an-await rule) so a slow fetch never leaves half a page. */
+function now_page(root){
+	return new Page({
+		title: "Now", icon: "push_pin", url: root.url + "now/",
+		content(){
+			const $box = div.c("ai-now");
+			fetch(this.url + "page.jsonl").then(r => r.ok ? r.text() : "").then(text => {
+				const fold = fold_card("now", parse_lines(text));
+				const said = [...fold.messages, ...fold.prompts].filter(m => m.text ?? m.raw)
+					.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).at(-1);
+				$box.empty(() => md((said?.text ?? said?.raw) || "Nothing written yet."));
+			});
+		},
+	});
+}
 
 /* One concept's page: the gist first, then a few items, then the code that owns it,
    then the Servex page where Servex implements it (linked, never repeated). */

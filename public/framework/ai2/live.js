@@ -331,16 +331,25 @@ const wide = $col => Number(getComputedStyle($col.el).getPropertyValue("--ai2-li
 /** Put the selected conversation where it belongs — beside the list, over
  *  the card's body, or nowhere — and mark its row. Called on every draw, on
  *  a click, on "← Live", and whenever the card changes size. */
-function place(model, $col, rows){
+function place(model, $col, rows, { remeasure = false } = {}){
 	const card = $col.el.closest(".ai2-card-live");
 	if (!card) return;
-	model.placing = () => place(model, $col, rows);
+	model.placing = () => place(model, $col, rows, { remeasure: true });
 	if (!model.ro){
 		model.ro = new ResizeObserver(() => model.placing?.());
 		model.ro.observe(card);
 	}
 
-	const sel = model.sel, is_wide = wide($col);
+	// ⚠ `wide()` forces a synchronous layout (`getComputedStyle` reads a container-query
+	// custom property) — cheap once, but this used to run on EVERY call to `place()`:
+	// every redraw, every click, every "← Live". The Live card is the page's own default
+	// view, and a CPU profile of `/framework/ai2/` found this one line costing more
+	// self-time than any other function on the page (ai2-hang, 2026-09-30,
+	// ai/2026-09-30/inbox-ext/ai2-hang/profile.md). The card's own ResizeObserver already
+	// says exactly when the width category CAN have changed, so only that path (and the
+	// first-ever call) remeasures; an ordinary redraw reuses the last known answer.
+	if (remeasure || model.is_wide === undefined) model.is_wide = wide($col);
+	const sel = model.sel, is_wide = model.is_wide;
 	card.classList.toggle("ai2-live-nosel", !sel);
 	const take = !is_wide && !!sel?.clicked;
 	if (take !== card.classList.contains("ai2-live-takeover")){

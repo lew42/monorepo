@@ -11,9 +11,20 @@ assistant, Manager/mastermind, Sessions & the SDK, and the agents list rendered 
 whatever Servex is actually holding right now. `doc/where.md` is the research trail (file,
 class, route) for the next agent who extends this.
 
+**This module is a guide, not the mechanism.** The real per-page AI pair — an
+assistant and a manager minted for ANY page, not just a card — is a **path
+extension**: Servex's `Layers.js` mints it the moment someone sends a page a
+message, and it saves to `<page>ai/chat.jsonl`, a real subfolder of that page's own
+url. It is built, Servex-side; nothing in `core/Page` implements it. The full census
+of this kind of thing (every page gets a `md/`, an `fs/`, this AI pair, and two
+others) is [`core/Page/ext/doc/path-extensions.md`](/framework/core/Page/ext/doc/path-extensions.md).
+
 **Watch out**
-- The drawer's per-page AI route (`POST /api/page-ai`) does not exist yet — only a card
-  has a real assistant today; a plain page falls back to the dev bar's Ask bridge.
+- **Fixed 2026-09-30:** this used to say the drawer's per-page AI route
+  (`POST /api/page-ai`) "does not exist yet." It exists now — `Servex/agents/Layers.js`
+  answers it, and the reply lands in `<page>ai/chat.jsonl` a few seconds later
+  (`Servex/agents/doc/page-pairs.md`). Every page has its own pair today, not only a
+  card.
 - **The chat room is deliberate, not a bug**: a card's assistant AND its
   mastermind/manager both receive every single message the owner sends on that card,
   through two separate paths (`doc/assistant.md` names both). It stays this way until

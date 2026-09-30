@@ -90,6 +90,16 @@ export function news_bar(n){
  * face cannot do itself — `flag()` and `unflag()`.
  */
 export function full(it, on){
+	// ITEM D, 2026-09-30: `/framework/ai2/ask:…/` is a STALLED ASK with no card of its own
+	// (`resolve_card()`, inbox.js, redirects straight to the card when it has one — this page
+	// only draws when it does not) — say PLAINLY what the page is, before anything else, so it
+	// never reads like a broken or half-built card. `it.owner` and `it.at` (the stall's own
+	// `status_at`) are already on the row (`inbox.js`'s stalled `add({...})`); `when()` is this
+	// file's own clock formatter, just above.
+	if (it.kind === "stalled") div.c("ai2-ask-banner muted flex wrap gap-25", () => {
+		span("An ask from the ledger. Owner: " + (it.owner || "unknown") + ". Quiet since " + (when(it.at) || "unknown") + ".");
+		a.c("page-link").href("/framework/ai/asks.jsonl").text("ai/asks.jsonl");
+	});
 	div.c("ai2-full-head flex v-center gap-25", () => {
 		if (it.icon) icon(it.icon);
 		// `.md()` — the fast assistant wraps a known page mention in a real link

@@ -1,8 +1,8 @@
 # process-monitor proof, 2026-09-30 16:34, private Servex :8290 from worktree/process-monitor
 # node public/framework/ai/2026-09-30/process-monitor/proof.mjs C:/Code/lew42/worktrees/process-monitor
-# (the log line for minion-tasked read empty: the proof looked in the wrong folder; the registry and Task Manager lines are the record)
+# (the "minion-tasked's log" line printed empty: the proof read the wrong file name, fixed in proof.mjs; the real lines are below, from the same run)
 # chrome.exe's count moves with its tabs; nothing named chrome is ever on the reap list (only bash, sh, tail, grep, sleep, cat, head, sed, awk, timeout, find)
-   +4s private Servex up on :8290 (home C:\Users\mike\AppData\Local\Temp\process-proof-home); orphans reaped after 60 s idle
+   +4s private Servex up on :8290 (home C:\Users/<user>\AppData\Local\Temp\process-proof-home); orphans reaped after 60 s idle
   +30s minion-tasked: registry claude_pid 47356; Task Manager's claude.exe for session e95f49bf: pid 47356 (248 MB) -> MATCH
   +30s minion-plain: registry claude_pid 29564; Task Manager's claude.exe for session 1bf5b63b: pid 29564 (261 MB) -> MATCH
   +30s minion-tasked's log: 
@@ -20,14 +20,45 @@
  +129s the live sleep: still running (right)
  +129s reaped by this Servex (all of ours it found idle 60 s+): 10
  +129s   grep.exe 17504 5 MB idle 1 min: "C:\Program Files\Git\usr\bin\grep.exe" --line-buffered -E "PASS|FAIL|
- +129s   bash.exe 9716 5.6 MB idle 1 min: "C:\Program Files\Git\bin\bash.exe" -c "source /c/Users/mike/.claude/s
+ +129s   bash.exe 9716 5.6 MB idle 1 min: "C:\Program Files\Git\bin\bash.exe" -c "source /c/Users/<user>/.claude/s
  +129s   bash.exe 48112 8.8 MB idle 1 min: "C:\Program Files\Git\bin\..\usr\bin\bash.exe" -c "source /c/Users/mik
- +129s   tail.exe 19836 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -n +1 -f C:\Users\mike\AppData
+ +129s   tail.exe 19836 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -n +1 -f C:\Users/<user>\AppData
  +129s   grep.exe 49928 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\grep.exe" -E --line-buffered Q[0-9]|judg
- +129s   tail.exe 71700 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -n +2 -f /c/Users/mike/AppData
+ +129s   tail.exe 71700 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -n +2 -f /c/Users/<user>/AppData
  +129s   grep.exe 41524 5.1 MB idle 1 min: "C:\Program Files\Git\usr\bin\grep.exe" --line-buffered -E "s |Error|e
  +129s   bash.exe 29332 8 MB idle 1 min: "C:\Program Files\Git\bin\..\usr\bin\bash.exe" -c "(tail -f C:/Users/m
- +129s   tail.exe 85624 5.4 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -f C:/Users/mike/AppData/Local
+ +129s   tail.exe 85624 5.4 MB idle 1 min: "C:\Program Files\Git\usr\bin\tail.exe" -f C:/Users/<user>/AppData/Local
  +129s   grep.exe 31404 5.6 MB idle 1 min: "C:\Program Files\Git\usr\bin\grep.exe" pm-proof-1790803878920-dead
  +129s chrome.exe before 53, after 44; Code.exe before 17, after 17
  +129s done; stopping the private Servex
+
+# the same run's logs (private SERVEX_HOME/logs)
+## agent-minion-*.jsonl: the PID, logged at spawn
+{"at":"2026-09-30T16:30:53-05:00","agent":"minion-plain","type":"process","state":"started","pid":29564}
+{"at":"2026-09-30T16:30:53-05:00","agent":"minion-tasked","type":"process","state":"started","pid":47356}
+## processes.jsonl: every reap, one line each (25 in all: the 3 planted + 22 real leftovers from Sep 24-29; the snapshot lists only the last 10)
+2026-09-30T16:31:56-05:00 tail.exe 47300 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 38720 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 32424 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 30232 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 39728 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 54620 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 12268 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 38148 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 40088 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 33868 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 52956 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 44408 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 bash.exe 54196 5.6 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 bash.exe 36712 8.6 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 16052 4.9 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 17504 5 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 bash.exe 9716 5.6 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 bash.exe 48112 8.8 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 19836 5.1 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 49928 5.1 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 tail.exe 71700 5.1 MB idle 1 min ok=true
+2026-09-30T16:31:56-05:00 grep.exe 41524 5.1 MB idle 1 min ok=true
+2026-09-30T16:32:25-05:00 bash.exe 29332 8 MB idle 1 min ok=true
+2026-09-30T16:32:25-05:00 tail.exe 85624 5.4 MB idle 1 min ok=true
+2026-09-30T16:32:25-05:00 grep.exe 31404 5.6 MB idle 1 min ok=true

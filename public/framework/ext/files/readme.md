@@ -47,6 +47,11 @@ keyboard-focus that row, and always shown on whichever row is already open as a 
 on) — the owner's own fix, 2026-09-29, after seeing it on every row at once made the
 tree "a column of icons."
 
+**This `fs/` (and `core/Page`'s own `md/`) is a "path extension"** — every page gains
+this url whether it asks for it or not, the opposite of `core/Page/ext`'s opt-in
+`{"ext": "Name"}` lines. The full census of this kind, and why neither moved onto
+that opt-in system: [`core/Page/ext/doc/path-extensions.md`](/framework/core/Page/ext/doc/path-extensions.md).
+
 Right-click a row for a small menu: Copy path, Open in /fs, Open raw
 ([`ext/filesystem`](/framework/ext/filesystem/)). Every file and directory here is now an `FsFile`/`FsDir`
 from `ext/filesystem` — the data structures behind every file on the site — and `file_link(path,

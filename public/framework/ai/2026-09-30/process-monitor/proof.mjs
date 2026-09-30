@@ -58,7 +58,7 @@ for (const r of rows){
 	const byCmd = procs.find(p => p.name === "claude.exe" && p.cmd.includes(r.session_id));
 	say(`${r.id}: registry claude_pid ${r.claude_pid}; Task Manager's claude.exe for session ${r.session_id.slice(0, 8)}: pid ${byCmd?.pid ?? "none"} (${byCmd?.mb ?? "?"} MB) -> ${r.claude_pid && r.claude_pid === byCmd?.pid ? "MATCH" : "MISMATCH"}`);
 }
-let text = ""; for (const d of [["logs", "agents"], ["logs"]]) try { text ||= fs.readFileSync(path.join(HOME, ...d, "minion-tasked.jsonl"), "utf8"); } catch {}
+let text = ""; try { text = fs.readFileSync(path.join(HOME, "logs", "agent-minion-tasked.jsonl"), "utf8"); } catch {}
 const log = text.split("\n").filter(l => l.includes("\"process\"")).slice(0, 2);
 say("minion-tasked's log:", log.map(l => { const e = JSON.parse(l); return `{type: process, state: ${e.state}, pid: ${e.pid}}`; }).join(" "));
 
