@@ -48,11 +48,12 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **`restart_servex`, `pause_dispatch`, `resume_dispatch`** are the operator switches in `ops.js`.
 - **Agents survive a Servex restart.** At boot, `revive()` reopens every agent the last boot
   left open, under the same id and session. One that was mid-turn is told so.
-- **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
-  agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
-  the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
-  An idle task mastermind that waits on a child (working or queued) is released after 3 minutes
-  (`SERVEX_TASK_IDLE_MS`), so its queued minions get its memory; with no child it keeps 15; mastermind-servex keeps 15, the owner's assistants are never released.
+- **Idle agents go dormant.** After 3 idle minutes every agent's claude process exits; its id,
+  session and row stay, and the next message resumes it in place. At most 5 agents work at once
+  (`SERVEX_WORKING_CAP`), and a big agent is compacted: [`../doc/dormant.md`](../doc/dormant.md).
+- **Stopping is still free.** A message to a stopped agent, or to one that exists only in the
+  registry, wakes it first: the same id, its session, and the spawn `spec` its registry row keeps.
+  Forks are never woken. Proof: `wake-proof.mjs`.
 - **Nothing revives what was ended on purpose.** Every path that reopens an agent (a message, a
   child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
   an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and
