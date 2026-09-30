@@ -1,4 +1,4 @@
-import { Page, md, h2, img, code } from "/app.js";
+import { Page, md, h2, img, code, div, p } from "/app.js";
 
 const shot = name => new URL("shots/" + name, import.meta.url).href;
 
@@ -29,6 +29,26 @@ export default new Page({
 
 		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open on a plain page: the header names the path, the owner's sentence, a fast reply then a smart reply under it, and the New session button")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
+
+		h2("Swipe it up and it becomes a page");
+
+		p("Drag the sheet's top edge: it follows your finger. Let go near the top and the sheet becomes the whole screen, with its own url and a ‹ Back. The phone's own back button steps it down one state at a time — full, then open, then closed — and never leaves the site.");
+
+		div.c("flex wrap", () => {
+			for (const [file, label] of [
+				["sheet-1-open.png", "1 · Tap ✦ — ?sheet=open"],
+				["sheet-2-dragged.png", "2 · Dragged up — it follows the finger"],
+				["sheet-3-full.png", "3 · Let go near the top — ?sheet=full, ‹ Back"],
+				["sheet-4-after-back.png", "4 · Phone back — open again, same height"],
+				["sheet-5-closed.png", "5 · Phone back again — closed, same page"],
+			]) div.c("flex v", () => {
+				img().attr("src", shot(file)).attr("alt", label)
+					.style({ width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
+				p(label).style({ fontSize: "0.85em" });
+			}).style({ width: "11em" });
+		}).style({ gap: "1em" });
+
+		md("How the states map to history, and what happens after an in-app link: [doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
 
 		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **typed into the sheet's own composer** — the same `deliver()` seam a real dictation calls once a sentence finishes. `ux/Dictate` is used only through `ext/Chat`'s own public API — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
 

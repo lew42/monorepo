@@ -64,6 +64,11 @@ export const ROLES = {
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
 	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),    effort: "medium", permission_mode: "bypassPermissions" },
+	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
+	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
+	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
+	 * below. Replaces the retired per-page "manager" for technical questions. doc/directory.md. */
+	"directory-mastermind": { skills: ["sub-mastermind", "page"], prefix: "directory-mastermind", tier: "manager", model: model("manager"), effort: "medium", permission_mode: "plan" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 

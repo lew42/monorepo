@@ -9,6 +9,8 @@ The owner, 2026-09-25: "I don't want to read things. I want to see the thing I w
 Some words are okay: a title that makes it evident, a caption. When I see a three-page response,
 it makes me want to throw up."
 
+**A title is 5–8 words and starts with the familiar concept** (the owner, 2026-09-30): "Page: the card system", "Dictation: clean mode", never a sentence. The reader recognises the concept first, then the specific thing.
+
 ## Let the layout say it
 
 The reader should understand the structure from where things sit: hierarchy, proximity,

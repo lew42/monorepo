@@ -1,4 +1,4 @@
-/* `node Server/worktree-prune.mjs [--dry]` — removes every git worktree that is finished with:
+/* `node Server/worktree-prune.mjs [--dry] [--only <name>]` — removes every git worktree that is finished with:
  *   1. its branch is fully merged into michael/dev (`git merge-base --is-ancestor`);
  *   2. no Servex agent that is idle, working or queued has its cwd inside it (GET :8090/agents);
  *   3. it is not a pool slot (.worktree-pool.json: the Pool removes its own) and not the main tree;
@@ -10,6 +10,9 @@
  * It never stops a server in the MAIN tree: :3104 is Servex's, and :8137 is on the keep list
  * (the owner's phone; a hand-started server there is not a leftover).
  * Why (node-reliability, 2026-09-30): 76 worktrees had piled up, 52 already merged; pruned 38.
+ * Uncommitted work (anything but those logs) or a branch with commits outside michael/dev is
+ * never deleted, only named; salvage (Pool.salvage, by hand) is the one path that may move it.
+ * `--only <name>` looks at that one worktree (the pool-taken proof, 2026-09-30).
  * Every spawn sets windowsHide. */
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -20,6 +23,7 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MAIN = path.resolve(HERE, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: HERE, encoding: "utf8", windowsHide: true }).trim(), "..").replace(/\\/g, "/");
 const DRY = process.argv.includes("--dry");
+const ONLY = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : null;
 const BASE = "michael/dev";
 const slash = s => String(s || "").replace(/\\/g, "/").toLowerCase();
 const git = (cwd, ...a) => spawnSync("git", ["-C", cwd, ...a], { encoding: "utf8", windowsHide: true });
@@ -40,6 +44,7 @@ const trees = git(MAIN, "worktree", "list", "--porcelain").stdout.split(/\r?\n\r
 let pruned = 0;
 for (const w of trees.slice(1)) {
 	const name = path.basename(w.path), p = slash(w.path);
+	if (ONLY && name !== ONLY) continue;
 	const status = () => git(w.path, "status", "--porcelain").stdout.split(/\r?\n/).filter(Boolean).map(l => ({ x: l.slice(0, 2), f: l.slice(3).replace(/^"|"$/g, "") }));
 	let why = null;
 	if (!fs.existsSync(w.path)) why = "missing on disk (its entry is cleared by the git worktree prune at the end)";

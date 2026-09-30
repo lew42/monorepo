@@ -86,6 +86,35 @@
 		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
 		box-shadow: 0 -0.3em 1em var(--fill-a16);
 	}
+	/* A HEIGHT, not only a ceiling (sheet-as-page, 2026-09-30): once dragged, or
+	   read back from an earlier drag, the sheet IS `--sheet-h` tall, so dragging
+	   above its own content still moves it. A released drag, the step to full and
+	   the step back ease; a drag in progress (`html.grip-sizing`) follows the
+	   finger with no easing. `interpolate-size` lets the content-height default
+	   ease too where the browser supports it. */
+	.drawer-rail-sheet {
+		interpolate-size: allow-keywords;
+		transition: block-size 0.22s ease, max-block-size 0.22s ease, border-radius 0.22s ease;
+	}
+	html.grip-sizing .drawer-rail-sheet { transition: none; }
+	.drawer-rail-sheet-sized { block-size: var(--sheet-h); max-block-size: none; }
+
+	/* FULL — the sheet has become the page: the whole screen, square corners, no
+	   shadow, and a ‹ Back in its head (`DrawerRail`'s routing, rail.js). */
+	.drawer-rail-sheet-full {
+		border-radius: 0; box-shadow: none; border-top: 0;
+		padding-block-start: calc(0.9em + env(safe-area-inset-top, 0px));
+	}
+	.drawer-rail-sheet-back { display: none; }
+	.drawer-rail-sheet-full .drawer-rail-sheet-back {
+		display: inline-flex; align-items: center; flex: 0 0 auto;
+		min-block-size: 2.75rem; padding: 0 0.6em 0 0.2em;
+		font: inherit; font-weight: 600; color: var(--prim);
+		background: transparent; border: 0; border-radius: calc(var(--radius) / 2);
+		touch-action: manipulation;
+	}
+	.drawer-rail-sheet-full .drawer-rail-sheet-heading { margin-inline-end: auto; }
+
 	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
 	   positioned, so it sits in whatever dead space the top padding above already
 	   reserves — the same trick both side rails use (grip.css's own note: "the dead
@@ -133,11 +162,16 @@
 	   trick `.chatbox-panel` uses internally for its own log, one level up. Only
 	   the log inside ChatPanel ever actually scrolls; the head, the composer and
 	   the links stay put. */
-	.drawer-rail-sheet-panel {
+	/* ⚠ A DESCENDANT selector: the sheet's own box is ALSO `.drawer-rail-sheet-panel`
+	   (View stamps the class name `DrawerRailSheetPanel`), so a bare
+	   `.drawer-rail-sheet-panel { display: flex }` out-ranked `.drawer-rail-sheet {
+	   display: none }` and the sheet could never be hidden once built — ✕ removed
+	   `.on` and nothing changed on screen (found in sheet-as-page, 2026-09-30). */
+	.drawer-rail-sheet .drawer-rail-sheet-panel {
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-block-size: 0;
 	}
-	.drawer-rail-sheet-panel > .chatbox-panel {
+	.drawer-rail-sheet .drawer-rail-sheet-panel > .chatbox-panel {
 		flex: 1 1 auto; min-block-size: 0; max-height: none;
 	}
 

@@ -36,17 +36,28 @@ const html = document.documentElement;
  * once per frame, and this sets one custom property rather than re-laying-out a
  * live render. Not worth importing the demo system for. */
 export default function grip({ write, done, reset, from = "end", mirror = from === "start", axis = "x" }){
-	let size, edge;
+	let size, edge, grab = 0;
 	const on_x = axis !== "y";
 
 	let cls = mirror ? "grip grip-start" : "grip";
 	if (!on_x) cls += " grip-y";
+
+	function end(e){
+		if (this.el.hasPointerCapture?.(e.pointerId)) this.el.releasePointerCapture(e.pointerId);
+		if (!html.classList.contains("grip-sizing")) return;
+		html.classList.remove("grip-sizing", "grip-sizing-x", "grip-sizing-y");
+		if (size) done?.(size);
+	}
 
 	return div.c(cls, () => span.c("grip-pill"))
 		.attr("title", "Drag to resize")
 
 		.on("pointerdown", function(e){
 			e.preventDefault();
+			// A fresh drag starts with no size: the last drag's size used to linger
+			// here, so a plain tap on the strip re-fired `done()` with it (the
+			// sheet snapped to full height on a tap, sheet-as-page 2026-09-30).
+			size = undefined;
 			this.el.setPointerCapture(e.pointerId);
 			// The rail's OTHER edge is pinned, so one read holds for the whole drag —
 			// and reading it, rather than `innerWidth`/`innerHeight`, is what lets a
@@ -56,6 +67,11 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
 			edge = on_x
 				? (from === "start" ? rect.left : rect.right)
 				: (from === "start" ? rect.top : rect.bottom);
+			// y only: where in the strip the finger landed, so the box's edge stays
+			// under the finger instead of jumping up to 1.25rem on the first move
+			// (the ✦ sheet, sheet-as-page 2026-09-30). The x rails size to the
+			// pointer itself, as they always have.
+			grab = on_x ? 0 : rect.height - (from === "start" ? e.clientY - edge : edge - e.clientY);
 			// The axis-specific class is ONLY for the cursor (grip.css) — the whole
 			// page should show a resize cursor even where the pointer strays off
 			// the thin strip mid-drag, and which one depends on which axis this
@@ -78,17 +94,18 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
 			else this.style("--grip-x", (e.clientX - rect.left) + "px");
 			if (!html.classList.contains("grip-sizing")) return;
 			const pointer = on_x ? e.clientX : e.clientY;
-			const px = from === "start" ? pointer - edge : edge - pointer;
+			const px = (from === "start" ? pointer - edge : edge - pointer) + grab;
 			size = write(px) ?? px;
 		})
 
 		// Written once, at the end: `write()` moves the rail every frame, and only the
 		// size you let go of is worth remembering. `done` is optional.
-		.on("pointerup", function(e){
-			this.el.releasePointerCapture(e.pointerId);
-			html.classList.remove("grip-sizing", "grip-sizing-x", "grip-sizing-y");
-			if (size) done?.(size);
-		})
+		.on("pointerup", function(e){ end.call(this, e); })
+
+		// A touch the browser takes back (a system gesture, a scroll it decided on)
+		// ends with `pointercancel`, never `pointerup` — without this the whole page
+		// stayed in resize mode (`grip-sizing`: no text selection, the resize cursor).
+		.on("pointercancel", function(e){ end.call(this, e); })
 
 		// The size back to whatever `write(undefined)` (or the caller's own default)
 		// means — never touched by drag, so nothing here decides what "reset" means.
