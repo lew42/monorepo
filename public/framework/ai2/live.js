@@ -71,12 +71,14 @@ export function live_model({ prompts, day }){
 	const changed = () => readers.forEach(fn => fn());
 
 	async function poll_agents(){
+		if (document.hidden) return;
 		try { const list = await (await servex_fetch(servex_base() + "/api/agents")).json(); agents = Array.isArray(list) ? list : []; }
 		catch { agents = []; }
 		changed();
 	}
 	/* The worktree pool. A Servex without the route answers 404: show nothing. */
 	async function poll_pool(){
+		if (document.hidden) return;
 		try {
 			const res = await fetch(servex_base() + "/api/worktrees");
 			const body = res.ok ? await res.json() : null;
@@ -86,6 +88,7 @@ export function live_model({ prompts, day }){
 	}
 	/* The raw snapshot: the meters need each limit's `group` and `resets_at`. */
 	async function poll_usage(){
+		if (document.hidden) return;
 		try { usage = await (await servex_fetch("/framework/ai/usage.json", { cache: "no-store" })).json(); }
 		catch { usage = null; }
 		changed();
@@ -110,6 +113,9 @@ export function live_model({ prompts, day }){
 	setInterval(poll_agents, 30000);
 	setInterval(poll_usage, 60000);
 	setInterval(poll_pool, 30000);
+	// Each poll above skips itself while hidden; catch up the moment the tab is
+	// looked at again instead of waiting for the next scheduled tick.
+	document.addEventListener("visibilitychange", () => { if (!document.hidden){ poll_agents(); poll_usage(); poll_pool(); } });
 	log.on(changed);
 	log.ready.then(changed);
 	prompts.on(changed);

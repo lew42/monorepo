@@ -12,14 +12,16 @@ Every module here, and what you would use it for.
 - [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
 - [Pagination](./Pagination/) — a row of page buttons that remembers the current page and drives real content.
 - [Popover](./Popover/) — one popup anchored to a trigger, in the browser's top layer so no z-index fights it.
+- [Rename](./Rename/) — tap a title, ask to rename it, pick from a dropdown of 5 suggestions.
 - [Tags](./Tags/) — a chip row where you add and remove tags.
 - [Tree](./Tree/) — nested rows you can open, drag and drill into, from an array or a `Page`'s children.
+- [Understand](./Understand/) — a ✓ or ? after every sentence, a clarifying question right in the flow.
 - [Wizard](./Wizard/) — the generic multi-step engine that lessons, courses and signup extend.
 - [doc](./doc/) — the tier's written rules: [system.md](./doc/system/) and [decisions.md](./doc/decisions/) (a docs folder, no readme).
 
 A **ux** is a *workflow* — signup, login, a wizard, a course, a game lobby — assembled from
 `ui/` templates and responsive from a phone to 3440. It is a class so that the next case is
-a subclass, not a fork. Eleven live today, each its own real page under `/framework/ux/` — the
+a subclass, not a fork. Fourteen live today, each its own real page under `/framework/ux/` — the
 index is a wall of cards, never a tab strip (2026-09-22).
 
 |  | [`ui/`](/framework/ui/) | `ux/` |
@@ -28,7 +30,7 @@ index is a wall of cards, never a tab strip (2026-09-22).
 | has | no listener, no state, no lifecycle | all three |
 | you get | markup, with a copy button | an instance, and every method is a seam |
 | a variant is | a child page — a different **thing**, not a different value | a named subclass — `class CardHero extends Card` |
-| today | 20 components | 11 — [Auth](/framework/ux/Auth/) · [Wizard](/framework/ux/Wizard/) · [Tree](/framework/ux/Tree/) · [Course](/framework/ux/Course/) · [Filter](/framework/ux/Filter/) · [Menu](/framework/ux/Menu/) · [Pagination](/framework/ux/Pagination/) · [Tags](/framework/ux/Tags/) · [Dictate](/framework/ux/Dictate/) · [Popover](/framework/ux/Popover/) · [Content](/framework/ux/Content/) |
+| today | 20 components | 14 — [Auth](/framework/ux/Auth/) · [Wizard](/framework/ux/Wizard/) · [Tree](/framework/ux/Tree/) · [Course](/framework/ux/Course/) · [Filter](/framework/ux/Filter/) · [Menu](/framework/ux/Menu/) · [Pagination](/framework/ux/Pagination/) · [Tags](/framework/ux/Tags/) · [Dictate](/framework/ux/Dictate/) · [Popover](/framework/ux/Popover/) · [Content](/framework/ux/Content/) |
 
 ## Use
 

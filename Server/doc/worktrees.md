@@ -2,7 +2,7 @@
 
 A worktree is a second checkout of this repo, in its own folder on its own branch, so an agent can
 work without touching the main tree. Make one with `node Server/worktree-up.mjs <slug>` (or the
-Servex `take_worktree` tool), and remove it with `node Server/worktree-down.mjs <slug>`.
+Servex `take_worktree` tool), and remove it with `node Server/worktree-down.mjs <slug>`. To clear out every finished one at once (branch merged, no live or queued agent there, only server logs changed): `node Server/worktree-prune.mjs --dry`, then without `--dry`.
 
 ## node_modules: never a junction
 

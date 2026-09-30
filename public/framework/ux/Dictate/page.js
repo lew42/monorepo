@@ -76,6 +76,14 @@ export default new Doc({
 
 	content(){
 
+		// THE WORKING MIC FIRST (sheet-regression, 2026-09-30, the owner: "what we had
+		// before was better"). Press 🎤 and see raw, corrections and live, above the
+		// fold; the four-part diagram and the rest come after it.
+		md("**Press 🎤 and talk** (or ▶ Sample, no mic needed). Five tabs show one session five ways:");
+		md("- **Raw** — Whisper's exact words, never edited.\n- **Chunks** — every guess as Whisper hears more, one row each.\n- **Corrections** — what Revise (at the picked level) changed, as a diff.\n- **Live** — the same diff, fading into the clean text.\n- **Side by side** — Raw and Revised in two plain columns.");
+		pg.widget();
+
+		h2("How it works");
 		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
 
 		pipeline_tiles();
@@ -105,13 +113,9 @@ export default new Doc({
 			page: this,
 		}));
 
-		md("**Try it right here** — press 🎤 (or ▶ Sample, no mic needed) and watch the whole pipeline below. Five tabs show one session five ways:");
-		md("- **Raw** — Whisper's exact words, never edited.\n- **Chunks** — every guess as Whisper hears more, one row each.\n- **Corrections** — what Revise (at the picked level) changed, as a diff.\n- **Live** — the same diff, fading into the clean text.\n- **Side by side** — Raw and Revised in two plain columns.");
-		pg.widget();
+		md("**Press 🎤 and talk.** With `whisper-server` running on this machine nothing else shows; without it, the small text beside the button says `the browser's recognizer`. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
 
-		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `Whisper on the PC` when `whisper-server` is running on this machine, `the browser's recognizer` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
-
-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground above is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
+		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground at the top is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
 
 		demo.exhibit({
 			page: this,

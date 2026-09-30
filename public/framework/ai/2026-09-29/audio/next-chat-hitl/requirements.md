@@ -30,3 +30,11 @@ Branch `audio/chat-revision-pairs-wip` (one commit on top of worktree/qf-6): the
 - MicPicker, LevelMeter and PushToTalk still lack the icon/row/panel view.
 - `ext/Chat/panel/page.js` shows literal `**Variable height, no JS measuring:**`: `p()` doesn't read `**`; use `md()`.
 - The old V1 sheet (`DrawerRailSheetV1`) makes two cards per sentence with `revise: "edit"`; the pairs replace that.
+
+## Added by the VS Code tab (the owner, 2026-09-29 about 8:40 PM; words in ../owner-words.md, "Continued (about 8:40 PM)")
+
+- **The fast/smart split:** the FAST assistant's job ENDS at the clean transcription, delivered in real time (~1 s). The SMART assistant takes over from there, with no hurry.
+- **Per-sentence understanding (smart):** a small green ✓ after a sentence whose purpose is clear; a yellow ? after an ambiguous one. Unobtrusive.
+- **Clarification cards (smart):** "Did you mean A or B?" dropped into the chat as a content card (ux/Content Question or Decision, placed through the chat line's `place`). A DEMO of the ✓ / ? marks and one clarification card, working end to end.
+- **Refine:** nest each structured item's source statements UNDER it (collapsible), and make the structure a real H1/H2 hierarchy using the owner's own names.
+- **Budget: $15 HARD.** The audio task spent about $75 against $15. Stop and report at $15.

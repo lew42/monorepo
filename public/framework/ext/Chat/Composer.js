@@ -29,6 +29,8 @@ export function composer({
 	deliver, re = () => null, on_text, mic: with_mic = true, autostart, max = MAX_PROMPT,
 	placeholder = "say something", hint = "", sent = "sent", failed = "nothing was sent",
 	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/2026-09-29/audio/
+	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
+	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
 } = {}){
 	let $box, $input, $note, $raw_btn, mic;
 
@@ -43,6 +45,7 @@ export function composer({
 				deliver,
 				on_text: text => on_text?.(text),
 				revise,
+				on_revised,
 				field: $input,
 				on_error: e => note(String(e?.message ?? e)),
 				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
@@ -98,6 +101,12 @@ export function composer({
 		const msg = $input.el.value.trim();
 		// The box is everything on screen, the moving guess included; an empty box says so, never a silent nothing.
 		if (!msg) return note("nothing to send — the box is empty");
+		// "rename this" on a selected card is a COMMAND, not a message (requirements.md
+		// deliverable 3: "itself must not also be sent as a chat message"). `try_command`
+		// only swallows it when it actually did something (something was selected) — with
+		// nothing selected, "rename this" has no target, so it falls through and sends
+		// as a plain line, same as any other typo'd command would.
+		if (try_command?.(msg)){ mic?.consume_sent(); $input.el.value = ""; return note("renaming…"); }
 		if (msg.length > max) return note("That is " + msg.length + " characters — over the " + max + " limit, so nothing was sent. Trim it and press Send again.");
 		mic?.consume_sent();
 		$input.el.value = "";

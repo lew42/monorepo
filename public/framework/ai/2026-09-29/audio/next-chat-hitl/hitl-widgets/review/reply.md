@@ -1,0 +1,1 @@
+5. [accept] The rule is the documented fallback for when the real assistant is unreachable, and its header says so; sharpening word-level hedge detection is a real improvement but a separate, smarter-rule task, not a basic-function-pass fix.

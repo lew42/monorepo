@@ -252,15 +252,20 @@ export class DrawerRailSheetV1 extends View {
 	// fixed; inset-block-end: 0` sheet up past the top of a short screen,
 	// with no visible way back to a smaller size (review finding, landing
 	// day). 160 keeps at least the head row + a sliver of the mic visible.
+	// The floor is 40% of the screen, not a fixed 160 px (sheet-regression,
+	// 2026-09-30): at 160 the head and the links filled the whole sheet and the
+	// conversation and the mic were clipped out of sight.
 	clamp_height(px){
-		return Math.min(Math.max(px, 160), window.innerHeight * 0.92);
+		return Math.min(Math.max(px, window.innerHeight * 0.4), window.innerHeight * 0.92);
 	}
 
 	// Its own key — never the drawer's own width key (`lew42-drawer-w`, drawer.js),
 	// or the two rails could stomp each other's number on the same device. Both
 	// directions wrapped in try/catch (the owner's own words): a phone in private
 	// browsing throws on `setItem`, not only on a blocked `getItem`.
-	sheet_height_key(){ return "lew42-drawer-rail-sheet-h"; }
+	// "-2" (sheet-regression, 2026-09-30): the old key could hold a height that
+	// left only the header visible, so every old value is dropped once.
+	sheet_height_key(){ return "lew42-drawer-rail-sheet-h-2"; }
 
 	read_height(){
 		try {
@@ -287,10 +292,13 @@ export class DrawerRailSheetV1 extends View {
 	size(){
 		const saved = this.read_height();
 		if (saved){ this.style("--sheet-h", this.clamp_height(saved) + "px"); return; }
-		const half = window.innerHeight * 0.5;
-		this.style("--sheet-h", "none");   // lift the cap to read the TRUE content height
-		const content = this.el.scrollHeight;
-		this.style("--sheet-h", Math.min(half, content || half) + "px");
+		// ⚠ NOT MEASURED (sheet-regression, 2026-09-30). This used to read
+		// `scrollHeight` and freeze it as a px height, but the panel sheet builds its
+		// chat panel a tick later (a promise), so the measure saw only the header and
+		// the links (about 150 px) and the conversation and the mic were clipped out.
+		// With no px height the CSS default applies: the sheet grows with its
+		// content, up to half the screen (rail.css, `max-block-size`).
+		this.el.style.removeProperty("--sheet-h");
 	}
 
 	// The card the page under this sheet belongs to, or null — the exact duck
@@ -544,7 +552,25 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		this.head();
 		this.handle();
 		this.$slot = div.c("drawer-rail-sheet-panel");
-		this.links();
+		// The links row is hidden until "More" in the head is tapped
+		// (sheet-regression, 2026-09-30): the conversation and the mic come first.
+		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
+	}
+
+	head(){
+		const $head = super.head();
+		const $x = $head.el.querySelector(".drawer-x");
+		$head.append(() => {
+			const $more = button.c("drawer-rail-sheet-more", "More").attr("type", "button")
+				.attr("aria-expanded", "false")
+				.attr("title", "Sessions, dictation, settings, the full AI")
+				.click(() => {
+					const open = this.$links.el.classList.toggle("drawer-rail-sheet-links-folded") === false;
+					$more.attr("aria-expanded", String(open));
+				});
+			$head.el.insertBefore($more.el, $x);
+		});
+		return $head;
 	}
 
 	open(){
@@ -615,6 +641,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 						source: () => card.chat_entries(),
 						answer: choice => say(choice, card.id),
 						re: () => card.id,
+						marks: true,
 						placeholder: "talk into this card",
 						sent: "sent — the reply lands in the thread above",
 						failed: "Servex is not answering, so nothing was sent",
@@ -647,6 +674,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 				placeholder: "say something",
 				sent: "sent",
 				failed: "not sent",
+				marks: true,
 				answer: choice => this.on_resume_choice(choice),
 				deliver: entry => this.voice_deliver(entry),
 			});

@@ -55,6 +55,11 @@ export default function agents_panel(card_id){
 
 	function refresh(){
 		if (!$box.el.isConnected && refresh.seen) return clearInterval(refresh.timer);
+		// A hidden tab still keeps this timer alive (2026-09-30 soak: one of these
+		// per open card, firing every 10 s forever, was most of a 12-hour-idle tab's
+		// CPU). Skip the fetch and redraw while nobody can see it; the next visible
+		// tick catches up within 10 s.
+		if (document.hidden) return;
 		return servex_fetch(url(path))
 			.then(r => (r.ok && (r.headers.get("content-type") ?? "").includes("json") ? r.json() : null))
 			.catch(() => null)

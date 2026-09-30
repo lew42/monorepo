@@ -1,0 +1,115 @@
+[2026-09-30T17:49:34.589Z] start pid=41956
+[2026-09-30T17:49:34.608Z] resumed 365 already-crawled pages; queue has 2099 more to try
+[2026-09-30T17:50:09.996Z] progress: 375 crawled (23 errors, 0 404), 2089 queued
+[2026-09-30T17:51:31.516Z] progress: 401 crawled (49 errors, 0 404), 2063 queued
+[2026-09-30T17:51:44.835Z] recycled browser context at 405 pages
+[2026-09-30T17:52:53.827Z] progress: 427 crawled (75 errors, 0 404), 2037 queued
+[2026-09-30T17:53:52.557Z] recycled browser context at 445 pages
+[2026-09-30T17:54:20.116Z] progress: 453 crawled (101 errors, 0 404), 2011 queued
+[2026-09-30T17:55:40.961Z] progress: 479 crawled (127 errors, 0 404), 1985 queued
+[2026-09-30T17:56:00.181Z] recycled browser context at 485 pages
+[2026-09-30T17:57:06.363Z] progress: 505 crawled (153 errors, 0 404), 1959 queued
+[2026-09-30T17:58:30.541Z] recycled browser context at 525 pages
+{
+  "pages": 1500,
+  "errors": 240,
+  "not_found": 89,
+  "seconds": 1529,
+  "top10": [
+    {
+      "url": "/",
+      "links_in": 1468
+    },
+    {
+      "url": "/framework/",
+      "links_in": 1441
+    },
+    {
+      "url": "/web/",
+      "links_in": 1386
+    },
+    {
+      "url": "/imagine/",
+      "links_in": 1384
+    },
+    {
+      "url": "/castin/",
+      "links_in": 1383
+    },
+    {
+      "url": "/blog/",
+      "links_in": 1378
+    },
+    {
+      "url": "/fly/",
+      "links_in": 1378
+    },
+    {
+      "url": "/blog/ai/playwright/",
+      "links_in": 1378
+    },
+    {
+      "url": "/alex/",
+      "links_in": 1378
+    },
+    {
+      "url": "/michael/",
+      "links_in": 1378
+    }
+  ]
+}
+d (171 errors, 9 404), 1897 queued
+[2026-09-30T18:03:35.735Z] progress: 681 crawled (171 errors, 9 404), 1871 queued
+[2026-09-30T18:03:41.019Z] recycled browser context at 687 pages
+[2026-09-30T18:03:58.752Z] progress: 707 crawled (171 errors, 9 404), 1845 queued
+[2026-09-30T18:04:16.413Z] recycled browser context at 727 pages
+[2026-09-30T18:04:21.580Z] progress: 733 crawled (171 errors, 9 404), 1819 queued
+[2026-09-30T18:04:43.423Z] progress: 759 crawled (171 errors, 9 404), 1793 queued
+[2026-09-30T18:05:03.467Z] recycled browser context at 767 pages
+[2026-09-30T18:05:18.913Z] progress: 785 crawled (171 errors, 9 404), 1767 queued
+[2026-09-30T18:05:45.592Z] recycled browser context at 807 pages
+[2026-09-30T18:05:49.005Z] progress: 811 crawled (174 errors, 16 404), 1741 queued
+[2026-09-30T18:06:12.309Z] progress: 837 crawled (178 errors, 16 404), 1715 queued
+[2026-09-30T18:06:20.495Z] recycled browser context at 847 pages
+[2026-09-30T18:06:34.448Z] progress: 863 crawled (180 errors, 16 404), 1689 queued
+[2026-09-30T18:07:15.963Z] recycled browser context at 887 pages
+[2026-09-30T18:07:17.812Z] progress: 889 crawled (187 errors, 16 404), 1663 queued
+[2026-09-30T18:09:15.972Z] progress: 915 crawled (203 errors, 16 404), 1637 queued
+[2026-09-30T18:11:00.581Z] recycled browser context at 927 pages
+[2026-09-30T18:11:14.837Z] progress: 941 crawled (212 errors, 16 404), 1607 queued
+[2026-09-30T18:11:41.543Z] progress: 967 crawled (212 errors, 16 404), 1581 queued
+[2026-09-30T18:11:41.564Z] recycled browser context at 967 pages
+[2026-09-30T18:12:09.901Z] progress: 993 crawled (212 errors, 16 404), 1555 queued
+[2026-09-30T18:12:24.637Z] recycled browser context at 1007 pages
+[2026-09-30T18:12:57.045Z] progress: 1019 crawled (214 errors, 16 404), 1529 queued
+[2026-09-30T18:13:23.231Z] progress: 1045 crawled (214 errors, 16 404), 1503 queued
+[2026-09-30T18:13:25.344Z] recycled browser context at 1047 pages
+[2026-09-30T18:13:52.327Z] progress: 1071 crawled (214 errors, 17 404), 1477 queued
+[2026-09-30T18:14:10.576Z] recycled browser context at 1087 pages
+[2026-09-30T18:14:21.640Z] progress: 1097 crawled (214 errors, 17 404), 1451 queued
+[2026-09-30T18:14:50.494Z] progress: 1123 crawled (214 errors, 18 404), 1425 queued
+[2026-09-30T18:14:55.956Z] recycled browser context at 1127 pages
+[2026-09-30T18:15:20.246Z] progress: 1149 crawled (214 errors, 18 404), 1399 queued
+[2026-09-30T18:15:39.091Z] recycled browser context at 1167 pages
+[2026-09-30T18:15:48.867Z] progress: 1175 crawled (214 errors, 18 404), 1373 queued
+[2026-09-30T18:16:17.014Z] progress: 1201 crawled (216 errors, 19 404), 1347 queued
+[2026-09-30T18:16:21.541Z] recycled browser context at 1207 pages
+[2026-09-30T18:16:43.467Z] progress: 1227 crawled (216 errors, 27 404), 1321 queued
+[2026-09-30T18:17:21.762Z] recycled browser context at 1247 pages
+[2026-09-30T18:17:28.069Z] progress: 1253 crawled (216 errors, 27 404), 1295 queued
+[2026-09-30T18:19:13.505Z] progress: 1279 crawled (224 errors, 27 404), 1269 queued
+[2026-09-30T18:19:23.634Z] recycled browser context at 1287 pages
+[2026-09-30T18:19:45.468Z] progress: 1305 crawled (224 errors, 27 404), 1243 queued
+[2026-09-30T18:20:12.838Z] recycled browser context at 1327 pages
+[2026-09-30T18:20:17.284Z] progress: 1331 crawled (224 errors, 27 404), 1217 queued
+[2026-09-30T18:20:45.865Z] progress: 1357 crawled (228 errors, 27 404), 1191 queued
+[2026-09-30T18:20:56.846Z] recycled browser context at 1367 pages
+[2026-09-30T18:21:22.085Z] progress: 1383 crawled (231 errors, 27 404), 1165 queued
+[2026-09-30T18:21:53.904Z] recycled browser context at 1407 pages
+[2026-09-30T18:21:59.301Z] progress: 1409 crawled (233 errors, 27 404), 1139 queued
+[2026-09-30T18:22:41.800Z] progress: 1435 crawled (235 errors, 36 404), 1112 queued
+[2026-09-30T18:23:09.992Z] recycled browser context at 1447 pages
+[2026-09-30T18:23:35.094Z] progress: 1461 crawled (240 errors, 51 404), 1086 queued
+[2026-09-30T18:24:01.171Z] progress: 1487 crawled (240 errors, 76 404), 1060 queued
+[2026-09-30T18:24:01.195Z] recycled browser context at 1487 pages
+[2026-09-30T18:24:17.188Z] done: 1500 pages, 240 errors, 89 404 in 1529s

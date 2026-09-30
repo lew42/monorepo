@@ -107,7 +107,7 @@ export default new Page({
 			});
 		});
 
-		md("**Eleven classes live here — one real page each, not a tab.** Hover a card to flag it.");
+		md("**Fourteen classes live here — one real page each, not a tab.** Hover a card to flag it.");
 
 		wall(this);
 

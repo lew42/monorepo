@@ -137,8 +137,11 @@ export default class Capture {
 		};
 	}
 
+	/** Safe to call twice: the page-hidden release (Dictate.js, `release_on_hide`)
+	 *  can run while a normal stop is still finishing, and a second `close()` on a
+	 *  closed AudioContext rejects. */
 	stop(){
-		this.ctx?.close();
+		if (this.ctx && this.ctx.state !== "closed") this.ctx.close().catch(() => {});
 		this.stream?.getTracks().forEach(t => t.stop());
 	}
 

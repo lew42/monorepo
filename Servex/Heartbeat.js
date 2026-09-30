@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { place, stamp } from "./home.js";
+import Budget from "./Budget.js";
 
 /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
  * that died is revived; only when that fails does the owner of the machine hear.
@@ -9,7 +10,8 @@ import { place, stamp } from "./home.js";
  *
  * Watched: every OPEN task (no landed_at + outcome, no closed_by) that opted in —
  * line 1 dated at/after SERVEX_HEARTBEAT_SINCE, or line 1 `heartbeat: true` — so
- * the boot sweep never wakes weeks-old tasks. Only its line-1 agent is watched. */
+ * the boot sweep never wakes weeks-old tasks. Only its owner is watched: the latest assign's
+ * agent (a fresh session that took over writes one), or that id's resumed successor. */
 export const CHECK = "Status check: where are you at? No change of plan needed; just a line on what you're doing.";
 const FROM = "servex-heartbeat";
 
@@ -94,6 +96,9 @@ export default class Heartbeat {
         }
     }
 
+    /* The task budgets (Budget.js): swept every tick; the spawn gate asks budgets().refuse(spec). */
+    budgets(){ return this.budget ??= new Budget({ heartbeat: this }); }
+
     /* ── the sweep ─────────────────────────────────────────────────── */
 
     async tick(){
@@ -128,6 +133,7 @@ export default class Heartbeat {
             }
             await this.gate_sweep(now);
             await this.drain(now);
+            if (!process.env.SERVEX_NO_BUDGET) await this.budgets().sweep().catch(e => this.servex.say?.(`budget: ${e.message || e}`));
         } finally { this.busy = false; }
     }
 
@@ -150,10 +156,15 @@ export default class Heartbeat {
             if (o.log?.heartbeat === "escalated") escalated = true;
         }
         if (!this.opted_in(first)) return null;
-        const owner = first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === first.session_id)?.id;
+        /* The LATEST assign's agent owns it (a fresh session that took the task over writes its own
+         * assign line), then that id's resumed successor, if any (Agents.successor, 2026-09-30). */
+        const named = state.agent ?? first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === (state.session_id ?? first.session_id))?.id;
+        const owner = named && (this.agents.successor?.(named) ?? named);
         if (!owner) return null;
+        // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
+        const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
         const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
-        return { owner, session_id: first.session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
+        return { owner, session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 
@@ -169,8 +180,9 @@ export default class Heartbeat {
     }
 
     children(id){
-        return [...[...this.agents.live.values()].filter(a => a.parent === id && a.state !== "stopped"),
-            ...(this.servex.queue ?? []).filter(e => e.spec.parent === id)];
+        const up = p => p && (this.agents.successor?.(p) ?? p);   // a child spawned before a resume names the old id
+        return [...[...this.agents.live.values()].filter(a => up(a.parent) === id && a.state !== "stopped"),
+            ...(this.servex.queue ?? []).filter(e => up(e.spec.parent) === id)];
     }
 
     /* ── triage: find why, fix it, escalate only when the fix fails ─── */

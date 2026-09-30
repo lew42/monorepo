@@ -79,6 +79,13 @@ and off also post a `{type: "floor"}` line. The contract for readers:
 
 ## Watch out
 
+- **The mic is given back the moment the page is hidden.** Switching apps on a phone used to leave
+  dictation holding the microphone, so the next app's own dictation failed. Now every live `Dictate`
+  stops and releases its tracks and audio context on `visibilitychange` (hidden) or `pagehide`, and
+  restarts by itself, saying "resumed", when the page is shown again. A `Dictate` taken off the page
+  while live stops itself too (`Dictate.js`, `LIVE`; mic-hijack, 2026-09-30). Dictating while another
+  app is in front would need a PWA with a background process, or a native app.
+
 - **The caption is never cleared before the real text is ready to replace it.** An earlier
   build cleared the grey guess the INSTANT a segment closed, then repainted the caption
   again once Whisper's answer came back — two real frames, with the caption visibly

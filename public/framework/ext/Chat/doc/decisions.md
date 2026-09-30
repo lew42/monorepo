@@ -1,5 +1,44 @@
 # Decisions
 
+## Select, Rename, ✓/? marks (2026-09-29, `ai/2026-09-29/audio/next-chat-hitl/chat-wire/`)
+
+**What it is:** `readme.md`'s "Select, Rename, ✓/? marks" section is the summary; this
+is the how and the trade-offs.
+
+- **Select and rename live in `Chat.js`, not `ChatPanel.js`,** because the DOM they
+  need (which bubble, its title node) only exists there — `ChatPanel` hands `chat()`
+  two small seams (`on_select`, `rename: {options, on_renamed}`) instead of reaching
+  into `chat()`'s own private elements from outside.
+- **Rename never rebuilds `ux/Rename`'s dropdown markup** — `chat()` draws its own
+  `<select>` (same "pick a name… / keep current / 5 names" shape) because a chat
+  bubble is a plain DOM node from `Chat.js`, not a `View` tree `ux/Rename`'s own
+  `Rename` class could mount into without a second render pipeline. What IS reused,
+  for real, is the only part that matters: `rename_options()` — the network call and
+  the fixtures fallback.
+- **The renamed piece is the bubble's FIRST piece** (`bubbles.get($b).pieces[0]`) —
+  "the heading, or the first line" (requirements.md). A bubble merges several
+  messages from the same sender close together (`MERGE_GAP_MS`); renaming always
+  targets the line the bubble opened with, never a later merged paragraph.
+- **The rename fix line always carries `from: {kind: "owner"}`** — same as
+  `ux/Rename`'s own log, which carries no `from` at all. The owner is who renames a
+  card, even a card the assistant said.
+- **Marks are stored ON THE PIECE** (`piece.mark`), not drawn once and forgotten —
+  `piece_node()` renders it every `fill()` (a merge, a fix), so a redraw never loses
+  the badge or asks `marks()` again.
+- **Left open:** choosing a clarification card's option does not flip its sentence's
+  ? back to a ✓ the way `ux/Understand`'s own demo does (`on_chosen`) — that demo
+  wires a card straight to its sentence's badge; here the card is a `place` line,
+  loaded asynchronously and generically (any `ux/Content` module), with no return
+  path back to the piece that asked for it. Worth building once a real caller
+  actually needs the loop closed, not guessed at now.
+- **Left open:** the "Rename" fix line goes through `this.deliver` when the host gave
+  one (a real card, a real session), same as any composer message — but no live
+  caller yet reads a `fix: true` line and skips re-asking the assistant for it (only
+  `Chat.js`'s own `chat_line()` does, for what's already on screen). A caller with
+  its own persisted log needs to treat a `fix` line as "replace, don't re-answer",
+  the same way `readme.md`'s "revision line" section already flags for a real
+  session file — this is the same shape, applied to a title instead of a sentence.
+
 ## ChatPanel (2026-09-29, `ai/2026-09-29/audio/c-chat/`)
 
 **What it is:** `ChatPanel.js`, a `View` subclass wrapping `chat()` (the log) and

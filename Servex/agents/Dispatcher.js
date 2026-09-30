@@ -64,7 +64,7 @@ export default class Dispatcher {
 		this.servex.log.on("append", (name, entry) => {
 			if (name !== this.log || entry.type !== "task") return;
 			this.mirror(entry);
-			if (entry.by !== this.id && entry.state === "queued") this.saw(entry);
+			if (entry.by !== this.id && entry.state === "queued" && !String(entry.via ?? "").startsWith("worktree:")) this.saw(entry);   // a worktree page's test post dispatches nothing
 		});
 	}
 

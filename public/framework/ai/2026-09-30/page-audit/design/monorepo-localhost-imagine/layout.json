@@ -1,0 +1,212 @@
+{
+ "url": "http://monorepo.localhost/imagine/",
+ "widths": {
+  "400": {
+   "empty": 0.459,
+   "widest_text": 348,
+   "widest_text_sample": "One configurable page, six building bloc",
+   "overflow_x": false,
+   "items": 37,
+   "narrow_share": 0,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 11,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 11
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.15,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 38,
+     "h": 912,
+     "share": 0.912,
+     "ink": 0.522,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.619,
+   "widest_text": 469,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 37,
+   "narrow_share": 0.108,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 19,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 19
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.125,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 40,
+     "h": 960,
+     "share": 0.96,
+     "ink": 0.392,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.675,
+   "widest_text": 503,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 37,
+   "narrow_share": 0.541,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 31,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 31
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 43,
+     "h": 957,
+     "share": 0.957,
+     "ink": 0.335,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.797,
+   "widest_text": 566,
+   "widest_text_sample": "— the team's board and your run in the w",
+   "overflow_x": false,
+   "items": 37,
+   "narrow_share": 1,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 0,
+     "layers": []
+    },
+    "p": {
+     "total": 49,
+     "layers": [
+      {
+       "cls": "page-column-prose",
+       "px": 49
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-columns-bar",
+     "y": 0,
+     "h": 48,
+     "share": 0.048,
+     "ink": 0.1,
+     "big_empty": false
+    },
+    {
+     "cls": "page-columns-row",
+     "y": 48,
+     "h": 952,
+     "share": 0.952,
+     "ink": 0.208,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

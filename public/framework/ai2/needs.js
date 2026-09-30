@@ -69,11 +69,23 @@ function refresh(){
  *  already) and again on every refresh. Polls gently (like `CardList`, `inbox.js`) while at
  *  least one reader is watching; `needs_soon()` asks for a refresh right now, right after this
  *  page's own write (choosing, answering) so the row leaves the list without waiting a poll. */
+// The 20 s tick skips itself while the tab is hidden (2026-09-30 soak: this was
+// one of several pollers running full speed forever behind a hidden tab) and
+// catches up the moment it is looked at again.
+const tick = () => { if (!document.hidden) refresh(); };
+
 export function watch_needs(fn){
 	readers.add(fn);
 	fn(state);
-	if (!timer){ refresh(); timer = setInterval(refresh, 20000); }
-	return () => { readers.delete(fn); if (!readers.size){ clearInterval(timer); timer = null; } };
+	if (!timer){
+		refresh();
+		timer = setInterval(tick, 20000);
+		document.addEventListener("visibilitychange", tick);
+	}
+	return () => {
+		readers.delete(fn);
+		if (!readers.size){ clearInterval(timer); timer = null; document.removeEventListener("visibilitychange", tick); }
+	};
 }
 
 export const needs_soon = () => refresh();

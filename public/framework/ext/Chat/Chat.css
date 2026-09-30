@@ -284,4 +284,43 @@
 	.chatbox-text > :first-child { margin-block-start: 0; }
 	.chatbox-text :is(ul, ol) { padding-inline-start: 1.3em; }
 	.chatbox-text pre { overflow-x: auto; }
+
+	/* A REVISION PAIR (Chat.js's `revision_pair_node()`): the raw words, muted,
+	   right above the tidied-up version — one click swaps to showing ONLY the
+	   raw line, full weight ("back to raw"); a second click returns to the
+	   pair. `.chatbox-revision-raw`'s own `.chatbox-text` margin (above) still
+	   applies since this wrapper carries that class too. */
+	.chatbox-revision-pair { cursor: pointer; }
+	.chatbox-revision-raw { opacity: 0.6; font-size: 0.92em; }
+	.chatbox-revision-pair.showraw .chatbox-revision-raw { opacity: 1; font-size: 1em; }
+	.chatbox-revision-pair.showraw .chatbox-revision-revised { display: none; }
+	.chatbox-revision-revised { margin-block-start: 0.15em; }
+
+	/* SELECTED (Chat.js's `select_bubble()`) — one bubble at a time, a visible
+	   ring, a tap or Esc away from clearing it (requirements.md deliverable 2). */
+	.chatbox-selectable { cursor: pointer; }
+	.chatbox-selected { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	/* RENAME (deliverable 3) — the button and dropdown a selected bubble grows,
+	   the same shape `ux/Rename`'s own dropdown uses. */
+	.chatbox-rename-btn {
+		display: block;
+		margin-block-start: 0.3em;
+		font: inherit;
+		font-size: 0.8em;
+		padding: 0.15em 0.5em;
+	}
+	.chatbox-rename-select {
+		display: block;
+		margin-block-start: 0.3em;
+		font: inherit;
+		max-width: 100%;
+	}
+	.chatbox-rename-fixtures { display: block; margin-block-start: 0.2em; font-size: 0.8em; }
+
+	/* ✓/? MARKS (deliverable 4) — `ux/Understand`'s own colours: green clear,
+	   yellow unclear. */
+	.chatbox-mark { font-size: 0.95em; }
+	.chatbox-mark-ok { color: var(--ok); }
+	.chatbox-mark-unclear { color: var(--warn); }
 }

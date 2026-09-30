@@ -197,4 +197,28 @@
 		font-weight: 600;
 	}
 	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
+
+	/* LINKS BEHIND "MORE" (sheet-regression, 2026-09-30): the links row is folded
+	   until "More" in the head is tapped, so the conversation and the mic are
+	   what the sheet shows first. */
+	/* `!important` because the row also wears the `.flex` utility, and `@layer util`
+	   beats `@layer theme` for a normal declaration (an important one in a lower
+	   layer wins back). */
+	.drawer-rail-sheet-links-folded { display: none !important; }
+	.drawer-rail-sheet-more {
+		font: inherit; font-size: 0.8em; margin-inline-start: auto;
+		padding: 0.3em 0.7em; min-block-size: 2.2rem;
+		color: var(--ink); background: var(--fill-a08);
+		border: 1px solid var(--line); border-radius: calc(var(--radius) / 2);
+	}
+	/* The ✕ is a real touch target (2.75rem square) and sits above the top-edge
+	   grip, so a tap on it can never land on the resize strip instead. */
+	.drawer-rail-sheet .drawer-x {
+		position: relative; z-index: 2;
+		min-inline-size: 2.75rem; min-block-size: 2.75rem;
+		font: inherit; font-size: 1.1em;
+		color: var(--ink); background: transparent;
+		border: 0; border-radius: calc(var(--radius) / 2);
+		touch-action: manipulation;
+	}
 }

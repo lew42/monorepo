@@ -48,6 +48,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 ## Quick fixes: take, write, smoke-test, merge, return
 
 1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
+- **Commit early in a pool worktree.** A taken pool worktree is not yet restart-safe: on 2026-09-30 the pool reclaimed qf-9 across a Servex restart, deleting the directory, branch and server while a minion was writing in it. Commit after every finished piece, so a reclaim loses minutes, not the task.
 2. Write into `path` and commit there.
 3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
 4. Call `return_worktree(id)` when done or unused.
@@ -117,6 +118,10 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 [version-control.md](/framework/ai/2026-09-22/tiers-design/doc/version-control.md).
 
 ## Split the task, fence the minions
+
+A minion is for work that fills a turn. An edit of a few lines (a rule added to a skill, a link, a caption, a fix a reviewer named by line) you make yourself, now: a minion spawned for it waits in the memory queue for longer than the edit takes and holds the slot a real minion needs (2026-09-30, a two-line edit queued at position 9). The same holds when memory is short: a minion that has waited at the spawn gate for about 5 minutes on a piece you could build in one turn, you dequeue (stop_agent works on a queued id) and build yourself, with one log line saying so.
+
+A minion's brief dir counts as a live child from the moment its `requirements.md` exists, so write the brief before `spawn_agent` (a queued spawn has no task.jsonl yet, and the ledger hook would otherwise nag you to land).
 
 One page, one minion, in sequence — never two minions in one file, and never two on the same
 screen the owner is looking at. Each minion gets its own `requirements.md` with the owner's words
