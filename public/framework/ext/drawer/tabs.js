@@ -28,7 +28,12 @@ import { http_ask_ready, ask_probe } from "/framework/ext/Ask/Ask.js";
  * binding, so every importer (`tabs/ai.js`, this file's own tab list) sees the
  * flip without re-importing anything, the same shape `ai2/inbox.js`'s
  * `servex_up()` already uses for the same kind of "ask once, remember" check. */
-const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname)
+	// A private LAN address (the owner's phone at http://10.0.0.x:port) is the dev server too:
+	// no static production host lives at 10/8, 192.168/16 or 172.16/12. Without this the
+	// phone waited on the /ask/turn probe, which answers 400 off localhost, so DEV stayed
+	// false and the AI tab said "No page assistant yet" (2026-09-29).
+	|| /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
 export let DEV = LOCAL_HOST;
 
 /* THE DRAWER'S TABS — AI, Sessions, Dictation, Settings and Admin, plus Element while
