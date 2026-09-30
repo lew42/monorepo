@@ -20,9 +20,20 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
 [overview](./overview/) — the wall of one picture card per page building block
+[audit](./audit/) — every page layout in use, most-used first, with where each lives in code; the main pages and their layouts; a design pass at four widths
 [old](./old/) — the first Page docs, kept as reference
 
 This readme is the text version; the rendered page is designed from it ([how](./make/readme-page/)).
+
+## Making a page: reuse a layout first
+
+Load the `page` skill (what, where, layout, content) and let `create_page` make the files.
+Pick the layout from **[the audit](./audit/)**: the layouts the site already uses, most-used
+first, each with its one opt-in call. Doc pages (top tabs) and column pages are the two that
+cover most modules. A child starts from its parent's layout. Pages drift two ways: building
+their own tab strip, sidebar or shell, or a one-page CSS tweak on top of a shared layout (a
+local `order` rule is what pushed the AI 2 tabs flush right). Propose a new layout before you
+build one, and check the page with `node Server/layout-check.mjs --bands <url>`.
 
 ## Five ways to make a page
 
