@@ -45,7 +45,7 @@ let pruned = 0;
 for (const w of trees.slice(1)) {
 	const name = path.basename(w.path), p = slash(w.path);
 	if (ONLY && name !== ONLY) continue;
-	const status = () => git(w.path, "status", "--porcelain").stdout.split(/\r?\n/).filter(Boolean).map(l => ({ x: l.slice(0, 2), f: l.slice(3).replace(/^"|"$/g, "") }));
+	const status = () => git(w.path, "status", "--porcelain", "--untracked-files=all").stdout.split(/\r?\n/).filter(Boolean).map(l => ({ x: l.slice(0, 2), f: l.slice(3).replace(/^"|"$/g, "") }));
 	let why = null;
 	if (!fs.existsSync(w.path)) why = "missing on disk (its entry is cleared by the git worktree prune at the end)";
 	else if (!w.branch) why = "no branch (detached)";
