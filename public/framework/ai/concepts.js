@@ -59,8 +59,10 @@ export const CONCEPTS = [
 	{ group: "tracked", slug: "inboxes", name: "Page inboxes", icon: "inbox",
 		gist: "Each page has an inbox, for coordination only. A note reaches whoever coordinates that module.",
 		items: [
-			"`drop(path, text)` appends a note to the page's `page.jsonl`.",
-			"The mastermind holding `claim_topic` on that path gets it; otherwise it waits in the page's AI tab.",
+			"For necessary coordination only, never chat.",
+			"`drop(path, text)` appends a note to the page's own `page.jsonl` (the owner: \"append to that module's page.jsonl and it just goes into its inbox\").",
+			"The mastermind holding `claim_topic` on that path gets it; otherwise it waits in the page's AI tab until someone clears it (`clear`; `inbox` lists it).",
+			"A card's log is its page.jsonl, so every card has an inbox too.",
 		],
 		code: [["Servex/agents/inbox.js", fs("Servex/agents/inbox.js")], ["Servex/agents/claims.js", fs("Servex/agents/claims.js")]],
 		servex: [["Inbox (Servex doc)", fs("Servex/doc/inbox.md")]] },

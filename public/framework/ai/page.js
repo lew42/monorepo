@@ -35,7 +35,10 @@ export default new Page({
 			// added late reads as its bare url name ("skills") until it is opened.
 			for (const t of TABS) if (!this.children.has(t)) this.add(t, tab_page(this, t));
 			this.loading ??= Promise.resolve();
-			this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
+			const $tabs = this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
+			// Five short tabs wrap at a phone width rather than scroll: ext/tabs hides the
+			// scrollbar, so a scrolled strip loses Overview off the left edge.
+			$tabs.el.querySelector(".tab-bar")?.style.setProperty("flex-wrap", "wrap");
 			return;
 		}
 

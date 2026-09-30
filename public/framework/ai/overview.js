@@ -52,6 +52,7 @@ export function tab_page(root, name){
 			title: "Skills", icon: "school",
 			content(){
 				md("**A skill is how to do one kind of job well.** An agent loads it by name when the moment comes. Each page below is built from its `.claude/skills/<name>/SKILL.md`.");
+				md("What a skill knows lives on the site: design at [/framework/design/](/framework/design/), code at [/framework/code/](/framework/code/). A skill points there. Servex facts a skill used to carry live here, such as the [page inbox](" + base + "inboxes/).");
 				const box = div.c("wide");   // the card grids arrive inside it, so it takes the wide track
 				later(box, base + "skills.json", JSON.parse, list => KINDS.forEach(([k, title, gist]) => {
 					if (!list.some(s => s.kind === k)) return;
@@ -154,7 +155,7 @@ export function tab_page(root, name){
 						"- **The review gate:** a page change with no review report is refused by merge.",
 						"- **The readme chain:** read the readmes root to leaf before working, and again on switching directory ([Readmes](" + base + "readmes/)).",
 						"- **Budgets and dormancy:** Servex stops an agent over budget and parks a quiet one.",
-						"- **The four widths:** a page is checked at 400, 1400, 1920 and 3440.",
+						"- **The four widths:** a page is checked at 400, 1200, 1920 and 3440.",
 					].join("\n"));
 				});
 			}));
