@@ -72,6 +72,8 @@ page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside 
              namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
 page-section- core/Section (the band, its overlay and slots — same namespace, same
              reason: `section-` is /imagine/sections' and `.section` is a live rule)
+core-shell-  core/Shell (`shell-` was reserved for /imagine/shells already; the class is `CoreShell`,
+             `Shell` is only an export alias onto it — doc/decisions.md, 2026-09-30)
 sidebar-     core/Sidebar
 omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
 brand-       core/Sidebar

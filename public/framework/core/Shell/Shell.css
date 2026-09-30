@@ -1,0 +1,95 @@
+/* core/Shell/Shell.css — five optional regions around one CSS grid.
+
+   THE WHOLE "OPTIONAL" TRICK: `Shell.js` only ever creates a `.core-shell-<area>`
+   box when it was given something to put in it. Every area name still lives in
+   `grid-template-areas` below, always, so the grid never has to be rewritten —
+   an area nobody put a box in is an `auto` track with nothing inside it, and an
+   `auto` track with no content sizes to zero. That is why there is no rule
+   anywhere in this file that hides an empty region: there is no empty region,
+   only a missing box. */
+@layer theme {
+
+	.core-shell-grid {
+		display: grid;
+		grid-template-areas: "head head head" "left main right" "foot foot foot";
+		grid-template-columns: auto 1fr auto;
+		grid-template-rows: auto 1fr auto;
+		height: 100%;
+		min-height: 0;
+	}
+
+	.core-shell-head { grid-area: head; min-height: 2rem; display: flex; align-items: center; gap: 0.5em; padding-inline: 0.75em; border-block-end: 1px solid var(--line); }
+	.core-shell-foot { grid-area: foot; min-height: 2rem; display: flex; align-items: center; gap: 0.5em; padding-inline: 0.75em; border-block-start: 1px solid var(--line); }
+
+	/* LEFT / RIGHT — the two resizable rails. `position: relative` is what lets
+	   `ext/grip`'s own absolutely-positioned strip sit inside this box rather
+	   than straddling its edge (grip's own doc/decisions.md says why: a strip
+	   hanging outside survives a shut rail as an invisible resize column). The
+	   width is one custom property, set by a drag or a restored one
+	   (`Shell.size()`) and inherited down from the shell's own root element —
+	   never written on this box directly, so it stays right if the WINDOW
+	   changes size mid-drag rather than the width last asked for (the same
+	   clamp-lives-in-CSS rule `core/Sidebar` and `/layouts/shell/` both use). */
+	.core-shell-left, .core-shell-right {
+		position: relative;
+		min-width: 0;
+		overflow: auto;
+	}
+	.core-shell-left { grid-area: left; width: clamp(12rem, var(--core-shell-left-w, 18rem), 50%); border-inline-end: 1px solid var(--line); }
+	.core-shell-right { grid-area: right; width: clamp(12rem, var(--core-shell-right-w, 18rem), 50%); border-inline-start: 1px solid var(--line); }
+
+	.core-shell-main { grid-area: main; min-width: 0; min-height: 0; overflow: auto; }
+
+	/* A shell nested inside `main` (the whole point of "shells nest") needs a
+	   real height to fill — its own `height: 100%` above only works if its
+	   PARENT has one, and `.core-shell-main` never sets an explicit height of
+	   its own (it is a grid cell, sized by the row it's in), so this reaches
+	   one level further to give it one. */
+	.core-shell-main > .core-shell-grid { height: 100%; }
+
+	/* `dark: true` (the whole shell) or `dark: ["left","right"]` (named boxes
+	   only) — `apply_dark()` in Shell.js stamps this one class, and everything
+	   else is `color-scheme: dark` doing the whole job: every `light-dark()`
+	   token in framework.css resolves against the element that carries it, so
+	   one line retunes ink, surface, line and wash together. Nothing here names
+	   a colour — same rule `dev/DevBar/devbar.css`'s own `.dev-bar` already
+	   follows. */
+	.core-shell-dark {
+		color-scheme: dark;
+		color: var(--ink);
+		background: var(--surface);
+	}
+
+	/* `frame: true` — this shell IS the window, not content inside a page. */
+	.core-shell-frame {
+		position: fixed;
+		inset: 0;
+		z-index: 30;
+	}
+
+	/* The hole. `frame` mode never draws real content in `main` (Shell.js's own
+	   `main()` skips it on purpose) — this is what makes the real page show
+	   through it instead of a blank box sitting on top of it, and click-through
+	   is what lets the page underneath still be the one you interact with. */
+	.core-shell-frame .core-shell-main {
+		background: transparent;
+		pointer-events: none;
+	}
+
+	/* BELOW 34em there is no room for a row of three — left and right STACK
+	   above and below main instead of sitting beside it (chosen over a toggled
+	   sheet: the simpler of the two, and a demo-sized shell has nowhere to put
+	   a sheet's own scrim and close button — readme.md says so). Nothing to
+	   drag once stacked, so the handle hides — `ext/grip`'s own rule already
+	   hides it below 34em, which is this exact width, so nothing extra is
+	   needed here for that part. */
+	@media (width < 34em) {
+		.core-shell-grid {
+			grid-template-areas: "head" "left" "main" "right" "foot";
+			grid-template-columns: 1fr;
+			grid-template-rows: auto auto 1fr auto auto;
+		}
+
+		.core-shell-left, .core-shell-right { width: auto; max-height: 40vh; }
+	}
+}

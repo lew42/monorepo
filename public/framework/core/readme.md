@@ -10,6 +10,7 @@
 - [Router](./Router/) — turns a url change into the DOM state; for anyone building pages or links
 - [Search](./Search/) — the site's search corpus, ranking and search box
 - [Section](./Section/) — a page you put inside a page
+- [Shell](./Shell/) — five optional regions around a CSS grid (header, left, right, footer, main); a Shell's main can hold another Shell
 - [Sidebar](./Sidebar/) — brand over a tree of links, resizable, for site nav
 - [View](./View/) — chainable wrapper over one DOM element; every HTML tag is a function
 - [new](./new/) — one kept sketch; never import from it
