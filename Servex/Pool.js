@@ -391,10 +391,17 @@ export default class Pool extends Events {
     async dirt(slot){
         const out = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
         const files = out ? out.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
-        return Promise.all(files.map(async file => {
-            const h = await this.git(slot.path, ["hash-object", "--", file]);
-            return { file, hash: h.ok ? h.out : "gone" };
-        }));
+        /* ⚠ ONE git per 200 files, never one per file (2026-09-29): a slot with thousands of
+           untracked files spawned thousands of `git hash-object` at once, and Servex's main
+           thread sat at 100% inside spawn() — every agent message timed out. */
+        const present = files.filter(file => fs.existsSync(path.join(slot.path, file)));
+        const hashes = {};
+        for (let i = 0; i < present.length; i += 200){
+            const chunk = present.slice(i, i + 200);
+            const h = await this.git(slot.path, ["hash-object", "--", ...chunk]);
+            if (h.ok) h.out.split("\n").forEach((hash, j) => { hashes[chunk[j]] = hash.trim(); });
+        }
+        return files.map(file => ({ file, hash: hashes[file] ?? "gone" }));
     }
 
     async own_dirt(slot){
