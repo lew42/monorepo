@@ -11,7 +11,16 @@ export class Router {
 
 	listen(){
 		document.addEventListener("click", e => this.click(e));
-		window.addEventListener("popstate", () => this.load(location.pathname));
+		window.addEventListener("popstate", () => this.popped());
+	}
+
+	// Back/Forward. An entry that stays on the page already showing (only its
+	// `?query` or `#hash` differs — the phone's ✦ sheet steps, ext/drawer/rail.js)
+	// is not a navigation: reloading it scrolled the page to the top and re-fired
+	// `navigated()` on every step (sheet-as-page, 2026-09-30).
+	popped(){
+		if (this.active && location.pathname === this.path) return;
+		this.load(location.pathname);
 	}
 
 	click(e){
@@ -69,6 +78,7 @@ export class Router {
 			await Promise.allSettled(page.chain().map(p => p.loading));
 
 			this.activate(page);
+			this.path = url;   // the path showing now — `popped()` compares against it
 		}
 
 		return !!page;
