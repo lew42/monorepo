@@ -1,0 +1,68 @@
+# pool-taken proof (2026-09-30)
+
+What it proves: a taken worktree with uncommitted work stays, through both the reclaim path
+(Pool.reclaim, what Servex's 5-minute sweep runs) and the prune path (Server/worktree-prune.mjs).
+How: node proof.mjs (beside this file). A real worktree (pp-proof) off michael/dev, the branch's real
+Pool.js and worktree-prune.mjs, a fake agent registry, a scratch pool file. Nothing restarted.
+
+Before the fix (the Servex log, not re-run):
+  12:53:47 pool: qf-9 reclaimed from stopped minion-ai2-calm; salvaged to salvage/qf-9-2026-09-30: 48 file(s), 4 unmerged commit(s)
+  13:23:22 pool: qf-9 reclaimed from stopped task-mastermind-icon-system; salvaged to salvage/qf-9-2026-09-30-2: 4 file(s)
+           (its minion minion-icon-build, cwd qf-9, had started at 13:17:49 and was working)
+
+After the fix:
+
+# pool-taken proof 2026-09-30T18:30:05.220Z
+git status --short: ?? work-in-progress.txt
+
+## 1. holder working, uncommitted file
+   reclaim -> {"reclaimed":[],"kept":[]}
+   still on disk: true | still in the pool: true
+   prune -> skip   pp-proof: 1 changed file(s), e.g. work-in-progress.txt | 0 pruned; 44 worktree(s) remain
+   still on disk: true
+
+## 2. holder stopped, but its child minion is working in the slot (the qf-9 case)
+   servex says: pool: pp-proof is held by stopped minion-proof but kept — minion-child (working) works in it
+   reclaim -> {"reclaimed":[],"kept":[{"id":"pp-proof","holder":"minion-proof","why":"minion-child (working) works in it"}]}
+   still on disk: true | still in the pool: true
+
+## 3. holder stopped, its child working elsewhere (writes by absolute path)
+   servex says: pool: pp-proof is held by stopped minion-proof but kept — minion-child, under minion-proof, is working
+   reclaim -> {"reclaimed":[],"kept":[{"id":"pp-proof","holder":"minion-proof","why":"minion-child, under minion-proof, is working"}]}
+   still on disk: true | still in the pool: true
+
+## 4. holder stopped, nobody live, uncommitted file, nothing committed
+   servex says: pool: pp-proof is held by stopped minion-proof but kept — has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage pp-proof
+   reclaim -> {"reclaimed":[],"kept":[{"id":"pp-proof","holder":"minion-proof","why":"has uncommitted changes — commit and merge them, or move them, first. Nothing was discarded"}]}
+   still on disk: true | still in the pool: true
+   prune -> skip   pp-proof: 1 changed file(s), e.g. work-in-progress.txt | 0 pruned; 44 worktree(s) remain
+   still on disk: true
+
+(committed the file: git status --short is now empty; one commit not in michael/dev)
+
+## 5. holder gone, clean, but an unmerged commit
+   servex says: pool: pp-proof is held by stopped minion-proof but kept — holds commits not yet in michael/dev — merge them first. Nothing was discarded. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage pp-proof
+   reclaim -> {"reclaimed":[],"kept":[{"id":"pp-proof","holder":"minion-proof","why":"holds commits not yet in michael/dev — merge them first. Nothing was discarded"}]}
+   still on disk: true | still in the pool: true
+   prune -> skip   pp-proof: branch not merged into michael/dev | 0 pruned; 44 worktree(s) remain
+   still on disk: true
+
+branches: + worktree/pp-proof
+
+(moved the proof branch back to michael/dev: clean, nothing unmerged)
+
+## 6. holder stopped, nobody live, clean and merged: the one case that is reclaimed
+   servex says: pool: pp-proof returned and ready
+   servex says: pool: pp-proof reclaimed from minion-proof, which has stopped
+   reclaim -> {"reclaimed":["pp-proof"],"kept":[]}
+   still on disk: true | still in the pool: false
+   servex says: pool: pp-proof removed
+   servex says: pool: qf-7 ready at http://127.0.0.1:60578/ in 26.1 s
+   after removal, on disk: false
+
+Reading it: steps 1-5 keep the worktree on disk and in the pool, each with its printed reason.
+Step 2 is the qf-9 case. Step 4 is the brief's "stop its agent and commit nothing: it still stays".
+Step 6 is the only reclaim: holder stopped, nobody live, clean, nothing unmerged.
+Trap met: step 6's top_up() made a REAL qf-7 slot through worktree-up.mjs (the scratch pool
+could not see the real one). Torn down by hand with the new `worktree-prune.mjs --only qf-7`;
+proof.mjs now stubs top_up.

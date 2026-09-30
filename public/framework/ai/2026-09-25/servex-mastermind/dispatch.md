@@ -31,3 +31,5 @@ Context recycling is deliverable 6 of #2 (thresholds on card fresh-sessions-inst
 | 14 | role `task-mastermind`, name `collab-facts`, model `claude-sonnet-5`, effort `medium`, `bypassPermissions`; after review-turns lands | ai/2026-09-28/collab-facts/requirements.md | 2026/09/28/agent-work-on-every-page-sanity-checks-c |
 | 15 | role `task-mastermind`, name `tooling-gaps`, model `claude-opus-5-5`, effort `medium`, `bypassPermissions` | ai/2026-09-28/tooling-gaps/requirements.md | live |
 | 16 | role `task-mastermind`, name `task-placement`, model `claude-sonnet-5`, effort `medium`, `bypassPermissions`; after task-loop lands | ai/2026-09-28/task-placement/requirements.md | 2026/09/28/inbox-rows-are-the-real-pages-page-class |
+
+**Row 49 dormant-idle LAUNCHED 2026-09-30 18:15 (mastermind-servex-8)**, $15, TOP PRIORITY (the owner): idle agents' processes exit after ~3 min and resume by session id on wake; the working cap (5) enforced in code, children counting against the parent. Brief ai/2026-09-30/dormant-idle/requirements.md. **ORDER NOW (18:15):** 49 → 46 log-view (after ai2-calm) → 31 → 33 → 15 → 16 → 27.

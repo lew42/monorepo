@@ -1,0 +1,16 @@
+# salvage proof 2026-09-30T18:39:55.979Z
+before, git status --short:
+  M Servex/doc/pool.md
+   M public/framework/ai/board.jsonl
+  ?? public/framework/ai/pp-salv/task.jsonl
+
+salvage says: salvaged to salvage/pp-salv-2026-09-30: 2 file(s); 1 live log(s) left out, their diff kept at C:/Code/lew42/monorepo/.worktree-logs/pp-salv-2026-09-30-logs-1790793596585.patch
+
+files in the salvage commit:
+  Servex/doc/pool.md
+  public/framework/ai/pp-salv/task.jsonl
+
+board.jsonl in the commit: no (pass)
+patch kept aside holds the board line: yes (pass)
+
+(test worktree, its salvage branch and patch removed)
