@@ -306,7 +306,7 @@ export default class Global {
 			const working = this.agents.working().length, cap = this.agents.working_cap;
 			if (working >= cap) return `working ${working}/${cap}: waits for a working agent to end its turn`;
 		}
-		const live = [...this.agents.live.values()].filter(a => a.state !== "stopped").length;
+		const live = [...this.agents.live.values()].filter(a => a.state !== "stopped" && a.state !== "dormant").length;   // a dormant agent holds no process
 		const parent = spec.parent && this.agents.live.get(spec.parent);
 		if (live >= this.cap && !(parent && parent.state !== "stopped")) return `${live} agents are running, the ceiling is ${this.cap}`;
 		return null;

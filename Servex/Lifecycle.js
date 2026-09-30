@@ -204,7 +204,7 @@ export default class Lifecycle {
 				owner_task: dir ? task_for_worktree(dir, main)?.key ?? null : null, born: p.born });
 		}
 		const agents = this.all_agents = await this.agents();
-		for (const a of agents) if (a.state === "idle")
+		for (const a of agents) if (a.state === "idle" || a.state === "dormant")   // a dormant agent of a landed task is closed too (dormant-idle, 09-30)
 			rows.push({ kind: "agent", id: a.id, role: a.role, parent: a.parent ?? null, turns: a.turns, path: a.cwd, owner_agent: a.parent ?? null });
 		return rows;
 	}
@@ -327,7 +327,7 @@ export function task_of_agent(id){
 
 /** The task keys the idle agents' parents answer for, so why() can map an agent to its task. */
 function fsTasks(lc){
-	const want = new Set((lc.all_agents ?? []).filter(a => a.state === "idle").map(a => a.parent).filter(Boolean));
+	const want = new Set((lc.all_agents ?? []).filter(a => a.state === "idle" || a.state === "dormant").map(a => a.parent).filter(Boolean));
 	return want.size ? recent_tasks().filter(t => want.has(task_state(t.dir)?.agent)).map(t => task_key(t.dir)) : [];
 }
 

@@ -194,7 +194,8 @@ export default class Heartbeat {
 
     children(id){
         const up = p => p && (this.agents.successor?.(p) ?? p);   // a child spawned before a resume names the old id
-        return [...[...this.agents.live.values()].filter(a => up(a.parent) === id && a.state !== "stopped"),
+        /* a DORMANT child has finished and reported: it is not something the parent waits on */
+        return [...[...this.agents.live.values()].filter(a => up(a.parent) === id && a.state !== "stopped" && a.state !== "dormant"),
             ...(this.servex.queue ?? []).filter(e => up(e.spec.parent) === id)];
     }
 

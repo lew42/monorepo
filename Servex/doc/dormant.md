@@ -49,7 +49,11 @@ every role sleeps after 3 minutes.
 - An `idle` or `dormant` agent holds no slot. It counts again only while a message has it working.
 - **Not counted:** the front desk (`assistant-*`, `manager-*`, `master-assistant`, `session-*`,
   the Dispatcher) and an agent blocked inside `wait_for_agent`.
-- **Never held by it:** a resume (a wake must deliver its message) and a front-desk spawn.
+- **Never held by it:** a resume (a wake must deliver its message) and a front-desk spawn. So
+  the cap holds NEW work at 5; messages that wake agents (a child's report, a card reply, a
+  status check) can briefly push the count past it, and the next spawn waits until it drops.
+- A dormant agent does not count toward the older ceiling of 30 live agents either, and the
+  lifecycle reaper closes a dormant agent whose task has landed, as it does an idle one.
 - The check is `Global.admit()`, one of the spawn gate's checks, so a held spawn is queued
   exactly like one held for memory. A turn ending drains the queue at once.
 - Shown as `working N/5` in `heartbeat_status` and in `system_health`'s first line.
