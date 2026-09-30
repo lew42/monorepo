@@ -249,6 +249,8 @@ export class Agents {
 			const ours = legacy ? this.recent_log(row.id, window_min)
 				: !!prev?.boot && row.boot === prev.boot && Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000;
 			let agent = null;
+			const no = ours && this.blocked(row);
+			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; if (row.state !== "gone") out.gone.push(row.id); continue; }
 			if (ours && (legacy || row.revivable) && row.session_id)
 				try { agent = this.reopen(row); } catch {}
 			if (!agent){
@@ -306,7 +308,42 @@ export class Agents {
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
 		if (this.external?.has?.(id)) return this.external.deliver(id, text, note);
+		const no = this.blocked(this.reg().read()[id] ?? (agent ? { id, cwd: agent.cwd, stopped_by: agent.stopped_by, stopped_at: agent.stopped_at, task_dir: agent.task_dir } : null), { force: note?.revive });
+		if (no){
+			this.store().append("servex", { type: "revive-refused", id, why: no.why, text: no.text, from: note?.from ?? null }).catch(() => {});
+			throw new Error(`Agent ${id} was not woken: ${no.text}.${no.why === "cwd-gone" ? "" : " Pass revive: true to wake it anyway."}`);
+		}
+		if (note?.revive) this.forget_stop?.(id);   // woken on purpose: the heartbeat's in-memory mark goes too
 		return this.wake(id).send(text, note);
+	}
+
+	/* THE REVIVE GUARD (node-reliability, 2026-09-29) — the one answer to "may this
+	 * stopped or gone agent be reopened?", asked by every path that reopens one:
+	 * a message (send), a child's done-notice (wake_parent, via send), the boot
+	 * revive and the heartbeat. Null means yes; otherwise {why, text}:
+	 *   cwd-gone — the session's directory was deleted (a worktree taken down);
+	 *              the SDK would fail with a misleading "native binary … libc". Never.
+	 *   stopped  — stop_agent was called on it by a human or a mastermind
+	 *              (`stopped_by` in its registry row).
+	 *   landed   — its task.jsonl has a landing line (or closed_by).
+	 * `force` (send_to_agent's `revive: true`) overrides the last two, never the first.
+	 * task-mastermind-mobile-nav, landed and stopped by hand three times, kept coming back. */
+	blocked(row, { force = false } = {}){
+		if (!row) return null;
+		const cwd = row.spec?.cwd ?? row.cwd;
+		if (cwd && !fs.existsSync(cwd)) return { why: "cwd-gone", text: `its working directory ${cwd} no longer exists` };
+		if (force) return null;
+		if (row.stopped_by) return { why: "stopped", text: `it was stopped on purpose by ${row.stopped_by}${row.stopped_at ? ` at ${row.stopped_at}` : ""}` };
+		const dir = this.task_dir_for(row);
+		if (dir && task_landed(dir)) return { why: "landed", text: `its task ${path.basename(dir)} has landed` };
+		return null;
+	}
+
+	/* The task dir an agent works for: its registry row (spawned with `task`),
+	 * the heartbeat's owner map, or a scan of recent task logs naming it (the
+	 * heartbeat supplies `find_task_dir`). */
+	task_dir_for(row){
+		return row.task_dir ?? this.task_dir_of?.(row.id) ?? this.find_task_dir?.(row) ?? null;
 	}
 
 	/* "mastermind-servex" is a ROLE: when a fresh session holds it as
@@ -344,7 +381,24 @@ export class Agents {
 			id: row.id, started_at: row.started_at, resume: row.session_id }));
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
-	stop(id){ return this.get(id).stop(); }
+	/* `by` (the stop_agent tool: who called it) marks a stop ON PURPOSE: it goes
+	 * into the registry row, and the revive guard honours it across restarts.
+	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
+	 * live agent (gone after a restart) can still be marked. */
+	stop(id, { by } = {}){
+		const agent = this.live.get(id);
+		if (!agent){
+			const rows = this.reg().read();
+			if (!rows[id]) return this.get(id);          // throws, naming who IS live
+			if (by){ rows[id] = { ...rows[id], stopped_by: by, stopped_at: stamp(), state: rows[id].state === "gone" ? "gone" : "stopped" }; this.reg().save(rows); }
+			return { card: () => ({ id, state: rows[id].state, stopped_by: rows[id].stopped_by ?? null }) };
+		}
+		if (!by) return agent.stop();
+		agent.stopped_by = by; agent.stopped_at = stamp();
+		const out = agent.stop();
+		this.register(agent);   // Agent.stop() returns early for one already stopped (reaped idle): the mark must still be written
+		return out;
+	}
 
 	list(){ return [...this.live.values()].map(agent => agent.card()); }
 
@@ -384,7 +438,8 @@ export class Agents {
 		child.woke = true;
 		this.inbox(child, kind, text);
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
-		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent);
+		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
+			?? (row => row?.stopped_by ? { by: row.stopped_by } : null)(this.reg().read()[child.parent]);
 		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child
 			this.store().append("servex", { type: "wake-skipped", child: child.id, parent: child.parent, stopped_by: by.by }).catch(() => {});
 			return;
@@ -450,6 +505,20 @@ function open_task(task, { session_id, agent, model, worktree, parent_dir }){
 		model, worktree: task.worktree ?? worktree, parent_task, after, requested_at: stamp(), now: "starting", steps: [], step: 1 }) });
 	fs.appendFileSync(path.join(dir, "task.jsonl"), line + "\n");
 	return dir;
+}
+
+/* A task has landed: any assign merged says landed_at + a non-empty outcome,
+ * or closed_by — or a bare top-level landed_at line (minion-audit-tools, 09-29). */
+export function task_landed(dir){
+	let text; try { text = fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"); } catch { return false; }
+	const state = {};
+	for (const raw of text.split("\n")){
+		let o; try { o = raw.trim() && JSON.parse(raw); } catch {}
+		if (!o) continue;
+		if (o.assign) Object.assign(state, o.assign);
+		if (o.landed_at) state.landed_at = o.landed_at, state.outcome ??= o.outcome ?? "landed";
+	}
+	return (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
 }
 
 /* The worktree a cwd sits in (C:/Code/lew42/worktrees/<slug>/...), or undefined. */

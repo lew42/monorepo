@@ -228,7 +228,7 @@ export default class Cards {
 
 		const answer = line.chose?.option ?? line.answer?.text;
 		const text = `The owner answered your question on card ${card} ("${found.ask}"): ${answer}`;
-		const note = { from: OWNER, reply_to: `card ${card}` };
+		const note = { from: OWNER, reply_to: `card ${card}`, revive: true };   // the owner answering IS the reason to wake it (never one whose cwd is gone)
 		const targets = found.from ? [found.from]
 			: (await this.attached(card)).filter(a => { const live = this.live(a); return live && !this.minion(live); });
 

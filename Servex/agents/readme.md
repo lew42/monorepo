@@ -51,6 +51,12 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
   agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
   the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
+- **Nothing revives what was ended on purpose.** Every path that reopens an agent (a message, a
+  child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
+  an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and
+  one whose directory is gone (said plainly, not as the SDK's "libc" error). `send_to_agent` with
+  `revive: true` overrides the first two, and the owner answering an agent's question on a card
+  passes it. A message to the `mastermind-servex` role asks the same guard. Proof: `revive-guard-proof.mjs`.
 - **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
   agent whose host died during its first turn can be resumed.
 
@@ -219,7 +225,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
 `readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
 [`doc/readme-chain.md`](../doc/readme-chain.md)) ·
-`demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+`demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
 `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
 
 How agents should work together (the design, with a picture):

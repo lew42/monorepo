@@ -134,10 +134,13 @@ return [
 			text: { type: "string", description: "What to say." },
 			from: { type: "string", description: "Who is asking — your own agent id or name. The agent sees this." },
 			reply_to: { type: "string", description: "Where the answer should go, in plain words: `log agent-host`, `message mastermind-servex`." },
-			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." }
+			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." },
+			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." }
 		},
 		["id", "text"],
 		({ id, text, ...note }, ctx = {}) => {
+			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29)
+			if (typeof text !== "string" || !text.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `text` (what to say); it was missing or empty." });
 			id = agents.holder?.(id) ?? id;
 			const ruling = policy.message(ctx.caller ?? null, id);
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
@@ -167,10 +170,11 @@ return [
 	tool("stop_agent",
 		"End a session for good. The agent stops, its `claude` process exits, and its log stays on"
 		+ " disk. It keeps its place in the list, marked `stopped`, so its session uuid is still"
-		+ " there to resume from a terminal.",
+		+ " there to resume from a terminal. Nothing revives it by itself after this (no heartbeat,"
+		+ " no restart, no child's report); a message wakes it only with `revive: true`.",
 		{ id: ID },
 		["id"],
-		({ id }) => card(agents.stop(id)))
+		({ id, from }, ctx = {}) => card(agents.stop(id, { by: ctx.caller ?? from ?? "owner" })))
 ]; }
 
 /* The same tools IN-PROCESS, for a host with no HTTP `/mcp` (fork-proof.mjs,

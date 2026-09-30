@@ -1,0 +1,20 @@
+PASS  task_landed: assign landing line
+PASS  task_landed: bare top-level landed_at
+PASS  task_landed: open task
+PASS  open task, stopped by Servex (not on purpose): a message wakes it
+PASS  landed task: a message does NOT wake it — Agent m-landed was not woken: its task task-landed has landed. Pass revive: true to wake it anyway.
+PASS  bare landing line: not woken — Agent m-bare was not woken: its task task-bare has landed. Pass revive: true to wake it anyway.
+PASS  cwd gone: not woken, and the error names the missing directory — Agent m-orphan was not woken: its working directory C:\Users\mike\AppData\Local\Temp\revive-guard-KnuxfK\deleted-worktree no longer exists.
+PASS  cwd gone: not even with revive: true — Agent m-orphan was not woken: its working directory C:\Users\mike\AppData\Local\Temp\revive-guard-KnuxfK\deleted-worktree no longer exists.
+PASS  landed task, revive: true: woken on purpose
+PASS  stop_agent on a row with no live agent records stopped_by — {"state":"gone","stopped_by":"mastermind-servex-7"}
+PASS  stopped on purpose (persisted in the registry): a message does NOT wake it — Agent m-gone-row was not woken: it was stopped on purpose by mastermind-servex-7 at 2026-09-29T20:16:55-05:00. Pass revive: true to wake it anyway.
+PASS  stop_agent on an already-stopped (reaped) agent records stopped_by
+PASS  …and a message then does not wake it — Agent m-reaped was not woken: it was stopped on purpose by owner at 2026-09-29T20:16:55-05:00. Pass revive: true to wake it anyway.
+PASS  a reused id with a new session does not inherit the old task_dir
+PASS  the same session keeps its task_dir across a reopen
+PASS  wake_parent skips a parent stopped on purpose (read from the registry)
+PASS  boot revive reopens only the open-task agent — {"reopened":["b-open"],"refused":[{"id":"b-landed","why":"landed"},{"id":"b-orphan","why":"cwd-gone"}]}
+PASS  boot revive marks the landed and orphaned rows gone
+
+18/18 passed
