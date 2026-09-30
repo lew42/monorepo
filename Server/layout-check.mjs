@@ -1,4 +1,4 @@
-/* `node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000]`
+/* `node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000] [--bands]`
  * Is the screen space used properly? One headless browser, one context per width. Per width it
  * writes a screenshot; per url one contact sheet (all widths side by side) and one small JSON:
  *   empty        fraction of the viewport with no text, image or control under it (40x25 samples)
@@ -7,18 +7,43 @@
  *   narrow_share share of repeated items (4+ look-alike siblings) narrower than 15% of the width
  *   errors       console + page errors
  * Read the contact sheet first; the numbers say where to look. Exit code 1 if any url has errors
- * or overflow. Output: <out>/<slug>/<width>.png, sheet.png, layout.json (default: ./layout-check-out). */
+ * or overflow (the extra --bands numbers below only ever inform, never fail the exit code).
+ * Output: <out>/<slug>/<width>.png, sheet.png, layout.json (default: ./layout-check-out).
+ *
+ * --bands reads the page the way a person scrolling down it does: a stack of horizontal bands,
+ * top to bottom. It changes the default widths to 400,1200,1920,3440 (a mobile size and a
+ * just-past-mobile size, since "is everything one row again yet" flips somewhere in between),
+ * saves a full-page screenshot capped at 3 viewport heights (band reading needs what's below the
+ * fold), and adds to each width's entry in layout.json:
+ *   tab_rows     how many distinct rows a tab bar's (`.tab-bar`, `[role=tablist]`) own tabs sit
+ *                on — 1 is right; more means a bar has wrapped into a stack of rows
+ *   left_stack   the padding/border/margin stacked at the LEFT edge of the first visible `h1`
+ *                and first visible `p` in the main content (never the site sidebar): each as
+ *                {total, layers: [{cls, px}]} — one layer per ancestor that adds space, so
+ *                "a card inside a card inside a tab strip" shows up as three small numbers
+ *                instead of one mystery gap
+ *   bands        the page's own top-level vertical stack (descend through single-child
+ *                wrappers from the active page's box down to where it actually branches),
+ *                each as {cls, y, h, share, ink, big_empty} — share is the band's height as a
+ *                fraction of one screen, ink is the fraction of the band actually covered by
+ *                text/image/control (same 40x25 sampler as `empty` above, restricted to the
+ *                band); big_empty is share > 0.25 and ink < 0.15, "big and empty"
+ *   wraps        up to 10 elements meant to sit on one line (`.tab`, `button`, nav/rail links,
+ *                `h1`–`h3`, chips, labels) whose height is more than 1.6× their own computed
+ *                line-height, i.e. wrapping when they should not: {tag, cls, text, lines} */
 import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf("--" + name); if (i < 0) return def; const v = argv[i + 1]; argv.splice(i, 2); return v; };
-const widths = opt("widths", "1280,1920,2560,3440").split(",").map(Number);
+const flag = name => { const i = argv.indexOf("--" + name); if (i < 0) return false; argv.splice(i, 1); return true; };
+const bandsMode = flag("bands");
+const widths = opt("widths", bandsMode ? "400,1200,1920,3440" : "1280,1920,2560,3440").split(",").map(Number);
 const out = path.resolve(opt("out", "layout-check-out"));
 const height = Number(opt("height", 1000));
 const urls = argv.filter(a => !a.startsWith("--"));
-if (!urls.length){ console.error("usage: node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440]"); process.exit(2); }
+if (!urls.length){ console.error("usage: node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--bands]"); process.exit(2); }
 
 const measure = () => {
 	const W = innerWidth, H = innerHeight, vis = el => el.checkVisibility?.() ?? true;
@@ -62,6 +87,126 @@ const measure = () => {
 	return { empty: +empty.toFixed(3), widest_text: Math.round(widest), widest_text_sample: widest_text, overflow_x: overflow, items, narrow_share: items ? +(narrow / items).toFixed(3) : 0 };
 };
 
+// The --bands reading: tab rows, left-edge padding stack, the top-level band stack down to
+// ~3 screen heights, and one-line elements that wrapped. Read the header comment above for
+// what each field means; this is only the how.
+const measureBands = () => {
+	const W = innerWidth, H = innerHeight, vis = el => el.checkVisibility?.() ?? true;
+	const cls1 = el => (typeof el.className === "string" && el.className.trim().split(/\s+/)[0]) || el.tagName.toLowerCase();
+
+	// 1. tab_rows — the worst (highest) row count across every tab bar on the page.
+	let tab_rows = 0;
+	document.querySelectorAll(".tab-bar, [role=tablist]").forEach(bar => {
+		if (!vis(bar)) return;
+		const tabs = [...bar.querySelectorAll(".tab, [role=tab]")].filter(vis);
+		if (!tabs.length) return;
+		tab_rows = Math.max(tab_rows, new Set(tabs.map(t => Math.round(t.getBoundingClientRect().top))).size);
+	});
+
+	// 2. left_stack — walk from the first visible h1/p up to <body>, listing every ancestor
+	// that adds left-hand space. `.sidebar-rail` is the site's own nav column (core/Sidebar) —
+	// never "the content", so it is excluded even when it is the leaf page's own sidebar.
+	const inSidebar = el => !!el.closest(".sidebar-rail");
+	const stackFor = start => {
+		if (!start) return { total: 0, layers: [] };
+		const layers = [];
+		let total = 0;
+		for (let n = start; n && n !== document.body; n = n.parentElement){
+			const cs = getComputedStyle(n);
+			const px = parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.marginLeft);
+			if (px > 0.5){ layers.push({ cls: cls1(n), px: Math.round(px) }); total += px; }
+		}
+		return { total: Math.round(total), layers };
+	};
+	const firstH1 = [...document.querySelectorAll("h1")].find(el => vis(el) && !inSidebar(el));
+	const firstP = [...document.querySelectorAll("p")].find(el => vis(el) && !inSidebar(el));
+	const left_stack = { h1: stackFor(firstH1), p: stackFor(firstP) };
+
+	// 3. bands — the active page's own top-level vertical stack. `.page.active-page` is the
+	// Router's own mark for "the leaf page you are actually on" (core/Router/Router.js); descend
+	// through single-child wrappers until the real stack branches, same idea as `left_stack`
+	// skipping past padding-only boxes.
+	// ⚠ Two traps a naive `[...el.children]` walk hits on this framework's own DOM:
+	// (1) `display: contents` (core/Page's own nested-page wrapper — see readme,
+	// "nested pages ARE peers via display: contents") makes an element generate NO box of
+	// its own, so `checkVisibility()` is correctly false for it even though its children
+	// really are on screen — expand it into those children instead of dropping it.
+	// (2) branch on the RAW child count, not the visible one: a lazily-filled tab panel can
+	// still be `display:none` at scan time (checkVisibility() false, a real sibling all the
+	// same) — filtering first would misread "one wrapper, one real child, one not-yet-shown
+	// child" as a single-child wrapper and descend straight past the actual stack.
+	const expandContents = el => getComputedStyle(el).display === "contents" ? [...el.children].flatMap(expandContents) : [el];
+	const realChildren = el => [...el.children].flatMap(expandContents);
+	let root = document.querySelector(".page.active-page") || document.body;
+	while (root){
+		const kids = realChildren(root);
+		if (kids.length !== 1) break;
+		root = kids[0];
+	}
+	const stackKids = root ? realChildren(root).filter(vis) : [];
+
+	// One ink grid covering 3 screen heights (same sampling idea as `empty` above, just taller),
+	// so each band's own `ink` is a slice of ONE pass over the DOM rather than one pass per band.
+	const maxH = H * 3, cols = 40, gridRows = Math.max(1, Math.round(maxH / H * 25));
+	const grid = new Uint8Array(cols * gridRows);
+	const mark = r => {
+		const x0 = Math.max(0, Math.floor(r.left / W * cols)), x1 = Math.min(cols - 1, Math.floor((r.right - 0.01) / W * cols));
+		const y0 = Math.max(0, Math.floor(r.top / maxH * gridRows)), y1 = Math.min(gridRows - 1, Math.floor((r.bottom - 0.01) / maxH * gridRows));
+		for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) grid[y * cols + x] = 1;
+	};
+	const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+	for (let n; (n = walker.nextNode());){
+		if (!n.textContent.trim() || !vis(n.parentElement)) continue;
+		if (n.parentElement.closest("script,style,.dev-bar")) continue;
+		const rg = document.createRange(); rg.selectNodeContents(n);
+		for (const r of rg.getClientRects()){
+			if (r.width < 1 || r.right < 0 || r.left > W || r.top > maxH || r.bottom < 0) continue;
+			mark(r);
+		}
+	}
+	document.querySelectorAll("img,canvas,svg,video,input,textarea,button,select").forEach(el => {
+		if (!vis(el)) return;
+		const r = el.getBoundingClientRect();
+		if (r.top < maxH && r.bottom > 0) mark(r);
+	});
+	const inkOf = (y, h) => {
+		const y0 = Math.max(0, Math.floor(y / maxH * gridRows)), y1 = Math.min(gridRows - 1, Math.floor((y + h - 0.01) / maxH * gridRows));
+		if (y1 < y0) return 0;
+		let filled = 0, total = 0;
+		for (let yy = y0; yy <= y1; yy++) for (let x = 0; x < cols; x++){ total++; if (grid[yy * cols + x]) filled++; }
+		return total ? +(filled / total).toFixed(3) : 0;
+	};
+	const bands = stackKids
+		.map(el => {
+			const r = el.getBoundingClientRect();
+			const y = Math.round(r.top), h = Math.round(r.height), share = +(h / H).toFixed(3), ink = inkOf(y, h);
+			return { cls: cls1(el), y, h, share, ink, big_empty: share > 0.25 && ink < 0.15 };
+		})
+		.filter(b => b.y < maxH);
+
+	// 4. wraps — a one-line element (a tab, a button, a nav/rail link, a heading, a chip or a
+	// label) whose own TEXT is taking up more than 1.6x its line-height worth of height means
+	// it wrapped. ⚠ Padding, not wrapping: a nav row (`.ui-tree-row`) is deliberately taller
+	// than its text for a comfortable click target, so the RAW border-box height read as
+	// "1.8 lines" for every row on the page, wrapped or not (a false positive caught by
+	// screenshot-checking this exact page — 09-30 proof). Subtracting padding and border first
+	// leaves only the space the text itself is using.
+	const wraps = [];
+	document.querySelectorAll(".tab, button, nav a, .ui-tree-row, [role=tab], h1, h2, h3, .chip, .label").forEach(el => {
+		if (wraps.length >= 10 || !vis(el)) return;
+		const r = el.getBoundingClientRect();
+		if (!r.height || r.top > maxH) return;
+		const cs = getComputedStyle(el);
+		const lh = parseFloat(cs.lineHeight);
+		if (!lh || !Number.isFinite(lh)) return;
+		const vert = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+		const lines = Math.max(0, r.height - vert) / lh;
+		if (lines > 1.6) wraps.push({ tag: el.tagName.toLowerCase(), cls: cls1(el), text: (el.textContent || "").trim().slice(0, 30), lines: +lines.toFixed(1) });
+	});
+
+	return { tab_rows, left_stack, bands, wraps };
+};
+
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
 const b = await launch();
 const t0 = Date.now();
@@ -80,6 +225,15 @@ for (const url of urls){
 		await page.waitForLoadState("networkidle", { timeout: 4000 }).catch(() => {});
 		await page.waitForTimeout(1200);
 		res.widths[w] = await page.evaluate(measure);
+		if (bandsMode) Object.assign(res.widths[w], await page.evaluate(measureBands));
+		if (bandsMode){
+			// Full page, capped at 3 screen heights — band reading needs what's below the
+			// fold, but an infinite-scroll or a very tall doc page would otherwise make one
+			// screenshot huge. Growing the viewport itself (rather than fullPage: true)
+			// keeps this a plain, uncropped screenshot at exactly that height.
+			const docH = await page.evaluate(() => document.documentElement.scrollHeight);
+			await page.setViewportSize({ width: w, height: Math.min(docH, height * 3) });
+		}
 		await page.screenshot({ path: path.join(dir, w + ".png") });
 		res.errors.push(...errs);
 		await page.close();
@@ -94,7 +248,16 @@ for (const url of urls){
 	fs.writeFileSync(path.join(dir, "layout.json"), JSON.stringify(res, null, 1));
 	const flags = (res.errors.length || Object.values(res.widths).some(m => m.overflow_x)) ? 1 : 0; bad += flags;
 	console.log(url, flags ? "PROBLEMS" : "ok", "→", path.join(dir, "sheet.png"));
-	widths.forEach(w => { const m = res.widths[w]; console.log(`  ${w}: empty ${m.empty} · widest ${m.widest_text}px · overflow ${m.overflow_x} · narrow ${m.narrow_share} of ${m.items}`); });
+	widths.forEach(w => {
+		const m = res.widths[w];
+		if (bandsMode){
+			const bigEmpty = m.bands.filter(band => band.big_empty).length;
+			const leftPick = m.left_stack.h1.total >= m.left_stack.p.total ? m.left_stack.h1 : m.left_stack.p;
+			console.log(`  ${w}  tabs:${m.tab_rows} row${m.tab_rows === 1 ? "" : "s"}  left:${leftPick.total}px (${leftPick.layers.length} layers)  bands:${m.bands.length} (${bigEmpty} big-empty)  wraps:${m.wraps.length}`);
+		} else {
+			console.log(`  ${w}: empty ${m.empty} · widest ${m.widest_text}px · overflow ${m.overflow_x} · narrow ${m.narrow_share} of ${m.items}`);
+		}
+	});
 	if (res.errors.length) console.log("  errors:", res.errors.slice(0, 3));
 }
 await b.close();
