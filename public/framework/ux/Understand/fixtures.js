@@ -15,7 +15,10 @@ export function fixture_marks(sentences){
 				i, mark: "unclear",
 				purpose: "A hedge word (\"maybe\", \"some\", \"I guess\"…) leaves more than one reading open.",
 				question: {
-					ask: `"${s}" — take that literally, or as a rough idea to refine together?`,
+					// No re-quote of the sentence — the card already sits right under it
+					// (review.md #1: repeating the whole sentence, bold, was four more
+					// lines under the same text on a phone).
+					ask: "Take that literally, or as a rough idea to refine together?",
 					options: ["Literally, as written", "A rough idea — help me refine it"],
 				},
 			};

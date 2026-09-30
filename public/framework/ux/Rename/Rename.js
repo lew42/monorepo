@@ -107,8 +107,13 @@ export default class Rename extends View {
 		div.c("ux-rename-row flex gap-35 v-center wrap", () => {
 			if (this.loading){ span.c("muted", "asking…"); return; }
 
+			// A disabled placeholder is the one PRE-selected option — "Keep current"
+			// used to start selected instead, so picking it (leaving it as your real
+			// answer) never fired `change` at all (review.md #4). Now every real
+			// choice, "keep current" included, is a change away from the placeholder.
 			this.$select = select.c("ux-rename-select", () => {
-				option("Keep current — " + this.current()).attr("value", "");
+				option("Pick a name…").attr("value", "").attr("disabled", "").attr("selected", "");
+				option("Keep current — " + this.current()).attr("value", "__keep");
 				(this.names ?? []).forEach(name => option(name).attr("value", name));
 			}).attr("aria-label", "Rename " + this.current() + " to")
 				.on("change", e => this.choose(e.target.value));
@@ -124,7 +129,10 @@ export default class Rename extends View {
 		this.editing = false;
 		this.selected = false;
 
-		if (name){
+		// "" is the disabled placeholder (never actually reachable via `change`) and
+		// "__keep" is an explicit, real choice to leave the title alone — neither
+		// writes a log line.
+		if (name && name !== "__keep"){
 			const line = { rename: { id: this.id, name, at: new Date().toISOString() } };
 			this.log.push(line);
 			this.on_rename?.(line);

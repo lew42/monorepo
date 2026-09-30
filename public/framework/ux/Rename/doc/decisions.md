@@ -30,9 +30,16 @@ clarification card.
 
 ## "Keep current" is a real option in the list, not a Cancel button in disguise
 
-The dropdown's first entry is "Keep current — <title>", not a separate button, so
-choosing to leave the title alone writes the same kind of decision as any other pick
-(nothing is written to the log for it — `choose("")` is a no-op — but it closes the
-dropdown the same way). `Cancel`, beside it, is the one true escape hatch: it drops back
-to the plain title with no `rename_options()` call ever made, for someone who opened
-the dropdown by mistake.
+The dropdown's second entry is "Keep current — <title>", not a separate button, so
+choosing to leave the title alone closes the dropdown the same way any other pick
+does (nothing is written to the log for it — `choose("__keep")` is a no-op). `Cancel`,
+beside the dropdown, is the one true escape hatch: it drops back to the plain title
+with no `rename_options()` call ever made, for someone who opened the dropdown by
+mistake.
+
+**The FIRST entry is a disabled placeholder ("Pick a name…"), not "Keep current."** A
+review caught the bug this fixed: `<select>` starts on its first option, so with "Keep
+current" in that slot, tapping it to confirm your real answer never fired a `change`
+event at all — nothing happened. A disabled placeholder holds that starting slot
+instead, so EVERY real pick, "keep current" included, is a change away from it and
+always fires.

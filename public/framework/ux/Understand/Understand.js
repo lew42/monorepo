@@ -53,6 +53,12 @@ class ClarifyCard extends Decision {
 		this.on_chosen?.(line.chose?.option);
 		return true;
 	}
+
+	// Decision's head() would print "Decided by owner" once an option is picked —
+	// true wording for a real record, false here (review.md #2: any visitor can
+	// click this demo, not just the owner). This card never sets rank/confidence
+	// either, so the head row never had anything real to show; skip it.
+	head(){}
 }
 
 /**
