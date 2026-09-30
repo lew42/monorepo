@@ -60,3 +60,7 @@ Every entry in both maps was instead checked by confirming the target `page.js` 
 (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) don't have a `page.js` of their own — see
 [readme.md](../readme.md) and the comments at the top of [`maps/refs.js`](../maps/refs.js) for
 exactly which real page each one landed on, and why.
+
+## Paths: `#Servex/lifecycle`
+
+A mention can name a child page: `#Servex/lifecycle`, or `#[Page/some child]` in brackets. The first part is looked up in the map; the rest is added to its url as child slugs (`/framework/servex/lifecycle/`), and the link reads `Servex/lifecycle`. The owner wrote this with `@` too (`@Servex/heartbeat`), so an `@` name that isn't a person or agent falls back to the `#` map. The child is not checked: a wrong child name gives a link to a missing page.

@@ -16,7 +16,7 @@ import people from "./maps/people.js";
  *   mentions(el, { "#": my_map })  // a caller with its own namespace
  *   mention_html("See #Page")    // the string form, for a template literal
  *
- * PATTERN: `/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w.-]*[\w])/g`
+ * PATTERN: `/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g`
  *   - not preceded by a letter/digit/underscore or `[` — so `a#b` and
  *     `user@example.com` are left alone (an email's `@` always has a word
  *     character right before it).
@@ -35,7 +35,7 @@ import people from "./maps/people.js";
  * Synchronous throughout — no fetch, nothing awaited — so this is safe to
  * call from inside a `View` capture callback, same as `md()` itself.
  */
-const PATTERN = /(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w.-]*[\w])/g;
+const PATTERN = /(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g;
 
 export const maps = { "#": refs, "@": people };
 
@@ -47,13 +47,22 @@ function raw_name(raw){
 	return raw.startsWith("[") ? raw.slice(1, -1) : raw;
 }
 
-function lookup(m, sigil, raw){
-	const map = m[sigil];
-	if (!map) return null;
+function find(map, name){
+	const key = map && Object.keys(map).find(k => k.toLowerCase() === name.toLowerCase());
+	return key ? { key, ...map[key] } : null;
+}
 
-	const name = raw_name(raw).toLowerCase();
-	const key = Object.keys(map).find(k => k.toLowerCase() === name);
-	return key ? { name: key, ...map[key] } : null;
+// A PATH walks down from a known page (the owner, 2026-09-30: "@parent/child",
+// "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
+// its url as child slugs. `@` falls back to the `#` map when the first segment
+// is a page rather than an agent, so `@Servex/lifecycle` still resolves.
+function lookup(m, sigil, raw){
+	const [head, ...rest] = raw_name(raw).split("/");
+	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
+	if (!hit) return null;
+	if (!rest.length) return { name: hit.key, ...hit };
+	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
+	return { ...hit, name: [hit.key, ...rest].join("/"), url };
 }
 
 function note_unknown(sigil, raw){
