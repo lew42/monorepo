@@ -6,8 +6,17 @@
 placed on a card (`ux/Content`'s widgets), a card typed `"question"`, or a card whose own last
 message ends in "?" — read straight off the same card logs every other AI 2 view already reads,
 so nothing new has to be built to keep the list current. It never lists a `done` or `archived`
-card. Ranked a blocker first (its ask or the card's title says "block"), then a plain decision or
-question, an FYI last; newest first inside each group.
+card. **Every STALLED line in the asks ledger** (`/framework/ai/asks.jsonl`, `Servex/asks/`) is
+in the list too — an ask whose owner agent went quiet, silent more than 2 hours or stopped
+outright — shown with how long it has been silent and a link to its card, or to its own words
+when it has no card yet.
+
+**Ranked by `importance()`** (`needs-rule.js`), highest first: a blocker (a key, money,
+something destructive) scores 90+; an open question or decision blocking a running agent 70+, a
+quiet one 50-69; a stalled ask 60-80, rising the longer it has sat; a decision the system already
+made 20-40; a quiet FYI under 20. **The score is the small number on every row** — one function,
+so the Needs you tab, the Inbox's own score badge and the asks ledger's page can never rank the
+same thing two different ways.
 
 **How to ask, from an agent:** the Servex MCP tool `card_ask({card, question, options?, title?,
 from?})` places a Decision (with `options`) or a Question (without) on the card — the exact
@@ -27,7 +36,16 @@ page, which writes one `{"reviewed": {"at", "by": "owner"}}` line — a placed D
 only clears by being answered, never by "Reviewed ✓".
 
 One rule decides all three (the tab, the filter, and Servex's own `list_waiting`/`GET /waiting`):
-[`needs-rule.js`](../needs-rule.js), `card_needs()`. [`needs.js`](../needs.js) is the browser half
-— the shared scan every reader here subscribes to (`watch_needs()`), and the tab's own drawing.
-The scan asks Servex's `GET /waiting` first: one request. Reading every card's `page.jsonl`
-itself (300 requests every 20 s, measured 09-29) is only the fallback when Servex is down.
+[`needs-rule.js`](../needs-rule.js), `card_needs()` (what is open) and `importance()` (how urgent
+it is). [`needs.js`](../needs.js) is the browser half — the shared scan every reader here
+subscribes to (`watch_needs()`), and the tab's own drawing. The scan asks Servex's `GET /waiting`
+first for card needs, and always reads `asks.jsonl` itself for the stalled ones (a plain static
+file, no Servex route yet). Reading every card's `page.jsonl` itself (300 requests every 20 s,
+measured 09-29) is only the fallback when Servex is down.
+
+**The Inbox's own score badge is data-only today.** `inbox.js` puts a card's highest open need's
+score on `it.score` (`Math.max` over `needs_for(card_id)`), but nothing draws it yet — the row
+itself is `row()` in `faces.js`, called from `page.js`, neither of which this change touched.
+Whoever picks this up next: inside `row()`'s `.ai2-row-head`, right after the unread dot, add
+`if (it.score != null) span.c('ai2-score' + (it.score >= 70 ? ' ai2-score-hot' : '')).text(String(it.score));`
+— the CSS (`.ai2-score`, `.ai2-score-hot`) is already in `ai2.css`, ready.
