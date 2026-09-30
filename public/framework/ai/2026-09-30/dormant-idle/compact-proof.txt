@@ -1,0 +1,10 @@
+   +1s private Servex up on :8192; compact above 200 MB, memory read every 15 s
+  +10s minion-grower finished its turn: context 103433 tokens, claude.exe pid 86480 256 MB
+  +53s   event: {"at":"2026-09-30T14:10:44-05:00","agent":"minion-grower","type":"compacting","why":"memory","context":103433,"rss_mb":255}
+  +53s   event: {"at":"2026-09-30T14:11:12-05:00","agent":"minion-grower","type":"compacted","trigger":"manual","pre_tokens":103607,"post_tokens":10548}
+  +53s   event: {"at":"2026-09-30T14:11:12-05:00","agent":"minion-grower","type":"compact","ok":true,"why":"memory","before":103433,"after":10548,"rss_mb_before":255,"duration_ms":27905,"cost":0.2514048}
+  +53s   event: {"at":"2026-09-30T14:11:12-05:00","agent":"minion-grower","type":"dormant","why":"compacted","context":10548,"turns":1}
+  +53s   event: {"at":"2026-09-30T14:11:12-05:00","agent":"minion-grower","type":"awake","by":"compaction","slept_since":"2026-09-30T14:11:12-05:00"}
+  +53s after compaction and restart: claude.exe pid 72988 229 MB
+  +53s send: {"id":"minion-grower","role":"minion","model":"claude-haiku-4-5-20251001","state":"working","visibility":"team","started_at":"2026-09-30T19:10:29.462Z","turns":1,"session_id":"05e880b2-e18d-4f4a-9927-ba146d4b13d6","cost":0.2514048,"parent":"proof","revivable":true,"forked_from":null,"resumed_from":null,"context":10548}
+  +56s asked after compaction: "marigold" (expected "marigold")

@@ -1,0 +1,44 @@
+# dormant-idle proof, 2026-09-30, a PRIVATE Servex (:8190, scratch SERVEX_HOME), real Haiku agents
+# run by proof.mjs beside this file, against worktree qf-2 (commits 9c3ec56a..3f6545fd)
+#
+# What each part shows:
+#   +32s   4 agents, 4 claude.exe processes (~250 MB each)
+#   +242s  3 went idle and then dormant; tasklist: ONE claude.exe left (the busy one)
+#   +246s  a dormant agent, messaged, answered in 3.4 s with the word only its first turn knew
+#   burst  8 minions spawned at once with the cap at 5: 5 started, 3 queued ("working 5/5"),
+#          the 3 started the moment the first ones finished (gate log below). Working never passed 5.
+#          (The script's own "queued" column reads the wrong field and always says 0; the gate log is the record.)
+
+   +1s private Servex up on :8190 (home C:\Users\mike\AppData\Local\Temp\dormant-proof-home), working cap 5, dormant after 180 s idle
+  +31s after 30 s: minion-idle-1=idle, minion-idle-2=idle, minion-idle-3=idle, minion-busy=working
+  +32s claude.exe holding these 4 sessions: 4 (251 MB, 259 MB, 253 MB, 262 MB)
+ +242s dormant: minion-idle-1=dormant, minion-idle-2=dormant, minion-idle-3=dormant, minion-busy=idle
+ +242s tasklist: claude.exe holding the 4 sessions now: 1 (275 MB)
+ +242s send: {"id":"minion-idle-2","role":"minion","model":"claude-haiku-4-5-20251001","state":"working","visibility":"team","started_at":"2026-09-30T19:10:29.491Z","turns":1,"session_id":"502e76af-888b-4b88-85d9-8bd3e5cec411","cost":0.0340127,"parent":"proof","revivable":true,"forked_from":null,"resumed_from":null,"context":37776}
+ +246s minion-idle-2 answered in 3.4 s: "copper" (expected "copper")
+ +246s before the burst: 0 working
+ +246s burst: working 5, queued 0, idle 0, dormant 0
+ +254s burst: working 5, queued 0, idle 0, dormant 0
+ +262s burst: working 5, queued 0, idle 0, dormant 0
+ +270s burst: working 5, queued 0, idle 0, dormant 0
+ +278s burst: working 5, queued 0, idle 0, dormant 0
+ +286s burst: working 5, queued 0, idle 0, dormant 0
+ +294s burst: working 5, queued 0, idle 2, dormant 0
+ +302s burst: working 3, queued 0, idle 5, dormant 0
+ +310s burst: working 3, queued 0, idle 5, dormant 0
+ +318s burst: working 3, queued 0, idle 5, dormant 0
+ +326s burst: working 3, queued 0, idle 5, dormant 0
+ +334s burst: working 3, queued 0, idle 5, dormant 0
+ +342s burst: working 1, queued 0, idle 7, dormant 0
+ +350s burst: working 0, queued 0, idle 8, dormant 0
+ +350s done; stopping the private Servex
+
+# the spawn gate's log (system.jsonl on the private Servex)
+{"at":"2026-09-30T14:14:34-05:00","type":"gate","state":"queued","id":"minion-burst-6","role":"minion","name":"burst-6","reason":"working 5/5: waits for a working agent to end its turn","position":1}
+{"at":"2026-09-30T14:14:34-05:00","type":"gate","state":"queued","id":"minion-burst-7","role":"minion","name":"burst-7","reason":"working 5/5: waits for a working agent to end its turn","position":2}
+{"at":"2026-09-30T14:14:34-05:00","type":"gate","state":"queued","id":"minion-burst-8","role":"minion","name":"burst-8","reason":"working 5/5: waits for a working agent to end its turn","position":3}
+{"at":"2026-09-30T14:15:22-05:00","type":"gate","state":"started","id":"minion-burst-6","queued_at":"2026-09-30T14:14:34-05:00","held_messages":0}
+{"at":"2026-09-30T14:15:22-05:00","type":"gate","state":"started","id":"minion-burst-7","queued_at":"2026-09-30T14:14:34-05:00","held_messages":0}
+{"at":"2026-09-30T14:15:23-05:00","type":"gate","state":"started","id":"minion-burst-8","queued_at":"2026-09-30T14:14:34-05:00","held_messages":0}
+
+# compaction: see compact-proof.txt (103,433 -> 10,548 tokens; 256 -> 229 MB after restart; still knew 'marigold')
