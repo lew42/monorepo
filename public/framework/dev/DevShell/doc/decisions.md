@@ -24,10 +24,9 @@ rails with no DevShell edit.
 
 `route` itself is not an exported function of `tools.js` — only the whole `tabs` array is. Rather
 than pull it out by array position (fragile: renumber `tools.js`'s own array and the wrong section
-draws), the left side calls every section in the `page` tab. That is slightly more than the brief's
-two named things, but it is all real reuse-by-import with no fragile indexing, and the extra two
-or three lines (`says`, `server`, `xray`, `jump`) are the same short lines the old rail already
-shows on its own `page` tab.
+draws), the left side first called every section in the `page` tab. It now picks `route` and
+`structure` out of that list BY NAME (the function's own name, not its position), so the left
+side is exactly the two things the brief named and a renumbered `tools.js` still draws them.
 
 ## Three real layout bugs a reviewer caught in the first screenshot, not a claim to take on faith
 

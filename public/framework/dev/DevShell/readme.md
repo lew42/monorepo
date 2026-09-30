@@ -14,7 +14,7 @@ dark mode shell around the entire site… let's use the dev bar and kind of merg
 
 ## Watch out
 
-- **It is `new Shell({ frame: true, dark: true, … })`, not a second rail system** —
+- **It is `new Shell({ frame: true, dark: ["head", "left", "right", "foot"], … })`, not a second rail system** —
   [`core/Shell`](/framework/core/Shell/) does the grid, the resizable rails, the 34em stack and the
   four `--shell-*` push tokens; this module only supplies what goes in each region and its own thin
   CSS. Read `core/Shell`'s own readme first if the grid itself looks wrong — it is almost certainly

@@ -50,8 +50,7 @@
 	   rule above left unscoped, both sides were 288px boxes stacked over the page. */
 	@media (width < 34em) {
 		.dev-shell-root .core-shell-left,
-		.dev-shell-root .dev-shell-hint,
-		.dev-shell-root .dev-width { display: none; }
+		.dev-shell-root .dev-shell-hint { display: none; }
 		.dev-shell-root .core-shell-right { max-height: 45vh; width: auto; }
 		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid { grid-template-columns: minmax(0, 1fr); }
 	}
@@ -116,4 +115,12 @@
 	.dev-shell-val.ok { color: var(--ok); }
 	.dev-shell-val.warn { color: var(--warn); }
 	.dev-shell-val.off { color: var(--subtle); }
+}
+
+/* ⚠ `util`, because framework.css's `.flex` on the same box lives there and a
+   `theme` rule cannot out-rank it at any specificity (review, 2026-09-30). */
+@layer util {
+	@media (width < 34em) {
+		.dev-shell-root .dev-width { display: none; }
+	}
 }

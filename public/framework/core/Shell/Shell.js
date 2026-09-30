@@ -191,6 +191,11 @@ export class CoreShell extends View {
 			["foot", "bottom", "offsetHeight"],
 		];
 
+		// `publish: false` keeps the frame look without pushing the page — for a
+		// frame shown as a DEMO inside a box (core/Shell's own page did push the
+		// whole site in by 192px until this existed; review, 2026-09-30).
+		if (this.publish === false) return;
+
 		for (const [area, token, prop] of regions){
 			root.style.setProperty(`--shell-${token}`, "0px");
 

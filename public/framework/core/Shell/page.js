@@ -16,7 +16,7 @@ export default new Doc({
 
 	subject: Shell,
 
-	properties: "content frame dark name",
+	properties: "content frame publish dark name",
 
 	methods: "render header footer left right main slot grab size restore_sizes store apply_dark watch_frame",
 
@@ -106,6 +106,7 @@ export default new Doc({
 						right: fill("right"),
 						footer: fill("footer"),
 						frame: true,
+						publish: false,
 					});
 
 					// A real `frame` shell is `position: fixed`, which would break out

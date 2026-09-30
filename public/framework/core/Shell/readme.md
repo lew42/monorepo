@@ -33,7 +33,11 @@ here ever names a colour. `dark: ["left", "right"]` darkens only those two boxes
 `frame: true` turns the shell into the window's own frame — `position: fixed; inset: 0`, `main`
 an empty hole the real page shows through — and writes each region's own size onto `<html>` as
 `--shell-top` / `--shell-left` / `--shell-right` / `--shell-bottom`, so a page underneath can pad
-itself in by them. This is what [`dev/DevShell`](/framework/dev/) is built on.
+itself in by them. This is what [`dev/DevShell`](/framework/dev/DevShell/) is built on. A frame shown
+as a demo inside a box passes `publish: false`, so it keeps the look but never pushes the page.
+
+Not the same thing as [`/layouts/shell/`](/layouts/shell/): that lab is one page's own resizable
+design-tree sidebar; this is the general region system any page can wrap itself in.
 
 ## Watch out
 
