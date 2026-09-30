@@ -53,6 +53,10 @@ const mainArg = flag("--main");
 const noReview = flag("--no-review");
 const [dirArg, ...paths] = argv;
 if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]"); process.exit(1); }
+// Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
+// hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+const mangled = paths.find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+if (mangled) { console.error(`refused: "${mangled}" was rewritten by Git Bash. Rerun as MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`); process.exit(1); }
 // (also --no-review "why": see the review-gate paragraph in the header above)
 const dir = path.resolve(dirArg);
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
