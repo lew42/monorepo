@@ -15,6 +15,7 @@ An agent whose context passes **200k tokens**, or whose process passes **500 MB*
 
 | state | claude process | what a message does |
 |---|---|---|
+| `starting` | yes | a fresh spawn before its first turn; held like `working` |
 | `working` | yes | waits its turn behind the current one |
 | `idle` | yes | starts a turn at once |
 | `dormant` | **no** | resumes the session (a few seconds), then starts the turn |
@@ -36,7 +37,8 @@ every role sleeps after 3 minutes.
 - `Global.sweep()` (`agents/Global.js`) runs every minute and puts every agent idle past
   `SERVEX_DORMANT_MS` (180000) to sleep.
 - **Kept awake:** an agent with a live background task (a background Bash or Monitor it waits
-  on would die with its process). The SDK's `background_tasks_changed` message keeps that count.
+  on would die with its process). It stays `idle`, process up, and sleeps on the first sweep
+  after the task ends. The SDK's `background_tasks_changed` message keeps that count.
 - **After a Servex restart** a dormant row stays dormant. The boot never reopens it; the first
   message does (`send` → `wake` → `reopen`).
 
@@ -44,6 +46,7 @@ every role sleeps after 3 minutes.
 
 - `SERVEX_WORKING_CAP` (default 5). `Agents.working()` counts agents in `working` or `starting`.
 - Every agent counts for itself, so a task mastermind with two working minions holds 3 of the 5.
+- An `idle` or `dormant` agent holds no slot. It counts again only while a message has it working.
 - **Not counted:** the front desk (`assistant-*`, `manager-*`, `master-assistant`, `session-*`,
   the Dispatcher) and an agent blocked inside `wait_for_agent`.
 - **Never held by it:** a resume (a wake must deliver its message) and a front-desk spawn.
@@ -63,6 +66,8 @@ every role sleeps after 3 minutes.
 - **Not compacted:** the front desk. Layers.js restarts a page's assistant and manager fresh
   from a checkpoint instead ("fresh, not compacted", the owner).
 - Once per turn: a summary still over the line is not compacted again until it has worked more.
+- The context check runs the moment a turn ends, so an agent goes dormant already compacted.
+  The memory check runs every 5 minutes, so it only reaches agents still awake by then.
 
 ## Proof
 
