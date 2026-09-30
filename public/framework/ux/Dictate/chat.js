@@ -65,47 +65,22 @@ import * as Session from "/framework/ext/Session/Session.js";
  */
 
 /**
- * **THE FONT GUARD** (requirement 5: "the chat must show the site's Montserrat on
- * every surface… its CSS says `font: inherit`, so fix it by mounting inside the
- * element that sets the font"). Every widget bubble, input and button already says
- * `font: inherit` (framework.css's own UA-control reset, plus `Widget.css`'s
- * composer) — it is only WRONG when the element it inherits from is. That IS true
- * for the mobile ✦ sheet's mount (`rail.js`, built through the normal View captor
- * chain, correctly nested under the real themed `.app` root) — the font there is
- * already right, confirmed live, and this function is a no-op on it.
- *
- * It is NOT true for the desktop drawer (`ext/drawer/drawer.js`'s `.drawer`, the
- * root `tabs/ai.js` and `tabs/sessions.js` build into): confirmed live, by
- * instrumenting it directly, `drawer.js`'s own `build()` runs `document.
- * querySelector(".app")` while `document.readyState` is still `"interactive"` —
- * BEFORE `core/App/App.js`'s `inject()` has attached the real, themed `.app` div to
- * the document at all — so that query returns `null`, falls back to `document.
- * body`, and a module-level guard (`if ($rail) return`) CACHES that wrong parent
- * for the rest of the page's life. Every tab in that drawer inherits the wrong font
- * because of it, not just this widget; the fix belongs in `drawer.js`, which is
- * outside this task's fence (`requirements.md`'s own file list) — flagged in this
- * task's own log for the parent to route onward, not silently worked around by
- * editing a file outside the fence.
- *
- * What THIS file can still do, inside its own fence, with no literal font name
- * anywhere in the code: read the real theme's OWN resolved font straight off the
- * one real `.theme-lew42` element (there is always exactly one, correctly parented,
- * regardless of where THIS mount ends up) and set it, once, on this one mount's own
- * root — right wherever the mount is already correctly nested, and a real fix
- * wherever it is not. */
-function fix_font(el){
-	const themed = document.querySelector(".theme-lew42");
-	if (!themed) return;
-	const want = getComputedStyle(themed).fontFamily;
-	if (want && getComputedStyle(el).fontFamily !== want) el.style.fontFamily = want;
-}
-
+ * **THE FONT GUARD, REMOVED** (review fix #2, 2026-09-30). This file used to read
+ * the live theme's own resolved font and set it inline on every mount, working
+ * around a real bug in `ext/drawer/drawer.js`'s `build()`: it could mount the whole
+ * desktop drawer outside `.theme-lew42` before `core/App/App.js`'s `inject()` had
+ * attached the real `.app` div to the document, so Montserrat (and colour-scheme)
+ * never reached it. `drawer.js` is now fixed at the root — `build()` waits for the
+ * real `.app` (`window.app.ready`) and re-parents into it the moment it exists, so
+ * every tab in that drawer inherits the right font on its own, the normal way
+ * (`font: inherit`), and no per-mount patch is needed here any more.
+ */
 const SESSION_KEY = "lew42-voice-session";
 const RESUME_OFFER_MS = 60 * 60 * 1000;   // matches Servex's own SERVEX_SESSION_RESUME_MS default
 
-// A rough "how long ago" — "1 day ago", never a bare timestamp. Small enough to keep
-// local rather than import (`ext/drawer/rail.js` and `tabs/sessions.js` each need their
-// own copy too — this module cannot import UPWARD into `ext/`).
+// A rough "how long ago" — "1 day ago", never a bare timestamp. THE one copy (review
+// fix #9, 2026-09-30): `ext/drawer/rail.js` and `ext/drawer/tabs/sessions.js` used to
+// each carry their own identical copy of this function — both now import it from here.
 function ago(at){
 	const ms = Date.now() - Date.parse(at ?? 0);
 	if (!Number.isFinite(ms) || ms < 0) return "";
@@ -230,8 +205,6 @@ export default function chat(el, { path = location.pathname, card, placeholder }
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null;
 
-	fix_font(el);
-
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
 			placeholder,
@@ -328,5 +301,8 @@ export default function chat(el, { path = location.pathname, card, placeholder }
 chat.current = current;
 chat.resume = resume_to;
 chat.reset = reset;
+chat.ago = ago;
 
-export { current, resume_to as resume, reset };
+// `ago()` (review fix #9, 2026-09-30): `ext/drawer/rail.js` and `ext/drawer/tabs/sessions.js`
+// each carried their own copy of this exact function — this is now the one, imported by both.
+export { current, resume_to as resume, reset, ago };
