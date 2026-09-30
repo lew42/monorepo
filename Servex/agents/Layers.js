@@ -281,8 +281,12 @@ export default class Layers {
 	card_prompt_session(id, prompt){
 		const path = `/framework/ai2/${id}/`;
 		const said = this.selected_block(prompt.context) + String(prompt.text ?? prompt.raw ?? "").trim();
-		const session = this.session_for({ path, card: id });
-		this.servex.sessions.say({ session: session.session, path, text: said, via: "text" });
+		// Inside the card listener: a throw here (an unknown card, an empty line) must never
+		// break the listener for every other card, so it is logged and dropped.
+		try {
+			const session = this.session_for({ path, card: id });
+			this.servex.sessions.say({ session: session.session, path, text: said, via: "text" });
+		} catch (e){ console.warn(`[layers] owner prompt on ${id} not sent to the session: ${e.message}`); }
 	}
 
 	/* The card listener's own reach now: a non-owner prompt on a card (the owner's
