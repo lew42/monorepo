@@ -1,5 +1,6 @@
 import { View, div, span, button } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
+import grip from "/framework/ext/grip/grip.js";
 import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
 // seam below reads `Session.resume` only if it exists (`typeof ... ===
@@ -196,6 +197,7 @@ export class DrawerRailSheetV1 extends View {
 	// message — is `ux/Dictate`'s own job, not this sheet's.
 	render(){
 		this.head();
+		this.handle();
 		// Filled by `sync_card()` below, on every open: either the card's own real
 		// chat thread, or the old empty-state + growing list of local prompt cards.
 		this.$thread = div.c("drawer-rail-sheet-thread");
@@ -221,6 +223,76 @@ export class DrawerRailSheetV1 extends View {
 		this.$path?.text(" · " + drawer.page());
 	}
 
+	// THE SHEET'S OWN GRIP — its top edge, dragging the sheet's HEIGHT instead of a
+	// rail's width (grip-everywhere, 2026-09-29). `axis: "y"` is the one new thing
+	// `ext/grip` needed for this; `from` is left at its default ("end") because the
+	// sheet's own BOTTOM is what's pinned to the screen (`rail.css`'s `inset-block-
+	// end: 0`) — exactly the relationship every `from: "end"` rail already has, just
+	// read on the block axis. `write` clamps so a wild drag can't shrink the sheet
+	// past its own header or grow it past the screen; `done` is the only place a
+	// dragged height is remembered (`remember_height` below) — a height nobody
+	// dragged is never written to storage, so the untouched default keeps tracking
+	// the sheet's own content (`size()` below) instead of freezing on day one.
+	handle(){
+		return grip({
+			axis: "y",
+			write: px => {
+				const h = this.clamp_height(px);
+				this.style("--sheet-h", h + "px");
+				return h;
+			},
+			done: h => this.remember_height(h),
+		});
+	}
+
+	// Shared by the live drag (`handle()` above) AND a height read back from
+	// localStorage (`size()` below) — a height saved on a TALL viewport and
+	// reopened on a SHORT one (a phone rotated, or a different device
+	// entirely reading the same key) would otherwise push this `position:
+	// fixed; inset-block-end: 0` sheet up past the top of a short screen,
+	// with no visible way back to a smaller size (review finding, landing
+	// day). 160 keeps at least the head row + a sliver of the mic visible.
+	clamp_height(px){
+		return Math.min(Math.max(px, 160), window.innerHeight * 0.92);
+	}
+
+	// Its own key — never the drawer's own width key (`lew42-drawer-w`, drawer.js),
+	// or the two rails could stomp each other's number on the same device. Both
+	// directions wrapped in try/catch (the owner's own words): a phone in private
+	// browsing throws on `setItem`, not only on a blocked `getItem`.
+	sheet_height_key(){ return "lew42-drawer-rail-sheet-h"; }
+
+	read_height(){
+		try {
+			const v = parseFloat(localStorage.getItem(this.sheet_height_key()));
+			return v > 0 ? v : null;
+		} catch { return null; }
+	}
+
+	remember_height(px){
+		try { localStorage.setItem(this.sheet_height_key(), String(Math.round(px))); }
+		catch {}
+	}
+
+	// Picks the sheet's own height for THIS open, written as `--sheet-h`
+	// (rail.css's `max-block-size` reads it, falling back to 50dvh if this never
+	// runs). A height the reader dragged to before, on this device, wins outright.
+	// The very first open instead starts at half the viewport, or the sheet's own
+	// natural content height if that is smaller (the owner's own words) — an empty
+	// sheet, mic and all, is nowhere near half a phone, and starting there would
+	// waste most of the screen on nothing. Called from `open()`, AFTER the mic and
+	// the thread are built (`sync_card`/`listen` below) — measured any earlier and
+	// `scrollHeight` would only see the empty head row, since `display: none`
+	// elements have no box to measure at render time at all.
+	size(){
+		const saved = this.read_height();
+		if (saved){ this.style("--sheet-h", this.clamp_height(saved) + "px"); return; }
+		const half = window.innerHeight * 0.5;
+		this.style("--sheet-h", "none");   // lift the cap to read the TRUE content height
+		const content = this.el.scrollHeight;
+		this.style("--sheet-h", Math.min(half, content || half) + "px");
+	}
+
 	// The card the page under this sheet belongs to, or null — the exact duck
 	// type `ext/drawer/tabs.js`'s own `context()` uses ("is the active page AI
 	// 2's card.js"), read fresh on every open since this sheet is built once but
@@ -239,6 +311,12 @@ export class DrawerRailSheetV1 extends View {
 		this.update_path();
 		this.sync_card();
 		this.dictate ? this.dictate.start() : this.listen();
+		// AFTER the mic/thread above, not before: on a plain page both build
+		// synchronously, so `size()`'s content measurement sees the real mic
+		// widget and empty-state text, not an empty box. (On a CARD page the
+		// thread's own content loads async, a heartbeat later — `size()` still
+		// runs against whatever's there yet, a minor, accepted gap: doc/decisions.md.)
+		this.size();
 		return this;
 	}
 
@@ -452,8 +530,19 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
  *  second, larger API than the brief asked for. `start_mic()` restarts listening
  *  right after every rebuild, so the gap is a beat, never a silence. */
 export class DrawerRailSheetPanel extends DrawerRailSheet {
+	// The resize handle is inherited behaviour, not ChatPanel's — `handle()`,
+	// `size()` and the storage helpers all live on `DrawerRailSheetV1` (this
+	// class's own grandparent) and don't care what fills the sheet below them,
+	// only the sheet's OWN box (`this.el`, `this.style`). This class overrides
+	// `render()`/`open()`/`close()` wholesale (no `super.render()`/`super.open()`
+	// call — ChatPanel's `$slot` replaces V1's `$thread`/`$mic` entirely), so
+	// without restating these two calls here the resize handle would silently
+	// stop reaching the sheet everyone actually uses (`DrawerRail.Sheet` below)
+	// the moment this class landed — caught merging grip-everywhere against this
+	// same day's voice-sessions work, not written against it originally.
 	render(){
 		this.head();
+		this.handle();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		this.links();
 	}
@@ -462,6 +551,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		this.ac("on");
 		this.update_path();
 		this.sync_card();
+		this.size();
 		return this;
 	}
 

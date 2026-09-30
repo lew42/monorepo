@@ -74,7 +74,10 @@
 	.drawer-rail-sheet {
 		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
 		display: none; flex-direction: column;
-		max-block-size: 50dvh;   /* half the phone by default (the owner, 2026-09-29) */
+		/* Half the phone by default; a height the reader dragged before, on this
+		   device, reads back here instead (rail.js's own `--sheet-h`, remembered in
+		   localStorage — grip-everywhere, 2026-09-29). */
+		max-block-size: var(--sheet-h, 50dvh);
 		gap: calc(var(--gap) * 0.6);
 		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
 		background: var(--surface);
@@ -82,6 +85,16 @@
 		border-top: 1px solid var(--line);
 		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
 		box-shadow: 0 -0.3em 1em var(--fill-a16);
+	}
+	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
+	   positioned, so it sits in whatever dead space the top padding above already
+	   reserves — the same trick both side rails use (grip.css's own note: "the dead
+	   strip both rails already have… so the target covers no content of its own").
+	   0.9em already clears the desktop grip (0.75rem, invisible until hover) but not
+	   the bigger touch one (1.25rem, grip.css) — bumped only where that one shows,
+	   so a mouse sees no change at all. */
+	@media (pointer: coarse), (hover: none) {
+		.drawer-rail-sheet { padding-block-start: 1.6em; }
 	}
 	@media (max-width: 52em) {
 		/* No slide transition: `display: none -> flex` never animates a `transform`

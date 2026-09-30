@@ -1,5 +1,5 @@
 /* A rail's resize edge. No permanent splitter: a hover strip just inside the edge,
-   and a pill that appears at the pointer's Y. Design record: readme.md. */
+   and a pill that appears at the pointer's cross axis. Design record: readme.md. */
 @layer theme {
 
 	/* ⚠ `rem`, never `em`, for every size here: the dev rail's text is 0.8rem, so an
@@ -63,16 +63,71 @@
 
 	/* ⚠ `--rail-ease` rather than a rule naming `.app`: the shell eases its push
 	   (framework.css), and a drag writes the width every frame — eased, it trails the
-	   pointer by 0.18s. This class is the whole reason grip.js touches <html>. */
+	   pointer by 0.18s. This class is the whole reason grip.js touches <html>.
+	   Axis-aware cursor (grip-everywhere, 2026-09-29): grip.js also stamps
+	   `grip-sizing-x` or `grip-sizing-y` alongside this class, so the WHOLE page
+	   shows the right resize cursor even where the pointer strays off the thin
+	   strip mid-drag — `ew-resize` for a width, `ns-resize` for a height. */
 	html.grip-sizing {
 		--rail-ease: 0s;
-		cursor: ew-resize;
 		user-select: none;
+	}
+	html.grip-sizing-x { cursor: ew-resize; }
+	html.grip-sizing-y { cursor: ns-resize; }
+
+	/* Y-AXIS (grip-everywhere, 2026-09-29) — the same strip, rotated: a horizontal
+	   bar lying on the box's own BLOCK edge (its own top, by default — the ✦ sheet's
+	   own handle, ext/drawer/rail.css) instead of a vertical one standing on its own
+	   INLINE edge. `.grip-y` elements keep the plain `.grip` class too, so every rule
+	   above still applies (hover, sizing, touch-action) — this only restates the four
+	   things that differ: which pair of edges is pinned vs. stretched, which
+	   dimension is thin vs. auto, the cursor, and which custom property (`--grip-x`,
+	   the CROSS axis) the pill reads. */
+	.grip-y {
+		inset-block: 0 auto; inset-inline: 0;
+		width: auto; height: 0.75rem;
+		cursor: ns-resize;
+	}
+	.grip-y::before {
+		inset-block: 0 auto; inset-inline: 0;
+		width: auto; height: 2px;
+	}
+	.grip-y .grip-pill {
+		top: 0; inset-inline-start: var(--grip-x, 50%);
+		width: 2rem; height: 0.375rem;
+	}
+	/* During a drag the pill grows along its own LENGTH — width here, not height
+	   (the x-axis rule above grows `height`, its own length). */
+	html.grip-sizing .grip-y .grip-pill { width: 3rem; height: 0.375rem; }
+
+	/* A `from: "start"` y-grip pins the box's own TOP and drags its BOTTOM edge
+	   instead — the same mirrored relationship `.grip-start` already gives the x
+	   axis. Nothing uses this yet (the sheet is `from: "end"`, the default), kept
+	   symmetric for the next caller — "the planned vertical split" the owner's brief
+	   names, which may dock either way. */
+	.grip-start.grip-y { inset-block: auto 0; }
+	.grip-start.grip-y::before { inset-block: auto 0; }
+	.grip-start.grip-y .grip-pill { top: 100%; }
+
+	/* TOUCH / COARSE POINTER (grip-everywhere, 2026-09-29) — a hover-only hairline
+	   means nothing to a thumb: there is no hover to reveal it, and 2px is not
+	   something you can reliably land a thumb on. The bar comes on AT REST instead
+	   of waiting for hover, gets thicker, and the whole invisible strip grows around
+	   it — still wholly INSIDE the box (the rule at the top of this file), just
+	   bigger, so landing a few px off the true edge still grabs it. */
+	@media (pointer: coarse), (hover: none) {
+		.grip { width: 1.25rem; touch-action: none; }
+		.grip-y { width: auto; height: 1.25rem; }
+		.grip::before { width: 4px; opacity: 0.5; }
+		.grip-y::before { height: 4px; width: auto; opacity: 0.5; }
 	}
 
 	/* ⚠ Around this width both rails stop being rails — the dev bar is a bottom sheet
 	   (34em, devbar.css) and the drawer is the whole screen (26rem, drawer.css). An
 	   `ew-resize` strip down an inline edge resizes nothing there, and it is a pointer
-	   trap on a touch screen. */
-	@media (width < 34em) { .grip { display: none; } }
+	   trap on a touch screen. `.grip-y` is exempted: it drags a HEIGHT, not an inline
+	   width, and its one caller so far (the ✦ sheet) only ever shows BELOW this exact
+	   width — hiding it here would remove the handle from the one screen size it is
+	   for (found while wiring the sheet, grip-everywhere 2026-09-29). */
+	@media (width < 34em) { .grip:not(.grip-y) { display: none; } }
 }

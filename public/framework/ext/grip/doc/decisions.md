@@ -188,6 +188,102 @@ fixed margin, comfortably past the strip's 12px. Verified:
 `.dev-bar.getBoundingClientRect().left − innerWidth` reads 16 both hidden and after a
 reopen/close round trip; open, unchanged (`transform: none`, grip on the left border).
 
+## `axis: "x" | "y"` — the same strip, rotated (grip-everywhere, 2026-09-29)
+
+The owner's words: one resize handle, everywhere — columns (already done) AND
+vertical sections, starting with the mobile ✦ sheet's own top edge
+(`ext/drawer/rail.js`, `.drawer-rail-sheet`, capped at `50dvh` by default).
+
+**Reused, not rebuilt.** Every fact this file already recorded about `from` and
+`mirror` — which edge of the PARENT is pinned, which side of the box's OWN
+edge the strip sits on, why the strip stays wholly inside the box, why `edge`
+is read once at `pointerdown` — carries over unchanged, just read against the
+block axis (top/bottom) instead of the inline one (left/right) when
+`axis: "y"`. `on_x = axis !== "y"` is the one branch point in `grip.js`;
+every line after it either reads `rect.left/right` or `rect.top/bottom`,
+`e.clientX` or `e.clientY`, by that one flag. Leaving `axis` out takes neither
+branch's new code at all — traced line by line, it is the exact code that
+shipped before this task, same classes, same pointer math.
+
+**Two custom properties, not one, because the pill's CROSS axis flips too.**
+The x-axis pill already rode `--grip-y` (the vertical position along a
+*vertical* strip). A y-axis strip is horizontal, so its pill rides the
+*horizontal* position instead — a second property, `--grip-x`, added rather
+than repurposing the first, so a page with both an x-grip and a y-grip open
+at once (not true yet, but the "planned vertical split" the owner's brief
+names might be) can never have one overwrite the other's custom property by
+accident.
+
+**The 34em hide rule needed an exemption.** `@media (width < 34em) { .grip {
+display: none } }` exists because both SIDE rails stop being rails around
+that width — an `ew-resize` strip down an inline edge resizes nothing on a
+screen that narrow. The new `.grip-y` is the opposite case: its only caller
+so far, the ✦ sheet, exists **only** below that width (`ext/drawer/rail.js`
+is a `(max-width: 52em)` rail). Left unexempted, the rule would have hidden
+the sheet's own handle at exactly the sizes deliverable 5 tests it at (400px,
+touch). Fixed with `.grip:not(.grip-y)`.
+
+**Touch/coarse pointer, one shared rule, both axes.** A hover-only 2px line
+means nothing to a thumb — there is no hover to reveal it on touch, and 2px
+is not a target you can reliably land a finger on. `@media (pointer: coarse),
+(hover: none)` makes the strip itself bigger (0.75rem → 1.25rem) and its lit
+line thicker (2px → 4px) and visible **at rest** (opacity 0.5, not 0) — on
+whichever axis the strip is. `touch-action: none` already covered both axes
+(it was never axis-specific). Verified headless: at 1920×1080 with a real
+mouse the strip measured 12px (0.75rem) and stayed invisible until hover; at
+400×800 with touch emulation it measured 20px (1.25rem) and was visible
+immediately, before any pointer event at all — both numbers are `rem`
+measured at the browser's default 16px root font size, the same assumption
+this file's own `rem`-not-`em` rule at the top already leans on; a reader
+zoomed past that default sees the same *ratio*, not these exact pixels. A
+narrowed **desktop** window (500px, mouse, no touch)
+still got the slim 12px hover-only strip — the rule reads pointer capability,
+never viewport width, which the owner's brief asked for explicitly ("on
+desktop keep it slim… on touch or mobile, show a visible handle").
+
+**The sheet's own height: `max-block-size`, a ceiling, not a forced size.**
+`rail.css` reads `max-block-size: var(--sheet-h, 50dvh)` — the exact property
+the owner's brief names. This is deliberately a *maximum*: a short, empty
+sheet (nothing said yet) renders at its own natural content height, however
+small, never stretched up to fill the cap. Measured headless: a brand-new
+sheet with no saved height and no messages rendered at 188px, well under the
+800px-tall test viewport's 400px half — proving the "or its content height,
+if smaller" half of deliverable 3 actually took effect, not just the 50%
+default. Dragging still works as expected once there is enough content to
+reach the cap (verified with 14 seeded messages: 188px → 337px, both the
+rendered box and `getComputedStyle().maxBlockSize` agreeing) — a real
+conversation, unlike a fresh test page, reaches this within a few exchanges.
+
+**The grip needed room of its own above the header.** The strip is absolutely
+positioned at the sheet's own top edge, inside whatever the sheet's own
+top padding reserves — the identical trick both side rails already use for
+their vertical strip (this file's rule 1, "the dead strip both rails already
+have"). `0.9em` of existing top padding already cleared the desktop strip
+(12px) but not the bigger touch one (20px), so `rail.css` bumps
+`padding-block-start` to `1.6em`, but **only** inside the same
+`(pointer: coarse), (hover: none)` query the thicker strip itself uses — a
+mouse sees no spacing change at all.
+
+**The remembered height is its own localStorage key.** `lew42-drawer-rail-
+sheet-h`, never the drawer's own `lew42-drawer-w` (`ext/drawer/drawer.js`) —
+two different rails on the same device would otherwise read and overwrite
+each other's number. Both `getItem` and `setItem` are wrapped in try/catch
+(the owner's own words) — a phone in private browsing throws on `setItem`,
+not only on a blocked `getItem`, and either one throwing should leave the
+sheet usable, just not remembering, rather than breaking the open. Only a
+REAL drag writes this key (`done`, on `pointerup`) — the automatic 50%-or-
+content default on an untouched sheet is never persisted, so it keeps
+tracking the sheet's own content on every open until the reader actually
+drags the handle once, on that device.
+
+**Verified with real pointer events, not just Playwright's touch API.**
+`page.touchscreen` alone does not reliably fire the `pointerdown`/
+`pointermove`/`pointerup` sequence this module is built entirely on, so the
+proof drives those events directly (`el.dispatchEvent(new PointerEvent(...,
+{ pointerType: "touch" }))`) — the same sequence a real phone's WebKit/Chrome
+delivers. Full run, screenshots and numbers:
+`ai/2026-09-29/grip-everywhere/build/shots/`.
+
 ## Rejected
 
 - **A `side` option.** Both rails dock at the inline end and grip their inline-start
