@@ -108,7 +108,7 @@ of containers." Before merging:
   before-and-after screenshot of three pages that use it and that you did not build.
 - The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges.
   It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch does not apply to your own merge: fix the page, or land the smoke fix first.
-- A suggestion, not a law: before merging anything with a layout, run `node Server/layout-check.mjs <url...>` on the pages it touched and look at the contact sheet (all widths side by side). Empty space and one-thin-column lists show up in seconds; a green build shows neither.
+- **Every change to a page is reviewed from screenshots at 400, 1200, 1920 and 3440** (the owner, 2026-09-30): run `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440` on the pages it touched and read each shot in horizontal bands, top to bottom: how much of the screen the band takes, whether that is the right size, its padding (stacked padding at the left edge is the usual fault: the tab area's plus a card's plus another's), wasted space, and anything wrapping to another line that shouldn't (a tab bar over two rows, a title on two lines). Say what you saw per band, in one line each, in task.jsonl. A green build shows none of this.
 
 Wrap the merge itself in `node Server/hold.mjs on "<you> — merge"` / `off`, so the live site
 reloads once. If the branch changed `Servex/`, it goes live only after
