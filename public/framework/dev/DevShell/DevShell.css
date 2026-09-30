@@ -16,8 +16,34 @@
 	   already 0 before this rule even runs. */
 	:root:not(.dev-shell-open) .dev-shell-root { display: none; }
 
+	/* ⚠ `core/Shell`'s own `.core-shell-grid` columns are `auto 1fr auto` —
+	   fine when `left`/`right`'s CSS width is used to size those `auto`
+	   tracks, but that width is `clamp(12rem, …, 50%)` (Shell.css), and a
+	   PERCENTAGE inside a clamp can't be resolved before the track itself is
+	   sized (the same chicken-and-egg problem percentages always have in an
+	   intrinsic-sizing context) — so the browser falls back to sizing the
+	   `auto` track off its CONTENT's own max-content width instead. This
+	   shell's right side holds paragraphs of real text (the mastermind log),
+	   whose max-content is "the whole paragraph on one line", easily over
+	   1000px — so the `right` track ballooned past the page's own middle,
+	   landing the dark rail right beside `left` instead of at the window's
+	   edge, and leaving the true right edge blank (nothing painted there,
+	   `main` never reaches that far right either). Fixed HERE, not in
+	   Shell.css: DEFINITE lengths for `left`/`right` (the same custom
+	   properties `Shell.js`'s own `size()` already writes on a drag, with the
+	   clamp's own 18rem default as the fallback) sidestep the percentage
+	   entirely, so `1fr` gets the real leftover width and `right` lands
+	   flush against the window's own edge. doc/decisions.md. */
+	.dev-shell-root .core-shell-grid {
+		grid-template-columns:
+			var(--core-shell-left-w, 18rem)
+			1fr
+			var(--core-shell-right-w, 18rem);
+	}
+
 	.dev-shell-head-line {
-		width: 100%;
+		flex: 1 1 auto;
+		min-width: 0;
 		gap: 0.5em;
 		font-family: var(--mono);
 		font-size: 0.8rem;

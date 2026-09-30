@@ -42,7 +42,13 @@ export default function devshell(a){
 		frame: true,
 
 		header(){ head(); },
-		left(){ $tree = div.c("dev-shell-tree flex v"); },
+		// ⚠ `dev-body` too, on both — `structure.js`'s own `draw()` (reused
+		// here by import) only actually redraws when its box's
+		// `.closest(".dev-body")` finds something, a guard written for
+		// `dev/DevBar`'s own body box. Without this class the guard never
+		// matches here and the structure section stays permanently empty,
+		// no error, nothing to see: doc/decisions.md.
+		left(){ $tree = div.c("dev-shell-tree dev-body flex v"); },
 		right(){ right(); },
 		footer(){ $foot = div.c("dev-shell-foot flex v-center gap"); },
 	});
@@ -117,7 +123,9 @@ function edit_knob(){
 function right(){
 	div.c("dev-shell-tabs-wrap flex v", () => {
 		$tabs = div.c("dev-shell-tabs flex");
-		$body = div.c("dev-shell-body flex v");
+		// `dev-body` for the same reason `left()` carries it, above — the
+		// "page" tab can also show `structure`.
+		$body = div.c("dev-shell-body dev-body flex v");
 	});
 }
 
