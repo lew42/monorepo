@@ -14,7 +14,25 @@ Every 10 seconds Servex reads every process on the machine. It sorts each one in
 | **orphans** | a leftover waiter of ours (bash, tail, grep, sleep …) whose parent is gone |
 | *other* | everything else: Chrome, VS Code, Windows. Counted, never touched. |
 
-Ask with `system_health` (its first line now ends "Ours 6.1 GB in 124 processes, everything else 14.2 GB …"), or `GET /api/processes` for the whole snapshot plus an hour of 10-second points. One line a minute goes to the `processes` log, and one per reap.
+Ask with `system_health` (its first line now ends "Ours 6.1 GB in 124 processes, everything else 14.2 GB …"), or `GET /api/processes` for the whole snapshot plus an hour of 10-second points. One line a minute goes to the `processes` log (`%LOCALAPPDATA%/lew42/servex/logs/processes.jsonl`), and one per reap. Both are answered by the main Servex only (port 80); a worktree has no monitor of its own. Neither can be forced: the next pass is at most 10 seconds away.
+
+What `/api/processes` answers, trimmed:
+
+```json
+{
+  "ours": { "n": 124, "mb": 6100, "cpu": 8.2 },
+  "other": { "n": 310, "mb": 14200, "cpu": 5.1 },
+  "free_mb": 11000, "total_mb": 32000,
+  "groups": [{ "key": "task 2026-09-30/process-monitor", "kind": "task", "label": "2026-09-30/process-monitor", "n": 9, "mb": 1200, "cpu": 3.4, "pids": [47356], "agents": ["task-mastermind-dormant-idle"] }],
+  "orphans": [{ "pid": 600, "name": "tail.exe", "mb": 5 }],
+  "reaped": [{ "pid": 601, "name": "grep.exe", "ok": true }],
+  "running": [{ "id": "minion-x", "state": "working", "pid": 200, "mb": 250, "lost": false }],
+  "worktrees": { "total": 45, "pool": 3, "in_use": 6, "open": 9, "uncommitted": 5, "finished": 2, "removed_today": 4 },
+  "history": [{ "at": "…", "cpu": 13.3, "ours_mb": 6100, "other_mb": 14200, "free_mb": 11000, "groups": { "orphans": [10, 0] } }]
+}
+```
+
+`history` holds up to 360 points, one every 10 seconds: the last hour.
 
 ## Running means a real process
 
@@ -37,19 +55,20 @@ The monitor checks that PID every 10 seconds. An agent that says `working` or `i
 Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own port and `<name>.localhost`. Every 10 minutes `Worktrees.js` gives each one a state:
 
 - **pool** (`qf-*`): the quick-fix pool recycles these. Never touched here.
-- **in use**: an agent works in it, or git touched it in the last 2 hours (a VS Code tab may be in it).
+- **locked** or **no branch** (a detached HEAD): never touched.
+- **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or `logs/HEAD`, so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
 - **uncommitted**: it has real changes. Never touched.
 - **open**: its branch has commits michael/dev does not.
 - **finished**: its branch is merged or applied by merge.mjs, or the task that took it has landed and its owner has stopped.
 
 A **finished** worktree is removed:
-1. `Server/junction-check.mjs` must pass first.
+1. `Server/junction-check.mjs` must pass first. If it fails, nothing is removed that pass; the failure goes to the `servex` log and shows as `worktrees.junctions_ok: false` in `/api/processes`, and the next pass (10 minutes on) tries again.
 2. Its dev server is stopped.
 3. Log noise its own server wrote (`*.jsonl` lines, new screenshots under `ai/`) is copied to `salvage/worktrees/<name>-<date>/`.
 4. `git worktree remove` runs. The **branch is kept**, so `git revert` still works.
 5. Servex forgets the project, its port and its subdomain.
 
-`SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and in `/api/processes` (`worktrees`).
+If `git worktree remove` refuses, the worktree is shown as open with git's reason. Every removal is one line in the `servex` log (`type: "worktrees"`). `SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and in `/api/processes` (`worktrees`).
 
 ## Cost
 
