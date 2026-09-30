@@ -1,11 +1,16 @@
-import { View, button } from "../../core/View/View.js";
-import track from "../../core/track/track.js";
-import Part from "../Part.js";
+import { View, button } from "../../../core/View/View.js";
+import track from "../../../core/track/track.js";
+import Part from "../../Part.js";
 
 View.stylesheet(import.meta, "PushToTalk.css");
 
 /**
- * class PushToTalk extends Part — hold a button (or a key) to open a
+ * class PushToTalk extends Part — DEPRECATED (2026-09-30): hold-to-talk is
+ * now `mode: "hold"` on `MicStream` itself (`mic.press()`/`mic.release()`),
+ * drawn by `MicStream.Controls`. This class never duplicated any mic-opening
+ * logic — it only called `mic.start()`/`mic.stop()` on whatever `MicStream`
+ * it was given — so it is unchanged, kept only for the v1 demo pages
+ * (`/framework/audio/v1/`). It still holds a button (or a key) to open a
  * `MicStream`; release to close it. Emits `on_start(stream)` / `on_stop()` so
  * a caller can wire a listener panel or a `Recorder` without this class
  * knowing either exists.

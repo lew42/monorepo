@@ -1,13 +1,16 @@
-import { View, div } from "../../core/View/View.js";
-import track from "../../core/track/track.js";
-import Part from "../Part.js";
+import { View, div } from "../../../core/View/View.js";
+import track from "../../../core/track/track.js";
+import Part from "../../Part.js";
 
 View.stylesheet(import.meta, "LevelMeter.css");
 
 /**
- * class LevelMeter extends Part — a live level bar for any `MicStream`. It
- * does not open a microphone itself; hand it one that is already running (or
- * about to be):
+ * class LevelMeter extends Part — DEPRECATED (2026-09-30): the level bar is
+ * now part of `MicStream.Controls`, drawn straight off the `MicStream` it
+ * belongs to instead of a separate class watching it from outside. This file
+ * is unchanged and still works — it never duplicated any mic-opening logic,
+ * so there was nothing to absorb but the one page that showed it standalone
+ * — kept only for the v1 demo pages (`/framework/audio/v1/`).
  *
  *   const mic = new MicStream();
  *   const meter = new LevelMeter().watch(mic);

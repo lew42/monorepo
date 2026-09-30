@@ -10,4 +10,50 @@
 		box-shadow: 0 0 0 calc(var(--level) * 0.4em) color-mix(in srgb, var(--prim) calc(var(--level) * 100%), transparent);
 		transition: box-shadow 60ms linear;
 	}
+
+	/* `MicStream.Controls` — device picker, level bar, hold/toggle button,
+	   all pointed at one MicStream. Same look the three absorbed classes
+	   (MicPicker/LevelMeter/PushToTalk) always had; it just lives here now
+	   (`.audio-levelmeter`/`.audio-levelmeter-bar` are the same rule
+	   `LevelMeter.css` still carries for the v1 pages — kept in both files
+	   on purpose so this Controls view never depends on that folder loading
+	   first). */
+	.audio-micstream-level { inline-size: 100%; }
+	.audio-levelmeter {
+		--level: 0;
+		block-size: 0.6em;
+		border-radius: 999px;
+		background: var(--wash);
+		overflow: hidden;
+	}
+	.audio-levelmeter-bar {
+		block-size: 100%;
+		border-radius: inherit;
+		background: var(--prim);
+		transform-origin: left center;
+		transform: scaleX(var(--level));
+		transition: transform 60ms linear;
+	}
+	.audio-micstream-btn { user-select: none; touch-action: none; }
+	.audio-micstream-btn.on { background: var(--prim); color: var(--prim-ink); }
+
+	.audio-micstream-modepill {
+		padding-inline: 0.6em;
+		padding-block: 0.15em;
+		font-size: 0.85em;
+	}
+	.audio-micstream-modepill.on { background: var(--prim); color: var(--prim-ink); }
+	/* ⚠ The pill for the ACTIVE mode is `disabled` while the mic is open
+	   (switching mode mid-talk makes no sense — see MicStream.Controls'
+	   `mode_switch()` doc comment), but the framework's own `:disabled` rule
+	   dims everything to the same pale grey, so the selected pill read as
+	   indistinguishable from the unselected one (found from `demo-live-
+	   1920.png`, 2026-09-30: "Hold" was on but looked off). The SELECTED
+	   pill keeps its full color and gets a ring instead of fading, so
+	   "this one is on, and you can't change it right now" reads as two
+	   separate facts rather than one dim button. */
+	.audio-micstream-modepill.on:disabled {
+		opacity: 1;
+		box-shadow: 0 0 0 2px var(--prim-ink);
+	}
 }

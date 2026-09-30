@@ -25,7 +25,7 @@ export default new Page({
 		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ⋯ More buttons, page content unobstructed above them")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
 
-		md("**Tap ✦** and a small sheet slides up: the same log-plus-composer-plus-mic widget the desktop drawer's AI tab builds ([`ext/Chat`'s `ChatPanel`](/framework/ext/Chat/)), so a finished sentence shows as a real chat bubble, not a bespoke card. The header names the page the sheet is about, and stays current as you navigate. On a plain page, the sentence goes into a real [voice session](/framework/ext/Session/) — one per browser tab, answered by a fast reply first and a smart one under it; **New session**, beside the sheet's other links, drops it so the next thing said starts fresh.");
+		md("**Tap ✦** and a small sheet slides up: the same bubbles-plus-composer-plus-mic widget the desktop drawer's AI tab builds ([`ux/Dictate`'s `Widget`](/framework/ux/Dictate/)), so a finished sentence shows as a real chat bubble, not a bespoke card. The header names the page the sheet is about, and stays current as you navigate. On a plain page, the sentence goes into a real [voice session](/framework/ext/Session/) — one per browser tab, answered by a fast reply first and a smart one under it; **New session**, beside the sheet's other links, drops it so the next thing said starts fresh.");
 
 		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open on a plain page: the header names the path, the owner's sentence, a fast reply then a smart reply under it, and the New session button")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
@@ -50,7 +50,7 @@ export default new Page({
 
 		md("How the states map to history, and what happens after an in-app link: [doc/sheet.md](/framework/ext/drawer/doc/sheet.md).");
 
-		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **typed into the sheet's own composer** — the same `deliver()` seam a real dictation calls once a sentence finishes. `ux/Dictate` is used only through `ext/Chat`'s own public API — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
+		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **typed into the sheet's own composer** — the same `deliver()` seam a real dictation calls once a sentence finishes. `Widget` is used only through its own public API (`new Widget({...})`, `deliver`/`history`/`say`/`sync`) — the microphone, the engine choice and the error wording are `ux/Dictate`'s own job, not this rail's; see its [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
 
 		md("**Desktop is untouched.** At 1920 the rail simply does not exist — no reserved space, no hidden bar, nothing to undo:");
 
@@ -59,13 +59,13 @@ export default new Page({
 
 		h2("What a plain page's sentence goes through");
 
-		md("The default sheet is a class chain, each link kept reachable rather than deleted when the next one landed: `DrawerRailSheetV1` (opening, closing, wiring the mic, and the one thing that never changed — a CARD page's sentence always goes straight into that card's own persisted thread) → `DrawerRailSheet` adds the links footer and **New session** → `DrawerRailSheetPanel`, today's default, swaps the hand-wired mic-only build for `ChatPanel` and, on a PLAIN page only, sends the sentence into a real voice session instead of the old page-ai bridge:");
+		md("The default sheet is a class chain, each link kept reachable rather than deleted when the next one landed: `DrawerRailSheetV1` (opening, closing, wiring the mic, and the one thing that never changed — a CARD page's sentence always goes straight into that card's own persisted thread) → `DrawerRailSheet` adds the links footer and **New session** → `DrawerRailSheetPanel`, today's default, swaps the hand-wired mic-only build for [`ux/Dictate`'s `Widget`](/framework/ux/Dictate/) and, on a PLAIN page only, sends the sentence into a real voice session instead of the old page-ai bridge:");
 
 		code.js(`// ext/drawer/rail.js — DrawerRailSheetPanel, the plain-page path
 async voice_deliver(entry){
     await this.ensure_session();               // start() on the FIRST sentence only
     const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via });
-    this.panel.say({ chat: { at: r.at, session: this.session, ..., from: { kind: "owner" }, text: entry.text } });
+    this.panel.retag(entry.at, r.at);   // the widget already drew the bubble locally; this rekeys it
     return true;
 }`);
 

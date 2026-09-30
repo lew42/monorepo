@@ -2,7 +2,9 @@ import { View, div, span, button } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
-import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
+import Widget from "/framework/ux/Dictate/Widget.js";
+import DrawerInbox from "./inbox.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
 // seam below reads `Session.resume` only if it exists (`typeof ... ===
 // "function"`), and a named import of an export the module does not have yet
@@ -13,7 +15,7 @@ import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 import * as Session from "/framework/ext/Session/Session.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
-const { start, say, nav, watch, stream, report_quiet } = Session;
+const { start, say, nav, watch, stream, report_quiet, react } = Session;
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -674,17 +676,18 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 	}
 }
 
-/** THE PANEL SHEET — the new default (`ChatPanel`, `ai/2026-09-29/audio/c-chat/`):
- *  the exact same log-plus-composer-plus-mic widget the desktop drawer's AI tab
- *  now builds (`ext/drawer/tabs/ai.js`), instead of this sheet's own hand-wired
- *  mic-only build — "we need a consistent chat widget… whether it's in a desktop
- *  sidebar or a mobile sheet" (the owner, 2026-09-29). Everything else
- *  `DrawerRailSheetV1` gave the sheet is kept: the mic starts listening the
- *  instant the sheet opens (`start_mic()`, called from `open()`), every finished
- *  sentence still shows as its own thing — now a chat bubble ChatPanel draws,
- *  rather than a bespoke "prompt item" card, the same unification the drawer's
- *  AI tab makes — and the links footer (inherited from `DrawerRailSheet`) still
- *  reaches Sessions, Dictation, Settings and the full drawer.
+/** THE PANEL SHEET — the new default (`Widget`, `ux/Dictate/Widget.js`, round 3 of
+ *  `ai/2026-09-30/audio-consolidate/`): the exact same bubbles-plus-composer-plus-mic
+ *  widget the desktop drawer's AI tab now builds too (`ext/drawer/tabs/ai.js`), instead
+ *  of a second hand-wired mic-only build — "we need a consistent chat widget… whether
+ *  it's in a desktop sidebar or a mobile sheet" (the owner, 2026-09-29; `ChatPanel`
+ *  (`ext/Chat/ChatPanel.js`) answered that call first, `Widget` replaces it here once
+ *  `ux/Dictate` grew its own `deliver`/`history`/`say`/`sync` hooks for the job — no
+ *  second composer implementation left). Everything else `DrawerRailSheetV1` gave the
+ *  sheet is kept: the mic starts listening the instant the sheet opens (`start_mic()`,
+ *  called from `open()`), every finished sentence still shows as its own bubble — and
+ *  the links footer (inherited from `DrawerRailSheet`) still reaches Sessions,
+ *  Dictation, Settings and the full drawer.
  *
  *  `--chatbox-panel-max: 70vh` (rail.css) — the sheet itself is already capped
  *  at `max-block-size: 70vh` (rail.css, pre-existing), so the panel can just use
@@ -692,18 +695,25 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
  *
  *  ⚠ A card CHANGE (the reader keeps the sheet open while navigating to a
  *  different card) rebuilds the panel whole, which restarts its mic for a beat —
- *  a known, accepted trade, not a bug to chase here: `ChatPanel` owns its log,
- *  composer and mic as ONE piece on purpose (deliverable 1 of this same task),
- *  so there is no seam to swap only the log's source without giving the panel a
- *  second, larger API than the brief asked for. `start_mic()` restarts listening
- *  right after every rebuild, so the gap is a beat, never a silence. */
+ *  a known, accepted trade, not a bug to chase here: `Widget` owns its thread,
+ *  composer and mic as ONE piece on purpose, so there is no seam to swap only the
+ *  log's source without giving the widget a second, larger API than it needs.
+ *  `start_mic()` restarts listening right after every rebuild, so the gap is a
+ *  beat, never a silence.
+ *
+ *  `Widget` now has the same `answer`/`marks` seam `ChatPanel` did (restored round 4,
+ *  `ai/2026-09-30/audio-consolidate/minion-wire/`): the resume offer below
+ *  (`offer_resume()`) calls `panel?.say({type: "ask", ...})`, `Widget` draws it as a
+ *  choice-button card, and a tap calls `on_resume_choice()` below, same as before the
+ *  widget swap. `Session.resume` still has to be live for the offer to ever show
+ *  (`offer_resume()`'s own gate) — that part is unchanged. */
 export class DrawerRailSheetPanel extends DrawerRailSheet {
-	// The resize handle is inherited behaviour, not ChatPanel's — `handle()`,
+	// The resize handle is inherited behaviour, not the widget's own — `handle()`,
 	// `size()` and the storage helpers all live on `DrawerRailSheetV1` (this
 	// class's own grandparent) and don't care what fills the sheet below them,
 	// only the sheet's OWN box (`this.el`, `this.style`). This class overrides
 	// `render()`/`open()`/`close()` wholesale (no `super.render()`/`super.open()`
-	// call — ChatPanel's `$slot` replaces V1's `$thread`/`$mic` entirely), so
+	// call — `Widget`'s `$slot` replaces V1's `$thread`/`$mic` entirely), so
 	// without restating these two calls here the resize handle would silently
 	// stop reaching the sheet everyone actually uses (`DrawerRail.Sheet` below)
 	// the moment this class landed — caught merging grip-everywhere against this
@@ -711,6 +721,10 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	render(){
 		this.head();
 		this.handle();
+		// THE PAGE'S INBOX (page-inbox, 2026-09-30), just above the widget — the same
+		// notes the desktop drawer's AI tab shows (`ext/drawer/tabs/ai.js`), so a note
+		// left for this page is seen here too, not only on a desktop screen.
+		new DrawerInbox({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		// The links row is hidden until "More" in the head is tapped
 		// (sheet-regression, 2026-09-30): the conversation and the mic come first.
@@ -748,23 +762,19 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		return this;
 	}
 
-	stop_mic(){
-		const mic = this.panel?.compose?.mic;
-		if (mic?.active?.()) mic.stop();
-	}
+	stop_mic(){ this.panel?.stop_mic(); }
 
 	// Not while `quiet` — a sheet the url reopened (a reload, the phone's
 	// forward) waits for the reader to tap the mic.
 	start_mic(){
 		if (this.quiet) return;
-		const mic = this.panel?.compose?.mic;
-		if (mic && !mic.active?.()) mic.start();
+		this.panel?.start_mic();
 	}
 
-	// Every real in-app route change while a PLAIN page's voice session is open,
-	// reported once (`nav()`) — a no-op on a card page (voice sessions never touch
-	// those) and a no-op until a session actually exists (deliverable 2: a route
-	// change alone never starts one). Deferred a tick, the same reason `tabs.js`'s
+	// Every real in-app route change while a session is open, reported once
+	// (`nav()`) — a no-op until a session actually exists (deliverable 2: a route
+	// change alone never starts one; true for a card's session too, round 4).
+	// Deferred a tick, the same reason `tabs.js`'s
 	// own `navigated()` is: `Router.go()` calls `pushState()` only AFTER this
 	// fires, so `drawer.page()` here is still the PAGE THE READER IS LEAVING until
 	// the very next task (`code` skill §7).
@@ -779,110 +789,108 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		});
 	}
 
-	// Same job as `DrawerRailSheetV1.sync_card()` (which thread the sheet shows)
-	// but ChatPanel has no seam to swap only a built panel's source — a card
-	// change rebuilds the whole panel (see the class doc above).
+	/* THE CARD BRANCH IS THE SESSION PAIR NOW (round 4, `ai/2026-09-30/audio-
+	 * consolidate/minion-wire/`, "ONE AI, NOT TWO" carried one step further — the
+	 * owner: "the drawer on the AI 2 page … does NOT use the per-session fast and
+	 * smart assistant pair … Make the AI 2 drawer and card pages use the SAME
+	 * widget and the SAME session pair as the ✦ sheet"). The old card route —
+	 * `card.chat_entries()` as `Widget`'s `history`, every sentence posted through
+	 * `tabs/ai.js`'s `send({card})` to Servex's PROMPT LOG — is gone; a card now
+	 * starts (or resumes) a real voice session, `Session.start({path, card})`,
+	 * exactly like a plain page, just with its home folder pinned to the card's
+	 * own (`ext/Session/Session.js`'s own doc). `build_voice_panel()`,
+	 * `ensure_session()`, `voice_deliver()` and `watch_session()` below now serve
+	 * BOTH branches — the only difference is `this.card_ref`, threaded through to
+	 * `start()` and used to pick the placeholder text and the resume-offer route
+	 * (`offer_recent()`). Until Servex is restarted with this session pair's own
+	 * `card` handling, the server ignores `card` and treats it as a plain page
+	 * session — the SEND still goes out and the sheet still shows it; only the
+	 * "same home folder as the card" part of the wire activates on that restart
+	 * (this task's own proof note). */
 	sync_card(){
 		const card = this.active_card();
 		const id = card?.id ?? null;
 		if (id === this.card_id && this.panel){ this.panel.sync(); this.start_mic(); return; }
 		this.card_id = id;
 		this.card_ref = card;
-		const token = this.sync_token = (this.sync_token ?? 0) + 1;
-		// `say()` (the card's button-answer route) is only ever needed on a card —
-		// lazily loaded, same reasoning as `DrawerRailSheetV1.sync_card()`'s own
-		// lazy `ai2/chat.js` import: most opens of this sheet are on a plain page.
-		(card ? import("/framework/ai2/compose.js") : Promise.resolve(null)).then(mod => {
-			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
-			const say = mod?.say;
-			if (card){
-				this.$slot.empty(() => {
-					// ⚠ THE LINE MINION B EXTENDS with a revise-level argument (the same
-					// note `tabs/ai.js` carries): `ChatPanel` builds its own composer, and
-					// the composer builds the microphone (`Composer.js` → `ComposerMic`) —
-					// this call is where that chain starts for the mobile sheet.
-					this.panel = new ChatPanel({
-						source: () => card.chat_entries(),
-						answer: choice => say(choice, card.id),
-						re: () => card.id,
-						marks: true,
-						placeholder: "talk into this card",
-						sent: "sent — the reply lands in the thread above",
-						failed: "Servex is not answering, so nothing was sent",
-						deliver: async entry => {
-							const ok = (await import("./tabs/ai.js").then(m => m.send({ card: card.id, text: entry.text, via: entry.via }))).ok;
-							this.panel.sync();
-							return ok;
-						},
-					});
-				});
-				this.start_mic();
-			} else {
-				this.build_voice_panel();
-			}
-			// Measured AGAIN now the panel exists: `open()`'s own `size()` ran before this
-			// import resolved, saw only the head and the links (146 px), and froze the sheet
-			// there with no composer showing (voice-fixes, reviewing the grip hand-merge).
-			this.size();
-		});
+		this.build_voice_panel();
 	}
 
-	/* THE PLAIN-PAGE PANEL — a real voice session (`ext/Session/Session.js`), not
-	 * the page-ai bridge (voice-on-panel, 2026-09-29: re-applying the same switch
-	 * `DrawerRailSheetVoice` made on the old hand-wired sheet, now on top of
-	 * `ChatPanel`). No `source` is given — `ensure_session()`/`voice_deliver()`
-	 * below feed the panel's own local list through `panel.say({chat: ...})`,
-	 * using the EXACT universal chat line shape `ext/Session`'s own file already
-	 * writes (`{chat: {at, session, path, from, via, text, re}}`), which
-	 * `ext/Chat/Chat.js`'s `chat_line()` already knows how to draw — a fast and a
-	 * smart reply need no translation, just a pass-through. */
+	/* THE PANEL — one build for a plain page AND a card (round 4 merged the two):
+	 * a real voice session (`ext/Session/Session.js`), never the old page-ai
+	 * bridge or the card's prompt-log route. No `history` is given — `Widget.
+	 * submit()` already draws the owner's own bubble at once (a local `at`);
+	 * `voice_deliver()` below `retag()`s it to the server's real `at` once
+	 * `say()` answers, and the session-file watch (`watch_session()`) then reads
+	 * that SAME line back off disk — `own_ats` (set there, now keyed by the
+	 * server `at`) is what stops the watch drawing it a second time. A reply
+	 * lands the same way, through `panel.say({chat: ...})` — the EXACT universal
+	 * chat line shape `ext/Session`'s own file already writes, which needs no
+	 * translation. A card opened for the first time in this tab starts with an
+	 * EMPTY thread (no session exists yet to read a history from) — a known,
+	 * named gap, not a silent one: the card's own Overview (`ai2/card.js`) is
+	 * still the permanent record; this sheet is a second way to talk into it. */
 	build_voice_panel(){
-		// THE DOUBLE LINE (voice-fixes, review phase 1): `voice_deliver()` below draws
-		// the owner's own line at once, using the server's `at`; the session-file
-		// watch (`watch_session()`) then reads that same line back off disk and draws
-		// it again. This Set remembers every `at` this panel already drew locally, so
-		// the watch can skip it instead of doubling the bubble.
 		this.own_ats = new Set();
 		this.force_fresh ??= false;
 		this.$slot.empty(() => {
-			this.panel = new ChatPanel({
-				placeholder: "say something",
-				sent: "sent",
-				failed: "not sent",
+			// THE CHAT HITL SEAM (round 4, same as before) — the resume offer's line
+			// (`offer_recent()`/`offer_resume()` below) shows and answers through
+			// `on_resume_choice()`; every owner line also gets its ✓/`?` mark.
+			this.panel = new Widget({
+				placeholder: this.card_ref ? "talk into this card" : "say something",
 				marks: true,
 				answer: choice => this.on_resume_choice(choice),
 				deliver: entry => this.voice_deliver(entry),
+				// A reaction is saved as a line in the session's own log, so it survives a reload.
+				threads: true,
+				react: r => this.session ? react({ session: this.session, ...r }) : Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
 			});
 		});
 		this.start_mic();
 		if (!this.session) this.offer_recent();
+		// Measured AGAIN now the widget exists — `open()`'s own `size()` ran before
+		// this had a panel at all and saw only the head and the links (voice-fixes,
+		// reviewing the grip hand-merge).
+		this.size();
 	}
 
-	/* THE RESUME LINE ON OPEN (voice-fixes item 5): before a word is said, the page's
-	 * newest session shows as ONE tappable line, "<title> · 1 day ago". `recent()`
-	 * spawns nothing, so this costs one GET. A session that spoke within the hour is
-	 * continued by `start()` itself on the first sentence, tapped or not. */
+	/* THE RESUME LINE ON OPEN (voice-fixes item 5): before a word is said, this
+	 * page's (or this CARD's) newest session shows as ONE tappable line, "<title>
+	 * · 1 day ago". Neither call spawns anything — a plain page asks `Session.
+	 * recent()`; a card asks the SAME route by hand (`GET /api/sessions?card=
+	 * <id>&limit=1` — `Session.recent()` itself only takes a `page`, and it is
+	 * not ours to edit to add a second query shape). A session that spoke within
+	 * the hour is continued by `start()` itself on the first sentence, tapped or not. */
 	offer_recent(){
-		if (typeof Session.recent !== "function") return;
+		const card = this.card_ref?.id;
+		const ask = card
+			? fetch(servex_url(`/api/sessions?card=${encodeURIComponent(card)}&limit=1`), { cache: "no-store" })
+				.then(r => r.json()).then(out => out.ok ? out.sessions : [])
+			: (typeof Session.recent === "function" ? Session.recent(drawer.page(), { limit: 1 }) : Promise.resolve([]));
 		const panel = this.panel;
-		Session.recent(drawer.page(), { limit: 1 }).then(([row]) => {
+		ask.then(([row]) => {
 			if (!row || this.session || this.panel !== panel) return;
 			this.offer_resume({ session: row.session, title: row.title, summary: row.summary, at: row.last_at ?? row.at });
 			requestAnimationFrame(() => this.size());   // grow to show the line (a height the reader dragged to still wins)
 		}).catch(() => {});
 	}
 
-	/* Read the tab's saved session first (survives a reload on the same tab);
-	 * only `start()` a new one when there is none yet — and only EVER called from
-	 * `voice_deliver()`, itself only called once a sentence has actually finished,
-	 * so opening the sheet or pressing "New session" alone never starts one
-	 * (deliverable 2: `start()` spawns two real agents, about 600 MB, so it
-	 * happens on the FIRST SENTENCE ONLY). */
+	/* Read the tab's saved session first (survives a reload on the same tab, AND
+	 * a "leave the card, come back" that lands on the SAME card again — `saved.
+	 * card` is checked against the card open right now so a page's session is
+	 * never handed to a card or vice versa); only `start()` a new one when there
+	 * is none yet, or the saved one belongs to a different card/page — and only
+	 * EVER called from `voice_deliver()`, itself only called once a sentence has
+	 * actually finished, so opening the sheet or pressing "New session" alone
+	 * never starts one (deliverable 2: `start()` spawns two real agents, about
+	 * 600 MB, so it happens on the FIRST SENTENCE ONLY). */
 	async ensure_session(){
-		if (this.card_ref || this.session) return;
+		if (this.session) return;
+		const card = this.card_ref?.id ?? null;
 		try {
 			const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
-			if (saved?.session && saved?.file){
+			if (saved?.session && saved?.file && (saved.card ?? null) === card){
 				this.session = saved.session; this.session_file = saved.file; this.nav_path = drawer.page();
 				this.watch_session();
 				return;
@@ -890,9 +898,9 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		} catch {}
 		try {
 			const fresh = this.force_fresh; this.force_fresh = false;
-			const made = await start({ path: drawer.page(), fresh });
+			const made = await start({ path: drawer.page(), card, fresh });
 			this.session = made.session; this.session_file = made.file; this.nav_path = drawer.page();
-			try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: made.session, file: made.file })); } catch {}
+			try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: made.session, file: made.file, card })); } catch {}
 			this.watch_session();
 			this.offer_resume(made.previous);
 		} catch {}   // left with no session — `voice_deliver()` below fails the send instead
@@ -906,7 +914,9 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		// likely already drawn once, at once, by `voice_deliver()` below, using the
 		// exact `at` the server assigned — `this.own_ats` (set there) is what stops
 		// this watch drawing that exact line a second time.
+		// A `react` line (the owner's or an assistant's tap-back) is handed over as it is.
 		const draw = line => {
+			if (line?.react) return void this.panel?.say({ react: line.react });
 			if (!line?.chat) return;
 			if (this.own_ats?.has(line.chat.at)) return;
 			this.panel?.say({ chat: line.chat });
@@ -932,20 +942,24 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	}
 
 	/* A PLAIN page's finished sentence — `ensure_session()` starts (or resumes)
-	 * one on the first sentence only, `say()` sends this one, and the owner's own
-	 * bubble is drawn at once using the server's own `at` (see `watch_session()`
-	 * above for why that never doubles up once the poll reads the same line back). */
+	 * one on the first sentence only, `say()` sends this one. `Widget.submit()`
+	 * already drew the owner's own bubble, under a LOCAL `at`, before `deliver`
+	 * (this method) even started — `retag()` rekeys it to the server's real
+	 * `at` (see `watch_session()`'s own note for why that never doubles up once
+	 * the poll reads the same line back). */
 	async voice_deliver(entry){
 		try {
 			await this.ensure_session();
 			if (!this.session) return false;
-			const via = entry.via === "whisper" ? "voice" : "text";
+			const via = entry.via === "typed" ? "text" : "voice";
 			// THE FLOOR (ext/Chat/doc/floor.md): `stamp()` leaves an entry that already has
 			// `floor` alone, and stamps one that doesn't from the mic's live level meter.
 			floor.stamp(entry);
-			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via, raw: entry.raw, floor: entry.floor, cues: entry.cues });
+			// A threaded reply (the panel's Reply button) carries its parent as `re` + `thread`.
+			const thread = entry.thread ? { re: entry.thread, thread: true } : {};
+			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via, raw: entry.raw, floor: entry.floor, cues: entry.cues, ...thread });
 			this.own_ats?.add(r.at);
-			this.panel?.say({ chat: { at: r.at, session: this.session, path: drawer.page(), from: { kind: "owner" }, via, text: entry.text } });
+			this.panel?.retag(entry.at, r.at);
 			if (entry.floor === "speaking") this.watch_floor();
 			return true;
 		} catch {
@@ -1001,20 +1015,18 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		Session.resume(previous.session).then(made => {
 			this.forget_session();
 			this.session = made.session; this.session_file = made.file; this.nav_path = drawer.page();
-			try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: made.session, file: made.file })); } catch {}
+			try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: made.session, file: made.file, card: this.card_ref?.id ?? null })); } catch {}
 			this.watch_session();
 		}).catch(() => {});
 	}
 
-	/* NEW SESSION on a PLAIN page — drops the stored voice session id and stops
-	 * watching it, then rebuilds a fresh, empty panel; it does NOT `start()` a
-	 * new session here (that would spawn two agents on a tap nobody has said
-	 * anything into yet). The next sentence said is what actually calls
-	 * `start()`, through `voice_deliver()` → `ensure_session()`. On a CARD page:
-	 * unchanged (`DrawerRailSheet.new_session()`'s own reset of the card's
-	 * assistant, via the page-ai bridge — voice sessions never touch a card). */
+	/* NEW SESSION — drops the stored voice session id and stops watching it, then
+	 * rebuilds a fresh, empty panel. Works the same on a plain page AND a card
+	 * now (round 4: both are a real session — see `sync_card()`'s own doc above);
+	 * it does NOT `start()` a new session here (that would spawn two agents on a
+	 * tap nobody has said anything into yet). The next sentence said is what
+	 * actually calls `start()`, through `voice_deliver()` → `ensure_session()`. */
 	new_session(){
-		if (this.card_ref) return super.new_session();
 		this.forget_session();
 		this.force_fresh = true;   // the next sentence's ensure_session() must not resume the last hour's session
 		this.build_voice_panel();
