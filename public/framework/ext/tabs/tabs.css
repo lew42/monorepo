@@ -129,8 +129,10 @@
 	     selected tab to cut back to whatever its content sits on. */
 	.tabs.block > .tab-bar { border-bottom: none; }
 
-	/* carries the rule past the last tab; collapses to nothing once the strip scrolls */
-	.tabs.block > .tab-bar::after { content: ""; flex: 1; border-bottom: 1px solid var(--line); }
+	/* carries the rule past the last tab; collapses to nothing once the strip scrolls.
+	   `order` keeps it LAST even when a host reorders its tabs with `order` (AI 2 does):
+	   without it the filler sorts first and pushes every tab flush right (page-audit, 2026-09-30). */
+	.tabs.block > .tab-bar::after { content: ""; flex: 1; order: 9999; border-bottom: 1px solid var(--line); }
 
 	/* Folder tabs wear the scale's `h4` — the annotation level, which is what a strip of
 	   section labels is. ⚠ Restated rather than handed to the element as `.h4`: the
