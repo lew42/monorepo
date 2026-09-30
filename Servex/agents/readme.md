@@ -146,8 +146,10 @@ bug before proving the fix.
 
 ## Roles and the registry
 
-`spawn_agent({role})` looks `role` up in [`roles.js`](./roles.js) — the six roles on
-[the tiers page](/framework/ai/2026-09-22/tiers-design/doc/roles.md) — for the skill it loads
+`spawn_agent({role})` looks `role` up in [`roles.js`](./roles.js) — every row is on
+[the roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md), reconciled 2026-09-29 with
+the per-voice-session pair (`session-fast`, `session-smart`) and the not-yet-built directory
+mastermind; "manager" and "master assistant" are retired words there now — for the skill it loads
 before the agent's first turn (`minion` → the `minion` skill, and so on) and the
 model/effort/permission-mode a caller doesn't name; a caller's own fields always win. Every
 spawn and every state change writes `{id, role, name, topics, page, state, visibility,
