@@ -443,6 +443,11 @@
 		box-sizing: border-box;
 		font: inherit;
 		line-height: 1;
+		/* ⚠ Measured 8×38 px, a tall oval (the owner, 2026-09-30): the row head is a flex
+		   row that stretches its items, and buttons carry a touch-target minimum height. */
+		align-self: flex-start;
+		min-block-size: 0;
+		block-size: 0.5em;
 	}
 
 	/* ASK 2, "bold/different": an unread row's own title, not just its dot — the dot alone
