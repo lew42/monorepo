@@ -6,7 +6,7 @@
 
 | Step | Command | What it asks for |
 |---|---|---|
-| 1 | `create` | the question (one plain sentence, ending in `?`), the rank (1 = most foundational), and `--depends-on parent:option` if this decision only matters when that option is chosen |
+| 1 | `create` | the question (one plain sentence, ending in `?`), the rank (1 = most foundational), `--depends-on parent:option` if this decision only matters when that option is chosen, and `--owner-only "<reason>"` if only the owner may pick (a key, money, something destructive) |
 | 2 | `options` | at least two options. You can give them all at once. |
 | 3 | `caveats` | at least one caveat for every option: what it costs or risks |
 | 4 | `then` | for every option, the decisions that follow from it, or none (an empty list) |
@@ -36,9 +36,13 @@ node Server/decide.mjs show d-host --file $F        # status <id> = just what's 
 
 ## The record
 
-`id, question, rank, options:[{id, text, caveats, then}], recommended, confidence, why, sources, depends_on, status, decided_by, by, at`, plus `ask` (= question) and each option's `say` (= text) and `caveat` (= caveats joined). Those three extra fields let the older `Decision` view and collab's decision shape read the record without changes.
+`id, question, rank, options:[{id, text, caveats, then}], recommended, confidence, why, sources, depends_on, status, decided_by, owner_only, by, at`, plus `ask` (= question) and each option's `say` (= text) and `caveat` (= caveats joined). Those three extra fields let the older `Decision` view and collab's decision shape read the record without changes.
 
-**Deciding is one line, and only one kind of line.** decide.mjs writes every decision as `status: "open"`, `decided_by: null`. It proposes and recommends; it never decides. A choice is a `chose` line, `{"chose":{"decision","option","at","by"}}`, written when someone clicks an option on the card. The view treats the latest `chose` line for a decision as the decision and shows "Decided by <by>". `recommend` has no `--status` or `--decided-by` flag, so the same choice can't be recorded in two places that might disagree.
+**Decided by default (the owner, 2026-09-29).** Nothing waits on the owner unless the decision is truly theirs — a key, money, something destructive. A finished decision is written `status: "decided"`, `decided_by: "system"`: the recommended option is the one the system already chose, and its siblings are the alternatives it considered, sitting right there with their caveats — "we did X; alternatives: Y, Z; if X fails, try Y" is the shape, not a separate field. Build the recommended path the same cycle; don't stop and wait for the card to be clicked.
+
+Flag the rare decision that really is the owner's alone with `--owner-only "<reason>"` on `create` or `recommend` (e.g. `--owner-only "key"`). That one is written `status: "open"`, `decided_by: null`, `owner_only: "key"`, and stays open until a real `chose` line picks an option.
+
+**A `chose` line always wins, either way.** `{"chose":{"decision","option","at","by"}}`, written when someone clicks an option on the card — the system's own default is just what shows before anyone has. The view treats the latest `chose` line for a decision as the decision and shows "Decided by <by>" — an owner's click reads as "Decided by owner", overriding the system's default the same way it overrides an open, owner-only one. `recommend` has no `--status` or `--decided-by` flag, so the same choice can't be recorded in two places that might disagree.
 
 ## As a module
 

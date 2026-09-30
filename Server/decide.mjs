@@ -6,7 +6,13 @@
 // answers `{ok, id, next, missing}`: what is still missing, in the order to give it. A call with a
 // missing or bad part is refused with the reason and a non-zero exit.
 //
-//   node Server/decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--id d-x] [--depends-on d-parent:option-id]
+// Decided by default: a finished decision is written `status: "decided"`, `decided_by: "system"` —
+// the recommended option, with the alternatives it passed over right beside it. Pass
+// `--owner-only "<reason>"` (create or recommend) only for the rare decision that is truly the
+// owner's alone — a key, money, something destructive — and it stays `status: "open"` until a real
+// `chose` line picks an option.
+//
+//   node Server/decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--id d-x] [--depends-on d-parent:option-id] [--owner-only "reason"]
 //   node Server/decide.mjs options   --file … --id d-x --option "text" --option "text"
 //   node Server/decide.mjs caveats   --file … --id d-x --option a --caveat "…" [--caveat "…"]
 //   node Server/decide.mjs then      --file … --id d-x --option a [--child d-y]…   (no --child = nothing follows)
@@ -156,12 +162,22 @@ function next_step(d, m){
 
 /* ── the record written to the log: the new fields AND the old view's (`ask`, `say`, `caveat`) ── */
 
+/* Decided by default (the owner, 2026-09-29): nothing waits on the owner unless the decision is
+ * truly theirs — a key, money, something destructive. That kind is flagged `owner_only` (e.g.
+ * `owner_only: "key"`) and stays `status: "open"` until a real `chose` line picks an option. Every
+ * other decision is written already `status: "decided"`, `decided_by: "system"` — the recommended
+ * option is the one the system chose, the rest are the alternatives it considered, right there in
+ * the same record. A `chose` line still overrides it at any time (the card decides, and its latest
+ * `chose` line always wins — see Decision.js): the owner can click a different option, and that
+ * becomes `decided_by: "owner"`. */
 function record(d, by){
+	const owner_only = d.owner_only ? String(d.owner_only) : null;
 	return { decision: {
 		id: d.id, question: d.question, ask: d.question, rank: d.rank,
 		options: d.options.map(o => ({ id: o.id, text: o.text, say: o.text, caveats: o.caveats, caveat: o.caveats.join(" "), then: o.then })),
 		recommended: d.recommended, confidence: d.confidence, why: d.why, sources: d.sources,
-		depends_on: d.depends_on ?? null, status: "open", decided_by: null,	// deciding = a `chose` line, written by the card
+		depends_on: d.depends_on ?? null,
+		status: owner_only ? "open" : "decided", decided_by: owner_only ? null : "system", owner_only,
 		by: by ?? d.by ?? null, at: now(),
 	} };
 }
@@ -208,7 +224,8 @@ export function create(file, a){
 		if (drafts[decision]) { o.then = [...new Set([...(o.then ?? []), id])]; }
 	}
 
-	const d = drafts[id] = { id, question, rank, depends_on, options: [], by: a.by };
+	const owner_only = a.owner_only ? String(a.owner_only) : null;
+	const d = drafts[id] = { id, question, rank, depends_on, options: [], by: a.by, owner_only };
 	const res = settle(file, drafts, d, a.by);
 	return a.options ? options(file, { id, options: a.options, by: a.by }) : res;
 }
@@ -270,6 +287,7 @@ export function follow(file, a){
 
 export function recommend(file, a){
 	const drafts = read_drafts(file), d = get_draft(drafts, file, a.id);
+	if (a.owner_only != null) d.owner_only = String(a.owner_only) || null;
 	if (a.option ?? a.recommended) { get_option(d, a.option ?? a.recommended); d.recommended = a.option ?? a.recommended; }
 	if (a.confidence != null) {
 		const c = Number(a.confidence);
@@ -323,11 +341,11 @@ export const verbs = { create, options, caveats, then: follow, recommend, status
 
 /* The flags each verb knows; anything else is refused with this list, never silently kept. */
 export const FLAGS = {
-	create:    ["file", "json", "by", "id", "question", "rank", "depends-on"],
+	create:    ["file", "json", "by", "id", "question", "rank", "depends-on", "owner-only"],
 	options:   ["file", "json", "by", "id", "option", "options"],
 	caveats:   ["file", "json", "by", "id", "option", "caveat", "caveats"],
 	then:      ["file", "json", "by", "id", "option", "child", "then"],
-	recommend: ["file", "json", "by", "id", "option", "confidence", "why", "source", "sources"],
+	recommend: ["file", "json", "by", "id", "option", "confidence", "why", "source", "sources", "owner-only"],
 	status: ["file", "id"], show: ["file", "id"], drop: ["file", "id"], list: ["file"],
 };
 const JSON_FLAGS = new Set(["json", "options", "caveats", "then", "sources"]);	// parsed when the value starts with [ or {

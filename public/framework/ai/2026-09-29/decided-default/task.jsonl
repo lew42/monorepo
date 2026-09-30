@@ -1,0 +1,21 @@
+{"assign":{"session_id":"ac9d10f5-884b-4101-abb0-291c1cf70963","agent":"minion-decided-default","card":"live","model":"claude-sonnet-5","requested_at":"2026-09-29T20:15:20-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-09-29T20:15:24-05:00","msg":"skill: minion"}}
+{"log":{"at":"2026-09-29T20:15:27-05:00","msg":"skill: code"}}
+{"log":{"at":"2026-09-29T20:15:27-05:00","msg":"skill: decide"}}
+{"log":{"at":"2026-09-29T20:18:58-05:00","msg":"session resumed"}}
+{"assign":{"steps":["decide.mjs: default status decided, decided_by system, owner_only flag","update decide-selftest.mjs for new default + owner_only case","update decide skill + Server/doc/decide.md","check mastermind/sub-mastermind skills for owner-gate language","Decision.js: system-default chosen, toggle/unchoose, scroll-safe tap","decision.css: distinguish chosen-by-system vs your-choice","doc/shape.md update","trace who acts on a chose line today; card_reply on owner-words card","hold+screenshot proof, merge, commit, finish-task"],"step":1}}
+{"action":{"at":"2026-09-29T20:19:23-05:00","did":"edit","files":["Server/decide.mjs"]}}
+{"action":{"at":"2026-09-29T20:20:11-05:00","did":"edit","files":["Server/doc/decide.md"]}}
+{"action":{"at":"2026-09-29T20:20:29-05:00","did":"edit","files":[".claude/skills/decide/SKILL.md"]}}
+{"action":{"at":"2026-09-29T20:20:54-05:00","did":"edit","files":["public/framework/ux/Content/Decision/Decision.js"]}}
+{"action":{"at":"2026-09-29T20:22:08-05:00","did":"edit","files":["public/framework/ux/Content/Decision/decision.css"]}}
+{"action":{"at":"2026-09-29T20:22:18-05:00","did":"edit","files":["public/framework/ux/Content/Decision/doc/shape.md"]}}
+{"action":{"at":"2026-09-29T20:22:36-05:00","did":"edit","files":["public/framework/ux/Content/Decision/readme.md"]}}
+{"log":{"at":"2026-09-29T20:22:54-05:00","msg":"skill: ui-test"}}
+{"assign":{"step":5,"now":"widget fix + proof done; tracing who acts on a chose line"}}
+{"decision":{"id":"owner-only-flag-shape","at":"2026-09-29T20:40:00-05:00","about":"How does an agent mark a decision as the owner's alone?","options":[{"id":"flag","say":"--owner-only \"<reason>\" on create/recommend","why":"one small opt-in, keeps every other decision decided-by-default"},{"id":"verb","say":"a separate owner-only verb","why":"more explicit but doubles the walk's surface for a rare case"}],"chose":"flag","because":"less surface; a decision is owner-only by exception, not by a whole separate path.","rule":"code#8","status":"open"}}
+{"decision":{"id":"undo-tap-target","at":"2026-09-29T20:40:00-05:00","about":"Where does clearing an owner's own override land?","options":[{"id":"default","say":"back to the system's own pick","why":"the record is still status:decided — reverting to nothing chosen would misrepresent it as undecided"},{"id":"nothing","say":"nothing chosen at all","why":"simpler, but wrong for a record the system already settled"}],"chose":"default","because":"a decide.mjs record is never actually undecided; clearing an override just un-does the OWNER's part, not the system's.","rule":"code#7","status":"open"}}
+{"decision":{"id":"scroll-guard-placement","at":"2026-09-29T20:40:00-05:00","about":"Where does the scroll-safe tap guard live?","options":[{"id":"local","say":"inside Decision.Option's own wire()","why":"no new reserved word on View; only this widget changes"},{"id":"core","say":"a new View.tap() method","why":"reusable, but a new View method is a reserved word for every page's config (code#7)"}],"chose":"local","because":"code skill #7 warns a new core View method becomes a config reserved word for every page; this bug is local to one widget.","rule":"code#7","status":"open"}}
+{"log":{"at":"2026-09-29T20:41:00-05:00","msg":"caveat: edited public/framework/ux/Content/Decision/{Decision.js,decision.css,readme.md,doc/shape.md} without a reload hold first (should have held --paths for that dir). Verified after the fact: node --check passed, and the headless proof test (real browser, real import of Decision.js) rendered and worked with zero console errors, so no live breakage happened — but the hold step was skipped and should not be next time."}}
+{"log":{"at":"2026-09-29T20:29:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-09-29T20:29:44-05:00","msg":"session resumed"}}

@@ -8,6 +8,13 @@
 	.ux-content-sources { color: var(--subtle); font-size: .85em; }
 	.ux-content-recommended::before { content: "★ "; }
 
+	/* Same border, same ground, same "chosen" shape (the owner, 2026-09-29: keep the look) — only
+	   the mark's own wording tells the two apart ("chosen by the system" vs "your choice"), and
+	   this dashes the border so a screenshot at a glance still shows which is which. An owner's
+	   real tap keeps the solid border the option's base rule already draws. */
+	.ux-content-system-chosen.ui-decision-option { border-style: dashed; }
+
+
 	/* An option's child decisions: full width below the option row, one block per option, on a
 	   tinted ground with a rule on the left; the label names the option they follow. */
 	.ux-content-then {

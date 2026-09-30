@@ -1,0 +1,621 @@
+[
+ {
+  "n": 1,
+  "step": "goto",
+  "verb": "goto",
+  "args": [],
+  "png": "01-goto.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [
+   "missing #probe-host"
+  ],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": null,
+    "after": null,
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 2,
+  "step": "eval (async () => { const { default: Decision } = await import('/framework/ux/Content/Decision/Decision.js'); document.querySelectorAll('#probe-host').forEach(e => e.remove()); const host = document.createElement('div'); host.id = 'probe-host'; host.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;overflow:auto;padding:1em;'; document.body.appendChild(host); const d = new Decision({ id: 'd-probe', question: 'Which one?', ask: 'Which one?', rank: 1, confidence: 0.8, recommended: 'a', status: 'decided', decided_by: 'system', sources: ['demo'], why: 'A is simplest.', options: [ { id: 'a', text: 'A', caveats: ['Costs nothing.'] }, { id: 'b', text: 'B', caveats: ['Costs something.'] } ] }); host.appendChild(d.el); window.__d = d; return 'setup ok: ' + host.querySelector('.ui-decision-options').textContent.replace(/\\s+/g,' ').trim(); })()",
+  "verb": "eval",
+  "args": [
+   "(async () => { const { default: Decision } = await import('/framework/ux/Content/Decision/Decision.js'); document.querySelectorAll('#probe-host').forEach(e => e.remove()); const host = document.createElement('div'); host.id = 'probe-host'; host.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:99999;overflow:auto;padding:1em;'; document.body.appendChild(host); const d = new Decision({ id: 'd-probe', question: 'Which one?', ask: 'Which one?', rank: 1, confidence: 0.8, recommended: 'a', status: 'decided', decided_by: 'system', sources: ['demo'], why: 'A is simplest.', options: [ { id: 'a', text: 'A', caveats: ['Costs nothing.'] }, { id: 'b', text: 'B', caveats: ['Costs something.'] } ] }); host.appendChild(d.el); window.__d = d; return 'setup ok: ' + host.querySelector('.ui-decision-options').textContent.replace(/\\s+/g,' ').trim(); })()"
+  ],
+  "png": "02-eval.png",
+  "value": "setup ok: chosen by the systemACosts nothing.BCosts something.",
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": null,
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": null
+   }
+  }
+ },
+ {
+  "n": 3,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "03-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 4,
+  "step": "eval (() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'initial, before any tap', A: read(opts[0]), B: read(opts[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'initial, before any tap', A: read(opts[0]), B: read(opts[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()"
+  ],
+  "png": "04-eval.png",
+  "value": {
+   "moment": "initial, before any tap",
+   "A": {
+    "label": "A",
+    "chosen": true,
+    "system_look": true,
+    "mark": "chosen by the system"
+   },
+   "B": {
+    "label": "B",
+    "chosen": false,
+    "system_look": false,
+    "mark": null
+   },
+   "decided_by": "system",
+   "chosen": "A"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 5,
+  "step": "eval (() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); window.dispatchEvent(new Event('scroll')); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after a scroll fired mid-press on B (a scroll-through tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); window.dispatchEvent(new Event('scroll')); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after a scroll fired mid-press on B (a scroll-through tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()"
+  ],
+  "png": "05-eval.png",
+  "value": {
+   "moment": "after a scroll fired mid-press on B (a scroll-through tap)",
+   "A": {
+    "label": "A",
+    "chosen": true,
+    "system_look": true,
+    "mark": "chosen by the system"
+   },
+   "B": {
+    "label": "B",
+    "chosen": false,
+    "system_look": false,
+    "mark": null
+   },
+   "decided_by": "system",
+   "chosen": "A"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 6,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "06-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 7,
+  "step": "eval (() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x + 20, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x + 20, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after the touch moved 20px between press and release on B (a drag-through tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x + 20, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x + 20, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after the touch moved 20px between press and release on B (a drag-through tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()"
+  ],
+  "png": "07-eval.png",
+  "value": {
+   "moment": "after the touch moved 20px between press and release on B (a drag-through tap)",
+   "A": {
+    "label": "A",
+    "chosen": true,
+    "system_look": true,
+    "mark": "chosen by the system"
+   },
+   "B": {
+    "label": "B",
+    "chosen": false,
+    "system_look": false,
+    "mark": null
+   },
+   "decided_by": "system",
+   "chosen": "A"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 8,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "08-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 9,
+  "step": "eval (() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after one clean tap on B (a real, deliberate tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after one clean tap on B (a real, deliberate tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()"
+  ],
+  "png": "09-eval.png",
+  "value": {
+   "moment": "after one clean tap on B (a real, deliberate tap)",
+   "A": {
+    "label": "A",
+    "chosen": false,
+    "system_look": false,
+    "mark": "recommended"
+   },
+   "B": {
+    "label": "B",
+    "chosen": true,
+    "system_look": false,
+    "mark": "your choice"
+   },
+   "decided_by": "owner",
+   "chosen": "B"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 10,
+  "step": "wait 100",
+  "verb": "wait",
+  "args": [
+   "100"
+  ],
+  "png": "10-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 11,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "11-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 12,
+  "step": "eval (() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after tapping the now-chosen B again (undo tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()",
+  "verb": "eval",
+  "args": [
+   "(() => { const host = document.getElementById('probe-host'); const opts = [...host.querySelectorAll('.ui-decision-option')]; const B = opts.find(o => o.querySelector('.ui-decision-say').textContent.trim() === 'B'); const r = B.getBoundingClientRect(); const pt = { x: r.left + r.width/2, y: r.top + r.height/2 }; B.dispatchEvent(new PointerEvent('pointerdown', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new MouseEvent('click', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); B.dispatchEvent(new PointerEvent('pointerup', { clientX: pt.x, clientY: pt.y, bubbles: true, cancelable: true })); const opts2 = [...host.querySelectorAll('.ui-decision-option')]; const read = el => ({ label: el.querySelector('.ui-decision-say').textContent.trim(), chosen: el.classList.contains('chosen'), system_look: el.classList.contains('ux-content-system-chosen'), mark: el.querySelector('.ui-decision-mark') ? el.querySelector('.ui-decision-mark').textContent : null }); return { moment: 'after tapping the now-chosen B again (undo tap)', A: read(opts2[0]), B: read(opts2[1]), decided_by: window.__d.decided_by, chosen: window.__d.chosen }; })()"
+  ],
+  "png": "12-eval.png",
+  "value": {
+   "moment": "after tapping the now-chosen B again (undo tap)",
+   "A": {
+    "label": "A",
+    "chosen": true,
+    "system_look": true,
+    "mark": "chosen by the system"
+   },
+   "B": {
+    "label": "B",
+    "chosen": false,
+    "system_look": false,
+    "mark": null
+   },
+   "decided_by": "system",
+   "chosen": "A"
+  },
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 13,
+  "step": "wait 100",
+  "verb": "wait",
+  "args": [
+   "100"
+  ],
+  "png": "13-wait.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ },
+ {
+  "n": 14,
+  "step": "shot",
+  "verb": "shot",
+  "args": [],
+  "png": "14-shot.png",
+  "value": null,
+  "error": null,
+  "errors": [],
+  "flags": [],
+  "doc": {
+   "sw": 400,
+   "cw": 400,
+   "sh": 850,
+   "ch": 850
+  },
+  "rects": {
+   "#probe-host": {
+    "before": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "after": {
+     "x": 0,
+     "y": 0,
+     "w": 400,
+     "h": 850
+    },
+    "moved": {
+     "dx": 0,
+     "dy": 0,
+     "dw": 0,
+     "dh": 0
+    }
+   }
+  }
+ }
+]

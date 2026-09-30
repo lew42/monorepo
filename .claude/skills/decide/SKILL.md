@@ -17,12 +17,14 @@ One simple, concrete question, with:
 
 A decision that only matters when some option is chosen is created with `--depends-on <parent>:<option>`, **while the parent is still a draft**. A logged parent can't gain children. It is then drawn below its parent, under that option.
 
-You recommend; you never decide. The owner decides by clicking an option on the card, which writes a `chose` line.
+**Decided by default (the owner, 2026-09-29): nothing waits on the owner.** The moment `recommend` completes the walk, the decision is written `status: "decided"`, `decided_by: "system"` — the recommended option IS the chosen one, and the others are shown right beside it as the alternatives considered, with their own caveats ("we did X; alternatives: Y, Z; if X fails, try Y"). Build the recommended path the same cycle — don't stop and wait for the card to be clicked. The owner can still click a different option at any time, which writes a `chose` line and overrides the default ("Decided by owner").
+
+Only flag a decision `--owner-only "<reason>"` (on `create` or `recommend`) when it is truly the owner's alone — a key, money, something destructive. That one is written `status: "open"` and waits for a real click before anything is built on it.
 
 ## The walk
 
 ```sh
-node Server/decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--depends-on d-x:option]
+node Server/decide.mjs create    --file <page.jsonl> --question "…?" --rank 1 [--depends-on d-x:option] [--owner-only "reason"]
 node Server/decide.mjs options   --file … --id d-… --option "…" --option "…"
 node Server/decide.mjs caveats   --file … --id d-… --option <id> --caveat "…"
 node Server/decide.mjs then      --file … --id d-… --option <id> [--child d-…]

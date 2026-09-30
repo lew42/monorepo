@@ -14,7 +14,8 @@ A record written by `Server/decide.mjs` (its detail: `Server/doc/decide.md`) kee
 | `sources` | a "Sources: …" line under the reason |
 | `depends_on: {decision, option}` | the record is drawn full width below its parent's options, in the block labelled "If <option> → then decide:" |
 | options' `id`, `text`, `caveats`, `then` | `id` matches `recommended` and `depends_on.option`; `then` lists the children |
-| `status`, `decided_by` | always `open` / `null` from decide.mjs: the card decides. The latest `chose` line is the decision, shown as "Decided by <by>" |
+| `status`, `decided_by` | `"decided"` / `"system"` by default — the recommended option starts already chosen, marked "chosen by the system" — unless the decision was created `--owner-only "<reason>"`, which stays `"open"` / `null` until a real tap. Either way the latest `chose` line, if any, wins: tapping a different option writes `decided_by: "owner"` ("your choice"); tapping the chosen option again clears it, writing `option: null`, which falls back to the system's default rather than to nothing |
+| `owner_only` | present (a short reason, e.g. `"key"`) only on a decision that must wait for the owner; otherwise `null` |
 
 A record without these draws exactly as before.
 

@@ -66,7 +66,16 @@ refused("then disagreeing with depends_on", run("then", "--id", "d-p", "--option
 
 // One way to record a choice: recommend no longer takes --status / --decided-by.
 refused("recommend --status is gone", run("recommend", "--id", "d-p", "--status", "decided"), /unknown flag --status/);
-check("record status stays open", line.decision.status === "open" && line.decision.decided_by === null, line.decision);
+check("decided by default", line.decision.status === "decided" && line.decision.decided_by === "system" && line.decision.owner_only === null, line.decision);
+
+// An owner-only decision (a key, money, something destructive) stays open until a real chose line.
+run("create", "--id", "d-k", "--question", "Which key?", "--rank", "1", "--owner-only", "key");
+run("options", "--id", "d-k", "--options", '[{"id":"a","text":"A"},{"id":"b","text":"B"}]');
+run("caveats", "--id", "d-k", "--json", '[{"option":"a","caveats":["x"]},{"option":"b","caveats":["y"]}]');
+run("then", "--id", "d-k", "--then", '{"a":[],"b":[]}');
+r = run("recommend", "--id", "d-k", "--option", "a", "--confidence", "0.6", "--why", "Because.", "--source", "s1");
+const kline = fs.readFileSync(F, "utf8").trim().split("\n").map(l => JSON.parse(l)).find(l => l.decision?.id === "d-k");
+check("owner-only stays open", kline && kline.decision.status === "open" && kline.decision.decided_by === null && kline.decision.owner_only === "key", kline);
 
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(fails ? `${fails} failed` : "all passed");
