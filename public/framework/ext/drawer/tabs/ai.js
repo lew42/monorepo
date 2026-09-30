@@ -255,6 +255,7 @@ export default function ai({ page, card, tabs }){
 						source: () => card.chat_entries(),
 						answer: choice => say(choice, card.id),
 						re: () => card.id,
+						marks: true,
 						placeholder: "talk into this card",
 						sent: "sent — the reply lands in the thread above",
 						failed: "Servex is not answering, so nothing was sent",
@@ -276,6 +277,7 @@ export default function ai({ page, card, tabs }){
 					placeholder: "ask about this page",
 					sent: "sent",
 					failed: "not sent",
+					marks: true,
 					// `on_text` only hides the intro hint — the owner's own bubble is added
 					// in `deliver` below, where `entry.via` is there to mark it 🎤/⌨.
 					on_text: () => $hint?.el.remove(),
