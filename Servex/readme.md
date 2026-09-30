@@ -131,6 +131,12 @@ wait in its own list the same way. The owner's assistants and their helpers are
 never queued (the comment above `admission()` in `Servex.js` says why). CPU temperature and fan speed need admin
 on this machine, so the sample says `null` and gives the reason.
 
+**Whose RAM is it?** `Processes.js` sorts every process into ours (by task, the front
+desk, Servex, Claude Code sessions, dev servers) or everything else, every 10 seconds,
+records each agent's claude.exe PID at spawn, and reaps orphaned waiters (tail, grep,
+sleep …) of ours. `Worktrees.js` removes worktrees whose work is merged, keeping the
+branch. `GET /api/processes`; see [`doc/processes.md`](./doc/processes.md).
+
 ## Where things live
 
 Outside the repo, one folder per machine — `%LOCALAPPDATA%/lew42/servex/`:

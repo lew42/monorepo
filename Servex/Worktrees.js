@@ -249,7 +249,7 @@ export default class Worktrees extends Events {
 
 /* A change the worktree's own server or hooks made: a *.jsonl log anywhere,
  * or a new file under public/framework/ai/ (a card folder, a screenshot). Never a rename or a deletion. */
-const noise = c => !/[RCD]/.test(c.code) && !c.path.includes(" -> ")
+export const noise = c => !/[RCD]/.test(c.code) && !c.path.includes(" -> ")
 	&& (/(^|\/)[^/]+\.jsonl$/.test(c.path) || (c.code === "??" && c.path.startsWith("public/framework/ai/")));
 
 const norm = p => path.resolve(String(p)).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();

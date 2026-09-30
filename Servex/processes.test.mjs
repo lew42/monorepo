@@ -79,3 +79,15 @@ ok(p.reaped.length === 2 && p.reaped[0].ok, "each reap is recorded");
 ok(p.history.length === 2 && typeof p.history[1].ours_mb === "number", "an hour of points is kept");
 ok(/Ours .* GB/.test(p.line()), "one line for system_health");
 console.log(`processes.test: ${pass} checks pass`);
+
+// ── worktree clean-up: what counts as log noise, and forgetting a project ──
+const { noise, default: Worktrees } = await import("./Worktrees.js");
+const n = (code, path) => noise({ code, path });
+ok(n(" M", "public/files.jsonl") && n(" M", ".claude/skills/clarity/flags.jsonl") && n("??", "public/framework/ai/2026/09/25/x/page.jsonl"), "logs anywhere are noise");
+ok(n("??", "public/framework/ai/2026-09-25/x/shot.png"), "a new file under ai/ (a screenshot, a card folder) is noise");
+ok(!n(" M", "Server/layout-check.mjs") && !n("??", "undefined/a.png") && !n(" M", "public/framework/ai2/ai2.css"), "code is never noise");
+ok(!n(" D", "public/files.jsonl") && !n("R ", "a.jsonl -> b.jsonl"), "a deletion or a rename is never noise");
+const sx = { projects: [{ name: "gone-wt" }, { name: "monorepo" }], processes: new Map([["gone-wt", {}]]), ports: { ports: { "gone-wt": 3150, monorepo: 3104 }, save(){ this.saved = true; } } };
+new Worktrees({ servex: sx }).forget("gone-wt");
+ok(sx.projects.length === 1 && !sx.processes.has("gone-wt") && !("gone-wt" in sx.ports.ports) && sx.ports.saved, "a removed worktree's project, runner and port are forgotten");
+console.log(`processes.test (with worktrees): ${pass} checks pass`);
