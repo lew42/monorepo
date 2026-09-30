@@ -225,6 +225,23 @@ first, then keep the label's margin well under it.
 tall as that content: a one-line item is one line high. Never a fixed height that wastes the
 space, and never one that crops a taller preview.
 
+## Leave the defaults alone, one property at a time (the owner, 2026-09-29)
+
+Most layout bugs come from setting a property whose default was already right. Before setting
+one, ask whether the default already does the job:
+
+| property | default | set it only when |
+|---|---|---|
+| `height` | **auto**: the box grows and shrinks to its content | almost never. A fixed height guesses at content and either wastes space or crops it. Real cases: an icon or media box of known size, in `em` so it scales with the font; a full-viewport shell (`100%` passed down); a deliberate scroll area (`max-height` + overflow, not `height`) |
+| `width` | **fills** the parent | a measure for text (`max-width` in `em`), an icon, or a sidebar track. Prefer `max-width` to `width` |
+| `min-height` / `min-width` | none | a touch target (44px floor), or an empty state that must not collapse |
+| `display` | block (flow) | a real row or grid of children (`flex`/`grid`); not to fix spacing |
+| `position` | static | overlays, sticky headers and pinned rails; never to nudge things |
+| padding / gap | the tokens (`--pad`, `--gap`) | through the tokens, not raw pixels; a label sits closer to its own card than the gap between cards (proximity, above) |
+
+Sizes that must follow the font size use `em`, so a font-size change resizes the icon, the padding
+and the box together. Pixels don't.
+
 ## Boxes, padding and contrast (the owner, 2026-09-17)
 
 **Are the siblings more similar or more different?** Worth asking before giving anything a
