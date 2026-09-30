@@ -32,3 +32,4 @@
 {"at":"2026-09-30T15:16:09-05:00","task":"2026-09-30/design-code","msg":"/framework/design/ and /framework/code/ live; skills are thin pointers; graded rules handed on"}
 {"log":{"at":"2026-09-30T15:22:30-05:00","task":"ai2-inbox-read","msg":"landed — Inbox read/unread, archive, auto-resolve, search, Needs-you chip, Now wording fix. /framework/ai2/"}}
 {"log":{"at":"2026-09-30T16:18:07-05:00","task":"inbox-ext/ai2-hang","msg":"landed — AI 2's load hang: two redraw hot spots found by a CPU profile and cached (Groups.members in groups.js, place()'s layout re-measure in live.js)."}}
+{"log":{"at":"2026-09-30T16:48:10-05:00","task":"inbox-ext/ai2-hang","msg":"landed — full batch: the freeze fix, × alignment, a pinned Now card, × that actually archives, Clear all, and the inbox-zero score filter. One Servex CORS gap flagged to the parent. Ready to merge."}}
