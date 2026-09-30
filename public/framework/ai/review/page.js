@@ -36,7 +36,11 @@ export default new Page({
 		// Capture every box now, synchronously — content() is about to hit an await
 		// (the fetch below), and nothing built after that would land here.
 		const $tiles = div.c("flex wrap gap-50");
-		const $sections = div.c("flow");
+		// The page's own wide track (core/Page/Page.css: `.page > .wide { grid-column:
+		// wide }`) so the wall of systems fills a 3440 screen instead of sitting in the
+		// narrow reading column; `.masonry` (framework.css) packs the cards into as many
+		// columns as `--column` (14em) allows, zero JS (layout skill: lean into columns).
+		const $sections = div.c("wide masonry");
 		const $note = p.c("muted");
 
 		fetch(new URL("questions.json", import.meta.url)).then(r => r.json()).then(data => {
@@ -49,9 +53,12 @@ export default new Page({
 				items: systems.map(s => ({ name: s.heading, icon: SYSTEM_ICON[s.heading] || "label", href: "#" + anchor(s.heading) })),
 			}));
 
+			// Each system is one framed box (`card pad flow` — css skill: a framed box takes
+			// `.card`, which carries its own padding; `.flow` for the stack of questions
+			// inside it) so `.masonry` above has real boxes to pack into columns.
 			$sections.append(() => systems.forEach(s => {
-				h2(s.heading).attr("id", anchor(s.heading));
-				div.c("flow", () => {
+				div.c("card pad flow", () => {
+					h2(s.heading).attr("id", anchor(s.heading));
 					s.questions.forEach(q => div.c("flex v gap-25", () => {
 						p(`${q.n}. ${q.text}`);
 						// The rule(s) behind the question, as a quiet tag — .muted is the
