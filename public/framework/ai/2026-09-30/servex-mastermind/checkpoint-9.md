@@ -3,7 +3,7 @@
 Start as mastermind-servex-9 (resumed) or -10: load `servex-mastermind`, read checkpoint-8.md's "Your standing roles", then this. Children of a stopped -N report to the live one by themselves (Agents.js:497).
 
 ## Two priorities from the owner (19:00)
-1. **Memory**: task-mastermind-dormant-idle (row 49, $15): idle processes exit and resume by session id, working cap 5 in code, auto-compaction at ~500 MB / ~200k. Confirm with before/after tasklist numbers. Told it about heartbeat_status duplicates + never-pruned rows.
+1. **Memory — DONE.** dormant-idle landed (106a51a1, records df3588f8): 21 claude.exe / 6754 MB → 14 / 4222 MB at +10.3 min, cap holding 5/5. Proof at ai/2026-09-30/dormant-idle/proof.txt. Loose ends (status wakes dormant; wake-by-message overshoots cap) on todo.md.
 2. **Limbo**: task-mastermind-asks-ledger ($20, brief at ../asks-ledger/requirements.md): Servex/asks/Asks.js + stalled() on its own 60 s tick, stalled rows + importance 1–100 in AI 2 Needs you, /framework/ai/asks/ page. The VS Code tab appends the ledger lines; we own stall detection and the view.
 
 ## Restart batch (restarting at 19:10)
