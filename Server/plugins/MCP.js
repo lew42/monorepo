@@ -184,7 +184,7 @@ export default class MCP {
 
     pages(){
         return JSON.stringify(this.tabs().map(tab => ({
-            tab: tab.id ?? null, path: tab.page, connected_since: tab.since,
+            tab: tab.id ?? null, path: tab.page, connected_since: tab.since, owner: !tab.headless,
             claimed_by: tab.claimed ? [tab.claimed.who, tab.claimed.note].filter(Boolean).join(" · ") : null
         })), null, 2);
     }
@@ -195,6 +195,18 @@ export default class MCP {
      * never know. The error carries the whole list, so recovery is the retry, not a
      * second `pages` call. Tabs that predate the id reload into one. */
     pick({ tab, path }){
+        const t = this.pick_any({ tab, path });
+        // The owner's browser is the owner's (2026-09-30: an agent claimed the owner's tab and
+        // ringed the whole site while it was in use). A connected tab that is not headless is
+        // the owner's; agents look with `shot` or their own headless Playwright instead. The
+        // owner lifts this for a session by starting the server with SITE_OWNER_TABS=1.
+        if (!t.headless && !process.env.SITE_OWNER_TABS) throw new Error(
+            `tab ${t.id ?? "?"} on ${t.page} is the owner's window, not yours: agents never eval or claim a connected tab.`
+            + ` Use \`shot\` (a fresh headless page) or Server/browser.mjs. The owner allows it only by starting the server with SITE_OWNER_TABS=1.`);
+        return t;
+    }
+
+    pick_any({ tab, path }){
         const tabs = this.tabs();
         const list = () => tabs.map(t => `${t.id ?? "(no id — reload it)"} on ${t.page}`).join(", ");
 

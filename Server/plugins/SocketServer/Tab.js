@@ -19,6 +19,10 @@ export default class Tab {
         this.since = stamp();
         this.pending = new Map();
         socket.tab = this;
+        // Headless chromium (Playwright, `shot`, ui-test) says so in its user agent. Every
+        // other tab is the OWNER's window, and no agent drives it (the owner, 2026-09-30).
+        const ua = socket.req?.headers?.["user-agent"] ?? socket.request?.headers?.["user-agent"] ?? "";
+        this.headless = /HeadlessChrome/i.test(ua);
         // ⚠ The id sticks: the SPA's `navigated()` hello (app.js) carries only a url, and
         //   dropping the id there would make the tab unaddressable after one click.
         socket.on("rpc:hello", ([page, id]) => { this.page = page; if (id) this.id = id; });

@@ -248,6 +248,6 @@ these pop-ups jumping in front of my face"; it happened 2026-09-22, 09-24 and 09
 Take a second task · change your own fence · spawn another task mastermind (depth stops at two
 until one measured run proves a three-deep tree can report failure upward) · write code, CSS or
 scripts by hand — that is a minion's, even when it is two lines · kill or restart the dev server ·
-drive the owner's tabs · ask the owner to approve non-dangerous work.
+drive the owner's live browser tabs (`mcp__site__pages`/`claim`/`eval` on a connected tab; the owner, 2026-09-30: "I don't want agents taking over my browser"; use `mcp__site__shot` or headless Playwright) · ask the owner to approve non-dangerous work.
 
 Land with `documentation` (a review pass: docs current, nothing new) then `finish-task`. Improve this skill: [`improvements.md`](improvements.md).
