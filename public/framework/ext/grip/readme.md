@@ -27,6 +27,7 @@ grip({
 - The width is measured from the rail's **own** inline-end edge, not `innerWidth` — a rail parked beside another one would size past the pointer · [doc/decisions.md](./doc/decisions.md)
 - `rem`, never `em`: a grab target does not scale with the type beside it · [doc/decisions.md](./doc/decisions.md)
 - Hidden below 34em — both rails stop being side rails around there; a rail that stacks at a WIDER breakpoint than that (`core/Sidebar`'s 52em, `/layouts/shell/`'s 44rem) needs its own extra override, since 34em is `grip.css`'s own floor, not every consumer's · [doc/decisions.md](./doc/decisions.md)
+- Every drag starts with no size, and `pointercancel` ends a drag like `pointerup` (2026-09-30). Before, a plain tap re-sent the LAST drag's size to `done`, and a touch the browser took back left the page stuck in resize mode. On `axis: "y"` only, the box's edge stays under the finger (where in the strip it landed is kept); the x rails still size to the pointer itself · [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md)
 - `done` and `reset` are both optional — pass only the ones your rail needs. A `write()` that already saves on every call (`/layouts/shell/page.js`'s `size_rail()`) has no use for `done`. · [doc/decisions.md](./doc/decisions.md)
 
 ## More

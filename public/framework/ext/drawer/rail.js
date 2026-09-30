@@ -81,6 +81,8 @@ export class DrawerRail extends View {
 		this.ai_button();
 		this.menu_button();
 		this.watch_breakpoint();
+		this.watch_history();
+		this.restore();
 	}
 
 	// Bound ONCE, here, never per-open: rail.css's own media query (`(max-width:
@@ -89,9 +91,109 @@ export class DrawerRail extends View {
 	// unreachable but the mic was still listening into it (found 2026-09-29: no
 	// way back to a mic left running behind a sheet nobody can see). `close()`
 	// already stops the mic, so reusing it here is the whole fix.
+	// Widening past 52em hides the sheet (and stops its mic) but leaves the url
+	// alone: the url is still the truth, so narrowing again shows the sheet the url
+	// names, quietly (sheet-as-page, 2026-09-30).
 	watch_breakpoint(){
 		const mq = globalThis.matchMedia?.("(max-width: 52em)");
-		mq?.addEventListener?.("change", e => { if (!e.matches) this.$sheet?.close(); });
+		mq?.addEventListener?.("change", e => e.matches ? this.apply(this.routed()) : this.$sheet?.hide());
+	}
+
+	small(){ return !!globalThis.matchMedia?.("(max-width: 52em)")?.matches; }
+
+	/* THE SHEET IS A PAGE (sheet-as-page, 2026-09-30 — the owner: "as I swipe this
+	   thing up… all the way at the top, it's almost like we've just navigated to
+	   this page… the user's operating system level back button should always
+	   work"). Three states, each one its own url and its own history entry:
+
+	     closed   /framework/                 the rail only
+	     open     /framework/?sheet=open      the sheet, part of the screen
+	     full     /framework/?sheet=full      the sheet IS the screen, with ‹ Back
+
+	   Stepping UP (✦, a drag to the top) pushes an entry; stepping DOWN (the phone's
+	   back, ‹ Back, ✕, a drag down) goes back through those same entries, so the
+	   phone's back always steps the sheet down one state and never leaves the site
+	   while the sheet is showing. `history.state.depth` counts how many of our own
+	   entries sit on top of the closed one (open = 1, full = 2); when it is missing
+	   (a sheet carried across an in-app navigation) a step down REPLACES the entry
+	   instead of going back into a different page. `core/Router` ignores a popstate
+	   that stays on the same path, so none of this reloads the page underneath.
+	   doc/sheet.md. */
+	static KEY = "sheet";
+	static RANK = { closed: 0, open: 1, full: 2 };
+
+	routed(){
+		const m = new URLSearchParams(location.search).get(this.constructor.KEY);
+		return m === "open" || m === "full" ? m : "closed";
+	}
+
+	url(mode){
+		const url = new URL(location.href);
+		mode === "closed" ? url.searchParams.delete(this.constructor.KEY) : url.searchParams.set(this.constructor.KEY, mode);
+		return url;
+	}
+
+	// ⚠ `history.state` is carried over — Router and tabs.js keep their own there.
+	push(mode){
+		const st = history.state ?? {};
+		const depth = mode === "open" ? 1 : (st.depth ? st.depth + 1 : null);
+		history.pushState({ ...st, sheet: mode, depth }, "", this.url(mode));
+	}
+
+	replace(mode){
+		const { sheet, depth, ...st } = history.state ?? {};
+		history.replaceState(mode === "closed" ? st : { ...st, sheet: mode, depth: null }, "", this.url(mode));
+	}
+
+	// Every url change — ours, the phone's back, forward — lands here.
+	watch_history(){
+		window.addEventListener("popstate", () => this.apply(this.routed()));
+	}
+
+	// A url that names the sheet (a reload, a shared link) opens it — once the
+	// styles are in, like tabs.js's `?drawer=`. The entries UNDER it are rebuilt
+	// first (closed, then open, then full), so the phone's back steps down through
+	// them instead of leaving the site. Opened quietly: the mic starts only on a tap.
+	restore(){
+		const mode = this.routed();
+		if (mode === "closed" || !this.small()) return;
+		this.app?.styles_loaded?.().then(() => {
+			this.replace("closed");
+			this.push("open");
+			if (mode === "full") this.push("full");
+			this.apply(mode);
+		});
+	}
+
+	/** Go to a state: "closed", "open" or "full". Resolves once it shows. */
+	to(mode, { listen = false } = {}){
+		const from = this.mode ?? "closed";
+		if (mode === from){ this.apply(mode, listen); return Promise.resolve(); }
+		const R = this.constructor.RANK, st = history.state ?? {};
+		const steps = R[from] - R[mode];
+		if (steps > 0 && st.depth === R[from]) return this.back(steps);
+		steps < 0 ? this.push(mode) : this.replace(mode);
+		this.apply(mode, listen);
+		return Promise.resolve();
+	}
+
+	// Back through our own entries; the popstate listener above applies the state.
+	// The timer is a net for a browser that never fires popstate (it always should).
+	back(steps){
+		return new Promise(done => {
+			const t = setTimeout(() => { this.apply(this.routed()); done(); }, 800);
+			window.addEventListener("popstate", () => { clearTimeout(t); done(); }, { once: true });
+			history.go(-steps);
+		});
+	}
+
+	// Make the screen match a state. Never touches history.
+	apply(mode, listen = false){
+		this.mode = mode;
+		if (mode === "closed" || !this.small()){ this.$sheet?.hide(); return; }
+		const sheet = this.sheet();
+		if (!sheet.showing()) sheet.show({ listen });
+		sheet.state(mode);
 	}
 
 	// Called from menu.js's own `navigated()` seam, the same one the drawer's tabs
@@ -102,6 +204,15 @@ export class DrawerRail extends View {
 	navigated(){
 		this.$sheet?.update_path?.();
 		this.$sheet?.navigated?.();
+		// Router pushed the new page's url without `?sheet` (it pushes AFTER this
+		// runs, hence the tick). A sheet still showing writes its state back — and a
+		// FULL sheet steps down to open, so the page just navigated to is in view.
+		// A back/forward that landed on an entry which already names the sheet is
+		// left as it is (its step count is what makes the next back right).
+		if (this.mode && this.mode !== "closed") setTimeout(() => {
+			if (this.routed() === "closed") this.replace("open");
+			this.apply(this.routed());
+		});
 	}
 
 	// ✦ — opens the listening sheet. Built lazily (below), on the FIRST tap: a
@@ -138,9 +249,15 @@ export class DrawerRail extends View {
 	// only hides it (`rc("on")`), so the second tap does not re-detect the engine
 	// or lose the transcript so far. `this.constructor.Sheet` (not `DrawerRail.Sheet`
 	// directly), so a subclass that swaps in its own Sheet is honoured.
-	open_sheet(){
+	sheet(){
 		if (!this.$sheet) this.append(() => { this.$sheet = new this.constructor.Sheet({ rail: this }); });
-		this.$sheet.open();
+		return this.$sheet;
+	}
+
+	// ✦ — the sheet opens (a new history entry) and starts listening.
+	open_sheet(){
+		if (this.mode === "open" || this.mode === "full") this.sheet().show({ listen: true });
+		else this.to("open", { listen: true });
 		return this.$sheet;
 	}
 }
@@ -206,6 +323,11 @@ export class DrawerRailSheetV1 extends View {
 
 	head(){
 		return div.c("drawer-rail-sheet-head flex v-center split", () => {
+			// ‹ Back — shown only at full height (rail.css), where the sheet reads as
+			// a page of its own. It steps down to the open sheet, exactly as the
+			// phone's own back button does.
+			button.c("drawer-rail-sheet-back", "‹ Back").attr("type", "button")
+				.attr("title", "Back to the page").click(() => this.rail?.to("open"));
 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
 				span.c("drawer-rail-sheet-title", "Ask, by voice");
 				this.$path = span.c("drawer-rail-sheet-path muted");
@@ -233,16 +355,50 @@ export class DrawerRailSheetV1 extends View {
 	// dragged height is remembered (`remember_height` below) — a height nobody
 	// dragged is never written to storage, so the untouched default keeps tracking
 	// the sheet's own content (`size()` below) instead of freezing on day one.
+	// ⚠ The drag sets a real HEIGHT (`.drawer-rail-sheet-sized`, rail.css), not
+	// only a ceiling: with `max-block-size` alone a drag above the sheet's own
+	// content did nothing — the finger moved and the sheet stayed put
+	// (sheet-as-page, 2026-09-30). Live, it follows the finger from 12% of the
+	// screen to all of it; on release it settles: near the top it becomes the
+	// full-height page, near the bottom it closes, anywhere between it stays where
+	// you let go (remembered).
 	handle(){
 		return grip({
 			axis: "y",
 			write: px => {
-				const h = this.clamp_height(px);
-				this.style("--sheet-h", h + "px");
+				const h = Math.min(Math.max(px, innerHeight * 0.12), innerHeight);
+				this.size_to(h + "px");
 				return h;
 			},
-			done: h => this.remember_height(h),
+			done: h => this.settle(h),
 		});
+	}
+
+	settle(h){
+		const H = innerHeight;
+		if (h >= H * this.full_at) return this.rail ? this.rail.to("full").then(() => this.state("full")) : this.state("full");
+		if (h < H * this.close_at) return this.rail ? this.rail.to("closed") : this.hide();
+		this.remember_height(this.clamp_height(h));
+		return this.rail?.mode === "full" ? this.rail.to("open") : this.state("open");
+	}
+
+	size_to(h){
+		this.ac("drawer-rail-sheet-sized");
+		this.style("--sheet-h", h);
+	}
+
+	/** "open" (its own height) or "full" (the whole screen, ‹ Back showing). */
+	state(mode){
+		this.el.classList.toggle("drawer-rail-sheet-full", mode === "full");
+		mode === "full" ? this.size_to("100dvh") : this.size();
+		return this;
+	}
+
+	showing(){ return this.el.classList.contains("on"); }
+
+	/** ✕ — closes the sheet the way the phone's back does, through history. */
+	close(){
+		return this.rail ? this.rail.to("closed") : Promise.resolve(this.hide());
 	}
 
 	// Shared by the live drag (`handle()` above) AND a height read back from
@@ -291,13 +447,14 @@ export class DrawerRailSheetV1 extends View {
 	// elements have no box to measure at render time at all.
 	size(){
 		const saved = this.read_height();
-		if (saved){ this.style("--sheet-h", this.clamp_height(saved) + "px"); return; }
+		if (saved){ this.size_to(this.clamp_height(saved) + "px"); return; }
 		// ⚠ NOT MEASURED (sheet-regression, 2026-09-30). This used to read
 		// `scrollHeight` and freeze it as a px height, but the panel sheet builds its
 		// chat panel a tick later (a promise), so the measure saw only the header and
 		// the links (about 150 px) and the conversation and the mic were clipped out.
 		// With no px height the CSS default applies: the sheet grows with its
 		// content, up to half the screen (rail.css, `max-block-size`).
+		this.rc("drawer-rail-sheet-sized");
 		this.el.style.removeProperty("--sheet-h");
 	}
 
@@ -314,11 +471,13 @@ export class DrawerRailSheetV1 extends View {
 	// captured now, in a real callback, never as a bare statement left to
 	// whatever captor happens to be current at click time) and start it right
 	// away. A later open just restarts listening on the widget already here.
-	open(){
+	// Shown by the rail (`DrawerRail.apply()`), never directly: `listen` is true
+	// only for a tap on ✦ — a sheet restored from the url opens quiet.
+	show({ listen = true } = {}){
 		this.ac("on");
 		this.update_path();
 		this.sync_card();
-		this.dictate ? this.dictate.start() : this.listen();
+		this.dictate ? (listen && this.dictate.start()) : this.listen(listen);
 		// AFTER the mic/thread above, not before: on a plain page both build
 		// synchronously, so `size()`'s content measurement sees the real mic
 		// widget and empty-state text, not an empty box. (On a CARD page the
@@ -328,13 +487,13 @@ export class DrawerRailSheetV1 extends View {
 		return this;
 	}
 
-	close(){
+	hide(){
 		this.dictate?.stop();
 		this.rc("on");
 		return this;
 	}
 
-	listen(){
+	listen(start = true){
 		this.$mic.append(() => {
 			// `revise: "edit"` — a light tidy pass (ux/Revise), tried alongside the raw
 			// sentence, never instead of it: `on_text` (raw, instant) still makes the
@@ -348,7 +507,7 @@ export class DrawerRailSheetV1 extends View {
 				on_revised: text => this.card(text),
 			});
 		});
-		this.dictate.start();
+		if (start) this.dictate.start();
 	}
 
 	// Which thread `$thread` shows right now — rebuilt only when the card actually
@@ -485,7 +644,7 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 
 	link(label, tab){
 		return button.c("drawer-rail-sheet-link", label).attr("type", "button")
-			.click(() => { this.close(); tabs.open(tab); });
+			.click(() => this.close().then(() => tabs.open(tab)));
 	}
 
 	/* NEW SESSION — a PRIMARY action, right beside Sessions (the owner, 2026-09-29),
@@ -573,7 +732,8 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		return $head;
 	}
 
-	open(){
+	show({ listen = true } = {}){
+		this.quiet = !listen;
 		this.ac("on");
 		this.update_path();
 		this.sync_card();
@@ -581,7 +741,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		return this;
 	}
 
-	close(){
+	hide(){
 		this.stop_mic();
 		this.rc("on");
 		return this;
@@ -592,7 +752,10 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		if (mic?.active?.()) mic.stop();
 	}
 
+	// Not while `quiet` — a sheet the url reopened (a reload, the phone's
+	// forward) waits for the reader to tap the mic.
 	start_mic(){
+		if (this.quiet) return;
 		const mic = this.panel?.compose?.mic;
 		if (mic && !mic.active?.()) mic.start();
 	}
@@ -785,6 +948,11 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		this.build_voice_panel();
 	}
 }
+
+// Where a released drag settles, as a share of the screen: at or above `full_at`
+// the sheet becomes the full-height page; below `close_at` it closes.
+DrawerRailSheetV1.prototype.full_at = 0.85;
+DrawerRailSheetV1.prototype.close_at = 0.28;
 
 DrawerRail.Sheet = DrawerRailSheetPanel;
 DrawerRail.SheetV1 = DrawerRailSheetV1;
