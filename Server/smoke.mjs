@@ -43,7 +43,7 @@ const portOpt = opt("port"), baseOpt = opt("base"), mainOpt = opt("main");
 const [dir, ...rest] = argv;
 // Git Bash (MSYS) rewrites "/x/" into "C:/Program Files/Git/x/"; strip that install root back off.
 const extra = rest.map(p => { const m = /^[A-Za-z]:[\\/].*?[\\/]Git([\\/].*)$/i.exec(p); p = (m ? m[1] : p).replace(/\\/g, "/"); return p.startsWith("/") ? p : "/" + p; });
-const usage = msg => { console.error(msg + "\nusage: node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL]"); process.exit(2); };
+const usage = msg => { console.error(msg + "\nusage: node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]"); process.exit(2); };
 if (!dir) usage("no worktree dir given");
 
 const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
