@@ -35,6 +35,15 @@ export function check_dir_line(line){
 	return { [kind]: { ...body, at: body.at ?? now_ms() } };
 }
 
+/* A REACTION (ai/2026-09-30/chat-reactions): an SMS tap-back on one line of the
+ * session, its own line in the file, never an edit of the line it marks:
+ *   {"react": {at, session, re, emoji, from: {kind, id?}}}
+ * `re` is the marked line's `at`; the newest reaction from a sender for a line wins,
+ * and an empty `emoji` takes it off. An assistant reacts by making its WHOLE reply
+ * one emoji (`LONE_EMOJI`): that reply becomes a reaction on the owner's line
+ * instead of a bubble. */
+export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
+
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
 /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
@@ -57,6 +66,7 @@ export const now_ms = () => {
  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
  *            {"nav":  {at, from, to}}
  *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
+ *            {"react": {at, session, re, emoji, from}}   (a tap-back on line `re`; see LONE_EMOJI)
  *
  * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
  * `ai/log.jsonl`, `{"session": {id, event: "started", title, file, at}}`; every one of
@@ -85,7 +95,11 @@ export default class Sessions {
 	assign(...args){ return Object.assign(this, ...args); }
 
 	defaults(){
+		/* fast_wait_ms: the fast assistant's reply waits this long after the owner spoke,
+		 * so that, when the smart one answers (or reacts) first, only ONE acknowledgement
+		 * goes out (the owner, 2026-09-30). `hold_fast()` below. */
 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
+			fast_wait_ms: env("SERVEX_SESSION_FAST_WAIT_MS", 8000),
 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2), floor_wait_ms: env("SERVEX_SESSION_FLOOR_WAIT_MS", 8000),
 			/* THE THOUGHT (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
@@ -384,7 +398,10 @@ export default class Sessions {
 	/* `floor` and `cues` (ext/Chat/doc/floor.md) are optional and stored on the owner's line;
 	 * a say with no floor counts as "done", as before the floor existed. `raw` is what Whisper
 	 * heard when the clean-up changed it; `quiet_ms` is how long the owner had been quiet. */
-	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms } = {}){
+	/* A THREADED reply (the owner pressed Reply on a bubble): `re` = that bubble's `at`,
+	 * `thread: true`. It is kept on the owner's line, the assistants are told which line
+	 * it answers, and their replies to it are threaded under the same bubble. */
+	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread } = {}){
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		if (floor != null && !FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
@@ -392,8 +409,17 @@ export default class Sessions {
 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
 			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
-			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}) };
+			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
+			...(thread && re ? { re: String(re), thread: true } : {}) };
 		this.write(s, { chat: line });
+		if (line.thread){
+			(s.threaded ??= []).push(line.at);
+			if (s.threaded.length > 50) s.threaded.shift();
+			const parent = this.find_line(s, line.re);
+			const whose = !parent ? "an earlier line" : parent.from?.kind === "owner" ? "their own earlier line" : `the ${parent.from?.id ?? "assistant"} assistant's line`;
+			const note = `(this is a reply to ${whose}${parent?.text ? ` "${String(parent.text).replace(/\s+/g, " ").slice(0, 120)}"` : ""})`;
+			for (const role of ["fast", "smart"]) ((s.notes ??= {})[role] ??= []).push(note);
+		}
 		this.set_floor(s, floor ?? "done");
 		this.wake(s, "fast");
 		/* The smart one spawns on the NEXT tick, so the fast one's process starts first and alone. */
@@ -457,8 +483,48 @@ export default class Sessions {
 		const h = this.held.get(s.id);
 		if (!h) return false;
 		this.held.delete(s.id);
-		this.write(s, { chat: { at: now_ms(), ...h } });
+		this.hold_fast(s, h.re, h.line);   // still gives way to a smart answer, if one came
 		return true;
+	}
+
+	/* A reaction on one line of the session. From the owner (the browser's default):
+	 * both assistants are told in their next prompt (`notes`), and a ❓ on an
+	 * assistant's line asks the smart one to explain, at once. */
+	react({ session, re, emoji = "", at, from = { kind: "owner" } } = {}){
+		const s = this.get(session);
+		if (!re) throw Object.assign(new Error("re is required: the `at` of the line being reacted to"), { status: 400 });
+		emoji = String(emoji ?? "").trim();
+		if (emoji && !LONE_EMOJI.test(emoji)) throw Object.assign(new Error("emoji must be one emoji, or empty to take a reaction off"), { status: 400 });
+		const when = at && !Number.isNaN(Date.parse(at)) ? at : now_ms();
+		this.write(s, { react: { at: when, session: s.id, re, emoji, from } });
+		if (from?.kind === "owner" && emoji) this.owner_reacted(s, re, emoji);
+		return { ok: true, at: when };
+	}
+
+	/* What the owner's reaction means, told to the assistants in plain words. */
+	owner_reacted(s, re, emoji){
+		const line = this.find_line(s, re);
+		const whose = !line ? "a line" : line.from?.kind === "owner" ? "their own line" : `the ${line.from?.id ?? "assistant"} assistant's line`;
+		const quote = line?.text ? ` "${String(line.text).replace(/\s+/g, " ").slice(0, 120)}"` : "";
+		const note = `(the owner reacted ${emoji} to ${whose}${quote})`;
+		for (const role of ["fast", "smart"]) ((s.notes ??= {})[role] ??= []).push(note);
+		this.save();
+		if (emoji === "❓" && line && line.from?.kind !== "owner"){
+			this.wake(s, "smart");
+			this.send(s, "smart", "The owner wants more on that line: explain it in two or three plain sentences.");
+		}
+	}
+
+	/* The chat line whose `at` is `re`, read back from the session file. */
+	find_line(s, re){
+		try {
+			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
+			for (let i = lines.length - 1; i >= 0; i--){
+				if (!lines[i].includes(re)) continue;
+				try { const c = JSON.parse(lines[i]).chat; if (c?.at === re) return c; } catch {}
+			}
+		} catch {}
+		return null;
 	}
 
 	/* The smart assistant hears a thought, not its fragments: lines gathered over a
@@ -523,6 +589,8 @@ export default class Sessions {
 	}
 
 	send(s, role, text){
+		const notes = s.notes?.[role]?.splice(0) ?? [];
+		if (notes.length){ text = notes.join("\n") + "\n" + text; this.save(); }
 		try { this.servex.agents.send(s[role], text, { from: "owner" }); }
 		catch (e){ this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text", text: `The ${role} assistant could not be reached: ${e.message}` } }); }
 	}
@@ -646,9 +714,35 @@ export default class Sessions {
 		 * most of the time just listening"): the fast one's `(listening)`, or a filler line, is kept
 		 * as an invisible `{skip}` line and never drawn. */
 		if (who.role === "fast" && is_filler(text)) return this.write(s, { skip: { at: now_ms(), role: who.role, text, ...(re ? { re } : {}) } });
-		const chat = { session: s.id, path: s.path, from: { kind: "assistant", id: who.role, agent: agent.id }, via: "text", text, ...(re ? { re } : {}) };
-		if (who.role === "fast" && this.speaking(s)) return void this.held.set(s.id, chat);   // the owner is still talking
-		this.write(s, { chat: { at: now_ms(), ...chat } });
+		const from = { kind: "assistant", id: who.role, agent: agent.id };
+		// An answer to a threaded owner line goes into the same thread.
+		const threaded = re && s.threaded?.includes(re) ? { thread: true } : {};
+		const line = () => LONE_EMOJI.test(text) && re
+			? { react: { at: now_ms(), session: s.id, re, emoji: text, from } }
+			: { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text, ...(re ? { re } : {}), ...threaded } };
+		if (who.role === "smart"){
+			s.smart_said_re = re ?? now_ms();
+			return this.write(s, line());
+		}
+		// The owner is still talking: hold the newest fast reply until the floor is "done" (release()).
+		if (this.speaking(s)) return void this.held.set(s.id, { re, line });
+		this.hold_fast(s, re, line);
+	}
+
+	/* ONE ACKNOWLEDGEMENT, NOT TWO (the owner, 2026-09-30: "the fast assistant could
+	 * wait for the smart assistant"). The fast reply waits until `fast_wait_ms` after
+	 * the owner spoke. If by then the smart one has answered or reacted to that line
+	 * (or a later one), the fast reply is dropped; if not, it goes out as usual.
+	 * A reply held by the floor (above) comes here when the floor is released. */
+	hold_fast(s, re, line){
+		const said = Date.parse(re ?? 0) || Date.now();
+		const release = () => {
+			if (s.smart_said_re && Date.parse(s.smart_said_re) >= said) return;   // the smart one already answered
+			try { this.write(s, line()); } catch (e){ console.error(`sessions: ${e.message}`); }
+		};
+		const wait = said + this.fast_wait_ms - Date.now();
+		if (wait <= 0) return release();
+		setTimeout(release, wait).unref?.();
 	}
 
 	/* TOKEN BY TOKEN (the owner, 2026-09-30): a reply's text so far, per agent, pushed WHOLE to the
@@ -667,7 +761,9 @@ export default class Sessions {
 		b.timer = setTimeout(() => {
 			b.timer = null;
 			if (this.buffers.get(agent_id) !== b) return;
-			if (role === "fast" && (b.text.trim().startsWith("(") || is_filler(b.text))) return;   // may still turn out to be silence
+			// The fast reply is never streamed: it waits for the smart one and may be dropped
+			// (hold_fast). A lone emoji is not streamed either: it becomes a reaction, not a bubble.
+			if (role === "fast" || LONE_EMOJI.test(b.text.trim())) return;
 			b.shown = true;
 			this.push(s.id, { kind: "stream", role, text: b.text });
 		}, 80);
@@ -705,10 +801,10 @@ export default class Sessions {
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
 		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"]]){
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
-				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : b)); }
+				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : verb === "react" ? { ...b, from: { kind: "owner" } } : b)); }
 				catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 			});
 		}

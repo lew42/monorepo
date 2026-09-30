@@ -10,7 +10,14 @@ talk.view;    // the scrolling box — place it anywhere
 talk.sync();  // draw whatever is new; call it whenever `entries` changes
 ```
 
-Markdown is safe (`md.js`), role labels are coloured (`roles.js`), and `Composer.js` is the input.
+Markdown is safe (`md.js`), each bubble starts with its sender's avatar (`roles.js`), and `Composer.js` is the input.
+
+## Reactions, avatars and threads (2026-09-30)
+
+- **React to a bubble like an SMS tap-back:** hold it on a phone, right-click it on a desktop, or click the ☺ beside it. Pick 👍 ✅ ❤️ 😂 ❓ 👎; the same one again takes it off. Each is a `{"react": {at, re, emoji, from}}` line in the log, so it survives a reload. Pass `on_react` to `chat()` (or `react` to `ChatPanel`) to save it.
+- **The icon is the name:** ⚡ fast, 🧠 smart, 👤 you (`set_avatar()` picks your own), on the same line as the words.
+- **Reply in a thread:** tap a bubble, press Reply, and your next message is drawn in a thread under it ("▸ N replies"), not at the bottom. The line carries `re` (the parent's `at`) and `thread: true`. `ChatPanel` offers it with its own list or `threads: true`.
+- How it works, who saves what, and how the assistants react and thread: [doc/reactions.md](./doc/reactions.md).
 
 ## ChatPanel — the log, the composer and the mic, as one widget
 
@@ -172,6 +179,7 @@ A selected card that holds something grows an **Open ⤢** button. It takes the 
 - A `{type:"refined", of, sections:[{text, from}]}` line replaces a merged owner bubble's raw paragraphs with its sections; a section opens in place to the raw pieces it cites, and a click on the bubble opens all raw pieces.
 - A line is drawn once and never moves, so call `sync()` as often as you like.
 - Every class is `chatbox-*`.
+- On a narrow screen the composer's buttons drop, as one group (`.chatbox-compose-actions`), to a row under the box, so the box gets the full width.
 
 ## More
 

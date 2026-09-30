@@ -35,18 +35,34 @@
 		flex: none;
 	}
 
+	/* ⚠ WRAPS ON A PHONE (the owner, 2026-09-30, on a phone: "the text area is
+	   about 50% of my screen's width… a massive void of space to the right of
+	   it, above the three or four buttons"). The box asks for 18em; when the row
+	   cannot give that AND the buttons, the button group (`.chatbox-compose-actions`,
+	   one unit so it never splits) drops to its own row under the box, pushed
+	   right, and the box takes the whole width. `align-items: flex-end` keeps the buttons level with
+	   the bottom of a tall box, never floating in the middle of empty space. */
 	.chatbox-compose {
 		position: relative;
 		display: flex;
-		align-items: center;
+		flex-wrap: wrap;
+		align-items: flex-end;
 		gap: 0.35em;
 	}
+	.chatbox-compose-actions {
+		flex: none;
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		margin-inline-start: auto;
+	}
+	.chatbox-compose-more svg { inline-size: 1.15em; block-size: 1.15em; fill: currentColor; vertical-align: middle; }
 
 	/* The field and the microphone are ONE control: the mic is absolutely placed
 	   at the field's right end and the input reserves room for it. */
 	.chatbox-field {
 		position: relative;
-		flex: 1;
+		flex: 1 1 18em;
 		min-width: 0;
 		display: flex;
 		align-items: stretch;
@@ -182,15 +198,30 @@
 		margin-inline-end: 0.45em;
 	}
 
-	/* THE ROLE LABEL: on its own line above a message, once per message. One
-	   colour per role, all from theme tokens (each reads in light and dark);
-	   an unknown role stays the ink colour. */
+	/* THE AVATAR (the owner, 2026-09-30: "get the messages on the same line as
+	   the icon"): a small round icon floated at the start of the bubble, so the
+	   words begin on the same line beside it. It is tinted with the role's own
+	   colour (the `chatbox-who-*` colours below), and its tooltip is the name.
+	   The bubble is a `flow-root` so a one-line message still wraps the icon. */
 	.chatbox-you .chatbox-who,
 	.chatbox-reply .chatbox-who {
-		display: block;
-		margin: 0;
-		font-size: 0.7em;
+		float: inline-start;
+		display: grid;
+		place-items: center;
+		inline-size: 1.6em;
+		block-size: 1.6em;
+		margin: 0.05em 0 0;
+		margin-inline-end: 0.45em;
+		border-radius: 50%;
+		overflow: hidden;
+		background: color-mix(in srgb, currentColor 16%, transparent);
+		font-size: 0.95em;
+		font-weight: 400;
+		line-height: 1;
 	}
+	.chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+	/* One colour per role, all from theme tokens (each reads in light and dark);
+	   an unknown role stays the ink colour. */
 	.chatbox-who-you       { color: var(--prim-ink); }
 	.chatbox-who-assistant { color: var(--ok); }
 	.chatbox-who-manager   { color: var(--warn); }
@@ -212,6 +243,8 @@
 	.chatbox-log > :first-child { margin-block-start: auto; }
 	.chatbox-you,
 	.chatbox-reply {
+		position: relative;   /* the reaction chips and picker are placed against the bubble */
+		display: flow-root;
 		width: var(--chat-bubble);
 		padding: 0.3em 0.7em;
 		border-radius: 0.9em;
@@ -324,6 +357,108 @@
 	.chatbox-mark-ok { color: var(--ok); }
 	.chatbox-mark-unclear { color: var(--warn); }
 
+	/* THREADS (Chat.js's `thread_item()`): the replies to one bubble sit right under
+	   it, indented, folded to "▸ N replies" until opened. */
+	.chatbox-thread { margin-block: 0 0.3em; padding-inline-start: 1.2em; }
+	.chatbox-thread-toggle {
+		padding: 0.1em 0.4em;
+		border: 0;
+		background: none;
+		color: var(--prim-ink);
+		font: inherit;
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --chat-bubble: 100%; }
+	.chatbox-thread-body[hidden] { display: none; }
+	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
+	/* "Replying to …" above the box, while a reply is pending. */
+	.chatbox-replying { display: flex; align-items: center; gap: 0.4em; padding: 0.2em 0.5em; font-size: 0.85em; color: var(--prim-ink); }
+	.chatbox-replying[hidden] { display: none; }
+	.chatbox-replying-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.chatbox-replying-x { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+	.chatbox-panel > .chatbox-replying { flex: none; }
+
+	/* THE VIA MARK: 🎤 said or ⌨ typed, small and faint after the last word. */
+	.chatbox-via { font-size: 0.7em; opacity: 0.45; white-space: nowrap; }
+
+	/* REACTIONS (Chat.js's `react_on()`): an SMS tap-back. The chips sit on the
+	   bubble's top corner, the one nearest the middle of the chat; a bubble with
+	   any gets a little more room above so the chips never cover the bubble
+	   before it. */
+	.chatbox-has-reacts { margin-block-start: 0.95em; }
+	.chatbox-reacts {
+		position: absolute;
+		top: -0.95em;
+		display: flex;
+		gap: 0.2em;
+		padding: 0.05em 0.35em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		background: var(--surface);
+		font-size: 0.9em;
+		line-height: 1.35;
+		white-space: nowrap;
+		cursor: default;
+	}
+	.chatbox-reply .chatbox-reacts { inset-inline-end: -0.4em; }
+	.chatbox-you .chatbox-reacts { inset-inline-start: -0.4em; }
+	.chatbox-react.mine { text-shadow: 0 0 0.5em color-mix(in srgb, var(--prim) 60%, transparent); }
+
+	/* The row of choices: above the bubble, or below it when the bubble sits at
+	   the top of the log (`.below`, decided when it opens) so the log never clips it. */
+	.chatbox-react-picker {
+		position: absolute;
+		z-index: 5;
+		bottom: calc(100% + 0.3em);
+		display: flex;
+		gap: 0.1em;
+		padding: 0.2em 0.35em;
+		border: 1px solid var(--line);
+		border-radius: 2em;
+		background: var(--surface);
+		box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+	}
+	.chatbox-react-picker.below { bottom: auto; top: calc(100% + 0.3em); }
+	.chatbox-reply .chatbox-react-picker { inset-inline-start: 0; }
+	.chatbox-you .chatbox-react-picker { inset-inline-end: 0; }
+	.chatbox-react-pick {
+		padding: 0.15em 0.25em;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		font-size: 1.4em;
+		line-height: 1;
+		cursor: pointer;
+	}
+	.chatbox-react-pick:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+	.chatbox-react-pick.mine { background: color-mix(in srgb, var(--prim) 28%, transparent); }
+
+	/* The desktop way in: a faint smiley beside the bubble, on hover only. A
+	   phone has no hover, so there it never shows; a long hold opens the row. */
+	.chatbox-react-btn {
+		position: absolute;
+		top: 0.15em;
+		visibility: hidden;
+		padding: 0 0.25em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font-size: 1.1em;
+		line-height: 1.2;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+	.chatbox-reply .chatbox-react-btn { inset-inline-end: -1.7em; }
+	.chatbox-you .chatbox-react-btn { inset-inline-start: -1.7em; }
+	@media (hover: hover){
+		.chatbox:hover > .chatbox-react-btn,
+		.chatbox-react-btn:focus-visible { visibility: visible; }
+	}
+	/* A phone's long hold opens the reactions, not the browser's copy menu. */
+	@media (hover: none){
+		.chatbox-selectable { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+	}
 	/* LIVE BUBBLES (`chat().live()`/`.stream()`, dictation-stream 2026-09-30): your words while you
 	   speak, and a reply while it is written. The still-moving guess is grey; a sent bubble fades
 	   until its real line replaces it; a streaming reply ends in a caret. */

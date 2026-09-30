@@ -57,17 +57,16 @@ function raw_list(cls, pieces){
 	return box;
 }
 
-/* THE VIA MARK — a small " · 🎤" (said) or " · ⌨" (typed), for a universal chat
-   line (below) that carries `via`. It goes on the SENDER LABEL, once per
-   bubble ("You · 🎤"), not on every piece's own text: a piece-level mark sat on
-   its own row above the words, adding a whole extra line per message inside a
-   merged bubble (the task mastermind, 2026-09-29, judging this task's own
-   proof shots). `label_via()` is called once, when a bubble's label is built;
-   `piece_node()` (below) no longer touches `via` at all. */
+/* THE VIA MARK — a small, faint 🎤 (said) or ⌨ (typed) TRAILING each message's
+   last word (the owner, 2026-09-30: the mark stays, "small and trailing"), for
+   a universal chat line (below) that carries `via`. Glued after the last word
+   like the ✓/? mark, so it never takes a row of its own. */
 function via_text(via){ return via === "voice" ? "🎤" : "⌨"; }
-function label_via($label, via){
-	if ($label && via) $label.append(" · " + via_text(via));
-	return $label;
+function via_badge(via){
+	const b = el("chatbox-via", "span");
+	b.textContent = via_text(via);
+	b.title = via === "voice" ? "said" : "typed";
+	return b;
 }
 
 /* A PLACE CARD — `place: {module, id, ...}` swaps a piece's text for that
@@ -148,10 +147,17 @@ function append_mark(node, m){
 }
 
 function piece_node(pc){
+	const node = piece_body(pc);
+	if (pc.id != null) node.dataset.re = pc.id;
+	return node;
+}
+
+function piece_body(pc){
 	if (pc.place) return place_card(pc.place);
 	if (pc.revision) return revision_pair_node(pc);
 	const node = para("chatbox-text", pc.text);
 	if (pc.mark) append_mark(node, pc.mark);
+	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));   // a no-break space: the mark never wraps onto a line of its own
 	return node;
 }
 
@@ -184,6 +190,55 @@ function fill(b){
 	}
 }
 
+/* REACTIONS — an SMS tap-back (the owner, 2026-09-30: "long hold on a message
+   and thumbs up or a green check mark… just kind of like an acknowledged").
+   A reaction is its own log line, never an edit of the message:
+
+     {"react": {"at": "…", "re": "<the message's at or id>", "emoji": "👍", "from": {"kind": "owner"}}}
+
+   ONE PER PERSON PER MESSAGE: the newest line from a sender for a message wins,
+   and an empty `emoji` takes that sender's reaction off. `reacts_of` holds, per
+   bubble, message id -> sender -> {emoji, at}; `draw_reacts()` pins the result
+   on the bubble's top corner. */
+export const REACTIONS = ["👍", "✅", "❤️", "😂", "❓", "👎"];
+const reacts_of = new WeakMap();
+const sender_of = from => String(from?.id || from?.kind || "someone");
+
+/** Apply one reaction line to a bubble. False when it is older than what is already there. */
+export function react_on(b, r){
+	if (!b) return false;
+	const all = reacts_of.get(b) ?? new Map();
+	reacts_of.set(b, all);
+	const re = String(r.re), who = sender_of(r.from), at = Date.parse(r.at ?? 0) || Date.now();
+	const on = all.get(re) ?? new Map();
+	all.set(re, on);
+	const was = on.get(who);
+	if (was && was.at > at) return false;
+	on.set(who, { emoji: r.emoji || "", at });
+	draw_reacts(b);
+	return true;
+}
+
+/** What `who` has on message `re` right now ("" for nothing). */
+export function reaction_of(b, re, who = "owner"){ return reacts_of.get(b)?.get(String(re))?.get(who)?.emoji ?? ""; }
+
+function draw_reacts(b){
+	b.querySelector(":scope > .chatbox-reacts")?.remove();
+	const counts = new Map();   // emoji -> [who, …]
+	for (const on of (reacts_of.get(b) ?? new Map()).values())
+		for (const [who, r] of on) if (r.emoji) counts.set(r.emoji, [...(counts.get(r.emoji) ?? []), who]);
+	b.classList.toggle("chatbox-has-reacts", counts.size > 0);
+	if (!counts.size) return;
+	const box = el("chatbox-reacts", "span");
+	for (const [emoji, whos] of counts){
+		const chip = el("chatbox-react" + (whos.includes("owner") ? " mine" : ""), "span");
+		chip.textContent = emoji + (whos.length > 1 ? whos.length : "");
+		chip.title = whos.map(w => (w === "owner" ? "you" : w) + " " + emoji).join(", ");
+		box.append(chip);
+	}
+	b.append(box);
+}
+
 /** Draw one message: a new bubble, or a paragraph on the bubble it merges into.
  *  `onmount(el)` fires once, only for a brand-new bubble — `chat()`'s own
  *  selection wiring (below) hangs off it. */
@@ -194,10 +249,12 @@ export function speak($box, { cls, who, text, sender, at, id, onmount }){
 		bubbles.get(last).pieces.push(piece);
 		last.dataset.at = at;
 		fill(last);
-		return;
+		return last;
 	}
+	let made = null;
 	$box.append(() => {
 		p.c("chatbox " + cls, $b => {
+			made = $b.el;
 			if (sender){ $b.el.dataset.sender = sender; $b.el.dataset.at = at; }
 			if (who && who !== "task") who_label(who);
 			bubbles.set($b.el, { pieces: [piece], refined: null });
@@ -205,6 +262,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount }){
 			onmount?.($b.el);
 		});
 	});
+	return made;
 }
 
 /** A refined line: the latest one whose `of` ids are in a bubble replaces its raw paragraphs. */
@@ -227,7 +285,9 @@ export function refine($box, e){
    duplicate. `at` plus whether this line is a `fix` is enough: two ordinary
    lines never legitimately share an `at`, and a fix always differs from its
    original by that one flag. */
-const key = e => e.chat
+const key = e => e.react
+	? "react|" + e.react.at + "|" + e.react.re + "|" + sender_of(e.react.from) + "|" + (e.react.emoji ?? "")
+	: e.chat
 	// A fix line's key includes its TEXT: latest wins, so a later fix reading
 	// different words for the same `at` is never dropped as a duplicate of an
 	// earlier placeholder ("waiting for the page's assistant…" then the real
@@ -263,7 +323,7 @@ export function card_of(b){
 	return { key: bubble_key(b), title: title || "(untitled)", who: b.querySelector(":scope > .chatbox-who, :scope > .who")?.textContent ?? "", children };
 }
 
-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open } = {}){
+export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply } = {}){
 	let $script;
 	const seen = new Set();
 
@@ -321,6 +381,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
 		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
 		$selected.querySelector(":scope > .chatbox-open-btn")?.remove();
+		$selected.querySelector(":scope > .chatbox-thread-btn")?.remove();
 		$selected = null;
 		on_select?.(null);
 	}
@@ -333,6 +394,67 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		on_select?.({ el: $b, text: title_node($b)?.textContent ?? "" });
 		if (rename) add_rename_button($b);
 		if (on_open && card_of($b)?.children.length) add_open_button($b);
+		if (on_reply) add_reply_button($b);
+	}
+
+	/* THREADS (the owner, 2026-09-30: "a reply is attached to its parent bubble,
+	   shown as a thread under it, collapsed to N replies, not appended at the
+	   bottom out of context"). A selected bubble grows a Reply button; pressing
+	   it hands `on_reply({re, title})` to the caller, whose next message then
+	   carries `re` = that bubble's key and `thread: true`. Such a line is drawn
+	   in a small thread right under its parent (`thread_item()`, below), never
+	   at the bottom. A reply to a message that is itself in a thread joins the
+	   same thread: threads are one level deep. `thread: true` is what marks it:
+	   an ordinary assistant reply also carries `re` (the line it answers) and
+	   stays in the main flow. */
+	function key_of($b){ return String(bubbles.get($b)?.key ?? bubbles.get($b)?.pieces[0]?.id ?? $b.dataset.re ?? ""); }
+	function add_reply_button($b){
+		const $btn = document.createElement("button");
+		$btn.type = "button"; $btn.className = "chatbox-thread-btn"; $btn.textContent = "Reply ↩";
+		$btn.addEventListener("click", e => {
+			e.stopPropagation();
+			const k = key_of($b), re = root_of.get(k) ?? k;
+			on_reply({ re, title: (title_node($b)?.textContent ?? "").replace(/[\s✓?🎤⌨]+$/u, "").trim().slice(0, 80) });
+			deselect();
+		});
+		$b.appendChild($btn);
+	}
+	const threads = new Map(), root_of = new Map();   // root key -> thread; a thread item's at -> its root key
+	function thread_for(root){
+		let t = threads.get(root);
+		if (t) return t;
+		const $parent = targets.get(root);
+		if (!$parent) return null;
+		let $wrap, $body, $toggle;
+		$script.append(() => {
+			$wrap = div.c("chatbox-thread", () => {
+				$toggle = button.c("chatbox-thread-toggle").attr("type", "button");
+				$body = div.c("chatbox-thread-body");
+			});
+		});
+		$parent.after($wrap.el);
+		t = { $wrap, $body, $toggle, count: 0, open: false };
+		const show = () => {
+			$toggle.el.textContent = (t.open ? "▾ " : "▸ ") + t.count + (t.count === 1 ? " reply" : " replies");
+			$body.el.hidden = !t.open;
+			$toggle.attr("aria-expanded", String(t.open));
+		};
+		t.show = show;
+		$toggle.el.addEventListener("click", e => { e.stopPropagation(); t.open = !t.open; show(); });
+		threads.set(root, t);
+		return t;
+	}
+	function thread_item(c, cls, who, at){
+		const $p = targets.get(String(c.re));
+		const root = root_of.get(String(c.re)) ?? ($p ? key_of($p) : String(c.re));
+		const t = thread_for(root);
+		if (!t) return false;
+		root_of.set(String(c.at), root);
+		t.count++;
+		if (Date.now() - at < 120000) t.open = true;   // a reply from the last two minutes opens its thread, so it is seen
+		t.show();
+		put_line(t.$body, c, cls, who, at);
+		return true;
 	}
 
 	/* DRILL IN (`doc/drill.md`, 2026-09-30): a selected bubble that HAS contents
@@ -348,7 +470,90 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	function make_selectable($b){
 		$b.classList.add("chatbox-selectable");
 		$b.tabIndex = 0;
-		$b.addEventListener("click", e => { if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn")) return; select_bubble($b); });
+		$b.addEventListener("click", e => {
+			if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn, .chatbox-thread-btn, .chatbox-thread-toggle, .chatbox-react-picker, .chatbox-react-btn")) return;
+			// The click that ends a long-press opened the picker: it is not also a
+			// select, and it must not reach the document, which closes an open picker.
+			if (pressed){ pressed = false; e.stopPropagation(); return; }
+			select_bubble($b);
+		});
+		if (on_react) reactable($b);
+	}
+
+	/* REACTING (the owner, 2026-09-30). Three ways to open the row of reactions on
+	   a bubble: hold it (a phone, about half a second), right-click it (a
+	   desktop; an Android long-press fires the same event), or the small smiley
+	   button that shows on hover. A tap on an emoji pins it on the bubble's
+	   corner; the same emoji again takes it off. `on_react({re, emoji, at})` is
+	   how the caller saves it (a line in the session log); it is drawn here at once. */
+	const HOLD_MS = 450;
+	let pressed = false, $picker = null;
+	function target_of($b, node){
+		return node?.closest?.("[data-re]")?.dataset.re ?? $b.dataset.re
+			?? [...$b.querySelectorAll(":scope > [data-re]")].pop()?.dataset.re ?? null;
+	}
+	function close_picker(){ $picker?.remove(); $picker = null; }
+	function open_picker($b, node){
+		close_picker();
+		const re = target_of($b, node);
+		if (re == null) return;
+		const mine = reaction_of($b, re);
+		$picker = el("chatbox-react-picker");
+		$picker.setAttribute("role", "toolbar");
+		$picker.setAttribute("aria-label", "react");
+		REACTIONS.forEach(emoji => {
+			const btn = el("chatbox-react-pick" + (emoji === mine ? " mine" : ""), "button");
+			btn.type = "button"; btn.textContent = emoji; btn.title = emoji === mine ? "take it off" : "react " + emoji;
+			btn.addEventListener("click", e => {
+				e.stopPropagation();
+				const r = { at: new Date().toISOString(), re, emoji: emoji === mine ? "" : emoji, from: { kind: "owner" } };
+				react_on($b, r);
+				close_picker();
+				Promise.resolve(on_react({ re, emoji: r.emoji, at: r.at })).catch(err => console.error("chat: reaction not saved", err));
+			});
+			$picker.append(btn);
+		});
+		$b.append($picker);
+		// Near the top of the log there is no room above: open below, so the log never clips it.
+		const room = $b.getBoundingClientRect().top - $script.el.getBoundingClientRect().top;
+		if (room < $picker.offsetHeight + 8) $picker.classList.add("below");
+	}
+	function reactable($b){
+		const $btn = el("chatbox-react-btn", "button");
+		$btn.type = "button"; $btn.textContent = "☺"; $btn.title = "react"; $btn.setAttribute("aria-label", "react");
+		$btn.addEventListener("click", e => { e.stopPropagation(); $picker?.parentNode === $b ? close_picker() : open_picker($b, null); });
+		$b.append($btn);
+		$b.addEventListener("contextmenu", e => { e.preventDefault(); pressed = false; open_picker($b, e.target); });
+		let timer = null, x0 = 0, y0 = 0;
+		const cancel = () => { clearTimeout(timer); timer = null; };
+		$b.addEventListener("pointerdown", e => {
+			if (e.pointerType === "mouse" || e.target.closest(".chatbox-react-picker, .chatbox-react-btn")) return;
+			x0 = e.clientX; y0 = e.clientY; cancel();
+			timer = setTimeout(() => { timer = null; pressed = true; open_picker($b, e.target); }, HOLD_MS);
+		});
+		$b.addEventListener("pointermove", e => { if (timer && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) cancel(); });
+		["pointerup", "pointercancel", "pointerleave"].forEach(t => $b.addEventListener(t, cancel));
+	}
+	if (typeof document !== "undefined"){
+		document.addEventListener("click", e => { if ($picker && !e.target.closest(".chatbox-react-picker, .chatbox-react-btn")) close_picker(); });
+		document.addEventListener("keydown", e => { if (e.key === "Escape") close_picker(); });
+	}
+
+	/* Which bubble holds each message id (a chat line's `at`, an old line's `id`),
+	   so a reaction line finds its bubble. A reaction that arrives before its
+	   message waits in `early` until the message is drawn. */
+	const targets = new Map(), early = new Map();
+	function target(id, $b){
+		if (id == null || !$b) return;
+		id = String(id);
+		targets.set(id, $b);
+		const wait = early.get(id);
+		if (wait){ early.delete(id); wait.forEach(r => react_on($b, r)); }
+	}
+	function react_line(r){
+		const $b = targets.get(String(r.re));
+		if ($b) return react_on($b, r);
+		early.set(String(r.re), [...(early.get(String(r.re)) ?? []), r]);
 	}
 	if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape") deselect(); });
 
@@ -418,7 +623,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 
 	function add(cls, who, text, sender, at, id){
 		if (!text) return;
-		follow(() => speak($script, { cls, who, text, sender, at, id, onmount: make_selectable }));
+		follow(() => target(id, speak($script, { cls, who, text, sender, at, id, onmount: make_selectable })));
 	}
 
 	/* A REPLY'S HEADING (the owner, 2026-09-24): a `heading` field, or a first line
@@ -427,12 +632,13 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		let head = e.heading, body = e.text ?? "";
 		const nl = body.search(/[\r\n]/), first = (nl < 0 ? body : body.slice(0, nl)).trim();
 		if (!head && first.startsWith("#")){ head = first.replace(/^#+\s*/, ""); body = nl < 0 ? "" : body.slice(nl + 1).trim(); }
-		if (!head) return follow(() => speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id, onmount: make_selectable }));
+		if (!head) return follow(() => target(e.id, speak($script, { cls: "chatbox-reply", who: e.by, text: body, sender: e.by, at: e.at, id: e.id, onmount: make_selectable })));
 		follow(() => $script.append(() => {
 			p.c("chatbox chatbox-reply", $b => {
 				who_label(e.by);
 				span.c("chatbox-head", $t => { md_into($t.el, head, true); });
 				if (body) div.c("chatbox-text md", $t => { md_into($t.el, body); });
+				if (e.id != null){ $b.el.dataset.re = e.id; target(e.id, $b.el); }
 				// Never `fill()`-ed (its markup is drawn right here); kept so `card_of()`
 				// can open it — its title is the heading, its one child the body.
 				bubbles.set($b.el, { pieces: body ? [{ id: e.id ?? e.at, text: body, at: e.at }] : [], refined: null, head, key: e.id ?? e.at });
@@ -462,6 +668,8 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				});
 				const entry = { $q, choices, at: Date.parse(e.at ?? 0) || 0 };
 				asks.push(entry);
+				const id = e.id ?? e.at;
+				if (id != null){ $q.el.dataset.re = id; target(id, $q.el); }
 				make_selectable($q.el);
 			});
 		}));
@@ -530,29 +738,43 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			return follow(() => speak($script, { cls: "chatbox-reply", who: "", text: c.text, sender: "", at: c.at, id: "revision-" + at }));
 		}
 
-		follow(() => {
-			const last = mergeable($script, who, at);
+		// A THREADED reply (`thread: true` + `re`) goes under its parent; with the
+		// parent not on screen, it falls through to the main flow rather than vanish.
+		if (c.thread && c.re){
+			let placed = false;
+			follow(() => { placed = thread_item(c, cls, who, at); });
+			if (placed) return;
+		}
+
+		follow(() => put_line($script, c, cls, who, at));
+	}
+
+	/** One universal chat line into `$box` (the log, or a thread's body): a paragraph
+	 *  on the bubble it merges into, or a new bubble. */
+	function put_line($box, c, cls, who, at){
+			const last = mergeable($box, who, at);
 			const piece = { id: c.at, text: c.text, at, via: c.via, place: c.place };
 			if (last){
 				bubbles.get(last).pieces.push(piece);
 				last.dataset.at = at;
 				fill(last);
 				fix_index.set(c.at, { bubble: last, piece });
+				target(c.at, last);
 				if (cls === "chatbox-you") mark_owner_piece(last, piece, c);
 				return;
 			}
-			$script.append(() => {
+			$box.append(() => {
 				p.c("chatbox " + cls, $b => {
 					$b.el.dataset.sender = who; $b.el.dataset.at = at;
-					if (who) label_via(who_label(who), c.via);
+					if (who) who_label(who, c.from?.agent);
 					bubbles.set($b.el, { pieces: [piece], refined: null });
 					fill($b.el);
 					fix_index.set(c.at, { bubble: $b.el, piece });
 					make_selectable($b.el);
+					target(c.at, $b.el);
 					if (cls === "chatbox-you") mark_owner_piece($b.el, piece, c);
 				});
 			});
-		});
 	}
 
 	function live_bubble(key, cls, who){
@@ -575,6 +797,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	let sent_n = 0;
 
 	function draw(e){
+		if (e.react) return react_line(e.react);
 		if (e.chat) return chat_line(e.chat);
 		if (e.type === "ask" || (e.type === "prompt" && e.choices?.length)) return ask(e);
 		if (e.type === "prompt"){ answered(e); drop_live([...lives.keys()].find(k => k.startsWith("sent:"))); }   // your real line replaces the faded live bubble
@@ -654,5 +877,6 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 }
 
 export { md_into, who_label };
+export { set_avatar, avatar_of, AVATARS } from "./roles.js";
 export { role_key } from "./roles.js";
 export default chat;

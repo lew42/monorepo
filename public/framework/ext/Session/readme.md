@@ -8,7 +8,7 @@ A session starts on the page you are on (its home), follows you from page to pag
 ## Use
 
 ```js
-import { start, resume, recent, say, floor, nav, watch, entry } from "/framework/ext/Session/Session.js";
+import { start, resume, recent, say, floor, nav, react, watch, entry } from "/framework/ext/Session/Session.js";
 
 const { session, file, resumed, previous } = await start({ path: location.pathname });
 const stop = watch(file, line => draw(entry(line)));   // every line, old and new
@@ -19,6 +19,7 @@ const rows = await recent(location.pathname);          // this page's sessions, 
 await resume(rows[0].session);                          // continue one
 const unlive = stream(session, ev => ev.kind === "stream" ? panel.stream(ev.role, ev.text) : draw(ev.line));
 const unquiet = report_quiet(() => session);   // tell Servex each time the owner goes quiet
+await react({ session, re: line.at, emoji: "👍" });   // a tap-back on one line; "" takes it off
 ```
 
 **The assistants answer when you stop talking.** A spoken line carries the floor; Servex holds it
@@ -28,6 +29,7 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
 
 ## Watch out
 
+- Only one acknowledgement goes out: the fast reply waits 8 s and is dropped if the smart one answered or reacted first. Either one can answer with a lone emoji, which becomes a reaction on your line ([doc/sessions.md](./doc/sessions.md#reactions-and-one-acknowledgement)).
 - It needs Servex (`Servex/agents/Sessions.js`, including `/api/session/quiet` and `/api/session/<id>/stream`). A Servex that has not been restarted since a change here answers 404 on the new routes.
 - The first line you say starts two real agents, so the demo costs a few cents. They stop after 5 quiet minutes and wake on the next line, and at most 2 pairs run at once.
 - Each folder's `ai/log.jsonl` is the index of its AI work (sessions, tasks, decisions), not `page.jsonl`.

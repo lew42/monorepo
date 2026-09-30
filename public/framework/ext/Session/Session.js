@@ -58,16 +58,20 @@ export async function recent(page = location.pathname, { limit = 10, host = loca
  *  level meter, and also carries `quiet_ms` (how long the owner has been quiet). Servex holds a
  *  spoken line from both assistants until the owner has been quiet 2.5 s (see `quiet()`). `raw` is
  *  what Whisper heard, kept on the line when the clean-up changed it. No floor counts as "done". */
-export const say = ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues }) => {
+export const say = ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread }) => {
 	const spoken = via === "voice";
 	f ??= spoken ? mic_floor.state() : undefined;
 	return post("say", { session, path, text, via, ...(raw && raw !== text ? { raw } : {}),
-		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}) });
+		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}),
+		...(re && thread ? { re, thread: true } : {}) });
 };
 
 /** The floor changed with no new words (the owner stopped talking): "done" writes a held fast reply. */
 export const floor = ({ session, floor }) => post("floor", { session, floor });
 
+/** The owner's reaction (👍 ✅ ❤️ 😂 ❓ 👎) on one line of the session, `re` = that line's `at`.
+ *  An empty `emoji` takes the owner's reaction off. */
+export const react = ({ session, re, emoji = "", at }) => post("react", { session, re, emoji, at });
 /** THE SILENCE EVENT: the owner has been quiet for `ms` (or the mic went off). Servex writes it as an
  *  invisible `{quiet}` line, and it is what lets the held assistants answer. */
 export const quiet = ({ session, ms, mic_off = false, path = location.pathname }) => post("quiet", { session, ms, mic_off, path });
@@ -128,4 +132,4 @@ export function entry(line){
 	return null;
 }
 
-export default { start, resume, recent, say, floor, quiet, report_quiet, stream, nav, watch, entry, LEVELS };
+export default { start, resume, recent, say, floor, quiet, report_quiet, stream, nav, react, watch, entry, LEVELS };

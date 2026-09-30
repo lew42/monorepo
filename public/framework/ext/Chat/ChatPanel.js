@@ -1,4 +1,4 @@
-import { View } from "/app.js";
+import { View, div, span, button } from "/app.js";
 import { chat } from "./Chat.js";
 import { composer } from "./Composer.js";
 import { watch as watch_session } from "/framework/ext/Session/Session.js";
@@ -60,7 +60,7 @@ export class ChatPanel extends View {
 		// a Dictate-fed one does (`readme.md`'s "revision line", agreed with
 		// mastermind-servex-7, 2026-09-29): `chat_line()` only reads the shape.
 		if (this.watch) this.stop_watch = watch_session(this.watch, line => {
-			if (line.chat) local.push(line);
+			if (line.chat || line.react) local.push(line);
 			this.sync();
 		});
 
@@ -85,6 +85,20 @@ export class ChatPanel extends View {
 			// DRILL IN (doc/drill.md): "Open" on a selected card takes it full
 			// screen, routed. `drill: false` = no button, exactly v1.
 			on_open: this.drill === false ? undefined : card => this.drilled.open(card),
+			// REACTIONS (ai/2026-09-30/chat-reactions): hold, right-click or hover a
+			// bubble to pin a 👍 ✅ ❤️ 😂 ❓ 👎 on it. Saved by the host's own
+			// `react({re, emoji, at})` (a voice session writes a line to its log);
+			// a panel that keeps its own list keeps the reaction there. A panel fed
+			// only by a card's `source` with no `react` gets none: there is nowhere
+			// to save one, and a reaction that vanishes on reload would lie.
+			// THREADS: a selected bubble's Reply button; the next message you send
+			// goes under that bubble (`re` + `thread: true`). Offered where the
+			// message can carry it: a panel with its own list, or a host that says
+			// `threads: true` (the voice sheet). A card's thread cannot, so none.
+			on_reply: this.threads || !this.source ? target => this.reply_to_set(target) : undefined,
+			on_react: this.react ? r => this.react(r)
+				: this.source ? undefined
+				: r => { local.push({ react: { ...r, from: { kind: "owner" } } }); },
 		});
 		if (this.drill !== false) this.drilled = new ChatDrill({ panel: this, session: this.session ?? this.watch ?? "panel-" + (++panels) });
 
@@ -93,14 +107,27 @@ export class ChatPanel extends View {
 		// point back here): `composer()` builds the microphone; a `refine:` value
 		// added to this call is the one place it would reach every host of
 		// `ChatPanel` at once.
-		this.compose = composer({
+		// "Replying to …" — shown above the box while a Reply is pending; × cancels it.
+		this.$replying = div.c("chatbox-replying", () => {
+			span.c("chatbox-replying-text");
+			button.c("chatbox-replying-x").attr("type", "button").attr("title", "cancel the reply").text("×").click(() => this.reply_to_set(null));
+		});
+		this.$replying.el.hidden = true;
+
+		const deliver = this.deliver ?? (async entry => {
 			// The default (no real `deliver`): the universal chat-line shape, straight
 			// through `say()` — so even the plain demo remembers its raw line and can
 			// pair a revision to it, same as every other caller.
-			deliver: this.deliver ?? (async entry => {
-				this.say({ chat: { at: entry.at ?? new Date().toISOString(), from: { kind: "owner" }, via: entry.via, text: entry.text } });
-				return true;
-			}),
+			this.say({ chat: { at: entry.at ?? new Date().toISOString(), from: { kind: "owner" }, via: entry.via, text: entry.text,
+				...(entry.thread ? { re: entry.thread, thread: true } : {}) } });
+			return true;
+		});
+		this.compose = composer({
+			// A pending Reply rides on the entry as `thread` (the parent's key), then clears.
+			deliver: entry => {
+				if (this.reply_to){ entry.thread = this.reply_to.re; this.reply_to_set(null); }
+				return deliver(entry);
+			},
 			re: this.re,
 			mic: this.mic,
 			autostart: this.autostart,
@@ -132,6 +159,14 @@ export class ChatPanel extends View {
 		});
 
 		this.sync();
+	}
+
+	/** Start (a `{re, title}`) or cancel (`null`) a threaded reply: the next message goes under `re`. */
+	reply_to_set(target){
+		this.reply_to = target;
+		this.$replying.el.hidden = !target;
+		if (target) this.$replying.el.querySelector(".chatbox-replying-text").textContent = "↩ Replying to “" + (target.title || "that message") + "”";
+		if (target) this.compose?.$input?.el.focus();
 	}
 
 	/** Draw whatever is new since the last call — same contract as `chat().sync()`. */

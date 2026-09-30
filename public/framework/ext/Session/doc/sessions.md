@@ -15,6 +15,7 @@ One session is one append-only file, `public<home>ai/<session>.jsonl`. The brows
 {"backing": {"at": "…", "fast": "<uuid>", "smart": "<uuid>", "how": {"fast": "resume", "smart": "fresh"}}}
 {"quiet": {"at": "…", "ms": 2500, "path": "/framework/"}}
 {"skip": {"at": "…", "role": "fast", "text": "(listening)", "re": "<the owner line's at>"}}
+{"react": {"at": "…", "session": "v-1xrmuro", "re": "<a line's at>", "emoji": "✅", "from": {"kind": "assistant", "id": "smart", "agent": "…"}}}
 ```
 
 A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean-up changed it, `raw` (what Whisper heard). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
@@ -71,6 +72,8 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 | `POST /api/session/floor` | `{session, floor}` | `{ok, floor, released}`: `"done"` writes a held fast reply |
 | `GET /api/sessions?page=/x/&limit=10&host=` | | `{ok, sessions: [{session, home, title, summary, at, last_at}]}`, newest first: the sessions named in that folder's `ai/log.jsonl`, or whose `home`/`visited` in `sessions.json` names it |
 | `GET /api/sessions?card=<id>&limit=10&host=` | | the same shape, but only that card's sessions (same as `?page=` on the card's own folder) |
+| `POST /api/session/say` with `re`, `thread: true` | as `say` | the same, as a threaded reply to line `re` |
+| `POST /api/session/react` | `{session, re, emoji, at?}` | `{ok, at}`: the owner's tap-back on line `re`; `emoji: ""` takes it off |
 | `GET /api/session/<id>` | | the session's record |
 
 **`/new` continues a recent session.** If a session from the same project started on this page, or passed through it, and its last line is less than an hour old (`SERVEX_SESSION_RESUME_MS`), `/new` returns that session with `resumed: true`. Otherwise it makes a new one, and `previous` is the page's most recent older session, `{session, title, summary, at}`, or `null`.
@@ -123,6 +126,16 @@ Memory comes first: an idle `claude` process costs about 250 MB.
 - **A Servex restart** drops the in-memory quiet-gap batch and any turn in progress. On install, a session whose last chat line is the owner's gets one line from Servex: "Servex restarted; this line wasn't answered. Say it again."
 - **At most 2 pairs run at once**, machine-wide (`SERVEX_SESSION_MAX_PAIRS`). Waking a third first stops the pair that has been quiet longest; if every pair is mid-turn, it goes over rather than cut one off.
 - **The next `say`** respawns whichever agent is stopped or gone (a Servex restart leaves them gone): it resumes the agent's Claude session, with the same id, cwd and spec. If that session file cannot be found, the agent starts fresh and is given the session file's last 40 lines. Either way a `backing` line is written.
+
+## Reactions and one acknowledgement
+
+(ai/2026-09-30/chat-reactions; the owner: "if both assistants are responding with roughly just… a yes, heard you… the fast assistant could wait for the smart assistant.")
+
+- **An assistant reacts with a lone emoji.** A final text that is exactly one emoji (`LONE_EMOJI` in `Sessions.js`) is written as a `react` line on the owner's line (`re`), not as a chat line. Both briefs say when: ✅ for "okay, done", 👍 for "heard you".
+- **The fast reply waits 8 seconds** after the owner spoke (`SERVEX_SESSION_FAST_WAIT_MS`, default 8000). If the smart one has answered or reacted to that line, or a later one, by then, the fast reply is dropped. If not, it goes out: a best guess in a few words, or a lone emoji. Eight, not five, because the smart one first gathers for 1.5 s and then thinks with the whole Claude Code preset. The wait is a timer in Servex, so a Servex restart during it drops that one fast reply.
+- **The owner's reactions reach both assistants** as a plain note at the top of their next message: `(the owner reacted 👍 to the smart assistant's line "…")`. A ❓ on an assistant's line does not wait: it wakes the smart one at once and asks it to explain. The notes wait in the session record (`notes`), so a restart keeps them.
+- **A threaded reply.** `say({…, re, thread: true})` keeps `re` + `thread` on the owner's line (the ✦ sheet's Reply button sends it). Both assistants get `(this is a reply to the fast assistant's line "…")` at the top of that message, and their answers carry `thread: true` too, so they are drawn in the same thread.
+- How the browser draws and picks them: [ext/Chat/doc/reactions.md](/framework/ext/Chat/doc/reactions.md).
 
 ## Past problems
 

@@ -24,6 +24,7 @@ View.stylesheet(import.meta, "Chat.css");
  * quarter second.
  */
 const MAX_PROMPT = 20000;   // one message is never legitimately longer; a runaway box is refused, not sent
+const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>';
 
 export function composer({
 	deliver, re = () => null, on_text, mic: with_mic = true, autostart, max = MAX_PROMPT,
@@ -59,33 +60,42 @@ export function composer({
 			}).ac("chatbox-mic");
 		});
 
-		button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
+		// THE BUTTONS, AS ONE GROUP: on a phone the whole group drops under the box
+		// together, so the box gets the full width (Chat.css, `.chatbox-compose`).
+		div.c("chatbox-compose-actions", () => {
+			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
 
-		// Everything that does not fit on one line. `.open` is toggled here and
-		// the popover is positioned out of flow, so opening it moves nothing.
-		if (with_mic) button.c("chatbox-compose-more").attr("type", "button").attr("title", "engine, microphone and status")
-			.text("⋯").click(() => view.el.classList.toggle("open"));
-		if (with_mic) button.c("chatbox-compose-more").attr("type", "button").attr("title", "dictation settings")
-			.text("⚙").click(() => mic?.gear?.());
-		// Deliverable 3 - "dig back": one small toggle shows exactly what Whisper produced,
-		// in place of the clean-up, for whatever is currently in the box. Only worth showing
-		// on a composer that asked for a revise: level at all - a plain box has no raw/clean
-		// split to dig into. Review finding 7: it must also HIDE the instant the gear's
-		// "clean" kill switch is off, since toggling it then would show raw = clean (nothing
-		// to dig into, nothing to show) - `SETTINGS.clean` decides its hidden state, both up
-		// front and live, via `CLEAN_CHANGED_EVENT` (the one way a plain DOM node outside the
-		// mic hears that ONE setting change - `Mic.js`'s own settings_panel() fires it).
-		if (with_mic && revise) $raw_btn = button.c("chatbox-compose-more chatbox-compose-raw").attr("type", "button")
-			.attr("title", "show exactly what Whisper heard, before the clean-up")
-			.text("raw").click(() => $raw_btn.el.classList.toggle("active", mic?.toggle_raw()));
-		if ($raw_btn){
-			$raw_btn.el.hidden = !SETTINGS.clean;
-			document.addEventListener(CLEAN_CHANGED_EVENT, function on_clean_changed(e){
-				if (!$raw_btn.el.isConnected) return document.removeEventListener(CLEAN_CHANGED_EVENT, on_clean_changed);
-				$raw_btn.el.hidden = !e.detail;
-				if (!e.detail) $raw_btn.el.classList.remove("active");
-			});
-		}
+			// Everything that does not fit on one line. `.open` is toggled here and
+			// the popover is positioned out of flow, so opening it moves nothing.
+			if (with_mic) button.c("chatbox-compose-more").attr("type", "button").attr("title", "engine, microphone and status")
+				.text("⋯").click(() => view.el.classList.toggle("open"));
+			// A real gear (an SVG), not the ⚙ character: on a phone that glyph drew as a
+			// ship's wheel (the owner, 2026-09-30).
+			if (with_mic){
+				const $gear = button.c("chatbox-compose-more chatbox-compose-gear").attr("type", "button").attr("title", "dictation settings")
+					.attr("aria-label", "dictation settings").click(() => mic?.gear?.());
+				$gear.el.innerHTML = GEAR;
+			}
+			// Deliverable 3 - "dig back": one small toggle shows exactly what Whisper produced,
+			// in place of the clean-up, for whatever is currently in the box. Only worth showing
+			// on a composer that asked for a revise: level at all - a plain box has no raw/clean
+			// split to dig into. Review finding 7: it must also HIDE the instant the gear's
+			// "clean" kill switch is off, since toggling it then would show raw = clean (nothing
+			// to dig into, nothing to show) - `SETTINGS.clean` decides its hidden state, both up
+			// front and live, via `CLEAN_CHANGED_EVENT` (the one way a plain DOM node outside the
+			// mic hears that ONE setting change - `Mic.js`'s own settings_panel() fires it).
+			if (with_mic && revise) $raw_btn = button.c("chatbox-compose-more chatbox-compose-raw").attr("type", "button")
+				.attr("title", "show exactly what Whisper heard, before the clean-up")
+				.text("raw").click(() => $raw_btn.el.classList.toggle("active", mic?.toggle_raw()));
+			if ($raw_btn){
+				$raw_btn.el.hidden = !SETTINGS.clean;
+				document.addEventListener(CLEAN_CHANGED_EVENT, function on_clean_changed(e){
+					if (!$raw_btn.el.isConnected) return document.removeEventListener(CLEAN_CHANGED_EVENT, on_clean_changed);
+					$raw_btn.el.hidden = !e.detail;
+					if (!e.detail) $raw_btn.el.classList.remove("active");
+				});
+			}
+		});
 
 		$note = small.c("chatbox-compose-note muted").text(hint);
 	});

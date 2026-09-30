@@ -10,6 +10,28 @@ export default new Page({
 
 	content(){
 		p("The log below, on its own. For the log plus the composer and the mic as ONE component — the widget the desktop drawer and the mobile sheet both use — see Chat Panel, `/framework/ext/Chat/panel/`.");
+		p("Hold, right-click or ☺ a bubble to react; tap a bubble, then Reply, to answer it in a thread. ⚡ is the fast assistant, 🧠 the smart one, 👤 you.");
+
+		// The live chat first (demo.stage: the result, no code); the line shapes are in doc/reactions.md.
+		demo.stage(() => {
+			const t0 = Date.parse("2026-09-30T12:00:00Z"), entries = [];
+			const at = s => new Date(t0 + s * 1000).toISOString();
+			const line = (s, from, text, via = "text") => entries.push({ chat: { at: at(s), session: "demo", from, via, text } });
+			line(0, { kind: "owner" }, "can you make the send button bigger on my phone", "voice");
+			line(9, { kind: "assistant", id: "fast" }, "I think so. The smart assistant will look.");
+			line(20, { kind: "assistant", id: "smart" }, "It lives in `Composer.js`; I started a task to make it larger on a phone.");
+			line(40, { kind: "owner" }, "great, thanks", "voice");
+			entries.push({ chat: { at: at(30), session: "demo", from: { kind: "owner" }, via: "text", text: "why that file?", re: at(20), thread: true } });
+			entries.push({ chat: { at: at(34), session: "demo", from: { kind: "assistant", id: "smart" }, via: "text", text: "It draws the box and the Send button.", re: at(30), thread: true } });
+			entries.push({ react: { at: at(21), re: at(20), emoji: "👍", from: { kind: "owner" } } });
+			entries.push({ react: { at: at(44), re: at(40), emoji: "✅", from: { kind: "assistant", id: "smart" } } });
+			const talk = chat({ source: () => entries, on_react: r => { entries.push({ react: { ...r, from: { kind: "owner" } } }); } });   // a thread needs a composer to answer in: ChatPanel's Reply
+			talk.sync();
+			// A conversation reads as one only at chat width: capped and centred, never the whole page.
+			talk.view.style("max-width", "36rem").style("margin-inline", "auto").style("max-height", "none");
+		});
+		p("Your 👍 on the smart reply; the smart assistant's ✅ on your thanks, a reaction instead of a sentence; and a two-message thread under the smart reply. Each is a line in the log: `{react: {at, re, emoji, from}}`, or a chat line with `re` and `thread: true`.");
+
 		p("Messages are added below every second. Scroll up to read: the log stops moving. Scroll back to the bottom: it follows again.");
 
 		demo(() => {
