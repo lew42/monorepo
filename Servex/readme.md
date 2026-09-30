@@ -92,6 +92,8 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
 
+**Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).
+
 ## Is the machine melting? — the monitor and the spawn queue
 
 `Monitor.js` checks the machine every 5 seconds: total CPU, free RAM, the five
