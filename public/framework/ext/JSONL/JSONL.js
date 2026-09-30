@@ -167,7 +167,11 @@ export class TaskJSONL extends JSONL {
 	 * when it is made and again whenever it is revised.
 	 */
 	decision(value){
-		const known = this.decisions.find(d => d.id === value.id);
+		// A hand-written `{"decision": "some text"}` line is a string, not an object: without an
+		// id it "matched" the previous one and `Object.assign` onto a string threw, killing every
+		// AI 2 card page (page-audit, 2026-09-30). Keep it as text; merge only real ids.
+		if (!value || typeof value !== "object") value = { say: String(value) };
+		const known = value.id != null && this.decisions.find(d => d.id === value.id);
 		known ? Object.assign(known, value) : this.decisions.push(value);
 		this.judged(value.id);
 	}
