@@ -421,6 +421,20 @@
 		align-items: flex-start;
 	}
 
+	/* A STALLED ASK'S OWN READ STATE (course correction, 2026-09-30, deliverable 4: "unread
+	   is bold, read is plain") — every other row here is always unread by the owner's own
+	   choice (`inbox.js`'s comment on `Says`), so this is scoped to `.ai2-row-ask`
+	   (`faces.js`'s `row()` own marker for `kind: "stalled"`) alone; nothing else on this
+	   page changes weight. `.ai2-row-title`'s own rule above (600) is the READ state's
+	   floor everywhere else — this only raises or lowers it for THIS one row kind. */
+	.ai2-row.ai2-unread .ai2-row-ask .ai2-row-title {
+		font-weight: 700;
+	}
+
+	.ai2-row:not(.ai2-unread) .ai2-row-ask .ai2-row-title {
+		font-weight: 400;
+	}
+
 	/* Centred on the title's first line box (1.35em tall): (1.35 - 0.5) / 2.
 	   ⚠ `top`, not a margin: framework.css's `.flex > * { margin: 0 }` is
 	     `@layer util` and zeroed the margin at any specificity. */

@@ -35,15 +35,25 @@ export function who(it){
 /** A PREVIEW: the title, a progress bar and the money — nothing else (the owner,
     2026-09-24: "way too much summary on the cards"). The words a card used to
     show live one click down, on its page. `it.progress` and `it.usd` are set by
-    AI 2's `paint()`. */
+    AI 2's `paint()`. `it.sub`, when a caller sets it (a stalled-ask row,
+    asks-ledger/needs-rail's course correction), is one quiet line under the
+    title — the same shape `live_row()` already draws for the Live card
+    (`.ai2-row-foot` + `.ai2-row-line`), reused here rather than invented twice.
+    `ai2-row-ask` on the head (stalled rows only) is what lets `ai2.css` make an
+    UNREAD one bold and a READ one plain, without page.js knowing either word.
+    `it.shown_at`, when set, is the TRUE time to print — `inbox.js`'s own comment
+    on why a hot row's `it.at` itself is pushed into the future (so page.js's own
+    final newest-first re-sort still ranks it correctly) says why this can differ
+    from `it.at`. */
 export function row(it){
-	div.c("ai2-row-head flex gap-25", () => {
+	div.c("ai2-row-head flex gap-25" + (it.kind === "stalled" ? " ai2-row-ask" : ""), () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
 		if (it.score != null) span.c("ai2-score" + (it.score >= 70 ? " ai2-score-hot" : "")).text(String(it.score));
 		span.c("ai2-row-title").text(it.title);
-		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
+		small.c("ai2-row-when muted").text(when(it.shown_at ?? it.at));   // last updated, top-right, on every row
 	});
+	if (it.sub) div.c("ai2-row-foot flex v-center gap-25", () => { small.c("ai2-row-line muted").text(it.sub); });
 	meter(it.progress, it.usd, it.usd_open);
 	if (it.news) news_bar(it.news);
 }
@@ -79,7 +89,9 @@ export function full(it, on){
 
 	div.c("ai2-meta flex v-center gap-25", () => {
 		who(it);
-		small.c("muted").text(clock(it.at));
+		// `shown_at ?? at` — same reason as `row()`'s own comment: a hot row's `at` is pushed
+		// into the future so it survives page.js's own re-sort; its TRUE time is `shown_at`.
+		small.c("muted").text(clock(it.shown_at ?? it.at));
 	});
 
 	if (it.refined) p.c("ai2-refined").md(it.refined);

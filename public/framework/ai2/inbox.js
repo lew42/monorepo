@@ -3,6 +3,8 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
 import { servex_url } from "/framework/dev/servex_url.js";
+import { fold_asks } from "../ai/asks/fold.js";
+import { importance } from "./needs-rule.js";
 
 export { fold };
 
@@ -210,8 +212,17 @@ export const prompt_stream = (base = servex_base()) => log_stream("prompts", { b
 
 /** One card's own append-only stream, `cards/<slug>` — the store deliverable 1
  *  adds. No static fallback: a card with Servex down simply shows nothing new
- *  until it comes back, same as the live prompt stream does today. */
-export const card_stream = (slug, base = servex_base()) => log_stream(`cards/${slug}`, { base });
+ *  until it comes back, same as the live prompt stream does today.
+ *  ⚠ A STALLED-ASK ROW's pseudo-id (`ask:<ask id>`, course correction, 2026-09-30) is never a
+ *  real card slug, and Servex's `cards/<slug>` route answers a colon in one with 400 — this
+ *  short-circuits to an empty, inert stream (the same shape `log_stream()` returns, so every
+ *  caller's `.entries`, `.ready` and `.on()` still work) instead of ever asking for it. A
+ *  stalled-ask card page's own content comes entirely from its row's `full()` data anyway
+ *  (`page.js`'s `card_page()` reads `by_id.get(id)`, this list's own item, not a card log). */
+export const card_stream = (slug, base = servex_base()) =>
+	slug.startsWith("ask:")
+		? { entries: [], readers: new Set(), ok: false, ready: Promise.resolve(null), on: () => () => {} }
+		: log_stream(`cards/${slug}`, { base });
 
 /* ── today's landings ───────────────────────────────────────────────────── */
 
@@ -264,6 +275,89 @@ export class Day extends JSONL {
 
 export const day_log = (date = today_str()) =>
 	new Day({ url: `/framework/ai/${date}/day.jsonl`, date });
+
+/* ── a stalled ask, as one more Inbox row (course correction, 2026-09-30) ─────────────────
+ * The owner: "the inbox and the needs you, that sounds like the same thing... let's forget
+ * the needs you page for now and focus on the inbox." So a STALLED line in the asks ledger
+ * (`/framework/ai/asks.jsonl`, `Servex/asks/Asks.js`'s own word) becomes one row in THIS
+ * list, never a second view. `fold_asks()` is the one vocabulary Servex's own Asks.js folds
+ * the same way, so this page and the ledger can never disagree about what is stalled.
+ *
+ * ⚠ NO NEW POLLER. `items()` below runs synchronously, every time something already live —
+ * a prompt, an agent moment, the card list — repaints this page, which on a system with
+ * agents running happens often. `stalled_asks()` just refreshes its own cache in the
+ * background and returns whatever it already has; a stalled ask is quiet for 2+ hours
+ * before it even qualifies, so a few seconds of staleness here changes nothing. */
+const ASKS_URL = "/framework/ai/asks.jsonl";
+let asks_cache = { rows: [], at: 0, loading: false };
+
+function hours_since(at, now = Date.now()){
+	const t = at ? Date.parse(at) : NaN;
+	return Number.isFinite(t) ? Math.max(0, (now - t) / 3600000) : 0;
+}
+
+/** How long an ask has sat quiet, in words — the row's own quiet line, and also handed to
+ *  `importance()` as `hours_silent` so the row and its own rank can never disagree. */
+function silent_words(hours){
+	if (hours < 1) return Math.round(hours * 60) + " min";
+	if (hours < 48) return hours.toFixed(1) + " h";
+	return Math.round(hours / 24) + " d";
+}
+
+/** A ledger `words` path as a served url under `/framework/`, or `null` when it is not
+ *  served at all (`.claude/prompts/...` — a words file to show as plain text instead of a
+ *  dead link). */
+function words_url(words){
+	if (!words || words.startsWith(".claude/")) return null;
+	return "/framework/" + String(words).replace(/^\/+/, "");
+}
+
+function fetch_asks(){
+	return fetch(ASKS_URL, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "")
+		.then(text => {
+			const folded = text ? fold_asks(parse_lines(text)) : {};
+			const rows = Object.values(folded).filter(a => a.status === "stalled");
+			asks_cache = { rows, at: Date.now(), loading: false };
+			return rows;
+		});
+}
+
+/** Every STALLED ask right now, from the cache — refreshing itself in the background (see
+ *  the comment above) rather than making every caller await a fetch. */
+function stalled_asks(){
+	if (Date.now() - asks_cache.at > 15000 && !asks_cache.loading){
+		asks_cache.loading = true;
+		fetch_asks();
+	}
+	return asks_cache.rows;
+}
+
+/** The same rows, but AWAITABLE — for the one caller that cannot live with a cold, empty
+ *  cache: `resolve_card()`'s "ask:" redirect, which can run within the first few
+ *  milliseconds of a fresh page load (a pasted or bookmarked `/ask:.../` url), before
+ *  `items()` has ever run once to warm `stalled_asks()`'s own cache the normal way. */
+async function stalled_asks_ready(){
+	if (asks_cache.at) return asks_cache.rows;                         // already warm
+	if (!asks_cache.loading){ asks_cache.loading = true; return fetch_asks(); }
+	return new Promise(resolve => {                                    // someone else's fetch is in flight
+		const check = () => (asks_cache.loading ? setTimeout(check, 50) : resolve(asks_cache.rows));
+		check();
+	});
+}
+
+/** localStorage read-state for a stalled-ask row (deliverable 4: "unread is bold, read is
+ *  plain... remember it was opened... the Inbox's existing read state, if it has one" — it
+ *  has none, `Says`'s own comment says why: the owner turned the old one off on purpose for
+ *  every other row. This is a new, narrow exception, scoped to this one row kind, wrapped in
+ *  try/catch like every storage read/write on this page (`page.js`'s own `store` object). */
+const ASK_READ_KEY = "ai2-ask-read";
+function read_asks(){
+	try { return new Set(JSON.parse(localStorage.getItem(ASK_READ_KEY) ?? "[]")); } catch { return new Set(); }
+}
+function mark_ask_read(id){
+	try { const s = read_asks(); s.add(id); localStorage.setItem(ASK_READ_KEY, JSON.stringify([...s])); } catch {}
+}
+function ask_is_read(id){ try { return read_asks().has(id); } catch { return false; } }
 
 /* ── the one list ───────────────────────────────────────────────────────── */
 
@@ -418,11 +512,30 @@ export async function static_cards(){
 }
 
 /** One card's folded state, read off its `page.jsonl` — no Servex. An OLD (non-folder) id
- *  still asks Servex, which alone knows the legacy map. */
+ *  still asks Servex, which alone knows the legacy map.
+ *  ⚠ A STALLED-ASK ROW's id (`ask:<ask id>`) is never a folder id, so it fell through to
+ *  Servex and 404'd — `card_page()` (page.js, untouched by this fence) then correctly shows
+ *  its own row's `full()` content (the ask's title, why and links), but this extra check is
+ *  what makes its own OLD-ID-SWAP logic redirect straight to the real card when it has one,
+ *  exactly like a migrated board id already does — no page.js change needed for that hop. */
 export async function resolve_card(id){
 	if (is_folder_id(id)){
 		const text = await read_text(AI_ROOT + id + "/page.jsonl");
 		if (text) return fold_card(id, parse_lines(text));
+	}
+	if (id.startsWith("ask:")){
+		// Awaited, not the plain cache read `items()` uses — see `stalled_asks_ready()`'s own
+		// comment: this can run before anything else has warmed the cache at all.
+		const rows = await stalled_asks_ready();
+		const ask = rows.find(a => "ask:" + a.id === id);
+		// ⚠ MARKED READ RIGHT HERE, not only by `items()`'s own `location.pathname` check below
+		// — a has-a-card ask REDIRECTS the instant this resolves (page.js's own `activated()`,
+		// right after this call), so the browser may never sit on this url long enough for any
+		// `paint()` to see it as `location.pathname` at all. This is the one place that always
+		// runs exactly when the owner opened it, has-a-card or not.
+		if (ask) mark_ask_read(ask.id);
+		if (ask?.card) return { id: ask.card };
+		return null;
 	}
 	return servex_json("/card?id=" + encodeURIComponent(id)).then(s => (s?.id ? s : null));
 }
@@ -650,6 +763,34 @@ export function items({ board, folders, prompts, landed, says }){
 		});
 	});
 
+	/* A STALLED ASK, AS ONE MORE ROW (course correction, 2026-09-30 — see the long comment
+	   on `stalled_asks()` above). `id: "ask:" + ask id` so it can never collide with a real
+	   card's own row. Its read state (deliverable 4) is marked by `resolve_card()`, above —
+	   NOT by checking `location.pathname` here: a has-a-card ask redirects the instant it is
+	   opened (page.js's own `activated()`, right after `resolve_card()` resolves), so the
+	   browser may never sit on this row's own url long enough for any `paint()` to see it. */
+	stalled_asks().forEach(ask => {
+		const hours = hours_since(ask.status_at ?? ask.at);
+		add({
+			id: "ask:" + ask.id, kind: "stalled", at: ask.status_at ?? ask.at, icon: "hourglass_disabled",
+			title: ask.title || "Untitled ask",
+			text: ask.why ? "Stalled — " + ask.why : "",
+			author: "task",
+			owner: ask.owner,
+			hours_silent: hours,
+			// The row's own quiet line (brief's exact words): "Stalled · <owner> · silent 2 h".
+			sub: ["Stalled", ask.owner || null, "silent " + silent_words(hours)].filter(Boolean).join(" · "),
+			// Opened, it goes to its card when it has one (`resolve_card()`'s own redirect,
+			// above); otherwise its links are the only way anywhere, so the ledger goes last.
+			links: [
+				ask.card ? { url: "/framework/ai2/" + ask.card + "/", label: "its card" } : null,
+				words_url(ask.words) ? { url: words_url(ask.words), label: "its words" } : null,
+				{ url: "/framework/ai/asks/?status=stalled", label: "the asks ledger" },
+			].filter(Boolean),
+			read: ask_is_read(ask.id),
+		});
+	});
+
 	const list = [...by_id.values()];
 	// A clock from the future is a hand-typed mistake (a day-log line said 21:10 -07:00 for a
 	// 15:53 -05:00 landing, 2026-09-25) and would pin its row to the top forever: it counts as unknown.
@@ -660,11 +801,34 @@ export function items({ board, folders, prompts, landed, says }){
 		it.unread = true;
 		it.flag = says.flags.get(it.id) ?? null;
 		it.transcript ??= [];
+		// `importance()` (needs-rule.js) — every kind it does not recognise (every kind here
+		// except `stalled`, today) falls back to its own low DEFAULT, so this is free to run
+		// on the whole list rather than singling out one kind.
+		it.score = importance(it, Date.now());
 	});
-	/* NEWEST FIRST, and nothing else. Unread-first, as the first build had it,
-	   is itself a jump: every card you open drops out of the top the instant
-	   you read it. A clock order cannot do that. Unread is still on the card —
-	   the dot, the edge and the count. */
+	// A STALLED ROW IS THE ONE EXCEPTION TO "ALWAYS UNREAD" (deliverable 4) — `Says`'s own
+	// comment above says why nothing else here has a read state any more; this one does,
+	// because the brief asked for it, and it overwrites the blanket `true` just set above.
+	list.forEach(it => { if (it.kind === "stalled") it.unread = !it.read; });
+	/* A SCORE OF 60 OR MORE RISES TO THE TOP, HIGHEST FIRST (course correction, deliverable 3:
+	   "a stalled ask, a blocker, a question a live agent is waiting on") — everything else
+	   keeps the newest-first order it always had.
+	   ⚠ THIS FUNCTION'S OWN RETURN ORDER IS NOT THE LAST WORD. `page.js`'s `paint()` (this
+	   fence's "only for the revert") appends the Live card to whatever `items()` returns and
+	   re-sorts the WHOLE thing itself, purely by `it.at`, newest first — so a hot row has to
+	   win THAT sort too, or the score only ever mattered inside this function and never on
+	   screen. `it.at` is the one lever this file can still pull without touching page.js: a
+	   hot row's SORT time moves into the future, ranked by score, one thing no real clock can
+	   ever equal or beat (the guard just above already drops a real `at` past ten minutes from
+	   now as a mistake). Its TRUE time is not lost — `shown_at` carries it, and `faces.js`'s
+	   `row()` prefers `shown_at` for what it prints, so the row still says "silent 2 h", never
+	   a fake date a year out. */
+	const HOT = 60, RANK_FLOOR = Date.now() + 365 * 24 * 3600 * 1000;   // a year out — past any real `at`
+	list.forEach(it => {
+		if (it.score < HOT) return;
+		it.shown_at = it.at;
+		it.at = new Date(RANK_FLOOR + it.score * 3600000).toISOString();
+	});
 	// 2026-09-22 20:00, the owner: "if it doesn't help me, it shouldn't be on the board" — an
 	// archived card leaves the rail and the counts; item 12's "archived (n)" foot reads
 	// `.archived` off the returned array (still a plain array everywhere else) to show them
