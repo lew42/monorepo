@@ -17,7 +17,9 @@ A card with nothing inside gets no Open button. Built by `Chat.js`'s `card_of()`
 
 ## Its address
 
-Each level is the url's hash: `#chat=<session>~<at>/<key>…`. `<session>` names the chat (a `ChatPanel`'s `session`, else its `watch` url, else `panel-1`, `panel-2`… in build order); `<at>` is the card's first line's own `at`; a deeper key is a section (`s0`, `s1`…) or a piece's `at`. Opening a level adds a history entry, so reload lands on the same level, and Back, Esc or the browser's back button goes up one. Only the hash is touched: the ✦ sheet's own `?sheet=` stays as it is.
+Each level is the url's hash: `#chat=<session>~<at>/<key>…`. `<session>` names the chat (a `ChatPanel`'s `session`, else its `watch` url, else `panel-1`, `panel-2`… in build order); `<at>` is the card's first line's own `at`; a deeper key is a section (`s0`, `s1`…) or a piece's `at`. Opening a level adds a history entry, so reload lands on the same level. **← Back**, **Esc** and the browser's back button each go up ONE level (from the top level, that closes the shell). The **Chat** crumb at the start of the path leaves the shell altogether, in one click. Only the hash is touched: the ✦ sheet's own `?sheet=` stays as it is.
+
+**On a reload,** the chat's lines arrive one by one, and a refined line can land after its card. So the shell waits until the whole address exists, up to 1.5 s; if part of it never appears (the line was deleted), it opens the deepest level that does and corrects the url to match (`ChatDrill.check()`).
 
 ## A card is a tiny page
 
