@@ -120,7 +120,13 @@ export class Inbox {
 		for (const verb of ["drop", "clear"]) router.options(`/api/inbox/${verb}`, cors, (req, res) => res.status(204).end());
 		router.post("/api/inbox/drop", cors, json, (req, res) => send(res, () => this.drop({ path: req.body?.path, text: req.body?.text, from: req.body?.from || "owner" })));
 		router.post("/api/inbox/clear", cors, json, (req, res) => send(res, () => this.clear({ path: req.body?.path, id: req.body?.id, by: req.body?.by || "owner" })));
-		router.get("/api/inbox", cors, (req, res) => send(res, () => this.list({ path: req.query?.path })));
+		/* A page with no folder of its own (a card, a query view) has an empty inbox, not a
+		 * 404: the drawer asks on every open, and a 404 is a console error on the page. */
+		router.options("/api/inbox", cors, (req, res) => res.status(204).end());
+		router.get("/api/inbox", cors, (req, res) => send(res, () => {
+			try { return this.list({ path: req.query?.path }); }
+			catch (e){ if (e.status === 404) return { ok: true, path: req.query?.path ?? null, open: [], none: e.message }; throw e; }
+		}));
 	}
 }
 
