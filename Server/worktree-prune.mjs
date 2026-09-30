@@ -66,7 +66,7 @@ console.log(`${DRY ? "dry run" : `${pruned} pruned`}; ${trees.length - 1 - (DRY 
 
 /* A worktree started by hand (not in .worktrees.json) may still run a dev server or health.mjs. */
 function stop_node_in(dir){
-	const needle = dir.replace(/\//g, "\\").toLowerCase();
+	const needle = dir.replace(/\//g, "\\").toLowerCase() + "\\";   // "…\foo\" never matches a sibling "…\foo-2\"
 	let rows = [];
 	try { rows = JSON.parse(execFileSync("powershell", ["-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Select ProcessId,CommandLine | ConvertTo-Json"], { encoding: "utf8", windowsHide: true })); } catch {}
 	for (const r of [].concat(rows || [])) if (String(r.CommandLine || "").toLowerCase().includes(needle))
