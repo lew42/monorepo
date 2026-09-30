@@ -55,6 +55,12 @@
 	.drawer-rail-compact .drawer-rail-menu-label { display: none; }
 	.drawer-rail-compact .drawer-rail-ai { order: 2; }
 	.drawer-rail-compact .drawer-rail-menu { order: 1; }
+	/* A comfortable thumb target (the owner, 2026-09-29: "only 15 pixels… hard to click"):
+	   the 44px touch floor the theme gives buttons comes back, and the icon is drawn big. */
+	.drawer-rail-compact .drawer-rail-ai,
+	.drawer-rail-compact .drawer-rail-menu { min-block-size: 2.75rem; }
+	.drawer-rail-compact .drawer-rail-ai-icon,
+	.drawer-rail-compact .drawer-rail-menu-icon { font-size: 3.4em; }
 
 	/* THE OLD FULL LOOK — `DrawerRail.V2`, kept reachable verbatim: the label
 	   line shows again (source order above already gives it the old sizing) and
