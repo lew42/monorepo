@@ -7,7 +7,7 @@
  * Each line in the ledger is `{"ask": {...}}`. The first line for an id is the
  * ROUTE: `at` (when it was routed), `title`, `words` (the brief file), `owner`
  * (the agent id), `card`, `status` ("routed"). A later line is a STATUS
- * UPDATE, written by `Asks.mark()`: `{id, status, why, by, at}`. Anything that
+ * UPDATE, written by `Asks.mark()`: `{id, status, why, by, at}`, plus `card` or `words` when it corrects a route. Anything that
  * isn't `{"ask": {...}}` (a stray blank line, a line for another ledger) is
  * skipped. */
 
@@ -52,6 +52,10 @@ export function fold_asks(lines){
 			if (ask.why !== undefined) out[id].why = ask.why;
 			if (ask.by !== undefined) out[id].by = ask.by;
 			if (ask.at !== undefined) out[id].status_at = ask.at;
+			// A route written with a wrong card or words path is corrected by a later line that
+			// carries the right one (or "" for none) — the ledger never rewrites the first line.
+			if (ask.card !== undefined) out[id].card = ask.card;
+			if (ask.words !== undefined) out[id].words = ask.words;
 		}
 		out[id].history.push({ status: ask.status ?? null, why: ask.why ?? null, by: ask.by ?? null, at: ask.at ?? null });
 	}
