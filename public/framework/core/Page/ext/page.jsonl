@@ -1,0 +1,11 @@
+{"title": "Extensions", "icon": "extension"}
+{"ext": "Inbox"}
+{"inbox": {"type": "message", "author": "mastermind-inbox-ext", "text": "The extension system is live: this whole page turned itself on with one page.jsonl line, {\"ext\": \"Inbox\"}.", "at": "2026-09-30T16:00:00-05:00"}}
+{"inbox": {"type": "question", "author": "minion-page-ext", "text": "Does every page get an inbox now, or only the ones that ask for it with an ext line?", "at": "2026-09-30T16:01:00-05:00"}}
+{"place": "demo.js"}
+{"place": "paths.js"}
+{"file":"Inbox/"}
+{"file":"demo.js"}
+{"file":"paths.js"}
+{"file":"doc/"}
+{"file":"readme.md"}

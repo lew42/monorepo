@@ -7,7 +7,7 @@ import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
 import { news_of, group_news } from "./activity.js";
-import { inbox_order, plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+import { inbox_order, plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 
 /* Servex down: the page is read-only — the write buttons quietly go away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
@@ -97,8 +97,11 @@ export default new Page({
 
 	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
 	   in it is a real file, and claiming it would answer a 404 with a card page that can
-	   never load. `overview`, `needs`, `log` and `live` are reserved: no card can be called
-	   any of them. `live` is an ordinary card page whose card comes from `live.js`. */
+	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
+	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
+	   `now` (followup.md item 2, 2026-09-30) is a REAL card folder, `ai/now/`, routed the
+	   same plain way as any other card id below — the only thing special about it is that
+	   `board()` also pins its preview at the top of the rail, imported by hand. */
 	route(id){
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
@@ -109,6 +112,7 @@ export default new Page({
 		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
 		if (id === LIVE) return this.live_page ??= card_page(this, LIVE);
+		if (id === "now") return this.now_page ??= card_page(this, "now");
 		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`,
 		// sub-cards one segment deeper, any depth. The year, month and day are
 		// pages too (`Card.Folder`), each reading the next one down from the
@@ -226,10 +230,23 @@ function board(page){
 	page.auto_transcribe = auto_transcribe;
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
+	// IDS ARCHIVED FROM THIS LIST (× or "clear all") whose write to Servex may still be in
+	// flight, or may never land (this worktree's own CORS gap on the card-write route) — kept
+	// forever for the session, harmless at this size, so `paint()` can keep re-filing them under
+	// `list.archived` no matter how many times the real data gets rebuilt from scratch under
+	// them. See `paint()`'s own comment, and `apply_pending_archives()`, below.
+	const archived_pending = new Set();
 	// BRIEF E — "Needs review": on, the rail shows only the rows `needs.js`'s shared rule
 	// (the same one the Needs you tab reads) says still need the owner. Its state lives in the
 	// url (`?review=1`), never in a variable alone, so a reload keeps the filter on.
 	let review_only = new URLSearchParams(location.search).get("review") === "1";
+	// INBOX ZERO — THE DISPLAY RULE (followup.md §4, item 3, 2026-09-30): the Inbox shows only
+	// rows scoring `min` or higher; `?min=0` shows everything, and the default (90) is what
+	// makes the Inbox actually reach zero most days. A missing `?min=` and a missing `it.score`
+	// both read as their usual defaults — `min` 90, a score 0 — never a thrown `NaN`.
+	const min_score = Number(new URLSearchParams(location.search).get("min") ?? 90) || 0;
+	// Is the floor on right now? Off while searching, showing archived, or at ?min=0.
+	const floored = () => min_score > 0 && !search_q && !show_archived;
 	let needs_ids = new Set();
 	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
@@ -384,6 +401,14 @@ function board(page){
 					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
 				$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
 					.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
+				// "CLEAR ALL" — INBOX ZERO, item 2 (the owner, 2026-09-30, followup.md §4):
+				// archives every row the Inbox is CURRENTLY SHOWING (`visible()`, so it already
+				// respects search, the Needs-you filter, notes, and — once item 3 lands — the
+				// score floor), through the exact same `archive_row()` write the × button makes,
+				// one row at a time. `clear_all()` is below, right after `render_pinned()`.
+				button.c("ai2-word ai2-clear-all").attr("type", "button")
+					.attr("title", "archive every row shown here right now")
+					.text("clear all").click(() => clear_all());
 			});
 			grip({ from: "start", write: size, done: w => store.set(RAIL_KEY, w + "px"),
 				reset: () => { store.drop(RAIL_KEY); size(); } });
@@ -470,7 +495,9 @@ function board(page){
 		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
 		// A group's own card IS its group row: never a second row beside it.
 		const group_cards = new Set((groups.list ?? []).map(g => g.card));
-		const pool = list.filter(it => !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
+		// "now" is pinned in `$pinned` (`render_pinned()`) — it is in `list` only so its own
+		// card page can find it in `by_id`, never as a second, ordinary row here.
+		const pool = list.filter(it => it.id !== "now" && !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
 		let base = only_notes ? pool.filter(it => it.kind === "note") : pool;
 		// DELIVERABLE 4 — AUTOMATIC RESOLUTION: a resolved row (`rules.js`'s `is_resolved()`,
 		// this task's one written-down rule) leaves the Inbox itself, same as the brief asks —
@@ -491,7 +518,14 @@ function board(page){
 		}
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
-		return show_archived ? [...base, ...archived] : base;
+		if (show_archived) return [...base, ...archived];
+		// THE SCORE FLOOR — search and "archived" above both ignore it (they answer "find this
+		// anywhere", a different question); the Live card is exempt too, the same way it is
+		// exempt from resolution and archiving everywhere else in this file, since hiding the
+		// page's own always-there row under a score it was never meant to carry would be a
+		// regression, not a filter. No write happens here — a row below `min` still exists,
+		// still answers search, still lands in the Log; it only leaves THIS list.
+		return base.filter(it => it.kind === "live" || (it.score ?? 0) >= min_score);
 	};
 
 	function relist(){
@@ -503,7 +537,7 @@ function board(page){
 	}
 
 	function paint(){
-		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says });
+		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says, groups });
 		// DELIVERABLE 2 — READ/UNREAD: `items()` itself always says `unread: true` (its own
 		// comment explains why: opening a card must never mark it read on its own). This is
 		// the explicit control layered on top — `rules.js`'s `is_read`, set only by a press on
@@ -515,9 +549,18 @@ function board(page){
 		const it = live.item();
 		it.unread = true;
 		list.push(it);
+		// THE NOW CARD joins the same list too, so its own `/framework/ai2/now/` page can find
+		// it in `by_id` below — `visible()` is what keeps it OUT of the ordinary rows, since
+		// `render_pinned()` is its only row, in `$pinned`.
+		if (now_item) list.push(now_item);
 		// A card row's importance badge is its highest open need (needs.js); a stalled-ask row
 		// brings its own. Then one order: score 60+ on top, the rest newest first (inbox.js).
-		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id); });
+		// ⚠ `?? x.score`, not a bare overwrite (minion-priority, 2026-09-30) — `items()` now
+		// carries the real age-decay score the INBOX ZERO filter reads; `score_for()` (needs.js)
+		// only ever answers the narrower "needs you" question and is null for most rows, which
+		// used to WIPE the real score out on every single paint().
+		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id) ?? x.score; });
+		apply_pending_archives();
 		list.sort(inbox_order);
 		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js) — part of the row's signature.
@@ -632,7 +675,10 @@ function board(page){
 		// BRIEF E's "Needs review" filter — a group is not itself an "ask", so it shows only
 		// while ITS OWN card is one of the rows `needs.js`'s shared scan lists; run every call
 		// (not gated by the `sig` check above), so flipping the filter hides these at once.
-		order.forEach(g => { const rec = group_rows.get(g.id); if (rec) rec.$row.style({ display: (review_only && !needs_ids.has(g.card)) ? "none" : "" }); });
+		// INBOX ZERO: a group row obeys the same score floor as a card row — it shows only while
+		// its own card, or one of its members, scores `min` or more (search, "archived" and ?min=0 lift it).
+		const pressing = g => !floored() || [list.find(x => x.id === g.card), ...groups.members(g.id)].some(x => (x?.score ?? 0) >= min_score);
+		order.forEach(g => { const rec = group_rows.get(g.id); if (rec) rec.$row.style({ display: ((review_only && !needs_ids.has(g.card)) || !pressing(g)) ? "none" : "" }); });
 		draw_pages();
 		order_rows(force);
 	}
@@ -650,7 +696,7 @@ function board(page){
 			}
 			// A real site page is never one of the owner's own asks — BRIEF E's "Needs review"
 			// filter hides it outright rather than greying it.
-			rec.$row.style({ display: review_only ? "none" : "" });
+			rec.$row.style({ display: (review_only || floored()) ? "none" : "" });  // a changed page is never pressing: Log only
 			real_title(path, page.app?.router, () => draw_groups());
 			at_of.set("page:" + path, evs[0].at);
 			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
@@ -776,6 +822,65 @@ function board(page){
 		return rec;
 	}
 
+	/* THE ONE PINNED ROW — the Now card. `now_item` is built once from `resolve_card("now")`'s
+	   fold, in the SAME `it` shape `full()` (faces.js) already knows how to draw — `text`,
+	   `links`, `kind`, `flag` — so the card's own `/framework/ai2/now/` page (`card_page()`
+	   below) can find it. `paint()` pushes `now_item` into `list`, exactly like the Live card's
+	   own `live.item()` does, which is what puts it in `by_id` for that page; `visible()`
+	   excludes id `"now"` from the ordinary rail list right below, since this function is its
+	   only row — filled into `$pinned`, above `$groups`, so `order_rows()`/`flush()` never
+	   touch it and it is simply always first. */
+	let now_item = null;
+	function build_now_item(fold){
+		const said = [...(fold.messages ?? []).map(m => ({ at: m.at, text: m.text ?? m.raw })),
+			...(fold.prompts ?? []).map(p => ({ at: p.at, text: p.text ?? p.raw }))]
+			.filter(x => x.text).sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).at(-1);
+		now_item = { id: "now", kind: "card", icon: "push_pin", title: plain(fold.title || "Now"),
+			at: fold.last ?? fold.created, text: said?.text ?? "", links: [], flag: null, author: fold.by,
+			unread: false, status: "open" };
+	}
+	function render_pinned(){
+		if (!now_item) return;
+		$pinned.empty(() => { a.c("ai2-row ai2-row-pinned").href(page.url + "now/")
+			.empty(() => row({ ...now_item, sub: first_sentence(plain(now_item.text)) }, {})); });
+		// A cold load straight onto `/framework/ai2/now/` marks the Router during `activate()`,
+		// before this fetch has landed — the same race `flush()`'s own comment names, below.
+		page.app?.router?.mark_links?.();
+	}
+
+	/* THE ONE PLACE `archived_pending` TURNS INTO A REAL LIST MOVE — called from `paint()` on
+	   every real rebuild (so a row already asked to leave never reappears under it, see
+	   `paint()`'s own comment) and right after a click here, so the row leaves at once instead
+	   of waiting for the next stream event to trigger a paint(). Safe to call with nothing
+	   pending: the `for` loop below then touches nothing. */
+	function apply_pending_archives(){
+		for (let i = list.length - 1; i >= 0; i--){
+			if (!archived_pending.has(list[i].id)) continue;
+			const [removed] = list.splice(i, 1);
+			removed.status = "archived";
+			(list.archived ??= []).push(removed);
+		}
+	}
+
+	/* "CLEAR ALL" (INBOX ZERO, followup.md §4, item 2, 2026-09-30: "a button in the rail head
+	   that archives every row currently shown in the Inbox in one press… there are about 336
+	   open cards today, so it must batch and not freeze"). One `confirm()`, then the SAME
+	   `archive_row()` write the × button makes, BATCHED — a handful of these run at once, never
+	   all 336, so the page (and Servex) stay responsive. The Live card and the pinned Now card
+	   are never candidates: `visible()` already leaves them out. */
+	async function clear_all(){
+		const targets = visible().filter(it => it.kind !== "stalled");
+		if (!targets.length) return;
+		if (!confirm(`Archive ${targets.length} row${targets.length === 1 ? "" : "s"}?`)) return;
+		targets.forEach(it => archived_pending.add(it.id));
+		apply_pending_archives();
+		flush();
+		const BATCH = 20;
+		for (let i = 0; i < targets.length; i += BATCH)
+			await Promise.all(targets.slice(i, i + BATCH).map(it => archive_row(it).catch(() => null)));
+		folders.soon();
+	}
+
 	/** DELIVERABLES 2 AND 3's two buttons on a plain row (`faces.js` `row()`'s `on`) — built
 	 *  once per `rec`, not once per redraw, so a click during a redraw never reaches a stale
 	 *  closure. Both mutate `it` OPTIMISTICALLY (the write is fire-and-forget, the same
@@ -790,10 +895,22 @@ function board(page){
 				refill(rec, it);
 			},
 			archive(){
-				archive_row(it);
-				it.status = "archived";
+				// ⚠ 2026-09-30 FIX (the owner: "pressing × only toggled read/unread and the row
+				// stayed — it must archive: the row leaves the Inbox"). `refill()` alone only
+				// re-styles THIS row in place (the `.ai2-archived` class, a dim look) — it never
+				// removes it from `visible()`'s output. `archived_pending` (declared with the
+				// rest of this closure's state, above) is what makes it actually leave, and KEEPS
+				// it left out even though `list` is rebuilt from scratch on every real `paint()` —
+				// `archive_row()`'s own write can be slow, or (this worktree's own dev server) can
+				// fail outright on a CORS gap on the card-write route; either way, the very next
+				// stream update used to silently undo a plain one-off splice here (proved
+				// headless, `ai2-hang/test-clearall.mjs`). It still exists: the Log's own
+				// "archived" filter and the rail's search both read `list.archived`.
+				archived_pending.add(it.id);
+				apply_pending_archives();
 				rec.sig = null;
-				refill(rec, it);
+				flush();
+				archive_row(it).catch(() => null);
 				// A folder card's row comes from `folders.cards` (polled every 20s) — asking
 				// now is what makes the grey "archived" state show up at once instead of lagging.
 				folders.soon();
@@ -890,6 +1007,14 @@ function board(page){
 	folders.start();
 	groups.on(paint);
 	groups.start({ folders, socket: page.app?.socket });
+
+	// THE NOW CARD — pinned above everything, including the Live row (followup.md item 2,
+	// 2026-09-30: "a quick card to go to and edit right now… pinned at the top of the rail,
+	// above Live, and imported by hand, not found by a scan"). `resolve_card` reads its real
+	// folder (`ai/now/page.jsonl`, Servex-made) directly by id — never through `folders`'s own
+	// scan, which only walks dated card folders — and `$pinned` already sits above `$groups`
+	// in the DOM (declared where the shell is built, above), so filling it is the whole fix.
+	resolve_card("now").then(fold => { if (fold){ build_now_item(fold); render_pinned(); paint(); } });
 
 	// THE "NEEDS REVIEW" FILTER READS THE SAME SHARED SCAN THE NEEDS YOU TAB DOES (needs.js) —
 	// so when that scan refreshes (a poll, or right after answering something), the filtered

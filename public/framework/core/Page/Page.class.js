@@ -22,6 +22,16 @@ const is_md = url => /\.md(\?|#|$)/i.test(url);
 // `extends PageLog` — `set()`, the `page.jsonl` loader and its three steps. Log.js.
 export class Page extends PageLog {
 
+	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) turns Ext.setup(page) on for
+	// EVERY page, the moment this runs. `ext(name)` (Log.js) is the DATA path — one
+	// page.jsonl line turns one extension on for one page. Both call the same
+	// `Ext.setup(page)`. Model: `Server/Events.js`'s `static use(plugin)` /
+	// `setup(instance)`; `core/Page/ext/readme.md` has the rest.
+	// ⚠ Nobody calls this by default, so the forEach below is empty for every page —
+	//   the "must not slow a page with no extensions" rule this exists to keep.
+	static _ext = [];
+	static use(Ext){ Page._ext.push(Ext); return Page; }
+
 	// ⚠ Nothing is FETCHED here. A module page constructs ITSELF at import, so a
 	// constructor that loaded its subtree would pull the whole site down from whatever
 	// url you opened — 261 modules for every page under /framework/, measured. The
@@ -32,6 +42,7 @@ export class Page extends PageLog {
 		Page.track(this);
 		this.naming();
 		this.declare();
+		Page._ext.forEach(Ext => Ext.setup?.(this));
 		this.initialize?.();
 	}
 
@@ -654,6 +665,7 @@ export class Page extends PageLog {
 		if (this.related) this.view.append(() => { this.related_aside(); });
 
 		Page.views.set(this.view.el, this);
+		this.emit("render", this.view);   // once, here — the early return above skips a second draw
 		return this.view;
 	}
 

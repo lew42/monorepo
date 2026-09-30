@@ -10,4 +10,10 @@
 - **A plain `Page`'s own `doc/*.md` files are not clean urls.** They're reached by linking the literal `.md` path (`.../doc/idea.md`) — the Router's link handler swaps the raw file in via `Page.md_file()`/`Page.md_url()`. Clean `.../doc/<name>/` urls are only real routes on an `ext/Doc` page (one that declares `notes:`). This module is a plain `Page`, so every doc link here ends in `.md`.
 - **Every branch of `child()` ends in `.load_all_children(levels)`.** A dynamic page built by hand and returned from `route()`/`child()` needs this call too, or it never gets `app` handed down and never loads its own children.
 
+**This module names the idea; it doesn't itself hand any other page a url.** The
+modules that actually do — `md/` and `fs/` (built into every page), the AI
+day-folders and AI 2's card-folders (both `route()`, the pattern this page
+explains), the per-page AI chat pair (Servex, not `route()` at all) — are the
+census at [`core/Page/ext/doc/path-extensions.md`](/framework/core/Page/ext/doc/path-extensions.md).
+
 **More** — [`doc/idea.md`](/framework/core/Page/dynamic/doc/idea.md) (the lookup order, the two small demos), [`doc/uses.md`](/framework/core/Page/dynamic/doc/uses.md) (AI 2's cards, the AI day pages — file and template for each), [`doc/method/child.md`](/framework/core/Page/doc/method/child.md) and [`doc/property/route.md`](/framework/core/Page/doc/property/route.md) (the method itself), [`core/Page/jsonl/`](/framework/core/Page/jsonl/) (the simplest built-in case: a whole page from log lines, no `route()` needed).
