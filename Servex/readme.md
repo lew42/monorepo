@@ -43,6 +43,12 @@ wire; `Servex.Agents`' `watch()` is what feeds it. `POST /api/agents/<id>/messag
 says something to one running agent (queued behind its current turn) — the AI 2 Live card's
 inline chat uses it; an unknown id is a 404, a stopped one a 409.
 
+**`POST /api/tidy`** (`agents/tidy.js`) cleans one chunk of dictated text with a single
+no-tools Sonnet call. **`POST /api/hitl`** (`agents/hitl.js`) is the human-in-the-loop chat's
+own two small model calls, `marks` (per-sentence purpose + a green-check/yellow-question flag)
+and `rename` (five title alternatives) — named ops only, and a `system` or `model` in the body
+is refused rather than run.
+
 **Reverse proxy** — `ReverseProxy.js`. Reads the `Host` header, strips
 `.localhost`, forwards to that project's port, HTTP and WebSocket alike. When
 the port refuses, it *starts the project* and serves a page that polls itself
