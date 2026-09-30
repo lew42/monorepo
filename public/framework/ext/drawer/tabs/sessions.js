@@ -2,14 +2,36 @@ import { div, span, button, small, a, h4 } from "/framework/core/View/View.js";
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { thread, available } from "/framework/ext/Ask/Ask.js";
 import { PageLog } from "/framework/core/Page/Log.js";
+import chat from "/framework/ux/Dictate/chat.js";
+import * as Session from "/framework/ext/Session/Session.js";
 
-/* THE SESSIONS TAB — every thread on this page. A thread is the dev bar Ask's own
-   store: a dir `<page>ai/<slug>/` holding a `task.jsonl`, whose `chat` lines are the
-   exchange and whose `chat_session_id` resumes it (dev/DevBar/ask.js). One click
-   hands the thread to the AI tab, and the next send there resumes that session.
-   On a card, the card's sub-cards are listed under the threads.
+/* THE SESSIONS TAB — three lists, most important first (one-dictation, 2026-09-30):
+   1. the live voice session, if this browser tab has one — `chat.js`'s own global
+      session, marked "live" (`chat.current()`).
+   2. this page's other recent voice sessions (`Session.recent()`) — tapping one
+      RESUMES it (`chat.resume()`), which becomes the new live session everywhere,
+      then opens the AI tab to show it.
+   3. the dev bar Ask's own threads — unchanged: a dir `<page>ai/<slug>/` holding a
+      `task.jsonl`, whose `chat` lines are the exchange and whose `chat_session_id`
+      resumes it (dev/DevBar/ask.js). One click hands the thread to the AI tab's
+      OLD wiring (`aiV2`'s own `thread` handling) — a thread here is a different,
+      older kind of conversation than a voice session, not the same list.
+   On a card, the card's sub-cards are listed under all three.
 
    `threads()` is the one thread walk: dev/DevBar/ask.js imports it from here. */
+
+// A rough "how long ago" — same tiny helper `chat.js` and `rail.js` each carry their
+// own copy of, small enough that importing it isn't worth a fourth module.
+function ago(at){
+	const ms = Date.now() - Date.parse(at ?? 0);
+	if (!Number.isFinite(ms) || ms < 0) return "";
+	const mins = Math.round(ms / 60000);
+	if (mins < 60) return mins <= 1 ? "just now" : mins + " minutes ago";
+	const hours = Math.round(mins / 60);
+	if (hours < 24) return hours === 1 ? "1 hour ago" : hours + " hours ago";
+	const days = Math.round(hours / 24);
+	return days === 1 ? "1 day ago" : days + " days ago";
+}
 
 // ⚠ The SPA fallback answers every miss with index.html — the content-type is the 404.
 const json = url => fetch(url)
@@ -55,9 +77,33 @@ const slugify = name => (name ?? "").trim().toLowerCase()
 export default function sessions({ page, card, tabs }){
 	// Hand a thread to the AI tab — the next send there resumes it.
 	const go = t => { tabs.thread = t; tabs.open("ai"); };
+	// Resume an older voice session — it becomes the tab's ONE live session
+	// (`chat.js`'s `resume()`), the same one every open mount now shows.
+	const go_voice = session => chat.resume(session).then(() => tabs.open("ai")).catch(() => {});
 
 	div.c("drawer-sessions flex v", $s => {
-		small.c("muted", "Threads on " + page);
+		h4.c("drawer-sub-title", "Voice sessions");
+		small.c("muted", "On " + page + " — tap one to pick it back up");
+
+		div.c("drawer-rows flex v", async $rows => {
+			const live = chat.current();
+			const recent = await Session.recent(page, { limit: 10 }).catch(() => []);
+			$rows.append(() => {
+				if (!recent.length) small.c("drawer-wait muted", "No voice sessions on this page yet — say something to start one.");
+				recent.forEach(row => {
+					const is_live = !!live && row.session === live;
+					button.c("drawer-row").attr("type", "button")
+						.ac(is_live && "on").click(() => go_voice(row.session)).append(() => {
+							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
+							small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
+							if (row.summary) small.c("drawer-row-last muted", String(row.summary).slice(0, 120));
+						});
+				});
+			});
+		});
+
+		h4.c("drawer-sub-title", "Threads");
+		small.c("muted", "On " + page);
 
 		div.c("drawer-rows flex v", async $rows => {
 			const found = await Promise.all((await threads(page)).map(load));
