@@ -3,7 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
 import Widget from "/framework/ux/Dictate/Widget.js";
-import chat from "/framework/ux/Dictate/chat.js";
+import chat, { ago } from "/framework/ux/Dictate/chat.js";
 import DrawerInbox from "./inbox.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
@@ -25,18 +25,9 @@ View.stylesheet(import.meta, "rail.css");
 // second one silently — `DrawerRailSheetPanel.ensure_session()`, below.
 const SESSION_KEY = "lew42-voice-session";
 
-// A rough "how long ago" for the resume offer below — "1 day ago", never a
-// timestamp nobody can read at a glance.
-function ago(at){
-	const ms = Date.now() - Date.parse(at ?? 0);
-	if (!Number.isFinite(ms) || ms < 0) return "";
-	const mins = Math.round(ms / 60000);
-	if (mins < 60) return mins <= 1 ? "just now" : mins + " minutes ago";
-	const hours = Math.round(mins / 60);
-	if (hours < 24) return hours === 1 ? "1 hour ago" : hours + " hours ago";
-	const days = Math.round(hours / 24);
-	return days === 1 ? "1 day ago" : days + " days ago";
-}
+// `ago()` — "1 day ago" for the resume offer below, never a bare timestamp — is now
+// THE one copy, imported from `ux/Dictate/chat.js` (review fix #9, 2026-09-30): this
+// file and `tabs/sessions.js` used to each carry an identical copy of it.
 
 /* THE MOBILE BOTTOM RAIL — below 52em only, the drawer's other way in (mobile-nav,
    2026-09-29). Two controls: ✦ opens a small listening sheet (below), ⋯ opens the

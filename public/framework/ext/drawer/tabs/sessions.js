@@ -2,15 +2,17 @@ import { div, span, button, small, a, h4 } from "/framework/core/View/View.js";
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { thread, available } from "/framework/ext/Ask/Ask.js";
 import { PageLog } from "/framework/core/Page/Log.js";
-import chat from "/framework/ux/Dictate/chat.js";
+import chat, { ago } from "/framework/ux/Dictate/chat.js";
 import * as Session from "/framework/ext/Session/Session.js";
 
 /* THE SESSIONS TAB — three lists, most important first (one-dictation, 2026-09-30):
    1. the live voice session, if this browser tab has one — `chat.js`'s own global
       session, marked "live" (`chat.current()`).
-   2. this page's other recent voice sessions (`Session.recent()`) — tapping one
-      RESUMES it (`chat.resume()`), which becomes the new live session everywhere,
-      then opens the AI tab to show it.
+   2. the PROJECT's other recent voice sessions (`project_recent()`, below) — not
+      only this page's any more (review #8: "now that sessions are global… the
+      project's recent sessions from any page"). Tapping one RESUMES it
+      (`chat.resume()`), which becomes the new live session everywhere, then opens
+      the AI tab to show it.
    3. the dev bar Ask's own threads — unchanged: a dir `<page>ai/<slug>/` holding a
       `task.jsonl`, whose `chat` lines are the exchange and whose `chat_session_id`
       resumes it (dev/DevBar/ask.js). One click hands the thread to the AI tab's
@@ -18,19 +20,34 @@ import * as Session from "/framework/ext/Session/Session.js";
       older kind of conversation than a voice session, not the same list.
    On a card, the card's sub-cards are listed under all three.
 
-   `threads()` is the one thread walk: dev/DevBar/ask.js imports it from here. */
+   `threads()` is the one thread walk: dev/DevBar/ask.js imports it from here.
+   `ago()` — "1 day ago" — is now imported from `ux/Dictate/chat.js` (review fix
+   #9): this file and `ext/drawer/rail.js` used to each carry their own copy. */
 
-// A rough "how long ago" — same tiny helper `chat.js` and `rail.js` each carry their
-// own copy of, small enough that importing it isn't worth a fourth module.
-function ago(at){
-	const ms = Date.now() - Date.parse(at ?? 0);
-	if (!Number.isFinite(ms) || ms < 0) return "";
-	const mins = Math.round(ms / 60000);
-	if (mins < 60) return mins <= 1 ? "just now" : mins + " minutes ago";
-	const hours = Math.round(mins / 60);
-	if (hours < 24) return hours === 1 ? "1 hour ago" : hours + " hours ago";
-	const days = Math.round(hours / 24);
-	return days === 1 ? "1 day ago" : days + " days ago";
+/* THE PROJECT'S sessions, not only this page's (review #8, 2026-09-30).
+ * `Session.recent(page)` (`ext/Session/Session.js`'s own doc: "the sessions
+ * started on, or passing through, `page`") only ever answers for ONE folder — there
+ * is no project-wide call to ask it for instead, and the endpoint that could answer
+ * one (`Servex/agents/Sessions.js`) is outside this task's fence, same as
+ * `ext/Session/` itself. The best this file can do without either: ask for this
+ * page's own folder AND the site's root folder, and merge, de-duped, newest first.
+ * A session the owner carried across many pages in one GLOBAL conversation
+ * (`chat.js`'s own `nav()`, called on every real navigation) visits both on its
+ * way, so it surfaces from either query; an OLDER, unrelated session that never
+ * passed through this page or the root still will not — a true project-wide list
+ * needs that endpoint. Flagged in this task's own log for whoever owns it next. */
+async function project_recent(page, limit){
+	const [here, root] = await Promise.all([
+		Session.recent(page, { limit }).catch(() => []),
+		page === "/" ? [] : Session.recent("/", { limit }).catch(() => []),
+	]);
+	const seen = new Set(), out = [];
+	for (const row of [...here, ...root]){
+		if (seen.has(row.session)) continue;
+		seen.add(row.session);
+		out.push(row);
+	}
+	return out.sort((a, b) => Date.parse(b.last_at ?? b.at) - Date.parse(a.last_at ?? a.at)).slice(0, limit);
 }
 
 // ⚠ The SPA fallback answers every miss with index.html — the content-type is the 404.
@@ -83,13 +100,13 @@ export default function sessions({ page, card, tabs }){
 
 	div.c("drawer-sessions flex v", $s => {
 		h4.c("drawer-sub-title", "Voice sessions");
-		small.c("muted", "On " + page + " — tap one to pick it back up");
+		small.c("muted", "Across the project — tap one to pick it back up");
 
 		div.c("drawer-rows flex v", async $rows => {
 			const live = chat.current();
-			const recent = await Session.recent(page, { limit: 10 }).catch(() => []);
+			const recent = await project_recent(page, 10).catch(() => []);
 			$rows.append(() => {
-				if (!recent.length) small.c("drawer-wait muted", "No voice sessions on this page yet — say something to start one.");
+				if (!recent.length) small.c("drawer-wait muted", "No voice sessions yet — say something to start one.");
 				recent.forEach(row => {
 					const is_live = !!live && row.session === live;
 					button.c("drawer-row").attr("type", "button")
