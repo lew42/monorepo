@@ -24,7 +24,7 @@ You are a fresh reviewer. You did not build this work, and you don't fix it: you
 └── (the diff, in your prompt)
 ```
 
-The shots come from `node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/`.
+The shots are already taken when you start (by the task mastermind, or by `Server/review.mjs` with `node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/`). Don't run it yourself.
 
 ## The order
 
@@ -58,7 +58,7 @@ One line per question: `yes`, `no` or `n/a`, then the evidence.
 
 ## The report
 
-Write `<taskdir>/review/report.md`. `Server/review.mjs` parses its top, so keep this shape exactly:
+Write the file your prompt names: `<taskdir>/review/report.md` for a review with shots; a review with no page (no shots) writes `<taskdir>/review.md` in the same shape, with only the Requirements and Words sections. `Server/review.mjs` parses its top, so keep this shape exactly:
 
 ```
 verdict: fix
