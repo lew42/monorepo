@@ -87,8 +87,14 @@ export default class Understand extends View {
 		const m = this.marks.find(x => x.i === i) ?? { i, mark: "ok", purpose: "" };
 
 		div.c("ux-understand-row", () => {
-			div.c("ux-understand-sentence flex gap-35 v-center wrap", () => {
-				span(text);
+			// Plain inline flow, NOT flex — a flex row treats the sentence and its
+			// mark as two separate boxes and wraps the mark onto its own line the
+			// moment the sentence is long. A non-breaking space glues the mark to
+			// the sentence's last word instead, so it wraps like any other word
+			// would — small, right after the text, same line (the owner: "a green
+			// check mark after it").
+			div.c("ux-understand-sentence", () => {
+				span(text + " ");
 				this.badge(m, i);
 			});
 			if (m.mark === "unclear" && m.question) this.clarify(m, i);
