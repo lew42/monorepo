@@ -105,3 +105,22 @@ A virtual page has a preview and a detail view like any page: the preview is its
 When to promote: the thread is deeper than the parent's view shows well (three levels), the message became a task or research, or the owner names it. Never automatically on length alone.
 
 **Why this and not one directory per message:** a directory per message is the bloat the owner named — and every one needs a name. Lines are free, ids are free, and the promotion path means nothing is decided early. The alternative — every message a real page from the start — is what `ai/2026/09/30/` would look like with ten thousand folders.
+
+## 8. Embedded or promoted: the same widget, two ways to save (adds to §7; core/Page, foundational, no rush)
+
+What `core/Page/Log.js` has today: every line after the first is one `set()` call; a key that names a method calls it (`file`, `tab`, `place`…); a value with its own `set()` merges (`settings`); a child page is linked by `{"file":"kid/page.jsonl"}`. Three additions make the owner's shape work, all in that file's own idiom:
+
+**1. An embedded item is one line, and replies nest by `parent`, without limit.**
+`{"item":{"id":"m-3f9k","parent":"m-1","by":"…","at":"…","text":"…"}}` — `set()` routes the `item` key to `item(obj)`, which keeps `this.items` (a Map by id) and `this.replies` (a Map parent → ids, in file order). The file stays flat; the tree is built on read, so a whole conversation lives in one `page.jsonl`. Ids are minted (`m-` + 4 chars), never named. A child page's id is its directory name, so the two kinds share one id space.
+
+**2. A delta targets a deep item by path.**
+`{"at":"m-1/m-3f9k","set":{"text":"…"}}` — the owner's shape. `set()` sees `at`, resolves the path segment by segment (an item id → the item; a child dir → that child's log, and the rest of the path continues inside it), then applies the line's other keys to the target: `Object.assign` for an item, the child log's own `set()` for a page. Same append-only file, no rewrite: the latest line wins, as everywhere else.
+
+**3. Promotion moves the lines and leaves a `file` line behind.**
+`promote(id)` (a Server RPC and a Servex tool — the browser can't move files): make `<id>/page.jsonl` with line 1 `{"class":…, "id", "title", "created", "by", "from":"<parent>/<id>"}`; copy the item and every descendant as `item` lines, in order; append to the parent `{"file":"<id>/page.jsonl","moved":"<id>"}` — `file()` links the child as today, `moved` tells `route()` that the old id now lives there. The old lines stay in the parent's file (append-only) and are ignored once `moved` names their id; compaction (§4) drops them later.
+
+**One widget, two homes.** The content widget (a message, a card, a note) draws a *record*: `{id, title, text, by, at, replies}`. An embedded item and a promoted page both answer that interface — `Item` from the map, `PageLog` from its file — so `chip()`, `row()`, `panel()` and the **Reply** button are written once. Reply appends `{"item":{"parent":<id>,…}}` to the record's home file, whichever it is. Routing: `parent/<id>/` opens the child page if the dir exists, else the item's `panel()` in the parent; `moved` is followed first, so no URL the owner ever clicked breaks.
+
+**The promotion rule (my pick):** promote when an item gets its **first reply**, or its text passes ~1,500 characters, or someone gives it a title. First reply is the trigger because a thread is what outgrows a line; length alone only promotes a long note. Never by age. **The hint** (optional, cheap): the record's chip carries a tiny mark — `▫` in the parent's file, `▪` its own page — shown on hover.
+
+**Order of work, when the owner marks it:** (a) `item` lines + tree on read + the record interface in Log.js and the widget; (b) `at` targeting; (c) `promote()` + `moved` routing; (d) the trigger and the hint. Each is one small merge with the §5 loop; (a) alone gives nested replies on every card.
