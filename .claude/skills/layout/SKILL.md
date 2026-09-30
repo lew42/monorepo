@@ -387,3 +387,5 @@ with the don'ts beside them. Open the **one** you need; don't read the catalog.
 ## The layout never jumps (the owner, 2026-09-22)
 
 "The layout should never jump. Write that into your layout laws." A dashboard or workspace keeps persistent navigation and persistent work areas: nothing the reader is looking at moves because something else arrived. New items in a live list wait behind a "N new" pill unless the list is already at its top; a selected thing opens in its own column, never by expanding in place; a full navigation to a new page is the one allowed transition. Prove it with a measurement (the top edge of the thing being read, before and after three arrivals) before landing anything live.
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).

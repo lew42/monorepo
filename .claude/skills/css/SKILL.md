@@ -111,3 +111,5 @@ in the module's `doc/decisions.md`; a token or a word you already have beats bot
 Reminders: `layout` before sizing anything; `new-task` if you haven't opened one;
 `documentation` then `finish-task` when done. Improve this skill:
 [`improvements.md`](improvements.md).
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).

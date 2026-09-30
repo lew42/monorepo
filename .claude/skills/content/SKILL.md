@@ -62,3 +62,5 @@ mention.
 Before sending, ask: could the owner get this in ten seconds? If not, cut it until they can, and
 move the rest one click down (a linked doc or a folded section). A reply to the owner is one screen
 at most, and usually a few lines.
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).

@@ -117,3 +117,5 @@ First ask: what content, and how much? A little or a lot; images, video, navigat
 **A page for every template and every variant, down to a button or one CSS class.** Each type is a Page and each variant a child Page (`ai/audits/paging/types/`, built from a `types.json` node by one factory), so each has its own URL, comments and soon its own agent.
 
 No flow-chart module exists yet. Full audit: /framework/ai/audits/paging/ (Round 2).
+
+Review questions for this system: [questions.md](questions.md) (the review skill asks them).
