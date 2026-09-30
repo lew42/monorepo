@@ -26,10 +26,10 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send) | "manual"
 	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
-	paragraph_pause_ms: 2500,   // quiet after a finished sentence that sends everything said so far as one message
+	paragraph_pause_ms: 1500,   // quiet after a finished sentence that sends everything said so far as one message (was 2500: brought down with pause_send_ms, 2026-09-30, same proportion)
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
-	pause_send_ms: 2500,        // quiet time before everything left on screen is sent (was 4000: words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
+	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
 	box_lines: 7,               // the box grows to this many lines, then scrolls
@@ -39,11 +39,23 @@ export const SETTINGS = {
 	                            // actually runs the fast assistant's clean-up; off, every utterance stays raw, same
 	                            // as before this task, with no model call at all. A composer that never asked for
 	                            // `revise:` in the first place is unaffected either way.
+	into: "chat",               // WHERE DICTATION APPEARS (the owner, 2026-09-30: "the live whisper transcription creating the
+	                            // messages right in the chat window"): "chat" = a bubble in the chat log that grows as you speak
+	                            // (only on a composer whose host can draw one, i.e. `on_live` is set: `ChatPanel`); "box" = the
+	                            // text box first, the old way ("it's not a bad function to have"). Typing always uses the box.
 };
-const STORE = "chat.mic.settings.2";   // .2: the chunked defaults must not be shadowed by an old saved per-sentence value
-/* The gear saves EVERY key, so a box that ever saved a setting still holds the old 4000 default for
-   `pause_send_ms` — a saved 4000 is dropped so the new default reaches it; any other saved value is the owner's own. */
-try { const saved = JSON.parse(localStorage.getItem(STORE) ?? "{}"); if (saved.pause_send_ms === 4000) delete saved.pause_send_ms; Object.assign(SETTINGS, saved); } catch {}
+const STORE = "chat.mic.settings.3";   // .3: the shorter 2026-09-30 defaults must not be shadowed by an old saved value
+/* The gear saves EVERY key, so a box that ever saved a setting still holds an old default for
+   `pause_send_ms` or `paragraph_pause_ms`. Nothing is saved yet under the new `.3` key the first
+   time this loads, so the owner's other saved values are carried over from the old `.2` key — only
+   the two stale defaults (4000 or 2500 for `pause_send_ms`, 2500 for `paragraph_pause_ms`) are
+   dropped so the new defaults above reach them; any other saved value is the owner's own. */
+try {
+	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
+	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500) delete saved.pause_send_ms;
+	if (saved.paragraph_pause_ms === 2500) delete saved.paragraph_pause_ms;
+	Object.assign(SETTINGS, saved);
+} catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
 export const CHECK_MS = 250;
 // Fired on `document` whenever the gear panel's "clean" checkbox changes (`detail` is the new
@@ -193,10 +205,33 @@ export class ComposerMic extends Dictate {
 		return parts.join("");
 	}
 
+	/* INTO THE CHAT, NOT THE BOX (dictation-stream, 2026-09-30). With `SETTINGS.into === "chat"` and a
+	   host that can draw a growing bubble (`on_live`, given by `ChatPanel` through `composer()`), every
+	   piece of logic below still writes into a text box — but into a GHOST one that is never on the page,
+	   and each change is handed to `on_live({text, settled, guess, sent})` for the chat log to draw. The
+	   real box is left to typing. Sending, clean-up, paragraphs and the auto-send all work unchanged,
+	   because they only ever read `this.box()`. */
+	live_active(){ return !!this.on_live && SETTINGS.into === "chat"; }
+	box(){ return this.live_active() ? (this.ghost ??= document.createElement("textarea")) : this.field?.el; }
+
+	/* The box this mic draws into changed (first draw, or the gear's "into" setting flipped): take the
+	   dictated words out of the old one, remember what the new one already holds as the owner's own. */
+	adopt(box){
+		if (this.drawn_box === box) return;
+		const old = this.drawn_box;
+		if (old && this.tail && old.value.endsWith(this.tail)) old.value = old.value.slice(0, old.value.length - this.tail.length);
+		if (old && old === this.ghost) this.on_live?.({ text: "", settled: "", guess: "", sent: false });
+		this.drawn_box = box;
+		this.tail = "";
+		if (!this.watched?.has(box)){ (this.watched ??= new Set()).add(box); this.watch_box(box); }
+		this.base = box === this.ghost ? "" : box.value;
+		if (this.field?.el && !this.dressed){ this.dressed = true; this.dress(this.field.el); }
+	}
+
 	draw_caption(){
-		const box = this.field?.el;
+		const box = this.box();
 		if (!box) return;
-		if (this.base === undefined) this.watch_box(box);
+		this.adopt(box);
 		const t0 = performance.now();
 		const said = this.build_tail(this.show_raw);
 		const t1 = performance.now();   // build_tail done (filler filter + paragraphing folded into one call, see above)
@@ -216,7 +251,25 @@ export class ComposerMic extends Dictate {
 		const t3 = performance.now();   // box set (and laid out)
 		box.dispatchEvent(new Event("input", { bubbles: true }));
 		this.own = false;
+		if (box === this.ghost) this.show_live(said);
 		this.mark(t0, t1, t2, t3, performance.now());
+	}
+
+	/* The growing bubble's words: `settled` is what Whisper has finished (and the clean-up has
+	   swapped in place), `guess` the still-moving end, drawn grey. `sent` is true on the one call
+	   that empties it because the words just went out, so the host can keep the bubble showing
+	   until the real line arrives instead of flashing empty. */
+	show_live(said){
+		const guess = this.live_guess(), settled = guess && said.endsWith(guess) ? said.slice(0, said.length - guess.length).trimEnd() : said;
+		const sent = !!this.just_sent && !said;
+		this.just_sent = false;
+		this.on_live?.({ text: said, settled, guess: settled === said ? "" : guess, sent });
+	}
+
+	live_guess(){
+		let guess = unfill(this.partial_text ?? "");
+		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_words(guess, this.dropped.text);
+		return guess;
 	}
 
 	/* THE DELAY, in ms, per box update: `wait` = Whisper's answer arrived → this draw began (queueing);
@@ -236,11 +289,9 @@ export class ComposerMic extends Dictate {
 	}
 
 	// The first time the box is drawn: remember the owner's text and listen for their edits.
+	// (Called once per box by `adopt()`, which also sets `base` and dresses the real box.)
 	watch_box(box){
-		this.base = box.value;
-		box.addEventListener("input", () => { if (!this.own) this.owner_edit(box); });
-		// No ceiling (the owner, 2026-09-24): the box grows with its words; nothing inside it scrolls.
-		this.dress(box);
+		box.addEventListener("input", () => { if (!this.own && this.drawn_box === box) this.owner_edit(box); });
 	}
 
 	/* THE BOX AND ITS TWO BUTTONS (the owner, 2026-09-25). The box grows line by line up to
@@ -266,6 +317,7 @@ export class ComposerMic extends Dictate {
 		Object.assign(panel.style, { position: "absolute", right: "0", bottom: "calc(100% + 0.3em)", zIndex: "20", display: "none", gap: "0.3em", padding: "0.6em", font: "inherit", fontSize: "0.85em", background: "Canvas", color: "CanvasText", border: "1px solid currentColor", borderRadius: "0.4em", gridTemplateColumns: "auto auto" });
 		const rows = [
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
+			["into", "dictation goes into", ["chat", "box"]],
 			["send_mode", "send mode", ["pause", "sentences", "manual"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["paragraph_pause_ms", "natural pause (ms)", "number"],
 			["pause_send_ms", "silence before send (ms)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -286,6 +338,7 @@ export class ComposerMic extends Dictate {
 				// mic (Composer.js's own "raw" chip — review finding 7: it must hide when
 				// the kill switch is off, since toggling it then would do nothing visible)
 				// has no other way to hear this ONE change happen right now.
+				if (key === "into") this.draw_caption();   // move the words still being spoken to the new place at once
 				if (key === "clean") document.dispatchEvent(new CustomEvent(CLEAN_CHANGED_EVENT, { detail: SETTINGS.clean }));
 				save_settings();
 			});
@@ -320,6 +373,7 @@ export class ComposerMic extends Dictate {
 	   sent; the still-moving guess is trimmed of the words already sent. */
 	consume_sent(){
 		clearTimeout(this.held_timer);
+		this.just_sent = true;   // the growing chat bubble (show_live) stays up until the real line lands
 		this.held = [];   // EVERYTHING on screen was sent, the moving guess included
 		this.base = "";
 		this.tail = ""; this.chunk_start = undefined;
@@ -444,10 +498,16 @@ export class ComposerMic extends Dictate {
 	 * raw and gone — nothing left to update, but the waiter still needs releasing so
 	 * `await_clean()` doesn't wait the full 5s for an answer nobody can use any more)
 	 * and swap its `text` for the clean version. */
-	on_revised(text, { chunk_id }){
+	/* ⚠ A CALLER'S OWN HOOK IS `on_clean`, NEVER `on_revised` (dictation-stream, 2026-09-30): View's
+	   constructor Object.assign()s every option onto the instance, so an `on_revised` option (even an
+	   `undefined` one, which Composer.js always passed) SHADOWED this method, the swap never ran, the
+	   bubbles stayed raw Whisper with clean mode on, and every send waited the full 5 s. */
+	on_revised(text, meta = {}){
+		const { chunk_id } = meta;
 		const item = (this.held ?? []).find(h => h.chunk_id === chunk_id);
 		if (item){ item.text = text; this.draw_caption(); }
 		this.release_waiter(chunk_id);
+		this.on_clean?.(text, meta);
 	}
 
 	/* THE FAST ASSISTANT GAVE UP for one utterance (Servex down, or any other
@@ -561,7 +621,7 @@ export class ComposerMic extends Dictate {
 	auto_check(){
 		try {
 			if (this.mode_now() === "manual" || this.state !== "listening" && this.state !== "transcribing") return;
-			const text = this.field?.el.value.trim();
+			const text = this.box()?.value.trim();
 			if (!text || !this.tail) return;   // nothing dictated is waiting (typed words are never auto-sent)
 			const quiet = performance.now() - (this.last_speech ?? performance.now());
 			if (SETTINGS.paragraph_pause_ms > 0 && quiet >= SETTINGS.paragraph_pause_ms && this.ends_sentence(text)) return this.send_screen();   // a natural pause
@@ -580,11 +640,11 @@ export class ComposerMic extends Dictate {
 	 * reading and clearing the SAME box while the first is still waiting. */
 	async send_screen(){
 		if (this.sending_screen) return;
-		if (!this.field?.el.value.trim()) return;
+		if (!this.box()?.value.trim()) return;
 		this.sending_screen = true;
 		try {
 			await this.await_clean();
-			const text = this.field?.el.value.trim();
+			const text = this.box()?.value.trim();
 			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;

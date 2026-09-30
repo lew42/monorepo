@@ -116,7 +116,13 @@ export class ChatPanel extends View {
 			// force every host into a mode it never asked for. A revision pair
 			// (below) draws for a LINE that carries `re` + `level`, never for the
 			// mode alone, so removing this default costs the pair nothing.
-			revise: this.revise,
+			// DEFAULT "clean" (dictation-stream, 2026-09-30): the ✦ sheet never set `revise`, so with
+			// SETTINGS.clean on its bubbles were still raw Whisper (the owner: "it doesn't look like
+			// you're fixing punctuation"). `revise: false` still turns it off for one host; the gear's
+			// kill switch (SETTINGS.clean) turns it off everywhere.
+			revise: this.revise === undefined ? "clean" : this.revise,
+			// DICTATION INTO THE CHAT (SETTINGS.into, Mic.js): the words grow in a bubble in the log.
+			on_live: state => this.talk.live(state),
 			on_revised: (text, meta) => this.handle_revision(text, meta.raw, meta.level),
 			// RENAME (deliverable 3): "rename this" is a command, not a message —
 			// `chat()`'s own `rename_selected()` starts the dropdown on whatever is
@@ -130,6 +136,9 @@ export class ChatPanel extends View {
 
 	/** Draw whatever is new since the last call — same contract as `chat().sync()`. */
 	sync(){ this.talk.sync(); this.drilled?.check(); return this; }
+
+	/** An assistant's reply while it is still being written (`chat().stream()`); `""` removes it. */
+	stream(who, text){ this.talk.stream(who, text); return this; }
 
 	/** Add one entry to the panel's OWN list (ignored once a real `source` is given) and draw it.
 	 *  A fresh RAW owner line (`{chat: {from: {kind: "owner"}, text, …}}`, no `re` of its own) is

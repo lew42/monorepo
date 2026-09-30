@@ -46,6 +46,14 @@ When the mic turns on or off, one small line goes to the same log:
 Servex adds `at` when the line arrives. No reader of that log makes a card or a reply from
 it: the fold ignores types it doesn't know, and the fast assistant only reacts to `prompt`.
 
+## The silence event
+
+`floor.on_quiet(fn)` calls `fn(ms, {mic_off})` once per silence, when the owner has been quiet
+for a mark in `floor.quiet_marks` (2.5 s) after speaking, and once when the mic goes off after
+speech. `floor.quiet_ms()` is the silence so far (null with the mic off). A voice session posts
+it to Servex (`ext/Session`'s `report_quiet()`), which is what lets its assistants answer:
+[`ext/Session/doc/sessions.md`](/framework/ext/Session/doc/sessions.md), "When they answer".
+
 ## Where it comes from
 
 [`ux/Dictate/floor.js`](/framework/ux/Dictate/floor.js): Dictate's own level meter feeds it (one

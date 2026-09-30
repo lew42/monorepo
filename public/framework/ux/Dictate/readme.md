@@ -74,7 +74,8 @@ own log — see `Server/doc/refine.md`'s "Ask 1" section. See "Voice → log" in
 Every entry `post_prompt()` sends carries `floor` (`"speaking"` or `"done"`) and, after a
 dictation, `cues` (its pauses and speaking time), so an assistant can hold its reply while the
 owner is mid-thought. [`floor.js`](floor.js) reads this component's own level meter; mic on
-and off also post a `{type: "floor"}` line. The contract for readers:
+and off also post a `{type: "floor"}` line. `floor.on_quiet(fn)` fires once each time the owner
+goes quiet for 2.5 s: a voice session's assistants answer on it. The contract for readers:
 [`ext/Chat/doc/floor.md`](/framework/ext/Chat/doc/floor.md).
 
 ## Watch out
