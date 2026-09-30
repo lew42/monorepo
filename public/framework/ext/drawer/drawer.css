@@ -164,6 +164,15 @@
 	.drawer-ai-panel {
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-block-size: 0;
+		/* TEXT SIZE AT WIDE SCREENS (minion-polish, item 1, 2026-09-30 — the owner's
+		   own shots: "at 3440 the drawer chat's text and composer are tiny"). The
+		   WHOLE `.drawer` sets `font-size: 0.85em` (above), on top of the chat's own
+		   several `em`-sized bits (`Widget.css`'s bubble mark, the composer info
+		   line) — two multipliers compounding down. `calc(1em / 0.85)` cancels that
+		   one multiplier exactly, so the chat panel reads at the SAME size as the
+		   rest of the page — the site's own root clamp (framework.css's `body`
+		   font-size) — instead of a new, made-up px number. */
+		font-size: calc(1em / 0.85);
 	}
 	.drawer-ai-panel > .ux-dictate-widget {
 		flex: 1 1 auto; min-block-size: 0;
