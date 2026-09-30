@@ -80,7 +80,22 @@
 	   ⚠ Three classes on purpose. A theme styles every `button` as a small uppercase
 	   LABEL — `.theme-lew42 :is(button, .btn)` is 0-2-0 and pads to 0.7em/1.4em, which
 	   is right for READ GUIDE and four times too wide for a 1em icon. Only the BOX is
-	   reclaimed; the small-caps voice is the theme's to keep. */
+	   reclaimed; the small-caps voice is the theme's to keep.
+
+	   This is the same shape `ui/icon`'s `.ui-icon-btn` gives the rest of the site —
+	   flush, a fill on hover, a lit fill for an `.on`/toggled state — and this module
+	   had it FIRST (2026-08-16), a year before `ui/icon` existed, which is exactly why
+	   the icon-system audit named this the best candidate to promote rather than
+	   rebuild (ai/2026-09-30/icon-system/audit/audit.md, one-off #2). It keeps its own
+	   selectors and its own 1.7em (a bigger click target than ui/icon's 1.6em
+	   `--icon-frame`, chosen on purpose for a floating bar) rather than being rewired
+	   onto `.ui-icon-btn` outright: `.panel-btn` also carries the bar's own
+	   opacity-fade reveal (`.panel-workspace .panel > .panel-bar .panel-btn`, above)
+	   and the `:has()` square-vs-label detection below, neither of which `.ui-icon-btn`
+	   has reason to know about, and "v1 behaviour unchanged" ruled out a class swap on
+	   a component with this many live callers (the rail, a seam's menu, the drag grip,
+	   the inspector) for one task's budget. `ui/icon/doc/icons.md` "Not migrated yet"
+	   has the full reasoning. */
 	:is(.panel-workspace .panel, .drawer .panel-props) .panel-btn {
 		display: flex; align-items: center; justify-content: center;
 		min-inline-size: 1.7em; block-size: 1.7em;
