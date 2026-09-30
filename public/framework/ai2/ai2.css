@@ -1377,6 +1377,110 @@
 	}
 }
 
+/* ── Needs you v2: the rail + detail pane (asks-ledger/needs-rail, 2026-09-30 —
+   the owner: "Needs you should look like the Inbox") ─────────────────────────
+   `.ai2-need-v2` sits ALONGSIDE the plain `.ai2` class (`needs.js`'s own markup), so
+   every rule this file already has for `.ai2`, `.ai2-rail`, `.ai2-rows` and `.ai2-row`
+   — the grid, the rail's width, a row's padding and height, the selected-row mark —
+   applies here for free, unchanged: the brief's own words, "the same rail/row style
+   the Inbox uses." Only what is GENUINELY NEW for this view lives below: the small
+   header line, the detail pane's own scroll and padding, the stalled-ask's extra
+   lines, and the phone-width screen swap (v1's `.ai2-needs-list` and the Inbox's own
+   `.ai2` do not share a swap mechanism with this one, since neither is driven by a
+   Router page the way the Inbox's card pages are — `needs.js`'s own comment on
+   `needs_rail_view()` says why). */
+@layer theme {
+	/* The plain list (v1) sizes ITS OWN width (`.ai2-needs-list { max-width: 56em }`
+	   above); the rail + detail view fills the tab exactly like the Inbox does, so the
+	   outer `.ai2-needs` wrapper's padding and scroll (meant for the plain list) would
+	   otherwise double up with `.ai2-detail`'s own — the same "two scrollbars" trap
+	   `.ai2`'s own comment names, one level up. */
+	.ai2-needs:has(.ai2-need-v2) {
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.ai2-need-top {
+		justify-content: space-between;
+	}
+
+	/* The detail pane scrolls INSIDE ITSELF (`.ai2-detail` above is `overflow: hidden`
+	   on purpose, for the Inbox's own card pages, which manage their own scroll) — this
+	   view's content is plain DOM, not a page, so it needs one scrolling box of its own. */
+	.ai2-need-detail {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ai2-need-detail-body {
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: auto;
+		padding: var(--pad-card);
+	}
+
+	.ai2-need-detail-head {
+		margin-block-end: 0.3em;
+	}
+
+	/* The full question, WHOLE — never the rail row's own ellipsis (`.ai2-need-question`
+	   above is built for a one-line preview; this is the answer screen itself). */
+	.ai2-need-detail-question {
+		margin: 0 0 0.6em;
+		font-size: 1.05em;
+		line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-need-detail .ai2-need-meta {
+		margin-block-end: 0.6em;
+	}
+
+	/* "ALSO WAITING" — the rest of the ranked list, again, inside the pane itself
+	   (`needs.js`'s own comment on `draw_detail()` says why: one short answer alone left
+	   85% of a 3440 screen empty, measured — the exact wasted-space complaint deliverable 1
+	   exists to fix, just relocated from the rail into the pane). MORE COLUMNS AT A WIDER
+	   SCREEN, never a wider empty margin around one short question — `auto-fill` is what
+	   makes that automatic, no breakpoint of its own to maintain. */
+	.ai2-need-next {
+		margin-block-start: 2em;
+		padding-block-start: 1em;
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-need-next-head {
+		display: block;
+		margin-block-end: 0.6em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		font-size: 0.75em;
+	}
+
+	.ai2-need-next-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(18em, 1fr));
+		gap: 0.6em;
+	}
+
+	.ai2-need-next-item {
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+	}
+
+	/* ── one screen at a time, on a phone (deliverable 5: "the rail goes full width and
+	   the pane goes below it, or opens on its own, the same way the Inbox does") — this
+	   view picks "opens on its own": `.ai2-need-open` is this module's own toggle (set
+	   the moment a row is picked, or already true on a direct `?need=` link), never the
+	   Router's `.active-ancestor` the Inbox's own phone rules key on, because nothing
+	   here is a routed page. */
+	@media (width < 40em) {
+		.ai2-need-v2:not(.ai2-need-open) .ai2-detail { display: none; }
+		.ai2-need-v2.ai2-need-open .ai2-rail { display: none; }
+		.ai2-need-v2.ai2-need-open .ai2-detail { display: block; }
+		.ai2-need-back { display: inline-block; padding: 0.5em 1em; }
+	}
+}
+
 /* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */
 @layer theme {
 	/* THE LIVE ROW — one line taller than a card row, and always that height:

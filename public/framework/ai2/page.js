@@ -13,7 +13,7 @@ import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
-import needs_view, { watch_needs, score_for } from "./needs.js";
+import needs_shell, { watch_needs, score_for } from "./needs.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
@@ -87,7 +87,10 @@ export default new Page({
 		// NOTHING ELSE ON THIS TAB (deliverable 1) — `needs.js` owns the whole list; CSS shows
 		// this div and hides `.ai2-shell` (the rail) only while THIS page is the active leaf,
 		// i.e. the bare url — the same `:has(.active-page)` trick `overview/` already uses.
-		div.c("ai2-needs", () => { needs_view(); });
+		// `needs_shell()` (asks-ledger/needs-rail) picks its OWN view inside here — the rail +
+		// detail pane by default, or the old plain list at `?v=1` — neither is a Router
+		// navigation (same url, no path segment moves) for this page to hand off to instead.
+		div.c("ai2-needs", () => { needs_shell(this); });
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
 	},
 

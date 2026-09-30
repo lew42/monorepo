@@ -35,7 +35,11 @@ export function who(it){
 /** A PREVIEW: the title, a progress bar and the money — nothing else (the owner,
     2026-09-24: "way too much summary on the cards"). The words a card used to
     show live one click down, on its page. `it.progress` and `it.usd` are set by
-    AI 2's `paint()`. */
+    AI 2's `paint()`. `it.sub`, when a caller sets it (the Needs-you rail,
+    asks-ledger/needs-rail), is one quiet line under the title — the same shape
+    `live_row()` already draws for the Live card (`.ai2-row-foot` + `.ai2-row-line`),
+    reused here rather than invented twice. A plain Inbox row never sets `it.sub`,
+    so this is a no-op for every row that already existed. */
 export function row(it){
 	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
@@ -44,6 +48,7 @@ export function row(it){
 		span.c("ai2-row-title").text(it.title);
 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
 	});
+	if (it.sub) div.c("ai2-row-foot flex v-center gap-25", () => { small.c("ai2-row-line muted").text(it.sub); });
 	meter(it.progress, it.usd, it.usd_open);
 	if (it.news) news_bar(it.news);
 }
