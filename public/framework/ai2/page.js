@@ -16,6 +16,7 @@ import overview from "./overview.js";
 import needs_view, { watch_needs, score_for } from "./needs.js";
 import log_view from "./log.js";
 import chat from "./chat.js";
+import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
 import { progress_of, meter } from "./meter.js";
@@ -1114,7 +1115,7 @@ const norm = t => String(t ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim
  * tops identical across five streamed sentences.
  */
 function card_page(root, id){
-	let $box, box, talk, sig = null, held = false, handle, stop_clog, stop_live;
+	let $box, box, talk, sig = null, held = false, handle, stop_clog, stop_live, chat_mount;
 	let latest_it = null, $tasks = null;
 	const task_state = {};
 
@@ -1200,12 +1201,36 @@ function card_page(root, id){
 					autostart: fresh && auto_transcribe(),   // a brand-new card opens listening, unless turned off
 				});
 			});
+
+			/* THE LIVE CARD'S OWN FOLD, v2 (minion-polish, item 3, 2026-09-30 — the
+			 * brief: "Make it a `chat()` mount… Keep the old one reachable as a
+			 * named v1"). `foot()` above IS that v1: the OLD per-card assistant —
+			 * this card's own log read as a conversation (`./chat.js`) plus its own
+			 * `composer()` — exactly the "second and third paths" this whole task
+			 * retires (`requirements.md` ask 1). This is the SAME `mount_chat`
+			 * (`ux/Dictate/chat.js`) every other surface now builds: the ✦ sheet,
+			 * the ☰ drawer's AI tab, and a folder card's own sidebar (`card.js`).
+			 * `card: LIVE` is only a HINT for the very first sentence ever said in
+			 * the tab's one global session (see `chat.js`'s own class doc) — it
+			 * does not start a second, Live-only conversation, and today's task
+			 * lines (the old `source()`'s own extra read of `root.ai2.live`) are
+			 * not folded in here: that context lives on the page itself, above
+			 * this fold, not duplicated into the chat a second time.
+			 * To bring v1 back: call `foot()` instead of `live_foot_v2()` in the
+			 * branch below. */
+			const live_foot_v2 = () => div.c("ai2-foot ai2-foot-chat", () => {
+				chat_mount = mount_chat(div.c("ai2-foot-chat-slot").el, {
+					path: root.url + id + "/",
+					card: id,
+					placeholder: "talk to the assistant about what is running",
+				});
+			});
 			/* ON LIVE THE ASSISTANT IS ONE ROW, and pressing it opens the chat (the owner,
 			   2026-09-25: "don't render the fast assistant's chat messages inline, taking space.
 			   Show the assistant as a small card or row, and clicking it opens its chat"). */
 			if (id === LIVE) details.c("ai2-live-assistant", () => {
 				summary.c("ai2-live-assistant-row").text("Assistant: ask it about what is running");
-				foot();
+				live_foot_v2();
 			});
 			else foot();
 		},
@@ -1239,8 +1264,11 @@ function card_page(root, id){
 			// work on a stream nobody is reading.
 			stop_clog = clog.on(() => { sig = null; draw(latest_it); });
 			clog.ready.then(() => { sig = null; draw(latest_it); });
-			// The Live card's chat also carries today's task lines, off the day log.
-			if (id === LIVE) stop_live = root.ai2.live.on(() => talk.sync());
+			// v1 only: the OLD per-card chat re-synced on today's task lines, off
+			// the day log. `live_foot_v2()`'s mount watches its own session file
+			// directly (`chat.js`'s own `watch()`), so `talk` stays unset on Live
+			// now — the guard below keeps this a no-op for it.
+			if (id === LIVE) stop_live = root.ai2.live.on(() => talk?.sync());
 		},
 
 		/* ⚠ AND THE MICROPHONE STOPS. A card page's view is CACHED — it stays in
@@ -1248,10 +1276,12 @@ function card_page(root, id){
 		   left running there would go on posting into a card the owner has
 		   navigated away from, and nothing would say so. Found by the proof run,
 		   which resolved two `.ai2-foot` composers on one page and picked the
-		   wrong one. */
+		   wrong one. `chat_mount` is `live_foot_v2()`'s own mic (Live, v2) — `box`
+		   stays unset there, so the two stop-checks never both fire on one page. */
 		deactivated(){
 			root.ai2.close(handle);
 			try { if (box?.mic && !["idle", "error"].includes(box.mic.state)) box.mic.stop(); } catch {}
+			try { chat_mount?.panel?.stop_mic?.(); } catch {}
 			stop_clog?.();
 			stop_live?.();
 		},
