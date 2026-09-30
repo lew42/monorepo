@@ -16,25 +16,36 @@ Socket.prototype.ask_event = function(e){ listeners.get(e.id)?.(e); };
  * /ask/turn` is the narrower door built for exactly this: one Claude turn, the
  * SAME tools and the SAME `--resume` as `rpc:ask` runs — not a downgraded one
  * (the owner's call, 2026-09-29) — guarded instead by that route's own `lan()`
- * check, loopback or this machine's Wi-Fi, never the open internet. Probed once,
- * at load, and the check is JSON-or-not, never a status code: a static host can
- * answer any status for an unknown route (this site's own production host
- * answers 405, not 404), so only a JSON body proves a real `/ask/turn` is behind
- * it. `ext/drawer/tabs.js`'s own DEV flag reuses this exact probe (`ask_probe`,
- * `http_ask_ready`) instead of sending a second one — one fetch per page load,
- * not two (review, 2026-09-29). Skipped on localhost entirely — `edit()`
- * already covers it, so there is nothing for this probe to add there, and no
- * reason to add the network noise. */
+ * check, loopback or this machine's Wi-Fi, never the open internet. The check
+ * is JSON-or-not, never a status code: a static host can answer any status for
+ * an unknown route (this site's own production host answers 405, not 404), so
+ * only a JSON body proves a real `/ask/turn` is behind it.
+ *
+ * ⚠ `ask_probe()` is a FUNCTION, called lazily, never a value evaluated at
+ * import time. It used to be a top-level `const` that fired the `fetch` the
+ * instant this file was imported — which is every page load, since `app.js`
+ * imports the ☰ menu unconditionally. The probe's own body is deliberately
+ * empty (`{}`, no `text`), so the server always answers a 400 — and Chrome
+ * logs that to the console itself, before any JS runs, no matter how the
+ * `.catch()` here is written. Every AI 2 card, opened from a phone on the LAN,
+ * logged that 400 on page load though nobody had touched the AI feature
+ * (2026-09-29). Call `ask_probe()` only from a real user action — `ask()`
+ * below calls it when someone actually asks something, and `ext/drawer/tabs.js`
+ * calls it when the drawer is actually opened, never at its own module scope.
+ * It is memoized, so however many places call it, the network fires once. */
 export let http_ask_ready = false;
-export const ask_probe = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname)
-	? Promise.resolve()
-	: fetch(location.origin + "/ask/turn", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
+let probed = null;
+export function ask_probe(){
+	if (LOCAL_HOST) return Promise.resolve();
+	return probed ??= fetch(location.origin + "/ask/turn", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
 		.then(r => { http_ask_ready = (r.headers.get("content-type") ?? "").includes("json"); })
 		.catch(() => {});
+}
 
 // The one switch every editor control reads — ext/Ask/edit.js's doc/decisions.md.
-// True on localhost with edit mode on (the dev socket), OR off localhost once the
-// `/ask/turn` probe above has come back — see its comment.
+// True on localhost with edit mode on (the dev socket), OR off localhost once
+// `ask_probe()` has been called by someone and has come back — see above.
 export function available(){ return edit() || http_ask_ready; }
 
 /**
@@ -82,6 +93,7 @@ export async function ask(prompt, opts = {}){
 	}
 
 	if (!edit()){
+		await ask_probe();
 		if (!http_ask_ready) throw new Error("ask(): no dev server, or edit mode is off — the bridge is localhost only.");
 		const res = await fetch(location.origin + "/ask/turn", { method: "POST",
 			headers: { "content-type": "application/json" },

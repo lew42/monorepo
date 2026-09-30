@@ -10,21 +10,26 @@ import { http_ask_ready, ask_probe } from "/framework/ext/Ask/Ask.js";
  * `localhost` nor `127.0.0.1`, so `DEV` used to come back false there even though
  * the dev server is real and answering, and the LAN path in `tabs/ai.js`'s `send()`
  * (the `servex_url()` swap) never ran on a phone (review #4, 2026-09-29). Off the
- * local hostname, this reuses `ext/Ask/Ask.js`'s OWN probe (`ask_probe` /
+ * local hostname, this reuses `ext/Ask/Ask.js`'s OWN probe (`ask_probe()` /
  * `http_ask_ready`) rather than sending a second `POST /ask/turn` — one fetch per
- * page load, not two. ⚠ It must be the SAME check: a status-code test alone is
+ * drawer open, not two. ⚠ It must be the SAME check: a status-code test alone is
  * wrong, because this site's own static production host answers 405 (not 404) to
  * an unknown POST route, which would have flipped `DEV` on for every reader in
  * production (review, 2026-09-29). Only a JSON body proves a real dev server is
- * behind the page — `Ask.js`'s probe already checks exactly that. `export let`,
- * not `const`: this starts as the synchronous, always-right localhost answer and
- * flips true once the probe resolves — an ES module export is a live binding, so
- * every importer (`tabs/ai.js`, this file's own tab list) sees the flip without
- * re-importing anything, the same shape `ai2/inbox.js`'s `servex_up()` already
- * uses for the same kind of "ask once, remember" check. */
+ * behind the page — `Ask.js`'s probe already checks exactly that.
+ *
+ * ⚠ The probe is fired from `open()` below — when a person actually clicks the
+ * ☰ — never here at module scope. This file is imported by `app.js` on EVERY
+ * page, so a call here ran the probe on every page load, whether or not anyone
+ * ever opened the drawer; every AI 2 card opened from a phone on the LAN showed
+ * a `POST /ask/turn → 400` console error nobody caused (2026-09-29). `export
+ * let`, not `const`: this starts as the synchronous, always-right localhost
+ * answer and flips true once the probe resolves — an ES module export is a live
+ * binding, so every importer (`tabs/ai.js`, this file's own tab list) sees the
+ * flip without re-importing anything, the same shape `ai2/inbox.js`'s
+ * `servex_up()` already uses for the same kind of "ask once, remember" check. */
 const LOCAL_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/.test(location.hostname);
 export let DEV = LOCAL_HOST;
-if (!DEV) ask_probe.then(() => { if (http_ask_ready) DEV = true; });
 
 /* THE DRAWER'S TABS — AI, Sessions, Dictation, Settings and Admin, plus Element while
    something on the page is selected (select.js) — opened by the ☰
@@ -104,6 +109,9 @@ export class DrawerTabs {
 
 	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
 	open(name){
+		// A real click on ☰ — the one moment this file is allowed to touch the
+		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
+		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });
 		const was = this.current;
 		this.current = this.find(name) ?? (this.shown().includes(was) ? was : this.shown()[0]);
 		// Where to go back to when the Element tab goes away.
