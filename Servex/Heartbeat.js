@@ -107,7 +107,10 @@ export default class Heartbeat {
         try {
             const now = Date.now();
             this.wrap_stop();
-            for (const file of this.files()){
+            const files = this.files();
+            /* A task this tick no longer finds (landed, or too old for the task loop) leaves the list. */
+            for (const file of [...this.watch.keys()]) if (!files.includes(file)) this.watch.delete(file);
+            for (const file of files){
                 const t = this.read(file);
                 if (!t || t.done){ this.watch.delete(file); continue; }
                 const w = this.watch.get(file) ?? {};
@@ -140,7 +143,11 @@ export default class Heartbeat {
     files(){
         const out = new Set(this.servex.task_loop?.find_task_files() ?? []);
         for (const a of this.agents.live.values()) if (a.task?.dir) out.add(path.join(a.task.dir, "task.jsonl"));
-        return [...out].filter(f => fs.existsSync(f));
+        /* ONE ROW PER TASK: the task loop gives absolute paths, an agent's task.dir is often
+         * repo-relative, so the same file came in twice (mastermind-servex-9, 2026-09-30). */
+        const one = new Map();
+        for (const f of out){ const abs = path.resolve(f); const key = abs.toLowerCase(); if (!one.has(key) && fs.existsSync(abs)) one.set(key, abs); }
+        return [...one.values()];
     }
 
     /* Line 1 names the owner and the opt-in; every assign merged says landed,
@@ -286,7 +293,10 @@ export default class Heartbeat {
             /* the working cap (Agents.working): "working 3/5", plus how many sleep without a process */
             working: c ? `working ${c.working}/${c.cap}` : null, idle: c?.idle ?? null, dormant: c?.dormant ?? null,
             silent_min: this.silent_ms / 60000,
-            tasks: [...this.watch].map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
+            /* Only tasks whose owner is running or dormant, or has a check or revive pending: a
+             * stopped owner's old task is not news (30 of 58 rows were, 2026-09-30). */
+            tasks: [...this.watch].filter(([file, w]) => (a => a && a.state !== "stopped")(this.agents.live.get(w.owner)) || w.check_at || this.queued_revive(file))
+                .map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
                 state: this.agents.live.get(w.owner)?.state ?? "not running",
                 silent_s: this.seen.get(w.owner) ? Math.round((now - this.seen.get(w.owner).at) / 1000) : null,
                 mid_tool: !!this.seen.get(w.owner)?.tool_at, check_pending: !!w.check_at, answered: w.answered ?? 0 })),
