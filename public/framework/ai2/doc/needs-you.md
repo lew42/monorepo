@@ -9,6 +9,16 @@ so nothing new has to be built to keep the list current. It never lists a `done`
 card. Ranked a blocker first (its ask or the card's title says "block"), then a plain decision or
 question, an FYI last; newest first inside each group.
 
+**What it does NOT list (2026-09-30).** A task-loop or heartbeat escalation — "`<task>` has been
+quiet since … close it, or keep chasing?" (`Servex/TaskLoop.js`), or "… Servex could not fix it;
+please look." (`Servex/Heartbeat.js`) — is the SYSTEM's own question, not the owner's: the
+heartbeat already revives or stops the stalled task, and the Servex mastermind decides what to do
+about it. `card_needs()`'s `is_task_loop_escalation()` recognises it by its shape (the exact
+option pairs and phrases those two callers write — neither one tags the line with who is asking,
+so there is no field to filter on instead) and drops it from every aggregate view: this tab, the
+rail's "Needs review" filter, and Servex's own `/waiting`. It is NOT deleted — the Decision it
+placed still draws and still answers on the card's own page, exactly like any other open ask.
+
 **How to ask, from an agent:** the Servex MCP tool `card_ask({card, question, options?, title?,
 from?})` places a Decision (with `options`) or a Question (without) on the card — the exact
 widget the card already draws, so answering it is the same click or reply box either way.
@@ -19,12 +29,17 @@ widget the card already draws, so answering it is the same click or reply box ei
 (`agents.send`), so a stopped agent picks its work back up the moment you answer — you never have
 to go find it.
 
-**The filter — "Needs review" on the inbox rail** (`/framework/ai2/inbox/?review=1`) shows only
-these same rows, so the tab and the filter can never disagree about what still needs you. Its
-state lives in the url, so a reload keeps it on. A card whose own last message just asks something
-informally (no formal Decision or Question) clears with the **"Reviewed ✓"** button on its own
-page, which writes one `{"reviewed": {"at", "by": "owner"}}` line — a placed Decision or Question
-only clears by being answered, never by "Reviewed ✓".
+**The filter — "Needs review" on the inbox rail** (`/framework/ai2/?review=1`, the bare url since
+Inbox is the default view again 2026-09-30) shows only these same rows, so the tab and the filter
+can never disagree about what still needs you. Its state lives in the url, so a reload keeps it
+on. A card whose own last message just asks something informally (no formal Decision or Question)
+clears with the **"Reviewed ✓"** button on its own page, which writes one
+`{"reviewed": {"at", "by": "owner"}}` line — a placed Decision or Question only clears by being
+answered, never by "Reviewed ✓".
+
+**The tab's own count badge** (2026-09-30) is `watch_needs()`'s row count, shown on the "Needs
+you" tab (`page.js`) and hidden at zero — the same shared scan, so it can never disagree with
+either the tab's own list or the filter.
 
 One rule decides all three (the tab, the filter, and Servex's own `list_waiting`/`GET /waiting`):
 [`needs-rule.js`](../needs-rule.js), `card_needs()`. [`needs.js`](../needs.js) is the browser half
