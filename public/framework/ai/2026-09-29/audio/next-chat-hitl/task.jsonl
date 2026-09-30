@@ -1,0 +1,3 @@
+{"assign":{"now":"queued","brief":"2026-09-29/audio/next-chat-hitl/requirements.md","at":"2026-09-29T19:36:20-05:00","by":"mastermind-servex-7"}}
+{"action":{"at":"2026-09-29T19:56:30-05:00","did":"edit","files":["public/framework/ai/2026-09-29/audio/next-chat-hitl/requirements.md"]}}
+{"assign":{"outcome":"Clarity check: proposal was clean by text-check.mjs and short enough to scan, but four module mentions (ChatPanel.js, drawer/rail.js, Dictate/variants, ext/Session) were bare code text instead of links to their pages. Linked them in place; no other wording changed."}}

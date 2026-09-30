@@ -1,0 +1,26 @@
+{"assign":{"session_id":"f41625d4-d949-4c9c-9999-eaef18ec5815","agent":"minion-audio-whisper-host","card":"2026/09/29/audio-a-library-of-audio-parts-transcrip","brief":"public/framework/ai/2026-09-29/audio/d-whisper-host/requirements.md","model":"claude-sonnet-5","parent_task":"public/framework/ai/2026-09-29/audio","requested_at":"2026-09-29T19:06:17-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-09-29T19:06:22-05:00","msg":"skill: minion"}}
+{"log":{"at":"2026-09-29T19:06:25-05:00","msg":"skill: research"}}
+{"action":{"at":"2026-09-29T19:09:23-05:00","did":"edit","files":["public/framework/ai/2026-09-29/audio/d-whisper-host/report.md"]}}
+{"log":{"msg":"read Server/plugins/Whisper.js, SocketServer.js, Servex/ReverseProxy.js, ux/Dictate/doc/decisions.md, and minion A's Transcriber + doc/streaming.md"}}
+{"log":{"msg":"whisper install has whisper-server.exe, whisper-stream.exe, stream.exe, and CUDA dlls (cublas, ggml-cuda) -- CUDA build confirmed"}}
+{"decision":{"choice":"reuse the already-measured whisper-server /inference latency (76-98ms, then 67ms avg) from ux/Dictate/doc/decisions.md rather than re-run it","why":"a fresh curl attempt against the live whisper-server hit 400 Invalid request (multipart field mismatch on my side); the existing number is already twice-measured on this machine and not worth more budget to redo"}}
+{"experiment":{"try":"time 3x POST /inference against ten-sec-exact.wav via curl -F file=@...","measure":"curl -w time_total","result":"all 3 returned HTTP 400 in <25ms -- request malformed, not a timing result; fell back to citing the prior doc's measured numbers instead"}}
+{"log":{"msg":"confirmed Servex's Dashboard extends Server/Server.js (same class as every project) and emits the same 'http' event SocketServer.js hooks -- a Servex-hosted websocket plugin can reuse that exact mechanism"}}
+{"log":{"msg":"confirmed ws (^8.19.0) is a ROOT package.json dependency, present in root node_modules; Servex/package.json does not list it but Servex resolves it by walking up -- no new install needed"}}
+{"log":{"msg":"confirmed Servex/ReverseProxy.js routes websocket upgrades by hostname exactly like HTTP GETs (this.proxy.ws(...)), so a Servex socket is reachable at servex.localhost including from a phone"}}
+{"log":{"msg":"web-searched node whisper bindings (nodejs-whisper, whisper-node, whisper-cpp-node, whisper-node-addon) and whisper.cpp stream example docs for the table's (b)/(c) rows and confidence grading"}}
+{"log":{"msg":"wrote report.md: table (a/b/c + a+socket + whisper_streaming), recommendation (keep whisper-server HTTP as engine, build ONE websocket on Servex as transport), sources with confidence per claim"}}
+{"outcome":{"summary":"Research landed: report.md recommends keeping whisper-server over HTTP as the transcription engine (already <100ms/call, least complexity) and building the streaming TRANSPORT once on Servex's own dashboard server (reusing the existing Server class + ws package + hostname-routed proxy, zero new dependencies) instead of on any project's dev server. Node bindings and a child-process stream were both weighed and not recommended for now; whisper_streaming's local-agreement fix is named as the next thing to prototype only if word-splitting seams remain a real problem.","deliverable":"public/framework/ai/2026-09-29/audio/d-whisper-host/report.md","left_open":"none -- built nothing, per brief"}}
+{"log":{"at":"2026-09-29T19:10:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-09-29T19:13:30-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-09-29T19:15:30-05:00","heartbeat":"deliberate","msg":"minion-audio-whisper-host its agent is not running: it was stopped on purpose by task-mastermind-audio at 2026-09-29T19:10:04-05:00; not revived."}}
+{"log":{"at":"2026-09-29T19:15:31-05:00","heartbeat":"deliberate","msg":"minion-audio-whisper-host its agent is not running: it was stopped on purpose by task-mastermind-audio at 2026-09-29T19:10:04-05:00; not revived."}}
+{"log":{"at":"2026-09-29T19:30:40-05:00","heartbeat":"revive-queued","msg":"minion-audio-whisper-host its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-09-29T19:31:38-05:00","heartbeat":"revive","msg":"revived minion-audio-whisper-host from session f41625d4-d949-4c9c-9999-eaef18ec5815"}}
+{"log":{"at":"2026-09-29T19:31:39-05:00","msg":"session resumed"}}
+{"log":{"msg":"heartbeat check answered: this task already landed (report.md written, outcome logged) before task-mastermind-audio stopped this agent on purpose at 19:10:04 -- nothing further to do."}}
+{"log":{"at":"2026-09-29T19:31:59-05:00","heartbeat":"answered","msg":"Already landed — the report (`report.md`) was written and the outcome logged before `task-mastermind-audio` deliberately stopped this agent. Nothing left to do; no plan change needed."}}
+{"log":{"at":"2026-09-29T19:35:38-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-09-29T19:45:37-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-09-29T19:46:37-05:00","heartbeat":"revive-queued","msg":"minion-audio-whisper-host its agent is not running; a revive is queued"}}
