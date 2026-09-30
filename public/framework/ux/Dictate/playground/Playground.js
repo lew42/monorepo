@@ -21,8 +21,15 @@ export const FADE_MS = 5000;
 // its own row, not just the final settled text, so the guess visibly improves; Side shows
 // raw and revised next to each other, in two plain columns, with the level picker above
 // the tabs choosing what "revised" means.
-const TABS = ["raw", "chunks", "corrections", "live", "side"];
-const TAB_LABEL = { raw: "Raw", chunks: "Chunks", corrections: "Corrections", live: "Live", side: "Side by side" };
+//
+// **Clean** is new (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable
+// 5): the clean text alone, no strike-through marks — what the real composer now shows by
+// default (`ext/Chat/Mic.js`'s own clean mode). It is the DEFAULT tab here too, because
+// that is what a first-time reader of this page should see first: the finished result, not
+// the mechanism. Corrections and Live are relabelled "(debug)" — they still work exactly as
+// before, just no longer first.
+const TABS = ["clean", "raw", "chunks", "corrections", "live", "side"];
+const TAB_LABEL = { clean: "Clean", raw: "Raw", chunks: "Chunks", corrections: "Corrections (debug)", live: "Live (debug)", side: "Side by side" };
 
 // "like" and "i mean" are deliberately NOT here — a real sentence like "I like the
 // layout" would lose a real word, not a filler. That call needs context, which is
@@ -134,6 +141,7 @@ export default class Playground {
 		this.clean_queue = Promise.resolve();   // chunks clean IN ORDER, never out of turn
 
 		this.views.forEach(view => {
+			view.$clean.empty(() => { view.$clean_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$raw.empty(() => {
 				view.$raw_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
@@ -160,6 +168,7 @@ export default class Playground {
 	// Shows/hides each panel's own "press 🎤…" line — visible until the panel has
 	// something real to show, then gone for the rest of the session.
 	toggle_empty(view){
+		if (view.$clean_empty) view.$clean_empty.el.hidden = this.chunks.length > 0;
 		if (view.$raw_empty) view.$raw_empty.el.hidden = this.chunks.length > 0;
 		if (view.$chunks_empty) view.$chunks_empty.el.hidden = this.resends.length > 0;
 		const has_clean = this.chunks.some(c => c.deltas);
@@ -214,7 +223,7 @@ export default class Playground {
 			// pipeline's doing — this pipeline never edits Raw. Only the `clean` level
 			// removes filler words, and only in the Corrections/Live/Side views. Said once,
 			// plainly, instead of leaving a reader to guess from behavior alone.
-			div.c("ux-dictate-pg-note muted", "Raw = Whisper's exact words, never edited here (it can drop \"um\"/\"uh\" itself on quiet audio). The level below only touches Corrections, Live and Side.");
+			div.c("ux-dictate-pg-note muted", "Raw = Whisper's exact words, never edited here (it can drop \"um\"/\"uh\" itself on quiet audio). The level below touches every OTHER tab — Clean, Corrections, Live and Side.");
 
 			div.c("ux-dictate-pg-level-row flex gap v-center wrap", () => {
 				span.c("muted", "Level:");
@@ -239,6 +248,17 @@ export default class Playground {
 				// `view.$raw` from inside it reads `undefined` and every draw call silently
 				// no-ops (code skill, "no DOM after an await" family — the same trap, one
 				// step earlier: reading a ref before its own assignment has returned).
+				// **Clean** (deliverable 5) — the clean text alone, no strike-through marks: what
+				// the real composer shows by default now. One line per settled chunk, drawn with
+				// its raw words the instant it settles (nothing worth showing yet is worse than a
+				// blank panel) and swapped for the cleaned wording in place once `clean_chunk()`
+				// below answers — the exact same "raw now, clean in place once it arrives" idea
+				// as `ext/Chat/Mic.js`'s own box.
+				view.$clean = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-clean", () => {
+					view.$clean_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
+				});
+				this.chunks.forEach(entry => this.draw_clean_line(view, entry));
+
 				view.$raw = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-raw", () => {
 					view.$raw_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 					view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
@@ -282,7 +302,7 @@ export default class Playground {
 		// "routed" the light way: the hash names the tab, so a reload or the back
 		// button lands on the same one — no separate Page per tab (that shape drew
 		// a duplicate H1 per tab and rebuilt panels instead of just showing them).
-		const start = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "raw";
+		const start = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "clean";
 		this.select_tab(view, start);
 
 		return $root;
@@ -291,6 +311,7 @@ export default class Playground {
 	select_tab(view, name){
 		view.tab = name;
 		view.$tabs.forEach((t, i) => t.rc("active muted").ac(TABS[i] === name ? "active" : "muted"));
+		view.$clean.el.hidden = name !== "clean";
 		view.$raw.el.hidden = name !== "raw";
 		view.$chunks.el.hidden = name !== "chunks";
 		view.$corrections.el.hidden = name !== "corrections";
@@ -410,7 +431,7 @@ export default class Playground {
 		// or a sample line, which never had a reason to give.
 		const entry = { raw, gap, cut, cleaned: null, deltas: null, source_kind: null, session: this.session };
 		this.chunks.push(entry);
-		this.views.forEach(view => { this.draw_raw_line(view, entry); this.draw_cut_marker(view, entry); this.toggle_empty(view); });
+		this.views.forEach(view => { this.draw_raw_line(view, entry); this.draw_clean_line(view, entry); this.draw_cut_marker(view, entry); this.toggle_empty(view); });
 
 		this.clean_queue = this.clean_queue.then(() => this.clean_chunk(entry));
 	}
@@ -433,6 +454,7 @@ export default class Playground {
 		this.cleaned_so_far = (this.cleaned_so_far + " " + entry.cleaned).trim();
 
 		this.views.forEach(view => {
+			this.update_clean_line(view, entry);
 			this.draw_diff_line(view.$corrections, entry, false);
 			this.draw_diff_line(view.$live, entry, true);
 			this.draw_side_row(view, entry);
@@ -466,6 +488,25 @@ export default class Playground {
 		if (!view.$guess) return;
 		view.$guess.text(this.partial);
 		view.$guess.el.style.display = this.partial ? "" : "none";
+	}
+
+	// ---- Clean panel: the clean text alone, no marks (deliverable 5) -----------
+
+	// One line per settled chunk, same as Raw — starts showing the raw words (nothing
+	// cleaned yet is better than a blank line) and is UPDATED in place, never re-drawn,
+	// once `clean_chunk()` answers (`update_clean_line()` below). The wrapped view object
+	// is kept on the entry itself, keyed by which mounted widget it belongs to, since two
+	// widgets can share one session (`widget()`'s own doc comment) and each needs its own
+	// element to update.
+	draw_clean_line(view, entry){
+		if (!view.$clean) return;
+		let $line;
+		view.$clean.append(() => { $line = div(entry.cleaned ?? entry.raw).ac("ux-dictate-pg-line"); });
+		(entry.clean_lines ??= new Map()).set(view, $line);
+	}
+
+	update_clean_line(view, entry){
+		entry.clean_lines?.get(view)?.text(entry.cleaned ?? entry.raw);
 	}
 
 	// ---- Chunks panel: every resend, not just the settled text (4a) ------------

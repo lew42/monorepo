@@ -34,6 +34,11 @@ export const SETTINGS = {
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
 	box_lines: 7,               // the box grows to this many lines, then scrolls
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
+	clean: true,                // KILL SWITCH (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 4):
+	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
+	                            // actually runs the fast assistant's clean-up; off, every utterance stays raw, same
+	                            // as before this task, with no model call at all. A composer that never asked for
+	                            // `revise:` in the first place is unaffected either way.
 };
 const STORE = "chat.mic.settings.2";   // .2: the chunked defaults must not be shadowed by an old saved per-sentence value
 /* The gear saves EVERY key, so a box that ever saved a setting still holds the old 4000 default for
@@ -41,6 +46,10 @@ const STORE = "chat.mic.settings.2";   // .2: the chunked defaults must not be s
 try { const saved = JSON.parse(localStorage.getItem(STORE) ?? "{}"); if (saved.pause_send_ms === 4000) delete saved.pause_send_ms; Object.assign(SETTINGS, saved); } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
 export const CHECK_MS = 250;
+// Fired on `document` whenever the gear panel's "clean" checkbox changes (`detail` is the new
+// value) — the one way a DOM node outside this mic (Composer.js's own "raw" chip) can react to
+// the kill switch the instant it's flipped, review finding 7.
+export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
 
 let beep_ctx;
 function beep(kind){
@@ -167,24 +176,33 @@ export class ComposerMic extends Dictate {
 	   the owner's text by asking whether the box still `endsWith` the dictated
 	   tail; when that failed the whole box, dictation included, counted as the
 	   owner's text and every update wrote the transcript on top of itself. */
+	/* CLEAN MODE (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode): each
+	 * `held` item is a finished Whisper utterance, `{text, raw, chunk_id, ready}`.
+	 * `text` starts out equal to `raw` and is swapped in place, by `on_revised()`
+	 * below, for the fast assistant's cleaned-up wording once it answers — so the
+	 * box shows raw words for a moment, then the same words tidied, never both at
+	 * once and never a flash of empty. `build_tail(use_raw)` reads either column,
+	 * so the "raw" dig-back toggle (`toggle_raw()`) and the real box share one
+	 * piece of paragraph-break logic instead of two that could disagree. */
+	build_tail(use_raw){
+		const parts = (this.held ?? []).filter(h => !h.gone).map((h, i) => (i ? (h.br ? "\n\n" : " ") : "") + (use_raw ? (h.raw ?? h.text) : h.text));
+		for (const p of (this.pending ?? []).filter(p => p.text)) parts.push((parts.length ? (this.can_break(parts.join(""), p.gap) ? "\n\n" : " ") : "") + p.text);
+		let guess = unfill(this.partial_text ?? "");
+		if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_words(guess, this.dropped.text);
+		if (guess) parts.push((parts.length ? ((this.has_speech && this.can_break(parts.join(""), this.gap_before ?? 0)) ? "\n\n" : " ") : "") + guess);
+		return parts.join("");
+	}
+
 	draw_caption(){
 		const box = this.field?.el;
 		if (!box) return;
 		if (this.base === undefined) this.watch_box(box);
 		const t0 = performance.now();
-		const parts = (this.held ?? []).filter(h => !h.gone).map((h, i) => (i ? (h.br ? "\n\n" : " ") : "") + h.text);
-		let guess = "";
-		{
-			for (const p of (this.pending ?? []).filter(p => p.text)) parts.push((parts.length ? (this.can_break(parts.join(""), p.gap) ? "\n\n" : " ") : "") + p.text);
-			guess = unfill(this.partial_text ?? "");
-			if (guess && this.dropped && this.dropped.epoch === this.segment_epoch) guess = strip_words(guess, this.dropped.text);
-		}
-		const t1 = performance.now();   // filler filter done
-		if (guess) parts.push((parts.length ? ((this.has_speech && this.can_break(parts.join(""), this.gap_before ?? 0)) ? "\n\n" : " ") : "") + guess);
-		const said = parts.join("");
+		const said = this.build_tail(this.show_raw);
+		const t1 = performance.now();   // build_tail done (filler filter + paragraphing folded into one call, see above)
 		this.tail = said ? (this.base && !/\s$/.test(this.base) ? " " : "") + said : "";
 		const next = this.base + this.tail;
-		const t2 = performance.now();   // paragraphing done
+		const t2 = performance.now();
 		if (next === box.value){ this.t_result = undefined; return; }
 		const stuck = box.scrollTop + box.clientHeight >= box.scrollHeight - 4;   // was the owner reading the newest words?
 		this.own = true;
@@ -247,6 +265,7 @@ export class ComposerMic extends Dictate {
 		const panel = document.createElement("div");
 		Object.assign(panel.style, { position: "absolute", right: "0", bottom: "calc(100% + 0.3em)", zIndex: "20", display: "none", gap: "0.3em", padding: "0.6em", font: "inherit", fontSize: "0.85em", background: "Canvas", color: "CanvasText", border: "1px solid currentColor", borderRadius: "0.4em", gridTemplateColumns: "auto auto" });
 		const rows = [
+			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["send_mode", "send mode", ["pause", "sentences", "manual"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["paragraph_pause_ms", "natural pause (ms)", "number"],
 			["pause_send_ms", "silence before send (ms)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -254,13 +273,20 @@ export class ComposerMic extends Dictate {
 		for (const [key, label, kind] of rows){
 			const name = document.createElement("label"); name.textContent = label;
 			const input = Array.isArray(kind) ? document.createElement("select") : document.createElement("input");
-			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o)); else input.type = kind;
-			input.value = SETTINGS[key];
-			input.style.width = "10em";
+			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o));
+			else if (kind === "boolean") input.type = "checkbox";
+			else input.type = kind;
+			if (kind === "boolean") input.checked = !!SETTINGS[key]; else input.value = SETTINGS[key];
+			input.style.width = kind === "boolean" ? "auto" : "10em";
 			input.addEventListener("change", () => {
-				SETTINGS[key] = kind === "number" ? Math.max(0, Number(input.value) || 0) : input.value;
+				SETTINGS[key] = kind === "number" ? Math.max(0, Number(input.value) || 0) : kind === "boolean" ? input.checked : input.value;
 				if (key === "send_mode") this.send_mode = undefined;   // the panel wins over a per-mic override
 				if (key === "box_lines" && this.field?.el) this.field.el.style.maxHeight = SETTINGS.box_lines + "lh";
+				// SETTINGS is shared and read live everywhere, but a DOM node outside this
+				// mic (Composer.js's own "raw" chip — review finding 7: it must hide when
+				// the kill switch is off, since toggling it then would do nothing visible)
+				// has no other way to hear this ONE change happen right now.
+				if (key === "clean") document.dispatchEvent(new CustomEvent(CLEAN_CHANGED_EVENT, { detail: SETTINGS.clean }));
 				save_settings();
 			});
 			panel.append(name, input);
@@ -375,10 +401,101 @@ export class ComposerMic extends Dictate {
 	   Each message is one or more whole sentences; the words still being spoken stay in the box. */
 	mode_now(){ return this.send_mode ?? SETTINGS.send_mode; }
 
-	log_prompt(text){
-		(this.held ??= []).push({ text, br: false });   // no paragraph grouping: every sentence is its own item
+	// Clean mode is ON for this mic only when BOTH the caller asked for a `revise:`
+	// level (deliverable 1: `ai2/compose.js` turns this on by default) AND the
+	// owner's own kill switch (deliverable 4, `SETTINGS.clean`) has not turned it
+	// back off. A composer that never asked for `revise:` is untouched either way.
+	clean_active(){ return !!(this.revise && SETTINGS.clean); }
+
+	// Only run the fast assistant's clean-up while it is actually wanted — the
+	// kill switch can turn this OFF without the caller's own `revise:` choice
+	// ever changing (`Dictate.js`'s `revise_chunk` is the one place that calls
+	// `Revise.run` and logs a revision; this is the one gate in front of it).
+	revise_chunk(raw, chunk_id, chunk_at){
+		if (!this.clean_active()) return;
+		return super.revise_chunk(raw, chunk_id, chunk_at);
+	}
+
+	/* EACH FINISHED UTTERANCE IS ITS OWN `held` ITEM (deliverable 1): `text` is what
+	 * the box shows and what a send actually reads; `raw` is what Whisper really
+	 * said, kept alongside forever, never overwritten (deliverable 3, the dig-back
+	 * toggle). `ready` resolves once this item can no longer change — instantly if
+	 * clean mode is off (nothing is ever coming), or when `on_revised()` below hears
+	 * back from the fast assistant, ok or not. A send that is about to go out awaits
+	 * every held item's `ready`, capped at ~5s (`await_clean()`), so it never sends
+	 * half of a clean-up and the raw rest (deliverable 2). */
+	log_prompt(text, chunk_id){
+		let resolve_ready;
+		const ready = new Promise(res => { resolve_ready = res; });
+		if (this.clean_active() && chunk_id != null) (this.clean_waiters ??= new Map()).set(chunk_id, resolve_ready);
+		else resolve_ready();   // nothing will ever revise this item — it is "ready" the instant it exists
+		this.held ??= [];
+		this.held.push({ text, raw: text, br: false, chunk_id, ready });
 		this.draw_caption();
 		this.arm();
+	}
+
+	/* THE FAST ASSISTANT ANSWERED for one utterance — `Dictate.js`'s own `revise_chunk()`
+	 * calls this once `/api/tidy` says OK, never with a falsy `text` (a failure goes to
+	 * `on_revise_failed` below instead — two hooks, never one overloaded with `null`,
+	 * review finding 1: an existing caller like `ext/drawer/rail.js` that only ever
+	 * handled success must never be handed something to draw a blank card for). Find
+	 * the item that is STILL waiting (a send may already have cut it out of `held`,
+	 * raw and gone — nothing left to update, but the waiter still needs releasing so
+	 * `await_clean()` doesn't wait the full 5s for an answer nobody can use any more)
+	 * and swap its `text` for the clean version. */
+	on_revised(text, { chunk_id }){
+		const item = (this.held ?? []).find(h => h.chunk_id === chunk_id);
+		if (item){ item.text = text; this.draw_caption(); }
+		this.release_waiter(chunk_id);
+	}
+
+	/* THE FAST ASSISTANT GAVE UP for one utterance (Servex down, or any other
+	 * failure) — `raw` stays showing in the box (`item.text` is never touched, it
+	 * was already the raw words); only `item.failed`/`item.fail_why` are stamped, so
+	 * a send about to go out can say so ONCE (`notify_if_failed()`, called by the
+	 * send paths right after `await_clean()`) instead of `Composer.js`'s hint firing
+	 * once per failed chunk — a string of failures used to repeat "sent raw" over
+	 * and over before anything had actually been sent (review finding 5). */
+	on_revise_failed({ chunk_id, why }){
+		const item = (this.held ?? []).find(h => h.chunk_id === chunk_id);
+		if (item){ item.failed = true; item.fail_why = why; }
+		this.last_fail_why = why;
+		this.release_waiter(chunk_id);
+	}
+
+	release_waiter(chunk_id){
+		const resolve = this.clean_waiters?.get(chunk_id);
+		if (resolve){ resolve(); this.clean_waiters.delete(chunk_id); }
+	}
+
+	/* Called by every send path right after `await_clean()` — once per send, never
+	 * once per chunk. `items` is whatever this send is about to read; if any of them
+	 * gave up, the hint says so ONCE, worded as what is ABOUT to happen ("will send
+	 * raw") since this runs before the message actually leaves. */
+	notify_if_failed(items){
+		const failed = items.find(h => h.failed);
+		if (failed) this.on_clean_failed?.(failed.fail_why ?? this.last_fail_why);
+	}
+
+	/* Deliverable 3 — "dig back": one toggle shows exactly what Whisper produced for
+	 * everything currently in the box, in place of the clean-up. Returns the new
+	 * state so a caller (`Composer.js`'s own button) can reflect it visually. */
+	toggle_raw(){
+		this.show_raw = !this.show_raw;
+		this.draw_caption();
+		return this.show_raw;
+	}
+
+	/* Deliverable 2 — "wait for it (at most ~5s), then fall back to raw for anything
+	 * unanswered": every held item not yet cleaned (`ready` unresolved) blocks a send
+	 * for up to `ms`; items answered already resolve instantly (`Promise.all` needs
+	 * no real wait for those), and items that time out simply keep the raw text
+	 * `log_prompt()` gave them — never a missing word, never a second wait later. */
+	async await_clean(ms = 5000){
+		const waiters = (this.held ?? []).filter(h => !h.gone && h.ready).map(h => h.ready);
+		if (!waiters.length) return;
+		await Promise.race([Promise.all(waiters), new Promise(res => setTimeout(res, ms))]);
 	}
 
 	arm(){
@@ -396,29 +513,45 @@ export class ComposerMic extends Dictate {
 
 	/* The finished sentences among the held words go out now, `sentences_per_send` to a message; the
 	   unfinished tail stays held and on screen. The words are cut out of `held` in the same tick they
-	   are queued, so a later check can never send them again. */
-	send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
+	   are queued, so a later check can never send them again.
+	   ⚠ Sentences are re-sliced from the JOINED text of every held item, so one outgoing message can
+	   span several utterances — there is no clean way to keep a single `raw` string lined up
+	   character-for-character with a re-cut `text` string. This path (only reached with
+	   `sentences_per_send` set, or the `chunk_chars`/`chunk_ms` safety cut) sends the RAW joined text
+	   as `raw` — a whole-message best-effort record of what was actually said, not a
+	   word-for-word pairing with `text` the way `send_screen()`'s single-utterance case gets. */
+	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
+		if (this.sending_sentences) return;   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once
+		this.sending_sentences = true;
 		try {
+			await this.await_clean();
 			const held = (this.held ?? []).filter(h => !h.gone);
+			this.notify_if_failed(held);
 			const joined = held.map(h => h.text).join(" ");
+			const joined_raw = held.map(h => h.raw ?? h.text).join(" ");
 			const sents = joined.match(/[^.!?…]*[.!?…]+["')\]]*(?=\s|$)/g) ?? [];
 			if (!sents.length || sents.length < n) return;
 			const per = Math.min(n, sents.length), cut = sents.length - sents.length % per, texts = [];
-			for (let i = 0; i < cut; i += per) texts.push(sents.slice(i, i + per).join("").trim());
+			// `raw` goes on the FIRST outgoing message only (review finding 6) — the whole
+			// joined paragraph, once, not the same best-effort string repeated on every
+			// message this batch happens to split into.
+			for (let i = 0; i < cut; i += per) texts.push({ text: sents.slice(i, i + per).join("").trim(), raw: i === 0 ? joined_raw : null });
 			const rest = joined.slice(sents.slice(0, cut).join("").length).trim();
-			if (this.base.trim()){ texts[0] = this.base.trim() + " " + texts[0]; this.base = ""; }
-			this.held = rest ? [{ text: rest, br: false }] : [];
+			if (this.base.trim()){ texts[0].text = this.base.trim() + " " + texts[0].text; this.base = ""; }
+			this.held = rest ? [{ text: rest, raw: rest, br: false, ready: Promise.resolve() }] : [];
 			this.draw_caption();
 			this.enqueue(texts);
 		} catch (e){ console.error("chat: sending finished sentences failed", e); }
+		finally { this.sending_sentences = false; }
 	}
 
 	// Messages leave in order, one at a time; `posting` keeps a live reload waiting until the last is delivered.
-	enqueue(texts){
+	// Each item is `{text, raw}` (or a plain string, for a caller with no raw to give).
+	enqueue(items){
 		this.posting = (this.posting ?? 0) + 1;
 		this.last_send_at = performance.now(); this.chunk_start = undefined;
 		this.post_tail = (this.post_tail ?? Promise.resolve())
-			.then(async () => { for (const t of texts) await this.post_held(t); })
+			.then(async () => { for (const it of items) await this.post_held(it); })
 			.catch(e => console.error("chat: sending failed", e))
 			.finally(() => { this.posting--; });
 	}
@@ -437,13 +570,28 @@ export class ComposerMic extends Dictate {
 		} catch (e){ console.error("chat: automatic send failed", e); }
 	}
 
-	// Everything visible goes out as one message, the mic keeps recording, the box starts fresh.
-	send_screen(){
-		const text = this.field?.el.value.trim();
-		if (!text) return;
-		this.consume_sent();
-		this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
-		this.enqueue([text]);
+	/* Everything visible goes out as one message, the mic keeps recording, the box starts fresh.
+	 * This is the common case (the default "pause" send mode's own tail send, and every
+	 * natural-pause send) so it is the one place deliverable 2's wait really matters: if a
+	 * clean-up for something on screen is still in flight, WAIT for it (`await_clean`, capped
+	 * at ~5s) before reading the box, so the message sent is the clean text whenever it
+	 * arrived in time — raw otherwise, never a half-cleaned mix and never a lost word.
+	 * `this.sending_screen` stops a second call (another `auto_check` tick, `stop()`) from
+	 * reading and clearing the SAME box while the first is still waiting. */
+	async send_screen(){
+		if (this.sending_screen) return;
+		if (!this.field?.el.value.trim()) return;
+		this.sending_screen = true;
+		try {
+			await this.await_clean();
+			const text = this.field?.el.value.trim();
+			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
+			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
+			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
+			this.consume_sent();
+			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
+			this.enqueue([{ text, raw }]);
+		} finally { this.sending_screen = false; }
 	}
 
 	held_text(){ return (this.held ?? []).filter(h => !h.gone).map(h => h.text).join(" ").trim(); }
@@ -463,25 +611,35 @@ export class ComposerMic extends Dictate {
 		}
 	}
 
-	flush_held(){
+	async flush_held(){
 		clearTimeout(this.held_timer);
-		const text = (this.held ?? []).map(h => h.text).join(" ").trim();
+		await this.await_clean();   // deliverable 2: wait ~5s for anything still cleaning, then send what's there
+		const held = (this.held ?? []);
+		this.notify_if_failed(held);
+		const text = held.map(h => h.text).join(" ").trim();
+		const raw = held.map(h => h.raw ?? h.text).join(" ").trim();
 		this.held = [];
 		if (!text) return;
 		// SENT: the box empties (the mic keeps listening) and the words become
 		// their own chat bubble when Servex logs them.
 		this.draw_caption();
 		if (!this.pending?.length && !this.partial_text) this.release_height();
-		return this.post_held(text);
+		return this.post_held({ text, raw });
 	}
 
 	/* Hand the finished words to the caller's `deliver(entry)` (how a send is posted is
 	   the app's business; it answers true or false). `re` still pins the sentence to the
 	   open target (unchanged); `selected` says the same thing explicitly, so a router
 	   can read it as the DEFAULT and still file a sentence elsewhere. If delivery fails
-	   the words are appended to the dev-server log through Dictate's own fallback file. */
-	async post_held(text){
+	   the words are appended to the dev-server log through Dictate's own fallback file.
+	   `item` is `{text, raw}` or a plain string (a caller with nothing but the clean
+	   text to give — `raw` is only ever added to the entry when it differs from `text`,
+	   deliverable 2: "the message that is sent is the clean text, with the raw kept on
+	   the entry"). */
+	async post_held(item){
+		const { text, raw } = typeof item === "string" ? { text: item, raw: null } : item;
 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
 		const re = this.re?.();
 		if (re){ entry.re = re; entry.selected = re; }
 		this.posting = (this.posting ?? 0) + 1;

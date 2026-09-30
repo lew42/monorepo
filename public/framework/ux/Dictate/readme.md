@@ -32,25 +32,29 @@ in [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
 
 ```js
 new Dictate({
-	revise: "edit",                              // "clean" | "edit" | "summary" | false (default)
-	on_text: text => …,                           // the RAW text — unchanged, fires first, always
-	on_revised: (text, { raw, level }) => …,       // the revised text, a moment later, only if it worked
+	revise: "edit",                                    // "clean" | "edit" | "summary" | false (default)
+	on_text: text => …,                                 // the RAW text — unchanged, fires first, always
+	on_revised: (text, { raw, level, chunk_id }) => …,   // the revised text, a moment later, only if it worked
+	on_revise_failed: ({ raw, level, chunk_id, why }) => …,   // instead of on_revised, if it didn't
 });
 ```
 
 `revise` is `false` by default, so nothing changes for a caller that doesn't ask — the raw
 text is ALWAYS kept, `on_text` fires exactly as it always did, and revising never blocks or
 slows it down. When `revise` names a level, [`ux/Revise`](/framework/ux/Revise/) runs in the
-background and, once Servex answers: logs the revision as its OWN line (`{type:"revision",
-of, level, text}`, `of` pointing back at the raw line's own id — never merged into it, never
-written for a guess or an in-between chunk, only the finished text), and, if the caller set
-one, calls `on_revised(text, {raw, level})` too. A Servex that isn't up (or any other
-failure) logs nothing and never calls `on_revised` for that chunk — nothing throws, nothing
-is typed into a box on your behalf. Two real callers: `ext/drawer/rail.js`'s mobile
-assistant (`revise: "edit"`, a second card once the tightened version is ready) and
-`ai2/compose.js` (`revise: "edit"`, forwarded by `ext/Chat/Composer.js` into `ComposerMic` —
-its box still shows only the raw words; the revision is a log line, not a box rewrite).
-See it work, chunk by chunk, at the [playground](/framework/ux/Dictate/playground/).
+background with a little `before` context (the tail of everything already revised this
+dictation) and, once Servex answers OK: logs the revision as its OWN line (`log_revision()`,
+pointing back at the raw line's own id — never merged into it, never written for a guess or
+an in-between chunk, only the finished text), and, if the caller set one, calls
+`on_revised(text, {raw, level, chunk_id})` too. A failure (Servex down, or any other problem)
+calls the SEPARATE `on_revise_failed({raw, level, chunk_id, why})` instead — `on_revised`
+never fires with a falsy `text`, so an existing caller that only ever handled success can
+never be handed `null` to draw a blank card for. Two real callers: `ext/drawer/rail.js`'s mobile assistant
+(`revise: "edit"`, a second card once the tightened version is ready) and `ai2/compose.js`
+(`revise: "clean"`, the **clean transcription mode**, forwarded by `ext/Chat/Composer.js`
+into `ComposerMic` — see that module's own readme for how its box now shows the clean text
+in place, the raw dig-back toggle, and the kill switch). See it work, chunk by chunk, at the
+[playground](/framework/ux/Dictate/playground/) (its own **Clean** tab is the default view).
 
 ## Voice → log
 

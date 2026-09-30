@@ -1,0 +1,9 @@
+{"assign":{"step":1,"now":"read requirements.md and owner-words.md 8:20pm section"}}
+{"log":"rewrote the structured rung's prompt in Server/refine.mjs to output Markdown: one # H1 naming the subject, ## H2s for familiar parts (reuse existing repo names, e.g. Layout), bullets/nested bullets under each, all citations [S#] kept; updated judgePick/applyCaveats wording to preserve the H1/H2 shape when merging drafts"}
+{"log":"added a RUNGS table {model, promptTemplate} for clean/structured/pick/brief/coverage/repair at the top of refine.mjs, overridable via --model-<rung> or --config <path.json>; pick/coverage/repair keep model-only override (their prompts are built from multiple pieces, not one swappable input block) — documented in refine.md"}
+{"assign":{"step":2,"now":"proving it: real run on the owner's 8:20pm section + one other, before/after"}}
+{"assign":{"step":2,"now":"running compare-structured.mjs on 8:20pm and 7:10pm sections (real, Sonnet)"}}
+{"log":"--model-structured now means --models <m> (was a silent no-op); removed 5 mock-test lines the first attempt left in Server/refine-scoreboard.jsonl"}
+{"log":"proof: 8:20pm section: before 21 condensed bullets, after H1 'AI processes' + H2s Decisions/Structure/Dictate, 79 bullets citing all 79 clean sentences ($0.58). 7:10pm section: H1 'Voice session' + H2s AI button/Persistence/Session log/Recent sessions/Context ($0.36). Outputs in b-structure/out/<n>/structured-before.md vs structured-after.md"}
+{"log":"Server/doc/refine.md: added 'The structured rung' and 'Each rung's model and prompt' sections; flags verified with a $0 --mock run (unknown rung refused)"}
+{"outcome":"The structured rung now writes a heading hierarchy (one H1 subject, familiar H2 parts, nested bullets, every point kept); every rung's model and prompt is in one RUNGS table, overridable by --model-<rung> or --config. Before/after in out/1-820pm and out/2-710pm."}

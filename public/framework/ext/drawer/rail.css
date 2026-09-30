@@ -74,7 +74,10 @@
 	.drawer-rail-sheet {
 		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
 		display: none; flex-direction: column;
-		max-block-size: 50dvh;   /* half the phone by default (the owner, 2026-09-29) */
+		/* Half the phone by default; a height the reader dragged before, on this
+		   device, reads back here instead (rail.js's own `--sheet-h`, remembered in
+		   localStorage — grip-everywhere, 2026-09-29). */
+		max-block-size: var(--sheet-h, 50dvh);
 		gap: calc(var(--gap) * 0.6);
 		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
 		background: var(--surface);
@@ -82,6 +85,16 @@
 		border-top: 1px solid var(--line);
 		border-radius: calc(var(--radius) * 1.5) calc(var(--radius) * 1.5) 0 0;
 		box-shadow: 0 -0.3em 1em var(--fill-a16);
+	}
+	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
+	   positioned, so it sits in whatever dead space the top padding above already
+	   reserves — the same trick both side rails use (grip.css's own note: "the dead
+	   strip both rails already have… so the target covers no content of its own").
+	   0.9em already clears the desktop grip (0.75rem, invisible until hover) but not
+	   the bigger touch one (1.25rem, grip.css) — bumped only where that one shows,
+	   so a mouse sees no change at all. */
+	@media (pointer: coarse), (hover: none) {
+		.drawer-rail-sheet { padding-block-start: 1.6em; }
 	}
 	@media (max-width: 52em) {
 		/* No slide transition: `display: none -> flex` never animates a `transform`
@@ -94,7 +107,13 @@
 	}
 
 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
+	.drawer-rail-sheet-heading { gap: 0.3em; min-inline-size: 0; }
 	.drawer-rail-sheet-title { font-weight: 600; }
+	/* The current page path (voice-on-panel, 2026-09-29: "Ask, by voice ·
+	   /framework/"), set on every open (`update_path()`) and again on every
+	   in-app navigation (`DrawerRail.navigated()`). Long paths wrap under the
+	   title rather than push the ✕ off the edge of a 400px phone. */
+	.drawer-rail-sheet-path { font-size: 0.85em; overflow-wrap: anywhere; }
 
 	/* THE THREAD — either a card's own persisted chat (`ai2/chat.js`, one-ai
 	   2026-09-29) or, on a plain page, the local empty-state + growing list of
@@ -167,4 +186,15 @@
 		cursor: pointer;
 	}
 	.drawer-rail-sheet-link:hover { background: var(--fill-a16); }
+
+	/* NEW SESSION — a PRIMARY action (the owner, 2026-09-29: "it's a primary
+	   action"), so it wears the same accent colour the ✦ button itself uses
+	   (`--prim`) instead of the other links' plain grey. */
+	.drawer-rail-sheet-new {
+		color: var(--prim-ink, #fff);
+		background: var(--prim);
+		border-color: var(--prim);
+		font-weight: 600;
+	}
+	.drawer-rail-sheet-new:hover { filter: brightness(1.1); }
 }

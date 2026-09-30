@@ -7,16 +7,18 @@ import grip from "/framework/ext/grip/grip.js";
 
 // inside the rail's own box, which must be positioned
 grip({
-    write: px => size(px),    // every move: px is the width the pointer implies; return what you applied
-    done: w => remember(w),   // optional — once, on release, the width you let go of; skip it if write() already persists on every call
-    reset: () => size(null),  // optional — a double-click, with no argument, for "put the width back"
+    write: px => size(px),    // every move: px is the width (or height, on axis:"y") the pointer implies; return what you applied
+    done: w => remember(w),   // optional — once, on release, the size you let go of; skip it if write() already persists on every call
+    reset: () => size(null),  // optional — a double-click, with no argument, for "put the size back"
     from: "start",            // omit for a rail docked at the screen's END (drawer, dev rail)
     mirror: from === "start", // the default — override only if your box isn't flush against a rail edge · [doc/decisions.md](./doc/decisions.md)
+    axis: "x",                 // the default — "y" drags a HEIGHT instead, block axis instead of inline (the ✦ sheet's own top handle, ext/drawer/rail.js) · [doc/decisions.md](./doc/decisions.md)
 });
 ```
 
 ## Watch out
 
+- `axis: "y"` (2026-09-29) reuses `from`/`mirror` exactly as they already work — just read against the box's top/bottom instead of its left/right. Leaving `axis` out is byte-identical to before it existed. Responsive: a mouse still gets the slim hover-only strip on either axis; touch or a coarse pointer gets a visible, thicker bar with a bigger invisible hit area, on both axes, from one shared CSS rule · [doc/decisions.md](./doc/decisions.md)
 - `from` picks the pointer arithmetic (which edge of the PARENT is pinned); `mirror` (defaults to matching `from`) picks which side the strip and its lit line sit on. Every rail wants the default. A grip whose OWN box is repositioned every frame by the caller, not flush against a moving rail edge — `ai/v/3`'s column split — passes `mirror: false` to keep the line under its own local start regardless of `from` · [doc/decisions.md](./doc/decisions.md)
 - A start-docked rail is stamped `.grip-start` and `grip.css` mirrors strip, lit line AND pill together; never flip the strip in your own stylesheet, which leaves the line 10px off the boundary · [doc/decisions.md](./doc/decisions.md)
 - The pill's `top` is relative to the grip's OWN box, not the viewport — grip.js reads `getBoundingClientRect().top` on every move and subtracts it, or the pill lags by however far the grip sits down the page · [doc/decisions.md](./doc/decisions.md)

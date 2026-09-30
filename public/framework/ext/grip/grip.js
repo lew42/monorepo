@@ -6,74 +6,91 @@ const html = document.documentElement;
 
 /* The resize edge for a rail docked at the screen's inline end — a strip just inside
  * the rail's inline-start edge. There is no permanent handle: the pill exists only
- * while your pointer is near that edge, and it rides the pointer's Y, so the control
- * is always already under your hand and the rail is otherwise a clean line.
+ * while your pointer is near that edge, and it rides the pointer's cross axis, so the
+ * control is always already under your hand and the rail is otherwise a clean line.
  *
  * Mount it inside the rail's box (`dev/DevBar`, `ext/drawer` both do) and give it two
- * functions: `write(px)` on every move — px is the width the pointer implies, and what
- * that means is yours — and `done(width)` once, on release, to remember it. Return the
- * width you actually applied from `write` and that is what `done` is handed. `done` is
- * optional — skip it when `write` already persists on every call, as `size_rail()` in
- * `/layouts/shell/page.js` does.
+ * functions: `write(px)` on every move — px is the size (a width, or a height on the
+ * `y` axis) the pointer implies, and what that means is yours — and `done(size)` once,
+ * on release, to remember it. Return the size you actually applied from `write` and
+ * that is what `done` is handed. `done` is optional — skip it when `write` already
+ * persists on every call, as `size_rail()` in `/layouts/shell/page.js` does.
  *
- * `reset`, also optional: fires on a double-click with no argument, for "put the width
+ * `reset`, also optional: fires on a double-click with no argument, for "put the size
  * back" — `core/Sidebar` and `/layouts/shell/Shell.js` both had their own copy of this
  * gesture (grab, drag, double-click-to-reset) before they were merged onto this file,
  * 2026-09-18, and this is the one piece grip did not already have.
  *
+ * `axis: "x" | "y"` (default `"x"`, 2026-09-29): which size the strip drags — a WIDTH,
+ * standing on its own INLINE edge and dragging sideways (every caller before today),
+ * or a HEIGHT, lying on its own BLOCK edge and dragging up/down (the mobile ✦ sheet's
+ * own top handle, `ext/drawer/rail.js`). `from` and `mirror` mean exactly what they
+ * always have, just read against the other pair of edges: `from` still names which
+ * edge of the PARENT is pinned (`"end"`, the default, is the box's own right on `x` or
+ * its own bottom on `y` — the unmoving edge for every rail today and for the sheet);
+ * `mirror` still picks which side of the box's OWN edge the strip and its lit line sit
+ * on. Leaving `axis` out is byte-identical to before it existed: same classes, same
+ * pointer math, same CSS.
+ *
  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
  * once per frame, and this sets one custom property rather than re-laying-out a
  * live render. Not worth importing the demo system for. */
-export default function grip({ write, done, reset, from = "end", mirror = from === "start" }){
-	let width, edge;
+export default function grip({ write, done, reset, from = "end", mirror = from === "start", axis = "x" }){
+	let size, edge;
+	const on_x = axis !== "y";
 
-	// `from` picks the pointer arithmetic: which edge of the PARENT is pinned for the
-	// whole drag. `mirror` picks the CSS side the strip and its lit line sit on
-	// (`.grip-start`) — it defaults to matching `from`, right for every rail (the
-	// parent's pinned edge and the strip's own edge are opposite sides of the same
-	// box there), but a consumer whose parent never moves at all — `ai/v/3`'s column
-	// split, positioned by its own inline `left` every frame, not by which side of a
-	// rail it is flush against — can pass `mirror: false` to keep the strip's line
-	// under its own local start regardless of which edge `from` pins.
-	return div.c(mirror ? "grip grip-start" : "grip", () => span.c("grip-pill"))
+	let cls = mirror ? "grip grip-start" : "grip";
+	if (!on_x) cls += " grip-y";
+
+	return div.c(cls, () => span.c("grip-pill"))
 		.attr("title", "Drag to resize")
 
 		.on("pointerdown", function(e){
 			e.preventDefault();
 			this.el.setPointerCapture(e.pointerId);
 			// The rail's OTHER edge is pinned, so one read holds for the whole drag —
-			// and reading it, rather than `innerWidth`, is what lets a rail parked
-			// beside another one (ext/drawer, offset by `--devbar`) size to the pointer
-			// instead of past it.
+			// and reading it, rather than `innerWidth`/`innerHeight`, is what lets a
+			// rail parked beside another one (ext/drawer, offset by `--devbar`) size to
+			// the pointer instead of past it.
 			const rect = this.el.parentElement.getBoundingClientRect();
-			edge = from === "start" ? rect.left : rect.right;
-			html.classList.add("grip-sizing");
+			edge = on_x
+				? (from === "start" ? rect.left : rect.right)
+				: (from === "start" ? rect.top : rect.bottom);
+			// The axis-specific class is ONLY for the cursor (grip.css) — the whole
+			// page should show a resize cursor even where the pointer strays off
+			// the thin strip mid-drag, and which one depends on which axis this
+			// grip is.
+			html.classList.add("grip-sizing", on_x ? "grip-sizing-x" : "grip-sizing-y");
 		})
 
 		// ⚠ One handler for both jobs, because capture routes the whole drag back
 		// here: the pill tracks the pointer whether or not a button is down.
-		// ⚠ `--grip-y` is read by `top` on an absolutely positioned child (grip.css),
-		// so it has to be relative to THIS box's own top, not the viewport — a plain
-		// `e.clientY` matched the dev rail (`inset-block: 0`, its own top already IS
-		// the viewport's) but landed ~200px low on `ai/v/3`'s column split, whose box
-		// sits partway down the page (measured live, 2026-09-22).
+		// ⚠ `--grip-y` (x-axis grip) / `--grip-x` (y-axis grip) name the CROSS axis —
+		// the one the pill rides, not the one being dragged — and grip.css reads
+		// them on an absolutely positioned child, so the value has to be relative to
+		// THIS box's own top-left, not the viewport — a plain `e.clientY` matched the
+		// dev rail (`inset-block: 0`, its own top already IS the viewport's) but
+		// landed ~200px low on `ai/v/3`'s column split, whose box sits partway down
+		// the page (measured live, 2026-09-22).
 		.on("pointermove", function(e){
 			const rect = this.el.getBoundingClientRect();
-			this.style("--grip-y", (e.clientY - rect.top) + "px");
+			if (on_x) this.style("--grip-y", (e.clientY - rect.top) + "px");
+			else this.style("--grip-x", (e.clientX - rect.left) + "px");
 			if (!html.classList.contains("grip-sizing")) return;
-			const px = from === "start" ? e.clientX - edge : edge - e.clientX;
-			width = write(px) ?? px;
+			const pointer = on_x ? e.clientX : e.clientY;
+			const px = from === "start" ? pointer - edge : edge - pointer;
+			size = write(px) ?? px;
 		})
 
 		// Written once, at the end: `write()` moves the rail every frame, and only the
-		// width you let go of is worth remembering. `done` is optional.
+		// size you let go of is worth remembering. `done` is optional.
 		.on("pointerup", function(e){
 			this.el.releasePointerCapture(e.pointerId);
-			html.classList.remove("grip-sizing");
-			if (width) done?.(width);
+			html.classList.remove("grip-sizing", "grip-sizing-x", "grip-sizing-y");
+			if (size) done?.(size);
 		})
 
-		// The width back to whatever `write(undefined)` (or the caller's own default)
+		// The size back to whatever `write(undefined)` (or the caller's own default)
 		// means — never touched by drag, so nothing here decides what "reset" means.
 		.on("dblclick", () => reset?.());
 }

@@ -13,7 +13,7 @@ const shot = name => new URL("shots/" + name, import.meta.url).href;
 export default new Page({
 	meta: import.meta,
 	title: "Mobile bottom rail",
-	description: "Below 52em: an ✦ AI button that opens a listening sheet, and an ⋯ More that reaches the drawer's tabs — the two ways into ext/drawer on a phone.",
+	description: "Below 52em: an ✦ AI button that opens a listening sheet — a real voice session on a plain page, the card's own thread on a card page — and an ⋯ More that reaches the drawer's tabs.",
 	icon: "smartphone",
 
 	content(){
@@ -25,30 +25,31 @@ export default new Page({
 		img().attr("src", shot("rail-400.png")).attr("alt", "The bottom rail at 400px: ✦ AI and ⋯ More buttons, page content unobstructed above them")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
 
-		md("**Tap ✦** and a small sheet slides up: it starts listening right away ([`ux/Dictate`](/framework/ux/Dictate/), its own `mode: \"open\"`), and every finished sentence becomes its own card — the list grows as you keep talking.");
+		md("**Tap ✦** and a small sheet slides up: the same log-plus-composer-plus-mic widget the desktop drawer's AI tab builds ([`ext/Chat`'s `ChatPanel`](/framework/ext/Chat/)), so a finished sentence shows as a real chat bubble, not a bespoke card. The header names the page the sheet is about, and stays current as you navigate. On a plain page, the sentence goes into a real [voice session](/framework/ext/Session/) — one per browser tab, answered by a fast reply first and a smart one under it; **New session**, beside the sheet's other links, drops it so the next thing said starts fresh.");
 
-		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open, showing ux/Dictate's own mic status and two prompt-item cards")
+		img().attr("src", shot("sheet-cards-400.png")).attr("alt", "The sheet open on a plain page: the header names the path, the owner's sentence, a fast reply then a smart reply under it, and the New session button")
 			.style({ maxWidth: "24em", width: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
 
-		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **injected two finished utterances** straight through the sheet's public `card()` method — the same one a real dictation calls. `ux/Dictate` is used only through its own public API (`new Dictate({ mode: \"open\", on_text })`) — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
+		md("Real mic access needs a real device and a real tap, so this page's own screenshots are from a headless run that **typed into the sheet's own composer** — the same `deliver()` seam a real dictation calls once a sentence finishes. `ux/Dictate` is used only through `ext/Chat`'s own public API — its microphone, its engine choice and its error wording are that module's job, not this rail's; see its own [readme](/framework/ux/Dictate/) for what a real press looks like, including an honest error when nothing is reachable.");
 
 		md("**Desktop is untouched.** At 1920 the rail simply does not exist — no reserved space, no hidden bar, nothing to undo:");
 
 		img().attr("src", shot("desktop-1920-no-rail.png")).attr("alt", "The same page at 1920px: no rail, no reserved space, the side drawer's own ☰ top right")
 			.style({ maxWidth: "100%", border: "1px solid var(--line)", borderRadius: "0.4em", display: "block" });
 
-		h2("The one seam");
+		h2("What a plain page's sentence goes through");
 
-		md("Built as a class (`DrawerRail`, `DrawerRail.Sheet`) so a later variant only has to override **one** method — `Sheet.card(text)`, what a finished utterance becomes. Everything else (opening, closing, wiring the microphone) stays exactly the same:");
+		md("The default sheet is a class chain, each link kept reachable rather than deleted when the next one landed: `DrawerRailSheetV1` (opening, closing, wiring the mic, and the one thing that never changed — a CARD page's sentence always goes straight into that card's own persisted thread) → `DrawerRailSheet` adds the links footer and **New session** → `DrawerRailSheetPanel`, today's default, swaps the hand-wired mic-only build for `ChatPanel` and, on a PLAIN page only, sends the sentence into a real voice session instead of the old page-ai bridge:");
 
-		code.js(`import { DrawerRailSheet } from "/framework/ext/drawer/rail.js";
-
-class MyChecklistSheet extends DrawerRailSheet {
-    card(text){
-        // a checkbox row instead of a plain card — nothing else in the
-        // rail or the sheet needs to know this happened
-    }
+		code.js(`// ext/drawer/rail.js — DrawerRailSheetPanel, the plain-page path
+async voice_deliver(entry){
+    await this.ensure_session();               // start() on the FIRST sentence only
+    const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via });
+    this.panel.say({ chat: { at: r.at, session: this.session, ..., from: { kind: "owner" }, text: entry.text } });
+    return true;
 }`);
+
+		md("`ext/Session/Session.js`'s own file already writes the universal chat line `ext/Chat`'s `Chat.js` knows how to draw, so a fast reply and a smart reply underneath it need no translation — `watch()` just hands each new line straight to the panel. A route change while a session is open reports `nav()` (`DrawerRail.navigated()`, wired from `app.js`'s own seam); **New session** drops the stored id without starting a new one — the next sentence said is what actually spawns a fresh session. Full picture: [ext/Session](/framework/ext/Session/).");
 
 		md("The rail's own second button changed once already — it launched as a second ☰ \"Menu,\" and the task mastermind judged that a repeated glyph reads as \"do this again,\" not \"here's something else,\" now that the page's own ☰ lives at the top. Nothing was deleted: `menu_icon`/`menu_label`/`menu_title` are prototype fields, and `DrawerRail.V1` is the old look, kept as a subclass rather than a comment saying what used to be here:");
 

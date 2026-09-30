@@ -117,6 +117,10 @@
 
 	.chatbox-compose.open .chatbox-compose-more { opacity: 1; }
 
+	/* The "raw" dig-back toggle (deliverable 3, ai/2026-09-29/audio/next-clean-transcription/
+	   a-clean-mode) stays lit while it is showing Whisper's raw words instead of the clean-up. */
+	.chatbox-compose-raw.active { opacity: 1; color: var(--prim); }
+
 	/* EVERYTHING ELSE, OUT OF FLOW. `ux/Dictate`'s engine name, its status and
 	   its "stop after a pause" box are moved here bodily by `Composer.js` — one
 	   node, not a copy — and the note with them. `position: absolute`, so

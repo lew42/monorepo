@@ -219,9 +219,11 @@ export default class Dictate extends View {
 		return Recognition ? "browser" : null;
 	}
 
+	/* Whisper is the normal case, so it says nothing (the owner, 2026-09-29: the
+	 * label "just takes up space"). Only the fallback names itself, because it
+	 * transcribes worse and the reader should know why. */
 	name_engine(){
-		const name = this.engine === "whisper" ? "Whisper on the PC" : "the browser's recognizer";
-		this.$engine.text(name + this.keyboard_hint());
+		this.$engine.text(this.engine === "whisper" ? "" : "the browser's recognizer" + this.keyboard_hint());
 	}
 
 	/* "Ctrl+Shift+M stops" only means anything on a machine with a physical keyboard.
@@ -781,22 +783,33 @@ export default class Dictate extends View {
 	 *  starts — a caller that only wants what it always got can ignore `on_revised`
 	 *  completely. When `revise` names a level, this runs `ux/Revise` in the
 	 *  background (never blocking the box, which already has the raw words) and,
-	 *  once it answers: logs the REVISED text as its own line (`log_revision()`,
+	 *  once it answers OK: logs the REVISED text as its own line (`log_revision()`,
 	 *  pointing back at the raw line's own id — never merged into it), and, if the
-	 *  caller set one, calls `on_revised(text, {raw, level})` too — the revised
-	 *  text, the original raw chunk it came from (so the raw text is always kept
-	 *  alongside the revised one, never replaced), and which level ran. A Servex
-	 *  that isn't up yet, or any other failure, is never thrown into the caller —
-	 *  nothing is logged and `on_revised` is simply not called for that chunk. Only
-	 *  the FINISHED revision is ever logged — no guess, no in-between chunk, no
-	 *  per-tick timing (those stay in memory only, e.g. the playground's Chunks
-	 *  view — `ai/2026-09-29/audio/b-refine/`). */
+	 *  caller set one, calls `on_revised(text, {raw, level, chunk_id})` too — the
+	 *  revised text, the original raw chunk it came from (so the raw text is always
+	 *  kept alongside the revised one, never replaced), and which level ran.
+	 *  `on_revised` NEVER fires with a falsy `text` — a Servex that isn't up yet, or
+	 *  any other failure, calls the SEPARATE `on_revise_failed({raw, level, chunk_id,
+	 *  why})` instead, so an existing caller that only ever handled success (like
+	 *  `ext/drawer/rail.js`'s `on_revised: text => this.card(text)`) can never be
+	 *  handed `null` to draw a card for. Only the FINISHED revision is ever logged —
+	 *  no guess, no in-between chunk, no per-tick timing (those stay in memory only,
+	 *  e.g. the playground's Chunks view — `ai/2026-09-29/audio/b-refine/`). */
+	/* `before` (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 1)
+	 * is the tail of everything already revised in THIS dictation — a little context so
+	 * the fast assistant can see the sentence it is joining, same idea as the playground's
+	 * own `BEFORE_CHARS`. `revised_so_far` only grows here; nothing else touches it. */
 	revise_chunk(raw, chunk_id, chunk_at){
 		if (!this.revise || this.sampling) return;   // sample() lines are never something the owner said
 		const level = this.revise;
-		Revise.run(raw, level).then(out => {
-			if (!out.ok) return;   // Servex down, or any other failure — nothing to log, nothing to call
-			this.on_revised?.(out.text, { raw, level });
+		const before = (this.revised_so_far ?? "").slice(-300);
+		Revise.run(raw, level, { before }).then(out => {
+			if (!out.ok){   // never call on_revised with a null/empty text — a separate hook for "gave up"
+				this.on_revise_failed?.({ raw, level, chunk_id, why: out.why });
+				return;   // nothing to log
+			}
+			this.on_revised?.(out.text, { raw, level, chunk_id });
+			this.revised_so_far = ((this.revised_so_far ?? "") + " " + out.text).trim();
 			this.log_revision(out.text, level, chunk_at);
 		});
 	}
@@ -841,14 +854,15 @@ export default class Dictate extends View {
 	 *  owner's own rule this exists for: "I want to see" (`ai/2026-09-29/mobile-nav/review.md`). */
 	async sample(lines){
 		this.sampling = true;   // revise_chunk()'s own guard — sample text must never reach a real log or a real model call
-		for (const text of lines){
-			this.settled = this.settled ? this.settled + " " + text : text;
-			(this.settled_lines ??= []).push(text);
-			this.draw_caption();
-			this.push_to_target(text);
-			await new Promise(r => setTimeout(r, 150));
-		}
-		this.sampling = false;
+		try {
+			for (const text of lines){
+				this.settled = this.settled ? this.settled + " " + text : text;
+				(this.settled_lines ??= []).push(text);
+				this.draw_caption();
+				this.push_to_target(text);
+				await new Promise(r => setTimeout(r, 150));
+			}
+		} finally { this.sampling = false; }   // a throw mid-loop must never leave this stuck true — deliverable 6
 	}
 }
 
@@ -884,8 +898,9 @@ Dictate.prototype.device_label = "";      // its name, so a stale id can be reco
 Dictate.prototype.send_on_pause = false;  // opt-in: a checkbox beside the mic turns this on
 Dictate.prototype.end_pause_ms = 2500;    // how long a silence must run before send_on_pause stops it
 Dictate.prototype.mode = null;            // "open" = open-mic: mic stays on, box never written, no auto-stop
-Dictate.prototype.revise = false;         // "clean" | "edit" | "summary" | false (default) — see revise_chunk() and on_revised
-Dictate.prototype.on_revised = null;      // (text, {raw, level}) => … — fires once ux/Revise answers; never required
+Dictate.prototype.revise = false;         // "clean" | "edit" | "summary" | false (default) — see revise_chunk(), on_revised, on_revise_failed
+Dictate.prototype.on_revised = null;      // (text, {raw, level, chunk_id}) => … — fires once ux/Revise answers OK; never a falsy text, never required
+Dictate.prototype.on_revise_failed = null;   // ({raw, level, chunk_id, why}) => … — fires instead of on_revised when Revise.run couldn't answer; never required
 
 /** `dictate(() => this.$input, opts)` — the drop-in shape `ext/Ask/mic.js`'s
  *  `mic()` used, for callers that just want the button. */
