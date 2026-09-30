@@ -210,7 +210,9 @@ export default new Doc({
 	content(){
 		// Show, don't tell (finding 2): the loading order as a strip of small linked
 		// tiles, above everything else on the page — one click into the full doc.
-		div.c("wide flex gap-25", () => {
+		// `wrap` (design-bands 2026-09-30): seven tiles need ~700px, so without it the
+		// row ran off the right edge at 400 and the last three tiles were cut off.
+		div.c("wide flex wrap gap-25", () => {
 			STEPS.forEach(s => a.c("card pad flex gap-25 v-center").href(`/framework/core/Page/doc/loading/#${s.id}`)
 				.style({ textDecoration: "none", color: "var(--ink)" })
 				.append(() => {
@@ -241,7 +243,10 @@ export default new Doc({
 		// 2026-09-29 review). Rather than edit object.js, this wraps it: five named
 		// fields a reader actually wants first, then the whole tree one click down inside
 		// a plain closed `<details>` ("All fields") — nothing removed, just reordered.
-		div.c("card pad flow", () => {
+		// `flex v`, not `flow` (design-bands 2026-09-30): `flow` put a paragraph gap
+		// (45px at 3440) between rows that already carry their own padding, so the
+		// five rows stood 88px apart and half the card was air.
+		div.c("card pad flex v", () => {
 			const subject = this.parent ?? this;
 			item({ name: ".title", end: subject.title ?? "—" });
 			item({ name: ".url", end: subject.url ?? "—" });

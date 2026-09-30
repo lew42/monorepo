@@ -265,7 +265,12 @@
 	   its own at 1280 and 3440 (measured, and the vision run called it broken at all
 	   three widths). A wall of numbers takes the width its own count needs, then stops
 	   — full region would leave the five hugging the left of a 3000px row instead. */
-	.page--framework > .pages > .default > .grid { max-width: 50em; }
+	/* ⚠ The cap counts its four gaps (design-bands 2026-09-30). A flat `50em` held five
+	     9em tiles only while `--gap` was small; `--gap` ramps to ~43px at 3440, the five
+	     tiles then needed 982px of a 900px cap, and the fifth dropped to a row of its own
+	     again at 1920 and 3440. `--gap` resolves on this same box, which is also the box
+	     whose `gap` it sets, so the sum is exact at every width. */
+	.page--framework > .pages > .default > .grid { max-width: calc(45em + var(--gap) * 4); }
 
 	/* A topic USED to inherit page rhythm unconditionally, because the old flow
 	   selector matched any `.page` — so `.pages`, as the second child, collected
