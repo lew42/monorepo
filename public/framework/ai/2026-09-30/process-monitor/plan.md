@@ -38,3 +38,16 @@
 3. The graph on the Live card (one minion, after step 1 fixes the API). Proof: a screenshot at 1920.
 
 After those: a doc (`Servex/doc/processes.md`), a smoke test, a review, and a recommendation to the Servex mastermind to read the usage line on every tick.
+
+## Added: worktree clean-up (16:25)
+
+Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with a port and a `<name>.localhost`, and nothing removes it.
+
+- Every 10 minutes, Servex looks at each worktree that is not in the quick-fix pool. A worktree is **finished** when:
+  - its branch is merged into michael/dev, or its task has landed and its owner has stopped;
+  - it has no uncommitted work;
+  - no live agent works in it.
+- A finished worktree is removed with `git worktree remove`, and only after `Server/junction-check.mjs` passes. The branch is kept, so `git revert` still works.
+- Servex then drops its project: the port, the subdomain and any server running from it.
+- The quick-fix pool (`qf-*`) is left alone. The pool already recycles those.
+- The process monitor shows "worktrees: N (M finished, K removed today)".
