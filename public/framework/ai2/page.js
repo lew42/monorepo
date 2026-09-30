@@ -342,14 +342,17 @@ function board(page){
 			// every row down 36px.
 			div.c("ai2-stream", () => {
 				$pill = button.c("ai2-new prim").attr("type", "button").click(() => flush(true));
-				// NEW ACTIVITY ON A ROW ALREADY ON SCREEN — never moves it out from under you on
-				// its own; this pill says how many rows have new activity, and a tap re-sorts.
-				$updated = button.c("ai2-updated prim").attr("type", "button").attr("hidden", "")
-					.click(() => order_rows(true));
 				// THE GROUPS FIRST (the owner, 2026-09-24: "the left list of
 				// previews should primarily be GROUPS, familiar groups"), then the
 				// Live card, then — folded and quiet — everything no group holds yet.
 				$rows = div.c("ai2-rows", () => {
+					// NEW ACTIVITY ON A ROW ALREADY ON SCREEN — never moves it out from under you
+					// on its own; this pill says how many rows have new activity, and a tap
+					// re-sorts. ⚠ STICKY, INSIDE the scrolling box, NOT `.ai2-new`'s floating
+					// `position: absolute` — that sat on top of the Live row's own head, hiding it
+					// (review finding 3, 2026-09-30). Sticky pushes the row below it down instead.
+					$updated = button.c("ai2-updated prim").attr("type", "button").attr("hidden", "")
+						.click(() => order_rows(true));
 					$groups = div.c("ai2-groups");
 					$pinned = div.c("ai2-pinned");
 					$groups.el.before($pinned.el);
@@ -672,7 +675,7 @@ function board(page){
 
 	function update_updated_pill(){
 		$updated.el.hidden = !pending_ids.size;
-		if (pending_ids.size) $updated.text(pending_ids.size + (pending_ids.size === 1 ? " updated ↑" : " updated ↑"));
+		if (pending_ids.size) $updated.text(pending_ids.size + " updated ↑");
 	}
 
 	/* A group's preview: its icon and name, the newest member's own words

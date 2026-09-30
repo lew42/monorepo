@@ -31,7 +31,13 @@ import { task_words } from "./groups.js";
  *  landing since, is "failed" here — closed by the owner with no landing reads the same way. */
 export function task_status(m){
 	if (m.landed_at && m.outcome) return "done";
-	const escalated = (m.logs ?? []).some(l => l?.chase === "escalated" || l?.heartbeat === "escalated");
+	// THE LATEST chase/heartbeat LINE ONLY, never "was one ever escalated" — a heartbeat that
+	// revives a task writes a LATER `{"log":{"heartbeat":"revive"}}` line, and the task keeps
+	// working; reading any past "escalated" line left the dot red forever even after that
+	// (review finding, 2026-09-30). `m.logs` (`TaskJSONL`'s own array) is in file order, so the
+	// last one that touched either field is the task's current state.
+	const last = (m.logs ?? []).findLast(l => l?.chase !== undefined || l?.heartbeat !== undefined);
+	const escalated = last?.chase === "escalated" || last?.heartbeat === "escalated";
 	if (escalated || (m.closed_by && !m.landed_at)) return "failed";
 	return "progress";
 }
@@ -62,7 +68,7 @@ function log_row(m){
  *  removed row still redraws at once, because there is no existing position for those to jump
  *  out of. Tap the pill, or reload, to actually re-sort. */
 export function log_view(on_tasks){
-	let $pill, $rows, order = [], pending = 0;
+	let $pill, $rows, order = [], applied_at = new Map(), pending_ids = new Set();
 	const $root = div.c("ai2-log-list", () => {
 		$pill = span.c("ai2-updated ai2-log-updated").attr("hidden", "").attr("role", "button").attr("tabindex", "0");
 		$rows = div.c("ai2-log-rows");
@@ -73,20 +79,30 @@ export function log_view(on_tasks){
 	let latest = [];
 	function draw(list, force){
 		latest = list;
-		const sorted = [...list].sort((a, b) => Date.parse(b.last_at ?? 0) - Date.parse(a.last_at ?? 0));
+		// A task with no `last_at` yet has written nothing worth a row — no title, no time, just
+		// the bare `Member` `read_tasks()` makes the moment it sees the folder (review finding,
+		// 2026-09-30: a bare "A task" row with no date at the bottom).
+		const sorted = list.filter(m => m.last_at).sort((a, b) => Date.parse(b.last_at ?? 0) - Date.parse(a.last_at ?? 0));
 		const want = sorted.map(m => m.date + "/" + m.slug);
 		const same_set = want.length === order.length && want.every(id => order.includes(id));
 		const same_order = want.length === order.length && want.every((id, i) => id === order[i]);
 
+		// PENDING COUNTS IDS WHOSE `last_at` ACTUALLY MOVED, not how many slots shifted — one task
+		// jumping to the top used to read as "N updated" with N the whole gap it crossed (review
+		// finding, 2026-09-30), the same bug the rail's own pending count had and was fixed for.
+		const ids_now = new Set(want);
+		for (const id of [...pending_ids]) if (!ids_now.has(id)) pending_ids.delete(id);
+		sorted.forEach(m => { const id = m.date + "/" + m.slug; if (applied_at.has(id) && applied_at.get(id) !== m.last_at) pending_ids.add(id); });
+
 		if (!force && order.length && same_set && !same_order){
-			pending = want.filter((id, i) => id !== order[i]).length;
-			$pill.el.hidden = !pending;
-			if (pending) $pill.text(pending + (pending === 1 ? " updated ↑" : " updated ↑"));
+			$pill.el.hidden = !pending_ids.size;
+			if (pending_ids.size) $pill.text(pending_ids.size + " updated ↑");
 			return;   // the set on screen is still right; only the ORDER would move — wait for a tap
 		}
 
 		order = want;
-		pending = 0;
+		applied_at = new Map(sorted.map(m => [m.date + "/" + m.slug, m.last_at]));
+		pending_ids.clear();
 		$pill.el.hidden = true;
 		$rows.empty(() => {
 			if (!sorted.length) return void small.c("muted").text("Nothing in flight.");

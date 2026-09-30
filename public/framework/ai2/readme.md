@@ -95,8 +95,11 @@ landing since — stalled), yellow and flashing (still open). [`log.js`](./log.j
 card's own page, described just below; [Overview](/framework/ai2/overview/) is one big icon card
 per concept (Servex, Page, View, App, AI 2, Dictation, Research & Collab), each with its open
 asks and a folded "Completed (n)" line, built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
-Needs you and Log share the Inbox rail's own row look (`.ai2-row`, `.ai2-row-head`,
-`.ai2-row-title`) — one row style, one CSS, across every view.
+The Log tab shares the Inbox rail's own row (`.ai2-row`, `.ai2-row-head`, `.ai2-row-title`,
+`.ai2-row-when`) with one thing added, the status dot. Needs you keeps its own wider row
+(`.ai2-need`, `needs.js`) — it carries an answer control (buttons or a reply box) inline, which
+a plain row link cannot, so it is not the same markup; it is styled from the same tokens
+(`--gap-35`, the same title weight), not restyled from scratch.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
