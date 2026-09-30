@@ -33,6 +33,8 @@
  * Nothing is ever reset, stashed, checked out, forced or rewritten. `--main` points at another repo
  * (for proofs on a scratch repo); `--skip-smoke` is for those proofs only; `--dry-run` computes and
  * prints every file's result and writes nothing (no lock, no hold).
+ * A page path Git Bash mangled ("C:/Program Files/Git/framework/…", from a /path given without
+ * MSYS_NO_PATHCONV=1) is refused before the lock, naming the fix (2026-09-30, node-reliability).
  * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 3 lock wait timed out, 4 would conflict (nothing touched). */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -53,6 +55,10 @@ const mainArg = flag("--main");
 const noReview = flag("--no-review");
 const [dirArg, ...paths] = argv;
 if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]"); process.exit(1); }
+// Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
+// hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+if (mangled) { console.error(`refused: "${mangled}" was rewritten by Git Bash. Rerun as MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`); process.exit(1); }
 // (also --no-review "why": see the review-gate paragraph in the header above)
 const dir = path.resolve(dirArg);
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
@@ -339,7 +345,7 @@ try {
 		const autoPages = [...new Set(changed.map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
-			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages], MAIN);
+			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
 		const dirty = dirtyFiles();
 		/* The three-way landing, per file, into the working tree (no commit). */

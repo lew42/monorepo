@@ -1,4 +1,4 @@
-/* `node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL]`
+/* `node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]`
  * A smoke test: does the site still load, and do its links go anywhere? It opens
  * /framework/, /framework/ai2/ and every path you give (against the worktree's own dev
  * server, never the owner's), waits 1.5 s after each load, and counts what went wrong:
@@ -26,20 +26,24 @@
  * a warn line but never fails the run, and neither does the browser's bare
  * "Failed to load resource" line (the response check above already names the URL for
  * the files that matter; a missing data file such as usage.json is not a crash).
+ * SKIPPED, not failed: a url whose folder this worktree lacks but the main tree holds UNCOMMITTED
+ * (a card dir another agent is still writing) prints "skip … (skipped: exists uncommitted in the main
+ * tree)" and never fails the run (2026-09-30, node-reliability). --main <repo> is for proofs only.
  * The port comes from .worktrees.json at the main repo root, or --port / --base.
  * Exit 0 = all clean, 1 = an error was seen, 2 = bad usage or no server answering. */
 import { browser as launch } from "./browser.mjs";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const argv = process.argv.slice(2);
 const opt = name => { const i = argv.indexOf("--" + name); if (i < 0) return; const v = argv[i + 1]; argv.splice(i, 2); return v; };
-const portOpt = opt("port"), baseOpt = opt("base");
+const portOpt = opt("port"), baseOpt = opt("base"), mainOpt = opt("main");
 const [dir, ...rest] = argv;
 // Git Bash (MSYS) rewrites "/x/" into "C:/Program Files/Git/x/"; strip that install root back off.
 const extra = rest.map(p => { const m = /^[A-Za-z]:[\\/].*?[\\/]Git([\\/].*)$/i.exec(p); p = (m ? m[1] : p).replace(/\\/g, "/"); return p.startsWith("/") ? p : "/" + p; });
-const usage = msg => { console.error(msg + "\nusage: node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL]"); process.exit(2); };
+const usage = msg => { console.error(msg + "\nusage: node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]"); process.exit(2); };
 if (!dir) usage("no worktree dir given");
 
 const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
@@ -65,6 +69,24 @@ const CAP = 60;
 // files a link can point at that are never themselves a page — skip, don't 404-check them as a route
 const SKIP_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "pdf", "zip", "csv", "txt",
 	"md", "json", "jsonl", "mp4", "mp3", "wav", "woff", "woff2", "ttf", "otf", "css", "js", "map"]);
+
+/* A url whose folder the WORKTREE lacks but the MAIN tree holds uncommitted (a card dir another
+ * agent is still writing) can never load here, and it is not this branch's fault: such a target is
+ * reported "skip", never "FAIL" (node-reliability, 2026-09-30 — /framework/ai2/ links into card dirs
+ * that exist only uncommitted in the main tree failed every worktree merge with "Page Load Error").
+ * One git call per FAILING url only. MAIN = the repo holding this smoke.mjs (merge.mjs runs the main
+ * tree's copy). */
+const MAIN = mainOpt ? path.resolve(mainOpt) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");   // --main: proofs only
+function uncommitted_in_main(p){
+	const pathname = decodeURIComponent(new URL(p, "http://x").pathname);
+	const card = /^\/framework\/ai2\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // a card renders under ai2/, lives under ai/
+	const rel = "public" + (card ? "/framework/ai/" + card[1] : pathname.replace(/\/$/, ""));
+	if (rel === "public" || norm(MAIN) === norm(dir)) return false;
+	if (fs.existsSync(path.join(dir, rel, "page.js")) || fs.existsSync(path.join(dir, rel, "page.jsonl"))) return false;
+	if (!fs.existsSync(path.join(MAIN, rel))) return false;
+	const st = spawnSync("git", ["-C", MAIN, "status", "--porcelain", "--", rel], { encoding: "utf8", windowsHide: true });
+	return st.status === 0 && st.stdout.trim() !== "";
+}
 
 let browser;
 try { browser = await launch(); } catch (e) { usage("cannot start Playwright: " + e.message); }
@@ -144,8 +166,9 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	}
 	closing = true;
 	await page.close();
-	const uniq = [...new Set(errors)];
+	let uniq = [...new Set(errors)];
 	const from = foundOn ? `  (link found on ${foundOn})` : "";
+	if (uniq.length && uncommitted_in_main(p)) { console.log(`skip ${p}${from}  (skipped: exists uncommitted in the main tree)`); uniq = []; links = []; continue; }
 	console.log(uniq.length ? `FAIL ${p}${from}  ${uniq.length} error${uniq.length > 1 ? "s" : ""}` : `ok   ${p}${from}`);
 	for (const e of uniq) console.log("       " + e);
 	for (const w of new Set(warns)) console.log("  warn " + w.split(String.fromCharCode(10))[0]);
