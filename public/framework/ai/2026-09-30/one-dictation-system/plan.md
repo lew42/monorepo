@@ -17,6 +17,11 @@
 
 **The shape (the owner):** a mobile-friendly, single-column sidebar that is vertically responsive. On mobile it's a split screen you can shrink or grow. Dragged to about 90% of the screen, it has nearly become a page, so later it may BE a sub-page with its own route and the session's live messages. Door left open: `chat(el, { path, card })` takes everything it needs as arguments and keeps no state that belongs to the surface. A page could call it the same way later. Not built now.
 
+**One content model with the card** (the owner; [inbox-ext item 9](../inbox-ext/requirements.md)): chat and card render the same JSONL lines with the same content widgets. Chat is the informal rendering (bubbles, rambling allowed) and the card is the refined one. So:
+- The chat draws each line with the shared content widgets. It keeps no private bubble format: the Widget's thread becomes a renderer of lines, and anything bubble-only goes.
+- The sidebar knows the selected card or page (`chat(el, { path, card })`) and writes to it: `start({ path, card })` puts the session on that card or page. That's my answer to item 9's open question, sent to mastermind-servex-9 for a ruling.
+- The flow runs right to left: the AI refines what's dictated into the selected card's page.jsonl. inbox-ext builds the card side after the reset. This component only writes the lines and draws them, and the seam is agreed through inbox-ext's brief.
+
 Rendering stays minimal and efficient: one component, drawn once per surface, and no second copy of the thread.
 
 ## Small merges, in order (each one screenshot-checked on every surface before the next; tick a box only once its merge lands and its shots pass)
