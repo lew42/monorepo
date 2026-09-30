@@ -361,17 +361,43 @@ export class DrawerRailSheetV1 extends View {
 		return grip({
 			axis: "y",
 			write: px => {
-				const h = Math.min(Math.max(px, innerHeight * 0.12), innerHeight);
+				const h = Math.min(Math.max(px, this.collapse_h()), innerHeight);
 				this.size_to(h + "px");
+				// LIVE, not just on release: the sheet reads as one line the moment the
+				// drag reaches it, the same way it settles there (`settle()`, below).
+				this.el.classList.toggle("drawer-rail-sheet-collapsed", h <= this.collapse_h() + 4);
 				return h;
 			},
 			done: h => this.settle(h),
 		});
 	}
 
+	/** "One line" — box, mic and Send, nothing else (`rail.css`'s own collapsed
+	 *  rules do the hiding). A fixed px, not a share of the screen: `clamp_height`'s
+	 *  own 0.4 floor exists for the REMEMBERED "open" height (sheet-regression,
+	 *  2026-09-30, this file's own doc), and a collapsed height is never
+	 *  remembered — every fresh open starts at the sheet's normal size, never
+	 *  stuck one line tall (that was the earlier bug this deliberately avoids
+	 *  repeating). 84px clears one real composer row (min-height 2.4em, `~1em`
+	 *  body font, plus its own padding) on every phone this shipped to. */
+	collapse_h(){ return 84; }
+
+	/** The phone sheet collapses to one line (the owner, 2026-09-30: "a resizable
+	 *  sheet that can collapse to one line"). Dragged low, it used to CLOSE —
+	 *  vanish outright, same as dragging past `close_at` still does a little
+	 *  further down. This state sits between the two: still open, still one tap
+	 *  away from typing or tapping the mic, just not showing the thread. */
+	collapse(){
+		this.el.classList.remove("drawer-rail-sheet-full");
+		this.el.classList.add("drawer-rail-sheet-collapsed");
+		this.size_to(this.collapse_h() + "px");
+		return this;
+	}
+
 	settle(h){
 		const H = innerHeight;
 		if (h >= H * this.full_at) return this.rail ? this.rail.to("full").then(() => this.state("full")) : this.state("full");
+		if (h <= this.collapse_h() + 4) return this.collapse();
 		if (h < H * this.close_at) return this.rail ? this.rail.to("closed") : this.hide();
 		this.remember_height(this.clamp_height(h));
 		return this.rail?.mode === "full" ? this.rail.to("open") : this.state("open");
@@ -385,6 +411,7 @@ export class DrawerRailSheetV1 extends View {
 	/** "open" (its own height) or "full" (the whole screen, ‹ Back showing). */
 	state(mode){
 		this.el.classList.toggle("drawer-rail-sheet-full", mode === "full");
+		this.el.classList.remove("drawer-rail-sheet-collapsed");   // "open"/"full" both leave the one-line state
 		mode === "full" ? this.size_to("100dvh") : this.size();
 		return this;
 	}
@@ -441,6 +468,7 @@ export class DrawerRailSheetV1 extends View {
 	// `scrollHeight` would only see the empty head row, since `display: none`
 	// elements have no box to measure at render time at all.
 	size(){
+		this.el.classList.remove("drawer-rail-sheet-collapsed");   // every real (re)open leaves the one-line state
 		const saved = this.read_height();
 		if (saved){ this.size_to(this.clamp_height(saved) + "px"); return; }
 		// ⚠ NOT MEASURED (sheet-regression, 2026-09-30). This used to read
