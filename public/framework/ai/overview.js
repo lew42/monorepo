@@ -4,9 +4,12 @@ import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
 import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
 
-/* THE FOUR TOP TABS of /framework/ai/ (the owner, 2026-09-30: "use the same docs kind
+/* THE TOP TABS of /framework/ai/ (Inbox, the default dashboard; System, all the AI system docs) (the owner, 2026-09-30: "use the same docs kind
    of UI for top tabs"). Each tab is a routed page; ai/page.js calls tab_page(). */
-export const TABS = ["overview", "skills", "objects", "authoring", "claude-md"];
+export const TABS = ["inbox", "system"];
+// The System tab's own pages (/framework/ai/system/<name>/). Each still answers at its old
+// url, /framework/ai/<name>/, so no link breaks (ai/page.js route()).
+export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring"];
 
 /* THE AUTHORING PIECES, used on every tab below and shown on the Authoring tab.
    A section is a heading, one gist line, then its items; nothing else. */
@@ -32,12 +35,22 @@ const KINDS = [
 	["companion", "Companions", "Small skills another skill reminds you of."],
 ];
 
-export function tab_page(root, name){
+export function tab_page(root, name, url = root.url + name + "/"){
 	const base = root.url;
-	const url = base + name + "/";
 	const pages = {
-		overview: {
-			title: "Overview", icon: "hub",
+		/* THE DEFAULT TAB IS A DASHBOARD: the inbox (the owner, 2026-09-30). The AI 2 inbox
+		   moves here with the inbox-ext task; until then this points at it, never a second inbox. */
+		inbox: {
+			title: "Inbox", icon: "inbox",
+			content(){
+				md("**Your inbox: what needs you, newest first.** It lives on [AI 2](/framework/ai2/) until it moves here.");
+				md("[Open the inbox](/framework/ai2/) · [Every task](" + base + "log/) · [The old board](" + base + "v/3/)");
+			},
+		},
+		/* THE SYSTEM TAB holds all the AI system docs (the owner, 2026-09-30): the parts,
+		   then the docs pages (its route() below), then design and code, linked not copied. */
+		system: {
+			title: "System", icon: "account_tree",
 			content(){
 				md("**The AI system: who does the work, what it knows, how work is tracked, and how it lands.** Click any part for its own page.");
 				for (const g of GROUPS){
@@ -46,7 +59,20 @@ export function tab_page(root, name){
 				}
 				heading("How it works together", "The path your words take, from the moment you speak to the card that shows the result.");
 				flow(FLOW.map(([n, slug, text]) => [n, base + slug + "/", text]));
+				heading("Its documentation", "One page each. Servex, design and code have their own pages; these cards link there.");
+				cards([
+					{ name: "Skills", icon: "school", gist: "How to do one kind of job well, one page per skill.", href: url + "skills/" },
+					{ name: "CLAUDE.md", icon: "gavel", gist: "The file every agent loads first, and an audit of what it names.", href: url + "claude-md/" },
+					{ name: "Readmes", icon: "menu_book", gist: "The chain of readmes an agent reads, root first.", href: base + "readmes/" },
+					{ name: "Objects", icon: "category", gist: "Each thing as a chip, a row and a panel.", href: url + "objects/" },
+					{ name: "Authoring", icon: "edit_note", gist: "The pieces these pages are built from, simple to complex.", href: url + "authoring/" },
+					{ name: "Servex", icon: "hub", gist: "The process that runs the agents. Its own docs.", href: "/framework/servex/" },
+					{ name: "Design system", icon: "palette", gist: "How a page looks: layout, spacing, colour, controls, content.", href: "/framework/design/" },
+					{ name: "Code system", icon: "code", gist: "How the code is written: objects, pages, views, the traps.", href: "/framework/code/" },
+				]);
+				heading("Where AI data lives", "Everything is a page; a page's data is a line in its own page.jsonl until it grows. The rule and the table: [Page inboxes](" + base + "inboxes/).");
 			},
+			route(name){ if (SYSTEM_PARTS.includes(name)) return tab_page(root, name, url + name + "/"); },
 		},
 		skills: {
 			title: "Skills", icon: "school",
@@ -165,7 +191,8 @@ export function tab_page(root, name){
 	// ⚠ title "" — the tab sits under the page's own h1 ("AI"); a second page-size
 	// heading on top of the panel read as two titles. The strip reads `label`.
 	const { title, ...cfg } = pages[name];
-	return new Page({ ...cfg, label: title, title: "", url });
+	const top = TABS.includes(name) && url === root.url + name + "/";
+	return new Page({ ...cfg, label: title, title: top ? "" : title, url });
 }
 
 /* readme_chain(dir) — the chain a fresh agent in `dir` is handed (Servex/agents/readme-chain.js),

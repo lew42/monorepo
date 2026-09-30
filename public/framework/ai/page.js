@@ -3,7 +3,7 @@ import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/fr
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
-import { TABS, tab_page, readme_chain, heading } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
+import { TABS, SYSTEM_PARTS, tab_page, readme_chain, heading } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -78,6 +78,9 @@ export default new Page({
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
 		if (TABS.includes(name)) return tab_page(this, name);
+		// Old urls keep working: the Overview is now System, and its parts moved under it.
+		if (name === "overview") return tab_page(this, "system", this.url + "overview/");
+		if (SYSTEM_PARTS.includes(name)) return tab_page(this, name);
 		const concept = CONCEPTS.find(c => c.slug === name);
 		if (concept) return concept_page(this, concept);
 
@@ -145,6 +148,26 @@ function concept_page(parent, c){
 			md("Code: " + links(c.code));
 			if (c.servex.length) md("In Servex: " + links(c.servex));
 			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
+			// Where a page's data lives (mastermind-servex-9's merge-approval proposal, §7).
+			if (c.slug === "inboxes"){
+				heading("Everything is a page", "A page gets a directory once it has grown. Until then it is a line in its parent's `page.jsonl`. A name that only groups pages is a namespace.");
+				md([
+					"| State | On disk | Reached at | Example |",
+					"|---|---|---|---|",
+					"| **Real page** | a directory with `page.jsonl` | its url | `/framework/ext/Chat/` |",
+					"| **Virtual page** | one line with an `id` in the parent's `page.jsonl` | `parent/<id>/` | a chat message, an inbox note |",
+					"| **Namespace** | nothing: a key other lines carry | a filtered view, `?tag=servex` | a tag, a kind, a day |",
+				].join("\n"));
+				heading("Where per-path AI data lives today");
+				md([
+					"| What | File |",
+					"|---|---|",
+					"| A module's own facts: its inbox, notes, a card's messages | `<module>/page.jsonl` |",
+					"| One task: ask, plan, log, landing | `ai/<date>/<slug>/task.jsonl` |",
+					"| Site-wide feeds and indexes | `ai/log.jsonl`, `day.jsonl`, `board.jsonl`, `cards.jsonl`, `chat.jsonl`, `asks.jsonl` … |",
+				].join("\n"));
+				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/2026-09-30/servex-mastermind/merge-approval-proposal.md).");
+			}
 			if (c.slug === "readmes"){
 				heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
 				readme_chain("public/framework/ai/");
