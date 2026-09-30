@@ -12,7 +12,7 @@ import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 import * as Session from "/framework/ext/Session/Session.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
-const { start, say, nav, watch } = Session;
+const { start, say, nav, watch, stream, report_quiet } = Session;
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -717,10 +717,20 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		// `session`) is what makes the copy read back here a silent no-op instead
 		// of a second bubble.
 		this.stop_watch = watch(this.session_file, line => { if (line.chat) this.panel?.say({ chat: line.chat }); });
+		// dictation-stream (2026-09-30): replies stream in as they are written, and every line lands the
+		// moment Servex writes it (the poll above stays, as the record); the owner's silences reach the
+		// assistants as `quiet` events, which is when they answer.
+		this.stop_stream?.();
+		this.stop_stream = stream(this.session, ev => {
+			if (ev.kind === "stream") this.panel?.stream(ev.role, ev.text);
+			else if (ev.kind === "line" && ev.line?.chat) this.panel?.say({ chat: ev.line.chat });
+		});
+		this.stop_quiet ??= report_quiet(() => this.session);
 	}
 
 	forget_session(){
 		this.stop_watch?.(); this.stop_watch = null;
+		this.stop_stream?.(); this.stop_stream = null;
 		this.session = null; this.session_file = null;
 		try { sessionStorage.removeItem(SESSION_KEY); } catch {}
 	}
@@ -734,7 +744,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			await this.ensure_session();
 			if (!this.session) return false;
 			const via = entry.via === "whisper" ? "voice" : "text";
-			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via });
+			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via, raw: entry.raw });
 			this.panel?.say({ chat: { at: r.at, session: this.session, path: drawer.page(), from: { kind: "owner" }, via, text: entry.text } });
 			return true;
 		} catch {

@@ -1,4 +1,5 @@
 import { servex_url } from "/framework/dev/servex_url.js";
+import floor from "/framework/ux/Dictate/floor.js";
 
 /* VOICE SESSIONS, the browser half (Servex/agents/Sessions.js is the other).
  *
@@ -21,8 +22,34 @@ async function post(verb, body){
 /** A new session homed on `path`. Resolves `{session, home, file}`. */
 export const start = ({ path = location.pathname, host = location.host } = {}) => post("new", { path, host });
 
-/** One owner line into the session; both assistants are sent it at once. */
-export const say = ({ session, path = location.pathname, text, via = "text" }) => post("say", { session, path, text, via });
+/** One owner line into the session. A spoken line carries the floor (`speaking`/`done`) and how long
+ *  the owner has been quiet (`quiet_ms`), so Servex holds the assistants until the owner has stopped
+ *  (see `quiet()`); `raw` is what Whisper heard, kept on the line when the clean-up changed it. */
+export const say = ({ session, path = location.pathname, text, via = "text", raw }) => post("say", { session, path, text, via,
+	...(raw && raw !== text ? { raw } : {}),
+	...(via === "voice" ? { floor: floor.state(), quiet_ms: floor.quiet_ms() } : {}) });
+
+/** THE SILENCE EVENT: the owner has been quiet for `ms` (or the mic went off). Servex writes it as an
+ *  invisible `{quiet}` line and it is what lets the held assistants answer. */
+export const quiet = ({ session, ms, mic_off = false, path = location.pathname }) => post("quiet", { session, ms, mic_off, path });
+
+/** Every `floor` silence mark, posted to `session()` (asked fresh each time; null = no session yet).
+ *  Returns `stop()`. */
+export const report_quiet = session => floor.on_quiet((ms, { mic_off }) => {
+	const id = session();
+	if (id) quiet({ session: id, ms, mic_off }).catch(() => {});
+});
+
+/** THE LIVE WIRE: `on_event` hears `{kind: "stream", role, text}` (a reply so far, whole, while it is
+ *  written; `text: ""` when it ends) and `{kind: "line", line}` (every line the moment Servex writes
+ *  it, so a reply does not wait for the next poll). Server-sent events; the browser reconnects by
+ *  itself, and each stream event carries the whole text, so a reconnect loses nothing. Returns `stop()`. */
+export function stream(session, on_event){
+	if (typeof EventSource !== "function") return () => {};
+	const src = new EventSource(servex_url(`/api/session/${session}/stream`));
+	src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
+	return () => src.close();
+}
 
 /** The owner moved from one page to another while the session is open. */
 export const nav = ({ session, from, to }) => post("nav", { session, from, to });
@@ -60,4 +87,4 @@ export function entry(line){
 	return null;
 }
 
-export default { start, say, nav, watch, entry };
+export default { start, say, nav, watch, entry, quiet, report_quiet, stream };

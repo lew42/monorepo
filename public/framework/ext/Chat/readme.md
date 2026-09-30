@@ -36,8 +36,8 @@ through to `composer()` (see `Composer.js`'s own doc comment for what each
 does). Live, with v1 (the old, hand-wired assembly) beside it:
 [/framework/ext/Chat/panel/](/framework/ext/Chat/panel/).
 
-`revise: "clean" | "edit" | "summary" | false` (default `false` here; [AI 2](/framework/ai2/)
-turns on `"clean"`) runs [`ux/Revise`](/framework/ux/Revise/) on this composer's mic — a
+`revise: "clean" | "edit" | "summary" | false` (default `"clean"` in `ChatPanel` since 2026-09-30, `false` in a bare
+`composer()`; [AI 2](/framework/ai2/) turns on `"clean"`) runs [`ux/Revise`](/framework/ux/Revise/) on this composer's mic — a
 different pipeline from `Server/doc/refine.md`'s batch `clean`/`structured` rungs; same words,
 unrelated systems. Only the `"clean"` level does anything special here — `"edit"` and
 `"summary"` just run `on_revised`/`on_revise_failed` as `ux/Dictate/readme.md` describes, with
@@ -55,6 +55,25 @@ the box when a message is sent is what goes out; the raw words still ride along 
 sends twice — that same wait is what `on_revise_failed` (see `ux/Dictate/readme.md`) resolves
 early: a failed clean-up doesn't make `await_clean()` sit out the full 5s, it just leaves the
 raw text showing. `ai/2026-09-29/audio/next-clean-transcription/a-clean-mode/`.
+
+## Live bubbles — your words while you speak, a reply while it is written
+
+In a `ChatPanel`, dictation no longer fills the text box first: your words grow in a bubble on
+your side of the log, the still-moving guess grey, the clean-up swapped in place as it arrives.
+When the words are sent the bubble fades until the real line replaces it. An assistant's reply
+can grow the same way. Proof, at phone width: [`ai/2026-09-30/dictation-stream/`](/framework/ai/2026-09-30/dictation-stream/).
+
+```js
+panel.talk.live({ settled: "So this is", guess: " a test" });   // ComposerMic calls this for you
+panel.stream("smart", "Yes, the words now");                     // "" removes it; its final line replaces it
+```
+
+- **The text box stays**, for typing. The gear's **"dictation goes into"** setting (`Mic.js`,
+  `SETTINGS.into`: `"chat"` or `"box"`) brings back the old way. Send with an empty box sends
+  the growing bubble at once.
+- Only a composer whose host passes `on_live` can do this (`ChatPanel` does); a bare
+  `composer()` (AI 2's) always uses the box.
+- `ChatPanel` now defaults `revise` to `"clean"`; `revise: false` turns it off for one host.
 
 ## The universal chat line — one shape for voice, typed, and an agent's own reply
 
@@ -135,11 +154,14 @@ the loop" demo.
 
 **Reconciled with clean-transcription (2026-09-29):** `ChatPanel` used to default
 `revise` to `"edit"`, which fought clean mode's own default of `false` (AI 2 is the
-only caller that wants `"clean"`). `revise` now passes straight through unchanged; a
+only caller that wants `"clean"`). Since 2026-09-30 `ChatPanel` defaults it to `"clean"` (the ✦ sheet
+never set it, so its bubbles stayed raw); a
 revision pair still only draws for a LINE that carries `re` + `level`, never for a
 mode alone.
 
 ## Watch out
+- A caller's clean-up hook is `on_clean`, never `on_revised`: View's constructor copies every option onto the instance, so an `on_revised` option (even `undefined`) hid `ComposerMic`'s own method, and clean mode silently never swapped anything (fixed 2026-09-30; `Mic.js`, `on_revised`).
+- Live bubbles are not log lines: `chat()` lifts them out and puts them back at the end around every real line it draws, so `mergeable()` never sees one.
 
 - Smart scroll: at the bottom it follows; scroll up and it freezes; scroll back down and it follows again. [doc/scroll.md](./doc/scroll.md)
 - One bubble per run: same sender, under `MERGE_GAP_MS` (10 s) apart, nobody between → one bubble, one paragraph per message; drawing only, the log stays separate. Every bubble is `--chat-bubble` wide.

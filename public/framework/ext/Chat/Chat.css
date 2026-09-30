@@ -323,4 +323,12 @@
 	.chatbox-mark { font-size: 0.95em; }
 	.chatbox-mark-ok { color: var(--ok); }
 	.chatbox-mark-unclear { color: var(--warn); }
+
+	/* LIVE BUBBLES (`chat().live()`/`.stream()`, dictation-stream 2026-09-30): your words while you
+	   speak, and a reply while it is written. The still-moving guess is grey; a sent bubble fades
+	   until its real line replaces it; a streaming reply ends in a caret. */
+	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
+	.chatbox-guess { opacity: 0.55; }
+	.chatbox-live-sent { opacity: 0.6; }
+	.chatbox-streaming .chatbox-text > :last-child::after { content: "▍"; opacity: 0.5; }
 }

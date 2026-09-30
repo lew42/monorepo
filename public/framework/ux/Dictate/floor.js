@@ -34,11 +34,26 @@ export const floor = {
 	speaking_ms: 0,        // loud time since the previous stamped entry
 	last_at: 0,            // the previous level frame's time
 
+	/* THE SILENCE EVENT (dictation-stream, 2026-09-30; the owner: "the duration since last word...
+	 * should be an event that fires into... the LLM"). Once the owner has spoken, each quiet stretch
+	 * fires every listener of `on_quiet()` once per mark it reaches: `fn(ms, {mic_off})`. Mic off
+	 * after speech fires it too. `silent_at` is when the quiet REALLY began: `stamp()`'s split moves
+	 * `quiet_since` for the cues, never this. A voice session posts it to Servex, which then lets
+	 * its assistants answer (`ext/Session`, `Servex/agents/Sessions.js`). */
+	quiet_marks: [2500],
+	silent_at: null,
+	fired: 0,
+	listeners: new Set(),
+	on_quiet(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); },
+	/** How long the owner has been quiet right now, in ms; null with the mic off. */
+	quiet_ms(){ return !this.owner ? null : this.silent_at == null ? 0 : Math.round(performance.now() - this.silent_at); },
+	quiet(ms, mic_off = false){ for (const fn of this.listeners) try { fn(Math.round(ms), { mic_off }); } catch (e){ console.error("floor: on_quiet listener failed", e); } },
+
 	/** The mic really is on (Dictate's own "listening"). */
 	mic_on(owner){
 		const now = performance.now();
 		Object.assign(this, { owner, on_at: now, mic_on_at: new Date().toISOString(), pauses: [],
-			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now });
+			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now, silent_at: now, fired: this.quiet_marks.length });
 		this.post("speaking", owner);
 	},
 
@@ -52,7 +67,13 @@ export const floor = {
 			this.split = false;
 			this.speaking_ms += now - this.last_at;
 			this.heard = true;
-		} else if (this.quiet_since == null) this.quiet_since = now;
+			this.silent_at = null;
+			this.fired = 0;
+		} else {
+			if (this.quiet_since == null) this.quiet_since = now;
+			this.silent_at ??= now;
+			while (this.fired < this.quiet_marks.length && now - this.silent_at >= this.quiet_marks[this.fired]) this.quiet(this.quiet_marks[this.fired++]);
+		}
 		this.last_at = now;
 	},
 
@@ -65,6 +86,7 @@ export const floor = {
 	mic_off(owner){
 		if (owner !== this.owner) return;
 		this.owner = null;
+		if (this.fired < this.quiet_marks.length){ this.fired = this.quiet_marks.length; this.quiet(performance.now() - (this.silent_at ?? performance.now()), true); }
 		this.post("idle", owner);
 	},
 

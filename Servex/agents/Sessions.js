@@ -62,7 +62,11 @@ export default class Sessions {
 		return { repo: REPO, file: process.env.SERVEX_SESSIONS_FILE || null, quiet_ms: env("SERVEX_SESSION_QUIET_MS", 1500),
 			idle_ms: env("SERVEX_SESSION_IDLE_MS", 5 * 60000), resume_ms: env("SERVEX_SESSION_RESUME_MS", 60 * 60000),
 			max_pairs: env("SERVEX_SESSION_MAX_PAIRS", 2),
-			map: {}, by_agent: new Map(), waiting: new Map() };
+			/* THE FLOOR (dictation-stream, 2026-09-30): a spoken line is held from BOTH assistants until the
+			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
+			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter). */
+			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 12000),
+			map: {}, by_agent: new Map(), waiting: new Map(), held: new Map(), clients: new Map(), buffers: new Map() };
 	}
 
 	install(){
@@ -117,6 +121,7 @@ export default class Sessions {
 		this.append(this.disk(s.file), line);
 		s.last_at = now_ms();
 		this.save();
+		this.push(s.id, { kind: "line", line });
 	}
 
 	/* The last `n` lines of a session's file, as text: the context a FRESH agent gets
@@ -213,19 +218,27 @@ export default class Sessions {
 		return { ok: true, at: line.at };
 	}
 
-	say({ session, path: at, text, via = "text" } = {}){
+	say({ session, path: at, text, via = "text", raw, floor, quiet_ms } = {}){
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		const site = page_path(at) ?? s.path;
 		if (site !== s.path) this.nav({ session, from: s.path, to: site });
-		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text };
+		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
+			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}), ...(floor ? { floor } : {}) };
 		this.write(s, { chat: line });
-		s.fast_re = line.at;
 		this.wake(s, "fast");
-		this.send(s, "fast", `[on ${site}] ${text}`);
 		/* The smart one spawns on the NEXT tick, so the fast one's process starts first and alone. */
 		setImmediate(() => { try { this.wake(s, "smart"); } catch (e){ console.error(`sessions: ${e.message}`); } });
-		this.gather(s, line);
+		if (via === "voice" && floor){
+			/* A spoken line from a page that reports the floor: held until the owner is quiet. */
+			this.hold(s, line);
+			const q = quiet_ms == null ? null : Number(quiet_ms);
+			if (floor !== "speaking" && (q == null || q >= this.answer_quiet_ms)) this.release(s, q == null ? "the mic is off" : `quiet for ${(q / 1000).toFixed(1)} s`);
+		} else {
+			s.fast_re = line.at;
+			this.send(s, "fast", `[on ${site}] ${text}`);
+			this.gather(s, line);
+		}
 		return { ok: true, at: line.at, answered_by: [
 			{ kind: "assistant", id: "fast", agent: s.fast }, { kind: "assistant", id: "smart", agent: s.smart }] };
 	}
@@ -259,6 +272,46 @@ export default class Sessions {
 			this.send(s, "smart", nav + w.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n"));
 		}, this.quiet_ms);
 		this.waiting.set(s.id, w);
+	}
+
+	/* HELD until the owner stops (the floor): every spoken line waits here; both assistants hear
+	 * the whole thought at once on release, with how it ended as the last line. */
+	hold(s, line){
+		const h = this.held.get(s.id) ?? { lines: [] };
+		h.lines.push(line);
+		clearTimeout(h.timer);
+		h.timer = setTimeout(() => { try { this.release(s, `no quiet event for ${Math.round(this.hold_max_ms / 1000)} s`); } catch (e){ console.error(`sessions: ${e.message}`); } }, this.hold_max_ms);
+		h.timer.unref?.();
+		this.held.set(s.id, h);
+	}
+
+	release(s, why){
+		const h = this.held.get(s.id);
+		if (!h?.lines.length) return false;
+		clearTimeout(h.timer);
+		this.held.delete(s.id);
+		const moves = (s.moves ?? []).splice(0);
+		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
+		const said = h.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n");
+		const tail = `\n(the owner has stopped: ${why})`;
+		s.fast_re = s.smart_re = h.lines[h.lines.length - 1].at;
+		this.save();
+		this.wake(s, "fast");
+		this.send(s, "fast", said + tail);
+		this.wake(s, "smart");
+		this.send(s, "smart", nav + said + tail);
+		return true;
+	}
+
+	/* THE SILENCE EVENT (the owner, 2026-09-30: "an invisible message that my UI sends into the chat,
+	 * but to the LLM"): written as a `{quiet}` line nobody draws, and it releases what was held. */
+	quiet({ session, ms, mic_off = false, path: at } = {}){
+		const s = this.get(session);
+		const n = Math.max(0, Math.round(Number(ms) || 0));
+		this.write(s, { quiet: { at: now_ms(), ms: n, ...(mic_off ? { mic_off: true } : {}), path: page_path(at) ?? s.path } });
+		const released = (mic_off || n >= this.answer_quiet_ms)
+			&& this.release(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`);
+		return { ok: true, released };
 	}
 
 	send(s, role, text){
@@ -356,13 +409,65 @@ export default class Sessions {
 	}
 
 	heard(event, agent){
-		if (event.type !== "result" || event.stopped) return;
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
+		if (event.type === "delta" && !event.nested) return this.streaming(s, who.role, agent.id, event.text);
+		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
+		if (event.type !== "result") return;
+		this.streaming(s, who.role, agent.id, null);
+		if (event.stopped) return;
 		const text = String(event.text ?? agent.last_text ?? "").trim();
 		if (!text) return;
 		const re = s[`${who.role}_re`];
+		/* NO FILLER (the owner, 2026-09-30: "you don't need to say, keep going, I'm listening, noted...
+		 * most of the time just listening"): the fast one's `(listening)`, or a filler line, is kept
+		 * as an invisible `{skip}` line and never drawn. */
+		if (who.role === "fast" && is_filler(text)) return this.write(s, { skip: { at: now_ms(), role: who.role, text, ...(re ? { re } : {}) } });
 		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "assistant", id: who.role, agent: agent.id }, via: "text", text, ...(re ? { re } : {}) } });
+	}
+
+	/* TOKEN BY TOKEN (the owner, 2026-09-30): a reply's text so far, per agent, pushed WHOLE to the
+	 * session's live wire at most every 80 ms. `piece === null` ends it (a tool call, or the turn's end). */
+	streaming(s, role, agent_id, piece){
+		const b = this.buffers.get(agent_id) ?? { text: "", timer: null, session: s.id, role, shown: false };
+		if (piece === null){
+			clearTimeout(b.timer);
+			this.buffers.delete(agent_id);
+			if (b.shown) this.push(s.id, { kind: "stream", role, text: "" });
+			return;
+		}
+		b.text += piece;
+		this.buffers.set(agent_id, b);
+		if (b.timer) return;
+		b.timer = setTimeout(() => {
+			b.timer = null;
+			if (this.buffers.get(agent_id) !== b) return;
+			if (role === "fast" && (b.text.trim().startsWith("(") || is_filler(b.text))) return;   // may still turn out to be silence
+			b.shown = true;
+			this.push(s.id, { kind: "stream", role, text: b.text });
+		}, 80);
+	}
+
+	/* THE LIVE WIRE per session (server-sent events): every line written, and every reply so far.
+	 * A client that (re)connects is sent the replies in flight at once, so a reconnect loses nothing
+	 * (the dev server's /servex proxy cuts a stream at 30 s; EventSource reconnects by itself). */
+	push(id, msg){
+		const set = this.clients.get(id);
+		if (!set?.size) return;
+		const data = `data: ${JSON.stringify(msg)}\n\n`;
+		for (const res of set) try { res.write(data); } catch { set.delete(res); }
+	}
+
+	open_stream(req, res){
+		const id = req.params.id;
+		res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive",
+			"X-Accel-Buffering": "no", "Access-Control-Allow-Origin": "*" });
+		res.write("retry: 1000\n\n");
+		const set = this.clients.get(id) ?? new Set();
+		set.add(res);
+		this.clients.set(id, set);
+		for (const b of this.buffers.values()) if (b.session === id && b.shown) res.write(`data: ${JSON.stringify({ kind: "stream", role: b.role, text: b.text })}\n\n`);
+		req.on("close", () => { set.delete(res); if (!set.size) this.clients.delete(id); });
 	}
 
 	// ── routes ───────────────────────────────────────────────────────────────
@@ -374,7 +479,8 @@ export default class Sessions {
 		/* The browser's host: the dev server's proxy forwards it (x-forwarded-host); a page on
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"]]){
+		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["quiet", "quiet"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : b)); }
@@ -391,6 +497,10 @@ export default class Sessions {
 		});
 	}
 }
+
+/* A fast reply that says nothing: its brief's `(listening)`, or a short filler line ("Go ahead, listening."). */
+const FILLER = /^(?:keep going|go (?:on|ahead)|i'?m (?:here|listening)|still (?:here|listening|with you)|noted|got it|take your time|mm-?hm+|ok(?:ay)?|listening|sure)\b[\s,.!-]*(?:(?:i'?m |i am )?(?:still )?(?:listening|here|with you)[\s,.!-]*)?$/i;
+export const is_filler = text => { const t = String(text ?? "").trim(); return !t || /^\(listening\)/i.test(t) || (t.length <= 40 && FILLER.test(t)); };
 
 /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
 function body(req){
