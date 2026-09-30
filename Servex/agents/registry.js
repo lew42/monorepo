@@ -48,6 +48,7 @@ export default class Registry {
 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
 			state, visibility, session_id, started_at, parent: parent ?? null,
 			last_at: stamp(), boot: agent.host?.boot ?? null, pid: process.pid,
+			claude_pid: agent.claude_pid ?? null,   // the agent's own claude.exe (Agents.spawn_claude); pid is the HOST's
 			revivable: agent.revivable?.() ?? false,
 			model: model ?? null, effort: effort ?? null, cwd: cwd ?? null,
 			permission_mode: permission_mode ?? null, allowed_tools: allowed_tools ?? null,
