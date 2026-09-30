@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { place, stamp } from "./home.js";
+import Budget from "./Budget.js";
 
 /* THE HEARTBEAT — a task's owner that goes quiet is asked how it is doing; one
  * that died is revived; only when that fails does the owner of the machine hear.
@@ -9,7 +10,8 @@ import { place, stamp } from "./home.js";
  *
  * Watched: every OPEN task (no landed_at + outcome, no closed_by) that opted in —
  * line 1 dated at/after SERVEX_HEARTBEAT_SINCE, or line 1 `heartbeat: true` — so
- * the boot sweep never wakes weeks-old tasks. Only its line-1 agent is watched. */
+ * the boot sweep never wakes weeks-old tasks. Only its owner is watched: the latest assign's
+ * agent (a fresh session that took over writes one), or that id's resumed successor. */
 export const CHECK = "Status check: where are you at? No change of plan needed; just a line on what you're doing.";
 const FROM = "servex-heartbeat";
 
@@ -94,6 +96,9 @@ export default class Heartbeat {
         }
     }
 
+    /* The task budgets (Budget.js): swept every tick; the spawn gate asks budgets().refuse(spec). */
+    budgets(){ return this.budget ??= new Budget({ heartbeat: this }); }
+
     /* ── the sweep ─────────────────────────────────────────────────── */
 
     async tick(){
@@ -128,6 +133,7 @@ export default class Heartbeat {
             }
             await this.gate_sweep(now);
             await this.drain(now);
+            if (!process.env.SERVEX_NO_BUDGET) await this.budgets().sweep().catch(e => this.servex.say?.(`budget: ${e.message || e}`));
         } finally { this.busy = false; }
     }
 

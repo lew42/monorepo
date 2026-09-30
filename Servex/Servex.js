@@ -695,6 +695,8 @@ export default class Servex extends Events {
         const spawn = this.agents.spawn.bind(this.agents);
         this.agents.spawn_now = spawn;
         this.agents.spawn = spec => {
+            const broke = process.env.SERVEX_NO_BUDGET ? null : this.heartbeat?.budgets?.().refuse(spec);   // over its task's budget: refused, never queued (Budget.js)
+            if (broke){ this.log.append("system", { type: "gate", state: "refused", parent: spec.parent, name: spec.name ?? null, why: broke }).catch(() => {}); throw new Error(broke); }
             const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
             if (same) return same;
             const reason = this.bypass(spec) ? null : this.admit(spec);
