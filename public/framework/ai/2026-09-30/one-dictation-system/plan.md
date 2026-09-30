@@ -13,6 +13,8 @@
 | **Dev bar chat mode** (`dev/DevBar/`: ask.js, says.js, log.js) | Its own ask and chat log | The same dictation sidebar |
 | **The Shell's page sidebar** (task-mastermind-dev-shell's build) | Not built yet | The Shell puts this component in each page's sidebar |
 
+**The seam (agreed with task-mastermind-dev-shell):** `/framework/ux/Dictate/chat.js`, whose default export is `chat(el, { path, card })`. It draws into the element it's given, takes its size from that element, and returns something with `.remove()`. Every surface (the sheet, the drawer, the card sidebar, the dev bar and the Shell) calls this one function. dev/DevBar is in this task's fence; dev/DevShell/DevShell.js is the Shell's.
+
 Rendering stays minimal and efficient: one component, drawn once per surface, and no second copy of the thread.
 
 ## Small merges, in order (each one screenshot-checked on every surface before the next; tick a box only once its merge lands and its shots pass)
