@@ -215,6 +215,7 @@ export default class Pool extends Events {
     async salvage(slot, holder){
         this.kill(slot.watcher_pid, /health-supervisor/i);
         this.kill(slot.server_pid, this.server_cmd(slot));
+        for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);   // the server's noise stays out of salvage
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
         const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
         if (!status && !commits) return { branch: null, what: "nothing to salvage" };
@@ -268,9 +269,20 @@ export default class Pool extends Events {
         const taken = new Set([...this.slots.map(s => s.id), ...Object.keys(this.registry())]);
         for (let i = 1; i <= 9; i++){
             const id = `${this.prefix}-${i}`;
-            if (taken.has(id) || fs.existsSync(path.resolve(this.main, "..", "worktrees", id))) continue;
-            try { execFileSync("git", ["rev-parse", "--verify", "--quiet", `refs/heads/worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); continue; }
+            const dir = path.resolve(this.main, "..", "worktrees", id);
+            if (taken.has(id)) continue;
+            if (fs.existsSync(dir)){
+                try { if (fs.readdirSync(dir).length) continue; fs.rmdirSync(dir); } catch { continue; }   // an EMPTY leftover folder (qf-7, 09-30) frees its name
+            }
+            try { execFileSync("git", ["rev-parse", "--verify", "--quiet", `refs/heads/worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); }
             catch { return id; }   // no such branch: free
+            /* A leftover branch with no worktree, already merged, is deleted and its name reused (`branch -d`
+             * refuses an unmerged one, which keeps the name). Without this all nine names filled with
+             * leftovers and take_worktree failed with "No worktree could be made ready" (2026-09-30). */
+            try {
+                execFileSync("git", ["merge-base", "--is-ancestor", `worktree/${id}`, this.base], { cwd: this.main, windowsHide: true, stdio: "ignore" });   // merged into the BASE, not just main's HEAD
+                execFileSync("git", ["branch", "-d", `worktree/${id}`], { cwd: this.main, windowsHide: true, stdio: "ignore" }); return id;
+            } catch {}
         }
         return null;
     }
@@ -310,7 +322,12 @@ export default class Pool extends Events {
                 return;
             }
             for (const d of await this.dirt(slot)) this.restore(slot, d.file);
-            await this.script("worktree-down.mjs", slot.id);
+            if (this.registry()[slot.id]) await this.script("worktree-down.mjs", slot.id);
+            else {   // not registered (qf-6, 09-30: worktree-down refused, the slot stayed on disk and its name stayed taken)
+                const r = await this.git(this.main, ["worktree", "remove", slot.path]);
+                if (!r.ok) throw new Error(`git worktree remove ${slot.path}: ${r.out}`);
+                await this.git(this.main, ["branch", "-d", slot.branch]);   // -d: only a merged branch
+            }
             fs.rmSync(path.join(this.main, ".worktree-logs", `${slot.id}.log.err`), { force: true });   // worktree-down deletes only the .log
             const tmp = path.join(os.tmpdir(), `lew42-pool-${slot.id}`);
             refuse_links_into_main(tmp, "removing the watcher's temp dir", this.main);   // guard: never a recursive delete through a link into main
@@ -404,8 +421,13 @@ export default class Pool extends Events {
         return files.map(file => ({ file, hash: hashes[file] ?? "gone" }));
     }
 
+    /* A dev server's own logs (page.jsonl, files.jsonl, the clarity flags) are its noise, never an
+     * agent's work: a return treats them as clean and salvage leaves them out (node-reliability,
+     * 2026-09-30: qf-6's salvage swept 233 of them into a branch; a slot with only these stayed leased). */
+    static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === ".claude/skills/clarity/flags.jsonl"; }
+
     async own_dirt(slot){
-        return (await this.dirt(slot)).filter(d => slot.baseline?.[d.file] !== d.hash);
+        return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
     }
 
     /* A baseline file back to exactly what HEAD holds (a new one is deleted). */
