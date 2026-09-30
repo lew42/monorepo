@@ -9,6 +9,10 @@ description: Load this first, before touching anything, when you have been start
 
 **Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge.
 
+## Read the folder's ai/log.jsonl first (the owner, 2026-09-29)
+
+Any folder may have `ai/log.jsonl`: a short index of the AI work done there — sessions started or ended (with a title), tasks opened or landed, decisions — each line pointing to its detail file. Before your first edit in a folder, if `<folder>/ai/log.jsonl` exists, read its last 100 or so lines (never the whole file) and follow what it says. When you open or land a task there, or make a decision there, append ONE line with a pointer to the detail. Step-by-step progress never goes in it: that stays in your own task.jsonl.
+
 ## Quick fixes: take, write, smoke-test, merge, return
 
 1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
