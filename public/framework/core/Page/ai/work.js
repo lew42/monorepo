@@ -129,7 +129,7 @@ function fill_rows(data, extra = []){
 		...(data.agents ?? []).map(a => ({ at: a.started_at ?? "", done: false,
 			draw: () => row_line("smart_toy", `${a.id} · ${a.role} · ${a.state}`, null) })),
 		...(data.cards ?? []).map(c => ({ at: c.last ?? c.created ?? "", done: c.status === "done",
-			draw: () => row_line(c.type === "note" ? "sticky_note_2" : "task_alt", c.title, "/framework/ai/" + c.id + "/") })),
+			draw: () => row_line(c.type === "note" ? "sticky_note_2" : "task_alt", c.title, "/framework/ai2/" + c.id + "/") })),
 		...extra.map(e => ({ at: e.at ?? "", done: !!e.done,
 			draw: () => row_line(e.icon ?? "history", e.title, e.url) })),
 	].sort((x, y) => (x.done !== y.done ? (x.done ? 1 : -1) : String(y.at).localeCompare(String(x.at))));
