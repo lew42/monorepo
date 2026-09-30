@@ -29,6 +29,9 @@ genuinely needs to, and say why in a decision line.
   stack's outer corners (the first item's top, the last item's bottom), or wrap the stack in one
   rounded container, and give the rows inside square corners. Rounded items with zero gap leave
   pinched notches where the corners meet (the owner, 2026-09-25).
+- **A flush stack that's the narrow half of a list-and-detail split has its own name: the
+  preview rail** (AI 2's inbox list, `ext/grip`'s readme) — a flush stack of previews beside
+  the detail they open. Use that name for any rail shaped like it, instead of a new one.
 - **Look before you merge.** Screenshot the page at 400, 1200, 1920 and 3440 (`node
   Server/layout-check.mjs <url>`) and read the contact sheet.
 
