@@ -16,6 +16,8 @@ are getting kind of left in limbo" (the owner, 2026-09-30). The live page is
 - The ledger file itself, `public/framework/ai/asks.jsonl`, and the code that writes and
   watches it, are in `Servex/asks/` (not a web page — it's the dev-only backend) — its own
   readme has the write side (`Asks.mark()`, the CLI, the stall rule). This folder only reads.
+- Not to be confused with `public/framework/ai/council/asks.jsonl`, the council's older
+  verdict log: same file name, unrelated.
 
 ## Use
 

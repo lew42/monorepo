@@ -5,6 +5,7 @@ Where the agents' work is recorded: one folder per day, one folder per task insi
 ## Start here
 
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
+- [Asks](asks/): every ask you made today onward, who owns it, and whether it landed or stalled.
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
 - [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
   what each one cost.

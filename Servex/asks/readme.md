@@ -5,6 +5,17 @@ routed to an agent and written as one line in `public/framework/ai/asks.jsonl`. 
 of Servex that notices when that agent stops, goes quiet, or lands — so a stalled ask never just
 sits there unseen.
 
+## When an ask is marked stalled
+
+An ask that is not yet landed or dropped is **stalled** when its owner agent is stopped or gone
+(or never registered), or dormant with nothing queued to wake it, or has been silent — no turn
+and no new line in its task.jsonl — for more than 2 hours. Servex checks every 60 s, starting
+10 minutes after it boots (so agents a restart orphaned get a chance to be revived first), and
+marks each change once. An owner that speaks again moves the ask back to `building`; an owner
+whose task lands (or is closed with `close_task`) marks it `landed`. A stalled ask shows up for
+the owner as a row near the top of the AI 2 Inbox (`/framework/ai2/inbox/`), and on
+[`/framework/ai/asks/`](/framework/ai/asks/).
+
 ## What
 
 - [`fold.js`](/framework/ai/asks/fold.js) (pure, node + browser) — turns the ledger's lines into
@@ -46,7 +57,8 @@ fold, it will disagree with this one the moment the ledger grows an update line.
 - **`dormant` is a string, not a feature this file owns.** Another task (2026-09-30) is adding
   that agent state; `stalled()` just accepts the word. If that state's exact meaning changes,
   `stalled()`'s dormant branch is the only place to update.
-- **This worktree's own `public/framework/ai/asks.jsonl` doesn't exist yet** — this branch was
-  cut before the main tree's ledger file was created, so a fresh checkout here reads as empty.
-  That's expected: `Asks.read()` and `mark.mjs --list` both handle a missing file as "no asks",
-  not an error. The test embeds the real 16 lines as a fixture instead of reading them off disk.
+- **`asks.jsonl` is not tracked by git.** It lives only in the main tree, written live; a
+  worktree has none, and `Asks.read()` / `mark.mjs --list` treat a missing file as "no asks".
+  The test embeds 16 real lines as a fixture instead.
+- **Not `ai/council/asks.jsonl`.** That older file is the council's verdict log; same name,
+  unrelated.
