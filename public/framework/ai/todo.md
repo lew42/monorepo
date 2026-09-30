@@ -169,3 +169,6 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   side padding.
 
 - **A guard for `git stash` / `checkout --` / `reset --hard` in the main tree** (mastermind-servex-3, 2026-09-28). The rule is written in three skills and was still broken today: a PreToolUse hook on Bash that refuses these in `C:/Code/lew42/monorepo` (worktrees are fine). Wiring a Bash hook in `.claude/settings.json` is the owner's call.
+
+- **`list_agents` returns every row ever** (mastermind-servex-9, 2026-09-30): 1248 rows, 1.3 MB, on the first call of a fresh mastermind — it blows the context it was meant to inform. Default to live rows (not stopped/gone), with `all: true` for the archive. Also the ledger's `files.jsonl` in pool worktree qf-4 shows 10+ modified `ai/*/files.jsonl` and `public/files.jsonl` — a generator writes into whichever tree it runs in; it should skip worktrees.
+- **chat-hitl asks 1 and 3 unmet** (review proof, 2026-09-30): the first review.mjs run on next-chat-hitl found the demo stuck on "marking…" and two of the owner's asks unmet — [report](2026-09-30/review/proof/review/report.md). chat-hitl-2 is landed and stopped; needs an owner (a $5 fix task).
