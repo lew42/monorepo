@@ -4,6 +4,7 @@ import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { servex_base, servex_fetch, card_stream, agent_frames } from "./inbox.js";
 import { clock } from "./card.js";
 import { md_into, who_label, speak } from "./chat.js";
+import { create_processes, processes_section, running_index, process_badge } from "./processes.js";
 
 /**
  * THE LIVE CARD — `/framework/ai2/live/`, the first card that does not come
@@ -69,6 +70,13 @@ export function live_model({ prompts, day }){
 	let agents = [], usage = null, moment = null, pool = [];
 
 	const changed = () => readers.forEach(fn => fn());
+
+	/* The process monitor (processes.js): one snapshot of every claude.exe and
+	   what spawned it — its own poller, same shape as `poll_pool` just below
+	   (skips itself while the tab is hidden, shows nothing until Servex has
+	   the route). `item()` hands its latest snapshot to `live_full` as
+	   `it.processes`, which is null until the first answer arrives. */
+	const proc = create_processes(changed);
 
 	async function poll_agents(){
 		if (document.hidden) return;
@@ -205,7 +213,7 @@ export function live_model({ prompts, day }){
 			const bars = lim.map(l => ({ kind: l.kind, label: LABELS[l.kind] ?? l.kind, percent: l.percent, severity: l.severity }));
 			const landed = day.landings.slice(-5).reverse().map(l => ({ id: l.task, title: l.task.replace(/-/g, " "), line: l.sentence, at: l.at, url: `/framework/ai/${day.date}/${l.task}/` }));
 			return { id: LIVE, kind: "live", landed, icon: "speed", title: "Live", author: "servex", at,
-				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, pool: pool_rows(pool), last: last?.text ?? "", links: [], transcript: [] };
+				usage: lim.length ? { utilization: { limits: lim } } : null, bars, agents: a, tasks: t, pool: pool_rows(pool), processes: proc.data(), last: last?.text ?? "", links: [], transcript: [] };
 		},
 
 		/** Everything the Live card's chat shows: its own log, plus today's task
@@ -281,7 +289,7 @@ export function live_full(it, model){
 	});
 
 	const rows = new Map();
-	const list = (title, items, empty, { clearable, talkable, fold, cls = "" } = {}) => div.c("ai2-live-section " + cls, $sec => {
+	const list = (title, items, empty, { clearable, talkable, fold, cls = "", extra } = {}) => div.c("ai2-live-section " + cls, $sec => {
 		h3(title);
 		if (!items.length) small.c("muted").text(empty);
 		const item = x => {
@@ -290,6 +298,8 @@ export function live_full(it, model){
 				span.c("ai2-live-state ai2-live-" + x.state).text(x.state.replace("-", " "));
 				span.c("ai2-live-name").text(x.title);
 				if (x.line) small.c("ai2-live-line muted").text(x.line);
+				const proc_line = extra?.(x);
+				if (proc_line) small.c("ai2-live-line ai2-proc-badge muted").text(proc_line);
 				if (clearable) button.c("ai2-clear").attr("type", "button").attr("title", "clear — it comes back if it changes again")
 					.text("✕").click(() => model.clear(x.id));
 			});
@@ -306,8 +316,17 @@ export function live_full(it, model){
 		if (idle.length) details.c("ai2-live-idle", () => { summary(idle.length + " idle"); idle.forEach(item); });
 	});
 
-	if (it.pool?.length) list("Worktrees", it.pool, "", { cls: "ai2-live-pool" });
-	list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running" });
+	// "Worktree pool" — the quick-fix slots (ready/taken/idle): a different
+	// list from the process monitor's own "Worktrees" summary below (deliverable
+	// 1's total/pool/in-use/open/uncommitted counts) — renamed so the two don't
+	// share a heading on the same page (processes.js, graph-brief).
+	if (it.pool?.length) list("Worktree pool", it.pool, "", { cls: "ai2-live-pool" });
+	// Ask 2 (process-monitor): each running agent's own line gains the real
+	// process behind it — "pid 47356 · 248 MB", "no process" when `running[]`
+	// marks it lost, or nothing yet when an older Servex has no `running[]` at all.
+	const running_by_id = running_index(it.processes?.running);
+	list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running",
+		extra: x => process_badge(x.id, x.state, running_by_id) });
 	div.c("ai2-live-tasks", () => {
 		list("Working on", it.tasks, "nothing in progress", { clearable: true });
 		div.c("ai2-live-section", () => {
@@ -320,6 +339,7 @@ export function live_full(it, model){
 			}));
 		});
 	});
+	processes_section(it.processes);
 	place(model, $col, rows);
 }
 
