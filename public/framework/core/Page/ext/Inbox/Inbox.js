@@ -146,4 +146,5 @@ export class DrawerInbox {
 	}
 }
 
+export { DrawerInbox as Inbox };
 export default DrawerInbox;

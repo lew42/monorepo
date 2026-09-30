@@ -23,7 +23,7 @@ export default function paths(page, box){
 		a.c("page-link", "doc/path-extensions.md").href("doc/path-extensions.md");
 
 		div.c("page-ext-paths-table", () => ROWS.forEach(row => {
-			div.c("card pad flex v gap-25", () => {
+			div.c("card flex v gap-25", () => {
 				div.c("flex gap v-center wrap", () => {
 					a.c("page-link", row.adds).href(row.href);
 					span.c("muted", row.on);

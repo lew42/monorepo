@@ -1,4 +1,5 @@
 import { div, h4, span, small, p } from "/app.js";
+import { age } from "./Inbox/Inbox.js";
 
 /* Placed by this folder's own page.jsonl (its last line, {"place": "demo.js"}) — proof
  * that a page.jsonl line alone, with no page.js and no other code, can turn an
@@ -14,13 +15,14 @@ export default async function demo(page, box){
 
 	const draw = () => box.empty(() => {
 		const n = page.inbox?.length ?? 0;
+		p("An extension is a small piece of behavior a page turns on by name, with one page.jsonl line. This page turns on `Inbox`, and these are its messages.");
 		h4(`page.inbox — ${n} message${n === 1 ? "" : "s"}`);
 
-		(page.inbox ?? []).forEach(m => div.c("card pad flex v gap-25", () => {
-			div.c("flex gap-25 v-center", () => {
+		(page.inbox ?? []).forEach(m => div.c("card flex v gap-25", () => {
+			div.c("flex wrap gap-25 v-center", () => {
 				span.c("muted", m.type);
 				span(m.author);
-				small.c("muted", m.at);
+				small.c("muted", m.at ? ((a) => a === "now" ? a : a + " ago")(age(m.at)) : "").attr("title", m.at ?? "");
 			});
 			p(m.text);
 		}));
