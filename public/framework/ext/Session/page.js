@@ -48,6 +48,6 @@ export default new Page({
 
 		demo(() => live_session(), "`start()` makes the session, `say()` sends a line, `watch(file)` hands back every line of the session's file, drawn here by ext/Chat.");
 
-		md(`**Where it is saved:** \`<home page>/ai/<session>.jsonl\`, one file per session. Each page it visits gets one pointer line in its own \`page.jsonl\`. The design: [voice-sessions](/framework/ai/2026-09-29/voice-sessions/design.md). The details: [doc/](./doc/).`);
+		md(`**Where it is saved:** \`<home page>/ai/<session>.jsonl\`, one file per session. Each page it visits gets one pointer line in its own \`page.jsonl\`. The design: [voice-sessions](/framework/ai/2026-09-29/voice-sessions/design.md). The details: [doc/sessions.md](./doc/sessions.md).`);
 	},
 });
