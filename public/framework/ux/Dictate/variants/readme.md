@@ -1,12 +1,18 @@
-# Dictate variants — the same mic, a different look
+# Dictate variants — the same mic, a different look (or, once, a different mic)
 
-**What:** three working `Dictate` widgets, side by side — [v1](/framework/ux/Dictate/variants/v1/)
+**What:** four working `Dictate` widgets, side by side — [v1](/framework/ux/Dictate/variants/v1/)
 (today's box, unchanged), [Cards](/framework/ux/Dictate/variants/cards/) (each finished
-sentence becomes its own card — the mobile "prompt cards" flow), and
-[Compact](/framework/ux/Dictate/variants/compact/) (one short line for a toolbar). Each is a
-plain subclass of [`Dictate`](/framework/ux/Dictate/) overriding one or two methods; none of
+sentence becomes its own card — the mobile "prompt cards" flow),
+[Compact](/framework/ux/Dictate/variants/compact/) (one short line for a toolbar), and
+[Parts](/framework/ux/Dictate/variants/parts/) (the whisper half rebuilt on
+[`audio/`](/framework/audio/)'s `MicStream` + rolling-window `Transcriber.Whisper`, instead of
+this module's own `capture.js` + cut-and-append segments — same caption, same log, same
+`revise:`). The first three are plain subclasses overriding one or two DRAWING methods; none of
 them touch the mic pipeline itself — the engines, every error message, and the start sound's
-real timing (fixed in `ai/2026-09-29/mobile-nav/`) are inherited by every variant, for free.
+real timing (fixed in `ai/2026-09-29/mobile-nav/`) are inherited for free. **Parts is different
+on purpose**: it overrides the PIPELINE (`start_whisper()`, `heartbeat()`, `stop()`,
+`on_level()`), not the drawing — see its own doc comment for why that's a different rule than
+"never override `start()`/`stop()`" below.
 
 **Use:** `import CardsDictate from "/framework/ux/Dictate/variants/cards/Cards.js"; new
 CardsDictate({...});` — the exact same constructor shape as plain `Dictate`

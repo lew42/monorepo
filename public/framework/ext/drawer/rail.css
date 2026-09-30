@@ -103,6 +103,25 @@
 	.drawer-rail-sheet-thread { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; }
 	.drawer-rail-sheet-thread .chatbox-log { max-block-size: none; }
 
+	/* THE PANEL (`ChatPanel`, `DrawerRailSheetPanel`, ai/2026-09-29/audio/c-chat/):
+	   the same log-plus-composer-plus-mic widget the desktop drawer's AI tab now
+	   builds, in place of this sheet's own mic-only build. `.drawer-rail-sheet`
+	   already caps the WHOLE sheet at 70vh (above) — rather than guess how much
+	   of that the head and the links footer leave for the panel,
+	   `.drawer-rail-sheet-panel` and `ChatPanel`'s own box are both told to grow
+	   to fill whatever is left (`flex: 1 1 auto; min-block-size: 0`, `max-height:
+	   none` overriding `Chat.css`'s own default ceiling) — the SAME nested-flex
+	   trick `.chatbox-panel` uses internally for its own log, one level up. Only
+	   the log inside ChatPanel ever actually scrolls; the head, the composer and
+	   the links stay put. */
+	.drawer-rail-sheet-panel {
+		display: flex; flex-direction: column;
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	.drawer-rail-sheet-panel > .chatbox-panel {
+		flex: 1 1 auto; min-block-size: 0; max-height: none;
+	}
+
 	.drawer-rail-sheet-mic { flex: 0 0 auto; }
 	/* Every FINISHED sentence already gets its own card, or its own line in the
 	   card's real thread above (`rail.js`'s own `card()`) — the widget's own

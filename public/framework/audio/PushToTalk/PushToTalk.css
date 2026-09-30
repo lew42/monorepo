@@ -1,0 +1,6 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-ptt-btn { user-select: none; touch-action: none; }
+	.audio-ptt-btn.on { background: var(--prim); color: var(--prim-ink); }
+}

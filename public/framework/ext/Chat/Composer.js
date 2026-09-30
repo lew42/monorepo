@@ -28,6 +28,7 @@ const MAX_PROMPT = 20000;   // one message is never legitimately longer; a runaw
 export function composer({
 	deliver, re = () => null, on_text, mic: with_mic = true, autostart, max = MAX_PROMPT,
 	placeholder = "say something", hint = "", sent = "sent", failed = "nothing was sent",
+	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/2026-09-29/audio/
 } = {}){
 	let $box, $input, $note, mic;
 
@@ -41,6 +42,7 @@ export function composer({
 				re,
 				deliver,
 				on_text: text => on_text?.(text),
+				revise,
 				field: $input,
 				on_error: e => note(String(e?.message ?? e)),
 			}).ac("chatbox-mic");

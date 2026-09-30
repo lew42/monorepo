@@ -42,8 +42,16 @@ const WORDS = {
 	failed: "Servex is not answering, so nothing was sent",
 };
 
+// `revise: "clean" | "edit" | "summary"` — plumbing only, left OFF (`false`) by default:
+// `revise: "edit"` costs a real model call per sentence, and nothing shows the raw/revised
+// pair yet, so that cost buys nothing to look at today (audio review, 2026-09-29, finding 4).
+// Turn it back on once ChatPanel shows raw→revised pairs. `ext/Chat/Composer.js` forwards
+// this straight to the `ComposerMic` it builds, which then logs each utterance's revision
+// for real (`Dictate.js`'s own `log_revision()`) — the box's own text is untouched
+// (`ComposerMic` writes from Whisper's raw words, same as before); the revised line is a
+// second, separate log entry, not a rewrite of it.
 export function composer(opts = {}){
-	const set = Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined));
+	const set = Object.fromEntries(Object.entries({ revise: false, ...opts }).filter(([, v]) => v !== undefined));
 	return base({ ...WORDS, ...set });
 }
 

@@ -6,8 +6,10 @@ export default new Page({
 	title: "Chat",
 	description: "A scrolling chat log that follows new messages while you are at the bottom, and holds still once you scroll up.",
 	icon: "chat",
+	children: "panel",
 
 	content(){
+		p("The log below, on its own. For the log plus the composer and the mic as ONE component — the widget the desktop drawer and the mobile sheet both use — see Chat Panel, `/framework/ext/Chat/panel/`.");
 		p("Messages are added below every second. Scroll up to read: the log stops moving. Scroll back to the bottom: it follows again.");
 
 		demo(() => {
@@ -51,5 +53,21 @@ export default new Page({
 			] });
 			chat({ source: () => entries }).sync();
 		}, "Three raw owner messages, one refined line. Without the refined line the three raw paragraphs would show.");
+
+		p("**The universal chat line** (`voice-sessions/design.md`) is the one shape every surface — voice, typed, an agent's own reply — logs a turn as: `{\"chat\": {at, session, path, from: {kind, id}, via, text, re}}`. `from.kind` \"owner\" is your bubble; anything else is a reply. `via` (\"voice\" or \"text\") draws a small 🎤/⌨ mark. A later line with the SAME `at` and `fix: true` replaces that piece's words — a correction, not a second message. `place: {module, id}` swaps the words for a `ux/Content` module's own card. Below: a voice line, a typed line, a reply, the voice line corrected, and a Question card — all from one log, mixed with an OLD-shape entry to show both still work together.");
+
+		demo(() => {
+			const t0 = Date.parse("2026-09-25T12:00:00Z"), entries = [];
+			const say = (i, c) => entries.push({ chat: { at: new Date(t0 + i * 4000).toISOString(), session: "demo", path: "/framework/ext/Chat/", ...c } });
+			say(0, { from: { kind: "owner" }, via: "voice", text: "so the cards should like show one bubble" });
+			say(1, { from: { kind: "owner" }, via: "text", text: "and keep the log the same shape it already is" });
+			say(2, { from: { kind: "assistant", id: "assistant-fast" }, text: "Got it — this line's own format, one shape for voice and typed both." });
+			entries.push({ chat: { at: new Date(t0).toISOString(), session: "demo", from: { kind: "owner" }, via: "voice",
+				text: "So the cards should show one bubble per turn.", fix: true } });   // corrects the FIRST line above, same `at`
+			entries.push({ type: "reply", by: "assistant-demo", id: "old-shape", at: new Date(t0 + 16000).toISOString(), text: "The old `{type, by, text}` shape still draws — nothing about it changed." });
+			entries.push({ chat: { at: new Date(t0 + 20000).toISOString(), session: "demo", from: { kind: "assistant", id: "assistant-fast" },
+				place: { module: "/framework/ux/Content/Question/Question.js", id: "demo-chat-line-question", ask: "Which of these feels most like a card?" } } });
+			chat({ source: () => entries }).sync();
+		}, "A voice line, a typed line, a reply, that first voice line corrected in place (`fix: true`, same `at`), an old-shape entry drawn beside them, and a Question card in a reply's place.");
 	},
 });

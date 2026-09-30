@@ -1,0 +1,21 @@
+@layer base, theme, site, util;
+
+/* `--level` (0..1) is written every audio frame — a CSS custom property, not a
+   JS-driven width, so a fast meter never triggers layout, only paint. */
+@layer theme {
+	.audio-levelmeter {
+		--level: 0;
+		block-size: 0.6em;
+		border-radius: 999px;
+		background: var(--wash);
+		overflow: hidden;
+	}
+	.audio-levelmeter-bar {
+		block-size: 100%;
+		border-radius: inherit;
+		background: var(--prim);
+		transform-origin: left center;
+		transform: scaleX(var(--level));
+		transition: transform 60ms linear;
+	}
+}

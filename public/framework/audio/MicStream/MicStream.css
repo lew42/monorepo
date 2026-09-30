@@ -1,0 +1,13 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-micstream-dot {
+		--level: 0;
+		inline-size: 0.7em;
+		block-size: 0.7em;
+		border-radius: 50%;
+		background: var(--line);
+		box-shadow: 0 0 0 calc(var(--level) * 0.4em) color-mix(in srgb, var(--prim) calc(var(--level) * 100%), transparent);
+		transition: box-shadow 60ms linear;
+	}
+}

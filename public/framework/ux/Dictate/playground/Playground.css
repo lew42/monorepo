@@ -47,6 +47,19 @@
 	.ux-dictate-pg-status { font-style: italic; }
 	.ux-dictate-pg-status:empty { display: none; }
 
+	.ux-dictate-pg-note { font-size: .9em; }
+	.ux-dictate-pg-level-row { font-size: .9em; }
+
+	/* ---- Chunks: every Whisper resend as its own row (4a) --------------------- */
+	.ux-dictate-pg-chunk-row { padding-block: .15em; align-items: baseline; }
+	.ux-dictate-pg-chunk-seg, .ux-dictate-pg-chunk-ms { white-space: nowrap; font-size: .85em; }
+	.ux-dictate-pg-cut { padding-block: .3em; font-style: italic; border-block-end: 1px dashed var(--line); }
+
+	/* ---- Side: raw and revised in two plain columns (4b) ---------------------- */
+	.ux-dictate-pg-side-row { align-items: start; padding-block: .3em; border-block-end: 1px solid var(--line); }
+	.ux-dictate-pg-side-row .ux-dictate-pg-break { grid-column: 1 / -1; }
+	.ux-dictate-pg-side-raw { color: var(--muted); }
+
 	/* ---- the tab strip — quiet, the same shape ext/tabs draws (its own doc), ---
 	   just not ext/tabs itself: every panel below is ALREADY built and mounted, so
 	   picking a tab only shows/hides — nothing here is a Page and nothing re-renders. */

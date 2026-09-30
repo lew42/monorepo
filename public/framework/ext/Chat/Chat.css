@@ -4,6 +4,37 @@
 	   `chatbox-*`; a page that hosts it (ai2) only places it: where it sits, how
 	   tall its log may grow. Why: `doc/ai2.md`. */
 
+	/* THE PANEL (`ChatPanel.js`): the log and the composer as one box, sized by
+	   its own content up to `--chatbox-panel-max`, then only the log scrolls —
+	   the same widget in the desktop drawer and the mobile sheet (the owner,
+	   2026-09-29: "the height should be variable so that it could start small
+	   and grow to a maximum height and then be scrollable").
+
+	   HOW: a flex COLUMN with no height of its own (so it is only ever as tall
+	   as its children) and a `max-height` ceiling; the log inside is the one
+	   child allowed to shrink (`min-height: 0`, `flex: 1 1 auto`) and it already
+	   scrolls on its own (`.chatbox-log` above). Past the ceiling the composer
+	   keeps its size and the log gives up whatever room that takes — no JS
+	   measures anything. A host sets `--chatbox-panel-max` to change the ceiling:
+	   the drawer sets it to its own full height, the mobile sheet to 70vh (both
+	   `drawer.css`/`rail.css`, once wired). */
+	.chatbox-panel {
+		display: flex;
+		flex-direction: column;
+		max-height: var(--chatbox-panel-max, 70vh);
+		overflow: hidden;
+	}
+	/* The panel's own ceiling replaces the log's fixed 30vh one above — inside a
+	   panel, the PANEL decides where the scrolling starts. */
+	.chatbox-panel > .chatbox-log {
+		flex: 1 1 auto;
+		min-height: 0;
+		max-height: none;
+	}
+	.chatbox-panel > .chatbox-compose {
+		flex: none;
+	}
+
 	.chatbox-compose {
 		position: relative;
 		display: flex;
@@ -29,8 +60,17 @@
 	   between them, so nothing is ever typed behind the icon. */
 	/* ⚠ No height ceiling here (the owner, via manager-new-card, 2026-09-24: the box
 	     keeps growing). The chat's log above it gives up the room instead. */
+	/* ⚠ `width: 100%`, not just `flex: 1` (found on ChatPanel's own demo page,
+	   `panel-1920-demo4.png`, 2026-09-29): `.auto` (`field-sizing: content`,
+	   framework.css) sizes BOTH axes to content whenever an axis's `width`/
+	   `height` is `auto` — `flex: 1`'s basis alone left `width` at its initial
+	   `auto`, so the box sized itself to its short placeholder text instead of
+	   filling the row, no matter how wide the row was. An explicit `width: 100%`
+	   gives the width axis a real value, so `field-sizing: content` is left to
+	   do only what the comment above says it is for — the HEIGHT. */
 	.chatbox-compose-input {
 		flex: 1;
+		width: 100%;
 		min-width: 0;
 		min-height: 3.4em;
 		resize: none;
@@ -230,6 +270,12 @@
 	}
 	.chatbox-from[hidden], .chatbox-pieces[hidden] { display: none; }
 	.chatbox-text + .chatbox-text { margin-block-start: 0.5em; }   /* merged messages are paragraphs of one bubble */
+	/* THE UNIVERSAL CHAT LINE (Chat.js's `chat_line()`): `via` — said (🎤) or
+	   typed (⌨) — reads " · 🎤" on the sender label itself (`chatbox-who`,
+	   above — `label_via()` in Chat.js), not on every piece; `place` is a
+	   ux/Content card (Question, Decision, …) drawn in the piece's place
+	   instead of text. */
+	.chatbox-place { font-size: 1rem; }   /* the card sets its own type size; the bubble's 0.9em would shrink it twice */
 	.chatbox .chatbox-text > :is(h1, h2, h3, h4, h5, h6) { font-size: 1.05em; line-height: 1.3; }   /* beats the skin's heading size (same layer, higher specificity) */
 	.chatbox-text > :first-child { margin-block-start: 0; }
 	.chatbox-text :is(ul, ol) { padding-inline-start: 1.3em; }

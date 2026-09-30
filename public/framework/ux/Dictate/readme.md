@@ -28,6 +28,30 @@ indefinitely, `on_text` fires once per finished sentence with nothing ever writt
 `$input`, and "stop after a pause" is hidden since nothing should stop it. See "Open mic"
 in [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
 
+## Revise — clean up the words after they're heard
+
+```js
+new Dictate({
+	revise: "edit",                              // "clean" | "edit" | "summary" | false (default)
+	on_text: text => …,                           // the RAW text — unchanged, fires first, always
+	on_revised: (text, { raw, level }) => …,       // the revised text, a moment later, only if it worked
+});
+```
+
+`revise` is `false` by default, so nothing changes for a caller that doesn't ask — the raw
+text is ALWAYS kept, `on_text` fires exactly as it always did, and revising never blocks or
+slows it down. When `revise` names a level, [`ux/Revise`](/framework/ux/Revise/) runs in the
+background and, once Servex answers: logs the revision as its OWN line (`{type:"revision",
+of, level, text}`, `of` pointing back at the raw line's own id — never merged into it, never
+written for a guess or an in-between chunk, only the finished text), and, if the caller set
+one, calls `on_revised(text, {raw, level})` too. A Servex that isn't up (or any other
+failure) logs nothing and never calls `on_revised` for that chunk — nothing throws, nothing
+is typed into a box on your behalf. Two real callers: `ext/drawer/rail.js`'s mobile
+assistant (`revise: "edit"`, a second card once the tightened version is ready) and
+`ai2/compose.js` (`revise: "edit"`, forwarded by `ext/Chat/Composer.js` into `ComposerMic` —
+its box still shows only the raw words; the revision is a log line, not a box rewrite).
+See it work, chunk by chunk, at the [playground](/framework/ux/Dictate/playground/).
+
 ## Voice → log
 
 Every finished utterance also becomes a log entry, not just words on screen —
@@ -38,6 +62,14 @@ when Servex isn't up yet. See "Voice → log" in
 
 ## Watch out
 
+- **The caption is never cleared before the real text is ready to replace it.** An earlier
+  build cleared the grey guess the INSTANT a segment closed, then repainted the caption
+  again once Whisper's answer came back — two real frames, with the caption visibly
+  shorter in between for however long Whisper took (smooth when it was fast, "erased and
+  redrawn in two steps" when it wasn't — the owner, 2026-09-29). `close_segment()` now
+  only clears the guess in the SAME `draw_caption()` call that shows the real text, or
+  gives up on the segment — never a visible gap. Measured with a `ResizeObserver`:
+  `ai/2026-09-29/audio/b-refine/task.jsonl`.
 - **Silence is never sent.** Whisper answers a recording with no speech in it by inventing
   a sentence — "Thank you." — so a segment carrying less than `min_speech_ms` (120ms) of
   actual speech is not transcribed at all, and whisper's non-speech labels (`*shriek*`,
@@ -93,6 +125,11 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - **v1** — today's box, unchanged.
 - **Cards** — the mobile "prompt cards" flow: each finished sentence becomes its own card.
 - **Compact** — one short line for a toolbar, never a growing block.
+- **[Parts](/framework/ux/Dictate/variants/parts/)** — the whisper half rebuilt on
+  [`audio/`](/framework/audio/)'s `MicStream` + rolling-window `Transcriber.Whisper` instead of
+  this module's own `capture.js` + cut-and-append segments (same caption, same log, same
+  `revise:`) — measured fewer hallucinated/lost words at a segment's edge. Not the default yet;
+  try it, then switch.
 
 ## More
 

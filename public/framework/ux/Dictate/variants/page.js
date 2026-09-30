@@ -13,10 +13,10 @@ import { Page, p } from "/app.js";
 export default new Page({
 	meta: import.meta,
 	title: "Variants",
-	description: "Today's box (v1), the mobile prompt-cards flow, and a compact one-line toolbar mic — three ways of drawing the same dictation, each its own subclass.",
+	description: "Today's box (v1), the mobile prompt-cards flow, a compact one-line toolbar mic, and Parts — the same whisper pipeline rebuilt on audio/'s rolling-window transcriber.",
 	icon: "grid_view",
 
-	children: ["v1", "cards", "compact"],
+	children: ["v1", "cards", "compact", "parts"],
 
 	content(){
 		p("Each card below is a real, working `Dictate` — press its 🎤 right on the card. Open any one for its own page: what it overrides, why, and where it fits.");

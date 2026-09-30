@@ -1,6 +1,7 @@
 import { View, div, span, button, label, input } from "../../core/View/View.js";
 import Capture from "./capture.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import Revise from "../Revise/Revise.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 
 View.stylesheet(import.meta, "Dictate.css");
@@ -332,7 +333,7 @@ export default class Dictate extends View {
 		this.set_state("transcribing");
 
 		if (this.engine === "whisper"){
-			await this.close_segment();
+			await this.close_segment("manual");
 			this.mic?.stop();
 			// close_segment() may itself have set_error()'d (whisper stopped answering
 			// mid-session) — never stamp that back to "idle" as if nothing happened.
@@ -425,8 +426,8 @@ export default class Dictate extends View {
 	heartbeat(){
 		const now = performance.now();
 		if (this.engine === "whisper"){
-			if (this.has_speech && now - this.last_loud_at >= this.pause_ms) this.close_segment();
-			else if (now - this.segment_started_at >= this.max_segment_ms) this.close_segment();
+			if (this.has_speech && now - this.last_loud_at >= this.pause_ms) this.close_segment("pause");
+			else if (now - this.segment_started_at >= this.max_segment_ms) this.close_segment("forced");
 			else if (now - this.last_partial_at >= this.resend_ms) this.partial_tick();
 		}
 		if (this.send_on_pause) this.check_end_pause(now);
@@ -469,16 +470,29 @@ export default class Dictate extends View {
 		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); this.on_guess?.(text); }
 	}
 
-	async close_segment(){
+	/** ⚠ THE GUESS IS NEVER CLEARED BEFORE THE FINAL TEXT IS READY TO REPLACE IT.
+	 *  An earlier version cleared `partial_text` and redrew the caption THE INSTANT
+	 *  a segment closed, then redrew AGAIN once `transcribe()`'s await returned —
+	 *  two real, separately-painted frames, with the caption visibly SHORTER in
+	 *  between (the grey guess gone, the settled text not landed yet) for however
+	 *  long Whisper took to answer. That is the flicker the owner saw: "smooth"
+	 *  when Whisper was fast enough nobody noticed the gap, "erased and redrawn in
+	 *  two steps" when it wasn't (`ai/2026-09-29/audio/b-refine/`, measured with a
+	 *  `ResizeObserver` — `doc/decisions.md`). Now the guess is only ever cleared
+	 *  in the SAME `draw_caption()` call that either shows the real text (`commit()`)
+	 *  or gives up on this segment (nothing worth sending, or Whisper errored) —
+	 *  one paint, never a visible dip. */
+	async close_segment(reason = "pause"){
 		const samples = this.mic.snapshot();
 		this.mic.cut();
 		this.segment_epoch++;
 		this.has_speech = false;
 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
-		this.partial_text = "";
-		this.draw_caption();
-		this.on_guess?.("");   // the growing guess is gone — a caller mirroring it clears too
-		if (!this.worth_sending(samples)) return;
+
+		if (!this.worth_sending(samples)){
+			this.clear_guess();
+			return;
+		}
 
 		// Let a partial resend for the OLD segment finish first — whisper-server
 		// answers one request at a time, and its answer is about to be thrown
@@ -494,11 +508,22 @@ export default class Dictate extends View {
 			// to just have it not work and not know why". Ends the dictation rather than
 			// silently dropping every segment from here on.
 			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
+			this.clear_guess();
 			this.set_error(`Whisper stopped answering (${e.message}) — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.`);
 			return;
 		}
 		finally { this.inflight = null; }
-		this.commit(text);
+		// `commit()` itself clears `partial_text` and redraws WITH the new settled
+		// line already in place — see its own comment. No separate clear here.
+		this.commit(text, reason);
+	}
+
+	/** The still-moving guess is gone with nothing to replace it (a silent segment,
+	 *  or Whisper failed) — the one place `close_segment()` clears it on its own. */
+	clear_guess(){
+		this.partial_text = "";
+		this.draw_caption();
+		this.on_guess?.("");
 	}
 
 	/** **Is there any speech in here at all?** Whisper never answers "nothing" —
@@ -641,16 +666,39 @@ export default class Dictate extends View {
 	// ---- text: the live caption, then the real box ---------------------------
 
 	/** One finished piece of text — a whisper segment, or a browser `isFinal`
-	 *  result — settles into the caption and lands in the real target. */
-	commit(text){
-		if (!text || this.annotation(text)) return;
+	 *  result — settles into the caption and lands in the real target. `reason` says
+	 *  WHY this segment closed — `"pause"` (silence), `"forced"` (the 15s cap), or
+	 *  `"manual"` (the owner pressed stop) — the browser engine never has one to give
+	 *  (its own `isFinal` flag decides on its own), so callers there see `undefined`.
+	 *  Additive only: every caller before this task reads one argument and ignores
+	 *  the rest, so nothing that only wanted `on_text(text)` changes. */
+	commit(text, reason){
+		// Discarding (nothing heard, or a whisper annotation like `[BLANK_AUDIO]`) still
+		// clears the guess — the one thing `close_segment()` no longer does up front,
+		// so a discarded segment must not leave a stale grey guess frozen on screen.
+		if (!text || this.annotation(text)){ this.clear_guess(); return; }
 		this.settled = this.settled ? this.settled + " " + text : text;
 		(this.settled_lines ??= []).push(text);
 		this.partial_text = "";
 		this.draw_caption();
-		this.push_to_target(text);
-		this.log_prompt(text);
+		// One id per settled chunk, made HERE (never by the server) — it is what lets a
+		// later revision line point back at exactly this one, before either has been
+		// logged (owner's ask 2026-09-29: "the revision logs its output as its own
+		// line pointing back to the raw line it came from"). `chunk_at` is made the
+		// same way, at the same moment, so a revision's `re` (the universal chat
+		// line's field for "which line this answers") has something to point at —
+		// the raw `{type:"prompt"}` line itself still carries no `at` of its own
+		// (Servex stamps that on arrival; see `log_prompt`'s own note on why).
+		const chunk_id = this.next_chunk_id();
+		const chunk_at = new Date().toISOString();
+		this.push_to_target(text, reason, chunk_id, chunk_at);
+		this.log_prompt(text, chunk_id);
 	}
+
+	/* A plain, locally-made id — not cryptographic, just unique enough to tell two
+	 * chunks apart in one log. `crypto.randomUUID` where it exists (every browser
+	 * this needs to run in); a timestamp+random fallback otherwise. */
+	next_chunk_id(){ return globalThis.crypto?.randomUUID?.() ?? (Date.now() + "-" + Math.random().toString(36).slice(2)); }
 
 	/* Every finished utterance becomes one log entry, not just words on screen.
 	 * Tried first: Servex's own single-writer log (`POST /log/<name>`, being
@@ -671,15 +719,33 @@ export default class Dictate extends View {
 	 * failures are already silent-safe (this `catch` only warns), so a dictation
 	 * from the phone still shows its words live; they are just never logged.
 	 * Left as-is on purpose — see "Voice → log from the LAN" in `doc/https-lan.md`. */
-	async log_prompt(text){
+	async log_prompt(text, id){
 		// No `at` sent to Servex on purpose — `Log.append()` stamps its own local-offset
 		// clock only when the entry arrives without one; a client-side `new Date()` used
 		// to override it with a UTC string, so the same log mixed two clocks. The dev-server
 		// fallback below has no clock of its own, so that path still stamps one itself.
-		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+		// `id` (this chunk's own `next_chunk_id()`) is what a later revision line's `of`
+		// points back at — never required by anything that reads this log today.
+		const entry = { type: "prompt", by: "owner", text, via: "whisper", id };
 		if (await post_prompt(entry, this.log_url)) return;
 		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
 		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
+	}
+
+	/** The REVISED text becomes its OWN log line — the universal chat line every
+	 *  surface (voice, typed, an agent's own reply) shares (`ai/2026-09-29/voice-sessions/design.md`,
+	 *  "The universal chat line"), not the old `{type:"revision"}` shape nothing ever
+	 *  drew. `re` is the raw chunk's own `at` (`commit()`'s `chunk_at`, made at the
+	 *  same moment as the raw line itself) — how a reader (or `ext/Chat`) finds the
+	 *  raw line this answers; `level` says which pass ran. Never merged into the raw
+	 *  line, and never written until the revision is actually ready (no half-done
+	 *  text logged). Same Servex-then-dev-server fallback as `log_prompt`, for the
+	 *  same reason: a log write failing must never break the dictation itself. */
+	async log_revision(text, level, re){
+		const entry = { chat: { at: new Date().toISOString(), from: { kind: "assistant", id: "revise" }, via: "voice", text, re, level } };
+		if (await post_prompt(entry, this.log_url)) return;
+		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		catch (e) { console.warn("ux/Dictate: could not log this revision (Servex down, dev-server fallback also failed):", e); }
 	}
 
 	/** Whisper does not only return words. A noise that is loud but is not speech
@@ -696,7 +762,7 @@ export default class Dictate extends View {
 	 *  This APPENDS to whatever is already in the box (never rewrites it), so
 	 *  an edit the owner makes mid-dictation, in a pause, is never clobbered —
 	 *  unlike the old `mic.js`, which rewrote the whole value every time. */
-	push_to_target(chunk){
+	push_to_target(chunk, reason, chunk_id, chunk_at){
 		// Open mode: the box is for typing, never for the mic — a committed sentence
 		// only ever reaches `on_text` (the caption stream), the box stays untouched.
 		const $in = this.mode !== "open" && this.input();
@@ -705,7 +771,34 @@ export default class Dictate extends View {
 			$in.el.value += joiner + chunk;
 			$in.el.dispatchEvent(new Event("input", { bubbles: true }));
 		}
-		this.on_text?.(chunk);
+		this.on_text?.(chunk, reason);
+		this.revise_chunk(chunk, chunk_id, chunk_at);
+	}
+
+	/** **`revise`** — `"clean" | "edit" | "summary" | false` (default `false`, so
+	 *  every caller that never asked for this keeps working with zero change).
+	 *  The RAW text has already reached `on_text` above, unchanged, before this even
+	 *  starts — a caller that only wants what it always got can ignore `on_revised`
+	 *  completely. When `revise` names a level, this runs `ux/Revise` in the
+	 *  background (never blocking the box, which already has the raw words) and,
+	 *  once it answers: logs the REVISED text as its own line (`log_revision()`,
+	 *  pointing back at the raw line's own id — never merged into it), and, if the
+	 *  caller set one, calls `on_revised(text, {raw, level})` too — the revised
+	 *  text, the original raw chunk it came from (so the raw text is always kept
+	 *  alongside the revised one, never replaced), and which level ran. A Servex
+	 *  that isn't up yet, or any other failure, is never thrown into the caller —
+	 *  nothing is logged and `on_revised` is simply not called for that chunk. Only
+	 *  the FINISHED revision is ever logged — no guess, no in-between chunk, no
+	 *  per-tick timing (those stay in memory only, e.g. the playground's Chunks
+	 *  view — `ai/2026-09-29/audio/b-refine/`). */
+	revise_chunk(raw, chunk_id, chunk_at){
+		if (!this.revise || this.sampling) return;   // sample() lines are never something the owner said
+		const level = this.revise;
+		Revise.run(raw, level).then(out => {
+			if (!out.ok) return;   // Servex down, or any other failure — nothing to log, nothing to call
+			this.on_revised?.(out.text, { raw, level });
+			this.log_revision(out.text, level, chunk_at);
+		});
 	}
 
 	/** **The variant seam.** `build_output()` builds whatever holds the transcript
@@ -747,6 +840,7 @@ export default class Dictate extends View {
 	 *  something the owner said, and must never land in the real prompt log. The
 	 *  owner's own rule this exists for: "I want to see" (`ai/2026-09-29/mobile-nav/review.md`). */
 	async sample(lines){
+		this.sampling = true;   // revise_chunk()'s own guard — sample text must never reach a real log or a real model call
 		for (const text of lines){
 			this.settled = this.settled ? this.settled + " " + text : text;
 			(this.settled_lines ??= []).push(text);
@@ -754,6 +848,7 @@ export default class Dictate extends View {
 			this.push_to_target(text);
 			await new Promise(r => setTimeout(r, 150));
 		}
+		this.sampling = false;
 	}
 }
 
@@ -789,6 +884,8 @@ Dictate.prototype.device_label = "";      // its name, so a stale id can be reco
 Dictate.prototype.send_on_pause = false;  // opt-in: a checkbox beside the mic turns this on
 Dictate.prototype.end_pause_ms = 2500;    // how long a silence must run before send_on_pause stops it
 Dictate.prototype.mode = null;            // "open" = open-mic: mic stays on, box never written, no auto-stop
+Dictate.prototype.revise = false;         // "clean" | "edit" | "summary" | false (default) — see revise_chunk() and on_revised
+Dictate.prototype.on_revised = null;      // (text, {raw, level}) => … — fires once ux/Revise answers; never required
 
 /** `dictate(() => this.$input, opts)` — the drop-in shape `ext/Ask/mic.js`'s
  *  `mic()` used, for callers that just want the button. */

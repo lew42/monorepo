@@ -1,5 +1,6 @@
 import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
 import md from "/framework/ext/markdown/md.js";
+import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
@@ -8,10 +9,13 @@ import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
 import { DEV } from "../tabs.js";
 
-/* THE AI TAB — the site's chat composer (ext/Chat, imported: one line, the microphone
-   beside it, Send after it) with a model picker above it and the conversation between
-   them. The composer hands every finished message, typed or dictated, to this tab's own
-   `deliver(entry)`.
+/* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`) is `ChatPanel` (`ext/Chat`): the
+   log, the composer and the mic as ONE widget, the exact one the mobile ✦ sheet
+   (`rail.js`) now also builds — "we need a consistent chat widget… whether it's in
+   a desktop sidebar or a mobile sheet" (the owner, 2026-09-29). A model picker sits
+   above it. v1, the hand-wired list-plus-composer this replaced, stays reachable as
+   `aiV1` below (unchanged, still exported) — swap it in by pointing `tabs.js`'s "ai"
+   row at `{ default: aiV1 }` instead of this file's own default.
 
    Where a message goes is ONE function, `send()`, exported so anything else on the
    page — a picked element, minion 2's selection — sends the same way:
@@ -143,20 +147,6 @@ async function post_card(entry){
 const recap = (history = []) => "Earlier in this thread:\n" + history.filter(c => c.text).slice(-4)
 	.map(c => `${c.role}: ${String(c.text).slice(0, 170)}`).join("\n");
 
-// One turn of the conversation. Built through `$list.append`, which re-establishes the
-// captor, so a bubble raised from an event handler lands in the list.
-function turn($list, who, text){
-	let $text;
-	$list.append(() => {
-		div.c("drawer-turn drawer-turn-" + who, () => {
-			span.c("drawer-turn-who muted", who === "you" ? "you" : "assistant");
-			$text = div.c("drawer-turn-text", () => { md(text ?? ""); });
-		});
-	});
-	$text.el.scrollIntoView({ block: "nearest" });
-	return $text;
-}
-
 /* THE AI TAB'S OWN LIVE THREAD, if it is open on a card right now — one module-level
    slot (this tab is a singleton, like the drawer itself), read by `ai2/card.js`'s
    `sync_global_ai()` so a reply streaming in reaches this tab's thread too, without
@@ -171,7 +161,152 @@ export function sync_card_thread(id){
 	if (live_card?.id === id) live_card.sync();
 }
 
+// The chips row: what the next message is about, like the open file an IDE shows in
+// its chat box — each element picked on the page (the Element tab's "Ask about
+// this"), with an ✕. Shared by v2 (below) and v1 (aiV1) so both wire the same way.
+function chips_row(tabs){
+	const $chips = div.c("drawer-chips flex wrap");
+	const draw = () => $chips.empty(() => {
+		tabs.chips.forEach(it => {
+			span.c("drawer-chip flex v-center", () => {
+				span.c("drawer-chip-label", it.label).attr("title", it.text);
+				button.c("drawer-chip-x", "✕").attr("type", "button").attr("title", "Leave it out")
+					.click(() => { tabs.unchip(it); draw(); });
+			});
+		});
+	});
+	draw();
+	return { view: $chips, context: () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined };
+}
+
+/**
+ * v2 — the default. `ChatPanel` reads the card's own real, persisted thread (the
+ * exact widget the mobile ✦ sheet's card thread already showed via `ai2/chat.js`)
+ * or, on a page, keeps its own local list seeded from the picked thread's saved
+ * history. `--chatbox-panel-max: 100%` (`drawer.css`) is the drawer's own full
+ * height — the panel still starts small and only grows into that ceiling.
+ */
 export default function ai({ page, card, tabs }){
+	const thread = card ? null : tabs.thread;
+	let panel, $hint;
+	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
+
+	div.c("drawer-ai flex v", () => {
+		div.c("drawer-ai-head flex v-center split wrap", () => {
+			small.c("muted", card ? `talking into this card — ${String(card.title ?? card.name).slice(0, 60)}`
+				: thread ? `thread · ${thread.slug}` : "this page · a new conversation");
+
+			label.c("drawer-model flex v-center", () => {
+				span.c("muted", "model");
+				const $pick = select(() => { MODELS.forEach(m => option(m[0].toUpperCase() + m.slice(1)).attr("value", m)); });
+				$pick.el.value = model();
+				$pick.on("change", () => model($pick.el.value));
+			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
+		});
+
+		const { view: $chips, context } = chips_row(tabs);
+
+		// THE PANEL. Captured now, filled in a callback for the card branch (`code`
+		// skill §1 — the card branch's `import()` drops the captor at its first
+		// `await`), built at once for the page branch.
+		const $slot = div.c("drawer-ai-panel");
+		if (card){
+			// Lazily loaded — most drawer opens are not on a card, and `say()` (the
+			// button-answer route) is dead weight for those.
+			import("/framework/ai2/compose.js").then(({ say }) => {
+				$slot.empty(() => {
+					// ⚠ THE LINE MINION B EXTENDS with a refine-level argument (mobile-nav
+					// coordination, 2026-09-29): `ChatPanel` builds its composer, and the
+					// composer builds the microphone (`Composer.js` → `ComposerMic`) —
+					// this call is the one place that chain starts for the drawer's AI tab.
+					panel = new ChatPanel({
+						source: () => card.chat_entries(),
+						answer: choice => say(choice, card.id),
+						re: () => card.id,
+						placeholder: "talk into this card",
+						sent: "sent — the reply lands in the thread above",
+						failed: "Servex is not answering, so nothing was sent",
+						deliver: async entry => {
+							const ok = (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok;
+							panel.sync();
+							return ok;
+						},
+					});
+				});
+			});
+		} else {
+			// The hint goes as soon as the first message is sent (`on_text`, below).
+			$hint = !thread?.history?.length && small.c("drawer-ai-empty muted", "Ask anything about this page. Sessions lists this page's saved threads.");
+			$slot.empty(() => {
+				// ⚠ THE LINE MINION B EXTENDS with a refine-level argument — see the card
+				// branch's own note above; this is the same chain for a plain page.
+				panel = new ChatPanel({
+					placeholder: "ask about this page",
+					sent: "sent",
+					failed: "not sent",
+					// `on_text` only hides the intro hint — the owner's own bubble is added
+					// in `deliver` below, where `entry.via` is there to mark it 🎤/⌨.
+					on_text: () => $hint?.el.remove(),
+					/* THE UNIVERSAL CHAT LINE (`ext/Chat/readme.md`), used here for real:
+					   `{chat: {at, from, via, text}}` for your own words, one for the reply —
+					   first "_thinking…_", then `fix: true` on the SAME `at` as `send()`'s
+					   streamed chunks arrive, so the reply grows in place instead of a new
+					   bubble per chunk (v1's `$reply.empty()` did the same job with a raw
+					   DOM node; this is the same idea through `chat()`'s own replace rule). */
+					deliver: async entry => {
+						const via = entry.via === "whisper" ? "voice" : "text";
+						panel.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, via, text: entry.text } });
+						const reply_at = new Date(Date.now() + 1).toISOString();
+						panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: "_thinking…_" } });
+						let streamed = "";
+						try {
+							const r = await send({ page, text: entry.text, thread, via: entry.via, context: context(), on: e => {
+								streamed += e.text ?? "";
+								if (streamed) panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: streamed, fix: true } });
+							} });
+							panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: r.text ?? r.note, fix: true } });
+							return r.via !== "none";
+						} catch (e){
+							panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: "**Could not send:** " + e.message, fix: true } });
+							return false;
+						}
+					},
+				});
+				(thread?.history ?? []).filter(c => c.text).forEach((c, i) => panel.say({
+					chat: {
+						from: { kind: c.role === "user" ? "owner" : "assistant" },
+						text: c.text,
+						// One second apart, oldest first — real order, not real timestamps
+						// (the saved thread does not keep per-turn times).
+						at: new Date(Date.now() - ((thread.history.length - i) * 1000)).toISOString(),
+					},
+				}));
+			});
+		}
+	});
+}
+
+// ============================================================================
+// v1 — kept reachable, unchanged from before ChatPanel: a hand-wired `turn()`
+// list plus a standalone `composer()`. Not the default; import `{ aiV1 }` and
+// point a tab's `load()` at `{ default: aiV1 }` to bring it back.
+// ============================================================================
+
+// One turn of the conversation. Built through `$list.append`, which re-establishes the
+// captor, so a bubble raised from an event handler lands in the list.
+function turn($list, who, text){
+	let $text;
+	$list.append(() => {
+		div.c("drawer-turn drawer-turn-" + who, () => {
+			span.c("drawer-turn-who muted", who === "you" ? "you" : "assistant");
+			$text = div.c("drawer-turn-text", () => { md(text ?? ""); });
+		});
+	});
+	$text.el.scrollIntoView({ block: "nearest" });
+	return $text;
+}
+
+export function aiV1({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let $list, talk, $hint;
 	live_card = card ? { id: card.id, sync: () => talk?.sync() } : null;
@@ -189,17 +324,6 @@ export default function ai({ page, card, tabs }){
 			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
 		});
 
-		/* THE THREAD. ON A CARD (one-ai, 2026-09-29): this tab used to draw its own
-		   empty, throwaway list of turns EVEN THOUGH `send()` below already posted
-		   into the card's real, persisted log — the SAME route the card's own page
-		   and the mobile ✦ sheet (`ext/drawer/rail.js`) post through — so the exact
-		   same conversation looked like two different, differently-remembered ones
-		   depending on which door you talked through. It now reuses `ai2/chat.js`,
-		   the exact widget the ✦ sheet already shows, reading the card's own
-		   `chat_entries()` — one thread, seen the same way everywhere.
-		   ⚠ Imported lazily, HERE, not at this file's top: this tab loads on every
-		   page's drawer, and most opens are not on a card — loading AI 2's own chat
-		   module for those would be dead weight paid on every other page. */
 		if (card){
 			const $thread = div.c("drawer-ai-list flex v");
 			import("/framework/ai2/chat.js").then(m => {
@@ -209,34 +333,11 @@ export default function ai({ page, card, tabs }){
 		} else {
 			$list = div.c("drawer-ai-list flex v");
 			(thread?.history ?? []).filter(c => c.text).forEach(c => turn($list, c.role === "user" ? "you" : "assistant", c.text));
-			// The hint goes as soon as the first message is sent. Card side: the real
-			// thread above already says "nothing yet" its own way (or shows what is
-			// there), so there is nothing for a second, local hint to add.
 			$hint = !thread?.history?.length && small.c("drawer-ai-empty muted", "Ask anything about this page. Sessions lists this page's saved threads.");
 		}
 
-		// THE CHIPS — what the next message is about, like the open file an IDE shows in its
-		// chat box: each element picked on the page (the Element tab's "Ask about this"),
-		// with an ✕. They stay until removed, and every send carries them as `context`.
-		const $chips = div.c("drawer-chips flex wrap");
-		const chips = () => $chips.empty(() => {
-			tabs.chips.forEach(it => {
-				span.c("drawer-chip flex v-center", () => {
-					span.c("drawer-chip-label", it.label).attr("title", it.text);
-					button.c("drawer-chip-x", "✕").attr("type", "button").attr("title", "Leave it out")
-						.click(() => { tabs.unchip(it); chips(); });
-				});
-			});
-		});
-		chips();
-		const context = () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined;
+		const { view: $chips, context } = chips_row(tabs);
 
-		// ON A CARD the message goes where the card's own footer used to send it
-		// (`send()` with `card`), and the reply now lands in the SAME thread drawn
-		// above — `talk.sync()` right after is what picks it up without waiting for
-		// the next unrelated redraw; on a page it is answered here as before.
-		// `deliver(entry)` answers true when the message went; the composer then
-		// shows `sent` or `failed` in its own box.
 		composer({
 			placeholder: card ? "talk into this card" : "ask about this page",
 			sent: card ? "sent — the reply lands in the thread above" : "sent",

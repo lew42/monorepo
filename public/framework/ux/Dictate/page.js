@@ -1,4 +1,4 @@
-import { Doc, md, demo, div, span, textarea, h2, icon, a, small } from "/app.js";
+import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
 import Dictate from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
@@ -14,6 +14,26 @@ const CONCEPTS = [
 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
 	{ name: "Decisions", icon: "menu_book", href: "doc/decisions/", blurb: "the install, the segment/resend mechanics, who starts whisper-server" },
 ];
+
+/* THE FIRST SCREEN (the owner, 2026-09-29: this page "feels fuzzy"). One line
+ * saying what this IS, the pipeline as four linked tiles — audio in, Whisper's
+ * raw words out, Revise cleans/edits/summarizes them, then somewhere they
+ * land — then the live playground widget right below. Detail (the mechanics,
+ * the RMS numbers, why it was silent before) stays further down, one click
+ * from a tile or a heading, never repeated up here. */
+const pipeline_tiles = () => div.c("flex wrap gap v-center wide ux-dictate-pipeline", () => {
+	const tile = (title, sub, href) => a.c("card pad flex v gap ux-dictate-pipeline-tile").href(href).append(() => {
+		h4(title);
+		span.c("muted", sub);
+	});
+	tile("Audio", "the microphone, levels, recording", "/framework/audio/");
+	span.c("ux-dictate-pipeline-arrow muted", "→");
+	tile("Whisper", "raw text — its exact words, nothing edited", "/framework/audio/Transcriber/");
+	span.c("ux-dictate-pipeline-arrow muted", "→");
+	tile("Revise", "clean · edit · summary", "/framework/ux/Revise/");
+	span.c("ux-dictate-pipeline-arrow muted", "→");
+	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai2/");
+}).style("--gap", "0.6em");
 
 /* The card's own context — a real textarea, dictated into live. `$out` mirrors
  * the box's value so a screenshot of the DEMO proves the wire without a
@@ -56,6 +76,10 @@ export default new Doc({
 
 	content(){
 
+		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
+
+		pipeline_tiles();
+
 		// The overview: what the dictation system is made of, shown before anything else.
 		div.c("wide flex auto gap", () => {
 			CONCEPTS.forEach(c => a.c("card flex v gap-35").href(c.href)
@@ -81,7 +105,8 @@ export default new Doc({
 			page: this,
 		}));
 
-		md("**Right here, one click:** press 🎤 and watch whisper's raw text, the fast assistant's corrections, and the clean live version, in three tabs — same widget, its own url, at the [playground](/framework/ux/Dictate/playground/).");
+		md("**Try it right here** — press 🎤 (or ▶ Sample, no mic needed) and watch the whole pipeline below. Five tabs show one session five ways:");
+		md("- **Raw** — Whisper's exact words, never edited.\n- **Chunks** — every guess as Whisper hears more, one row each.\n- **Corrections** — what Revise (at the picked level) changed, as a diff.\n- **Live** — the same diff, fading into the clean text.\n- **Side by side** — Raw and Revised in two plain columns.");
 		pg.widget();
 
 		md("**Press 🎤 and talk.** The small text beside it names which engine answered — `Whisper on the PC` when `whisper-server` is running on this machine, `the browser's recognizer` when it is not. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");

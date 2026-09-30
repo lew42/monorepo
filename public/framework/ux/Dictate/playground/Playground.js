@@ -1,12 +1,8 @@
 import { View, div, span, button, select, option, a } from "../../../core/View/View.js";
 import Dictate, { remember_device, remembered_device } from "../Dictate.js";
-import { servex_url } from "/framework/dev/servex_url.js";
+import Revise from "../../Revise/Revise.js";
 
 View.stylesheet(import.meta, "Playground.css");
-
-// Servex's fast assistant — not always up (`server-port` sibling task). A failed request
-// here is EXPECTED until Servex restarts; the rules fallback below is what covers it.
-const TIDY_URL = servex_url("/api/tidy");
 
 // How much already-cleaned text rides along as `before` — enough for the assistant to
 // see the sentence it is joining, not the whole transcript.
@@ -20,8 +16,13 @@ const BIG_GAP_MS = 2500;
 // the CSS transition and a headless proof's wait share the same number.
 export const FADE_MS = 5000;
 
-const TABS = ["raw", "corrections", "live"];
-const TAB_LABEL = { raw: "Raw", corrections: "Corrections", live: "Live" };
+// **Chunks** and **Side** are new (ai/2026-09-29/audio/, deliverable 4 — "see more detail
+// into the workings of the Whisper transcription process"): Chunks shows every RESEND as
+// its own row, not just the final settled text, so the guess visibly improves; Side shows
+// raw and revised next to each other, in two plain columns, with the level picker above
+// the tabs choosing what "revised" means.
+const TABS = ["raw", "chunks", "corrections", "live", "side"];
+const TAB_LABEL = { raw: "Raw", chunks: "Chunks", corrections: "Corrections", live: "Live", side: "Side by side" };
 
 // "like" and "i mean" are deliberately NOT here — a real sentence like "I like the
 // layout" would lose a real word, not a filler. That call needs context, which is
@@ -76,36 +77,23 @@ function rule_clean(text){
 	return out;
 }
 
-// The Agent SDK's `query()` starts a whole new CLI process for every call — measured
-// 2.4-3s warm, and a cold one (nothing run recently) can take longer. 4s was cutting off
-// real answers before they ever arrived, so the status line always said "rules" even
-// with Servex fully up. 20s gives a cold process room to finish; the fallback below
-// still only runs on a REAL failure (down, refused, a bad response) or a genuine timeout,
-// never as a matter of course.
-const TIDY_TIMEOUT_MS = 20000;
-
-async function tidy(text, before){
-	try {
-		const ctrl = new AbortController();
-		const timer = setTimeout(() => ctrl.abort(), TIDY_TIMEOUT_MS);
-		const r = await fetch(TIDY_URL, {
-			method: "POST", headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ text, before }), signal: ctrl.signal,
-		});
-		clearTimeout(timer);
-		if (!r.ok) return null;
-		const body = await r.json();
-		return body?.ok ? body : null;
-	} catch { return null; }   // connection refused, a CORS-less 404 fallback, a timeout — all "not up yet"
+// `ux/Revise` (`Revise.run`) is the ONE place this playground now asks Servex for a
+// cleaned chunk — this used to be its own copy of that same fetch, pointed only at the
+// original "clean" prompt; now the widget's own level picker (below) can ask for `edit`
+// or `summary` too, and there is only one place a Servex-down failure is handled.
+async function tidy(text, before, level){
+	const out = await Revise.run(text, level, { before });
+	return out.ok ? out : null;   // a `{ok:false, why}` here means "not up yet" — same as before
 }
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
 /** One line of the cleanup status: what cleaned this chunk, and how. */
 function source_label(entry){
+	const level = Revise.LEVELS[entry.level]?.label ?? entry.level ?? "clean";
 	return entry.source_kind === "assistant"
-		? `cleanup: fast assistant · ${entry.model} · ${(entry.ms / 1000).toFixed(1)} s`
-		: "cleanup: rules (no LLM) — Servex /api/tidy not reachable";
+		? `${level} · fast assistant · ${entry.model} · ${(entry.ms / 1000).toFixed(1)} s`
+		: `${level} · rules (no LLM) — Servex /api/tidy not reachable`;
 }
 
 /**
@@ -123,7 +111,7 @@ function source_label(entry){
  */
 export default class Playground {
 
-	constructor(...args){ this.assign(...args); this.views = new Set(); this.session = 0; this.reset(); }
+	constructor(...args){ this.assign(...args); this.views = new Set(); this.session = 0; this.level = "clean"; this.reset(); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	// Everything a session accumulates — cleared at the start of every NEW session
@@ -139,6 +127,7 @@ export default class Playground {
 		this.prune_views();
 		this.session++;
 		this.chunks = [];          // [{ raw, gap, cleaned, deltas, source_kind, model, ms, session }], settled order
+		this.resends = [];         // [{ t, segment, text, since_prev }] — every Whisper RESEND, not just the final text (Chunks view)
 		this.partial = "";         // the still-moving guess, greyed in the Raw view
 		this.cleaned_so_far = "";  // accumulated CLEANED text — the `before` context for /api/tidy
 		this.last_chunk_at = null; // performance.now() of the last settle, for the gap check
@@ -149,8 +138,10 @@ export default class Playground {
 				view.$raw_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
 			});
+			view.$chunks.empty(() => { view.$chunks_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$corrections.empty(() => { view.$corrections_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$live.empty(() => { view.$live_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
+			view.$side.empty(() => { view.$side_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$status.text("");
 			this.toggle_empty(view);
 		});
@@ -170,9 +161,11 @@ export default class Playground {
 	// something real to show, then gone for the rest of the session.
 	toggle_empty(view){
 		if (view.$raw_empty) view.$raw_empty.el.hidden = this.chunks.length > 0;
+		if (view.$chunks_empty) view.$chunks_empty.el.hidden = this.resends.length > 0;
 		const has_clean = this.chunks.some(c => c.deltas);
 		if (view.$corrections_empty) view.$corrections_empty.el.hidden = has_clean;
 		if (view.$live_empty) view.$live_empty.el.hidden = has_clean;
+		if (view.$side_empty) view.$side_empty.el.hidden = this.chunks.length > 0;
 	}
 
 	// ---- the widget: mic, sample, audio source, status, tabs, panels --------
@@ -197,7 +190,11 @@ export default class Playground {
 					mode: "open",             // the box is not this widget's job — on_text/on_guess are
 					on_start: () => this.reset(),
 					on_stop: () => {},
-					on_text: text => this.settle(text),
+					// `reason` — "pause" | "forced" (the 15s cap) | "manual" (stop pressed) |
+					// undefined (the browser engine, or a sample line) — Dictate.js's own
+					// `commit()`, additive, passed straight through to Chunks (4a: "mark each
+					// segment cut and say why").
+					on_text: (text, reason) => this.settle(text, { cut: reason }),
 					on_guess: text => this.guess(text),
 					on_meter: level => this.meter(level),
 				});
@@ -210,6 +207,23 @@ export default class Playground {
 			this.audio_panel(view);
 
 			view.$status = div.c("ux-dictate-pg-status muted");
+
+			// **Raw is Whisper's exact output, always** (the owner, 2026-09-29: fillers
+			// sometimes vanish from Raw and sometimes stay, make it predictable). That
+			// unpredictability is WHISPER'S OWN behavior on quiet or short "um"s, not this
+			// pipeline's doing — this pipeline never edits Raw. Only the `clean` level
+			// removes filler words, and only in the Corrections/Live/Side views. Said once,
+			// plainly, instead of leaving a reader to guess from behavior alone.
+			div.c("ux-dictate-pg-note muted", "Raw = Whisper's exact words, never edited here (it can drop \"um\"/\"uh\" itself on quiet audio). The level below only touches Corrections, Live and Side.");
+
+			div.c("ux-dictate-pg-level-row flex gap v-center wrap", () => {
+				span.c("muted", "Level:");
+				view.$level = select.c("ux-dictate-pg-level", () => {
+					Object.entries(Revise.LEVELS).forEach(([key, lv]) => option(lv.label).attr("value", key));
+				}).attr("aria-label", "Revision level")
+					.on("change", e => { this.level = e.target.value; });
+				view.$level.el.value = this.level;
+			}).style("--gap", "0.4em");
 
 			div.c("ux-dictate-pg-tabs flex gap", () => {
 				view.$tabs = TABS.map(name => a.c("ux-dictate-pg-tab", TAB_LABEL[name])
@@ -231,6 +245,13 @@ export default class Playground {
 				});
 				this.chunks.forEach(entry => this.draw_raw_line(view, entry));
 
+				// **Chunks** — every RESEND as its own row (not just the final text), so
+				// the guess visibly improves. `hidden` until picked, same as every panel here.
+				view.$chunks = div.c("ux-dictate-pg-panel ux-dictate-pg-chunks", () => {
+					view.$chunks_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
+				});
+				this.resends.forEach(r => this.draw_chunk_row(view, r));
+
 				view.$corrections = div.c("ux-dictate-pg-panel ux-dictate-pg-diff ux-dictate-pg-corrections", () => {
 					view.$corrections_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
@@ -240,6 +261,14 @@ export default class Playground {
 					view.$live_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
 				this.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$live, c, true));
+
+				// **Side by side** — raw next to revised, in two plain columns, one row per
+				// settled chunk (ask 4b: "raw vs revised side by side, with a level picker" —
+				// the picker above the tabs is shared by Side, Corrections and Live).
+				view.$side = div.c("ux-dictate-pg-panel ux-dictate-pg-side", () => {
+					view.$side_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
+				});
+				this.chunks.forEach(c => this.draw_side_row(view, c));
 			});
 		}).style("--gap", "0.6em");
 
@@ -263,8 +292,10 @@ export default class Playground {
 		view.tab = name;
 		view.$tabs.forEach((t, i) => t.rc("active muted").ac(TABS[i] === name ? "active" : "muted"));
 		view.$raw.el.hidden = name !== "raw";
+		view.$chunks.el.hidden = name !== "chunks";
 		view.$corrections.el.hidden = name !== "corrections";
 		view.$live.el.hidden = name !== "live";
+		view.$side.el.hidden = name !== "side";
 		if (location.hash.slice(1) !== name) history.replaceState(null, "", location.pathname + location.search + "#" + name);
 	}
 
@@ -336,18 +367,31 @@ export default class Playground {
 	// ---- the pipeline: a settled chunk in, a raw line + a cleaned diff out ----
 
 	// The still-moving guess — replaces the ONE grey line at the end of the Raw view,
-	// never appends a new one, so a revised guess is never shown twice.
+	// never appends a new one, so a changed guess is never shown twice. ALSO a row in
+	// Chunks (deliverable 4a): every RESEND, not just the settled text, so a reader
+	// can watch the guess actually improve. `since_prev` is measured HERE, in the
+	// browser, as wall-clock time between two updates — the real Whisper-side
+	// processing time lives only inside `ux/Dictate` and isn't exposed by its public
+	// API (`Dictate.js` in this task is fenced to its `revise` option only); this is
+	// an honest stand-in, labelled as such in the row itself (`draw_chunk_row()`).
 	guess(text){
 		this.prune_views();
+		if (text && text !== this.partial){
+			const now = performance.now();
+			const prev = this.resends.at(-1);
+			const row = { t: now, segment: this.chunks.length + 1, text, since_prev: prev ? now - prev.t : null };
+			this.resends.push(row);
+			this.views.forEach(view => this.draw_chunk_row(view, row));
+		}
 		this.partial = text;
-		this.views.forEach(view => this.render_guess(view));
+		this.views.forEach(view => { this.render_guess(view); this.toggle_empty(view); });
 	}
 
 	// A chunk has settled. Draws the raw line immediately (whisper's own answer, never
 	// held up) in every mounted widget, then queues the cleanup pass — real or ruled —
 	// behind whatever is still cleaning ahead of it, so `before` always reflects
 	// everything settled so far.
-	settle(raw, { force_gap } = {}){
+	settle(raw, { force_gap, cut } = {}){
 		if (!raw) return;
 
 		this.prune_views();
@@ -361,10 +405,12 @@ export default class Playground {
 		// Stamped with the CURRENT session — `clean_chunk()` checks this stamp against
 		// `this.session` before ever drawing it, so a session started while this chunk is
 		// still cleaning leaves it silently unwanted rather than painted into the new
-		// session's panels. doc/decisions.md.
-		const entry = { raw, gap, cleaned: null, deltas: null, source_kind: null, session: this.session };
+		// session's panels. doc/decisions.md. `cut` (4a) says WHY this segment closed —
+		// "pause", "forced" (the 15s cap) or "manual" — undefined for the browser engine
+		// or a sample line, which never had a reason to give.
+		const entry = { raw, gap, cut, cleaned: null, deltas: null, source_kind: null, session: this.session };
 		this.chunks.push(entry);
-		this.views.forEach(view => { this.draw_raw_line(view, entry); this.toggle_empty(view); });
+		this.views.forEach(view => { this.draw_raw_line(view, entry); this.draw_cut_marker(view, entry); this.toggle_empty(view); });
 
 		this.clean_queue = this.clean_queue.then(() => this.clean_chunk(entry));
 	}
@@ -375,7 +421,8 @@ export default class Playground {
 			this.views.forEach(view => view.$status.text("cleaning…"));
 
 		const before = this.cleaned_so_far.slice(-BEFORE_CHARS);
-		const result = await tidy(entry.raw, before);
+		const level = entry.level = this.level;   // stamped on the entry — Side shows what actually ran, even if the picker changes later
+		const result = await tidy(entry.raw, before, level);
 
 		if (entry.session !== this.session) return;   // a new session started while this was cleaning
 
@@ -388,6 +435,7 @@ export default class Playground {
 		this.views.forEach(view => {
 			this.draw_diff_line(view.$corrections, entry, false);
 			this.draw_diff_line(view.$live, entry, true);
+			this.draw_side_row(view, entry);
 			this.toggle_empty(view);
 			this.update_status(view);
 		});
@@ -418,6 +466,52 @@ export default class Playground {
 		if (!view.$guess) return;
 		view.$guess.text(this.partial);
 		view.$guess.el.style.display = this.partial ? "" : "none";
+	}
+
+	// ---- Chunks panel: every resend, not just the settled text (4a) ------------
+
+	// One row per Whisper RESEND — segment number, time since the previous update,
+	// and the text THAT guess returned — appended once and never rewritten (each
+	// row is its own moment; only the settled Raw line and the guess itself are ever
+	// updated in place). `since_prev` is measured in THIS file, not inside `ux/Dictate`
+	// — see `guess()`'s own comment for why it stands in for "how long Whisper took".
+	draw_chunk_row(view, row){
+		if (!view.$chunks) return;
+		let $line;
+		view.$chunks.append(() => {
+			$line = div.c("ux-dictate-pg-chunk-row flex gap", () => {
+				span.c("ux-dictate-pg-chunk-seg muted", "segment " + row.segment);
+				span.c("ux-dictate-pg-chunk-ms muted", row.since_prev == null ? "first guess" : (row.since_prev / 1000).toFixed(1) + "s later");
+				span.c("ux-dictate-pg-chunk-text", row.text);
+			});
+		});
+		$line.attr("title", "wall-clock time since the previous update in this widget, not Whisper's own processing time");
+	}
+
+	// A chip marking the SEAM where a segment actually closed and why — "pause" (the
+	// owner stopped talking), "forced" (hit the 15s cap mid-sentence, so the next
+	// segment is a continuation, not a new thought) or "manual" (stop pressed). Says
+	// nothing for the browser engine or a sample line (`entry.cut` is `undefined`
+	// there) rather than guessing a reason nobody gave.
+	CUT_LABEL = { pause: "closed — pause", forced: "closed — forced (15s cap)", manual: "closed — stopped" };
+	draw_cut_marker(view, entry){
+		if (!view.$chunks || !entry.cut) return;
+		view.$chunks.append(() => { div.c("ux-dictate-pg-cut muted", this.CUT_LABEL[entry.cut] ?? ("closed — " + entry.cut)); });
+	}
+
+	// ---- Side panel: raw next to revised, two columns, the level picker's result (4b) --
+
+	draw_side_row(view, entry){
+		if (!view.$side || !entry.cleaned) return;
+		let $row;
+		view.$side.append(() => {
+			$row = div.c("ux-dictate-pg-side-row grid gap", () => {
+				if (entry.gap) div.c("ux-dictate-pg-break");
+				div.c("ux-dictate-pg-side-raw", entry.raw);
+				div.c("ux-dictate-pg-side-revised", entry.cleaned).attr("title", source_label(entry));
+			});
+		});
+		$row.style("--column", "18em");
 	}
 
 	// ---- Corrections + Live panels — same drawing, Live also fades ----------
@@ -468,24 +562,28 @@ export default class Playground {
 		this.sample_running = true;
 		this.reset();
 
-		for (const { text, force_gap } of Playground.SAMPLE_SCRIPT){
+		for (const { text, force_gap, cut } of Playground.SAMPLE_SCRIPT){
 			const parts = words(text);
 			for (let n = 1; n <= parts.length; n++){
 				this.guess(parts.slice(0, n).join(" "));
 				await wait(60);
 			}
 			await wait(250);
-			this.settle(text, { force_gap });
+			this.settle(text, { force_gap, cut });
 		}
 
 		this.sample_running = false;
 	}
 }
 
+// `cut` on each line is invented for the demo (a real session gets it from
+// `Dictate`'s own `close_segment(reason)`) — the point is showing the Chunks view's
+// seam marker actually renders, in the one path (Sample) that has no real Whisper
+// segments to cut.
 Playground.SAMPLE_SCRIPT = [
-	{ text: "so um i was thinking we should uh we should build the the playground" },
-	{ text: "what do you think? about the layout" },
-	{ text: "let's also think about the audio source panel and the live level meter", force_gap: true },
+	{ text: "so um i was thinking we should uh we should build the the playground", cut: "pause" },
+	{ text: "what do you think? about the layout", cut: "pause" },
+	{ text: "let's also think about the audio source panel and the live level meter", force_gap: true, cut: "forced" },
 ];
 
 // One instance for the whole `ux/Dictate` tier — the standalone playground page (its

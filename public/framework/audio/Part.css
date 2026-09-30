@@ -1,0 +1,12 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-partview-flag {
+		display: inline-block;
+		inline-size: 0.55em; block-size: 0.55em;
+		border-radius: 50%;
+		background: var(--line);
+	}
+	.audio-partview-flag.on { background: var(--prim); }
+	.audio-partview-panel { font-size: 0.9em; }
+}

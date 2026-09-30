@@ -1,5 +1,6 @@
 import { View, div, span, button } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
+import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 import tabs from "./tabs.js";
 
 View.stylesheet(import.meta, "rail.css");
@@ -198,7 +199,17 @@ export class DrawerRailSheetV1 extends View {
 
 	listen(){
 		this.$mic.append(() => {
-			this.dictate = new Dictate({ mode: "open", on_text: text => this.card(text) });
+			// `revise: "edit"` — a light tidy pass (ux/Revise), tried alongside the raw
+			// sentence, never instead of it: `on_text` (raw, instant) still makes the
+			// card it always did; `on_revised` (a second or two later, only if Servex
+			// answers) adds ONE MORE card with the tightened version. Two cards, not a
+			// rewrite of `card()` itself — `ux/Revise/readme.md`'s "Wired into the real
+			// dictate path" has the full picture; deliverable 3, ai/2026-09-29/audio/.
+			this.dictate = new Dictate({
+				mode: "open", revise: "edit",
+				on_text: text => this.card(text),
+				on_revised: text => this.card(text),
+			});
 		});
 		this.dictate.start();
 	}
@@ -340,8 +351,120 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 	}
 }
 
-DrawerRail.Sheet = DrawerRailSheet;
+/** THE PANEL SHEET — the new default (`ChatPanel`, `ai/2026-09-29/audio/c-chat/`):
+ *  the exact same log-plus-composer-plus-mic widget the desktop drawer's AI tab
+ *  now builds (`ext/drawer/tabs/ai.js`), instead of this sheet's own hand-wired
+ *  mic-only build — "we need a consistent chat widget… whether it's in a desktop
+ *  sidebar or a mobile sheet" (the owner, 2026-09-29). Everything else
+ *  `DrawerRailSheetV1` gave the sheet is kept: the mic starts listening the
+ *  instant the sheet opens (`start_mic()`, called from `open()`), every finished
+ *  sentence still shows as its own thing — now a chat bubble ChatPanel draws,
+ *  rather than a bespoke "prompt item" card, the same unification the drawer's
+ *  AI tab makes — and the links footer (inherited from `DrawerRailSheet`) still
+ *  reaches Sessions, Dictation, Settings and the full drawer.
+ *
+ *  `--chatbox-panel-max: 70vh` (rail.css) — the sheet itself is already capped
+ *  at `max-block-size: 70vh` (rail.css, pre-existing), so the panel can just use
+ *  that whole ceiling; there is no separate drawer-style approximation to make.
+ *
+ *  ⚠ A card CHANGE (the reader keeps the sheet open while navigating to a
+ *  different card) rebuilds the panel whole, which restarts its mic for a beat —
+ *  a known, accepted trade, not a bug to chase here: `ChatPanel` owns its log,
+ *  composer and mic as ONE piece on purpose (deliverable 1 of this same task),
+ *  so there is no seam to swap only the log's source without giving the panel a
+ *  second, larger API than the brief asked for. `start_mic()` restarts listening
+ *  right after every rebuild, so the gap is a beat, never a silence. */
+export class DrawerRailSheetPanel extends DrawerRailSheet {
+	render(){
+		this.head();
+		this.$slot = div.c("drawer-rail-sheet-panel");
+		this.links();
+	}
+
+	open(){
+		this.ac("on");
+		this.sync_card();
+		return this;
+	}
+
+	close(){
+		this.stop_mic();
+		this.rc("on");
+		return this;
+	}
+
+	stop_mic(){
+		const mic = this.panel?.compose?.mic;
+		if (mic?.active?.()) mic.stop();
+	}
+
+	start_mic(){
+		const mic = this.panel?.compose?.mic;
+		if (mic && !mic.active?.()) mic.start();
+	}
+
+	// Same job as `DrawerRailSheetV1.sync_card()` (which thread the sheet shows)
+	// but ChatPanel has no seam to swap only a built panel's source — a card
+	// change rebuilds the whole panel (see the class doc above).
+	sync_card(){
+		const card = this.active_card();
+		const id = card?.id ?? null;
+		if (id === this.card_id && this.panel){ this.panel.sync(); this.start_mic(); return; }
+		this.card_id = id;
+		this.card_ref = card;
+		const token = this.sync_token = (this.sync_token ?? 0) + 1;
+		// `say()` (the card's button-answer route) is only ever needed on a card —
+		// lazily loaded, same reasoning as `DrawerRailSheetV1.sync_card()`'s own
+		// lazy `ai2/chat.js` import: most opens of this sheet are on a plain page.
+		(card ? import("/framework/ai2/compose.js") : Promise.resolve(null)).then(mod => {
+			if (this.sync_token !== token) return;   // moved to a different card (or a plain page) while this loaded
+			const say = mod?.say;
+			this.$slot.empty(() => {
+				// ⚠ THE LINE MINION B EXTENDS with a revise-level argument (the same
+				// note `tabs/ai.js` carries): `ChatPanel` builds its own composer, and
+				// the composer builds the microphone (`Composer.js` → `ComposerMic`) —
+				// this call is where that chain starts for the mobile sheet.
+				this.panel = card ? new ChatPanel({
+					source: () => card.chat_entries(),
+					answer: choice => say(choice, card.id),
+					re: () => card.id,
+					placeholder: "talk into this card",
+					sent: "sent — the reply lands in the thread above",
+					failed: "Servex is not answering, so nothing was sent",
+					deliver: async entry => {
+						const ok = (await import("./tabs/ai.js").then(m => m.send({ card: card.id, text: entry.text, via: entry.via }))).ok;
+						this.panel.sync();
+						return ok;
+					},
+				}) : new ChatPanel({
+					placeholder: "say something",
+					sent: "sent",
+					failed: "not sent",
+					/* A plain page has no persisted thread of its own — each finished
+					   sentence and its reply go straight into the panel's own local list,
+					   as the universal chat line (`ext/Chat/readme.md`) so BOTH sides
+					   show: this deliver used to only ever `say()` the REPLY, never the
+					   words the owner said, so a plain page's own sentence never became a
+					   bubble at all (caught reading this file just now; `DrawerRailSheetV1`'s
+					   own "prompt item" cards, above, always drew the words said — this is
+					   that same guarantee, kept). */
+					deliver: async entry => {
+						const via = entry.via === "whisper" ? "voice" : "text";
+						this.panel.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, via, text: entry.text } });
+						const r = await import("./tabs/ai.js").then(m => m.send({ text: entry.text, via: entry.via }));
+						this.panel.say({ chat: { at: new Date().toISOString(), from: { kind: "assistant" }, text: r.text ?? r.note } });
+						return r.via !== "none";
+					},
+				});
+			});
+			this.start_mic();
+		});
+	}
+}
+
+DrawerRail.Sheet = DrawerRailSheetPanel;
 DrawerRail.SheetV1 = DrawerRailSheetV1;
+DrawerRail.SheetLinksV1 = DrawerRailSheet;   // mic-only + links footer, today's outgoing default — kept reachable
 
 // ⚠ On the prototype, not written inside `menu_button()` — `code` skill §2's own
 // rule ("defaults on the prototype"), and what lets `DrawerRail.V1` below change
