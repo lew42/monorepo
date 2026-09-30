@@ -43,7 +43,7 @@ it is removed instead of fast-forwarded, and a fresh one is prepared
 
 - **K = 3.** At most three worktrees exist, taken or not.
 - **N = 6 hours.** A ready worktree idle longer than that is removed, except the
-  one kept ready. A taken worktree is never removed automatically.
+  one kept ready. A taken worktree is never removed automatically ([below](#a-taken-worktree-stays-taken)).
 
 ## Where the state lives
 
@@ -83,9 +83,22 @@ answers `{ K, N_hours, slots: [...] }`. The AI 2 Live card reads it.
 
 **Known limit.** A pool worktree is branched from *committed* `michael/dev`. Work that sits uncommitted in the main tree is not in it, so a quick fix to an uncommitted file cannot be made there. Commit `michael/dev` often. (2026-09-25: `Pool.js` and `merge.mjs` themselves were not yet in `qf-1`.)
 
-## A holder that stopped (salvage)
+## A taken worktree stays taken
 
-When the pool needs a slot and its holder has stopped, the slot is handed back if it is clean. If it still holds work, `salvage()` stops the slot's server and watcher first, then commits the work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev`, and removes it so a fresh one is made. The holder's card gets one line naming the branch. A dev server's own logs (`page.jsonl`, `files.jsonl`, `.claude/skills/clarity/flags.jsonl`) are its noise: a return treats them as clean, and salvage puts them back before it commits, so they never ride into a salvage branch. The reaper's sweep runs this check every 5 minutes, so a full pool no longer waits for someone to ask. By hand: `node Servex/Lifecycle.js --salvage qf-2`. Why and how: [lifecycle.md](lifecycle.md).
+**A worktree someone took is never reclaimed while anyone works in it, and never deleted while it holds work.**
+"Taken" is saved in `.worktree-pool.json` with who took it, so it survives a Servex restart.
+Every 5 minutes (and when the pool is full) `reclaim()` hands a taken slot back only when all three are true:
+
+1. Its holder is `stopped` or `gone` in the Servex registry. A holder the registry doesn't know (a CLI session, a person) is never reclaimed.
+2. No live agent works in the slot (its cwd is inside it), none is queued to, and no live agent descends from the holder. A minion often writes into the slot from a different cwd.
+3. `git status` shows nothing of the slot's own, and its branch has no commits outside `michael/dev`.
+
+Otherwise the slot is kept, and the Servex log says why in one line: `pool: qf-9 is held by stopped X but kept — minion-Y (working) works in it`.
+`Server/worktree-prune.mjs` follows the same rule for worktrees outside the pool: a changed file or an unmerged branch is skipped and named. `--only <name>` checks one worktree.
+
+Why: on 2026-09-30 the sweep salvaged qf-9 twice (12:53 and 13:23), because its holder, a task mastermind, showed `stopped` while its minion was still writing there. Proof: [ai/2026-09-30/pool-taken/proof.txt](/framework/ai/2026-09-30/pool-taken/proof.txt).
+
+**Salvage is by hand only.** `node Servex/Lifecycle.js --salvage qf-2` stops the slot's server and watcher, commits its work to `salvage/<slot>-<date>` (never merged, never deleted), moves the slot back to `michael/dev` and removes it. A dev server's own logs (`page.jsonl`, `files.jsonl`, `.claude/skills/clarity/flags.jsonl`) are its noise: a return treats them as clean, and salvage leaves them out. More: [lifecycle.md](lifecycle.md).
 
 **A recorded pid is checked before it is killed.** Windows reuses pids; on 2026-09-29 qf-4's old watcher pid belonged to `whisper-server.exe`. `kill()` now reads the process's command line first and skips it unless it is the slot's own server (`.worktree-logs/<slot>.log`) or a health watcher.
 
