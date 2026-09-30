@@ -1,4 +1,4 @@
-import { div, a, span, h4, ul, li, icon } from "../../../core/View/View.js";
+import { div, a, span, h4, ul, ol, li, strong, small, icon } from "../../../core/View/View.js";
 
 /**
  * Structured content: four pieces, each one decision.
@@ -40,4 +40,27 @@ export function outline(items = [], { bg = false } = {}){
 	return div.c(bg ? "card ux-content-outline" : "ux-content-outline", () => list(items));
 }
 
-export default { iconCard, section, outline };
+/* cards(items) — a few things side by side, each a gist card: big icon, name, one line,
+   a link. The columns share the row evenly, so 4 cards are 4 across, never 3 and an orphan.
+   Promoted from ai/overview.js (the ai-page task, 2026-09-30). */
+export function cards(items){
+	return div.c("wide", () => items.forEach(it => card(it)))
+		.style({ display: "grid", gap: "var(--gap, 1rem)", gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, 13rem), 1fr))` });
+}
+export function card({ name, icon: ic, gist, href }){
+	return a.c("card flex v gap-35").attr("href", href ?? "#")
+		.style({ textDecoration: "none", color: "var(--ink)" })
+		.append(() => {
+			if (ic) icon(ic).style({ fontSize: "2rem" });
+			span(name).style({ fontWeight: "700" });
+			if (gist) small.c("muted", gist);
+		});
+}
+
+/* flow(steps) — things that happen in order: numbered, each [name, href, one line]. */
+export function flow(steps){
+	return ol.c("flex v gap-35", () => steps.forEach(([name, href, text]) =>
+		li(() => { (href ? a(name).attr("href", href) : strong(name)).style({ fontWeight: "700" }); span(" — " + text); })));
+}
+
+export default { iconCard, section, outline, cards, card, flow };
