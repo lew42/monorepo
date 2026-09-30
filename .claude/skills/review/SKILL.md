@@ -47,6 +47,8 @@ A review whose diff changes no page (review.mjs size `light`, no shots) answers 
 
 Look at every shot from the top down, one horizontal band at a time (the owner, 2026-09-30). For each band ask: what share of the screen does it take, is that the right size, is its padding right, is space wasted, did anything wrap that shouldn't? `layout.json`'s `bands` gives each band's `share` and `ink`, so check your eye against it.
 
+Look only at the shots in the task folder, or at your own headless page (`mcp__site__shot`, `Server/browser.mjs`). Never use `mcp__site__pages`, `claim` or `eval` on a connected tab: agents must not take over the owner's browser (the owner, 2026-09-30).
+
 ## How to answer
 
 One line per question: `yes`, `no` or `n/a`, then the evidence.
