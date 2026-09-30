@@ -26,7 +26,8 @@ View.stylesheet(import.meta, "Chat.css");
 const PREFIX = "chat=";
 
 export function drill_hash(session, path){
-	return "#" + PREFIX + encodeURIComponent(session) + "~" + path.map(encodeURIComponent).join("/");
+	// "~" is the separator, and encodeURIComponent leaves it alone: escape it by hand.
+	return "#" + PREFIX + encodeURIComponent(session).replaceAll("~", "%7E") + "~" + path.map(k => encodeURIComponent(k).replaceAll("~", "%7E")).join("/");
 }
 export function parse_hash(hash = location.hash){
 	const h = hash.replace(/^#/, "");

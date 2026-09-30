@@ -141,7 +141,7 @@ mode alone.
 
 ## Drill in: open a card as its own small page (2026-09-30)
 
-A selected card that holds something grows an **Open ⤢** button. It takes the chat full screen (on desktop, over the drawer at its full height) with a Back button, and a card inside opens one level deeper. Each level has its own url (`#chat=<session>~<at>/…`), so reload and the back button land in the same place. `drill: false` is v1. How it works, and how a card maps to a page: [doc/drill.md](./doc/drill.md). Try it: the "Drill in" demo on [/framework/ext/Chat/panel/](/framework/ext/Chat/panel/).
+A selected card that holds something grows an **Open ⤢** button. It takes the chat full screen (on desktop, over the drawer at its full height) with a Back button, and a card inside opens one level deeper. Each level has its own url (`#chat=<session>~<at>/…`), so reload and the back button land in the same place. `drill: false` is v1. How it works, and how a card maps to a page: [doc/drill.md](./doc/drill.md). Try it: [/framework/ext/Chat/drill/](/framework/ext/Chat/drill/).
 
 ## Watch out
 

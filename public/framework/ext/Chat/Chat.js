@@ -212,7 +212,8 @@ export function refine($box, e){
 	const of = e.of ?? [], at = Date.parse(e.at ?? 0) || 0;
 	for (const b of $box.el.children){
 		const st = bubbles.get(b);
-		if (!st || !st.pieces.some(pc => of.includes(pc.id))) continue;
+		// A headed reply is in the map only so it can be opened (card_of): never refined.
+		if (!st || st.head || !st.pieces.some(pc => of.includes(pc.id))) continue;
 		if (st.refined && st.at > at) return;
 		st.refined = e; st.at = at;
 		fill(b);
