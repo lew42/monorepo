@@ -49,9 +49,41 @@ const mcp = { tool(def){ tools.set(def.name, def); } };
 const routes = new Map();
 const router = { get(p, ...h){ routes.set("GET " + p, h.at(-1)); }, post(p, ...h){ routes.set("POST " + p, h.at(-1)); }, options(){} };
 
+/* A fake Sessions (the ext/Session pair): just enough of its public shape —
+ * `map`, `project`, `project_of`, `resume_ms`, `resume`, `create`, `say` — for
+ * Layers' `session_for` helper to drive without starting a real Claude session.
+ * Shared by every fake servex below: it is plain state, not filesystem-bound,
+ * so the same fake proves both the card path (item 3) and the page path (item 2). */
+const session_calls = [];                      // every say(): {session, path, text, via}
+const sessions_map = {};
+let ssid = 0;
+const fake_sessions = {
+	map: sessions_map,
+	project_of(){ return "proj"; },
+	project(s){ return s.project ?? "proj"; },
+	resume_ms: 3600000,
+	resume({ session }){
+		const s = sessions_map[session];
+		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true };
+	},
+	create({ path, card } = {}){
+		const id = "vsess-" + (++ssid);
+		const s = { id, home: card ? `/framework/ai/${card}/` : path, file: `${(card ? `/framework/ai/${card}/` : path)}ai/${id}.jsonl`,
+			project: "proj", at: new Date().toISOString(), last_at: new Date().toISOString() };
+		sessions_map[id] = s;
+		return { ok: true, session: id, home: s.home, file: s.file, resumed: false };
+	},
+	say({ session, path, text, via }){
+		const s = sessions_map[session];
+		if (s) s.last_at = new Date().toISOString();
+		session_calls.push({ session, path, text, via });
+		return { ok: true, at: new Date().toISOString(), answered_by: [] };
+	}
+};
+
 const logged = [];
 const log = { append: (name, e) => (logged.push({ name, ...e }), Promise.resolve()) };
-const servex = { cards, agents, mcp, log, dashboard: { router } };
+const servex = { cards, agents, mcp, log, dashboard: { router }, sessions: fake_sessions };
 const gone = new Set();                       // session ids whose file was deleted
 const layers = new Layers({ servex, file, idle_ms: 1000, system(){ return "SYSTEM"; }, watch(){},
 	session_exists: slot => !gone.has(slot.session_id) }).install();
@@ -216,6 +248,48 @@ check("a name taken by another card gets -2", () => {
 	assert.equal(spawns().at(-1).spec.id, "assistant-new-logo-2");
 });
 
+/* ONE-DICTATION (2026-09-30): the owner's own words on a card now feed the
+ * global session pair, not assistant-<card>. Every other route into a card
+ * (an agent's own prompt, a manager's) still reaches the old assistant. */
+const owner_prompt = (card, text) => {
+	const p = { id: "p-" + Math.random().toString(36).slice(2), text, raw: text, on: card, by: "owner" };
+	logs.get(card).push({ prompt: p });
+	for (const fn of listeners) fn(card, { prompt: p }, { fresh: true });
+};
+const agent_prompt = (card, text, by) => {
+	const p = { id: "p-" + Math.random().toString(36).slice(2), text, raw: text, on: card, by };
+	logs.get(card).push({ prompt: p });
+	for (const fn of listeners) fn(card, { prompt: p }, { fresh: true });
+};
+
+const CARD_OWNER = "2026/09/26/dictation-owner";
+cards.make(CARD_OWNER);
+const before_owner_spawns = spawns().length, before_owner_sends = calls.filter(c => c.verb === "send").length;
+owner_prompt(CARD_OWNER, "let's fix the header next");
+check("an owner's prompt on a card feeds the global session, not assistant-<card>: nothing is spawned or sent to it", () => {
+	assert.equal(spawns().length, before_owner_spawns, "no new assistant for the card");
+	assert.equal(calls.filter(c => c.verb === "send").length, before_owner_sends, "the old assistant is never sent to either");
+	const sent = session_calls.at(-1);
+	assert.equal(sent.path, `/framework/ai2/${CARD_OWNER}/`);
+	assert.equal(sent.via, "text");
+	assert.match(sent.text, /let's fix the header next$/);
+});
+
+const second_owner_send = session_calls.length;
+owner_prompt(CARD_OWNER, "and blue");
+check("a second owner prompt on the same card reuses the same global session (one per project)", () => {
+	assert.equal(session_calls.length, second_owner_send + 1);
+	assert.equal(session_calls.at(-1).session, session_calls.at(-2).session);
+});
+
+const before_agent_spawns = spawns().length;
+agent_prompt("2026/09/24/new-logo", "a tweak from the assistant itself", "assistant-new-logo");
+check("a prompt from an agent (by != owner) still reaches assistant-<card>, unchanged", () => {
+	assert.equal(spawns().length, before_agent_spawns, "assistant-new-logo already exists: send, not spawn");
+	const send = calls.at(-1);
+	assert.deepEqual([send.verb, send.id, send.text], ["send", "assistant-new-logo", "a tweak from the assistant itself"]);
+});
+
 const { default: Dispatcher } = await import("./Dispatcher.js");
 const posted = [];
 const dispatcher = new Dispatcher({ servex: { ...servex, layers, log: { append: (name, e) => (posted.push(e), Promise.resolve()) } } });
@@ -311,7 +385,7 @@ const pglobal = { starts: 0, master(){
 	pagents.live.set(a.id, a);
 	return a;
 } };
-const pservex = { cards, agents: pagents, log, global: pglobal, mcp: { tool(def){ ptools.set(def.name, def); } },
+const pservex = { cards, agents: pagents, log, global: pglobal, mcp: { tool(def){ ptools.set(def.name, def); } }, sessions: fake_sessions,
 	dashboard: { router: { get(p, ...h){ proutes.set("GET " + p, h.at(-1)); }, post(p, ...h){ proutes.set("POST " + p, h.at(-1)); }, options(){} } } };
 const pfile = path.join(dir, "pages.json");
 fs.writeFileSync(pfile, JSON.stringify({ cards: { "/": { parent: null, assistant: { id: "assistant-root", session_id: "stale", cwd: repo }, manager: { id: "manager-root", session_id: null, cwd: repo } }, [A]: { assistant: { id: "assistant-fix-the-sidebar", session_id: "old", cwd: repo }, manager: { id: "manager-fix-the-sidebar", session_id: null, cwd: repo } } } }));
@@ -322,6 +396,16 @@ const pcall = (name, args, caller) => ptools.get(name).handler(args, { caller })
 const chat = page => fs.readFileSync(path.join(repo, "public", page, "ai/chat.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l));
 const get_agents = page => { let b; proutes.get("GET /api/page-agents")({ query: { page } }, { json: x => { b = x; } }); return b; };
 const DICT = "/framework/ux/Dictate/";
+/* What page_ai used to do for a page's OWN assistant, in one step (persist the
+ * prompt to the page's chat, then hand it to the listener): page_ai no longer
+ * does this — it feeds the session pair instead (below) — but `heard()` and
+ * everything it opens is left in place, so this drives it directly the same
+ * way page_ai used to, to prove that engine itself still works. */
+const drive = (page, text) => {
+	const prompt = { id: "p-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, at: new Date().toISOString(), by: "owner" };
+	P.append_chat(page, { prompt });
+	return P.heard(page, prompt);
+};
 
 check("a pair for any page: ids from the last segment, root for /, each records its parent's manager", () => {
 	const rec = P.record(DICT);
@@ -351,11 +435,39 @@ check("POST /api/page-ai refuses a bad path, an empty text and a page that does 
 	assert.equal(pspawns().length, 0);
 });
 
-const sent = P.page_ai({ page: "/framework/ux/Dictate", text: "make the mic button bigger", from: "owner" });
-check("the first send on a plain page: the prompt lands in its chat and spawns its assistant, lean, with page_reply", () => {
-	assert.deepEqual(sent, { ok: true, page: DICT, assistant: "assistant-dictate", manager: "manager-dictate" });
-	const line = chat(DICT)[0].prompt;
-	assert.deepEqual([line.text, line.by, typeof line.at], ["make the mic button bigger", "owner", "string"]);
+/* ONE-DICTATION (2026-09-30): POST /api/page-ai used to write into the page's own
+ * chat and spawn that page's own assistant (the per-directory assistant the owner
+ * asked to retire — "I don't want two user interfaces"). It now feeds the one
+ * global session/project pair instead, the same fast/smart pair the ✦ sheet and
+ * the drawer's AI tab already use. */
+const ctx = [{ kind: "p", label: "this paragraph", text: "old wording", selector: "main p" }];
+const sent = P.page_ai({ page: "/framework/ux/Dictate", text: "make the mic button bigger", context: ctx });
+check("page_ai feeds the global session, folding selected elements into the text, and spawns no page assistant", () => {
+	assert.deepEqual(Object.keys(sent).sort(), ["file", "ok", "page", "session"]);
+	assert.deepEqual([sent.ok, sent.page], [true, DICT]);
+	assert.equal(pspawns().length, 0, "page_ai itself spawns nothing");
+	const said = session_calls.at(-1);
+	assert.equal(said.session, sent.session);
+	assert.equal(said.path, DICT);
+	assert.equal(said.via, "text");
+	assert.match(said.text, /^\[Selected: this paragraph \(main p\)\]\nold wording\n\nmake the mic button bigger$/);
+});
+
+const second = P.page_ai({ page: "/notes/", text: "and this one too" });
+check("one global session per project: a second page_ai call, on a different page, reuses the same session", () => {
+	assert.equal(second.session, sent.session);
+	assert.equal(session_calls.at(-1).path, "/notes/");
+});
+
+/* The engine that USED to be reached through page_ai (open/spawn/resume/stale/
+ * checkpoint/recycle, `heard()`) is left in place — nothing else in this suite
+ * reaches it for a PAGE anymore, since page_ai was its only live caller and it now
+ * always goes through the session pair instead. It is driven DIRECTLY below
+ * (the `drive()` helper above, what `page_ai` used to do internally) to prove the
+ * engine itself still works, the same way it still does for a CARD (the first
+ * block of this file, whose non-owner prompts still reach assistant-<card>). */
+const sent2 = drive(DICT, "make the mic button bigger");
+check("heard() still opens a page's own assistant directly, lean, with page_reply", () => {
 	const s = pspawns().at(-1).spec;
 	assert.equal(s.id, "assistant-dictate");
 	assert.match(s.prompt, /make the mic button bigger[\s\S]*page_reply\(\{page: "\/framework\/ux\/Dictate\/"[\s\S]*Answer them\.$/);
@@ -380,19 +492,18 @@ check("/api/page-agents: the card-agents row shape for the page", () => {
 	assert.deepEqual(Object.keys(rows[0]), ["id", "role", "state", "model", "session_id", "context", "window", "pct"]);
 });
 
-P.page_ai({ page: "/", text: "what is running?" });
-check("one root assistant: a send to / reaches master-assistant (Global's, Opus); Layers spawns no assistant-root", () => {
+drive("/", "what is running?");
+check("one root assistant: heard() on / still reaches master-assistant (Global's, Opus); Layers spawns no assistant-root", () => {
 	assert.equal(pglobal.starts, 1, "Global started it once");
 	assert.ok(!pspawns().some(c => c.spec.id === "assistant-root" || c.spec.id === "master-assistant"), "Layers spawned neither");
 	const to = pcalls.filter(c => c.verb === "send" && c.id === "master-assistant");
 	assert.deepEqual([to.length, to[0].text, to[0].note.reply_to], [1, "what is running?", "page /"]);
 	assert.equal(pagents.live.get("master-assistant").model, "claude-opus-5-5");
-	assert.ok(fs.existsSync(path.join(repo, "public/ai/chat.jsonl")));
 	assert.deepEqual(get_agents("/").map(r => [r.id, r.role]), [["master-assistant", "assistant"], ["manager-root", "manager"]]);
 	assert.equal(P.recycle("master-assistant").ok, false, "its lifecycle is Global's");
 });
-P.page_ai({ page: "/", text: "and again" });
-check("a second send to / goes to the same master-assistant, not a new start", () => {
+drive("/", "and again");
+check("a second heard() on / goes to the same master-assistant, not a new start", () => {
 	assert.equal(pglobal.starts, 1);
 	assert.equal(pcalls.filter(c => c.verb === "send" && c.id === "master-assistant").at(-1).text, "and again");
 });
@@ -412,7 +523,7 @@ check("at most max_assistants live: the least recently used idle one is stopped 
 	P.touched.set("assistant-dictate", Date.now() - 5000);   // older
 	P.touched.set("master-assistant", Date.now() - 9000);    // oldest, but not Layers' to count
 	P.max_assistants = 1;                                     // Dictate alone fills it: the root does not count
-	P.page_ai({ page: "/notes/", text: "a note" });
+	drive("/notes/", "a note");
 	P.max_assistants = 2;
 	assert.ok(pcalls.some(c => c.verb === "stop" && c.id === "assistant-dictate"));
 	assert.ok(!pcalls.some(c => c.verb === "stop" && c.id === "master-assistant"), "the root assistant is Global's: never counted, never stopped here");
@@ -420,7 +531,7 @@ check("at most max_assistants live: the least recently used idle one is stopped 
 });
 
 check("resumed on next use when under 30k and used within the hour", () => {
-	P.page_ai({ page: DICT, text: "and blue" });
+	drive(DICT, "and blue");
 	const s = pspawns().at(-1).spec;
 	assert.deepEqual([s.id, s.resume, s.prompt], ["assistant-dictate", "psess-1", undefined]);
 	assert.equal(pcalls.at(-1).verb, "send");
@@ -431,7 +542,7 @@ check("resumed on next use when under 30k and used within the hour", () => {
 check("fresh on next use when last used over an hour ago: the page's log, not a resume", () => {
 	P.stop("assistant-dictate");
 	P.state.cards[DICT].assistant.used_at = new Date(Date.now() - 2 * 3600e3).toISOString();
-	P.page_ai({ page: DICT, text: "still there" });
+	drive(DICT, "still there");
 	const s = pspawns().at(-1).spec;
 	assert.equal(s.resume, undefined);
 	// no longer anchored at `^`: a fresh page assistant now opens with its readme chain first (readme-chain.js).
@@ -443,7 +554,7 @@ check("fresh on next use when its context was 30k or more", () => {
 	pagents.live.get("assistant-dictate").context = 31000;
 	P.sync(DICT);
 	P.stop("assistant-dictate");
-	P.page_ai({ page: DICT, text: "again" });
+	drive(DICT, "again");
 	assert.equal(pspawns().at(-1).spec.resume, undefined);
 	assert.ok(logged.some(e => e.event === "fresh" && /31000 tokens/.test(e.reason)));
 });
@@ -465,7 +576,7 @@ check("idle: an assistant stops after its limit, a manager only after its own lo
 });
 
 check("past the fresh line: one checkpoint request, then recycled once that turn ends, then fresh from the summary", () => {
-	P.page_ai({ page: "/notes/", text: "long talk" });
+	drive("/notes/", "long talk");
 	const a = pagents.live.get("assistant-notes");
 	a.state = "idle"; a.context = 45000; a.turns = 3;
 	P.sweep();
@@ -486,7 +597,7 @@ check("past the fresh line: one checkpoint request, then recycled once that turn
 	check("the checkpointed assistant is recycled and restarts fresh from its checkpoint line", () => {
 		assert.equal(P.state.cards["/notes/"].assistant.session_id, null);
 		assert.equal(chat("/notes/").at(-1).summary.text, "CHECKPOINT: notes are about X");
-		P.page_ai({ page: "/notes/", text: "next thing" });
+		drive("/notes/", "next thing");
 		const s = pspawns().at(-1).spec;
 		assert.equal(s.resume, undefined);
 		// no longer anchored at `^`: the recycled assistant now opens with its readme chain first (readme-chain.js).
@@ -495,11 +606,17 @@ check("past the fresh line: one checkpoint request, then recycled once that turn
 	});
 }
 
-check("a send on a card's page goes into the card", () => {
+/* ONE-DICTATION (2026-09-30): page_ai no longer special-cases a card's own page —
+ * every page_ai call now feeds the global session (proved above), and a card's
+ * OWN page (`/framework/ai/<card>/`) is not one of the two real directories this
+ * scratch repo has, so it 404s like any other missing page. The owner's words on
+ * a card itself reach the session a different way now (item 3, the first block
+ * of this file: `owner_prompt()` on the shared `cards` fake, never through
+ * page_ai at all). */
+check("page_ai on a card's own page is just a page path: 404 here, since this scratch repo never made that directory", () => {
 	const before = logs.get(A).length;
-	P.page_ai({ page: `/framework/ai/${A}/`, text: "via the drawer" });
-	assert.equal(logs.get(A).length, before + 1);
-	assert.equal(logs.get(A).at(-1).prompt.text, "via the drawer");
+	assert.equal(P.page_ai({ page: `/framework/ai/${A}/`, text: "via the drawer" }).status, 404);
+	assert.equal(logs.get(A).length, before, "never written to the card");
 });
 
 {
