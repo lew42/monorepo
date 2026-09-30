@@ -2,8 +2,10 @@
 
 The `review` skill asks nine systems of questions, in order: requirements, page structure,
 navigation, layout, sizing, wrapping, spacing and padding, colour and contrast, flow, then
-anything else (today, content's own "Words"). This page shows every one of them, live — never a
-copy typed out by hand, so a new rule in a skill's `questions.md` shows up here the moment it's
+anything else (today, content's own "Words"). Requirements questions live in the review skill's
+own text, not a `questions.md` — the reviewer always asks them first, but there's no separate
+file to read live, so this page shows the other eight systems, plus "Words": nine tiles, never
+a copy typed out by hand, so a new rule in a skill's `questions.md` shows up here the moment it's
 written.
 
 ## Use

@@ -468,6 +468,42 @@ function backfillCmd() {
 	console.log(`review.mjs --backfill: ${n} scored, ${skipped} skipped`);
 }
 
+/* The task's card id: the `Card:` line of requirements.md (e.g.
+ * `2026/09/30/one-review-skill-system-questions-screen`), else the first `{"assign":{"card":…}}`
+ * line in task.jsonl. null if neither names one — postReviewToCard then skips silently, since a
+ * proof or scratch task legitimately has no card. */
+function cardIdFor(taskDir) {
+	try {
+		const req = fs.readFileSync(path.join(taskDir, "requirements.md"), "utf8");
+		const m = /Card:\s*`([^`]+)`/.exec(req);
+		if (m) return m[1];
+	} catch {}
+	const first = readTaskJsonl(taskDir).find(e => e.assign?.card);
+	return first?.assign?.card ?? null;
+}
+
+/* The card shows the report (requirements.md ask 1/4): one plain-text reply on the task's card,
+ * through the same loopback MCP helper every spawn here already uses, naming the verdict, the
+ * finding count and site urls for the report and (when this review shot pages) the sheet — so a
+ * reader on the dashboard can open both without going to the task folder first. Skipped with no
+ * card. Never thrown: a failed post is logged to stdout and the review still lands either way. */
+async function postReviewToCard(root, taskDir, review) {
+	const card = cardIdFor(taskDir);
+	if (!card) return;
+	const findings = review.findings || [];
+	const fixCount = findings.filter(f => f.kind === "fix").length;
+	const taskPath = path.relative(path.join(root, "public/framework/ai"), taskDir).replaceAll("\\", "/");
+	let text = `Review: ${review.verdict}, ${findings.length} findings (${fixCount} fix). Report: /framework/ai/${taskPath}/${review.file}`;
+	const sheet = readTaskJsonl(taskDir).filter(e => e.shots).at(-1)?.shots?.sheet;
+	if (sheet) text += ` · Shots: /framework/ai/${taskPath}/${sheet}`;
+	try {
+		const res = await mcp("card_reply", { card, from: "review.mjs", text });
+		if (res?.error || res?.raw) console.log(`review.mjs: card_reply to ${card} may have failed: ${JSON.stringify(res).slice(0, 200)}`);
+	} catch (e) {
+		console.log(`review.mjs: card_reply to ${card} failed: ${String(e?.message || e).slice(0, 200)}`);
+	}
+}
+
 async function mcp(name, args, ms = 30000) {
 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
 	const j = await r.json();
@@ -553,6 +589,7 @@ async function main() {
 		const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
 		appendJSON(taskJsonl, { review });
 		writePhase1(taskDir, review);
+		await postReviewToCard(root, taskDir, review);
 		console.log(`review.mjs: size none — ${branch} — pass, no agent`);
 		return;
 	}
@@ -627,6 +664,7 @@ async function main() {
 	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: reviewRelFile, report: pageReview ? reviewRelFile : null, shots: pageReview ? "shots/" : null };
 	appendJSON(taskJsonl, { review });
 	writePhase1(taskDir, review);
+	await postReviewToCard(root, taskDir, review);
 	console.log(`review.mjs: size ${size} — ${branch} — ${verdict}, ${findings.length} finding(s), $${cost}`);
 }
 

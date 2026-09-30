@@ -9,8 +9,12 @@ import { page_work_strip } from "/framework/core/Page/ai/work.js";
 
 // A name only the newer "Symbols" icon set has renders as its literal word (new-page skill) — so
 // every name here is one already used live elsewhere on this site (grepped, not guessed).
+//
+// No "Requirements" entry: the review skill asks requirements questions too, but they live in
+// the skill's own text, not a questions.md with numbered, bracket-tagged lines — so
+// questions.json (and this wall) never carries a "Requirements" system (review 2026-09-30
+// finding 6). Adding one here would be dead code.
 const SYSTEM_ICON = {
-	Requirements: "rule",
 	"Page structure": "view_quilt",
 	Navigation: "explore",
 	Layout: "dashboard",
@@ -35,15 +39,34 @@ export default new Page({
 
 		// Capture every box now, synchronously — content() is about to hit an await
 		// (the fetch below), and nothing built after that would land here.
-		const $tiles = div.c("flex wrap gap-50");
+		//
 		// The page's own wide track (core/Page/Page.css: `.page > .wide { grid-column:
-		// wide }`) so the wall of systems fills a 3440 screen instead of sitting in the
-		// narrow reading column; `.masonry` (framework.css) packs the cards into as many
-		// columns as `--column` allows, zero JS (layout skill: lean into columns). `26em`
-		// overrides the framework.css 14em tile default, inline on the box (a runtime
-		// token override, css skill) — 14em wrapped "Navigation" mid-word and squeezed
-		// every question to ~5 words a line; a card here holds full sentences.
-		const $sections = div.c("wide masonry").style("--column", "26em");
+		// wide }`) for the tiles too, so they get the full 3440 width to wrap across
+		// instead of sitting in the narrow reading column (review 2026-09-30 finding 3:
+		// they wrapped to 3 rows with the right half empty).
+		const $tiles = div.c("wide flex wrap gap-50");
+
+		// "What's in flight" moved up here, right after the tiles and before the wall of
+		// systems — it used to sit under the whole wall, 4-12 screens down (review
+		// 2026-09-30 finding 4: "open before done" belongs near the top).
+		h2("What's in flight");
+		div.c("card pad", $box => page_work_strip($box, { match: ["review"], page: this }));
+
+		// The wall of systems, still in the `wide` track so it fills a 3440 screen. Was
+		// `.masonry` (CSS columns), which packs top-to-bottom per COLUMN — so a row across
+		// the screen read out of order (review 2026-09-30 finding 2: readme says "in the
+		// order it asks them", the wall didn't). `.grid.auto` (framework.css:
+		// `repeat(auto-fit, minmax(var(--column),1fr))`) is row-major instead: each row
+		// fills left to right in source order, then wraps to the next row, so the systems
+		// read in the same order questions.json lists them. `.gap` is the matching spacing
+		// utility for a grid (framework.css: `.gap { gap: var(--gap) }`). `26em` overrides
+		// the framework.css 14em tile default, inline on the box (a runtime token
+		// override, css skill) — 14em wrapped "Navigation" mid-word and squeezed every
+		// question to ~5 words a line; a card here holds full sentences. No existing
+		// framework.css utility sets `align-items: start` on a `.grid` (grepped) — grid's
+		// default `stretch` just makes every card in a row match the row's tallest, which
+		// keeps the row-major reading order intact, so nothing new was added for it.
+		const $sections = div.c("wide grid auto gap").style("--column", "26em");
 		const $note = p.c("muted");
 
 		fetch(new URL("questions.json", import.meta.url)).then(r => r.json()).then(data => {
@@ -58,7 +81,7 @@ export default new Page({
 
 			// Each system is one framed box (`card pad flow` — css skill: a framed box takes
 			// `.card`, which carries its own padding; `.flow` for the stack of questions
-			// inside it) so `.masonry` above has real boxes to pack into columns.
+			// inside it) so `.grid.auto` above has real boxes to pack into its row-major tracks.
 			$sections.append(() => systems.forEach(s => {
 				div.c("card pad flow", () => {
 					h2(s.heading).attr("id", anchor(s.heading));
@@ -78,8 +101,5 @@ export default new Page({
 			const when = data.generated_at ? new Date(data.generated_at).toLocaleString() : "unknown";
 			$note.text(`Generated from the skills' questions.md files by node Server/review.mjs --questions — last run ${when}.`);
 		}).catch(e => $note.text(`Could not load questions.json (${e.message}) — run node Server/review.mjs --questions.`));
-
-		h2("What's in flight");
-		div.c("card pad", $box => page_work_strip($box, { match: ["review"], page: this }));
 	},
 });

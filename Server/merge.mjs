@@ -11,8 +11,8 @@
  * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
  * than its head with every `[fix]` finding answered, or the merge refuses with the one command to
  * fix that; a branch that also touches a page (`pageUrlFor`) needs that review's own page report
- * (`review/report.md`, with shots at 400/1200/1920/3440), not just the plain review.md a non-page
- * change gets; `--no-review "why"` or `--main` skip it, loudly.
+ * (`review/report.md`), not just the plain review.md a non-page change gets; `--no-review "why"`
+ * or `--main` skip it, loudly.
  *
  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
  * branch touches, from `git diff --name-only BASE...branch`, is turned into that page's own site
@@ -137,7 +137,7 @@ function reviewGate(branch, head){
 	// every layout question answered), not just the plain brief-and-diff review.md a non-page
 	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
 	if (nameStatus.some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
-		return `refused: ${branch} changes a page and its review has no report (review/report.md, with shots at 400/1200/1920/3440); run: ${cmd}`;
+		return `refused: ${branch} changes a page and its review has no report (review/report.md); run: ${cmd}`;
 	return null;
 }
 
