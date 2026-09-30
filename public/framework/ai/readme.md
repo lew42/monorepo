@@ -2,6 +2,8 @@
 
 Where the agents' work is recorded: one folder per day, one folder per task inside it.
 
+The page itself shows the AI system: eight concept tiles (assistants, masterminds, minions, tasks and cards, asks, page inboxes, heartbeat, review and merge). Their text lives in [concepts.js](concepts.js); `page.js` routes each slug to its page and links Servex where Servex implements it. The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+
 ## Start here
 
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
