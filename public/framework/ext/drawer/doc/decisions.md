@@ -196,3 +196,26 @@ gone. That is deliberate: two rails at one edge would fight over the same push.
   the head: a one-word tag there (`panel`, the tag name) is how the reader knows which
   module the controls belong to. And `$body.empty()` throws away the rail's scroll
   position — restore it a frame later if the redraw is the same subject rewritten.
+
+# Click-to-select needed an explicit switch, not just "drawer open" (2026-09-30, card-measure-gap)
+
+The owner: *"when I click the actions dropdown it highlights the element… I think we want to
+maybe use an inspect mode to toggle that on, we don't want to automatically select things just
+by clicking on them… it kind of destroys all the UX."* Full task:
+[`ai/2026-09-30/card-measure-gap/`](/framework/ai/2026-09-30/card-measure-gap/), `doc/select.md`.
+
+`DrawerSelect.active()` used to be `tabs.mine()` alone — true any time the drawer happened to be
+open on its own tabs, so a plain click anywhere not on `OWN_CLICK`'s short list (links, buttons,
+inputs, `[role=button]`) read as "select this content," including a `<summary>` custom dropdown
+trigger (`ext/Dropdown`'s `.ui-menu-trigger`, not a native `<button>`). It now also requires an
+`inspect-mode` html class — a plain `dev/DevBar/parts.js` `check()`/`knob()` knob, the same
+mechanism `dev-outline` (the x-ray toggle) already uses, added as its own row in the drawer's
+Settings tab. Off by default, and it survives a reload the same way `dev-outline` does. Turning
+it off also proactively clears any live hover/selection (the `check()` `changed` callback), so a
+stale highlighted element is never left with no way back to it — though Escape still works
+regardless, as it always did.
+
+Alternative rejected: scoping `OWN_CLICK` to catch every custom control instead (`<summary>`,
+`role=button`, a future picker). That treats the symptom one selector at a time and a new control
+would reopen the same bug; a mode the owner explicitly turns on is the fix the owner asked for by
+name.

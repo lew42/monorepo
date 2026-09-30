@@ -656,3 +656,34 @@ title's own line-height) plus a `box-sizing`/`padding-block`/`line-height` reset
 own browser chrome cannot re-add the height back on top. Scoped to `.ai2-row-head >`, not the
 bare class, so the Live card's own ✕ (`.ai2-live-item .ai2-clear`, a grid cell, a different
 layout entirely) keeps its own sizing untouched.
+
+# The measure with no edge, and the phantom chat column (2026-09-30, card-measure-gap)
+
+The owner, on a top-level card's Overview: *"there's no border at the right side of this
+measure and so it just looks like it's stopped randomly… when I resize the right drawer to
+make it bigger there's like a five hundred pixel void in between the right sidebar and this
+card's actions dropdown."* Full task: [`ai/2026-09-30/card-measure-gap/`](/framework/ai/2026-09-30/card-measure-gap/).
+
+- **The measure (`ai2.css`'s `:is(.ai2-full-card, …) > :is(.ai2-text, …)` rule) now draws its own
+  edge**: `border-inline-end: 1px solid var(--line)` plus a little `padding-inline-end`, the same
+  hairline vocabulary a bounded column already uses elsewhere in this file. The alternative — let
+  the prose fill instead — was the owner's other named option; a visible edge was chosen because
+  the measure exists on purpose (a reading column), so marking it reads as intentional design
+  rather than removing the reading cap altogether.
+- **The real cause of the "500px void" wasn't the drawer's geometry at all.** `@media (width >=
+  40em) { .page.ai2-card-page:not(.ai2-card-live) { grid-template-columns: minmax(0, 1fr)
+  var(--ai2-chat, max(18rem, 33.333%)); } }` reserved a second grid column — a THIRD of the
+  page — for the card's bottom chat column (`.ai2-foot`). `Card.V1` (the old composer/chat
+  split, `doc/one-ai.md`) has been off by default since 2026-09-29, so most cards draw no
+  `.ai2-foot` at all, and this rule fired anyway: real content sat in the leftover two-thirds
+  with nothing to explain why, and it got worse as the drawer widened and took more of what was
+  left. Fixed by adding `:has(> .ai2-foot)` to the selector, so the one-column rule (the
+  2026-09-24 fix, "ONE COLUMN, THE WHOLE WIDTH", just above line 760 in `ai2.css`) is what
+  actually wins for every ordinary card now. Measured before/after at 1920 with the drawer
+  dragged wide: the reserved gap went from 437px (an exact 33.333% of the page) to 0px, and the
+  card's own content stopped visibly shrinking as the drawer grew.
+- **Found by measuring, not guessing.** The coordinating mastermind's hypothesis
+  (`framework.css`'s `--rail-floor` push clamp) turned out not to be the cause — a real
+  Playwright drag against the running page, reading `getComputedStyle(...).gridTemplateColumns`
+  on the actual card element, found the real second column in one probe. Screenshots and the
+  full before/after numbers: the task's own `shots/` and `task.jsonl`.

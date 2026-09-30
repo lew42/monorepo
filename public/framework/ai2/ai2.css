@@ -790,9 +790,18 @@
 	   pages below it (`.ai2-tasks`) run the full width and cap their own prose
 	   (ext/AITask's ai.css), so their tables, steps bar and shots are wide.
 	   On the text, never on the scrolling box, so the scrollbar stays at the
-	   column's edge. */
+	   column's edge.
+	   ⚠ card-measure-gap, 2026-09-30 (the owner: "there's no border at the right
+	   side of this measure and so it just looks like it's stopped randomly").
+	   The container is wider than the reading column on purpose (`doc/decisions.md`),
+	   so the stop needs a reason to look deliberate: a hairline, the same
+	   `border-inline-end` vocabulary a bounded column already uses elsewhere in
+	   this file (line 144). Padded off the text so the rule doesn't touch a
+	   descender. */
 	:is(.ai2-full-card, .ai2-card-tabs > .tab-panel) > :is(.ai2-text, .ai2-refined, .ai2-summary, .ai2-tally, p) {
 		max-width: var(--measure);
+		padding-inline-end: var(--gap-50);
+		border-inline-end: 1px solid var(--line);
 	}
 
 	.ai2-full-card > .ai2-cost {
@@ -2042,19 +2051,29 @@
 	.page.ai2-sub-page > .grip { display: none; }
 
 	@media (width >= 40em) {
-		/* A top-level card has the whole room: a third of it is the chat. */
-		.page.ai2-card-page:not(.ai2-card-live) {
+		/* A top-level card has the whole room: a third of it is the chat.
+		   ⚠ card-measure-gap, 2026-09-30 — `:has(> .ai2-foot)` added. Card.V1 (the
+		   old bottom composer/chat split, doc/one-ai.md) is off by default now, so
+		   most cards draw no `.ai2-foot` at all — but this rule used to fire
+		   anyway, reserving a THIRD of the page for a chat column that was never
+		   drawn. The card's content then stopped at the other two-thirds with
+		   nothing there to explain it: a growing, empty gap beside the Actions
+		   dropdown as the drawer widened and took the rest (the owner: "a five
+		   hundred pixel void… between the right sidebar and this card's actions
+		   dropdown"). Reserve the column only when there is a chat to put in it;
+		   the single-column rule above (line 760) already covers every other card. */
+		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) {
 			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
 			grid-template-rows: auto minmax(0, 1fr);
 		}
 
 		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
 		   so half of it is the same third. */
-		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live) {
+		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live):has(> .ai2-foot) {
 			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
 		}
 
-		.page.ai2-card-page:not(.ai2-card-live) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
+		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
 
 		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot {
 			position: relative;

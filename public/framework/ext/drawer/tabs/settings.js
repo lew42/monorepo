@@ -5,6 +5,7 @@ import width from "/framework/dev/DevBar/width.js";
 import blocked from "/framework/dev/DevBar/blocked.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
+import select from "../select.js";
 
 /* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
    (ext/Ask/edit.js, the one every editor control reads), the reader's reload block,
@@ -28,6 +29,15 @@ export default function settings({ app }){
 		section("live reload", () => { blocked(); });
 		section("width", () => { width(app); });
 		section("x-ray", () => check("outline every box", "dev-outline"));
+		// card-measure-gap, 2026-09-30: click-anywhere selection (select.js) used to run
+		// any time the drawer was open on its own tabs, so opening a dropdown or pressing
+		// a button anywhere not on its OWN_CLICK list read as "select this" (the owner:
+		// "it kind of destroys all the UX"). Off by default now; this is the only switch.
+		// `changed`: turning it off drops a stale hover/selection instead of leaving it
+		// lit with no way left to reach it (Escape still works, but a plain click no
+		// longer clears anything once `active()` is false).
+		section("inspect", () => check("inspect mode — click anything on the page to select it", "inspect-mode",
+			() => { select.hover(null); select.clear(); }));
 		this_page(app);
 	});
 }

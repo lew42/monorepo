@@ -1,17 +1,27 @@
 import drawer from "./drawer.js";
 import tabs from "./tabs.js";
 
-/* SELECT ANY ELEMENT ON THE PAGE — while the drawer is open (the owner, 2026-09-28: "for
-   any content card whether it's a paragraph or a question or any list item… if you click
-   on that thing it should be selectable… it just brightens the background color a little
-   bit on hover. And then when you click it, it kind of stays selected… and it launches
-   the properties in the sidebar").
+/* SELECT ANY ELEMENT ON THE PAGE — only in INSPECT MODE, an explicit toggle in the
+   drawer's Settings tab, off by default (card-measure-gap, 2026-09-30 — the owner: "when
+   I click the actions dropdown it highlights the element… I think we want to maybe use an
+   inspect mode to toggle that on, we don't want to automatically select things just by
+   clicking on them… it kind of destroys all the UX"). Before this, ANY click while the
+   drawer was open on its own tabs selected whatever was under it — opening a dropdown,
+   pressing a button inside a card, anything not on `OWN_CLICK`'s list read as "select
+   this". `inspect-mode` is a plain html knob (`dev/DevBar/parts.js`'s `check()`/`knob()`,
+   the same mechanism `dev-outline` already uses), so it also survives a reload.
+
+   Was (2026-09-28, "for any content card whether it's a paragraph or a question or any
+   list item… if you click on that thing it should be selectable… it just brightens the
+   background color a little bit on hover. And then when you click it, it kind of stays
+   selected… and it launches the properties in the sidebar").
 
    Hover brightens a content element (`[data-drawer-hover]`); a click keeps it selected
    (`[data-drawer-selected]`, one at a time) and opens the drawer's Element tab on it. Escape,
-   or a click on empty page, clears it. With the drawer SHUT none of this runs, so plain
-   reading, text selection and links are untouched. Links, buttons and inputs keep their
-   own clicks, and nothing inside the drawer or the dev bar is ever selectable.
+   or a click on empty page, clears it. With the drawer SHUT, or with inspect mode OFF, none
+   of this runs, so plain reading, text selection, links and every other control are
+   untouched. Links, buttons and inputs keep their own clicks, and nothing inside the drawer
+   or the dev bar is ever selectable.
 
    ⚠ Data ATTRIBUTES, not classes: the element's own classes are what the Element tab
    reports and what ext/Ask maps to a module (css-scopes.txt), and a `drawer-` class
@@ -53,8 +63,9 @@ export class DrawerSelect {
 	}
 
 	// Open on ITS tabs — not while another caller (ext/layout's panel) owns the drawer,
-	// whose own clicks select its own things.
-	active(){ return tabs.mine(); }
+	// whose own clicks select its own things — AND inspect mode is explicitly on
+	// (the settings tab's checkbox; off by default, see the file header above).
+	active(){ return tabs.mine() && document.documentElement.classList.contains("inspect-mode"); }
 
 	/** The content element a target belongs to, or null: inside the page, never the chrome. */
 	find(target){
