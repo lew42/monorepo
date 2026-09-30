@@ -40,7 +40,7 @@ One command, five files, each rung of a ladder written beside the one before it 
 diffed:
 
 ```
-node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair]
+node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair] [--config <rungs.json>] [--model-<rung> <model>]
 node Server/refine.mjs --coverage-only <dir> [--mock]
 node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]
 ```
@@ -71,7 +71,7 @@ node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]
 |---|---|
 | `raw.txt` | the input, byte for byte |
 | `clean.md` | near-verbatim: fillers gone, typos/punctuation fixed, nothing else changed — every sentence numbered `S1, S2, …` |
-| `structured-<model>.md` (one per model) then `structured.md` (the winner) | the owner's ideas as an outline, in the owner's own words, every bullet citing its sentences `[S3, S7]` |
+| `structured-<model>.md` (one per model) then `structured.md` (the winner) | an information hierarchy: one `#` H1 naming the subject, `##` H2s with familiar names for its parts, bullets (nested for sub-points) in the owner's own words, every bullet citing its sentences `[S3, S7]` |
 | `brief.md` | numbered asks for a mastermind, each citing its source sentences; a hedge ("maybe") becomes "the owner suggests", never a flat rule |
 | `coverage.md` | **the audit — the actual point of the tool.** Every clean sentence traced to an ask, "context only", "dropped, because …", or (if the model never answered for it) "unclassified" |
 | `brief-v1.md` (only if the repair round changed anything) | the brief exactly as first drafted, kept so it can be diffed against the repaired `brief.md` |
@@ -106,6 +106,31 @@ Every citation is a single sentence number — `citationsIn()` also expands a wr
 `[S6-S9]` or `[S6–S9]` to every number inside it, so a model that writes a range doesn't make its
 own sentences look uncited, but every prompt that produces a citation is told not to write one
 (a range hides which specific sentence backs which part of an ask).
+
+## The structured rung: a hierarchy, not a summary (2026-09-29)
+
+The owner, about 8:20 PM: the structured rung "only condenses"; he wants familiar names as headings.
+So it now writes **one `#` H1** for the thing being discussed ("Page class"), **`##` H2s** for
+its parts, using a name that already exists (like "Layout") or the speaker's own word, and bullets
+under each. It keeps every point: the only merging allowed is two bullets that say the exact same
+thing.
+
+Before and after, same clean sentences, same model (Sonnet), only the prompt changed:
+[`b-structure/out/`](/framework/ai/2026-09-29/audio/next-clean-transcription/b-structure/out/),
+one folder per dictation, `structured-before.md` beside `structured-after.md`. To make a new
+comparison: `node Server/refine/compare-structured.mjs <raw.txt> <out-dir>` (about $0.35).
+
+## Each rung's model and prompt, in one table
+
+`RUNGS`, at the top of `refine.mjs`, lists all six rungs (`clean`, `structured`, `pick`,
+`brief`, `coverage`, `repair`) with their model. To change one:
+
+- `--model-<rung> <model>`, for example `--model-brief haiku`. `--model-structured <m>` is the
+  same as `--models <m>` (the structured rung is the one that drafts with several models).
+- `--config rungs.json`, for example `{ "clean": { "model": "sonnet", "prompt": "... {{INPUT}} ..." } }`.
+  A `prompt` replaces that rung's whole prompt; `{{INPUT}}` becomes its input text. Only
+  `clean`, `structured` and `brief` take a prompt, because the other three are built from several
+  pieces at once. A `--model-<rung>` flag wins over the config file.
 
 ## The repair round: coverage catches a drop, this closes it
 

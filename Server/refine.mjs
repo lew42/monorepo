@@ -56,10 +56,37 @@ const MODELS = {
 	haiku: "claude-haiku-4-5-20251001",
 	sonnet: "claude-sonnet-5",
 };
-const CLEAN_MODEL = MODELS.haiku;      // cheap, mechanical-ish work
-const JUDGE_MODEL = MODELS.haiku;      // "a single cheap judge call" (brief, deliverable 3)
-const BRIEF_MODEL = MODELS.sonnet;     // wording asks correctly matters more here
-const COVERAGE_MODEL = MODELS.sonnet;  // classifying "dropped, because …" needs real judgment
+
+// ---- one table, every rung's {model, prompt} (2026-09-29, this file's own task) --------------
+//
+// Every model call this file makes is one of these six rungs. `model` is the model id (or a
+// short name from MODELS above) actually used, and is what "cheap, mechanical-ish work" or
+// "wording asks correctly matters more here" used to be one-off comments on a scattered constant
+// for. `promptTemplate`, when set, REPLACES that rung's built-in prompt wholesale — the one spot
+// where "{{INPUT}}" appears in it is substituted with that rung's main input text (the raw
+// transcript for `clean`, the numbered clean sentences for `structured`, the structured outline
+// for `brief`) before the call. Left `null`, the rung's own default prompt function below is used.
+//
+// `pick`, `coverage` and `repair` have no `promptTemplate` slot: their prompts are built from
+// several pieces at once (several drafts to compare; a list of specific gap sentences), not one
+// swappable block of input text, so a single "{{INPUT}}" placeholder can't stand in for them
+// without losing information a caller would need to supply anyway. Their MODEL is still
+// configurable, same as the other three — see "overriding a rung" in Server/doc/refine.md.
+//
+// Overriding a rung, cheapest first: `--model-<rung> <model-or-short-name>` (e.g.
+// `--model-structured sonnet`) swaps just its model. `--config <path.json>` — an object keyed by
+// rung name, each `{ "model": "...", "prompt": "..." }` (either key optional) — can swap both;
+// a CLI `--model-<rung>` flag wins over the same rung's `--config` entry, which wins over the
+// default below. `structured` is the one multi-draft rung: its models come from `--models`
+// (several drafts, then a pick), so `--model-structured <m>` is shorthand for `--models <m>`.
+const RUNGS = {
+	clean:      { model: MODELS.haiku,  promptTemplate: null }, // cheap, mechanical-ish work
+	structured: { model: null,          promptTemplate: null }, // model: see --models, below
+	pick:       { model: MODELS.haiku,  promptTemplate: null }, // "a single cheap judge call" (brief, deliverable 3)
+	brief:      { model: MODELS.sonnet, promptTemplate: null }, // wording asks correctly matters more here
+	coverage:   { model: MODELS.sonnet, promptTemplate: null }, // classifying "dropped, because …" needs real judgment
+	repair:     { model: MODELS.sonnet, promptTemplate: null }, // same reasoning as brief
+};
 
 // ---- small shared helpers (same shapes collab.mjs already uses, kept local on purpose: this
 // file has to stand alone as a CLI tool, not depend on another script's internals) ----------
@@ -78,10 +105,11 @@ function repoRoot() {
 }
 
 function parseArgs(argv) {
-	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false, coverageOnly: null, repairOnly: null, repairRounds: 1 };
+	const args = { input: null, out: process.cwd(), models: ["haiku", "sonnet"], collab: false, mock: false, coverageOnly: null, repairOnly: null, repairRounds: 1, config: null, rungModel: {} };
 	const rest = [];
 	for (let i = 0; i < argv.length; i++) {
 		const a = argv[i];
+		const rungModelFlag = /^--model-([a-z]+)$/.exec(a);
 		if (a === "--out") args.out = argv[++i];
 		else if (a === "--models") args.models = argv[++i].split(",").map(s => s.trim()).filter(Boolean);
 		else if (a === "--collab") args.collab = true;
@@ -90,6 +118,8 @@ function parseArgs(argv) {
 		else if (a === "--repair-only") args.repairOnly = argv[++i];
 		else if (a === "--repair-rounds") args.repairRounds = Number(argv[++i]);
 		else if (a === "--no-repair") args.repairRounds = 0;
+		else if (a === "--config") args.config = argv[++i];
+		else if (rungModelFlag) args.rungModel[rungModelFlag[1]] = argv[++i];
 		else rest.push(a);
 	}
 	args.input = rest[0];
@@ -101,6 +131,27 @@ function parseArgs(argv) {
 // structured-<id>.md filename and the collab member id.
 const modelKey = s => String(s).replace(/[^a-zA-Z0-9_-]+/g, "-");
 const modelIdFor = name => MODELS[name] || name; // a name not in the table is used literally
+
+// Applies `--config <path.json>` then `--model-<rung>` on top of RUNGS's own defaults, in that
+// order (a CLI flag always wins) — see the big comment above RUNGS for the override rules. Called
+// once, at the top of `main()`; every step function below just reads RUNGS from then on.
+function applyRungOverrides(args) {
+	if (args.config) {
+		let cfg;
+		try { cfg = JSON.parse(fs.readFileSync(args.config, "utf8")); }
+		catch (e) { throw new Error(`refine.mjs: --config ${args.config} is not readable JSON: ${e.message}`); }
+		for (const rung of Object.keys(cfg)) {
+			if (!RUNGS[rung]) throw new Error(`refine.mjs: --config names unknown rung "${rung}" — expected one of ${Object.keys(RUNGS).join(", ")}`);
+			if (cfg[rung].model) RUNGS[rung].model = modelIdFor(cfg[rung].model);
+			if (cfg[rung].prompt) RUNGS[rung].promptTemplate = cfg[rung].prompt;
+		}
+	}
+	if (args.rungModel.structured) { args.models = [args.rungModel.structured]; delete args.rungModel.structured; }
+	for (const [rung, model] of Object.entries(args.rungModel)) {
+		if (!RUNGS[rung]) throw new Error(`refine.mjs: --model-${rung} names unknown rung "${rung}" — expected one of ${Object.keys(RUNGS).join(", ")}`);
+		RUNGS[rung].model = modelIdFor(model);
+	}
+}
 
 // `.claude/prompts/` is git-ignored and PER-WORKTREE (prompt-relay.mjs writes into whichever
 // tree the typing session's cwd was) — a worktree's own copy usually has just that worktree's own
@@ -180,13 +231,8 @@ function parseNumberedSentences(text) {
 	return out;
 }
 
-async function stepClean(raw, cwd, mock) {
-	if (mock) {
-		const sentences = mechanicalClean(raw).map((text, i) => ({ n: i + 1, text }));
-		const md = sentences.map(s => `S${s.n}. ${s.text}`).join("\n") + "\n";
-		return { md, sentences, cost_usd: 0 };
-	}
-	const prompt = `You are cleaning a raw speech-to-text transcript for readability, changing as LITTLE as possible.\n\n`
+function cleanPromptDefault(raw) {
+	return `You are cleaning a raw speech-to-text transcript for readability, changing as LITTLE as possible.\n\n`
 		+ `Rules:\n`
 		+ `- Remove filler sounds and words: uh, um, like (only when it is a verbal tic, not a real comparison), "you know", "I mean", "whatever", and exact repeated words/false starts ("I, I'm" -> "I'm").\n`
 		+ `- Fix obvious transcription typos, capitalization and punctuation.\n`
@@ -195,7 +241,16 @@ async function stepClean(raw, cwd, mock) {
 		+ `Output ONLY the numbered sentences, one per line, in exactly this format and nothing else (no heading, no commentary):\n`
 		+ `S1. <first sentence>\nS2. <second sentence>\n...\n\n`
 		+ `Raw transcript:\n"""\n${raw}\n"""\n`;
-	const r = await askOnce(prompt, { model: CLEAN_MODEL, cwd });
+}
+
+async function stepClean(raw, cwd, mock) {
+	if (mock) {
+		const sentences = mechanicalClean(raw).map((text, i) => ({ n: i + 1, text }));
+		const md = sentences.map(s => `S${s.n}. ${s.text}`).join("\n") + "\n";
+		return { md, sentences, cost_usd: 0 };
+	}
+	const prompt = RUNGS.clean.promptTemplate ? RUNGS.clean.promptTemplate.replaceAll("{{INPUT}}", raw) : cleanPromptDefault(raw);
+	const r = await askOnce(prompt, { model: RUNGS.clean.model, cwd });
 	let sentences = parseNumberedSentences(r.answer);
 	if (!sentences.length) {
 		// The model didn't follow the format — fall back to the mechanical split rather than
@@ -214,9 +269,11 @@ function cleanTextForPrompt(sentences) {
 
 function mockStructured(sentences, index) {
 	// A deterministic, slightly different grouping per model index so two mock drafts are never
-	// byte-identical (same trick collab.mjs's own mockFacts uses, for the same reason).
+	// byte-identical (same trick collab.mjs's own mockFacts uses, for the same reason). Wrapped in
+	// one H1 + H2 (same shape the real prompt below produces) so the mock path still exercises the
+	// real structure downstream code (pick, brief) has to read.
 	const groupSize = 2 + (index % 2);
-	const lines = [];
+	const lines = [`# Mock subject ${index}`, "", "## Mock part"];
 	for (let i = 0; i < sentences.length; i += groupSize) {
 		const group = sentences.slice(i, i + groupSize);
 		const cites = group.map(s => `S${s.n}`).join(", ");
@@ -225,18 +282,48 @@ function mockStructured(sentences, index) {
 	return lines.join("\n") + "\n";
 }
 
+// The structured rung's own job (owner, 2026-09-29 ~8:20 PM): not another pass of condensing —
+// the "clean" rung already did that — but an information HIERARCHY: what is this dictation about
+// (one H1), what are its familiar parts (an H2 each, reusing a name that already exists, like
+// "Layout", when one applies), and the owner's own points under each, in their own words, kept
+// whole rather than shortened further.
+function structuredPromptDefault(sentences) {
+	return `Read this numbered, cleaned transcript of the owner talking. Turn it into an INFORMATION\n`
+		+ `HIERARCHY, not another summary — the owner's exact words for it: "putting familiar names, like\n`
+		+ `the headings" on the one thing being discussed and on each of its parts.\n\n`
+		+ `Output Markdown in EXACTLY this shape:\n\n`
+		+ `# <the one thing this whole transcript is about — the primary visual anchor everything else\n`
+		+ `hangs off of, e.g. "Page class". If nothing this clear-cut is named, use the thing the owner kept\n`
+		+ `coming back to.>\n`
+		+ `## <a familiar name for one part of that thing, in the owner's own words>\n`
+		+ `- <a point about that part, kept in the owner's own words> [S#, S#]\n`
+		+ `  - <a sub-point nested under it, if the point has one> [S#]\n`
+		+ `## <the next part's familiar name>\n`
+		+ `- <...> [S#]\n\n`
+		+ `Rules:\n`
+		+ `- Exactly ONE "#" H1. As many "##" H2s as the transcript actually has distinct parts — never\n`
+		+ `  invent an H2 just to have more than one.\n`
+		+ `- Each H2 must be a FAMILIAR name — one a reader already knows, not a label you invent. If a name\n`
+		+ `  already exists for that part elsewhere (the owner's example: "Layout"), use that exact name.\n`
+		+ `  Otherwise use whatever word the owner themselves used for it.\n`
+		+ `- Nest a bullet under another only when it truly is a sub-point of the one above it (a detail, an\n`
+		+ `  example, a "but" on that same point) — never nest just to look organized.\n`
+		+ `- KEEP EVERY POINT. This is a re-arrangement into headings, not a second round of condensing —\n`
+		+ `  the only merging allowed is combining two bullets that say the EXACT same thing twice. Never\n`
+		+ `  drop an idea, and never turn a hedge ("maybe", "I think", "I guess") into a flat claim.\n`
+		+ `- Every bullet and sub-bullet ends with the sentence numbers it is based on, in this exact form:\n`
+		+ `  [S3, S7]. Cite each sentence individually — never a range like [S6-S9]; a range hides which\n`
+		+ `  specific sentence supports which part of the bullet. Use only sentence numbers that appear\n`
+		+ `  below — never invent one.\n\n`
+		+ `Cleaned transcript:\n"""\n${cleanTextForPrompt(sentences)}\n"""\n\n`
+		+ `Output ONLY the Markdown described above (the H1, its H2s, and their bullets), nothing else.`;
+}
+
 async function draftStructured(modelId, sentences, cwd, mock, index) {
 	if (mock) return { md: mockStructured(sentences, index), cost_usd: 0 };
-	const prompt = `Read this numbered, cleaned transcript of the owner talking. Write an OUTLINE of the owner's\n`
-		+ `own ideas: Markdown bullets, using the owner's own words and names for things — never invent new\n`
-		+ `terminology. Group related sentences under one bullet where that helps. Do not add any idea that\n`
-		+ `is not in the transcript, and do not turn a hedge ("maybe", "I think", "I guess") into a flat claim.\n\n`
-		+ `Every bullet MUST end with the sentence numbers it is based on, in this exact form: [S3, S7].\n`
-		+ `Cite each sentence individually — never a range like [S6-S9]; a range hides which specific\n`
-		+ `sentence supports which part of the bullet. Use only sentence numbers that appear below —\n`
-		+ `never invent one.\n\n`
-		+ `Cleaned transcript:\n"""\n${cleanTextForPrompt(sentences)}\n"""\n\n`
-		+ `Output ONLY the outline (Markdown bullets), nothing else.`;
+	const prompt = RUNGS.structured.promptTemplate
+		? RUNGS.structured.promptTemplate.replaceAll("{{INPUT}}", cleanTextForPrompt(sentences))
+		: structuredPromptDefault(sentences);
 	const r = await askOnce(prompt, { model: modelId, cwd });
 	return { md: r.answer.trim() + "\n", cost_usd: r.cost_usd };
 }
@@ -252,13 +339,14 @@ async function judgePick(drafts, cwd, mock, caveats = []) {
 	}
 	const body = drafts.map(d => `Draft "${d.name}":\n"""\n${d.md}\n"""`).join("\n\n");
 	const caveatLine = caveats.length ? `A vote on these drafts couldn't cleanly decide; the voters left these caveats — weigh\nthem in: ${caveats.map(c => `"${c}"`).join("; ")}\n\n` : "";
-	const prompt = `${drafts.length} drafts of the same outline exist (${drafts.map(d => `"${d.name}"`).join(", ")}), made by\n`
-		+ `different models from the same source sentences. Pick the best one as your base, or merge the\n`
-		+ `best parts of the others into it — keep every [S#] citation exactly as written, never invent one,\n`
-		+ `never drop an idea that was in a draft. The FIRST line of your answer must be exactly:\n`
-		+ `WINNER: <the draft name you started from>\n`
-		+ `Then the final outline (Markdown bullets), and nothing else.\n\n${caveatLine}${body}`;
-	const r = await askOnce(prompt, { model: JUDGE_MODEL, cwd });
+	const prompt = `${drafts.length} drafts of the same information hierarchy exist (${drafts.map(d => `"${d.name}"`).join(", ")}),\n`
+		+ `made by different models from the same source sentences: one "#" H1 naming the subject, "##" H2s\n`
+		+ `naming its familiar parts, bullets under each. Pick the best one as your base, or merge the best\n`
+		+ `parts of the others into it — keep the H1/H2 structure and every [S#] citation exactly as written,\n`
+		+ `never invent one, never drop an idea that was in a draft. The FIRST line of your answer must be\n`
+		+ `exactly:\nWINNER: <the draft name you started from>\n`
+		+ `Then the final Markdown (the H1, its H2s, and their bullets), and nothing else.\n\n${caveatLine}${body}`;
+	const r = await askOnce(prompt, { model: RUNGS.pick.model, cwd });
 	const m = /^WINNER:\s*(\S+)/.exec(r.answer.trim());
 	const winner = m && drafts.some(d => d.name === m[1]) ? m[1] : drafts[0].name;
 	const md = r.answer.replace(/^WINNER:\s*\S+\s*\n?/, "").trim() + "\n";
@@ -271,13 +359,14 @@ async function judgePick(drafts, cwd, mock, caveats = []) {
 // applied). One cheap call, skipped entirely (and free) when there's nothing to apply.
 async function applyCaveats(draftMd, caveats, cwd, mock) {
 	if (mock || !caveats.length) return { md: draftMd, cost_usd: 0 };
-	const prompt = `This outline won a vote among several models' drafts of the same source. The voter(s) also left\n`
-		+ `these caveats — the one improvement each would make. Revise the outline to address any caveat\n`
-		+ `that's actually warranted; keep every [S#] citation exactly as written (never invent one, never a\n`
-		+ `range like [S6-S9]), and leave anything a caveat didn't mention unchanged. Output ONLY the final\n`
-		+ `outline (Markdown bullets), nothing else.\n\n`
+	const prompt = `This information hierarchy (one H1, H2s for its familiar parts, bullets under each) won a vote\n`
+		+ `among several models' drafts of the same source. The voter(s) also left these caveats — the one\n`
+		+ `improvement each would make. Revise it to address any caveat that's actually warranted; keep the\n`
+		+ `H1/H2 structure and every [S#] citation exactly as written (never invent one, never a range like\n`
+		+ `[S6-S9]), and leave anything a caveat didn't mention unchanged. Output ONLY the final Markdown,\n`
+		+ `nothing else.\n\n`
 		+ `Caveats:\n${caveats.map(c => `- ${c}`).join("\n")}\n\nOutline:\n"""\n${draftMd}\n"""`;
-	const r = await askOnce(prompt, { model: JUDGE_MODEL, cwd });
+	const r = await askOnce(prompt, { model: RUNGS.pick.model, cwd });
 	return { md: r.answer.trim() + "\n", cost_usd: r.cost_usd };
 }
 
@@ -335,9 +424,8 @@ function mockBrief(structuredMd) {
 	return bullets.map((b, i) => `${i + 1}. ${b.replace(/^-\s*/, "")}`).join("\n") + "\n";
 }
 
-async function stepBrief(structuredMd, cwd, mock) {
-	if (mock) return { md: mockBrief(structuredMd), cost_usd: 0 };
-	const prompt = `Turn this outline into a numbered list of asks for a mastermind (an AI project lead) to act on.\n\n`
+function briefPromptDefault(structuredMd) {
+	return `Turn this outline into a numbered list of asks for a mastermind (an AI project lead) to act on.\n\n`
 		+ `Rules:\n`
 		+ `- Keep the owner's own names and words for things; never invent new terminology.\n`
 		+ `- Every ask ends with the sentence numbers it is based on, exactly as the outline already has them,\n`
@@ -349,7 +437,12 @@ async function stepBrief(structuredMd, cwd, mock) {
 		+ `- Number the asks 1, 2, 3, ... — one ask per idea, don't merge unrelated ideas into one ask.\n\n`
 		+ `Outline:\n"""\n${structuredMd}\n"""\n\n`
 		+ `Output ONLY the numbered list, nothing else.`;
-	const r = await askOnce(prompt, { model: BRIEF_MODEL, cwd });
+}
+
+async function stepBrief(structuredMd, cwd, mock) {
+	if (mock) return { md: mockBrief(structuredMd), cost_usd: 0 };
+	const prompt = RUNGS.brief.promptTemplate ? RUNGS.brief.promptTemplate.replaceAll("{{INPUT}}", structuredMd) : briefPromptDefault(structuredMd);
+	const r = await askOnce(prompt, { model: RUNGS.brief.model, cwd });
 	return { md: r.answer.trim() + "\n", cost_usd: r.cost_usd };
 }
 
@@ -431,7 +524,7 @@ async function classifyUncited(uncited, cwd, mock) {
 		+ `Output ONLY one line per sentence, in exactly this format:\n`
 		+ `S<n> | context only\n`
 		+ `S<n> | dropped, because <short reason>\n`;
-	const r = await askOnce(prompt, { model: COVERAGE_MODEL, cwd });
+	const r = await askOnce(prompt, { model: RUNGS.coverage.model, cwd });
 	const out = new Map();
 	for (const m of r.answer.matchAll(/^S(\d+)\s*\|\s*(.+)$/gm)) {
 		const n = Number(m[1]), rest = m[2].trim();
@@ -645,7 +738,7 @@ async function repairBrief(briefMd, problemSentences, cwd, mock) {
 		+ `- Output ONLY NEW/AMEND lines, nothing else — no commentary, no restating what was already fine.\n\n`
 		+ `The existing brief:\n"""\n${briefMd}\n"""\n\n`
 		+ `Sentences that need fixing:\n${list}\n`;
-	const r = await askOnce(prompt, { model: BRIEF_MODEL, cwd });
+	const r = await askOnce(prompt, { model: RUNGS.repair.model, cwd });
 	return { answer: r.answer, cost_usd: r.cost_usd };
 }
 
@@ -742,10 +835,11 @@ async function runRepairOnly(dir, mock, rounds) {
 
 async function main() {
 	const args = parseArgs(process.argv.slice(2));
+	applyRungOverrides(args);
 	if (args.coverageOnly) { await runCoverageOnly(args.coverageOnly, args.mock); return; }
 	if (args.repairOnly) { await runRepairOnly(args.repairOnly, args.mock, args.repairRounds); return; }
 	if (!args.input) {
-		console.error("usage: node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair]");
+		console.error("usage: node Server/refine.mjs <raw.txt | date:line> [--out <dir>] [--models haiku,sonnet] [--collab] [--mock] [--repair-rounds N | --no-repair] [--config <path.json>] [--model-<rung> <model>]");
 		console.error("   or: node Server/refine.mjs --coverage-only <dir> [--mock]");
 		console.error("   or: node Server/refine.mjs --repair-only <dir> [--mock] [--repair-rounds N]");
 		process.exit(1);
@@ -818,7 +912,7 @@ async function main() {
 	const totalCost = (costs.clean || 0) + Object.values(costs.structured).reduce((s, c) => s + c, 0) + (costs.pick || 0) + (costs.brief || 0) + (costs.coverage || 0) + (costs.repair || 0);
 	const refineJson = {
 		at: now(), input: args.input, source_file: resolved.sourceFile.replaceAll("\\", "/"), out: path.relative(root, outDir).replaceAll("\\", "/"),
-		models: { clean: CLEAN_MODEL, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : JUDGE_MODEL, brief: BRIEF_MODEL, coverage: COVERAGE_MODEL, repair: BRIEF_MODEL },
+		models: { clean: RUNGS.clean.model, structured: args.models.map(modelIdFor), pick: args.collab ? "collab.mjs" : RUNGS.pick.model, brief: RUNGS.brief.model, coverage: RUNGS.coverage.model, repair: RUNGS.repair.model },
 		collab: args.collab, mock: args.mock, structured_winner: pick.winner, tie_broken_by: pick.tie_broken_by || null,
 		cost_usd: { ...costs, total: Number(totalCost.toFixed(6)) },
 		word_counts: { raw: wordCount(rawText), clean: wordCount(clean.md), structured: wordCount(pick.md), brief: wordCount(finalBriefMd) },
@@ -833,3 +927,8 @@ async function main() {
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) main().catch(e => { console.error(String(e?.stack || e)); process.exitCode = 1; });
+
+// Exported for Server/refine/compare-structured.mjs (the before/after proof for the structured
+// rung's rewrite, 2026-09-29) — nothing else in this repo imports this file, so this list stays
+// exactly as small as that one script needs.
+export { stepClean, draftStructured, structuredPromptDefault, modelIdFor, RUNGS, repoRoot };

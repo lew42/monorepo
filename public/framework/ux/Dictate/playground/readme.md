@@ -9,9 +9,13 @@ anything else.
 
 One widget that shows the WHOLE dictation pipeline working, in order: press 🎤, watch
 whisper's raw guess grow word by word, watch each finished sentence get cleaned up (a
-strike/add diff), and watch that diff dissolve into plain text over a few seconds. Five
-tabs show the same session five ways:
+strike/add diff), and watch that diff dissolve into plain text over a few seconds. Six
+tabs show the same session six ways — **Clean** is the default, the rest are one click
+away:
 
+- **Clean** — the clean text alone, no strike-through marks: what the real composer
+  (`ai2/compose.js`) shows by default now. A line starts raw and is swapped for the
+  cleaned wording in place once it answers, the same way the composer's own box does.
 - **Raw** — Whisper's exact words. Never edited here, ever — a note above the tabs says
   so plainly, because Whisper itself sometimes drops a quiet "um" on its own and that can
   look like a bug if nobody says it isn't one.
@@ -19,13 +23,13 @@ tabs show the same session five ways:
   how long since the previous update, and the words that guess returned — so you watch
   the guess actually improve instead of only seeing the end result. A dashed divider marks
   where a segment really closed and why ("pause", "forced" at the 15s cap, or "manual").
-- **Corrections** — the strike/add diff between Raw and the picked **level**, permanent.
-- **Live** — the same diff, fading into clean text over a few seconds.
+- **Corrections (debug)** — the strike/add diff between Raw and the picked **level**, permanent.
+- **Live (debug)** — the same diff, fading into clean text over a few seconds.
 - **Side by side** — Raw and the revised result in two plain columns, one row per chunk.
 
 The **Level** picker above the tabs (Clean / Edit / Summary, from
-[`ux/Revise`](/framework/ux/Revise/)) decides what Corrections, Live and Side show —
-Raw never changes with it. A ▶ **Sample** button runs a scripted fake session — no
+[`ux/Revise`](/framework/ux/Revise/)) decides what the **Clean** tab, Corrections, Live
+and Side all show — Raw never changes with it. A ▶ **Sample** button runs a scripted fake session — no
 microphone, no `whisper-server` — so anyone, or a headless test, can see it work with
 nothing plugged in.
 
@@ -37,8 +41,8 @@ own url).
 ## Use
 
 Press 🎤 and talk (or press ▶ Sample first, to see it with no mic). Switch tabs with
-Raw · Corrections · Live — the url's `#hash` remembers which one, so a reload or the
-back button lands on the same tab. `globalThis.$dictate_pg` is the one shared pipeline
+Clean · Raw · Corrections · Live — the url's `#hash` remembers which one, so a reload or
+the back button lands on the same tab. `globalThis.$dictate_pg` is the one shared pipeline
 instance, for a script or a console to drive directly (`$dictate_pg.run_sample()`).
 
 ## Watch out

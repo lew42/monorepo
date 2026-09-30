@@ -1,5 +1,5 @@
 import { View, div, textarea, button, small } from "/app.js";
-import { ComposerMic } from "./Mic.js";
+import { ComposerMic, SETTINGS, CLEAN_CHANGED_EVENT } from "./Mic.js";
 
 View.stylesheet(import.meta, "Chat.css");
 
@@ -30,7 +30,7 @@ export function composer({
 	placeholder = "say something", hint = "", sent = "sent", failed = "nothing was sent",
 	revise = false,   // "clean" | "edit" | "summary" | false (default) — forwarded to `ux/Dictate`'s own option, ai/2026-09-29/audio/
 } = {}){
-	let $box, $input, $note, mic;
+	let $box, $input, $note, $raw_btn, mic;
 
 	const view = div.c("chatbox-compose", () => {
 		div.c("chatbox-field", $f => {
@@ -45,6 +45,12 @@ export function composer({
 				revise,
 				field: $input,
 				on_error: e => note(String(e?.message ?? e)),
+				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
+				// ComposerMic calls this at most ONCE per send (`notify_if_failed()` - review
+				// finding 5, a string of failed chunks used to repeat this line once each,
+				// before anything had actually gone out), right before the message leaves -
+				// "will send raw", not "sent raw".
+				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
 			}).ac("chatbox-mic");
 		});
 
@@ -56,6 +62,25 @@ export function composer({
 			.text("⋯").click(() => view.el.classList.toggle("open"));
 		if (with_mic) button.c("chatbox-compose-more").attr("type", "button").attr("title", "dictation settings")
 			.text("⚙").click(() => mic?.gear?.());
+		// Deliverable 3 - "dig back": one small toggle shows exactly what Whisper produced,
+		// in place of the clean-up, for whatever is currently in the box. Only worth showing
+		// on a composer that asked for a revise: level at all - a plain box has no raw/clean
+		// split to dig into. Review finding 7: it must also HIDE the instant the gear's
+		// "clean" kill switch is off, since toggling it then would show raw = clean (nothing
+		// to dig into, nothing to show) - `SETTINGS.clean` decides its hidden state, both up
+		// front and live, via `CLEAN_CHANGED_EVENT` (the one way a plain DOM node outside the
+		// mic hears that ONE setting change - `Mic.js`'s own settings_panel() fires it).
+		if (with_mic && revise) $raw_btn = button.c("chatbox-compose-more chatbox-compose-raw").attr("type", "button")
+			.attr("title", "show exactly what Whisper heard, before the clean-up")
+			.text("raw").click(() => $raw_btn.el.classList.toggle("active", mic?.toggle_raw()));
+		if ($raw_btn){
+			$raw_btn.el.hidden = !SETTINGS.clean;
+			document.addEventListener(CLEAN_CHANGED_EVENT, function on_clean_changed(e){
+				if (!$raw_btn.el.isConnected) return document.removeEventListener(CLEAN_CHANGED_EVENT, on_clean_changed);
+				$raw_btn.el.hidden = !e.detail;
+				if (!e.detail) $raw_btn.el.classList.remove("active");
+			});
+		}
 
 		$note = small.c("chatbox-compose-note muted").text(hint);
 	});
