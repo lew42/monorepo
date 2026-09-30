@@ -81,6 +81,10 @@ Page weight, and a page with no wrapper of its own (`display: contents`), are pr
 - A list of clickable cards is a list of routed pages. Each card's data is one line in the nearest page.jsonl, with a virtual URL through the parent's route(); a folder is made only when a card grows ([mini pages](/framework/core/Page/card/mini-pages/)).
 - A log is nested cards: `Logger.attach(obj)` gives it `this.log()`, and LogView renders the result ([log](/framework/core/Page/card/log/)).
 
+## A page has an inbox, for coordination only (page-inbox, 2026-09-30)
+
+A page's inbox is for necessary coordination, never chat. `drop(path, text)` sends a note to the mastermind coordinating that module (whoever holds `claim_topic` on its path), or else leaves it in the page's AI tab until someone clears it. Notes are appended lines in the page's own `page.jsonl` (the owner: "append to that module's page.jsonl and it just goes into its inbox"), so a card, whose log is page.jsonl, has one too. Name systems by reference (`#Page`) once ext/Mention lands.
+
 ## Two tests for every element
 
 Run them on every item, label and button before you land:

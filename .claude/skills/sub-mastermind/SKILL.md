@@ -119,7 +119,7 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 
 ## You coordinate your module (the owner, 2026-09-30)
 
-Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. Before touching a module someone else has claimed, message its coordinator.
+Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. A page inbox is for necessary coordination only: `drop(path, text)` reaches the module's coordinator, or waits in the page's AI tab until cleared. Before touching a module someone else has claimed, message its coordinator.
 
 ## Split the task, fence the minions
 
