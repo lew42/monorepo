@@ -201,6 +201,10 @@ export class Agents {
 	async wait(id, timeout_s = 600){
 		const agent = this.live.get(id);
 		if (!agent?.idle){
+			/* Queued at the spawn gate: wait for it to start, then for its turn (Servex sets when_started). */
+			const began = Date.now(), started = await this.when_started?.(id, timeout_s);
+			if (started) return this.wait(id, Math.max(1, timeout_s - (Date.now() - began) / 1000));
+			if (this.when_started && Date.now() - began >= timeout_s * 1000 - 50) return { id, state: "queued", timed_out: true, words: null };
 			const row = this.registry_list().find(r => r.id === id);
 			if (!row) throw new Error(`No agent "${id}", live or in the registry.`);
 			return { id, state: row.state, words: null, note: "not held by this Servex process" };
@@ -230,6 +234,7 @@ export class Agents {
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
 		const out = { revived: [], told: [], gone: [], legacy: [] };
+		this.mark_legacy_stops(reg);
 		for (const row of reg.list()){
 			if (this.live.has(row.id) || row.state === "stopped") continue;
 			if (self_restarted(row.id)){
@@ -271,6 +276,22 @@ export class Agents {
 		return out;
 	}
 
+	/* Rows stopped BEFORE the revive guard existed carry no `stopped_by` key at
+	 * all, so nothing could tell a stop on purpose from a reap: mastermind-servex-6
+	 * came back that way at 20:19. At boot each is marked `stopped_by: "legacy"`
+	 * once, so the guard treats it as stopped on purpose (revive: true still wakes it). */
+	mark_legacy_stops(reg = this.reg()){
+		const rows = reg.read();
+		let n = 0;
+		/* Only RETIRED mastermind-servex-N rows (not the highest N): Layers, Sessions and
+		 * Global stop assistants and the current mastermind routinely, and a message must
+		 * still wake those. */
+		const num = k => +(k.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1), top = Math.max(-1, ...Object.keys(rows).map(num));
+		for (const r of Object.values(rows)) if (num(r.id) >= 0 && num(r.id) < top && ["stopped", "gone"].includes(r.state) && !("stopped_by" in r)){ r.stopped_by = "legacy"; n++; }
+		if (n) reg.save(rows);
+		return n;
+	}
+
 	/* Human-readable, never a uuid: `<role>-<name>`, and a collision takes `-2`.
 	 * The SDK's own session uuid lands on the agent as `session_id`, so
 	 * `claude --resume <uuid>` still reaches it from a terminal. */
@@ -308,6 +329,8 @@ export class Agents {
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
 		if (this.external?.has?.(id)) return this.external.deliver(id, text, note);
+		const held = this.queued_entry?.(id);
+		if (held) return held.send(text, note);   // queued at the spawn gate: held until it starts
 		const no = this.blocked(this.reg().read()[id] ?? (agent ? { id, cwd: agent.cwd, stopped_by: agent.stopped_by, stopped_at: agent.stopped_at, task_dir: agent.task_dir } : null), { force: note?.revive });
 		if (no){
 			this.store().append("servex", { type: "revive-refused", id, why: no.why, text: no.text, from: note?.from ?? null }).catch(() => {});
@@ -350,10 +373,17 @@ export class Agents {
 	 * mastermind-servex-N (the old one stood down at a full context), a message
 	 * to the role goes to the newest live holder instead of waking the old one. */
 	holder(id){
-		if (id !== "mastermind-servex") return id;
+		/* A retired mastermind-servex-N (stopped or gone) is the role too: a message
+		 * or a child's report for it goes to the live holder, never reviving the old
+		 * one (-4 and -5 kept coming back this way, 09-29). */
+		const retired = /^mastermind-servex-\d+$/.test(id ?? "") && !(this.live.get(id) && this.live.get(id).state !== "stopped");
+		if (id !== "mastermind-servex" && !retired) return id;
 		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
 		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
-		return best?.id ?? id;
+		if (best) return best.id;
+		// nobody holds it live (the current one is idle-swept most of the time): the highest N in the registry
+		const rows = Object.keys(this.reg().read()).filter(k => n(k) >= 0).sort((x, y) => n(y) - n(x));
+		return rows[0] ?? id;   // nobody holds it live: the old id, which the revive guard then judges
 	}
 
 	wake(id){
@@ -386,6 +416,7 @@ export class Agents {
 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
 	 * live agent (gone after a restart) can still be marked. */
 	stop(id, { by } = {}){
+		if (this.unqueue?.(id)) return { card: () => ({ id, state: "stopped", note: "removed from the spawn queue before it started" }) };
 		const agent = this.live.get(id);
 		if (!agent){
 			const rows = this.reg().read();
@@ -438,6 +469,7 @@ export class Agents {
 		child.woke = true;
 		this.inbox(child, kind, text);
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
 		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
 			?? (row => row?.stopped_by ? { by: row.stopped_by } : null)(this.reg().read()[child.parent]);
 		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child
@@ -906,8 +938,16 @@ Agents.Agent = class Agent {
 		/* ONE-SHOT (a fork): its first result is its answer — the wake above has
 		 * already carried it to the parent — so it stops itself. */
 		if (this.one_shot) setImmediate(() => this.stop());
+		/* ONE-PASS ROLES (node-reliability, 2026-09-29): a reviewer, clarity or checker
+		 * does one job, then used to sit idle holding ~300 MB until someone noticed
+		 * (4 times in 20 minutes on 09-29). Once its turn ends with nothing queued,
+		 * Servex stops it; waiters already have its words (settle() above), and the
+		 * session stays resumable — a message still wakes it (no `stopped_by`). */
+		else if (ONE_PASS.includes(this.role) && this.state === "idle") setImmediate(() => { if (this.state === "idle") this.stop(); });
 	}
 };
+
+export const ONE_PASS = ["reviewer", "clarity", "checker"];
 
 /* The open end of the session: an async iterable that waits instead of
  * finishing, so `query()` never sees the prompt stream end and never closes. */

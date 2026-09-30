@@ -57,6 +57,15 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
   one whose directory is gone (said plainly, not as the SDK's "libc" error). `send_to_agent` with
   `revive: true` overrides the first two, and the owner answering an agent's question on a card
   passes it. A message to the `mastermind-servex` role asks the same guard. Proof: `revive-guard-proof.mjs`.
+- **The spawn queue survives a restart.** When memory is short, a spawn is held in a queue
+  instead of started, and the queue is saved to `spawn-queue.json` beside the registry. A held
+  spawn gets its id at once, so `wait_for_agent` on it waits for it to start. Asking again for the
+  same id, session or role+name joins the entry already queued, and one session never runs in two
+  processes. Reviewers, clarity and checkers start first, with 1 GB free, and stop themselves when
+  their one turn ends (a message still wakes them). Proof: `queue-proof.mjs`.
+- **A retired `mastermind-servex-N` is the role.** A message or a child's report for a stopped
+  one goes to the live holder. Rows stopped before the revive guard are marked `stopped_by: "legacy"`
+  at boot.
 - **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
   agent whose host died during its first turn can be resumed.
 
@@ -225,7 +234,7 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 `experts.js` (module experts: a checkpoint per module, `ask_expert`, `load_module` — [`doc/experts.md`](./doc/experts.md)) ·
 `readme-chain.js` + `readme-chain.test.mjs` (a fresh, directory-bound agent's opening context,
 [`doc/readme-chain.md`](../doc/readme-chain.md)) ·
-`demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
+`demo.mjs` · `fork-proof.mjs` · `experts-proof.mjs` · `revive-proof.mjs` · `revive-guard-proof.mjs` · `queue-proof.mjs` · `wake-proof.mjs` · `jobs-proof.mjs` (the proofs) ·
 `doc/traps.md` (what the SDK does not tell you) · `doc/jobs.md` · `doc/names.md`
 
 How agents should work together (the design, with a picture):

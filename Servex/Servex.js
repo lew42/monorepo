@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "os";
 import net from "net";
 import path from "path";
 import express from "express";
@@ -672,12 +673,32 @@ export default class Servex extends Events {
     admission(){
         this.checks = [];
         this.queue = [];
+        this.queue_file ??= place("spawn-queue.json");
         const spawn = this.agents.spawn.bind(this.agents);
         this.agents.spawn_now = spawn;
         this.agents.spawn = spec => {
+            const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
+            if (same) return same;
             const reason = this.bypass(spec) ? null : this.admit(spec);
             return reason ? this.hold(spec, reason) : spawn(spec);
         };
+        this.restore();
+        setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
+        /* A queued id is addressable: a message is held in its entry, a stop takes it out of the queue. */
+        this.agents.queued_entry = id => this.queue.find(e => e.spec.id === id)?.stand_in ?? null;
+        this.agents.unqueue = id => {
+            const i = this.queue.findIndex(e => e.spec.id === id);
+            if (i < 0) return false;
+            this.queue.splice(i, 1); this.save_queue();
+            this.log.append("system", { type: "gate", state: "removed", id }).catch(() => {});
+            return true;
+        };
+        /* wait_for_agent on a QUEUED id waits for it to start, then for its turn. */
+        this.agents.when_started = (id, timeout_s) => !this.queue.some(e => e.spec.id === id) ? null : new Promise(resolve => {
+            const on = (spec, agent) => { if (agent?.id === id){ this.off("admitted", on); clearTimeout(t); resolve(agent); } };
+            const t = setTimeout(() => { this.off("admitted", on); resolve(null); }, timeout_s * 1000);
+            this.on("admitted", on);
+        });
 
         const pump = this.dispatcher.pump.bind(this.dispatcher);
         this.dispatcher.pump = () => {
@@ -699,7 +720,15 @@ export default class Servex extends Events {
             || (spec.role === "task-mastermind" && !!spec.parent && spec.parent === this.dispatcher?.id);
     }
 
+    /* FINISHING ROLES FIRST (node-reliability, 2026-09-29). A reviewer, clarity
+     * or checker is what lets finished work merge and release its agents and
+     * servers; holding it under the 4 GB floor was a priority inversion
+     * (mobile-nav, 17:50). It goes through with SERVEX_FINISH_FLOOR_MB (1024)
+     * free, whatever the other checks say, and drains ahead of everything else. */
+    finishing(spec = {}){ return ["reviewer", "clarity", "checker"].includes(spec.role); }
+
     admit(spec){
+        if (this.finishing(spec) && os.freemem() / 1048576 >= (Number(process.env.SERVEX_FINISH_FLOOR_MB) || 1024)) return null;
         for (const check of this.checks){
             const reason = check(spec);
             if (reason) return reason;
@@ -707,35 +736,118 @@ export default class Servex extends Events {
         return null;
     }
 
+    /* THE SAME SPAWN TWICE (node-reliability, 2026-09-29). Returns what a new
+     * spawn should become instead of a second process or a second queue entry:
+     *   - a resume of a session a live agent already holds → that agent
+     *     (lifecycle's session ran as five processes, 18:15);
+     *   - an id, a session, or a fresh role+name already queued → that entry's
+     *     stand-in, so a message is held in its inbox (mobile-nav's queue held
+     *     7 reviewers, 18:00). */
+    same_as(spec = {}){
+        if (spec.resume && !spec.fork){
+            const live = [...this.agents.live.values()].find(a => a.state !== "stopped" && a.session_id === spec.resume);
+            if (live){
+                this.log.append("system", { type: "gate", state: "deduped", into: live.id, session: spec.resume }).catch(() => {});
+                if (spec.prompt) live.send(spec.prompt, { from: "servex" });
+                return live;
+            }
+        }
+        const entry = this.queue.find(e =>
+            (spec.id && e.spec.id === spec.id)
+            || (spec.resume && !spec.fork && e.spec.resume === spec.resume)
+            // a fresh spawn is the SAME only when it asks the same thing of the same place for the same parent (a retry)
+            || (!spec.resume && !e.spec.resume && spec.name && e.spec.name === spec.name && e.spec.role === spec.role
+                && e.spec.prompt === spec.prompt && (e.spec.parent ?? null) === (spec.parent ?? null) && (e.spec.cwd ?? null) === (spec.cwd ?? null)));
+        if (!entry) return null;
+        this.log.append("system", { type: "gate", state: "deduped", into: entry.spec.id, role: spec.role ?? null, name: spec.name ?? null }).catch(() => {});
+        if (spec.prompt && spec.prompt !== entry.spec.prompt && spec.resume) entry.inbox.push([spec.prompt, { from: "servex" }]);
+        this.save_queue();
+        return entry.stand_in;
+    }
+
     hold(spec, reason){
+        /* The id is fixed NOW, so the caller can wait_for_agent on it (review.mjs
+         * and clarity.mjs treated a queued spawn as a failure, 19:20). */
+        spec.id ??= this.reserve(spec);
         const entry = { spec, reason, at: stamp(), inbox: [] };
         this.queue.push(entry);
-        this.log.append("system", { type: "gate", state: "queued", role: spec.role ?? null, name: spec.name ?? null,
+        this.log.append("system", { type: "gate", state: "queued", id: spec.id, role: spec.role ?? null, name: spec.name ?? null,
             reason, position: this.queue.length }).catch(() => {});
-        const note = `Not started: ${reason}. Servex will start it as soon as that clears; its parent is woken as usual once it runs.`;
+        const note = `Not started: ${reason}. Servex will start it as soon as that clears, under this id; wait_for_agent on it works now. Its parent is woken as usual once it runs.`;
 
         /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
          * agent through spawn and then sends to whatever comes back, so a held
          * resume must not lose the message that woke it (found by assistant-layers,
          * 2026-09-24). drain() delivers the inbox the moment the agent really runs. */
         const stand_in = {
-            id: spec.id ?? null, queued: true, spec,
-            send: (text, extra) => { entry.inbox.push([text, extra]); return stand_in; },
-            card: () => ({ id: spec.id ?? null, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1,
+            id: spec.id, queued: true, spec,
+            send: (text, extra) => { entry.inbox.push([text, extra]); this.save_queue(); return stand_in; },
+            card: () => ({ id: spec.id, state: "queued", queued: true, position: this.queue.indexOf(entry) + 1,
                 reason, note, held_messages: entry.inbox.length })
         };
+        Object.defineProperty(entry, "stand_in", { value: stand_in, enumerable: false });
+        this.save_queue();
         return stand_in;
     }
 
+    /* An id no live agent and no queued entry has: `<role>-<name>`, then -2, -3… */
+    reserve(spec){
+        const base = this.agents.name({ role: spec.role, name: spec.name });
+        const stem = base.replace(/-\d+$/, "");
+        const taken = id => (this.agents.live.has(id) && this.agents.live.get(id).state !== "stopped") || this.queue.some(e => e.spec.id === id);
+        if (!taken(base)) return base;
+        let n = 2;
+        while (taken(`${stem}-${n}`)) n++;
+        return `${stem}-${n}`;
+    }
+
+    /* THE QUEUE SURVIVES A RESTART (node-reliability, 2026-09-29): it is written
+     * to spawn-queue.json beside the registry on every change, and read back at
+     * boot. Before, a restart dropped every held spawn, prompt included (six at
+     * 19:35). A spec carrying code (`sdk`, `mcp_servers`, `system`) cannot be
+     * written down; its owner spawns it again, and the drop is logged. */
+    save_queue(){
+        const keep = this.queue.filter(e => !unsavable(e.spec)).map(({ spec, reason, at, inbox }) => ({ spec, reason, at, inbox }));
+        try { fs.writeFileSync(this.queue_file, JSON.stringify(keep, null, 1)); }
+        catch (e){ this.say(`spawn queue not saved: ${e.message || e}`); }
+    }
+
+    /* A held spec that must not start any more: its cwd is gone, it was stopped on
+     * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
+    stale(spec){
+        const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
+            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) });
+        if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+        return !!no;
+    }
+
+    restore(){
+        let saved = [];
+        try { saved = JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return; }
+        for (const { spec, reason, at, inbox } of saved){
+            if (!spec || this.same_as(spec) || this.stale(spec)) continue;
+            this.hold(spec, reason ?? "restored after a Servex restart");
+            const entry = this.queue.at(-1);
+            entry.at = at ?? entry.at;
+            entry.inbox.push(...(inbox ?? []));
+        }
+        this.save_queue();
+        if (saved.length) this.log.append("system", { type: "gate", state: "restored", count: this.queue.length }).catch(() => {});
+    }
+
     queued(){
-        return this.queue.map((entry, i) => ({ position: i + 1, role: entry.spec.role ?? null, name: entry.spec.name ?? null,
+        return this.queue.map((entry, i) => ({ position: i + 1, id: entry.spec.id ?? null, role: entry.spec.role ?? null, name: entry.spec.name ?? null,
             reason: entry.reason, since: entry.at }));
     }
 
     /* Every monitor tick: start what the gate now admits, oldest first. */
     drain(){
-        while (this.queue.length && !this.admit(this.queue[0].spec)){
-            const { spec, at, inbox } = this.queue.shift();
+        for (;;){
+            const i = this.next_ready();
+            if (i < 0) break;
+            const [{ spec, at, inbox }] = this.queue.splice(i, 1);
+            this.save_queue();
+            if (this.stale(spec)) continue;
             try {
                 const agent = this.agents.spawn_now(spec);
                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
@@ -747,6 +859,12 @@ export default class Servex extends Events {
             }
         }
         if (this.dispatcher.queue.length) this.dispatcher.pump();
+    }
+
+    /* Finishing roles first, then oldest first; -1 when the gate admits none. */
+    next_ready(){
+        const order = this.queue.map((e, i) => i).sort((a, b) => this.finishing(this.queue[b].spec) - this.finishing(this.queue[a].spec) || a - b);
+        return order.find(i => !this.admit(this.queue[i].spec)) ?? -1;
     }
 
     say(msg, extra){
@@ -974,3 +1092,6 @@ Servex.Process = Process;
 Servex.Project = Project;
 Servex.ReverseProxy = ReverseProxy;
 Servex.Stream = Stream;
+
+/* A spawn spec that holds code, not data — it cannot be written to the queue file. */
+function unsavable(spec = {}){ return !!(spec.sdk || spec.mcp_servers || spec.system || spec.one_shot); }
