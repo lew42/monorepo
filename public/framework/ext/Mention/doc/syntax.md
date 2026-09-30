@@ -1,7 +1,7 @@
 # Syntax — the exact pattern, and why the edge cases are safe
 
 ```
-/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w.-]*[\w])/g
+/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g
 ```
 
 Read left to right:
@@ -16,7 +16,7 @@ Read left to right:
 3. **The name**, one of two shapes:
    - `\[[^\]\n]+\]` — `#[Page layout]`, for a name with a space (or anything except `]` or a
      newline) in it. The brackets are stripped before the map lookup.
-   - `[A-Za-z][\w.-]*[\w]` — a bare name: starts with a letter, ends with a letter/digit/
+   - `[A-Za-z][\w./-]*[\w]` — a bare name: starts with a letter, ends with a letter/digit/
      underscore, and allows `.`/`-` in the middle — so `CLAUDE.md` and `dev-server` both match
      as one name, no brackets needed. (This also means a single character never matches — the
      shortest bare name needs a start char AND an end char. Nobody has asked for a one-letter
