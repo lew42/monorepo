@@ -1,4 +1,4 @@
-import View, { div, span, textarea, button } from "/framework/core/View/View.js";
+import View, { div, span, textarea, button, pre } from "/framework/core/View/View.js";
 import Decision from "/framework/ux/Content/Decision/Decision.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import { fixture_marks } from "./fixtures.js";
@@ -146,9 +146,11 @@ export default class Understand extends View {
 	}
 
 	resolve(i, say){
-		this.log.push({ understood: { i, chosen: say, at: new Date().toISOString() } });
+		const line = { understood: { i, chosen: say, at: new Date().toISOString() } };
+		this.log.push(line);
 		this.badges?.[i]?.rc("ux-understand-unclear").ac("ux-understand-ok").text("✓")
 			.attr("title", "Clarified: " + say);
+		this.on_understood?.(line);
 	}
 }
 
@@ -177,6 +179,7 @@ Understand.Demo = class UnderstandDemo extends View {
 
 	render(){
 		this.ac("ux-understand-demo flex v gap");
+		this.log = [];   // shared by every Understand drawn below, so one visible log proves "recorded" (review.md #4)
 
 		div.c("h4 muted", "A canned paragraph, marked on load");
 		this.$canned_status = div.c("ux-understand-status muted", "marking…");
@@ -190,12 +193,20 @@ Understand.Demo = class UnderstandDemo extends View {
 			.click(() => this.run_own());
 		this.$own_status = div.c("ux-understand-status muted");
 		this.$own = div.c("ux-understand-live");
+
+		div.c("h4 muted", "Log (in memory only — never a real file)");
+		this.$log = pre.c("ux-understand-log muted");
+		this.refresh_log();
 	}
 
 	async run(sentences, $target, $status){
 		const out = await marks(sentences);
 		$status.text(out.source === "fixtures" ? "fixtures: Servex /api/hitl not reachable" : "marked live by the fast assistant");
-		$target.empty(() => new Understand({ sentences, marks: out.marks }));
+		$target.empty(() => new Understand({ sentences, marks: out.marks, log: this.log, on_understood: () => this.refresh_log() }));
+	}
+
+	refresh_log(){
+		this.$log.text(this.log.length ? this.log.map(l => JSON.stringify(l)).join("\n") : "(no clarifications chosen yet)");
 	}
 
 	run_own(){

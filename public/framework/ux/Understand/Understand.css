@@ -24,4 +24,12 @@
 
 	.ux-understand-status { font-size: 0.85em; }
 	.ux-understand-box { inline-size: 100%; max-inline-size: 40em; }
+
+	.ux-understand-log {
+		background: var(--wash);
+		border-radius: var(--radius);
+		padding: var(--pad-card, 1em);
+		white-space: pre-wrap;
+		font-size: 0.85em;
+	}
 }
