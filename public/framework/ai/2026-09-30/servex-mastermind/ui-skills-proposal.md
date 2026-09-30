@@ -1,4 +1,70 @@
-# The UI skill system: a proposal
+# The design and code skill system: the proposal
+
+**Reshaped to the owner’s words (2026-09-30, ai/2026-09-30/design-code/owner-words.md).** The umbrella is called **design**, not ui; the knowledge lives on pages, not in `.claude/skills/`; a skill is a thin pointer. The older ui-umbrella draft is kept below for the overlap table and the CLAUDE.md split, which still hold. task-mastermind-design-code builds this; every skill diff comes to mastermind-servex-9 for approval.
+
+## The shape
+
+```
+/framework/design/        design: everything that goes into making anything new (skill: design, was page)
+├── layout               space: sizing, wrapping, spacing, flow, the approved layouts, 400 → 3440   (skill: layout)
+├── color                colour and contrast, tokens, light/dark                                  (skill: color, split out of css)
+├── navigation           the path, how links look, persistent or switching, transitions          (skill: navigation, split out of page)
+├── content              the iceberg: level of detail, what is foundational, importance, references (skill: content)
+└── ui                   buttons, toolbars, dropdowns, icons, states, targets                     (skill: ui, new — the owner’s word for controls)
+
+/framework/code/          code: the code in this framework, HTML CSS JS                             (skill: code)
+├── patterns             parts as static subclasses, imports flow down, resolve against import.meta
+├── dos-and-donts        the traps that never throw, formatting, opinions
+├── css                  layers, where a declaration belongs, class naming and prefixes            (skills css + new-css-class fold in here; /framework/styles/ stays the vocabulary)
+└── objects              object-oriented design: every class ships a view of its state (chip / row / panel)
+
+Companions, unchanged: naming, review, clarity, ui-test.
+```
+
+Each page has a readme (level 1: concept tiles, gist, lists) and, beside it, **its review questions** — today’s `questions.md` files move to the pages, so `review` and `/framework/ai/review/` read them from there (one seam for design-code: `Server/review.mjs` and the review skill point at the new paths).
+
+## What a thin skill looks like
+
+```
+---
+name: layout
+description: Space on a page: sizing, wrapping, spacing, flow, the approved layouts, 400 → 3440. Read before laying anything out.
+---
+Read the readme chain at /framework/design/layout/ (root → design → layout), then its questions.
+Overview: three sizing questions before any layout; clamps not constants; spacing doubles at 3440; a declared child without page.js 404s.
+```
+
+The description is the awareness; the body is the pointer plus five lines. Nothing else — a rule in the skill body is a rule in two places.
+
+## Where each existing skill goes (line by line, nothing lost)
+
+| Skill today | Becomes | Its rules go to |
+|---|---|---|
+| page | **design** (the umbrella: kind of page → where it lives → how it’s reached → layout → content → ui) | /framework/design/ readme; Cards + Structured content → content; Navigation questions → navigation; the page-inbox section → /framework/ai/ (it is a Servex fact) |
+| content | content | /framework/design/content/ |
+| layout | layout | /framework/design/layout/ (+ css’s Spacing questions) |
+| css | **color** + code/css | Colour and contrast → design/color; layers, declaration placement, Icons → code/css (Icons’ rules about pressable things → design/ui) |
+| new-css-class | folds into code/css | a class name is a step of writing CSS; naming stays the companion |
+| code | code | /framework/code/ (patterns, dos-and-donts, objects) |
+| naming | naming (companion, unchanged) | stays a skill: it is a thirty-second procedure, not knowledge |
+| — | **ui**, **navigation** (new pages, new thin skills) | ui: today’s parked Controls questions (page/questions 23–25) + the icon-system rules; navigation: page’s 10 navigation questions + back / reload / way-in |
+
+## Overlaps and owners
+
+The table under “Where the aspects overlap” below still holds, with the renames: controls → ui, style → code/css (how) + color (what).
+
+## Review questions for the move itself
+
+1. Does every rule in the old skill appear on exactly one page? (diff the skill body against the page, line by line)
+2. Does the thin skill fit on one screen and say where to read?
+3. Does /framework/design/ and /framework/code/ each render at 400 and 1920 with level 1 above the fold?
+4. Does `review` still find every question file?
+5. Does a person and an agent read the same page? (no “you are an agent” voice on a page)
+
+---
+
+# Earlier draft: the ui umbrella (kept for its overlap table and the CLAUDE.md split)
+
 
 The owner (2026-09-30): "it's all UI" — content, layout, controls and navigation are one thing seen four ways, and the skill structure must let each be refined and checked on its own. This is the proposed shape. Nothing is restructured yet.
 
