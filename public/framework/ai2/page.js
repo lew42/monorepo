@@ -7,7 +7,7 @@ import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
 import { news_of, group_news } from "./activity.js";
-import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+import { inbox_order, plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 
 /* Servex down: the page is read-only — the write buttons quietly go away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
@@ -434,7 +434,10 @@ function board(page){
 		const it = live.item();
 		it.unread = true;
 		list.push(it);
-		list.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		// A card row's importance badge is its highest open need (needs.js); a stalled-ask row
+		// brings its own. Then one order: score 60+ on top, the rest newest first (inbox.js).
+		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id); });
+		list.sort(inbox_order);
 		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js) — part of the row's signature.
 		list.forEach(it => { it.news = news_of(it, groups.folds); });
@@ -659,7 +662,6 @@ function board(page){
 		// you recognise one when it arrives on its own.
 		rec.$row.el.classList.toggle("ai2-note", it.kind === "note");
 		rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live");
-		it.score = score_for(it.id);   // the importance badge (asks-ledger): the card's highest open need
 		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it); });
 	}
 

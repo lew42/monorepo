@@ -8,6 +8,14 @@ import { importance } from "./needs-rule.js";
 
 export { fold };
 
+/** THE INBOX ORDER (asks-ledger, 2026-09-30). A row scoring HOT or more on `importance()`
+ *  (needs-rule.js: a stalled ask, a blocker, a question a live agent waits on) sits on top,
+ *  highest first; everything else stays newest first. `page.js` sorts with this same function
+ *  after it sets each card row's own score, so there is one order, never two. */
+export const HOT = 60;
+const hot = it => (it.score >= HOT ? it.score : 0);
+export const inbox_order = (a, b) => (hot(b) - hot(a)) || (Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+
 /**
  * THE INBOX MODEL — three logs in, one list of cards out.
  *
@@ -810,31 +818,12 @@ export function items({ board, folders, prompts, landed, says }){
 	// comment above says why nothing else here has a read state any more; this one does,
 	// because the brief asked for it, and it overwrites the blanket `true` just set above.
 	list.forEach(it => { if (it.kind === "stalled") it.unread = !it.read; });
-	/* A SCORE OF 60 OR MORE RISES TO THE TOP, HIGHEST FIRST (course correction, deliverable 3:
-	   "a stalled ask, a blocker, a question a live agent is waiting on") — everything else
-	   keeps the newest-first order it always had.
-	   ⚠ THIS FUNCTION'S OWN RETURN ORDER IS NOT THE LAST WORD. `page.js`'s `paint()` (this
-	   fence's "only for the revert") appends the Live card to whatever `items()` returns and
-	   re-sorts the WHOLE thing itself, purely by `it.at`, newest first — so a hot row has to
-	   win THAT sort too, or the score only ever mattered inside this function and never on
-	   screen. `it.at` is the one lever this file can still pull without touching page.js: a
-	   hot row's SORT time moves into the future, ranked by score, one thing no real clock can
-	   ever equal or beat (the guard just above already drops a real `at` past ten minutes from
-	   now as a mistake). Its TRUE time is not lost — `shown_at` carries it, and `faces.js`'s
-	   `row()` prefers `shown_at` for what it prints, so the row still says "silent 2 h", never
-	   a fake date a year out. */
-	const HOT = 60, RANK_FLOOR = Date.now() + 365 * 24 * 3600 * 1000;   // a year out — past any real `at`
-	list.forEach(it => {
-		if (it.score < HOT) return;
-		it.shown_at = it.at;
-		it.at = new Date(RANK_FLOOR + it.score * 3600000).toISOString();
-	});
 	// 2026-09-22 20:00, the owner: "if it doesn't help me, it shouldn't be on the board" — an
 	// archived card leaves the rail and the counts; item 12's "archived (n)" foot reads
 	// `.archived` off the returned array (still a plain array everywhere else) to show them
 	// again, greyed, without a second call or a second shape.
 	const archived = list.filter(it => it.status === "archived");
-	const sorted = list.filter(it => it.status !== "archived").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+	const sorted = list.filter(it => it.status !== "archived").sort(inbox_order);
 	/* NEVER TWELVE OF THE SAME (the owner, 2026-09-25: "recycle the old one if it happened within
 	   the last minute or two"). Two rows with the same title less than two minutes apart are one
 	   row: the newer is kept, and the older one's words go under it. */
