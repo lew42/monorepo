@@ -8,6 +8,17 @@ outlines, using these cards." Every change here is judged against that sentence.
 **What you have asked of this page, word for word, and whether it is done:
 [`doc/owner-asks.md`](./doc/owner-asks.md).** Read it before changing the layout.
 
+**2026-09-30, latest.** The owner, verbatim, in
+[`ai/2026-09-30/page-audit/owner-words.md`](/framework/ai/2026-09-30/page-audit/owner-words.md):
+Inbox is the default tab again (Needs you as the bare-url default, from 2026-09-29, lasted one
+day); a new Log tab shows everything in flight, one row per task, each with a green/red/yellow
+status dot; Needs you no longer lists a heartbeat or task-loop "close it, or keep chasing?" — the
+system's own question, not the owner's; the rail no longer resorts itself while you're looking
+(a "N updated ↑" pill instead); and the tab strip, which had drifted to the right edge of the
+page (a stray `order` on the tabs out-ordered the `::after` spacer that is meant to soak up the
+leftover space — `ai2.css`), sits beside the title again, the same placement Doc pages use.
+Task: [`ai/2026-09-30/ai2-inbox-log-fix/`](/framework/ai/2026-09-30/ai2-inbox-log-fix/).
+
 **Handover, 2026-09-25 (the AI 2 lead).** Start here if you are the next agent on AI 2.
 
 - **What it is now**, one step per screen: [AI 2, step by step](/framework/ai/2026-09-25/ai2-lead/).
@@ -49,11 +60,13 @@ outlines, using these cards." Every change here is judged against that sentence.
   (task pages throw `this[verb] is not a function`; page-drawer's m1/m2 404). Not AI 2's; when only those
   fail, check that AI 2's files match the merge base and land by hand.
 
-One page at [`/framework/ai2/`](/framework/ai2/). **The default view is Needs you** (2026-09-29,
-see above); the inbox — a narrow rail down the left, with `+ New card` and its filters at its
-top — moved to [`/framework/ai2/inbox/`](/framework/ai2/inbox/), one click in. Click anything in
-the rail and it opens on the right, at its own url, and stays there: the list keeps filling behind
-it and nothing you are reading moves.
+One page at [`/framework/ai2/`](/framework/ai2/). **Inbox is the default view again** (2026-09-30
+— the owner: "the AI 2 root is confusing and jumpy"; Needs you as the bare-url default, tried
+2026-09-29, is reverted): the bare url is the rail — a narrow list down the left, with `+ New
+card` and its filters at its top — with a card's own page beside it. The old `/inbox/` address
+still opens the same view, for a link or a bookmark made during the one-day window when that was
+the real address. Click anything in the rail and it opens on the right, at its own url, and stays
+there: the list keeps filling behind it and nothing you are reading moves.
 
 **The rail leads with seven groups** (2026-09-24) — System design, Servex, AI dashboard, Pages &
 markdown, Cards & content, Layout & columns, Audits — each an icon, a name, and the newest thing
@@ -62,17 +75,28 @@ real task page of every task in it, newest first. Below the groups sits the Live
 **Not filed yet**, a fold holding every card no group holds. How a thing joins a group:
 [`doc/groups.md`](./doc/groups.md).
 
-**"Needs you" is the default view** (2026-09-29): one ranked list of every card still waiting on
-you — an open Decision or Question, a card typed "question", or one whose own last message asks
-you something — with its answer control right there, so you never have to open the card to answer
-it. The inbox rail's own "Needs review" checkbox (`?review=1`) filters to the SAME rows. Both read
+**"Needs you"** ([`needs/`](/framework/ai2/needs/)) is one ranked list of every card still
+waiting on YOU — an open Decision or Question, a card typed "question", or one whose own last
+message asks you something — with its answer control right there, so you never have to open the
+card to answer it. It does NOT list a task-loop or heartbeat "close it, or keep chasing?" — that
+is the SYSTEM's own question (the heartbeat revives or stops a stalled task, and the Servex
+mastermind decides), never the owner's, so it is filtered out (2026-09-30) — it still shows, and
+still answers, on the card's own page. The inbox rail's own "Needs review" checkbox (`?review=1`)
+filters to the SAME rows, and its tab carries a small count badge, hidden at zero. All three read
 one shared rule: [`doc/needs-you.md`](./doc/needs-you.md), [`needs-rule.js`](./needs-rule.js).
 
-**Three tabs under the title: Needs you, Inbox and Overview** (Needs you added 2026-09-29, see
-just above). Inbox is the rail and a card's own page, described just below; the
-[Overview](/framework/ai2/overview/) is one big icon card per concept (Servex, Page, View, App,
-AI 2, Dictation, Research & Collab), each with its open asks and a folded "Completed (n)" line,
-built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
+**"Log"** ([`log/`](/framework/ai2/log/), 2026-09-30) is everything in flight, one row per TASK
+— never a heartbeat ping, never a minion on its own (a minion belongs inside its task, and
+`groups.tasks` is already one row per task folder, however many agents worked inside it). Each
+row carries a status dot: green (landed), red (a heartbeat or task-loop escalation with no
+landing since — stalled), yellow and flashing (still open). [`log.js`](./log.js).
+
+**Four tabs under the title: Inbox, Needs you, Log and Overview.** Inbox is the rail and a
+card's own page, described just below; [Overview](/framework/ai2/overview/) is one big icon card
+per concept (Servex, Page, View, App, AI 2, Dictation, Research & Collab), each with its open
+asks and a folded "Completed (n)" line, built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
+Needs you and Log share the Inbox rail's own row look (`.ai2-row`, `.ai2-row-head`,
+`.ai2-row-title`) — one row style, one CSS, across every view.
 
 **A card you talk into.** `+ New card` puts an empty card on the board, opens it and starts
 listening. While a card is open, everything you say or type goes INTO it — each sentence carries
@@ -105,13 +129,19 @@ agent** and its conversation opens in the agent column beside the list when the 
 when it is not — what it said, live — with a box that sends it a message
 (`POST /api/agents/<id>/message` on Servex).
 
-**Nothing jumps**, and that is three mechanisms, not one:
+**Nothing jumps**, and that is four mechanisms, not one:
 
 1. The card on the right is a **separate routed page** from the list, so a card arriving cannot
    touch it.
 2. The rail and the page each **scroll inside themselves**; the window never scrolls.
 3. A new row only enters the list **when the list is quiet** — at the top, pointer elsewhere.
    Otherwise it waits behind a floating "3 new cards ↑" pill and nothing moves until you press it.
+4. **An EXISTING row never changes position on its own** (2026-09-30 — the owner: "the rail
+   reorders live and jumps as cards get new lines"). A card getting a new line used to resort the
+   whole rail the moment the list happened to be quiet, which is most of an owner's actual
+   reading time. Now that only shows a small "N updated ↑" pill; a tap re-sorts, and so does a
+   reload. The Log tab's own list does the same thing. `page.js`'s `order_rows()`,
+   [`doc/decisions.md`](./doc/decisions.md).
 
 It replaces the v3 board (`ai/v/3/`), which is not touched or imported from here.
 
@@ -236,4 +266,6 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   draw, and the per-card log), `groups.json` + `groups.js` (the groups and who is in them),
   `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (the look),
   `floating.js` (the Floating page layout: a left nav beside a centred page; no AI 2 imports),
-  `workspace.js` (the `?view=workspace` switch), `real.js` (a real site page shown in the detail column, and its rail row)
+  `workspace.js` (the `?view=workspace` switch), `real.js` (a real site page shown in the detail column, and its rail row),
+  `needs.js` (the Needs you tab), `needs-rule.js` (the shared "does this need the owner" rule),
+  `log.js` (the Log tab — everything in flight, one row per task, a status dot)

@@ -579,3 +579,41 @@ filtered list with to-do first, and Live opens no chat until you click. Walkthro
 ## Open
 
 - Reserve the `floating-` prefix in `styles/css-scopes.txt` (outside this task's fence): `floating-   /framework/ai2/floating.js (moving to core/Page Layout)`.
+
+# Inbox default, the Log tab, and a stable rail (2026-09-30)
+
+- **Needs you as the bare-url default (2026-09-29) is reverted.** The owner called the root
+  "confusing and jumpy" one day later. Inbox is the default again; Needs you moved to its own
+  routed address, `needs/`, drawn exactly like Overview (a page that takes over the whole
+  shell) instead of living at the bare url with a CSS trick to hide the rail. Simpler CSS, and
+  one less special case in `page.js`'s `route()`.
+- **The Log tab reads `groups.tasks` directly, not a new datastore.** It is already one `Member`
+  per TASK FOLDER (`groups.js`), so "never a minion as its own row" is a fact of what the data
+  already is, not a filter written to hide anything. Alternative rejected: giving the Log tab its
+  own fetch of every task's `agent` lines and rolling them up itself — more code, for a rollup
+  `groups.js` had already done.
+- **A task's status (green/red/yellow) is read off fields the task log already carries** —
+  `landed_at`+`outcome` for done, an escalated heartbeat/task-loop `log` line (or `closed_by`
+  with no landing) for failed, everything else in progress — rather than adding a new `status`
+  field a minion would have to remember to write. Alternative rejected: a dedicated status verb
+  on `task.jsonl`; deferred until the three-state heuristic here is shown to be wrong on a real
+  task, since every field it reads is already written by something else.
+- **The rail's live reorder is now OPT-IN, not automatic** (the owner: "the rail reorders live and
+  jumps as cards get new lines"). The old rule reordered the instant the pointer was off the rail
+  and the scroll sat at the top (`quiet()`) — which is most of an owner's actual reading time,
+  since reading the card on the right leaves the pointer off the rail too. `order_rows()` now
+  only ever moves a row when (1) the list has no order yet (a fresh load — this IS "re-sort on
+  reload"), (2) a row is genuinely NEW or removed (nothing on screen to jump: `flush()`'s own
+  `had_new`/`removed` check), or (3) the owner taps the new "N updated ↑" pill. Everything else —
+  an existing row's `at` simply moving — is counted into `pending_ids` and shown as a count,
+  DOM untouched, until one of those three. Proven headless: `ai/2026-09-30/ai2-inbox-log-fix/`.
+  Alternative rejected: reordering on every data change but animating the move — still a moving
+  target under a reader's eyes, just a slower one.
+- **The tab strip's right-alignment was an `order` bug, not a layout one.** Giving each real tab
+  an explicit `order` (to paint "Needs you" before "Inbox" while keeping Inbox first in the DOM,
+  for the fallback rule) left `.tabs.block > .tab-bar`'s own trailing spacer (`::after`, the
+  hairline that fills the unused width) at its default `order: 0` — lower than every tab, so it
+  painted FIRST and shoved the labels to the end of the bar. Doc's own tab strip never sets
+  `order` on its tabs and never hit this. Fix: `order: 5` on the spacer, one rule, no markup
+  change. Alternative rejected: dropping `order` from the tabs and fixing the DOM order itself —
+  would have broken the `tab-default`/fallback trick that lights Inbox for a card url.

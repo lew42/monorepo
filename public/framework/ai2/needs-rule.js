@@ -16,7 +16,11 @@
  *      agent (not the owner) ends in "?" (pseudo-id `"last"`) — in both cases only when there
  *      is no answer line for it, AND no `{"reviewed": {"at"}}` line newer than it.
  *
- * It drops out entirely once the card's status is `done` or `archived`.
+ * It drops out entirely once the card's status is `done` or `archived` — and a Decision or
+ * legacy ask matching `is_task_loop_escalation()` below drops out too (2026-09-30, the owner:
+ * "not the owner's"): a task-loop or heartbeat "close it, or keep chasing?" is the SYSTEM's own
+ * question, answered by the heartbeat or the Servex mastermind, never something that should
+ * flood the owner's "Needs you". It still draws and still answers on the card's own page.
  *
  * ⚠ WHY NOT `fold_card()` (fold.js): its generic `absorb()` keeps only the LATEST line for a
  * repeated key like `place`, which is right for a single "where is X placed" fact but wrong
@@ -40,6 +44,29 @@ export const is_blocker = (...texts) => texts.some(t => /\bblock/i.test(String(t
  *  `["close it", "keep chasing"]`) becomes `{say: "close it"}`. Without this, a consumer that
  *  reads `option.say` straight off a raw string option gets `undefined` and breaks. */
 const norm_options = options => (options ?? []).map(o => typeof o === "string" ? { say: o } : o);
+
+/** A HEARTBEAT / TASK-LOOP ESCALATION — "<task> has been quiet since … close it, or keep
+ *  chasing?" (`Servex/TaskLoop.js` `escalate()`) or "…Servex could not fix it; please look."
+ *  (`Servex/Heartbeat.js` `escalate()`/`post()`). This is the SYSTEM asking whether to keep
+ *  chasing a stalled task — the heartbeat already revives or stops it, and the Servex
+ *  mastermind decides what to do next — never something the owner should have to triage
+ *  (the owner, 2026-09-30: "not the owner's"). So it is filtered OUT of the aggregate list —
+ *  "Needs you", the rail's "Needs review" filter, and Servex's own `/waiting`, all three of
+ *  which call `card_needs()` — but it is NOT deleted: the Decision widget it placed still
+ *  draws and still answers on the card's OWN page, same as any other placed Decision, because
+ *  `card_needs()` is only ever consulted for the AGGREGATE views, never for a card's own
+ *  rendering. Detected by shape, not by a tag on the line — neither `TaskLoop.escalate()` nor
+ *  `Heartbeat.post()` currently records who is asking (`Servex/cards/Cards.js`'s `tool()`
+ *  wrapper drops the caller context before it ever reaches `ask()`) — so this reads the two
+ *  option pairs and the two phrases those two callers actually write, which is stable because
+ *  both are one-line functions nobody edits casually; a real owner-facing Decision asking with
+ *  the exact same words and options would be a very strange coincidence. */
+const ESCALATION_OPTION_PAIRS = [["close it", "keep chasing"], ["look into it", "close it"]];
+export function is_task_loop_escalation(question, options){
+	const opts = (options ?? []).map(o => String(o?.say ?? o ?? "").trim().toLowerCase());
+	if (ESCALATION_OPTION_PAIRS.some(pair => opts.length === pair.length && pair.every((s, i) => s === opts[i]))) return true;
+	return /has been quiet since|servex could not fix it|did not land after \d+ chases?/i.test(String(question ?? ""));
+}
 
 /** One card's open needs, from its OWN raw lines (`page.jsonl`, already parsed). `meta` is the
  *  card's static-index summary (title, type, status) as a starting point — a line on the card
@@ -81,6 +108,7 @@ export function card_needs(id, lines, meta = {}){
 	const out = [];
 	for (const [qid, d] of decisions){
 		if (chosen.has(qid)) continue;
+		if (is_task_loop_escalation(d.ask, d.options)) continue;   // the system's to triage, not the owner's — stays on the card
 		out.push({ card: id, ask: qid, kind: is_blocker(d.ask, title) ? "blocker" : "decision",
 			title, question: d.ask || title, options: d.options, at: d.at, control: "decision", from: d.from });
 	}
@@ -91,6 +119,7 @@ export function card_needs(id, lines, meta = {}){
 	}
 	for (const [qid, a] of legacies){
 		if (answered.has(qid)) continue;
+		if (is_task_loop_escalation(a.question, a.options)) continue;   // same escalation, the pre-card_ask legacy shape
 		const control = a.options?.length ? "decision" : "reply";
 		out.push({ card: id, ask: qid, kind: is_blocker(a.question, a.title, title) ? "blocker" : control === "decision" ? "decision" : "question",
 			title: a.title || title, question: a.question || a.title || title, options: a.options, at: a.at, control, from: a.from });
