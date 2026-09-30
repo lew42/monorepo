@@ -284,6 +284,49 @@ proof drives those events directly (`el.dispatchEvent(new PointerEvent(...,
 delivers. Full run, screenshots and numbers:
 `ai/2026-09-29/grip-everywhere/build/shots/`.
 
+## Two zones, not one — and why only `.grip-start` gets the asymmetric box (grip-zones, 2026-09-30)
+
+**The bug:** on AI 2's inbox, the grip between the preview rail and the detail pane sat
+exactly on top of the rail's own scrollbar — `.grip-start`, flush with the rail's own
+inline-end edge, is the same 0.75rem the rail's own `overflow-y: scroll` gutter reserves
+there. Every `pointerdown` on that sliver went to the (invisible) grip, not the scrollbar.
+
+**The owner's words, distilled:** two zones. A generous SHOW zone (~50px either side)
+where the line and the pill appear, just to say "the handle is over here" — and a much
+smaller GRAB zone where the cursor actually changes and a drag actually starts, biased
+away from whichever side the rail's own scrollbar sits on.
+
+**SHOW never touches the DOM box.** A 50px-wide element would itself sit on top of the
+scrollbar it's trying to free up — the opposite of the fix. Instead `grip.js` listens on
+`document` and toggles `.grip-near` purely from a proximity check against the PARENT's own
+edge (exact — `--grip-out` only moves the grip's own box, never the parent's). No hit-test
+surface grows, so nothing under the pointer ever loses a click, in the 50px zone or outside it.
+
+**GRAB is asymmetric only on `.grip-start`.** The interior side of a mirrored strip — the
+direction its old, symmetric 0.75rem grew INTO — is exactly where a scrolling rail's own
+gutter sits, on every caller found (AI 2, the Playground tree, both `mirror: true`/default-`from:"start"`
+docks). The OTHER side of the true edge — across the boundary, into the sibling pane — has
+no scrollbar of its own, so that's where the room goes: `--grip-out` (~8px) out, `--grip-in`
+(~1px) in. **Not applied to the plain, unmirrored `.grip`** (the drawer, the dev rail): both
+of those can slide fully off-screen, and reaching out across THEIR edge is the exact
+straddle rule 1, above, already exists to forbid — measured once already (the 15px invisible
+column). Nothing in the two collapsible callers' own bug history points at a scrollbar
+conflict, so there was nothing to fix there, and reaching outward would have re-opened an
+old one. Verified: `.grip-start`'s box on `ai2`'s rail now spans about 1px into the rail and
+8px into the detail pane, and `elementFromPoint` at the rail's own scrollbar column (the
+bug's original repro, `client_x = rail_right - 3px`) returns `.ai2-rows`'s own scrollable
+box, not `.grip`.
+
+**Touch is a hard reset, not a shared formula.** `.grip-start` under `(pointer: coarse),
+(hover: none)` goes back to flush-and-symmetric at the touch width (1.25rem) — byte-identical
+in shape to what it always rendered on touch, just wider. The asymmetric split and
+`.grip-near` are both a mouse-and-hover idea (aiming around a target you can see move before
+you commit); touch has neither hover nor an idle scrollbar fight, since the handle is
+already visible at rest there.
+
+**Rejected: widen the same asymmetric split to the unmirrored `.grip` too**, for one
+formula everywhere. Declined — it has no bug to fix and a real one to reopen (above).
+
 ## Rejected
 
 - **A `side` option.** Both rails dock at the inline end and grip their inline-start
