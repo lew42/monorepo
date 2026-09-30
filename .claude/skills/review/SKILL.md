@@ -31,15 +31,15 @@ The shots come from `node Server/layout-check.mjs <urls> --widths 400,1200,1920,
 Answer in this order, one system at a time:
 
 1. **Requirements** — one question per numbered ask in `requirements.md`, in the owner's words: "met?" These questions live here, not in a questions.md.
-2. **Page structure** — page 1–12.
-3. **Navigation** — page 13 first: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
-4. **Layout** — layout 1–12.
-5. **Sizing** — layout 13–19.
-6. **Wrapping** — layout 20–24.
-7. **Spacing and padding** — css 1–10.
-8. **Colour and contrast** — css 11–18.
-9. **Flow** — layout 25–30.
-10. **Words** — content 1–11.
+2. **Page structure** — the Page structure section of page/questions.md.
+3. **Navigation** — the Navigation section of page/questions.md; its first question is identify: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
+4. **Layout** — the Layout section of layout/questions.md.
+5. **Sizing** — the Sizing section of layout/questions.md.
+6. **Wrapping** — the Wrapping section of layout/questions.md.
+7. **Spacing and padding** — the Spacing and padding section of css/questions.md.
+8. **Colour and contrast** — the Colour and contrast section of css/questions.md.
+9. **Flow** — the Flow section of layout/questions.md.
+10. **Words** — the Words section of content/questions.md.
 
 ## Read each shot in horizontal bands
 
