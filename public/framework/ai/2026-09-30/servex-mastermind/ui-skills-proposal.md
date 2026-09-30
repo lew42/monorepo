@@ -148,3 +148,27 @@ CLAUDE.md is a skill that loads by itself, so it is the only awareness an agent 
 5. The readme chain: read the readmes root to leaf before working, and again when you move directory (/framework/ai/readmes/).
 6. Budgets and dormancy: every brief starts with `Budget: $N`; Servex stops an agent over budget and parks a quiet one after three minutes.
 7. The four widths: a page is checked at 400, 1200, 1920 and 3440 before it lands.
+
+## Graded rules: probably, always, never (the owner, 2026-09-30)
+
+Every rule on a `/framework/design/` or `/framework/code/` page carries a grade, in the rule's own first word, and the grade is data the review reads:
+
+| Grade | Means | How a rule gets it |
+|---|---|---|
+| **probably** | the default strength: do this unless you have a reason; a reason in a comment is enough | every new rule starts here |
+| **always** / **never** | it has earned it: a named breakage, a date, a link to the task or finding | upgraded only with that line ("earned: 2026-09-19, one backtick inside css() killed every page") |
+| (any grade) | can be broken in a rare case **with the reason written where the break is** — a comment on the line, a sentence on the card | the review asks for the reason, not for obedience |
+
+So the page shape is: `**probably** Constrain the container, never the items.` and `**never** A backtick inside css(\`…\`) — earned 2026-08-15, every page went blank.` The old "do's and don'ts" page becomes this list; a rule without a grade is a finding. `questions.md` inherits the grade: a `never` question failing blocks the merge (§2 of the merge proposal); a `probably` question failing asks for the reason.
+
+## What stops an agent writing a style the defaults already cover
+
+The owner saw it today: the chat sidebar was not in Montserrat, so a custom style beat the default somewhere, and nothing caught it. Three things, cheapest first:
+
+1. **The css skill re-prompts the principles every time** (it does now, thin: climb the ladder — nothing → a utility class → a layout word → a component class → the module's own CSS — and stop at the first rung that works). It gains one graded line at the top: *"**probably** write no CSS: the defaults cover fonts, colour, spacing, controls and text; a declaration for any of those needs a one-line reason in the file."*
+2. **A check that reads the diff, not the agent's word.** `Server/review.mjs` already diffs the branch; it gains a **defaults census**: every `css(\`…\`)` block and `.css` file in the diff is scanned for declarations the defaults own — `font-family`, `font-size` on text, `color`/`background` on text surfaces, `padding`/`margin` in px, `border-radius`, `line-height` — and each hit without a `/* why: … */` on its line is a finding with the file and line. It is the same shape as the class census `new-css-class` runs; a mass of hits means the default is wrong, not the agents (the DesignTool lesson).
+3. **The page measures itself.** One review question, answered by `eval`, not eyes: *is `getComputedStyle(el).fontFamily` Montserrat on the body, the sidebar, every control and every widget on this page?* — the four widths already shoot; this one number catches the font case, and the same call catches colour tokens (`color` equals `var(--ink)`'s value or a `.muted`).
+
+What it does not do: forbid custom CSS. The fifth rung exists; it just has to say why it was reached.
+
+Touches: css skill (one line), `Server/review.mjs` (the census + one eval question), `/framework/code/css/` (the graded list). The sidebar itself: a $3 minion measures the live font on the chat sidebar and fixes it at the cause — a missing font link on that host, a shadow root, or a rule — on todo.md.
