@@ -123,6 +123,19 @@ public/framework/ai/2026-09-29/follow/build/task.jsonl:
   or gone before the message went out: it's dropped instead of quietly
   starting a new, paid session to deliver one line.
 
+## One more trap: the last write of a burst can go quiet
+
+On Windows, chokidar can swallow the "change" event for the very LAST write in
+a fast burst — it only shows up combined with the NEXT write's event, which
+might not arrive for a long time, or ever. The offset logic itself is fine —
+nothing is lost — but without a fix, a log that goes quiet right after a burst
+never delivers its own final line. `flush()` works around it by re-reading
+every jsonl file already queued for that agent right before it builds the
+message, so any bytes that landed on disk without ever triggering their own
+"change" event still go out on schedule — and it re-reads on the LAST queued
+item for that file, not the first, so the recovered line lands at the end of
+the message instead of in the middle of an earlier burst.
+
 ## One caveat: a replaced file, not an appended one
 
 The offset Servex remembers assumes a `.jsonl` only ever grows by appending —
@@ -138,7 +151,7 @@ append-only log that it's a caveat, not a fix.
 node Servex/proof/follow-proof.mjs
 ```
 
-14 checks against a fake host (no live Servex needed): a 20-line burst inside
+15 checks against a fake host (no live Servex needed): a 20-line burst inside
 one second arrives as one message; a file nobody follows reaches nobody;
 `unfollow` really stops it; a subscription survives a simulated restart; a
 plain file read sends nothing; three that specifically follow a file that
@@ -148,8 +161,9 @@ the case "only what's new" is about); a graceful shutdown keeps every
 subscription; an agent that stops mid-burst gets no message; a directory and
 a file inside it deliver each line once; `public/framework/.` and `Servex/.`
 are refused; an unknown agent's subscription is dropped instead of sent to;
-and following a directory that doesn't exist yet still catches a file born
-inside it, from its first line.
+following a directory that doesn't exist yet still catches a file born
+inside it, from its first line; and a burst whose final write's "change"
+event never fires (the trap above) still delivers every line.
 
 ## Where it lives
 

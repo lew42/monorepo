@@ -33,7 +33,16 @@
  *  13. A change for an agent that isn't a live or registered session sends
  *      nothing and drops the dead subscription, instead of reviving it.
  *  14. Following a directory that doesn't exist yet, then creating a jsonl
- *      inside it, catches that file from its very first line. */
+ *      inside it, catches that file from its very first line.
+ *  15. THE BUG THIS FILE WAS ADDED FOR: on Windows, chokidar can swallow the
+ *      "change" event for the very LAST write of a fast burst — it only
+ *      shows up combined with the NEXT write's event, which might not come
+ *      for a long time. This check drives `changed()` by hand for every
+ *      write except the last (standing in for the swallowed event), then
+ *      calls `flush()` directly (standing in for the gather_ms timer firing
+ *      on schedule) — without the fix, the message is missing the final
+ *      line; with it, `flush()` re-reads the file itself and the message
+ *      holds all of them. */
 
 import fs from "node:fs";
 import path from "node:path";
@@ -281,6 +290,29 @@ async function check_missing_dir(){
 	f.stop();
 }
 
+async function check_dropped_final_event(){
+	/* Each of the first 19 writes gets its OWN `changed()` call, so the
+	 * pending bucket for this file holds 19 separate items (queueing at
+	 * least two items for the same file, as the ordering bug needs to show
+	 * up) before the 20th write's event is skipped entirely. */
+	const host = fake_host(), file = path.join(TMP, "l.jsonl");
+	fs.writeFileSync(file, "");
+	const f = new Follow({ agents: host, file: path.join(TMP, "state-15.json") }).start();
+	f.follow({ agent: "proof-agent", path: rel(file), gather_ms: 5000 });   // long window — we flush by hand, never by timer
+	await wait(50);
+	for (let i = 0; i < 20; i++){
+		fs.appendFileSync(file, JSON.stringify({ i }) + "\n");
+		if (i < 19) f.changed("change", file);   // fire for every write EXCEPT the last — the swallowed event
+	}
+	f.flush("proof-agent");                        // the gather_ms timer firing on schedule, with the last write never seen
+	const msg = host.sent.find(s => s.id === "proof-agent");
+	const lines = msg ? msg.text.split("\n").filter(l => l.startsWith("{")).map(l => JSON.parse(l).i) : [];
+	const in_order = lines.length === 20 && lines.every((v, idx) => v === idx);
+	report("a burst whose final write's change event never fires still delivers ALL lines, IN ORDER, at flush",
+		`${host.sent.length} message(s), lines: [${lines.join(",")}]`, host.sent.length === 1 && in_order);
+	f.stop();
+}
+
 await check_burst();
 await check_unwatched();
 await check_unfollow();
@@ -295,6 +327,7 @@ await check_dir_and_file_dedupe();
 await check_dot_paths();
 await check_unknown_agent();
 await check_missing_dir();
+await check_dropped_final_event();
 
 const failed = results.filter(r => r.result === "FAIL").length;
 console.log(`\n${results.length - failed}/${results.length} passed`);

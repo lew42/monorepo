@@ -249,6 +249,29 @@ export default class Follow {
 		const items = this.pending.get(agent) ?? [];
 		this.pending.delete(agent);
 		if (!items.length) return;
+		/* WINDOWS TRAP: chokidar can swallow the "change" event for the very
+		 * LAST write of a fast burst — it only surfaces combined with the
+		 * NEXT write's event, which may not come until long after this flush
+		 * was scheduled. Those bytes are already on disk, so before building
+		 * the message, re-read every jsonl file already queued for this
+		 * agent: `new_lines` hands back whatever is new since its last
+		 * recorded offset. A burst usually queues SEVERAL items for the same
+		 * file (one per change event), so this must land on the LAST one —
+		 * appending to an earlier item would put the recovered line in the
+		 * middle of the message instead of at the end. Walking `items`
+		 * backwards and re-reading only the first (= last in order) item
+		 * seen per file does that; `new_lines` returns `[]` for every
+		 * earlier item since the offset has already moved on. Without this,
+		 * a log that goes quiet right after a burst never delivers its own
+		 * last line. */
+		const done = new Set();
+		for (let i = items.length - 1; i >= 0; i--){
+			const item = items[i];
+			if (!item.lines || done.has(item.file)) continue;
+			done.add(item.file);
+			const more = this.new_lines(abs(item.file));
+			if (more.length) item.lines.push(...more);
+		}
 		/* An id that is not a live Claude session and not a registered
 		 * external one (a VS Code tab, a terminal) is not somebody to send
 		 * to — it is a dead subscription (an agent `revive()` buried as
