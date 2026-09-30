@@ -1,6 +1,7 @@
 import View, { div, details, summary } from "../../core/View/View.js";
 import { marked } from "./marked.esm.js";
 import { Page } from "../../core/Page/Page.class.js";
+import { mentions } from "../Mention/Mention.js";
 
 View.stylesheet(import.meta, "md.css");
 
@@ -25,7 +26,9 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
  */
 View.prototype.md = function(content){
 	const parse = block_tags.has(this.el.tagName) ? marked.parse : marked.parseInline;
-	return this.html_unsafe(parse(content));
+	this.html_unsafe(parse(content));
+	mentions(this.el);   // `#Page`, `@owner` — after every markdown render, ext/Mention/doc/syntax.md
+	return this;
 };
 
 /* A fence may NAME the file it came from — ```js /app.js — and marked keeps only the
@@ -54,13 +57,17 @@ export default function md(content){
 	const template = document.createElement("template");
 	template.innerHTML = html;
 
-	if (template.content.children.length === 1)
-		return new View({ el: md.route(template.content.firstElementChild) }).ac("md");
+	if (template.content.children.length === 1){
+		const view = new View({ el: md.route(template.content.firstElementChild) }).ac("md");
+		mentions(view.el);
+		return view;
+	}
 
 	// Emitting `flow` is what lets core's flow rules stop naming `.md`, a class core
 	// cannot import.
 	const view = new View().ac("md flow").html_unsafe(html);
 	md.route(view.el);
+	mentions(view.el);
 	return view;
 }
 
@@ -93,6 +100,7 @@ md.file = async function(meta, url, options = {}){
 
 		view.html_unsafe(marked.parse(text));
 		md.resolve(view.el, href);
+		mentions(view.el);
 
 		if (options.h1 === false && view.el.firstElementChild?.tagName === "H1")
 			view.el.firstElementChild.remove();

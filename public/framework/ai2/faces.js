@@ -1,5 +1,6 @@
 import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
+import { mentions } from "/framework/ext/Mention/Mention.js";
 import { author_word, plain } from "./inbox.js";
 import { md_into } from "./chat.js";
 import { meter } from "./meter.js";
@@ -40,7 +41,7 @@ export function row(it){
 	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
-		span.c("ai2-row-title").text(it.title);
+		mentions(span.c("ai2-row-title").text(it.title).el);   // the Inbox row's title — ext/Mention
 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
 	});
 	meter(it.progress, it.usd, it.usd_open);
