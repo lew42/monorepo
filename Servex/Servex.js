@@ -35,6 +35,7 @@ import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
 import hitl from "./agents/hitl.js";
+import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -503,6 +504,7 @@ export default class Servex extends Events {
             res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" });
         });
         this.cards.routes(router, cors);
+        (this.inbox ??= new Inbox()).routes(router, cors, express.json({ limit: "64kb" }));   // every page's inbox: agents/inbox.js, doc/inbox.md
 
         /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
          * model call that cleans up a chunk of dictated text near-verbatim
@@ -634,6 +636,7 @@ export default class Servex extends Events {
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
+        for (const tool of (this.inbox ??= new Inbox()).tools()) this.mcp.tool(tool);   // drop, clear, inbox
 
 
         this.mcp.tool("system_health", {
