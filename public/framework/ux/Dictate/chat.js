@@ -64,6 +64,42 @@ import * as Session from "/framework/ext/Session/Session.js";
  * and a fresh mount's own path) still only send ONE `nav` event, never two.
  */
 
+/**
+ * **THE FONT GUARD** (requirement 5: "the chat must show the site's Montserrat on
+ * every surface… its CSS says `font: inherit`, so fix it by mounting inside the
+ * element that sets the font"). Every widget bubble, input and button already says
+ * `font: inherit` (framework.css's own UA-control reset, plus `Widget.css`'s
+ * composer) — it is only WRONG when the element it inherits from is. That IS true
+ * for the mobile ✦ sheet's mount (`rail.js`, built through the normal View captor
+ * chain, correctly nested under the real themed `.app` root) — the font there is
+ * already right, confirmed live, and this function is a no-op on it.
+ *
+ * It is NOT true for the desktop drawer (`ext/drawer/drawer.js`'s `.drawer`, the
+ * root `tabs/ai.js` and `tabs/sessions.js` build into): confirmed live, by
+ * instrumenting it directly, `drawer.js`'s own `build()` runs `document.
+ * querySelector(".app")` while `document.readyState` is still `"interactive"` —
+ * BEFORE `core/App/App.js`'s `inject()` has attached the real, themed `.app` div to
+ * the document at all — so that query returns `null`, falls back to `document.
+ * body`, and a module-level guard (`if ($rail) return`) CACHES that wrong parent
+ * for the rest of the page's life. Every tab in that drawer inherits the wrong font
+ * because of it, not just this widget; the fix belongs in `drawer.js`, which is
+ * outside this task's fence (`requirements.md`'s own file list) — flagged in this
+ * task's own log for the parent to route onward, not silently worked around by
+ * editing a file outside the fence.
+ *
+ * What THIS file can still do, inside its own fence, with no literal font name
+ * anywhere in the code: read the real theme's OWN resolved font straight off the
+ * one real `.theme-lew42` element (there is always exactly one, correctly parented,
+ * regardless of where THIS mount ends up) and set it, once, on this one mount's own
+ * root — right wherever the mount is already correctly nested, and a real fix
+ * wherever it is not. */
+function fix_font(el){
+	const themed = document.querySelector(".theme-lew42");
+	if (!themed) return;
+	const want = getComputedStyle(themed).fontFamily;
+	if (want && getComputedStyle(el).fontFamily !== want) el.style.fontFamily = want;
+}
+
 const SESSION_KEY = "lew42-voice-session";
 const RESUME_OFFER_MS = 60 * 60 * 1000;   // matches Servex's own SERVEX_SESSION_RESUME_MS default
 
@@ -193,6 +229,8 @@ export default function chat(el, { path = location.pathname, card, placeholder }
 	const target = { path, card };
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null;
+
+	fix_font(el);
 
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
