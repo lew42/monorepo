@@ -10,6 +10,15 @@ import { brief, remember_focus } from "./brief.js";
 import { model } from "./tiers.js";
 import { Policy } from "./policy.js";
 import { queued } from "./Layers.js";
+import { STANDING } from "./Agents.js";
+import { execFile } from "child_process";
+
+/* Every claude.exe: pid, working set in MB, command line. [] when PowerShell fails. */
+export function claude_processes(){
+	const ps = "Get-CimInstance Win32_Process -Filter \"Name='claude.exe'\" | ForEach-Object { [pscustomobject]@{ pid = $_.ProcessId; mb = [math]::Round($_.WorkingSetSize / 1MB); cmd = $_.CommandLine } } | ConvertTo-Json -Compress";
+	return new Promise(resolve => execFile("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], { windowsHide: true, timeout: 20000, maxBuffer: 8 << 20 },
+		(err, out) => { try { const j = JSON.parse(out || "[]"); resolve((Array.isArray(j) ? j : [j]).map(r => ({ ...r, cmd: String(r.cmd ?? "") }))); } catch { resolve([]); } }));
+}
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* The repo Servex runs from — the main tree, C:/Code/lew42/monorepo, in normal use.
@@ -19,10 +28,8 @@ const REPO = path.join(HERE, "../..");
  * (D3, doc/page-roles.md) — "task" (a queued-state change) is noise at this
  * level and is dropped; a deeper page's own assistant hears its own "task". */
 const HEARD = ["landed", "blocked", "error"];
-/* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. `page-` covers the recursive-pairs role words (page-assistant, page-mastermind); their ids already start with assistant-/manager-. */
-const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-|session-)/;
-const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
-const TASK_MASTERMIND = /^task-mastermind-/;
+/* The front desk's roles: their spawns are never held by the working cap. */
+const DESK = /^(assistant|manager|master-assistant|page-|session|helper)/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
@@ -51,8 +58,8 @@ export default class Global {
 	defaults(){
 		return { servex: null, master_id: "master-assistant", mastermind_id: "mastermind-servex",
 			batch_ms: Number(process.env.SERVEX_MASTER_BATCH_MS) || 20000,
-			idle_ms: env("SERVEX_GLOBAL_IDLE_MS", 15 * 60000), task_idle_ms: env("SERVEX_TASK_IDLE_MS", 3 * 60000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
-			reap_ms: env("SERVEX_REAP_MS", 180000), cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
+			dormant_ms: env("SERVEX_DORMANT_MS", 180000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
+			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
 	}
 
@@ -65,7 +72,8 @@ export default class Global {
 
 	get agents(){ return this.servex.agents; }
 
-	claims(){ return this.servex.claims ??= new Claims({ agents: this.agents }); }
+	// `on`: a claim taken or released writes the module's coordinator line (inbox.js).
+	claims(){ return this.servex.claims ??= new Claims({ agents: this.agents, on: (event, row) => this.servex.inbox?.coordinator(event, row) }); }
 
 	boot(){
 		try { this.master(); } catch (e){ this.say(`master assistant could not start: ${e.message || e}`); }
@@ -232,37 +240,53 @@ export default class Global {
 		return Math.max(t, t ? 0 : this.idle_seen.get(key));
 	}
 
-	/* THE REAPER — every minute: an idle minion, helper or fork that has
-	 * finished a turn (its parent was woken then) and sat idle past `reap_ms` is
-	 * stopped; the master, the mastermind, AND any idle `task-mastermind-*` (D5,
-	 * 2026-09-25/28: the same 15-minute rule, not just the two global agents) are
-	 * stopped after `idle_ms` of quiet — a task mastermind after `task_idle_ms` (3 min, 2026-09-30:
-	 * five idle task masterminds held ~1.5 GB while their own minions queued for that memory). All of them resume on the next message —
-	 * that wake is generic (`Agents.wake`/`reopen`, by session id), not special
-	 * to the two ids this file spawns itself. */
+	/* THE DORMANCY SWEEP — every minute (dormant-idle, 2026-09-30; it replaces the
+	 * idle reaper of node-reliability, which STOPPED idle agents on three clocks).
+	 * EVERY agent, whatever its role, idle past `dormant_ms` (3 min) goes DORMANT
+	 * (`Agent.sleep`): its claude process exits, its object, id and session stay,
+	 * and the next message resumes it in place. Because a dormant agent is not
+	 * stopped, the heartbeat never reads it as a death, so the old 15-minute
+	 * exceptions (no-child task masterminds, the two global agents) are gone.
+	 * Kept awake: an agent with a live background task (Agent.sleep refuses).
+	 * Every `measure_every_ms` it also reads each claude.exe's memory
+	 * (`measure`), and an idle one past `compact_mb` compacts. */
 	reaper(){
 		this.reap_timer = setInterval(() => this.sweep(), this.reap_every_ms);
 		this.reap_timer.unref?.();
+		/* A turn ending frees a working slot: drain the spawn queue at once, not on the next monitor tick. */
+		const reg = this.agents.register?.bind(this.agents);
+		if (reg) this.agents.register = agent => { const row = reg(agent); if (agent.state !== "working" && agent.state !== "starting") this.kick(); return row; };
+	}
+
+	kick(){
+		if (this.kicked || !this.servex.queue?.length) return;
+		this.kicked = setImmediate(() => { this.kicked = null; try { this.servex.drain?.(); } catch {} });
 	}
 
 	sweep(now = Date.now()){
 		for (const agent of [...this.agents.live.values()]){
-			if (agent.state !== "idle") continue;
-			const worker = is_worker(agent);
-			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id ?? "");   // 15 min idle; a message wakes them
-			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // 3 min (node-reliability, 09-30), and its reap is logged
-			if (!worker && !global && !task_mastermind) continue;
-			if (worker && !(agent.turns >= 1)) continue;
-			/* 3 min only while it WAITS ON A CHILD (working, or queued for memory): its child's report
-			 * resumes it. With no child it keeps 15 min, or the heartbeat reads the stop as a death and
-			 * revives it round and round (review, 2026-09-30). */
-			const waiting = task_mastermind && ([...this.agents.live.values()].some(c => c.parent === agent.id && c.state !== "stopped")
-				|| (this.servex.queue ?? []).some(e => e.spec?.parent === agent.id));
-			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : waiting ? this.task_idle_ms : this.idle_ms)) continue;
-			try { agent.stop(); } catch {}
-			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
+			if (agent.state !== "idle" || typeof agent.sleep !== "function") continue;
+			if (now - this.last_active(agent, now) <= this.dormant_ms) continue;
+			if (agent.sleep("idle")) this.servex.log.append("servex", { type: "dormant", id: agent.id, role: agent.role ?? null, context: agent.context ?? null })?.catch?.(() => {});
 		}
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
+		if (now - this.last_measure >= this.measure_every_ms){ this.last_measure = now; this.measure().catch(() => {}); }
+	}
+
+	/* MEMORY PER AGENT: every claude.exe's working set, matched to an agent by the
+	 * session id on its command line (`--resume=<id>` or `--session-id <id>`).
+	 * Sets `agent.rss_mb`; an IDLE agent past `compact_mb` compacts now, a working
+	 * one at the end of its turn (Agent.oversized). About 1 s of PowerShell. */
+	async measure(){
+		const rows = await claude_processes();
+		const by = new Map();
+		for (const r of rows){ const sid = r.cmd.match(/--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i)?.[1]; if (sid) by.set(sid, Math.max(by.get(sid) ?? 0, r.mb)); }
+		for (const agent of this.agents.live.values()){
+			if (!agent.session_id || !by.has(agent.session_id)) continue;
+			agent.rss_mb = by.get(agent.session_id);
+			if (agent.state === "idle" && agent.oversized?.() === "memory") agent.compact("memory");
+		}
+		return by;
 	}
 
 	/* THE ADMISSION CHECK, when Servex has one (`servex.checks`): free memory
@@ -276,7 +300,14 @@ export default class Global {
 
 	admit(spec = {}, free_mb = os.freemem() / 1048576){
 		if (free_mb < this.min_free_mb) return `only ${Math.round(free_mb)} MB of memory is free; waiting for ${this.min_free_mb} MB`;
-		const live = [...this.agents.live.values()].filter(a => a.state !== "stopped").length;
+		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
+		 * message, and the front desk answers the owner: neither is held by it. */
+		const wake = !!spec.resume && !spec.fork, desk = DESK.test(spec.role ?? "") || STANDING.test(spec.id ?? "");
+		if (!wake && !desk && this.agents.working){
+			const working = this.agents.working().length, cap = this.agents.working_cap;
+			if (working >= cap) return `working ${working}/${cap}: waits for a working agent to end its turn`;
+		}
+		const live = [...this.agents.live.values()].filter(a => a.state !== "stopped" && a.state !== "dormant").length;   // a dormant agent holds no process
 		const parent = spec.parent && this.agents.live.get(spec.parent);
 		if (live >= this.cap && !(parent && parent.state !== "stopped")) return `${live} agents are running, the ceiling is ${this.cap}`;
 		return null;

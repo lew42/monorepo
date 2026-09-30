@@ -18,6 +18,7 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK, plus `page_work()` — a page's own open tasks and agents, opt-in ([doc/work.md](./ai/doc/work.md))
 [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
 [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
+[card](./card/) — the card system: four grounds, nesting that drops the box after level 3, header and menu patterns, cards as routed mini pages; plus [log](./card/log/), any object's own nested log
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files
 [overview](./overview/) — the wall of one picture card per page building block
 [audit](./audit/) — every page layout in use, most-used first, with where each lives in code; the main pages and their layouts; a design pass at four widths

@@ -297,7 +297,13 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	// ONE pin per batch, not one per line: `down` forces a layout, and the Live card (hundreds of
 	// lines) paid that once per line - 5.7 s. The microtask runs after the synchronous batch.
 	let pinning = false;
-	const follow = fn => { fn(); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; down(); }); requestAnimationFrame(down); };
+	/* LIVE BUBBLES (dictation-stream, 2026-09-30) are not lines of the log: your words while you are
+	   still speaking (`live()`) and an assistant's reply while it is still being written (`stream()`).
+	   They always sit at the very end, so every real line is drawn with them lifted out and put back
+	   after it — `mergeable()` then never sees one as "the last bubble". A real line from the same
+	   speaker removes its live bubble (`chat_line()`). */
+	const lives = new Map();   // key -> { el, text, timer }
+	const follow = fn => { for (const l of lives.values()) l.el.remove(); fn(); for (const l of lives.values()) $script.el.append(l.el); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; down(); }); requestAnimationFrame(down); };
 
 	/* SELECTION (the owner: "when you click on a specific card, first it kind of
 	   selects that card"). One bubble at a time, in THIS log; a second tap on the
@@ -492,6 +498,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	function chat_line(c){
 		const cls = (c.from?.kind ?? "") === "owner" ? "chatbox-you" : "chatbox-reply";
 		const who = c.from?.id || c.from?.kind || "";
+		if (!c.fix && !c.level) cls === "chatbox-you" ? drop_live([...lives.keys()].find(k => k.startsWith("sent:"))) : drop_live("stream:" + who);
 		const at = Date.parse(c.at ?? 0) || Date.now();
 
 		if (c.fix){
@@ -548,10 +555,29 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		});
 	}
 
+	function live_bubble(key, cls, who){
+		let hit = lives.get(key);
+		if (hit) return hit;
+		let node;
+		$script.append(() => { p.c("chatbox chatbox-live " + cls, $b => { if (who) who_label(who); node = $b.el; }); });
+		const text = el("chatbox-text");
+		node.append(text);
+		lives.set(key, hit = { el: node, text });
+		return hit;
+	}
+	function drop_live(key){
+		const hit = key && lives.get(key);
+		if (!hit) return;
+		clearTimeout(hit.timer);
+		hit.el.remove();
+		lives.delete(key);
+	}
+	let sent_n = 0;
+
 	function draw(e){
 		if (e.chat) return chat_line(e.chat);
 		if (e.type === "ask" || (e.type === "prompt" && e.choices?.length)) return ask(e);
-		if (e.type === "prompt") answered(e);
+		if (e.type === "prompt"){ answered(e); drop_live([...lives.keys()].find(k => k.startsWith("sent:"))); }   // your real line replaces the faded live bubble
 		if (e.type === "refined") return refine($script, e);
 		if (e.type === "reply") return reply(e);
 		if (e.type === "prompt") return add("chatbox-you", "owner", (e.sentences ?? [e.text]).filter(Boolean).join(" "), "owner", e.at, e.id);
@@ -582,6 +608,33 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			hit.piece.mark = mark;
 			fill(hit.bubble);
 			return true;
+		},
+		/** YOUR WORDS WHILE YOU SPEAK — one bubble on your side that grows; `settled` in ink, the
+		 *  still-moving `guess` grey. Empty text removes it, unless `sent`: then it stays, faded, until
+		 *  your real line is drawn (or 15 s pass — a send that failed says so in the composer). */
+		live({ text = "", settled = text, guess = "", sent = false } = {}){
+			if (!text){
+				const hit = lives.get("draft");
+				if (!hit) return;
+				if (!sent) return drop_live("draft");
+				lives.delete("draft");
+				const key = "sent:" + (++sent_n);
+				hit.el.classList.add("chatbox-live-sent");
+				hit.timer = setTimeout(() => drop_live(key), 15000);
+				lives.set(key, hit);
+				return;
+			}
+			follow(() => {
+				const hit = live_bubble("draft", "chatbox-you chatbox-draft", "owner");
+				hit.text.textContent = settled;
+				if (guess){ const g = el("chatbox-guess", "span"); g.textContent = (settled ? " " : "") + guess; hit.text.append(g); }
+			});
+		},
+		/** AN ASSISTANT'S REPLY WHILE IT IS WRITTEN — the whole text so far, redrawn each call; empty
+		 *  text removes it. Its final line (same `from.id` as `who`) replaces it. */
+		stream(who, text){
+			if (!text) return drop_live("stream:" + who);
+			follow(() => md_into(live_bubble("stream:" + who, "chatbox-reply chatbox-streaming", who).text, text));
 		},
 		/** The card whose first piece's `at` (or id) is `at`, as a tree — `card_of()`. */
 		card(at){

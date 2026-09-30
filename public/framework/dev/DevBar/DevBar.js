@@ -8,6 +8,7 @@ import { edit, set_edit } from "../../ext/Ask/edit.js";
 import pathbar from "./pathbar.js";
 import blocked from "./blocked.js";
 import hold from "./hold.js";
+import { use_v1, set_v1 } from "../DevShell/pref.js";
 
 View.stylesheet(import.meta, "devbar.css");
 
@@ -60,6 +61,20 @@ export default function devbar(a){
 					span("edit");
 				}).attr("title", "Edit mode — on shows drag/drop, verdicts, Make's writes and every other editor control; off previews production");
 
+				// dev/DevShell, 2026-09-30: the dark shell is the default now
+				// (pref.js), and this is how you get back to it — closes this
+				// rail, flips the remembered choice, and asks the shell to
+				// open (an event, not a direct import: DevShell.js already
+				// imports FROM this file for its right-side tabs, so calling
+				// back in here directly would be an import cycle).
+				button.c("dev-x", "shell")
+					.attr("title", "Switch to the new dark dev shell")
+					.click(() => {
+						set_v1(false);
+						toggle(false);
+						window.dispatchEvent(new CustomEvent("dev-open-shell"));
+					});
+
 				button.c("dev-x", "✕")
 					.attr("title", "Close (Ctrl + \\)")
 					.attr("aria-label", "Close the dev rail")
@@ -92,6 +107,9 @@ export default function devbar(a){
 	// keyboard layout; the physical key does not.
 	document.addEventListener("keydown", e => {
 		if (!(e.ctrlKey || e.metaKey) || (e.key !== "\\" && e.code !== "Backslash")) return;
+		// dev/DevShell owns this same shortcut by default (pref.js) — this
+		// rail only answers it once the "v1"/"shell" choice says so.
+		if (!use_v1()) return;
 		e.preventDefault();
 		toggle();
 	});

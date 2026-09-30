@@ -2,6 +2,7 @@ import "./framework/core/App/uuid.js";   // first: LAN http has no crypto.random
 import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
+import devshell from "./framework/dev/DevShell/DevShell.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
 import "./framework/ext/Classify/Classify.js";
@@ -66,8 +67,13 @@ const app = window.app = new App({
 			menu(this);
 		});
 
-		// Ctrl + \ — the dev rail, on <body> beside the shell rather than inside it.
+		// Ctrl + \ — the dark dev shell by default (dev/DevShell), or the old
+		// dev rail (dev/DevBar) if the "v1" choice is on (DevShell/pref.js).
+		// Both mount on <body>, beside `.app` rather than inside it, and both
+		// are cheap to mount unopened — the one the owner did not ask for
+		// just sits closed until the "v1"/"shell" button flips the choice.
 		devbar(this);
+		devshell(this);
 
 		// $pages, not $app — a page's view is built by an element factory, which
 		// auto-appends to the captor, so the captor has to be where pages live.
@@ -82,6 +88,7 @@ const app = window.app = new App({
 	navigated(page){
 		this.socket.rpc("hello", page.url);
 		devbar.refresh();
+		devshell.refresh();
 		menu.navigated();
 	},
 });

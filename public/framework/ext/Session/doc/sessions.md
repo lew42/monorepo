@@ -13,7 +13,11 @@ One session is one append-only file, `public<home>ai/<session>.jsonl`. The brows
 {"chat": {"at": "…", …, "from": {"kind": "assistant", "id": "smart", …}, "text": "<the owner's words, cleaned>", "re": "<the owner line's at>", "level": "clean"}}
 {"nav": {"at": "…", "from": "/framework/", "to": "/framework/ext/"}}
 {"backing": {"at": "…", "fast": "<uuid>", "smart": "<uuid>", "how": {"fast": "resume", "smart": "fresh"}}}
+{"quiet": {"at": "…", "ms": 2500, "path": "/framework/"}}
+{"skip": {"at": "…", "role": "fast", "text": "(listening)", "re": "<the owner line's at>"}}
 ```
+
+A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean-up changed it, `raw` (what Whisper heard). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
 
 `at` carries milliseconds, so two lines said in the same second never share one, and `re` always names exactly one owner line. `backing` maps the session to the Claude sessions behind it: `claude --resume <uuid>` reopens either one. When the assistants are respawned, a new `backing` line is written, and the latest one wins.
 
@@ -60,8 +64,10 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 |---|---|---|
 | `POST /api/session/new` | `{path, card?, host?, fresh?}` | `{ok, session, home, file, resumed, previous}` (see below) |
 | `POST /api/session/resume` | `{session}` | `{ok, session, home, file, resumed: true, title, summary, at, last_at}` |
-| `POST /api/session/say` | `{session, path, text, via, floor?, cues?}` | `{ok, at, answered_by: [{kind, id: "fast", agent}, {kind, id: "smart", agent}]}` at once |
+| `POST /api/session/say` | `{session, path, text, via, raw?, floor?, cues?, quiet_ms?}` | `{ok, at, answered_by: [{kind, id: "fast", agent}, {kind, id: "smart", agent}]}` at once |
 | `POST /api/session/nav` | `{session, from, to}` | `{ok}` |
+| `POST /api/session/quiet` | `{session, ms, mic_off?, path?}` | `{ok, released}` |
+| `GET /api/session/<id>/stream` | | server-sent events: `{kind: "stream", role, text}` (a reply so far, whole; `""` when it ends) and `{kind: "line", line}` (each line as it is written) |
 | `POST /api/session/floor` | `{session, floor}` | `{ok, floor, released}`: `"done"` writes a held fast reply |
 | `GET /api/sessions?page=/x/&limit=10&host=` | | `{ok, sessions: [{session, home, title, summary, at, last_at}]}`, newest first: the sessions named in that folder's `ai/log.jsonl`, or whose `home`/`visited` in `sessions.json` names it |
 | `GET /api/sessions?card=<id>&limit=10&host=` | | the same shape, but only that card's sessions (same as `?page=` on the card's own folder) |
@@ -83,10 +89,20 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 
 A `say` from a different page than the last one also writes a `nav` line first.
 
+## When they answer: the floor
+
+A `say` with `via: "voice"` and a `floor` is **held** from both assistants. It is released, both
+lines and assistants at once, when the owner has been quiet `SERVEX_SESSION_ANSWER_QUIET_MS`
+(2.5 s): either the line itself arrives that quiet (`quiet_ms`), or a later `quiet` event says so
+(`ux/Dictate/floor.js` fires it; `report_quiet()` posts it), or the mic went off. With no such
+event it goes after `SERVEX_SESSION_HOLD_MAX_MS` (8 s). The released message ends with
+`(the owner has stopped: quiet for 2.6 s)`. A typed line, or one from a page too old to send
+`floor`, goes out at once as before. Proof: [sessions-test.txt](/framework/ai/2026-09-30/dictation-stream/proof/sessions-test.txt).
+
 ## The two assistants
 
-- **fast** (`session-fast-<id>`): Sonnet, effort low, no tools, no settings, no Servex door: a 1,400-token prompt, no CLAUDE.md, no skills. It hears every line at once, prefixed `[on /page/]`, and answers with one short line. It only does speed and writes nothing. Its brief: `Servex/agents/session-fast.md`.
-- **smart** (`session-smart-<id>`): the model `Usage.pick("smart")` gives, effort medium, the full Claude Code preset in the repo with Servex's tools. It hears lines gathered over a 1.5 s quiet gap (`SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
+- **fast** (`session-fast-<id>`): Sonnet, effort low, no tools, no settings, no Servex door: a 1,400-token prompt, no CLAUDE.md, no skills. It hears each spoken thought once the owner stops (a typed line at once), prefixed `[on /page/]`, and mostly answers `(listening)`, which is never shown; it speaks only for a first hello, a misheard word, or a one-line answer. It writes nothing. Its brief: `Servex/agents/session-fast.md`.
+- **smart** (`session-smart-<id>`): the model `Usage.pick("smart")` gives, effort medium, the full Claude Code preset in the repo with Servex's tools. It hears the same released spoken thought (typed lines: gathered over a 1.5 s quiet gap, `SERVEX_SESSION_QUIET_MS`), each prefixed `[on /page/ at <at>]`, plus `(now on /x/)` when the owner moved. It knows what is in flight and routes to it, sends masterminds a polished brief (never the raw words), names the session, posts refined lines, and writes decisions to the folder index as it goes. Its brief: `Servex/agents/session-smart.md`.
 
 A reply is the agent's final text for its turn, read from the host's event stream and written as a `chat` line.
 

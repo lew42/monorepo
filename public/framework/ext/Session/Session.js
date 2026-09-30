@@ -1,4 +1,5 @@
 import { servex_url } from "/framework/dev/servex_url.js";
+import mic_floor from "/framework/ux/Dictate/floor.js";   // `floor` is the verb below
 
 /* VOICE SESSIONS, the browser half (Servex/agents/Sessions.js is the other).
  *
@@ -8,6 +9,8 @@ import { servex_url } from "/framework/dev/servex_url.js";
  *     await say({ session, path: location.pathname, text: "can you hear me?", via: "voice", floor: "speaking" });
  *     await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
  *     await nav({ session, from: "/a/", to: "/b/" });
+ *     const unlive = stream(session, ev => ...);               // replies token by token, lines as written
+ *     const unquiet = report_quiet(() => session);            // the owner's silences: when the assistants answer
  *     const stop = watch(file, line => console.log(line));   // every line, old and new
  *
  * One ✦ press is one session. Its whole conversation is one file under the page it
@@ -50,14 +53,42 @@ export async function recent(page = location.pathname, { limit = 10, host = loca
 	return out.sessions;
 }
 
-/** One owner line into the session; both assistants are sent it at once. `floor` ("speaking" | "done")
- *  and `cues` are the composer's stamps (ext/Chat/doc/floor.md): while the floor is "speaking" the
- *  fast reply is held until it turns "done". No floor counts as "done". */
-export const say = ({ session, path = location.pathname, text, via = "text", floor, cues }) =>
-	post("say", { session, path, text, via, ...(floor ? { floor } : {}), ...(cues ? { cues } : {}) });
+/** One owner line into the session. `floor` ("speaking" | "done") and `cues` are the composer's
+ *  stamps (ext/Chat/doc/floor.md); a spoken line with none is stamped here from the mic's live
+ *  level meter, and also carries `quiet_ms` (how long the owner has been quiet). Servex holds a
+ *  spoken line from both assistants until the owner has been quiet 2.5 s (see `quiet()`). `raw` is
+ *  what Whisper heard, kept on the line when the clean-up changed it. No floor counts as "done". */
+export const say = ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues }) => {
+	const spoken = via === "voice";
+	f ??= spoken ? mic_floor.state() : undefined;
+	return post("say", { session, path, text, via, ...(raw && raw !== text ? { raw } : {}),
+		...(f ? { floor: f } : {}), ...(cues ? { cues } : {}), ...(spoken ? { quiet_ms: mic_floor.quiet_ms() } : {}) });
+};
 
 /** The floor changed with no new words (the owner stopped talking): "done" writes a held fast reply. */
 export const floor = ({ session, floor }) => post("floor", { session, floor });
+
+/** THE SILENCE EVENT: the owner has been quiet for `ms` (or the mic went off). Servex writes it as an
+ *  invisible `{quiet}` line, and it is what lets the held assistants answer. */
+export const quiet = ({ session, ms, mic_off = false, path = location.pathname }) => post("quiet", { session, ms, mic_off, path });
+
+/** Every silence mark of the mic's floor (`ux/Dictate/floor.js`, `on_quiet`), posted to `session()`
+ *  (asked fresh each time; null = no session yet). Returns `stop()`. */
+export const report_quiet = session => mic_floor.on_quiet((ms, { mic_off }) => {
+	const id = session();
+	if (id) quiet({ session: id, ms, mic_off }).catch(() => {});
+});
+
+/** THE LIVE WIRE: `on_event` hears `{kind: "stream", role, text}` (a reply so far, whole, while it is
+ *  written; `text: ""` when it ends) and `{kind: "line", line}` (every line the moment Servex writes
+ *  it, so a reply does not wait for the next poll). Server-sent events; the browser reconnects by
+ *  itself, and each stream event carries the whole text, so a reconnect loses nothing. Returns `stop()`. */
+export function stream(session, on_event){
+	if (typeof EventSource !== "function") return () => {};
+	const src = new EventSource(servex_url(`/api/session/${session}/stream`));
+	src.onmessage = e => { try { on_event(JSON.parse(e.data)); } catch {} };
+	return () => src.close();
+}
 
 /** The owner moved from one page to another while the session is open. */
 export const nav = ({ session, from, to }) => post("nav", { session, from, to });
@@ -97,4 +128,4 @@ export function entry(line){
 	return null;
 }
 
-export default { start, resume, recent, say, floor, nav, watch, entry, LEVELS };
+export default { start, resume, recent, say, floor, quiet, report_quiet, stream, nav, watch, entry, LEVELS };

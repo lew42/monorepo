@@ -64,10 +64,9 @@ function the asks ledger's own page uses) and puts anything scoring 60 or more �
 a blocker, a question a live agent is waiting on — ahead of the plain newest-first list, highest
 score first. Clicking it goes straight to its card when it has one (`resolve_card()`'s own
 redirect, the same hop a migrated old board id already takes) or opens a small page of its own
-links otherwise — its words, and the whole [ledger](/framework/ai/asks/). **It is the one row
-with a real unread state**: bold until you open it, then plain, remembered in this browser's
-`localStorage` (key `ai2-ask-read`) since nothing else on this page tracks read at all (see
-`ai/verdicts.jsonl`'s own `read` row below — private bookkeeping nobody reads). A cache inside
+links otherwise — its words, and the whole [ledger](/framework/ai/asks/). It is bold until you open it,
+then plain. It uses the Inbox's own read state (`rules.js` `is_read()`, the row's dot), and
+it is the one row that opening marks read; every other row waits for its dot. A cache inside
 `inbox.js` refreshes itself in the background every 15 s rather than adding a second poller; a
 stalled ask leaves the list by itself, with no code of its own, the moment the ledger's status
 moves on (`items()` rebuilds this list fresh on every repaint, straight off whatever the cache

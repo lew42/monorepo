@@ -1,6 +1,6 @@
 import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
 import Dictate from "./Dictate.js";
-import { pg } from "./playground/Playground.js";
+import Widget from "./Widget.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
 
 /* Level 1, above the fold: what the dictation SYSTEM is made of, as linked
@@ -52,6 +52,7 @@ const demo_box = () => {
 	return $box;
 };
 
+// Linked from the page's own prose (below), not the tab strip — ask 7, see content().
 const words = () => div.c("flex v gap-2em", () => {
 	div.c("flex v gap", () => { div.c("h4 muted", "default"); demo_box(); }).style("--gap", "calc(var(--gap) * 0.5)");
 	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); demo_box().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
@@ -63,8 +64,8 @@ export default new Doc({
 	description: "A mic button with a state you can always see and an error said in plain words — whisper running on this machine first, the browser's own recognition second.",
 	icon: "mic",
 
-	files: "Dictate.js capture.js pcm-worklet.js Dictate.css page.js readme.md",
-	notes: "handover decisions silence https-lan",
+	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css page.js readme.md",
+	notes: "handover decisions silence https-lan widget",
 
 	children: [
 		"demo",
@@ -72,16 +73,36 @@ export default new Doc({
 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
 		"playground",
 		"variants",
+		"v1",
 	],
 
 	content(){
 
-		// THE WORKING MIC FIRST (sheet-regression, 2026-09-30, the owner: "what we had
-		// before was better"). Press 🎤 and see raw, corrections and live, above the
-		// fold; the four-part diagram and the rest come after it.
-		md("**Press 🎤 and talk** (or ▶ Sample, no mic needed). Five tabs show one session five ways:");
-		md("- **Raw** — Whisper's exact words, never edited.\n- **Chunks** — every guess as Whisper hears more, one row each.\n- **Corrections** — what Revise (at the picked level) changed, as a diff.\n- **Live** — the same diff, fading into the clean text.\n- **Side by side** — Raw and Revised in two plain columns.");
-		pg.widget();
+		// FEWER TABS ON MOBILE (ask 7, the owner's phone: the tab row "takes three
+		// rows"). `ext/tabs` itself only scrolls a strip (doc/overflow.md) — it has no
+		// grouping or "more ▾", and it is shared by every page on the site (out of this
+		// task's fence). `core/Page/Log.js`'s own `tab({name, nav:false})` line is
+		// already how a tab is pulled OUT of the strip while staying a real, reachable
+		// page (`ext/Doc/Doc.js`'s own Overview/API/Docs/Files use the opposite,
+		// `nav:true`, to PIN theirs) — so "words" (the same demo box under two config
+		// words, a detail) and "v1" (kept reachable, not a front door) are marked
+		// `nav:false` here: two fewer tabs in the strip, both still one click away from
+		// a link in this page's own prose, below.
+		this.tab({ name: "words", nav: false });
+		this.tab({ name: "v1", nav: false });
+		this.nav_redraw();   // the strip is already drawn by the time content() runs — repaint it
+
+		// THE WIDGET FIRST (the owner, 2026-09-30, from the phone: "there's so much text
+		// on the page before anything useful… the button is so far down the page… then
+		// the actual transcription is below another paragraph or two"). Right under the
+		// title and tabs Doc already draws, no paragraph above it — press 🎤 and see a
+		// bubble the instant a sentence settles. `debug` opens the SAME five tabs the old
+		// Overview led with (Widget.Debug reuses `pg.widget()`, never rebuilds it); `level`
+		// and `source` add the meter and the mic picker. The OLD Overview, unchanged, is
+		// one click away at "v1" (deliverable 5, "never destroy a viable version").
+		new Widget({ level: true, source: true, debug: true });
+
+		md("**The same widget as the ✦ sheet** — say something, or talk into the mic. [Docs](doc/) has the rest.");
 
 		h2("How it works");
 		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
@@ -115,7 +136,7 @@ export default new Doc({
 
 		md("**Press 🎤 and talk.** With `whisper-server` running on this machine nothing else shows; without it, the small text beside the button says `the browser's recognizer`. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
 
-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. The playground at the top is the full view of the same pipeline. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/): a variant is a subclass overriding one or two methods, and today's box above is variant v1, kept reachable forever.");
+		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/). The same box under `ui-contrast ui-compact` is at [words](words/); the [old Overview](v1/) (the five-tab playground leading) is still one click away.");
 
 		demo.exhibit({
 			page: this,

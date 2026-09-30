@@ -81,7 +81,14 @@ export class PartView extends View {
 	 *  one or two numbers that matter most right now (a level, a device label,
 	 *  a duration). */
 	row(){
-		item({ icon: this.glyph(), name: this.label(), end: () => { this.$stat = span.c("item-end muted", this.stat()); } });
+		const $row = item({ icon: this.glyph(), name: this.label(), end: () => { this.$stat = span.c("item-end muted", this.stat()); } });
+		// A raw DOM ref, not a View wrapper — `item()` builds the name as a plain
+		// `span.c("item-name", …)` with no ref of its own, and `refresh()` needs to
+		// reach it directly. Without this the name froze at whatever `label()`
+		// said at first render — "no microphone open" stayed on screen through an
+		// entire hold-to-talk take, because `refresh()` only ever touched
+		// `$stat`/`$flags` (found from `demo-live-1920.png`, 2026-09-30).
+		this.$name = $row.el.querySelector(".item-name");
 	}
 
 	/** The row, then everything else worth knowing — `details()` by default:
@@ -99,6 +106,7 @@ export class PartView extends View {
 	 *  state change). Safe to call at any size; it only touches refs the size
 	 *  actually built. */
 	refresh(){
+		if (this.$name) this.$name.textContent = this.label();
 		this.$stat?.text(this.stat());
 		if (this.$flags){
 			this.$flags.el.innerHTML = "";

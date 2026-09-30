@@ -22,6 +22,14 @@ const sizes = () => {
 	});
 };
 
+const controls = () => {
+	const mic = new MicStream({ mode: "toggle" });
+	return div.c("flex wrap gap", () => {
+		new MicStream.Controls({ subject: mic });
+		mic.row_view;
+	});
+};
+
 export default new Page({
 	meta: import.meta,
 	title: "MicStream",
@@ -38,6 +46,9 @@ export default new Page({
 
 		md("## The three sizes of its live state");
 		demo(sizes, "`mic.icon_view` / `.row_view` / `.panel_view` — the same `MicStream.View`, built at a different size. Panel falls through to the generic property tree, so `chunks`, `chunk_levels` and the browser's own track settings all show up with no extra code.");
+
+		md("## Pick a mic, see the level, toggle it — one view");
+		demo(controls, "`MicStream.Controls` — the device picker, the level bar and a start/stop button, absorbed from `MicPicker`/`LevelMeter`/`PushToTalk` (2026-09-30). `mode: \"toggle\"` here; `mode: \"hold\"` draws a hold-to-talk button instead.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

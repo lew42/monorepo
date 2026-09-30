@@ -1,5 +1,5 @@
 import { Page, md, div, h3, p } from "/app.js";
-import { iconCard, section, outline } from "./Structure.js";
+import { iconCard, section, outline, cards, flow } from "./Structure.js";
 
 // Real words: the owner's harness brief (ai/2026-09-28/harness-research/owner-words.md), drawn.
 const harness = [
@@ -35,6 +35,9 @@ export default new Page({
 			box("A section, heaviest first", () => section({ title: "Research", items: [
 				{ name: "Sources", icon: "menu_book", weight: 1 }, { name: "Question", icon: "help", weight: 3 },
 				{ name: "Claims", icon: "fact_check", weight: 2 }, { name: "Verdict", icon: "gavel", weight: 3 }, { name: "Skeptic", icon: "psychology_alt", weight: 1 }] }));
+			box("Cards: a few things side by side, one line each", () => cards([
+				{ name: "Plan", icon: "map", gist: "What the task will do." }, { name: "Build", icon: "construction", gist: "The work itself." }, { name: "Review", icon: "rate_review", gist: "Checked before it lands." }]));
+			box("Flow: things that happen in order", () => flow([["Ask", null, "you say what you want."], ["Build", null, "an agent does it."], ["Land", null, "it merges, and the card says so."]]));
 			box("Outline: a list is a card with no background", () => outline([
 				{ name: "Page", icon: "article", children: [
 					{ name: "Sections", children: ["as many as it has", "each titled"] },

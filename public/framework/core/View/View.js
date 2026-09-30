@@ -197,6 +197,7 @@ export default class View {
 			else
 				this.append(arg);
 		}
+		View.upgrade?.(this.el);   // p() and h1–h6 opt into #Page / @owner / /path links; ext/Mention sets it
 		return this;
 	}
 

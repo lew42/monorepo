@@ -1,0 +1,11 @@
+{"assign":{"session_id":"c612d68c-0fc5-41d5-bc2c-ecc81160a9ca","agent":"minion-review-walkthrough","brief":"ai/2026-09-30/review/walkthrough/requirements.md","model":"claude-sonnet-5","parent_task":"public/framework/ai/2026-09-30/review","requested_at":"2026-09-30T13:51:39-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-09-30T13:51:42-05:00","msg":"skill: minion"}}
+{"log":{"at":"2026-09-30T13:51:45-05:00","msg":"skill: page"}}
+{"action":{"at":"2026-09-30T13:52:03-05:00","did":"edit","files":["public/framework/ai/2026-09-30/review/walkthrough/shot-report.mjs"]}}
+{"action":{"at":"2026-09-30T13:52:30-05:00","did":"edit","files":["public/framework/ai/2026-09-30/review/walkthrough/page.js"]}}
+{"assign":{"steps":["copy pics","write page.js","shoot report.md","layout-check 1920","commit"],"now":"commit"}}
+{"log":{"msg":"copied review-1920.png, review-400.png, proof-sheet.png from existing task shots; shot report.png headless at 1280x900 via Server/browser.mjs"}}
+{"log":{"msg":"wrote page.js copying ext/drawer/walkthrough shape, 4 steps, hash-tracked Wizard"}}
+{"log":{"msg":"layout-check at 1920: ok, zero errors, empty 0.333, widest 776px"}}
+{"landed_at":"2026-09-30T13:53:30-05:00","outcome":"Built the review walkthrough at /framework/ai/2026-09-30/review/walkthrough/ — four Wizard steps copying ext/drawer/walkthrough's shape, each with one real screenshot (review-1920.png, review-400.png, proof-sheet.png, report.png), one sentence, an open-it-live link, step tracked in the #hash. Committed as 1b4183cc, only that folder. layout-check at 1920 is clean (zero errors, picture shows)."}
+{"assign":{"step":5,"landed_at":"2026-09-30T13:55:00-05:00","outcome":"**Built the review walkthrough** at /framework/ai/2026-09-30/review/walkthrough/ — four Wizard steps copying ext/drawer/walkthrough's shape exactly: one real screenshot per step (review-1920.png, review-400.png, proof-sheet.png, report.png), one sentence, an open-it-live link, step tracked in the #hash. Committed as 1b4183cc, only that folder touched. Headless layout-check at 1920 is clean: zero errors, picture shows."}}

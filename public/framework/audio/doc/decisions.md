@@ -189,3 +189,69 @@ this decision in rather than only recommending it.
 audio-trim approximation could still mis-cut on a very uneven transcript (a short agreed prefix
 against a very long remaining guess); `Transcriber.WhisperSegments`' own `seam_fix` guard (the
 0.6s prompt-withholding one) is unrelated to this and still itself unre-measured.
+
+## Six classes down to three: MicPicker + LevelMeter + PushToTalk absorbed into MicStream (2026-09-30)
+
+The owner pressed the old Push-to-talk demo, the button lit up, and there was nothing else to
+see — "maybe some of these things need to be combined into a single demo," and separately, "which
+of the audio tools are bloated or could be merged?" Looking at what the three small classes
+actually did: `MicPicker` enumerated devices and remembered a pick (real logic, worth keeping,
+just not worth its own class); `LevelMeter` and `PushToTalk` never held any logic of their own at
+all — both just called methods on a `MicStream` someone handed them (`mic.on_level()`,
+`mic.start()`/`mic.stop()`). A class whose entire body is "call a method on the thing I was
+given" is the UI for that thing, not a separate concept — so `MicStream` grew `devices()` /
+`pick()` (moved from `MicPicker`, unchanged) and `mode` (`"hold"` | `"toggle"`) +
+`press()`/`release()`/`toggle()` (what `PushToTalk` used to orchestrate from outside), and a new
+`MicStream.Controls` view draws the picker, the level bar and the mode button together, in one
+place, off one `MicStream` instance.
+
+**The three old classes were NOT deleted.** `MicPicker` is now a thin wrapper — `devices()` and
+`pick()` call `MicStream.prototype.<method>.call(this)` rather than duplicating the browser calls
+— kept working, one implementation. `LevelMeter` and `PushToTalk` needed no logic change at all
+(they never had any to remove); only a deprecation note was added to each pointing at
+`MicStream.Controls`. All three, plus the three old assembly pages that used them
+(`sound-recorder`, `push-to-talk`, `mic-to-text`), were MOVED — not copied — to
+[`v1/`](/framework/audio/v1/) (`git mv`, then every relative import inside them fixed for the new
+depth), so the owner can open the old six-class version and the new three-tool one side by side.
+`MicStream` and `Recorder` did not move; every `v1/` file that needs one now imports it from one
+directory further up.
+
+**The new top-level `audio/page.js`** is ONE live demo (pick a mic → see the level move → talk →
+watch the transcript settle → optionally record), each part's own live-state view shown beside
+it, above three tool tiles (MicStream, Recorder, Transcriber) — not a six- or three-card grid of
+idle state views, which is what the owner's "no visible demo" complaint was actually about.
+`MicStream.Controls` uses `mode: "toggle"` here (a click to start, a click to stop) rather than
+hold — a page demo read better as "press once, talk, press again" than a button that has to stay
+held down while reading this page.
+
+**Two real bugs found while proving this, both fixed, both logged for the `code` skill (not
+edited there — out of this task's fence):**
+
+1. **A `Part` subclass field with the same name as a constructor option silently loses the
+   option.** `class MicStream extends Part { mode = null; constructor(...args){ super(...args);
+   … } }` — `super(...args)` runs `Part`'s `this.assign(...args)`, which correctly sets
+   `this.mode`, but then (real JS class-field order, not a framework quirk) `MicStream`'s OWN
+   field initializers run the instant `super()` returns, and `mode = null;` overwrites it right
+   back to `null`. `new MicStream({ mode: "toggle" })` was landing with `mode: null` until
+   `MicStream`'s constructor re-runs `this.assign(...args)` as its own last line. Any `Part`
+   subclass with a field of the same name as an option it accepts (this codebase already had
+   `device_id`/`device_label` on `MicStream` before this task, same trap, never previously hit
+   because nothing constructed one with those options and then read them back immediately) has
+   this bug.
+2. **The exact same order problem, one layer up, inside `View` itself.** `View`'s own constructor
+   (`core/View/View.js`) calls `this.render()` from INSIDE `super()` — before a `View` subclass's
+   OWN field initializers have run. `MicStream.Controls` first tried `show_picker = true;` /
+   `show_level = true;` as class fields read inside `render()`; both were `undefined` (falsy)
+   every time, so the picker and the level bar silently never appeared — only the mode button did
+   (it reads `this.subject.mode`, and `subject` IS set correctly by then, since `subject` arrives
+   as an explicit constructor option, assigned in `View`'s constructor before `render()` runs).
+   Fixed by testing `!== false` instead of relying on a `true` default field, which still lets an
+   explicit `{ show_picker: false }` option turn a piece off (that DOES arrive before `render()`,
+   for the same reason `subject` does). `PartView`'s own `size = "row";` field has this same gap
+   but is accidentally safe — its `render()` falls into an `else` branch for anything that isn't
+   `"icon"` or `"panel"`, and `"row"` happens to be exactly what the `else` branch does.
+
+Both found by the fake-media Playwright proof this task's brief asked for returning an empty
+`.audio-micstream-controls` div and a `mode: null` button with no console error at all — worth
+naming because neither would have shown up from reading the code, only from actually pressing the
+button in a real (fake-mic) browser.

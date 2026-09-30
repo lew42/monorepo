@@ -48,7 +48,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 ## Quick fixes: take, write, smoke-test, merge, return
 
 1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
-- **Commit early in a pool worktree.** A taken pool worktree is not yet restart-safe: on 2026-09-30 the pool reclaimed qf-9 across a Servex restart, deleting the directory, branch and server while a minion was writing in it. Commit after every finished piece, so a reclaim loses minutes, not the task.
+- **Commit early, in any worktree.** A reclaim of a taken pool worktree while a minion wrote in it (qf-9, 2026-09-30) is fixed in code (bf2ded99: a taken slot stays while anyone works in it or is queued for it, and nothing uncommitted is ever deleted), but a crash or a Servex restart still loses uncommitted minutes. Commit after every finished piece.
 2. Write into `path` and commit there.
 3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
 4. Call `return_worktree(id)` when done or unused.
@@ -109,7 +109,7 @@ of containers." Before merging:
   before-and-after screenshot of three pages that use it and that you did not build.
 - The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges. From the Bash tool (Git Bash) run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai2/` arrives mangled to `C:/Program Files/Git/framework/ai2/` and the smoke run holds everyone's merge lock while it hunts for it.
   It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch does not apply to your own merge: fix the page, or land the smoke fix first.
-- **Every change to a page is reviewed from screenshots at 400, 1200, 1920 and 3440** (the owner, 2026-09-30): run `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440` on the pages it touched and read each shot in horizontal bands, top to bottom: how much of the screen the band takes, whether that is the right size, its padding (stacked padding at the left edge is the usual fault: the tab area's plus a card's plus another's), wasted space, and anything wrapping to another line that shouldn't (a tab bar over two rows, a title on two lines). Say what you saw per band, in one line each, in task.jsonl. A green build shows none of this.
+- **Every change to a page is reviewed from screenshots at 400, 1200, 1920 and 3440** (the owner, 2026-09-30), and YOU read the shots, never the minion's word for them (dev-shell, 2026-09-30: a minion reported zero errors while the right rail sat over the page): run `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440` on the pages it touched and read each shot in horizontal bands, top to bottom: how much of the screen the band takes, whether that is the right size, its padding (stacked padding at the left edge is the usual fault: the tab area's plus a card's plus another's), wasted space, and anything wrapping to another line that shouldn't (a tab bar over two rows, a title on two lines). Say what you saw per band, in one line each, in task.jsonl. A green build shows none of this.
 
 Wrap the merge itself in `node Server/hold.mjs on "<you> — merge"` / `off`, so the live site
 reloads once. If the branch changed `Servex/`, it goes live only after
@@ -119,7 +119,9 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 
 ## You coordinate your module (the owner, 2026-09-30)
 
-Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. Before touching a module someone else has claimed, message its coordinator.
+Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. A page inbox is for necessary coordination only: `drop(path, text)` reaches the module's coordinator, or waits in the page's AI tab until cleared. Before touching a module someone else has claimed, message its coordinator.
+
+- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
 
 ## Split the task, fence the minions
 

@@ -1,0 +1,13 @@
+{"class":"/framework/ai2/card.js","title":"Shell: header, sidebars, footer; the dark dev shell on Ctrl+\\\\","type":"request","id":"2026/09/30/shell-header-sidebars-footer-the-dark-de","created":"2026-09-30T13:58:18-05:00","by":"servex-mastermind-opus","tags":[]}
+{"file":"owner-words.md"}
+{"place":"owner-words.md"}
+{"message":{"by":"task-mastermind-dev-shell","text":"I own this task; my session id is 950de3ca-bb94-45bc-81c1-32992048b804, log at /framework/ai/2026-09-30/dev-shell/. I'm reading the existing Shell, Sidebar and dev bar now, and will post a short design here before building.","kind":"reply","at":"2026-09-30T13:59:10-05:00"}}
+{"file":"design.md"}
+{"file":"design.md"}
+{"place":"design.md"}
+{"message":{"by":"task-mastermind-dev-shell","text":"The design is on this card (design.md): one Shell class in core/Shell with four optional regions that nest, and the dev shell is that Shell as a dark fixed frame on Ctrl+\\ that pushes the page in rather than moving it. The old dev bar stays reachable as v1; I'm building it now with two minions in one worktree.","kind":"reply","at":"2026-09-30T13:59:57-05:00"}}
+{"message":{"by":"task-mastermind-dev-shell","text":"The general Shell is built in the worktree: /framework/core/Shell/ shows seven live demos (left, right, both, header and footer, all four, and one nested inside another). The second minion is now building the dark dev shell on Ctrl+\\ from it, with the old dev bar kept behind a \"v1\" button.","kind":"reply","at":"2026-09-30T14:16:22-05:00"}}
+{"message":{"by":"task-mastermind-dev-shell","text":"Landed on michael/dev: press Ctrl+\\ on any page for the dark dev shell. It has the page tree on the left, the dev bar's tabs on the right, and thin bars across the top and bottom; the page is pushed inward, not covered. The v1 button brings back the old dev bar. The general Shell's seven demos are at /framework/core/Shell/, and the screenshots at 400, 1920 and 3440 are at /framework/dev/DevShell/.","kind":"reply","at":"2026-09-30T14:43:52-05:00"}}
+{"file":"design-2.md"}
+{"place":"design-2.md"}
+{"message":{"by":"task-mastermind-dev-shell","text":"A plan for your new words is on this card (design-2.md). Any page gets a nine-grid shell: white paper in the middle and a gray well around it. A page's sidebars line up with its paper, and the ☰ drawer moves out to the window's edge, so it no longer cuts into AI 2's tab row. AI 2's right side will be the one chat widget from the dictation task (ux/Dictate/chat.js), not a new chat. I build it in three small merges once that widget lands.","kind":"reply","at":"2026-09-30T15:08:04-05:00"}}

@@ -57,8 +57,7 @@ fold, it will disagree with this one the moment the ledger grows an update line.
 - **`dormant` is a string, not a feature this file owns.** Another task (2026-09-30) is adding
   that agent state; `stalled()` just accepts the word. If that state's exact meaning changes,
   `stalled()`'s dormant branch is the only place to update.
-- **`asks.jsonl` is not tracked by git.** It lives only in the main tree, written live; a
-  worktree has none, and `Asks.read()` / `mark.mjs --list` treat a missing file as "no asks".
-  The test embeds 16 real lines as a fixture instead.
+- **Servex writes to the main tree's `asks.jsonl`.** The file is committed, but the ticker
+  appends to the live copy, so a worktree's copy goes stale. Mark asks from the main tree.
 - **Not `ai/council/asks.jsonl`.** That older file is the council's verdict log; same name,
   unrelated.

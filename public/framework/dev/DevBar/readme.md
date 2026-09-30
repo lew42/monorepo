@@ -11,6 +11,7 @@ navigated(){ devbar.refresh(); },
 
 ## Watch out
 
+- **[`dev/DevShell`](/framework/dev/DevShell/) is v2** — the dark shell Ctrl + \ opens by default since 2026-09-30, built on `core/Shell` and reusing this module's own tabs by import. This rail still works untouched, one click away behind its "shell" button / the shell's own "v1" button.
 - [`ext/drawer`](/framework/ext/drawer/) is the OTHER rail at this edge and both can be open at once — `.app` reserves the sum, and the drawer offsets itself by `--devbar` to sit beside this one: [`doc/docking.md`](./doc/docking.md)
 - Below 34em the rail is a bottom sheet, not a side rail — 17rem is 70% of a 390px window, and `.app` declines to push there: [`doc/decisions.md`](./doc/decisions.md)
 - A **closed** rail is `visibility: hidden` (delayed 0.18s, so the close still animates) — without it, resizing across 34em interpolates `translateX(100%)` → `translateY(100%)` straight across the screen and the rail flickers: [`doc/docking.md`](./doc/docking.md)

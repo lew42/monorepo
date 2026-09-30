@@ -41,6 +41,7 @@ standpoint, in terms of revising the skills."
 - **The task goes back to its own mastermind.** Send the concrete fix to the task mastermind
   that owns it (`send_to_agent`, saying where and when the problem was seen). You don't fix
   pages.
+- **Every brief starts with `Budget: $N`.** That line is what Servex/Budget.js enforces (100%: no new spawns; 150%: minions stopped). A dollar figure in a dispatch row or a message enforces nothing: cards-and-logs (09-29, no Budget line) ran to $31 against a $25 cap with no warning.
 - **Anything new goes to [`ai/todo.md`](/framework/ai/todo.md)** for the owner to prioritise.
   You don't start task masterminds: you write their brief and post a dispatch line. A brief written before launch also gets a `task.jsonl` whose line 1 is `{"assign":{"now":"queued","brief":…}}`, or the AI 2 listing fetches a 404 for that folder (spawn_agent appends its own line later).
 - **Spawn your own minions for audits and investigations** (the owner, 2026-09-29), without

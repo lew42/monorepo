@@ -1,7 +1,9 @@
 import { Page, md, div, AITask } from "/app.js";
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
-import { draw_board, board_route } from "/framework/ai/v/3/page.js";   // V3 IS this page's content now — see content() below
+import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
+import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+import { TABS, SYSTEM_PARTS, tab_page, readme_chain, heading } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -11,80 +13,32 @@ const v1 = () => new URLSearchParams(location.search).has("v1");
 export default new Page({
 	meta: import.meta,
 	title: "AI",
-	description: "The work worth going back to, newest first.",
+	description: "The AI system: who does the work, how it is tracked, and how it lands.",
 	icon: "smart_toy",
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
 	children: "asks process review council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
-	// The board IS the dashboard — catalog's previews() override, split-screen for free.
-	// content() becomes the "intro" child catalog() adds (readme.md's own note) — the
-	// only rendered copy of `description` above, since nav cards read the field but the
-	// page itself never did (audit 2026-08-30: blank title, no orienting line).
-	// ⚠ ONE short line (2026-09-08). It said "One page per working day", which stopped
-	//   being true when the day spine moved to `log/` — and two lines of prose above the
-	//   fold is telling the reader what they are about to be shown.
-	/* THE FRONT DOOR IS V3 (the owner, 2026-09-21: "the AI page should default to
-	   V3 … It should be a quick and easy fix to make framework slash AI
-	   automatically switch to V3").
-
-	   Not a redirect. The picker's own first entry is `{ text: "V1", href:
-	   "/framework/ai/" }` (`v/versions.js`), so redirecting this url would leave
-	   V1 with no address at all and the picker looping straight back to V3. And
-	   every date/task/log/effort link on the site routes through THIS page's own
-	   `route()` below — a redirect would have to reproduce all of it.
-
-	   So the url, the routing and the children stay exactly as they are; only
-	   what this page DRAWS changes. `?v1` still draws the original board, which
-	   is where the picker's V1 entry now points — one query param instead of a
-	   second copy of the catalog machinery somewhere under `v/`. */
+	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
+	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
+	   and `?v1` still draws the original board below. `board_drawn` stays true so
+	   the board's own hand-back (v/3/page.js draw_board) never paints it here. */
+	board_drawn: true,
 	content(){
 		if (!v1()){
-			/* Only draw the front door when a visit actually LANDS here. Router.
-			   activate() runs the whole chain root-to-leaf, so a deep link three
-			   levels under me (/v/3/, a day, a task…) activates ME too, cold, on
-			   the very same pass — and without this check I built the entire V3
-			   board a second time for nothing (fetches, an EventSource, timers)
-			   right beside the real leaf's own copy, which is the one actually
-			   shown; the arrangement contract (Page.css) already hides mine once a
-			   later active sibling exists, so the only cost was ever the hidden
-			   work, never wrong content on screen. Measured: `.v3` counted twice
-			   on `/framework/ai/v/3/`, once on `/framework/ai/`
-			   (board-from-events, 2026-09-22).
-			   This branch only ever runs ONCE per page load — `render()`
-			   caches `this.view`, so a later click deeper (after I am
-			   already showing at my own url) never re-enters content() at
-			   all. */
-			/* The check moved into `draw_board()` (board-declutter,
-			   2026-09-22) along with its other half: a view url under me —
-			   `/framework/ai/grid/` — is a page of its own now, so on the way
-			   back OUT of one, it tells me to draw. Without that, a cold
-			   landing on a view followed by a click on the rail's own AI link
-			   left this page blank, because going UP the chain activates
-			   nothing. */
-			/* nav-rerender, 2026-09-22: the WAY IN had the same disease. A
-			   same-tab click landing here for the very first time used to be
-			   waved off above as "reads correctly either way" — reproduced
-			   headless that it does not. `Router.go()` runs `content()`
-			   (HERE) synchronously, inside `this.activate(page)`
-			   (Router.js), and only calls `history.pushState()` after that
-			   returns — so on that first click, `location.pathname` is
-			   still the page you clicked FROM, `draw_board()`'s guard loses
-			   every time, and because `render()` caches `this.view`,
-			   `content()` never runs again: blank for the rest of the
-			   session (exactly the owner's report, 2026-09-22 18:18 — the
-			   title changed, the page did not). Same fix as the way OUT,
-			   one comment up: try now (a cold load already has the right
-			   `location`), and if that lost the race, try again a
-			   `requestAnimationFrame` later, by which point `pushState` has
-			   landed and `draw_board()`'s own unchanged check reads right.
-			   A page that is genuinely just a hidden ancestor of a deeper
-			   deep link reads wrong on both tries, since `location` names
-			   the deeper page either way, so it still correctly never
-			   draws. */
-			draw_board(this);
-			if (!this.board_drawn) requestAnimationFrame(() => draw_board(this));
+			// The same top tabs as a module's docs (the owner, 2026-09-30). The first
+			// tab owns this url; each tab's page is routed below (tab_page, overview.js).
+			// ⚠ The default tab is never routed to: tabs() only looks it up, so add it now.
+			// ⚠ Add every tab now, not only the default: the strip labels a tab from its
+			// page's `label`, and only once `loading` says every child is real, so a tab
+			// added late reads as its bare url name ("skills") until it is opened.
+			for (const t of TABS) if (!this.children.has(t)) this.add(t, tab_page(this, t));
+			this.loading ??= Promise.resolve();
+			const $tabs = this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
+			// Five short tabs wrap at a phone width rather than scroll: ext/tabs hides the
+			// scrollbar, so a scrolled strip loses Overview off the left edge.
+			$tabs.el.querySelector(".tab-bar")?.style.setProperty("flex-wrap", "wrap");
 			return;
 		}
 
@@ -123,6 +77,13 @@ export default new Page({
 		   of the five can ever look like a date, `log` or `effort`. The board
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
+		if (TABS.includes(name)) return tab_page(this, name);
+		// Old urls keep working: the Overview is now System, and its parts moved under it.
+		if (name === "overview") return tab_page(this, "system", this.url + "overview/");
+		if (SYSTEM_PARTS.includes(name)) return tab_page(this, name);
+		const concept = CONCEPTS.find(c => c.slug === name);
+		if (concept) return concept_page(this, concept);
+
 		const board_view = board_route(this, name);
 		if (board_view) return board_view;
 
@@ -174,3 +135,43 @@ export default new Page({
 		});
 	},
 });
+
+/* One concept's page: the gist first, then a few items, then the code that owns it,
+   then the Servex page where Servex implements it (linked, never repeated). */
+function concept_page(parent, c){
+	const links = list => list.map(([t, h]) => h ? `[${t}](${h})` : t).join(" · ");
+	return new Page({
+		title: c.name, icon: c.icon, url: parent.url + c.slug + "/", description: c.gist,
+		content(){
+			md(`**${c.gist}**`);
+			md(c.items.map(i => "- " + i).join("\n"));
+			md("Code: " + links(c.code));
+			if (c.servex.length) md("In Servex: " + links(c.servex));
+			// A system is shown by its effect (the owner, 2026-09-30: the iceberg).
+			// Where a page's data lives (mastermind-servex-9's merge-approval proposal, §7).
+			if (c.slug === "inboxes"){
+				heading("Everything is a page", "A page gets a directory once it has grown. Until then it is a line in its parent's `page.jsonl`. A name that only groups pages is a namespace.");
+				md([
+					"| State | On disk | Reached at | Example |",
+					"|---|---|---|---|",
+					"| **Real page** | a directory with `page.jsonl` | its url | `/framework/ext/Chat/` |",
+					"| **Virtual page** | one line with an `id` in the parent's `page.jsonl` | `parent/<id>/` | a chat message, an inbox note |",
+					"| **Namespace** | nothing: a key other lines carry | a filtered view, `?tag=servex` | a tag, a kind, a day |",
+				].join("\n"));
+				heading("Where per-path AI data lives today");
+				md([
+					"| What | File |",
+					"|---|---|",
+					"| A module's own facts: its inbox, notes, a card's messages | `<module>/page.jsonl` |",
+					"| One task: ask, plan, log, landing | `ai/<date>/<slug>/task.jsonl` |",
+					"| Site-wide feeds and indexes | `ai/log.jsonl`, `day.jsonl`, `board.jsonl`, `cards.jsonl`, `chat.jsonl`, `asks.jsonl` … |",
+				].join("\n"));
+				md("**Proposed, not built:** `promote(parent, id)` turns a virtual page into a real one. The thread moves into its own folder, and a `moved` line keeps the old url working. The whole case: [the proposal, §7](/framework/ai/2026-09-30/servex-mastermind/merge-approval-proposal.md).");
+			}
+			if (c.slug === "readmes"){
+				heading("The chain, live", "What a fresh agent in `public/framework/ai/` is handed, root first.");
+				readme_chain("public/framework/ai/");
+			}
+		},
+	});
+}

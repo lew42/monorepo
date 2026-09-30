@@ -162,7 +162,14 @@ return [
 			timeout_s: { type: "number", description: "Give up after this many seconds and say `timed_out: true`. Default 600." }
 		},
 		["id"],
-		async ({ id, timeout_s }) => JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2)),
+		/* A caller blocked here is not WORKING for the cap (Agents.working): it only waits,
+		 * and counting it could hold the very child it waits for at the gate. */
+		async ({ id, timeout_s }, ctx = {}) => {
+			const me = ctx.caller && agents.live.get(ctx.caller);
+			if (me) me.waiting_on = id;
+			try { return JSON.stringify(await agents.wait(id, timeout_s ?? 600), null, 2); }
+			finally { if (me && me.waiting_on === id) me.waiting_on = null; }
+		}),
 
 	tool("send_to_agent",
 		"Say something to a running agent. It arrives wrapped so the agent can see who asked and"

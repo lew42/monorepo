@@ -1,5 +1,6 @@
 import { div, p, span, small, a, details, summary, button, input, md } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
+import { mentions } from "/framework/ext/Mention/Mention.js";
 import { author_word, plain } from "./inbox.js";
 import { md_into } from "./chat.js";
 import { meter } from "./meter.js";
@@ -35,19 +36,37 @@ export function who(it){
 /** A PREVIEW: the title, a progress bar and the money — nothing else (the owner,
     2026-09-24: "way too much summary on the cards"). The words a card used to
     show live one click down, on its page. `it.progress` and `it.usd` are set by
-    AI 2's `paint()`. `it.sub`, when a caller sets it (a stalled-ask row,
-    asks-ledger/needs-rail's course correction), is one quiet line under the
-    title — the same shape `live_row()` already draws for the Live card
-    (`.ai2-row-foot` + `.ai2-row-line`), reused here rather than invented twice.
-    `ai2-row-ask` on the head (stalled rows only) is what lets `ai2.css` make an
-    UNREAD one bold and a READ one plain, without page.js knowing either word. */
-export function row(it){
+    AI 2's `paint()`. `it.sub`, when a caller sets it (a stalled-ask row), is one
+    quiet line under the title — the same shape `live_row()` already draws for the
+    Live card (`.ai2-row-foot` + `.ai2-row-line`). `ai2-row-ask` on the head
+    (stalled rows only) is what lets `ai2.css` make an UNREAD one bold and a READ
+    one plain. `it.score`, when set, is the importance badge (needs-rule.js).
+ *
+ *  `on` (added 2026-09-30, `rules.js`): `toggle_read()` and `archive()`, the two
+ *  row-level actions a minion's brief asked for. Both are OPTIONAL — `live_row()`
+ *  and any other caller of the plain preview shape can still call `row(it)` bare,
+ *  same as before; the dot and the archive × simply do nothing without them. */
+export function row(it, on = {}){
 	div.c("ai2-row-head flex gap-25" + (it.kind === "stalled" ? " ai2-row-ask" : ""), () => {
-		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
+		// THE DOT IS THE READ/UNREAD BUTTON NOW (deliverable 2) — a REAL `<button>`,
+		// not a `<span role="button">` with hand-written key handling (log.js's own
+		// review finding, 2026-09-30, applies here too). `e.stopPropagation()` keeps
+		// the click from also activating the row's own link — the row is an `<a>`
+		// (page.js `make()`), and a button inside it still bubbles a click up to it.
+		button.c("ai2-dot").attr("type", "button")
+			.attr("title", it.unread ? "mark read" : "mark unread")
+			.click(e => { e.preventDefault(); e.stopPropagation(); on.toggle_read?.(); });
 		if (it.icon) icon(it.icon);
 		if (it.score != null) span.c("ai2-score" + (it.score >= 70 ? " ai2-score-hot" : "")).text(String(it.score));
-		span.c("ai2-row-title").text(it.title);
+		mentions(span.c("ai2-row-title").text(it.title).el);   // the Inbox row's title — ext/Mention
 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
+		// ARCHIVE, RIGHT ON THE ROW (deliverable 3) — the exact same write the card's
+		// own "clear" button already makes (`rules.js` `archive_row`, `full()`'s own
+		// `on.clear` just below); `.ai2-clear` is that same button's existing look,
+		// reused rather than styled twice.
+		if (on.archive) button.c("ai2-clear").attr("type", "button")
+			.attr("title", "archive — nothing is deleted").text("×")
+			.click(e => { e.preventDefault(); e.stopPropagation(); on.archive(); });
 	});
 	if (it.sub) div.c("ai2-row-foot flex v-center gap-25", () => { small.c("ai2-row-line muted").text(it.sub); });
 	meter(it.progress, it.usd, it.usd_open);

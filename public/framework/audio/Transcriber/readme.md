@@ -33,7 +33,7 @@ the previous tick's transcript (whisper_streaming's own "local agreement" idea,
 which engine, whether it's hearing speech right now, how many segments have settled —
 `Whisper.View` adds request latency and whether a request is in flight. The real output (the
 growing guess, then the settled lines) is `Transcriber.Transcript`, a separate small view, so a
-page can show both side by side (see [Mic → Whisper → text](/framework/audio/mic-to-text/)).
+page can show both side by side (see [Mic → Whisper → text](/framework/audio/v1/mic-to-text/)).
 
 ## Watch out
 
@@ -60,4 +60,4 @@ page can show both side by side (see [Mic → Whisper → text](/framework/audio
 - [Overview](/framework/audio/Transcriber/) — the live demo, Whisper engine, the three sizes of its state
 - [`../doc/decisions.md`](/framework/audio/doc/decisions.md) — extraction, the import-cycle
   reasoning, the seams experiment · [`doc/streaming.md`](doc/streaming.md) — streaming vs. resend, researched
-- [`../readme.md`](../readme.md) — the audio/ library · [Mic → Whisper → text](/framework/audio/mic-to-text/)
+- [`../readme.md`](../readme.md) — the audio/ library · [Mic → Whisper → text](/framework/audio/v1/mic-to-text/)

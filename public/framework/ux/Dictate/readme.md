@@ -28,6 +28,55 @@ indefinitely, `on_text` fires once per finished sentence with nothing ever writt
 `$input`, and "stop after a pause" is hidden since nothing should stop it. See "Open mic"
 in [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
 
+## Widget — one compact widget, the same everywhere
+
+**The ✦ sheet's own look — a mic, the still-moving live line, one chat bubble per settled
+sentence — is now a class**, [`Widget.js`](Widget.js), instead of markup copied into every
+place that wants it:
+
+```js
+import Widget from "/framework/ux/Dictate/Widget.js";
+
+new Widget();                                    // just the mic + bubbles
+new Widget({ level: true, source: true });        // + a level meter, + a mic picker
+new Widget({ debug: true });                      // + the "Debug ▾" bar
+new Widget({ revision: "edit" });                  // ux/Revise tidies each sentence too
+```
+
+Four plain properties, every one `false`/off by default:
+
+- **`level`** — a level meter beside the mic (the same smoothed number `Dictate`'s own
+  tiny bar already reads, via `on_meter`).
+- **`source`** — a `<select>` of audio input devices, remembered the same way every
+  `Dictate` on the site remembers one.
+- **`debug`** — a small "Debug ▾" toggle, collapsed by default. Opening it mounts the
+  [playground](/framework/ux/Dictate/playground/)'s own widget (`pg.widget()`) right
+  there — the SAME raw/clean/Chunks/Corrections/Live/Side-by-side tabs, reused whole,
+  never rebuilt a second time. `pg` is one shared singleton pipeline, so a sentence said
+  into `Widget`'s own mic also shows up in the debug panel's own session.
+- **`revision`** — `"clean" | "edit" | "summary" | false`, forwarded straight to
+  `Dictate`'s own `revise` option (above): a tidied version of each sentence becomes a
+  second bubble, a moment later.
+- **`answer(choice)`** and **`marks: true`** — the Chat HITL seam `ChatPanel` had: a
+  `say({type: "ask", heading, choices, at})` call draws a choice-button question and
+  `answer(choice)` fires on a tap; `marks: true` asks `ux/Understand` after each of your
+  own lines and shows a small ✓/`?` beside it. Restored round 4 (`ai/2026-09-30/audio-
+  consolidate/minion-wire/`) after the widget swap below had dropped them.
+
+**On the [Dictate Overview](/framework/ux/Dictate/) today**, configured `{ level: true,
+source: true, debug: true }`, right under the title, no paragraph above it — the owner's
+own phone complaint this answers: "the button is so far down the page… the actual
+transcription is below another paragraph or two." The OLD Overview (the five-tab
+playground leading, same as it always did) is kept one click away at
+[v1](/framework/ux/Dictate/v1/) — never destroy a viable version.
+
+**Wired into the ✦ sheet, the desktop drawer's AI tab, AND a card page**
+(`ext/drawer/rail.js`, `ext/drawer/tabs/ai.js` — round 3 and 4) — the same class, the
+same options, everywhere the owner talks to the site. A CARD page (`/framework/ai2/…`)
+now talks through the exact same [voice session pair](/framework/ext/Session/) a plain
+page uses, home-folder pinned to that card, instead of the card's own separate prompt-log
+route — see `ext/drawer/readme.md`'s own note.
+
 ## Revise — clean up the words after they're heard
 
 ```js
@@ -74,8 +123,9 @@ own log — see `Server/doc/refine.md`'s "Ask 1" section. See "Voice → log" in
 Every entry `post_prompt()` sends carries `floor` (`"speaking"` or `"done"`) and, after a
 dictation, `cues` (its pauses and speaking time), so an assistant can hold its reply while the
 owner is mid-thought. [`floor.js`](floor.js) reads this component's own level meter; mic on
-and off also post a `{type: "floor"}` line. The contract for readers:
-[`ext/Chat/doc/floor.md`](/framework/ext/Chat/doc/floor.md).
+and off also post a `{type: "floor"}` line. `floor.on_quiet(fn)` fires once each time the owner
+goes quiet for 2.5 s: a voice session's assistants answer on it. The contract for readers:
+[`ext/Chat/doc/floor.md`](/framework/ext/Chat/).
 
 ## Watch out
 
@@ -163,7 +213,8 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
   why the start sound could play with no error on a phone over plain http, and the cleanest way
   to get https on the LAN so a phone's mic works at all
 - **What's in flight for dictation** — the Overview's own strip, drawn by [`page_work`](/framework/core/Page/ai/) (`core/Page/ai/work.js`), keyword-matched against Servex's open cards and agents
-- [Overview](/framework/ux/Dictate/) — press 🎤 and watch it work · [words](/framework/ux/Dictate/words/) —
+- [Overview](/framework/ux/Dictate/) — the widget first, press 🎤 and watch it work ·
+  [v1](/framework/ux/Dictate/v1/) — the old Overview, kept reachable · [words](/framework/ux/Dictate/words/) —
   the same box under `ui-contrast ui-compact` · [variants](/framework/ux/Dictate/variants/) —
   the same mic, three different looks
 - [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/) — the install, the CORS finding, the
@@ -174,4 +225,6 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
   numbers, whisper's raw answer, and the WAV itself
 - [`ext/Ask/reply.js`](/framework/ext/Ask/) — the reply mic and the dictate box, now built on this
 - Files: `Dictate.js` (the class), `capture.js` (mic → 16kHz WAV, no library), `pcm-worklet.js`
-  (the `AudioWorklet` that reads raw samples), `Dictate.css` (the level meter, the pulse)
+  (the `AudioWorklet` that reads raw samples), `Dictate.css` (the level meter, the pulse),
+  `Widget.js` + `Widget.css` (the one compact widget — mic, live line, bubbles — see "Widget"
+  above), `v1/page.js` (the old Overview, frozen)

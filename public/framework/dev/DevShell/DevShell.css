@@ -1,0 +1,126 @@
+/* DevShell.css — the dark dev shell's own look, kept small on purpose: the
+   grid, the dark theme, the push into `.app`, the 34em stack and every resize
+   rail already come from `core/Shell/Shell.css`. This file only styles the
+   few things that are DevShell's own: opening/closing, the head line's
+   layout, the tab row, and the thin footer's two readouts. Nothing here
+   restyles what framework.css or Shell.css already style — the owner's own
+   words, 2026-09-30: "we can probably scrap most of the dev bar's CSS and
+   lean into our current CSS". Design record: readme.md, doc/decisions.md. */
+@layer theme {
+
+	/* Mounted once, on <body>, like `dev/DevBar`'s own rail — `dev-shell-open`
+	   on <html> is the WHOLE open/closed state. Closed is `display: none`,
+	   which is also why `.app`'s push clears itself for free: a display:none
+	   region reports zero size to `CoreShell`'s own ResizeObserver
+	   (`watch_frame()`, Shell.js), so every `--shell-*` token it writes is
+	   already 0 before this rule even runs. */
+	:root:not(.dev-shell-open) .dev-shell-root { display: none; }
+
+	/* ⚠ `core/Shell`'s own `.core-shell-grid` columns are `auto 1fr auto` —
+	   fine when `left`/`right`'s CSS width is used to size those `auto`
+	   tracks, but that width is `clamp(12rem, …, 50%)` (Shell.css), and a
+	   PERCENTAGE inside a clamp can't be resolved before the track itself is
+	   sized (the same chicken-and-egg problem percentages always have in an
+	   intrinsic-sizing context) — so the browser falls back to sizing the
+	   `auto` track off its CONTENT's own max-content width instead. This
+	   shell's right side holds paragraphs of real text (the mastermind log),
+	   whose max-content is "the whole paragraph on one line", easily over
+	   1000px — so the `right` track ballooned past the page's own middle,
+	   landing the dark rail right beside `left` instead of at the window's
+	   edge, and leaving the true right edge blank (nothing painted there,
+	   `main` never reaches that far right either). Fixed HERE, not in
+	   Shell.css: DEFINITE lengths for `left`/`right` (the same custom
+	   properties `Shell.js`'s own `size()` already writes on a drag, with the
+	   clamp's own 18rem default as the fallback) sidestep the percentage
+	   entirely, so `1fr` gets the real leftover width and `right` lands
+	   flush against the window's own edge. doc/decisions.md. */
+	@media (width >= 34em) {
+		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid {
+			grid-template-columns:
+				var(--core-shell-left-w, 18rem)
+				1fr
+				var(--core-shell-right-w, 18rem);
+		}
+	}
+
+	/* BELOW 34em (a phone): the left region goes, the right one is a bottom
+	   sheet the full width of the screen, and the head keeps only what fits on
+	   one line — the path, the toggles, v1 and ✕. The width presets and the
+	   shortcut hint are a desktop's. Measured at 400: with the three-column
+	   rule above left unscoped, both sides were 288px boxes stacked over the page. */
+	@media (width < 34em) {
+		.dev-shell-root .core-shell-left,
+		.dev-shell-root .dev-shell-hint { display: none; }
+		.dev-shell-root .core-shell-right { max-height: 45vh; width: auto; }
+		.dev-shell-root .core-shell-grid, .dev-shell-root.core-shell-grid { grid-template-columns: minmax(0, 1fr); }
+	}
+
+	/* Above the site's own fixed chrome (the ☰ at the top right sat over the head). */
+	.dev-shell-root.core-shell-frame, .dev-shell-root .core-shell-frame { z-index: 60; }
+
+	/* ⚠ And the regions FILL those tracks. Shell.css sizes each region itself
+	   with `clamp(12rem, …, 50%)`; inside a definite 18rem track that 50% is
+	   9rem, so the clamp's 12rem floor won and the dark rail stopped 6rem short
+	   of the window's edge, leaving a white strip (1920 shot, 2026-09-30). */
+	.dev-shell-root :is(.core-shell-left, .core-shell-right) { width: auto; }
+
+	.dev-shell-head-line {
+		flex: 1 1 auto;
+		min-width: 0;
+		gap: 0.5em;
+		font-family: var(--mono);
+		font-size: 0.8rem;
+	}
+
+	/* `pathbar()`'s own box is the first child, always — grow it so the
+	   buttons after it (hint, block, hold, edit, v1, ✕) sit at the head's
+	   trailing edge instead of hugging the path. */
+	.dev-shell-head-line > :first-child { flex: 1 1 auto; min-width: 0; }
+
+	.dev-shell-hint { color: var(--subtle); white-space: nowrap; }
+
+	.dev-shell-v1, .dev-shell-x {
+		font-family: var(--mono);
+		font-size: 0.75rem;
+		border: 1px solid var(--line);
+		border-radius: 0.25em;
+		padding: 0.1em 0.5em;
+		background: none;
+		color: inherit;
+	}
+
+	/* One group, right-aligned: the first button in it carries the margin. */
+	.dev-shell-v1 { margin-inline-start: auto; }
+
+	.dev-shell-tree, .dev-shell-body { padding: 0.75em; font-size: 0.85rem; }
+
+	.dev-shell-tabs-wrap { min-height: 0; }
+	.dev-shell-body { min-height: 0; overflow: auto; }
+
+	.dev-shell-tabs {
+		border-block-end: 1px solid var(--line);
+		padding-inline: 0.5em;
+	}
+
+	.dev-shell-tab {
+		background: none; border: none; color: var(--subtle);
+		padding: 0.5em 0.75em; font-family: var(--mono); font-size: 0.8rem;
+		border-block-end: 2px solid transparent;
+	}
+
+	.dev-shell-tab.on { color: var(--ink); border-block-end-color: var(--prim); }
+
+	.dev-shell-foot { font-family: var(--mono); font-size: 0.75rem; }
+
+	.dev-shell-val.ok { color: var(--ok); }
+	.dev-shell-val.warn { color: var(--warn); }
+	.dev-shell-val.off { color: var(--subtle); }
+}
+
+/* ⚠ `util`, because framework.css's `.flex` on the same box lives there and a
+   `theme` rule cannot out-rank it at any specificity (review, 2026-09-30). */
+@layer util {
+	@media (width < 34em) {
+		.dev-shell-root .dev-width { display: none; }
+	}
+}

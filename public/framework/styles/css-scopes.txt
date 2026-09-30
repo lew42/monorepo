@@ -72,10 +72,16 @@ page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside 
              namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
 page-section- core/Section (the band, its overlay and slots — same namespace, same
              reason: `section-` is /imagine/sections' and `.section` is a live rule)
+core-shell-  core/Shell (`shell-` was reserved for /imagine/shells already; the class is `CoreShell`,
+             `Shell` is only an export alias onto it — doc/decisions.md, 2026-09-30)
 sidebar-     core/Sidebar
 omnibox-     core/Search (the one search box; the class `.omnibox` itself is the View subclass's own name)
 brand-       core/Sidebar
 looks-       core/Page/overview/columns/examples/looks
+card-        core/Page/card (card-gray/-dark/-prim the three new grounds, card-level-N the
+             nesting depth classes, card-head/-head-title/-menu-btn the header-bar-with-menu
+             pattern — bare .card itself stays the framework's, in the block above)
+log-         core/Page/card/log
 
 # ext
 ai-          ext/AITask
@@ -123,6 +129,8 @@ ux-wizard-   ux/Wizard
 # dev
 claim-       dev/Claim
 dev-         dev/DevBar
+dev-shell-   dev/DevShell (the dark shell, Ctrl + \; `dev-` above is DevBar's own, registered
+             2026-09-30)
 
 # ui — one component, one prefix: ui-<component>-*
 ui-          ui/

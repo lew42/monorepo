@@ -138,9 +138,9 @@
 	.drawer-model { gap: 0.4em; }
 	.drawer-ai-list { gap: 0.6em; }
 
-	/* THE PANEL'S CEILING (`ChatPanel`, `ai/2026-09-29/audio/c-chat/`): "the
-	   drawer's own full height" (its brief), so the composer never leaves the
-	   visible drawer as the log grows.
+	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
+	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
+	   so the composer never leaves the visible drawer as the thread grows.
 	   ⚠ A `calc(100dvh - <a guessed number of rem>)` was tried first and was
 	   wrong: the guess did not leave room for the AI tab's own head row and the
 	   chips row (present only sometimes), so at 1920×1080 with 30 messages the
@@ -151,20 +151,25 @@
 	   is a flex COLUMN of definite height (`position: fixed; inset-block: 0`),
 	   `.drawer-body` is already `flex: 1 1 auto; min-block-size: 0` (above), so
 	   giving `.drawer-ai` and `.drawer-ai-panel` the SAME two rules makes each
-	   one fill exactly what its own flex parent actually has — real layout,
-	   not an estimate — all the way down to `.chatbox-panel` itself (`flex: 1 1
-	   auto; min-block-size: 0; max-height: none`, replacing its own default
-	   ceiling). Only `.chatbox-log`, at the bottom of that chain, ever
-	   scrolls; the head, the chips and the composer keep their natural size
-	   and never move. */
+	   one fill exactly what its own flex parent actually has — real layout, not
+	   an estimate — all the way down to `.ux-dictate-widget-card` itself
+	   (`flex: 1 1 auto; min-block-size: 0; max-block-size: none`, replacing its
+	   own smaller default — `Widget.css`'s cap is for a STANDALONE widget on a
+	   long page, not one already living inside a flex column with its own real
+	   ceiling). Only the thread inside `Widget`, at the bottom of that chain,
+	   ever scrolls; the head, the chips and the composer keep their natural
+	   size and never move. */
 	.drawer-ai { flex: 1 1 auto; min-block-size: 0; }
 	.drawer-ai-head, .drawer-chips { flex: none; }
 	.drawer-ai-panel {
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-block-size: 0;
 	}
-	.drawer-ai-panel > .chatbox-panel {
-		flex: 1 1 auto; min-block-size: 0; max-height: none;
+	.drawer-ai-panel > .ux-dictate-widget {
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	.drawer-ai-panel .ux-dictate-widget-card {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
 	}
 	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
 	.drawer-turn-who { font-size: 0.85em; }
@@ -233,4 +238,21 @@
 	.drawer-props-title { margin: 0; }
 	.drawer-props-where { gap: 0.35em; }
 	.drawer-props-link { overflow-wrap: anywhere; }
+
+	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
+	.drawer-inbox { flex: none; gap: 0.35em; }
+	.drawer-inbox[hidden] { display: none; }   /* .flex would otherwise beat [hidden] */
+	.drawer-inbox-row {
+		gap: 0.2em;
+		padding: 0.4em 0.4em 0.4em 0.6em;
+		border-radius: 0.5em;
+		background: var(--fill-a08);
+	}
+	.drawer-inbox-head { gap: 0.5em; }
+	.drawer .drawer-inbox-logo { width: 1.1em; height: 1.1em; }
+	.drawer-inbox-from { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9em; }
+	.drawer-inbox-text { overflow-wrap: anywhere; }
+	.drawer-inbox-age { flex: none; }
+	.drawer .drawer-inbox-clear, .drawer .drawer-inbox-add { flex: none; min-block-size: 0; padding: 0.15em 0.55em; font-size: 0.85em; }
+	.drawer-inbox-input { inline-size: 100%; }
 }

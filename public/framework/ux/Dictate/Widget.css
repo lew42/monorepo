@@ -1,0 +1,113 @@
+/* ux/Dictate/Widget — the one compact widget: a framed card, bubbles on top, a composer
+ * row at the bottom (typed box, mic, Send) — the SAME shape as the ✦ sheet's own mic panel
+ * (`ext/drawer/rail.css`). Layout is plain framework.css utilities (`card`, `pad`, `flex`,
+ * `gap`, `muted`); the bespoke bits here are the bubble look, the scrolling thread, the
+ * compact meter/picker and hiding `Dictate`'s own settled caption lines (it still draws the
+ * live, still-moving guess — see `Widget.js`'s own doc for why that one stays). */
+@layer theme {
+
+	.ux-dictate-widget-empty:empty { display: none; }
+
+	/* The card: bubbles above, the composer pinned under it — never taller than a phone
+	 * screen, so a long conversation scrolls inside the thread, not the whole page. */
+	.ux-dictate-widget-card { max-block-size: min(60vh, 32em); }
+	.ux-dictate-widget-thread {
+		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
+	}
+
+	/* `.card.pad` is the framework's own boxed-content look (framework.css) — this just
+	 * keeps a bubble from stretching the full width of the thread. An assistant's reply
+	 * (`say()`, `Widget.js`) reads as a second voice: right-aligned, `--prim`-tinted border,
+	 * never the owner's own plain look — the one visual rule a two-sided thread needs. */
+	.ux-dictate-widget-bubble { align-self: flex-start; max-width: 85%; }
+	.ux-dictate-widget-bubble-assistant {
+		align-self: flex-end; box-shadow: inset 0 0 0 1px var(--prim);
+	}
+	.ux-dictate-widget-failed { font-size: 0.85em; }
+	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
+
+	/* A QUESTION FOR YOU (`answer`/choices, restored round 4) — one card, a short
+	 * heading, a row of buttons; the picked one stays visible once answered. */
+	.ux-dictate-widget-ask-heading { font-weight: 600; display: block; }
+	.ux-dictate-widget-choices { margin-top: 0.4em; }
+	.ux-dictate-widget-choice.picked { box-shadow: inset 0 0 0 1px var(--prim); font-weight: 600; }
+	.ux-dictate-widget-ask.answered .ux-dictate-widget-choice:disabled { opacity: 0.6; }
+
+	/* The model picker (`models: true`) — above the thread, same look as the drawer's own
+	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
+	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
+
+	/* THE COMPOSER ROW — the typed box, the mic button (`.ux-dictate`), Send stay on one
+	 * row at every width; the live-guess caption and the optional extras (meter, picker,
+	 * Sample) drop to their own line underneath, never between the box and Send.
+	 * ⚠ `Dictate.js`'s own root (`.ux-dictate`, "flex v-center gap") wraps its button AND
+	 * its caption as ONE composer child, not two. That one box's OWN width is computed
+	 * from its children's unwrapped (max-content) size, caption included — so giving the
+	 * caption `order`/`flex-basis: 100%` only reordered it INSIDE that inner box; the box
+	 * itself still claimed the full button+caption width in the composer row, and Send
+	 * still wrapped to a second line at 1920 (caught only by reading each composer
+	 * child's own `getBoundingClientRect()` — the first shot looked right by eye, because
+	 * a hidden caption with no live guess yet is invisible either way, before or after).
+	 * `display: contents` would remove the box and let the trio's rules apply to the
+	 * caption directly, but the element ALSO carries framework.css's own `.flex` utility
+	 * class (`display: flex`), and a utility in `@layer util` always wins over a
+	 * component's `@layer theme` rule regardless of selector specificity (`css` skill,
+	 * rule 3) — so `display: contents` here is silently overridden back to `flex`.
+	 * The fix that actually works: take the caption OUT of flex flow entirely with
+	 * `position: absolute`, pinned under `.ux-dictate` by its own row (composer gets
+	 * `position: relative` as the containing block). An absolutely positioned box
+	 * contributes nothing to `.ux-dictate`'s width, so `.ux-dictate` shrinks to just its
+	 * button and the trio's combined width (about 230px) stays well under even a
+	 * 320px-wide card. */
+	/* `gap: 0.4em`, not the `.gap` utility's `var(--gap)` — `--gap` is a PAGE-scale clamp
+	 * (`css` skill: "a control or row keeps its own em"), and it measured 24.7px between
+	 * just three small controls at a wide viewport — on its own enough to push Send onto
+	 * a second line. `!important`: the composer's own markup (`Widget.js`) carries the
+	 * `.gap` utility class directly, which lives in `@layer util` — a layer that beats
+	 * ANY `@layer theme` rule regardless of specificity (`css` skill, rule 3), so a plain
+	 * `gap: 0.4em` here is silently ignored, proven with a DOM-rect measurement after it
+	 * had no effect. The skill's own sanctioned fix — drop the utility class from the
+	 * markup — is a `Widget.js` edit, outside this brief's CSS-only fence; `!important` is
+	 * the only lever left inside this one file. */
+	.ux-dictate-widget-composer {
+		position: relative; flex-wrap: wrap; gap: 0.4em !important; padding-block-end: 1.3em;
+	}
+	/* `flex-basis: 0`, not `10em` — flex-wrap decides which line an item lands on using
+	 * its BASIS, not its post-shrink size, so a 10em basis (160px) made the browser treat
+	 * the box as "too wide" to share a line with the mic and Send even though `min-width:
+	 * 8em` (128px) was all it would ever actually render at — Send kept landing on its own
+	 * line at the drawer's ~250px width. `min-width` still floors the basis at 8em. */
+	.ux-dictate-widget-input { flex: 1 1 0; min-width: 8em; }
+	.ux-dictate-widget-send { flex: 0 0 auto; }
+	.ux-dictate-widget-sample { flex: 0 0 auto; order: 10; }
+
+	/* `Dictate`'s own markup is [button][engine/status/countdown/caption] — a settled
+	 * sentence draws one `.ux-dictate-line` per line there, which is ALREADY this widget's
+	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible, the
+	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice. */
+	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }
+	.ux-dictate-widget-composer .ux-dictate-info {
+		position: absolute; inset-inline: 0; top: 100%; margin-top: 0.2em; min-width: 0;
+	}
+
+	/* A second, bigger level meter (`level: true`) — small and right beside the button, never
+	 * a full-width pill. Driven by the SAME smoothed number `Dictate`'s own tiny bar reads.
+	 * `order: 10` so it drops under the trio instead of competing with it for room. */
+	.ux-dictate-widget-meter {
+		flex: 0 0 auto; order: 10; width: 2.2em; height: 0.5em; border-radius: var(--radius);
+		background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden;
+	}
+	.ux-dictate-widget-meter-fill {
+		height: 100%; width: calc(var(--ux-dictate-widget-level, 0) * 100%);
+		background: var(--prim); transition: width 80ms linear;
+	}
+
+	/* The mic picker (`source: true`) — capped width and an ellipsis, never the browser's
+	 * full-width default (the thing it replaced). */
+	.ux-dictate-widget-source {
+		flex: 0 0 auto; order: 10; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+
+	.ux-dictate-widget-debug-toggle { font-size: 0.85em; }
+	.ux-dictate-widget-debug-panel { margin-top: 0.5em; }
+}

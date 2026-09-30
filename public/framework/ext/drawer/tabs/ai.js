@@ -1,6 +1,6 @@
 import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
 import md from "/framework/ext/markdown/md.js";
-import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
+import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
@@ -8,14 +8,35 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
 import { DEV } from "../tabs.js";
+import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+import * as Session from "/framework/ext/Session/Session.js";
+import floor from "/framework/ux/Dictate/floor.js";
 
-/* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`) is `ChatPanel` (`ext/Chat`): the
-   log, the composer and the mic as ONE widget, the exact one the mobile ✦ sheet
-   (`rail.js`) now also builds — "we need a consistent chat widget… whether it's in
-   a desktop sidebar or a mobile sheet" (the owner, 2026-09-29). A model picker sits
-   above it. v1, the hand-wired list-plus-composer this replaced, stays reachable as
-   `aiV1` below (unchanged, still exported) — swap it in by pointing `tabs.js`'s "ai"
-   row at `{ default: aiV1 }` instead of this file's own default.
+// The SAME key `ext/drawer/rail.js`'s own ✦ sheet uses for its `sessionStorage`
+// slot — "the SAME widget and the SAME session pair as the ✦ sheet" (the owner,
+// round 4): a card session started here is the one the sheet picks up on the same
+// tab, and back. Kept as its own literal, not imported from `rail.js`, so this
+// file never has to import that one — `rail.js` already imports `tabs.js`, which
+// imports THIS file, so a static import the other way would be a cycle (`code`
+// skill's own warning: "a parent↔child import cycle breaks only on deep reload").
+const SESSION_KEY = "lew42-voice-session";
+
+// Re-exported for anything that still imports them from here — `model()`/`MODELS`
+// themselves moved to `ux/Dictate/Widget.js` (round 3, 2026-09-30: "find the
+// drawer's current model switcher and move it into the Widget") so `Widget`'s own
+// `models: true` option can draw the picker without `ux/Dictate` reaching up into
+// `ext/drawer`.
+export { model, MODELS };
+
+/* THE AI TAB — v2 (`ai/2026-09-29/audio/c-chat/`, `Widget` as of round 3) is
+   `ux/Dictate/Widget`: the log, the composer and the mic as ONE widget, the exact
+   one the mobile ✦ sheet (`rail.js`) now also builds — "we need a consistent chat
+   widget… whether it's in a desktop sidebar or a mobile sheet" (the owner,
+   2026-09-29; `ChatPanel` answered that call first, `Widget` replaces it here).
+   `models: true` draws the picker above it, OFF in the sheet (the owner, round 3).
+   v1, the hand-wired list-plus-composer this replaced, stays reachable as `aiV1`
+   below (unchanged, still exported) — swap it in by pointing `tabs.js`'s "ai" row
+   at `{ default: aiV1 }` instead of this file's own default.
 
    Where a message goes is ONE function, `send()`, exported so anything else on the
    page — a picked element, minion 2's selection — sends the same way:
@@ -24,17 +45,6 @@ import { DEV } from "../tabs.js";
    · on a plain PAGE: the agreed page-pair route, `POST /api/page-ai`
      (ai/2026-09-25/recursive-pairs/interface.md); until Servex answers it, the dev
      bar's Ask route (ext/Ask), so a message still gets an answer today. */
-
-export const MODELS = ["haiku", "sonnet", "opus", "fable"];
-const MODEL_KEY = "lew42-drawer-model";
-
-/** The model the reader picked. Stored only — nothing reads it yet (harness step 2). */
-export function model(value){
-	try {
-		if (value) localStorage.setItem(MODEL_KEY, value);
-		return localStorage.getItem(MODEL_KEY) || "sonnet";
-	} catch { return value || "sonnet"; }
-}
 
 // Context for the Ask route is text: a list of picked elements becomes one line each.
 const as_text = context => Array.isArray(context)
@@ -212,84 +222,115 @@ function chips_row(tabs){
 }
 
 /**
- * v2 — the default. `ChatPanel` reads the card's own real, persisted thread (the
- * exact widget the mobile ✦ sheet's card thread already showed via `ai2/chat.js`)
- * or, on a page, keeps its own local list seeded from the picked thread's saved
- * history. `--chatbox-panel-max: 100%` (`drawer.css`) is the drawer's own full
- * height — the panel still starts small and only grows into that ceiling.
+ * v2 — the default. `Widget` (`ux/Dictate/Widget.js`) reads the card's own real,
+ * persisted thread (the exact widget the mobile ✦ sheet's card thread already
+ * shows, `rail.js`) or, on a page, keeps its own local list seeded from the picked
+ * thread's saved history. `--chatbox-panel-max: 100%` (`drawer.css`) is the
+ * drawer's own full height — the widget still starts small and only grows into
+ * that ceiling. `models: true` — the one thing the sheet's own widget doesn't
+ * show (the owner, round 3).
  */
 export default function ai({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let panel, $hint;
 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
+	const inbox = new DrawerInbox({ page });
 
 	div.c("drawer-ai flex v", () => {
 		div.c("drawer-ai-head flex v-center split wrap", () => {
 			small.c("muted", card ? `talking into this card — ${String(card.title ?? card.name).slice(0, 60)}`
 				: thread ? `thread · ${thread.slug}` : "this page · a new conversation");
-
-			label.c("drawer-model flex v-center", () => {
-				span.c("muted", "model");
-				const $pick = select(() => { MODELS.forEach(m => option(m[0].toUpperCase() + m.slice(1)).attr("value", m)); });
-				$pick.el.value = model();
-				$pick.on("change", () => model($pick.el.value));
-			}).attr("title", "Only stored for now — the provider that reads it comes with harness step 2.");
+			// The model picker lives INSIDE `Widget` now (`models: true`, below) —
+			// michael/dev's own copy of it here (from before round 3's move) is
+			// left out on purpose, not lost: see `Widget.Models` in `Widget.js`.
+			if (DEV) inbox.button();
 		});
+		inbox.view();
 
 		const { view: $chips, context } = chips_row(tabs);
 
-		// THE PANEL. Captured now, filled in a callback for the card branch (`code`
+		// THE WIDGET. Captured now, filled in a callback for the card branch (`code`
 		// skill §1 — the card branch's `import()` drops the captor at its first
 		// `await`), built at once for the page branch.
 		const $slot = div.c("drawer-ai-panel");
 		if (card){
-			// Lazily loaded — most drawer opens are not on a card, and `say()` (the
-			// button-answer route) is dead weight for those.
-			import("/framework/ai2/compose.js").then(({ say }) => {
-				$slot.empty(() => {
-					// ⚠ THE LINE MINION B EXTENDS with a refine-level argument (mobile-nav
-					// coordination, 2026-09-29): `ChatPanel` builds its composer, and the
-					// composer builds the microphone (`Composer.js` → `ComposerMic`) —
-					// this call is the one place that chain starts for the drawer's AI tab.
-					panel = new ChatPanel({
-						source: () => card.chat_entries(),
-						answer: choice => say(choice, card.id),
-						re: () => card.id,
-						marks: true,
-						placeholder: "talk into this card",
-						sent: "sent — the reply lands in the thread above",
-						failed: "Servex is not answering, so nothing was sent",
-						deliver: async entry => {
-							const ok = (await send({ card: card.id, page, text: entry.text, via: entry.via, context: context() })).ok;
-							panel.sync();
-							return ok;
-						},
-					});
+			/* THE SESSION PAIR, not `send({card})` (round 4, `ai/2026-09-30/audio-
+			 * consolidate/minion-wire/` — the owner: "Make the AI 2 drawer and card
+			 * pages use the SAME widget and the SAME session pair as the ✦ sheet").
+			 * The old route posted every sentence into Servex's PROMPT LOG
+			 * (`send({card})` → `post_card()` above) and read the card's own
+			 * persisted `chat_entries()` back as history; this now starts (or
+			 * resumes) a real voice session pinned to the card's own home folder —
+			 * `Session.start({path, card: card.id})` — exactly the same pair
+			 * `rail.js`'s ✦ sheet uses, and the SAME `sessionStorage` slot (this
+			 * file's own `SESSION_KEY`, above), so a conversation begun on the
+			 * phone continues here and back. No `history` is given: a session
+			 * begun fresh in THIS tab has nothing to read yet (a known, named gap
+			 * — the card's own Overview, `ai2/card.js`, stays the permanent
+			 * record). Until Servex restarts with the session pair's own `card`
+			 * handling, the server ignores the hint and runs it as a plain
+			 * session; the send still goes out (this task's own proof note). */
+			const own_ats = new Set();
+			let session = null, session_file = null;
+			const watch_it = () => Session.watch(session_file, line => {
+				if (!line.chat || own_ats.has(line.chat.at)) return;
+				panel?.say({ chat: line.chat });
+			});
+			const ensure_session = async () => {
+				if (session) return;
+				try {
+					const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+					if (saved?.session && saved?.file && saved.card === card.id){
+						session = saved.session; session_file = saved.file; watch_it(); return;
+					}
+				} catch {}
+				try {
+					const made = await Session.start({ path: page, card: card.id });
+					session = made.session; session_file = made.file;
+					try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session, file: session_file, card: card.id })); } catch {}
+					watch_it();
+				} catch {}   // left with no session — deliver() below fails the send instead
+			};
+			$slot.empty(() => {
+				// `Widget` builds its own composer, and the composer builds the
+				// microphone (`Dictate`, `mode: "open"`) — this call is the one place
+				// that chain starts for the drawer's AI tab's card branch.
+				panel = new Widget({
+					models: true,
+					marks: true,
+					placeholder: "talk into this card",
+					deliver: async entry => {
+						try {
+							await ensure_session();
+							if (!session) return false;
+							const via = entry.via === "typed" ? "text" : "voice";
+							floor.stamp(entry);
+							const r = await Session.say({ session, path: page, text: entry.text, via, floor: entry.floor, cues: entry.cues });
+							own_ats.add(r.at);
+							panel.retag(entry.at, r.at);
+							return true;
+						} catch { return false; }
+					},
 				});
 			});
 		} else {
 			// The hint goes as soon as the first message is sent (`on_text`, below).
 			$hint = !thread?.history?.length && small.c("drawer-ai-empty muted", "Ask anything about this page. Sessions lists this page's saved threads.");
 			$slot.empty(() => {
-				// ⚠ THE LINE MINION B EXTENDS with a refine-level argument — see the card
-				// branch's own note above; this is the same chain for a plain page.
-				panel = new ChatPanel({
-					placeholder: "ask about this page",
-					sent: "sent",
-					failed: "not sent",
+				panel = new Widget({
+					models: true,
 					marks: true,
-					// `on_text` only hides the intro hint — the owner's own bubble is added
-					// in `deliver` below, where `entry.via` is there to mark it 🎤/⌨.
+					placeholder: "ask about this page",
+					// `on_text` only hides the intro hint — `Widget.submit()` already drew
+					// the owner's own bubble by the time this fires.
 					on_text: () => $hint?.el.remove(),
-					/* THE UNIVERSAL CHAT LINE (`ext/Chat/readme.md`), used here for real:
-					   `{chat: {at, from, via, text}}` for your own words, one for the reply —
-					   first "_thinking…_", then `fix: true` on the SAME `at` as `send()`'s
-					   streamed chunks arrive, so the reply grows in place instead of a new
-					   bubble per chunk (v1's `$reply.empty()` did the same job with a raw
-					   DOM node; this is the same idea through `chat()`'s own replace rule). */
+					/* THE UNIVERSAL CHAT LINE (`ext/Chat/readme.md`), used here for the
+					   REPLY: first "_thinking…_", then `fix: true` on the SAME `at` as
+					   `send()`'s streamed chunks arrive, so the reply grows in place
+					   instead of a new bubble per chunk. The owner's OWN line is not
+					   drawn here — `Widget.submit()` (the composer) already drew it,
+					   optimistically, before `deliver` (this function) even started. */
 					deliver: async entry => {
-						const via = entry.via === "whisper" ? "voice" : "text";
-						panel.say({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, via, text: entry.text } });
 						const reply_at = new Date(Date.now() + 1).toISOString();
 						panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: "_thinking…_" } });
 						let streamed = "";

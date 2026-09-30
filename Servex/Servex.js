@@ -36,6 +36,7 @@ import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
 import hitl from "./agents/hitl.js";
+import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -224,6 +225,7 @@ export default class Servex extends Events {
         /* THE ASSISTANT LAYERS (ai/2026-09-24/assistant-layers): an assistant and a
          * manager on every card, and the master assistant + mastermind-servex across
          * them all. `SERVEX_NO_LAYERS=1` boots without them. */
+        this.inbox = new Inbox({ servex: this });   // every page's inbox: agents/inbox.js, doc/inbox.md
         if (!process.env.SERVEX_NO_LAYERS){
             this.layers = new this.constructor.Layers({ servex: this }).install();
             this.global = new this.constructor.Global({ servex: this }).install();
@@ -510,6 +512,7 @@ export default class Servex extends Events {
             res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" });
         });
         this.cards.routes(router, cors);
+        this.inbox.routes(router, cors, express.json({ limit: "64kb" }));   // POST /api/inbox/drop|clear, GET /api/inbox
 
         /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
          * model call that cleans up a chunk of dictated text near-verbatim
@@ -641,6 +644,7 @@ export default class Servex extends Events {
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
         for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
+        for (const tool of this.inbox.tools()) this.mcp.tool(tool);   // drop, clear, inbox
 
 
         this.mcp.tool("system_health", {

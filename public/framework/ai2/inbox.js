@@ -353,19 +353,19 @@ async function stalled_asks_ready(){
 	});
 }
 
-/** localStorage read-state for a stalled-ask row (deliverable 4: "unread is bold, read is
- *  plain... remember it was opened... the Inbox's existing read state, if it has one" — it
- *  has none, `Says`'s own comment says why: the owner turned the old one off on purpose for
- *  every other row. This is a new, narrow exception, scoped to this one row kind, wrapped in
- *  try/catch like every storage read/write on this page (`page.js`'s own `store` object). */
-const ASK_READ_KEY = "ai2-ask-read";
-function read_asks(){
-	try { return new Set(JSON.parse(localStorage.getItem(ASK_READ_KEY) ?? "[]")); } catch { return new Set(); }
+/** A stalled-ask row's read state (course correction: "unread is bold, read is plain", and
+ *  opening it once reads it). It is the Inbox's OWN read state — the same localStorage key
+ *  `rules.js` `is_read()`/`mark_read()` use, so the row's dot and page.js's `paint()` agree.
+ *  The key is repeated here, not imported, because rules.js imports this file (a cycle).
+ *  Opening marks ONLY a stalled row read; every other row still waits for its dot. */
+const READ_KEY = "ai2-read-ids";   // = rules.js READ_KEY
+function read_ids(){
+	try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) ?? "[]")); } catch { return new Set(); }
 }
 function mark_ask_read(id){
-	try { const s = read_asks(); s.add(id); localStorage.setItem(ASK_READ_KEY, JSON.stringify([...s])); } catch {}
+	try { const s = read_ids(); s.add("ask:" + id); localStorage.setItem(READ_KEY, JSON.stringify([...s])); } catch {}
 }
-function ask_is_read(id){ try { return read_asks().has(id); } catch { return false; } }
+function ask_is_read(id){ return read_ids().has("ask:" + id); }
 
 /* ── the one list ───────────────────────────────────────────────────────── */
 

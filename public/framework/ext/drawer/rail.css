@@ -151,17 +151,21 @@
 	.drawer-rail-sheet-thread { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; }
 	.drawer-rail-sheet-thread .chatbox-log { max-block-size: none; }
 
-	/* THE PANEL (`ChatPanel`, `DrawerRailSheetPanel`, ai/2026-09-29/audio/c-chat/):
-	   the same log-plus-composer-plus-mic widget the desktop drawer's AI tab now
+	/* THE PANEL (`Widget`, `ux/Dictate/Widget.js`, `DrawerRailSheetPanel`, round 3 of
+	   `ai/2026-09-30/audio-consolidate/` — was `ChatPanel`, `ai/2026-09-29/audio/c-chat/`):
+	   the same bubbles-plus-composer-plus-mic widget the desktop drawer's AI tab now
 	   builds, in place of this sheet's own mic-only build. `.drawer-rail-sheet`
 	   already caps the WHOLE sheet at 70vh (above) — rather than guess how much
-	   of that the head and the links footer leave for the panel,
-	   `.drawer-rail-sheet-panel` and `ChatPanel`'s own box are both told to grow
-	   to fill whatever is left (`flex: 1 1 auto; min-block-size: 0`, `max-height:
-	   none` overriding `Chat.css`'s own default ceiling) — the SAME nested-flex
-	   trick `.chatbox-panel` uses internally for its own log, one level up. Only
-	   the log inside ChatPanel ever actually scrolls; the head, the composer and
-	   the links stay put. */
+	   of that the head and the links footer leave for the widget,
+	   `.drawer-rail-sheet-panel` and `Widget`'s own box are both told to grow to
+	   fill whatever is left (`flex: 1 1 auto; min-block-size: 0`) — the SAME
+	   nested-flex trick `Widget.css`'s own `.ux-dictate-widget-thread` uses
+	   internally for its own bubbles, one level up. `.ux-dictate-widget-card`'s
+	   own `max-block-size` (a sane cap for a STANDALONE widget on a long page,
+	   `Widget.css`) is turned off here — inside the sheet the SHEET is already the
+	   ceiling, so a second, smaller one left the widget short of the room the
+	   sheet actually gave it. Only the thread inside `Widget` ever actually
+	   scrolls; the head, the composer and the links stay put. */
 	/* ⚠ A DESCENDANT selector: the sheet's own box is ALSO `.drawer-rail-sheet-panel`
 	   (View stamps the class name `DrawerRailSheetPanel`), so a bare
 	   `.drawer-rail-sheet-panel { display: flex }` out-ranked `.drawer-rail-sheet {
@@ -171,8 +175,11 @@
 		display: flex; flex-direction: column;
 		flex: 1 1 auto; min-block-size: 0;
 	}
-	.drawer-rail-sheet .drawer-rail-sheet-panel > .chatbox-panel {
-		flex: 1 1 auto; min-block-size: 0; max-height: none;
+	.drawer-rail-sheet .drawer-rail-sheet-panel > .ux-dictate-widget {
+		flex: 1 1 auto; min-block-size: 0;
+	}
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
 	}
 
 	.drawer-rail-sheet-mic { flex: 0 0 auto; }

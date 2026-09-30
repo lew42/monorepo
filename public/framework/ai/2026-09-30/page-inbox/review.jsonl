@@ -7,3 +7,12 @@
 {"finding":{"at":"2026-09-30T13:44:28-05:00","n":6,"kind":"note","text":"Deliverables 3 and 4 are only partly visible here. The diff has no record of the `page` skill recommendation sent to mastermind-servex-8, or of the rail.js line handed to audio-consolidate (task.jsonl says only \"handed over\"). Before landing, confirm both messages went out and log them in task.jsonl."}}
 {"finding":{"at":"2026-09-30T13:44:28-05:00","n":7,"kind":"note","text":"The drawer reads notes through Servex (`GET /api/inbox`), not from the static ai/log.jsonl, so notes don't show on the static site. The brief left this open, and the choice is logged in task.jsonl with its reason and noted under \"Watch out\" in ext/drawer/doc/inbox.md. It is acceptable, but the owner should know about it."}}
 {"phase":{"at":"2026-09-30T13:44:28-05:00","n":1,"kind":"findings","status":"done","verdict":"pass","cost":0.5629432,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-09-30T13:50:05-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":1,"reply":"noted: a pass note, nothing to change"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":2,"reply":"fixed"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":3,"reply":"fixed"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":4,"reply":"fixed"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":5,"reply":"noted: two small loopback GETs per open is fine; the event already keeps the label current after a change"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":6,"reply":"fixed"}}
+{"answer":{"at":"2026-09-30T13:50:05-05:00","n":7,"reply":"noted: the choice stays, logged with its reason and in doc/inbox.md Watch out; it will be on the card"}}
+{"phase":{"at":"2026-09-30T13:50:05-05:00","n":2,"kind":"answers","status":"done"}}

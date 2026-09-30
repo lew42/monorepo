@@ -215,7 +215,7 @@ Whisper.View = class extends Transcriber.View {
 		const last = this.subject.requests.at(-1);
 		const latency = last ? last.ms + "ms" : "—";
 		const words = this.subject.committed_text ? words_of(this.subject.committed_text).length : 0;
-		return (this.subject.inflight ? "sending… " : "") + latency + " · " + words + " words committed";
+		return (this.subject.inflight ? "sending… " : "") + latency + " · " + words + (words === 1 ? " word" : " words") + " committed";
 	}
 };
 

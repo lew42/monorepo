@@ -1,0 +1,1 @@
+1. [accept] proof.txt now exists in the task dir and its content backs up every disputed claim — 4 claude.exe processes down to 1 after dormancy, a dormant agent answering "copper" in 3.4 s, and an 8-minion burst against a cap of 5 showing "working 5/5" with the 3 queued starting only once the gate log shows a slot freed at 14:15:22.

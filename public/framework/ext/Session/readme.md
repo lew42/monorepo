@@ -17,11 +17,18 @@ await floor({ session, floor: "done" });               // the owner stopped talk
 await nav({ session, from: "/a/", to: "/b/" });
 const rows = await recent(location.pathname);          // this page's sessions, newest first
 await resume(rows[0].session);                          // continue one
+const unlive = stream(session, ev => ev.kind === "stream" ? panel.stream(ev.role, ev.text) : draw(ev.line));
+const unquiet = report_quiet(() => session);   // tell Servex each time the owner goes quiet
 ```
+
+**The assistants answer when you stop talking.** A spoken line carries the floor; Servex holds it
+from both assistants until the page reports 2.5 s of silence (`quiet`), then sends them the
+whole thought. The fast one mostly stays silent. Replies stream in token by token over
+`stream()`. Detail: [doc/sessions.md](./doc/sessions.md).
 
 ## Watch out
 
-- It needs Servex (`Servex/agents/Sessions.js`). A Servex that has not been restarted since a change here answers 404 on the new routes.
+- It needs Servex (`Servex/agents/Sessions.js`, including `/api/session/quiet` and `/api/session/<id>/stream`). A Servex that has not been restarted since a change here answers 404 on the new routes.
 - The first line you say starts two real agents, so the demo costs a few cents. They stop after 5 quiet minutes and wake on the next line, and at most 2 pairs run at once.
 - Each folder's `ai/log.jsonl` is the index of its AI work (sessions, tasks, decisions), not `page.jsonl`.
 - Ordinary replies are the agents' own final text for a turn; refined lines (`level`: `clean`, `edit`, `summary`) come from the `session_line` tool.
@@ -29,6 +36,8 @@ await resume(rows[0].session);                          // continue one
 - For the ✦ sheet (`ext/drawer/rail.js`): `start()` on the first sentence, `recent(page, {limit: 1})` on open for the one-line resume offer, `resume(id)` when it is tapped, and `say({floor, cues})` + `floor()` for the floor.
 - `start({path, fresh: true})` always begins a new session, even if this page spoke within the last hour — that is what the ✦ sheet's "New session" button sends on its next sentence, so the button actually starts fresh instead of silently continuing.
 - `start({path, card})` makes an AI 2 card the session's home (`/framework/ai/<card>/`) instead of the nearest folder to `path`, so a card page can be a voice session's home too: [doc/sessions.md](./doc/sessions.md#card-sessions).
+- A page that never calls `report_quiet()` still works: a held spoken line is released after 8 s anyway.
+- The fast assistant's `(listening)` and short fillers are written as invisible `{skip}` lines, never drawn.
 
 ## More
 
