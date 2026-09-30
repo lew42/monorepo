@@ -1,0 +1,245 @@
+[
+	{
+		"id": "auditor",
+		"title": "Auditor",
+		"kind": "role",
+		"for": "You are the decision auditor — the system architect of the skills.",
+		"when": "The mastermind wakes you when a mistake reached the owner, or when a judgment call the system made turned out wrong. You read what the agent actually had in front of it, say why that was not enough, and propose at most five changes ranked by mistakes prevented per line of text. Reshape, merge, delete; a new rule comes last.",
+		"lines": 72,
+		"improvements": true
+	},
+	{
+		"id": "check-claude-usage",
+		"title": "Checking usage limits",
+		"kind": "trigger",
+		"for": "Check how much of the Claude subscription's usage limits are consumed — the 5-hour session window and the weekly windows, as 0-100% with reset times.",
+		"when": "Use when the user asks \"how much usage do I have left\", \"am I near my limit\", \"what's my usage\", before or after an expensive operation (a wide subagent fan-out, a long autonomous run, a big refactor), or when deciding whether a costly approach is affordable.",
+		"lines": 102,
+		"improvements": true
+	},
+	{
+		"id": "clarity",
+		"title": "Clarity: could the owner get it in ten seconds?",
+		"kind": "role",
+		"for": "Become the clarity agent — woken fresh when a task lands or a task is proposed, you check what it wrote for the owner against the `content` skill, and turn every failure into a concrete rewrite sent to the agent that owns it.",
+		"when": "Managed by mastermind-servex, which refines this skill from your misses. Sonnet, medium effort, one pass, then stop.",
+		"lines": 53,
+		"improvements": true
+	},
+	{
+		"id": "code",
+		"title": "Code",
+		"kind": "reference",
+		"for": "Load once per session before writing or editing JS under public/ — the lifecycle of a task, house style (assign-based OOP, every method a seam, parts as static subclasses), and the traps that never throw.",
+		"when": "Reference skill; reload only after a long gap. Companions it will remind you of — new-task, layout, css, new-css-class, new-page, documentation, finish-task.",
+		"lines": 232,
+		"improvements": true
+	},
+	{
+		"id": "content",
+		"title": "Content: seen first, read second",
+		"kind": "trigger",
+		"for": "Invoke before writing anything the owner will read — a card, a report, a task outcome, a readme, a page's text, a chat reply.",
+		"when": "How to make it understood at a glance: show the structure with layout and widgets, then add as few words as it takes. Thirty seconds; re-read it whenever a reply is getting long.",
+		"lines": 70,
+		"improvements": false
+	},
+	{
+		"id": "css",
+		"title": "CSS",
+		"kind": "trigger",
+		"for": "Invoke before writing any substantial CSS in this repo — it has you read framework.css itself (the utility vocabulary, exact definitions) and decide where the declaration belongs before you write it.",
+		"when": "Re-invoke if it has been a while since the last time (context drifts); skip it for a one-line tweak. Naming a new class → the new-css-class skill; sizing a page → layout.",
+		"lines": 124,
+		"improvements": true
+	},
+	{
+		"id": "decide",
+		"title": "Decide",
+		"kind": "trigger",
+		"for": "Run whenever a research round, a plan or a task reaches a decision — anything with options to choose between (which library, proxy or build, where it lives).",
+		"when": "The decision is written by Server/decide.mjs, a node tool that walks it step by step and refuses a missing part. The tool is the only way to write one; never hand-write a decision line.",
+		"lines": 47,
+		"improvements": false
+	},
+	{
+		"id": "documentation",
+		"title": "Documentation — the final review",
+		"kind": "trigger",
+		"for": "Run once a task's decisions are made and before finish-task — makes the touched module's docs current and conclusive: readme.md (the reader's index), page.js (show, don't tell), doc/*.md (the detail, one topic each).",
+		"when": "Also when asked to document, audit docs, write a readme, or add a doc page. Trigger skill: every task that touched a module under public/.",
+		"lines": 79,
+		"improvements": true
+	},
+	{
+		"id": "every-prompt",
+		"title": "Every prompt — the fast assistant",
+		"kind": "role",
+		"for": "Become the owner's fast assistant — the front desk for a running mastermind.",
+		"when": "Invoke on \"/every-prompt\" or \"you are the assistant\", and re-invoke on EVERY prompt: it is short on purpose, so re-reading costs little and keeps you who you are. You answer on the owner's screen (the dev bar log) with one shell command and relay their words to the mastermind. You do no building, read no code, and keep your context tiny. Sonnet at low effort, in its own tab.",
+		"lines": 73,
+		"improvements": false
+	},
+	{
+		"id": "finish-task",
+		"title": "Finish a task",
+		"kind": "trigger",
+		"for": "Run every time a task lands — the closing report the /framework/ai/ board renders: a landing line whose `outcome` is the report (a headline, then links to everything produced, a picture when there is one, what was left), the deliverables linked from where a reader already is, and the day log closed.",
+		"when": "Simple, clear, visual — a screen, not an essay. Trigger skill; the Stop hook will nag until it runs.",
+		"lines": 95,
+		"improvements": true
+	},
+	{
+		"id": "fork-claude-session",
+		"title": "Forking the current session into worker processes",
+		"kind": "trigger",
+		"for": "Spawn worker Claude processes that inherit the CURRENT conversation's full context — loaded files, tool results, reasoning — instead of starting cold like Agent subagents do.",
+		"when": "Use when the user asks to \"fork the session\", \"fork my context\", or wants parallel workers that have already read what you've read. Covers finding the live session ID, `claude --resume --fork-session`, setting each fork's model and thinking effort, fanning out N forks, and collecting their JSON results.",
+		"lines": 321,
+		"improvements": true
+	},
+	{
+		"id": "layout",
+		"title": "Layout",
+		"kind": "reference",
+		"for": "Invoke before building or restyling anything with a size — a page, a container, a card, a grid, a dashboard — and again when a page looks cramped, squeezed, or wastes the screen.",
+		"when": "Five questions, answered in one line each before the first factory call. Reference; re-invoke when stale. Measuring is ext/DesignTool; the CSS itself is the css skill.",
+		"lines": 392,
+		"improvements": true
+	},
+	{
+		"id": "log-assistant",
+		"title": "Log assistant — called only when the log cannot decide by itself",
+		"kind": "role",
+		"for": "Become the log assistant — the one agent allowed to settle a naming or content conflict in the event log.",
+		"when": "You are woken by the appender when a write fails its naming check: two agents proposing a different name for the same thing, a rename aimed at a name the owner has already seen, a dispute that needs a consensus. You read only the contested entries, append one verdict, and stop. You never do a mechanical append.",
+		"lines": 59,
+		"improvements": true
+	},
+	{
+		"id": "master-assistant",
+		"title": "Master assistant",
+		"kind": "role",
+		"for": "Become the master assistant — the supervising half of the front desk.",
+		"when": "You know what is going on, you give an opinion in one or two sentences when the fast assistant or the mastermind asks, you keep one page current on how the process itself is going, and between questions you are the system auditor. You do no building and never edit the site. Opus; Fable for an architecture question.",
+		"lines": 53,
+		"improvements": true
+	},
+	{
+		"id": "mastermind",
+		"title": "Mastermind",
+		"kind": "role",
+		"for": "Become the mastermind — the continuously-running Fable executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges, Fable when the owner says) to do it — several tasks at once.",
+		"when": "Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. Fable decides, workers execute; only the owner stands it down.",
+		"lines": 486,
+		"improvements": true
+	},
+	{
+		"id": "minion",
+		"title": "Minion",
+		"kind": "trigger",
+		"for": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator.",
+		"when": "Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
+		"lines": 138,
+		"improvements": true
+	},
+	{
+		"id": "naming",
+		"title": "Naming: many candidates, then one clear pick",
+		"kind": "trigger",
+		"for": "Run whenever something needs a name — a class, a method, a CSS class, a page, a card, a tool, a concept in a readme.",
+		"when": "Brainstorm in parallel with cheap fast clones, then pick for clarity. Thirty seconds of wall time.",
+		"lines": 14,
+		"improvements": false
+	},
+	{
+		"id": "new-css-class",
+		"title": "New CSS class",
+		"kind": "trigger",
+		"for": "Run every time you are about to introduce (or rename) a CSS class name in this repo — it checks the name against the reserved prefixes in framework/styles/css-scopes.txt and the live census, and makes it carry its owning module's prefix.",
+		"when": "Thirty seconds; skip only when reusing a class that already exists.",
+		"lines": 57,
+		"improvements": true
+	},
+	{
+		"id": "new-page",
+		"title": "New page",
+		"kind": "trigger",
+		"for": "Run every time you create a page — the `create_page` tool that does the mechanics reliably, the blessed page.js shape for when you write one by hand, and the traps that still apply.",
+		"when": "Trigger skill; thirty seconds.",
+		"lines": 64,
+		"improvements": true
+	},
+	{
+		"id": "new-task",
+		"title": "New task",
+		"kind": "trigger",
+		"for": "Open a task — create its ai/<date>/<slug>/ dir, open its task.jsonl log, and give it presence on the owner's dashboard.",
+		"when": "Run this BEFORE THE FIRST EDIT in ANY Claude session in this repo — building, changing, fixing, adding, refactoring, restyling, a doc pass, a rename, a demo, a bug fix — and when an agent embarks on a distinct sub-project. Also on \"new task\" / \"start a task\". Not needed to answer a question, read, investigate, or prepare — but the moment that turns into an edit, run it. Unsure? Run it.",
+		"lines": 92,
+		"improvements": true
+	},
+	{
+		"id": "page",
+		"title": "Page: from the top down",
+		"kind": "trigger",
+		"for": "Invoke before making or reshaping ANY page, card or view the owner will look at — the whole job top-down: what kind of page, where it lives, how it's reached, its layout, its content and the order of that content.",
+		"when": "Umbrella over `new-page` (the mechanics), `layout` (sizing), `css` (styling) and `content` (words). Load it yourself instead of handing a page to a specialist agent: you keep the context.",
+		"lines": 135,
+		"improvements": false
+	},
+	{
+		"id": "research",
+		"title": "Research",
+		"kind": "trigger",
+		"for": "Run before writing down anything you researched — a round of digging into a question, a topic in a research program, a claim you are about to record as true.",
+		"when": "Covers the entry schema, the credence discipline (the one thing agents get wrong), the skeptic pass, where logs live, and how the presentation picks them up. Trigger skill; two minutes, and it is what makes the result readable by someone who was not you.",
+		"lines": 148,
+		"improvements": true
+	},
+	{
+		"id": "review",
+		"title": "Review: one reviewer, every system, one pass",
+		"kind": "role",
+		"for": "Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof.",
+		"when": "Invoke on \"review\", \"use your review skill\", \"fresh-eyes review\", \"review this page\", or when Server/review.mjs starts you.",
+		"lines": 83,
+		"improvements": false
+	},
+	{
+		"id": "servex-mastermind",
+		"title": "Servex Mastermind: the systems architect",
+		"kind": "role",
+		"for": "Become the Servex Mastermind — the systems architect that runs on Servex as `mastermind-servex`.",
+		"when": "You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
+		"lines": 102,
+		"improvements": false
+	},
+	{
+		"id": "skill-improvement",
+		"title": "Skill improvement",
+		"kind": "trigger",
+		"for": "Run the moment a skill lets you down — it told you something wrong, was silent about a trap that then bit you, cost you a wrong turn, or you worked around it.",
+		"when": "Also when anything surprises you and the surprise was preventable. Thirty seconds; one line appended to that skill's improvements.md. Trigger skill.",
+		"lines": 39,
+		"improvements": true
+	},
+	{
+		"id": "sub-mastermind",
+		"title": "Sub-mastermind — one task, end to end",
+		"kind": "role",
+		"for": "Become a task mastermind — the agent that owns exactly ONE task end to end.",
+		"when": "The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
+		"lines": 258,
+		"improvements": true
+	},
+	{
+		"id": "ui-test",
+		"title": "ui-test",
+		"kind": "trigger",
+		"for": "Prove a UI interaction instead of describing it — drive the page headless and screenshot after every gesture.",
+		"when": "Use for \"test the drag\", \"does the resize work\", \"ui-test this page\", any drag / drop / sort / resize / hover / keyboard / pointer gesture you must show working, a layout you suspect is broken at some size, and for \"force the state and shoot it\" when the state is easier to set than to reach.",
+		"lines": 286,
+		"improvements": true
+	}
+]
