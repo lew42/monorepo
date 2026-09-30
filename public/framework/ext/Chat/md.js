@@ -1,4 +1,5 @@
 import { marked } from "/framework/ext/Markdown/md.js";
+import { mentions } from "/framework/ext/Mention/Mention.js";
 
 /* MARKDOWN IN A CHAT, SAFELY (the owner, 2026-09-24: "the bold markers show as
    raw asterisks"). ext/Markdown's `.md()` writes marked's output straight in and
@@ -28,6 +29,7 @@ export function md_into(el, text, inline){
 	t.innerHTML = inline ? marked.parseInline(String(text)) : marked.parse(String(text));
 	clean(t.content);
 	el.replaceChildren(t.content);
+	mentions(el);   // `#Page`, `@owner` — chat bubbles and Drill titles, ext/Mention/doc/syntax.md
 	return el;
 }
 

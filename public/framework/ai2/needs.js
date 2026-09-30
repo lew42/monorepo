@@ -1,5 +1,6 @@
 import { div, span, small, a, textarea, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
+import { mentions } from "/framework/ext/Mention/Mention.js";
 import { when } from "./faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "./fold.js";
@@ -159,7 +160,7 @@ function need_row(n){
 			div.c("ai2-need-body", () => {
 				div.c("ai2-need-headline flex v-center gap-25", () => {
 					if (n.kind === "blocker") span.c("ai2-need-blocker-flag").text("Blocker");
-					span.c("ai2-need-title").text(n.title || short_title(n.question));
+					mentions(span.c("ai2-need-title").text(n.title || short_title(n.question)).el);
 				});
 				// The full ask, ONE quiet line (mastermind's judged fix, 2026-09-29: "one muted
 				// line" — CSS truncates it with an ellipsis rather than wrapping to three or
@@ -169,7 +170,7 @@ function need_row(n){
 				// only when it says more than the title already does (the "card" pseudo-ask's
 				// `question` IS its `title`).
 				if (n.question && n.question !== n.title)
-					small.c("ai2-need-question muted").attr("title", n.question).text(n.question);
+					mentions(small.c("ai2-need-question muted").attr("title", n.question).text(n.question).el);
 				small.c("ai2-need-meta muted").text([KIND_LABEL[n.kind], when(n.at)].filter(Boolean).join(" · "));
 			});
 		});
