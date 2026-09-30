@@ -183,7 +183,7 @@ export function readme_chain(dir = "public/framework/ai/"){
 		const kept = levels.map((d, i) => [d, texts[i]]).filter(([, t]) => t);
 		kept.forEach(([d, t], i) => {
 			const end = i === 0 || i === kept.length - 1;
-			const first = (t.replace(/\r/g, "").split("\n").find(l => l.trim() && !/^#+s*S{1,20}$/.test(l.trim())) ?? "").replace(/^#+\s*/, "");
+			const first = (t.replace(/\r/g, "").split("\n").find(l => l.trim() && !/^#+\s*\S{1,20}$/.test(l.trim())) ?? "").replace(/^#+\s*/, "");
 			a.c("card flex gap-50").attr("href", url_of(d) ? url_of(d).replace(/readme\.md$/, "") : fs(d))
 				.style({ textDecoration: "none", color: "var(--ink)", alignItems: "center", marginLeft: (i * 1.25) + "rem" })
 				.append(() => {
