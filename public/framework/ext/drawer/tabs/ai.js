@@ -1,6 +1,7 @@
 import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
 import md from "/framework/ext/markdown/md.js";
 import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
+import chat from "/framework/ux/Dictate/chat.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
@@ -222,15 +223,35 @@ function chips_row(tabs){
 }
 
 /**
- * v2 — the default. `Widget` (`ux/Dictate/Widget.js`) reads the card's own real,
- * persisted thread (the exact widget the mobile ✦ sheet's card thread already
- * shows, `rail.js`) or, on a page, keeps its own local list seeded from the picked
- * thread's saved history. `--chatbox-panel-max: 100%` (`drawer.css`) is the
- * drawer's own full height — the widget still starts small and only grows into
- * that ceiling. `models: true` — the one thing the sheet's own widget doesn't
- * show (the owner, round 3).
+ * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
+ * sheet makes (`rail.js`'s `DrawerRailSheetChat`), filling the drawer's full height
+ * (`.drawer-ai-panel`, `drawer.css`). "One of everything; don't repeat yourself"
+ * (CLAUDE.md law 6, 2026-09-30): no model chooser, no small hint text, no per-card
+ * rebuild — `chat.js` owns the ONE global session and redraws its whole history on
+ * every mount, on a card or a plain page alike. `sync_card_thread()` (below) is kept
+ * as a compatibility no-op for `ai2/card.js`'s own call into this file — `chat.js`'s
+ * own `watch()` already keeps every open mount live on its own, so nothing needs to
+ * be told to redraw any more.
  */
 export default function ai({ page, card, tabs }){
+	const inbox = new DrawerInbox({ page });
+	div.c("drawer-ai flex v", () => {
+		inbox.view();
+		const $slot = div.c("drawer-ai-panel");
+		chat($slot.el, {
+			path: page,
+			card: card?.id,
+			placeholder: card ? "talk into this card" : "say something",
+		});
+	});
+}
+
+/**
+ * v2 — kept reachable, unchanged: `Widget` (`ux/Dictate/Widget.js`) with its own
+ * model picker and the OLD private session wiring this task replaced as the tab's
+ * default. Swap it back in by pointing `tabs.js`'s "ai" row at `{ default: aiV2 }`.
+ */
+export function aiV2({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let panel, $hint;
 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;

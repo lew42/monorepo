@@ -3,6 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
 import Widget from "/framework/ux/Dictate/Widget.js";
+import chat from "/framework/ux/Dictate/chat.js";
 import DrawerInbox from "./inbox.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
@@ -1033,12 +1034,93 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	}
 }
 
+/** THE SHEET, ONE SYSTEM WITH THE DESKTOP DRAWER (one-dictation, 2026-09-30 — CLAUDE.md
+ *  law 6, "one of everything; don't repeat yourself"): every line above `DrawerRailSheetPanel`
+ *  (the resize handle, the head, the folded "More" links, the page's own inbox) is kept
+ *  exactly as it was — `DrawerRailSheetPanel` itself is untouched, still reachable, still
+ *  what an older link (`DrawerRail.SheetPanel`, below) builds. This class replaces only the
+ *  PANEL: instead of `build_voice_panel()`/`ensure_session()`/`watch_session()`/
+ *  `voice_deliver()`/`offer_resume()` — a whole private copy of the session pair — it calls
+ *  `ux/Dictate/chat.js`'s ONE `chat()` mount, the exact same call the desktop drawer's AI
+ *  tab (`tabs/ai.js`) now makes. `chat.js` owns the session (global, one per browser tab,
+ *  never keyed by this sheet's own card), the full-history watch, the live stream and the
+ *  resume offer — this class only shows, hides, sizes and closes the box around it, and
+ *  tells `chat.js` about a navigation (`sync_card()`/`navigated()`, below) so a route change
+ *  while the sheet stays open is reported once, from there, not from every open mount. */
+export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+	render(){
+		this.head();
+		this.handle();
+		new DrawerInbox({ page: drawer.page() }).view();
+		this.$slot = div.c("drawer-rail-sheet-panel");
+		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
+	}
+
+	// One `chat()` call for the sheet's whole life, the first time it is shown — same
+	// "built once, kept" rule `sheet()` (`DrawerRail`, above) already gives this whole
+	// class. `card_ref` is read once, here: `chat()`'s own `card` option is only a hint
+	// for the session's very FIRST sentence ever (see `chat.js`'s own doc) — a card
+	// picked later is carried by `sync_card()`'s `nav()` call below, same as a plain
+	// page move.
+	ensure_mount(){
+		if (this.mount) return this.mount;
+		this.card_ref = this.active_card();
+		this.mount = chat(this.$slot.el, {
+			path: drawer.page(),
+			card: this.card_ref?.id,
+			placeholder: this.card_ref ? "talk into this card" : "say something",
+		});
+		this.panel = this.mount.panel;
+		return this.mount;
+	}
+
+	show({ listen = true } = {}){
+		this.quiet = !listen;
+		this.ac("on");
+		this.update_path();
+		this.ensure_mount();
+		this.sync_card();
+		this.start_mic();   // inherited from `DrawerRailSheetPanel` — a no-op while `this.quiet`
+		this.size();
+		return this;
+	}
+
+	hide(){
+		this.stop_mic();
+		this.rc("on");
+		return this;
+	}
+
+	// The card under the sheet can change while it stays open (the reader navigates
+	// without closing it) — the conversation itself never rebuilds for that any more
+	// (`chat.js`'s session is GLOBAL), so this only remembers the new card for later and
+	// tells the controller where the reader is now, through the ONE `nav()` seam.
+	sync_card(){
+		this.card_ref = this.active_card();
+		this.mount?.nav(drawer.page());
+	}
+
+	navigated(){
+		this.mount?.nav(drawer.page());
+	}
+
+	// "New session" — resets the ONE global conversation (`chat.js`'s own `reset()`);
+	// every other open mount (the desktop drawer's AI tab, if it happens to be open in
+	// another tab of the same browser… it cannot be, `sessionStorage` is per-tab, but a
+	// second sheet open on the SAME tab would) clears together, because after this
+	// there is only the one conversation again, empty until the next sentence.
+	new_session(){
+		chat.reset();
+	}
+}
+
 // Where a released drag settles, as a share of the screen: at or above `full_at`
 // the sheet becomes the full-height page; below `close_at` it closes.
 DrawerRailSheetV1.prototype.full_at = 0.85;
 DrawerRailSheetV1.prototype.close_at = 0.28;
 
-DrawerRail.Sheet = DrawerRailSheetPanel;
+DrawerRail.Sheet = DrawerRailSheetChat;
+DrawerRail.SheetPanel = DrawerRailSheetPanel;   // the private-session-pair version this replaced — kept reachable, unchanged
 DrawerRail.SheetV1 = DrawerRailSheetV1;
 DrawerRail.SheetLinksV1 = DrawerRailSheet;   // mic-only + links footer, today's outgoing default — kept reachable
 
