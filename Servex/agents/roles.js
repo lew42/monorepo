@@ -48,6 +48,10 @@ export const ROLES = {
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
 	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
+	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/2026-09-29/voice-sessions): spawned by code with
+	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill. */
+	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
+	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),    effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
 };
 

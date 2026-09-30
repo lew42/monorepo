@@ -20,7 +20,7 @@ const REPO = path.join(HERE, "../..");
  * level and is dropped; a deeper page's own assistant hears its own "task". */
 const HEARD = ["landed", "blocked", "error"];
 /* Reaped 3 min after their last turn: EVERY agent that is not one of the long-lived kinds below, so a new one-shot role (voter, clarity, reviewer, …) is covered without being listed. `page-` covers the recursive-pairs role words (page-assistant, page-mastermind); their ids already start with assistant-/manager-. */
-const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-)/;
+const LONG = /^(assistant|manager|master-assistant|mastermind|task-mastermind|dispatcher|page-|session-)/;
 const is_worker = agent => !LONG.test(agent.role ?? "") && !LONG.test(agent.id ?? "");
 const TASK_MASTERMIND = /^task-mastermind-/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;

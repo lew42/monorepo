@@ -9,6 +9,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { execFile } from "child_process";
+import { fileURLToPath } from "url";
 
 const EVERY_MS = 15 * 60 * 1000;
 
@@ -34,6 +35,20 @@ export default class Usage {
 	}
 
 	stop(){ clearTimeout(this.first); clearInterval(this.timer); }
+
+	/* Opus when the week is over 60% gone and weekly use is under the elapsed share (usage to spare); else Sonnet. `fast` is always Sonnet. */
+	static pick(role, repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
+		const SONNET = "claude-sonnet-5", OPUS = "claude-opus-5-5", WEEK = 7 * 24 * 3600 * 1000;
+		if (role === "fast") return SONNET;
+		try {
+			const j = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8"));
+			const week = (j.utilization?.limits ?? []).find(l => l.kind === "weekly_all");
+			const used = week?.percent ?? j.utilization?.seven_day?.utilization;
+			const resets = Date.parse(week?.resets_at ?? j.utilization?.seven_day?.resets_at ?? "");
+			const elapsed = 100 * (1 - (resets - Date.now()) / WEEK);
+			return elapsed > 60 && used < elapsed ? OPUS : SONNET;
+		} catch { return SONNET; }
+	}
 
 	tick(){
 		if (this.busy) return;
