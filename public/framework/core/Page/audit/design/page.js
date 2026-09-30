@@ -29,6 +29,10 @@ export default new Page({
 					() => img().attr("src", here + pg.shots["400"]).attr("alt", `${pg.url} at 400px`).style({ width: "100%", display: "block" }));
 		});
 
+		// the Opus reader's ranked findings, with the CSS cause of each (ai/2026-09-30/page-audit/design/)
+		h2("Ranked: what to fix, and what was fixed");
+		div.c("wide").append(md.file(import.meta, "findings.md", { h1: false }));
+
 		h2("The numbers");
 		p.c("muted", "Per width: tab rows · the tab bar's share of the screen · padding at the text's left edge · one-line things that wrapped. A row is bold where something is off.");
 		div.c("wide", () => table(["Page", ...W], pages.map(pg => [
