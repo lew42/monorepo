@@ -34,6 +34,7 @@ Rendering stays minimal and efficient: one component, drawn once per surface, an
 
 One Playwright script (fake mic) drives every surface and shoots 400 + 1920. Each check needs a shot, not a claim.
 
+- **The font is Montserrat on every surface.** Bug the owner saw: the chat sidebar that pops up on AI 2 shows the browser's default font. The chat CSS says `font: inherit`, so the sidebar is probably mounted outside the element that sets the site font. The fix is to mount it inside that element, with no new `font-family` (the owner: default styles, no custom CSS unless it's truly needed). Fixed in merge 1, since `chat(el)` decides where the sidebar mounts. Each shot run reads the computed `font-family` on every surface.
 - The owner's bubble appears, then a streamed reply from **fast/smart** (the name shown on hover). This is the owner's own test.
 - Live refinement: partial grey → settled.
 - The choice buttons on a reply and the "pick up where you left off" line; they regressed once already.
