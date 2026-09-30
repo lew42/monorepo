@@ -1,4 +1,4 @@
-import { div, a, span, small } from "/app.js";
+import { div, a, span, small, button } from "/app.js";
 import { when } from "./faces.js";
 import { task_words } from "./groups.js";
 
@@ -9,6 +9,10 @@ import { task_words } from "./groups.js";
  * and the yellow flashing is sort of like in progress... we definitely don't want heartbeats or
  * just kind of like, even minions that are part of a bigger task probably shouldn't appear as
  * their own log item."
+ *
+ * ONLY OPEN WORK, PLUS WHAT LANDED TODAY — never every task ever (a done task drops off the list
+ * 24h after it lands; "in flight" would otherwise grow to hundreds of green rows with nothing
+ * left to do about any of them).
  *
  * ONE ROW PER TASK, NEVER PER MINION — not a filter here, a fact of the data this reads:
  * `root.ai2.on_tasks(fn)` (`page.js`) hands back `groups.tasks`, which is already one `Member`
@@ -70,11 +74,13 @@ function log_row(m){
 export function log_view(on_tasks){
 	let $pill, $rows, order = [], applied_at = new Map(), pending_ids = new Set();
 	const $root = div.c("ai2-log-list", () => {
-		$pill = span.c("ai2-updated ai2-log-updated").attr("hidden", "").attr("role", "button").attr("tabindex", "0");
+		// A real `<button>`, not a `<span role="button">` with hand-written key handling (review
+		// finding, 2026-09-30) — same element the rail's own pill uses, so both get the same look
+		// and free keyboard behavior.
+		$pill = button.c("ai2-updated ai2-log-updated").attr("type", "button").attr("hidden", "");
 		$rows = div.c("ai2-log-rows");
 	});
 	$pill.click(() => draw(latest, true));
-	$pill.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); draw(latest, true); } });
 
 	let latest = [];
 	function draw(list, force){
@@ -82,7 +88,13 @@ export function log_view(on_tasks){
 		// A task with no `last_at` yet has written nothing worth a row — no title, no time, just
 		// the bare `Member` `read_tasks()` makes the moment it sees the folder (review finding,
 		// 2026-09-30: a bare "A task" row with no date at the bottom).
-		const sorted = list.filter(m => m.last_at).sort((a, b) => Date.parse(b.last_at ?? 0) - Date.parse(a.last_at ?? 0));
+		// "EVERYTHING IN FLIGHT" MEANS OPEN WORK, NOT EVERY TASK EVER (review finding, 2026-09-30:
+		// a done task stays listed forever, so this could grow to hundreds of green rows) — a
+		// task still in progress or stalled always shows; a done one only while it is recent (24h),
+		// the same "still worth seeing" window the rail's own "Just landed" section uses.
+		const DAY_MS = 24 * 60 * 60 * 1000;
+		const in_flight = m => task_status(m) !== "done" || Date.now() - Date.parse(m.landed_at ?? 0) < DAY_MS;
+		const sorted = list.filter(m => m.last_at && in_flight(m)).sort((a, b) => Date.parse(b.last_at ?? 0) - Date.parse(a.last_at ?? 0));
 		const want = sorted.map(m => m.date + "/" + m.slug);
 		const same_set = want.length === order.length && want.every(id => order.includes(id));
 		const same_order = want.length === order.length && want.every((id, i) => id === order[i]);

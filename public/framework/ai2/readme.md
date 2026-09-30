@@ -87,9 +87,11 @@ one shared rule: [`doc/needs-you.md`](./doc/needs-you.md), [`needs-rule.js`](./n
 
 **"Log"** ([`log/`](/framework/ai2/log/), 2026-09-30) is everything in flight, one row per TASK
 — never a heartbeat ping, never a minion on its own (a minion belongs inside its task, and
-`groups.tasks` is already one row per task folder, however many agents worked inside it). Each
-row carries a status dot: green (landed), red (a heartbeat or task-loop escalation with no
-landing since — stalled), yellow and flashing (still open). [`log.js`](./log.js).
+`groups.tasks` is already one row per task folder, however many agents worked inside it). A done
+task stays for 24h, then drops off — "in flight" is open work, not a full history (that is what
+the [Overview](/framework/ai2/overview/) tab's "Completed (n)" fold is for). Each row carries a
+status dot: green (landed), red (a heartbeat or task-loop escalation with no LATER revive —
+still stalled), yellow and flashing (open, working). [`log.js`](./log.js).
 
 **Four tabs under the title: Inbox, Needs you, Log and Overview.** Inbox is the rail and a
 card's own page, described just below; [Overview](/framework/ai2/overview/) is one big icon card

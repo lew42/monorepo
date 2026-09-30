@@ -254,6 +254,9 @@ function board(page){
 	// DOM, until a tap on that pill (or a fresh load) asks for it. See `order_rows()`.
 	let applied_at = new Map();
 	const pending_ids = new Set();
+	// A fresh mount keeps applying every reorder for a couple of seconds while the board, the
+	// groups and the task folders each finish their own first load — see `order_rows()`.
+	const settle_until = Date.now() + 2500;
 	let $shell, $count, $pill, $updated, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
 	let $groups, $pinned, $unfiled, $unfiled_head, $list;
 	// THE ONE THING SHOWING IN `$detail` — a top-level card (`open()`'s `h.top`), never a sub-card
@@ -351,7 +354,7 @@ function board(page){
 					// re-sorts. ⚠ STICKY, INSIDE the scrolling box, NOT `.ai2-new`'s floating
 					// `position: absolute` — that sat on top of the Live row's own head, hiding it
 					// (review finding 3, 2026-09-30). Sticky pushes the row below it down instead.
-					$updated = button.c("ai2-updated prim").attr("type", "button").attr("hidden", "")
+					$updated = button.c("ai2-updated").attr("type", "button").attr("hidden", "")
 						.click(() => order_rows(true));
 					$groups = div.c("ai2-groups");
 					$pinned = div.c("ai2-pinned");
@@ -660,7 +663,15 @@ function board(page){
 		for (const id of [...pending_ids]) if (!ids_now.has(id)) pending_ids.delete(id);
 		entries.forEach(([id, at]) => { if (applied_at.has(id) && applied_at.get(id) !== (at ?? null)) pending_ids.add(id); });
 
-		const should_apply = force || !group_order.length;
+		// STILL LOADING COUNTS AS A RELOAD, NOT "THE OWNER IS LOOKING" (review finding, 2026-09-30:
+		// a fresh load showed "1 updated ↑" immediately — several independent streams (the board,
+		// the groups, the task folders) each arrive and call `paint()` on their own, so an early
+		// `order_rows()` call can apply a PROVISIONAL `at` for a group before its own task data has
+		// loaded, then a later call within the same first second or two corrects it — a real
+		// change in the data, but not one the owner had any chance to be reading yet). A short
+		// grace window after mount keeps applying freely, same as "re-sort on reload" already
+		// promises; `settle_until` is set once, below, from `Date.now()` at mount.
+		const should_apply = force || !group_order.length || Date.now() < settle_until;
 		if (!in_place && !should_apply) return update_updated_pill();   // defer — leave the DOM exactly as it is
 
 		if (!in_place){

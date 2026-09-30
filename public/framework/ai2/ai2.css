@@ -291,14 +291,17 @@
 		display: block;
 	}
 
-	/* THE "N UPDATED ↑" PILL (the owner, 2026-09-30) — it says some ROW ALREADY ON SCREEN has new
-	   activity and a tap will re-sort (never silently, while you're looking — `page.js`'s
-	   `order_rows()`). ⚠ STICKY AND IN THE FLOW, unlike `.ai2-new` above — the first version
-	   floated over the rows the exact same way and sat on top of the Live row's own head, hiding
-	   it (review finding, 2026-09-30). `page.js` mounts it as the FIRST CHILD of `.ai2-rows` (the
-	   scrolling box), so `position: sticky` pins it to that box's own top edge and the row below
-	   it is simply pushed down, never covered. `[hidden]` is a plain attribute here (`$el.hidden
-	   = …`), not the `.on` class `.ai2-new` uses. */
+	/* THE "N UPDATED ↑" PILL (the owner, 2026-09-30, verbatim: "a small ... pill") — it says some
+	   ROW ALREADY ON SCREEN has new activity and a tap will re-sort (never silently, while
+	   you're looking — `page.js`'s `order_rows()`). Small and quiet on purpose — a plain outline
+	   chip, not `.prim`'s loud filled button (review finding, 2026-09-30: "the loudest thing on
+	   the page"); the owner is not asked to act on it, only told it exists.
+	   ⚠ STICKY AND IN THE FLOW, unlike `.ai2-new` above — the first version floated over the rows
+	   the exact same way and sat on top of the Live row's own head, hiding it (an earlier review
+	   finding). `page.js` mounts it as the FIRST CHILD of `.ai2-rows` (the scrolling box), so
+	   `position: sticky` pins it to that box's own top edge and the row below it is simply pushed
+	   down, never covered. `[hidden]` is a plain attribute here (`$el.hidden = …`), not the `.on`
+	   class `.ai2-new` uses. */
 	.ai2-updated {
 		display: none;
 		position: sticky;
@@ -306,8 +309,15 @@
 		z-index: 2;
 		width: fit-content;
 		margin-block-end: var(--gap-35, 0.5em);
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+		font-size: 0.8em;
+		padding: 0.25em 0.7em;
+		border-radius: 999px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		color: var(--subtle);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
 	}
+	.ai2-updated:hover { color: var(--ink); border-color: var(--prim); }
 	.ai2-updated:not([hidden]) { display: inline-flex; }
 
 	/* The box the pill floats over, so its `top` means the top of the ROWS and
