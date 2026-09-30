@@ -1,0 +1,32 @@
+/* A selectable title, its Rename action, and the dropdown it turns into. Record:
+ * readme.md. */
+@layer theme {
+
+	.ux-rename-row { padding-block: 0.25em; }
+
+	.ux-rename-title {
+		margin: 0;
+		cursor: pointer;
+		border: 1px solid transparent;
+		border-radius: var(--radius);
+		padding: 0.1em 0.4em;
+	}
+	.ux-rename-title:focus-visible { outline: 2px solid var(--prim); outline-offset: 2px; }
+
+	.ux-rename-selected {
+		border-color: var(--prim);
+		background: var(--wash);
+	}
+
+	.ux-rename-typed { max-inline-size: 12em; }
+
+	.ux-rename-fixtures { font-size: 0.85em; }
+
+	.ux-rename-log {
+		background: var(--wash);
+		border-radius: var(--radius);
+		padding: var(--pad-card, 1em);
+		white-space: pre-wrap;
+		font-size: 0.85em;
+	}
+}

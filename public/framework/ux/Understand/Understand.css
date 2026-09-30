@@ -1,0 +1,27 @@
+/* The ✓/? marks after each sentence, and the clarification card's flash when its ?
+ * is tapped. Record: readme.md. */
+@layer theme {
+
+	.ux-understand-row { padding-block: 0.15em; }
+
+	.ux-understand-mark {
+		display: inline-block;
+		margin-inline-start: 0.3em;
+		font-weight: 700;
+		cursor: default;
+	}
+
+	.ux-understand-ok { color: var(--ok); }
+
+	.ux-understand-unclear { color: var(--warn); cursor: pointer; }
+	.ux-understand-unclear:focus-visible { outline: 2px solid var(--warn); outline-offset: 2px; border-radius: 0.2em; }
+
+	.ux-understand-clarify { margin-block: 0.4em 1em; }
+
+	/* The owner's "first it kind of selects that card" — a brief, visible flash when
+	 * the ? that points at this card is tapped, so the connection reads at a glance. */
+	.ux-understand-flash { outline: 2px solid var(--warn); border-radius: var(--radius); transition: outline-color 0.3s ease; }
+
+	.ux-understand-status { font-size: 0.85em; }
+	.ux-understand-box { inline-size: 100%; max-inline-size: 40em; }
+}
