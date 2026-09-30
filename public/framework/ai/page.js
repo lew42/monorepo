@@ -1,7 +1,9 @@
 import { Page, md, div, AITask } from "/app.js";
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
-import { draw_board, board_route } from "/framework/ai/v/3/page.js";   // V3 IS this page's content now — see content() below
+import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
+import Concepts from "/framework/ux/Content/Concepts/Concepts.js";
+import CONCEPTS from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -11,7 +13,7 @@ const v1 = () => new URLSearchParams(location.search).has("v1");
 export default new Page({
 	meta: import.meta,
 	title: "AI",
-	description: "The work worth going back to, newest first.",
+	description: "The AI system: who does the work, how it is tracked, and how it lands.",
 	icon: "smart_toy",
 
 	// One nav link, whatever the date children say: the rail below is the way in.
@@ -39,52 +41,15 @@ export default new Page({
 	   what this page DRAWS changes. `?v1` still draws the original board, which
 	   is where the picker's V1 entry now points — one query param instead of a
 	   second copy of the catalog machinery somewhere under `v/`. */
+	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
+	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
+	   and `?v1` still draws the original board below. `board_drawn` stays true so
+	   the board's own hand-back (v/3/page.js draw_board) never paints it here. */
+	board_drawn: true,
 	content(){
 		if (!v1()){
-			/* Only draw the front door when a visit actually LANDS here. Router.
-			   activate() runs the whole chain root-to-leaf, so a deep link three
-			   levels under me (/v/3/, a day, a task…) activates ME too, cold, on
-			   the very same pass — and without this check I built the entire V3
-			   board a second time for nothing (fetches, an EventSource, timers)
-			   right beside the real leaf's own copy, which is the one actually
-			   shown; the arrangement contract (Page.css) already hides mine once a
-			   later active sibling exists, so the only cost was ever the hidden
-			   work, never wrong content on screen. Measured: `.v3` counted twice
-			   on `/framework/ai/v/3/`, once on `/framework/ai/`
-			   (board-from-events, 2026-09-22).
-			   This branch only ever runs ONCE per page load — `render()`
-			   caches `this.view`, so a later click deeper (after I am
-			   already showing at my own url) never re-enters content() at
-			   all. */
-			/* The check moved into `draw_board()` (board-declutter,
-			   2026-09-22) along with its other half: a view url under me —
-			   `/framework/ai/grid/` — is a page of its own now, so on the way
-			   back OUT of one, it tells me to draw. Without that, a cold
-			   landing on a view followed by a click on the rail's own AI link
-			   left this page blank, because going UP the chain activates
-			   nothing. */
-			/* nav-rerender, 2026-09-22: the WAY IN had the same disease. A
-			   same-tab click landing here for the very first time used to be
-			   waved off above as "reads correctly either way" — reproduced
-			   headless that it does not. `Router.go()` runs `content()`
-			   (HERE) synchronously, inside `this.activate(page)`
-			   (Router.js), and only calls `history.pushState()` after that
-			   returns — so on that first click, `location.pathname` is
-			   still the page you clicked FROM, `draw_board()`'s guard loses
-			   every time, and because `render()` caches `this.view`,
-			   `content()` never runs again: blank for the rest of the
-			   session (exactly the owner's report, 2026-09-22 18:18 — the
-			   title changed, the page did not). Same fix as the way OUT,
-			   one comment up: try now (a cold load already has the right
-			   `location`), and if that lost the race, try again a
-			   `requestAnimationFrame` later, by which point `pushState` has
-			   landed and `draw_board()`'s own unchanged check reads right.
-			   A page that is genuinely just a hidden ancestor of a deeper
-			   deep link reads wrong on both tries, since `location` names
-			   the deeper page either way, so it still correctly never
-			   draws. */
-			draw_board(this);
-			if (!this.board_drawn) requestAnimationFrame(() => draw_board(this));
+			div.c("pad", () => new Concepts({ page: this, items: CONCEPTS }));
+			md("Servex is the process that runs all of this: [Servex](/framework/servex/). The live board: [V3](/framework/ai/v/3/) · every task: [the log](/framework/ai/log/).");
 			return;
 		}
 
@@ -123,6 +88,9 @@ export default new Page({
 		   of the five can ever look like a date, `log` or `effort`. The board
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
+		const concept = CONCEPTS.find(c => c.slug === name);
+		if (concept) return concept_page(this, concept);
+
 		const board_view = board_route(this, name);
 		if (board_view) return board_view;
 
@@ -174,3 +142,18 @@ export default new Page({
 		});
 	},
 });
+
+/* One concept's page: the gist first, then a few items, then the code that owns it,
+   then the Servex page where Servex implements it (linked, never repeated). */
+function concept_page(parent, c){
+	const links = list => list.map(([t, h]) => `[${t}](${h})`).join(" · ");
+	return new Page({
+		title: c.name, icon: c.icon, url: parent.url + c.slug + "/", description: c.gist,
+		content(){
+			md(`**${c.gist}**`);
+			md(c.items.map(i => "- " + i).join("\n"));
+			md("Code: " + links(c.code));
+			if (c.servex.length) md("In Servex: " + links(c.servex));
+		},
+	});
+}
