@@ -19,7 +19,7 @@
 
 **One content model with the card** (the owner; [inbox-ext item 9](../inbox-ext/requirements.md)): chat and card render the same JSONL lines with the same content widgets. Chat is the informal rendering (bubbles, rambling allowed) and the card is the refined one. So:
 - The chat draws each line with the shared content widgets. It keeps no private bubble format: the Widget's thread becomes a renderer of lines, and anything bubble-only goes.
-- The sidebar knows the selected card or page (`chat(el, { path, card })`) and writes to it: `start({ path, card })` puts the session on that card or page. That's my answer to item 9's open question, sent to mastermind-servex-9 for a ruling.
+- **The session stays global; its focus is the selected card or page.** This was mastermind-servex-9's ruling, [proposal §9](../servex-mastermind/merge-approval-proposal.md). One voice session follows the owner across pages, as it does today. `{ path, card }` is the TARGET of what is said and drawn, and it never keys the session. Every line written carries `path` and `card`, so the refiner can write into that card's page.jsonl. Switching cards switches the target, not the session; with no card selected, the page is the target. This means today's card branch, `start({ path, card })` keyed per card, changes in merge 2 to one session plus a target.
 - The flow runs right to left: the AI refines what's dictated into the selected card's page.jsonl. inbox-ext builds the card side after the reset. This component only writes the lines and draws them, and the seam is agreed through inbox-ext's brief.
 
 Rendering stays minimal and efficient: one component, drawn once per surface, and no second copy of the thread.
