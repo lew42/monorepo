@@ -29,8 +29,12 @@ three sizes on the page below.
   earns its place for a click target, for vertical centring against something taller than the
   glyph's own line box, or for a row where every slot — icon or not — has to measure the same.
   [doc/icons.md](doc/icons.md) has the full reasoning.
-- **`.icon` is untouched.** An icon riding inline with text still just wears `.icon` — nothing
-  here renames or replaces it; `.ui-icon-frame` and `.ui-icon-btn` are additive.
+- **`.icon` itself gained one line: `vertical-align: -0.15em`.** Nothing renames or replaces it
+  — an icon riding inline with text still just wears `.icon` — but it now sits centred against
+  that text instead of ~4px high, the exact bug the owner named. `doc/icons.md` "Migrated" has
+  the measurement and the one real caller (`imagine/paging/`) whose own hand-tuned nudge this
+  replaced. A frame or a flex/grid button (this module's, `ui/item`'s, Panel's) was never
+  affected by that bug or this fix — `vertical-align` only moves an INLINE box.
 - **Icon items in a list are `ui/item`, not this module.** `ui.item({ icon, name, … })` already
   has the row, the 1.3em tree-row frame and the `.boxed` background-with-padding look; this
   page's list demo reuses it rather than building a second one.

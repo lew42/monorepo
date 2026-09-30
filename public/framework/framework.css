@@ -558,8 +558,21 @@
 
     /* Sizing is a separate class so an icon from any set can borrow it. An icon
        rides with the text beside it: em, so it scales with that text, and
-       line-height 1 so it never grows the line box. */
-    .icon { font-size: 1.25em; line-height: 1; flex: 0 0 auto; }
+       line-height 1 so it never grows the line box.
+       ⚠ `vertical-align: -0.15em` fixes the exact bug the owner named ("the
+       vertical alignment is often a problem"): measured (icon-system audit,
+       2026-09-30, facts.md §3), an inline icon at `line-height: 1` sits flush
+       with the TOP of the surrounding text's own line box, not centred on it —
+       its bottom lands ~4px above the baseline, reading as disconnected from
+       the letters beside it. -0.15em is the exact value one real caller
+       (`imagine/paging/paging.css`) had already hand-tuned to fix this, now
+       the default for every inline icon instead of a nudge each caller has to
+       rediscover. It does nothing to an icon inside a flex or grid box (a
+       button, `.ui-icon-frame`, `ui/item`'s row) — `vertical-align` only ever
+       moves an INLINE box against the text line around it, so every
+       frame/button that already centres its icon with `place-items`/
+       `align-items` is untouched by this line. */
+    .icon { font-size: 1.25em; line-height: 1; vertical-align: -0.15em; flex: 0 0 auto; }
 
     /* The square frame any icon-in-a-box borrows — a button, a rail item, a list
        row's own icon slot. One token, read by ui/icon and (later) ui/item, so

@@ -62,11 +62,47 @@ fence (`public/framework/ui/item/` was not touched).
 | A row of icon buttons, some flush, some backed | `.ui-icon-rail` around any mix of the above |
 | An icon beside a name in a list | `ui.item({ icon, name, … })` — a different module, not this one |
 
-## What this task did not touch
+## Migrated (this task's second pass, after the audit)
 
+- **The inline-alignment bug** (facts.md §3: an icon sits ~4px high against the text beside
+  it) is now fixed ONCE, in `.icon` itself (`framework.css`, `vertical-align: -0.15em`) —
+  the exact value one real caller, `imagine/paging/paging.css:1020`, had already hand-tuned.
+  That caller's own nudge is deleted; it now inherits the shared default. `vertical-align`
+  only ever moves an inline box against surrounding text, so every frame/button that
+  centres its icon with `place-items`/`align-items` (this module's own, `ui/item`'s,
+  Panel's) was never touched by the old per-caller nudges and is not touched by this
+  change either.
+- **`ext/Panel`'s duplicate stylesheet** (audit one-off #2: `toolbar.css` and
+  `controls.css` carried a byte-for-byte identical `.panel-btn`/`.panel-bar`/`.panel-pop`
+  block, so a fix to one never reached the other) is deduplicated: `controls.css` is now
+  the one real copy (it is what `workspace.js`, the module's front door, loads);
+  `toolbar.css` is an empty stylesheet with a comment pointing at it. `.panel-btn` itself
+  was **not** rewired onto `.ui-icon-btn` — it already has the same flush/hover/lit-toggle
+  shape (built 2026-08-16, before this module existed), but also its own opacity-fade bar
+  reveal and `:has()` square detection that `.ui-icon-btn` has no reason to know about, and
+  it has real callers across the rail, a seam's menu, the drag grip and the inspector. A
+  full class swap risked exactly the "v1 behaviour unchanged" rule this task was given, for
+  a cosmetic win (one shared class name) this task's budget did not cover. `controls.css`
+  now says so, next to the rule.
+
+## Not migrated yet
+
+- **`core/App/mode.css`'s `.mode-btn`** — the floating mode-switch pill. Looked at it:
+  `position: fixed`, its own `border-radius: 999px` (a full circle, not `.ui-icon-btn`'s
+  `var(--radius)`), a drop shadow, and a background that is always on (never flush) with a
+  colour-only hover (not a fill change). That is four real differences from
+  `.ui-icon-btn.ui-icon-btn-bg`, not a rename — listed here rather than forced.
+- **`core/Search/Search.css`'s Omnibox** (`.omnibox-bar > .icon`, `.omnibox-card .icon`) —
+  its own pill padding, not checked against the vertical-align fix yet.
+- **`imagine/scenes/scenes.css`'s `.scene-bar`** — hides its icon glyph entirely
+  (`font-size: 0`) and fakes a `/` divider with CSS `content`. The audit's own read: this is
+  probably a "use `icon("chevron_right")` like everywhere else" fix, not a frame/button
+  question at all — worth a direct look before touching it.
+- **The hero-icon size variants** (`ext/AITask/nested.css`, `ux/Content/content.css`'s
+  `.w1`/`.w2`/`.w3`) — three near-identical big-display-size blocks that could share one
+  `--icon-hero` token. Low risk, cosmetic only; not touched.
 - `ui/item`'s own `.item-icon`/`.item-caret` frame (1.3em) — reused as-is in this page's list
-  demo, not rebuilt.
-- `ui.js` — the one-line import that would make `ui.icon` importable like `ui.item` is the next
-  pass's job (the mastermind's migration message), not this fence.
-- Every other site-wide icon-layout one-off the audit found — this task built the one system;
-  migrating the worst offenders to it is the follow-up step named in the parent brief.
+  demo, not rebuilt onto the shared `--icon-frame` token; a real edit, just outside this
+  task's fence (`public/framework/ui/item/` was not in it).
+- `ui.js` — the one-line import that would make `ui.icon` importable like `ui.item` is a
+  follow-up, not this fence.
