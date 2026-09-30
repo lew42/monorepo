@@ -7,7 +7,7 @@ import { stalled } from "./stalled.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
-const STATUSES = ["routed", "building", "landed", "stalled", "dropped"];
+const STATUSES = ["routed", "building", "landed", "stalled", "dropped", "parked", "queued"];
 const TICK_MS = 60000;
 const GRACE_MS = 10 * 60000;   // after a Servex boot, restart-survival revives agents; a "gone" row is not yet final
 const BY_TICK = "servex-asks-tick";
@@ -115,7 +115,7 @@ export default class Asks {
 	 * the ask isn't already `stalled`, `building` only when it is — so a tick
 	 * that finds nothing changed writes nothing. */
 	async check_one(ask, registry){
-		if (ask.status === "landed" || ask.status === "dropped") return;
+		if (stalled.NOT_WATCHED.includes(ask.status)) return;   // closed, parked or queued: nobody owes a turn yet
 		const row = this.owner_row(ask, registry);
 
 		if (row?.task_landed){ await this.mark(ask.id, "landed", "owner's task.jsonl has a landed_at line", BY_TICK); return; }
@@ -201,7 +201,7 @@ export default class Asks {
 		if (!agent) return;
 		const folded = await this.read();
 		for (const ask of Object.values(folded))
-			if (ask.owner === agent && ask.status !== "landed" && ask.status !== "dropped")
+			if (ask.owner === agent && !["landed", "dropped", "parked"].includes(ask.status))
 				await this.mark(ask.id, "landed", "owner's task closed", BY_CLOSE);
 	}
 }

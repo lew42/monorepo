@@ -63,6 +63,8 @@ function test_stalled_rules(){
 
 	check("landed ask is never stalled", stalled({ status: "landed" }, null, now).stalled === false);
 	check("dropped ask is never stalled", stalled({ status: "dropped" }, null, now).stalled === false);
+	check("parked ask (owner ai/todo.md, no registry row) is never stalled", stalled({ status: "parked", owner: "ai/todo.md" }, null, now).stalled === false);
+	check("queued ask is never stalled", stalled({ status: "queued" }, null, now).stalled === false);
 	check("stopped -> stalled", stalled(open_ask, { state: "stopped" }, now).stalled === true);
 	check("gone -> stalled", stalled(open_ask, { state: "gone" }, now).stalled === true);
 	check("missing row -> stalled", stalled(open_ask, null, now).stalled === true);

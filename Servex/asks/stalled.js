@@ -1,9 +1,11 @@
 /* stalled(ask, owner_row, now) — ONE pure function, no fs, no clock read: the
  * caller (Asks.js's tick) hands in `now` so a test can fix it.
  *
- * THE RULE. An ask whose status is already `landed` or `dropped` is never
- * stalled — it's closed, nothing to notice. Any other ask (routed, building,
- * already stalled) IS stalled when its owner agent:
+ * THE RULE. An ask whose status is `landed` or `dropped` is never stalled —
+ * it's closed. Nor is one `parked` (set aside on purpose, often owned by a
+ * file like ai/todo.md) or `queued` (waiting to be spawned): nobody is meant
+ * to be working on it yet. Any other ask (routed, building, already stalled)
+ * IS stalled when its owner agent:
  *
  *   - is `stopped` or `gone` (the registry's own words for a dead session), or
  *   - has NO registry row at all — never registered, or the registry lost it
@@ -20,11 +22,12 @@
  * falsy when the agent never registered. */
 
 const SILENT_MS = 2 * 60 * 60 * 1000;   // 2 hours
+const NOT_WATCHED = ["landed", "dropped", "parked", "queued"];
 
 export function stalled(ask, owner_row, now){
 	const at = now instanceof Date ? now.getTime() : Number(now);
 	const status = ask?.status;
-	if (status === "landed" || status === "dropped") return { stalled: false, why: "closed" };
+	if (NOT_WATCHED.includes(status)) return { stalled: false, why: status };
 
 	if (!owner_row) return { stalled: true, why: `no registry row for owner "${ask?.owner ?? "?"}"` };
 
@@ -51,3 +54,4 @@ export function stalled(ask, owner_row, now){
 }
 
 stalled.SILENT_MS = SILENT_MS;
+stalled.NOT_WATCHED = NOT_WATCHED;

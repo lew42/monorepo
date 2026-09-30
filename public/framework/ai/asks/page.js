@@ -13,15 +13,15 @@ View.stylesheet(import.meta, "asks.css");
  * status changes — this page only ever READS it, through `fold_asks` (`./fold.js`), the one
  * vocabulary every reader of the ledger already agrees on.
  *
- * Five groups, stalled first (the ones that need a look), newest first inside each. A click
+ * One group per status, stalled first (the ones that need a look), newest first inside each. A click
  * on a count filters to that one status — the url (`?status=`) is the whole state, so a
  * reload or a pasted link lands on the same filtered view.
  */
 
 const ASKS_URL = "/framework/ai/asks.jsonl";
-const GROUP_ORDER = ["stalled", "building", "routed", "landed", "dropped"];
-const GROUP_LABEL = { stalled: "Stalled", building: "Building", routed: "Routed", landed: "Landed", dropped: "Dropped" };
-const GROUP_ICON = { stalled: "hourglass_disabled", building: "construction", routed: "call_split", landed: "task_alt", dropped: "cancel" };
+const GROUP_ORDER = ["stalled", "building", "routed", "queued", "parked", "landed", "dropped"];
+const GROUP_LABEL = { stalled: "Stalled", building: "Building", routed: "Routed", queued: "Queued", parked: "Parked", landed: "Landed", dropped: "Dropped" };
+const GROUP_ICON = { stalled: "hourglass_disabled", building: "construction", routed: "call_split", queued: "schedule", parked: "local_parking", landed: "task_alt", dropped: "cancel" };
 
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "");
 const parse_lines = text => String(text ?? "").split(/\r?\n/).filter(l => l.trim())

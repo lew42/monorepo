@@ -7,7 +7,7 @@ sits there unseen.
 
 ## When an ask is marked stalled
 
-An ask that is not yet landed or dropped is **stalled** when its owner agent is stopped or gone
+An ask that is not landed, dropped, parked or queued is **stalled** when its owner agent is stopped or gone
 (or never registered), or dormant with nothing queued to wake it, or has been silent — no turn
 and no new line in its task.jsonl — for more than 2 hours. Servex checks every 60 s, starting
 10 minutes after it boots (so agents a restart orphaned get a chance to be revived first), and
