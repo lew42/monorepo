@@ -33,6 +33,7 @@ import Global from "./agents/Global.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import tidy from "./agents/tidy.js";
+import hitl from "./agents/hitl.js";
 import { docs_list, docs_read_file } from "./pages.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -503,6 +504,23 @@ export default class Servex extends Events {
             const body = req.body ?? {};
             if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
             res.json(await tidy(body));
+        });
+
+        /* THE HIT-API CHAT CALLS (chat-hitl, 2026-09-29) — two small no-tools
+         * model calls the human-in-the-loop chat uses: `marks` (per-sentence
+         * purpose + ambiguity flag) and `rename` (five title alternatives).
+         * See Servex/agents/hitl.js. Named ops only — an unknown `op`, or a
+         * caller-supplied `system`/`model`, is refused: this route (reachable
+         * from the LAN via `/servex`) never runs an arbitrary prompt. */
+        router.options("/api/hitl", cors, (req, res) => res.status(204).end());
+
+        router.post("/api/hitl", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (body.system !== undefined || body.model !== undefined)
+                return res.status(400).json({ ok: false, why: "system and model are not accepted here" });
+            if (body.op !== "marks" && body.op !== "rename")
+                return res.status(400).json({ ok: false, why: `unknown op "${body.op}"` });
+            res.json(await hitl(body));
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
