@@ -52,8 +52,10 @@ never fires with a falsy `text`, so an existing caller that only ever handled su
 never be handed `null` to draw a blank card for. Two real callers: `ext/drawer/rail.js`'s mobile assistant
 (`revise: "edit"`, a second card once the tightened version is ready) and `ai2/compose.js`
 (`revise: "clean"`, the **clean transcription mode**, forwarded by `ext/Chat/Composer.js`
-into `ComposerMic` — see that module's own readme for how its box now shows the clean text
-in place, the raw dig-back toggle, and the kill switch). See it work, chunk by chunk, at the
+into `ComposerMic` — see `ext/Chat/readme.md` for how its box now shows the clean text
+in place, the raw dig-back toggle, and the kill switch; that same doc explains how the ~5s
+wait before falling back to raw is `await_clean()` resolving early on `on_revise_failed`, not
+a separate timeout). See it work, chunk by chunk, at the
 [playground](/framework/ux/Dictate/playground/) (its own **Clean** tab is the default view).
 
 ## Voice → log
@@ -61,8 +63,19 @@ in place, the raw dig-back toggle, and the kill switch). See it work, chunk by c
 Every finished utterance also becomes a log entry, not just words on screen —
 `{at, type: "prompt", by: "owner", text, via: "whisper"}` posted to Servex
 (`http://127.0.0.1:8090/log/prompts`), falling back to the dev server's own append route
-when Servex isn't up yet. See "Voice → log" in
+when Servex isn't up yet. Every posted entry also carries `floor` (and, after a dictation,
+`cues`) — see the "floor" section below. One open question: it's not yet confirmed whether the
+historical viewer (`ai/v/3/prompts.js`) reads the dev-server fallback file too, or only Servex's
+own log — see `Server/doc/refine.md`'s "Ask 1" section. See "Voice → log" in
 [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
+
+## The floor: is the owner still talking?
+
+Every entry `post_prompt()` sends carries `floor` (`"speaking"` or `"done"`) and, after a
+dictation, `cues` (its pauses and speaking time), so an assistant can hold its reply while the
+owner is mid-thought. [`floor.js`](floor.js) reads this component's own level meter; mic on
+and off also post a `{type: "floor"}` line. The contract for readers:
+[`ext/Chat/doc/floor.md`](/framework/ext/Chat/doc/floor.md).
 
 ## Watch out
 

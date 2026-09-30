@@ -1,0 +1,92 @@
+[
+	{
+		"url": "/log/prompts",
+		"t": 1790733523852,
+		"entry": {
+			"type": "floor",
+			"state": "speaking"
+		}
+	},
+	{
+		"url": "/log/prompts",
+		"t": 1790733531745,
+		"entry": {
+			"type": "prompt",
+			"by": "owner",
+			"text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+			"via": "whisper",
+			"floor": "speaking",
+			"cues": {
+				"mic_on_at": "2026-09-30T01:58:43.851Z",
+				"pauses": [
+					{
+						"start": 635,
+						"end": 1035,
+						"ms": 400
+					},
+					{
+						"start": 2235,
+						"end": 2665,
+						"ms": 430
+					},
+					{
+						"start": 4815,
+						"end": 5245,
+						"ms": 430
+					},
+					{
+						"start": 7025,
+						"end": null,
+						"ms": 869
+					}
+				],
+				"speaking_ms": 5490
+			}
+		}
+	},
+	{
+		"url": "/log/prompts",
+		"t": 1790733537870,
+		"entry": {
+			"type": "floor",
+			"state": "idle"
+		}
+	},
+	{
+		"url": "/log/prompts",
+		"t": 1790733537984,
+		"entry": {
+			"type": "prompt",
+			"by": "owner",
+			"text": "And so, my fellow Americans, ask not what your country can do for you, ask what you can do",
+			"via": "whisper",
+			"floor": "done",
+			"cues": {
+				"mic_on_at": "2026-09-30T01:58:43.851Z",
+				"pauses": [
+					{
+						"start": 7025,
+						"end": 7995,
+						"ms": 970
+					},
+					{
+						"start": 8485,
+						"end": 8895,
+						"ms": 410
+					},
+					{
+						"start": 10085,
+						"end": 10525,
+						"ms": 440
+					},
+					{
+						"start": 12675,
+						"end": 13105,
+						"ms": 430
+					}
+				],
+				"speaking_ms": 4648
+			}
+		}
+	}
+]

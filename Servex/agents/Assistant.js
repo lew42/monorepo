@@ -94,6 +94,17 @@ export default class Assistant {
 	}
 
 	heard(prompt){
+		/* THE FLOOR (ext/Chat/doc/floor.md): never answer while the owner is still talking. A
+		 * "speaking" entry is held; "done", a typed entry, or one with no floor answers every held
+		 * entry at once, as one prompt. 8 s with no new entry answers anyway (the timer calls heard()). */
+		clearTimeout(this.floor_timer);
+		if (prompt) (this.floor_held ??= []).push(prompt);
+		if (prompt?.floor === "speaking"){ this.floor_timer = setTimeout(() => this.heard(null), this.floor_wait_ms ?? 8000); this.floor_timer.unref?.(); return; }
+		const held = this.floor_held ?? []; this.floor_held = [];
+		if (!held.length) return;
+		prompt = held.length === 1 ? held[0] : { ...held.at(-1), text: held.map(h => h.text ?? "").join(" "),
+			sentences: held.flatMap(h => h.sentences ?? [h.text ?? ""]),
+			cues: { pauses: held.flatMap(h => h.cues?.pauses ?? []), speaking_ms: held.reduce((n, h) => n + (h.cues?.speaking_ms ?? 0), 0) } };
 		this.current = prompt.id ?? this.current;
 		this.minted = [];
 		/* THE CARD IT WAS SPOKEN INTO — `selected` is `<slug>` or `<slug>/<sub>`;
@@ -114,6 +125,9 @@ export default class Assistant {
 	words(prompt){
 		const lines = (prompt.sentences ?? [prompt.text ?? ""]).map((s, i) => `${i}. ${s}`).join("\n");
 		const selected = prompt.selected ? `selected: ${prompt.selected}\n` : "";
+		// The rhythm (ux/Dictate/floor.js), e.g. "(paused 1.2 s, 0.4 s; spoke 6.1 s)": a long pause is where a thought ended.
+		const sec = ms => (ms / 1000).toFixed(1) + " s", c = prompt.cues;
+		const rhythm = c ? `\n(${c.pauses?.length ? "paused " + c.pauses.slice(0, 8).map(q => sec(q.ms)).join(", ") + "; " : ""}spoke ${sec(c.speaking_ms ?? 0)})` : "";
 		/* ⚠ This last line is what the model obeys, over its brief: while it always
 		 * said "card the idea", the lobby carded and queued a task instead of filing
 		 * (layers proof run 5, 2026-09-24). With no card selected and groups to
@@ -121,7 +135,7 @@ export default class Assistant {
 		const ask = !prompt.selected && this.groups().length
 			? "No card is selected: this is the lobby. Call file_to_group with the group these words belong to, then stop."
 			: "Name what was named, card the idea, then one refined reading citing those sentence numbers.";
-		return `${selected}${this.live_state(prompt)}prompt ${prompt.id}, just spoken:\n${lines}\n\n${ask}`;
+		return `${selected}${this.live_state(prompt)}prompt ${prompt.id}, just spoken:\n${lines}${rhythm}\n\n${ask}`;
 	}
 
 	/* Spoken into the Live card, the question is usually "what is running?" —

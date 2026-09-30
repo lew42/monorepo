@@ -3,6 +3,7 @@ import Capture from "./capture.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import Revise from "../Revise/Revise.js";
 import { servex_url } from "/framework/dev/servex_url.js";
+import floor from "./floor.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -57,8 +58,13 @@ async function fetch_timeout(url, opts, ms){
  *  `false` on any failure — never throws, so a caller can fall back with no
  *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
  *  `v/3/compose.js`'s typed `send()` — one shape for "did Servex take this
- *  prompt", not two. */
+ *  prompt", not two.
+ *
+ *  Every entry also gets `floor` ("speaking" | "done") and, after a dictation,
+ *  `cues` (its pauses and speaking time) stamped on here — `floor.js`, and the
+ *  contract for readers in `ext/Chat/doc/floor.md`. */
 export async function post_prompt(entry, url = servex_url("/log/prompts")){
+	floor.stamp(entry);
 	try {
 		const r = await fetch_timeout(url, {
 			method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
@@ -375,6 +381,8 @@ export default class Dictate extends View {
 	set_state(state){
 		const was_listening = this.state === "listening";
 		this.state = state;
+		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
+		else if (state !== "listening" && was_listening) floor.mic_off(this);
 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
 		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
 		if (state === "listening" && !was_listening) this.on_listening?.();
@@ -385,6 +393,7 @@ export default class Dictate extends View {
 		clearInterval(this.timer);
 		this.hide_countdown();
 		this.mic?.stop();
+		floor.mic_off(this);
 		this.state = "error";
 		this.$button.rc("listening transcribing connecting");
 		this.$status.ac("error").text(msg);
@@ -419,6 +428,7 @@ export default class Dictate extends View {
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
 		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
 		if (this.level > this.silence_at){ this.has_speech = true; this.last_loud_at = performance.now(); }
+		floor.level(this, this.level > this.silence_at);   // pauses and speaking time for `entry.cues`
 	}
 
 	/* One clock tick (5/sec), shared by both engines. For whisper: a pause
@@ -638,6 +648,7 @@ export default class Dictate extends View {
 	heard_browser(e){
 		clearTimeout(this.watchdog);
 		this.last_loud_at = performance.now();   // any result is activity, for the send_on_pause countdown
+		floor.level(this, true);   // the browser engine has no level meter: a result is the only "loud" it can report
 		let interim = "";
 		for (let i = e.resultIndex; i < e.results.length; i++){
 			const said = e.results[i][0].transcript;
@@ -880,6 +891,8 @@ function default_whisper_url(){
 	const local = h === "localhost" || h === "127.0.0.1" || h?.endsWith(".localhost");
 	return local || !globalThis.location ? "http://127.0.0.1:8178" : globalThis.location.origin + "/whisper";
 }
+
+floor.post = (state, owner) => post_prompt({ type: "floor", state }, owner?.log_url);
 
 Dictate.prototype.whisper_url = default_whisper_url();
 Dictate.prototype.log_url = servex_url("/log/prompts");       // Servex's single-writer log — not always up yet

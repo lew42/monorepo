@@ -37,16 +37,24 @@ does). Live, with v1 (the old, hand-wired assembly) beside it:
 [/framework/ext/Chat/panel/](/framework/ext/Chat/panel/).
 
 `revise: "clean" | "edit" | "summary" | false` (default `false` here; [AI 2](/framework/ai2/)
-turns on `"clean"`) runs [`ux/Revise`](/framework/ux/Revise/) on this composer's mic. With
-`"clean"`, `ComposerMic` (`Mic.js`) now swaps each finished utterance's raw words for the
-fast assistant's clean-up IN PLACE, right in the box — raw shows first, clean replaces it
-once `/api/tidy` answers, same idea as the still-moving Whisper guess it already showed. A
-small **"raw" chip** beside ⋯/⚙ digs back to exactly what Whisper heard; the composer's own
-gear (⚙) has a **"clean transcription"** on/off next to the other mic settings — the kill
-switch, on by default, remembered the same way. Whichever text is in the box when a message
-is sent is what goes out; the raw words still ride along on `entry.raw` (`entry.level:
-"clean"`), and a pending clean-up is waited for at most ~5s before falling back to raw, so
-nothing is ever lost and nothing sends twice. `ai/2026-09-29/audio/next-clean-transcription/a-clean-mode/`.
+turns on `"clean"`) runs [`ux/Revise`](/framework/ux/Revise/) on this composer's mic — a
+different pipeline from `Server/doc/refine.md`'s batch `clean`/`structured` rungs; same words,
+unrelated systems. Only the `"clean"` level does anything special here — `"edit"` and
+`"summary"` just run `on_revised`/`on_revise_failed` as `ux/Dictate/readme.md` describes, with
+no box swap. With `"clean"`, `ComposerMic` (`Mic.js`) now swaps each finished utterance's raw
+words for the fast assistant's clean-up IN PLACE, right in the box — raw shows first, clean
+replaces it once `/api/tidy` answers, same idea as the still-moving Whisper guess it already
+showed. A small **"raw" chip** beside ⋯/⚙ is a toggle button: click it and the whole box swaps,
+in place, to exactly what Whisper heard; click again to swap back to clean — nothing opens in a
+popover or separate panel. The composer's own gear (⚙) has a **"clean transcription"**
+checkbox next to the other mic settings — this is `Mic.js`'s `SETTINGS.clean`, the kill
+switch, on by default, remembered the same way as the other settings. Whichever text is in
+the box when a message is sent is what goes out; the raw words still ride along on `entry.raw`
+(`entry.level: "clean"`), and a pending clean-up is waited for at most ~5s
+(`Mic.js`'s `await_clean()`) before falling back to raw, so nothing is ever lost and nothing
+sends twice — that same wait is what `on_revise_failed` (see `ux/Dictate/readme.md`) resolves
+early: a failed clean-up doesn't make `await_clean()` sit out the full 5s, it just leaves the
+raw text showing. `ai/2026-09-29/audio/next-clean-transcription/a-clean-mode/`.
 
 ## The universal chat line — one shape for voice, typed, and an agent's own reply
 

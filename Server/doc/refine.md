@@ -34,6 +34,13 @@ places, both already durable** — a gap was expected here and wasn't found.
 Nothing here needed fixing — deliverable 1 said "if raw is NOT kept somewhere, say exactly where
 it's lost; don't fix it," and it is kept, in both forms that reach a mastermind's brief.
 
+## Who runs this, and when
+
+`refine.mjs` is a manual audit tool, run by hand from a terminal — nothing in `ux/Dictate` or
+`ext/Chat` calls it, and no mastermind runs it automatically after a dictation. Run it yourself
+against a dictation's raw text (or a `date:line` into a typed prompt log, see below) whenever you
+want the audit trail this doc describes.
+
 ## What `refine.mjs` is
 
 One command, five files, each rung of a ladder written beside the one before it so any two can be
@@ -109,16 +116,22 @@ own sentences look uncited, but every prompt that produces a citation is told no
 
 ## The structured rung: a hierarchy, not a summary (2026-09-29)
 
-The owner, about 8:20 PM: the structured rung "only condenses"; he wants familiar names as headings.
-So it now writes **one `#` H1** for the thing being discussed ("Page class"), **`##` H2s** for
-its parts, using a name that already exists (like "Layout") or the speaker's own word, and bullets
-under each. It keeps every point: the only merging allowed is two bullets that say the exact same
-thing.
+The owner, about 8:20 PM: the structured rung "only condenses"; he wants familiar names as headings,
+"tangible, familiar, easy to digest". So it writes **one `#` H1** naming the concrete thing
+being discussed ("Page class", never "AI processes"), **`##` H2s** for its parts (a name that
+already exists, like "Layout", or the speaker's own word), and **one bullet per point, at most two
+levels deep**. Sentences that make one point merge into one bullet; every sentence is still cited,
+exactly once, so nothing is lost.
 
-Before and after, same clean sentences, same model (Sonnet), only the prompt changed:
+The first version kept one bullet per sentence, nested up to six deep (review finding 8). Proof,
+same clean sentences and same model (Sonnet), only the prompt changed:
 [`b-structure/out/`](/framework/ai/2026-09-29/audio/next-clean-transcription/b-structure/out/),
-one folder per dictation, `structured-before.md` beside `structured-after.md`. To make a new
-comparison: `node Server/refine/compare-structured.mjs <raw.txt> <out-dir>` (about $0.35).
+one folder per dictation, `structured-before.md` beside `structured-after.md`, with
+`check.txt` counting bullets, depth, and sentences cited twice or never.
+
+To compare on another dictation: `node Server/refine/compare-structured.mjs <raw.txt> <out-dir>`.
+Measured: $0.36 for a 550-word dictation, $0.58 for 1,700 words. `--after-only` reruns just the new
+prompt on an existing folder ($0.23 for the 1,700 words).
 
 ## Each rung's model and prompt, in one table
 

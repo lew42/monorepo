@@ -282,40 +282,78 @@ function mockStructured(sentences, index) {
 	return lines.join("\n") + "\n";
 }
 
-// The structured rung's own job (owner, 2026-09-29 ~8:20 PM): not another pass of condensing —
-// the "clean" rung already did that — but an information HIERARCHY: what is this dictation about
-// (one H1), what are its familiar parts (an H2 each, reusing a name that already exists, like
-// "Layout", when one applies), and the owner's own points under each, in their own words, kept
-// whole rather than shortened further.
+// The structured rung's own job (owner, 2026-09-29 ~8:20 PM): an information HIERARCHY — one
+// H1 for the concrete thing being discussed, H2s with familiar names for its parts ("Layout"),
+// short bullets under each — "tangible, familiar, easy to digest". Its first version kept one
+// bullet per sentence, nested up to six deep, under a vague H1 ("AI processes"): a re-indented
+// transcript (review finding 8). So: one bullet per POINT, at most two levels, a concrete H1.
 function structuredPromptDefault(sentences) {
-	return `Read this numbered, cleaned transcript of the owner talking. Turn it into an INFORMATION\n`
-		+ `HIERARCHY, not another summary — the owner's exact words for it: "putting familiar names, like\n`
-		+ `the headings" on the one thing being discussed and on each of its parts.\n\n`
-		+ `Output Markdown in EXACTLY this shape:\n\n`
-		+ `# <the one thing this whole transcript is about — the primary visual anchor everything else\n`
-		+ `hangs off of, e.g. "Page class". If nothing this clear-cut is named, use the thing the owner kept\n`
-		+ `coming back to.>\n`
-		+ `## <a familiar name for one part of that thing, in the owner's own words>\n`
-		+ `- <a point about that part, kept in the owner's own words> [S#, S#]\n`
-		+ `  - <a sub-point nested under it, if the point has one> [S#]\n`
-		+ `## <the next part's familiar name>\n`
-		+ `- <...> [S#]\n\n`
-		+ `Rules:\n`
-		+ `- Exactly ONE "#" H1. As many "##" H2s as the transcript actually has distinct parts — never\n`
-		+ `  invent an H2 just to have more than one.\n`
-		+ `- Each H2 must be a FAMILIAR name — one a reader already knows, not a label you invent. If a name\n`
-		+ `  already exists for that part elsewhere (the owner's example: "Layout"), use that exact name.\n`
-		+ `  Otherwise use whatever word the owner themselves used for it.\n`
-		+ `- Nest a bullet under another only when it truly is a sub-point of the one above it (a detail, an\n`
-		+ `  example, a "but" on that same point) — never nest just to look organized.\n`
-		+ `- KEEP EVERY POINT. This is a re-arrangement into headings, not a second round of condensing —\n`
-		+ `  the only merging allowed is combining two bullets that say the EXACT same thing twice. Never\n`
-		+ `  drop an idea, and never turn a hedge ("maybe", "I think", "I guess") into a flat claim.\n`
-		+ `- Every bullet and sub-bullet ends with the sentence numbers it is based on, in this exact form:\n`
-		+ `  [S3, S7]. Cite each sentence individually — never a range like [S6-S9]; a range hides which\n`
-		+ `  specific sentence supports which part of the bullet. Use only sentence numbers that appear\n`
-		+ `  below — never invent one.\n\n`
-		+ `Cleaned transcript:\n"""\n${cleanTextForPrompt(sentences)}\n"""\n\n`
+	return `Read this numbered, cleaned transcript of the owner talking. Turn it into an outline a reader
+`
+		+ `takes in at a glance: "tangible, familiar, easy to digest". The owner's words for it: "putting
+`
+		+ `familiar names, like the headings" on the thing being discussed and on each of its parts.
+
+`
+		+ `Output Markdown in EXACTLY this shape:
+
+`
+		+ `# <the concrete thing being discussed>
+`
+		+ `## <a familiar name for one part of it>
+`
+		+ `- <one point, in the owner's own words> [S#, S#]
+`
+		+ `  - <a detail or example of that point, only if it needs its own line> [S#]
+`
+		+ `## <the next part>
+`
+		+ `- <...> [S#]
+
+`
+		+ `Rules:
+`
+		+ `- The H1 is CONCRETE: a thing a reader could point at — a class, a page, a tab, a tool, a feature
+`
+		+ `  (the owner's example: "Page class"). Never an abstract category like "AI processes", "Thoughts"
+`
+		+ `  or "Feedback". If the transcript covers several separate things, name them plainly in the one
+`
+		+ `  H1 ("Page class and Sidebar") and give each its own H2 or H2s.
+`
+		+ `- Exactly ONE "#" H1. One "##" H2 per distinct part — never invent one just to have more.
+`
+		+ `- Each H2 is a FAMILIAR name a reader already knows. If a name already exists for that part (the
+`
+		+ `  owner's example: "Layout"), use that exact name; otherwise use the owner's own word for it.
+`
+		+ `- ONE BULLET PER POINT, NOT PER SENTENCE. When several sentences make one point (a claim, its
+`
+		+ `  reason, "so I like that"), merge them into one bullet, a short line in the owner's own words,
+`
+		+ `  citing every one of those sentences. Filler that makes no point of its own ("Couple of things.")
+`
+		+ `  gets no bullet: add its number to the nearest bullet's citation instead.
+`
+		+ `- AT MOST TWO LEVELS: a bullet, and sub-bullets under it. Never a third level.
+`
+		+ `- KEEP EVERY POINT. Merging sentences that make the same point is required; dropping a point is
+`
+		+ `  not allowed. Never turn a hedge ("maybe", "I think", "I guess") into a flat claim.
+`
+		+ `- Cite EVERY sentence number EXACTLY ONCE, in the one bullet where its main point went — never
+`
+		+ `  under two headings. Form: [S3, S7], each number individually, never a range like [S6-S9]. Use
+`
+		+ `  only numbers that appear below.
+
+`
+		+ `Cleaned transcript:
+"""
+${cleanTextForPrompt(sentences)}
+"""
+
+`
 		+ `Output ONLY the Markdown described above (the H1, its H2s, and their bullets), nothing else.`;
 }
 
