@@ -29,6 +29,7 @@ standpoint, in terms of revising the skills."
 - **The owner's browser is the owner's** (2026-09-30): no agent claims or evals a connected tab; every look is headless (`mcp__site__shot`, `Server/browser.mjs`). The site MCP refuses non-headless tabs unless the server runs with `SITE_OWNER_TABS=1`. When it happens anyway, stop that agent and fix the skill that let it.
 - **Health**: crashes (`logs/sustain.log`, `logs/reports/`), the monitor's hot flag, console
   errors.
+- **Processes** (2026-09-30): on every check, read the last line of `system_health` — our RAM vs. everything else, the top 3 tasks by RAM, the orphan count and the worktree count. `GET /api/processes` has the whole table (per task, per Claude Code session, orphans, worktrees). Servex reaps idle orphans and removes finished worktrees itself; a spinning server that serves nothing is what to look for. See `Servex/doc/processes.md`.
 
 ## How: oversee, don't do
 
@@ -55,6 +56,8 @@ standpoint, in terms of revising the skills."
   clear-headed.
 
 ## A VS Code tab is an agent you can message
+
+**Only when it registers.** The owner's own tabs (`servex-mastermind-opus` and any other `*-opus` name) never register: a prompt "from" one is the owner typing, `send_to_agent` cannot reach it, and the answer goes on a card or the board — never a message. (Three masterminds tried to relay to it on 2026-09-30.)
 
 Register once, near the start: `register_session({id, session_id})` — `id` is a short word you
 pick (e.g. `vscode-<your task>`), `session_id` is your own Claude session uuid

@@ -36,3 +36,8 @@ cards-and-logs (review-fix minion), review (walkthrough minion, then land), page
 - **One-dictation is task-mastermind-one-dictation's** (owner-spawned 16:34, card `one-dictation-chat-everywhere`), building on audio-consolidate's plan 7ecd8f68; audio-consolidate stood down and lands what it has. The 4:53 "go" is cancelled — nothing to do at 4:53.
 - chat-reactions' files committed by me (ead237b9) — the per-file merge left them uncommitted again; merge.mjs fix stays on todo.
 - CLAUDE.md law 6: one of everything. Before any spawn, check the live agents and asks.jsonl for the same build.
+
+## Added 17:25 CDT
+- process-monitor merged ecaba702; Servex restarted for it (17:25). dormant-idle then measures `/api/processes` live and lands — if I am gone, tell it Servex is up. Skill lines applied (servex-mastermind Processes bullet; fans step 0; owner's-tab clarification).
+- Weekly window 96% until 10 PM: no new spawns before then. 10 PM batch: proposal-flow, ui-system, padding, selection.
+- 5 PM fans: three worktree servers spinning without a port, killed; spin.md updated.
