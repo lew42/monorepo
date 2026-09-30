@@ -42,3 +42,10 @@
 {"at":"2026-09-30T14:15:23-05:00","type":"gate","state":"started","id":"minion-burst-8","queued_at":"2026-09-30T14:14:34-05:00","held_messages":0}
 
 # compaction: see compact-proof.txt (103,433 -> 10,548 tokens; 256 -> 229 MB after restart; still knew 'marigold')
+
+# memory on the live machine (claude.exe count / total working set)
+BEFORE, mine:      26 claude.exe / 9124 MB (task start); 20 / 6503 MB just before the merge
+BEFORE, servex-9:  21 claude.exe / 6754 MB (14:21, before the restart onto 106a51a1)
+AFTER,  servex-9:  17 claude.exe / 4775 MB (Servex up 3.5 min)
+AFTER,  mine:      14 claude.exe / 4222 MB (Servex up 10.3 min, 14:32), 9835 MB free;
+                   heartbeat: working 5/5, idle 3, dormant 5
