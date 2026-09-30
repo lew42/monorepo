@@ -94,7 +94,7 @@ on a free port and records it. Every minion on the task then works in that same 
 yours must work with, you both work in one worktree, each in your own directory, so you can import
 each other's code directly. When your first version is done, don't stop: read the sibling's
 module when you are asked, adjust your side, and tell the sibling (`send_to_agent`) what you need
-from theirs.
+from theirs. A sibling that is itself a task mastermind cannot be messaged directly (`policy.js` blocks it), so relay through the architect (`mastermind-servex`).
 
 Commit **inside your worktree branch**. When the work is verified, **merge it into `michael/dev`
 yourself** (the owner, 2026-09-24). **Merge carefully, never clobber.** The owner, the same day:
@@ -107,6 +107,7 @@ of containers." Before merging:
 - A change to shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs a
   before-and-after screenshot of three pages that use it and that you did not build.
 - The merge itself is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests, holds reloads and merges.
+  It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch does not apply to your own merge: fix the page, or land the smoke fix first.
 - A suggestion, not a law: before merging anything with a layout, run `node Server/layout-check.mjs <url...>` on the pages it touched and look at the contact sheet (all widths side by side). Empty space and one-thin-column lists show up in seconds; a green build shows neither.
 
 Wrap the merge itself in `node Server/hold.mjs on "<you> — merge"` / `off`, so the live site
@@ -120,7 +121,7 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 One page, one minion, in sequence — never two minions in one file, and never two on the same
 screen the owner is looking at. Each minion gets its own `requirements.md` with the owner's words
 at the top, its numbered deliverables, its fence and its length budget, and is told to load the
-`minion` skill first.
+`minion` skill first. When the task builds a card, say in the brief to write the card's files last, right before the merge: card dirs live in the main tree, so a card whose imports exist only in the worktree breaks live until then.
 
 **Run any command you put in a brief once yourself first** — an import path, a route pattern, a
 port. Thirty seconds of yours saves a retry apiece across every minion.
@@ -170,9 +171,13 @@ moving." A turn spent sitting in a wait is a turn nothing else progresses in.
 - **Every minion gets its own task log, a subtask of yours.** Spawn it with `task: {dir: "<your taskdir>/<minion-slug>", parent_task: "<your taskdir>", after: ["<your taskdir>/<sibling-slug>", …]}` (full task dirs, never bare slugs); a parent never shares its log (the tree: `/framework/ext/AITask/` tree.js).
 - **Long-running helpers run in the background** (a dev server, a Playwright watcher, a build).
   Start them so they report to you. Never poll them in a loop inside your own turn.
+  Start a minion's long run yourself, detached (`windowsHide`, `unref`), and tell the minion to end its
+  turn and wait for your wake: a minion waiting with Monitor re-reads its whole context every ~10 s
+  (one reached 428k tokens and $12), and a Servex restart kills any run a minion started as its child.
 - **Never miss a notice.** Every child and every background process must have a way to reach
   you: its Servex parent event, or a background job that ends when the thing happens. A child
   nobody hears from is worse than a slow one.
+- **Send a correction to a working minion queued, not `now`.** A `now` message ends the minion's turn and leaves it idle; if you did send one, follow it with a plain "continue".
 - **Not the in-process Agent tool's background mode.** Its completion goes to the main session,
   not to you. Both sub-masterminds that used it parked at cycle one, waiting for a notice that
   went somewhere else (2026-08-21).
@@ -191,6 +196,7 @@ browser, and logs every console error to `public/framework/ai/health/<date>.json
 watches the main site (`HEALTH_BASE=http://monorepo.localhost`). For your worktree, start one in
 the background **from the worktree's root**, against your own server
 (`HEALTH_BASE=http://127.0.0.1:<your port>`). It watches that tree's files and writes that tree's
+⚠ Today that worktree supervisor does not start while the main one runs: `health.mjs` holds one global lock (`Temp/lew42-health.lock`) and silently loops. Until the lock is per-base, check your worktree's pages with `merge.mjs`'s smoke test or a headless probe.
 log. Read the log after each minion lands. A console error on a page you touched is yours to fix before you
 land. A worktree server is started by `worktree-up.mjs` itself, not by Servex, so a Servex
 restart does not stop it; only the `<name>.localhost` route to it blips.

@@ -151,6 +151,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - Authorize the Gmail connector.
 - Say "prune" for the 739 dead files, **after** the five imports above are moved.
 - Keep git stash@{0} until that prune lands.
+- health.mjs lock is global (Temp/lew42-health.lock): make it per-base.
 
 [Where these came from](2026-09-24/loose-ends/)
 

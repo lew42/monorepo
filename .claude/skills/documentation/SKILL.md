@@ -48,6 +48,8 @@ next agent. Every important `doc/*.md` gets one summary line here, linked. Delib
 history and rejected alternatives move **verbatim** to `doc/decisions.md`; nothing is lost,
 it is one click down.
 
+**Name a file with a link, not a bare path:** on a page, `file_link(path, line?)` (exported from `/app.js`); in markdown, a link to its page. Name a method with its class-doc member page (`/framework/<module>/api/<method>/`) when one exists, rather than a line number. Either is one click to the real thing (the owner, 2026-09-29).
+
 ## 2. `page.js` — show, don't tell
 
 Code or a `demo()` first, never a paragraph. Prose is a caption. Variants of one thing go in

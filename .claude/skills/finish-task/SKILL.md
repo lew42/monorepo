@@ -49,6 +49,8 @@ board renders it in place of the generic viewer.
 
 ## 3. The landing line — one append to `task.jsonl`
 
+**First, run `git status --short` and look for every file this task touched.** If any is still uncommitted, commit it (by exact path) before you land, or the next merge sweeps it into someone else's commit (2026-09-29).
+
 ```json
 {"assign": {"step": <last>, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …", "links": [{"url": "/…/", "label": "…"}], "window": {"before": <carried>, "after": <5h fraction now>}, "tokens": <total>, "usage": {"input": …, "cache_write": …, "cache_read": …, "output": …, "calls": …}}}
 ```

@@ -40,7 +40,8 @@ module's box inside a container of yours — read back BOTH its `container-type`
 container stretches it.
 ⚠ The other half: a `@container` rule whose subject IS the box that declares the container never
 fires — a box cannot restyle its own container — and nothing throws; a three-card wall stayed at ONE
-column at every width, 3440 included (2026-09-17, the third time this year). Query a DESCENDANT.
+column at every width, 3440 included (2026-09-17, the third time this year). Put the size-changing rule on a plain descendant wrapper (one extra div), and let the container only provide the measured box.
+⚠ A closed `<details>` drops everything but its `<summary>` from the render tree, and no CSS brings it back — not `display: contents`, not `!important`; the box paints at zero height while computed styles look fine (2026-09-29). Keep the `<details>` empty but for its summary, put the real content as its next sibling, and style that sibling off the open state with `~` (`details[open] ~ .body`).
 ⚠ A class that does not exist paints nothing and throws nothing — verify a word by reading its rule in framework.css AND reading a computed style back, never by inference from a token: `--tint` is a real token with no `.tint` class, and `div.c("pad flex v gap tint")` shipped on eight layouts looking plausible until a probe read `rgba(0,0,0,0)` on every box.
 
 **2. Climb the ladder, stop at the first rung that works:**

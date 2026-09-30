@@ -21,10 +21,10 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 
 1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
 2. Write into `path` and commit there.
-3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun.
+3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun. A full-size branch is refused until `node Server/review.mjs <taskdir> <worktree>` has run, and that needs a `requirements.md` in the task dir.
 4. Call `return_worktree(id)` when done or unused.
 5. Servex always keeps one ready, so don't start your own worktree for a small fix.
-6. **Never link a worktree's `node_modules` to the main tree's** (no junction, no symlink, no mklink). Deleting that worktree deletes through the link and empties the main `node_modules`, and Servex crash-loops (2026-09-22, and again 2026-09-29 13:53–15:02, which killed every agent). If `take_worktree()` fails, message your parent; don't improvise one.
+6. **Never link a worktree's `node_modules` to the main tree's** (no junction, no symlink, no mklink). Deleting that worktree deletes through the link and empties the main `node_modules`, and Servex crash-loops (2026-09-22, and again 2026-09-29 13:53–15:02, which killed every agent). If `take_worktree()` says all are taken, run `node Server/worktree-up.mjs <slug>`: it makes a private worktree with its own server, which merge.mjs needs for its smoke test. If that fails too, message your parent; don't improvise one.
 7. **Stop every server you start.** A `PORT=… node server.js &` you ran to test something keeps running after you land (09-29: five of them, about 1 GB, held while spawns were queued for memory). Kill it before your turn ends.
 8. **A proof never posts as the owner.** Every server, a worktree's included, forwards chat and prompt posts to Servex, which appends them to the MAIN tree's live logs and wakes real assistants. So a proof that types into a composer, chat or ✦ sheet must stub posting (intercept the POST with `page.route` and answer it from a fixture), or post with `via:"test"` to a scratch path. Never post as `by:"owner"` (2026-09-29: a chat-hitl proof posted its demo sentence to ext/Chat/ai/chat.jsonl three times, each as the owner, and each woke two paid agents).
 
@@ -59,6 +59,8 @@ Run `new-task` inside the task dir your brief names — it already exists; you w
 ## While working
 
 Your plan is the `steps` of your launch line. As each step starts, append `assign` with `step` and `now`; append a `decision` (alternative named) or a `log` caveat **the moment it happens**, never at the end — if your session dies, a fresh agent resumes from the log plus the readme. Append with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (stamps `"NOW"`, re-parses the file). Never write a `findings.md`; the task log is the only findings file. Token cost is written by Servex.
+
+If the health-guard hook blocks a write and its `at` timestamp is not moving forward, load the named page headless yourself. If it shows real content and no console errors, the finding is stale: log that in task.jsonl and carry on (2026-09-28).
 
 ## The reload hold — seconds, never minutes
 
@@ -119,7 +121,7 @@ The design and the measurements: [`reload-hold`](/framework/ai/2026-09-19/reload
 
 Keep things moving (the owner, 2026-09-24: "be very careful to manage concurrency, not block the session, keep things moving"). First choice: don't wait at all. Start the slow thing (a server, a build, a Playwright run) in the background and do the next useful thing meanwhile. Only a result you cannot continue without is worth a wait, and then wait in chunks under the tool's timeout (pass `timeout: 600000`, or loop with `Start-Sleep 15`): a wait past the timeout backgrounds silently and ends your turn.
 
-**Never wait by polling with Monitor or repeated short checks.** Every check is a full turn that re-reads your whole context. On 2026-09-29 one Sonnet minion reached 428k tokens and $12, mostly spent waiting. For a run longer than about 10 minutes, start it detached, write where its output goes in task.jsonl, and end your turn. Your parent, or the heartbeat, wakes you.
+**Never wait by polling with Monitor or repeated short checks.** Every check is a full turn that re-reads your whole context. On 2026-09-29 one Sonnet minion reached 428k tokens and $12, mostly spent waiting. For a run longer than about 10 minutes, start it detached, write where its output goes in task.jsonl, and end your turn. Your parent, or the heartbeat, wakes you. A Servex restart kills any run you started as your own child, so ask your mastermind to launch a run that must survive (detached, `windowsHide`, `unref`).
 
 ## Resolve, don't park
 
