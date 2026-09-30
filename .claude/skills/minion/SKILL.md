@@ -9,6 +9,8 @@ description: Load this first, before touching anything, when you have been start
 
 **Nothing merges into michael/dev without a smoke test.** `node Server/merge.mjs <worktree> [pages]` loads the pages you touched, plus `/framework/` and `/framework/ai2/`, on the worktree's own server, and merges only with zero console errors, page errors and failed module requests. A full UI test is not needed to merge.
 
+- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
+
 ## Skills are the Servex mastermind's to change (the owner, 2026-09-30)
 
 You don't edit a shared skill (`.claude/skills/*`) yourself. When one let you down or could be better, send the Servex mastermind (the current `mastermind-servex-N`) your recommendation: the skill, the line, what happened, and the change you'd make. It reviews every recommendation and applies it across the skill system. Appending one line to a skill's `improvements.md` is still fine. Your own module's readme and `doc/` are yours: keep them current yourself.

@@ -121,6 +121,8 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 
 Work on one module is coordinated by ONE mastermind: the one holding its worktree. On taking a module, `claim_topic` with its path (e.g. `core/Page`) and release it at landing; `list_claims` tells any agent who coordinates a module. Anything another agent has for your module comes to you (send_to_agent, or a page inbox `drop` that routes to you), never as chatter on the page. A page inbox is for necessary coordination only: `drop(path, text)` reaches the module's coordinator, or waits in the page's AI tab until cleared. Before touching a module someone else has claimed, message its coordinator.
 
+- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
+
 ## Split the task, fence the minions
 
 A minion is for work that fills a turn. An edit of a few lines (a rule added to a skill, a link, a caption, a fix a reviewer named by line) you make yourself, now: a minion spawned for it waits in the memory queue for longer than the edit takes and holds the slot a real minion needs (2026-09-30, a two-line edit queued at position 9). The same holds when memory is short: a minion that has waited at the spawn gate for about 5 minutes on a piece you could build in one turn, you dequeue (stop_agent works on a queued id) and build yourself, with one log line saying so.

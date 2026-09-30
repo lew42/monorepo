@@ -38,6 +38,8 @@ it there with one line and a link, and let the owner pick. What you can still do
 is finish what was asked, including the small fixes it needs to work. `ai/readme.md` points at
 todo.md, so keep it current when an item lands or is dropped.
 
+- **Switching directory → load the chain again.** Every agent starts with the readme chain, root first, down to its directory (the owner, 2026-09-30). When you move to another directory, run `load_module <dir>` there before touching it, or hand the work to a fresh session in that directory (which also keeps context small).
+
 ## Spawning — `spawn_agent` on Servex, the CLI as the fallback
 
 Never the in-process Agent tool: nobody else can reach, message or reopen one, it shares your session id, and it is lost when the tab is (the owner, 2026-09-19). Servex holds sessions in one long-running process and exposes them as MCP tools, so any session anywhere can steer a running agent — and a child's completion arrives as an **event addressed to its parent**, which is what stops a parent parking.

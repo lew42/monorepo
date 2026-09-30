@@ -90,6 +90,10 @@ export function readme_chain(dir){
 function within_cap(header, blocks){
 	const size = list => (header + "\n\n" + list.join("\n\n")).length;
 	let list = blocks.slice();
+	// Over the cap the MIDDLE levels go first, root and leaf last (the owner, 2026-09-30:
+	// "reading a great-grandchild readme out of context doesn't help" — the root is the
+	// context, the leaf is the work).
+	while (list.length > 2 && size(list) > CHAR_CAP) list.splice(list.length - 2, 1);
 	while (list.length > 1 && size(list) > CHAR_CAP) list.shift();
 	return list;
 }
