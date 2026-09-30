@@ -284,7 +284,9 @@ export default class Processes extends Events {
 
 	/* What `/api/processes` and `system_health` hand out. */
 	summary({ history = true } = {}){
-		return { ...(this.now ?? { at: null, groups: [], orphans: [] }), history: history ? this.history : undefined };
+		return { ...(this.now ?? { at: null, groups: [], orphans: [] }),
+			worktrees: this.servex?.worktrees?.summary() ?? null,     // Worktrees.js: the count, and what was removed
+			history: history ? this.history : undefined };
 	}
 
 	/* One line for system_health and the flag message. */
@@ -295,7 +297,8 @@ export default class Processes extends Events {
 		const top = s.groups.filter(g => g.kind === "task").slice(0, 3).map(g => `${g.label} ${gb(g.mb)} GB`).join(", ");
 		return `Ours ${gb(s.ours.mb)} GB in ${s.ours.n} processes, everything else ${gb(s.other.mb)} GB, ${gb(s.free_mb)} GB free.`
 			+ (top ? ` Top tasks: ${top}.` : "")
-			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "");
+			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "")
+			+ (this.servex?.worktrees ? ` ${this.servex.worktrees.line()}` : "");
 	}
 }
 
