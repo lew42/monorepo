@@ -646,3 +646,13 @@ rebuild on nearly every `paint()`, because its signature (`JSON.stringify`) incl
 usage percentages that tick almost every call. Fixing that touches `card_page()`'s `draw()` in
 `page.js` more broadly than this task's fence (`ai2/**`, `ext/drawer/**`) asked for — a good next
 step for whoever turns `board()`'s closure into a class.
+
+**The archive × on a preview row had the same stretch bug as the unread dot**, and the same fix
+(`ai2.css`, `.ai2-row-head > .ai2-clear`): `align-self: flex-start` so the flex row's default
+stretch stops growing it to the row's own height, `min-block-size: 0` so the framework's own
+control-grammar `min-height: 2.4em` (`framework.css`'s "one box, every control" rule — every
+`<button>` gets it) stops setting a floor, and an explicit `block-size: 1.35em` (matching the
+title's own line-height) plus a `box-sizing`/`padding-block`/`line-height` reset so the button's
+own browser chrome cannot re-add the height back on top. Scoped to `.ai2-row-head >`, not the
+bare class, so the Live card's own ✕ (`.ai2-live-item .ai2-clear`, a grid cell, a different
+layout entirely) keeps its own sizing untouched.
