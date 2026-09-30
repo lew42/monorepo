@@ -135,7 +135,10 @@ own mistake mid-task; caught and corrected the same way, an appended corrective 
 
 `Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last
 commit, or has a `[fix]` finding with no answer yet. The refusal names the one command above to
-run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`.
+run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`. A branch that
+also touches a page is refused unless that review has its own page report (`review/report.md`,
+with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
+gets is not enough for a page.
 
 `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
 board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or
