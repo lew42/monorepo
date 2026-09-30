@@ -1108,15 +1108,21 @@
 	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
 
 	/* THE NEEDS-YOU TAB'S COUNT (the owner, 2026-09-30: "a small count badge on the tab when
-	   something's truly waiting") — a small pill, never a wall of red; hidden at zero. */
+	   something's truly waiting") — a small pill, never a wall of red; hidden at zero.
+	   ⚠ `:not([hidden])`, not a bare `display: inline-flex` — a plain rule here beats the
+	   browser's own `[hidden] { display: none }` (equal specificity, author beats UA regardless
+	   of layers — the exact trap `.ai2-need-err` already names below, review finding 2026-09-30:
+	   a bare `display: inline-flex` left a small empty pill on the tab at zero). */
 	.ai2-tab-badge {
-		display: inline-flex; align-items: center; justify-content: center;
+		display: none;
+		align-items: center; justify-content: center;
 		min-width: 1.4em; height: 1.4em; padding-inline: 0.35em;
 		margin-inline-start: 0.4em;
 		border-radius: 999px;
 		font-size: 0.75em; font-weight: 700;
 		background: var(--prim); color: var(--on-prim, #fff);
 	}
+	.ai2-tab-badge:not([hidden]) { display: inline-flex; }
 
 	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
 	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
@@ -1162,25 +1168,16 @@
 	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
 	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
 	   whole shell — no rail, no sub column — while they are the active page. */
-	.ai2:has(.ai2-needs-page.active-page) { grid-template-columns: minmax(0, 1fr); }
-	.ai2:has(.ai2-needs-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
-	.page.ai2-needs-page {
+	/* One block for both — same four rules, repeated (review finding, 2026-09-30). */
+	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) { grid-template-columns: minmax(0, 1fr); }
+	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
+	.page:is(.ai2-needs-page, .ai2-log-page) {
 		display: block;
 		height: 100%;
 		overflow-y: auto;
 		padding: var(--pad);
 	}
-	.ai2-needs-page > .page-title { display: none; }
-
-	.ai2:has(.ai2-log-page.active-page) { grid-template-columns: minmax(0, 1fr); }
-	.ai2:has(.ai2-log-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
-	.page.ai2-log-page {
-		display: block;
-		height: 100%;
-		overflow-y: auto;
-		padding: var(--pad);
-	}
-	.ai2-log-page > .page-title { display: none; }
+	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
 
 	.ai2-overview {
 		padding: var(--pad);
@@ -1444,18 +1441,11 @@
 	}
 
 	/* THE SAME "N UPDATED ↑" PILL AS THE RAIL (the owner: the reorder fix "applies to both") —
-	   `.ai2-log-updated` only adds its own position, since it floats over a plain block instead
-	   of the rail's absolutely-positioned `.ai2-stream`. */
-	.ai2-log-updated {
-		position: sticky;
-		inset-inline: auto;
-		top: 0;
-		z-index: 2;
-		width: fit-content;
-		margin-block-end: 0.6em;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
-	}
-	.ai2-log-updated:not([hidden]) { display: inline-flex; }
+	   `log.js` puts BOTH classes on its button (`ai2-updated ai2-log-updated`), so every rule
+	   above (position, size, colour) already applies; this adds only the one thing that differs,
+	   the gap below it before the first row (simplified, review finding 2026-09-30 — it used to
+	   restate `.ai2-updated`'s position/size/shadow rules with barely different numbers). */
+	.ai2-log-updated { margin-block-end: var(--gap-35, 0.5em); }
 
 	/* GREEN = DONE, YELLOW FLASHING = IN PROGRESS, RED = STALLED (the owner, verbatim: "the
 	   yellow flashing is sort of like in progress and green should be done"). `visibility`
