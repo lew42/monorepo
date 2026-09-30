@@ -28,6 +28,7 @@ await resume(rows[0].session);                          // continue one
 - Sessions are listed and resumed per **project**, not per host: the phone on `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same ones; two different sites never mix ([doc/sessions.md](./doc/sessions.md)).
 - For the ✦ sheet (`ext/drawer/rail.js`): `start()` on the first sentence, `recent(page, {limit: 1})` on open for the one-line resume offer, `resume(id)` when it is tapped, and `say({floor, cues})` + `floor()` for the floor.
 - `start({path, fresh: true})` always begins a new session, even if this page spoke within the last hour — that is what the ✦ sheet's "New session" button sends on its next sentence, so the button actually starts fresh instead of silently continuing.
+- `start({path, card})` makes an AI 2 card the session's home (`/framework/ai/<card>/`) instead of the nearest folder to `path`, so a card page can be a voice session's home too: [doc/sessions.md](./doc/sessions.md#card-sessions).
 
 ## More
 

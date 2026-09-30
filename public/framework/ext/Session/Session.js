@@ -12,7 +12,13 @@ import { servex_url } from "/framework/dev/servex_url.js";
  *
  * One ✦ press is one session. Its whole conversation is one file under the page it
  * started on, `<home>ai/<session>.jsonl`, and `watch()` polls that file. A press on a
- * page whose session spoke in the last hour continues that session (`resumed: true`). */
+ * page whose session spoke in the last hour continues that session (`resumed: true`).
+ *
+ * A CARD session: pass `card`, a card id like `2026/09/29/audio-a-library-of-…` (the id
+ * `ai2/`'s pages already use), and the session's home becomes that card's own folder,
+ * `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file sits
+ * beside the card's `page.jsonl`, and the ✦ sheet can be the card's home page. `path` is
+ * still kept as where the owner actually stood. See `doc/sessions.md` for the shape. */
 
 /** A refined line's `level`: the owner's words cleaned, edited, or summed up. */
 export const LEVELS = ["clean", "edit", "summary"];
@@ -28,9 +34,10 @@ async function post(verb, body){
 /** A session for `path`: the one that spoke there in the last hour (`resumed: true`), else a new one
  *  with `previous` = the page's most recent older session `{session, title, summary, at}` or null.
  *  `fresh: true` (the "New session" button, voice-fixes review item 1) always starts a new one,
- *  even when a session on this page spoke in the last hour. */
-export const start = ({ path = location.pathname, host = location.host, fresh } = {}) =>
-	post("new", { path, host, ...(fresh ? { fresh: true } : {}) });
+ *  even when a session on this page spoke in the last hour. `card` (a card id) makes the session's
+ *  home that card's own folder instead — see the file header. */
+export const start = ({ path = location.pathname, host = location.host, card, fresh } = {}) =>
+	post("new", { path, host, ...(card ? { card } : {}), ...(fresh ? { fresh: true } : {}) });
 
 /** Continue any session by id; its assistants wake if they slept. */
 export const resume = session => post("resume", { session });
