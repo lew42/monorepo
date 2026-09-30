@@ -72,6 +72,7 @@ export default class Rename extends View {
 				.attr("aria-pressed", String(this.selected))
 				.text(this.current())
 				.click(() => this.select())
+				.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.select(); } })
 				.ac(this.selected ? "ux-rename-selected" : "");
 
 			if (this.selected){
@@ -85,8 +86,17 @@ export default class Rename extends View {
 		});
 	}
 
+	// Selecting THIS card deselects any sibling sharing the same `group` array (the
+	// demo's own three cards) — "first it kind of selects that card" reads as one
+	// selection at a time, and a shared demo let two cards look selected at once
+	// (review.md #4) before this.
 	select(){
 		this.selected = !this.selected;
+
+		if (this.selected) this.group?.forEach(r => {
+			if (r !== this && r.selected){ r.selected = false; r.editing = false; r.draw(); }
+		});
+
 		this.draw();
 	}
 
@@ -160,7 +170,8 @@ Rename.Demo = class RenameDemo extends View {
 		this.ac("ux-rename-demo flex v gap");
 		this.log = [];
 
-		CARDS.forEach(c => new Rename({ ...c, log: this.log, on_rename: () => this.refresh_log() }));
+		const group = [];
+		CARDS.forEach(c => group.push(new Rename({ ...c, log: this.log, group, on_rename: () => this.refresh_log() })));
 
 		div.c("h4 muted", "Log (latest line for an id wins)");
 		this.$log = pre.c("ux-rename-log muted");

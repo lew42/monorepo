@@ -118,7 +118,8 @@ export default class Understand extends View {
 			.attr("tabindex", "0").attr("role", "button")
 			.attr("title", m.purpose || "This sentence might mean more than one thing.")
 			.text("?")
-			.click(() => this.spotlight(i));
+			.click(() => this.spotlight(i))
+			.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); this.spotlight(i); } });
 	}
 
 	/* The owner's own words: "first it kind of selects that card" — scroll it into
