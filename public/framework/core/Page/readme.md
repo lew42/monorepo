@@ -15,7 +15,7 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 [make](./make/) — making a page, five ways; agents use the `create_page` tool (Servex)
 [storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md)
 [settings](./settings/) — tabs that manage themselves (a `tab` line on the parent) and a page's own nav switch (a `settings` line on the child)
-[ext](./ext/) — extensions: a page.jsonl line (`{"ext": "Inbox"}`) or `Page.use(Ext)` turns a small piece of behavior on, by name. The first one, `Inbox`, lets any agent leave a `{"inbox": …}` message on any page's own log.
+[ext](./ext/) — extensions: a page.jsonl line (`{"ext": "Inbox"}`) or `Page.use(Ext)` turns a small piece of behavior on, by name. The first one, `Inbox`, lets any agent leave a `{"inbox": …}` message on any page's own log. Its readme also has the **path extensions** census — `md/` and `fs/` (built into every page, step 3 above) plus the per-page AI chat pair and the AI/AI 2 task-folder patterns: [`ext/doc/path-extensions.md`](./ext/doc/path-extensions.md).
 [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK, plus `page_work()` — a page's own open tasks and agents, opt-in ([doc/work.md](./ai/doc/work.md))
 [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
 [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first

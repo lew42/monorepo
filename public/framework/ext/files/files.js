@@ -316,7 +316,15 @@ export function nest(paths, cut){
 		let node = root;
 
 		segments.forEach(dir => node = node[dir] ??= {});
-		node[file] = path;
+
+		// A path ENDING in "/" (a bare directory marker, no file after it — e.g.
+		// core/Page's own `{"file": "Inbox/"}` line) splits to a trailing "" here.
+		// The `forEach` above already made the directory node exist; writing an
+		// empty-named leaf INTO it was an unlabelled row with no name and nothing
+		// to click (found 2026-09-30, core/Page/ext/'s own file tree, under
+		// "Inbox"). A real file never has an empty name, so this guard only ever
+		// catches the bare-directory case.
+		if (file) node[file] = path;
 	});
 
 	return root;

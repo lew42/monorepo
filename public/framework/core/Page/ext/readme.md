@@ -41,6 +41,27 @@ you're not sure it's finished yet (`demo.js`, on this page, does this).
   lines (any agent, or the owner, just appending a message) into `page.inbox`. Click
   through to it from this page's own file tree, below.
 
+## Path extensions — a different kind: a page gains a URL, not a behavior
+
+An extension above turns on *inside* one page's own box. A **path extension** hands
+a page an *extra url* it never declared — one folder (`md/`) or a whole subtree
+(`/framework/ai/<date>/<slug>/`). Found by reading every `route()` and every hard-coded
+check in `core/Page`, below the table this page draws live:
+
+| Adds | On | Where it saves | Built? |
+|---|---|---|---|
+| `md/` — this folder's `.md` files, rendered | every page | nothing (read-only) | Yes, core |
+| `fs/` — this folder's real files, full screen | every page | nothing (read-only) | Yes, core |
+| Its own AI assistant, manager and chat log | any page, on first message | `<page>ai/chat.jsonl` | Yes, Servex's `Layers.js` |
+| A day's task folders | `/framework/ai/<date>/` | `ai/<date>/<slug>/task.jsonl` … | Yes, `ai/page.js` |
+| A card's own folder | `/framework/ai2/<y>/<m>/<d>/<card>/` | that folder's `page.jsonl` | Yes, `ai2/card.js` |
+| A generic `<page>/edit/` workspace | — | — | **No** — one hand-built page only, [`/imagine/cms/edit/`](/imagine/cms/edit/) |
+
+None of these go through `{"ext": "Name"}` — `md/` and `fs/` are checked before a
+page's own `route()` ever runs, and the AI/AI2 rows read straight off disk, outside
+`Page` entirely. Why none moved onto this page's own mechanism, and the full census:
+[`doc/path-extensions.md`](./doc/path-extensions.md).
+
 ## Watch out
 
 - The name in the jsonl line IS the folder and file name, spelled exactly the same:
@@ -55,4 +76,5 @@ you're not sure it's finished yet (`demo.js`, on this page, does this).
 
 Files: `Page.class.js` (`Page.use`, the constructor hook, the `render` emit) ·
 `Log.js` (`ext()`, `on`/`emit`, `jsonl_lines`) · `page.jsonl` + `demo.js` (this page,
-the demo itself).
+the demo itself) · `paths.js` (the path-extensions table, above) ·
+`doc/path-extensions.md` (the full census).
