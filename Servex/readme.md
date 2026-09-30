@@ -102,7 +102,7 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
 
-**Inbox** — `agents/inbox.js`: coordination, never chat. `drop(path, text)` sends a note to the mastermind coordinating that page's module (its `claim_topic`), or else leaves it in the page's inbox, shown in the page's AI tab; `clear(path, id)` clears it. One line each, appended to the page's `page.jsonl`. See [`doc/inbox.md`](./doc/inbox.md).
+**Inbox** — `agents/inbox.js`: coordination, never chat. `drop(path, text)` sends a note to the mastermind coordinating that page's module (its `claim_topic`), or else leaves it in the page's inbox, shown in the page's AI tab; `clear(path, id)` clears it. One line each, appended to the page's `page.jsonl`. Known rule: a folder that isn't a page (no page.js, no page.jsonl) never gets one; its notes go to the nearest page above it, or the loader would turn it into a jsonl page. See [`doc/inbox.md`](./doc/inbox.md).
 
 **Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).
 
