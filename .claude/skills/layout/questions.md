@@ -44,3 +44,4 @@ The layout skill's rules, worded as questions a reviewer answers yes, no or n/a 
 29. Does a live page stay still as items arrive, with new items waiting behind an "N new" pill? [layout: the layout never jumps]
 30. Does no prose line run past the measure at any width? [layout: look at it, then cycle] [measured: layout.json widest_text]
 31. Does fixed chrome around the site (a frame, a dev shell, a rail) push `.app` by tokens rather than re-parent it, so turning it off gives exactly the page as before? [dev-shell, 2026-09-30]
+32. Is content inside a tab or a nested page padded once? A `.page` inside a `.page` must not add its own side padding (ai-page, 2026-09-30: 56px at 400px on every Docs tab).
