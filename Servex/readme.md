@@ -98,6 +98,8 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Budgets**: at 100% of a task's budget its mastermind and parent are told once and new spawns under it are refused; at 150% its minions stop. See [`doc/budget.md`](./doc/budget.md).
 
+**A worktree page never speaks as the owner.** A post whose Origin is a worktree (its port or `<name>.localhost`, from `.worktrees.json`) is `via: "worktree:<name>"`: a log line is stamped with it and wakes no assistant or dispatcher, and a card post or a Live-card message from there is answered as a stub, written nowhere (`Servex.via()`).
+
 **Worktree pool** — `Pool.js` keeps one quick-fix worktree warm: any agent calls `take_worktree` and gets its path and URL at once, then `return_worktree` hands it back ([`doc/pool.md`](./doc/pool.md); `GET /api/worktrees`; `SERVEX_NO_POOL=1` turns it off).
 
 **Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).

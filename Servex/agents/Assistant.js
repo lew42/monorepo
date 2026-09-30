@@ -89,7 +89,7 @@ export default class Assistant {
 	 * cue. Nothing polls; nothing else in Servex has to know we exist. */
 	listen(){
 		this.servex.log.on("append", (name, entry) => {
-			if (name === this.log && entry.type === "prompt") this.heard(entry);
+			if (name === this.log && entry.type === "prompt" && !String(entry.via ?? "").startsWith("worktree:")) this.heard(entry);   // a worktree page's test post wakes nobody
 		});
 	}
 
