@@ -26,6 +26,7 @@ import Assistant from "./agents/Assistant.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
 import Layers from "./agents/Layers.js";
+import Sessions from "./agents/Sessions.js";
 import Global from "./agents/Global.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
@@ -209,6 +210,7 @@ export default class Servex extends Events {
         if (!process.env.SERVEX_NO_LAYERS){
             this.layers = new this.constructor.Layers({ servex: this }).install();
             this.global = new this.constructor.Global({ servex: this }).install();
+            this.sessions = new this.constructor.Sessions({ servex: this }).install();   // one ✦ press = one voice session (agents/Sessions.js)
         }
 
         /* THE WORKTREE POOL (quickfix-worktrees, 2026-09-25): one warm worktree any agent
@@ -949,6 +951,7 @@ Servex.Assistant = Assistant;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
 Servex.Layers = Layers;
+Servex.Sessions = Sessions;
 Servex.Global = Global;
 Servex.External = External;
 Servex.MCP = MCP;
