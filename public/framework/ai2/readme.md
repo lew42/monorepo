@@ -81,9 +81,27 @@ message asks you something — with its answer control right there, so you never
 card to answer it. It does NOT list a task-loop or heartbeat "close it, or keep chasing?" — that
 is the SYSTEM's own question (the heartbeat revives or stops a stalled task, and the Servex
 mastermind decides), never the owner's, so it is filtered out (2026-09-30) — it still shows, and
-still answers, on the card's own page. The inbox rail's own "Needs review" checkbox (`?review=1`)
-filters to the SAME rows, and its tab carries a small count badge, hidden at zero. All three read
-one shared rule: [`doc/needs-you.md`](./doc/needs-you.md), [`needs-rule.js`](./needs-rule.js).
+still answers, on the card's own page.
+
+**2026-09-30, latest: "Needs you" moved off the tab strip, onto the rail itself.** It is now the
+rail's own filter checkbox — relabelled "Needs you" (was "Needs review"), right beside "+ New
+card" — and carries a small count badge, hidden at zero, the same one the tab used to wear. The
+tab is gone from the strip; `needs/` is still a real, working address for an old link or
+bookmark, just unlinked. `page.js`'s `board()` function draws it now; `needs.js`'s own page
+(`needs_view()`) is unchanged. All three (the chip, the old `needs/` page, and Servex's own
+`/waiting` route) still read one shared rule: [`doc/needs-you.md`](./doc/needs-you.md),
+[`needs-rule.js`](./needs-rule.js).
+
+**The rail also has a plain search box and two per-row buttons, all new 2026-09-30**
+([`rules.js`](./rules.js)): a search field beside the "Needs you" chip filters the plain card
+list by title and text (not the groups or real-page rows, which draw themselves separately); the
+dot on every row is a real button now — press it to mark that card read or unread, remembered in
+this browser only, never automatically on open (the read/unread note two paragraphs up still
+applies: looking at a card is not a decision about it, pressing the dot is); and a small × beside
+the timestamp archives the row directly, the same write the card's own page already makes with
+its "clear" button. A card that `needs-rule.js` says nothing is waiting on any more — every open
+Decision or Question on it already answered — dims a little on its own, no button pressed
+(`rules.js`'s `is_resolved()`): automatic resolution, the fourth of that file's four small rules.
 
 **"Log"** ([`log/`](/framework/ai2/log/), 2026-09-30) is everything in flight, one row per TASK
 — never a heartbeat ping, never a minion on its own (a minion belongs inside its task, and
@@ -93,7 +111,8 @@ the [Overview](/framework/ai2/overview/) tab's "Completed (n)" fold is for). Eac
 status dot: green (landed), red (a heartbeat or task-loop escalation with no LATER revive —
 still stalled), yellow and flashing (open, working). [`log.js`](./log.js).
 
-**Four tabs under the title: Inbox, Needs you, Log and Overview.** Inbox is the rail and a
+**Three tabs under the title: Inbox, Log and Overview** (was four — "Needs you" moved to the
+rail's own filter chip, 2026-09-30, just above). Inbox is the rail and a
 card's own page, described just below; [Overview](/framework/ai2/overview/) is one big icon card
 per concept (Servex, Page, View, App, AI 2, Dictation, Research & Collab), each with its open
 asks and a folded "Completed (n)" line, built from the task logs. How: [`doc/overview.md`](./doc/overview.md).
@@ -272,5 +291,6 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (the look),
   `floating.js` (the Floating page layout: a left nav beside a centred page; no AI 2 imports),
   `workspace.js` (the `?view=workspace` switch), `real.js` (a real site page shown in the detail column, and its rail row),
-  `needs.js` (the Needs you tab), `needs-rule.js` (the shared "does this need the owner" rule),
-  `log.js` (the Log tab — everything in flight, one row per task, a status dot)
+  `needs.js` (the `needs/` page), `needs-rule.js` (the shared "does this need the owner" rule),
+  `log.js` (the Log tab — everything in flight, one row per task, a status dot), `rules.js`
+  (read/unread, archive-from-the-row, and automatic resolution — the rail's three small row rules)

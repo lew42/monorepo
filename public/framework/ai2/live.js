@@ -148,8 +148,12 @@ export function live_model({ prompts, day }){
 	function running(){
 		// `talkable`: a real Claude session has a model; the Dispatcher (a fake
 		// agent in the same map) has none, and Servex refuses a message to it.
+		// ⚠ NO " — now" SUFFIX (the owner's "redundant wording" ask, 2026-09-30, minion-ai2-inbox):
+		// this row already sits under the "Running now" heading and wears a state badge reading
+		// "working" — a line that ALSO ended in "— now" read as "Running now … role — now",
+		// saying "now" twice for the same fact. The role alone is enough.
 		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: plain_name(a), talkable: !!a.model,
-			state: a.state, line: a.state === "working" ? (KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? "working") + " — now" : (KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? ""),
+			state: a.state, line: KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? (a.state === "working" ? "working" : ""),
 			at: a.started_at })).sort((x, y) => (y.state === "working") - (x.state === "working"));
 	}
 

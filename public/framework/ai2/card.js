@@ -18,6 +18,7 @@ import { author_word, role_word, type_icon, create_card, append_card, cards_read
 import { watch_needs, needs_for, needs_soon } from "./needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { seen, mark_seen, card_events, activity_list } from "./activity.js";
+import { mark_read } from "./rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
 
@@ -1037,6 +1038,15 @@ export default class Card extends Page {
 	// back to has to re-register and pick up titles that changed meanwhile.
 	activated(){
 		this.seen_from = null;   // each visit marks what is new since the last one (activity_tab)
+		// ⚠ 2026-09-30, ASK 2, "opening a row marks it read" — the brief's own literal words for
+		// THIS task. Not a reopening of the 2026-09-22 decision two screens up in page.js: that
+		// one was a SHARED `read` line (`verdicts.jsonl`) that made a row vanish for everyone the
+		// moment anyone opened it — "No no no. I need them all unread again." This is a per-
+		// browser `localStorage` flag (`rules.js`) that only ever un-bolds a title; the row never
+		// leaves the Inbox and nobody else's copy changes. The Live card has no `id` worth
+		// marking and is always drawn fresh regardless, so this is harmless for it either way.
+		mark_read(this.id);
+		this.shell?.ai2?.repaint?.();
 		// `top`/`ws` (page.js's rail header, the `workspace` word): both are `tabbed()` here —
 		// a top-level card fills `$detail` AND is exactly what `in_workspace()` would change;
 		// a sub-card (a request) is neither, so it must not touch the word for the top-level

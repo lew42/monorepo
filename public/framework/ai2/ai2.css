@@ -416,7 +416,9 @@
 	}
 
 	/* ⚠ `visibility`, not `display`: the dot keeps its space, so reading a card
-	     cannot shift the title beside it. */
+	     cannot shift the title beside it. A REAL `<button>` now (deliverable 2, 2026-09-30:
+	     press it to mark read/unread), so the three resets below undo the browser's own
+	     button chrome — without them a default border and padding grew it past 0.5em. */
 	.ai2-dot {
 		width: 0.5em;
 		height: 0.5em;
@@ -424,10 +426,37 @@
 		background: var(--prim);
 		flex: none;
 		visibility: hidden;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
 	}
 
 	.ai2-row.ai2-unread .ai2-dot {
 		visibility: visible;
+	}
+
+	/* ⚠ 2026-09-30 FIX (review finding #7): a bare `<button>` inherits the browser's own form-
+	   control box model (its own font, line-height and box-sizing), not the page's — on an
+	   otherwise-unstyled button that can grow past the explicit 0.5em square into a tall pill.
+	   These three make it a plain box again, the same as the `<span>` it replaced. */
+	.ai2-dot {
+		box-sizing: border-box;
+		font: inherit;
+		line-height: 1;
+	}
+
+	/* ASK 2, "bold/different": an unread row's own title, not just its dot — the dot alone
+	   asks the owner to notice one more tiny thing; the title is what they are already
+	   reading. `700`, one step up from a row title's own `600` (just above). */
+	.ai2-row.ai2-unread .ai2-row-title {
+		font-weight: 700;
+	}
+
+	/* DELIVERABLE 5 — SEARCH, beside the other two filters in the same chrome row; `flex: 1`
+	   so it takes the row's own leftover space instead of sizing to its placeholder text. */
+	.ai2-search {
+		flex: 1 1 8em;
+		min-width: 6em;
 	}
 
 	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "I don't like the truncated

@@ -23,6 +23,7 @@ import { agent_cost } from "./agents.js";
 import workspace from "./workspace.js";
 import { RealPage, page_events, page_face, real_title } from "./real.js";
 import { unseen } from "./activity.js";
+import { is_read, mark_read, archive_row, is_resolved } from "./rules.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -74,20 +75,16 @@ export default new Page({
 	     is Inbox, kept first in the markup on purpose (`ai2.css`'s `order` then draws it
 	     wherever it visually belongs). A card route matches no tab's own href, so it always
 	     falls through to that same fallback: Inbox lights, same as the bare url itself. */
+	/* ⚠ "NEEDS YOU" LEFT THE TAB STRIP, 2026-09-30 (the mastermind's own correction to this
+	   task's brief): it is now the rail's own filter CHIP — the "Needs review" checkbox in
+	   `board()`, below, relabelled "Needs you" and carrying the same count badge this tab
+	   used to. `needs/` is still a real, working address (`route()` still answers it, just
+	   below) for an old link or a bookmark — it is only unlinked from the strip. */
 	content(){
-		let $needs_badge;
 		div.c("ai2-head", () => {
 			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
 			div.c("tabs block", () => div.c("tab-bar", () => {
 				a.c("tab tab-default ai2-tab-inbox").href(this.url).text("Inbox");
-				a.c("tab ai2-tab-needs").href(this.url + "needs/").append(() => {
-					span("Needs you");
-					// A SMALL COUNT, never a wall of red — the owner, 2026-09-30: "a small count
-					// badge on the tab when something's truly waiting". Hidden at 0, same shared
-					// scan (`watch_needs`) the tab's own list and the rail's filter both read, so
-					// it can never disagree with either.
-					$needs_badge = small.c("ai2-tab-badge").attr("hidden", "");
-				});
 				a.c("tab ai2-tab-log").href(this.url + "log/").text("Log");
 				a.c("tab ai2-tab-overview").href(this.url + "overview/").text("Overview");
 			}));
@@ -96,11 +93,6 @@ export default new Page({
 		// route, including the bare url, shows it; `needs/` and `overview/` take over the whole
 		// shell instead, the same `:has(.active-page)` trick `overview/` already used.
 		div.c("ai2-shell", () => { this.ai2 = board(this); });
-		watch_needs(s => {
-			const n = s.rows.length;
-			$needs_badge.el.hidden = !n;
-			if (n) $needs_badge.text(String(n));
-		});
 	},
 
 	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
@@ -258,7 +250,11 @@ function board(page){
 	// groups and the task folders each finish their own first load — see `order_rows()`.
 	const settle_until = Date.now() + 2500;
 	let $shell, $count, $pill, $updated, $rows, $detail, $sub, $flagger, $notes, $archived, $ws;
-	let $groups, $pinned, $unfiled, $unfiled_head, $list;
+	let $groups, $pinned, $unfiled, $unfiled_head, $list, $needs_count, $search;
+	// DELIVERABLE 5 — SEARCH: a plain substring match on a card's title and text, kept in this
+	// closure only (not the url — the smallest version the brief asks for; `review_only` and
+	// `only_notes` already show the pattern for making a filter a real address later).
+	let search_q = "";
 	// THE ONE THING SHOWING IN `$detail` — a top-level card (`open()`'s `h.top`), never a sub-card
 	// beside it: drilling into a request must not hide the workspace word for the card still open
 	// next to it. `null` while nothing top-level is open (the bare inbox, a real site page, a view).
@@ -310,11 +306,13 @@ function board(page){
 							page.opening = id;
 							page.app?.router?.go(workspace.url(page.url + id + "/"));
 						});
-					// THE FIRST FILTER (brief E, "room for more filters later"): the SAME rows the
-					// Needs you tab lists — never a second idea of what needs the owner. Its own
-					// state is the url, so a reload or a pasted link keeps the filter on.
+					// THE FIRST FILTER (brief E, "room for more filters later"), RELABELLED "Needs
+					// you" 2026-09-30 and carrying the count badge the old "Needs you" TAB used to
+					// wear, now that the tab itself is gone (deliverable 1) — the SAME rows the
+					// `needs/` page still lists, never a second idea of what needs the owner. Its
+					// own state is the url, so a reload or a pasted link keeps the filter on.
 					label.c("ai2-review flex v-center gap-25 muted")
-						.attr("title", "show only what needs your review — the same list as the Needs you tab").append(() => {
+						.attr("title", "show only what's waiting on you").append(() => {
 							const $review = input().attr("type", "checkbox");
 							$review.el.checked = review_only;
 							$review.on("change", e => {
@@ -325,7 +323,8 @@ function board(page){
 								history.replaceState({}, "", url.pathname + url.search + url.hash);
 								relist();
 							});
-							span("Needs review");
+							span("Needs you");
+							$needs_count = small.c("ai2-tab-badge").attr("hidden", "");
 						});
 					// LIVE IS THE DEFAULT VIEW. The "Live" toggle that sat here is gone (ai2-lead
 					// audit, 2026-09-25): it looked like a link to Live, and the Live row just below
@@ -338,6 +337,12 @@ function board(page){
 						// "auto" and keep the head at two lines (ai2.css, `.ai2-auto-tail`).
 						span(() => { span("auto"); span.c("ai2-auto-tail").text("-transcribe"); });
 					});
+					// DELIVERABLE 5 — SEARCH, over the rail's own plain cards (not the groups or
+					// real-page rows, which draw and filter themselves — the smallest version of
+					// this ask; widening it to those is a separate, later change).
+					$search = input.c("ai2-search").attr("type", "search").attr("placeholder", "Search…")
+						.attr("title", "filter the list below by title or text")
+						.on("input", e => { search_q = e.target.value.trim().toLowerCase(); relist(); });
 					$count = div.c("ai2-count flex v-center gap-25");
 				});
 			});
@@ -467,12 +472,26 @@ function board(page){
 		const group_cards = new Set((groups.list ?? []).map(g => g.card));
 		const pool = list.filter(it => !group_cards.has(it.id) && (!groups.filed(it) || fresh(it)));
 		let base = only_notes ? pool.filter(it => it.kind === "note") : pool;
+		// DELIVERABLE 4 — AUTOMATIC RESOLUTION: a resolved row (`rules.js`'s `is_resolved()`,
+		// this task's one written-down rule) leaves the Inbox itself, same as the brief asks —
+		// not a dimmer shade of the same row, an actual absence. It still exists on its own
+		// card page and in the Log; this is only the Inbox's own list.
+		base = base.filter(it => !is_resolved(it));
 		// BRIEF E's "Needs review" filter — `needs_ids` is the SAME set the Needs you tab lists
 		// (`needs.js`'s one shared scan), so the two can never disagree about what still needs you.
 		if (review_only) base = base.filter(it => needs_ids.has(it.id));
+		// DELIVERABLE 5 — SEARCH FINDS ARCHIVED TOO (review finding #3: the brief's own words,
+		// "including archived ones"). A non-empty query always pulls the archived pile in,
+		// regardless of the separate "archived" toggle below — the two are different questions
+		// ("show me archived" vs. "find this, wherever it is").
+		const archived = (list.archived ?? []).filter(it => !groups.filed(it));
+		if (search_q){
+			const hit = it => (it.title + " " + (it.text ?? "")).toLowerCase().includes(search_q);
+			return [...base.filter(hit), ...archived.filter(hit)];
+		}
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
-		return show_archived ? [...base, ...(list.archived ?? []).filter(it => !groups.filed(it))] : base;
+		return show_archived ? [...base, ...archived] : base;
 	};
 
 	function relist(){
@@ -485,8 +504,14 @@ function board(page){
 
 	function paint(){
 		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says });
+		// DELIVERABLE 2 — READ/UNREAD: `items()` itself always says `unread: true` (its own
+		// comment explains why: opening a card must never mark it read on its own). This is
+		// the explicit control layered on top — `rules.js`'s `is_read`, set only by a press on
+		// the row's own dot (`faces.js` `row()`'s `on.toggle_read`).
+		list.forEach(it => { it.unread = !is_read(it.id); });
 		// THE LIVE CARD joins the same list and the same newest-first sort, so an
-		// update to anything in it lifts it to the top like any other arrival.
+		// update to anything in it lifts it to the top like any other arrival. It is always
+		// shown as fresh — never read/archived/resolved, so it is left out of the line above.
 		const it = live.item();
 		it.unread = true;
 		list.push(it);
@@ -748,6 +773,31 @@ function board(page){
 		return rec;
 	}
 
+	/** DELIVERABLES 2 AND 3's two buttons on a plain row (`faces.js` `row()`'s `on`) — built
+	 *  once per `rec`, not once per redraw, so a click during a redraw never reaches a stale
+	 *  closure. Both mutate `it` OPTIMISTICALLY (the write is fire-and-forget, the same
+	 *  pattern the card page's own "clear" button already uses, `on.clear` below) and force
+	 *  this one row to redraw at once — never a wait for the next poll. */
+	function row_on(rec, it){
+		return {
+			toggle_read(){
+				mark_read(it.id, !is_read(it.id));
+				it.unread = !is_read(it.id);
+				rec.sig = null;
+				refill(rec, it);
+			},
+			archive(){
+				archive_row(it);
+				it.status = "archived";
+				rec.sig = null;
+				refill(rec, it);
+				// A folder card's row comes from `folders.cards` (polled every 20s) — asking
+				// now is what makes the grey "archived" state show up at once instead of lagging.
+				folders.soon();
+			},
+		};
+	}
+
 	// ⚠ The signature is the card's WHOLE record, never a hand-listed set of the
 	// fields the face reads: the first build listed them, forgot one, and the
 	// feature it belonged to silently never rendered. doc/decisions.md.
@@ -763,7 +813,7 @@ function board(page){
 		// you recognise one when it arrives on its own.
 		rec.$row.el.classList.toggle("ai2-note", it.kind === "note");
 		rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live");
-		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it); });
+		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it, row_on(rec, it)); });
 	}
 
 	/* THE BAR OPENS ACTIVITY, NOT OVERVIEW. The row is a link to the card, and a link
@@ -838,13 +888,36 @@ function board(page){
 	// THE "NEEDS REVIEW" FILTER READS THE SAME SHARED SCAN THE NEEDS YOU TAB DOES (needs.js) —
 	// so when that scan refreshes (a poll, or right after answering something), the filtered
 	// rail redraws too, and the two can never show a different answer to "what needs the owner".
-	watch_needs(s => { needs_ids = s.ids; if (review_only) relist(); });
+	let last_needs_ids = "";
+	watch_needs(s => {
+		needs_ids = s.ids;
+		if (review_only) relist();
+		// THE CHIP'S OWN COUNT (deliverable 1, moved off the old tab) — hidden at zero, same
+		// shared scan the chip's own filter already reads, so the two can never disagree.
+		const n = s.rows.length;
+		$needs_count.el.hidden = !n;
+		if (n) $needs_count.text(String(n));
+		// `rules.js`'s `is_resolved()` reads this SAME scan, but a row's own signature
+		// (`refill()`) has no way to know the scan just changed on its own. ⚠ 2026-09-30 FIX
+		// (review finding #6): the first cut repainted the WHOLE rail on every poll, whether or
+		// not the set of waiting ids actually changed — a quiet rail still jumped every few
+		// seconds. Comparing the ids as one string is the cheapest "did anything really change".
+		const key = [...s.ids].sort().join(",");
+		if (key === last_needs_ids) return;
+		last_needs_ids = key;
+		rows.forEach(rec => { rec.sig = null; });
+		paint();
+	});
 
 	/* What a card's own page is allowed to ask of the list.
-	   ⚠ OPENING A CARD MARKS NOTHING. It used to write a `read` line here, and
-	     the owner's answer was "when I click on them, they're disappearing…
-	     No no no. I need them all unread again." Looking at a thing is not a
-	     decision about it. `inbox.js`'s `Says` ignores the old lines too. */
+	   ⚠ OPENING A CARD USED TO MARK NOTHING, on purpose — it once wrote a SHARED `read` line
+	     here (`verdicts.jsonl`), and the owner's answer was "when I click on them, they're
+	     disappearing… No no no. I need them all unread again." That is still true of THAT idea:
+	     `inbox.js`'s `Says` still ignores those old lines, and nothing here writes one again.
+	     2026-09-30's read/unread (ask 2, `rules.js`) is a different, smaller thing the owner
+	     asked for by name — a per-BROWSER flag that only un-bolds a title, never removes the
+	     row — and `card.js`'s `activated()` does mark that one on open, because this task's own
+	     brief says so in as many words: "opening a row marks it read". */
 	return {
 		open(h){
 			watching.add(h);
