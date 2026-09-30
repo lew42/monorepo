@@ -14,7 +14,7 @@ Every 10 seconds Servex reads every process on the machine. It sorts each one in
 | **orphans** | a leftover waiter of ours (bash, tail, grep, sleep …) whose parent is gone |
 | *other* | everything else: Chrome, VS Code, Windows. Counted, never touched. |
 
-Ask with `system_health` (its first line now ends "Ours 6.1 GB in 124 processes, everything else 14.2 GB …"), or `GET /api/processes` for the whole snapshot plus an hour of 10-second points. The Live card draws it. One line a minute goes to the `processes` log.
+Ask with `system_health` (its first line now ends "Ours 6.1 GB in 124 processes, everything else 14.2 GB …"), or `GET /api/processes` for the whole snapshot plus an hour of 10-second points. One line a minute goes to the `processes` log, and one per reap.
 
 ## Running means a real process
 
@@ -45,11 +45,11 @@ Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own
 A **finished** worktree is removed:
 1. `Server/junction-check.mjs` must pass first.
 2. Its dev server is stopped.
-3. Log noise its own server wrote (`*.jsonl` lines, card folders) is copied to `salvage/worktrees/<name>-<date>/`.
+3. Log noise its own server wrote (`*.jsonl` lines, new screenshots under `ai/`) is copied to `salvage/worktrees/<name>-<date>/`.
 4. `git worktree remove` runs. The **branch is kept**, so `git revert` still works.
 5. Servex forgets the project, its port and its subdomain.
 
-`SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and on the Live card.
+`SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and in `/api/processes` (`worktrees`).
 
 ## Cost
 

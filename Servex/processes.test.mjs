@@ -84,7 +84,7 @@ console.log(`processes.test: ${pass} checks pass`);
 const { noise, default: Worktrees } = await import("./Worktrees.js");
 const n = (code, path) => noise({ code, path });
 ok(n(" M", "public/files.jsonl") && n(" M", ".claude/skills/clarity/flags.jsonl") && n("??", "public/framework/ai/2026/09/25/x/page.jsonl"), "logs anywhere are noise");
-ok(n("??", "public/framework/ai/2026-09-25/x/shot.png"), "a new file under ai/ (a screenshot, a card folder) is noise");
+ok(n("??", "public/framework/ai/2026-09-25/x/shot.png") && !n("??", "public/framework/ai/2026-09-30/x/plan.md"), "a new screenshot under ai/ is noise; a new plan.md is not");
 ok(!n(" M", "Server/layout-check.mjs") && !n("??", "undefined/a.png") && !n(" M", "public/framework/ai2/ai2.css"), "code is never noise");
 ok(!n(" D", "public/files.jsonl") && !n("R ", "a.jsonl -> b.jsonl"), "a deletion or a rename is never noise");
 const sx = { projects: [{ name: "gone-wt" }, { name: "monorepo" }], processes: new Map([["gone-wt", {}]]), ports: { ports: { "gone-wt": 3150, monorepo: 3104 }, save(){ this.saved = true; } } };

@@ -783,7 +783,7 @@ Agents.Agent = class Agent {
 		const pid = child.pid ?? null;
 		this.claude_pid = pid;
 		this.claude_started = stamp();
-		this.emit({ type: "process", state: "started", pid, gen: this.gen ?? null });
+		this.emit({ type: "process", state: "started", pid });
 		try { this.host?.register(this); } catch {}
 		child.on("exit", (code, sig) => {
 			if (this.claude_pid === pid) this.claude_pid = null;

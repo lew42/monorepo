@@ -60,7 +60,7 @@ export default class Worktrees extends Events {
 	log(entry){ return this.servex?.log?.append("servex", { type: "worktrees", ...entry }).catch(() => {}); }
 
 	git(args, cwd = this.main){
-		return new Promise(resolve => execFile("git", ["-C", cwd, ...args], { windowsHide: true, encoding: "utf8", maxBuffer: 16 << 20 },
+		return new Promise(resolve => execFile("git", ["--no-optional-locks", "-C", cwd, ...args], { windowsHide: true, encoding: "utf8", maxBuffer: 16 << 20 },   // our own status must not refresh the index: quiet_min() would read our pass as activity
 			(e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trimEnd() })));   // trimEnd: a porcelain line starts with a space
 	}
 
@@ -248,9 +248,10 @@ export default class Worktrees extends Events {
 }
 
 /* A change the worktree's own server or hooks made: a *.jsonl log anywhere,
- * or a new file under public/framework/ai/ (a card folder, a screenshot). Never a rename or a deletion. */
+ * or a new screenshot under public/framework/ai/. A new plan.md or page.js there is
+ * real work, not noise (review, 2026-09-30). Never a rename or a deletion. */
 export const noise = c => !/[RCD]/.test(c.code) && !c.path.includes(" -> ")
-	&& (/(^|\/)[^/]+\.jsonl$/.test(c.path) || (c.code === "??" && c.path.startsWith("public/framework/ai/")));
+	&& (/(^|\/)[^/]+\.jsonl$/.test(c.path) || (c.code === "??" && c.path.startsWith("public/framework/ai/") && /\.(png|jpe?g|webp|gif)$/i.test(c.path)));
 
 const norm = p => path.resolve(String(p)).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
 const same_or_under = (p, dir) => { const a = norm(p), b = norm(dir); return a === b || a.startsWith(b + "/"); };
