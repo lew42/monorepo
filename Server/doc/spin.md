@@ -126,3 +126,6 @@ managed): the first *read* of a file whose atime is over an hour stale fires **t
 quiet hour hands the watcher a burst of 2 × files-touched. A burst, not a sustain,
 and the 300 ms debounce in `LiveReload` absorbs it. `fsutil behavior set
 DisableLastAccess 1` (admin) removes the class outright — ask first.
+
+## 2026-09-30 — three worktree servers spinning, none listening
+Three `node server.js` (worktrees qf-6 and two others) sat at ~128% of a core each for 3.5 h, parented to agents' bash shells, listening on no port. Profile of one (5 s): 77% idle in JS, the rest `path.join`/`normalize` under `on_event` (server.js:218) and `FSWatcher.onchange` — the fs.watch flood again, this time in a worktree. Servex did not know them (not in `list_servers`), so nothing reaped them; the process monitor (ai/2026-09-30/process-monitor/) is the fix — it groups every process by task and flags a server that serves nothing. Killed by hand; the spinning server also held the qf-6 folder open, which is why the pool could not delete it.
