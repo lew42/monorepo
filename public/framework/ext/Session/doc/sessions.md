@@ -58,15 +58,26 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 
 | Route | Body | Answer |
 |---|---|---|
-| `POST /api/session/new` | `{path, host?}` | `{ok, session, home, file, resumed, previous}` (see below) |
+| `POST /api/session/new` | `{path, card?, host?, fresh?}` | `{ok, session, home, file, resumed, previous}` (see below) |
 | `POST /api/session/resume` | `{session}` | `{ok, session, home, file, resumed: true, title, summary, at, last_at}` |
 | `POST /api/session/say` | `{session, path, text, via, floor?, cues?}` | `{ok, at, answered_by: [{kind, id: "fast", agent}, {kind, id: "smart", agent}]}` at once |
 | `POST /api/session/nav` | `{session, from, to}` | `{ok}` |
 | `POST /api/session/floor` | `{session, floor}` | `{ok, floor, released}`: `"done"` writes a held fast reply |
 | `GET /api/sessions?page=/x/&limit=10&host=` | | `{ok, sessions: [{session, home, title, summary, at, last_at}]}`, newest first: the sessions named in that folder's `ai/log.jsonl`, or whose `home`/`visited` in `sessions.json` names it |
+| `GET /api/sessions?card=<id>&limit=10&host=` | | the same shape, but only that card's sessions (same as `?page=` on the card's own folder) |
 | `GET /api/session/<id>` | | the session's record |
 
 **`/new` continues a recent session.** If a session from the same project started on this page, or passed through it, and its last line is less than an hour old (`SERVEX_SESSION_RESUME_MS`), `/new` returns that session with `resumed: true`. Otherwise it makes a new one, and `previous` is the page's most recent older session, `{session, title, summary, at}`, or `null`.
+
+### Card sessions
+
+`/new` takes an optional `card`, a card id such as `2026/09/29/audio-a-library-of-audio-parts-transcrip` (the same id `ai2/` pages use). With `card`:
+
+- The session's `home` becomes the card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` — so its file is `/framework/ai/<card>/ai/<session>.jsonl`, beside that card's `page.jsonl`. `path` is unchanged: still where the owner actually stood when they pressed ✦.
+- `card` must name a real card — `card_home()` in `Sessions.js` refuses anything with `..` or a backslash, and anything whose `public/framework/ai/<card>/page.jsonl` is not actually there, with a 400 explaining why.
+- **Resume is per card, the same one-hour rule as a page**: a second `/new` with the same `card` within the hour continues that card's session (unless `fresh`), and `GET /api/sessions?card=<id>` lists only that card's sessions.
+- **The pair gets the card as context**, appended to their opening prompt (`spawn()`'s `where`): the fast assistant gets one line, "This session is about card `<id>`."; the smart assistant is also told the path of the card's `page.jsonl` and to read it first for the card's history.
+- **The folder index lines land on the card**, through the exact same `presence()`/`point()` code a page uses — nothing is copied into `page.jsonl` itself. `card` is also stored on the session record (`sessions.json` and the file's first `session` line), so a session is always traceable back to its card even after a restart.
 
 **Project, not host.** A session stores the browser's host (`x-forwarded-host` from the dev server's `/servex/` proxy, `Server/plugins/ServexProxy.js`; else the `host` in the body; else the request's `Host`) as information, and the **project** it resolves to, which is what `/new` and `/api/sessions` filter by (`project_of()` in `Sessions.js`): a `<name>.localhost` host is that name; an `ip:port` is the Servex project serving that port (its port registry); anything else is the project this repo is. So the phone on `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same sessions ("any new session knows everything"), and two different sites never mix.
 

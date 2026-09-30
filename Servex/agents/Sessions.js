@@ -191,6 +191,19 @@ export default class Sessions {
 	disk(site){ return path.join(this.repo, "public", ...site.split("/").filter(Boolean)); }
 	is_dir(site){ try { return fs.statSync(this.disk(site)).isDirectory(); } catch { return false; } }
 
+	/* A CARD id (voice-sessions, card sessions): a path under `/framework/ai/`, such as
+	 * `2026/09/29/audio-a-library-of-audio-parts-transcrip`, naming an AI 2 card's own folder.
+	 * `card_home()` turns it into that folder's site path, `/framework/ai/<card>/`, and returns
+	 * null for anything unsafe (`..`, a backslash) or any id whose `page.jsonl` is not actually
+	 * there — a card session's home must be a real card, never guessed. */
+	card_home(card){
+		const id = String(card ?? "").trim().replace(/^\/+|\/+$/g, "");
+		if (!id || id.includes("..") || id.includes("\\") || id.includes("\0")) return null;
+		const home = `/framework/ai/${id}/`;
+		try { return fs.statSync(path.join(this.disk(home), "page.jsonl")).isFile() ? home : null; }
+		catch { return null; }
+	}
+
 	/* The nearest page that exists on disk, walking up: a route with no folder of its own
 	 * (a query view, a typo) still gets a home, never a 404. */
 	nearest(site){
@@ -266,10 +279,22 @@ export default class Sessions {
 
 	// ── the three verbs ──────────────────────────────────────────────────────
 
-	create({ path: at, host = null, fresh = false } = {}){
+	/* `card` (voice-sessions, card sessions, 2026-09-29): with a card id, the session's HOME is
+	 * that card's own folder, `/framework/ai/<card>/`, instead of the nearest folder to `path` —
+	 * so its file sits beside the card's `page.jsonl` and its folder-index lines land there too.
+	 * `path` is still kept as where the owner actually stood (unchanged: it is `asked` below). */
+	create({ path: at, card, host = null, fresh = false } = {}){
 		const asked = page_path(at);
 		if (!asked) throw Object.assign(new Error(`"${at}" is not a page path`), { status: 400 });
-		const home = this.nearest(asked), project = this.project_of(host);
+		let home = this.nearest(asked);
+		if (card != null && card !== ""){
+			home = this.card_home(card);
+			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no public/framework/ai/${card}/page.jsonl)`), { status: 400 });
+		}
+		const project = this.project_of(host);
+		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on
+		 * the card's own home only ever finds sessions of that card, since every one of them was
+		 * homed there too. */
 		const [last] = this.recent({ page: home, project, limit: 1 });
 		/* `fresh: true` (voice-fixes review item 1, the "New session" button): always start over,
 		 * even when a session on this page spoke within `resume_ms`. */
@@ -278,9 +303,10 @@ export default class Sessions {
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = `${home}ai/${id}.jsonl`;
 		/* No agents yet: the first say spawns them (wake). */
-		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+		const s = { id, home, file, at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
+			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
 		this.map[id] = s;
-		this.write(s, { session: { id, home, at: s.at, project, host, fast: null, smart: null, backing: s.backing } });
+		this.write(s, { session: { id, home, at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
 		this.point(s, home);
 		this.save();
 		const previous = last ? { session: last.session, title: last.title, summary: last.summary, at: last.last_at } : null;
@@ -448,6 +474,8 @@ export default class Sessions {
 	/* Held open with no prompt: each one's first turn is the owner's first line. */
 	spawn(s, role, { resume = null, context = "" } = {}){
 		const where = `\n\nThis session is ${s.id}. Its home page is ${s.home}; the owner pressed ✦ on ${s.path}.`
+			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
+				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
 		const spec = role === "fast" ? {
 			/* LEAN like the Layers page assistant: no settings, no connectors, no memory,
@@ -572,8 +600,15 @@ export default class Sessions {
 			});
 		}
 		router.get("/api/sessions", cors, (req, res) => {
-			try { res.json({ ok: true, sessions: this.recent({ page: req.query.page ?? "/", limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) }); }
-			catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+			try {
+				let page = req.query.page ?? "/";
+				if (req.query.card){
+					page = this.card_home(req.query.card);
+					if (!page) throw Object.assign(new Error(`"${req.query.card}" is not a known card`), { status: 400 });
+				}
+				res.json({ ok: true, sessions: this.recent({ page, limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) });
+			}
+			catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 		});
 		router.get("/api/session/:id", cors, (req, res) => {
 			const s = this.map[req.params.id];
