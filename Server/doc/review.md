@@ -55,14 +55,58 @@ still reads only `task.jsonl`, so it keeps working with zero changes.
 
 ## The size (turn 1)
 
-| Size | When | Who reviews | What it looks at |
-|---|---|---|---|
-| **none** | only CSS or docs changed, 20 lines or fewer, no new file | nobody | — |
-| **light** | code changed, but no new page, module or Servex part | a fresh Sonnet | the brief and the diff: does it do what was asked, is anything broken, is there a simpler way |
-| **full** | a new page, module, tool or Servex change | a fresh Opus | the light questions, plus screenshots at 1280, 1920, 3440 and four UX questions: is the space used well, is the order right, can the reader find everything, is the navigation clear |
+Size decides WHO reviews — nothing more. What they're shown (screenshots or not) is a separate
+question, covered next, because it depends on whether a page was touched, not on size.
+
+| Size | When | Who reviews |
+|---|---|---|
+| **none** | only CSS or docs changed, 20 lines or fewer, no new file | nobody |
+| **light** | code changed, but no new page, module or Servex part | a fresh Sonnet |
+| **full** | a new page, module, tool or Servex change | a fresh Opus |
 
 The task mastermind may lower the size only with `--why "self-evident: <one line>"` (logged as a
 `{"decision":...}` line so the reason survives); raising it needs no reason.
+
+## Screenshots and the review skill (also turn 1)
+
+Any review — `light` or `full` — whose diff changes at least one `page.js`/`page.jsonl` gets
+screenshots FIRST, at four widths — 400, 1200, 1920 and 3440 (a phone size, a size just past
+mobile, a common desktop size, and the widest common screen) — via:
+
+```
+node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/
+```
+
+`--bands` (`Server/layout-check.mjs`'s own header) adds, for every width: `tab_rows` (did a tab
+bar wrap into more than one row), `left_stack` (the padding stacked at the page's own left edge,
+layer by layer), `bands` (every top-level section's share of the screen, and how much of that
+share actually has content on it), and `wraps` (anything that wrapped to a second line when it
+looks like it shouldn't have). This is skipped if every page already has all four widths' pngs
+under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is appended
+to `task.jsonl`:
+
+```json
+{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"]}}
+```
+
+The reviewer is then told to load the `review` skill (`.claude/skills/review/SKILL.md`) and
+follow it: read the brief, the owner's own words, the diff, the shots and each page's
+`layout.json`, and ask one fixed list of questions per system — page structure, navigation,
+layout, sizing, wrapping, spacing and padding, colour and contrast, flow — in that order, each
+answered with a screenshot region or a `layout.json` number as its evidence. It writes
+`<taskdir>/review/report.md` instead of the plain `review.md`. Every one of those questions is
+documented, live, at [/framework/ai/review/](/framework/ai/review/) — read straight from the
+skills' own `questions.md` files by `node Server/review.mjs --questions`, which `main()` also
+runs at the start of every review, so that page never goes stale even if nobody runs the command
+by hand.
+
+A review whose diff touches no page — most `light` reviews, and a `full` review of something
+that isn't a page, like a new Servex tool — keeps the plain prompt this always used (read the
+brief and the diff, say what's wrong) and writes the plain `<taskdir>/review.md`, exactly as
+before this. Either way, `task.jsonl`'s `{"review":...}` line's `file` names whichever one was
+actually used, and gains `report` and `shots` pointers (both `null` when no page was touched).
+`parseReview` (exported) reads both files the same way, so `--turns`, `--rule`, `--score`,
+`--status` and `merge.mjs`'s gate are all unchanged — they only ever read `task.jsonl`.
 
 ## Answering a finding (turn 2)
 
@@ -91,7 +135,10 @@ own mistake mid-task; caught and corrected the same way, an appended corrective 
 
 `Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last
 commit, or has a `[fix]` finding with no answer yet. The refusal names the one command above to
-run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`.
+run. This is unchanged by the turns above — the gate only ever reads `task.jsonl`. A branch that
+also touches a page is refused unless that review has its own page report (`review/report.md`,
+with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
+gets is not enough for a page.
 
 `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
 board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or
