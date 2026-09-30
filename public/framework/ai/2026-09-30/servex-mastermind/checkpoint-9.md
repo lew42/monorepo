@@ -15,3 +15,11 @@ cards-and-logs (review-fix minion), review (walkthrough minion, then land), page
 ## Open
 - Untracked in main: Servex/ext/, Servex/experts.json, .claude/skills/openrouter/, a `nul` file — find the owner or commit.
 - todo.md: list_agents archive default; chat-hitl asks 1+3 unmet; two broken /imagine pages.
+
+## Added 14:59 CDT (after compaction)
+- Owner reshaped the skill system: knowledge → /framework/design/ (layout, color, navigation, content, ui) + /framework/code/ (patterns, dos-and-donts, css, objects); skills thin. Proposal rewritten (ui-skills-proposal.md, top). task-mastermind-design-code builds; diff 1 (code side) approved with conditions, diff 2 (design side) due to me. Review questions move beside the pages; review.mjs reads them (273589f9).
+- Four owner decisions proposed, not built: merge-approval-proposal.md + card 2026/09/30/proposal-budgets-merge-approval-template (foundational budgets, merge row with Approve/Reverse, template weights via use_template + /framework/ui/ library, one page.jsonl).
+- Seven CLAUDE.md draft lines on card claude-md-draft-read-the-readme-chain-to.
+- asks-ledger redirected: stalled asks → Inbox rows, Needs you untouched (owner: forget Needs you). Its merge → the batched Servex restart (Asks.js).
+- audio-consolidate landed 5c1b7d15; its one-dictation-system plan is parked until the 4:50 PM reset. **If restarted: send it "go" after 4:53 PM local once pace allows** (a session-only cron did this); step 4 needs a Servex restart, mine.
+- Landed today also: voice-dir-404 f055b4aa, ai-page b8b9044b/986f406d (readmes, claude-md tab, inboxes home, tabs wrap at 400).
