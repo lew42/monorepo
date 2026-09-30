@@ -325,8 +325,17 @@ export function live_full(it, model){
 	// process behind it — "pid 47356 · 248 MB", "no process" when `running[]`
 	// marks it lost, or nothing yet when an older Servex has no `running[]` at all.
 	const running_by_id = running_index(it.processes?.running);
-	list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running",
-		extra: x => process_badge(x.id, x.state, running_by_id) });
+	// Processes (ask 1) sits directly under "Running now", in the SAME grid
+	// column (`.ai2-live-run-col`, ai2.css) — not its own row after both
+	// columns. A row of its own only starts once the TALLER column (tasks +
+	// chat) finishes, which left a ~650px empty hole above it at 1920
+	// (task-mastermind-dormant-idle's shot review, 2026-09-30). Stacked in one
+	// box instead, Processes starts the moment Running now's own list ends.
+	div.c("ai2-live-run-col", () => {
+		list("Running now", it.agents, "nothing is running", { talkable: true, fold: true, cls: "ai2-live-running",
+			extra: x => process_badge(x.id, x.state, running_by_id) });
+		processes_section(it.processes);
+	});
 	div.c("ai2-live-tasks", () => {
 		list("Working on", it.tasks, "nothing in progress", { clearable: true });
 		div.c("ai2-live-section", () => {
@@ -339,7 +348,6 @@ export function live_full(it, model){
 			}));
 		});
 	});
-	processes_section(it.processes);
 	place(model, $col, rows);
 }
 

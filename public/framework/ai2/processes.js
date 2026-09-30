@@ -187,18 +187,35 @@ function group_detail(g, by_id){
 	div.c("ai2-proc-pids", () => (g.pids ?? []).forEach(pid => span.c("ai2-proc-pid").text("pid " + pid)));
 }
 
-function task_rows(proc){
-	const groups = [...(proc.groups ?? [])].sort((a, b) => (b.mb ?? 0) - (a.mb ?? 0));
-	if (!groups.length) return small.c("muted").text("nothing measured yet");
-	const by_id = running_index(proc.running);
-	groups.forEach(g => details.c("ai2-live-item ai2-proc-row", () => {
+const TOP_GROUPS = 5;
+
+function group_row(g, proc, by_id){
+	details.c("ai2-live-item ai2-proc-row", () => {
 		summary.c("ai2-proc-row-head flex v-center gap-25", () => {
 			span.c("ai2-live-name").text(g.label ?? g.key);
 			small.c("muted").text(`${g.n} · ${gb(g.mb)} · ${pct(g.cpu)}`);
 			div.c("ai2-proc-spark-box").html_unsafe(group_spark(proc.history ?? [], g.key));
 		});
 		group_detail(g, by_id);
-	}));
+	});
+}
+
+/** Biggest first, and only the top few OPEN on the page by default — a
+ *  machine with two dozen "Claude Code session" groups used to draw two
+ *  dozen closed rows before this, correct once the details-collapse bug
+ *  above was fixed, but still a long scroll for what is mostly noise. The
+ *  rest fold behind one more "N more" row, same shape as the others. */
+function task_rows(proc){
+	const groups = [...(proc.groups ?? [])].sort((a, b) => (b.mb ?? 0) - (a.mb ?? 0));
+	if (!groups.length) return small.c("muted").text("nothing measured yet");
+	const by_id = running_index(proc.running);
+	groups.slice(0, TOP_GROUPS).forEach(g => group_row(g, proc, by_id));
+	const rest = groups.slice(TOP_GROUPS);
+	if (!rest.length) return;
+	details.c("ai2-live-item ai2-proc-row", () => {
+		summary.c("ai2-proc-row-head").text(`${rest.length} more`);
+		rest.forEach(g => group_row(g, proc, by_id));
+	});
 }
 
 /* ── orphans, reaped, worktrees ─────────────────────────────────────────── */
@@ -219,9 +236,14 @@ function orphans_row(proc){
 
 function worktrees_row(w){
 	if (!w) return;
-	div.c("ai2-live-item", () => {
-		small.c("ai2-live-line").text(`${w.total} worktrees: ${w.pool} pool, ${w.in_use} in use, ${w.open} open, ${w.uncommitted} uncommitted`);
-		small.c("ai2-live-line muted").text(`${w.removed_today} removed today`);
+	// A plain box, not `.ai2-live-item` — that class's 4-column grid put
+	// `.ai2-live-line` (column 3) ~100px in from the left edge, when this is
+	// two whole lines of text, not a name + a line beside a badge (fix round,
+	// 2026-09-30). `.ai2-proc-row`'s siblings (Orphans) start flush left; this
+	// does too.
+	div.c("ai2-proc-worktrees", () => {
+		small.c("ai2-proc-worktrees-line").text(`${w.total} worktrees: ${w.pool} pool, ${w.in_use} in use, ${w.open} open, ${w.uncommitted} uncommitted`);
+		small.c("ai2-proc-worktrees-line muted").text(`${w.removed_today} removed today`);
 	});
 }
 

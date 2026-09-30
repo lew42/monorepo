@@ -1742,7 +1742,12 @@
 		.ai2-card-live .ai2-full { display: contents; }
 		.ai2-card-live .ai2-full-head { grid-area: head; margin-block-end: var(--gap-50); }
 		.ai2-card-live .ai2-live-usage { grid-area: use; margin-block-start: 0; }
-		.ai2-card-live .ai2-live-running { grid-area: run; margin-block-start: 0; }
+		/* Running now + Processes share this one box (live.js), so the grid
+		   area is the WRAPPER, not the list — Processes then starts the
+		   instant Running now's own content ends, never after the taller
+		   column beside it (process-monitor/graph fix round, 2026-09-30). */
+		.ai2-card-live .ai2-live-run-col { grid-area: run; margin-block-start: 0; min-width: 0; }
+		.ai2-card-live .ai2-live-running { margin-block-start: 0; }
 		.ai2-card-live .ai2-live-tasks { grid-area: tasks; }
 		.ai2-card-live .ai2-live-talk-col { grid-area: agent; }
 
@@ -2467,13 +2472,58 @@
 	.ai2-proc-hide { display: none; }
 
 	/* A group row — `<details>`/`<summary>` for the fold, so a click opens its
-	   processes or agents with no script of its own. */
+	   processes or agents with no script of its own.
+	   ⚠ IT WEARS `.ai2-live-item` FOR ITS LOOK (border, padding) ONLY — that
+	   class is also a 4-COLUMN GRID (`5.5em / max-content / 1fr / auto`) built
+	   for a plain row's exact four parts (state badge, name, line, ✕), and a
+	   grid only auto-places a child it was never told where to put into
+	   column ONE — 5.5em wide. `<summary>` landed there with no placement of
+	   its own, and its OWN flex children (the name, the count, the sparkline)
+	   then wrapped inside that 88px sliver — `.ai2-live-name`'s `overflow-wrap:
+	   anywhere` turned "dev servers" into one letter per line, 600px tall (the
+	   headless proof's own child-height dump caught it: a span 10px wide and
+	   604px tall). Every direct child spanning the whole grid is the fix —
+	   `<summary>` and the body (the pid chips, or the agent rows) both need
+	   it, so this targets `> *`, not `> summary` alone. */
 	.ai2-proc-row > summary {
 		cursor: pointer;
 		list-style: none;
+		/* A bare `<summary>` also wears framework.css's "control grammar" — a
+		   button's fill, border and radius, and `width: fit-content`, which
+		   sized each row to its OWN text instead of the list: "Dev servers"
+		   came out ~290px wide, "Claude Code session (pid …)" ~450px, no two
+		   the same (fix round, 2026-09-30). This row is a list row, not a
+		   control — `.ai2-ov-done > summary` and `.research-node > summary`
+		   take their own look off the same way. Layer order (`theme` after
+		   `base`) wins this regardless of specificity, so no `!important`. */
+		width: 100%;
+		max-width: none;
+		min-height: 0;
+		padding: 0;
+		background: none;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
 	}
 	.ai2-proc-row > summary::-webkit-details-marker { display: none; }
 	.ai2-proc-row > summary::marker { content: ""; }
+	.ai2-proc-row > * {
+		grid-column: 1 / -1;
+	}
+
+	/* ⚠ A CLOSED `<details>` ONLY STAYS CLOSED BECAUSE THE BROWSER'S OWN STYLE HIDES
+	   ITS BODY, AND THAT IS A USER-AGENT RULE — the lowest-priority origin there is,
+	   so ANY author `display` declaration on the body beats it even from `@layer
+	   base`. `.ai2-proc-pids` sets `display: flex` on exactly that body (a direct
+	   child of `<details>`, sibling of `<summary>`), which silently defeated the
+	   collapse: every one of ~24 group rows rendered its full pid list all the time,
+	   closed or not, and the Live card measured 14,000px tall instead of ~250 (the
+	   headless proof's own hover shot caught it). This rule restores the collapse as
+	   an explicit AUTHOR declaration, which is what `display` always needed to be
+	   here — (0,2,1) beats `.ai2-proc-pids`'s (0,1,0) regardless of source order. */
+	.ai2-proc-row:not([open]) > :not(summary) {
+		display: none;
+	}
 
 	.ai2-proc-row-head {
 		justify-content: space-between;
@@ -2509,6 +2559,21 @@
 		font-size: 0.78em;
 		font-variant-numeric: tabular-nums;
 		white-space: nowrap;
+	}
+
+	/* Worktrees: two plain lines, flush left like Orphans above it — not
+	   `.ai2-live-item`'s 4-column grid, which is built for a badge + name +
+	   line + ✕ row and has no column for two lines of running text. */
+	.ai2-proc-worktrees {
+		padding: 0.3em 0.4em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-proc-worktrees-line {
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	/* Ask 2: the real process behind a "Running now" row — a quiet line under
