@@ -28,6 +28,8 @@
  *               one conflict and nothing is written. Working tree only (no index, no commit); the
  *               branch head is recorded in .merge-landed.json; the owner commits. (`git apply` was
  *               dropped 2026-09-25: it refused whenever an owner edit sat on a line next to a hunk.)
+ *   A live log is never rewritten: every *.jsonl is read again at write time and any line appended
+ *               since planning is kept (jsonl-keep.mjs, 2026-09-29: readme-chain lost its landing line).
  * Nothing is ever reset, stashed, checked out, forced or rewritten. `--main` points at another repo
  * (for proofs on a scratch repo); `--skip-smoke` is for those proofs only; `--dry-run` computes and
  * prints every file's result and writes nothing (no lock, no hold).
@@ -38,6 +40,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sizeOf, status as reviewStatus, diffStat } from "./review.mjs";
+import { keepLive } from "./jsonl-keep.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
 const BASE = "michael/dev";
@@ -290,8 +293,15 @@ function writeAll(plan) {
 			if (p.action !== "write" && p.action !== "delete") continue;
 			const full = path.join(MAIN, p.f);
 			done.push([full, readWork(p.f)]);
+			// an append-only log is read again right now: a line appended since planning is never dropped (jsonl-keep.mjs)
+			const live = p.f.endsWith(".jsonl") ? readWork(p.f) : null;
+			if (p.action === "delete" && live?.length && p.f.endsWith(".jsonl")) { console.warn(`  KEPT     ${p.f} — the branch deletes a live log; left in place`); continue; }
 			if (p.action === "delete") fs.rmSync(full, { force: true });
-			else { fs.mkdirSync(path.dirname(full), { recursive: true }); fs.writeFileSync(full, p.data); }
+			else {
+				const { data, kept } = live ? keepLive(p.data, live) : { data: p.data, kept: 0 };
+				if (kept) console.log(`  KEPT     ${p.f} — ${kept} line(s) appended since planning were kept`);
+				fs.mkdirSync(path.dirname(full), { recursive: true }); fs.writeFileSync(full, data);
+			}
 		}
 	} catch (e) {
 		for (const [full, old] of done.reverse()) { try { old === null ? fs.rmSync(full, { force: true }) : fs.writeFileSync(full, old); } catch {} }

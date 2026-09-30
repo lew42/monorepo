@@ -1,0 +1,6 @@
+PASS  a landing line appended after planning survives
+PASS  nothing new at write time: the planned bytes, untouched
+PASS  a line written twice is kept twice
+PASS  CRLF stays CRLF
+
+4/4 passed
