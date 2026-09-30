@@ -144,6 +144,8 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - Load AI 2 with Servex stopped and fix what breaks.
   - Skills: one line in `layout` (approved layouts, four widths); a console-error watcher line in `servex-mastermind`; soften non-law `must` lines.
 
+- **directory.json per folder (later)** (the owner, 2026-09-30): split a big folder's file listing out of its page.jsonl into its own `directory.json`, so page.jsonl stays light. Not now.
+
 ## 2. Only you can do
 
 - A Cloudflare login (about 5 minutes).
@@ -172,3 +174,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 - **`list_agents` returns every row ever** (mastermind-servex-9, 2026-09-30): 1248 rows, 1.3 MB, on the first call of a fresh mastermind — it blows the context it was meant to inform. Default to live rows (not stopped/gone), with `all: true` for the archive. Also the ledger's `files.jsonl` in pool worktree qf-4 shows 10+ modified `ai/*/files.jsonl` and `public/files.jsonl` — a generator writes into whichever tree it runs in; it should skip worktrees.
 - **chat-hitl asks 1 and 3 unmet** (review proof, 2026-09-30): the first review.mjs run on next-chat-hitl found the demo stuck on "marking…" and two of the owner's asks unmet — [report](2026-09-30/review/proof/review/report.md). chat-hitl-2 is landed and stopped; needs an owner (a $5 fix task).
+- **Cards: mini-pages wraps 2+1, leaving the page mostly empty at 3440** (review-fix-2, 2026-09-30): [`card/mini-pages/`](/framework/core/Page/card/mini-pages/)'s three preview cards wrap to two rows at every width, so "Going deep" sits alone under a mostly empty screen (82% empty at 3440). A row of three, or a `grid auto` that actually fits three, would keep the set together. Small, not urgent.
+- **Cards: the preview wall still ends 4+2 at 1920** (carried from [review/report.md](2026-09-29/cards-and-logs/review/report.md) item 5, confirmed still open by review-fix-2's own fresh review, 2026-09-30): [`core/Page/card/`](/framework/core/Page/card/)'s index. Minor.
+- **Cards: no real JSONL log file yet, and the AI 2 Inbox/Log-view-with-status-lights idea** (carried from [review/report.md](2026-09-29/cards-and-logs/review/report.md) item 4 and the 09-30 Inbox ask, confirmed still open by review-fix-2's own fresh review): `Logger.js` has `Logger.JSONL` (in-memory) but nothing writes one to disk yet; the Inbox/status-lights idea is split out at [next-log-view/requirements.md](2026-09-29/cards-and-logs/next-log-view/requirements.md).
+
+- **Merge candidates, when tokens allow** (the owner, 2026-09-30: "put somewhere… a future to do when we have more tokens"). A sweep that recommends things to merge: one Sonnet minion per `core/` directory (Page, View, App, …). Each one loads the readme chain top-down, reads its module, and lists overlaps with other modules as merge candidates, ranked. A mastermind then collects the lists into one ranked page. It's a fan-out, so check the week's usage first. Words: [ai-page/owner-words.md](2026-09-30/ai-page/owner-words.md).
+- **merge.mjs leaves the merge uncommitted in the main tree** (mastermind-servex-9, 2026-09-30): three times today (voice-sessions twice, cards-and-logs 3d4aa09a) the merge wrote the files into michael/dev and stopped before the commit, and the mastermind committed by exact path. Find the exit path that skips the commit (a conflict resolved by hand? the review gate?) and make the merge either commit or say in one line what it left. $5, Servex/merge fence, after the 5-hour window is back under pace.
