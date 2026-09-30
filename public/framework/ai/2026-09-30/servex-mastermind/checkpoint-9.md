@@ -23,3 +23,11 @@ cards-and-logs (review-fix minion), review (walkthrough minion, then land), page
 - asks-ledger redirected: stalled asks → Inbox rows, Needs you untouched (owner: forget Needs you). Its merge → the batched Servex restart (Asks.js).
 - audio-consolidate landed 5c1b7d15; its one-dictation-system plan is parked until the 4:50 PM reset. **If restarted: send it "go" after 4:53 PM local once pace allows** (a session-only cron did this); step 4 needs a Servex restart, mine.
 - Landed today also: voice-dir-404 f055b4aa, ai-page b8b9044b/986f406d (readmes, claude-md tab, inboxes home, tabs wrap at 400).
+
+## Added 16:15 CDT
+- **CLAUDE.md law 5 (owner, 2026-09-30): keep working; never wait on the owner.** Decide, say the alternative, queue on limits. Proposals on cards are no longer gates: their build is queued (proposal-flow, 10 PM reset), not "awaiting marks".
+- Servex restarted 15:33 for asks-ledger (fe471a61, Asks.js stall ticker); back as pid 59256. asks-ledger runs the stalled-ask proof, then lands.
+- Quick-fix pool was dead (all nine qf-* names held by leftovers). Cleared; proven with take/return. Notes `ai/2026-09-30/pool-cleanup/`; two todo lines (qf-1 unmerged core/Page nav, qf-3 superseded?, qf-6 folder locked).
+- Asks ledger tidied: landed/queued statuses with reasons; nothing falsely stalled.
+- inbox-ext: merges 1–5 now, merge 6 waits on ui-system's `System` class (seam written in `ui-system/task.jsonl`). Phased UI feedback = §5a of merge-approval-proposal.md, handed to proposal-flow (seam in `proposal-flow/task.jsonl`). Process monitor is dormant-idle's (plan 5c11d450).
+- Cron one-shot **5006c029** at 4:53 PM: usage check → audio-consolidate "go". Session-only; if I am restarted, do it by hand.
