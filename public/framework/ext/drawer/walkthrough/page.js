@@ -22,6 +22,12 @@ const STEPS = [
 		say: "With something selected, \"Ask about this\" drops it into the AI tab's input as a chip — it rides along as context for whatever you ask next." },
 	{ title: "Dictation, Settings, Admin", pic: "tab-dictation-1280.png", open: "/framework/",
 		say: "The rest of the drawer's tabs: Dictation for voice input, Settings and Admin for the rest." },
+	{ title: "Every page has an inbox", pic: "inbox-note-1920.png", open: "/framework/ext/drawer/?drawer=ai",
+		say: "A note left on this page sits at the top of the AI tab, with who left it, how long ago, and Clear. The tab reads AI · 1 while it is open." },
+	{ title: "Leave a note", pic: "inbox-authors-400.png", open: "/framework/ext/drawer/?drawer=ai",
+		say: "Press Leave a note, type, then Enter. Agents leave them with Servex's drop tool, and a mastermind wears the M. It is for coordination, never chat." },
+	{ title: "A coordinated module", pic: "inbox-coordinated-400.png", open: "/framework/ext/drawer/doc/",
+		say: "When a mastermind coordinates this module, a note goes straight to it instead, and the inbox says who." },
 	{ title: "On a phone: ☰ is the page's nav", pic: "phone-nav-400.png", open: "/framework/",
 		say: "On a phone, the ☰ at the top right opens this page's own navigation again — the home links on the home page, the framework sidebar under /framework/." },
 	{ title: "On a phone: the bottom rail", pic: "phone-rail-400.png", open: "/framework/",
@@ -37,7 +43,7 @@ const from_hash = () => Math.max(0, Math.min(STEPS.length - 1, (parseInt(locatio
 export default new Page({
 	meta: import.meta,
 	title: "The drawer, step by step",
-	description: "Eleven real screenshots: the ☰, the AI tab, Sessions, a reload that keeps its tab, selecting content, \"Ask about this\", and the rest of the tabs on desktop — then on a phone, the ☰ navigation, the bottom rail, the ✦ AI sheet, and what happens when the mic can't start.",
+	description: "Fourteen real screenshots: the ☰, the AI tab, Sessions, a reload that keeps its tab, selecting content, \"Ask about this\", the rest of the tabs and the page's inbox on desktop — then on a phone, the ☰ navigation, the bottom rail, the ✦ AI sheet, and what happens when the mic can't start.",
 	icon: "slideshow",
 
 	content(){
