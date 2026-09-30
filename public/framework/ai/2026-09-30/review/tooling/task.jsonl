@@ -1,0 +1,12 @@
+{"assign":{"session_id":"c5eac3b4-1f2f-4dfa-a78b-8fafa67e8832","agent":"minion-review-tooling","brief":"ai/2026-09-30/review/tooling/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/review","parent_task":"public/framework/ai/2026-09-30/review","requested_at":"2026-09-30T13:05:41-05:00","now":"starting","steps":[],"step":1}}
+{"assign":{"step":2,"now":"editing Server/review.mjs: header comment, WIDTHS, --questions verb, shots-for-any-page-review, report.md path"}}
+{"log":"a literal */ inside a header-comment glob path (.claude/skills/*/questions.md) closed the block comment early and broke the whole file's syntax — caught by node --check before any write landed; reworded to avoid the sequence"}
+{"action":{"at":"2026-09-30T13:11:20-05:00","did":"edit","files":["Server/review.mjs"]}}
+{"log":"Server/review.mjs deliverable 1 done: WIDTHS -> 400/1200/1920/3440; shots move to <taskdir>/shots/ via layout-check --bands, for every full review AND every light review that touches a page; page reviews load the review skill and write review/report.md, non-page reviews keep review.md; new --questions verb parses every skill's questions.md (balanced-bracket scan, so a rule tag containing its own [] like bands[].share survives, and a markdown link like [page](../page/questions.md) is never mistaken for a rule tag) into public/framework/ai/review/questions.json, ordered requirements/page/nav/layout/sizing/wrapping/spacing/colour/flow then anything else; main() refreshes questions.json on every run. Tested: node --check passes; --questions writes 9 systems, 81 questions; --status on 2026-09-28/fresh-eyes-review still reads 'reviewed: 10 fixed, 2 declined' unchanged."}
+{"log":{"at":"2026-09-30T13:15:14-05:00","msg":"skill: new-page"}}
+{"log":{"at":"2026-09-30T13:17:06-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-09-30T13:20:07-05:00","did":"edit","files":["public/framework/ai/review/page.js"]}}
+{"action":{"at":"2026-09-30T13:20:30-05:00","did":"edit","files":["public/framework/ai/review/readme.md"]}}
+{"action":{"at":"2026-09-30T13:21:03-05:00","did":"edit","files":["public/framework/ai/review/doc/decisions.md"]}}
+{"action":{"at":"2026-09-30T13:21:06-05:00","did":"edit","files":["public/framework/ai/page.js"]}}
+{"action":{"at":"2026-09-30T13:22:36-05:00","did":"edit","files":["Server/doc/review.md"]}}

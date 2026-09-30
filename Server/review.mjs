@@ -1,14 +1,32 @@
 /* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]`
  * Fresh eyes on a finished task: an agent that never saw the author's conversation reads only the
- * brief, the diff and (for a new page/module) screenshots, then says pass or fix. Why fresh: an
+ * brief, the diff and (for a page it touched) screenshots, then says pass or fix. Why fresh: an
  * agent that reviews its own code agrees with itself.
  *
  * SIZE (`sizeOf`, exported): `none` — only .css/.md changed, 20 changed lines or fewer, no added
  * file: no agent runs, review.md just says so. `light` — code changed, but no new page/module/
  * Servex file: a fresh Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs
- * module, or anything under Servex/: a fresh Opus also gets 1280/1920/3440 screenshots and the four
- * layout questions. `--size` may only RAISE the computed size; lowering it needs `--why`, logged as
- * a `{"decision":…}` line so the reason survives.
+ * module, or anything under Servex/: a fresh Opus. `--size` may only RAISE the computed size;
+ * lowering it needs `--why`, logged as a `{"decision":…}` line so the reason survives.
+ *
+ * SHOTS: any review — `light` or `full` — whose diff touches a page (`pageUrlFor` finds one) gets
+ * screenshots first, at `WIDTHS` (400, 1200, 1920, 3440) via `Server/layout-check.mjs --bands`,
+ * saved to `<taskdir>/shots/<page-slug>/` (`400.png` … `sheet.png` … `layout.json`, the last
+ * carrying `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page
+ * already has all four pngs there — the task mastermind may have shot them first. One
+ * `{"shots":{...}}` line is appended to task.jsonl naming every page, the shots dir, the first
+ * page's sheet, every page's sheet, and every `layout.json` that exists.
+ *
+ * REVIEWER: when shots were taken, the prompt tells the reviewer to load the `review` skill — its
+ * own absolute path, resolved from the tree THIS file lives in (`new URL("../.claude/skills/
+ * review/SKILL.md", import.meta.url)`), so a worktree's copy reviews with the worktree's own copy
+ * of the skill — and follow it: read the brief, the owner's words, the diff, `shots/` and each
+ * page's `layout.json`, then write `<taskdir>/review/report.md`. A review that touches no page
+ * keeps the plain brief-and-diff prompt and writes `<taskdir>/review.md`, same as always. Either
+ * file's first line is `verdict: pass` or `verdict: fix`, then findings `N. [fix] …` / `N. [note]
+ * …`; `parseReview` (exported) reads both the same way into one `{"review":{…}}` line appended to
+ * the task's task.jsonl — its `file` names whichever file was actually used, plus `report` and
+ * `shots` pointers when shots were taken.
  *
  * DIFF: normally `git diff michael/dev...<branch>` run INSIDE the worktree (default: cwd) — the
  * worktree shares the main repo's objects, so `michael/dev` is visible from there. `--range A..B`
@@ -18,14 +36,21 @@
  * The reviewer is a brand-new Servex agent (`spawn_agent` over the loopback MCP at
  * http://127.0.0.1:8090/mcp, then `wait_for_agent`, then `stop_agent` — the same three calls
  * `Server/clarity.mjs` makes) — never a `resume` or `fork`, so it truly has not seen the author's
- * turns. It writes `<taskdir>/review.md` (first line `verdict: pass` or `verdict: fix`, then
- * findings `N. [fix] …` / `N. [note] …`) and this script parses that (`parseReview`, exported) into
- * one `{"review":{…}}` line appended to the task's task.jsonl.
+ * turns.
  *
  * `--status <taskdir>` (no other args) prints one phrase for the dashboard card: `reviewed: pass`,
  * `reviewed: 2 fixed, 1 declined`, `reviewed: 1 unanswered`, or `not reviewed` (`status`, exported;
  * see doc/review.md for how a finding is answered). Every Node spawn here sets `windowsHide: true`.
  * Never throws: a Servex problem becomes a `fix` finding saying so, not a crash.
+ *
+ * `--questions` reads every skill dir's own `questions.md` under `.claude/skills` (plus the review
+ * skill's own SKILL.md, if it ever carries numbered questions the same way) and writes one file
+ * everyone else reads live:
+ * `public/framework/ai/review/questions.json` — every review question, grouped by system, in the
+ * review's own order (requirements, page structure, navigation, layout, sizing, wrapping, spacing
+ * and padding, colour and contrast, flow, then anything else not on that list). `main()` runs this
+ * at the start of every review too, so the file never goes stale even if nobody runs it by hand.
+ * The page at `/framework/ai/review/` reads it.
  *
  * TURNS (doc/review.md has the picture): the findings above are phase 1 of four, all logged to a
  * NEW file, `<taskdir>/review.jsonl` (task.jsonl's own `{"review":…}` line is untouched, still what
@@ -43,7 +68,11 @@ import { fileURLToPath } from "node:url";
 
 const BASE = "michael/dev";
 const MCP = "http://127.0.0.1:8090/mcp";
-const WIDTHS = [1280, 1920, 3440];
+const WIDTHS = [400, 1200, 1920, 3440];
+// The review order every system's questions sort into (Server/review.mjs --questions, and the
+// review skill's own "## The order"). Anything not on this list (content's "Words" today) sorts
+// after it, in the order its file put it.
+const SYSTEM_ORDER = ["Requirements", "Page structure", "Navigation", "Layout", "Sizing", "Wrapping", "Spacing and padding", "Colour and contrast", "Flow"];
 const lines = s => s.split(/\r?\n/).filter(Boolean);
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
 const git = (cwd, ...a) => run("git", a, cwd);
@@ -146,6 +175,83 @@ export function parseReply(text) {
 		const m = /^(\d+)\.\s*\[(accept|hold)\]\s*(.+)$/i.exec(l.trim());
 		if (m) out.push({ n: Number(m[1]), stance: m[2].toLowerCase(), text: m[3].trim() });
 	}
+	return out;
+}
+
+/* Every top-level `[...]` bracket in a line, as [start, end) spans over the FULL string (`]`
+ * included) — tracking nesting depth, because a rule tag can itself contain a balanced `[]`
+ * (layout/questions.md's own `[measured: layout.json bands[].share, ...]`, an array-index
+ * notation, would truncate at that inner `]` under a simple non-greedy regex). A bracket pair
+ * immediately followed by `(` is a markdown link (`[page](../page/questions.md)`, in the review
+ * skill's own "## Load first" list), never a rule tag, and is skipped. */
+function bracketSpans(line) {
+	const spans = [];
+	let depth = 0, start = -1;
+	for (let i = 0; i < line.length; i++) {
+		if (line[i] === "[") { if (depth === 0) start = i; depth++; }
+		else if (line[i] === "]") {
+			depth--;
+			if (depth === 0 && start >= 0) { if (line[i + 1] !== "(") spans.push([start, i + 1]); start = -1; }
+		}
+	}
+	return spans;
+}
+
+/* One questions.md's own numbered lists, grouped by its `## <Heading>` sections. A line only
+ * counts as a review question if it carries at least one `[...]` rule tag — a plain numbered
+ * step (like the `review` skill's own "## Load first" list) has no tag and is skipped, so this
+ * is safe to run over any skill file, not just a real questions.md. A fenced ```...``` block (the
+ * review skill's own example report, which has lines shaped like "1. [fix] ...") is skipped
+ * whole, since "[fix]"/"[note]" there are finding kinds, not rule tags. Exported for testing. */
+export function parseQuestionsFile(text) {
+	const systems = [];
+	let current = null, inFence = false;
+	for (const raw of text.split(/\r?\n/)) {
+		const line = raw.trim();
+		if (/^```/.test(line)) { inFence = !inFence; continue; }
+		if (inFence) continue;
+		const h = /^#{2,3}\s+(.+)$/.exec(line);
+		if (h) { current = { heading: h[1].trim(), questions: [] }; systems.push(current); continue; }
+		const m = /^(\d+)\.\s*(.+)$/.exec(line);
+		if (!m || !current) continue;
+		const spans = bracketSpans(m[2]);
+		if (!spans.length) continue;
+		const rules = spans.map(([a, b]) => m[2].slice(a + 1, b - 1).trim());
+		let qtext = "";
+		let last = 0;
+		for (const [a, b] of spans) { qtext += m[2].slice(last, a); last = b; }
+		qtext += m[2].slice(last);
+		current.questions.push({ n: Number(m[1]), text: qtext.trim(), rules });
+	}
+	return systems.filter(s => s.questions.length);
+}
+
+/* `--questions` (also run by main() at the start of every review): every skill dir under
+ * `.claude/skills` that has its own `questions.md`, plus the review skill's own SKILL.md (in case
+ * it ever grows numbered questions the same way), read live and written to one file the
+ * `/framework/ai/review/` page reads — never hand-edited. Exported for testing. */
+export function questionsCmd(root) {
+	const skillsDir = path.join(root, ".claude/skills");
+	const systems = [];
+	let dirs = [];
+	try { dirs = fs.readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
+	for (const skill of dirs.sort()) {
+		const file = path.join(skillsDir, skill, "questions.md");
+		if (!fs.existsSync(file)) continue;
+		const rel = path.relative(root, file).replaceAll("\\", "/");
+		for (const s of parseQuestionsFile(fs.readFileSync(file, "utf8"))) systems.push({ skill, file: rel, heading: s.heading, questions: s.questions });
+	}
+	const reviewSkillFile = path.join(skillsDir, "review", "SKILL.md");
+	if (fs.existsSync(reviewSkillFile)) {
+		const rel = path.relative(root, reviewSkillFile).replaceAll("\\", "/");
+		for (const s of parseQuestionsFile(fs.readFileSync(reviewSkillFile, "utf8"))) systems.push({ skill: "review", file: rel, heading: s.heading, questions: s.questions });
+	}
+	const rank = h => { const i = SYSTEM_ORDER.findIndex(o => o.toLowerCase() === h.toLowerCase()); return i < 0 ? SYSTEM_ORDER.length : i; };
+	systems.sort((a, b) => rank(a.heading) - rank(b.heading));
+	const out = { generated_at: now(), note: "generated by review.mjs --questions from the files named in source; never edit by hand", systems };
+	const outPath = path.join(root, "public/framework/ai/review/questions.json");
+	fs.mkdirSync(path.dirname(outPath), { recursive: true });
+	fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + "\n");
 	return out;
 }
 
@@ -367,6 +473,22 @@ function buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotPath
 		+ `Make no code edits. One pass, then stop.`;
 }
 
+// The review skill's own absolute path, resolved from the tree THIS FILE lives in — never the
+// main tree — so a worktree's copy of review.mjs hands its reviewer the worktree's own copy of
+// the skill (a worktree may be mid-edit on the skill itself).
+function reviewSkillPath() { return fileURLToPath(new URL("../.claude/skills/review/SKILL.md", import.meta.url)); }
+
+// A page review's prompt: point the reviewer at the review skill (which already knows the report
+// shape and every system's questions) instead of restating any of that here.
+function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotsDir) {
+	const rel = p => path.relative(root, p).replaceAll("\\", "/");
+	const files = [rel(path.join(taskDir, "requirements.md")), ...ownerWordsFiles.map(rel), ...(cardDir ? [rel(cardDir)] : []), rel(diffPath), rel(shotsDir) + "/"];
+	return `Load the review skill at ${reviewSkillPath().replaceAll("\\", "/")} and follow it — you are the fresh-eyes reviewer it describes.\n\n`
+		+ `Read: ${files.join(", ")} (and each page's own layout.json inside ${rel(shotsDir)}/<page>/, as evidence under the layout, sizing, wrapping and spacing questions).\n\n`
+		+ `Write ${rel(path.join(taskDir, "review", "report.md"))} in the exact shape the review skill gives.\n\n`
+		+ `Make no code edits. One pass, then stop.`;
+}
+
 async function main() {
 	const argv = process.argv.slice(2);
 	if (argv[0] === "--status") { console.log(status(path.resolve(argv[1]))); return; }
@@ -374,6 +496,11 @@ async function main() {
 	if (argv[0] === "--rule") { ruleCmd(argv[1], argv[2], argv[3], argv[4]); return; }
 	if (argv[0] === "--score") { scoreCmd(argv[1]); return; }
 	if (argv[0] === "--backfill") { backfillCmd(); return; }
+	if (argv[0] === "--questions") {
+		const out = questionsCmd(repoRoot(process.cwd()));
+		console.log(`review.mjs --questions: ${out.systems.length} system(s), ${out.systems.reduce((n, s) => n + s.questions.length, 0)} question(s) -> public/framework/ai/review/questions.json`);
+		return;
+	}
 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
 	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model");
 	const [taskDirArg, worktreeArg] = argv;
@@ -390,6 +517,9 @@ async function main() {
 	const [, rangeB] = range ? range.split(/\.\.\.?/) : [];
 	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
 	const head = range ? git(cwd, "rev-parse", rangeB).stdout.trim() : git(worktreeDir, "rev-parse", "HEAD").stdout.trim();
+
+	// So the questions page never goes stale, even for someone who never runs --questions by hand.
+	try { questionsCmd(root); } catch (e) { console.log(`review.mjs: --questions failed to refresh questions.json — ${String(e?.message || e).slice(0, 150)}`); }
 
 	const { nameStatus: status_, numstat } = diffStat(cwd, spec);
 	const files = status_.map(x => x.f);
@@ -416,24 +546,29 @@ async function main() {
 	const diffPath = path.join(taskDir, "review", "diff.patch");
 	fs.writeFileSync(diffPath, git(cwd, "diff", "--no-renames", spec).stdout);
 
-	let shotFiles = [];
-	if (size === "full") {
-		const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
+	// A page review: the diff touches at least one page.js/page.jsonl (pageUrlFor finds a URL for
+	// it). Every page review — `light` or `full` — gets screenshots at the four widths and uses
+	// the review skill; anything else keeps the plain brief-and-diff prompt, same as always.
+	const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
+	const pageReview = pages.length > 0;
+	const shotsDir = path.join(taskDir, "shots");
+	if (pageReview) {
 		const HOST = "http://monorepo.localhost";
-		const already = pages.length && pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(taskDir, "layout-check", slug(HOST + p), `${w}.png`))));
-		if (pages.length && already) shotFiles = pages.map(p => path.join(taskDir, "layout-check", slug(HOST + p), "sheet.png"));
-		else if (pages.length) {
-			const found = worktreeBase(root, worktreeDir);
+		const found = worktreeBase(root, worktreeDir);
+		const base = found ?? HOST;
+		const already = pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
+		if (already) console.log(`review.mjs: shots already present for every page under ${path.relative(root, shotsDir)} — skipping layout-check`);
+		else {
 			// Falling back to the MAIN site's URL when this worktree has no .worktrees.json entry
 			// would screenshot the wrong tree with no sign of it — say so instead of staying silent.
 			if (!found) console.log(`review.mjs: no worktree entry for ${worktreeDir} in .worktrees.json — screenshotting the MAIN site instead, not this worktree's own copy`);
-			const base = found ?? HOST;
-			const shots = path.join(taskDir, "review", "shots");
-			fs.mkdirSync(shots, { recursive: true });
-			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--out", shots]);
+			fs.mkdirSync(shotsDir, { recursive: true });
+			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--bands", "--out", shotsDir]);
 			console.log(lc.stdout + lc.stderr);
-			shotFiles = pages.map(p => path.join(shots, slug(base + p), "sheet.png"));
 		}
+		const sheets = pages.map(p => `shots/${slug(base + p)}/sheet.png`);
+		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
+		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands } });
 	}
 
 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
@@ -451,24 +586,30 @@ async function main() {
 
 	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5");
 	const name = path.basename(taskDir).replace(/[^a-z0-9-]+/gi, "-").slice(0, 40);
-	const prompt = buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotFiles, size);
+	// A page review writes review/report.md and asks the reviewer to load the review skill;
+	// everything else keeps the plain prompt and review.md, exactly as before this task.
+	const reviewRelFile = pageReview ? "review/report.md" : "review.md";
+	const reviewPath = path.join(taskDir, reviewRelFile);
+	const prompt = pageReview
+		? buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shotsDir)
+		: buildPrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, [], size);
 	let verdict = "fix", findings = [{ n: 1, kind: "fix", text: "the reviewer never ran" }], cost = 0;
-	// a stale review.md from a previous run must never be read as if it answered THIS head
-	try { fs.unlinkSync(path.join(taskDir, "review.md")); } catch {}
+	// a stale report from a previous run must never be read as if it answered THIS head
+	try { fs.unlinkSync(reviewPath); } catch {}
 	try {
 		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model, effort: "medium", permission_mode: "bypassPermissions", cwd: root });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		cost = waited.cost ?? 0;   // list_agents' row carries no cost field today; wait_for_agent's own answer does
 		await mcp("stop_agent", { id: spawned.id }, 20000);
-		const reviewPath = path.join(taskDir, "review.md");
 		if (fs.existsSync(reviewPath)) ({ verdict, findings } = parseReview(fs.readFileSync(reviewPath, "utf8")));
-		else findings = [{ n: 1, kind: "fix", text: "the reviewer wrote no review.md" }];
+		else findings = [{ n: 1, kind: "fix", text: `the reviewer wrote no ${reviewRelFile}` }];
 	} catch (e) {
 		findings = [{ n: 1, kind: "fix", text: `reviewer failed to run: ${String(e?.message || e).slice(0, 200)}` }];
-		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
+		fs.mkdirSync(path.dirname(reviewPath), { recursive: true });
+		fs.writeFileSync(reviewPath, `verdict: fix\n\n1. [fix] reviewer failed to run: ${String(e?.message || e).slice(0, 200)}\n`);
 	}
-	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: "review.md" };
+	const review = { at: now(), size, verdict, findings, branch, head, model, cost, file: reviewRelFile, report: pageReview ? reviewRelFile : null, shots: pageReview ? "shots/" : null };
 	appendJSON(taskJsonl, { review });
 	writePhase1(taskDir, review);
 	console.log(`review.mjs: size ${size} — ${branch} — ${verdict}, ${findings.length} finding(s), $${cost}`);
