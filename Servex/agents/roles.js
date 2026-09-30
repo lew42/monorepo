@@ -41,15 +41,27 @@ export const ROLES = {
 	 * caller that isn't Global.js (fresh-eyes review, finding 5). Global.js still spawns
 	 * `master-assistant` with its own fields, which always win over this table either way. */
 	"page-assistant":   { skill: "every-prompt",     prefix: "assistant",        alias: "card-assistant", tier: "fast",    model: model("fast"),    effort: "low",    permission_mode: "bypassPermissions" },
+	/* "manager" is a retired WORD as of 2026-09-29 (the owner, voice session, 6:40 PM) — this row
+	 * is what it named. Say "page-mastermind", or the row it is meant to become,
+	 * "directory mastermind" (not a roles.js row yet — no tool spawns one fresh from a
+	 * directory's readme chain today). Names only, no behaviour change here:
+	 * doc/names.md, /framework/ai/2026-09-22/tiers-design/doc/roles.md. */
 	"page-mastermind":  { skills: ["sub-mastermind", "page"], prefix: "manager", alias: "manager",                              tier: "manager", model: model("manager"), effort: "medium", permission_mode: "bypassPermissions" },
 	/* The root page's own assistant (Servex/agents/Global.js `master()`, master-assistant.md).
 	 * Its own row, not folded into page-assistant: architect tier and `plan`, unchanged from
-	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table. */
+	 * before recursive-pairs. A caller's own fields (Global.js's) still win over this table.
+	 * "master assistant" is a retired WORD as of 2026-09-29 — its "decide, then spawn the right
+	 * mastermind" job now belongs to a voice session's `session-smart` row, below. This row
+	 * (the code) is unchanged; only the word is retired. doc/names.md has the detail. */
 	"master-assistant": { skill: "master-assistant", prefix: "master-assistant", tier: "architect", model: model("architect"), effort: "high", permission_mode: "plan" },
 	/* Woken per landing and per proposal by Server/clarity.mjs; fresh each time, one pass (.claude/skills/clarity/). */
 	clarity:            { skill: "clarity",          prefix: "clarity",          tier: "fast",      model: model("fast"),      effort: "medium", permission_mode: "bypassPermissions" },
 	/* ONE PAIR PER VOICE SESSION (Sessions.js, ai/2026-09-29/voice-sessions): spawned by code with
-	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill. */
+	 * their own briefs (session-fast.md, session-smart.md), which win over these rows. No skill.
+	 * `session-smart` shares the "files for the next agent, cards for the owner" write discipline
+	 * with `task-mastermind` (both `every-prompt` and `sub-mastermind` carry it), but never its
+	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
+	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
 	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),    effort: "medium", permission_mode: "bypassPermissions" },
 	"log-assistant":    { skill: "log-assistant",    prefix: "log-assistant",    tier: "fast",      model: model("fast"),       effort: "low",  permission_mode: "acceptEdits" }
