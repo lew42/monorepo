@@ -43,6 +43,9 @@ export function fold_asks(lines){
 		const id = ask_id(ask);
 		if (!id) continue;
 
+		// An update for an id never routed (a typo'd id, written by hand) has no title or owner:
+		// skip it, or it shows up as a phantom "Untitled ask".
+		if (!out[id] && !ask.title) continue;
 		if (!out[id]) out[id] = { ...ask, id, history: [] };
 		else {
 			if (ask.status !== undefined) out[id].status = ask.status;

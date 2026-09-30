@@ -13,7 +13,7 @@ import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
-import needs_view, { watch_needs } from "./needs.js";
+import needs_view, { watch_needs, score_for } from "./needs.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
 import { money, cost_of } from "/framework/ext/AITask/cost.js";
@@ -659,6 +659,7 @@ function board(page){
 		// you recognise one when it arrives on its own.
 		rec.$row.el.classList.toggle("ai2-note", it.kind === "note");
 		rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live");
+		it.score = score_for(it.id);   // the importance badge (asks-ledger): the card's highest open need
 		rec.$row.empty(() => { it.kind === "live" ? live_row(it) : row(it); });
 	}
 

@@ -40,6 +40,7 @@ export function row(it){
 	div.c("ai2-row-head flex gap-25", () => {
 		span.c("ai2-dot");                         // always drawn; CSS shows it only when unread
 		if (it.icon) icon(it.icon);
+		if (it.score != null) span.c("ai2-score" + (it.score >= 70 ? " ai2-score-hot" : "")).text(String(it.score));
 		span.c("ai2-row-title").text(it.title);
 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
 	});

@@ -162,6 +162,10 @@ export const needs_soon = () => refresh();
  *  still need the owner". Empty once nothing here is open on that card. */
 export const needs_for = id => state.rows.filter(r => r.card === id);
 
+/** An Inbox row's importance badge: its card's highest open need, or null when nothing is open.
+ *  Lives here (not in inbox.js) so inbox.js never imports needs.js — needs.js imports inbox.js. */
+export const score_for = id => { const open = needs_for(id); return open.length ? Math.max(...open.map(n => importance(n, Date.now()))) : null; };
+
 /* ── the tab's own drawing ─────────────────────────────────────────────── */
 
 const stamp = () => {

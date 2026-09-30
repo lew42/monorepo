@@ -43,9 +43,4 @@ first for card needs, and always reads `asks.jsonl` itself for the stalled ones 
 file, no Servex route yet). Reading every card's `page.jsonl` itself (300 requests every 20 s,
 measured 09-29) is only the fallback when Servex is down.
 
-**The Inbox's own score badge is data-only today.** `inbox.js` puts a card's highest open need's
-score on `it.score` (`Math.max` over `needs_for(card_id)`), but nothing draws it yet — the row
-itself is `row()` in `faces.js`, called from `page.js`, neither of which this change touched.
-Whoever picks this up next: inside `row()`'s `.ai2-row-head`, right after the unread dot, add
-`if (it.score != null) span.c('ai2-score' + (it.score >= 70 ? ' ai2-score-hot' : '')).text(String(it.score));`
-— the CSS (`.ai2-score`, `.ai2-score-hot`) is already in `ai2.css`, ready.
+**The Inbox's score badge.** `page.js` sets `it.score = score_for(it.id)` (needs.js: the card's highest open need) just before `row()` in `faces.js` draws it; cards with nothing open show no badge. The Inbox is not re-ranked — it stays newest first. `score_for` lives in needs.js, not inbox.js, because needs.js already imports inbox.js and the reverse would be a cycle.
