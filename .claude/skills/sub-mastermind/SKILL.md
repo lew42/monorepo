@@ -231,8 +231,9 @@ checks a sentence cannot make:
 - every page created is **linked from somewhere a reader already is** — nothing here crawls.
 
 **Resolve, don't park.** A problem you find is yours to fix now, the best way you can, with its
-caveat written beside it. "Left open" needs a reason a reader would accept — an owner's decision,
-a fence, a fact you don't have — never "out of scope".
+caveat written beside it. "Left open" needs a reason a reader would accept — a fence, or a fact
+you don't have — never "out of scope", and never "waiting on the owner": decide, and give the
+alternative (CLAUDE.md law 5).
 
 ## Report three messages, ever
 

@@ -128,7 +128,7 @@ Keep things moving (the owner, 2026-09-24: "be very careful to manage concurrenc
 
 ## Resolve, don't park
 
-A problem you find is yours to fix now, the best way you can, kept easy to change later, its caveat written beside it. "Left open" needs a reason a reader would accept — an owner's decision, a fence, a fact you don't have — never "out of scope".
+A problem you find is yours to fix now, the best way you can, kept easy to change later, its caveat written beside it. "Left open" needs a reason a reader would accept — a fence, or a fact you don't have — never "out of scope", and never "waiting on the owner": decide, and write the alternative beside it (CLAUDE.md law 5).
 
 ## Landing
 

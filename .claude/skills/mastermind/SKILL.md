@@ -99,8 +99,8 @@ deliverable.
 
 **Resolve, don't park** (the owner, 2026-09-04). A found issue is not a finding to log and
 leave: fix it the best way you can now, keep the fix easy to change, and write its caveat beside
-it. "Left open" in a landing line needs a reason a reader accepts — an owner's decision, a
-fence, a missing fact — never "out of scope". Every brief says so, and the harvest checks it.
+it. "Left open" in a landing line needs a reason a reader accepts — a fence, a missing
+fact — never "out of scope", never "waiting on the owner" (CLAUDE.md law 5). Every brief says so, and the harvest checks it.
 
 **Clear beats brief** (CLAUDE.md law 2, rewritten 2026-09-04). Every brief carries it: a page's
 takeaway is obvious in ten seconds, in full plain sentences, basics first; a reviewer who cannot
