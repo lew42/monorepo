@@ -157,6 +157,13 @@ export default class Widget extends View {
 		(this.history() ?? []).forEach(chat => this.$thread?.draw({ chat }));
 	}
 
+	/** Clear the thread back to its empty state, drawing nothing back in — for a caller
+	 *  that drives the thread entirely through `say()` (`ux/Dictate/chat.js`'s own
+	 *  `watch()`-fed mounts) and needs to wipe it before redrawing a DIFFERENT session's
+	 *  history from scratch. `sync()` (above) is for a caller with a `history()` function;
+	 *  this is the same first half, with no second half for a caller that has none. */
+	reset(){ this.$thread?.reset(); }
+
 	/** An assistant's reply while it is STILL being written — the whole text so far,
 	 *  redrawn each call (`ext/Session/Session.js`'s `stream()`, dictation-stream,
 	 *  2026-09-30, merged into this widget round 4). A fixed, made-up `at`

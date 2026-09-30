@@ -70,12 +70,40 @@ transcription is below another paragraph or two." The OLD Overview (the five-tab
 playground leading, same as it always did) is kept one click away at
 [v1](/framework/ux/Dictate/v1/) — never destroy a viable version.
 
+## chat.js — one mount, one GLOBAL session, every surface
+
+**`ux/Dictate/chat.js`** (one-dictation, 2026-09-30 — the owner: "we want to have one
+set of code… one system that works the same everywhere, whether it's the mobile rail
+or the right sidebar") is now the ONE function every caller uses to put a real,
+answered conversation on screen:
+
+```js
+import chat from "/framework/ux/Dictate/chat.js";
+
+const mount = chat(el, { path: "/framework/", card: undefined, placeholder: "say something" });
+mount.panel;      // the Widget, if a caller needs it directly
+mount.session();  // the live session id, or null
+mount.nav(path);  // this mount moved to a new page — the ✦ sheet is the one caller that needs this
+mount.remove();   // this ONE mount is gone; the session and its watch live on
+```
+
+It draws a `Widget` and wires it to the fast/smart [voice-session pair](/framework/ext/Session/)
+— `ext/drawer/rail.js`'s `DrawerRailSheetChat` (the ✦ sheet) and `ext/drawer/tabs/ai.js`'s
+default export (the desktop drawer's AI tab, on a plain page AND a card) both just call this,
+with no session logic of their own left. **One browser tab has at most ONE voice session**,
+never a different one per card or page — `card` is only a hint for the very first sentence
+ever said (it becomes the session's home folder); every later mount, on any page or card,
+picks that same session back up and reads its WHOLE history from line 0, which is the actual
+fix for the vanishing-messages bug (`ai/2026-09-30/one-dictation/minion-chat/requirements.md`):
+the old per-surface wiring only started watching the session file the moment something was
+sent, so a rebuilt widget (a card switch, a tab reopen, a reload) sat empty until the owner
+spoke again, even though the conversation was still on disk.
+
 **Wired into the ✦ sheet, the desktop drawer's AI tab, AND a card page**
-(`ext/drawer/rail.js`, `ext/drawer/tabs/ai.js` — round 3 and 4) — the same class, the
-same options, everywhere the owner talks to the site. A CARD page (`/framework/ai2/…`)
-now talks through the exact same [voice session pair](/framework/ext/Session/) a plain
-page uses, home-folder pinned to that card, instead of the card's own separate prompt-log
-route — see `ext/drawer/readme.md`'s own note.
+(`ext/drawer/rail.js`, `ext/drawer/tabs/ai.js`) — the same class, the same options,
+everywhere the owner talks to the site, through `chat.js` above. The OLD default AI tab
+(its own model picker, its own session wiring) is kept reachable as `aiV2` —
+see `ext/drawer/readme.md`'s own note.
 
 ## Revise — clean up the words after they're heard
 
@@ -227,4 +255,5 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - Files: `Dictate.js` (the class), `capture.js` (mic → 16kHz WAV, no library), `pcm-worklet.js`
   (the `AudioWorklet` that reads raw samples), `Dictate.css` (the level meter, the pulse),
   `Widget.js` + `Widget.css` (the one compact widget — mic, live line, bubbles — see "Widget"
-  above), `v1/page.js` (the old Overview, frozen)
+  above), `chat.js` (the one mount + the global session controller — see "chat.js" above),
+  `v1/page.js` (the old Overview, frozen)

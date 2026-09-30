@@ -911,6 +911,18 @@
 		border-block-start: 1px solid var(--line);
 	}
 
+	/* THE CARD'S OWN SIDEBAR MOUNT (one-dictation, 2026-09-30) — desktop only. Hidden here
+	   (below 40em); the `width >= 40em` block further down (`.ai2-foot-chat` un-capped
+	   rules) turns it back on with a selector that outranks this one, same trick the Live
+	   card's own rules already use elsewhere in this file. Below 40em the phone's own ✦
+	   sheet already shows this exact conversation — a second copy here would be the "two
+	   chats" shape this task removes. */
+	.ai2-foot-chat { display: none; }
+	.ai2-foot-head {
+		font-weight: 600;
+		margin-block-end: 0.3em;
+	}
+
 	/* `title:` is the card's ID, for the tab and the framework, not the reader —
 	   the card's real title is the line below it. */
 	.page.ai2-card-page > .page-title {
@@ -2104,6 +2116,33 @@
 
 		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .grip,
 		.page.ai2-sub-page > .grip { display: block; }
+
+		/* THE MOUNT FILLS THE COLUMN (one-dictation, 2026-09-30) — `.ai2-foot-chat`'s own
+		   `display: none` above loses to this selector's higher specificity, so the sidebar
+		   shows here. `Widget.css`'s own height caps (`max-block-size`, sized for a
+		   STANDALONE widget on a page) are un-capped the same way `ext/drawer/drawer.css`
+		   already un-caps them for the desktop AI tab: the column here is a real flex
+		   height (`.ai2-foot`'s own `display: flex; flex-direction: column` two rules up),
+		   so each box just fills what its flex parent actually has, all the way down to
+		   the thread — only the thread scrolls; the head and the composer keep their size. */
+		.ai2-foot-chat-slot {
+			flex: 1 1 auto;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+		}
+		.ai2-foot-chat-slot > .ux-dictate-widget {
+			flex: 1 1 auto;
+			min-height: 0;
+		}
+		.ai2-foot-chat-slot .ux-dictate-widget-card {
+			flex: 1 1 auto;
+			min-height: 0;
+			max-block-size: none;
+		}
+		.ai2-foot-chat-slot .ux-dictate-widget-thread {
+			max-block-size: none;
+		}
 
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
 		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page {

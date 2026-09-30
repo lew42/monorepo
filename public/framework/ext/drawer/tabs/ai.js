@@ -1,6 +1,7 @@
 import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
 import md from "/framework/ext/markdown/md.js";
 import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
+import chat from "/framework/ux/Dictate/chat.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
@@ -221,16 +222,82 @@ function chips_row(tabs){
 	return { view: $chips, context: () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined };
 }
 
+/* THE ONE LIVE MOUNT (review fix #3, 2026-09-30: a leak). `ai()` below is called
+ * fresh on every refill of the drawer's body (`tabs.js`'s own `fill()`: every open,
+ * every tab switch back to "ai", every `drawer.refresh()` on a navigation) — each
+ * call built a brand new `chat()` mount and never told the OLD one to `remove()`,
+ * so every refill left its poller (`Session.watch()`), its `EventSource`
+ * (`Session.stream()`) and its `subscribe()` listener running forever, on top of
+ * whichever ones came before. Proof: open and close the AI tab 5 times headless —
+ * unfixed, 5 live watches and 5 live EventSources; fixed, 1 of each, always.
+ *
+ * `live_chat` is the one mount this tab has ever built, module-level like
+ * `live_card` above (this tab is a singleton, same reasoning). Two different things
+ * can make an old mount's content leave the drawer, and this covers both without
+ * needing `tabs.js` or `drawer.js` to say so out loud (neither is this task's fence):
+ *   - THIS tab reopens, or redraws (a switch away and back, a navigation refresh):
+ *     `ai()` runs again and disposes whatever `live_chat` already held before
+ *     building the new one.
+ *   - a DIFFERENT tab replaces this one's content (`tabs.js`'s `$body.empty()`),
+ *     or the drawer shuts (`drawer.close()`'s own `drawer-close` event): neither
+ *     calls `ai()` again, so this mount's own `MutationObserver` (set up when it was
+ *     built, watching the drawer body's direct children) notices its `$slot` left
+ *     the document and disposes itself — and the module-level `drawer-close`
+ *     listener, added once, disposes it immediately on a shut rather than waiting
+ *     for the DOM to actually change (it usually doesn't: closing only hides the
+ *     rail with CSS, so without this a closed-and-never-reopened tab's mount would
+ *     sit there, watching and streaming, until the page itself unloads). */
+let live_chat = null;
+function dispose_chat(){
+	const handle = live_chat;
+	live_chat = null;
+	handle?.remove();
+}
+window.addEventListener("drawer-close", dispose_chat);
+
 /**
- * v2 — the default. `Widget` (`ux/Dictate/Widget.js`) reads the card's own real,
- * persisted thread (the exact widget the mobile ✦ sheet's card thread already
- * shows, `rail.js`) or, on a page, keeps its own local list seeded from the picked
- * thread's saved history. `--chatbox-panel-max: 100%` (`drawer.css`) is the
- * drawer's own full height — the widget still starts small and only grows into
- * that ceiling. `models: true` — the one thing the sheet's own widget doesn't
- * show (the owner, round 3).
+ * THE DEFAULT — `ux/Dictate/chat.js`'s ONE mount, the exact same call the mobile ✦
+ * sheet makes (`rail.js`'s `DrawerRailSheetChat`), filling the drawer's full height
+ * (`.drawer-ai-panel`, `drawer.css`). "One of everything; don't repeat yourself"
+ * (CLAUDE.md law 6, 2026-09-30): no model chooser, no small hint text, no per-card
+ * rebuild — `chat.js` owns the ONE global session and redraws its whole history on
+ * every mount, on a card or a plain page alike. `sync_card_thread()` (below) is kept
+ * as a compatibility no-op for `ai2/card.js`'s own call into this file — `chat.js`'s
+ * own `watch()` already keeps every open mount live on its own, so nothing needs to
+ * be told to redraw any more.
  */
 export default function ai({ page, card, tabs }){
+	dispose_chat();   // this refill replaces whatever this tab built last time
+	const inbox = new DrawerInbox({ page });
+	div.c("drawer-ai flex v", () => {
+		inbox.view();
+		const $slot = div.c("drawer-ai-panel");
+		const handle = live_chat = chat($slot.el, {
+			path: page,
+			card: card?.id,
+			placeholder: card ? "talk into this card" : "say something",
+		});
+		// The OTHER way this mount's content can leave the drawer: a different tab's
+		// own refill clears $slot's own parent out from under it (see the doc above).
+		const host = $slot.el.closest(".drawer-body");
+		if (host){
+			const mo = new MutationObserver(() => {
+				if ($slot.el.isConnected) return;
+				mo.disconnect();
+				handle.remove();
+				if (live_chat === handle) live_chat = null;
+			});
+			mo.observe(host, { childList: true });
+		}
+	});
+}
+
+/**
+ * v2 — kept reachable, unchanged: `Widget` (`ux/Dictate/Widget.js`) with its own
+ * model picker and the OLD private session wiring this task replaced as the tab's
+ * default. Swap it back in by pointing `tabs.js`'s "ai" row at `{ default: aiV2 }`.
+ */
+export function aiV2({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let panel, $hint;
 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
