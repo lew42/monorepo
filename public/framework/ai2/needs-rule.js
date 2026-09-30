@@ -191,9 +191,13 @@ export const is_heartbeat_line = v => {
  *                            matter how recently it stalled) — whose `at` is inside the last
  *                            `FRESH_HOURS` (~a day): "may show briefly." Fades on a straight
  *                            line back down to the row's own resting score (below) by
- *                            `FRESH_HOURS` old. A row that is only a heartbeat notice never
- *                            gets this either — its real `at` (heartbeat lines skipped) is
- *                            however old the last REAL line on it actually is.
+ *                            `FRESH_HOURS` old. A raw "You said…" row that never became a
+ *                            card (`kind: "prompt"`) gets the same lift on a much shorter
+ *                            `PROMPT_FRESH_HOURS` (~an hour) instead — item C: it is "current"
+ *                            only while the owner is still talking about it, not for a day. A
+ *                            row that is only a heartbeat notice never gets this either — its
+ *                            real `at` (heartbeat lines skipped) is however old the last REAL
+ *                            line on it actually is.
  *   < 90    RESTING (what is left once nothing is fresh or pressing)
  *     40-55   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
  *                            unknown — nothing is known to be sitting idle waiting on it.
@@ -219,6 +223,7 @@ export const IMPORTANCE = {
 	FYI: 10,
 	DEFAULT: 10,
 	FRESH_FLOOR: 90, FRESH_MAX: 99, FRESH_HOURS: 24,   // "may show briefly… drops below 90 after about a day"
+	PROMPT_FRESH_HOURS: 1,    // item C: a raw "You said…" row is "current" for about an hour, not a day
 };
 
 /** A few more words than `is_blocker`'s own "block" — the ones the owner named directly
@@ -279,16 +284,17 @@ function plain_ask_score(item, now){
 }
 
 /** THE FRESHNESS LIFT (INBOX ZERO's decay rule, the owner, 2026-09-30 16:35) — a straight line
- *  from `FRESH_MAX` right now down to `FRESH_FLOOR` at `FRESH_HOURS` old, then nothing: "a
- *  somewhat important thing that just happened may show briefly… after about a day it drops
- *  below 90." `importance()` below is what decides WHICH kinds ever get this — never a
- *  `stalled` row (item B), and never a row whose `at` is a `servex-heartbeat` notice, because
- *  that notice was never allowed to become the row's `at` in the first place
+ *  from `FRESH_MAX` right now down to `FRESH_FLOOR` at `window` hours old (`FRESH_HOURS` for
+ *  most kinds, the shorter `PROMPT_FRESH_HOURS` for a raw "You said…" row — item C), then
+ *  nothing: "a somewhat important thing that just happened may show briefly… after about a
+ *  day it drops below 90." `importance()` below is what decides WHICH kinds ever get this —
+ *  never a `stalled` row (item B), and never a row whose `at` is a `servex-heartbeat` notice,
+ *  because that notice was never allowed to become the row's `at` in the first place
  *  (`is_heartbeat_line()` above, applied where `at` is computed: `inbox.js`, `groups.js`). */
-function fresh_bonus(at, now){
+function fresh_bonus(at, now, window = IMPORTANCE.FRESH_HOURS){
 	const hours = hours_since(at, now);
-	if (hours >= IMPORTANCE.FRESH_HOURS) return 0;
-	const frac = 1 - hours / IMPORTANCE.FRESH_HOURS;
+	if (hours >= window) return 0;
+	const frac = 1 - hours / window;
 	return Math.round(IMPORTANCE.FRESH_FLOOR + frac * (IMPORTANCE.FRESH_MAX - IMPORTANCE.FRESH_FLOOR));
 }
 
@@ -303,7 +309,15 @@ export function importance(item, now = Date.now()){
 		return item?.from_live ? blocked_score(item, now) : Math.max(plain_ask_score(item, now), fresh_bonus(item?.at, now));
 	if (kind === "decision_made") return Math.max(IMPORTANCE.DECIDED, fresh_bonus(item?.at, now));
 	if (kind === "fyi") return Math.max(IMPORTANCE.FYI, fresh_bonus(item?.at, now));
-	// Every other kind (card, note, landed, prompt, and anything not yet named): its own resting
-	// score is the flat DEFAULT, lifted only while it is genuinely recent.
+	// item C, 2026-09-30: a raw "You said…" row — a voice transcription that never became a
+	// real card (`inbox.js`'s own fallback title) — is "a current event" for a few minutes
+	// (the owner's own words: dictating is something "I'm currently working on"), not for a
+	// whole day like everything else's freshness lift — a row from hours ago (the owner's
+	// 12:48 and 1:05 PM examples) is stale, not current. A `prompt` that DID become a real
+	// card already shows up as that card (`kind: "card"`) instead, so this only ever catches
+	// the orphaned ones, on `PROMPT_FRESH_HOURS` instead of the usual `FRESH_HOURS`.
+	if (kind === "prompt") return Math.max(IMPORTANCE.DEFAULT, fresh_bonus(item?.at, now, IMPORTANCE.PROMPT_FRESH_HOURS));
+	// Every other kind (card, note, landed, and anything not yet named): its own resting score
+	// is the flat DEFAULT, lifted only while it is genuinely recent.
 	return Math.max(IMPORTANCE.DEFAULT, fresh_bonus(item?.at, now));
 }
