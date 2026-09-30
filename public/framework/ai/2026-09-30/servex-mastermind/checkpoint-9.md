@@ -31,3 +31,8 @@ cards-and-logs (review-fix minion), review (walkthrough minion, then land), page
 - Asks ledger tidied: landed/queued statuses with reasons; nothing falsely stalled.
 - inbox-ext: merges 1–5 now, merge 6 waits on ui-system's `System` class (seam written in `ui-system/task.jsonl`). Phased UI feedback = §5a of merge-approval-proposal.md, handed to proposal-flow (seam in `proposal-flow/task.jsonl`). Process monitor is dormant-idle's (plan 5c11d450).
 - Cron one-shot **5006c029** at 4:53 PM: usage check → audio-consolidate "go". Session-only; if I am restarted, do it by hand.
+
+## Added 16:40 CDT
+- **One-dictation is task-mastermind-one-dictation's** (owner-spawned 16:34, card `one-dictation-chat-everywhere`), building on audio-consolidate's plan 7ecd8f68; audio-consolidate stood down and lands what it has. The 4:53 "go" is cancelled — nothing to do at 4:53.
+- chat-reactions' files committed by me (ead237b9) — the per-file merge left them uncommitted again; merge.mjs fix stays on todo.
+- CLAUDE.md law 6: one of everything. Before any spawn, check the live agents and asks.jsonl for the same build.
