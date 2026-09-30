@@ -234,7 +234,8 @@ const run = async () => {
 			const live_child = fs.readdirSync(d, { withFileTypes: true }).some(e => {
 				if (!e.isDirectory()) return false;
 				const f = path.join(d, e.name, "task.jsonl");
-				return fs.existsSync(f) && !state(f).landed_at;
+				if (!fs.existsSync(f)) return fs.existsSync(path.join(d, e.name, "requirements.md")); // briefed, still in the spawn queue
+				return !state(f).landed_at;
 			});
 			if (live_child) return;
 			const stamp = path.join(os.tmpdir(), `claude-ledger-nag-${String(task).replace(/[^\w-]/g, "_")}.txt`);

@@ -120,6 +120,8 @@ force-push, and never rewrite history. The rest of the never-list git has earned
 
 A minion is for work that fills a turn. An edit of a few lines (a rule added to a skill, a link, a caption, a fix a reviewer named by line) you make yourself, now: a minion spawned for it waits in the memory queue for longer than the edit takes and holds the slot a real minion needs (2026-09-30, a two-line edit queued at position 9).
 
+A minion's brief dir counts as a live child from the moment its `requirements.md` exists, so write the brief before `spawn_agent` (a queued spawn has no task.jsonl yet, and the ledger hook would otherwise nag you to land).
+
 One page, one minion, in sequence — never two minions in one file, and never two on the same
 screen the owner is looking at. Each minion gets its own `requirements.md` with the owner's words
 at the top, its numbered deliverables, its fence and its length budget, and is told to load the
