@@ -189,7 +189,7 @@ export default class Pool extends Events {
         for (const slot of this.slots.filter(s => s.state === "taken")){
             const holder = slot.taken_by, held = this.held(slot, rows, queued);
             if (held){
-                if (held.dead) { kept.push({ id: slot.id, holder, why: held.why }); this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${held.why}`, { id: slot.id, from: holder }); }
+                if (held.dead) { kept.push({ id: slot.id, holder, why: held.why }); this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${held.why}`, holder); }
                 continue;
             }
             try {
@@ -200,10 +200,17 @@ export default class Pool extends Events {
             } catch (e) {
                 const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "");
                 kept.push({ id: slot.id, holder, why });
-                this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, { id: slot.id, from: holder });
+                this.once(slot, `pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, holder);
             }
         }
         return { reclaimed, kept };
+    }
+
+    /* The sweep asks every 5 minutes: a kept slot's reason is said once, and again only when it changes. */
+    once(slot, msg, holder){
+        if (slot.kept_msg === msg) return;
+        slot.kept_msg = msg;
+        this.say(msg, { id: slot.id, from: holder });
     }
 
     /* Why a taken slot is still held, or null when rules 1 and 2 above let it go.
