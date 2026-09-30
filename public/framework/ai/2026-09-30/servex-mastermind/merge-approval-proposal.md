@@ -73,3 +73,35 @@ What exists: `readme-chain.js` gives any spawn its chain root-first; `ask_direct
 Not missing: a new agent kind. A path mastermind is the existing task mastermind with a directory instead of a brief.
 
 Touches: `Agents.js` (1, 2), `Dispatcher.js` (3), `experts.js` (checkpoint = the mastermind's base session), `ext/Inbox` readmes (4).
+
+## 7. Messages, cards and threads: one rule for "everything is a page" (adds to §4)
+
+**The rule, in one line:** *Everything is a page. A page has a directory when it has grown; until then it is a line in its parent's `page.jsonl`; and a name that groups pages without content of its own (a tag, a kind, a day) is only a namespace.*
+
+The three states, and how you tell them apart:
+
+| State | What exists on disk | How it is reached | Example |
+|---|---|---|---|
+| **real page** (a path) | a directory with `page.jsonl` (line 1 says what it is), and when it needs them `readme.md`, `page.js`, `doc/` | its URL, routed by the parent's `children:` or by `page.jsonl` line 1 | `/framework/ai/2026/09/30/drill-in-…/`, `/framework/ext/Chat/` |
+| **virtual page** | one line in the parent's `page.jsonl` with an `id` (a message, a note, a reply, a sub-card) | `parent/<id>/`, routed dynamically by the parent's `route()` reading its own log; also `parent/#<id>` in the parent's view | a chat message, an inbox row, a thread reply |
+| **namespace** | nothing of its own: a key that other lines carry (`tags`, `kind`, a date folder that only holds pages) | a filtered view of pages: `/framework/ai/?tag=servex` | a project tag, "question" cards, a day |
+
+A virtual page has a preview and a detail view like any page: the preview is its line drawn as a chip or row, the detail is its `panel()` at `parent/<id>/`; a thread is the lines whose `parent` field names that id, nested as deep as they go. Nothing needs a name or a directory to exist: the id is minted (`m-3f9k`), the title is optional until promotion.
+
+**Where per-path AI data lives today** (so nobody has to remember):
+- **A module's own facts:** `<module>/page.jsonl` beside its `page.js` — its inbox (`inbox` lines), notes, later its uses (§3). A card *is* such a directory under `ai/2026/09/30/<slug>/`, so a card's messages already live in the card's own `page.jsonl` (`message` lines).
+- **A task's record:** `ai/<date>/<slug>/task.jsonl` (assign, log, landed) beside its brief and its files.
+- **Site-wide streams, one per kind, in `ai/`:** `log.jsonl` (everything, the firehose), `day.jsonl`, `board.jsonl`, `cards.jsonl`, `chat.jsonl`, `asks.jsonl`, `prompts.jsonl`, `usage.jsonl`, `verdicts.jsonl`, `files.jsonl`, the voice sessions `v-*.jsonl`. These are indexes and feeds; the page's own file is the truth for that page.
+- Not used: an `ai/` subdirectory per module. A module's AI data goes in the module's `page.jsonl`; only tasks get a dated directory.
+
+**Promotion, virtual → real:** `promote(parent, id)` — one function on the page log, one Servex tool, one "Promote" item on the line's ··· menu:
+1. make `<parent>/<id>/` (or `<parent>/<slug>/` when the line has a title), whose `page.jsonl` line 1 is the original line (its class, title, `created`, `by`);
+2. move the thread — every line whose `parent` chain reaches `id` — into that file, in order;
+3. leave one line in the parent: `{moved:{id, to:"<slug>/"}}`, so `parent/<id>/` still routes (route() follows `moved` before it looks for a line) and nothing the owner clicked ever 404s;
+4. now it can grow: `readme.md`, `page.js`, `doc/`, its own children — the same three files every module has.
+
+**Splitting off as a task** is promotion with a different parent: the directory is made under `ai/<date>/<slug>/` with `task.jsonl` line 1 an assign line that names the origin (`from:"<parent>/<id>"`), and the `moved` line points there. The Dispatcher's `new-task` already makes that directory; it gains the `from` field.
+
+When to promote: the thread is deeper than the parent's view shows well (three levels), the message became a task or research, or the owner names it. Never automatically on length alone.
+
+**Why this and not one directory per message:** a directory per message is the bloat the owner named — and every one needs a name. Lines are free, ids are free, and the promotion path means nothing is decided early. The alternative — every message a real page from the start — is what `ai/2026/09/30/` would look like with ten thousand folders.
