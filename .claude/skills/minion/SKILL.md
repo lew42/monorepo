@@ -22,6 +22,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 5. Servex always keeps one ready, so don't start your own worktree for a small fix.
 6. **Never link a worktree's `node_modules` to the main tree's** (no junction, no symlink, no mklink). Deleting that worktree deletes through the link and empties the main `node_modules`, and Servex crash-loops (2026-09-22, and again 2026-09-29 13:53–15:02, which killed every agent). If `take_worktree()` fails, message your parent; don't improvise one.
 7. **Stop every server you start.** A `PORT=… node server.js &` you ran to test something keeps running after you land (09-29: five of them, about 1 GB, held while spawns were queued for memory). Kill it before your turn ends.
+8. **A proof never posts as the owner.** Every server, a worktree's included, forwards chat and prompt posts to Servex, which appends them to the MAIN tree's live logs and wakes real assistants. So a proof that types into a composer, chat or ✦ sheet must stub posting (intercept the POST with `page.route` and answer it from a fixture), or post with `via:"test"` to a scratch path. Never post as `by:"owner"` (2026-09-29: a chat-hitl proof posted its demo sentence to ext/Chat/ai/chat.jsonl three times, each as the owner, and each woke two paid agents).
 
 ## You are a CLI session with your own id (the owner, 2026-09-19)
 

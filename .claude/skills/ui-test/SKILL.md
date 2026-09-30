@@ -167,6 +167,7 @@ Overlap is **not** flagged (a child overlaps its parent by design) — eval the 
 `mcp__site__shot` is a fresh headless png of a url (no gestures); `mcp__site__eval` reads DOM
 truth from a live tab, and a **hidden tab evaluates but does not lay out** — every rect is frozen.
 **Never drive the owner's tabs.** This runner has its own browser; that is the whole point.
+**A proof never posts as the owner.** Every server, a worktree's included, forwards chat and prompt posts to Servex, which appends them to the MAIN tree's live logs and wakes real assistants. So a proof that types into a composer, chat or ✦ sheet must stub posting (intercept the POST with `page.route` and answer it from a fixture), or post with `via:"test"` to a scratch path. Never post as `by:"owner"` (2026-09-29: a chat-hitl proof posted its demo sentence to ext/Chat/ai/chat.jsonl three times, each as the owner, and each woke two paid agents).
 
 ## Output
 
