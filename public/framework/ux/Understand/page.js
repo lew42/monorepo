@@ -7,7 +7,7 @@ export default new Doc({
 	description: "A ✓ or ? after every sentence the assistant read — green means clear, yellow opens a clarifying question right there in the flow.",
 	icon: "fact_check",
 
-	files: "Understand.js fixtures.js page.js readme.md",
+	files: "Understand.js fixtures.js Understand.css page.js readme.md",
 	notes: "decisions",
 
 	content(){

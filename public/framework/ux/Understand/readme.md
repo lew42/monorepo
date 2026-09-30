@@ -36,4 +36,5 @@ draws one it's given, so a real caller (the chat panel this rehearses) can call
   "try your own"
 - [`doc/decisions.md`](/framework/ux/Understand/doc/decisions/) — why `Decision` over `Question`
 - [`ux/Content/Decision`](/framework/ux/Content/Decision/) — the clarification card itself
-- Files: `Understand.js` (the class, `marks()`, the demo), `fixtures.js` (the offline rules pass)
+- [`ux/Rename`](/framework/ux/Rename/) — the other HITL widget from this same brief, tap-to-rename by dropdown; shares Servex's `/api/hitl` (a different `op`) and the same fixtures fallback
+- Files: `Understand.js` (the class, `marks()`, the demo), `fixtures.js` (the offline rules pass), `Understand.css`

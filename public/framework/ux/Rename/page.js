@@ -7,7 +7,7 @@ export default new Doc({
 	description: "Tap a title to select it, then Rename turns it into a dropdown of 5 suggested names plus keep current.",
 	icon: "drive_file_rename_outline",
 
-	files: "Rename.js fixtures.js page.js readme.md",
+	files: "Rename.js fixtures.js Rename.css page.js readme.md",
 	notes: "decisions",
 
 	content(){

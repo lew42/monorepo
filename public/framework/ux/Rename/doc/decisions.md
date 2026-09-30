@@ -10,6 +10,15 @@ function working for now," several cards sharing one visible log in the demo, an
 overriding both its read and its write to stay in memory anyway, for no benefit over a
 plain array with a `.filter(...).pop()` for "latest wins." Kept it plain.
 
+**Why `Understand` (built the same week, for the same brief) made the opposite call:**
+its clarification card already needed the exact shape `ux/Content/Decision` draws —
+an ask, two options side by side, nothing pre-chosen, a "your choice" mark once one is
+picked. Reusing it there meant overriding two methods; building the same thing by hand
+would have been more code, not less. A rename's dropdown is a different shape — one
+value picked from a flat list, no options to lay out — so there was nothing of
+`Decision` worth reusing here. Same reasoning both times ("does the existing thing fit
+without a rewrite?"), different answer, because the two widgets ask different questions.
+
 ## Select, then Rename — two taps, not one
 
 The owner's words named two separate moments: "first it kind of selects that card"

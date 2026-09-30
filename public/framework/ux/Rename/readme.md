@@ -4,6 +4,12 @@ The owner's own ask: click a card's title, ask to rename it, and get a dropdown 
 suggested names to pick from instead of typing a new one from scratch. See it working,
 live: [the demo](/framework/ux/Rename/).
 
+Built alongside [`ux/Understand`](/framework/ux/Understand/) for the same brief — a
+chat where the assistant needs to DO something to a card, not just answer in text.
+Understand marks what it read; this is the other half, for when the ask is "rename
+this thing" instead of "clarify this sentence." Both ask the same Servex endpoint,
+`/api/hitl`, with a different `op`.
+
 ## Use
 ```js
 import Rename, { rename_options } from "/framework/ux/Rename/Rename.js";
@@ -34,4 +40,5 @@ const out = await rename_options("Q3 planning");
 ## More
 - [Live demo](/framework/ux/Rename/) — three cards, one shared log shown beneath
 - [`doc/decisions.md`](/framework/ux/Rename/doc/decisions/) — why a plain array, not `ux/Content`
-- Files: `Rename.js` (the class, `rename_options()`, the demo), `fixtures.js` (the offline rules pass)
+- [`ux/Understand`](/framework/ux/Understand/) — the other HITL widget from this same brief, ✓/? sentence marks with a clarification card; shares `/api/hitl` and the fixtures fallback pattern
+- Files: `Rename.js` (the class, `rename_options()`, the demo), `fixtures.js` (the offline rules pass), `Rename.css`
