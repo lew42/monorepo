@@ -37,6 +37,10 @@ An ask you built but didn't prove stays unticked. A smaller version of what was 
 The roles table: [`../every-prompt/tiers.md`](../every-prompt/tiers.md). The full design:
 [`/framework/ai/2026-09-22/tiers-design/`](/framework/ai/2026-09-22/tiers-design/).
 
+## Skills are the Servex mastermind's to change (the owner, 2026-09-30)
+
+You don't edit a shared skill (`.claude/skills/*`) yourself. When one let you down or could be better, send the Servex mastermind (the current `mastermind-servex-N`) your recommendation: the skill, the line, what happened, and the change you'd make. It reviews every recommendation and applies it across the skill system. Appending one line to a skill's `improvements.md` is still fine. Your own module's readme and `doc/` are yours: keep them current yourself.
+
 ## Read the folder's ai/log.jsonl first (the owner, 2026-09-29)
 
 Any folder may have `ai/log.jsonl`: a short index of the AI work done there — sessions started or ended (with a title), tasks opened or landed, decisions — each line pointing to its detail file. Before your first edit in a folder, if `<folder>/ai/log.jsonl` exists, read its last 100 or so lines (never the whole file) and follow what it says. When you open or land a task there, or make a decision there, append ONE line with a pointer to the detail. Step-by-step progress never goes in it: that stays in your own task.jsonl.
