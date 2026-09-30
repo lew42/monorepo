@@ -245,6 +245,8 @@ function board(page){
 	// makes the Inbox actually reach zero most days. A missing `?min=` and a missing `it.score`
 	// both read as their usual defaults — `min` 90, a score 0 — never a thrown `NaN`.
 	const min_score = Number(new URLSearchParams(location.search).get("min") ?? 90) || 0;
+	// Is the floor on right now? Off while searching, showing archived, or at ?min=0.
+	const floored = () => min_score > 0 && !search_q && !show_archived;
 	let needs_ids = new Set();
 	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
@@ -673,7 +675,10 @@ function board(page){
 		// BRIEF E's "Needs review" filter — a group is not itself an "ask", so it shows only
 		// while ITS OWN card is one of the rows `needs.js`'s shared scan lists; run every call
 		// (not gated by the `sig` check above), so flipping the filter hides these at once.
-		order.forEach(g => { const rec = group_rows.get(g.id); if (rec) rec.$row.style({ display: (review_only && !needs_ids.has(g.card)) ? "none" : "" }); });
+		// INBOX ZERO: a group row obeys the same score floor as a card row — it shows only while
+		// its own card, or one of its members, scores `min` or more (search, "archived" and ?min=0 lift it).
+		const pressing = g => !floored() || [list.find(x => x.id === g.card), ...groups.members(g.id)].some(x => (x?.score ?? 0) >= min_score);
+		order.forEach(g => { const rec = group_rows.get(g.id); if (rec) rec.$row.style({ display: ((review_only && !needs_ids.has(g.card)) || !pressing(g)) ? "none" : "" }); });
 		draw_pages();
 		order_rows(force);
 	}
@@ -691,7 +696,7 @@ function board(page){
 			}
 			// A real site page is never one of the owner's own asks — BRIEF E's "Needs review"
 			// filter hides it outright rather than greying it.
-			rec.$row.style({ display: review_only ? "none" : "" });
+			rec.$row.style({ display: (review_only || floored()) ? "none" : "" });  // a changed page is never pressing: Log only
 			real_title(path, page.app?.router, () => draw_groups());
 			at_of.set("page:" + path, evs[0].at);
 			const sig = JSON.stringify([evs[0], RealPage.known.get(path), unseen("page:" + path, evs[0].at)]);
