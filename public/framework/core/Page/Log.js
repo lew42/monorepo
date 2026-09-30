@@ -41,8 +41,40 @@ export class PageLog {
 	// replaced) by the second settings line instead of merged with the first.
 	settings = { set(obj){ Object.assign(this, obj); } };
 
+	// ════ EVENTS — on(event, fn) / emit(event, …) ═════════════════════════════════
+	// The two hooks an extension's setup(page) gets: `line` (below, every line after
+	// the first) and `render` (Page.class.js's render(), after content is drawn).
+	// Modelled on Server/Events.js's on()/emit(), kept to what a page actually needs.
+	on(event, fn){ (this.listeners ??= {})[event] ??= []; this.listeners[event].push(fn); return this; }
+	emit(event, ...args){ this.listeners?.[event]?.forEach(fn => fn.call(this, ...args)); }
+
+	// ════ EXTENSIONS — a page.jsonl line names one on: `{"ext": "Inbox"}` ══════════
+	// The DATA path — one page at a time. `Page.use(Ext)` (Page.class.js) is the CODE
+	// path — every page, the moment the module that calls it is loaded. Both end up
+	// calling the same `Ext.setup(page)`. Model: `Server/Events.js`'s
+	// `static use(plugin)` / `setup(instance)`, and how `Server/run.js` wires them.
+	// ⚠ core never statically imports ext code — resolved against Log.js's OWN url
+	//   (not the page's), so it always finds `core/Page/ext/<Name>/<Name>.js`.
+	// ⚠ This import is ASYNC; the replay of an already-fetched page.jsonl is NOT —
+	//   see `jsonl_lines` below, which is what lets a late setup() catch up.
+	// `ext_ready` — every extension's own import+setup promise, so anything that
+	// reads what an extension set up (a `place`-d module, say) can
+	// `await Promise.all(page.ext_ready ?? [])` first rather than race it.
+	ext(name){
+		const ready = import(new URL(`./ext/${name}/${name}.js`, import.meta.url).href)
+			.then(({ default: Ext }) => Ext.setup?.(this))
+			.catch(error => console.error(`${this.log_label()} — ext("${name}") failed to load:`, error));
+		(this.ext_ready ??= []).push(ready);
+	}
+
 	// `assign()` that calls methods instead of overwriting them. One argument, always.
 	set(obj){
+		// Every line after the first, kept — so a `line` listener registered AFTER
+		// some lines already replayed (an ext's dynamic import never beats the
+		// synchronous replay below) can still catch up on what it missed.
+		(this.jsonl_lines ??= []).push(obj);
+		this.emit("line", obj);
+
 		for (const key in obj){
 			const here = this[key];
 
