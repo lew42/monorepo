@@ -56,12 +56,13 @@ for (const w of trees.slice(1)) {
 	else { const other = status().filter(s => !LOG(s.f)); if (other.length) why = `${other.length} changed file(s), e.g. ${other[0].f}`; }
 	if (why) { console.log(`skip   ${name}: ${why}`); continue; }
 	if (DRY) { console.log(`would  ${name}`); continue; }
+	// stop its server FIRST: a running one writes its logs again right after they are put back (pool-taken, 2026-09-30)
+	if (registry[name]) spawnSync(process.execPath, [path.join(MAIN, "Server", "worktree-down.mjs"), name], { cwd: MAIN, encoding: "utf8", windowsHide: true });
+	stop_node_in(w.path, name);
 	for (const s of status()) {   // only the server's logs are left, and only inside this worktree
 		if (s.x === "??") fs.rmSync(path.join(w.path, s.f), { force: true, recursive: true });
 		else git(w.path, "checkout", "--", s.f);
 	}
-	if (registry[name]) spawnSync(process.execPath, [path.join(MAIN, "Server", "worktree-down.mjs"), name], { cwd: MAIN, encoding: "utf8", windowsHide: true });
-	else stop_node_in(w.path);
 	if (fs.existsSync(w.path)) { const r = git(MAIN, "worktree", "remove", w.path); if (r.status !== 0) { console.log(`FAILED ${name}: ${(r.stderr || r.stdout).trim().split("\n").pop()}`); continue; } }
 	const b = git(MAIN, "branch", "-d", w.branch);
 	pruned++; console.log(`pruned ${name}${b.status ? `  (branch ${w.branch} kept: ${(b.stderr || b.stdout).trim().split("\n")[0]})` : ""}`);
@@ -69,11 +70,16 @@ for (const w of trees.slice(1)) {
 git(MAIN, "worktree", "prune");
 console.log(`${DRY ? "dry run" : `${pruned} pruned`}; ${trees.length - 1 - (DRY ? 0 : pruned)} worktree(s) remain`);
 
-/* A worktree started by hand (not in .worktrees.json) may still run a dev server or health.mjs. */
-function stop_node_in(dir){
+/* Anything still running in the worktree: a dev server, health.mjs, and the cmd wrapper worktree-up
+ * starts, whose command line is a bare `node server.js` that names only its log (.worktree-logs\<name>.log).
+ * Missing the wrapper left it restarting run.js, which wrote the logs again (pool-taken, 2026-09-30).
+ * The wrapper goes first: its /T takes its children with it. */
+function stop_node_in(dir, name){
 	const needle = dir.replace(/\//g, "\\").toLowerCase() + "\\";   // "…\foo\" never matches a sibling "…\foo-2\"
+	const log = (".worktree-logs\\" + name + ".log").toLowerCase();  // "…\foo.log" never matches "…\foo-2.log"
 	let rows = [];
-	try { rows = JSON.parse(execFileSync("powershell", ["-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Select ProcessId,CommandLine | ConvertTo-Json"], { encoding: "utf8", windowsHide: true })); } catch {}
-	for (const r of [].concat(rows || [])) if (String(r.CommandLine || "").toLowerCase().includes(needle))
-		spawnSync("taskkill", ["/PID", String(r.ProcessId), "/T", "/F"], { windowsHide: true });
+	try { rows = JSON.parse(execFileSync("powershell", ["-NoProfile", "-Command", "Get-CimInstance Win32_Process -Filter \"Name='node.exe' OR Name='cmd.exe'\" | Select ProcessId,Name,CommandLine | ConvertTo-Json"], { encoding: "utf8", windowsHide: true })); } catch {}
+	const mine = [].concat(rows || []).filter(r => { const c = String(r.CommandLine || "").toLowerCase(); return c.includes(needle) || c.includes(log); });
+	mine.sort((a, b) => (b.Name === "cmd.exe") - (a.Name === "cmd.exe"));
+	for (const r of mine) spawnSync("taskkill", ["/PID", String(r.ProcessId), "/T", "/F"], { windowsHide: true });
 }
