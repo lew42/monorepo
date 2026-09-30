@@ -72,6 +72,15 @@ law: no fixed number of items, no fixed depth. Drawn live at
 Page weight, and a page with no wrapper of its own (`display: contents`), are proposals:
 [doc/weight.md](/framework/ux/Content/structure/doc/weight.md).
 
+## Cards: which one, when (cards-and-logs, 2026-09-30)
+
+- A card is a mini page: `.card` (framework.css); the rules live at [/framework/core/Page/card/](/framework/core/Page/card/).
+- Grounds: default (surface), `.card-gray` (wash), `.card-dark`, `.card-prim` (the strong hue). A plain card nested in a plain card switches to gray on its own.
+- Nesting: at most 3 boxes. From level 4 down, use a heading with its content at the same indentation, never a 4th border ([nesting](/framework/core/Page/card/nesting/)).
+- Headers: none · a heading · icon + title · a header bar with a ··· menu (`.card-head`, `.card-menu-btn`) · a clickable whole card (an `a.card`) · expandable (`details.card`).
+- A list of clickable cards is a list of routed pages. Each card's data is one line in the nearest page.jsonl, with a virtual URL through the parent's route(); a folder is made only when a card grows ([mini pages](/framework/core/Page/card/mini-pages/)).
+- A log is nested cards: `Logger.attach(obj)` gives it `this.log()`, and LogView renders the result ([log](/framework/core/Page/card/log/)).
+
 ## Two tests for every element
 
 Run them on every item, label and button before you land:
