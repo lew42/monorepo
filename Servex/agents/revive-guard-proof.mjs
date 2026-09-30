@@ -94,6 +94,21 @@ const out = host.revive();
 check("boot revive reopens only the open-task agent", JSON.stringify(reopened) === '["b-open"]', JSON.stringify({ reopened, refused: out.refused }));
 check("boot revive marks the landed and orphaned rows gone", ["b-landed", "b-orphan"].every(id => host.reg().read()[id].state === "gone"));
 
+/* mastermind-servex-7's 20:20 gaps: legacy stops, and children of a retired mastermind */
+const rows1 = host.reg().read();
+rows1["old-minion"] = { id: "old-minion", state: "stopped", session_id: "s-old", cwd };   // written before the guard: no stopped_by key
+host.reg().save(rows1);
+host.reg().write({ id: "new-minion", state: "stopped", session_id: "s-new", cwd });   // written by the guard's code: stopped_by: null
+check("a row stopped before the guard is marked stopped_by legacy at boot", host.mark_legacy_stops() >= 1 && host.reg().read()["old-minion"].stopped_by === "legacy");
+check("…and a row the guard already judged is left alone", host.reg().read()["new-minion"].stopped_by === null);
+const seven = { id: "mastermind-servex-7", state: "idle", sent: [], send(t, n){ this.sent.push([t, n]); return this; } };
+host.live.set(seven.id, seven);
+host.wake_parent({ id: "minion-follow", parent: "mastermind-servex-6", last_text: "done: shipped" }, "done");
+check("a child of a stopped mastermind-servex-6 reports to the live mastermind-servex-7", seven.sent.length === 1 && seven.sent[0][0].startsWith("done:"));
+host.send("mastermind-servex-5", "hello", { from: "page-system" });
+check("a message to a retired mastermind-servex-5 reaches mastermind-servex-7", seven.sent.length === 2);
+host.live.delete(seven.id);
+
 fs.rmSync(tmp, { recursive: true, force: true });
 const failed = results.filter(r => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} passed`);

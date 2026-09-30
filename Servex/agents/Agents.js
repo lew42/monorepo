@@ -199,6 +199,10 @@ export class Agents {
 	async wait(id, timeout_s = 600){
 		const agent = this.live.get(id);
 		if (!agent?.idle){
+			/* Queued at the spawn gate: wait for it to start, then for its turn (Servex sets when_started). */
+			const began = Date.now(), started = await this.when_started?.(id, timeout_s);
+			if (started) return this.wait(id, Math.max(1, timeout_s - (Date.now() - began) / 1000));
+			if (this.when_started && Date.now() - began >= timeout_s * 1000 - 50) return { id, state: "queued", timed_out: true, words: null };
 			const row = this.registry_list().find(r => r.id === id);
 			if (!row) throw new Error(`No agent "${id}", live or in the registry.`);
 			return { id, state: row.state, words: null, note: "not held by this Servex process" };
@@ -228,6 +232,7 @@ export class Agents {
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
 		const out = { revived: [], told: [], gone: [], legacy: [] };
+		this.mark_legacy_stops(reg);
 		for (const row of reg.list()){
 			if (this.live.has(row.id) || row.state === "stopped") continue;
 			if (self_restarted(row.id)){
@@ -267,6 +272,18 @@ export class Agents {
 		reg.bury(out.gone, "servex restarted");
 		this.store().append("servex", { type: "revive", boot: this.boot, previous: prev?.boot ?? null, ...out }).catch(() => {});
 		return out;
+	}
+
+	/* Rows stopped BEFORE the revive guard existed carry no `stopped_by` key at
+	 * all, so nothing could tell a stop on purpose from a reap: mastermind-servex-6
+	 * came back that way at 20:19. At boot each is marked `stopped_by: "legacy"`
+	 * once, so the guard treats it as stopped on purpose (revive: true still wakes it). */
+	mark_legacy_stops(reg = this.reg()){
+		const rows = reg.read();
+		let n = 0;
+		for (const r of Object.values(rows)) if (["stopped", "gone"].includes(r.state) && !("stopped_by" in r)){ r.stopped_by = "legacy"; n++; }
+		if (n) reg.save(rows);
+		return n;
 	}
 
 	/* Human-readable, never a uuid: `<role>-<name>`, and a collision takes `-2`.
@@ -348,10 +365,14 @@ export class Agents {
 	 * mastermind-servex-N (the old one stood down at a full context), a message
 	 * to the role goes to the newest live holder instead of waking the old one. */
 	holder(id){
-		if (id !== "mastermind-servex") return id;
+		/* A retired mastermind-servex-N (stopped or gone) is the role too: a message
+		 * or a child's report for it goes to the live holder, never reviving the old
+		 * one (-4 and -5 kept coming back this way, 09-29). */
+		const retired = /^mastermind-servex-\d+$/.test(id ?? "") && !(this.live.get(id) && this.live.get(id).state !== "stopped");
+		if (id !== "mastermind-servex" && !retired) return id;
 		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
 		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
-		return best?.id ?? id;
+		return best?.id ?? id;   // nobody holds it live: the old id, which the revive guard then judges
 	}
 
 	wake(id){
@@ -436,6 +457,7 @@ export class Agents {
 		child.woke = true;
 		this.inbox(child, kind, text);
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
 		const parent = this.live.get(child.parent), by = this.stopped_on_purpose?.(child.parent)
 			?? (row => row?.stopped_by ? { by: row.stopped_by } : null)(this.reg().read()[child.parent]);
 		if (by && (!parent || parent.state === "stopped")){   // stopped on purpose: the inbox has it; never revived by a child

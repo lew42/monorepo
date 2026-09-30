@@ -1,0 +1,14 @@
+PASS  a queued spawn returns an id at once — {"id":"minion-audio-parts","state":"queued","queued":true,"position":1,"reason":"only 3000 MB of memory is free; waiting for 4096 MB","note":"Not started: only 3000 MB of memory is free; waiting for 4096 MB. Servex will start it as soon as that clears, under this id; wait_for_agent on it works now. Its parent is woken as usual once it runs.","held_messages":0}
+PASS  the same role+name again joins the first entry
+PASS  a retried reviewer is one entry, not two
+PASS  a second resume of the same session joins the queued one
+PASS  …and its prompt is held for delivery
+PASS  a message to a queued agent is held in its entry
+PASS  the queue is on disk after every change — minion-audio-parts, reviewer-follow, task-mastermind-lifecycle
+PASS  after a restart the queue is restored, prompts and held messages included — minion-audio-parts, reviewer-follow, task-mastermind-lifecycle
+PASS  finishing roles go first: the reviewer started, the minion still waits — reviewer-follow
+PASS  wait_for_agent on a queued id waited for it to start, then answered — {"id":"reviewer-follow","state":"idle","timed_out":false,"waited_ms":0,"words":null,"turns":1,"cost":0}
+PASS  a resume of a live session returns the live agent, with the prompt delivered
+PASS  the queue file is empty once everything started
+
+12/12 passed
