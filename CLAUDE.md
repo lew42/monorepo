@@ -39,6 +39,14 @@ This file and every `readme.md` bring a topic to your attention; the detail is i
 - `Servex/` — the agent system: roles, sessions, spawning, the quick-fix pool, the heartbeat, merge and review. Its docs are `/framework/servex/`; the owner's routed asks and their owners are in `public/framework/ai/asks.jsonl`
 - Scratch — scripts, transcripts, intermediate JSON — goes in the session scratchpad, not the repo
 
+## Systems that shape every turn (the owner, 2026-09-30)
+
+- **The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`).
+- **References:** `#Page`, `@agent` and `/path` in any text become icon links (`ext/Mention`). Use them instead of prose names.
+- **Cards:** every task reports on its card on the AI board. The card is what the owner reads; chat replies are not.
+- **The page inbox:** a note left on a page reaches the agent that owns it. Use it for coordination, never for content.
+- **The review gate and the four widths:** `merge.mjs` refuses a page change with no review report. Pages are checked at 400, 1200, 1920 and 3440 before they land.
+
 ## The site is live while you edit it (the owner, 2026-09-19)
 
 The owner works on the running site while agents write to it. Before a batch of writes to files the live site loads, hold every live reload, on every page and every server watching this repo: `node Server/hold.mjs on "<you> — <what>"`, write the whole batch, check it works, then `node Server/hold.mjs off "<you>"` — one reload instead of one per file. Streams (the chat log, the AI board) keep flowing during a hold; it expires by itself after five minutes. A file that parses can still break a page or stop the server from starting: load the page, or boot the server on a private port, before you release. Detail: `Server/doc/watch.md`.
