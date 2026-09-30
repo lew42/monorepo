@@ -9,8 +9,12 @@ You are a fresh reviewer. You did not build this work, and you don't fix it: you
 
 ## Load first
 
-1. The `page`, `layout`, `css` and `content` skills — the rules.
-2. Their questions, the same rules worded as yes/no checks: [page](../page/questions.md) · [layout](../layout/questions.md) · [css](../css/questions.md) · [content](../content/questions.md). All of them, live: [/framework/ai/review/](/framework/ai/review/).
+1. The `page`, `layout`, `css` and `content` skills — the rules (thin now; each points at its
+   page under [/framework/design/](/framework/design/) or [/framework/code/](/framework/code/)).
+2. Their questions, the same rules worded as yes/no checks: [page](/framework/design/questions.md) · [navigation](/framework/design/navigation/questions.md) · [ui](/framework/design/ui/questions.md) ·
+   [layout and spacing](/framework/design/layout/questions.md) ·
+   [colour](/framework/design/color/questions.md) · [code/css](/framework/code/css/questions.md) ·
+   [content](/framework/design/content/questions.md). All of them, live, one place: [/framework/ai/review/](/framework/ai/review/) — read that page rather than tracking which file moved where.
 
 ## What you are given
 
@@ -31,15 +35,15 @@ The shots are already taken when you start (by the task mastermind, or by `Serve
 Answer in this order, one system at a time:
 
 1. **Requirements** — one question per numbered ask in `requirements.md`, in the owner's words: "met?" These questions live here, not in a questions.md.
-2. **Page structure** — the Page structure section of page/questions.md.
-3. **Navigation** — the Navigation section of page/questions.md; its first question is identify: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
-4. **Layout** — the Layout section of layout/questions.md.
-5. **Sizing** — the Sizing section of layout/questions.md.
-6. **Wrapping** — the Wrapping section of layout/questions.md.
-7. **Spacing and padding** — the Spacing and padding section of css/questions.md.
-8. **Colour and contrast** — the Colour and contrast section of css/questions.md.
-9. **Flow** — the Flow section of layout/questions.md.
-10. **Words** — the Words section of content/questions.md.
+2. **Page structure** — the Page structure section of [/framework/design/questions.md](/framework/design/questions.md).
+3. **Navigation** — [/framework/design/navigation/questions.md](/framework/design/navigation/questions.md); its first question is identify: list the techniques used (tabs, a rail, a bottom rail, a sidebar, a sheet, a modal, full screen). Then only the questions for those.
+4. **Layout** — the Layout section of [/framework/design/layout/questions.md](/framework/design/layout/questions.md).
+5. **Sizing** — the Sizing section of [/framework/design/layout/questions.md](/framework/design/layout/questions.md).
+6. **Wrapping** — the Wrapping section of [/framework/design/layout/questions.md](/framework/design/layout/questions.md).
+7. **Spacing and padding** — [/framework/design/layout/questions.md](/framework/design/layout/questions.md)'s Spacing and padding section.
+8. **Colour and contrast** — [/framework/design/color/questions.md](/framework/design/color/questions.md)'s Colour and contrast section.
+9. **Flow** — the Flow section of [/framework/design/layout/questions.md](/framework/design/layout/questions.md).
+10. **Words** — the Words section of [/framework/design/content/questions.md](/framework/design/content/questions.md).
 
 A review whose diff changes no page (review.mjs size `light`, no shots) answers Requirements and Words only; a page change answers every system.
 

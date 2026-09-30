@@ -44,8 +44,13 @@
  * Never throws: a Servex problem becomes a `fix` finding saying so, not a crash.
  *
  * `--questions` reads every skill dir's own `questions.md` under `.claude/skills` (plus the review
- * skill's own SKILL.md, if it ever carries numbered questions the same way) and writes one file
- * everyone else reads live:
+ * skill's own SKILL.md, if it ever carries numbered questions the same way) AND every
+ * `questions.md` found recursively under `public/framework/design/` and `public/framework/code/`
+ * — the design-code move (2026-09-30) put each system's review questions beside its page instead
+ * of its skill. `skill` for a page-sourced system is the page's own path (e.g. `design/layout`,
+ * `code/css`). When the SAME `## Heading` appears both in a skill dir and under design/ or code/,
+ * the page's copy wins — so the old skill files keep working until they are retired, and no
+ * question is ever listed twice. Writes one file everyone else reads live:
  * `public/framework/ai/review/questions.json` — every review question, grouped by system, in the
  * review's own order (requirements, page structure, navigation, layout, sizing, wrapping, spacing
  * and padding, colour and contrast, flow, then anything else not on that list). `main()` runs this
@@ -234,28 +239,50 @@ export function parseQuestionsFile(text) {
 // --questions must stay inside the tree it was actually run from.
 function selfRoot() { return path.dirname(path.dirname(fileURLToPath(import.meta.url))); }
 
+// Every `questions.md` found recursively under `dir` (a page tree, e.g. public/framework/design),
+// pushed onto `out` with `skill` set to the PAGE's own path relative to public/framework (e.g.
+// "design/layout", "code/css") — this is what makes a page-sourced system show its page, not a
+// skill name, in questions.json. Never throws on a missing dir.
+function walkQuestionsUnder(root, dir, out) {
+	let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+	for (const e of entries) {
+		const full = path.join(dir, e.name);
+		if (e.isDirectory()) { walkQuestionsUnder(root, full, out); continue; }
+		if (e.name !== "questions.md") continue;
+		const rel = path.relative(root, full).replaceAll("\\", "/");
+		const page = path.relative(path.join(root, "public/framework"), dir).replaceAll("\\", "/");
+		for (const s of parseQuestionsFile(fs.readFileSync(full, "utf8"))) out.push({ skill: page, file: rel, heading: s.heading, questions: s.questions });
+	}
+}
+
 /* `--questions` (also run by main() at the start of every review): every skill dir under
  * `.claude/skills` that has its own `questions.md`, plus the review skill's own SKILL.md (in case
- * it ever grows numbered questions the same way), read live and written to one file the
- * `/framework/ai/review/` page reads — never hand-edited. Written only when the systems/questions
- * actually changed (everything except `generated_at`) — a review run should not dirty git with a
- * new timestamp every time it runs. Exported for testing. */
+ * it ever grows numbered questions the same way), PLUS every `questions.md` found recursively
+ * under `public/framework/design/` and `public/framework/code/` (the design-code move, 2026-09-30)
+ * — read live and written to one file the `/framework/ai/review/` page reads — never hand-edited.
+ * A page's own copy of a heading wins over a skill's, so the same system is never listed twice.
+ * Written only when the systems/questions actually changed (everything except `generated_at`) — a
+ * review run should not dirty git with a new timestamp every time it runs. Exported for testing. */
 export function questionsCmd(root) {
 	const skillsDir = path.join(root, ".claude/skills");
-	const systems = [];
+	const skillSystems = [];
 	let dirs = [];
 	try { dirs = fs.readdirSync(skillsDir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch {}
 	for (const skill of dirs.sort()) {
 		const file = path.join(skillsDir, skill, "questions.md");
 		if (!fs.existsSync(file)) continue;
 		const rel = path.relative(root, file).replaceAll("\\", "/");
-		for (const s of parseQuestionsFile(fs.readFileSync(file, "utf8"))) systems.push({ skill, file: rel, heading: s.heading, questions: s.questions });
+		for (const s of parseQuestionsFile(fs.readFileSync(file, "utf8"))) skillSystems.push({ skill, file: rel, heading: s.heading, questions: s.questions });
 	}
 	const reviewSkillFile = path.join(skillsDir, "review", "SKILL.md");
 	if (fs.existsSync(reviewSkillFile)) {
 		const rel = path.relative(root, reviewSkillFile).replaceAll("\\", "/");
-		for (const s of parseQuestionsFile(fs.readFileSync(reviewSkillFile, "utf8"))) systems.push({ skill: "review", file: rel, heading: s.heading, questions: s.questions });
+		for (const s of parseQuestionsFile(fs.readFileSync(reviewSkillFile, "utf8"))) skillSystems.push({ skill: "review", file: rel, heading: s.heading, questions: s.questions });
 	}
+	const pageSystems = [];
+	for (const top of ["design", "code"]) walkQuestionsUnder(root, path.join(root, "public/framework", top), pageSystems);
+	const pageHeadings = new Set(pageSystems.map(s => s.heading.toLowerCase()));
+	const systems = [...skillSystems.filter(s => !pageHeadings.has(s.heading.toLowerCase())), ...pageSystems];
 	const rank = h => { const i = SYSTEM_ORDER.findIndex(o => o.toLowerCase() === h.toLowerCase()); return i < 0 ? SYSTEM_ORDER.length : i; };
 	systems.sort((a, b) => rank(a.heading) - rank(b.heading));
 	const outPath = path.join(root, "public/framework/ai/review/questions.json");

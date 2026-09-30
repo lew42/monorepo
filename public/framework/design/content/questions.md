@@ -1,6 +1,6 @@
 # Content — review questions
 
-The content skill's rules, worded as questions a reviewer answers yes, no or n/a from the screenshots or the page's source; the `review` skill asks them.
+Moved from `.claude/skills/content/questions.md`, whole; the review skill asks them.
 
 ## Words
 

@@ -114,6 +114,8 @@ Companions stay as they are: `naming`, `review`, `clarity`, `ui-test`. `review` 
 
 ## What this costs and what it changes
 
+- Follow-up (design-code, 2026-09-30): the skill keeps the name `page` this round, since every brief and readme invokes it; rename it to `design` once those are updated.
+
 - Renames: `page` → `ui`. Merges: `css` + `new-css-class` → `style`. Splits: `navigation` out of `page`; `controls` new. Moves: two page sections into `content`; css's spacing questions into `layout`.
 - Every skill keeps its `questions.md` beside its rules, so `review` and `/framework/ai/review/` keep working; the count goes from 4 question files to 6.
 - Each aspect can be refined alone: a finding about a toolbar changes `controls` only; a finding about a rail changes `navigation` only.
