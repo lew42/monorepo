@@ -265,29 +265,12 @@ export default class Layers {
 		this.waiting = new Map();   // context → { prompt, texts, timer }
 		this.servex.cards.on((id, line, info) => {
 			if (!line?.prompt || !info?.fresh) return;
-			/* One-dictation, 2026-09-30: only the OWNER'S OWN words move to the global
-			 * session pair — an agent's or a manager's own prompt line (every other
-			 * route into a card) still wakes assistant-<card> exactly as before. */
-			if (line.prompt.by === "owner") return void this.card_prompt_session(id, line.prompt);
 			const card = this.root(id);
 			if (card) this.hear(card, line.prompt);
 		});
 	}
 
-	/* THE OWNER'S WORDS ON A CARD (one-dictation, 2026-09-30): they used to wake
-	 * assistant-<card>; now they feed the one global session, addressed at the
-	 * card's AI 2 page (`/framework/ai2/<card id>/`, not the old `/framework/ai/`
-	 * board page) so the pair knows which card the owner is talking about. */
-	card_prompt_session(id, prompt){
-		const path = `/framework/ai2/${id}/`;
-		const said = this.selected_block(prompt.context) + String(prompt.text ?? prompt.raw ?? "").trim();
-		const session = this.session_for({ path, card: id });
-		this.servex.sessions.say({ session: session.session, path, text: said, via: "text" });
-	}
-
-	/* The card listener's own reach now: a non-owner prompt on a card (the owner's
-	 * own goes to `card_prompt_session` above instead). `page_ai` used to come
-	 * through here too, for a plain page; it now feeds the session pair directly. */
+	/* A card's listener and a plain page's send (page_ai) both come through here. */
 	hear(key, prompt){
 		const quiet = env("SERVEX_PROMPT_QUIET_MS", 1500);
 		if (!(quiet > 0)) return void this.heard(key, prompt);
@@ -327,42 +310,25 @@ export default class Layers {
 		return agent;
 	}
 
-	/* ONE GLOBAL SESSION PER PROJECT (one-dictation, 2026-09-30: "we're not doing
-	 * per directory assistants anymore. We're doing global dictation assistance…
-	 * but they're contextually aware"). Whichever session of this project spoke
-	 * most recently — wherever on the site or whatever card it started on — is
-	 * resumed, as long as that was within Sessions' own `resume_ms`; otherwise a
-	 * fresh one is created here. This reads only Sessions' own public state
-	 * (`map`, `project`, `project_of`, `resume_ms`) and its own verbs (`resume`,
-	 * `create`) — Sessions.js itself is never touched, so this never conflicts
-	 * with the other task's uncommitted edits to it. */
-	session_for({ path, card, host } = {}){
-		const sessions = this.servex.sessions;
-		const project = sessions.project_of(host);
-		const [newest] = Object.values(sessions.map)
-			.filter(s => sessions.project(s) === project)
-			.sort((a, b) => Date.parse(b.last_at ?? b.at) - Date.parse(a.last_at ?? a.at));
-		if (newest && Date.now() - Date.parse(newest.last_at ?? newest.at) < sessions.resume_ms) return sessions.resume({ session: newest.id });
-		return sessions.create({ path, card, host });
-	}
-
-	/* THE DRAWER'S SEND (interface: ai/2026-09-25/recursive-pairs/interface.md;
-	 * one-dictation, 2026-09-30: this used to write into the page's own chat and
-	 * wake that page's own assistant — the per-directory assistant the owner
-	 * asked to retire. It now feeds the one global session/project pair instead,
-	 * the same `ext/Session` pair the ✦ sheet and the drawer's AI tab already
-	 * use, so the drawer can watch the exact same file the ✦ sheet watches.
-	 * Spawns nothing here: `session_for` resumes or creates the session, and
-	 * `Sessions.say` spawns the fast/smart pair only on its own lifecycle rules. */
-	page_ai({ page, text, context } = {}){
+	/* THE DRAWER'S SEND (interface: ai/2026-09-25/recursive-pairs/interface.md).
+	 * On a card's page the prompt goes into the card, where the card listener
+	 * hears it; on a plain page it goes into the page's chat and straight to its
+	 * assistant. The first send creates the assistant; opening a page never does. */
+	page_ai({ page, text, from = "owner" } = {}){
 		const p = page_path(page);
 		if (!p) return { ok: false, status: 400, error: `"${page}" is not a page path (a site path with a trailing slash; / is the root)` };
 		if (!String(text ?? "").trim()) return { ok: false, status: 400, error: "text is required" };
-		if (!this.page_exists(p)) return { ok: false, status: 404, error: `no page at ${p} (public${p} is not a directory)` };
-		const said = this.selected_block(context) + String(text).trim();
-		const session = this.session_for({ path: p });
-		this.servex.sessions.say({ session: session.session, path: p, text: said, via: "text" });
-		return { ok: true, page: p, session: session.session, file: session.file };
+		const key = this.context(p);
+		if (!is_page(key)){
+			this.servex.cards.append(this.card_of(p) ?? key, { prompt: { text, raw: text, by: from, via: "page-ai" } });
+		} else {
+			if (!this.page_exists(key)) return { ok: false, status: 404, error: `no page at ${key} (public${key} is not a directory)` };
+			const prompt = { id: "p-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, at: now_iso(), by: from };
+			this.append_chat(key, { prompt });
+			this.hear(key, prompt);
+		}
+		const rec = this.record(key);
+		return { ok: true, page: key, assistant: rec.assistant.id, manager: rec.manager.id };
 	}
 
 	// ── the two agents ───────────────────────────────────────────────────────
