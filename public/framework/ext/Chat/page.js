@@ -6,7 +6,7 @@ export default new Page({
 	title: "Chat",
 	description: "A scrolling chat log that follows new messages while you are at the bottom, and holds still once you scroll up.",
 	icon: "chat",
-	children: "panel",
+	children: "panel drill",
 
 	content(){
 		p("The log below, on its own. For the log plus the composer and the mic as ONE component — the widget the desktop drawer and the mobile sheet both use — see Chat Panel, `/framework/ext/Chat/panel/`.");

@@ -78,7 +78,7 @@ function label_via($label, via){
    (`code` skill's own "no DOM after an await") — this appends it to the
    bubble EXPLICITLY once it is built instead. A module that fails to load (a
    bad url, a missing file) says so in the card's own place, not silently. */
-function place_card(place){
+export function place_card(place){
 	// `on_chosen` (the ✓/? loop-back, below) is OURS, never the module's own
 	// constructor prop — pulled off before `rest` reaches `new mod.default(...)`.
 	const { module, on_chosen, ...rest } = place ?? {};
@@ -212,7 +212,8 @@ export function refine($box, e){
 	const of = e.of ?? [], at = Date.parse(e.at ?? 0) || 0;
 	for (const b of $box.el.children){
 		const st = bubbles.get(b);
-		if (!st || !st.pieces.some(pc => of.includes(pc.id))) continue;
+		// A headed reply is in the map only so it can be opened (card_of): never refined.
+		if (!st || st.head || !st.pieces.some(pc => of.includes(pc.id))) continue;
 		if (st.refined && st.at > at) return;
 		st.refined = e; st.at = at;
 		fill(b);
@@ -234,7 +235,35 @@ const key = e => e.chat
 	? "chat|" + e.chat.at + "|" + (e.chat.fix ? "fix|" + e.chat.text : "line") + "|" + (e.chat.session ?? "")
 	: (e.type === "prompt" && e.id ? "prompt|" + e.id : [e.type, e.id, e.at, e.ref, e.text].join("|"));
 
-export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear } = {}){
+/* A BUBBLE AS A TREE (drill in, `doc/drill.md`): `{ key, title, text, place,
+   children }` — a card is a tiny page. A bubble's key is its first piece's `at`
+   (or id): the same key a `fix` line uses, so it survives a reload. Its
+   children: a refined bubble's sections (each with the raw pieces it cites as
+   ITS children — one level deeper), else its pieces. A leaf has none. */
+const first_line = t => { const s = String(t ?? "").replace(/^#+\s*/, "").split(/\r?\n/)[0].trim(); return s.length > 70 ? s.slice(0, 67) + "…" : s; };
+const leaf = pc => ({ key: String(pc.id), title: first_line(pc.text ?? pc.place?.ask ?? pc.place?.title ?? ""), text: pc.text, place: pc.place, children: [] });
+function bubble_key(b){ const st = bubbles.get(b); return st ? String(st.key ?? st.pieces[0]?.id ?? "") : null; }
+export function card_of(b){
+	const st = bubbles.get(b);
+	if (!st) return null;
+	const r = st.refined, byid = new Map(st.pieces.map(pc => [pc.id, pc]));
+	let children = st.pieces.map(leaf);
+	if (r){
+		const of = new Set(r.of ?? []);
+		children = r.sections.map((sec, i) => ({ key: "s" + i, title: first_line(sec.text), text: sec.text,
+			children: (sec.from ?? []).map(id => byid.get(id)).filter(Boolean).map(leaf) }))
+			.concat(st.pieces.filter(pc => !of.has(pc.id)).map(leaf));
+	}
+	// One plain piece is the bubble itself — nothing inside to open.
+	if (!st.head && !r && children.length === 1 && !children[0].place) children = [];
+	// A refined bubble is named by its first section, plus how many more — never
+	// the first section alone, which is the title of the level below it too.
+	const more = r && r.sections.length > 1 ? " (+" + (r.sections.length - 1) + " more)" : "";
+	const title = st.head ?? (r ? first_line(r.sections[0]?.text) + more : children[0]?.title ?? first_line(st.pieces[0]?.text));
+	return { key: bubble_key(b), title: title || "(untitled)", who: b.querySelector(":scope > .chatbox-who, :scope > .who")?.textContent ?? "", children };
+}
+
+export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open } = {}){
 	let $script;
 	const seen = new Set();
 
@@ -285,6 +314,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$selected.querySelector(":scope > .chatbox-rename-btn")?.remove();
 		$selected.querySelector(":scope > .chatbox-rename-select")?.remove();
 		$selected.querySelector(":scope > .chatbox-rename-fixtures")?.remove();
+		$selected.querySelector(":scope > .chatbox-open-btn")?.remove();
 		$selected = null;
 		on_select?.(null);
 	}
@@ -296,11 +326,23 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$b.classList.add("chatbox-selected");
 		on_select?.({ el: $b, text: title_node($b)?.textContent ?? "" });
 		if (rename) add_rename_button($b);
+		if (on_open && card_of($b)?.children.length) add_open_button($b);
+	}
+
+	/* DRILL IN (`doc/drill.md`, 2026-09-30): a selected bubble that HAS contents
+	   grows an "Open" button; pressing it hands `on_open` the bubble's own
+	   tree — `card_of()`, below — and the caller (`ChatPanel` → `Drill.js`)
+	   takes it full screen. No `on_open` → no button: v1 exactly. */
+	function add_open_button($b){
+		const $btn = document.createElement("button");
+		$btn.type = "button"; $btn.className = "chatbox-open-btn"; $btn.textContent = "Open ⤢";
+		$btn.addEventListener("click", e => { e.stopPropagation(); on_open(card_of($b)); });
+		$b.appendChild($btn);
 	}
 	function make_selectable($b){
 		$b.classList.add("chatbox-selectable");
 		$b.tabIndex = 0;
-		$b.addEventListener("click", e => { if (e.target.closest("select, .chatbox-rename-btn")) return; select_bubble($b); });
+		$b.addEventListener("click", e => { if (e.target.closest("select, .chatbox-rename-btn, .chatbox-open-btn")) return; select_bubble($b); });
 	}
 	if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape") deselect(); });
 
@@ -385,6 +427,9 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				who_label(e.by);
 				span.c("chatbox-head", $t => { md_into($t.el, head, true); });
 				if (body) div.c("chatbox-text md", $t => { md_into($t.el, body); });
+				// Never `fill()`-ed (its markup is drawn right here); kept so `card_of()`
+				// can open it — its title is the heading, its one child the body.
+				bubbles.set($b.el, { pieces: body ? [{ id: e.id ?? e.at, text: body, at: e.at }] : [], refined: null, head, key: e.id ?? e.at });
 				make_selectable($b.el);
 			});
 		}));
@@ -537,6 +582,11 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			hit.piece.mark = mark;
 			fill(hit.bubble);
 			return true;
+		},
+		/** The card whose first piece's `at` (or id) is `at`, as a tree — `card_of()`. */
+		card(at){
+			for (const b of $script.el.children) if (bubble_key(b) === at) return card_of(b);
+			return null;
 		},
 		sync(){
 			const fresh = source().filter(e => {
