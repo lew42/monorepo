@@ -16,7 +16,7 @@ import people from "./maps/people.js";
  *   mentions(el, { "#": my_map })  // a caller with its own namespace
  *   mention_html("See #Page")    // the string form, for a template literal
  *
- * PATTERN: `/(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g`
+ * PATTERN (below): `#` and `@` as described here, plus `/`, a path from the web root.
  *   - not preceded by a letter/digit/underscore or `[` — so `a#b` and
  *     `user@example.com` are left alone (an email's `@` always has a word
  *     character right before it).
@@ -35,16 +35,34 @@ import people from "./maps/people.js";
  * Synchronous throughout — no fetch, nothing awaited — so this is safe to
  * call from inside a `View` capture callback, same as `md()` itself.
  */
-const PATTERN = /(?<![\w\[])([#@])(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w])/g;
+// `#` and `@` may not follow a word character or `[`; `/` must START a word (only after
+// a space, `(` or the start), so "and/or", "1/2" and a url's inner slashes never match.
+const PATTERN = /(?:(?<![\w\[])([#@])|(?<![^\s(])(\/))(\[[^\]\n]+\]|[A-Za-z][\w./-]*[\w]\/?)/g;
 
 export const maps = { "#": refs, "@": people };
+
+// OPT-IN, never every div (the owner, 2026-09-30): md(), chat bubbles and comments call
+// mentions() themselves; p() and h1–h6 reach it through this one hook in core/View
+// (core can't import ext — imports flow down — so ext registers itself here).
+View.upgrade = el => mentions(el);
 
 export const unknown = new Set();
 
 const SKIP_TAGS = new Set(["CODE", "PRE", "A", "TEXTAREA"]);
 
 function raw_name(raw){
-	return raw.startsWith("[") ? raw.slice(1, -1) : raw;
+	return (raw.startsWith("[") ? raw.slice(1, -1) : raw).replace(/\/$/, "");
+}
+
+// `/` — a path from the web root (the owner, 2026-09-30: "/framework/core/Page would be the
+// same thing as #Page"). No map of its own: it points into the others by url, and only a
+// path that IS a known page's url upgrades; every other slash stays plain text, silently.
+const norm = url => String(url).toLowerCase().replace(/[?#].*$/, "").replace(/\/?$/, "/");
+function by_path(m, raw){
+	const want = norm("/" + raw_name(raw));
+	for (const map of [m["#"], m["@"]]) for (const key in map ?? {})
+		if (map[key].url && norm(map[key].url) === want) return { key, ...map[key] };
+	return null;
 }
 
 function find(map, name){
@@ -57,6 +75,7 @@ function find(map, name){
 // its url as child slugs. `@` falls back to the `#` map when the first segment
 // is a page rather than an agent, so `@Servex/lifecycle` still resolves.
 function lookup(m, sigil, raw){
+	if (sigil === "/"){ const hit = by_path(m, raw); return hit && { name: hit.key, ...hit }; }
 	const [head, ...rest] = raw_name(raw).split("/");
 	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
 	if (!hit) return null;
@@ -101,10 +120,10 @@ function replace_node(node, m){
 	let last = 0, match, changed = false;
 
 	while ((match = re.exec(text))){
-		const [full, sigil, raw] = match;
+		const [full, s1, s2, raw] = match, sigil = s1 ?? s2;
 		const entry = lookup(m, sigil, raw);
 
-		if (!entry){ note_unknown(sigil, raw); continue; }   // left in place — `last` doesn't move
+		if (!entry){ if (sigil !== "/") note_unknown(sigil, raw); continue; }   // left in place — `last` doesn't move
 
 		changed = true;
 		if (match.index > last) pieces.push(document.createTextNode(text.slice(last, match.index)));
@@ -134,9 +153,9 @@ export function mentions(el, m = maps){
 export function mention_html(str, m = maps){
 	const re = new RegExp(PATTERN.source, "g");
 
-	return String(str).replace(re, (full, sigil, raw) => {
-		const entry = lookup(m, sigil, raw);
-		if (!entry){ note_unknown(sigil, raw); return full; }
+	return String(str).replace(re, (full, s1, s2, raw) => {
+		const sigil = s1 ?? s2, entry = lookup(m, sigil, raw);
+		if (!entry){ if (sigil !== "/") note_unknown(sigil, raw); return full; }
 
 		const tag = entry.url ? "a" : "span";
 		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
