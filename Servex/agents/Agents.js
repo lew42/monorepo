@@ -39,6 +39,8 @@ export class Agents {
 
 	register(agent){
 		if (agent.state === "stopped") try { this.servex?.lifecycle?.agent_ended(agent); } catch {}
+		// follow(path), 2026-09-29: a stopped agent's subscriptions end with it — Servex/Follow.js
+		if (agent.state === "stopped") try { this.servex?.follow?.agent_ended(agent); } catch {}
 		const row = this.reg().write(agent);
 		this.store().append("servex", { type: "registry", ...row }).catch(() => {});
 		return row;

@@ -13,6 +13,7 @@ import Heartbeat from "./Heartbeat.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
 import Lifecycle from "./Lifecycle.js";
+import Follow from "./Follow.js";
 import MCP, { loopback } from "./MCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
@@ -146,6 +147,12 @@ export default class Servex extends Events {
 
         /* CARD FOLDERS — one folder per card under ai/, written only by Cards. */
         this.cards = new this.constructor.Cards({ agents: this.agents, log: this.log });
+
+        /* FOLLOW(PATH) (voice-sessions, 2026-09-29): an agent cannot watch a file
+         * itself, so Servex watches and tells subscribed agents what changed, one
+         * message per burst, through `this.agents.send()` — the same queue
+         * `send_to_agent` uses. Servex/Follow.js, Servex/doc/follow.md. */
+        this.follow = new this.constructor.Follow({ agents: this.agents }).start();
 
         /* A VS CODE TAB IS AN AGENT YOU CAN MESSAGE (External.js) — `register_session`
          * lets any Claude session outside this process become addressable: listed,
@@ -594,6 +601,7 @@ export default class Servex extends Events {
         for (const tool of agent_tools(this.agents)) this.mcp.tool(tool);
         for (const tool of this.cards.tools()) this.mcp.tool(tool);
         for (const tool of this.pool?.tools() ?? []) this.mcp.tool(tool);   // take_worktree, return_worktree
+        for (const tool of this.follow.tools()) this.mcp.tool(tool);   // follow, unfollow, list_follows
 
 
         this.mcp.tool("system_health", {
@@ -960,6 +968,7 @@ Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;
 Servex.Pool = Pool;
 Servex.Lifecycle = Lifecycle;
+Servex.Follow = Follow;
 Servex.PortRegistry = PortRegistry;
 Servex.Process = Process;
 Servex.Project = Project;
