@@ -13,7 +13,8 @@
 export function keepLive(planned, fresh){
 	if (!fresh || !fresh.length) return { data: planned, kept: 0 };
 	const crlf = planned.includes("\r\n");
-	const split = b => b.toString("utf8").split(/\r?\n/).filter(l => l.trim());
+	// latin1 maps every byte to one char and back, so no byte changes (as in the rest of merge.mjs)
+	const split = b => b.toString("latin1").split(/\r?\n/).filter(l => l.length);
 	const have = new Map();
 	for (const l of split(planned)) have.set(l, (have.get(l) ?? 0) + 1);
 	const missing = [];
@@ -23,9 +24,9 @@ export function keepLive(planned, fresh){
 	}
 	if (!missing.length) return { data: planned, kept: 0 };
 	const nl = crlf ? "\r\n" : "\n";
-	let text = planned.toString("utf8");
+	let text = planned.toString("latin1");
 	if (text.length && !text.endsWith("\n")) text += nl;
-	return { data: Buffer.from(text + missing.join(nl) + nl, "utf8"), kept: missing.length };
+	return { data: Buffer.from(text + missing.join(nl) + nl, "latin1"), kept: missing.length };
 }
 
 /* `node Server/jsonl-keep.mjs --proof` — the rule, on the 09-29 shape. */
@@ -38,6 +39,8 @@ if (process.argv[1]?.endsWith("jsonl-keep.mjs") && process.argv.includes("--proo
 			keepLive(B('{"a":1}\n{"b":2}\n'), B('{"a":1}\n')), '{"a":1}\n{"b":2}\n'],
 		["a line written twice is kept twice",
 			keepLive(B('{"x":1}\n'), B('{"x":1}\n{"x":1}\n')), '{"x":1}\n{"x":1}\n'],
+		["UTF-8 bytes pass through untouched",
+			keepLive(B('{"t":"é—✓"}\n'), B('{"t":"é—✓"}\n{"u":"ü"}\n')), '{"t":"é—✓"}\n{"u":"ü"}\n'],
 		["CRLF stays CRLF",
 			keepLive(B('{"a":1}\r\n'), B('{"a":1}\r\n{"c":3}\r\n')), '{"a":1}\r\n{"c":3}\r\n']
 	];

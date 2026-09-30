@@ -342,6 +342,26 @@ try {
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
 		const dirty = dirtyFiles();
+		/* The three-way landing, per file, into the working tree (no commit). */
+		const threeWay = () => {
+			const plan = planAll(changed, branch);
+			printPlan(plan);
+			const conflicts = plan.filter(p => p.action === "conflict");
+			if (conflicts.length) {
+				console.error(`refused: ${conflicts.length} file(s) conflict; nothing was touched:\n${conflicts.map(p => `  ${p.f} — ${p.why}`).join("\n")}`);
+				code = 4;
+			} else if (dryRun) {
+				console.log("dry run: every file merges cleanly; nothing was written");
+			} else {
+				held = held || hold("on", "merge — three-way " + branch, changed);
+				writeAll(plan);
+				const ledger = path.join(MAIN, ".merge-landed.json");
+				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
+				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
+				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
+				console.log(`applied over uncommitted edits, not committed: the owner commits\n${changed.join("\n")}`);
+			}
+		};
 		const overlap = changed.filter(f => dirty.has(f));
 		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
 		// a NEW page (status "A") gets a 1920 screenshot, against the worktree's own server, before the merge touches anything
@@ -369,6 +389,11 @@ try {
 				console.log(`no overlap with the main tree's uncommitted edits: would run git merge --no-ff (merge-tree says clean). Files:\n  ${changed.join("\n  ")}`);
 			} else {
 				held = hold("on", "merge — " + branch, changed);
+				// The dirty check ran before the screenshots: a live log (a task.jsonl) may have been
+				// appended since. A late overlap goes the three-way way, which keeps every line.
+				const late = changed.filter(f => dirtyFiles().has(f));
+				if (late.length) { console.log(`${late.join(", ")} changed in the main tree since the check; three-way merging instead`); threeWay(); }
+				else {
 				const m = git(MAIN, "merge", "--no-ff", "--no-edit", branch);
 				console.log(m.stdout + m.stderr);
 				if (m.status !== 0) {
@@ -377,27 +402,12 @@ try {
 					console.error("git merge failed after merge-tree said it was clean — look at the output above");
 					code = 4;
 				}
+				}
 			}
 		} else {
 			// the main tree has uncommitted edits to files this branch changes: never git merge
 			console.log(`the main tree has uncommitted edits to ${overlap.length ? overlap.join(", ") : "staged files"}; three-way merging each file into the working tree instead`);
-			const plan = planAll(changed, branch);
-			printPlan(plan);
-			const conflicts = plan.filter(p => p.action === "conflict");
-			if (conflicts.length) {
-				console.error(`refused: ${conflicts.length} file(s) conflict; nothing was touched:\n${conflicts.map(p => `  ${p.f} — ${p.why}`).join("\n")}`);
-				code = 4;
-			} else if (dryRun) {
-				console.log("dry run: every file merges cleanly; nothing was written");
-			} else {
-				held = hold("on", "merge — three-way " + branch, changed);
-				writeAll(plan);
-				const ledger = path.join(MAIN, ".merge-landed.json");
-				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
-				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
-				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
-				console.log(`applied over uncommitted edits, not committed: the owner commits\n${changed.join("\n")}`);
-			}
+			threeWay();
 		}
 		}
 	}
