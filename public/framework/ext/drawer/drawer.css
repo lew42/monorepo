@@ -244,6 +244,7 @@
 		background: var(--fill-a08);
 	}
 	.drawer-inbox-head { gap: 0.5em; }
+	.drawer .drawer-inbox-logo { width: 1.1em; height: 1.1em; }
 	.drawer-inbox-from { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 0.9em; }
 	.drawer-inbox-text { overflow-wrap: anywhere; }
 	.drawer-inbox-age { flex: none; }

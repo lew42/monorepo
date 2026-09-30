@@ -100,7 +100,9 @@ export class DrawerInbox {
 			// Two lines: who and when, with Clear, over the note itself (the drawer is narrow).
 			this.open.forEach(n => div.c("drawer-inbox-row flex v", () => {
 				div.c("drawer-inbox-head flex v-center", () => {
-					span.c("drawer-inbox-from", n.from);
+					// Its author, with its icon: the site's M logo (.logo, styles.css) for a mastermind.
+					if (/mastermind/.test(n.from)) span.c("logo drawer-inbox-logo").attr("aria-hidden", "true");
+					span.c("drawer-inbox-from", n.from === "owner" ? "you" : n.from);
 					small.c("drawer-inbox-age muted", age(n.at)).attr("title", n.at);
 					button.c("drawer-inbox-clear", "Clear").attr("type", "button").click(() => this.clear(n.id));
 				});

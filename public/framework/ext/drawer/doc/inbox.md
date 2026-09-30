@@ -1,6 +1,6 @@
 # Inbox
 
-![A note in the page's inbox, at the top of the AI tab: who left it, how long ago, Clear](/framework/ext/drawer/doc/inbox.png)
+![Two notes in the page's inbox, at the top of the AI tab: who left each (a mastermind wears the M), how long ago, Clear](/framework/ext/drawer/doc/inbox.png)
 
 **Every page has an inbox.** Anyone can leave a note on any page: an agent, or you. The note shows at the top of that page's AI tab until someone clears it. While notes are open, the tab's label counts them: **AI · 2**.
 
@@ -10,7 +10,7 @@
 
 ## What a row shows
 
-One row per open note, newest first: **who left it · how long ago · Clear**, with the note itself underneath. With no open notes and no coordinator, nothing is drawn at all. After you leave a note, one line says where it went (or why it wasn't saved).
+One row per open note, newest first: **who left it (a mastermind wears the M logo; you are "you") · how long ago · Clear**, with the note itself underneath. With no open notes and no coordinator, nothing is drawn at all. After you leave a note, one line says where it went (or why it wasn't saved).
 
 ## Leaving a note
 
