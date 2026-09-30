@@ -1,6 +1,6 @@
-import { div, span, small, a, p, h4, textarea, button } from "/app.js";
+import { div, span, small, a, textarea, button } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { when, row } from "./faces.js";
+import { when } from "./faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "./fold.js";
 import { card_needs, is_blocker, importance } from "./needs-rule.js";
@@ -74,35 +74,17 @@ async function stalled_rows(){
 	});
 }
 
-/** WHICH AGENTS ARE LIVE RIGHT NOW (asks-ledger/needs-rail, brief D's `item.from_live`) —
- *  `importance()` already reads this field on a question/decision row to score it 70+
- *  ("a blocking ask... whose asking agent is live"), but nothing set it until this. One
- *  Servex call, `GET /agents` (the same list `list_agents` answers): `working`, `idle` and
- *  `dormant` all count as "someone is sitting there waiting on this" — `stopped` and `gone`
- *  do not. Servex down, or the call fails for any reason: an empty set, so every row's
- *  `from_live` stays false rather than throwing — the same "leave it false" the brief asks for. */
-async function live_agent_ids(){
-	try {
-		const res = await servex_fetch(servex_base() + "/agents");
-		const rows = res.ok ? await res.json() : null;
-		if (!Array.isArray(rows)) return new Set();
-		return new Set(rows.filter(r => ["working", "idle", "dormant"].includes(r?.state)).map(r => r.id));
-	} catch { return new Set(); }
-}
-
 /** Every open need across every (non-archived, non-done) card, PLUS every stalled ask, ranked
  *  by `importance()` — highest first, newest within a tie. `limit` caps how many card logs get
  *  fetched when Servex is down and this falls back to reading every card's file (brief: "the
  *  fastest working version first" — a card this old rarely still needs you). */
 export async function scan_needs({ limit = 300 } = {}){
-	const [card_rows, stalled, live_ids] = await Promise.all([
+	const [card_rows, stalled] = await Promise.all([
 		waiting().then(served => served ?? file_scan(limit)),
 		stalled_rows(),
-		live_agent_ids(),
 	]);
 	const now = Date.now();
 	return [...card_rows, ...stalled]
-		.map(n => ({ ...n, from_live: n.from ? live_ids.has(n.from) : false }))
 		.map(n => ({ ...n, score: importance(n, now) }))
 		.sort((x, y) => y.score - x.score || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
 }
@@ -286,36 +268,10 @@ function need_row(n){
 	function remove(){ $row.el.remove(); needs_soon(); }
 }
 
-/** A click on a link whose ONLY difference from here is the query string (`?v=1`,
- *  `?need=…`). The Router's own `go()` would push the url but never redraw — same
- *  pathname, same page object, so `activate()` finds nothing changed and no-ops
- *  (`core/Router/doc/decisions.md`) — so THIS PAGE manages its own query-string
- *  navigation: push the entry ourselves, then run whichever redraw the caller hands in. */
-function go_query(e, url, redraw){
-	if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;   // new tab etc. — let the browser do it
-	e.preventDefault();
-	history.pushState({}, "", url);
-	redraw();
-}
-
-const rail_url = root => new URL(root.url, location.origin).pathname;
-function v1_url(root){
-	const u = new URL(root.url, location.origin);
-	u.searchParams.set("v", "1");
-	return u.pathname + u.search;
-}
-
-/** The whole tab, THE OLD SHAPE (deliverable 1: "keep v1" — every row a big answer box,
- *  reachable forever at `?v=1`, never destroyed). One small link at the top goes to the
- *  new rail view, the mirror of that view's own "list view" link back here — neither one
- *  is a dead end. */
-function v1_view(root, redraw){
+/** The whole tab: nothing but the ranked list (deliverable 1 — "nothing else on the tab"). */
+export function needs_view(){
 	let $box;
-	const $root = div.c("ai2-needs-list", () => {
-		a.c("ai2-word ai2-need-raillink").href(rail_url(root)).text("rail view ↗")
-			.click(e => go_query(e, rail_url(root), redraw));
-		$box = div.c("ai2-needs-rows");
-	});
+	const $root = div.c("ai2-needs-list", () => { $box = div.c("ai2-needs-rows"); });
 	const draw = s => $box.empty(() => {
 		if (!s.ready) return void small.c("muted").text("Reading the cards…");
 		if (!s.rows.length) return void span.c("ai2-needs-empty").text("Nothing needs you");
@@ -327,202 +283,4 @@ function v1_view(root, redraw){
 	return $root;
 }
 
-/* ── v2, THE DEFAULT — the rail + a detail pane (asks-ledger/needs-rail, the owner,
- * 2026-09-30: "Needs you should look like the Inbox") ──────────────────────────────── */
-
-const NEED_PARAM = "need";
-const current_need = () => new URLSearchParams(location.search).get(NEED_PARAM) || null;
-
-/** One row's key, and the `?need=` value it is addressed by: `<card>/<ask>` for an
- *  ordinary open need, `ask:<ask id>` for a stalled ledger ask (deliverable 3's own
- *  two shapes — a stalled ask often has no card at all, so it can't share the first). */
-function need_key(n){ return n.kind === "stalled" ? "ask:" + n.ask : (n.card ?? "") + "/" + n.ask; }
-function need_url(root, n){
-	const u = new URL(root.url, location.origin);
-	u.searchParams.set(NEED_PARAM, need_key(n));
-	return u.pathname + u.search;
-}
-/** The row this key names, or the top-ranked row when there is no key yet or it
- *  matches nothing any more (deliverable 3: "with nothing selected, the first row
- *  opens" — also what happens once the row a stale link pointed at has been answered
- *  and dropped off the list). */
-function find_need(rows, key){
-	if (key){ const found = rows.find(n => need_key(n) === key); if (found) return found; }
-	return rows[0] ?? null;
-}
-
-/** The rail row's one quiet line (deliverable 2): the kind, in words — except a
- *  stalled ask, which says who it is waiting on and how long instead, the two facts
- *  the owner actually needs to decide whether to go chase it. */
-function rail_sub(n){
-	if (n.kind === "stalled") return [n.owner ? "owner " + n.owner : null, "silent " + silent_words(n.hours_silent)].filter(Boolean).join(" · ");
-	return KIND_LABEL[n.kind] ?? "";
-}
-/** Shaped for `faces.js`'s own `row()` — the SAME row function, classes, width, row
- *  height, padding and icon size the Inbox draws with (deliverable 2's own words). No
- *  `progress`/`usd`: `meter()` draws nothing when both are unset, so this never grows
- *  the answer-box-shaped bar an Inbox card gets. */
-const rail_item = n => ({ icon: KIND_ICON[n.kind] ?? "flag", score: n.score, title: n.title || short_title(n.question), at: n.at, sub: rail_sub(n) });
-
-/** ONE ITEM, WHOLE — the detail pane's own content (deliverable 3): the full question
- *  and its control for an ordinary need, or the stalled-ask facts (owner, why, how
- *  long, and the three links) for a ledger row. `on_done` is what happens after the
- *  control writes an answer — `needs_soon()`, the same "ask again right now" this
- *  module already exports for exactly this. */
-function detail_content(n, on_done){
-	div.c("ai2-need-detail-head flex v-center gap-25", () => {
-		icon(KIND_ICON[n.kind] ?? "flag");
-		span.c("ai2-need-score" + (n.score >= SCORE_HOT ? " ai2-need-score-hot" : ""))
-			.attr("title", "importance " + n.score + "/100").text(String(n.score));
-		if (n.kind === "blocker") span.c("ai2-need-blocker-flag").text("Blocker");
-		span.c("ai2-need-title").text(n.title || short_title(n.question));
-	});
-	p.c("ai2-need-detail-question").text(n.question || n.title);
-
-	if (n.kind === "stalled"){
-		small.c("ai2-need-meta muted")
-			.text([n.owner ? "owner " + n.owner : null, "silent " + silent_words(n.hours_silent)].filter(Boolean).join(" · "));
-		div.c("ai2-need-words flex wrap gap-25", () => {
-			if (n.card) a.c("ai2-link page-link").href("/framework/ai2/" + n.card + "/").text("its card");
-			if (n.words_url) a.c("ai2-link page-link").href(n.words_url).text("its words");
-			else if (n.words) small.c("muted").text(n.words);   // .claude/prompts/... isn't served — shown as plain text
-			a.c("ai2-link page-link").href("/framework/ai/asks/").text("the asks ledger");
-		});
-		return;
-	}
-
-	small.c("ai2-need-meta muted")
-		.text([KIND_LABEL[n.kind], n.owner ? "owner " + n.owner : null, when(n.at)].filter(Boolean).join(" · "));
-	div.c("ai2-need-control", () => {
-		if (n.control === "decision" && n.options?.length) decision_control(n, on_done);
-		else if (n.control === "reply") reply_control(n, on_done);
-	});
-	if (n.card) div.c("ai2-need-words flex wrap gap-25", () => {
-		a.c("ai2-link page-link").href("/framework/ai2/" + n.card + "/").text("its card");
-	});
-}
-
-/** THE RAIL + DETAIL PANE — v2, the default. Same shapes the Inbox already built:
- *  `.ai2` is the two-column grid (rail | detail), `.ai2-rail`/`.ai2-rows`/`.ai2-row`
- *  are its own row chrome — reused, not reinvented, so the rail is exactly as wide
- *  and each row exactly as tall as the Inbox's own. What differs from the Inbox: the
- *  rows are RANKED by `importance()` instead of newest-first, there is no composer or
- *  "+ New card" (nothing here is a conversation), and the selection lives in `?need=`
- *  instead of a path segment (`need_url()`/`go_query()` above say why a plain routed
- *  `<a>` can't do this the way an Inbox card's own address does).
- *
- *  ⚠ Row clicks do NOT go through `redraw` (the shell's full remount, below) — that
- *  would open a fresh `watch_needs()` subscription on every single row you read,
- *  and this page's own subscriptions never unsubscribe (the comment on `v1_view()`'s
- *  `watch_needs` call says why: the AI 2 root page's `content()` never tears down).
- *  Ten rows read in a row would be ten pollers left running forever in the tab. This
- *  view opens exactly ONE subscription for its whole lifetime and redraws itself in
- *  place for every row click; only the rare v1 ⇄ v2 toggle goes through `redraw`. */
-function needs_rail_view(root, redraw){
-	let $rows, $body, rows = [], sel = current_need(), row_els = new Map();
-	const open_mobile = !!sel;
-
-	const $root = div.c("ai2 ai2-need-v2" + (open_mobile ? " ai2-need-open" : ""), () => {
-		div.c("ai2-rail", () => {
-			div.c("ai2-top ai2-need-top flex v-center gap-25", () => {
-				h4.c("ai2-rail-name", () => span("Needs you"));
-				a.c("ai2-word").href(v1_url(root)).text("list view").click(e => go_query(e, v1_url(root), redraw));
-			});
-			$rows = div.c("ai2-rows ai2-need-rows");
-		});
-		div.c("ai2-detail ai2-need-detail", () => {
-			a.c("ai2-back ai2-need-back page-link").href(rail_url(root)).text("← Needs you")
-				.click(e => { e.preventDefault(); $root.el.classList.remove("ai2-need-open"); });
-			$body = div.c("ai2-need-detail-body");
-		});
-	});
-
-	function select(n){
-		sel = need_key(n);
-		$root.el.classList.add("ai2-need-open");
-		history.pushState({}, "", need_url(root, n));
-		mark_active();
-		draw_detail();
-	}
-
-	function mark_active(){
-		row_els.forEach((el, key) => el.classList.toggle("active", key === sel));
-	}
-
-	// `sel` moves to whatever actually drew (deliverable 3: "with nothing selected, the
-	// first row opens") — so the row the pane is showing is always the one `mark_active()`
-	// highlights, even after the row `sel` used to name got answered and dropped away.
-	//
-	// ⚠ A ONE-QUESTION PANE IS SHORT, AND A 3440 SCREEN IS WIDE (`layout` skill: "give it
-	// several columns... a layout check flags wasted space" — measured here: the pane alone
-	// was 85% empty at 3440, the exact "60% empty" complaint deliverable 1 exists to fix,
-	// just moved from the rail into the pane). So the pane also shows what else is waiting,
-	// as a grid of the SAME compact row (`rail_item()`/`row()`) the rail itself draws — more
-	// columns of it at a wider screen, never a wider empty margin around one short answer.
-	function draw_detail(){
-		const n = find_need(rows, sel);
-		if (n) sel = need_key(n);
-		$body.empty(() => {
-			if (!n) return void small.c("muted").text("Nothing needs you right now.");
-			detail_content(n, needs_soon);
-			const rest = rows.filter(r => r !== n);
-			if (rest.length) div.c("ai2-need-next", () => {
-				small.c("ai2-need-next-head muted").text("Also waiting");
-				div.c("ai2-need-next-grid", () => {
-					rest.forEach(other => {
-						a.c("ai2-row ai2-need-next-item").href(need_url(root, other)).append(() => row(rail_item(other)))
-							.click(e => { if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); select(other); });
-					});
-				});
-			});
-		});
-	}
-
-	function draw(state){
-		rows = state.rows;
-		row_els = new Map();
-		$rows.empty(() => {
-			if (!state.ready) return void small.c("muted").text("Reading the cards…");
-			if (!rows.length) return void span.c("ai2-needs-empty").text("Nothing needs you");
-			rows.forEach(n => {
-				const $a = a.c("ai2-row").href(need_url(root, n)).append(() => row(rail_item(n)));
-				row_els.set(need_key(n), $a.el);
-				$a.click(e => { if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); select(n); });
-			});
-		});
-		draw_detail();
-		mark_active();
-	}
-
-	// ⚠ Same "no unsubscribe" as `v1_view()` — one subscription for this view's whole
-	// lifetime; see the comment above this function for why row clicks never open another.
-	watch_needs(draw);
-	return $root;
-}
-
-/** THE MOUNT (page.js's Needs-you tab): picks v1 or v2 off `?v=1`, in a container this
- *  file owns completely so a toggle between them is a redraw, never a Router navigation
- *  (deliverable 1: v1 stays reachable; deliverable 2: v2 — the rail — is the default). */
-export function needs_shell(root){
-	let $mode;
-	const $root = div.c("ai2-needs-shell-v", () => { $mode = div.c("ai2-needs-mode"); });
-	const is_v1 = () => new URLSearchParams(location.search).get("v") === "1";
-	let showing = null;
-
-	function render(){
-		showing = is_v1() ? "v1" : "v2";
-		$mode.empty(() => { showing === "v1" ? v1_view(root, render) : needs_rail_view(root, render); });
-	}
-
-	render();
-	// Back/Forward across the `?v=` or `?need=` toggle: `Router.popped()` only reloads when
-	// the PATHNAME moves (`core/Router/Router.js`), so a query-only history step never
-	// reaches it — this page's own popstate is the only thing that hears it. A full
-	// `render()` (never a lighter "just move the selection") is the simple, correct
-	// answer here: Back is rare, unlike a row click, which `needs_rail_view()`'s own
-	// comment explains must NOT go through this path.
-	addEventListener("popstate", render);
-	return $root;
-}
-
-export default needs_shell;
+export default needs_view;
