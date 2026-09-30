@@ -1,8 +1,7 @@
-import { Page, md, div, AITask } from "/app.js";
+import { Page, md, div, a, span, small, icon, AITask } from "/app.js";
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
-import Concepts from "/framework/ux/Content/Concepts/Concepts.js";
 import CONCEPTS from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
@@ -20,27 +19,6 @@ export default new Page({
 	leaf: true,
 	children: "process review council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
-	// The board IS the dashboard — catalog's previews() override, split-screen for free.
-	// content() becomes the "intro" child catalog() adds (readme.md's own note) — the
-	// only rendered copy of `description` above, since nav cards read the field but the
-	// page itself never did (audit 2026-08-30: blank title, no orienting line).
-	// ⚠ ONE short line (2026-09-08). It said "One page per working day", which stopped
-	//   being true when the day spine moved to `log/` — and two lines of prose above the
-	//   fold is telling the reader what they are about to be shown.
-	/* THE FRONT DOOR IS V3 (the owner, 2026-09-21: "the AI page should default to
-	   V3 … It should be a quick and easy fix to make framework slash AI
-	   automatically switch to V3").
-
-	   Not a redirect. The picker's own first entry is `{ text: "V1", href:
-	   "/framework/ai/" }` (`v/versions.js`), so redirecting this url would leave
-	   V1 with no address at all and the picker looping straight back to V3. And
-	   every date/task/log/effort link on the site routes through THIS page's own
-	   `route()` below — a redirect would have to reproduce all of it.
-
-	   So the url, the routing and the children stay exactly as they are; only
-	   what this page DRAWS changes. `?v1` still draws the original board, which
-	   is where the picker's V1 entry now points — one query param instead of a
-	   second copy of the catalog machinery somewhere under `v/`. */
 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
 	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
 	   and `?v1` still draws the original board below. `board_drawn` stays true so
@@ -48,8 +26,20 @@ export default new Page({
 	board_drawn: true,
 	content(){
 		if (!v1()){
-			div.c("pad", () => new Concepts({ page: this, items: CONCEPTS }));
-			md("Servex is the process that runs all of this: [Servex](/framework/servex/). The live board: [V3](/framework/ai/v/3/) · every task: [the log](/framework/ai/log/).");
+			md("**The AI system: who does the work, how it is tracked, and how it lands.** Each part below opens its own page.");
+			/* Tiles with their gist (review finding 2: bare `Concepts` buttons showed
+			   names only). Same card pattern as core/Page/ai/page.js; `wide` lets the
+			   row fill the screen instead of the text measure. */
+			div.c("wide flex auto gap", () => {
+				CONCEPTS.forEach(c => a.c("card flex v gap-35").href(this.url + c.slug + "/")
+					.style({ textDecoration: "none", color: "var(--ink)" })
+					.append(() => {
+						icon(c.icon).style({ fontSize: "2rem" });
+						span(c.name).style({ fontWeight: "700" });
+						small.c("muted", c.gist);
+					}));
+			}).style("--column", "16rem");
+			md("[Servex](/framework/servex/) is the process that runs all of this. To see the work itself: [the live board](/framework/ai/v/3/), or [every task, newest first](/framework/ai/log/).");
 			return;
 		}
 
