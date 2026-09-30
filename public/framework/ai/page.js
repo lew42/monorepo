@@ -1,8 +1,9 @@
-import { Page, md, div, a, span, small, icon, AITask } from "/app.js";
+import { Page, md, div, AITask } from "/app.js";
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
-import CONCEPTS from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
+import { TABS, tab_page } from "./overview.js";   // the four top tabs: Overview · Skills · Objects · Authoring
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -26,20 +27,11 @@ export default new Page({
 	board_drawn: true,
 	content(){
 		if (!v1()){
-			md("**The AI system: who does the work, how it is tracked, and how it lands.** Each part below opens its own page.");
-			/* Tiles with their gist (review finding 2: bare `Concepts` buttons showed
-			   names only). Same card pattern as core/Page/ai/page.js; `wide` lets the
-			   row fill the screen instead of the text measure. */
-			div.c("wide flex auto gap", () => {
-				CONCEPTS.forEach(c => a.c("card flex v gap-35").href(this.url + c.slug + "/")
-					.style({ textDecoration: "none", color: "var(--ink)" })
-					.append(() => {
-						icon(c.icon).style({ fontSize: "2rem" });
-						span(c.name).style({ fontWeight: "700" });
-						small.c("muted", c.gist);
-					}));
-			}).style("--column", "16rem");
-			md("[Servex](/framework/servex/) is the process that runs all of this. To see the work itself: [the live board](/framework/ai/v/3/), or [every task, newest first](/framework/ai/log/).");
+			// The same top tabs as a module's docs (the owner, 2026-09-30). The first
+			// tab owns this url; each tab's page is routed below (tab_page, overview.js).
+			// ⚠ The default tab is never routed to: tabs() only looks it up, so add it now.
+			if (!this.children.has(TABS[0])) this.add(TABS[0], tab_page(this, TABS[0]));
+			this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
 			return;
 		}
 
@@ -78,6 +70,7 @@ export default new Page({
 		   of the five can ever look like a date, `log` or `effort`. The board
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
+		if (TABS.includes(name)) return tab_page(this, name);
 		const concept = CONCEPTS.find(c => c.slug === name);
 		if (concept) return concept_page(this, concept);
 
@@ -136,7 +129,7 @@ export default new Page({
 /* One concept's page: the gist first, then a few items, then the code that owns it,
    then the Servex page where Servex implements it (linked, never repeated). */
 function concept_page(parent, c){
-	const links = list => list.map(([t, h]) => `[${t}](${h})`).join(" · ");
+	const links = list => list.map(([t, h]) => h ? `[${t}](${h})` : t).join(" · ");
 	return new Page({
 		title: c.name, icon: c.icon, url: parent.url + c.slug + "/", description: c.gist,
 		content(){
