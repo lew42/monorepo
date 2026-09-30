@@ -15,7 +15,12 @@
  * just-past-mobile size, since "is everything one row again yet" flips somewhere in between),
  * saves a full-page screenshot capped at 3 viewport heights (band reading needs what's below the
  * fold), and adds to each width's entry in layout.json:
- *   tab_rows     how many distinct rows a tab bar's (`.tab-bar`, `[role=tablist]`) own tabs sit
+ *   layout       which page layout it renders as, by DOM marker: ai2 floating switcher columns
+ *                catalog browse doc wall blog sources standard, else "custom" — the list and
+ *                the counts are /framework/core/Page/audit/; "custom" on a new page is a deviation
+ *   tabs_gap     px from the h1's right edge to the first tab when they share a row (null
+ *                otherwise); Doc puts tabs beside the title, so over 64px is flagged as pushed away
+ *   tab_rows    how many distinct rows a tab bar's (`.tab-bar`, `[role=tablist]`) own tabs sit
  *                on — 1 is right; more means a bar has wrapped into a stack of rows
  *   left_stack   the padding/border/margin stacked at the LEFT edge of the first visible `h1`
  *                and first visible `p` in the main content (never the site sidebar): each as
@@ -102,6 +107,26 @@ const measureBands = () => {
 		if (!tabs.length) return;
 		tab_rows = Math.max(tab_rows, new Set(tabs.map(t => Math.round(t.getBoundingClientRect().top))).size);
 	});
+
+	// 1b. layout — which audited page layout this renders as (core/Page/audit/, most specific
+	// first; a marker counts only on a visible box of 4%+ of the screen). "custom" = none of them.
+	// tabs_gap — px from the h1's right edge to the first tab when they share a row: Doc puts
+	// its tabs beside the title, so a big gap is tabs pushed away (AI 2's were, 2026-09-30).
+	const big = sel => [...document.querySelectorAll(sel)].some(el => { const r = el.getBoundingClientRect(); return vis(el) && r.width * r.height >= 0.04 * W * H; });
+	// the page's own shell wins over a part drawn inside it (a Doc page that demos a catalog is doc)
+	const LAYOUTS = [["ai2", ".ai2-head, .ai2"], ["blog", ".blog-shell"], ["sources", ".sources-files"], ["doc", ".doc-page"],
+		["floating", ".floating"], ["columns", ".page.columns, .page-column"], ["catalog", ".page-catalog"], ["browse", ".browse"],
+		["switcher", ".switcher"], ["wall", ".page-previews, .std-tree"], ["standard", ".page.standard"]];
+	const layout = (LAYOUTS.find(([, sel]) => big(sel)) || ["custom"])[0];
+	let tabs_gap = null;
+	const h1 = [...document.querySelectorAll(".active-page h1, h1")].find(vis);
+	// the leftmost PAINTED tab, not the first in the DOM: a host may reorder its tabs with `order`
+	const tab1 = [...document.querySelectorAll(".tab-bar .tab, [role=tab]")].filter(vis)
+		.sort((x, y) => x.getBoundingClientRect().left - y.getBoundingClientRect().left)[0];
+	if (h1 && tab1){
+		const a = h1.getBoundingClientRect(), t = tab1.getBoundingClientRect();
+		if (t.top < a.bottom && t.bottom > a.top) tabs_gap = Math.round(t.left - a.right);
+	}
 
 	// 2. left_stack — walk from the first visible h1/p up to <body>, listing every ancestor
 	// that adds left-hand space. `.sidebar-rail` is the site's own nav column (core/Sidebar) —
@@ -204,7 +229,7 @@ const measureBands = () => {
 		if (lines > 1.6) wraps.push({ tag: el.tagName.toLowerCase(), cls: cls1(el), text: (el.textContent || "").trim().slice(0, 30), lines: +lines.toFixed(1) });
 	});
 
-	return { tab_rows, left_stack, bands, wraps };
+	return { layout, tabs_gap, tab_rows, left_stack, bands, wraps };
 };
 
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
@@ -253,7 +278,8 @@ for (const url of urls){
 		if (bandsMode){
 			const bigEmpty = m.bands.filter(band => band.big_empty).length;
 			const leftPick = m.left_stack.h1.total >= m.left_stack.p.total ? m.left_stack.h1 : m.left_stack.p;
-			console.log(`  ${w}  tabs:${m.tab_rows} row${m.tab_rows === 1 ? "" : "s"}  left:${leftPick.total}px (${leftPick.layers.length} layers)  bands:${m.bands.length} (${bigEmpty} big-empty)  wraps:${m.wraps.length}`);
+			const gap = m.tabs_gap == null ? "" : `  tabs-gap:${m.tabs_gap}px${m.tabs_gap > 64 ? " (pushed away from the title)" : ""}`;
+			console.log(`  ${w}  layout:${m.layout}${gap}  tabs:${m.tab_rows} row${m.tab_rows === 1 ? "" : "s"}  left:${leftPick.total}px (${leftPick.layers.length} layers)  bands:${m.bands.length} (${bigEmpty} big-empty)  wraps:${m.wraps.length}`);
 		} else {
 			console.log(`  ${w}: empty ${m.empty} · widest ${m.widest_text}px · overflow ${m.overflow_x} · narrow ${m.narrow_share} of ${m.items}`);
 		}

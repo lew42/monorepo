@@ -9,6 +9,10 @@ import Transcriber from "./Transcriber/index.js";
 
 View.stylesheet(import.meta, "audio.css");
 
+// Links resolve against this module, never the document: the index also draws beside a child
+// page, where a bare "MicStream/" resolved under the child and 404d (page-audit, 2026-09-30).
+const here = new URL(".", import.meta.url).pathname;
+
 const PARTS = [
 	{ name: "MicStream", slug: "MicStream/", icon: "mic", Klass: MicStream },
 	{ name: "MicPicker", slug: "MicPicker/", icon: "settings_voice", Klass: MicPicker },
@@ -33,13 +37,13 @@ const ASSEMBLIES = [
  * would be broken, not just messy. */
 function part_card({ name, slug, icon: name_icon, Klass }){
 	return div.c("card pad flex v gap-50 audio-index-part", () => {
-		a.c("flex gap-25 v-center audio-index-part-head", () => { icon(name_icon); span(name); }).href(slug);
+		a.c("flex gap-25 v-center audio-index-part-head", () => { icon(name_icon); span(name); }).href(here + slug);
 		new Klass().row_view;
 	});
 }
 
 function assembly_tile(it){
-	return a.c("card pad flex v gap-25 audio-index-assembly").href(it.slug).append(() => {
+	return a.c("card pad flex v gap-25 audio-index-assembly").href(here + it.slug).append(() => {
 		icon(it.icon).ac("audio-index-assembly-icon");
 		span.c("h4", it.name);
 	});
