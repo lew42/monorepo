@@ -223,9 +223,9 @@ function reply_control(n, on_done){
    underline — the row's head anchor carries no default link style, `ai2.css`); the full question
    is one quiet line under it, never cut; the control sits at the right of the same row when it
    fits (`ai2.css`'s `.ai2-need` flex-wraps it below at a narrower width). */
-/** Above 70 (the "blocking" bands and up) a row's score badge turns the error colour — the
- *  eye should read red only where the list actually means it. */
-const SCORE_HOT = 70;
+/** Above 90 (INBOX ZERO's own pressing threshold, needs-rule.js) a row's score badge turns
+ *  the error colour — the eye should read red only where the list actually means it. */
+const SCORE_HOT = 90;
 
 function need_row(n){
 	let $row;

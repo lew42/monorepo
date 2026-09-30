@@ -2,6 +2,7 @@ import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
 import { resolve_card, plain, headline, first_sentence } from "./inbox.js";
 import { total } from "/framework/ext/AITask/cost.js";
 import { PageLog } from "/framework/core/Page/Log.js";
+import { is_heartbeat_line } from "./needs-rule.js";
 
 /**
  * THE GROUPS — a few familiar names the work is filed under (the owner,
@@ -28,7 +29,14 @@ export const GROUPS_URL = "/framework/ai2/groups.json";
    throw. The line is caught in `apply()` instead, before any verb runs. */
 export class Member extends TaskJSONL {
 	apply(entry){
+		// ITEM A, 2026-09-30: a servex-heartbeat check-in ("its agent is not running: it was
+		// stopped on purpose") is Servex looking at itself, not real progress — it must never
+		// move this task's `last_at`, which is what bumps a task to the top of the Log tab and
+		// what every group's own `at()` reads (below). The line is still handed to `super.apply()`
+		// further down, so a task-loop escalation inside it (`log.js`'s `task_status()`) is still
+		// seen — only the ACTIVITY-TIME bump is skipped.
 		for (const v of Object.values(entry ?? {})){
+			if (is_heartbeat_line(v)) continue;
 			for (const at of [v?.at, v?.requested_at, v?.landed_at])
 				if (at && (!this.last_at || Date.parse(at) > Date.parse(this.last_at))) this.last_at = at;
 		}
@@ -49,6 +57,15 @@ export class Member extends TaskJSONL {
 		return super.apply(entry);
 	}
 	reset(){ this.member_of = null; this.last_at = null; this.pages = []; return super.reset(); }
+}
+
+/** A card's real last activity — the newest of its own messages and prompts, skipping a
+ *  `servex-heartbeat` notice (item A, `is_heartbeat_line()`), or its `created` time when it
+ *  has said nothing real yet. `Groups.real_at()` (above) is how a caller reaches this. */
+function real_activity_at(fold){
+	const real = [...(fold?.messages ?? []), ...(fold?.prompts ?? [])]
+		.filter(m => !is_heartbeat_line(m)).map(m => m?.at).filter(Boolean).sort();
+	return real.at(-1) ?? fold?.created ?? null;
 }
 
 /** What a task says in a preview — never its slug. Landed: its landing
@@ -223,12 +240,24 @@ export class Groups {
 				if (this.folds.get(c.id)?.key === key) return;
 				const fold = await resolve_card(c.id);
 				if (!fold) return;
-				this.folds.set(c.id, { key, fold });
+				this.folds.set(c.id, { key, fold, real_at: real_activity_at(fold) });
 				any = true;
 			}));
 		}
 		if (any) this.changed();
 	}
+
+	/** ITEM A, 2026-09-30: A CARD'S REAL LAST ACTIVITY — its own last message or prompt,
+	 *  skipping any `servex-heartbeat` notice, or its `created` time when it has said nothing
+	 *  else (`real_activity_at()`, below `read_cards()`'s own fold). Servex's own index
+	 *  (`cards.jsonl`'s `last`, what `inbox.js`'s `items()` reads by default) folds a card the
+	 *  same naive way `fold.js`'s `state.last` does — a heartbeat notice bumps it there too —
+	 *  so this is the one place in the browser with the card's raw lines already in hand
+	 *  (`read_cards()`'s own `want` filter fetches every card touched in the last two days,
+	 *  which is every card that could plausibly be a hot Inbox row) to know better. `null` when
+	 *  this card's fold has not been fetched yet — the caller falls back to the server's own
+	 *  `last` exactly as before. */
+	real_at(id){ return this.folds.get(id)?.real_at ?? null; }
 
 	/* ── what the view asks ───────────────────────────────────────────── */
 
@@ -330,8 +359,12 @@ export class Groups {
 	    to the bottom of ~350 rows, then jumped back up — "it was there and then it wasn't…
 	    a few seconds later it just popped back" (ai2-row-vanish, 2026-09-28). */
 	at(g){
-		const index = (this.folders?.cards ?? []).filter(c => c.id === g.card || c.id.startsWith(g.card + "/")).map(c => c.last ?? c.created);
-		const times = [this.latest(g.id)?.at, this.folds.get(g.card)?.fold?.created, ...index].filter(Boolean);
+		// ITEM A: `real_at()` (above) — the fold-based recompute that skips a servex-heartbeat
+		// notice — wins over the index's own `last` whenever this card's fold has already been
+		// fetched; the index is still the fallback for a card `read_cards()` hasn't reached yet.
+		const index = (this.folders?.cards ?? []).filter(c => c.id === g.card || c.id.startsWith(g.card + "/"))
+			.map(c => this.real_at(c.id) ?? c.last ?? c.created);
+		const times = [this.latest(g.id)?.at, this.real_at(g.card) ?? this.folds.get(g.card)?.fold?.created, ...index].filter(Boolean);
 		return times.sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
 	}
 
