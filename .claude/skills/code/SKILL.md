@@ -228,4 +228,9 @@ state in the simplest meaningful form, at more than one size:
 It applies to abstract classes too (an audio stream, a session, a queue), not just visible things.
 The default view is the fallback; a class with real state earns its own `View`.
 
+**Objects the owner sees** (ai-page, 2026-09-30; live example `public/framework/ai/objects.js`, `AIObject` with `Skill`, `Ask`, `Task`):
+- Name the object first: a thing the owner sees (an agent, a task, a skill, an ask, a card) is a class with a noun for a name, one file, one job.
+- The three views above are three METHODS, `chip()` (icon + name, inline), `row()`, `panel()`; the base class draws them, a subclass says only what it is (`static icon`, `static kind`) and what it knows (`name()`, `fact()`, `facts()`, `href()`), and replaces one view without touching the others.
+- A page about an object renders a real instance from its real data, never a description of it.
+
 Improve this skill: append to [`improvements.md`](improvements.md).
