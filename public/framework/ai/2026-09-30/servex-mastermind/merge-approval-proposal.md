@@ -49,3 +49,27 @@ Touches: one compaction job (Servex, interval), `ext/JSONL` readers unchanged.
 
 ## What happens next
 Nothing until the owner marks the card. Then: 1 and 4 are an afternoon; 2 is a task mastermind ($ open, foundational); 3 waits for the design/code pages to land, then one task.
+
+## 5. The build loop, with the owner in it (folds into §2)
+
+The owner's loop, as the merge row's life: **MVP → smoke test + screenshots → a quick layout check → an Inbox row, mid-flight → the owner's word → merge.** The row is the same Merge row from §2, posted earlier: it appears when the MVP passes smoke, not when the agent is done. It carries something visible (the shots at 400 and 1920, the layout check's one line) and one question: **approve**, **recommend**, or **improve**. When the owner is around, the answer arrives before the agent goes further; when not, the row waits and the agent works on the next step or parks (no cap, no rush). Done is a second line on the same row, not a new one.
+
+Rules written into it:
+- **Nothing broken reaches the site:** the row exists only after smoke passes; a red smoke test is a log line, never an Inbox row.
+- **Review on the main domain:** the owner does not visit a worktree server. So the dev server serves each pool worktree read-only under a prefix, `monorepo.localhost/preview/qf-3/framework/...`, straight from its directory — the Inbox row links there. Nothing is merged to be looked at. (Alternative: merge behind approval and revert if refused; costs a merge plus a revert per "improve".)
+- **The Inbox is the tool:** ask when something important needs the owner, tell when it is done, ask for approval — three row kinds, one module, its own readmes (§6).
+
+Touches: `Server/` (a preview route per worktree), `merge.mjs --propose` (post the row after smoke, wait for the approve line), the review skill (the layout check is its short form), the sub-mastermind skill (the loop in five lines).
+
+## 6. Path-level experts: what is missing for "start a mastermind in any directory" to just work
+
+What exists: `readme-chain.js` gives any spawn its chain root-first; `ask_directory` spawns a fresh agent in a directory with that chain and answers one question; `experts.js` keeps one read checkpoint per module and forks it per question; the page inbox lets anyone leave a note on a directory's page. Four gaps:
+
+1. **The chain reaches only tasked spawns.** `directory_of()` in Agents.js returns null for a plain minion or a CLI session, so they get no readmes. Fix: fall back to the spawn's `cwd`/`dir`. One line; the deferred fix from this morning.
+2. **No directory has a standing mastermind.** `ask_directory` is one question, one fresh agent. Add `mastermind-<dir slug>` as a minted id (`Agents.name()`), one per directory, dormant between prompts, resumed by session id: the "expert" and the "mastermind" are the same session — its first turn is the read (`experts.build`), questions fork it (`experts.ask`, cached), plans and spawns resume it. `experts.json` becomes the registry of directory masterminds.
+3. **Nothing routes a prompt by path.** The Dispatcher reads the path from the tab (the page the owner is on), a `/path` mention, or the card's directory, and sends the prompt to that directory's mastermind, spawning it if absent — the holder for a path, like `holder()` is for a retired id. The answer or the plan lands on the directory's page inbox and, when it needs the owner, an Inbox row.
+4. **Readmes are the expertise, and some directories have none.** The rule only works where the chain exists: `ext/Inbox` (the owner's example) needs `readme.md`, `page.js`, `doc/`, in the shape the documentation skill already prescribes; `/framework/ai/readmes/` can list the directories with a missing readme so it is visible.
+
+Not missing: a new agent kind. A path mastermind is the existing task mastermind with a directory instead of a brief.
+
+Touches: `Agents.js` (1, 2), `Dispatcher.js` (3), `experts.js` (checkpoint = the mastermind's base session), `ext/Inbox` readmes (4).
