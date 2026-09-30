@@ -226,6 +226,21 @@ const run = async () => {
 				spawn(process.execPath, [path.join(root, "Server", "on-landing.mjs"), d], { detached: true, stdio: "ignore", windowsHide: true }).unref();
 		} catch {}
 		if (s.landed_at || !Array.isArray(s.steps) || !(Number(s.step) < s.steps.length)) return;
+		// A blocked stop is a forced extra turn (2026-09-30: masterminds parked on a queued
+		// minion spent a turn per nag, at 100-250k context each). So: never nag a task with
+		// a live child (a subdir's task.jsonl with no landed_at), and nag once per 30 min.
+		try {
+			const d = path.dirname(task);
+			const live_child = fs.readdirSync(d, { withFileTypes: true }).some(e => {
+				if (!e.isDirectory()) return false;
+				const f = path.join(d, e.name, "task.jsonl");
+				return fs.existsSync(f) && !state(f).landed_at;
+			});
+			if (live_child) return;
+			const stamp = path.join(os.tmpdir(), `claude-ledger-nag-${String(task).replace(/[^\w-]/g, "_")}.txt`);
+			if (fs.existsSync(stamp) && Date.now() - fs.statSync(stamp).mtimeMs < 30 * 60 * 1000) return;
+			fs.writeFileSync(stamp, "");
+		} catch {}
 		console.log(JSON.stringify({
 			decision: "block",
 			reason: `Your task ledger says step ${s.step} of ${s.steps.length} with no landed_at. Finish the remaining steps and bump step, or land it by appending ONE line to ${rel(task)}: {"assign": {"step": ${s.steps.length}, "landed_at": "<ISO with local offset>", "outcome": "**what landed** — …"}} — landed_at and outcome go INSIDE assign, never as their own verb.`
