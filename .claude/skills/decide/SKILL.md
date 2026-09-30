@@ -7,6 +7,8 @@ description: Run whenever a research round, a plan or a task reaches a decision 
 
 **A decision is written by `Server/decide.mjs`, never by hand.** The tool asks for each part in turn and refuses a decision with a part missing, so you don't have to remember the rules. Just follow what it prints as `next`.
 
+Why it matters beyond tidiness: a `{"decision": …}` line is always an object with an `id`. On 2026-09-30 two hand-written lines with a bare string as the decision broke every AI 2 card page (117 of 118) with "Cannot assign to read only property '0'"; the reader is guarded now, but the tool is still the only way to write one.
+
 ## What a decision is
 
 One simple, concrete question, with:
