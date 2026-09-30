@@ -150,10 +150,14 @@ export default class Heartbeat {
             if (o.log?.heartbeat === "escalated") escalated = true;
         }
         if (!this.opted_in(first)) return null;
-        const owner = first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === first.session_id)?.id;
+        /* The LATEST assign's agent owns it (a fresh session that took the task over writes its own
+         * assign line), then that id's resumed successor, if any (Agents.successor, 2026-09-30). */
+        const session_id = state.session_id ?? first.session_id;
+        const named = state.agent ?? first.agent ?? this.agents.registry_list().find(r => r.session_id && r.session_id === session_id)?.id;
+        const owner = named && (this.agents.successor?.(named) ?? named);
         if (!owner) return null;
         const done = (!!state.landed_at && !!String(state.outcome ?? "").trim()) || !!state.closed_by;
-        return { owner, session_id: first.session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
+        return { owner, session_id, card: state.card, paused: !!state.paused, done, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 

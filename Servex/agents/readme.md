@@ -66,6 +66,11 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **A retired `mastermind-servex-N` is the role.** A message or a child's report for a stopped
   one goes to the live holder. Rows stopped before the revive guard are marked `stopped_by: "legacy"`
   at boot.
+- **A resumed session's old id is an alias.** When a session is resumed under a new id
+  (`task-mastermind-x` → `task-mastermind-x-2`), a message, a child's report, a lookup and the
+  heartbeat for the old id go to the new one (`successor()`, chains too), instead of reopening
+  the old id as a second process on the same session. The heartbeat takes a task's owner from its
+  latest assign line, not its first.
 - **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
   agent whose host died during its first turn can be resumed.
 
