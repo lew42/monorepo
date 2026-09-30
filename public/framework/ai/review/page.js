@@ -39,8 +39,11 @@ export default new Page({
 		// The page's own wide track (core/Page/Page.css: `.page > .wide { grid-column:
 		// wide }`) so the wall of systems fills a 3440 screen instead of sitting in the
 		// narrow reading column; `.masonry` (framework.css) packs the cards into as many
-		// columns as `--column` (14em) allows, zero JS (layout skill: lean into columns).
-		const $sections = div.c("wide masonry");
+		// columns as `--column` allows, zero JS (layout skill: lean into columns). `26em`
+		// overrides the framework.css 14em tile default, inline on the box (a runtime
+		// token override, css skill) — 14em wrapped "Navigation" mid-word and squeezed
+		// every question to ~5 words a line; a card here holds full sentences.
+		const $sections = div.c("wide masonry").style("--column", "26em");
 		const $note = p.c("muted");
 
 		fetch(new URL("questions.json", import.meta.url)).then(r => r.json()).then(data => {
