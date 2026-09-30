@@ -25,7 +25,7 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
 ## 2. The reaper
 
 - **On landing.** `Server/on-landing.mjs` calls `reap(task)`: everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
-- **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped.
+- **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped, only when nobody still works in them and they hold no work ([pool.md](pool.md#a-taken-worktree-stays-taken)).
 
 Every close writes an `end` line whose `why` says the reason in plain words.
 
@@ -50,9 +50,9 @@ node Servex/Lifecycle.js --salvage qf-2      empty a stuck pool slot into a salv
 
 Switches for Servex: `SERVEX_NO_REAPER=1` turns the sweep off; `SERVEX_REAPER_DRY=1` makes it only say what it would close (use this for any test Servex, so it cannot stop the machine's real servers).
 
-## 5. Stuck pool worktrees (salvage)
+## 5. Stuck pool worktrees (salvage, by hand only)
 
-When a pool slot's holder has stopped and the slot still holds work, the pool stops the slot's server first (a running server keeps appending `page.jsonl` lines, so the folder gets dirty again seconds after any reset). Then it commits everything to a branch named `salvage/<slot>-<date>`, which is never merged and never deleted. Then it moves the slot back to `michael/dev`, removes it and prepares a fresh one. The holder's card gets one line naming the branch. Details: [pool.md](pool.md).
+Since 2026-09-30 the sweep never salvages: a slot that still holds work is kept and named in the log ([pool.md](pool.md#a-taken-worktree-stays-taken)). Salvage runs only when you ask for it with `node Servex/Lifecycle.js --salvage qf-N`. It stops the slot's server first (a running server keeps appending `page.jsonl` lines, so the folder gets dirty again seconds after any reset). Then it commits everything to a branch named `salvage/<slot>-<date>`, which is never merged and never deleted. Then it moves the slot back to `michael/dev`, removes it and prepares a fresh one. The holder's card gets one line naming the branch. Details: [pool.md](pool.md).
 
 ## Also in this change
 
