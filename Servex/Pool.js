@@ -198,7 +198,7 @@ export default class Pool extends Events {
                 reclaimed.push(slot.id);
                 this.say(`pool: ${slot.id} reclaimed from ${holder}, which has stopped`, { id: slot.id, from: holder });
             } catch (e) {
-                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "");
+                const why = String(e.message).split("\n")[0].replace(/^Refused: \S+ /, "").replace(/\.+$/, "");
                 kept.push({ id: slot.id, holder, why });
                 this.say(`pool: ${slot.id} is held by stopped ${holder} but kept — ${why}. Nothing was moved; salvage by hand if it is truly abandoned: node Servex/Lifecycle.js --salvage ${slot.id}`, { id: slot.id, from: holder });
             }
