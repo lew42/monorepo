@@ -75,6 +75,8 @@ with the Write tool and append that file's bytes, whatever the extension.
 
 `window.after` from `check-claude-usage`. Token cost is written by Servex; write `"tokens": null` if you cannot sum it. `landed_at` and `outcome` go **inside** `assign`.
 
+**If your task answers an ask in `public/framework/ai/asks.jsonl`, mark it landed** (asks-ledger, 2026-09-30): `node Servex/asks/mark.mjs "<id or title words>" landed "<one line>"` (`--list` shows the ids). An unmarked ask shows as stalled in the owner's Inbox even though you finished it.
+
 ## 4. Close the day
 
 ```json
