@@ -1017,7 +1017,10 @@
 	}
 	.paging-expand-item { padding-block: 0.5em; /* control */ }
 	.paging-expand-head { cursor: pointer; font-weight: 600; }
-	.paging-expand-head .icon { font-size: 1em; vertical-align: -0.15em; margin-inline-end: 0.3em; /* control */ }
+	/* The vertical-align nudge this rule used to carry by hand is now .icon's own
+	   default in framework.css (icon-system task, 2026-09-30) — this is the exact
+	   caller that value was measured from. */
+	.paging-expand-head .icon { font-size: 1em; margin-inline-end: 0.3em; /* control */ }
 	.paging-expand-item > .paging-held { margin-block-start: 0.5em; /* control: same reason as .paging-expand above */ }
 
 	/* ── A WALL OF CARDS ──────────────────────────────────────────────────────
