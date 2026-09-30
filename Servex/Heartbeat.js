@@ -46,9 +46,10 @@ export default class Heartbeat {
     start(){
         const a = this.agents, watch = a.watch.bind(a), stop = a.stop.bind(a);
         a.watch = (event, agent) => { watch(event, agent); try { this.saw(event, agent); } catch {} };
-        a.stop = id => { if (!this.stopped_by.has(id)) this.stopped_by.set(id, { by: "in-process", at: stamp() }); return stop(id); };
+        a.stop = (id, opts) => { if (!this.stopped_by.has(id)) this.stopped_by.set(id, { by: opts?.by ?? "in-process", at: stamp() }); return stop(id, opts); };
         a.stopped_on_purpose = id => this.stopped_by.get(id);   // wake_parent never revives these (rule 4c.2)
         a.task_dir_of = id => { for (const [f, w] of this.watch) if (w.owner === id) return path.dirname(f); };
+        a.find_task_dir = row => this.find_task_dir(row);   // the revive guard's last resort (Agents.task_dir_for)
         this.servex.on?.("admitted", spec => this.admitted.add(spec));
         const run = () => this.tick().catch(e => this.servex.say?.(`heartbeat: ${e.message || e}`));
         this.timer = setInterval(run, Math.min(60000, this.silent_ms / 3));
@@ -155,6 +156,17 @@ export default class Heartbeat {
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 
+    /* The task dir whose log names this agent (any assign's `agent`, or line 1's
+     * session id), among today's and yesterday's tasks. Only the revive guard
+     * calls it, and only for a stopped agent about to be reopened. */
+    find_task_dir(row){
+        for (const file of this.servex.task_loop?.find_task_files() ?? []){
+            let text; try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
+            if (text.includes(`"agent":"${row.id}"`) || (row.session_id && text.includes(`"session_id":"${row.session_id}"`))) return path.dirname(file);
+        }
+        return null;
+    }
+
     children(id){
         return [...[...this.agents.live.values()].filter(a => a.parent === id && a.state !== "stopped"),
             ...(this.servex.queue ?? []).filter(e => e.spec.parent === id)];
@@ -170,6 +182,8 @@ export default class Heartbeat {
         if (t.paused) return once("paused", `${t.owner} ${why}, but the task is paused; not revived.`);
         const by = this.stopped_by.get(t.owner);
         if (by) return once("deliberate", `${t.owner} ${why}: it was stopped on purpose by ${by.by} at ${by.at}; not revived.`);
+        const row = this.agents.reg().read()[t.owner], no = row && this.agents.blocked?.({ task_dir: path.dirname(file), ...row });
+        if (no) return once(no.why === "cwd-gone" ? "orphaned" : "deliberate", `${t.owner} ${why}: ${no.text}; not revived.`);
         const hour = t.revives.filter(x => Date.now() - x < 3600000).length, day = t.revives.filter(x => Date.now() - x < 86400000).length;
         if (hour >= 2 || day >= 5) return this.escalate(file, t, `${t.owner} ${why}, and was already revived ${hour} times this hour (${day} today)`);
         this.enqueue({ file, owner: t.owner, session_id: t.session_id, why });
