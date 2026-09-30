@@ -27,6 +27,7 @@ import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
+import Asks from "./asks/Asks.js";
 import Layers from "./agents/Layers.js";
 import Sessions from "./agents/Sessions.js";
 import Global from "./agents/Global.js";
@@ -204,6 +205,12 @@ export default class Servex extends Events {
          * `SERVEX_NO_TASKLOOP=1` only skips the ticking. Doc: Servex/doc/task-loop.md. */
         this.task_loop = new this.constructor.TaskLoop({ servex: this, root: REPO });
         if (!process.env.SERVEX_NO_TASKLOOP) this.task_loop.start();
+
+        /* THE ASKS LEDGER (asks-ledger, 2026-09-30): notices when a routed ask's owner agent
+         * stops, goes quiet, or lands its task, and marks public/framework/ai/asks.jsonl so
+         * nothing sits silently in limbo (the owner, 2026-09-30). `SERVEX_NO_ASKS=1` skips it —
+         * same pattern as every other optional piece above. Servex/asks/readme.md. */
+        if (!process.env.SERVEX_NO_ASKS) this.asks = new this.constructor.Asks({ servex: this });
 
         /* THE HEARTBEAT (task-loop/heartbeat, 2026-09-29): a task owner silent
          * SERVEX_HEARTBEAT_SILENT_MIN (5) gets a neutral status check; one that died
@@ -1131,6 +1138,7 @@ Servex.Log = class ServexLog extends Log {
 Servex.Assistant = Assistant;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
+Servex.Asks = Asks;
 Servex.Layers = Layers;
 Servex.Sessions = Sessions;
 Servex.Global = Global;

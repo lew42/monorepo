@@ -7,13 +7,13 @@ import grip from "/framework/ext/grip/grip.js";
 import composer from "./compose.js";
 import { row, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
 import { news_of, group_news } from "./activity.js";
-import { plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
+import { inbox_order, plain, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 
 /* Servex down: the page is read-only — the write buttons quietly go away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
 import Card, { card_link } from "./card.js";
 import overview from "./overview.js";
-import needs_view, { watch_needs } from "./needs.js";
+import needs_view, { watch_needs, score_for } from "./needs.js";
 import log_view from "./log.js";
 import chat from "./chat.js";
 import { LIVE, live_model, live_row, live_full, usage_head } from "./live.js";
@@ -515,7 +515,10 @@ function board(page){
 		const it = live.item();
 		it.unread = true;
 		list.push(it);
-		list.sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		// A card row's importance badge is its highest open need (needs.js); a stalled-ask row
+		// brings its own. Then one order: score 60+ on top, the rest newest first (inbox.js).
+		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id); });
+		list.sort(inbox_order);
 		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js) — part of the row's signature.
 		list.forEach(it => { it.news = news_of(it, groups.folds); });
@@ -779,7 +782,7 @@ function board(page){
 	 *  pattern the card page's own "clear" button already uses, `on.clear` below) and force
 	 *  this one row to redraw at once — never a wait for the next poll. */
 	function row_on(rec, it){
-		return {
+		const on = {
 			toggle_read(){
 				mark_read(it.id, !is_read(it.id));
 				it.unread = !is_read(it.id);
@@ -796,6 +799,9 @@ function board(page){
 				folders.soon();
 			},
 		};
+		// A stalled ask has no card to archive: it leaves by itself once the asks ledger moves on.
+		if (it.kind === "stalled") delete on.archive;
+		return on;
 	}
 
 	// ⚠ The signature is the card's WHOLE record, never a hand-listed set of the

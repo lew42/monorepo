@@ -7,6 +7,7 @@ The page itself shows the AI system, under six top tabs: **Overview** (12 concep
 ## Start here
 
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
+- [Asks](asks/): every ask you made today onward, who owns it, and whether it landed or stalled.
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
 - [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
   what each one cost.

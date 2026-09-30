@@ -1,0 +1,57 @@
+/* The asks ledger's own page (/framework/ai/asks/) — the count strip's chips and a row's
+   own look. Everything else (the wide grid of status columns, a framed row, the gaps
+   between them) is the site's own words: `.wide.wall` (styles/doc/layout-system.md), `.card`,
+   `.pad`, `flex wrap gap-25`. Prefix `asks-`, unclaimed in styles/css-scopes.txt. */
+@layer theme {
+	.asks-count-chip {
+		display: inline-block;
+		padding: 0.2em 0.7em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.9em;
+	}
+
+	.asks-count-chip:hover {
+		border-color: var(--prim);
+	}
+
+	.asks-count-chip.on {
+		background: var(--prim);
+		border-color: var(--prim);
+		color: var(--on-prim, white);
+	}
+
+	.asks-group-title {
+		font-weight: 600;
+	}
+
+	.asks-row + .asks-row {
+		margin-block-start: var(--gap-35);
+	}
+
+	.asks-row-title {
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
+
+	.asks-row-age {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	.asks-row-why,
+	.asks-row-history {
+		display: block;
+		margin-block-start: 0.3em;
+		font-size: 0.85em;
+	}
+
+	.asks-row-hist-line {
+		margin-block-start: 0.2em;
+		font-size: 0.85em;
+	}
+}

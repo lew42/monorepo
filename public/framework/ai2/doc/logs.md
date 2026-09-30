@@ -53,6 +53,25 @@ to a card AFTER it exists. `Servex/proof/migrate-cards.mjs` folds today's `board
 Servex's `prompts` log into one `cards/<slug>` file per card, once, so the two counts (events in,
 events out) can be checked against each other.
 
+**`ai/asks.jsonl`** — the asks ledger (`Servex/asks/Asks.js`), read straight as a static file,
+no Servex route, like `ai/board.jsonl`. `fold_asks()` (`ai/asks/fold.js`) folds it the same way
+Servex's own writer does, so the two can never disagree about what is stalled. One row per ask
+whose folded `status` is `stalled` — an owner agent gone quiet, silent more than two hours, or
+stopped outright — id `ask:<ask id>` (never a real card's own id, so it can't collide with one),
+its quiet line "Stalled · owner · silent 2 h". **A stalled ask outranks everything else that is
+only newest-first**: `items()` scores every row with `importance()` (`needs-rule.js` — the same
+function the asks ledger's own page uses) and puts anything scoring 60 or more — a stalled ask,
+a blocker, a question a live agent is waiting on — ahead of the plain newest-first list, highest
+score first. Clicking it goes straight to its card when it has one (`resolve_card()`'s own
+redirect, the same hop a migrated old board id already takes) or opens a small page of its own
+links otherwise — its words, and the whole [ledger](/framework/ai/asks/). It is bold until you open it,
+then plain. It uses the Inbox's own read state (`rules.js` `is_read()`, the row's dot), and
+it is the one row that opening marks read; every other row waits for its dot. A cache inside
+`inbox.js` refreshes itself in the background every 15 s rather than adding a second poller; a
+stalled ask leaves the list by itself, with no code of its own, the moment the ledger's status
+moves on (`items()` rebuilds this list fresh on every repaint, straight off whatever the cache
+holds right then) — the ledger file itself keeps every line.
+
 ⚠ It was one `fetch()` until 2026-09-22, and the fix is not the one it looks like: the dev
 server routes **every** `.jsonl` change to `Tail.changed()` — its own line-streaming wire — and
 never broadcasts it as a reload, so the socket's `data` event never fires for a `.jsonl` at all,

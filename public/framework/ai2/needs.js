@@ -4,27 +4,95 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
 import { when } from "./faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "./fold.js";
-import { card_needs, is_blocker } from "./needs-rule.js";
+import { card_needs, is_blocker, importance, silent_hours } from "./needs-rule.js";
+import { fold_asks } from "../ai/asks/fold.js";
 
 /**
  * NEEDS YOU — one ranked list of everything waiting on the owner, read off the
  * SAME card logs every other AI 2 view already reads (no new datastore, no
- * Servex change, per brief D). The rule for what counts as "open" lives in
- * `needs-rule.js` (`card_needs`, `is_blocker`), shared with brief E's rail
- * filter and Servex's `list_waiting` tool, so they can never disagree.
+ * Servex change, per brief D), PLUS every STALLED line in the asks ledger
+ * (`../ai/asks/fold.js`'s `fold_asks` — the one vocabulary Servex's own
+ * `Asks.js` folds the same way, so the two can never disagree). The rule for
+ * what counts as "open" lives in `needs-rule.js` (`card_needs`, `is_blocker`),
+ * shared with brief E's rail filter and Servex's `list_waiting` tool; the rule
+ * for HOW URGENT each one is lives right beside it (`importance()`), shared
+ * with the Inbox's score badge and the asks ledger's own page.
  */
 
 const AI_ROOT = new URL("../ai/", import.meta.url).pathname;
 const read_text = url => fetch(url, { cache: "no-store" }).then(r => (r.ok ? r.text() : "")).catch(() => "");
 
-/** Every open need across every (non-archived, non-done) card, ranked: a blocker first, then a
- *  decision or question, an FYI last; newest within each group. `limit` caps how many card logs
- *  get fetched, so a very large board still answers quickly (brief: "the fastest working version
- *  first" — a card this old rarely still needs you). */
-export async function scan_needs({ limit = 300 } = {}){
-	const served = await waiting();
-	if (served) return served;
+/* ── the asks ledger's STALLED lines, shaped like a `card_needs()` row ─────────────────────
+ * (asks-ledger/view, deliverable 2) so `need_row()` and `importance()` treat one exactly like
+ * the other — one row renderer, one ranking rule, for both sources. */
 
+const ASKS_URL = "/framework/ai/asks.jsonl";
+
+function hours_since(at, now = Date.now()){
+	const t = at ? Date.parse(at) : NaN;
+	if (!Number.isFinite(t)) return 0;
+	return Math.max(0, (now - t) / 3600000);
+}
+
+/** How long an ask has sat quiet, in words — shown on its row, and also handed to
+ *  `importance()` as `hours_silent` so the row and its own score can never disagree. */
+function silent_words(hours){
+	if (hours < 1) return Math.round(hours * 60) + " min";
+	if (hours < 48) return hours.toFixed(1) + " h";
+	return Math.round(hours / 24) + " d";
+}
+
+/** A ledger path (e.g. "ai/2026-09-30/page-audit/owner-words.md") as a served url under
+ *  `/framework/` — or `null` when it isn't served at all (`.claude/prompts/...`, the brief's
+ *  own example of a words file to show as plain text instead of a dead link). */
+function words_url(words){
+	if (!words || words.startsWith(".claude/")) return null;
+	return "/framework/" + String(words).replace(/^\/+/, "");
+}
+
+async function stalled_rows(){
+	const text = await read_text(ASKS_URL);
+	if (!text) return [];
+	const folded = fold_asks(parse_lines(text));
+	return Object.values(folded).filter(a => a.status === "stalled").map(ask => {
+		const hours = silent_hours(ask);
+		return {
+			kind: "stalled",
+			card: ask.card ?? null,
+			ask: ask.id,
+			title: ask.title || "Untitled ask",
+			question: "Silent " + silent_words(hours) + (ask.why && !/silent \d+ min/.test(ask.why) ? " — " + ask.why : ""),
+			at: ask.status_at ?? ask.at,
+			hours_silent: hours,
+			owner: ask.owner,
+			// A card to open when there is one; otherwise the ledger's own page, filtered to
+			// exactly this row's group, so the row is never a dead click.
+			url: ask.card ? "/framework/ai2/" + ask.card + "/" : "/framework/ai/asks/?status=stalled",
+			words: ask.words,
+			words_url: words_url(ask.words),
+			control: null,
+		};
+	});
+}
+
+/** Every open need across every (non-archived, non-done) card, PLUS every stalled ask, ranked
+ *  by `importance()` — highest first, newest within a tie. `limit` caps how many card logs get
+ *  fetched when Servex is down and this falls back to reading every card's file (brief: "the
+ *  fastest working version first" — a card this old rarely still needs you). */
+export async function scan_needs({ limit = 300 } = {}){
+	const [card_rows, stalled] = await Promise.all([
+		waiting().then(served => served ?? file_scan(limit)),
+		stalled_rows(),
+	]);
+	const now = Date.now();
+	return [...card_rows, ...stalled]
+		.map(n => ({ ...n, score: importance(n, now) }))
+		.sort((x, y) => y.score - x.score || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
+}
+
+/** The pre-Servex fallback: every card's own `page.jsonl`, read straight off the static site
+ *  (production has no Servex at all). What `scan_needs()` used to do unconditionally. */
+async function file_scan(limit){
 	const cards = (await static_cards()) ?? [];
 	const live = cards.filter(c => c.status !== "archived" && c.status !== "done")
 		.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))
@@ -34,8 +102,7 @@ export async function scan_needs({ limit = 300 } = {}){
 		if (!text) return [];
 		return card_needs(c.id, parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
 	}));
-	const RANK = { blocker: 0, decision: 1, question: 1, fyi: 2 };
-	return rows.flat().sort((x, y) => (RANK[x.kind] ?? 3) - (RANK[y.kind] ?? 3) || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
+	return rows.flat();
 }
 
 /* Servex's `GET /waiting` runs the same rule (`card_needs`, needs-rule.js) over every
@@ -96,6 +163,10 @@ export const needs_soon = () => refresh();
  *  still need the owner". Empty once nothing here is open on that card. */
 export const needs_for = id => state.rows.filter(r => r.card === id);
 
+/** An Inbox row's importance badge: its card's highest open need, or null when nothing is open.
+ *  Lives here (not in inbox.js) so inbox.js never imports needs.js — needs.js imports inbox.js. */
+export const score_for = id => { const open = needs_for(id); return open.length ? Math.max(...open.map(n => importance(n, Date.now()))) : null; };
+
 /* ── the tab's own drawing ─────────────────────────────────────────────── */
 
 const stamp = () => {
@@ -111,8 +182,8 @@ function short_title(text){
 	return (words.length > 9 ? words.slice(0, 8).join(" ") + "…" : words.join(" ")) || "Untitled";
 }
 
-const KIND_LABEL = { blocker: "Blocker", decision: "Decision", question: "Question", fyi: "Asked you" };
-const KIND_ICON = { blocker: "block", decision: "fork_right", question: "help", fyi: "chat_bubble" };
+const KIND_LABEL = { blocker: "Blocker", decision: "Decision", question: "Question", fyi: "Asked you", stalled: "Stalled" };
+const KIND_ICON = { blocker: "block", decision: "fork_right", question: "help", fyi: "chat_bubble", stalled: "hourglass_disabled" };
 
 function decision_control(n, on_done){
 	let $err;
@@ -152,6 +223,10 @@ function reply_control(n, on_done){
    underline — the row's head anchor carries no default link style, `ai2.css`); the full question
    is one quiet line under it, never cut; the control sits at the right of the same row when it
    fits (`ai2.css`'s `.ai2-need` flex-wraps it below at a narrower width). */
+/** Above 70 (the "blocking" bands and up) a row's score badge turns the error colour — the
+ *  eye should read red only where the list actually means it. */
+const SCORE_HOT = 70;
+
 function need_row(n){
 	let $row;
 	$row = div.c("ai2-need ai2-need-" + n.kind, () => {
@@ -159,6 +234,10 @@ function need_row(n){
 			icon(KIND_ICON[n.kind] ?? "flag");
 			div.c("ai2-need-body", () => {
 				div.c("ai2-need-headline flex v-center gap-25", () => {
+					// THE SCORE, ON EVERY ROW (brief D's own words) — `importance()`'s number,
+					// attached by `scan_needs()` before this ever draws.
+					span.c("ai2-need-score" + (n.score >= SCORE_HOT ? " ai2-need-score-hot" : ""))
+						.attr("title", "importance " + n.score + "/100").text(String(n.score));
 					if (n.kind === "blocker") span.c("ai2-need-blocker-flag").text("Blocker");
 					mentions(span.c("ai2-need-title").text(n.title || short_title(n.question)).el);
 				});
@@ -171,7 +250,15 @@ function need_row(n){
 				// `question` IS its `title`).
 				if (n.question && n.question !== n.title)
 					mentions(small.c("ai2-need-question muted").attr("title", n.question).text(n.question).el);
-				small.c("ai2-need-meta muted").text([KIND_LABEL[n.kind], when(n.at)].filter(Boolean).join(" · "));
+				small.c("ai2-need-meta muted")
+					.text([KIND_LABEL[n.kind], n.owner ? "owner " + n.owner : null, when(n.at)].filter(Boolean).join(" · "));
+				// A stalled ask's own two links (deliverable 2): its card (already the row's
+				// own head link, when it has one) and its words — a second line, since a
+				// card-having ask's head link is already spent on the card.
+				if (n.kind === "stalled" && (n.words_url || n.words)) div.c("ai2-need-words flex wrap gap-25", () => {
+					if (n.words_url) a.c("ai2-link page-link").href(n.words_url).text("its words");
+					else small.c("muted").text(n.words);   // .claude/prompts/... isn't served — shown as plain text
+				});
 			});
 		});
 		div.c("ai2-need-control", () => {
