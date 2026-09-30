@@ -45,7 +45,13 @@ export class Policy {
 	/* `assistant-X` and `manager-X` are a pair sharing the card X. */
 	card(id){ const k = this.kind(id); return k === "assistant" || k === "manager" ? id.slice(id.indexOf("-") + 1) : null; }
 
-	parent(id){ return this.agents?.live?.get(id)?.parent ?? null; }
+	/* A child still in the spawn queue, or known only to the registry, has a parent too:
+	 * a task mastermind could not message its own queued minion (node-reliability, 09-30). */
+	parent(id){
+		const a = this.agents;
+		return a?.live?.get(id)?.parent ?? a?.queued_entry?.(id)?.parent ?? a?.queued_entry?.(id)?.spec?.parent
+			?? (() => { try { return a?.reg?.()?.read?.()?.[id]?.parent ?? null; } catch { return null; } })();
+	}
 
 	/* A page manager's RECORDED parent (Layers.js, layers.json): the parent page's
 	 * manager, `manager-root` for a card or a top-level page. Its live spawn
@@ -73,6 +79,9 @@ export class Policy {
 		if(f === "assistant") return (t === "manager" && this.card(from) === this.card(to)) || t === "master";
 		if(f === "manager") return t === "assistant" && this.card(from) === this.card(to);
 		if(f === "master") return t === "assistant";
+		/* PEERS (brief 19:25 (3), 2026-09-30): two task masterminds talk directly instead of
+		 * relaying through mastermind-servex; send_to_agent copies the sender's parent. */
+		if(f === "task-mastermind" && t === "task-mastermind") return "peer";
 		return false;
 	}
 
@@ -92,9 +101,10 @@ export class Policy {
 		if(f === "system" || f === "servex") return ok("system");
 		if(this.tree(from, to)) return ok("tree");
 		if(now - (this.told.get(`${from}→${to}`) ?? -Infinity) < REPLY_MS) return ok("reply");
-		if(this.table(from, to)) return ok("table");
+		const row = this.table(from, to);
+		if(row) return ok(row === "peer" ? "peer" : "table");
 		const may = { assistant: "its own manager, master-assistant or mastermind-servex", manager: "its own assistant or mastermind-servex",
-			master: "any assistant or mastermind-servex", "task-mastermind": "mastermind-servex, its parent and its own children" }[f]
+			master: "any assistant or mastermind-servex", "task-mastermind": "mastermind-servex, another task mastermind, its parent and its own children" }[f]
 			?? "its parent, its own children, and anyone who messaged it in the last 30 minutes";
 		const entry = { at: new Date(now).toISOString(), from, to, why: `${from} may not message ${to}: it may message ${may}.` };
 		this.refuse(entry);
@@ -126,7 +136,7 @@ export class Policy {
 		{ from: "assistant-X", may: "message manager-X, master-assistant, mastermind-servex; spawn nothing" },
 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
-		{ from: "task-mastermind-*", may: "message mastermind-servex(-N); spawn like a manager" },
+		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager" },
 		{ from: "worker", may: "spawn only minion and helper" }
 	]; }
 }

@@ -305,7 +305,7 @@ export class Agents {
 	}
 
 	get(id){
-		const agent = this.live.get(id);
+		const agent = this.live.get(id) ?? this.live.get(this.successor(id));   // an old id finds its resumed successor
 		if (agent) return agent;
 		const open = [...this.live.keys()].join(", ") || "none";
 		throw new Error(`No agent "${id}". Live now: ${open}`);
@@ -372,12 +372,37 @@ export class Agents {
 	/* "mastermind-servex" is a ROLE: when a fresh session holds it as
 	 * mastermind-servex-N (the old one stood down at a full context), a message
 	 * to the role goes to the newest live holder instead of waking the old one. */
+	/* A RESUMED SESSION'S OLD ID IS AN ALIAS OF THE NEW ONE (node-reliability, 2026-09-30).
+	 * spawn_agent resuming task-mastermind-chat-hitl's session as task-mastermind-chat-hitl-2
+	 * left its minions with parent = the old id, so each minion's "done" reopened the old,
+	 * stopped id: a second process on the same session (12:43). An id that is not running
+	 * follows its session to whoever holds it now (same session_id, or resumed_from it),
+	 * newest first; chains resolve (a -> a-2 -> a-3). An id nobody resumed stays itself. */
+	successor(id){
+		const running = x => { const a = this.live.get(x); return a && a.state !== "stopped"; };
+		if (!id || running(id)) return id;   // the hot path (every send): no disk read for a running id
+		const rows = this.reg().read(), seen = new Set([id]);
+		const sess = x => this.live.get(x)?.session_id ?? rows[x]?.session_id;
+		const started = x => String(this.live.get(x)?.started_at ?? rows[x]?.started_at ?? "");
+		let cur = id;
+		while (!running(cur)){
+			const s = sess(cur);
+			if (!s) break;
+			const ids = new Set([...this.live.keys(), ...Object.keys(rows)]);
+			const next = [...ids].filter(x => !seen.has(x) && (sess(x) === s || (this.live.get(x)?.resumed_from ?? rows[x]?.resumed_from) === s)
+				&& started(x) >= started(cur)).sort((a, b) => (running(b) - running(a)) || started(b).localeCompare(started(a)))[0];
+			if (!next) break;
+			seen.add(next); cur = next;
+		}
+		return cur;
+	}
+
 	holder(id){
 		/* A retired mastermind-servex-N (stopped or gone) is the role too: a message
 		 * or a child's report for it goes to the live holder, never reviving the old
 		 * one (-4 and -5 kept coming back this way, 09-29). */
 		const retired = /^mastermind-servex-\d+$/.test(id ?? "") && !(this.live.get(id) && this.live.get(id).state !== "stopped");
-		if (id !== "mastermind-servex" && !retired) return id;
+		if (id !== "mastermind-servex" && !retired) return this.successor(id);
 		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
 		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
 		if (best) return best.id;

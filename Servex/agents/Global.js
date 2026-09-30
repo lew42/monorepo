@@ -51,7 +51,7 @@ export default class Global {
 	defaults(){
 		return { servex: null, master_id: "master-assistant", mastermind_id: "mastermind-servex",
 			batch_ms: Number(process.env.SERVEX_MASTER_BATCH_MS) || 20000,
-			idle_ms: env("SERVEX_GLOBAL_IDLE_MS", 15 * 60000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
+			idle_ms: env("SERVEX_GLOBAL_IDLE_MS", 15 * 60000), task_idle_ms: env("SERVEX_TASK_IDLE_MS", 3 * 60000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
 			reap_ms: env("SERVEX_REAP_MS", 180000), cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
 	}
@@ -236,7 +236,8 @@ export default class Global {
 	 * finished a turn (its parent was woken then) and sat idle past `reap_ms` is
 	 * stopped; the master, the mastermind, AND any idle `task-mastermind-*` (D5,
 	 * 2026-09-25/28: the same 15-minute rule, not just the two global agents) are
-	 * stopped after `idle_ms` of quiet. All of them resume on the next message —
+	 * stopped after `idle_ms` of quiet — a task mastermind after `task_idle_ms` (3 min, 2026-09-30:
+	 * five idle task masterminds held ~1.5 GB while their own minions queued for that memory). All of them resume on the next message —
 	 * that wake is generic (`Agents.wake`/`reopen`, by session id), not special
 	 * to the two ids this file spawns itself. */
 	reaper(){
@@ -249,10 +250,15 @@ export default class Global {
 			if (agent.state !== "idle") continue;
 			const worker = is_worker(agent);
 			const global = agent.id === this.master_id || agent.id === this.mastermind_id || /^mastermind-servex-\d+$/.test(agent.id ?? "");   // 15 min idle; a message wakes them
-			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // D5: the same 15 minutes, and its reap is logged
+			const task_mastermind = !global && TASK_MASTERMIND.test(agent.id ?? "");   // 3 min (node-reliability, 09-30), and its reap is logged
 			if (!worker && !global && !task_mastermind) continue;
 			if (worker && !(agent.turns >= 1)) continue;
-			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : this.idle_ms)) continue;
+			/* 3 min only while it WAITS ON A CHILD (working, or queued for memory): its child's report
+			 * resumes it. With no child it keeps 15 min, or the heartbeat reads the stop as a death and
+			 * revives it round and round (review, 2026-09-30). */
+			const waiting = task_mastermind && ([...this.agents.live.values()].some(c => c.parent === agent.id && c.state !== "stopped")
+				|| (this.servex.queue ?? []).some(e => e.spec?.parent === agent.id));
+			if (now - this.last_active(agent, now) <= (worker ? this.reap_ms : waiting ? this.task_idle_ms : this.idle_ms)) continue;
 			try { agent.stop(); } catch {}
 			if (worker || task_mastermind) this.servex.log.append("servex", { type: "reaped", id: agent.id })?.catch?.(() => {});
 		}

@@ -462,7 +462,7 @@ export default class Servex extends Events {
          * only an outright refusal answers 409. */
         router.post("/log/:name", cors, express.json({ limit: "1mb" }), async (req, res) => {
             try {
-                const outcome = await this.log.append(req.params.name, req.body ?? {});
+                const outcome = await this.log.append(req.params.name, this.stamp_via(req));
                 res.status(outcome.ok ? 200 : 409).json(outcome);
             } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
         });
@@ -482,6 +482,8 @@ export default class Servex extends Events {
 
         router.post("/log/cards/:slug", cors, express.json({ limit: "1mb" }), async (req, res) => {
             try {
+                const via = this.via(req);   // a card log line wakes listeners beyond the assistant: a worktree page's is stubbed, like /card
+                if (via) return res.json({ ok: true, stubbed: true, via, note: "a worktree page's card line: written nowhere, nobody woken" });
                 const outcome = await this.log.append(`cards/${req.params.slug}`, req.body ?? {});
                 res.status(outcome.ok ? 200 : 409).json(outcome);
             } catch (e){ res.status(400).json({ error: String(e.message || e) }); }
@@ -492,6 +494,13 @@ export default class Servex extends Events {
             catch (e){ res.status(400).json({ error: String(e.message || e) }); }
         });
 
+        /* A worktree page's card post (answer, append, create) would wake agents as if the owner
+         * spoke: answered as a stub instead, written nowhere (via:worktree, 2026-09-30). */
+        router.use("/card", (req, res, next) => {
+            const via = req.method === "POST" && this.via(req);
+            if (!via) return next();
+            res.json({ ok: true, stubbed: true, via, note: "a worktree page's post: nothing written to the main tree's cards, nobody woken" });
+        });
         this.cards.routes(router, cors);
 
         /* THE FAST TIDY CALL (dictation-playground, 2026-09-28) — one no-tools
@@ -543,6 +552,8 @@ export default class Servex extends Events {
         router.post("/api/agents/:id/message", cors, express.json({ limit: "64kb" }), (req, res) => {
             const text = String(req.body?.text ?? "").trim();
             if (!text) return res.status(400).json({ error: "text is required" });
+            const via = this.via(req);
+            if (via) return res.json({ ok: true, stubbed: true, via, note: "a worktree page's message: not delivered, nobody woken" });
             let agent;
             try { agent = this.agents.get(req.params.id); }
             catch (e){ return res.status(404).json({ error: String(e.message || e) }); }
@@ -695,6 +706,8 @@ export default class Servex extends Events {
         const spawn = this.agents.spawn.bind(this.agents);
         this.agents.spawn_now = spawn;
         this.agents.spawn = spec => {
+            const broke = process.env.SERVEX_NO_BUDGET ? null : this.heartbeat?.budgets?.().refuse(spec);   // over its task's budget: refused, never queued (Budget.js)
+            if (broke){ this.log.append("system", { type: "gate", state: "refused", parent: spec.parent, name: spec.name ?? null, why: broke }).catch(() => {}); throw new Error(broke); }
             const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
             if (same) return same;
             const reason = this.bypass(spec) ? null : this.admit(spec);
@@ -743,6 +756,24 @@ export default class Servex extends Events {
      * servers; holding it under the 4 GB floor was a priority inversion
      * (mobile-nav, 17:50). It goes through with SERVEX_FINISH_FLOOR_MB (1024)
      * free, whatever the other checks say, and drains ahead of everything else. */
+    /* VIA:WORKTREE (node-reliability, 2026-09-30; brief 21:40). A page served by a worktree's dev
+     * server posts to this same Servex; its chat and prompt lines landed in the MAIN tree's live
+     * logs as the owner's words and woke paid assistants (chat-hitl, 21:33-21:36). A request whose
+     * Origin (or Referer) is a worktree's port or `<name>.localhost` — or that says so itself with
+     * `x-servex-via` — is `worktree:<name>`: log lines are stamped with it, and nothing wakes for them. */
+    via(req){
+        const said = req.get?.("x-servex-via");
+        if (said) return String(said).slice(0, 80);
+        let u; try { u = new URL(req.get?.("origin") || req.get?.("referer") || ""); } catch { return null; }
+        let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.resolve(HERE, "..", ".worktrees.json"), "utf8")); } catch {}
+        const hit = Object.values(reg).find(e => (u.port && String(e.port) === u.port) || u.hostname === `${e.name}.localhost`);
+        return hit ? `worktree:${hit.name}` : null;
+    }
+    stamp_via(req){
+        const body = req.body ?? {}, via = this.via(req);
+        return via && body && typeof body === "object" && !Array.isArray(body) ? { ...body, via } : body;
+    }
+
     finishing(spec = {}){ return ["reviewer", "clarity", "checker"].includes(spec.role); }
 
     admit(spec){

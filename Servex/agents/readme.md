@@ -51,6 +51,8 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **Stop idle agents freely** (each one held open costs about 250 MB). A message to a stopped
   agent, or to one that exists only in the registry, wakes it first: the same id, its session, and
   the spawn `spec` its registry row keeps. Forks are never woken. Proof: `wake-proof.mjs`.
+  An idle task mastermind that waits on a child (working or queued) is released after 3 minutes
+  (`SERVEX_TASK_IDLE_MS`), so its queued minions get its memory; with no child it keeps 15; mastermind-servex keeps 15, the owner's assistants are never released.
 - **Nothing revives what was ended on purpose.** Every path that reopens an agent (a message, a
   child's report, the boot revive, the heartbeat) asks one guard, `Agents.blocked(row)`, and skips
   an agent that `stop_agent` stopped (its row keeps `stopped_by`), one whose task has landed, and
@@ -66,6 +68,14 @@ The same verbs are MCP tools, and so are these. Proofs anyone can run show them 
 - **A retired `mastermind-servex-N` is the role.** A message or a child's report for a stopped
   one goes to the live holder. Rows stopped before the revive guard are marked `stopped_by: "legacy"`
   at boot.
+- **Task masterminds may message each other.** Their parent gets a copy of each message, so no
+  hand-off between two tasks is invisible (`policy.js`, rule `peer`). A parent may message its
+  child while the child still waits in the spawn queue.
+- **A resumed session's old id is an alias.** When a session is resumed under a new id
+  (`task-mastermind-x` → `task-mastermind-x-2`), a message, a child's report, a lookup and the
+  heartbeat for the old id go to the new one (`successor()`, chains too), instead of reopening
+  the old id as a second process on the same session. The heartbeat takes a task's owner from its
+  latest assign line, not its first.
 - **The session id is known at spawn.** Servex mints it and passes it as `sessionId`, so even an
   agent whose host died during its first turn can be resumed.
 
