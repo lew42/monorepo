@@ -125,19 +125,6 @@ What `core/Page/Log.js` has today: every line after the first is one `set()` cal
 
 **Order of work, when the owner marks it:** (a) `item` lines + tree on read + the record interface in Log.js and the widget; (b) `at` targeting; (c) `promote()` + `moved` routing; (d) the trigger and the hint. Each is one small merge with the §5 loop; (a) alone gives nested replies on every card.
 
-## 9. Chat and card are one content model; where a voice session attaches (adds to §7–8)
+## 9. Chat and card are one content model — DECIDED by the owner (2026-09-30)
 
-The model, in the owner's words (inbox-ext requirements, item 9): a card is a page with its own `page.jsonl`; chat mode (the sidebar, the mobile rail) and page mode (the card) are two renderings of the same lines with the same widgets; dictation on the right is refined into the selected card on the left. §8 is what makes that literal: a bubble and a card row are `row()` of the same record; the refinement is `item` lines appended to the selected card's file.
-
-**The open question: should a session attach to the selected card, so the card's `page.jsonl` is the session log?**
-
-**Recommend: the session stays global; its *focus* is the selected card.** One session follows the owner across pages (as today — `v-*.jsonl` with `home`, and every `chat` line already carries `path`). Two small additions: every chat line also carries `card` (the id selected when it was said), and the refinement writes into that card's `page.jsonl` as `item` lines. So:
-- the card's file holds the **refined** conversation — what the owner meant, in order, and it renders in both modes;
-- the session's file holds the **raw** ramble — every word, with `path` and `card` on each line, so any bubble can be traced to the card it fed, and any stretch of it can be promoted (§8) into a card when it turns out to matter.
-Two files, split by kind (raw vs refined), not by place; that is the one split that does not make every writer choose twice (§4), because the sidebar always writes raw and the refiner always writes refined.
-
-**The alternative: a session per card — the card's `page.jsonl` is the whole session log, raw lines included.** Simpler on paper: one file, no `card` field. Costs: selecting a card starts or resumes a different agent pair (context re-read each time — the reuse the owner asked for is lost); the card fills with ramble that the page view then has to hide; a thought that spans two cards lands in one; and "one session follows me" — the thing the owner has today — is gone. Where it fits: a long, deliberate work session on one big card, which is exactly what promoting a card to a task gives (the task's own `task.jsonl` and its own mastermind).
-
-**What the sidebar shows:** the selected card's name on the mic row (it is where the words are going); switching cards switches the target, not the session. No card selected → the page (`path`) is the target, as today, and the refiner writes into that page's `page.jsonl`.
-
-Touches: the chat line shape (one field), the refiner (writes `item` lines into the target), the mic row (the target's chip). The session code is unchanged.
+Not a question any more. The owner's answer: **sessions stay global** (not per directory or card); they are **context-aware** — navigation and pause events are logged into the session as invisible, timestamped lines; **refinement goes to the selected card** (item lines in the card's own `page.jsonl`, §8). task-mastermind-audio-consolidate builds it. The alternative that was here (a session per card) is dropped.
