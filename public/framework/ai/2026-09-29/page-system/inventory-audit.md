@@ -1,9 +1,9 @@
 # Inventory audit — did the fan-out find everything, and what's broken?
 
 Read-only. Checked every page `prior-work.md` links (92 rows) plus four items it misses,
-headless, at 1920 and 400, one browser (`monorepo.localhost`).
+headless, at 1920 and 400, one browser (`monorepo.localhost`). All 97 checked; none left over.
 
-**Checked: 94 pages · Broken (confirmed): 2 · Broken (flaky, unconfirmed): 5 · Missed: 3**
+**Checked: 97 pages · Broken (confirmed): 2 · Broken (flaky, unconfirmed): 5 · Missed: 3**
 
 ## The owner's question, answered first
 
@@ -48,3 +48,12 @@ site bug. Worth a quick re-check, not a fix.
 3. The biggest miss (**the switcher**) exists because it was built *during* today's fan-out, after the survey already ran — a timing gap, not a blind spot in where the surveys looked.
 4. The second-biggest miss (**ext/Panel**) is a genuine blind spot: it's a second, parallel layout system (page-*internal* arranging) that none of the three surveys' scopes named, even though the brief did.
 5. The layout skill's own `improvements.md` already holds a written, dated proposal awaiting a decision — that file is worth a read before the next layout ruling, not just before writing code.
+
+## For the cards-and-logs task
+
+Inventory C already flagged an open item this feeds directly: 480 `page.jsonl` files site-wide,
+no size cap, no rotation, no monitor (`prior-work.md` row "page.jsonl"). The owner has since ruled
+(20:40) that a card is a tiny page with **no folder of its own by default** — its data is one line
+in the nearest `page.jsonl` that already exists, reached by a virtual URL through the parent's
+`route()`, and a folder is made only once a card actually grows. Nothing in this audit's Broken or
+Missed tables needs a folder per card, and nothing here should be read as recommending one.

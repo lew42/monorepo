@@ -20,3 +20,5 @@
 {"log":{"at":"2026-09-29T21:30:36-05:00","heartbeat":"deliberate","msg":"minion-page-inventory-audit its agent is not running: it was stopped on purpose by in-process at 2026-09-29T21:19:37-05:00; not revived."}}
 {"log":{"at":"2026-09-30T13:17:08-05:00","heartbeat":"revive-queued","msg":"minion-page-inventory-audit-2 its agent is not running; a revive is queued"}}
 {"log":{"at":"2026-09-30T13:26:13-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-09-30T00:00:00-05:00","msg":"finalized: all 97 urls checked (0 unchecked); added cards-and-logs note per owner's 20:40 ruling (card = jsonl line, no folder by default); landing report to parent page-system task"}}
+{"log":{"at":"2026-09-30T13:27:50-05:00","msg":"session ended (other) without landing"}}
