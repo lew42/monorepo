@@ -41,7 +41,47 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents)];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents)];
+}
+
+/* A voice session's smart assistant writes through these (Sessions.js, ext/Session/doc/sessions.md). */
+function session_tools(agents){
+	const sessions = () => {
+		const s = agents.servex?.sessions;
+		if (!s) throw new Error("Voice sessions are not running in this Servex (SERVEX_NO_LAYERS?).");
+		return s;
+	};
+	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
+	return [
+		tool("session_summary",
+			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about."
+			+ " Call it BEFORE your first reply, and again whenever the topic shifts. Writes `<home>ai/<session>.summary.json` and a fresh"
+			+ " `started` line, with the title, in the home folder's `ai/log.jsonl`.",
+			{ session: SESSION,
+				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
+				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
+			["session", "title", "summary"],
+			args => JSON.stringify(sessions().summarize(args))),
+		tool("session_line",
+			"Post a line to the owner in a voice session. With `re` alone it is a reply to that owner line. With `re` AND `level` it is"
+			+ " a REFINED version of the owner's words, drawn under the raw line: `clean` (fillers gone), `edit` (rewritten clearly),"
+			+ " `summary` (the gist). `level` is required on every refinement, or it is drawn as a reply; a refinement without `re` is refused.",
+			{ session: SESSION,
+				text: { type: "string", description: "The line." },
+				re: { type: "string", description: "The `at` of the owner line this answers or refines." },
+				level: { type: "string", enum: ["clean", "edit", "summary"], description: "Only on a refinement: `clean`, `edit` or `summary`." } },
+			["session", "text"],
+			args => JSON.stringify(sessions().line(args))),
+		tool("dir_log",
+			"Append ONE line to a folder's `ai/log.jsonl`: the minimal index of AI work in that folder, presence only, each line"
+			+ " pointing at its detail file. Write it as you go, not at the end. Exactly one of these three shapes, nothing else:"
+			+ " {\"session\":{\"id\",\"event\":\"started\"|\"ended\",\"title\",\"file\"}}, {\"task\":{\"dir\",\"event\":\"opened\"|\"landed\",\"title\"}},"
+			+ " {\"decision\":{\"text\",\"file\"}}. `at` is stamped for you. Never step-by-step progress: that stays in the session's or task's own log.",
+			{ dir: { type: "string", description: "The folder the work is ABOUT: a site path like `/framework/ext/Chat/`, or any repo folder like `public/framework/ext/Chat` or `Servex/agents` (written to `<repo>/Servex/agents/ai/log.jsonl`)." },
+				line: { type: "object", description: "One line, e.g. {\"decision\":{\"text\":\"Chat keeps one file per session\",\"file\":\"/framework/ext/Chat/ai/v-1abc.jsonl\"}}." } },
+			["dir", "line"],
+			args => JSON.stringify(sessions().dir_log(args)))
+	];
 }
 
 /* start_job's answer comes to `from` — which defaults to whoever is calling

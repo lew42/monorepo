@@ -98,6 +98,11 @@ chain and key files) and is kept as a checkpoint. `ask_expert({module, question}
 answer comes from a clean, cached context in seconds, and rebuilds it first if a file it read has
 changed. `load_module({modules})` returns the same reading for any session to load in one call.
 [`doc/experts.md`](./doc/experts.md) has the recipe, the verbs and the measurements.
+`ask_directory({dir, question, session})` is the other way in: a FRESH mastermind for one folder, started from its readmes only, never forked: [`doc/directory.md`](./doc/directory.md).
+
+## Voice sessions
+
+One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one: it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).
 
 ## Ids are words, never uuids
 
@@ -173,8 +178,8 @@ bug before proving the fix.
 
 `spawn_agent({role})` looks `role` up in [`roles.js`](./roles.js) — every row is on
 [the roles page](/framework/ai/2026-09-22/tiers-design/doc/roles.md), reconciled 2026-09-29 with
-the per-voice-session pair (`session-fast`, `session-smart`) and the not-yet-built directory
-mastermind; "manager" and "master assistant" are retired words there now — for the skill it loads
+the per-voice-session pair (`session-fast`, `session-smart`) and the directory mastermind
+(`directory-mastermind`, built: [`doc/directory.md`](./doc/directory.md)); "manager" and "master assistant" are retired words there now — for the skill it loads
 before the agent's first turn (`minion` → the `minion` skill, and so on) and the
 model/effort/permission-mode a caller doesn't name; a caller's own fields always win. Every
 spawn and every state change writes `{id, role, name, topics, page, state, visibility,

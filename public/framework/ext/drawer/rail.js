@@ -1,6 +1,7 @@
 import { View, div, span, button } from "/framework/core/View/View.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
+import floor from "/framework/ux/Dictate/floor.js";
 import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
 // seam below reads `Session.resume` only if it exists (`typeof ... ===
@@ -656,6 +657,10 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			} else {
 				this.build_voice_panel();
 			}
+			// Measured AGAIN now the panel exists: `open()`'s own `size()` ran before this
+			// import resolved, saw only the head and the links (146 px), and froze the sheet
+			// there with no composer showing (voice-fixes, reviewing the grip hand-merge).
+			this.size();
 		});
 	}
 
@@ -669,6 +674,13 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	 * `ext/Chat/Chat.js`'s `chat_line()` already knows how to draw — a fast and a
 	 * smart reply need no translation, just a pass-through. */
 	build_voice_panel(){
+		// THE DOUBLE LINE (voice-fixes, review phase 1): `voice_deliver()` below draws
+		// the owner's own line at once, using the server's `at`; the session-file
+		// watch (`watch_session()`) then reads that same line back off disk and draws
+		// it again. This Set remembers every `at` this panel already drew locally, so
+		// the watch can skip it instead of doubling the bubble.
+		this.own_ats = new Set();
+		this.force_fresh ??= false;
 		this.$slot.empty(() => {
 			this.panel = new ChatPanel({
 				placeholder: "say something",
@@ -680,6 +692,21 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			});
 		});
 		this.start_mic();
+		if (!this.session) this.offer_recent();
+	}
+
+	/* THE RESUME LINE ON OPEN (voice-fixes item 5): before a word is said, the page's
+	 * newest session shows as ONE tappable line, "<title> · 1 day ago". `recent()`
+	 * spawns nothing, so this costs one GET. A session that spoke within the hour is
+	 * continued by `start()` itself on the first sentence, tapped or not. */
+	offer_recent(){
+		if (typeof Session.recent !== "function") return;
+		const panel = this.panel;
+		Session.recent(drawer.page(), { limit: 1 }).then(([row]) => {
+			if (!row || this.session || this.panel !== panel) return;
+			this.offer_resume({ session: row.session, title: row.title, summary: row.summary, at: row.last_at ?? row.at });
+			requestAnimationFrame(() => this.size());   // grow to show the line (a height the reader dragged to still wins)
+		}).catch(() => {});
 	}
 
 	/* Read the tab's saved session first (survives a reload on the same tab);
@@ -699,7 +726,8 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			}
 		} catch {}
 		try {
-			const made = await start({ path: drawer.page() });
+			const fresh = this.force_fresh; this.force_fresh = false;
+			const made = await start({ path: drawer.page(), fresh });
 			this.session = made.session; this.session_file = made.file; this.nav_path = drawer.page();
 			try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: made.session, file: made.file })); } catch {}
 			this.watch_session();
@@ -713,10 +741,13 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		// the smart reply — is ALREADY the universal chat line `Chat.js` draws, so
 		// this just hands it straight to the panel. The owner's own line was very
 		// likely already drawn once, at once, by `voice_deliver()` below, using the
-		// exact `at` the server assigned; `Chat.js`'s own dedup key (`at` + `fix` +
-		// `session`) is what makes the copy read back here a silent no-op instead
-		// of a second bubble.
-		this.stop_watch = watch(this.session_file, line => { if (line.chat) this.panel?.say({ chat: line.chat }); });
+		// exact `at` the server assigned — `this.own_ats` (set there) is what stops
+		// this watch drawing that exact line a second time.
+		this.stop_watch = watch(this.session_file, line => {
+			if (!line.chat) return;
+			if (this.own_ats?.has(line.chat.at)) return;
+			this.panel?.say({ chat: line.chat });
+		});
 	}
 
 	forget_session(){
@@ -734,12 +765,31 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 			await this.ensure_session();
 			if (!this.session) return false;
 			const via = entry.via === "whisper" ? "voice" : "text";
-			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via });
+			// THE FLOOR (ext/Chat/doc/floor.md): `stamp()` leaves an entry that already has
+			// `floor` alone, and stamps one that doesn't from the mic's live level meter.
+			floor.stamp(entry);
+			const r = await say({ session: this.session, path: drawer.page(), text: entry.text, via, floor: entry.floor, cues: entry.cues });
+			this.own_ats?.add(r.at);
 			this.panel?.say({ chat: { at: r.at, session: this.session, path: drawer.page(), from: { kind: "owner" }, via, text: entry.text } });
+			if (entry.floor === "speaking") this.watch_floor();
 			return true;
 		} catch {
 			return false;
 		}
+	}
+
+	/* A sentence went out while the owner was still talking: watch the mic's floor
+	 * until it turns "done" with no new words, then tell the session once, so the
+	 * held fast reply lands (`Session.floor()`). A newer say restarts the watch. */
+	watch_floor(){
+		clearInterval(this.floor_watch);
+		const session = this.session, started = Date.now();
+		this.floor_watch = setInterval(() => {
+			if (session !== this.session || Date.now() - started > 30000) return clearInterval(this.floor_watch);
+			if (floor.state() !== "done") return;
+			clearInterval(this.floor_watch);
+			if (typeof Session.floor === "function") Session.floor({ session, floor: "done" }).catch(() => {});
+		}, 250);
 	}
 
 	/* RESUME, WIRED AHEAD OF SLICE 2 (voice-sessions review, mastermind-servex-7,
@@ -751,18 +801,27 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	 * "function"` is the WHOLE gate below — false today, so nothing new shows and
 	 * nothing is called; true the instant that export lands, with no further
 	 * change here. Proof note: wired, activates with slice 2. */
+	// An hour, matching the server's own SERVEX_SESSION_RESUME_MS default
+	// (`Servex/agents/Sessions.js`): a session newer than this continues on its
+	// own, the moment the owner says the first word, so offering it here too
+	// would be the same choice twice (voice-fixes review item 11).
+	static RESUME_OFFER_MS = 60 * 60 * 1000;
+
 	offer_resume(previous){
 		if (!previous || typeof Session.resume !== "function") return;
+		if (Date.now() - Date.parse(previous.at ?? 0) < this.constructor.RESUME_OFFER_MS) return;
 		this._previous = previous;
+		// ONE line, and tapping it resumes: the choice button IS the line, and its
+		// own age ("· 1 day ago") is why it is worth tapping instead of just talking.
+		this._previous_label = `${previous.title ?? "The last conversation"} · ${ago(previous.at)}`;
 		this.panel?.say({
 			type: "ask", heading: "Pick up where you left off?",
-			text: `${previous.title ?? "The last conversation"} · ${ago(previous.at)}`,
-			choices: ["Resume", "Start fresh"], at: new Date().toISOString(),
+			choices: [this._previous_label], at: new Date().toISOString(),
 		});
 	}
 
 	on_resume_choice(choice){
-		if (choice !== "Resume" || !this._previous || typeof Session.resume !== "function") return;
+		if (choice !== this._previous_label || !this._previous || typeof Session.resume !== "function") return;
 		const previous = this._previous; this._previous = null;
 		Session.resume(previous.session).then(made => {
 			this.forget_session();
@@ -782,6 +841,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 	new_session(){
 		if (this.card_ref) return super.new_session();
 		this.forget_session();
+		this.force_fresh = true;   // the next sentence's ensure_session() must not resume the last hour's session
 		this.build_voice_panel();
 	}
 }
