@@ -132,15 +132,38 @@ export class Groups {
 			const key = date + "/" + slug;
 			if (files) this.task_files.set(key, files);
 			if (this.tasks.has(key)) return;
-			const m = new Member({ url: `/framework/ai/${key}/task.jsonl`, date, slug, files });
+			const url = `/framework/ai/${key}/task.jsonl`, m = new Member({ url, date, slug, files });
 			this.tasks.set(key, m);
-			loads.push(m.live(() => this.changed()));
+			// `day()`'s own `no_task` guard can't always tell in advance (a dir's own listing
+			// may not be loaded yet, voice-dir-404) — so this fetch is sometimes for a dir with
+			// no task.jsonl at all, and gets a 404. `JSONL.load()` already swallows that quietly
+			// (never throws, never logs), but the browser's own network log still notes the
+			// failed request once; nothing in JS suppresses that. What IS this file's job: never
+			// leave a phantom "task" behind, and never ask again. A `m` that never loaded ANY
+			// line is no task — drop it from the map, and remember that folder as task-less in
+			// the same cache `no_task()` reads, so a later `day()` call skips it without asking.
+			loads.push(m.live(() => this.changed()).then(loaded => {
+				if (loaded.loaded) return;
+				this.tasks.delete(key);
+				const at = `/framework/ai/${key}/`;
+				// Shaped like `PageLog.Listing` (Log.js) — `.folder()` included — since anything
+				// that later reads this same cache entry (a Page building its own child list)
+				// expects that real shape, not just the two fields `no_task()` itself reads.
+				if (!PageLog.loaded_listing(at)) (PageLog.loaded_listings ??= new Map()).set(at,
+					{ dirs: [], pages: new Map(), files: files ?? [], folder(name){ return this.dirs.includes(name) || this.pages.has(name); } });
+			}));
 		});
 		await Promise.all(loads);
 		if (loads.length) this.changed();
 	}
 
-	/** One day's task folders: [{ date, slug, files? }]. `files` only from the fallback. */
+	/** One day's task folders: [{ date, slug, files? }]. `files` only from the fallback.
+	    A dir whose own listing hasn't loaded yet (so `no_task` below can't say yet) still
+	    gets included here, optimistically — its task.jsonl may 404 (a folder with files but
+	    no task, e.g. a voice session's raw-dictation scratch notes, `voice-dir-404`).
+	    `read_tasks()` is where that gets cleaned up: a fetch that comes back with nothing
+	    drops the phantom task and remembers the folder as task-less, so this only ever
+	    asks once. */
 	async day(date, fresh){
 		const listing = await PageLog.listing(`/framework/ai/${date}/`, fresh);
 		if (!listing) return this.day_from_tree(date);
