@@ -152,7 +152,10 @@ export function live_model({ prompts, day }){
 		// this row already sits under the "Running now" heading and wears a state badge reading
 		// "working" — a line that ALSO ended in "— now" read as "Running now … role — now",
 		// saying "now" twice for the same fact. The role alone is enough.
-		return agents.filter(a => a.state !== "stopped").map(a => ({ id: a.id, title: plain_name(a), talkable: !!a.model,
+		// ⚠ Dormant is not running (the owner, 2026-09-30: "why do we have so many dormant tasks
+		// in… running now?"): a dormant agent has no process and no memory, only a session that
+		// wakes when messaged. It arrived with the dormant-idle task, after this filter was written.
+		return agents.filter(a => !["stopped", "dormant", "gone"].includes(a.state)).map(a => ({ id: a.id, title: plain_name(a), talkable: !!a.model,
 			state: a.state, line: KNOWN[a.id]?.[1] ?? ROLES[a.role] ?? (a.state === "working" ? "working" : ""),
 			at: a.started_at })).sort((x, y) => (y.state === "working") - (x.state === "working"));
 	}
