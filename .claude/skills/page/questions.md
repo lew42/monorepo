@@ -31,3 +31,9 @@ First, identify: list every navigation technique on the page — tabs, a rail (s
 20. Sheet or modal: does it have its own URL, and does closing it return to exactly where the reader was? [CLAUDE.md: route everything] [owner 2026-09-30]
 21. Full screen: is there a visible way back out, and does it have its own URL? [owner 2026-09-30]
 22. Does a selected item open in its own column or view, never by expanding in place and pushing the rest down? [layout: the layout never jumps]
+
+## Controls (the coming `controls` aspect; parked here until the skill tree is approved)
+
+23. Does a widget keep its core row (the box, the mic, Send) on one line at every width, with extras (meter, picker, captions) on a line underneath, so it is recognisably the same widget everywhere? [audio-consolidate, 2026-09-30]
+24. Is a debug or advanced toolbar off by default, and on only on the widget's own doc page? [audio-consolidate, 2026-09-30]
+25. Does a mode button (hold vs toggle, on vs off) show its current mode on its own face, never in a separate label? [audio-consolidate, 2026-09-30]

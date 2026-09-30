@@ -43,3 +43,4 @@ The layout skill's rules, worded as questions a reviewer answers yes, no or n/a 
 28. Does each label sit clearly closer to its own card than to the next one? [layout: association by proximity]
 29. Does a live page stay still as items arrive, with new items waiting behind an "N new" pill? [layout: the layout never jumps]
 30. Does no prose line run past the measure at any width? [layout: look at it, then cycle] [measured: layout.json widest_text]
+31. Does fixed chrome around the site (a frame, a dev shell, a rail) push `.app` by tokens rather than re-parent it, so turning it off gives exactly the page as before? [dev-shell, 2026-09-30]
