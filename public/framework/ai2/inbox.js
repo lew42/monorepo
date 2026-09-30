@@ -3,6 +3,16 @@ import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
 import { servex_url } from "/framework/dev/servex_url.js";
+// SCORE ONLY (asks-ledger/view, 2026-09-30, brief D) — `needs_for` is the shared live scan
+// `needs.js`'s own Needs-you tab already keeps current, so a card's score here is never a
+// second idea of what's open on it. ⚠ This makes a real circular import (`needs.js` already
+// imports `append_card`/`static_cards`/`servex_base`/`servex_fetch` from THIS file) — safe
+// only because both sides read the other's exports inside function bodies, never at module
+// top-level, so neither module needs the other to have finished loading first; proved live
+// with a headless load of `/framework/ai2/` and `/framework/ai2/inbox/`, zero console errors
+// (task log has the shots). `importance` is the same score `needs.js`'s own rows show.
+import { needs_for } from "./needs.js";
+import { importance } from "./needs-rule.js";
 
 export { fold };
 
@@ -660,6 +670,11 @@ export function items({ board, folders, prompts, landed, says }){
 		it.unread = true;
 		it.flag = says.flags.get(it.id) ?? null;
 		it.transcript ??= [];
+		// SCORE ONLY (deliverable 3) — "a card with an open need takes its highest need's
+		// score; others show nothing." `needs_for(it.id)` is `[]` for anything that isn't a
+		// card (a prompt thread, a landed task), so `it.score` stays `null` there too.
+		const open = needs_for(it.id);
+		it.score = open.length ? Math.max(...open.map(n => importance(n, Date.now()))) : null;
 	});
 	/* NEWEST FIRST, and nothing else. Unread-first, as the first build had it,
 	   is itself a jump: every card you open drops out of the top the instant

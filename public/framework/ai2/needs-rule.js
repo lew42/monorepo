@@ -113,3 +113,93 @@ export function card_needs(id, lines, meta = {}){
 }
 
 export default card_needs;
+
+/* ── IMPORTANCE — one number, 1-100, for anything waiting on the owner ──────────────────
+ * (asks-ledger/view, 2026-09-30: brief D)
+ *
+ * Every list that ranks what needs the owner — the Needs you tab (`needs.js`), the Inbox's
+ * score badge (`inbox.js`), and the asks ledger's own page — calls this ONE function, so a
+ * blocker always outranks a question and a stalled ask always outranks a quiet FYI, wherever
+ * the row ends up drawn. Pure: no DOM, no fetch. `item` is whatever the caller already
+ * built — a `card_needs()` row (`kind`, `title`, `question`, `from`), or a folded stalled ask
+ * (`kind: "stalled"`, `status_at`, `cost`) — and `now` is a Date or epoch-ms the caller
+ * supplies, so a test can fix it.
+ *
+ * THE SCALE (every number below is a constant in `IMPORTANCE`, so it can be retuned without
+ * reading the function body):
+ *
+ *   90-100  BLOCKER        a key, money, something destructive: `item.kind === "blocker"`
+ *                          (card_needs already decided this with `is_blocker()`), or the
+ *                          item's own words trip `is_blocker()` or `BLOCKER_WORDS` here.
+ *   70-89   BLOCKING ASK   an open Question or Decision (`kind: "question"|"decision"`)
+ *                          whose `from` agent is live right now (`item.from_live === true`)
+ *                          — rises the longer it has sat (`item.at` against `now`).
+ *   60-80   STALLED ASK    `kind: "stalled"`: rises with how long it has been silent
+ *                          (`item.hours_silent`, or `item.status_at`/`item.at` against `now`)
+ *                          and, once known, with `item.cost` — a $20 ask silent for an hour
+ *                          scores as high as a free one silent for a day.
+ *   50-69   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
+ *                          unknown — nothing is known to be sitting idle waiting on it.
+ *   20-40   DECIDED        the system already chose something and is only telling you
+ *                          (`kind: "decision_made"` — an "I chose X" FYI, not a question).
+ *    1-19   FYI            `kind: "fyi"`: worth knowing, nothing to do.
+ *
+ * An item whose `kind` matches none of these falls back to `IMPORTANCE.DEFAULT` (10) — saying
+ * nothing about a row's urgency is cheaper than guessing it into the middle of the list. */
+export const IMPORTANCE = {
+	BLOCKER: 95,
+	BLOCKING_ASK_BASE: 70, BLOCKING_ASK_MAX: 89,
+	PLAIN_ASK_BASE: 50, PLAIN_ASK_MAX: 69,
+	ASK_HOURS_FULL: 6,        // hours an open question/decision has sat that alone reaches the top of its band
+	STALLED_BASE: 60, STALLED_MAX: 80,
+	STALLED_HOURS_FULL: 24,   // hours silent that alone reaches the top of the stalled band
+	STALLED_COST_FULL: 20,    // dollars spent that alone reaches the top of the stalled band
+	DECIDED: 30,
+	FYI: 10,
+	DEFAULT: 10,
+};
+
+/** A few more words than `is_blocker`'s own "block" — the ones the owner named directly
+ *  ("a key, money, something destructive"). Kept separate from `is_blocker` itself so that
+ *  function's existing contract (card_needs' own "blocker" kind, already tested elsewhere)
+ *  never changes shape underneath its other two callers. */
+const BLOCKER_WORDS = /\b(key|login|password|credential|pay|payment|delete|force|destroy|wipe)\b/i;
+
+function blocker_signal(item){
+	const text = [item?.title, item?.question].filter(Boolean).join(" ");
+	return is_blocker(text) || BLOCKER_WORDS.test(text);
+}
+
+function hours_since(at, now){
+	const t = at ? Date.parse(at) : NaN;
+	if (!Number.isFinite(t)) return 0;
+	const n = now instanceof Date ? now.getTime() : Number(now ?? Date.now());
+	return Math.max(0, (n - t) / 3600000);
+}
+
+function stalled_score(item, now){
+	const hours = Number.isFinite(item?.hours_silent) ? item.hours_silent : hours_since(item?.status_at ?? item?.at, now);
+	const cost = Number(item?.cost ?? 0);
+	const hours_frac = Math.min(1, hours / IMPORTANCE.STALLED_HOURS_FULL);
+	const cost_frac = Number.isFinite(cost) ? Math.min(1, cost / IMPORTANCE.STALLED_COST_FULL) : 0;
+	const frac = Math.max(hours_frac, cost_frac);   // whichever signal is further along wins
+	return Math.round(IMPORTANCE.STALLED_BASE + frac * (IMPORTANCE.STALLED_MAX - IMPORTANCE.STALLED_BASE));
+}
+
+function ask_score(item, now){
+	const live = !!item?.from_live;
+	const base = live ? IMPORTANCE.BLOCKING_ASK_BASE : IMPORTANCE.PLAIN_ASK_BASE;
+	const max = live ? IMPORTANCE.BLOCKING_ASK_MAX : IMPORTANCE.PLAIN_ASK_MAX;
+	const frac = Math.min(1, hours_since(item?.at, now) / IMPORTANCE.ASK_HOURS_FULL);
+	return Math.round(base + frac * (max - base));
+}
+
+export function importance(item, now = Date.now()){
+	const kind = item?.kind;
+	if (kind === "blocker" || blocker_signal(item)) return IMPORTANCE.BLOCKER;
+	if (kind === "stalled") return stalled_score(item, now);
+	if (kind === "decision_made") return IMPORTANCE.DECIDED;
+	if (kind === "fyi") return IMPORTANCE.FYI;
+	if (kind === "decision" || kind === "question") return ask_score(item, now);
+	return IMPORTANCE.DEFAULT;
+}

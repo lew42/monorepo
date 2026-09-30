@@ -1228,6 +1228,31 @@
 
 	.ai2-need-body { flex: 1; min-width: 0; }
 
+	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
+	   on every row (brief D). `.ai2-score` is the same look for the Inbox's own rows: `inbox.js`
+	   computes `it.score` today, ready for the day a rail row draws it too (its own comment
+	   says why that last wire is a separate, out-of-fence edit). Muted grey normally; only a
+	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
+	   something on this page instead of decorating every row. */
+	.ai2-need-score,
+	.ai2-score {
+		flex: none;
+		display: inline-block;
+		min-width: 1.6em;
+		padding: 0.05em 0.4em;
+		border-radius: 1em;
+		background: var(--fill-a08);
+		font-size: 0.75em;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.ai2-need-score-hot,
+	.ai2-score-hot {
+		background: var(--error);
+		color: white;
+	}
+
 	/* THE HEADLINE — the card's own SHORT title, big and plain (brief D: "a short title...
 	   not raw dictation"). A visible "Blocker" flag sits beside it only for that one kind;
 	   every kind still says its word once more, quietly, in the meta line below. */
