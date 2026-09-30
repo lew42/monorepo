@@ -74,7 +74,7 @@
 	.drawer-rail-sheet {
 		position: fixed; z-index: 41; inset-inline: 0; inset-block-end: 0;
 		display: none; flex-direction: column;
-		max-block-size: 70vh;
+		max-block-size: 50dvh;   /* half the phone by default (the owner, 2026-09-29) */
 		gap: calc(var(--gap) * 0.6);
 		padding: 0.9em 0.9em calc(0.9em + env(safe-area-inset-bottom, 0px));
 		background: var(--surface);
