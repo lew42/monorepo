@@ -13,7 +13,7 @@ when it has no card yet.
 
 **Ranked by `importance()`** (`needs-rule.js`), highest first: a blocker (a key, money,
 something destructive) scores 90+; an open question or decision blocking a running agent 70+, a
-quiet one 50-69; a stalled ask 60-80, rising the longer it has sat; a decision the system already
+quiet one 40-59; a stalled ask 60-80, rising the longer it has sat; a decision the system already
 made 20-40; a quiet FYI under 20. **The score is the small number on every row** — one function,
 so the Needs you tab, the Inbox's own score badge and the asks ledger's page can never rank the
 same thing two different ways.

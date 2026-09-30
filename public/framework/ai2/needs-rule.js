@@ -138,7 +138,7 @@ export default card_needs;
  *                          (`item.hours_silent`, or `item.status_at`/`item.at` against `now`)
  *                          and, once known, with `item.cost` — a $20 ask silent for an hour
  *                          scores as high as a free one silent for a day.
- *   50-69   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
+ *   40-59   PLAIN ASK      the same open Question/Decision, but `from_live` is false or
  *                          unknown — nothing is known to be sitting idle waiting on it.
  *   20-40   DECIDED        the system already chose something and is only telling you
  *                          (`kind: "decision_made"` — an "I chose X" FYI, not a question).
@@ -149,7 +149,7 @@ export default card_needs;
 export const IMPORTANCE = {
 	BLOCKER: 95,
 	BLOCKING_ASK_BASE: 70, BLOCKING_ASK_MAX: 89,
-	PLAIN_ASK_BASE: 50, PLAIN_ASK_MAX: 69,
+	PLAIN_ASK_BASE: 40, PLAIN_ASK_MAX: 59,   // below every stalled ask (60+): nothing live is waiting on these
 	ASK_HOURS_FULL: 6,        // hours an open question/decision has sat that alone reaches the top of its band
 	STALLED_BASE: 60, STALLED_MAX: 80,
 	STALLED_HOURS_FULL: 24,   // hours silent that alone reaches the top of the stalled band
