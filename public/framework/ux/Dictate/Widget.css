@@ -17,11 +17,25 @@
 
 	/* `.card.pad` is the framework's own boxed-content look (framework.css) — this just
 	 * keeps a bubble from stretching the full width of the thread. An assistant's reply
-	 * (`say()`, `Widget.js`) reads as a second voice: right-aligned, `--prim`-tinted border,
-	 * never the owner's own plain look — the one visual rule a two-sided thread needs. */
-	.ux-dictate-widget-bubble { align-self: flex-start; max-width: 85%; }
+	 * (`say()`, `Widget.js`) reads as a second voice: right-aligned, a quiet neutral tint,
+	 * never the owner's own plain look — the one visual rule a two-sided thread needs.
+	 *
+	 * THE ORANGE BORDER, REMOVED (one-dictation, 2026-09-30 — the owner: "the chat bubbles
+	 * before were actually pretty good… there's like an orange border around some of
+	 * them"). `box-shadow: inset 0 0 0 1px var(--prim)` drew that ring on every assistant
+	 * bubble (`--prim` is `#FF8F60`, "the mark's own orange" — `styles/layers/theme/
+	 * lew42/lew42.css`). The bubbles the owner remembered as good are `ext/Chat/Chat.css`'s
+	 * `.chatbox-you`/`.chatbox-reply` — a soft tinted BACKGROUND on each side, no border
+	 * at all — copied here verbatim: the owner's own words get the orange tint (it was the
+	 * more prominent side there), the reply a quiet neutral one. */
+	.ux-dictate-widget-bubble {
+		align-self: flex-start; max-width: 85%;
+		background: color-mix(in srgb, var(--prim) 22%, transparent);
+		border-radius: 0.9em;
+	}
 	.ux-dictate-widget-bubble-assistant {
-		align-self: flex-end; box-shadow: inset 0 0 0 1px var(--prim);
+		align-self: flex-end;
+		background: color-mix(in srgb, currentColor 10%, transparent);
 	}
 	.ux-dictate-widget-failed { font-size: 0.85em; }
 	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }

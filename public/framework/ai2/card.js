@@ -12,6 +12,11 @@ import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
 import chat, { md_into } from "./chat.js";
 import composer from "./compose.js";
+// THE ONE GLOBAL CHAT (one-dictation, 2026-09-30) — the SAME mount function the mobile
+// ✦ sheet and the desktop ☰ drawer's AI tab already call (`ux/Dictate/chat.js`'s own
+// class doc). Named `mount_chat` here, not `chat`, because this file already has a
+// `chat` — the OLD per-card chat above, still used by `chat_v1()` below.
+import mount_chat from "/framework/ux/Dictate/chat.js";
 import agents_panel, { agent_cost } from "./agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
@@ -262,13 +267,39 @@ export default class Card extends Page {
 				// as you move between a card and its sub-cards (layout-unify, 2026-09-24).
 				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
 			});
-		} else if (fresh){
-			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge) — just
-			// through the global sheet now, not a composer built into this page, and only on
-			// the phone: the desktop drawer's AI tab has no auto-mic of its own to start.
-			shell.opening = null;
-			if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
-				import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
+		} else {
+			/* THE CARD'S OWN SIDEBAR, DESKTOP ONLY (one-dictation, 2026-09-30 — the owner,
+			 * testing this task's own build: "a card-specific right sidebar with a 'talk
+			 * into this card' text area… you can't tell it belongs to the card"). This is
+			 * NOT a third, separate chat: `mount_chat` is the exact same `ux/Dictate/chat.js`
+			 * call the ✦ sheet and the ☰ drawer's AI tab already make, on the one global
+			 * session (CLAUDE.md law 6 — "one of everything"). `ai2-foot-head` is what makes
+			 * it read as THIS card's own — a plain line naming the card, above the mount.
+			 * `ai2.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
+			 * conversation in the ✦ sheet, and a second copy pinned to the bottom of every
+			 * card on a phone is the very "two chats" shape this task removes. */
+			div.c("ai2-foot ai2-foot-chat", () => {
+				div.c("ai2-foot-head muted").text((sub ? "Talking into this request — " : "Talking into this card — ") + (this.title ?? this.name ?? this.id));
+				this.chat_mount = mount_chat(div.c("ai2-foot-chat-slot").el, {
+					path: this.url,
+					card: this.id,
+					placeholder: sub ? "talk into this request" : "talk into this card",
+				});
+				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
+			});
+			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge): on
+			// the phone, where `.ai2-foot-chat` above isn't shown, through the ✦ sheet, same
+			// call this branch always made; on the desktop, right inside this card's own
+			// mount, since there is now a real mic here to start.
+			if (fresh){
+				shell.opening = null;
+				if (shell.auto_transcribe?.()){
+					if (matchMedia?.("(max-width: 52em)")?.matches)
+						import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
+					else
+						this.chat_mount.panel?.start_mic?.();
+				}
+			}
 		}
 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
 		// column also holds the chat, so the chat is held at its current width while you
@@ -1074,6 +1105,9 @@ export default class Card extends Page {
 		this.stop_needs?.();
 		const mic = this.$composer?.mic;
 		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
+		// The new sidebar mount's own mic (chat_v1() off, the default) — same reasoning:
+		// a card left behind must not keep listening into a conversation nobody is looking at.
+		try { this.chat_mount?.panel?.stop_mic?.(); } catch {}
 	}
 }
 
