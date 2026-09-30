@@ -13,7 +13,7 @@ export default new Page({
 	icon: "open_in_full",
 
 	content(){
-		md("**Drill in (2026-09-30):** tap a card that has something inside it, then its **Open ⤢** button: the chat goes full screen (over the desktop drawer, its full height) as its own small page, with Back. A card inside that page opens one level deeper. Each level is its own url (`#chat=drill-demo~…`), so reload or the browser's back lands in the same place. `drill: false` is v1: no button. How it works: [doc/drill.md](/framework/ext/Chat/doc/drill/).");
+		md("**Drill in (2026-09-30):** tap a card that has something inside it, then its **Open ⤢** button: the chat goes full screen (over the desktop drawer, its full height) as its own small page, with Back. A card inside that page opens one level deeper. Each level is its own url (`#chat=drill-demo~…`), so reload or the browser's back lands in the same place. `drill: false` is v1: no button. How it works: [doc/drill.md](/framework/ext/Chat/doc/drill.md).");
 
 		demo(() => {
 			frame(420, 620, () => {
