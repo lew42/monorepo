@@ -1,5 +1,13 @@
 # Decisions
 
+## Drill in (2026-09-30, `ai/2026-09-29/audio/next-drill-in/`)
+
+- **Decided:** the shell lives in ext/Chat (`Drill.js`), opened from `ChatPanel`, so no host changed: the ✦ sheet and the drawer's AI tab got it by default. **Alternative:** a shell built into `ext/drawer/rail.js`. Not taken: rail.js belongs to two other tasks, and the desktop drawer would have needed its own copy.
+- **Decided:** on desktop the shell covers the drawer at its full height. **Alternative:** the page's main area. Not taken: the chat you drilled from would disappear from beside the page.
+- **Decided:** the address is the url hash (`#chat=<session>~<at>/…`), never the query, because `?sheet=` is the sheet's own (sheet-as-page, 2026-09-30). The core Router reloads the same path on a hash-only back; that activates nothing, so the page stays as it was (proved headless).
+- **Decided:** a reload waits for the whole path before opening (up to 1.5 s, then the deepest level that exists). A refined line can arrive after its card, and opening at once landed one level short.
+- **Left open:** see [drill.md](./drill.md).
+
 ## Select, Rename, ✓/? marks (2026-09-29, `ai/2026-09-29/audio/next-chat-hitl/chat-wire/`)
 
 **What it is:** `readme.md`'s "Select, Rename, ✓/? marks" section is the summary; this
