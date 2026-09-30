@@ -10,11 +10,12 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 
 ## The sub-systems
 
-[layout](./layout/) — the layout system: navigation and the parent, the page's own room, inside the page
+[layout](./layout/) — the layout system: navigation and the parent, the page's own room, inside the page, including [switcher](./layout/switcher/) (one list-switches-content pattern, three skins)
 [navigation](./navigation/) — persistent vs switching, the levels that stack, the go-to pattern
 [make](./make/) — making a page, five ways; agents use the `create_page` tool (Servex)
 [storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md)
-[ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK
+[settings](./settings/) — tabs that manage themselves (a `tab` line on the parent) and a page's own nav switch (a `settings` line on the child)
+[ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK, plus `page_work()` — a page's own open tasks and agents, opt-in ([doc/work.md](./ai/doc/work.md))
 [dynamic](./dynamic/) — a url with no `page.js` or `page.jsonl`, loaded by an ancestor's `route()`: data on disk plus one template
 [weight](./weight/) — each page's weight: 1 by default, raised by the pages that reference it plus a manual adjustment; heaviest sorts first
 [generator](./generator/) — builds a whole page tree from a short spec string, so you can try layouts without making files

@@ -177,11 +177,14 @@ export default new Doc({
 			},
 
 			render(){
-				// `flow` = the site's page rhythm between blocks (the row of three, then the wall);
-				// a bare `.page` grid has no row-gap, so without it they touch. `--pad-y: 0`: the tab
-				// panel already pays 3em of air above the first block, `.doc-section` added 1.5em more.
+				// `flow` = the site's page rhythm between blocks (the row of three, then the wall).
+				// No `--pad-y` override here: `.doc-section`'s own `--pad-y: 1.5em` (Doc.css) is now
+				// the ONLY top inset above the first block, since Doc.css's `.tab-panel` stopped
+				// paying its own 3em on 2026-09-29 (that 3em was for a bare tab strip with no
+				// `.doc-section` below it; here there always is one). Zeroing it here, like this
+				// section used to, left the tiles flush against the tab bar — fixed 2026-09-29.
 				return this.view ??= div.c("page doc-section flow", () => this.content())
-					.ac("page--" + this.name).style("--pad-y", "0px");
+					.ac("page--" + this.name);
 			},
 		});
 	},

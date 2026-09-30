@@ -22,6 +22,7 @@ same things as tiles ([why both](/framework/core/Page/make/readme-page/)).
 - [Width words](/framework/core/Page/overview/width/) — how wide a column is, in six words.
 - [Floating page](/framework/core/Page/layout/floating/) — an inner left sidebar beside a page that scrolls on its own.
 - [Switcher](/framework/core/Page/layout/switcher/) — a routed list switches the content beside it (vertical tabs, a file tree, a left nav are its three skins); collapses to a mobile dropdown with no active-class rewrite.
+- [Preview cards](/framework/core/Page/doc/previews.md) — a card's thumb is auto-height at one shared zoom level, cropping only past a max-height, and its label sits close to it (a flat 0.35em gap, not the wall's own card-to-card gap); a schematic picture or a screenshot fill is untouched, only a thumb holding a live render.
 
 **3. Inside the page — sections, cards, padding, spacing, gap**
 - [Sections](/framework/styles/sections/) — content bands inside one page: hero, stats, pricing, faq.
