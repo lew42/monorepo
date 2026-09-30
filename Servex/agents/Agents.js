@@ -281,7 +281,11 @@ export class Agents {
 	mark_legacy_stops(reg = this.reg()){
 		const rows = reg.read();
 		let n = 0;
-		for (const r of Object.values(rows)) if (["stopped", "gone"].includes(r.state) && !("stopped_by" in r)){ r.stopped_by = "legacy"; n++; }
+		/* Only RETIRED mastermind-servex-N rows (not the highest N): Layers, Sessions and
+		 * Global stop assistants and the current mastermind routinely, and a message must
+		 * still wake those. */
+		const num = k => +(k.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1), top = Math.max(-1, ...Object.keys(rows).map(num));
+		for (const r of Object.values(rows)) if (num(r.id) >= 0 && num(r.id) < top && ["stopped", "gone"].includes(r.state) && !("stopped_by" in r)){ r.stopped_by = "legacy"; n++; }
 		if (n) reg.save(rows);
 		return n;
 	}
@@ -323,6 +327,8 @@ export class Agents {
 		const agent = this.live.get(id);
 		if (agent && agent.state !== "stopped") return agent.send(text, note);
 		if (this.external?.has?.(id)) return this.external.deliver(id, text, note);
+		const held = this.queued_entry?.(id);
+		if (held) return held.send(text, note);   // queued at the spawn gate: held until it starts
 		const no = this.blocked(this.reg().read()[id] ?? (agent ? { id, cwd: agent.cwd, stopped_by: agent.stopped_by, stopped_at: agent.stopped_at, task_dir: agent.task_dir } : null), { force: note?.revive });
 		if (no){
 			this.store().append("servex", { type: "revive-refused", id, why: no.why, text: no.text, from: note?.from ?? null }).catch(() => {});
@@ -372,7 +378,10 @@ export class Agents {
 		if (id !== "mastermind-servex" && !retired) return id;
 		const n = s => +(s.match(/^mastermind-servex-(\d+)$/)?.[1] ?? -1);
 		const best = [...this.live.values()].filter(x => x.state !== "stopped" && n(x.id) >= 0).sort((x, y) => n(y.id) - n(x.id))[0];
-		return best?.id ?? id;   // nobody holds it live: the old id, which the revive guard then judges
+		if (best) return best.id;
+		// nobody holds it live (the current one is idle-swept most of the time): the highest N in the registry
+		const rows = Object.keys(this.reg().read()).filter(k => n(k) >= 0).sort((x, y) => n(y) - n(x));
+		return rows[0] ?? id;   // nobody holds it live: the old id, which the revive guard then judges
 	}
 
 	wake(id){
@@ -405,6 +414,7 @@ export class Agents {
 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
 	 * live agent (gone after a restart) can still be marked. */
 	stop(id, { by } = {}){
+		if (this.unqueue?.(id)) return { card: () => ({ id, state: "stopped", note: "removed from the spawn queue before it started" }) };
 		const agent = this.live.get(id);
 		if (!agent){
 			const rows = this.reg().read();

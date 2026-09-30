@@ -96,10 +96,13 @@ check("boot revive marks the landed and orphaned rows gone", ["b-landed", "b-orp
 
 /* mastermind-servex-7's 20:20 gaps: legacy stops, and children of a retired mastermind */
 const rows1 = host.reg().read();
-rows1["old-minion"] = { id: "old-minion", state: "stopped", session_id: "s-old", cwd };   // written before the guard: no stopped_by key
+rows1["mastermind-servex-6"] = { id: "mastermind-servex-6", state: "stopped", session_id: "s-6", cwd };   // written before the guard: no stopped_by key
+rows1["mastermind-servex-7"] = { id: "mastermind-servex-7", state: "idle", session_id: "s-7", cwd };
+rows1["assistant-old"] = { id: "assistant-old", state: "stopped", session_id: "s-a", cwd };   // Layers stops these routinely
 host.reg().save(rows1);
 host.reg().write({ id: "new-minion", state: "stopped", session_id: "s-new", cwd });   // written by the guard's code: stopped_by: null
-check("a row stopped before the guard is marked stopped_by legacy at boot", host.mark_legacy_stops() >= 1 && host.reg().read()["old-minion"].stopped_by === "legacy");
+check("a retired mastermind-servex-6 stopped before the guard is marked stopped_by legacy at boot", host.mark_legacy_stops() === 1 && host.reg().read()["mastermind-servex-6"].stopped_by === "legacy");
+check("…but not the current -7 nor a routinely stopped assistant", !("stopped_by" in host.reg().read()["mastermind-servex-7"]) && !("stopped_by" in host.reg().read()["assistant-old"]));
 check("…and a row the guard already judged is left alone", host.reg().read()["new-minion"].stopped_by === null);
 const seven = { id: "mastermind-servex-7", state: "idle", sent: [], send(t, n){ this.sent.push([t, n]); return this; } };
 host.live.set(seven.id, seven);
@@ -108,6 +111,7 @@ check("a child of a stopped mastermind-servex-6 reports to the live mastermind-s
 host.send("mastermind-servex-5", "hello", { from: "page-system" });
 check("a message to a retired mastermind-servex-5 reaches mastermind-servex-7", seven.sent.length === 2);
 host.live.delete(seven.id);
+check("with -7 idle-swept (not live), a message for -5 still resolves to -7 from the registry", host.holder("mastermind-servex-5") === "mastermind-servex-7");
 
 fs.rmSync(tmp, { recursive: true, force: true });
 const failed = results.filter(r => !r.ok).length;

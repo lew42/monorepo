@@ -40,17 +40,21 @@ process.env.SERVEX_FINISH_FLOOR_MB = String(10 ** 9);   // no machine has this m
 
 const a = agents.spawn({ role: "minion", name: "audio-parts", prompt: "build it" });
 check("a queued spawn returns an id at once", a.queued && a.id === "minion-audio-parts", JSON.stringify(a.card()));
-const b = agents.spawn({ role: "minion", name: "audio-parts", prompt: "build it (retry)" });
-check("the same role+name again joins the first entry", b === a && g.queue.length === 1);
+const b = agents.spawn({ role: "minion", name: "audio-parts", prompt: "build it" });
+check("the same spawn again (a retry) joins the first entry", b === a && g.queue.length === 1);
+const other = agents.spawn({ role: "minion", name: "audio-parts", prompt: "a different job", parent: "task-mastermind-x" });
+check("the same name with a different job or parent is its own entry", other !== a && other.id === "minion-audio-parts-2");
+agents.stop(other.id);
+check("stop_agent on a queued id takes it out of the queue", g.queue.length === 1);
 const r1 = agents.spawn({ role: "reviewer", name: "follow", prompt: "review" });
-agents.spawn({ role: "reviewer", name: "follow", prompt: "review (retry)" });
+agents.spawn({ role: "reviewer", name: "follow", prompt: "review" });
 check("a retried reviewer is one entry, not two", g.queue.filter(e => e.spec.role === "reviewer").length === 1);
 const resume1 = agents.spawn({ id: "task-mastermind-lifecycle", resume: "3c88ad4d", prompt: "continue" });
 const resume2 = agents.spawn({ id: "task-mastermind-lifecycle-2", resume: "3c88ad4d", prompt: "you have mail" });
 check("a second resume of the same session joins the queued one", resume2 === resume1 && g.queue.length === 3);
 check("…and its prompt is held for delivery", g.queue[2].inbox.length === 1);
-a.send("one more thing");
-check("a message to a queued agent is held in its entry", g.queue[0].inbox.length === 1);
+agents.send(a.id, "one more thing", { from: "task-mastermind-x" });
+check("send_to_agent on a queued id holds the message in its entry", g.queue[0].inbox.length === 1);
 
 const saved = JSON.parse(fs.readFileSync(g.queue_file, "utf8"));
 check("the queue is on disk after every change", saved.length === 3, saved.map(e => e.spec.id).join(", "));

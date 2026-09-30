@@ -675,6 +675,16 @@ export default class Servex extends Events {
             return reason ? this.hold(spec, reason) : spawn(spec);
         };
         this.restore();
+        setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
+        /* A queued id is addressable: a message is held in its entry, a stop takes it out of the queue. */
+        this.agents.queued_entry = id => this.queue.find(e => e.spec.id === id)?.stand_in ?? null;
+        this.agents.unqueue = id => {
+            const i = this.queue.findIndex(e => e.spec.id === id);
+            if (i < 0) return false;
+            this.queue.splice(i, 1); this.save_queue();
+            this.log.append("system", { type: "gate", state: "removed", id }).catch(() => {});
+            return true;
+        };
         /* wait_for_agent on a QUEUED id waits for it to start, then for its turn. */
         this.agents.when_started = (id, timeout_s) => !this.queue.some(e => e.spec.id === id) ? null : new Promise(resolve => {
             const on = (spec, agent) => { if (agent?.id === id){ this.off("admitted", on); clearTimeout(t); resolve(agent); } };
@@ -707,7 +717,7 @@ export default class Servex extends Events {
      * servers; holding it under the 4 GB floor was a priority inversion
      * (mobile-nav, 17:50). It goes through with SERVEX_FINISH_FLOOR_MB (1024)
      * free, whatever the other checks say, and drains ahead of everything else. */
-    finishing(spec = {}){ return ["reviewer", "clarity", "checker"].includes(spec.role) || !!spec.finishing; }
+    finishing(spec = {}){ return ["reviewer", "clarity", "checker"].includes(spec.role); }
 
     admit(spec){
         if (this.finishing(spec) && os.freemem() / 1048576 >= (Number(process.env.SERVEX_FINISH_FLOOR_MB) || 1024)) return null;
@@ -727,7 +737,7 @@ export default class Servex extends Events {
      *     7 reviewers, 18:00). */
     same_as(spec = {}){
         if (spec.resume && !spec.fork){
-            const live = [...this.agents.live.values()].find(a => a.state !== "stopped" && a.session_id === spec.resume && a.id !== spec.id);
+            const live = [...this.agents.live.values()].find(a => a.state !== "stopped" && a.session_id === spec.resume);
             if (live){
                 this.log.append("system", { type: "gate", state: "deduped", into: live.id, session: spec.resume }).catch(() => {});
                 if (spec.prompt) live.send(spec.prompt, { from: "servex" });
@@ -737,7 +747,9 @@ export default class Servex extends Events {
         const entry = this.queue.find(e =>
             (spec.id && e.spec.id === spec.id)
             || (spec.resume && !spec.fork && e.spec.resume === spec.resume)
-            || (!spec.resume && !e.spec.resume && spec.name && e.spec.name === spec.name && e.spec.role === spec.role));
+            // a fresh spawn is the SAME only when it asks the same thing of the same place for the same parent (a retry)
+            || (!spec.resume && !e.spec.resume && spec.name && e.spec.name === spec.name && e.spec.role === spec.role
+                && e.spec.prompt === spec.prompt && (e.spec.parent ?? null) === (spec.parent ?? null) && (e.spec.cwd ?? null) === (spec.cwd ?? null)));
         if (!entry) return null;
         this.log.append("system", { type: "gate", state: "deduped", into: entry.spec.id, role: spec.role ?? null, name: spec.name ?? null }).catch(() => {});
         if (spec.prompt && spec.prompt !== entry.spec.prompt && spec.resume) entry.inbox.push([spec.prompt, { from: "servex" }]);
@@ -792,11 +804,20 @@ export default class Servex extends Events {
         catch (e){ this.say(`spawn queue not saved: ${e.message || e}`); }
     }
 
+    /* A held spec that must not start any more: its cwd is gone, it was stopped on
+     * purpose, or its task landed while it waited — the revive guard, asked of a spec. */
+    stale(spec){
+        const no = this.agents.blocked?.({ id: spec.id, cwd: spec.cwd, task_dir: spec.task?.dir && path.resolve(spec.task.dir),
+            ...(spec.resume ? { stopped_by: this.agents.reg().read()[spec.id]?.stopped_by } : {}) });
+        if (no) this.log.append("system", { type: "gate", state: "dropped", id: spec.id ?? null, why: no.text }).catch(() => {});
+        return !!no;
+    }
+
     restore(){
         let saved = [];
         try { saved = JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return; }
         for (const { spec, reason, at, inbox } of saved){
-            if (!spec || this.same_as(spec)) continue;
+            if (!spec || this.same_as(spec) || this.stale(spec)) continue;
             this.hold(spec, reason ?? "restored after a Servex restart");
             const entry = this.queue.at(-1);
             entry.at = at ?? entry.at;
@@ -818,6 +839,7 @@ export default class Servex extends Events {
             if (i < 0) break;
             const [{ spec, at, inbox }] = this.queue.splice(i, 1);
             this.save_queue();
+            if (this.stale(spec)) continue;
             try {
                 const agent = this.agents.spawn_now(spec);
                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
