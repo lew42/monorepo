@@ -281,8 +281,10 @@ export default class Heartbeat {
     }
 
     status(){
-        const now = Date.now();
+        const now = Date.now(), c = this.agents.counts?.();
         return {
+            /* the working cap (Agents.working): "working 3/5", plus how many sleep without a process */
+            working: c ? `working ${c.working}/${c.cap}` : null, idle: c?.idle ?? null, dormant: c?.dormant ?? null,
             silent_min: this.silent_ms / 60000,
             tasks: [...this.watch].map(([file, w]) => ({ task: this.servex.task_loop?.slug(file), owner: w.owner,
                 state: this.agents.live.get(w.owner)?.state ?? "not running",
