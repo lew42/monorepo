@@ -782,7 +782,7 @@ function board(page){
 	 *  pattern the card page's own "clear" button already uses, `on.clear` below) and force
 	 *  this one row to redraw at once — never a wait for the next poll. */
 	function row_on(rec, it){
-		return {
+		const on = {
 			toggle_read(){
 				mark_read(it.id, !is_read(it.id));
 				it.unread = !is_read(it.id);
@@ -799,6 +799,9 @@ function board(page){
 				folders.soon();
 			},
 		};
+		// A stalled ask has no card to archive: it leaves by itself once the asks ledger moves on.
+		if (it.kind === "stalled") delete on.archive;
+		return on;
 	}
 
 	// ⚠ The signature is the card's WHOLE record, never a hand-listed set of the
