@@ -161,6 +161,11 @@ agent** and its conversation opens in the agent column beside the list when the 
 when it is not — what it said, live — with a box that sends it a message
 (`POST /api/agents/<id>/message` on Servex).
 
+**Processes** (2026-09-30): the Live card's own RAM/CPU graph, one row per task with its own
+sparkline, orphans and the worktree pool count — every `claude.exe` and what spawned it, from
+Servex's `GET /api/processes`. "Running now" also gains each agent's real process (pid, MB, or
+"no process"/"dormant, no process"). [`doc/processes.md`](./doc/processes.md), `processes.js`.
+
 **Nothing jumps**, and that is four mechanisms, not one:
 
 1. The card on the right is a **separate routed page** from the list, so a card arriving cannot
@@ -286,6 +291,7 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - [`doc/owner-asks.md`](./doc/owner-asks.md) — every dashboard ask you made, 17–24 Sep, with its status
 - [`doc/decisions.md`](./doc/decisions.md) — every fork in the road, with the alternative named
 - [`doc/logs.md`](./doc/logs.md) — every log this page reads, and the ones it writes
+- [`doc/processes.md`](./doc/processes.md) — the Live card's Processes section, and two `<details>`/grid CSS traps worth knowing before touching it again
 - [`doc/columns.md`](./doc/columns.md) — how the Live card splits into columns on a wide
   screen, and how many levels of navigation fit at each width
 - [`doc/persistence.md`](./doc/persistence.md) — the survey: what each persistence system on this
@@ -301,4 +307,5 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   `workspace.js` (the `?view=workspace` switch), `real.js` (a real site page shown in the detail column, and its rail row),
   `needs.js` (the `needs/` page), `needs-rule.js` (the shared "does this need the owner" rule),
   `log.js` (the Log tab — everything in flight, one row per task, a status dot), `rules.js`
-  (read/unread, archive-from-the-row, and automatic resolution — the rail's three small row rules)
+  (read/unread, archive-from-the-row, and automatic resolution — the rail's three small row rules),
+  `processes.js` (the Live card's Processes section: the poller, the graph, the by-task rows)
