@@ -4,6 +4,12 @@ View.stylesheet(import.meta, "grip.css");
 
 const html = document.documentElement;
 
+// The SHOW zone's own radius (grip-zones, 2026-09-30) — see grip.css's matching note.
+// A plain px, not `rem` like every actual hit-target size in that file: this never
+// draws anything of its own, it only decides how far away "near" still counts, so it
+// doesn't need to track the type scale the way a real target does.
+const NEAR_PX = 50;
+
 /* The resize edge for a rail docked at the screen's inline end — a strip just inside
  * the rail's inline-start edge. There is no permanent handle: the pill exists only
  * while your pointer is near that edge, and it rides the pointer's cross axis, so the
@@ -34,7 +40,12 @@ const html = document.documentElement;
  *
  * ⚠ No rAF throttle, unlike ext/demo's `drag()`: `pointermove` is already delivered
  * once per frame, and this sets one custom property rather than re-laying-out a
- * live render. Not worth importing the demo system for. */
+ * live render. Not worth importing the demo system for.
+ *
+ * Two invisible zones around the strip (grip-zones, 2026-09-30): a bigger SHOW zone
+ * (~50px, `NEAR_PX` below) where the line and the pill appear, and the small GRAB
+ * zone — the strip's own box, in grip.css — where the cursor changes and a drag
+ * actually starts. Story and picture: [the grip's own page](/framework/ext/grip/). */
 export default function grip({ write, done, reset, from = "end", mirror = from === "start", axis = "x" }){
 	let size, edge, grab = 0;
 	const on_x = axis !== "y";
@@ -49,7 +60,7 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
 		if (size) done?.(size);
 	}
 
-	return div.c(cls, () => span.c("grip-pill"))
+	const $grip = div.c(cls, () => span.c("grip-pill"))
 		.attr("title", "Drag to resize")
 
 		.on("pointerdown", function(e){
@@ -110,6 +121,35 @@ export default function grip({ write, done, reset, from = "end", mirror = from =
 		// The size back to whatever `write(undefined)` (or the caller's own default)
 		// means — never touched by drag, so nothing here decides what "reset" means.
 		.on("dblclick", () => reset?.());
+
+	// SHOW ZONE (grip-zones, 2026-09-30) — a bigger, purely visual "you're close"
+	// signal, layered on top of the small GRAB box above. It listens on `document`,
+	// not this element, because ~50px away is usually past this element's own small
+	// hit box; it only ever toggles a class, so nothing under the pointer — a link,
+	// the rail's own scrollbar sitting right beside a mirrored grip — ever loses a
+	// click to it. Skipped entirely on touch/coarse pointers: the handle there is
+	// already visible at rest (grip.css's own coarse-pointer rule), so there is
+	// nothing to reveal. No teardown on removal — grips live as long as the rail
+	// that mounts them, the same assumption every other listener in this file makes.
+	if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+		const el = $grip.el;
+		document.addEventListener("pointermove", function near(e){
+			// The true edge is the PARENT's own edge — `.grip`/`.grip-start` are
+			// anchored flush to it; `--grip-out` only moves THIS element's own box,
+			// never the parent's, so reading the parent stays exact regardless.
+			const parent = el.parentElement;
+			if (!parent) return;
+			const rect = parent.getBoundingClientRect();
+			const edge = mirror ? (on_x ? rect.right : rect.bottom) : (on_x ? rect.left : rect.top);
+			const cross = on_x ? e.clientX : e.clientY;
+			const along = on_x ? e.clientY : e.clientX;
+			const lo = on_x ? rect.top : rect.left, hi = on_x ? rect.bottom : rect.right;
+			const show = Math.abs(cross - edge) <= NEAR_PX && along >= lo - NEAR_PX && along <= hi + NEAR_PX;
+			el.classList.toggle("grip-near", show);
+		});
+	}
+
+	return $grip;
 }
 
 export { grip };
