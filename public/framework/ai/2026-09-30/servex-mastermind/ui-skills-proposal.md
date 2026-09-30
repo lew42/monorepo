@@ -138,3 +138,13 @@ CLAUDE.md is a skill that loads by itself, so it is the only awareness an agent 
 - **In CLAUDE.md (51 lines today, keep it near that):** the laws; the presentation rule; the "ask before" list; the traps that never throw; and **one line per system that has an effect**: its name, the effect in half a sentence, and the link to its page. Today that map names Server, Servex, the ai/ log and the asks ledger. It does not name: `#Page` references (ext/Mention), the page inbox, cards and the object log, the review gate (a page change with no report is refused), the readme chain, budgets and dormancy (Servex), the four screenshot widths. Each of those is one line, or an agent learns it by breaking it.
 - **One click down (never in CLAUDE.md):** how to do any of it (the skill), why it is that way (the doc), what it looks like (the page). A rule that changes what an agent does on its first turn belongs in CLAUDE.md; a rule that only matters once it is doing that kind of work belongs in the skill that loads for it.
 - **The audit the AI page's CLAUDE.md tab shows:** the live file; for each system named, a link that resolves; for each system that exists and is not named, a proposed line. Drafts go on a card; the owner applies them.
+
+### The seven draft lines (worded 2026-09-30, on the CLAUDE.md card; the owner applies)
+
+1. References: `#Page`, `@agent` and `/path` in any text become icon links (ext/Mention) — use them instead of prose names.
+2. The page inbox: a note left on a page reaches the agent that owns it; use it for coordination, never for content.
+3. Cards: every task reports on its card on the AI board; the card is what the owner reads, chat replies are not.
+4. The review gate: merge refuses a page change that has no review report (Server/review.mjs; shots at 400, 1200, 1920, 3440).
+5. The readme chain: read the readmes root to leaf before working, and again when you move directory (/framework/ai/readmes/).
+6. Budgets and dormancy: every brief starts with `Budget: $N`; Servex stops an agent over budget and parks a quiet one after three minutes.
+7. The four widths: a page is checked at 400, 1200, 1920 and 3440 before it lands.
