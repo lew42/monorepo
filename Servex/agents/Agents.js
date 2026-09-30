@@ -1,5 +1,6 @@
 import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
 import fs from "node:fs";
+import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -757,9 +758,38 @@ Agents.Agent = class Agent {
 			...(this.resume ? { resume: this.resume } : {}),
 			...(this.resume && this.fork ? { forkSession: true } : {}),
 			...(this.minted ? { sessionId: this.session_id } : {}),
+			spawnClaudeCodeProcess: o => this.spawn_claude(o),
 			...this.sdk,
 			...(this.one_shot ? this.refusal() : {})
 		};
+	}
+
+	/* THE REAL PROCESS (process-monitor, 2026-09-30). Servex starts the claude.exe
+	 * itself, the way the SDK's own local spawn does (pipes, hidden window, the
+	 * SDK's forwarded abort signal), so it knows the PID: `claude_pid` on the
+	 * agent and its registry row, and a `process` line in the agent's log.
+	 * "Running" on the dashboards means this PID is alive (Servex/Processes.js).
+	 * stderr is drained here (an unread pipe would stall the child); its last
+	 * 4 KB stay on the agent as `stderr_tail`, and a spec's own `sdk.stderr`
+	 * still hears every chunk. */
+	spawn_claude({ command, args, cwd, env, signal }){
+		const child = spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+		child.on("error", e => this.emit({ type: "process", state: "failed", error: e.message }));
+		child.stderr.setEncoding("utf8");
+		child.stderr.on("data", d => {
+			this.stderr_tail = ((this.stderr_tail ?? "") + d).slice(-4000);
+			try { this.sdk?.stderr?.(d); } catch {}
+		});
+		const pid = child.pid ?? null;
+		this.claude_pid = pid;
+		this.claude_started = stamp();
+		this.emit({ type: "process", state: "started", pid });
+		try { this.host?.register(this); } catch {}
+		child.on("exit", (code, sig) => {
+			if (this.claude_pid === pid) this.claude_pid = null;
+			this.emit({ type: "process", state: "exited", pid, code, signal: sig ?? null });
+		});
+		return child;
 	}
 
 	/* MINIONS THAT SPAWN MINIONS, in one method.
