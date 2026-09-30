@@ -9,6 +9,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
 const STATUSES = ["routed", "building", "landed", "stalled", "dropped"];
 const TICK_MS = 60000;
+const GRACE_MS = 10 * 60000;   // after a Servex boot, restart-survival revives agents; a "gone" row is not yet final
 const BY_TICK = "servex-asks-tick";
 const BY_CLOSE = "servex-asks-close_task";
 
@@ -37,6 +38,7 @@ export default class Asks {
 	}
 
 	start(){
+		this.booted_at = Date.now();
 		this.timer = setInterval(() => { this.tick(); }, TICK_MS);
 		this.timer.unref?.();
 		return this;
@@ -97,6 +99,7 @@ export default class Asks {
 	/* ---------- the tick: notice a stalled ask, a cleared one, or a landed one ---------- */
 
 	async tick(){
+		if (this.booted_at && Date.now() - this.booted_at < GRACE_MS) return;
 		try {
 			const folded = await this.read();
 			const registry = this.servex?.agents?.registry_list?.() ?? [];
@@ -133,7 +136,8 @@ export default class Asks {
 		if (!row) return null;
 		const live = this.servex?.agents?.live?.get?.(ask.owner);
 		const queued = live?.queue?.items?.length ?? 0;
-		const { last_at, landed } = row.task_dir ? this.task_state(row.task_dir) : { last_at: null, landed: false };
+		const dir = row.task_dir ?? this.servex?.agents?.task_dir_for?.(row) ?? null;
+		const { last_at, landed } = dir ? this.task_state(dir) : { last_at: null, landed: false };
 		return { ...row, last_task_line_at: last_at, task_landed: landed, queued };
 	}
 
@@ -152,7 +156,8 @@ export default class Asks {
 			if (!raw.trim()) continue;
 			let obj; try { obj = JSON.parse(raw); } catch { continue; }
 			if (obj.assign && typeof obj.assign === "object") Object.assign(state, obj.assign);
-			const at = obj.assign?.at ?? obj.log?.at ?? obj.action?.at ?? obj.decision?.at;
+			// most task lines carry `at` at the top level ({"decision":{…},"at":…}); some nest it
+			const at = obj.at ?? obj.assign?.at ?? obj.assign?.landed_at ?? obj.log?.at ?? obj.action?.at ?? obj.decision?.at;
 			if (at) last_at = at;
 		}
 		return { last_at, landed: !!state.landed_at && !!String(state.outcome ?? "").trim() };
