@@ -232,9 +232,14 @@ function blocker_signal(item){
 	return is_blocker(text) || BLOCKER_WORDS.test(text);
 }
 
+/** ⚠ NO TIMESTAMP IS NEVER "JUST NOW" — `Infinity`, not 0 (fixed while building the freshness
+ *  lift below: a `place` line with no `at` at all used to read as 0 hours old, so `fresh_bonus()`
+ *  scored it 99 forever, the opposite of what a missing timestamp should mean). Every caller
+ *  below already clamps its own fraction with `Math.min(1, …)`, so `Infinity` safely becomes
+ *  "as old as this ever gets" instead of quietly becoming "brand new". */
 function hours_since(at, now){
 	const t = at ? Date.parse(at) : NaN;
-	if (!Number.isFinite(t)) return 0;
+	if (!Number.isFinite(t)) return Infinity;
 	const n = now instanceof Date ? now.getTime() : Number(now ?? Date.now());
 	return Math.max(0, (n - t) / 3600000);
 }
