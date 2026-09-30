@@ -33,11 +33,13 @@ const DECISION_MOD = /\/Decision\/Decision\.js$/;
 const QUESTION_MOD = /\/Question\/Question\.js$/;
 
 /** A SIMPLE, WRITTEN-DOWN RULE for "blocker" (brief D: "a simple rule is fine, write it down
- *  in a comment"): the word "block" appears in the ask or the card's title — "the OpenRouter
- *  key blocks the harness", "resume the 5 BLOCKED tasks". Everything else that is an open
+ *  in a comment"): the ask or the card's title says "blocked" or "blocker" — "resume the 5
+ *  BLOCKED tasks", "blocker: the OpenRouter key". ⚠ Not any "block": "a hook that blocks git
+ *  stash" was ranked a blocker, and it blocked nothing (the owner, 2026-09-30: "don't say it's a
+ *  blocker if it's not"). An agent that means it writes the word. Everything else that is an open
  *  Decision or Question ranks as a plain decision/question; a card's own last-message-with-a-
  *  question-mark, with no formal ask placed, ranks lowest (an FYI, not yet a real blocker). */
-export const is_blocker = (...texts) => texts.some(t => /\bblock/i.test(String(t ?? "")));
+export const is_blocker = (...texts) => texts.some(t => /\bblock(ed|er)\b/i.test(String(t ?? "")));
 
 /** Every option becomes `{say, caveat?}`, the shape `ux/Content/Decision`'s own `normalize()`
  *  uses — a plain string option (what `card_ask` and the legacy sweep both write, e.g.

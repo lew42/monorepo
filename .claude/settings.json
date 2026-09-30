@@ -20,6 +20,14 @@
               "${CLAUDE_PROJECT_DIR}/.claude/hooks/junction-guard.mjs"
             ],
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/git-guard.mjs"
+            ],
+            "timeout": 10
           }
         ]
       }
