@@ -4,7 +4,7 @@ import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import { fold_asks } from "../ai/asks/fold.js";
-import { importance } from "./needs-rule.js";
+import { importance, silent_hours } from "./needs-rule.js";
 
 export { fold };
 
@@ -778,7 +778,7 @@ export function items({ board, folders, prompts, landed, says }){
 	   opened (page.js's own `activated()`, right after `resolve_card()` resolves), so the
 	   browser may never sit on this row's own url long enough for any `paint()` to see it. */
 	stalled_asks().forEach(ask => {
-		const hours = hours_since(ask.status_at ?? ask.at);
+		const hours = silent_hours(ask);
 		add({
 			id: "ask:" + ask.id, kind: "stalled", at: ask.status_at ?? ask.at, icon: "hourglass_disabled",
 			title: ask.title || "Untitled ask",

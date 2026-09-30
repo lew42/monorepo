@@ -1244,8 +1244,7 @@
 
 	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
 	   on every row (brief D). `.ai2-score` is the same look for the Inbox's own rows: `inbox.js`
-	   computes `it.score` today, ready for the day a rail row draws it too (its own comment
-	   says why that last wire is a separate, out-of-fence edit). Muted grey normally; only a
+	   computes `it.score` and `row()` in faces.js draws it. Muted grey normally; only a
 	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
 	   something on this page instead of decorating every row. */
 	.ai2-need-score,

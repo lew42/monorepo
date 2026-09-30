@@ -177,6 +177,15 @@ function hours_since(at, now){
 	return Math.max(0, (n - t) / 3600000);
 }
 
+/** How long a stalled ask's owner has been quiet, in hours: the time since the stall was
+ *  marked (`status_at`), PLUS the silence the stall line's own `why` already carries
+ *  ("owner agent silent 131 min" — Servex marks a stall only after 2 h of quiet). Without
+ *  the second part a fresh stall reads "silent 5 min" beside "silent 131 min". */
+export function silent_hours(ask, now = Date.now()){
+	const m = /silent (\d+) min/.exec(String(ask?.why ?? ""));
+	return hours_since(ask?.status_at ?? ask?.at, now) + (m ? Number(m[1]) / 60 : 0);
+}
+
 function stalled_score(item, now){
 	const hours = Number.isFinite(item?.hours_silent) ? item.hours_silent : hours_since(item?.status_at ?? item?.at, now);
 	const cost = Number(item?.cost ?? 0);

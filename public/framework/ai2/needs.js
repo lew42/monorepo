@@ -3,7 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { when } from "./faces.js";
 import { append_card, static_cards, servex_base, servex_fetch } from "./inbox.js";
 import { parse_lines } from "./fold.js";
-import { card_needs, is_blocker, importance } from "./needs-rule.js";
+import { card_needs, is_blocker, importance, silent_hours } from "./needs-rule.js";
 import { fold_asks } from "../ai/asks/fold.js";
 
 /**
@@ -54,13 +54,13 @@ async function stalled_rows(){
 	if (!text) return [];
 	const folded = fold_asks(parse_lines(text));
 	return Object.values(folded).filter(a => a.status === "stalled").map(ask => {
-		const hours = hours_since(ask.status_at ?? ask.at);
+		const hours = silent_hours(ask);
 		return {
 			kind: "stalled",
 			card: ask.card ?? null,
 			ask: ask.id,
 			title: ask.title || "Untitled ask",
-			question: "Silent " + silent_words(hours) + (ask.why ? " — " + ask.why : ""),
+			question: "Silent " + silent_words(hours) + (ask.why && !/silent \d+ min/.test(ask.why) ? " — " + ask.why : ""),
 			at: ask.status_at ?? ask.at,
 			hours_silent: hours,
 			owner: ask.owner,
