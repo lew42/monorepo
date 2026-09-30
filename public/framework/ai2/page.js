@@ -230,10 +230,21 @@ function board(page){
 	page.auto_transcribe = auto_transcribe;
 
 	let list = [], shown = [], current = null, hovering = false, flagging = null, only_notes = false, show_archived = false;
+	// IDS ARCHIVED FROM THIS LIST (× or "clear all") whose write to Servex may still be in
+	// flight, or may never land (this worktree's own CORS gap on the card-write route) — kept
+	// forever for the session, harmless at this size, so `paint()` can keep re-filing them under
+	// `list.archived` no matter how many times the real data gets rebuilt from scratch under
+	// them. See `paint()`'s own comment, and `apply_pending_archives()`, below.
+	const archived_pending = new Set();
 	// BRIEF E — "Needs review": on, the rail shows only the rows `needs.js`'s shared rule
 	// (the same one the Needs you tab reads) says still need the owner. Its state lives in the
 	// url (`?review=1`), never in a variable alone, so a reload keeps the filter on.
 	let review_only = new URLSearchParams(location.search).get("review") === "1";
+	// INBOX ZERO — THE DISPLAY RULE (followup.md §4, item 3, 2026-09-30): the Inbox shows only
+	// rows scoring `min` or higher; `?min=0` shows everything, and the default (90) is what
+	// makes the Inbox actually reach zero most days. A missing `?min=` and a missing `it.score`
+	// both read as their usual defaults — `min` 90, a score 0 — never a thrown `NaN`.
+	const min_score = Number(new URLSearchParams(location.search).get("min") ?? 90) || 0;
 	let needs_ids = new Set();
 	let group_order = [];
 	const rows = new Map();        // id → { $row, sig }
@@ -388,6 +399,14 @@ function board(page){
 					.text("notes").click(() => { only_notes = !only_notes; $notes.el.classList.toggle("on", only_notes); relist(); });
 				$archived = button.c("ai2-word ai2-archived-word").attr("type", "button")
 					.click(() => { show_archived = !show_archived; $archived.el.classList.toggle("on", show_archived); relist(); });
+				// "CLEAR ALL" — INBOX ZERO, item 2 (the owner, 2026-09-30, followup.md §4):
+				// archives every row the Inbox is CURRENTLY SHOWING (`visible()`, so it already
+				// respects search, the Needs-you filter, notes, and — once item 3 lands — the
+				// score floor), through the exact same `archive_row()` write the × button makes,
+				// one row at a time. `clear_all()` is below, right after `render_pinned()`.
+				button.c("ai2-word ai2-clear-all").attr("type", "button")
+					.attr("title", "archive every row shown here right now")
+					.text("clear all").click(() => clear_all());
 			});
 			grip({ from: "start", write: size, done: w => store.set(RAIL_KEY, w + "px"),
 				reset: () => { store.drop(RAIL_KEY); size(); } });
@@ -497,7 +516,14 @@ function board(page){
 		}
 		// Archived cards join the SAME list, greyed by `refill()` — a second word
 		// to click, never a second view to build.
-		return show_archived ? [...base, ...archived] : base;
+		if (show_archived) return [...base, ...archived];
+		// THE SCORE FLOOR — search and "archived" above both ignore it (they answer "find this
+		// anywhere", a different question); the Live card is exempt too, the same way it is
+		// exempt from resolution and archiving everywhere else in this file, since hiding the
+		// page's own always-there row under a score it was never meant to carry would be a
+		// regression, not a filter. No write happens here — a row below `min` still exists,
+		// still answers search, still lands in the Log; it only leaves THIS list.
+		return base.filter(it => it.kind === "live" || (it.score ?? 0) >= min_score);
 	};
 
 	function relist(){
@@ -509,7 +535,7 @@ function board(page){
 	}
 
 	function paint(){
-		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says });
+		list = items({ board: log.cards, folders, prompts: stream.entries, landed: day.landings, says, groups });
 		// DELIVERABLE 2 — READ/UNREAD: `items()` itself always says `unread: true` (its own
 		// comment explains why: opening a card must never mark it read on its own). This is
 		// the explicit control layered on top — `rules.js`'s `is_read`, set only by a press on
@@ -527,7 +553,12 @@ function board(page){
 		if (now_item) list.push(now_item);
 		// A card row's importance badge is its highest open need (needs.js); a stalled-ask row
 		// brings its own. Then one order: score 60+ on top, the rest newest first (inbox.js).
-		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id); });
+		// ⚠ `?? x.score`, not a bare overwrite (minion-priority, 2026-09-30) — `items()` now
+		// carries the real age-decay score the INBOX ZERO filter reads; `score_for()` (needs.js)
+		// only ever answers the narrower "needs you" question and is null for most rows, which
+		// used to WIPE the real score out on every single paint().
+		list.forEach(x => { if (x.kind !== "stalled") x.score = score_for(x.id) ?? x.score; });
+		apply_pending_archives();
 		list.sort(inbox_order);
 		[...list, ...list.archived].forEach(it => { it.cost = row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js) — part of the row's signature.
@@ -812,6 +843,39 @@ function board(page){
 		page.app?.router?.mark_links?.();
 	}
 
+	/* THE ONE PLACE `archived_pending` TURNS INTO A REAL LIST MOVE — called from `paint()` on
+	   every real rebuild (so a row already asked to leave never reappears under it, see
+	   `paint()`'s own comment) and right after a click here, so the row leaves at once instead
+	   of waiting for the next stream event to trigger a paint(). Safe to call with nothing
+	   pending: the `for` loop below then touches nothing. */
+	function apply_pending_archives(){
+		for (let i = list.length - 1; i >= 0; i--){
+			if (!archived_pending.has(list[i].id)) continue;
+			const [removed] = list.splice(i, 1);
+			removed.status = "archived";
+			(list.archived ??= []).push(removed);
+		}
+	}
+
+	/* "CLEAR ALL" (INBOX ZERO, followup.md §4, item 2, 2026-09-30: "a button in the rail head
+	   that archives every row currently shown in the Inbox in one press… there are about 336
+	   open cards today, so it must batch and not freeze"). One `confirm()`, then the SAME
+	   `archive_row()` write the × button makes, BATCHED — a handful of these run at once, never
+	   all 336, so the page (and Servex) stay responsive. The Live card and the pinned Now card
+	   are never candidates: `visible()` already leaves them out. */
+	async function clear_all(){
+		const targets = visible().filter(it => it.kind !== "stalled");
+		if (!targets.length) return;
+		if (!confirm(`Archive ${targets.length} row${targets.length === 1 ? "" : "s"}?`)) return;
+		targets.forEach(it => archived_pending.add(it.id));
+		apply_pending_archives();
+		flush();
+		const BATCH = 20;
+		for (let i = 0; i < targets.length; i += BATCH)
+			await Promise.all(targets.slice(i, i + BATCH).map(it => archive_row(it).catch(() => null)));
+		folders.soon();
+	}
+
 	/** DELIVERABLES 2 AND 3's two buttons on a plain row (`faces.js` `row()`'s `on`) — built
 	 *  once per `rec`, not once per redraw, so a click during a redraw never reaches a stale
 	 *  closure. Both mutate `it` OPTIMISTICALLY (the write is fire-and-forget, the same
@@ -826,29 +890,22 @@ function board(page){
 				refill(rec, it);
 			},
 			archive(){
-				archive_row(it);
-				it.status = "archived";
 				// ⚠ 2026-09-30 FIX (the owner: "pressing × only toggled read/unread and the row
 				// stayed — it must archive: the row leaves the Inbox"). `refill()` alone only
 				// re-styles THIS row in place (the `.ai2-archived` class, a dim look) — it never
-				// removes it from `visible()`'s output, so the row sat there, barely changed,
-				// until some later poll happened to rebuild `list` from fresh server data. Moving
-				// it from `list` into `list.archived` right here — the exact split `items()`
-				// itself makes once the real data catches up — and calling `flush()` (which
-				// already knows how to remove a row whose id `visible()` no longer returns) makes
-				// it leave AT ONCE, the same as any other structural change. It still exists: the
-				// Log's own "archived" filter and the rail's search both read `list.archived`.
-				// ⚠ BY ID, NOT BY REFERENCE — `list` is rebuilt from scratch (new plain objects)
-				// on every real `paint()`, so by the time a click lands, this row's own closure
-				// `it` is almost always a stale copy no longer `===` anything currently in
-				// `list`; `indexOf(it)` silently found nothing and archiving never removed the
-				// row (proved headless, `test-archive.mjs`, before this fix).
-				const idx = list.findIndex(x => x.id === it.id);
-				const removed = idx >= 0 ? list.splice(idx, 1)[0] : it;
-				removed.status = "archived";
-				(list.archived ??= []).push(removed);
+				// removes it from `visible()`'s output. `archived_pending` (declared with the
+				// rest of this closure's state, above) is what makes it actually leave, and KEEPS
+				// it left out even though `list` is rebuilt from scratch on every real `paint()` —
+				// `archive_row()`'s own write can be slow, or (this worktree's own dev server) can
+				// fail outright on a CORS gap on the card-write route; either way, the very next
+				// stream update used to silently undo a plain one-off splice here (proved
+				// headless, `ai2-hang/test-clearall.mjs`). It still exists: the Log's own
+				// "archived" filter and the rail's search both read `list.archived`.
+				archived_pending.add(it.id);
+				apply_pending_archives();
 				rec.sig = null;
 				flush();
+				archive_row(it).catch(() => null);
 				// A folder card's row comes from `folders.cards` (polled every 20s) — asking
 				// now is what makes the grey "archived" state show up at once instead of lagging.
 				folders.soon();
