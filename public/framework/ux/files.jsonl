@@ -1,3 +1,21 @@
+{"file":"ai/"}
+{"file":"Auth/page.js"}
+{"file":"Content/page.js"}
+{"file":"Course/page.js"}
+{"file":"Dictate/page.js"}
+{"file":"doc/"}
+{"file":"files.jsonl"}
+{"file":"Filter/page.js"}
+{"file":"Menu/page.js"}
+{"file":"page.js"}
+{"file":"Pagination/page.js"}
+{"file":"Popover/page.js"}
+{"file":"readme.md"}
+{"file":"skill-suggestions.md"}
+{"file":"Tags/page.js"}
+{"file":"Tree/page.js"}
+{"file":"ux.css"}
+{"file":"Wizard/page.js"}
 {"file":"Auth/page.js"}
 {"file":"Content/page.js"}
 {"file":"Course/page.js"}
@@ -17,3 +35,4 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"ai/"}
+{"file":"ai/","gone":true}

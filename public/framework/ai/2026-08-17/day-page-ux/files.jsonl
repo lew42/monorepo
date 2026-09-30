@@ -6,6 +6,21 @@
 {"file":"before-900.png"}
 {"file":"card-fields.md"}
 {"file":"cards/"}
+{"file":"prompts.json"}
+{"file":"requirements.md"}
+{"file":"shots/"}
+{"file":"task-1440.png"}
+{"file":"task-3440.png"}
+{"file":"task.jsonl"}
+{"file":"vision.jsonl"}
+{"file":"after/"}
+{"file":"after-1440.png"}
+{"file":"after-3440.png"}
+{"file":"after-900.png"}
+{"file":"before-1440.png"}
+{"file":"before-900.png"}
+{"file":"card-fields.md"}
+{"file":"cards/"}
 {"file":"requirements.md"}
 {"file":"task-1440.png"}
 {"file":"task-3440.png"}
@@ -14,3 +29,4 @@
 {"file":"prompts.json"}
 {"file":"shots/"}
 {"file":"shots/","gone":true}
+{"file":"shots/"}

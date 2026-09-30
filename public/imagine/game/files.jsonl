@@ -7,3 +7,5 @@
 {"file":"lifecycle/page.js"}
 {"file":"fs/page.js"}
 {"file":"lifecycle/page.js"}
+{"file":"fs/page.js","gone":true}
+{"file":"lifecycle/page.js","gone":true}
