@@ -21,7 +21,7 @@ Every page has a ☰ at its top right (`menu.js`, called once in `app.js`). It o
 
 While it is open, a click selects any content on the page (`select.js`): its properties show on the Element tab, which appears only while something is selected, and "Ask about this" adds it to the AI tab's input as a chip that rides along as context · [doc/select.md](./doc/select.md)
 
-**Every page has an inbox**, at the top of the AI tab: notes any agent (Servex's `drop` tool) or you (**Leave a note**) left on this page, each with a Clear; the tab reads **AI · 2** while two are open (`inbox.js`) · [doc/inbox.md](./doc/inbox.md)
+**Every page has an inbox**, at the top of the AI tab, for coordination, never chat: notes any agent (Servex's `drop` tool) or you (**Leave a note**) left on this page, each with a Clear, or the mastermind coordinating this module, who gets them instead; the tab reads **AI · 2** while two are open (`inbox.js`) · [doc/inbox.md](./doc/inbox.md)
 
 ## On a phone
 

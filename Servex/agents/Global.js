@@ -65,7 +65,8 @@ export default class Global {
 
 	get agents(){ return this.servex.agents; }
 
-	claims(){ return this.servex.claims ??= new Claims({ agents: this.agents }); }
+	// `on`: a claim taken or released writes the module's coordinator line (inbox.js).
+	claims(){ return this.servex.claims ??= new Claims({ agents: this.agents, on: (event, row) => this.servex.inbox?.coordinator(event, row) }); }
 
 	boot(){
 		try { this.master(); } catch (e){ this.say(`master assistant could not start: ${e.message || e}`); }

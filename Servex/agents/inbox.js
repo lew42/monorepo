@@ -21,13 +21,21 @@ const bad = (why, status = 400) => Object.assign(new Error(why), { status });
  *   {"inbox":   {"id": "n-…", "from": "<agent id | owner>", "text": "…", "at": "<local ISO>"}}
  *   {"cleared": {"id": "n-…", "by": "<who>", "at": "…"}}
  *
+ * COORDINATION, NOT CHAT (the owner, 2026-09-30). Work on one module is coordinated by one
+ * mastermind: the one holding a `claim_topic` on it (topic = the module path, `core/Page`).
+ * A drop on a path inside a claimed module goes straight to that coordinator
+ * (`agents.send`), and its line lands in the MODULE's ai/log.jsonl marked `routed_to`;
+ * only when nobody coordinates the module does it sit in the page's inbox. Taking or
+ * releasing a claim writes `{"coordinator": {agent, task, topic, event, at}}` there too
+ * (claims.js calls `coordinator()` below).
+ *
  * Append only: a note is open until a `cleared` line names its id. Servex is the only
  * writer (the `drop` and `clear` tools, and `POST /api/inbox/drop|clear` for a page's
  * form), so two drops never tear a line. The drawer reads the file as a static file,
  * so the inbox shows on a static host too; only writing needs Servex. */
 export class Inbox {
 
-	constructor(...args){ this.assign({ repo: REPO }, ...args); }
+	constructor(...args){ this.assign({ repo: REPO, servex: null }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* A folder as `{disk, name}`: a site path (`/framework/core/Page/`, served from
@@ -55,6 +63,44 @@ export class Inbox {
 		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
 	}
 
+	/* ── the module's coordinator ───────────────────────────────────────── */
+
+	// "public/framework/core/Page/" and "core/Page" name the same module: compare them as "core/page".
+	norm(x){ return String(x ?? "").trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "").replace(/^public\//, "").replace(/^framework\//, "").toLowerCase(); }
+
+	claims(){ return this.servex?.claims ?? this.servex?.global?.claims?.() ?? null; }
+
+	// The live claim whose topic contains this folder, the most specific one; null if none.
+	coordinator_of(at){
+		const here = this.norm(at.name);
+		let best = null;
+		for (const c of this.claims()?.list() ?? []){
+			const t = this.norm(c.thing);
+			if (c.stale || !t || c.agent === "owner" || !(here === t || here.startsWith(t + "/"))) continue;
+			if (!best || t.length > this.norm(best.thing).length) best = c;
+		}
+		return best && { agent: best.agent, topic: best.thing };
+	}
+
+	// A claim's topic as a folder, if it names one (core/Page, framework/core/Page, Servex/agents).
+	module_of(topic){
+		const t = String(topic ?? "").trim().replace(/^\/+|\/+$/g, "");
+		for (const p of [`/framework/${t}/`, `/${t}/`, t]) { try { return this.folder(p); } catch {} }
+		return null;
+	}
+
+	/* A claim was taken or released (claims.js `on`): one coordinator line in the module's
+	 * own ai/log.jsonl, when the topic names a folder. The latest line for a topic wins. */
+	coordinator(event, row){
+		const at = this.module_of(row?.thing ?? row?.topic);
+		if (!at) return null;
+		const agents = this.servex?.agents;
+		const task = agents?.task_dir_of?.(row.agent) ?? agents?.live?.get(row.agent)?.task?.dir ?? row.card ?? null;
+		const line = { coordinator: { agent: row.agent, task, topic: row.thing ?? row.topic, event, at: now_ms() } };
+		this.append(this.file(at), line);
+		return line;
+	}
+
 	id(){ return "n-" + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5); }
 
 	/* Leave a note. `from` is the caller Servex stamped, never a field the model typed. */
@@ -62,10 +108,23 @@ export class Inbox {
 		text = String(text ?? "").trim();
 		if (!text) throw bad("text is required");
 		if (text.length > 4000) throw bad(`text is ${text.length} characters; at most 4000`);
-		const at = this.folder(where);
-		const line = { inbox: { id: this.id(), from: String(from || "owner"), text, at: now_ms() } };
+		const at = this.folder(where), from_ = String(from || "owner");
+		const boss = this.coordinator_of(at);
+		if (boss && boss.agent !== from_){
+			try {
+				this.servex.agents.send(boss.agent, `A note for you, as the coordinator of ${boss.topic}, left on ${at.name} by ${from_}:
+
+${text}`,
+					{ from: from_, reply_to: `message ${from_}` });
+				const home = this.module_of(boss.topic) ?? at;
+				const line = { inbox: { id: this.id(), from: from_, text, at: now_ms(), path: at.name, routed_to: boss.agent } };
+				this.append(this.file(home), line);
+				return { ok: true, file: `${home.name}ai/log.jsonl`, ...line.inbox };
+			} catch (e){ /* the coordinator can't be reached: the note waits in the page's inbox instead */ }
+		}
+		const line = { inbox: { id: this.id(), from: from_, text, at: now_ms() } };
 		this.append(this.file(at), line);
-		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.inbox };
+		return { ok: true, file: `${at.name}ai/log.jsonl`, ...line.inbox, ...(boss ? { coordinator: boss.agent } : {}) };
 	}
 
 	/* Clear a note: one `cleared` line, nothing rewritten. Clearing a note that is not
@@ -86,12 +145,12 @@ export class Inbox {
 		const notes = new Map();
 		for (const l of lines){
 			let j; try { j = JSON.parse(l); } catch { continue; }
-			if (j?.inbox?.id) notes.set(j.inbox.id, j.inbox);
+			if (j?.inbox?.id && !j.inbox.routed_to) notes.set(j.inbox.id, j.inbox);   // a routed note went to its coordinator
 			else if (j?.cleared?.id) notes.delete(j.cleared.id);
 		}
 		return [...notes.values()].reverse();
 	}
-	list({ path: where } = {}){ const at = this.folder(where); return { ok: true, path: at.name, open: this.open(at) }; }
+	list({ path: where } = {}){ const at = this.folder(where); return { ok: true, path: at.name, coordinator: this.coordinator_of(at), open: this.open(at) }; }
 
 	/* The MCP tools, in `mcp.tool()`'s shape. A tab (no caller) is the owner. */
 	tools(){
@@ -100,8 +159,9 @@ export class Inbox {
 		const PATH = { type: "string", description: "The page: a site path like `/framework/core/Page/`, or a repo folder like `Servex/agents`." };
 		const schema = (properties, required) => ({ type: "object", required, properties });
 		return [
-			{ name: "drop", description: "Leave a note in any page's inbox: \"leave a note here\" for that path. It shows at the top of the page's AI tab until someone clears it."
-				+ " Written as one line in `<page>/ai/log.jsonl`; `from` is you. Returns the note's id.",
+			{ name: "drop", description: "Coordination, never chat: leave a note on any page, only when it is necessary (the owner asked you to tell another agent, a handoff)."
+				+ " If a mastermind coordinates that page's module (holds a claim_topic on it), the note goes straight to that mastermind (`routed_to` in the answer)."
+				+ " Otherwise it waits in the page's inbox, at the top of its AI tab, until someone clears it. One line in `ai/log.jsonl`; `from` is you.",
 				inputSchema: schema({ path: PATH, text: { type: "string", description: "The note, in plain words." } }, ["path", "text"]),
 				handler: json((a, ctx) => this.drop({ path: a.path, text: a.text, from: who(ctx) })) },
 			{ name: "clear", description: "Clear one note from a page's inbox, by the id `drop` gave (or `inbox` lists). Appends a `cleared` line; nothing is rewritten.",

@@ -6,6 +6,8 @@ import { servex_base, servex_fetch } from "/framework/ai2/inbox.js";
  * Any agent (Servex's `drop` tool) or the owner (the "Leave a note" button here, which
  * posts to `POST /api/inbox/drop`) can leave a note on any page. This draws the open
  * ones, newest first: from · text · age · Clear. Nothing at all when there are none.
+ * The inbox is for coordination, never chat: when a mastermind coordinates this page's
+ * module (holds a claim on it), a drop goes straight to it, and its id shows on top.
  * The notes live in `<page>/ai/log.jsonl`; Servex is the only writer and answers the
  * reads too (`GET /api/inbox`), so off the dev machine the inbox simply isn't drawn.
  * Docs: doc/inbox.md · Servex/doc/inbox.md. */
@@ -13,16 +15,18 @@ import { servex_base, servex_fetch } from "/framework/ai2/inbox.js";
 // A page's folder path: the url without its query or hash, ending in "/".
 export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
 
-// The open notes on a page, newest first; [] when Servex is not running.
+// The page's inbox, {open, coordinator}: its open notes, newest first, and who coordinates
+// its module (or null). Empty when Servex is not running.
 export async function notes(page){
 	try {
 		const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(folder(page))}`);
-		return r.ok ? ((await r.json()).open ?? []) : [];
-	} catch { return []; }
+		const j = r.ok ? await r.json() : {};
+		return { open: j.open ?? [], coordinator: j.coordinator ?? null };
+	} catch { return { open: [], coordinator: null }; }
 }
 
 // How many are open — the count on the AI tab's label.
-export const count = page => notes(page).then(n => n.length);
+export const count = page => notes(page).then(n => n.open.length);
 
 // "3m", "2h", "4d": how long ago a note was left.
 export function age(at){
@@ -31,7 +35,7 @@ export function age(at){
 }
 
 export class DrawerInbox {
-	constructor(...args){ this.assign({ page: location.pathname, open: [] }, ...args); }
+	constructor(...args){ this.assign({ page: location.pathname, open: [], coordinator: null, said: null }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	post(verb, body){
@@ -46,10 +50,19 @@ export class DrawerInbox {
 		this.draw();
 	}
 
-	load(){ return notes(this.page).then(open => { this.open = open; this.changed(); }); }
+	load(){ return notes(this.page).then(n => { this.assign(n); this.changed(); }); }
 
-	drop(text){ return this.post("drop", { text }).then(() => this.load()); }
-	clear(id){ return this.post("clear", { id }).then(() => this.load()); }
+	// One line under the button after a drop or a failed clear: where it went, or why not.
+	answer(r, done){
+		this.said = r?.ok === false ? `Not saved: ${r.why ?? "Servex said no"}` : done?.(r) ?? null;
+		return this.load();
+	}
+	drop(text){
+		return this.post("drop", { text })
+			.then(r => this.answer(r, r => r.routed_to ? `Sent to ${r.routed_to}, who coordinates this module.` : null))
+			.catch(e => this.answer({ ok: false, why: e.message }));
+	}
+	clear(id){ return this.post("clear", { id }).then(r => this.answer(r)).catch(e => this.answer({ ok: false, why: e.message })); }
 
 	/* The small "Leave a note" button, for the AI tab's head row. It opens a one-line
 	 * input at the top of the inbox; Enter leaves the note, Escape puts it away. */
@@ -71,6 +84,9 @@ export class DrawerInbox {
 		const $box = this.$box;
 		if (!$box) return;
 		$box.empty(() => {
+			if (this.coordinator) small.c("drawer-inbox-coordinator muted", `Coordinated by ${this.coordinator.agent}: a note goes to it`)
+				.attr("title", `${this.coordinator.agent} holds the claim on ${this.coordinator.topic}`);
+			if (this.said) small.c("drawer-inbox-said", this.said);
 			if (this.writing){
 				const $in = input.c("drawer-inbox-input").attr("placeholder", "Leave a note on this page, then Enter").attr("aria-label", "Leave a note");
 				$in.on("keydown", e => {
@@ -91,7 +107,7 @@ export class DrawerInbox {
 				span.c("drawer-inbox-text", n.text);
 			}));
 		});
-		$box.el.hidden = !this.writing && !this.open.length;
+		$box.el.hidden = !this.writing && !this.open.length && !this.coordinator && !this.said;
 	}
 }
 

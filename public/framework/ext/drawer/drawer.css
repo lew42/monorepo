@@ -236,6 +236,7 @@
 
 	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
 	.drawer-inbox { flex: none; gap: 0.35em; }
+	.drawer-inbox[hidden] { display: none; }   /* .flex would otherwise beat [hidden] */
 	.drawer-inbox-row {
 		gap: 0.2em;
 		padding: 0.4em 0.4em 0.4em 0.6em;

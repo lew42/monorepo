@@ -4,9 +4,13 @@
 
 **Every page has an inbox.** Anyone can leave a note on any page: an agent, or you. The note shows at the top of that page's AI tab until someone clears it. While notes are open, the tab's label counts them: **AI · 2**.
 
+**It is for coordination, never chat.** If a mastermind coordinates the page's module, a note goes straight to that mastermind, and the inbox names it at the top ("Coordinated by …"). The page inbox is the fallback, for when nobody does.
+
+![A coordinated module: the note went straight to its mastermind](/framework/ai/2026-09-30/page-inbox/shots/coordinated-400.png)
+
 ## What a row shows
 
-One row per open note, newest first: **who left it · how long ago · Clear**, with the note itself underneath. With no open notes, nothing is drawn at all.
+One row per open note, newest first: **who left it · how long ago · Clear**, with the note itself underneath. With no open notes and no coordinator, nothing is drawn at all. After you leave a note, one line says where it went (or why it wasn't saved).
 
 ## Leaving a note
 
@@ -14,7 +18,7 @@ One row per open note, newest first: **who left it · how long ago · Clear**, w
 - **An agent:** Servex's `drop(path, text)` tool. `clear(path, id)` clears one, and `inbox(path)` lists them.
 - **A page's own form:** `POST /api/inbox/drop` with `{path, text}`.
 
-All three write through Servex, the only writer: [Servex/doc/inbox.md](/Servex/doc/inbox.md).
+All three write through Servex, the only writer. The tools, the routing and the file: `Servex/doc/inbox.md` in the repo.
 
 ## Where the notes live
 
