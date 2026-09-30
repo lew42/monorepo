@@ -1,0 +1,15 @@
+diff --git a/public/framework/ai/board.jsonl b/public/framework/ai/board.jsonl
+index 1dc5555b..b99eadda 100644
+--- a/public/framework/ai/board.jsonl
++++ b/public/framework/ai/board.jsonl
+@@ -758,3 +758,10 @@
+ {"card":{"at":"2026-09-28T15:06:22-05:00","id":"health-framework-ai","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/ is not loading","text":"pageerror: The requested module '../files/files.js' does not provide an export named 'nest'"}}
+ {"card":{"at":"2026-09-28T15:21:35-05:00","id":"minion-drawer-walkthrough","author":"minion-drawer-walkthrough","status":"done","title":"Drawer walkthrough built: click Next through 7 real screenshots of the whole right-rail system.","text":"http://monorepo.localhost/framework/ext/drawer/walkthrough/ — zero console errors, verified headless."}}
+ {"card":{"at":"2026-09-28T22:40:31-05:00","id":"health-framework-ext-ask","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ext/Ask/ is not loading","text":"console: Failed to load resource: the server responded with a status of 404 (Not Found)"}}
++{"card":{"at":"2026-09-30T14:15:28-05:00","id":"health-framework-ai-2026-09-25-servex-mastermind","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-25/servex-mastermind/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/ai/2026-09-25/servex-mastermind/"}}
++{"card":{"at":"2026-09-30T14:15:31-05:00","id":"health-framework-ai-2026-09-30-review-walkthrough","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/review/walkthrough/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/ai/2026-09-30/review/walkthrough/"}}
++{"card":{"at":"2026-09-30T14:15:31-05:00","id":"health-framework-ai-review","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/review/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/ai/review/"}}
++{"card":{"at":"2026-09-30T14:15:33-05:00","id":"health-framework-ext-chat","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ext/Chat/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/ext/Chat/"}}
++{"card":{"at":"2026-09-30T14:15:33-05:00","id":"health-","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/"}}
++{"card":{"at":"2026-09-30T14:15:35-05:00","id":"health-framework","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/"}}
++{"card":{"at":"2026-09-30T14:15:35-05:00","id":"health-framework-ai-v-3","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/v/3/ is not loading","text":"request: net::ERR_CONNECTION_REFUSED http://127.0.0.1:54830/framework/ai/v/3/"}}
