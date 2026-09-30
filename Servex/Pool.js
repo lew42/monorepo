@@ -247,9 +247,21 @@ export default class Pool extends Events {
         this.kill(slot.watcher_pid, /health-supervisor/i);
         this.kill(slot.server_pid, this.server_cmd(slot));
         for (const d of await this.dirt(slot)) if (Pool.server_log(d.file)) this.restore(slot, d.file);   // the server's noise stays out of salvage
+        /* Live logs that michael/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
+         * unrelated board.jsonl churn into salvage/qf-6-2026-09-30-2. Their diff is kept aside as a patch in
+         * .worktree-logs/, never committed here, and the file goes back to HEAD. A NEW *.jsonl is the task's own and stays in. */
+        const logs = (await this.git(slot.path, ["diff", "--name-only", "HEAD", "--", "*.jsonl"])).out.split("\n").filter(Boolean);
+        let aside = null;
+        if (logs.length){
+            aside = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
+            fs.mkdirSync(path.dirname(aside), { recursive: true });
+            fs.writeFileSync(aside, execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...logs], { windowsHide: true, maxBuffer: 256 << 20 }));
+            for (const file of logs) this.restore(slot, file);
+        }
         const status = (await this.git(slot.path, ["status", "--porcelain", "--untracked-files=all"])).out;
         const commits = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
-        if (!status && !commits) return { branch: null, what: "nothing to salvage" };
+        const kept = aside ? `; ${logs.length} live log(s) left out, their diff kept at ${slash(aside)}` : "";
+        if (!status && !commits) return { branch: null, what: `nothing to salvage${kept}`, aside };
         const files = status ? status.split("\n").map(l => l.replace(/^\s*\S{1,2}\s+/, "").replace(/^"|"$/g, "")) : [];
         const numstat = (await this.git(slot.path, ["diff", "--numstat"])).out;
         const noise = files.length > 0 && files.every(f => f.endsWith("page.jsonl")) && !/^\d+\t[1-9]/m.test(numstat) && !commits;
@@ -263,9 +275,9 @@ export default class Pool extends Events {
             await step(["commit", "-m", `salvage: ${slot.id}, held by ${holder} (stopped) — kept here, never merged`]);
         }
         await step(["checkout", "-B", slot.branch, this.base]);
-        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}`;
+        const what = `salvaged to ${branch}: ${files.length} file(s)${commits ? `, ${commits.split("\n").length} unmerged commit(s)` : ""}${noise ? " (only the server's own page.jsonl lines)" : ""}${kept}`;
         try { await this.servex?.lifecycle?.salvaged(slot, holder, branch, what); } catch {}
-        return { branch, what, noise };
+        return { branch, what, noise, aside };
     }
 
     /* The Servex agent registry's rows ({ id, name, state }), or none without a Servex. A seam for tests. */
