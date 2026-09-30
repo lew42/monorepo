@@ -2,6 +2,8 @@ import { View, div, span, button, select, option, label, input } from "../../cor
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
+import { md_into } from "../../ext/Chat/md.js";
+import { who_label } from "../../ext/Chat/roles.js";
 
 View.stylesheet(import.meta, "Widget.css");
 
@@ -228,12 +230,26 @@ Widget.Thread = class WidgetThread extends View {
 		const at = chat.at ?? new Date().toISOString();
 		const assistant = chat.from?.kind === "assistant";
 		const existing = chat.fix && this.lines.get(at);
-		if (existing){ existing.$text.text(chat.text); return; }
+		// MARKDOWN IN REPLIES (minion-polish, item 4, 2026-09-30 — the owner: a reply
+		// showed raw backticks around a path instead of `code`). `md_into` is the
+		// exact function `ext/Chat`'s own bubbles already render with (`Chat.js`'s
+		// `para()`) — reused here, not rebuilt, so a link, a bold word or a `path`
+		// reads the same everywhere the site shows a chat line. `inline: true`: a
+		// bubble is one short line, never a wrapped paragraph block.
+		if (existing){ md_into(existing.$text.el, chat.text, true); return; }
 
 		let $bubble, $text;
 		this.$bubbles.append(() => {
 			$bubble = div.c("ux-dictate-widget-bubble card pad" + (assistant ? " ux-dictate-widget-bubble-assistant" : ""), () => {
-				$text = span(chat.text);
+				// ICONS ON THE BUBBLES (minion-polish, item 5, 2026-09-30 — the owner:
+				// the bubbles "used to have icons"). `who_label` is `ext/Chat/roles.js`'s
+				// own small round avatar (reused whole, not rebuilt — CLAUDE.md law 6):
+				// 👤 for the owner's own words, 💬 for a reply, floated at the bubble's
+				// own start so the text begins on the same line beside it (`Widget.css`'s
+				// matching float rule, copied from `ext/Chat/Chat.css`'s identical one).
+				who_label(chat.from?.id ?? (assistant ? "assistant" : "owner"));
+				$text = span();
+				md_into($text.el, chat.text, true);
 			});
 		});
 		this.lines.set(at, { $bubble, $text });

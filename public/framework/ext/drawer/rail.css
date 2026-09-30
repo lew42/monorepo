@@ -115,6 +115,30 @@
 	}
 	.drawer-rail-sheet-full .drawer-rail-sheet-heading { margin-inline-end: auto; }
 
+	/* ONE LINE (minion-polish, item 6, 2026-09-30 — the owner: "a resizable sheet
+	   that can collapse to one line"). `rail.js`'s `collapse()`/`settle()` add this
+	   class instead of closing the sheet once a drag reaches the bottom of its own
+	   travel. Everything except the composer row goes — the head, the thread, the
+	   folded links — so what's left really is one line: the typed box, the mic,
+	   Send. `!important` on the sized block-size: `.drawer-rail-sheet-sized` (above)
+	   already sets a `block-size` from `--sheet-h`, at the same specificity, and
+	   this rule has to win regardless of source order since `collapse()` also
+	   writes `--sheet-h` (`size_to`, so a stray resize mid-collapse still has a
+	   number to read) — `auto` here means "just the composer's own height",
+	   never whatever px the drag last measured. */
+	.drawer-rail-sheet-collapsed.drawer-rail-sheet-sized { block-size: auto !important; }
+	/* `!important` on every one of these: the head, the thread and the widget's
+	   own thread all carry framework.css's `.flex` utility class straight in
+	   their markup (`display: flex`, `@layer util`), and a utility in `@layer
+	   util` always wins over a `@layer theme` rule — this file's own rule, no
+	   matter its specificity (`css` skill, rule 3; this exact trap is why the
+	   composer row below in this same file already uses `!important` too). */
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-head,
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-links,
+	.drawer-rail-sheet-collapsed .drawer-rail-sheet-thread,
+	.drawer-rail-sheet-collapsed .ux-dictate-widget-thread,
+	.drawer-rail-sheet-collapsed .ux-dictate-widget-empty { display: none !important; }
+
 	/* The sheet's own top-edge grip (`rail.js`'s `handle()`) is absolutely
 	   positioned, so it sits in whatever dead space the top padding above already
 	   reserves — the same trick both side rails use (grip.css's own note: "the dead

@@ -2144,6 +2144,22 @@
 			max-block-size: none;
 		}
 
+		/* ONE FRAME, NOT TWO (minion-polish, item 2, 2026-09-30 — the owner: "the
+		   head sits above a second framed box"). `.ai2-foot`'s own left border
+		   (above) is already this column's one frame; `Widget.css`'s
+		   `.ux-dictate-widget-card` draws a SECOND full box — border, radius,
+		   background — around the thread and composer, so the head line reads as
+		   floating above a box-inside-a-box. Stripped here, scoped to this one
+		   mount (`.ai2-foot-chat-slot`), so a `Widget` used anywhere else (the ✦
+		   sheet, the ☰ drawer) keeps its own frame — those mounts have no
+		   outer column border of their own to double up with. */
+		.ai2-foot-chat-slot .ux-dictate-widget-card {
+			border: none;
+			border-radius: 0;
+			background: none;
+			padding: 0;
+		}
+
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
 		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page {
 			grid-template-columns: minmax(0, 1fr);

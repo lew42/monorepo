@@ -32,11 +32,33 @@
 		align-self: flex-start; max-width: 85%;
 		background: color-mix(in srgb, var(--prim) 22%, transparent);
 		border-radius: 0.9em;
+		display: flow-root;   /* a one-line message still wraps the floated icon below */
 	}
 	.ux-dictate-widget-bubble-assistant {
 		align-self: flex-end;
 		background: color-mix(in srgb, currentColor 10%, transparent);
 	}
+
+	/* THE ICON (minion-polish, item 5, 2026-09-30) — `Widget.js`'s `draw()` builds
+	   this with `ext/Chat/roles.js`'s own `who_label()`, so the DOM and its classes
+	   (`chatbox-who`/`chatbox-avatar`/`chatbox-who-<role>`) are that file's, not
+	   this one's. These rules are copied from `ext/Chat/Chat.css`'s identical ones
+	   rather than imported, because a page that mounts only this widget may never
+	   load `Chat.css` at all. A small round tinted circle, floated at the bubble's
+	   own start, so the words begin on the same line beside it. */
+	.ux-dictate-widget-bubble .chatbox-who {
+		float: inline-start;
+		display: grid; place-items: center;
+		inline-size: 1.6em; block-size: 1.6em;
+		margin: 0.05em 0.45em 0 0;
+		border-radius: 50%;
+		overflow: hidden;
+		background: color-mix(in srgb, currentColor 16%, transparent);
+		font-size: 0.95em; font-weight: 400; line-height: 1;
+	}
+	.ux-dictate-widget-bubble .chatbox-avatar img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+	.ux-dictate-widget-bubble .chatbox-who-you       { color: var(--prim-ink); }
+	.ux-dictate-widget-bubble .chatbox-who-assistant { color: var(--ok); }
 	.ux-dictate-widget-failed { font-size: 0.85em; }
 	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
 
