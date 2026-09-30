@@ -24,6 +24,11 @@ const sample = () => new Page({ url: "/box/", title: "", content: body });
 
 const tabbed = () => new Page({
 	title: "Doc",
+	// Without an explicit `url`, `naming()` slugs the title into one — "/doc/", a
+	// real site path with no page.js of its own. The tab bar's own "tab-default"
+	// link is THIS url, so a reader who clicked it landed on a 404. Point it at
+	// the doc page this demo is actually about.
+	url: "/framework/core/Page/doc/",
 	children: { box: { title: "", content: body } },
 	// `bleed`, or the panel would sit inside THIS page's 40em main track and the
 	// inner page would be capped by its host's width instead of by its own token.
