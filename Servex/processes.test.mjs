@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import Processes, { task_key } from "./Processes.js";
+import { decide as decide_game } from "./Games.js";
 
 let pass = 0;
 const ok = (cond, what) => { assert.ok(cond, what); pass++; };
@@ -142,3 +143,39 @@ ok(sx.projects.length === 1 && !sx.processes.has("gone-wt") && !("gone-wt" in sx
 	ok(!sx2.commands.some(c => c.name === "qf-9"), "a qf-* pool slot's server is never touched, taken or not");
 }
 console.log(`processes.test (with worktrees): ${pass} checks pass`);
+
+// ── idle: stale VS Code sessions (ask 3), and the games rule (ask 4) ──────
+{
+	// a session group is STALE once every member (the claude.exe plus any
+	// child shell) has used no CPU for `stale_h` hours; `idle_since` is set
+	// directly here rather than waited for, since it only moves forward once
+	// a process stops being busy (see `take()`'s own comment on the field).
+	const p2 = new Processes({ reaping: false, stale_h: 2, servex: { agents: { live: new Map() } } });
+	const rows2 = [
+		[me, 1, "node.exe", 50, 0, 1000, "node x"],                                       // Servex itself, for sort()'s own bookkeeping
+		[900, 77, "claude.exe", 200, 1, 500, "c:\\Users\\x\\.vscode\\claude.exe"],          // idle 3 h below: stale
+		[901, 55, "claude.exe", 200, 1, 500, "c:\\Users\\x\\.vscode\\claude.exe"]           // idle 1 h below: not stale
+	];
+	p2.take({ rows: rows2 });
+	p2.procs.get(900).idle_since = Date.now() - 3 * 3600000;
+	p2.procs.get(901).idle_since = Date.now() - 1 * 3600000;
+	p2.now = p2.sort(Date.now());
+	const by2 = key => p2.now.groups.find(g => g.key === key);
+	ok(by2("session 900")?.stale === true, "a session idle 3 h is stale");
+	ok(by2("session 901")?.stale === false, "a session idle 1 h is not stale");
+	ok(p2.now.sessions.n === 2 && p2.now.sessions.stale === 1, "sessions{} counts n and stale, top level");
+	ok(/VS Code conversation.*idle over 2 h/.test(p2.line()), "line() gets one clause naming the stale ones");
+}
+
+// the game rule, `decide()` from Games.js — pure, no PowerShell, no Servex:
+// ALL three must hold (idle past the threshold, RAM tight, a listed game
+// actually running), tested at the exact edges the brief names.
+{
+	const running = [{ pid: 4242, name: "StarCraft.exe" }];
+	const cfg = { idle_min: 30, tight_mb: 6144 };
+	ok(decide_game({ idle_min: 31, free_mb: 4000, running }, cfg)?.pid === 4242, "closes when idle > 30 min AND RAM is tight AND a game runs");
+	ok(decide_game({ idle_min: 29, free_mb: 4000, running }, cfg) === null, "never at idle 29 (the owner's exact edge: not yet past 30)");
+	ok(decide_game({ idle_min: 31, free_mb: 8000, running }, cfg) === null, "never with 8 GB free (RAM not tight)");
+	ok(decide_game({ idle_min: 31, free_mb: 4000, running: [] }, cfg) === null, "never with no listed game running");
+}
+console.log(`processes.test (idle: stale sessions + games): ${pass} checks pass`);

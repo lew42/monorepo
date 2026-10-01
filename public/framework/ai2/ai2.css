@@ -1990,4 +1990,19 @@
 	.ai2-proc-badge {
 		font-variant-numeric: tabular-nums;
 	}
+
+	/* Ask 3: a stale VS Code conversation's own badge ("stale · idle 5 h") on
+	   its group row, and the one-line summary under the headline. `--warn` is
+	   the same token the usage rail's own ramp uses for "notice, not broken" —
+	   nothing is closed here, so this is never `--error`. */
+	.ai2-proc-stale {
+		color: var(--warn);
+		font-weight: 600;
+	}
+
+	.ai2-proc-stale-line {
+		display: block;
+		color: var(--warn);
+		margin-block-start: 0.2em;
+	}
 }

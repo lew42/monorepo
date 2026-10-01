@@ -13,9 +13,15 @@ import { servex_base } from "./inbox.js";
  *
  * What one snapshot holds (the fields this file reads):
  *   ours / other   — `{n, mb, cpu}`, plus `free_mb` and `total_mb` alongside them
+ *   commit_mb / commit_limit_mb — the machine's commit charge (RAM + pagefile);
+ *                    shows pressure free RAM alone hides (ask 5)
  *   groups[]       — one row per task, agent kind or system bucket: `{key, kind,
- *                    label, n, mb, cpu, pids, agents?}`
+ *                    label, n, mb, cpu, pids, agents?}`; a `kind: "session"` group
+ *                    (a VS Code conversation) also carries `stale`, `idle_h` (ask 3)
+ *   sessions       — `{n, stale, stale_mb, stale_h}`: how many VS Code conversations
+ *                    there are, how many are stale, and the threshold itself (ask 3)
  *   orphans[]      — flagged leftovers; `reaped[]` — ones already cleaned up
+ *   games_closed[] — every game Games.js closed (or would have), newest last (ask 4)
  *   running[]      — `{id, state, pid, mb, lost}`, one per live agent — the real
  *                    process behind it, or why there isn't one
  *   worktrees      — `{total, pool, in_use, open, uncommitted, finished, removed_today}`
@@ -72,6 +78,7 @@ export function process_badge(agent_id, state, by_id){
 /* ── plain words ────────────────────────────────────────────────────────── */
 
 const gb = mb => (Math.round((mb ?? 0) / 102.4) / 10).toFixed(1) + " GB";
+const gb0 = mb => Math.round((mb ?? 0) / 1024);   // whole GB, for "commit 41 / 48 GB" — one decimal reads as noise there
 const pct = cpu => Math.round((cpu ?? 0) * 10) / 10 + "%";
 const clock = at => { const d = new Date(at); return isNaN(d) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
 
@@ -150,10 +157,22 @@ function wire_hover($wrap, $cross, $tip, history){
 }
 
 /** The headline line above the charts — the one sentence that, on its own,
- *  answers "how much of the machine is ours right now". */
+ *  answers "how much of the machine is ours right now". Commit charge (ask 5)
+ *  rides along: free RAM alone can look fine while the pagefile is nearly
+ *  full, and commit is the number that actually explains that. */
 function headline(proc){
-	const { ours, other, free_mb, total_mb } = proc;
-	return `${gb(ours?.mb)} ours of ${gb(total_mb)} total · ${gb(other?.mb)} other · ${gb(free_mb)} free`;
+	const { ours, other, free_mb, total_mb, commit_mb, commit_limit_mb } = proc;
+	const commit = commit_mb != null && commit_limit_mb != null ? ` · commit ${gb0(commit_mb)} / ${gb0(commit_limit_mb)} GB` : "";
+	return `${gb(ours?.mb)} ours of ${gb(total_mb)} total · ${gb(other?.mb)} other · ${gb(free_mb)} free${commit}`;
+}
+
+/** The line under the totals naming stale VS Code conversations (ask 3) — the
+ *  owner's own words: "close them in VS Code" (never closed here; a VS Code
+ *  conversation is the owner's to close). Empty when none are stale. */
+function stale_line(sessions){
+	if (!sessions?.stale) return "";
+	const n = sessions.stale;
+	return `${n} VS Code conversation${n === 1 ? "" : "s"} idle over ${sessions.stale_h} h (${gb(sessions.stale_mb)}): close them in VS Code`;
 }
 
 /* ── by task: one row per group, biggest first ─────────────────────────── */
@@ -189,10 +208,25 @@ function group_detail(g, by_id){
 
 const TOP_GROUPS = 5;
 
+/** A stale VS Code session's own badge — "stale · idle 5 h" — right on its row,
+ *  so it is seen without opening anything (ask 3; `g.stale`/`g.idle_h` come
+ *  straight off `/api/processes`, Servex/doc/processes.md). */
+function stale_badge(g){
+	if (!g.stale) return;
+	small.c("ai2-proc-badge ai2-proc-stale").text(`stale · idle ${g.idle_h} h`);
+}
+
 function group_row(g, proc, by_id){
 	details.c("ai2-live-item ai2-proc-row", () => {
 		summary.c("ai2-proc-row-head flex v-center gap-25", () => {
-			span.c("ai2-live-name").text(g.label ?? g.key);
+			// name + stale badge stay ONE flex group — `.ai2-proc-row-head` is
+			// `justify-content: space-between` across its direct children, so a
+			// fourth top-level child would spread badge/count/spark apart with a
+			// huge gap between them instead of sitting next to the name.
+			div.c("flex v-center gap-25", () => {
+				span.c("ai2-live-name").text(g.label ?? g.key);
+				stale_badge(g);
+			});
 			small.c("muted").text(`${g.n} · ${gb(g.mb)} · ${pct(g.cpu)}`);
 			div.c("ai2-proc-spark-box").html_unsafe(group_spark(proc.history ?? [], g.key));
 		});
@@ -257,6 +291,8 @@ export function processes_section(proc){
 	div.c("ai2-live-section ai2-proc-section", () => {
 		h3("Processes");
 		small.c("ai2-proc-headline").text(headline(proc));
+		const stale_text = stale_line(proc.sessions);
+		if (stale_text) small.c("ai2-proc-headline ai2-proc-stale-line").text(stale_text);
 		div.c("ai2-proc-legend flex gap-25", () => {
 			span.c("ai2-proc-dot ai2-proc-dot-ours");
 			small.c("muted").text("ours");

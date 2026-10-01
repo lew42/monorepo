@@ -35,7 +35,17 @@ import { stamp, place } from "./home.js";
  *   (everything else is "other": the owner's apps, never touched)
  *
  * Kept: the latest snapshot (`this.now`), an hour of 10-second points
- * (`this.history`), and one line a minute on the `processes` log. */
+ * (`this.history`), and one line a minute on the `processes` log.
+ *
+ * The RAM squeeze (2026-10-01): a `session` group also gets `stale: true` and
+ * `idle_h` once nothing in it — the claude.exe or any child shell — has used
+ * CPU for `SERVEX_STALE_SESSION_H` hours (default 2); `sessions: {n, stale,
+ * stale_mb, stale_h}` totals it. The snapshot also carries `idle_s` (seconds
+ * since any keyboard/mouse input, GetLastInputInfo — Games.js's idle rule)
+ * and the machine's commit charge, `commit_mb` / `commit_limit_mb` (RAM plus
+ * whatever has spilled to the pagefile — free RAM alone can look fine while
+ * that is nearly full). Games.js, started alongside this, closes a listed
+ * game only when idle AND RAM is tight; see its own file for the rule. */
 
 // Names that are ours when their parent chain leads to us.
 const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx)\.exe$/i;
@@ -55,12 +65,16 @@ export default class Processes extends Events {
 		this.keep ??= 360;                                   // one hour at 10 s
 		this.reap_after_ms ??= Number(process.env.SERVEX_REAP_ORPHANS_MS) || 10 * 60000;
 		this.reaping ??= process.env.SERVEX_REAP_ORPHANS !== "0";
+		this.stale_h ??= Number(process.env.SERVEX_STALE_SESSION_H) || 2;
 		this.procs = new Map();        // pid -> { pid, ppid, name, mb, cpu_s, born, cmd, cpu, idle_since }
 		this.history = [];
 		this.now = null;
 		this.reaped = [];              // the last 50 reaps, newest last
 		this.cores = os.cpus().length || 1;
 		this.children = {};
+		this.idle_s = null;             // seconds since any keyboard/mouse input (GetLastInputInfo), for Games.js
+		this.commit_mb = null;          // the machine's commit charge (Win32_OperatingSystem: Total - Free virtual memory)
+		this.commit_limit_mb = null;
 	}
 
 	start(){
@@ -96,9 +110,15 @@ export default class Processes extends Events {
 		});
 	}
 
-	/* One line from the loop: rows of [pid, ppid, name, mb, cpu_s, born, cmd?]. */
-	take({ rows = [], self, msys }){
+	/* One line from the loop: rows of [pid, ppid, name, mb, cpu_s, born, cmd?].
+	 * `idle_s` (GetLastInputInfo) feeds Games.js's idle rule; `commit_mb` /
+	 * `commit_limit_mb` (Win32_OperatingSystem's virtual memory) are the
+	 * pagefile-backed charge, which shows pressure free RAM alone hides. */
+	take({ rows = [], self, msys, idle_s, commit_mb, commit_limit_mb }){
 		this.msys(msys);
+		if (typeof idle_s === "number") this.idle_s = idle_s;
+		if (typeof commit_mb === "number") this.commit_mb = commit_mb;
+		if (typeof commit_limit_mb === "number") this.commit_limit_mb = commit_limit_mb;
 		const at = Date.now(), dt = this.last_at ? (at - this.last_at) / 1000 : 0;
 		this.last_at = at;
 		const next = new Map();
@@ -192,6 +212,24 @@ export default class Processes extends Events {
 			if (g) g.pids.push(p.pid);
 			else if (p.pid){ const n = names.get(p.name) ?? names.set(p.name, { name: p.name, n: 0, mb: 0, cpu: 0 }).get(p.name); n.n++; n.mb += p.mb; n.cpu += p.cpu; }
 		}
+		/* Ask 3: a VS Code session is STALE once nothing in it — its claude.exe or
+		 * any child shell — has used CPU for `stale_h` hours. `idle_since` per
+		 * process already tracks "last seen busy"; the group's own last-busy time
+		 * is the LATEST of its members' (one still-busy shell keeps the whole
+		 * session fresh), so staleness is never claimed while anything under it
+		 * is doing something. */
+		const sessions = { n: 0, stale: 0, stale_mb: 0, stale_h: this.stale_h };
+		for (const g of groups.values()){
+			if (g.kind !== "session" || !g.n) continue;
+			sessions.n++;
+			const members = g.pids.map(pid => procs.get(pid)).filter(Boolean);
+			const last_busy = Math.max(0, ...members.map(p => p.idle_since ?? 0));
+			g.idle_h = round((at - last_busy) / 3600000, 1);
+			g.stale = g.idle_h >= this.stale_h;
+			if (g.stale){ sessions.stale++; sessions.stale_mb += g.mb; }
+		}
+		sessions.stale_mb = Math.round(sessions.stale_mb);
+
 		const tidy = t => ({ ...t, mb: Math.round(t.mb), cpu: round(t.cpu, 1) });
 		const list = [...groups.values()].filter(g => g.n).map(tidy).sort((a, b) => b.mb - a.mb);
 		const orphans = (groups.get("orphans")?.pids ?? []).map(pid => this.row(procs.get(pid), at));
@@ -203,6 +241,8 @@ export default class Processes extends Events {
 			groups: list,
 			other_top: [...names.values()].map(tidy).sort((a, b) => b.mb - a.mb).slice(0, 8),
 			orphans, reaped: this.reaped.slice(-10),
+			sessions,
+			idle_s: this.idle_s, commit_mb: this.commit_mb, commit_limit_mb: this.commit_limit_mb,
 			running: agents.map(a => ({ id: a.id, state: a.state, group: a.group, pid: a.pid && procs.has(a.pid) ? a.pid : null,
 				mb: a.pid ? procs.get(a.pid)?.mb ?? null : null, lost: (a.state === "working" || a.state === "idle") && !(a.pid && procs.has(a.pid)) })),
 			monitor_cost_s: this.cost
@@ -286,6 +326,7 @@ export default class Processes extends Events {
 	summary({ history = true } = {}){
 		return { ...(this.now ?? { at: null, groups: [], orphans: [] }),
 			worktrees: this.servex?.worktrees?.summary() ?? null,     // Worktrees.js: the count, and what was removed
+			games_closed: this.servex?.games?.summary()?.closed ?? [],   // Games.js: every close it made or would have made
 			history: history ? this.history : undefined };
 	}
 
@@ -298,6 +339,7 @@ export default class Processes extends Events {
 		return `Ours ${gb(s.ours.mb)} GB in ${s.ours.n} processes, everything else ${gb(s.other.mb)} GB, ${gb(s.free_mb)} GB free.`
 			+ (top ? ` Top tasks: ${top}.` : "")
 			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "")
+			+ (s.sessions?.stale ? ` ${s.sessions.stale} VS Code conversation${s.sessions.stale === 1 ? "" : "s"} idle over ${this.stale_h} h (${gb(s.sessions.stale_mb)} GB): close them in VS Code.` : "")
 			+ (this.servex?.worktrees ? ` ${this.servex.worktrees.line()}` : "");
 	}
 }
@@ -327,8 +369,12 @@ function lines(stream, each){
 }
 
 /* The loop. One CIM query per round (about 0.2 s of CPU) and Git's `ps -e`; a
- * command line crosses the pipe only the first time a process is seen. Exits
- * when Servex is gone. */
+ * command line crosses the pipe only the first time a process is seen. Also
+ * reads, each round: `idle_s` (GetLastInputInfo — how long since any keyboard
+ * or mouse input, for Games.js's idle rule) and the machine's commit charge
+ * (Win32_OperatingSystem's virtual memory: `commit_mb` used, `commit_limit_mb`
+ * total — the pagefile is the overflow, so this shows pressure free RAM alone
+ * hides, ask 5). Exits when Servex is gone. */
 const PS = String.raw`
 $ErrorActionPreference = 'SilentlyContinue'
 $parent = __PARENT__
@@ -336,6 +382,15 @@ $every = __EVERY__
 $seen = @{}
 $msysps = $null
 try { $d = Split-Path (Get-Command git.exe -ErrorAction Stop).Source; for ($i = 0; $i -lt 4 -and $d -and -not $msysps; $i++) { if (Test-Path "$d/usr/bin/ps.exe") { $msysps = "$d/usr/bin/ps.exe" }; $d = Split-Path $d } } catch {}
+Add-Type -Namespace Lew42 -Name Idle -MemberDefinition '
+  [StructLayout(LayoutKind.Sequential)] public struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+  [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+  public static double IdleSeconds() {
+    LASTINPUTINFO li = new LASTINPUTINFO(); li.cbSize = (uint)Marshal.SizeOf(li);
+    if (!GetLastInputInfo(ref li)) return -1;
+    return ((double)(uint)Environment.TickCount - li.dwTime) / 1000.0;
+  }
+' -Using System.Runtime.InteropServices
 while ($true) {
   if (-not (Get-Process -Id $parent -ErrorAction SilentlyContinue)) { exit }
   $now = @{}
@@ -351,7 +406,11 @@ while ($true) {
   $msys = New-Object System.Collections.Generic.List[object]
   if ($msysps) { foreach ($l in (& $msysps -e 2>$null | Select-Object -Skip 1)) { $f = -split $l; if ($f.Count -ge 4) { $msys.Add(@([int]$f[0], [int]$f[1], [int]$f[3])) } } }
   $me = Get-Process -Id $PID
-  [Console]::Out.WriteLine((@{ rows = $rows; msys = $msys; self = [math]::Round($me.CPU, 2) } | ConvertTo-Json -Compress -Depth 3))
+  $os = Get-CimInstance Win32_OperatingSystem -Property TotalVirtualMemorySize,FreeVirtualMemory
+  $idle = [math]::Round([Lew42.Idle]::IdleSeconds(), 1)
+  $commit_mb = [math]::Round(($os.TotalVirtualMemorySize - $os.FreeVirtualMemory) / 1024, 1)
+  $commit_limit_mb = [math]::Round($os.TotalVirtualMemorySize / 1024, 1)
+  [Console]::Out.WriteLine((@{ rows = $rows; msys = $msys; self = [math]::Round($me.CPU, 2); idle_s = $idle; commit_mb = $commit_mb; commit_limit_mb = $commit_limit_mb } | ConvertTo-Json -Compress -Depth 3))
   [Console]::Out.Flush()
   Start-Sleep -Seconds $every
 }
