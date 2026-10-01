@@ -102,6 +102,14 @@ Three pieces, all in `provider.js` unless noted:
   and `ext/AITask/dashboard.js`'s `rail()` merges its one `limit` into the SAME `usage_rail()`
   meter the Claude session/weekly windows already draw — one more bar, not a second widget.
   Credit left rides along as the meter's label.
+- **Warm at boot, not on import** — the guard's cache starts empty, and an empty cache fails
+  every openrouter spawn closed, so `Servex.js` calls `warm_guard()` once right after it builds
+  `this.agents` — before anything could possibly spawn — so the very first spawn after a restart
+  isn't refused for no real reason. `Agents.spawn()` itself stays synchronous (it has a dozen-plus
+  non-`await`ed callers across the codebase; making it async is the kind of surgery CLAUDE.md says
+  to ask about, not a one-line fix), so a spawn that still finds an empty cache — the key file
+  missing, or the boot-time read itself failed — fails closed with a reason that says "retry in a
+  few seconds", rather than waiting on a live read itself.
 
 ### Cost is per key, not per agent
 

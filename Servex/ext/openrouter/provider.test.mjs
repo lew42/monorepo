@@ -16,7 +16,7 @@ function test(name, fn){ fn(); n++; console.log(`ok - ${name}`); }
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "openrouter-test-"));
 process.env.LOCALAPPDATA = scratch;
 
-const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for, evaluate_guard, OR_DAILY_CAP_USD }
+const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for, evaluate_guard, OR_DAILY_CAP_USD, warm_guard, spend_guard }
 	= await import("./provider.js?t=" + Date.now());
 
 test("provider_for: a model id with a / is openrouter", () => {
@@ -91,10 +91,24 @@ test("evaluate_guard: a custom cap overrides OR_DAILY_CAP_USD", () => {
 	assert.equal(evaluate_guard({ usage_daily: 2, limit_remaining: 40 }, 5).ok, true);
 });
 
-test("evaluate_guard: FAILS CLOSED with no reading at all (null status)", () => {
+test("evaluate_guard: FAILS CLOSED with no reading at all (null status), and says to retry", () => {
 	const r = evaluate_guard(null);
 	assert.equal(r.ok, false);
 	assert.match(r.reason, /can't be checked/);
+	// review follow-up, 2026-10-01: the cold-start case ("no reading yet") is
+	// transient, not broken — the reason has to say so, since Agents.spawn()
+	// can't await a live read (see warm_guard()'s own comment in provider.js).
+	assert.match(r.reason, /retry in a few seconds/);
+});
+
+test("warm_guard(): a no-op with no key file — no throw, no network, cache stays empty", async () => {
+	// has_key() is false here (KEY_PATH not written yet in this fresh scratch dir
+	// at the point this test runs — see test order above, or rm it back out first).
+	fs.rmSync(KEY_PATH, { force: true });
+	assert.equal(has_key(), false);
+	await warm_guard();   // must resolve, not throw, and not attempt a fetch with no key
+	// spend_guard() still fails closed afterwards — warm_guard() did nothing, on purpose
+	assert.equal(spend_guard().ok, false);
 });
 
 fs.rmSync(scratch, { recursive: true, force: true });

@@ -226,7 +226,7 @@ function ensure_or_guard_timer(){
  * `OR_DAILY_CAP_USD` but takes an override for a test's own numbers. */
 export function evaluate_guard(status, cap = OR_DAILY_CAP_USD){
 	if (!status) return { ok: false,
-		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — refusing to spend" };
+		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — retry in a few seconds" };
 	if (typeof status.usage_daily === "number" && status.usage_daily >= cap)
 		return { ok: false, reason: `today's OpenRouter spend ($${status.usage_daily.toFixed(2)}) is at or over the $${cap}/day cap` };
 	if (typeof status.limit_remaining === "number" && status.limit_remaining < 1)
@@ -244,4 +244,27 @@ export function spend_guard(){
 	ensure_or_guard_timer();
 	if (Date.now() - or_guard_checked_at > OR_GUARD_CACHE_MS) refresh_or_guard();
 	return evaluate_guard(or_guard_status);
+}
+
+/* WARMING THE GUARD AT BOOT (review follow-up, 2026-10-01): without this, the
+ * first openrouter spawn after every Servex restart finds an empty cache
+ * (`or_guard_status` starts `null`) and fails closed — correct behavior, but
+ * needlessly so, since nothing has actually gone wrong. `Agents.spawn()` stays
+ * synchronous on purpose (a dozen-plus callers across the codebase call it
+ * without `await`, so making it async is the "major surgery" CLAUDE.md says to
+ * ask before, not a one-line fix) — so instead of making spawn() wait on a
+ * live read, Servex's own startup calls this ONCE, before any agent could
+ * possibly spawn, so the cache is already warm by the time a spawn needs it.
+ *
+ * A no-op with no key file (nothing to read, and `read_key()` would just throw
+ * inside `refresh_or_guard` — harmless, but there's no reason to make a doomed
+ * network attempt on every boot of every worktree that happens not to have the
+ * owner's real key). If the read itself fails (network down, bad key, etc.)
+ * the cache stays `null` and the FIRST real spawn attempt still fails closed,
+ * now with the "retry in a few seconds" reason `evaluate_guard()` gives a null
+ * status — exactly the fallback the review asked for when spawn() can't await. */
+export async function warm_guard(){
+	if (!has_key()) return;
+	ensure_or_guard_timer();
+	await refresh_or_guard();
 }
