@@ -1,5 +1,5 @@
 import { div, span, button, input, small } from "/framework/core/View/View.js";
-import { servex_base, servex_fetch } from "/framework/ai2/inbox.js";
+import { servex_base, servex_fetch } from "./servex.js";
 
 /* THE PAGE'S INBOX — two different things share this one file, on purpose:
  * they're both "a message, on a page", they're just read from two different

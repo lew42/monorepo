@@ -1,0 +1,109 @@
+@layer base, theme, site, util;
+
+/* AI RAIL — the AI-only parts of the rail (rail.js). Everything else about the rail is the
+   ux block's (ux/Inbox/Inbox.css), so this file is only what no other inbox has. */
+@layer theme {
+
+	/* card.js writes the sub-card column's width as `--ai2-subw` on the `.ai2` shell
+	   (`Card.seam()`); the shell's grid reads `--inbox-subw`. Unset passes through as
+	   unset, so the grid's own default still applies. */
+	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw); }
+
+	/* The workspace word sits at the rail name's far end (workspace.js). */
+	.inbox-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }
+
+	/* USAGE at the top of the rail: three bars with the pace marker, no notes. The only
+	   place the usage meters exist (the owner, 2026-09-30). */
+	.ai2-usage-top { padding-block-end: 0.5em; }
+	.ai2-usage-top .ai-usage { display: flex; gap: 0.75em; }
+	.ai2-usage-top .ai-meter { flex: 1; min-width: 0; font-size: 0.8em; }
+	/* Time left shows (the owner, 2026-09-25: "always show the time remaining"); the pace projection does not fit. */
+	.ai2-usage-top .ai-note { display: block; font-size: 0.9em; white-space: nowrap; }
+	.ai2-usage-top .ai-proj { display: none; }
+	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
+
+	/* A GROUP ROW is a preview like any other, a little heavier. */
+	.ai2-group-row .inbox-row-title { font-size: 1.05em; }
+	.ai2-group-row .inbox-row-when { white-space: nowrap; }
+
+	/* A changed site page's own path, one line. */
+	.ai2-real-path {
+		display: block;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	/* THE FACE OF A CARD: a bar and a dollar figure (meter.js). A running bar pulses.
+	   SHORT, never the row's width (the owner, 2026-09-25: "a 2,000-pixel line across my
+	   screen as a progress bar makes no sense"); its count sits beside it in words. */
+	.ai2-meter-line {
+		margin-block-start: 0.3em;
+	}
+
+	.ai2-meter {
+		flex: 0 0 4em;
+		min-width: 0;
+		height: 0.4em;
+		border-radius: 0.2em;
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.ai2-meter-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: var(--accent, currentColor);
+	}
+
+	.ai2-meter.live .ai2-meter-fill {
+		animation: ai2-meter-pulse 1.4s ease-in-out infinite;
+	}
+
+	@keyframes ai2-meter-pulse {
+		50% { opacity: 0.45; }
+	}
+
+	.ai2-meter-cost {
+		flex: none;
+		font-size: 0.8em;
+		white-space: nowrap;
+	}
+
+	/* WHAT HAPPENED (activity.js): one quiet line under a resurfaced row, in the accent
+	   colour, clipped to one line; a click opens the card's Activity tab. */
+	.ai2-news {
+		margin-block-start: 0.35em;
+		padding: 0.15em 0.45em;
+		border-inline-start: 2px solid var(--prim);
+		background: var(--fill-a04);
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		cursor: pointer;
+	}
+	.ai2-news:hover { background: var(--surface); }
+	.ai2-news-who { font-weight: 600; }
+
+	/* THE FLAG OVER A SELECTION in the detail — fixed, placed from the selection's own rect. */
+	.ai2-selection-flag {
+		display: none;
+		position: fixed;
+		z-index: 5;
+		transform: translateX(-50%);
+		padding: 0.25em 0.6em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		background: var(--surface);
+		color: var(--error);
+		font: inherit;
+		line-height: 1;
+		cursor: pointer;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+	}
+
+	.ai2-selection-flag.on {
+		display: block;
+	}
+}

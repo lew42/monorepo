@@ -2,7 +2,6 @@ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
-import { servex_url } from "/framework/dev/servex_url.js";
 import { fold_asks } from "../ai/asks/fold.js";
 import { importance, silent_hours } from "./needs-rule.js";
 
@@ -115,36 +114,9 @@ export async function say(id, word, { note, quote } = {}){
  * `prompts.jsonl` the dictation box falls back to writing, `ok` stays false,
  * and the page says the assistant is off instead of throwing anything.
  */
-/* ⚠ `?servex=` IS READ ONCE, when this module loads, and kept: the first click
-   on a card drops the query string, and a test page pointed at a scratch Servex
-   would then silently post the next sentence into the REAL one.
- *
- * The bare fallback used to be the hard-coded `http://127.0.0.1:8090` — exactly
- * right on this machine, meaningless on a phone reading the page by its LAN
- * address ("127.0.0.1" then means the phone, not the PC running Servex). Off
- * localhost `servex_url()` (`dev/servex_url.js`) points here instead at
- * `<origin>/servex`, the same-origin proxy `Server/plugins/ServexProxy.js`
- * answers (mobile-nav, 2026-09-29). */
-const PINNED_SERVEX = new URLSearchParams(location.search).get("servex");
-export const servex_base = () => new URLSearchParams(location.search).get("servex") || PINNED_SERVEX || servex_url();
-
-/* SERVEX IS OPTIONAL. Everything that reads is a static file (below); Servex is
-   for writes, live agents and the push. `servex_up()` asks it ONCE — and never
-   on a host that is not a dev machine (production is static: no request at
-   all). Every Servex call goes through `servex_fetch`, which rejects at once
-   when it is down, so a caller's own `.catch` runs and nothing else hits the
-   network. Chrome itself prints one line for the one refused probe. */
-const dev_host = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$)/.test(location.hostname);
-let up = null;
-export const servex_up = () => up ??= ((PINNED_SERVEX || dev_host)
-	? fetch(servex_base() + "/log/features?n=1").then(r => r.ok).catch(() => false)
-	: Promise.resolve(false));
-servex_up.known = false;
-servex_up().then(ok => (servex_up.known = ok));
-export const servex_fetch = async (url, init) => {
-	if (!(await servex_up())) throw new TypeError("Servex is not running");
-	return fetch(url, init);
-};
+// servex_base, servex_up and servex_fetch moved to the Inbox extension; re-exported here unchanged.
+export { servex_base, servex_up, servex_fetch } from "/framework/core/Page/ext/Inbox/servex.js";
+import { servex_base, servex_up, servex_fetch } from "/framework/core/Page/ext/Inbox/servex.js";
 
 /**
  * ONE EVENTSOURCE PER BASE, DEMUXED BY LOG NAME. `prompts` was the only log

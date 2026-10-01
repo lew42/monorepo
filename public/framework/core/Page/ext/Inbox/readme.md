@@ -22,6 +22,14 @@ After that, every `{"inbox": …}` line on that page — before the `ext` line o
 — collects into `page.inbox`, an array, oldest first. See it running at
 [core/Page/ext/](/framework/core/Page/ext/) — the extension system's own demo page.
 
+## Draw an inbox: `InboxRail`
+
+`Rail.js` is the class that DRAWS an inbox: a rail of row previews beside the page you
+picked, persistent and never jumping. Any page builds one with
+`new InboxRail({ page: this }).mount()`; AI 2 builds its subclass `AIRail` (the AI page will, next merge).
+Its look and demo are the ux block, [/framework/ux/Inbox/](/framework/ux/Inbox/) — start
+there.
+
 ## The other Inbox in this file — the drawer's, unrelated
 
 This same file, `Inbox.js` (moved here 2026-09-30 from `ext/drawer/inbox.js`, which is
@@ -35,4 +43,6 @@ currently working on a page, not page.jsonl data. That part is untouched. See
 
 `Inbox.js` — both halves: `DrawerInbox` (the drawer's Servex-backed reader/writer, as
 before) and its new static `setup(page)` (the extension above, `page.inbox` from
-page.jsonl).
+page.jsonl). `Rail.js` — `InboxRail`, above. `servex.js` — Servex's address and whether
+it is up (moved here from `ai2/inbox.js`, which re-exports it, so this folder imports
+nothing from AI 2).
