@@ -1,0 +1,4 @@
+{"assign":{"title":"Probe tasks: tiny open-ended jobs that score the system on any model","by":"mastermind-servex-9","agent":"mastermind-servex-9","started_at":"2026-09-30T23:36:32-05:00","budget_usd":8,"parent_task":"public/framework/ai/2026-09-30/openrouter-harness","brief":"public/framework/ai/2026-09-30/openrouter-harness/requirements.md#2b","now":"designing the probe set and the scoring checklist"}}
+{"action":{"at":"2026-09-30T23:37:39-05:00","did":"edit","files":["public/framework/ai/2026-09-30/probe-tasks/probes.md"]}}
+{"action":{"at":"2026-09-30T23:37:48-05:00","did":"edit","files":["public/framework/ai/2026-09-30/probe-tasks/probes.json"]}}
+{"action":{"at":"2026-09-30T23:38:06-05:00","did":"edit","files":["public/framework/ai/2026-09-30/probe-tasks/runner/requirements.md"]}}

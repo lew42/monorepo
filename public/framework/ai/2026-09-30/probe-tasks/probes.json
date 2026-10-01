@@ -1,0 +1,24 @@
+{
+  "readme": "Probe tasks: tiny open-ended jobs scored by six fixed checks. See probes.md. {topic}/{thing} are filled per run from `topics`.",
+  "checks": ["parses", "loads clean", "followed the prompt", "used the right skills", "opened, logged, landed a task", "linked from its parent"],
+  "topics": ["owls", "how bread rises", "the first bicycles", "why the sky is blue", "a walk in the rain"],
+  "control_model": "claude-haiku-4-5-20251001",
+  "first": ["page-blog", "log-line"],
+  "probes": [
+    { "id": "page-blog", "prompt": "Make a new page here: a short blog post about {topic}.", "makes_page": true,
+      "skills": ["new-task", "code", "new-page", "finish-task"], "checks": [1, 2, 3, 4, 5, 6] },
+    { "id": "log-line", "prompt": "Write one log line to your task saying, in one sentence, what this directory is for.", "makes_page": false,
+      "skills": ["new-task", "finish-task"], "checks": [5], "extra": "the line came through .claude/hooks/append.mjs (the guard refuses a shell append)" },
+    { "id": "demo-add", "prompt": "Add one more example to the demo on this page.", "makes_page": false,
+      "skills": ["new-task", "code", "finish-task"], "checks": [1, 2, 3, 4, 5], "needs": "a directory with a page.js that already has a demo" },
+    { "id": "css-tweak", "prompt": "Make the main heading on this page a little smaller.", "makes_page": false,
+      "skills": ["new-task", "css", "finish-task"], "checks": [1, 2, 3, 4, 5], "extra": "the new rule sits inside a CSS layer" },
+    { "id": "doc-fix", "prompt": "One sentence in this directory's readme is out of date about {thing}. Fix it.", "makes_page": false,
+      "skills": ["new-task", "documentation", "finish-task"], "checks": [3, 4, 5] }
+  ],
+  "labels": {
+    "a": "system: the same cell fails on every model, the control included; fix a skill, readme or CLAUDE.md",
+    "b": "model: the control passes this cell and this model does not; a matrix entry",
+    "c": "config or parity: the run never reached the work (tool schema refused, no hook fired, errored before the first edit)"
+  }
+}
