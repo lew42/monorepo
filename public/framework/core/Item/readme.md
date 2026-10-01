@@ -1,5 +1,20 @@
 # Item — one node of a persistent document tree; the base class for anything that nests and saves (Panel, editor Block)
 
+## Architecture
+
+```js
+class Item {                          // ✅ the persistent object; Page will extend it (💭 owner's OK)
+  id, type                            // type = its registered class name
+  data: {}                            // get(key), set(key, value) → emits "change"
+  items: List                         // ✅ its children (🔶 a Content), made on the first add (🔶 lazy)
+  parent: Item
+  add(...kids), remove(kid), move(parent, before), walk(fn), find(id), root(), contains(item)
+  on(event, fn), off, emit            // events bubble up to the root
+  save()                              // ✅ whole document through its Saver → 🔶 one line in the nearest page.jsonl
+  toJSON(), static hydrate(json), static register(Class, name), static open(saver)
+}
+```
+
 ## Use
 
 ```js

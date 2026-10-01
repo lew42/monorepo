@@ -10,6 +10,32 @@ same log can never tear a line.
 node Servex/sustain.mjs
 ```
 
+## Architecture
+
+```js
+class Servex {                       // the always-on process, :8090 (proxy on :80)
+  agents: Agents                     // spawn, message, stop, dormant, the working cap of 5
+  sessions: Sessions                 // voice: one fast + one smart assistant, global
+  dispatcher: Dispatcher             // routes a prompt to the right agent
+  task_loop: TaskLoop                // node-led: re-prompts and escalates a task's steps
+  heartbeat: Heartbeat               // status check → triage → escalate
+  lifecycle: Lifecycle               // reaps finished or stuck agents
+  pool: Pool, worktrees: Worktrees   // the quick-fix pool; per-task worktrees
+  cards: Cards, inbox: Inbox, asks: Asks   // AI board cards; page inboxes; the asks ledger
+  log: Log, stream: Stream           // single-writer logs; live streams to the browser
+  usage: Usage, procmon: Processes   // usage meters; the process monitor
+  mcp: MCP, proxy: ReverseProxy, ports: PortRegistry   // HTTP tools; *.localhost routing
+}
+
+Agents.Agent = class Agent {         // one Claude Agent SDK session
+  id, role, model, provider          // provider: anthropic | openrouter (ext/openrouter)
+  state                              // working | idle | dormant | stopped
+  session_id, parent, cost, context
+  send(text), stop(), revive()
+}
+// Agent tools are in-process node functions (agents/tools.js); the VS Code session uses the MCP servers.
+```
+
 That is the whole command, from the repo root, and it is the one to use: it
 starts Servex and **starts it again whenever it dies** — measured 3.1 seconds
 from a hard kill to the dashboard answering again. `--status` says whether it is

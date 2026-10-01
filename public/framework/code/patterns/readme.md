@@ -20,6 +20,15 @@ assign(...args){ return Object.assign(this, ...args); }
 ```
 `...args`, never named parameters or a `config` object; later args win.
 
+**Parts as statics:** a class carries its parts, so one import brings them all:
+```js
+List.View = class ListView extends View { }   // list.View and ListView are the same class
+new this.constructor.View({ list: this })      // use the part through the constructor…
+class MyList extends List { static View = class extends List.View { } }   // …so a subclass swaps it
+```
+
+**Every class module's readme opens with `## Architecture`:** a code block with the class's shape, properties first, then the main methods, `[X]` for an array, and its parts and submodules. It's the ONLY copy (no duplicate guide), and whoever changes the class updates it.
+
 ## Watch out
 
 - **Capturing is synchronous** — a factory call written after an `await` appends to the wrong

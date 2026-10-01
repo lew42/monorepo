@@ -1,5 +1,17 @@
 # List — the ordered collection behind `item.items`; an implementation detail of Item, not a second API
 
+## Architecture
+
+```js
+class List {                          // ✅ the plain ordered array wrapper; upgrade once, every list gains
+  children: [any]                     // ✅ (🔶 to be renamed `items`)
+  owner                               // the Item that holds it; children's parent
+  append(x), insert_before(x, ref), remove(x), each(fn), find(fn), index_of(x), length
+  static View = class ListView extends View { }   // 🔶 list.view: drawn on demand, sortable by default
+}
+class Content extends List { }        // 🔶 core/Item/Content.js: edit by id (add, set, move, remove, after)
+```
+
 ## Use
 
 ```js

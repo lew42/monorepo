@@ -2,6 +2,23 @@
 
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
+## Architecture
+
+```js
+class Page extends PageLog {          // ✅ (💭 Page extends Item: needs the owner's OK)
+  url, title, parent: Page
+  children: Map                       // ✅ name → Page (🔶 becomes items: Content)
+  view: View
+  set(line)                           // ✅ one page.jsonl line: a method key calls, a settable merges, else data
+  route(name) → Page                  // dynamic children (cards, md/, fs/)
+  static use(Ext)                     // ✅ page extensions (ext/: Inbox first)
+}
+class Card extends Page { }           // ✅ a smaller page (card/, ai2/card.js)
+class System extends Page { }         // 🔶 design, code, ui, ux, ai: shared top tabs, readmes, an inbox
+// sub-modules: card/ (the card rules), weight/ (weight = 1 by default), ext/ (Inbox), audit/, layout/
+// design: ai/2026-09-30/proposal-flow/page-item-design.md
+```
+
 ## How a page loads
 
 A url is resolved one folder name at a time: memory → a declared `page.jsonl` → `md/`/`fs/` →
