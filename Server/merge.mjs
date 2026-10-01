@@ -132,7 +132,7 @@ function reviewGate(branch, head){
 	if (!current) return `refused: ${branch}'s review is stale; run: ${cmd}`;
 	const rs = reviewStatus(best.td);
 	// Name which findings, not just how many — so whoever reads the refusal doesn't have to go hunting.
-	if (/unanswered/.test(rs)) return `refused: ${branch}'s review has an unanswered finding (${rs}); run: ${cmd}`;
+	if (/unanswered/.test(rs)) return `refused: ${branch}'s review has an unanswered finding (${rs}). An answer is a {"review":{"answer":{"n":N,"reply":"fixed: …"}}} line in ${best.td}/task.jsonl (append.mjs; fixed/declined, or noted for a [note]) — a line typed into review.md does not count. Or re-review: ${cmd}`;
 	// A branch that touches a page needs the page-shaped report (screenshots at all four widths,
 	// every layout question answered), not just the plain brief-and-diff review.md a non-page
 	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
