@@ -643,11 +643,22 @@ export default class Servex extends Events {
                     n: { type: "number", description: "How many lines. Default 50." } } } },
                 async a => JSON.stringify(await this.log.tail(a.name, a.n || 50), null, 2))
 
-            .tool("append_log", { description: "Append one JSON entry to a named log, through Servex. Servex stamps `at` and is the only writer, so two callers can never tear a line.",
+            /* VALIDATED FIRST (2026-09-30): the entry is judged by .claude/hooks/jsonl-schema.mjs's
+             * check_event() before Log.append() sees it — an entry with no string `type`, or a
+             * task.jsonl-shaped line sent here by mistake, is refused as `{ok:false, why}` and nothing
+             * is written. Only this TOOL is judged; Servex's own internal writers call Log.append()
+             * directly and are untouched. The schema is loaded lazily and fails OPEN: a missing or
+             * broken schema file must never stop Servex booting or refuse a write. */
+            .tool("append_log", { description: "Append one event to one of Servex's own named logs (never a repo file — a task.jsonl line goes through `node .claude/hooks/append.mjs`). The entry is validated first: it needs a string `type`, like {\"type\":\"focus\",\"ref\":\"<card id>\"}; a refusal comes back as {ok:false, why} and nothing is written. Servex stamps `at` and is the only writer, so two callers can never tear a line.",
                 inputSchema: { type: "object", required: ["name", "entry"], properties: {
                     name: { type: "string", description: "Which log. Letters, digits, dot, dash, underscore; it becomes a filename." },
-                    entry: { type: "object", description: "The entry. Any shape; `at` is added for you." } } } },
-                async a => JSON.stringify(await this.log.append(a.name, a.entry ?? {})));
+                    entry: { type: "object", description: "The event: one flat object with a string `type`; `at` is added for you." } } } },
+                async a => {
+                    const schema = await import("../.claude/hooks/jsonl-schema.mjs").catch(() => null);
+                    const why = schema?.check_event?.(a.name, a.entry);
+                    if (why) return JSON.stringify({ ok: false, why });
+                    return JSON.stringify(await this.log.append(a.name, a.entry ?? {}));
+                });
 
         /* And the agent host's five, through the very same seam — `spawn_agent`,
          * `send_to_agent`, `interrupt_agent`, `list_agents`, `stop_agent`. Ten
