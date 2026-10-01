@@ -16,7 +16,8 @@ function test(name, fn){ fn(); n++; console.log(`ok - ${name}`); }
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "openrouter-test-"));
 process.env.LOCALAPPDATA = scratch;
 
-const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for } = await import("./provider.js?t=" + Date.now());
+const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for, evaluate_guard, OR_DAILY_CAP_USD }
+	= await import("./provider.js?t=" + Date.now());
 
 test("provider_for: a model id with a / is openrouter", () => {
 	assert.equal(provider_for("openai/gpt-6-luna"), "openrouter");
@@ -64,6 +65,36 @@ test("disallowed_tools_for: blocks ArtifactData on Gemini only (the tool-schema 
 	assert.deepEqual(disallowed_tools_for("openai/gpt-6-luna"), []);
 	assert.deepEqual(disallowed_tools_for("deepseek/deepseek-v4.1-flash"), []);
 	assert.deepEqual(disallowed_tools_for(undefined), []);
+});
+
+test("evaluate_guard: ok when well under the daily cap and credit is plentiful", () => {
+	const r = evaluate_guard({ usage: 1, usage_daily: 0.5, limit: 100, limit_remaining: 49.5 });
+	assert.equal(r.ok, true);
+	assert.equal(r.reason, null);
+});
+
+test("evaluate_guard: refuses at or over the daily cap", () => {
+	assert.equal(evaluate_guard({ usage_daily: OR_DAILY_CAP_USD, limit_remaining: 40 }).ok, false);
+	assert.equal(evaluate_guard({ usage_daily: OR_DAILY_CAP_USD + 1, limit_remaining: 40 }).ok, false);
+	// one cent under the cap is still fine
+	assert.equal(evaluate_guard({ usage_daily: OR_DAILY_CAP_USD - 0.01, limit_remaining: 40 }).ok, true);
+});
+
+test("evaluate_guard: refuses under $1 of credit left even under the daily cap", () => {
+	const r = evaluate_guard({ usage_daily: 0.1, limit_remaining: 0.99 });
+	assert.equal(r.ok, false);
+	assert.match(r.reason, /credit left/);
+});
+
+test("evaluate_guard: a custom cap overrides OR_DAILY_CAP_USD", () => {
+	assert.equal(evaluate_guard({ usage_daily: 2, limit_remaining: 40 }, 1).ok, false);
+	assert.equal(evaluate_guard({ usage_daily: 2, limit_remaining: 40 }, 5).ok, true);
+});
+
+test("evaluate_guard: FAILS CLOSED with no reading at all (null status)", () => {
+	const r = evaluate_guard(null);
+	assert.equal(r.ok, false);
+	assert.match(r.reason, /can't be checked/);
 });
 
 fs.rmSync(scratch, { recursive: true, force: true });

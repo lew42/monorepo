@@ -16,6 +16,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 /* The owner's key never lives in the repo (CLAUDE.md: no secrets committed). */
 export const KEY_PATH = path.join(
@@ -94,6 +95,23 @@ export async function key_usage(key){
 	return usage;
 }
 
+/* The same `GET /key` call, but the four fields the spend guard needs (owner's
+ * $50-credit brief, Phase 2, 2026-10-01): `usage` (all-time total, key_usage()'s
+ * own number), `usage_daily` (today's spend — OpenRouter resets this itself at
+ * UTC midnight), `limit` (the key's hard ceiling, $100, no reset) and
+ * `limit_remaining` (credits actually left, $50 to start). Any of the three new
+ * fields coming back non-numeric is read as "not reported", not an error —
+ * `evaluate_guard()` below treats a missing field as "can't rule it out". */
+export async function key_status(key){
+	const res = await fetch("https://openrouter.ai/api/v1/key", { headers: { Authorization: `Bearer ${key}` } });
+	if (!res.ok) throw new Error(`OpenRouter /key returned ${res.status}`);
+	const body = await res.json();
+	const d = body?.data ?? {};
+	if (typeof d.usage !== "number") throw new Error("OpenRouter /key response had no numeric data.usage");
+	const num = v => typeof v === "number" ? v : null;
+	return { usage: d.usage, usage_daily: num(d.usage_daily), limit: num(d.limit), limit_remaining: num(d.limit_remaining) };
+}
+
 /* The per-turn cost OpenRouter itself computed for one generation id. The SDK's
  * assistant `message.id` DOES turn out to be the OpenRouter generation id —
  * confirmed on gemini-3.8-flash's spike row (2026-10-01), though not every
@@ -148,4 +166,82 @@ export async function real_turn_cost({ key, message_id, usage_before, attempts =
 		if (typeof usage_before !== "number") return { cost: null, usage_now, source: "key_diff" };
 		return { cost: Math.max(0, usage_now - usage_before), usage_now, source: "key_diff" };
 	} catch { return null; }
+}
+
+/* THE SPEND GUARD (requirements.md Phase 2, item 1 — the owner's $50 OpenRouter
+ * credit, 2026-10-01: "it could easily go in a day if we're careless").
+ * `Agents.spawn()` needs a yes/no answer SYNCHRONOUSLY, once per spawn, with no
+ * network call on the hot path — so the real `/key` read happens on a 30s
+ * background timer, and spawn() only ever reads whatever that timer last found. */
+export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || 8;
+const OR_GUARD_CACHE_MS = 30_000;
+let or_guard_status = null;       // last successful key_status() reading
+let or_guard_checked_at = 0;
+
+/* The snapshot the dashboard reads (ext/AITask/dashboard.js merges this into the
+ * same usage_rail() meter the Claude session/weekly windows already use — one
+ * component, not a second one). Written next to usage.json so both live under
+ * the same "ai" directory a reader already knows to look in. */
+const USAGE_SNAPSHOT = path.join(fileURLToPath(new URL(".", import.meta.url)),
+	"../../../public/framework/ai/openrouter-usage.json");
+
+function write_usage_snapshot(status){
+	try {
+		if (!status) return;   // a failed read leaves the last good snapshot up, not a blank one
+		const midnight = new Date(); midnight.setUTCHours(24, 0, 0, 0);   // OpenRouter resets usage_daily at UTC midnight
+		const percent = typeof status.usage_daily === "number"
+			? Math.round(status.usage_daily / OR_DAILY_CAP_USD * 100) : 0;
+		const snapshot = { utilization: { limits: [{
+			kind: "openrouter_daily", group: "daily", percent, resets_at: midnight.toISOString(),
+			usage_daily: status.usage_daily, limit_remaining: status.limit_remaining
+		}] } };
+		fs.mkdirSync(path.dirname(USAGE_SNAPSHOT), { recursive: true });
+		fs.writeFileSync(USAGE_SNAPSHOT, JSON.stringify(snapshot, null, 2));
+	} catch {}   // the dashboard just keeps showing the last snapshot — never worth crashing over
+}
+
+async function refresh_or_guard(){
+	try { or_guard_status = await key_status(read_key()); }
+	catch { or_guard_status = null; }   // FAILS CLOSED: no reading = every openrouter spawn refused
+	or_guard_checked_at = Date.now();
+	write_usage_snapshot(or_guard_status);
+}
+
+/* LAZY on purpose: merely IMPORTING this module (which Agents.js does always,
+ * so every Servex test that imports Agents.js does too) must never fire a real
+ * network call. The 30s timer only starts the first time something actually
+ * asks `spend_guard()` a question — i.e. the first real openrouter spawn
+ * attempt — and `.unref()`'d so it can never be the reason a short-lived
+ * script (spike.mjs, a test) stays alive after its own work is done. */
+let or_guard_timer = null;
+function ensure_or_guard_timer(){
+	if (or_guard_timer) return;
+	or_guard_timer = setInterval(refresh_or_guard, OR_GUARD_CACHE_MS);
+	or_guard_timer.unref();
+}
+
+/* The decision itself, pulled out as a PURE function (no network, no cache,
+ * no clock) so it can be tested directly against a made-up reading instead of
+ * a live OpenRouter account. `cap` defaults to the module's own
+ * `OR_DAILY_CAP_USD` but takes an override for a test's own numbers. */
+export function evaluate_guard(status, cap = OR_DAILY_CAP_USD){
+	if (!status) return { ok: false,
+		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — refusing to spend" };
+	if (typeof status.usage_daily === "number" && status.usage_daily >= cap)
+		return { ok: false, reason: `today's OpenRouter spend ($${status.usage_daily.toFixed(2)}) is at or over the $${cap}/day cap` };
+	if (typeof status.limit_remaining === "number" && status.limit_remaining < 1)
+		return { ok: false, reason: `OpenRouter credit left ($${status.limit_remaining.toFixed(2)}) is under $1` };
+	return { ok: true, reason: null };
+}
+
+/* What `Agents.spawn()` actually calls: the cached reading, evaluated. Starts
+ * the background timer on first call; a stale cache (>30s old, including "no
+ * reading yet" on the very first call ever) also kicks an immediate refresh
+ * for the NEXT call to see — this call still answers from whatever is cached
+ * right now (failing closed if that's nothing), so a spawn is never slowed
+ * down waiting on the network. */
+export function spend_guard(){
+	ensure_or_guard_timer();
+	if (Date.now() - or_guard_checked_at > OR_GUARD_CACHE_MS) refresh_or_guard();
+	return evaluate_guard(or_guard_status);
 }

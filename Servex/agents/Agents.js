@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -112,6 +112,15 @@ export class Agents {
 		 * a caller or a future tier could still say both — refuse it here, once. */
 		if (provider === "openrouter" && !String(model).includes("/"))
 			throw new Error(`provider "openrouter" needs an OpenRouter model id (e.g. "openai/gpt-6-luna"), not "${model}" — Claude itself stays on the subscription (openrouter/provider.js)`);
+		/* THE SPEND GUARD (openrouter/provider.js, requirements.md Phase 2 item 1 —
+		 * the owner's $50 OpenRouter credit): refused BEFORE an agent spends a cent,
+		 * not after. spend_guard() answers from a 30s cache, never a live network
+		 * call on this hot path, and fails closed — "can't check" refuses, same as
+		 * "over the cap" does. */
+		if (provider === "openrouter"){
+			const guard = spend_guard();
+			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
+		}
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
@@ -1119,6 +1128,14 @@ Agents.Agent = class Agent {
 			if (typeof r.cost === "number"){
 				this.or_cost = (this.or_cost ?? 0) + r.cost;
 				this.cost = this.or_cost;
+				/* THE LEDGER (requirements.md Phase 2 item 1b): one line per settled
+				 * turn, through the host's own Log — the SAME single writer every other
+				 * event in this file goes through (register(), above), so two agents
+				 * settling a turn at once can never tear a line in the ledger file. */
+				this.host?.store?.().append("openrouter", {
+					agent: this.id, model: this.model, effort: this.effort,
+					turn: this.turns, cost_usd: r.cost, source: r.source
+				}).catch(() => {});
 			}
 			if (typeof r.usage_now === "number") this.or_usage_before = r.usage_now;
 			this.host?.register?.(this);

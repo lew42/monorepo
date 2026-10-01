@@ -85,6 +85,24 @@ tool at all: Gemini's own function-calling validator demands every nested array 
 both `spike.mjs` and `Agents.js` pass it as `disallowedTools`. Confirmed fixed by rerunning the
 spike on both Gemini models.
 
+### The spend guard (the owner's $50 credit, Phase 2)
+
+Three pieces, all in `provider.js` unless noted:
+- **The cap** — `spend_guard()` refuses an openrouter spawn with one clear line once today's
+  OpenRouter spend (`usage_daily`) is at or over `SERVEX_OR_DAILY_CAP` (default $8), or credit
+  left (`limit_remaining`) drops under $1. `Agents.spawn()` calls it before creating the agent.
+  It answers from a 30s cache — never a live network call on a spawn — and **fails closed**: no
+  reading yet, or the last `/key` read failed, refuses too. `evaluate_guard(status, cap)` is the
+  pure decision underneath it, tested directly in `provider.test.mjs` (no network needed).
+- **The ledger** — once a turn's real cost settles, `Agents.js`'s `refresh_or_cost()` appends one
+  line (`{at, agent, model, effort, turn, cost_usd, source}`) to the `openrouter` log, through the
+  host's own `Log` — the same single-writer object every other agent event already goes through,
+  so two agents settling a turn at once can never tear a line.
+- **The dashboard** — the spend guard also writes `openrouter-usage.json` (next to `usage.json`),
+  and `ext/AITask/dashboard.js`'s `rail()` merges its one `limit` into the SAME `usage_rail()`
+  meter the Claude session/weekly windows already draw — one more bar, not a second widget.
+  Credit left rides along as the meter's label.
+
 ### Cost is per key, not per agent
 
 `key_usage()` is OpenRouter's running total for the whole key. Two OpenRouter agents spending on

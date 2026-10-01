@@ -265,9 +265,20 @@ export function active_strip(list){
  *   await) and fills it inside a callback, which re-establishes the captor the
  *   first await dropped.
  */
+/* openrouter-usage.json (Servex/ext/openrouter/provider.js's spend guard): the same
+   {utilization:{limits:[...]}} shape usage.json already carries, just one more entry —
+   merged in here so usage_rail() draws both the Claude windows and OpenRouter spend as
+   ONE list of meters, never a second rail. Missing file (OpenRouter never used, or
+   Servex not running) is silent: `json()` already returns null for a 404. */
+function merge_usage(claude, openrouter){
+	const limits = [...(claude?.utilization?.limits ?? []), ...(openrouter?.utilization?.limits ?? [])];
+	return limits.length ? { utilization: { limits } } : null;
+}
+
 export function rail(page){
 	return div.c("ai-index-rail flow", async $r => {
-		let [usage, list] = await Promise.all([json("/framework/ai/usage.json"), all_tasks()]);
+		let [usage, or_usage, list] = await Promise.all(
+			[json("/framework/ai/usage.json"), json("/framework/ai/openrouter-usage.json"), all_tasks()]);
 
 		const draw = () => $r.empty(() => {
 			// ⚠ ABOVE what is running. A bot can do almost everything here; the few
@@ -276,7 +287,12 @@ export function rail(page){
 			//   page. Silent when there are none, which is the normal state. needs.js.
 			needs_strip(needs_all(list));
 			active_strip(list);
-			usage_rail(usage);
+			// The credit-left figure lives in the raw limit, not the meter's own fields,
+			// so it rides along as a label override rather than a second number on the page.
+			const or_limit = or_usage?.utilization?.limits?.[0];
+			usage_rail(merge_usage(usage, or_usage), or_limit?.limit_remaining != null
+				? { openrouter_daily: `OpenRouter — today ($${or_limit.limit_remaining.toFixed(2)} credit left)` }
+				: undefined);
 			highlights(list);
 			div.c("ai-out", () => {
 				span.c("muted", "Every task of every day, newest first — ");
