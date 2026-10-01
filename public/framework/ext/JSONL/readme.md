@@ -1,7 +1,9 @@
 # JSONL — append-only `.jsonl` logs the AI blindly appends to, replayed back into object state; the task and day logs under `ai/`, for the dashboards that read them
 
 ## Use
-One JSON object per line, one verb per key, the value carrying its own `at`. Verbs: `assign` (merge onto the object — the constructor's `Object.assign`, replayed), `log` and `action` (append to `logs`/`actions`); `TaskJSONL` adds `agent` (merged by `task` when the same agent lands), `ask` (one thing the owner asked for, merged by `id`), `decision` (one choice and the alternatives it was made over, merged by `id`), `verdict` (the owner approving or improving one), `rank` (the owner's order for one of those lists — the last line wins outright), `chat`, `shot`, `note` (a message from the orchestrator to a task's own board, merged by `id`).
+One JSON object per line, one verb per key, the value carrying its own `at`. Verbs: `assign` (merge onto the object — the constructor's `Object.assign`, replayed), `log` and `action` (append to `logs`/`actions`); `TaskJSONL` adds `agent` (merged by `task` when the same agent lands), `ask` (one thing the owner asked for, merged by `id`), `decision` (one choice and the alternatives it was made over, merged by `id`), `verdict` (the owner approving or improving one), `rank` (the owner's order for one of those lists — the last line wins outright), `chat`, `shot`, `note` (a message from the orchestrator to a task's own board, merged by `id`), `experiment` (one thing tried — try, measure, result — joins `logs` as one line) and `review` (a review pass's summary or one answer, same deal).
+
+A line with no verb at all — an old `{"at", "task", "msg"}` day-log line, or a pre-verb `{"type": "launch", …}` task line — still renders as a plain log line as long as it carries something to read (`msg`, `text` or `title`) beside a `type` or `at`; see [`static flat()`](./doc/decisions.md#flat-lines-render-as-a-plain-log-line-never-warn).
 
 ```js
 import { TaskJSONL } from "/framework/ext/JSONL/JSONL.js";
@@ -24,6 +26,8 @@ Append with bash `printf '%s\n' '{"log": {"at": "…", "msg": "…"}}' >> task.j
 - `needs: {owner, minutes}` on an `ask` or a `decision` is "this one is waiting on you"; the off switch is `needs.done`, NEVER the ask's own `status` — a landed ask can still be waiting on a login. [doc/task-jsonl.md](./doc/task-jsonl.md)
 - A subclass adding a verb must add it to `static verbs` and clear its array in `reset()` — a handler alone routes the line to `skip()`. [doc/task-jsonl.md](./doc/task-jsonl.md)
 - An unknown verb warns once per verb per file, not once per line — `skipped` still counts every dropped line. [doc/task-jsonl.md](./doc/task-jsonl.md)
+- A flat line (no verb key at all) only skips the warning when it carries `msg`/`text`/`title` beside a `type` or `at` — one with neither still warns, once per stray key. [doc/decisions.md](./doc/decisions.md)
+- `experiment` and `review` don't grow their own array — they push a computed `msg` onto `logs`, the same line every other reader of this file already draws. [doc/task-jsonl.md](./doc/task-jsonl.md)
 
 ## More
 - [Overview](/framework/ext/JSONL/) · [`doc/task-jsonl.md`](./doc/task-jsonl.md) the task manifest verbs · [`doc/live.md`](./doc/live.md) streaming, registry, resets · [`doc/decisions.md`](./doc/decisions.md) the record: verb format, deferred, who uses it
