@@ -120,14 +120,26 @@ export default class Worktrees extends Events {
 		return to;
 	}
 
-	/* Minutes since git last touched this worktree: its index, HEAD or logs/HEAD
-	 * under main's .git/worktrees/<name>/ (a commit, a checkout, a status refresh). */
+	/* Minutes since git last touched this worktree: its index, HEAD (by mtime) or
+	 * logs/HEAD (by its LAST LINE's own timestamp, not the file's mtime — git gc or
+	 * reflog expire rewrites logs/HEAD without adding an entry, which bumped the
+	 * mtime of all 36 worktrees at once on 2026-10-01 and made every one look freshly
+	 * used). A commit, a checkout or a status refresh is what actually counts. */
 	quiet_min(wt){
 		if (!this.common) return null;
 		const gitdir = path.join(this.common, "worktrees", wt.name);
 		let last = 0;
-		for (const f of ["index", "HEAD", path.join("logs", "HEAD")]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
+		for (const f of ["index", "HEAD"]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
+		last = Math.max(last, this.reflog_last(path.join(gitdir, "logs", "HEAD")));
 		return last ? Math.round((Date.now() - last) / 60000) : null;
+	}
+
+	/* The timestamp git itself wrote on logs/HEAD's last line: `... <email> <unix> <tz>\t<message>`. */
+	reflog_last(file){
+		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return 0; }
+		const last = text.split("\n").filter(Boolean).at(-1);
+		const m = last?.match(/<[^>]*>\s+(\d+)\s+[+-]\d{4}\t/);
+		return m ? Number(m[1]) * 1000 : 0;
 	}
 
 	agent_in(dir){

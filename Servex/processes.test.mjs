@@ -2,6 +2,8 @@
  *   node Servex/processes.test.mjs
  * Rows are [pid, ppid, name, mb, cpu_s, born, cmd]. */
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import Processes, { task_key } from "./Processes.js";
 
 let pass = 0;
@@ -90,4 +92,28 @@ ok(!n(" D", "public/files.jsonl") && !n("R ", "a.jsonl -> b.jsonl"), "a deletion
 const sx = { projects: [{ name: "gone-wt" }, { name: "monorepo" }], processes: new Map([["gone-wt", {}]]), ports: { ports: { "gone-wt": 3150, monorepo: 3104 }, save(){ this.saved = true; } } };
 new Worktrees({ servex: sx }).forget("gone-wt");
 ok(sx.projects.length === 1 && !sx.processes.has("gone-wt") && !("gone-wt" in sx.ports.ports) && sx.ports.saved, "a removed worktree's project, runner and port are forgotten");
+
+// quiet_min: logs/HEAD's mtime lies when git gc touches it without appending — the LAST LINE's own
+// timestamp is what counts. A fixture under a temp dir: logs/HEAD written (so its mtime is "now")
+// but its last entry is 3 days old.
+{
+	const os = await import("node:os");
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "quiet-min-"));
+	const gitdir = path.join(tmp, "worktrees", "fixture-wt");
+	fs.mkdirSync(path.join(gitdir, "logs"), { recursive: true });
+	const threeDaysAgo = Math.round(Date.now() / 1000) - 3 * 86400;
+	fs.writeFileSync(path.join(gitdir, "logs", "HEAD"),
+		`0000000000000000000000000000000000000000 1111111111111111111111111111111111111111 Someone <someone@example.com> ${threeDaysAgo} -0500\tcommit: old work\n`);
+	fs.writeFileSync(path.join(gitdir, "HEAD"), "1111111111111111111111111111111111111111\n");
+	fs.writeFileSync(path.join(gitdir, "index"), "fake index\n");
+	// HEAD and index are old too, so only logs/HEAD's (mis-set) mtime would make this look fresh
+	const old = new Date(Date.now() - 3 * 86400000);
+	fs.utimesSync(path.join(gitdir, "HEAD"), old, old);
+	fs.utimesSync(path.join(gitdir, "index"), old, old);
+	const quiet = new Worktrees({ servex: sx });
+	quiet.common = tmp;
+	const min = quiet.quiet_min({ name: "fixture-wt" });
+	ok(min !== null && min >= 3 * 24 * 60 - 5, "logs/HEAD touched now but last entry 3 days old still counts as quiet");
+	fs.rmSync(tmp, { recursive: true, force: true });
+}
 console.log(`processes.test (with worktrees): ${pass} checks pass`);
