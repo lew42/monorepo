@@ -5,6 +5,7 @@
 //    `...Parent.verbs` spreads resolved, a class with no list inheriting its parent's. Every reader
 //    verb must be in the schema, and every schema verb must be in the reader unless it is listed
 //    `pending` (reader not caught up yet) or marked `extra` (read somewhere else, e.g. groups.js).
+//    A pending verb the reader already has FAILS too: the list must shrink the moment the reader catches up.
 // 2. JUDGING: check() refuses a flat line and an unknown verb, accepts experiment and review.
 // 3. END TO END: append.mjs on a throwaway task.jsonl refuses (exit 3, file untouched) and accepts.
 import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
@@ -53,7 +54,7 @@ for (const [kind, s] of Object.entries(schemas)){
 		ok(!reader_only.length, `${kind}: every ${s.reader.class} verb is in the schema${reader_only.length ? " — missing: " + reader_only.join(", ") : ""}`);
 		ok(!schema_only.length, `${kind}: every schema verb is in ${s.reader.class} or listed pending${schema_only.length ? " — not read: " + schema_only.join(", ") : ""}`);
 		const arrived = [...pending].filter(v => reader.has(v));
-		if (arrived.length) console.log(`note  ${kind}: ${arrived.join(", ")} now in ${s.reader.class} — drop from pending`);
+		ok(!arrived.length, `${kind}: nothing listed pending is already in ${s.reader.class}${arrived.length ? " — drop from pending: " + arrived.join(", ") : ""}`);
 		for (const [verb, v] of Object.entries(s.verbs)) if (v.extra)
 			ok(readFileSync(join(ROOT, v.extra), "utf8").includes(`entry?.${verb}`), `${kind}: "${verb}" is read by ${v.extra}`);
 	}
