@@ -35,47 +35,42 @@
 		flex: none;
 	}
 
-	/* ⚠ WRAPS ON A PHONE (the owner, 2026-09-30, on a phone: "the text area is
-	   about 50% of my screen's width… a massive void of space to the right of
-	   it, above the three or four buttons"). The box asks for 18em; when the row
-	   cannot give that AND the buttons, the button group (`.chatbox-compose-actions`,
-	   one unit so it never splits) drops to its own row under the box, pushed
-	   right, and the box takes the whole width. `align-items: flex-end` keeps the buttons level with
-	   the bottom of a tall box, never floating in the middle of empty space. */
+	/* ONE BOX ON TOP, FULL WIDTH; ONE ROW BELOW IT (one-dictation, 2026-10-01 — the
+	   owner, on a phone: "the text area was kind of partial width and would grow
+	   really tall and then create this big void of empty space… if the text area
+	   is gonna grow, it needs to be like full width… the send button could be
+	   below it"). This replaced an earlier layout that only dropped the buttons to
+	   their own row once the box and the buttons together did not fit one line —
+	   now it is ALWAYS a column, at every width, so every composer on the site
+	   (this one, `ux/Dictate`'s own, AI 2's card composer) reads the same way.
+	   `padding-inline` is the "a little side padding on a phone" the owner asked
+	   for — small enough that a wide screen never notices it. */
 	.chatbox-compose {
 		position: relative;
 		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-end;
+		flex-direction: column;
 		gap: 0.35em;
+		padding-inline: 0.3em;
 	}
-	.chatbox-compose-actions {
+	.chatbox-compose-row {
 		flex: none;
 		display: flex;
 		align-items: center;
-		gap: 0.35em;
-		margin-inline-start: auto;
+		flex-wrap: wrap;
+		gap: 0.4em;
 	}
 	.chatbox-compose-more svg { inline-size: 1.15em; block-size: 1.15em; fill: currentColor; vertical-align: middle; }
 
-	/* The field and the microphone are ONE control: the mic is absolutely placed
-	   at the field's right end and the input reserves room for it. */
 	.chatbox-field {
-		position: relative;
-		flex: 1 1 18em;
-		min-width: 0;
-		display: flex;
-		align-items: stretch;
+		width: 100%;
 	}
 
-	/* A two-line `<textarea>` (dictation writes paragraphs into it) with a fixed
-	   height and no drag handle, so it still never grows; longer text scrolls. */
-	/* COMPOSER v2 (2026-09-24): the box grows with what is said (`.auto` is
-	   `field-sizing: content`), from two lines up to a ceiling, then scrolls; the
-	   mic is a button BESIDE the box, the two sharing one border with no radius
-	   between them, so nothing is ever typed behind the icon. */
-	/* ⚠ No height ceiling here (the owner, via manager-new-card, 2026-09-24: the box
-	     keeps growing). The chat's log above it gives up the room instead. */
+	/* THE TYPED BUFFER — full width, growing with what is said (`.auto` is
+	   `field-sizing: content`) from two lines up to a CEILING (`max-height`, below),
+	   then it scrolls; no empty void underneath a short line, and no fixed height
+	   either. The mic is its own button in the row below now (`.chatbox-mic`), never
+	   glued to this box's own border — `Mic.js`'s `dress()` keeps this ceiling in
+	   sync when the gear's own "box lines" setting changes live. */
 	/* ⚠ `width: 100%`, not just `flex: 1` (found on ChatPanel's own demo page,
 	   `panel-1920-demo4.png`, 2026-09-29): `.auto` (`field-sizing: content`,
 	   framework.css) sizes BOTH axes to content whenever an axis's `width`/
@@ -85,33 +80,17 @@
 	   gives the width axis a real value, so `field-sizing: content` is left to
 	   do only what the comment above says it is for — the HEIGHT. */
 	.chatbox-compose-input {
-		flex: 1;
 		width: 100%;
 		min-width: 0;
 		min-height: 3.4em;
+		max-height: 7lh;
 		resize: none;
 		overflow-y: auto;
 		font: inherit;
-		border-start-end-radius: 0;
-		border-end-end-radius: 0;
 	}
 
 	.chatbox-mic {
 		flex: none;
-		display: flex;
-		align-items: stretch;
-		gap: 0;
-	}
-
-	.chatbox-mic .ux-dictate-btn {
-		align-self: stretch;
-		height: auto;
-		padding: 0 0.6em;
-		margin: 0;
-		line-height: 1;
-		border-inline-start: 0;
-		border-start-start-radius: 0;
-		border-end-start-radius: 0;
 	}
 
 	.chatbox-compose-send,

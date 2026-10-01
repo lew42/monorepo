@@ -3,7 +3,18 @@
  * (`ext/drawer/rail.css`). Layout is plain framework.css utilities (`card`, `pad`, `flex`,
  * `gap`, `muted`); the bespoke bits here are the bubble look, the scrolling thread, the
  * compact meter/picker and hiding `Dictate`'s own settled caption lines (it still draws the
- * live, still-moving guess — see `Widget.js`'s own doc for why that one stays). */
+ * live, still-moving guess — see `Widget.js`'s own doc for why that one stays).
+ *
+ * ONE-DICTATION, 2026-10-01: `Widget.Thread` and `Widget.Composer` are now built from
+ * `ext/Chat`'s own parts (`Chat.js`'s `speak()`, `Composer.js`'s `composer()`) — most of
+ * their look comes from `ext/Chat/Chat.css` now, loaded automatically by `Widget.js`'s own
+ * import. The `.ux-dictate-widget-input`/`-controls`/`-send`/`-sample` rules below are
+ * `Widget.ComposerV1`'s (`v1: true`, kept reachable) — the new composer needs none of
+ * them. `-meter*`/`-source` are SHARED by both (review finding 4, 2026-10-01): `ComposerV1`
+ * shows them inline in its own row (`order: 10` there, among the mic/Send trio); the new
+ * `Widget.Composer` has no such row of its own to join, so they stack as their own small
+ * lines right under the box-and-row `ext/Chat/Composer.js` already draws — plainer, not
+ * yet polished into that row (CLAUDE.md law 1: fastest working version first). */
 @layer theme {
 
 	.ux-dictate-widget-empty:empty { display: none; }
@@ -15,10 +26,23 @@
 		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
 	}
 
+	/* THE REAL BUBBLES NOW COME FROM `ext/Chat/Chat.css` (one-dictation, 2026-10-01):
+	 * `Widget.Thread` draws every sentence through `ext/Chat/Chat.js`'s own `speak()`
+	 * (`chatbox-you`/`chatbox-reply` — the soft tinted background, the round avatar, no
+	 * border), so importing `speak` into `Widget.js` loads `Chat.css` too and these rules
+	 * never fire for it. `--chat-bubble` is `Chat.css`'s own sizing variable for those
+	 * classes (`.chatbox-you { width: var(--chat-bubble) }`) — `.chatbox-log`, the real
+	 * chat's own container, sets it; this widget's bubbles container isn't one, so it is
+	 * repeated here, same value. */
+	.ux-dictate-widget-bubbles { --chat-bubble: min(85%, 34rem); }
+
 	/* `.card.pad` is the framework's own boxed-content look (framework.css) — this just
-	 * keeps a bubble from stretching the full width of the thread. An assistant's reply
-	 * (`say()`, `Widget.js`) reads as a second voice: right-aligned, a quiet neutral tint,
-	 * never the owner's own plain look — the one visual rule a two-sided thread needs.
+	 * keeps a bubble from stretching the full width of the thread. Still used by
+	 * `Widget.ThreadV1` (the old, un-merged thread, `v1: true`) and by the "ask" choice
+	 * cards both threads draw (`draw_ask()` — unchanged by this task, `readme.md`'s "Not
+	 * this merge"). An assistant's reply reads as a second voice: right-aligned, a quiet
+	 * neutral tint, never the owner's own plain look — the one visual rule a two-sided
+	 * thread needs.
 	 *
 	 * THE ORANGE BORDER, REMOVED (one-dictation, 2026-09-30 — the owner: "the chat bubbles
 	 * before were actually pretty good… there's like an orange border around some of
@@ -39,13 +63,15 @@
 		background: color-mix(in srgb, currentColor 10%, transparent);
 	}
 
-	/* THE ICON (minion-polish, item 5, 2026-09-30) — `Widget.js`'s `draw()` builds
-	   this with `ext/Chat/roles.js`'s own `who_label()`, so the DOM and its classes
+	/* THE ICON, FOR `ThreadV1` AND THE "ASK" CARDS ONLY (minion-polish, item 5, 2026-09-30)
+	   — `WidgetThreadV1.draw()` and `draw_ask()` (both threads) build this with
+	   `ext/Chat/roles.js`'s own `who_label()`, so the DOM and its classes
 	   (`chatbox-who`/`chatbox-avatar`/`chatbox-who-<role>`) are that file's, not
-	   this one's. These rules are copied from `ext/Chat/Chat.css`'s identical ones
-	   rather than imported, because a page that mounts only this widget may never
-	   load `Chat.css` at all. A small round tinted circle, floated at the bubble's
-	   own start, so the words begin on the same line beside it. */
+	   this one's. The real `Widget.Thread`'s own bubbles (`chatbox-you`/`chatbox-reply`)
+	   need none of this — `Chat.css`'s OWN identical rule already targets them, now that
+	   this widget loads `Chat.css` for real (see the comment above). A small round tinted
+	   circle, floated at the bubble's own start, so the words begin on the same line
+	   beside it. */
 	.ux-dictate-widget-bubble .chatbox-who {
 		float: inline-start;
 		display: grid; place-items: center;
@@ -73,13 +99,13 @@
 	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
 	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
 
-	/* THE COMPOSER, TOP TO BOTTOM (item 4 + 5, one-dictation — the owner: the live
-	 * guess "renders like over the top of something else… the layout is broken"; the
-	 * typed box should be "full width… the send button could be below it"). The
-	 * composer is now a COLUMN: the typed buffer first, full width; the controls row
-	 * (mic, Send, the optional extras) underneath it. Nothing in this column is
-	 * `position: absolute` any more — every child, the live-guess caption included,
-	 * sits in normal flow, so the card's own height GROWS to fit it instead of the
+	/* `Widget.ComposerV1` ONLY (`v1: true`), TOP TO BOTTOM (item 4 + 5, one-dictation —
+	 * the owner: the live guess "renders like over the top of something else… the layout
+	 * is broken"; the typed box should be "full width… the send button could be below
+	 * it"). The new default composer (`Widget.Composer`, `ext/Chat/Composer.js`) gets this
+	 * same column shape from `Chat.css` now instead — these rules below style `ComposerV1`
+	 * alone. Nothing in this column is `position: absolute` any more — every child, the
+	 * live-guess caption included, sits in normal flow, so the card's own height GROWS to fit it instead of the
 	 * guess painting on top of whatever comes next. */
 	.ux-dictate-widget-composer { padding-block-end: 0.3em; }
 

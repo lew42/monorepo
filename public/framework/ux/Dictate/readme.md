@@ -43,14 +43,24 @@ new Widget({ debug: true });                      // + the "Debug ▾" bar
 new Widget({ revision: "edit" });                  // ux/Revise tidies each sentence too
 ```
 
-**The composer is a column, not a row** (one-dictation, 2026-10-01 — the owner: the typed
-box "needs to be like full width… the send button could be below it"): the typed buffer sits
-on top, full width, growing taller line by line with no fixed height and no empty void below
-a short line; the mic, Send and any extras (meter, mic picker, Sample) sit in their own row
-underneath it. The live, still-moving guess (the grey caption) is never `position: absolute`
-any more — it takes its own space below the mic button and the whole card grows to fit it,
-instead of painting over whatever came next (the bug the owner found: "it's just rendering
-like over the top of something else").
+**The entry is `ext/Chat`'s own composer, the bubbles are `ext/Chat`'s own thread** (merge 8,
+one-dictation, 2026-10-01 — CLAUDE.md law 6, "one of everything"): Whisper now writes into the
+SAME text box the owner can type into (`ext/Chat/Composer.js` + `Mic.js`'s `ComposerMic`),
+instead of a second, separate open-mic implementation that never touched the box at all. A
+finished sentence (ending in `. ! ?`) goes out on its own after a short quiet pause
+(`Mic.js`'s `SETTINGS.paragraph_pause_ms`, ~700ms — the owner asked for "500 to 1000
+milliseconds"), the box clears, and the sentence joins the LAST bubble as a new paragraph if
+the one before it was said within the last 10 seconds (`ext/Chat/Chat.js`'s `speak()` —
+"the chat bubbles before were actually pretty good," the owner's own words) — so three
+sentences said one after another read as one bubble, not three. The mic, Send and any extras
+(the settings gear, the "raw" dig-back toggle) sit in one row BELOW the box, which is full
+width, auto-height, up to a ceiling, with no empty void below a short line (the bug the owner
+found: the old box "renders like over the top of something else").
+
+**`v1: true`** keeps the OLD thread (one bubble per sentence, never merged) and the OLD
+composer (`Dictate`'s own `mode: "open"` mic, nothing ever typed into the box) reachable on
+any `Widget` — a plain switch back if either regresses something: `doc/chat.md`'s "the older
+versions" table, `Widget.js`'s own class doc.
 
 Four plain properties, every one `false`/off by default:
 

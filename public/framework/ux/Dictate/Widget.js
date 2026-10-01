@@ -4,6 +4,8 @@ import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
+import { speak, patch_piece, retag_piece } from "../../ext/Chat/Chat.js";
+import { composer } from "../../ext/Chat/Composer.js";
 
 View.stylesheet(import.meta, "Widget.css");
 
@@ -71,12 +73,13 @@ export function model(value){
  *
  * `say(entry)` and `sync()` are public methods — see their own doc below.
  *
- * **The live guess is `Dictate`'s own caption, not a second copy of it** — the exact trick
- * `ext/drawer/rail.css` already used for the sheet before this task: `mode: "open"` makes
- * `Dictate` draw one `.ux-dictate-line` per settled sentence plus one `.ux-dictate-line
+ * **`v1: true` ONLY — the live guess is `Dictate`'s own caption, not a second copy of it**
+ * — the exact trick `ext/drawer/rail.css` used for the sheet before this task: `mode: "open"`
+ * makes `Dictate` draw one `.ux-dictate-line` per settled sentence plus one `.ux-dictate-line
  * .muted` for the still-moving guess; `Widget.css` hides the settled ones (this widget's
  * own bubbles already show them) and leaves the muted guess line showing, right under the
- * mic button.
+ * mic button. The DEFAULT composer (`Widget.Composer`, below) writes the still-moving guess
+ * straight into the SAME text box the owner can type into instead — see that class's own doc.
  *
  * **Wired into the ✦ sheet and the desktop drawer's AI tab** (round 3, 2026-09-30, once
  * voice-sessions-2 merged) — `ext/drawer/rail.js`'s `DrawerRailSheetPanel` and
@@ -94,15 +97,34 @@ export function model(value){
  * (the collapsed toggle below the card). A caller that wants a different bubble shape
  * overrides `Thread` alone; everything else — the engines, the errors, `revise`'s own
  * timing — stays `Dictate`'s.
+ *
+ * **Built from `ext/Chat`'s own parts now, not a second copy of them** (one-dictation,
+ * 2026-10-01 — CLAUDE.md law 6, "one of everything"; the owner: "the chat bubbles before
+ * were actually pretty good… these chat bubbles are [not]"). `Widget.Thread` draws every
+ * bubble through `ext/Chat/Chat.js`'s own `speak()` — the exact function that already
+ * joins a sentence onto the last bubble as a new paragraph when the same sender spoke
+ * again within `MERGE_GAP_MS` (10s), instead of this widget opening a new bubble per
+ * sentence. `Widget.Composer` is `ext/Chat/Composer.js`'s own composer — Whisper types
+ * into the SAME text box the owner can type into, with the mic, Send and settings gear
+ * folded underneath it (`Composer.js`'s own doc). `Widget`'s own public surface (`submit`,
+ * `sync`, `stream`, `draw`, `mark`, `mark_failed`, `retag`, `reset`) is unchanged, so
+ * `ux/Dictate/chat.js` and everything that calls it needs no change at all.
+ *
+ * **`v1: true`** keeps the OLD thread and composer reachable — `Widget.ThreadV1` (one
+ * bubble per sentence, never merged) and `Widget.ComposerV1` (Dictate's own `mode: "open"`
+ * mic, nothing ever typed into the box) — a plain switch back if the new ones regress
+ * something; never deleted, just no longer the default.
  */
 export default class Widget extends View {
 
 	render(){
 		this.ac("ux-dictate-widget flex v gap");
+		const Thread = this.v1 ? this.constructor.ThreadV1 : this.constructor.Thread;
+		const Composer = this.v1 ? this.constructor.ComposerV1 : this.constructor.Composer;
 		div.c("ux-dictate-widget-card card pad flex v gap", () => {
 			if (this.models) new this.constructor.Models({ widget: this });
-			new this.constructor.Thread({ widget: this });
-			new this.constructor.Composer({ widget: this });
+			new Thread({ widget: this });
+			new Composer({ widget: this });
 		});
 		if (this.debug) new this.constructor.Debug({ widget: this });
 
@@ -132,6 +154,24 @@ export default class Widget extends View {
 		// the right one instead of drawing a second bubble.
 		const entry = { text, via, at };
 		Promise.resolve(this.deliver(entry)).then(ok => { if (!ok) this.$thread?.mark_failed(at); });
+	}
+
+	/** The NEW composer's own `deliver` (`ext/Chat/Composer.js`'s `entry` shape:
+	 *  `{text, via, at?, raw?, level?}` — `via` is `"typed"` for a typed Send, `"whisper"` for a
+	 *  dictated chunk). Same optimistic-echo-then-deliver-then-retag dance as `submit()` above,
+	 *  just reading a real entry instead of building one from a bare string, so `raw`/`level`
+	 *  (the clean-transcription pair) ride along untouched to whatever this widget's own
+	 *  `deliver` option does with them (`ux/Dictate/chat.js`'s `Session.say()`). Returns
+	 *  true/false — `composer()` reads it for its own "sent"/"nothing was sent" note; `true`
+	 *  with no `deliver` wired at all (today's plain `new Widget()`) because the bubble is
+	 *  drawn either way, which already counts as "sent" for a caller with nowhere further to
+	 *  deliver to. */
+	submit_entry(entry){
+		const at = entry.at ?? new Date().toISOString();
+		this.$thread?.draw({ chat: { at, from: { kind: "owner" }, text: entry.text, via: entry.via } });
+		if (typeof this.deliver !== "function") return true;
+		const full = { ...entry, at };
+		return Promise.resolve(this.deliver(full)).then(ok => { if (!ok) this.$thread?.mark_failed(at); return ok; });
 	}
 
 	/** Rekey a bubble `submit()` already drew under a LOCAL `at` to the real one a
@@ -170,15 +210,21 @@ export default class Widget extends View {
 	 *  redrawn each call (`ext/Session/Session.js`'s `stream()`, dictation-stream,
 	 *  2026-09-30, merged into this widget round 4). A fixed, made-up `at`
 	 *  (`"stream:" + who`) means every call for the SAME speaker updates one bubble in
-	 *  place (`Thread.draw()`'s own `fix: true` rule) instead of adding a new one per
-	 *  token. Simpler than `Chat.js`'s own `stream()`, which removes this live bubble
-	 *  the instant the real, settled line lands — here the two sit briefly side by
-	 *  side instead (`readme.md` names this as the accepted gap; `text: ""`, the "the
-	 *  stream just ended" signal, is a no-op rather than a removal for the same
-	 *  reason). Missing this method entirely was a crash waiting to happen: `rail.js`'s
-	 *  `watch_session()` already calls `panel?.stream(...)` on every SSE token once
-	 *  `ext/Session`'s own live wire is merged in, and `panel?.stream(...)` throws
-	 *  (not a silent no-op) the moment `panel` exists but has no `stream` of its own. */
+	 *  place instead of adding a new one per token — `Thread.draw()` now keeps this
+	 *  bubble OUT of `speak()`'s own merge tracking entirely (review finding 2,
+	 *  2026-10-01: feeding it through `speak()` let the REAL, settled reply from the
+	 *  SAME sender, landing within `MERGE_GAP_MS`, merge straight into the stream's own
+	 *  bubble, and the next `fill()` then overwrote the growing text with its own first,
+	 *  stale chunk). `Chat.js`'s own `stream()`/`live_bubble()`/`drop_live()` keep the
+	 *  exact same split for the full `chat()` factory; `Thread` below keeps a small
+	 *  `lives` map of its own for the same reason, since `speak()` alone has no such
+	 *  concept. The live bubble is dropped — never merged — the instant a real line for
+	 *  that sender lands; `text: ""` drops it with nothing to replace it (the stream
+	 *  simply ended with no reply). Missing this method entirely was a crash waiting to
+	 *  happen: `rail.js`'s `watch_session()` already calls `panel?.stream(...)` on every
+	 *  SSE token once `ext/Session`'s own live wire is merged in, and `panel?.stream(...)`
+	 *  throws (not a silent no-op) the moment `panel` exists but has no `stream` of its
+	 *  own. */
 	stream(who, text){
 		if (!text) return;
 		this.$thread?.draw({ chat: { at: "stream:" + who, from: { kind: "assistant", id: who }, text, fix: true } });
@@ -202,14 +248,14 @@ Widget.prototype.deliver = null;     // async (entry) => ok — see class doc
 Widget.prototype.on_text = null;     // (text) => … — fires the moment a sentence is ready, before `deliver`
 Widget.prototype.answer = null;      // (choice) => … — a choice-button question's pick (`say({type:"ask",...})`)
 Widget.prototype.marks = false;      // show a ✓/`?` beside each of the OWNER'S OWN bubbles (`ux/Understand`)
+Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
 
-/** **The thread** — one bubble per line: the owner's own and, once a caller's `deliver`
- *  calls `say()`, the assistant's reply beside it in a second look. An empty-state line
- *  until the first one lands. Override this whole class for a different shape without
- *  touching `Composer` or `Debug` at all. The live, still-moving guess is NOT drawn here —
- *  see `Widget`'s own class doc for why it's `Dictate`'s own caption, inside `Composer`,
- *  instead. */
-Widget.Thread = class WidgetThread extends View {
+/** **THE OLD THREAD** (`v1: true`) — one bubble per line, drawn with this widget's own
+ *  markup, never merged even when the same sender speaks again right away. Kept reachable
+ *  so a regression in the new `Widget.Thread` below (built from `ext/Chat/Chat.js`'s own
+ *  `speak()`) has a plain switch back. Untouched since it was built — see `Widget.Thread`,
+ *  right below this class, for the one every caller gets by default now. */
+Widget.ThreadV1 = class WidgetThreadV1 extends View {
 	render(){
 		this.ac("ux-dictate-widget-thread flex v gap");
 		this.widget.$thread = this;
@@ -328,16 +374,229 @@ Widget.Thread = class WidgetThread extends View {
 	}
 };
 
-/** **The composer** — the rough-transcription buffer on top, FULL width, growing taller
- *  as the owner types or talks (no empty void underneath a short line, never a fixed
- *  height); the mic button and Send sit in their own row BELOW it (item 5, one-dictation
- *  — the owner: "the text area was kind of partial width and would grow really tall and
- *  then create this big void of empty space… if the text area is gonna grow, it needs to
- *  be like full width… the send button could be below it"). `mode: "open"` — the live
- *  open mic: nothing is ever written into the typed box (that box is typing's own, never
- *  the mic's), every finished sentence reaches `on_text` instead, which becomes a bubble.
- *  Typing and Send work the same way, for a reader who would rather not talk. */
-Widget.Composer = class WidgetComposer extends View {
+/** **THE THREAD** — every bubble drawn through `ext/Chat/Chat.js`'s own `speak()` (one-
+ *  dictation, 2026-10-01: "the conversation is `ext/Chat`" — CLAUDE.md law 6, one of
+ *  everything). `speak()` is the exact function the ✦ sheet's real chat log already
+ *  calls: a sentence from the SAME sender as the bubble at the end of the thread, less
+ *  than `MERGE_GAP_MS` (10s) after it, joins that bubble as a new paragraph instead of
+ *  opening a second one — so three sentences said one after another read as ONE bubble,
+ *  not three. Importing `speak` from `Chat.js` also loads `Chat.css`, so these bubbles
+ *  are the SAME `chatbox-you`/`chatbox-reply` look (the soft tinted background, the
+ *  round avatar) every other chat surface on the site already uses — the orange-bordered
+ *  look the owner didn't like is `Widget.ThreadV1`'s now, not this one's.
+ *
+ *  This class keeps the lower-level `speak()` (plus `mergeable()`, called inside it) on
+ *  purpose, not the whole `chat()` factory: `chat()` owns its OWN container, its OWN
+ *  source-of-truth log and its OWN selection/reaction/thread/drill wiring, none of which
+ *  this widget needs or has a `source()` for — `speak()` is `chat()`'s own bubble-drawing
+ *  primitive, reused here with `Widget`'s existing `say()`/`sync()`/`reset()` still doing
+ *  what they always did. `refine()` (splitting a merged bubble into paragraphs by what
+ *  the fast assistant decides) is NOT used here — that is a separate, later task
+ *  (`readme.md`'s "Not this merge").
+ *
+ *  **The ✓/? mark, the 🎤/⌨ via mark and the "— not sent" flag all survive a later merge**
+ *  (one-dictation, review finding 1 and 6, 2026-10-01 — the first cut of this class bolted
+ *  them straight onto the DOM node it had just drawn, and the next sentence's merge called
+ *  `speak()`'s own `fill()`, which redraws every piece from ITS stored state and wipes
+ *  anything bolted on from outside). `speak()` now takes `via`, `mark` and `failed` as
+ *  options and stores them ON THE PIECE, same as `chat()`'s own `put_line()` already does
+ *  for its universal chat lines; `patch_piece(bubble, id, patch)` (also exported from
+ *  `Chat.js`) is how this class updates one AFTER it was drawn (a mark that only answers
+ *  once the bubble is already on screen, or a failed send) — it redraws through the SAME
+ *  `fill()`, so the result sticks through every later merge, not just the next one. */
+Widget.Thread = class WidgetThread extends View {
+	render(){
+		this.ac("ux-dictate-widget-thread flex v gap");
+		this.widget.$thread = this;
+		this.lines = new Map();   // at -> {bubble, text, ref} — bubble may be SHARED by several `at`s once sentences merge;
+		                           // `ref` is a tiny mutable box ({id}) `retag()` updates in place — see `mark()`'s own doc.
+		this.lives = new Map();   // "stream:" + who -> {el, text} — a STILL-STREAMING reply, kept OUT of speak()'s merge
+		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
+		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
+	}
+
+	/** Run `fn` with every live (still-streaming) bubble lifted out first, and put back
+	 *  after — the exact same move `ext/Chat/Chat.js`'s own `follow()` makes around every
+	 *  `speak()` call, for the exact same reason: `mergeable()` reads `$box.el.lastElementChild`,
+	 *  so a live bubble sitting at the end (where it always is, visually) must never be
+	 *  mistaken for "the last REAL bubble" a new sentence might merge into (review finding 2). */
+	follow(fn){
+		for (const l of this.lives.values()) l.el.remove();
+		const result = fn();
+		for (const l of this.lives.values()) this.$bubbles.el.append(l.el);
+		return result;
+	}
+
+	/** Same contract as `WidgetThreadV1.draw()` (`ux/Dictate/chat.js` calls this; it never
+	 *  needed to change) — `{chat: {at, from, text, via, fix}}`, `fix: true` updates the
+	 *  bubble already drawn for that `at` in place (a streamed reply growing token by
+	 *  token) instead of merging or opening a new one. Everything else goes through
+	 *  `speak()`, which decides merge-vs-new-bubble on its own, by reading the thread's own
+	 *  DOM (`mergeable()`) — nothing here tracks that part at all. */
+	draw(entry){
+		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+		const chat = entry?.chat;
+		if (!chat?.text) return;
+		this.$empty.hide();
+		const at = chat.at ?? new Date().toISOString();
+		const assistant = chat.from?.kind === "assistant";
+
+		// A STREAMED REPLY (`Widget.stream()`'s own made-up `at`, "stream:" + who) — kept
+		// as its own live bubble, never a `speak()` piece at all (review finding 2's own
+		// fix; see this class's own doc, and `Widget.stream()`'s). `fix` is this entry's
+		// only tell: a real settled line never carries one of these made-up `at`s.
+		if (chat.fix && String(at).startsWith("stream:")) return this.show_stream(at, chat.from?.id ?? "assistant", chat.text);
+
+		if (chat.fix){
+			const existing = this.lines.get(at);
+			if (existing){ md_into(existing.text, chat.text, true); return; }
+			// No existing piece yet — drawn the normal way below so a later call for the
+			// same `at` finds it here (kept as a fallback for any OTHER `fix` producer —
+			// the stream case above is the only one today, and never reaches this far).
+		}
+
+		// A real, settled reply from the same sender as a still-streaming live bubble
+		// REPLACES it outright — never merges with it (the fast assistant's own reply
+		// landing while a slower run, or the smart assistant's own stream, still shows).
+		if (assistant) this.drop_live("stream:" + (chat.from?.id ?? "assistant"));
+
+		const sender = chat.from?.id || chat.from?.kind || (assistant ? "assistant" : "owner");
+		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
+		const bubble = this.follow(() => speak(this.$bubbles, {
+			cls: assistant ? "chatbox-reply" : "chatbox-you",
+			who, text: chat.text, sender, at, id: at, via: chat.via,
+		}));
+		// `speak()` either made a brand-new bubble (this piece is its only, so its last and
+		// only child) or merged this piece onto the thread's last bubble as a new paragraph
+		// (this piece is still the LAST child, appended after whatever was already there) —
+		// either way `bubble.lastElementChild` is this piece's own text node.
+		const text_node = bubble.lastElementChild;
+		const ref = { id: at };   // `retag()` below updates `ref.id` in place — see `mark()`'s own doc
+		this.lines.set(at, { bubble, text: text_node, ref });
+		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		// THE CHAT HITL MARK (`widget.marks`) — only for the OWNER'S OWN line, same rule
+		// `WidgetThreadV1` used. `mark()` below stores it ON THE PIECE (`patch_piece()`),
+		// not on this node directly, so it survives a LATER merge too (review finding 1).
+		if (!assistant && this.widget.marks) this.mark(chat.text, bubble, ref);
+	}
+
+	/** A QUESTION FOR YOU — identical to `WidgetThreadV1.draw_ask()`; this part of the
+	 *  thread is unchanged by the merge (`readme.md`'s "Not this merge"). Called through
+	 *  `follow()` (above) so a still-streaming live bubble stays at the very end, below it. */
+	draw_ask(e){
+		this.$empty.hide();
+		const choices = e.choices?.length ? e.choices : ["Yes", "No"];
+		let $q;
+		this.$bubbles.append(() => {
+			$q = div.c("ux-dictate-widget-bubble card pad ux-dictate-widget-bubble-assistant ux-dictate-widget-ask", () => {
+				if (e.heading) div.c("ux-dictate-widget-ask-heading", e.heading);
+				if (e.text) span(e.text);
+				div.c("ux-dictate-widget-choices flex wrap gap", () => {
+					choices.forEach(c => button.c("ux-dictate-widget-choice").attr("type", "button").text(c).click(() => {
+						if ($q.el.classList.contains("answered")) return;
+						$q.ac("answered");
+						[...$q.el.querySelectorAll(".ux-dictate-widget-choice")].forEach(b => {
+							b.disabled = true;
+							if (b.textContent === c) b.classList.add("picked");
+						});
+						this.widget.answer?.(c);
+					}));
+				});
+			});
+		});
+		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+	}
+
+	/** A reply STILL being written — a bubble of its own, parked at `this.lives`, never
+	 *  one of `speak()`'s own pieces (this class's own doc, and review finding 2). Every
+	 *  call for the same `who` redraws the SAME bubble's text whole, the same way
+	 *  `Chat.js`'s own `stream()` does; a SECOND reply from the same `who`, later, after
+	 *  the first one settled and dropped this bubble, gets a brand-new one — `this.lives`
+	 *  no longer has an entry for it by then, so there is nothing stale to reuse. */
+	show_stream(key, who, text){
+		this.$empty.hide();
+		let hit = this.lives.get(key);
+		if (!hit){
+			// The SAME look a settled reply gets (`chatbox-reply`, from `ext/Chat/Chat.css` —
+			// loaded already, since `draw()` imports `speak` from the same file) plus
+			// `chatbox-streaming`, whose `.chatbox-text > :last-child::after` is the small
+			// blinking cursor `Chat.js`'s own `stream()` shows — never this widget's OWN,
+			// visually different `ux-dictate-widget-bubble` look (that one is `draw_ask()`'s,
+			// a question card, deliberately distinct).
+			let node, text_el;
+			this.$bubbles.append(() => {
+				node = div.c("chatbox chatbox-reply chatbox-streaming", () => {
+					who_label(who);
+					text_el = div.c("chatbox-text").el;
+				}).el;
+			});
+			this.lives.set(key, hit = { el: node, text: text_el });
+		}
+		md_into(hit.text, text, true);
+		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+	}
+
+	/** Remove a live (streaming) bubble, if one is showing — the real line replacing it
+	 *  (`draw()`, above) or an explicit empty `stream(who, "")` both call this. */
+	drop_live(key){
+		const hit = this.lives.get(key);
+		if (!hit) return;
+		hit.el.remove();
+		this.lives.delete(key);
+	}
+
+	/** Same `ux/Understand` call as `WidgetThreadV1.mark()` used to make, now stored ON
+	 *  THE PIECE (`patch_piece()`, `ext/Chat/Chat.js`) instead of bolted onto the DOM node
+	 *  `draw()` happened to return — review finding 1: a bolted-on mark was wiped the next
+	 *  time a merge's `fill()` redrew the bubble from its own stored pieces; a mark that
+	 *  arrives AFTER that merge landed on a detached node and never showed at all.
+	 *
+	 *  `bubble` is captured HERE, synchronously, at draw time — never re-looked-up from
+	 *  `this.lines` once this async call resolves, because `retag()` can have already
+	 *  MOVED that lookup key by then (a caller's own server answers with a different,
+	 *  final `at` almost at once — well before `ux/Understand`'s own answer, in
+	 *  practice). `ref` is the same story for the piece's own id: `patch_piece()` needs
+	 *  the piece's CURRENT id, which `retag()` may since have changed, so `ref` is a
+	 *  tiny mutable box `retag()` updates in place (`ref.id = new_at`) rather than a
+	 *  plain string copied by value when `mark()` was first called. */
+	mark(text, bubble, ref){
+		fetch_marks([text]).then(out => {
+			const m = out?.marks?.[0];
+			if (!m) return;
+			patch_piece(bubble, ref.id, { mark: m });
+		}).catch(() => {});
+	}
+
+	mark_failed(at){
+		const line = this.lines.get(at);
+		if (!line) return;
+		patch_piece(line.bubble, line.ref.id, { failed: true });
+	}
+
+	retag(old_at, new_at){
+		const line = this.lines.get(old_at);
+		if (!line || old_at === new_at) return;
+		this.lines.delete(old_at);
+		this.lines.set(new_at, line);
+		retag_piece(line.bubble, line.ref.id, new_at);   // so a pending mark()/mark_failed() under the new id still finds the piece
+		line.ref.id = new_at;
+	}
+
+	add(text){ this.draw({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, text } }); }
+
+	reset(){
+		this.lines = new Map();
+		this.lives = new Map();
+		this.$bubbles.empty();
+		this.$empty.show();
+	}
+};
+
+/** **THE OLD COMPOSER** (`v1: true`) — `Dictate`'s own `mode: "open"` mic: nothing is ever
+ *  written into the typed box, every finished sentence reaches `on_text` straight away.
+ *  Kept reachable the same reason `ThreadV1` is. See `Widget.Composer`, right below, for
+ *  the one every caller gets by default now. */
+Widget.ComposerV1 = class WidgetComposerV1 extends View {
 	render(){
 		this.ac("ux-dictate-widget-composer flex v gap");
 		const w = this.widget;
@@ -424,6 +683,111 @@ Widget.Composer = class WidgetComposer extends View {
 	// A compact picker of `enumerateDevices()` audio inputs — same remembered key as every
 	// `Dictate` on the site (`remember_device`/`remembered_device`), width capped in CSS so
 	// a long device name never reopens the "640px dropdown" this is replacing.
+	source_picker(){
+		let $select;
+		$select = select.c("ux-dictate-widget-source").attr("aria-label", "Microphone")
+			.on("change", e => this.pick_device($select, e.target.value));
+		this.refresh_devices($select);
+	}
+
+	async refresh_devices($select){
+		if (!navigator.mediaDevices?.enumerateDevices){
+			$select.empty(() => { option("no mic list").attr("value", ""); });
+			return;
+		}
+		let devices = [];
+		try { devices = await navigator.mediaDevices.enumerateDevices(); }
+		catch { /* no permission asked yet — an empty list still renders something honest */ }
+
+		const inputs = devices.filter(d => d.kind === "audioinput");
+		const remembered = remembered_device();
+		const picked = inputs.find(d => d.deviceId === remembered?.id) ?? inputs[0];
+
+		$select.empty(() => {
+			if (!inputs.length){ option("no mic found").attr("value", ""); return; }
+			inputs.forEach((d, i) => {
+				option(d.label || remembered?.label || `mic ${i + 1}`).attr("value", d.deviceId)
+					.attr("selected", d.deviceId === picked?.deviceId ? "" : undefined);
+			});
+		});
+	}
+
+	pick_device($select, id){
+		const opt = [...$select.el.options].find(o => o.value === id);
+		remember_device(id, opt?.textContent ?? "");
+	}
+};
+
+/** **THE COMPOSER** — `ext/Chat/Composer.js`'s own `composer()` (one-dictation, 2026-10-01:
+ *  "the entry is `ext/Chat`'s composer" — CLAUDE.md law 6, one of everything). Whisper
+ *  writes into the SAME text box the owner can type into (`ext/Chat/Mic.js`'s `ComposerMic`)
+ *  instead of `ComposerV1`'s own `mode: "open"` mic, which never touched the box at all. A
+ *  finished sentence (it ends in `. ! ?`) goes out on its own after a short natural pause
+ *  (`Mic.js`'s `SETTINGS.paragraph_pause_ms`, ~700ms — the owner asked for "500 to 1000
+ *  milliseconds"), and the box clears each time; an unfinished remainder only goes out on
+ *  Send, or after the longer `SETTINGS.pause_send_ms` silence. The mic, Send and the
+ *  settings gear sit in one row UNDER the box (`Composer.js`'s own doc on why, `Chat.css`
+ *  for how) — the same layout this widget's own `ComposerV1` already had, now shared by
+ *  every composer on the site instead of copied here a second time.
+ *
+ *  `widget.dictate` is still set here, to the real `ComposerMic` instance (it extends
+ *  `Dictate`) — `Widget.mic_active()`/`start_mic()`/`stop_mic()` above, and a proof script's
+ *  `dictate.sample([...])`, keep working exactly as they did against `ComposerV1`'s own
+ *  plain `Dictate`.
+ *
+ *  **`floor`/`cues` still ride along, unchanged** (checked after the mastermind flagged
+ *  this merge's own first doc comment here as a likely regression — it wasn't one, but the
+ *  worry was fair enough to prove, not just argue): `floor`/`cues` are stamped by
+ *  `ux/Dictate/chat.js`'s own `deliver` — `floor.stamp(entry)`, called there on EVERY
+ *  entry regardless of which composer produced it, from before this merge existed. It
+ *  reads the mic's own module-level state (`ux/Dictate/floor.js`), not anything this
+ *  composer's `entry` carries, so `ComposerMic`'s `{text, via: "whisper", ...}` (no
+ *  `floor` key of its own) gets exactly the same treatment the old composer's entry did.
+ *  A voice send while the mic is really on gets `floor: "speaking"` plus `cues` (its
+ *  pauses and speaking time); a typed send always gets `floor: "done"`, never `cues`.
+ *  Proven against the stubbed Servex in `minion-chatjoin/proof.mjs` ("a voice send carries
+ *  floor+cues, a typed one doesn't"), by turning the mic's own `floor.mic_on()` flag on for
+ *  this widget's `Dictate` instance the same way a real `start()` does — headless Chromium
+ *  has no microphone to actually open, so this is the one honest way to prove the STAMPING
+ *  logic without one.
+ *
+ *  **`level`/`source` are passed through, not dropped** (review finding 4, 2026-10-01: the
+ *  first cut of this class only reached `ComposerV1`, so `new Widget({level: true})` quietly
+ *  did nothing unless `v1: true` was also set). `ext/Chat/Composer.js`'s own `composer()` now
+ *  takes `on_meter`/`device_id` straight through to its `ComposerMic` — the same two options
+ *  `ComposerV1` always gave its own plain `Dictate` — so the bigger level bar (`meter()` below)
+ *  works exactly as it did there. `source` is a DIFFERENT kind of passthrough: picking a mic
+ *  only ever wrote to `localStorage` (`remember_device()`, `ux/Dictate/Dictate.js`), which
+ *  EVERY `Dictate` instance already reads on its own with no `device_id` given
+ *  (`remembered_device()`) — so the same small `<select>` `ComposerV1` built works here with
+ *  no wiring into `ComposerMic` at all; it only needs to exist on screen. */
+Widget.Composer = class WidgetComposer extends View {
+	render(){
+		this.ac("ux-dictate-widget-composer flex v gap");
+		const w = this.widget;
+		const view = composer({
+			placeholder: w.placeholder || "say something",
+			revise: w.revision || false,
+			on_text: text => w.on_text?.(text),
+			deliver: entry => w.submit_entry(entry),
+			on_meter: w.level ? level => this.set_level(level) : undefined,
+		});
+		w.dictate = view.mic;
+		if (w.level) this.meter();
+		if (w.source) this.source_picker();
+	}
+
+	// Same bar, same CSS variable, same shared `--ux-dictate-widget-level` custom property
+	// `ComposerV1.meter()`/`.set_level()` use — kept here rather than imported from there so
+	// `v1`'s own path stays untouched (CLAUDE.md "ask before… major surgery" — not worth the
+	// risk to the proven regression switch-back for two three-line methods).
+	meter(){
+		this.$meter = div.c("ux-dictate-widget-meter", () => { this.$meter_fill = div.c("ux-dictate-widget-meter-fill"); });
+	}
+	set_level(level){ this.$meter_fill?.style("--ux-dictate-widget-level", level.toFixed(3)); }
+
+	// The same compact `<select>` of audio input devices `ComposerV1.source_picker()` builds —
+	// see this class's own doc above for why it needs no wiring into `ComposerMic` at all.
 	source_picker(){
 		let $select;
 		$select = select.c("ux-dictate-widget-source").attr("aria-label", "Microphone")

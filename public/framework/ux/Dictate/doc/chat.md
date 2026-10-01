@@ -158,6 +158,15 @@ switched back in by anyone debugging a regression:
 | `askV1` | the dev bar's old per-page thread picker | `dev/DevBar/ask.js` |
 | `chat_v1()` | a card page's switch back to its old, standalone chat | `ai2/card.js` |
 | `foot()` | the old assistant in the AI 2 "Live" fold | `ai2/rail.js` |
+| `new Widget({ v1: true })` | the old one-bubble-per-sentence thread + the old open-mic composer (never writes into a box) | `Widget.js` |
+
+`chat()` itself always builds a `Widget` the normal way (`v1` is not one of `chat()`'s own
+options) — pass `v1: true` straight into a bare `new Widget(...)` if you need the old look;
+there is no `chat(el, {v1: true})` shortcut today. See `Widget.js`'s own class doc for why
+`v1` exists and what it switches back to (the merge that made `Widget.Thread` draw its
+bubbles through `ext/Chat/Chat.js`'s `speak()`, so sentences said close together join one
+bubble instead of opening a new one each time, and made `Widget.Composer` the same
+`ext/Chat/Composer.js` every other chat box on the site already uses).
 
 ## More
 

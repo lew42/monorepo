@@ -1,0 +1,182 @@
+[
+  {
+    "name": "box is empty right after sending \"This is the first se…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "box is empty right after sending \"Here is a second one…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "box is empty right after sending \"And a third one to f…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "400: the three sentences sit in ONE bubble",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "400: that one bubble holds all three sentences",
+    "ok": true,
+    "detail": "3 paragraph(s)"
+  },
+  {
+    "name": "400: no console/page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "box is empty right after sending \"This is the first se…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "box is empty right after sending \"Here is a second one…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "box is empty right after sending \"And a third one to f…\"",
+    "ok": true,
+    "detail": "box: \"\""
+  },
+  {
+    "name": "1920: the three sentences sit in ONE bubble",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "1920: that one bubble holds all three sentences",
+    "ok": true,
+    "detail": "3 paragraph(s)"
+  },
+  {
+    "name": "1920: no console/page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the sheet opens with ext/Chat's own composer box",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the sheet sends and draws the owner's own bubble",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "a real in-app navigation actually happened",
+    "ok": true,
+    "detail": "http://localhost:51812/framework/?sheet=open"
+  },
+  {
+    "name": "the sheet's chat survives the navigation (never rebuilt empty)",
+    "ok": true,
+    "detail": "visible: true, bubble(s): 1"
+  },
+  {
+    "name": "no console/page errors (sheet)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the AI 2 card's own composer still sends",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "no console/page errors (ai2 card)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "a voice send carries floor: \"speaking\"",
+    "ok": true,
+    "detail": "{\"session\":\"proof-session\",\"path\":\"/framework/ux/Dictate/\",\"text\":\"this is a voice sentence.\",\"via\":\"voice\",\"floor\":\"speaking\",\"cues\":{\"mic_on_at\":\"2026-10-01T07:05:21.239Z\",\"pauses\":[],\"speaking_ms\":0},\"quiet_ms\":51}"
+  },
+  {
+    "name": "a voice send carries its cues",
+    "ok": true,
+    "detail": "{\"mic_on_at\":\"2026-10-01T07:05:21.239Z\",\"pauses\":[],\"speaking_ms\":0}"
+  },
+  {
+    "name": "a typed send carries floor: \"done\"",
+    "ok": true,
+    "detail": "{\"session\":\"proof-session\",\"path\":\"/framework/ux/Dictate/\",\"text\":\"this is typed.\",\"via\":\"text\",\"floor\":\"done\"}"
+  },
+  {
+    "name": "a typed send carries no cues",
+    "ok": true,
+    "detail": "{\"session\":\"proof-session\",\"path\":\"/framework/ux/Dictate/\",\"text\":\"this is typed.\",\"via\":\"text\",\"floor\":\"done\"}"
+  },
+  {
+    "name": "no console/page errors (floor/cues)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the two sentences merged into one bubble before either mark answered",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "a mark that arrives AFTER the merge still lands (both pieces got one)",
+    "ok": true,
+    "detail": "2 mark(s)"
+  },
+  {
+    "name": "both earlier marks survive a LATER merge (review finding 1)",
+    "ok": true,
+    "detail": "2 mark(s) right after the third sentence merged in"
+  },
+  {
+    "name": "no console/page errors (marks)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the first streamed reply shows its growing text",
+    "ok": true,
+    "detail": "\"⚡\\nOne moment\""
+  },
+  {
+    "name": "the real first reply replaces the stream (no stale fragment, no duplicate)",
+    "ok": true,
+    "detail": "1 reply bubble(s): \"⚡\\n\\nOne moment, let me check.\""
+  },
+  {
+    "name": "a second reply streams visibly too, as its own bubble",
+    "ok": true,
+    "detail": "2 reply bubble(s), last: \"⚡\\nTwo things\""
+  },
+  {
+    "name": "both real replies land distinct, neither lost nor duplicated",
+    "ok": true,
+    "detail": "[\"One moment, let me check.\",\"Two things to check.\"]"
+  },
+  {
+    "name": "no console/page errors (streaming)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the mic shows its listening state",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "the compose row doesn't wrap into horizontal overflow at 400px",
+    "ok": true,
+    "detail": "scrollWidth: 400, innerWidth: 400"
+  },
+  {
+    "name": "no console/page errors (mic-on shot)",
+    "ok": true,
+    "detail": ""
+  }
+]

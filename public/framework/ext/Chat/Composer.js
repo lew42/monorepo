@@ -4,12 +4,17 @@ import { ComposerMic, SETTINGS, CLEAN_CHANGED_EVENT } from "./Mic.js";
 View.stylesheet(import.meta, "Chat.css");
 
 /**
- * ONE LINE. A box you type in, the microphone beside it, Send after it, and
- * everything else folded behind a `⋯` (the owner, 2026-09-22: "the area on top
- * with the text input is massive… it's taking a third of my screen").
+ * ONE BOX ON TOP, FULL WIDTH; the mic, Send and everything else folded behind a
+ * `⋯` sit in ONE ROW below it (one-dictation, 2026-10-01 — the owner, on a phone:
+ * "the text area was kind of partial width and would grow really tall and then
+ * create this big void of empty space… if the text area is gonna grow, it needs
+ * to be like full width… the send button could be below it"). This is the SAME
+ * layout `ux/Dictate/Widget.js`'s own composer already used — every caller of
+ * this one function gets it now, not just the Dictate widget.
  *
  * IT NEVER GROWS BEYOND A CEILING, and that is a requirement, not a detail: rows
- * sit under it, so a composer that gains a line pushes everything down. What
+ * sit under it, so a composer that gains a line pushes everything down (`Chat.css`'s
+ * `max-height` on the box itself now, not a row that has to match it). What
  * `ux/Dictate` draws that does not shrink — its engine name, its status, its
  * "stop after a pause" checkbox — lives in a popover positioned OUT OF FLOW.
  *
@@ -33,15 +38,26 @@ export function composer({
 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)
+	on_meter,          // (level) => … — forwarded straight to `ComposerMic`/`Dictate`'s own `on_meter`: a caller's own bigger level bar
+	                    // beside the mic button (`ux/Dictate/Widget.js`'s `level: true` option, one-dictation review finding 4).
+	device_id,         // forwarded straight to `Dictate`'s own `device_id` — a caller that already picked one mic by hand. Unset, every
+	                    // `Dictate` reads `remembered_device()` on its own, which a caller's own device PICKER (not built here — this
+	                    // composer has no UI for choosing a mic) writes to through `remember_device()`, `ux/Dictate/Dictate.js`.
 } = {}){
 	let $box, $input, $note, $raw_btn, mic;
 
 	const view = div.c("chatbox-compose", () => {
 		div.c("chatbox-field", $f => {
 			$box = $f;
-			// `.auto` = `field-sizing: content` (framework.css, util layer): the box grows with the text.
+			// `.auto` = `field-sizing: content` (framework.css, util layer): the box grows with the
+			// text, full width, up to `Chat.css`'s own ceiling (`.chatbox-compose-input`'s `max-height`).
 			$input = textarea().attr("rows", "2").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
+		});
 
+		// ONE ROW, UNDER THE BOX: the mic, Send, and everything that doesn't fit folded
+		// behind `⋯` — never beside the box any more, so the box can be the full width of
+		// the row above it (`Chat.css`'s `.chatbox-compose-row`).
+		div.c("chatbox-compose-row", () => {
 			if (with_mic) mic = new ComposerMic({
 				re,
 				deliver,
@@ -49,6 +65,7 @@ export function composer({
 				revise,
 				on_clean: on_revised,   // NOT `on_revised:` — that name would shadow ComposerMic's own method (Mic.js, on_revised)
 				on_live,
+				on_meter, device_id,
 				field: $input,
 				on_error: e => note(String(e?.message ?? e)),
 				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
@@ -58,11 +75,7 @@ export function composer({
 				// "will send raw", not "sent raw".
 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
 			}).ac("chatbox-mic");
-		});
 
-		// THE BUTTONS, AS ONE GROUP: on a phone the whole group drops under the box
-		// together, so the box gets the full width (Chat.css, `.chatbox-compose`).
-		div.c("chatbox-compose-actions", () => {
 			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
 
 			// Everything that does not fit on one line. `.open` is toggled here and

@@ -26,7 +26,10 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send) | "manual"
 	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
-	paragraph_pause_ms: 1500,   // quiet after a finished sentence that sends everything said so far as one message (was 2500: brought down with pause_send_ms, 2026-09-30, same proportion)
+	paragraph_pause_ms: 700,    // quiet after a finished sentence that sends everything said so far as one message (one-dictation,
+	                            // 2026-10-01 — the owner asked for "500 to 1000 milliseconds" so a finished sentence goes out quickly;
+	                            // was 1500, then 2500 before that. `can_break()` still requires the sentence to actually END in
+	                            // `. ! ?` first — a pause mid-sentence is only a breath, never a send.)
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
 	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
@@ -48,12 +51,12 @@ const STORE = "chat.mic.settings.3";   // .3: the shorter 2026-09-30 defaults mu
 /* The gear saves EVERY key, so a box that ever saved a setting still holds an old default for
    `pause_send_ms` or `paragraph_pause_ms`. Nothing is saved yet under the new `.3` key the first
    time this loads, so the owner's other saved values are carried over from the old `.2` key — only
-   the two stale defaults (4000 or 2500 for `pause_send_ms`, 2500 for `paragraph_pause_ms`) are
+   the stale defaults (4000 or 2500 for `pause_send_ms`, 2500 or 1500 for `paragraph_pause_ms`) are
    dropped so the new defaults above reach them; any other saved value is the owner's own. */
 try {
 	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
 	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500) delete saved.pause_send_ms;
-	if (saved.paragraph_pause_ms === 2500) delete saved.paragraph_pause_ms;
+	if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500) delete saved.paragraph_pause_ms;
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
@@ -294,19 +297,15 @@ export class ComposerMic extends Dictate {
 		box.addEventListener("input", () => { if (!this.own && this.drawn_box === box) this.owner_edit(box); });
 	}
 
-	/* THE BOX AND ITS TWO BUTTONS (the owner, 2026-09-25). The box grows line by line up to
-	   `SETTINGS.box_lines`, pushing the chat up, and only then scrolls (newest words kept in view by
-	   draw_caption). The mic and Send are the SAME fixed size and sit at the BOTTOM of the box. */
+	/* THE BOX GROWS UP TO A CEILING, THEN SCROLLS (one-dictation, 2026-10-01 — the owner: "if
+	   the text area is gonna grow, it needs to be like full width… the send button could be
+	   below it"). `Chat.css`'s own `max-height: 7lh` on `.chatbox-compose-input` is the box's
+	   DEFAULT ceiling, set once in CSS so even a mic-less composer gets one; this only keeps it
+	   in sync when the gear's own `box_lines` setting is changed live. The mic and Send are no
+	   longer glued to the box's own height — they sit in their own row UNDER it now
+	   (`Composer.js`, `Chat.css`), so there is nothing left here to size beside the box. */
 	dress(box){
 		box.style.maxHeight = SETTINGS.box_lines + "lh"; box.style.overflowY = "auto";
-		const row = box.closest(".chatbox-compose");
-		if (!row) return;
-		row.style.alignItems = "end";
-		const size = { width: "3.5em", height: "2.5em", padding: "0", alignSelf: "end" };
-		Object.assign(this.el.style, { alignSelf: "end" });
-		const btn = this.el.querySelector(".ux-dictate-btn"), send = row.querySelector(".chatbox-compose-send");
-		if (btn) Object.assign(btn.style, size, { minHeight: "0" });
-		if (send) Object.assign(send.style, size);
 	}
 
 	/* THE GEAR PANEL: one small input per setting in SETTINGS. A change writes the object at once, is

@@ -61,11 +61,22 @@ function raw_list(cls, pieces){
    last word (the owner, 2026-09-30: the mark stays, "small and trailing"), for
    a universal chat line (below) that carries `via`. Glued after the last word
    like the ✓/? mark, so it never takes a row of its own. */
-function via_text(via){ return via === "voice" ? "🎤" : "⌨"; }
+function via_text(via){ return via === "voice" || via === "whisper" ? "🎤" : "⌨"; }
 function via_badge(via){
 	const b = el("chatbox-via", "span");
 	b.textContent = via_text(via);
-	b.title = via === "voice" ? "said" : "typed";
+	b.title = via_text(via) === "🎤" ? "said" : "typed";
+	return b;
+}
+
+/* A FAILED SEND — "— not sent", muted, glued after the piece's own last word the same way
+   a ✓/? mark is (`append_mark()`'s own comment). `ux/Dictate/Widget.js`'s own Thread used to
+   write this straight onto the DOM node it had just drawn; review finding 1 named why that
+   broke (a later merge's `fill()` redraws every piece from its STORED state and wipes
+   anything bolted on afterward) — stored on the piece instead, same as `mark`/`via`. */
+function failed_badge(){
+	const b = el("chatbox-failed muted", "span");
+	b.textContent = "— not sent";
 	return b;
 }
 
@@ -158,6 +169,7 @@ function piece_body(pc){
 	const node = para("chatbox-text", pc.text);
 	if (pc.mark) append_mark(node, pc.mark);
 	if (pc.via) (node.lastElementChild ?? node).append(" ", via_badge(pc.via));   // a no-break space: the mark never wraps onto a line of its own
+	if (pc.failed) (node.lastElementChild ?? node).append(" ", failed_badge());
 	return node;
 }
 
@@ -241,10 +253,16 @@ function draw_reacts(b){
 
 /** Draw one message: a new bubble, or a paragraph on the bubble it merges into.
  *  `onmount(el)` fires once, only for a brand-new bubble — `chat()`'s own
- *  selection wiring (below) hangs off it. */
-export function speak($box, { cls, who, text, sender, at, id, onmount }){
+ *  selection wiring (below) hangs off it. `via`/`mark`/`failed` are stored ON THE
+ *  PIECE, same as `chat()`'s own `put_line()` does for its universal chat lines
+ *  (review finding 1 and 6, one-dictation: a caller that bolted these onto the DOM
+ *  node it got back, instead of handing them to `speak()` here, lost them the next
+ *  time a merge's `fill()` redrew the bubble from its stored pieces — `patch_piece()`,
+ *  below, is how that same caller updates one of these AFTER it was drawn, e.g. a
+ *  mark that only answers once the bubble is already on screen). */
+export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed }){
 	at = Date.parse(at ?? 0) || Date.now();
-	const last = mergeable($box, sender, at), piece = { id, text, at };
+	const last = mergeable($box, sender, at), piece = { id, text, at, via, mark, failed };
 	if (last){
 		bubbles.get(last).pieces.push(piece);
 		last.dataset.at = at;
@@ -263,6 +281,35 @@ export function speak($box, { cls, who, text, sender, at, id, onmount }){
 		});
 	});
 	return made;
+}
+
+/** Change one piece's `mark`/`via`/`failed` (or any other field `piece_body()` reads)
+ *  AFTER `speak()` already drew it, and redraw its bubble in place — the same thing
+ *  `chat()`'s own `mark_owner_piece()`/`resolve_mark()` do internally with the full
+ *  factory's own state, exposed here for a caller using the bare `speak()` primitive
+ *  instead (`ux/Dictate/Widget.js`'s own `Thread`). `id` is the piece's own id
+ *  (`speak()`'s own `id` option, usually its `at`). `false` when no piece on this
+ *  bubble has that id — nothing to patch, nothing redrawn. */
+export function patch_piece(bubble, id, patch){
+	const st = bubble && bubbles.get(bubble);
+	const pc = st?.pieces.find(pc => pc.id === id);
+	if (!pc) return false;
+	Object.assign(pc, patch);
+	fill(bubble);
+	return true;
+}
+
+/** Rekey one piece's own id in place, no redraw (the id is never shown — only
+ *  `patch_piece()`'s own lookup, and a caller's own bookkeeping, ever read it).
+ *  `ux/Dictate/Widget.js`'s own `retag()`: a bubble drawn under a local echo's `at`
+ *  before the caller's real server answered with a different, final one — without
+ *  this, a `patch_piece()` call under the NEW `at` would find nothing to patch. */
+export function retag_piece(bubble, old_id, new_id){
+	const st = bubble && bubbles.get(bubble);
+	const pc = st?.pieces.find(pc => pc.id === old_id);
+	if (!pc || old_id === new_id) return false;
+	pc.id = new_id;
+	return true;
 }
 
 /** A refined line: the latest one whose `of` ids are in a bubble replaces its raw paragraphs. */

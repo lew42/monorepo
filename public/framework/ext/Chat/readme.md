@@ -12,6 +12,18 @@ talk.sync();  // draw whatever is new; call it whenever `entries` changes
 
 Markdown is safe (`md.js`), each bubble starts with its sender's avatar (`roles.js`), and `Composer.js` is the input.
 
+## One box on top, one row below it (2026-10-01)
+
+`composer()`'s own box is now ALWAYS a full-width column — the typed/dictated buffer on top
+(it grows up to a ceiling, `Chat.css`'s `max-height: 7lh` on `.chatbox-compose-input`, then
+scrolls), and the mic, Send and everything folded behind `⋯` (the gear, the "raw" toggle) in
+ONE row underneath it, never beside the box. Every caller of `composer()` gets this — AI 2's
+card composer, the ✦ sheet, the desktop drawer, and now [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/),
+which used to build a second, separate composer of its own (`one-dictation`, CLAUDE.md law 6).
+`Mic.js`'s `SETTINGS.paragraph_pause_ms` (how long a finished sentence waits before it is sent
+and the box clears) is `700`ms by default now, not `1500` — the owner asked for "500 to 1000
+milliseconds."
+
 ## Reactions, avatars and threads (2026-09-30)
 
 - **React to a bubble like an SMS tap-back:** hold it on a phone, right-click it on a desktop, or click the ☺ beside it. Pick 👍 ✅ ❤️ 😂 ❓ 👎; the same one again takes it off. Each is a `{"react": {at, re, emoji, from}}` line in the log, so it survives a reload. Pass `on_react` to `chat()` (or `react` to `ChatPanel`) to save it.
