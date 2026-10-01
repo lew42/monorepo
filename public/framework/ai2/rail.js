@@ -46,7 +46,7 @@ export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
  *   - the pinned Now card, the focus-follow (an agent can open a card on your screen),
  *     the workspace word, and flagging a sentence you selected in the detail.
  *
- * AI 2 (`ai2/page.js`) and the AI page's Inbox and Log tabs (`ai/page.js`) both build one:
+ * AI 2 (`ai2/page.js`) builds one (the AI page's Inbox and Log tabs, `ai/page.js`, next merge):
  * `this.ai2 = new AIRail({ page: this }).mount()` inside `content()`. Card pages read it
  * back as `shell.ai2` (card.js).
  *
@@ -438,7 +438,7 @@ export default class AIRail extends InboxRail {
 	unflag(id){ this.says.flags.delete(id); say(id, "reopen"); this.paint(); }
 	on_tasks(fn){ const go = () => fn([...this.groups.tasks.values()]); go(); return this.groups.on(go); }
 
-	/* ════ THE ADDRESSES A RAIL OPENS — the same on AI 2 and the AI page ════
+	/* ════ THE ADDRESSES A RAIL OPENS — the same on every page that has the rail ════
 	   A static, because the Router asks a page's `route()` before its `content()` (and so
 	   before this rail exists) on a cold deep link. `shell` is the page the rail lives on. */
 	static route(shell, id){

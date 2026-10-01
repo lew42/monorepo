@@ -9,7 +9,7 @@ View.stylesheet("/framework/ux/Inbox/Inbox.css");
  * and nothing in the list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a
  * persistent navigation… it shouldn't jump when you click on an item").
  *
- * This is the base class. AI 2 and the AI page both draw `AIRail` (ai2/rail.js), which
+ * This is the base class. AI 2 draws `AIRail` (ai2/rail.js; the AI page too, next merge), which
  * extends this with the usage meters, "+ New card" and the AI data. Any other page can
  * extend it the same way: override `source()` to say what the rows are, and the rest
  * comes with it.

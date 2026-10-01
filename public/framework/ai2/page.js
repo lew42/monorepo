@@ -71,7 +71,7 @@ export default new Page({
 		});
 		// THE RAIL IS ALWAYS MOUNTED — every route shows it; `needs/`, `log/` and `overview/`
 		// take over the whole shell instead (`inbox-takeover`, ux/Inbox/Inbox.css). It is one
-		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs build.
+		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs will build (next merge).
 		this.ai2 = new AIRail({ page: this }).mount();
 	},
 
@@ -83,7 +83,7 @@ export default new Page({
 	   same plain way as any other card id below — the only thing special about it is that
 	   the rail also pins its preview at the top, imported by hand (`AIRail.render_pinned()`).
 	   `live`, `view` and a card folder's year (`2026/09/24/<slug>/`) are answered by
-	   `AIRail.route()`, so this page and the AI page open them the same way. */
+	   `AIRail.route()`, so every page with the rail opens them the same way. */
 	route(id){
 		if (id.includes(".")) return undefined;
 		if (id === "overview") return this.overview_page ??= overview_page(this);
