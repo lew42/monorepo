@@ -9,6 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
+import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for } from "../ext/openrouter/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -99,6 +100,18 @@ export class Agents {
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
+		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
+		 * gets the openrouter provider for free — nobody has to say `provider`
+		 * by hand. An explicit `spec.provider` always wins. */
+		const provider = spec.provider ?? role_defaults(spec.role).provider ?? provider_for(model);
+		/* CLAUDE STAYS ON THE SUBSCRIPTION (requirements.md; review.md finding 6):
+		 * an explicit `provider: "openrouter"` paired with a Claude model id would
+		 * bill that model per token through the gateway instead. The slash rule
+		 * above can't cause this by itself (every OpenRouter slug has a `/`), but
+		 * a caller or a future tier could still say both — refuse it here, once. */
+		if (provider === "openrouter" && !String(model).includes("/"))
+			throw new Error(`provider "openrouter" needs an OpenRouter model id (e.g. "openai/gpt-6-luna"), not "${model}" — Claude itself stays on the subscription (openrouter/provider.js)`);
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
@@ -109,7 +122,7 @@ export class Agents {
 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
 			: base;
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec, id, prompt,
+			...role_defaults(spec.role), ...spec, id, prompt, provider,
 			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
@@ -661,6 +674,7 @@ Agents.Agent = class Agent {
 		return {
 			role: "agent",
 			model: "claude-sonnet-5",
+			provider: "anthropic",
 			effort: "high",
 			visibility: "team",
 			cwd: process.cwd(),
@@ -688,6 +702,12 @@ Agents.Agent = class Agent {
 		 * runs) — `??=` keeps that one instead of minting a second. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
 		else { this.session_id ??= randomUUID(); this.minted = true; }
+		/* Baseline for the real-cost diff (see `refresh_or_cost()`): read the
+		 * key's running total BEFORE the first turn, so the first result() call
+		 * has something to subtract from. Fire-and-forget — a slow or failing
+		 * read just means the first turn's cost stays whatever the SDK guessed
+		 * until the next turn settles it. */
+		if (this.provider === "openrouter") this.refresh_or_cost();
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -708,7 +728,7 @@ Agents.Agent = class Agent {
 	 * `env` are code or secrets and are not kept; a fork keeps none. */
 	recipe(){
 		if (this.one_shot) return null;
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "system"];
 		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
 	}
@@ -760,6 +780,12 @@ Agents.Agent = class Agent {
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
 			...this.sdk,
+			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
+			 * `...this.sdk` so it always applies even when a spec sets its own
+			 * disallowedTools for an unrelated reason. */
+			...(this.provider === "openrouter" && disallowed_tools_for(this.model).length
+				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
+				: {}),
 			...(this.one_shot ? this.refusal() : {})
 		};
 	}
@@ -806,13 +832,18 @@ Agents.Agent = class Agent {
 	 * and nothing else", throwing away the project's own MCP servers that the
 	 * agent may well need. Servex's door is added BESIDE whatever it already has. */
 	door(){
+		/* OPENROUTER (Servex/ext/openrouter/provider.js): four env vars swap the
+		 * SDK's own Anthropic call for an OpenRouter one; read once here, right
+		 * before the process spawns, so a missing key fails this agent's own
+		 * start() with one clear line instead of a confusing SDK auth error. */
+		const or_env = this.provider === "openrouter" ? env_for("openrouter") : null;
 		const url = this.mcp_url ?? this.host?.mcp_url;
-		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers
-		if (!url) return this.mcp_servers ? { mcpServers: this.mcp_servers } : {};
+		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });
 
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
-			env: { ...process.env, SERVEX_MCP: url, ...this.env }
+			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...this.env }
 		};
 	}
 
@@ -1039,6 +1070,9 @@ Agents.Agent = class Agent {
 	assistant(message){
 		const nested = !!message.parent_tool_use_id;
 		if (!nested && message.message?.usage) this.last_usage = message.message.usage;
+		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
+		// which OpenRouter's /generation endpoint can look up directly and exactly.
+		if (!nested && message.message?.id) this.last_assistant_message_id = message.message.id;
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
@@ -1056,6 +1090,41 @@ Agents.Agent = class Agent {
 		return text.length > max ? text.slice(0, max) + "…" : text;
 	}
 
+	/* THE REAL COST (openrouter/provider.js, openrouter/readme.md point 3): the
+	 * SDK's own `total_cost_usd` prices a proxied turn off ANTHROPIC's table
+	 * under the wrong model name, so it is simply wrong once a turn runs through
+	 * OpenRouter. The honest number is OpenRouter's own running dollar total for
+	 * the key, read before the turn (`start()`) and after it (here); the
+	 * difference is what that turn cost. Never awaited by its caller — a slow
+	 * or failed read just leaves `this.cost` at its last known value, never
+	 * blocks the agent's own turn from finishing. */
+	async refresh_or_cost(){
+		if (this.provider !== "openrouter") return;
+		try {
+			const key = read_key();
+			/* real_turn_cost() (openrouter/provider.js, review.md findings 2-4): tries
+			 * the exact per-generation figure first, by this turn's own assistant
+			 * message id; falls back to a before/after key-total diff. Either way it
+			 * polls for ~10-20s for billing to settle — this call is never awaited by
+			 * its caller (start()/result()/compact_done()), so that wait never
+			 * delays the agent's own turn. */
+			const r = await real_turn_cost({
+				key, message_id: this.last_assistant_message_id, usage_before: this.or_usage_before
+			});
+			if (!r) return;
+			/* CUMULATIVE, like the SDK's own `total_cost_usd` (cost-cumulative-fix,
+			 * 2026-10-01): a turn's own cost is ADDED onto a running `or_cost`, never
+			 * used to replace `this.cost` outright — replacing it would make the
+			 * session total reset on every turn instead of growing. */
+			if (typeof r.cost === "number"){
+				this.or_cost = (this.or_cost ?? 0) + r.cost;
+				this.cost = this.or_cost;
+			}
+			if (typeof r.usage_now === "number") this.or_usage_before = r.usage_now;
+			this.host?.register?.(this);
+		} catch {}   // billing not settled yet, or no key — this.cost keeps its last value
+	}
+
 	/* A turn ended — but the agent is only IDLE if nothing is queued behind it.
 	 * `queued_turn_count` is how the CLI says "another turn follows without
 	 * further input"; without that check a watcher reads the gap between two
@@ -1063,7 +1132,12 @@ Agents.Agent = class Agent {
 	result(message){
 		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
-		this.cost = message.total_cost_usd ?? this.cost;
+		/* total_cost_usd is the SDK's own guess, priced off Anthropic's table —
+		 * wrong for an openrouter agent under the wrong model name entirely
+		 * (openrouter/readme.md point 3), so it must never touch `this.cost`
+		 * here; refresh_or_cost() below owns `this.cost` for that agent instead. */
+		if (this.provider === "openrouter") this.refresh_or_cost();
+		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		/* `words` = everything said this turn, which is what a fork's wake and
@@ -1113,7 +1187,8 @@ Agents.Agent = class Agent {
 		const c = this.compacting;
 		this.compacting = null;
 		this.compacted_turn = this.turns;
-		this.cost = message.total_cost_usd ?? this.cost;
+		if (this.provider === "openrouter") this.refresh_or_cost();
+		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];

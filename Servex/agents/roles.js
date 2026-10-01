@@ -11,7 +11,7 @@
  * accepted as a role. Renaming the skill dirs would touch a dozen callers, so the
  * mismatches are listed in doc/names.md.
  * `prefix` is the id's first half (`<prefix>-<name>`, built by Agents.name()). */
-import { model } from "./tiers.js";
+import { model, provider } from "./tiers.js";
 
 /* `tier` is the row's size (tiers.js: fast, manager, architect, scan); its `model` is
  * DERIVED from the tier, so moving a tier to another model is one line in tiers.js.
@@ -81,10 +81,14 @@ export function canonical(word){
 
 const row = word => ROLES[canonical(word)];
 
-/* The posture fields only — `skill`, `prefix` and `alias` are not spawn options. */
+/* The posture fields only — `skill`, `prefix` and `alias` are not spawn options.
+ * `provider` is DERIVED from the row's `tier` here (review.md finding 5: tiers.js's
+ * `provider` export had no caller — moving a tier to OpenRouter did nothing by
+ * itself, only the slash rule on its `model` happened to carry it), so a tier
+ * moved to `provider: "openrouter"` in tiers.js now actually takes effect. */
 export function defaults(role){
-	const { model, effort, permission_mode } = row(role) ?? {};
-	return row(role) ? { model, effort, permission_mode } : {};
+	const { model, effort, permission_mode, tier } = row(role) ?? {};
+	return row(role) ? { model, effort, permission_mode, provider: provider(tier) } : {};
 }
 
 /* A role's skill list — `skills: [...]` when it carries more than one, else the
