@@ -386,6 +386,22 @@ Neither case needed a live microphone to find — both are deterministic once yo
 exactly when each `beep()` call happens relative to the async chain around it. Full
 reasoning: `ai/2026-10-01/dictate-stop-sound/task.jsonl`.
 
+## Why the "chat" mode (typed first, manual send) went, 2026-10-01
+
+The owner used the Dictate page and the ✦ sheet in the same afternoon and found they "look
+alike but behave differently" — the Dictate page's own Chat mode (`Widget.js`'s `MODES.chat`,
+built the day before as merge 10) was really just autosend switched off, reached by a two-button
+Dictate | Chat switch nowhere else on the site had. The owner's own words: "maybe that was a
+mistake to separate those into two different modes," and "auto send after a pause of a
+reasonable amount." Merge 11 ("one widget") deleted the `chat` row from `MODES`, the switch
+from `ux/Dictate/page.js`, and "manual" from the gear's own send-mode choices
+(`ext/Chat/Mic.js`'s `settings_panel()`) — autosend after a pause is the only behaviour left,
+everywhere, and typing still sends on Enter or the Send button exactly as before. A saved
+`send_mode: "manual"` from the old gear choice is migrated back to `"pause"` the moment
+settings load, the same way a stale `pause_send_ms` default already was — otherwise a reader
+who had once picked "manual" would have autosend silently off for good, with no UI left that
+could turn it back on. Full task: `ai/2026-09-30/one-dictation/minion-onewidget/task.jsonl`.
+
 ## Why the phone repeated every sentence and beeped after every pause (2026-10-01)
 
 On the phone, the page's 800 ms check for whisper timed out, so the mic quietly used

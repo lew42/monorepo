@@ -26,7 +26,10 @@ new_session_button(mount);  // the one "New session" button every surface shares
 typing or talking into it sends a real message and real replies come back. `path` is the page
 this mount is on right now; `card` is explained below. `level`, `source` and `debug` are passed
 straight through to the `Widget` this draws (a bigger level meter, the mic picker, the "Debug ▾"
-bar) — the Dictate page's own demo (below) is the one caller that turns all three on.
+bar) — real `Widget` options, there for a caller that wants them, but no surface turns any of
+them on today: the debug views already live one click away at
+[playground](/framework/ux/Dictate/playground/), and the level bars are being replaced
+everywhere by the pulsing dot (merge 12, "the dot").
 
 ## Modes, and where the Dictate box sits
 
@@ -34,10 +37,26 @@ The Dictate box — entry, Whisper, correction, Send — is not its own thing. I
 the Chat widget (`Widget.js`), which owns the bubbles above it. Every sentence becomes one more
 line in the same conversation a typed message would.
 
-A **mode** (`chat(el, {mode})`, `new Widget({mode})`) is a named preset, never a second code
-path — one row in `Widget.js`'s `MODES` table, over settings `Mic.js`/`Chat.js` already have.
-`"dictate"` (default): a sentence sends itself, sentences merge into one bubble. `"chat"`: Enter
-or Send only, every send its own bubble; the mic still works, typing into the box only.
+**One chat, everywhere, and it always autosends.** Say a sentence and it goes out by itself a
+short pause after it ends — no button needed. Sentences said close together join the same
+bubble, like a paragraph. Typing still works exactly as you'd expect: press Enter, or the Send
+button, and your typed line goes out. This is true on every surface — the Dictate page's own
+demo, the ✦ sheet, a card's sidebar — because they all build the exact same `Widget`, the exact
+same way.
+
+It wasn't always this way. Until 2026-10-01 there was a second mode, `"chat"` (typed first,
+Send only, nothing auto-sent), picked with a Dictate | Chat switch on the Dictate page. The
+owner tried both surfaces and found they "look alike but behave differently" — the Dictate
+page's own Chat mode was really just autosend turned off, and the owner's own words were
+"maybe that was a mistake to separate those into two different modes." It's gone now:
+`"dictate"` is the only mode a caller can ask for besides `"live"` (below), so there is nothing
+left to switch. Why, in more detail: [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
+
+A **mode** (`chat(el, {mode})`, `new Widget({mode})`) is still a named preset, never a second
+code path — one row in `Widget.js`'s `MODES` table, over settings `Mic.js`/`Chat.js` already
+have. The one other mode today is **`"live"`** (merge 13, clean-dictate-mode): speech goes
+straight into the outgoing bubble, with no text box and no Send at all — see `Widget.js`'s own
+`MODES` doc comment for exactly what it changes.
 
 The same chat is open to an agent too: its reply is just another line in the same session file,
 with its own `from`.

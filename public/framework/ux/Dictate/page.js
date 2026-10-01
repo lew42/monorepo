@@ -1,4 +1,4 @@
-import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4, button } from "/app.js";
+import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
 import Dictate from "./Dictate.js";
 import chat, { new_session_button } from "./chat.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
@@ -58,46 +58,6 @@ const words = () => div.c("flex v gap-2em", () => {
 	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); demo_box().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 });
 
-/* THE MODE SWITCH (one-dictation item 3 — "a two-button switch above the chat,
- * Dictate | Chat"). Routed as `?mode=chat` in the page's own URL, so a reload or the
- * back button lands on the same mode; no query at all means "dictate" (`chat.js`'s own
- * default). Clicking a button never flips a setting on the widget already built — it
- * changes the URL, then asks `demo_mount()` (below) to throw this one demo away and
- * build a fresh one in the new mode, same as leaving and coming back to the page would. */
-function mode_from_url(){
-	return new URLSearchParams(location.search).get("mode") === "chat" ? "chat" : "dictate";
-}
-
-function mode_switch(on_change, signal){
-	let mode = mode_from_url(), $dictate, $chat;
-	const $box = div.c("flex gap wrap v-center", () => {
-		span.c("muted", "Mode:");
-		$dictate = button.c("").attr("type", "button").text("Dictate").click(() => set("dictate"));
-		$chat = button.c("").attr("type", "button").text("Chat").click(() => set("chat"));
-	});
-	function paint(){
-		$dictate.el.classList.toggle("prim", mode === "dictate");
-		$dictate.attr("aria-pressed", String(mode === "dictate"));
-		$chat.el.classList.toggle("prim", mode === "chat");
-		$chat.attr("aria-pressed", String(mode === "chat"));
-	}
-	function set(next){
-		if (next === mode) return;
-		mode = next;
-		const url = new URL(location.href);
-		if (next === "chat") url.searchParams.set("mode", "chat"); else url.searchParams.delete("mode");
-		history.pushState(null, "", url);
-		paint();
-		on_change(mode);
-	}
-	// The back/forward buttons change `location.search` without this file ever being
-	// asked — this is the one place that notices and catches the switch, and the demo,
-	// up with it.
-	addEventListener("popstate", () => { mode = mode_from_url(); paint(); on_change(mode); }, { signal });   // removed when the demo leaves the page
-	paint();
-	return $box;
-}
-
 /* THE WORKBENCH (one-dictation, "the Dictate page is the workbench" — the owner,
  * 2026-10-01). Before this, the main demo was a bare `new Widget({level, source,
  * debug})`, with no session wired up, so nobody ever answered it. Now it's a real
@@ -111,26 +71,31 @@ function mode_switch(on_change, signal){
  * is the one button every surface shares — this demo gets it too, so a reader can
  * clear this one demo's own session without affecting anything else on the site.
  *
- * THE MODE SWITCH (item 3, above this comment) sits right above the chat box and
- * rebuilds this SAME demo in the picked mode (`build()`, below) — `mode` is just
- * one more option this call already took, same as `level`/`source`/`debug`. */
+ * ONE WIDGET, NOT TWO (merge 11, "one widget," 2026-10-01): this call used to pass
+ * `level: true, source: true, debug: true`, plus a `mode` set by a Dictate | Chat
+ * switch drawn above the box — the owner used this page and the ✦ sheet and found
+ * they "look alike but behave differently," and that extra config was most of the
+ * difference. This is now the EXACT SAME `chat()` call the sheet makes
+ * (`ext/drawer/rail.js`'s `ensure_mount()`): only `keep` differs, because this demo's
+ * own conversation is never the owner's real one. `level`/`source`/`debug` are still
+ * real `Widget` options (`Widget.js`'s own class doc) — turning them off here doesn't
+ * remove them, it just stops using them here: the debug views already live one click
+ * away at [playground](/framework/ux/Dictate/playground/), and the level bars are
+ * being replaced everywhere by the pulsing dot (merge 12). `doc/decisions.md` has the
+ * owner's own words for why the Dictate | Chat switch went entirely: autosend after a
+ * pause is the default now, and the only behaviour — there is no second mode to
+ * switch to any more besides `live` (merge 13). */
 function demo_mount(){
 	let $slot, mount;
-	const leave = new AbortController();
 	const $box = div.c("flex v gap", () => {
 		div.c("flex wrap gap v-center", () => {
 			new_session_button(() => mount);
 			span.c("muted", "This demo has its own session. It starts fresh when you leave the page.");
 		});
-		mode_switch(mode => build(mode), leave.signal);
 		$slot = div.c("ux-dictate-page-demo");
 	}).style("--gap", "calc(var(--gap) * 0.5)");
 
-	function build(mode){
-		if (mount){ mount.panel?.stop_mic(); mount.remove(); $slot.empty(); }
-		mount = chat($slot.el, { placeholder: "say something", keep: false, level: true, source: true, debug: true, mode });
-	}
-	build(mode_from_url());
+	mount = chat($slot.el, { placeholder: "say something", keep: false });
 
 	// LEAVING THE PAGE: there is no framework-wide "unmount" hook to hang a cleanup
 	// on (`Dictate.js`'s own `hotkey()` doc names the same gap) — this watches for
@@ -140,7 +105,6 @@ function demo_mount(){
 	const mo = new MutationObserver(() => {
 		if ($slot.el.isConnected) return;
 		mo.disconnect();
-		leave.abort();
 		mount.panel?.stop_mic();
 		mount.remove();
 	});

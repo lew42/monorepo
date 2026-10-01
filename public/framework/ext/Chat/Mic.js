@@ -24,7 +24,11 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
    sentence); a long stretch is cut at a sentence end past `chunk_chars` or `chunk_ms`; whatever is left goes out
    after `pause_send_ms` of silence. `sentences_per_send` > 0 brings back one message per N sentences. */
 export const SETTINGS = {
-	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send) | "manual"
+	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
+	                            // "manual" (Send/Enter only, nothing ever auto-sent) still WORKS if something sets it directly,
+	                            // but merge 11 ("one widget," 2026-10-01) removed every way to reach it: it is no longer a
+	                            // `MODES` row (`ux/Dictate/Widget.js`) or a gear choice (`settings_panel()`, below) — autosend
+	                            // is the default and the only behaviour a reader can pick, everywhere.
 	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
 	paragraph_pause_ms: 700,    // quiet after a finished sentence that sends everything said so far as one message (one-dictation,
 	                            // 2026-10-01 — the owner asked for "500 to 1000 milliseconds" so a finished sentence goes out quickly;
@@ -57,6 +61,14 @@ try {
 	const saved = JSON.parse(localStorage.getItem(STORE) ?? localStorage.getItem("chat.mic.settings.2") ?? "{}");
 	if (saved.pause_send_ms === 4000 || saved.pause_send_ms === 2500) delete saved.pause_send_ms;
 	if (saved.paragraph_pause_ms === 2500 || saved.paragraph_pause_ms === 1500) delete saved.paragraph_pause_ms;
+	// MERGE 11, "ONE WIDGET" (2026-10-01): "manual" send (only Send/Enter, nothing ever
+	// auto-sent) used to be one of the gear's own choices — and a box that had it saved
+	// would silently turn autosend off for good, which is exactly the "look alike but
+	// behave differently" bug the owner hit. Autosend is the only behaviour now, so an
+	// old saved "manual" is changed back to "pause" here, the same way a stale
+	// `pause_send_ms`/`paragraph_pause_ms` default is dropped just above. The choice
+	// itself is also gone from `settings_panel()`'s own `send_mode` row, below.
+	if (saved.send_mode === "manual") saved.send_mode = "pause";
 	Object.assign(SETTINGS, saved);
 } catch {}
 export const save_settings = () => { try { localStorage.setItem(STORE, JSON.stringify(SETTINGS)); } catch {} };
@@ -339,7 +351,7 @@ export class ComposerMic extends Dictate {
 		const rows = [
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
-			["send_mode", "send mode", ["pause", "sentences", "manual"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["paragraph_pause_ms", "natural pause (ms)", "number"],
+			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["paragraph_pause_ms", "natural pause (ms)", "number"],
 			["pause_send_ms", "silence before send (ms)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
 		];

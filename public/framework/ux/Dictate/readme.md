@@ -66,10 +66,14 @@ composer (`Dictate`'s own `mode: "open"` mic, nothing ever typed into the box) r
 any `Widget` — a plain switch back if either regresses something: `doc/chat.md`'s "the older
 versions" table, `Widget.js`'s own class doc.
 
-**`mode: "dictate" | "chat" | "live"`** picks one row of `Widget.js`'s own `MODES` table — a
-named preset, never a second code path (CLAUDE.md law 6). `"dictate"` (the default) is
-everything above: voice first, into the box, auto-sent. `"chat"` is typed first: manual Send
-only, dictation (if used) still goes into the box, bubbles never merge. **`"live"`**
+**`mode: "dictate" | "live"`** picks one row of `Widget.js`'s own `MODES` table — a named
+preset, never a second code path (CLAUDE.md law 6). `"dictate"` (the default, and the only
+mode besides `"live"`) is everything above: voice first, into the box, auto-sent after a
+short pause; typing still sends on Enter or Send. A second mode, `"chat"` (typed first,
+manual Send only, bubbles never merging), existed for one day and was removed (merge 11,
+"one widget," 2026-10-01) — the owner tried it on the Dictate page next to the ✦ sheet and
+found the two "look alike but behave differently": [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/)
+has the owner's own words. **`"live"`**
 (clean-dictate-mode, 2026-10-01 — the owner: "instead of writing into this text area, we just
 do the same thing in the chat bubble where it's going to be sent") skips the box entirely: a
 sentence grows straight into a chat bubble on the owner's own side of the log, through the
@@ -114,18 +118,18 @@ Five plain properties, every one `false`/off by default:
   own lines and shows a small ✓/`?` beside it. Restored round 4 (`ai/2026-09-30/audio-
   consolidate/minion-wire/`) after the widget swap below had dropped them.
 
-**On the [Dictate Overview](/framework/ux/Dictate/) today**, configured `{ level: true,
-source: true, debug: true }`, right under the title, no paragraph above it — the owner's
-own phone complaint this answers: "the button is so far down the page… the actual
-transcription is below another paragraph or two." The OLD Overview (the five-tab
-playground leading, same as it always did) is kept one click away at
+**On the [Dictate Overview](/framework/ux/Dictate/) today**, right under the title, no
+paragraph above it — the owner's own phone complaint this answers: "the button is so far
+down the page… the actual transcription is below another paragraph or two." The OLD Overview
+(the five-tab playground leading, same as it always did) is kept one click away at
 [v1](/framework/ux/Dictate/v1/) — never destroy a viable version.
 
 **This page IS the workbench** (one-dictation, 2026-10-01 — the owner: "the Dictate page
 is the workbench… this whole thing is based on these AI sessions"). The Overview's demo is
 not just a display any more — it is a real [`chat()`](#chatjs--one-mount-one-conversation-every-surface)
-mount, so saying something there is actually answered, same as every other surface, and a fix
-proved right there reaches all of them. Its own conversation is real but never remembered
+mount, the EXACT SAME call the ✦ sheet makes (merge 11, "one widget" — only `keep` differs,
+below), so saying something there is actually answered, same as every other surface, and a
+fix proved right there reaches all of them. Its own conversation is real but never remembered
 (`keep: false` — see below); its own "New session" button is the one every surface shares.
 
 ## chat.js — one mount, one conversation, every surface
@@ -135,10 +139,10 @@ every surface uses — the ✦ sheet, the ☰ AI tab, a card's own sidebar, the 
 the Dictate page's own demo. `keep: true` (the default) joins the ONE global conversation
 per browser tab, kept across every page; `keep: false` gives this one mount its OWN
 conversation, remembered only as long as the mount itself exists — leave the page and come
-back to a brand-new, empty one. `mode` (`"dictate"`, the default, or `"chat"`) is a named
-preset for voice-first vs. typed-first — the Dictate page's own demo has a Dictate | Chat
-switch for it: [`doc/chat.md`'s "Modes, and where the Dictate box sits"](/framework/ux/Dictate/doc/chat/#modes-and-where-the-dictate-box-sits).
-`new_session_button(mount)` is the one "New session" button
+back to a brand-new, empty one. `mode` (`"dictate"`, the default and, besides `"live"`, the
+only one — merge 11 removed `"chat"`, see `doc/chat.md`'s "Modes, and where the Dictate box
+sits") is a named preset, same idea, for a different mic behaviour — today every surface just
+takes the default. `new_session_button(mount)` is the one "New session" button
 every surface now shares, instead of each building its own. The call, `keep`'s exact rules,
 why a reopened chat never loses old messages, and every older version still kept reachable
 (`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
@@ -219,7 +223,10 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
   stops and releases its tracks and audio context on `visibilitychange` (hidden) or `pagehide`, and
   restarts by itself, saying "resumed", when the page is shown again. A `Dictate` taken off the page
   while live stops itself too (`Dictate.js`, `LIVE`; mic-hijack, 2026-09-30). Dictating while another
-  app is in front would need a PWA with a background process, or a native app.
+  app is in front would need a PWA with a background process, or a native app. ⚠ **This is not what
+  used to stop the mic when the ✦ sheet closed** — closing it never took the `Dictate` off the page at
+  all; the sheet's own `hide()` called `stop_mic()` by hand, on purpose, every time. Fixed 2026-10-01
+  so a real close (✕, drag down, phone back) leaves the mic running: [`ext/drawer/doc/sheet.md`](/framework/ext/drawer/doc/sheet/).
 
 - **The stop chime could drop or double.** `beep()` (`ext/Chat/Mic.js`) scheduled its
   notes on an `AudioContext` clock that was still frozen (never waited for `resume()`),

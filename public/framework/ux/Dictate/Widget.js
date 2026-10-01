@@ -33,7 +33,6 @@ export function model(value){
  *     new Widget({ revision: "edit" });                 // ux/Revise tidies each sentence
  *     new Widget({ models: true });                     // + the model picker
  *     new Widget({ pulse: true });                       // a small bottom-right dot that grows with the voice, instead of `level`'s bar
- *     new Widget({ mode: "chat" });                     // typed first, manual send, never merges bubbles — see MODES, below
  *     new Widget({ mode: "live", revision: "clean" });  // voice first, STRAIGHT TO A BUBBLE, never the box — see MODES, below
  *
  * Every option is `false`/`null`/off by default, so the plain `new Widget()` call stays the
@@ -55,14 +54,24 @@ export function model(value){
 /** **THE MODE PRESETS** (`mode`, one-dictation item 1 — "a mode is a named preset, never a
  *  second code path", CLAUDE.md law 6). One small table, one row per mode: everything a mode
  *  changes already exists, so a third mode is one more row here, never a new `if` anywhere
- *  else. `"dictate"` (the default) changes nothing — it IS what every surface already does:
- *  voice first, a sentence goes out by itself at its end, and sentences from the same sender
- *  join the last bubble. `"chat"` (typed first) sets exactly three things, all of them already
- *  real seams: `send_mode`/`into`, read by ONE `ComposerMic` instance (`Mic.js`'s own
- *  `mode_now()`/`live_active()` — a per-mic override, never the shared, owner-saved
- *  `SETTINGS`, and the gear still wins over it for that one box), and `join`, read by
- *  `Widget.Thread` below to call `ext/Chat/Chat.js`'s own `speak()` with its `join: false`
- *  opt-out so a chat-mode send never merges into the last bubble.
+ *  else. `"dictate"` (the default, and now the only mode besides `"live"`) changes nothing —
+ *  it IS what every surface already does: voice first, a sentence goes out by itself at its
+ *  end after a short pause (autosend — `Mic.js`'s own `SETTINGS.send_mode: "pause"`), and
+ *  sentences from the same sender join the last bubble.
+ *
+ *  **Merge 11, "one widget" (2026-10-01):** the `"chat"` row (typed first, manual Send only,
+ *  bubbles never merging) is GONE. The owner used both the Dictate page and the ✦ sheet and
+ *  found they "look alike but behave differently" — the Dictate page's own Chat mode was
+ *  really just autosend switched off, and "that was a mistake to separate those into two
+ *  different modes." The owner's own words: "auto send after a pause of a reasonable
+ *  amount." Now every surface only ever autosends; typing still sends on Enter or Send, same
+ *  as always. The gear no longer offers "manual" as a send-mode choice either
+ *  (`Mic.js`'s own `settings_panel()`), and an old saved `send_mode: "manual"` is migrated
+ *  back to `"pause"` the moment settings load (`Mic.js`, same place `pause_send_ms` is
+ *  migrated). `join` (the piece that let `"chat"` opt out of `speak()`'s own bubble-merging)
+ *  stays on `Widget.Thread` below as a general seam, unused by either mode left in this table
+ *  today — removing it would be surgery nothing here asked for. Full reasoning:
+ *  `doc/decisions.md`.
  *
  *  `"live"` (clean-dictate-mode, 2026-10-01 — the owner: "instead of writing into this text
  *  area, we just do the same thing in the chat bubble where it's going to be sent") is the
@@ -80,7 +89,6 @@ export function model(value){
  *  WHERE the words appear, `revision` decides WHAT they say. */
 const MODES = {
 	dictate: {},
-	chat: { send_mode: "manual", into: "box", join: false },
 	live: { into: "chat", bubble: true },
 };
 
@@ -222,7 +230,7 @@ Widget.prototype.on_text = null;     // (text) => … — fires the moment a sen
 Widget.prototype.answer = null;      // (choice) => … — a choice-button question's pick (`say({type:"ask",...})`)
 Widget.prototype.marks = false;      // show a ✓/`?` beside each of the OWNER'S OWN bubbles (`ux/Understand`)
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
-Widget.prototype.mode = "dictate";   // "dictate" (voice first, the default) | "chat" (typed first) | "live" (voice first, straight to a bubble, never the box) — see MODES, above
+Widget.prototype.mode = "dictate";   // "dictate" (voice first, autosend after a pause, the default and the only one besides "live") | "live" (voice first, straight to a bubble, never the box) — see MODES, above
 Widget.MODES = MODES;
 
 /** **THE OLD THREAD** (`v1: true`) — one bubble per line, drawn with this widget's own
