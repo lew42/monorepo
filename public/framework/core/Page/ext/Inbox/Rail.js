@@ -9,7 +9,7 @@ View.stylesheet("/framework/ux/Inbox/Inbox.css");
  * and nothing in the list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a
  * persistent navigation… it shouldn't jump when you click on an item").
  *
- * This is the base class. AI 2 draws `AIRail` (ai2/rail.js; the AI page too, next merge), which
+ * This is the base class. The AI page and AI 2 both draw `AIRail` (ai2/rail.js), which
  * extends this with the usage meters, "+ New card" and the AI data. Any other page can
  * extend it the same way: override `source()` to say what the rows are, and the rest
  * comes with it.
@@ -125,7 +125,7 @@ export default class InboxRail {
 	}
 
 	/* The rail names itself (the owner, 2026-09-25: it "identifies this as the navigation rail"). */
-	name(){ return h4.c("inbox-rail-name", () => { span(this.title); }); }
+	name(){ return h4.c("inbox-rail-name", () => { this.$name = span(this.title); }); }
 	head_extra(){}      // AIRail: the usage meters
 	actions(){}         // AIRail: "+ New card"
 	toggles(){}         // AIRail: auto-transcribe
@@ -472,7 +472,7 @@ export default class InboxRail {
 			if (it.icon) icon(it.icon);
 			if (it.score != null) span.c("inbox-score" + (it.score >= 70 ? " inbox-score-hot" : "")).text(String(it.score));
 			this.title_text(span.c("inbox-row-title").text(it.title), it);
-			small.c("inbox-row-when muted").text(this.when(it.at, it));
+			small.c("inbox-row-when muted").text(this.when(it.at, it)).attr("title", this.when_full(it.at));
 			if (on.archive) button.c("inbox-clear").attr("type", "button")
 				.attr("title", "archive — nothing is deleted").text("×")
 				.click(e => { e.preventDefault(); e.stopPropagation(); on.archive(); });
@@ -480,13 +480,19 @@ export default class InboxRail {
 	}
 	title_text($title, it){}   // AIRail: turn #Page and /path into links (ext/Mention)
 
-	/** "10:04 PM" today, "Sep 28, 2:20 PM" before. */
+	/** SHORT, so the title keeps the row's width: "10:04 PM" today, "Sep 28" this year,
+	 *  "Sep 28, 2025" before. "Sep 28, 2:20 PM" squeezed long titles to one word a line at
+	 *  1920 (review, 2026-09-30). The whole date and time is the hover (`when_full()`). */
 	when(at){
 		const d = new Date(at ?? 0);
 		if (!at || isNaN(d)) return "";
-		const today = d.toDateString() === new Date().toDateString();
-		const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-		return today ? time : d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + time;
+		const now = new Date();
+		if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+		return d.toLocaleDateString([], d.getFullYear() === now.getFullYear() ? { month: "short", day: "numeric" } : { month: "short", day: "numeric", year: "numeric" });
+	}
+	when_full(at){
+		const d = new Date(at ?? 0);
+		return !at || isNaN(d) ? "" : d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 	}
 
 	/** The row's two buttons — built once per record, so a click during a redraw never
@@ -572,10 +578,12 @@ export default class InboxRail {
 		this.router?.mark_links?.();
 	}
 
-	/** A tab says which floor it means: the Inbox 90, the Log 0. A `?min=` in the url wins.
-	 *  Read on the next tick: the Router pushes the new url only after the page activates. */
-	tab_floor(d){
+	/** A tab says which floor it means — the Inbox 90, the Log 0 — and what the rail is
+	 *  called there. A `?min=` in the url wins. Read on the next tick: the Router pushes the
+	 *  new url only after the page activates. */
+	tab_floor(d, title = this.title){
 		this.min_default = d;
+		this.$name?.text(title);
 		setTimeout(() => this.set_min(this.floor_from_url(d)), 0);
 	}
 

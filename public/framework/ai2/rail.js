@@ -3,7 +3,7 @@ import InboxRail from "/framework/core/Page/ext/Inbox/Rail.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
 import { task_of, task_region } from "./tasks.js";
-import { clock, when, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
+import { clock, full, flag_box, toc, sub_full, news_bar } from "./faces.js";
 import { news_of, group_news, unseen } from "./activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import composer from "./compose.js";
@@ -46,7 +46,7 @@ export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
  *   - the pinned Now card, the focus-follow (an agent can open a card on your screen),
  *     the workspace word, and flagging a sentence you selected in the detail.
  *
- * AI 2 (`ai2/page.js`) builds one (the AI page's Inbox and Log tabs, `ai/page.js`, next merge):
+ * AI 2 (`ai2/page.js`) and the AI page's Inbox and Log tabs (`ai/page.js`) both build one:
  * `this.ai2 = new AIRail({ page: this }).mount()` inside `content()`. Card pages read it
  * back as `shell.ai2` (card.js).
  *
@@ -202,7 +202,8 @@ export default class AIRail extends InboxRail {
 
 	row_classes(rec, it){ rec.$row.el.classList.toggle("ai2-row-live", it.kind === "live"); }
 
-	when(at, it){ return it?.kind === "live" ? clock(at) : when(at); }
+	// The Live row says its clock; every other row the base's short date.
+	when(at, it){ return it?.kind === "live" ? clock(at) : super.when(at); }
 
 	title_text($title, it){ if (!it.plain) mentions($title.el); }
 
@@ -447,6 +448,8 @@ export default class AIRail extends InboxRail {
 		// segment deeper. The year, month and day are pages too (`Card.Folder`).
 		if (/^\d{4}$/.test(id)) return new Card.Folder({ id, title: id, shell });
 		if (id === "view") return views_page(shell);
+		// A REAL SITE PAGE, shown here as itself — a changed page's row links here (real.js).
+		if (id === "framework") return new RealPage({ path: "/framework/", title: "framework", shell });
 	}
 }
 

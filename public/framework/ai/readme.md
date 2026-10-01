@@ -2,7 +2,13 @@
 
 Where the agents' work is recorded: one folder per day, one folder per task inside it.
 
-The page itself shows the AI system, under six top tabs: **Overview** (12 concepts in 4 groups, then how they work together), **System** (the AI, design and code systems, the last two previewed and linked to /framework/design/ and /framework/code/; where AI data lives), **Skills** (a page per `.claude/skills/*`, from `skills.json`; rerun `node public/framework/ai/skills.mjs` after a skill changes), **Objects** (`objects.js`: every object's chip, row and panel), **Authoring** (the pieces these pages are built from, shown simple to complex) and **CLAUDE.md** (the file, what belongs in it, and an audit; its copy here is refreshed by `skills.mjs`). Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
+The page has three tabs:
+
+- **Inbox** (the default): a rail of what needs you, only rows scoring 90 and up. The card you pick opens beside it, at its own address (`/framework/ai/2026/09/30/<card>/`).
+- **Log**: the same rail, showing everything (`?min=0`). Every task by day is at [all-tasks/](all-tasks/).
+- **System**: the AI system's docs, full width: the concepts, [Skills](skills.json) (rerun `node public/framework/ai/skills.mjs` after a skill changes), Objects ([objects.js](objects.js)), Authoring and CLAUDE.md. Concept text: [concepts.js](concepts.js); tabs: [overview.js](overview.js).
+
+The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 draws; how it works is at [/framework/ux/Inbox/](/framework/ux/Inbox/). The old board is at [/framework/ai/v/3/](/framework/ai/v/3/) (and `?v1`).
 
 ## Start here
 
