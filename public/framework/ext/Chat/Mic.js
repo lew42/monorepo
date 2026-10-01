@@ -67,10 +67,24 @@ export const CHECK_MS = 250;
 export const CLEAN_CHANGED_EVENT = "chat-mic-clean-changed";
 
 let beep_ctx;
-function beep(kind){
+/* ⚠ WAIT FOR THE CONTEXT TO ACTUALLY BE RUNNING BEFORE SCHEDULING A NOTE (dictate-stop-sound,
+ * 2026-10-01 — the owner: "I didn't get a sound to let me know it stopped… the sounds aren't
+ * playing properly"). A brand-new `AudioContext` starts `"suspended"`; its own clock
+ * (`currentTime`) is FROZEN at 0 until something actually resumes it. The old code called
+ * `resume()` but never waited for it, then read `currentTime` and scheduled the notes
+ * relative to that frozen instant anyway — so the very first beep on a page (or any beep
+ * fired with no fresh click behind it, like the stop chime from a page-hidden mic release)
+ * could be scheduled on a clock that was still stuck at 0 when the context woke up moments
+ * later, coming out silent, clipped to a fraction of its length, or buried under whatever
+ * else was scheduled by then. Awaiting `resume()` first means `currentTime` is always read
+ * from a context that is genuinely ticking, so the two notes land exactly where they're meant
+ * to. `beep()` is still called fire-and-forget everywhere (`on_listening()`, both `stop()`s) —
+ * nothing needs its promise, this only delays WHEN the oscillators get scheduled, not whether
+ * the caller waits. */
+async function beep(kind){
 	try {
 		beep_ctx ??= new AudioContext();
-		beep_ctx.resume?.();
+		if (beep_ctx.state !== "running") await beep_ctx.resume();
 		const notes = kind === "start" ? [660, 990] : [660, 400], t0 = beep_ctx.currentTime;
 		notes.forEach((hz, i) => {
 			const osc = beep_ctx.createOscillator(), gain = beep_ctx.createGain(), at = t0 + i * 0.11;
@@ -313,12 +327,15 @@ export class ComposerMic extends Dictate {
 		box.style.maxHeight = SETTINGS.box_lines + "lh"; box.style.overflowY = "auto";
 	}
 
-	/* THE GEAR PANEL: one small input per setting in SETTINGS. A change writes the object at once, is
+	/* THE SETTINGS GRID: one small input per setting in SETTINGS. A change writes the object at once, is
 	   saved in localStorage, and is read live by everything above (the guess interval waits for the
-	   next mic start). Plain DOM, hidden until the composer's gear is pressed. */
+	   next mic start). Plain DOM, laid out by `Chat.css`'s `.chatbox-mic-settings` — this used to
+	   position ITSELF as a small floating popover with inline styles and its own show/hide `gear()`
+	   method; now the CALLER decides where and how it is shown (`Composer.js`'s own full-screen menu,
+	   chat-menu-merge, 2026-10-01 — it had only the one caller anyway, so nothing else loses anything). */
 	settings_panel(){
 		const panel = document.createElement("div");
-		Object.assign(panel.style, { position: "absolute", right: "0", bottom: "calc(100% + 0.3em)", zIndex: "20", display: "none", gap: "0.3em", padding: "0.6em", font: "inherit", fontSize: "0.85em", background: "Canvas", color: "CanvasText", border: "1px solid currentColor", borderRadius: "0.4em", gridTemplateColumns: "auto auto" });
+		panel.className = "chatbox-mic-settings";
 		const rows = [
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
@@ -349,7 +366,6 @@ export class ComposerMic extends Dictate {
 			});
 			panel.append(name, input);
 		}
-		this.gear = () => { panel.style.display = panel.style.display === "none" ? "grid" : "none"; };
 		return panel;
 	}
 
@@ -672,7 +688,16 @@ export class ComposerMic extends Dictate {
 			const mode = this.mode_now();
 			if (mode !== "manual") this.send_sentences();
 			if (mode === "pause") this.send_screen(); else if (mode === "sentences") this.flush_held();
-			if (was) beep("stop");
+			// ⚠ NOT when `set_error()` already beeped (dictate-stop-sound, 2026-10-01). Whisper
+			// going unreachable while THIS stop is still sending its last segment
+			// (`Dictate.close_segment()`'s own catch) calls `set_error()` while `this.state` is
+			// still `"transcribing"` — and this class's own `set_error()` override (below) beeps
+			// "stop" right there, on the spot. `super.stop()` then resolves normally (the error
+			// is handled, not thrown), so without this check `was` (captured above, before any of
+			// that ran) would still be true and this `finally` would beep "stop" a SECOND time —
+			// two overlapping chimes landing as one garbled noise instead of one clean tone,
+			// which read to the owner as "the sound isn't playing properly", not as two sounds.
+			if (was && this.state !== "error") beep("stop");
 		}
 	}
 

@@ -32,13 +32,13 @@ export default new Page({
 
 		h2("Swipe it up and it becomes a page");
 
-		p("Drag the sheet's top edge: it follows your finger. Let go near the top and the sheet becomes the whole screen, with its own url and a ‹ Back. The phone's own back button steps it down one state at a time — full, then open, then closed — and never leaves the site.");
+		p("Drag the sheet's top edge: it follows your finger. Let go near the top and the sheet becomes the whole screen, with its own url. The phone's own back button steps it down one state at a time — full, then open, then closed — and never leaves the site. (There used to be a ‹ Back button in the head too; it was removed 2026-10-01 — the ✕ already closes the sheet from any height, so a second button doing almost the same thing was one too many.)");
 
 		div.c("flex wrap", () => {
 			for (const [file, label] of [
 				["sheet-1-open.png", "1 · Tap ✦ — ?sheet=open"],
 				["sheet-2-dragged.png", "2 · Dragged up — it follows the finger"],
-				["sheet-3-full.png", "3 · Let go near the top — ?sheet=full, ‹ Back"],
+				["sheet-3-full.png", "3 · Let go near the top — ?sheet=full (shown here with the old ‹ Back button, since removed)"],
 				["sheet-4-after-back.png", "4 · Phone back — open again, same height"],
 				["sheet-5-closed.png", "5 · Phone back again — closed, same page"],
 			]) div.c("flex v", () => {

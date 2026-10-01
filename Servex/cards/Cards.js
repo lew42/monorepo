@@ -172,8 +172,15 @@ export default class Cards {
 			if (!card) return { ok: false, why: `no card "${id}"` };
 			if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ok: false, why: "a line is one JSON object" };
 			let line = obj, fresh = false;
-			if (obj.message && typeof obj.message === "object" && !obj.message.at)
-				line = { ...line, message: { ...obj.message, at: stamp() } };
+			if (obj.message && typeof obj.message === "object"){
+				// A message gets an id the same way a prompt does (`id` + random suffix), so a
+				// LATER reply can name this one as `re` and nest under it (card-threaded-replies,
+				// 2026-10-01) — `read_card`'s transcript is where an agent sees the id to answer.
+				const extra = {};
+				if (!obj.message.at) extra.at = stamp();
+				if (!obj.message.id) extra.id = "m-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4).padEnd(2, "0");
+				line = { ...line, message: { ...obj.message, ...extra } };
+			}
 			if (obj.prompt && typeof obj.prompt === "object"){
 				const known = obj.prompt.id && (await this.fold(card)).prompts.some(p => p.id === obj.prompt.id);
 				if (!known){ fresh = true; line = { ...line, prompt: this.prompt(card, obj.prompt) }; }

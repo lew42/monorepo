@@ -197,6 +197,19 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null;
+	// THE DUPLICATE-DRAW FIX (2026-10-01): `attach()` below wires up BOTH `Session.watch()`
+	// (polling the session file every 1.5s) and `Session.stream()` (an SSE push the moment
+	// Servex writes a line) to this SAME `draw()` function — on purpose, two separate jobs
+	// (`Session.js`'s own doc comment on `stream()`: its "line" events exist so "a reply does
+	// not wait for the next poll"; `watch()` is the full-history catch-up and the fallback for
+	// a dropped connection). That means EVERY real line is expected to arrive twice, once from
+	// each channel. `own_ats` already dedupes one case of this — the owner's own sent message,
+	// echoed back once the file/stream reads it — but an assistant's reply was never covered,
+	// so the fast and smart assistants' own replies each drew as two separate bubbles (the
+	// owner: "both messages... added twice... four messages total"). `seen_chat` is the same
+	// guard, widened to every chat line, keyed the same way `ext/Chat/Chat.js`'s own `chat()`
+	// factory already dedupes its `source()` lines (`at` + whether it's a `fix` + the text).
+	let seen_chat = new Set();
 
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
@@ -234,6 +247,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (line?.para) return void panel.say({ para: line.para });   // the fast assistant split a bubble (doc/chat.md)
 		if (!line?.chat) return;
 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
+		// `watch()` and `stream()` both call this for the SAME line (see the comment on
+		// `seen_chat`, above) — a `fix` carries its own text, so a later correction at the
+		// same `at` is still drawn, never swallowed as "already seen".
+		const key = line.chat.at + (line.chat.fix ? "|fix|" + line.chat.text : "");
+		if (seen_chat.has(key)) return;
+		seen_chat.add(key);
 		panel.say({ chat: line.chat });
 	}
 
@@ -266,6 +285,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		stop_watch?.(); stop_watch = null;
 		stop_stream?.(); stop_stream = null;
 		own_ats = new Set();
+		seen_chat = new Set();
 		panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		stop_watch = Session.watch(owner.ctl.file, draw);

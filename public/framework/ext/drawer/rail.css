@@ -99,21 +99,15 @@
 	html.grip-sizing .drawer-rail-sheet { transition: none; }
 	.drawer-rail-sheet-sized { block-size: var(--sheet-h); max-block-size: none; }
 
-	/* FULL — the sheet has become the page: the whole screen, square corners, no
-	   shadow, and a ‹ Back in its head (`DrawerRail`'s routing, rail.js). */
+	/* FULL — the sheet has become the page: the whole screen, square corners,
+	   no shadow (`DrawerRail`'s routing, rail.js). No ‹ Back button any more
+	   (voice-sheet-header, 2026-10-01) — the ✕ in the head already steps the
+	   sheet all the way closed from here, so a separate "one step down" button
+	   was removed rather than kept beside it. */
 	.drawer-rail-sheet-full {
 		border-radius: 0; box-shadow: none; border-top: 0;
 		padding-block-start: calc(0.9em + env(safe-area-inset-top, 0px));
 	}
-	.drawer-rail-sheet-back { display: none; }
-	.drawer-rail-sheet-full .drawer-rail-sheet-back {
-		display: inline-flex; align-items: center; flex: 0 0 auto;
-		min-block-size: 2.75rem; padding: 0 0.6em 0 0.2em;
-		font: inherit; font-weight: 600; color: var(--prim);
-		background: transparent; border: 0; border-radius: calc(var(--radius) / 2);
-		touch-action: manipulation;
-	}
-	.drawer-rail-sheet-full .drawer-rail-sheet-heading { margin-inline-end: auto; }
 
 	/* ONE LINE (minion-polish, item 6, 2026-09-30 — the owner: "a resizable sheet
 	   that can collapse to one line"). `rail.js`'s `collapse()`/`settle()` add this
@@ -160,7 +154,15 @@
 	}
 
 	.drawer-rail-sheet-head { flex: 0 0 auto; gap: 0.5em; }
-	.drawer-rail-sheet-heading { gap: 0.3em; min-inline-size: 0; }
+	/* `flex: 1 1 auto` — the title fills whatever space ✕ (and "More", added by
+	   a subclass) don't need, so it sits flush left and they sit flush right
+	   with no `space-between` guesswork (voice-sheet-header, 2026-10-01: the
+	   owner's own "text alignment in the header is way off"). Before this, the
+	   head's three buttons ("Back", the title, ✕) were spread by `justify-
+	   content: space-between` — once "Back" was hidden outside full height,
+	   only one of the two gaps had a second button to push against, and the
+	   title+path block drifted off-centre instead of sitting flush left. */
+	.drawer-rail-sheet-heading { flex: 1 1 auto; gap: 0.3em; min-inline-size: 0; }
 	.drawer-rail-sheet-title { font-weight: 600; }
 	/* The current page path (voice-on-panel, 2026-09-29: "Ask, by voice ·
 	   /framework/"), set on every open (`update_path()`) and again on every
@@ -204,6 +206,18 @@
 	}
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card {
 		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
+	/* ⚠ ONE LEVEL DEEPER THAN THE OVERRIDE ABOVE (fullscreen-rail-void, 2026-10-01 — the
+	   owner: "the scrollable text area is not filling the available space properly...
+	   there's a void underneath the buttons"). Turning off the CARD's own `max-block-size`
+	   (right above) was not enough: `Widget.css`'s `.ux-dictate-widget-thread` carries its
+	   OWN separate cap, `max-block-size: 22em`, sized for a standalone widget on a normal
+	   page. Inside the fullscreen sheet (100dvh on a phone) the thread hit that 22em
+	   ceiling and stopped growing — the composer row below it (`flex: 0 0 auto`) is a
+	   fixed height too, so the column's default `justify-content: flex-start` left the
+	   leftover space sitting empty BELOW the composer rather than inside the thread. */
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread {
+		max-block-size: none;
 	}
 
 	.drawer-rail-sheet-mic { flex: 0 0 auto; }
@@ -276,11 +290,15 @@
 		color: var(--ink); background: var(--fill-a08);
 		border: 1px solid var(--line); border-radius: calc(var(--radius) / 2);
 	}
-	/* The ✕ is a real touch target (2.75rem square) and sits above the top-edge
-	   grip, so a tap on it can never land on the resize strip instead. */
+	/* The ✕ is a real touch target and sits above the top-edge grip, so a tap
+	   on it can never land on the resize strip instead. 2.25rem (down from
+	   2.75rem) — matched to "More" just beside it (also 2.2rem) — is the
+	   owner's own "make the header smaller, vertically, much more compact"
+	   (2026-10-01): it was the tallest thing in the row, so it set the whole
+	   head's height even though the title text beside it is far shorter. */
 	.drawer-rail-sheet .drawer-x {
 		position: relative; z-index: 2;
-		min-inline-size: 2.75rem; min-block-size: 2.75rem;
+		min-inline-size: 2.25rem; min-block-size: 2.25rem;
 		font: inherit; font-size: 1.1em;
 		color: var(--ink); background: transparent;
 		border: 0; border-radius: calc(var(--radius) / 2);

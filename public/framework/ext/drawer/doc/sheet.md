@@ -1,6 +1,8 @@
 # The ✦ sheet is a page
 
-On a phone, the ✦ sheet can be dragged from part of the screen up to all of it. At the top it stops being a panel over the page and becomes a page of its own. It gets its own url and a **‹ Back** button, and the phone's own back button steps it down. (The owner, 2026-09-30: "as I swipe this thing up… all the way at the top, it's almost like we've just navigated to this page… the user's operating system level back button should always work.")
+On a phone, the ✦ sheet can be dragged from part of the screen up to all of it. At the top it stops being a panel over the page and becomes a page of its own. It gets its own url, and the phone's own back button steps it down. (The owner, 2026-09-30: "as I swipe this thing up… all the way at the top, it's almost like we've just navigated to this page… the user's operating system level back button should always work.")
+
+**No separate ‹ Back button in the head** (voice-sheet-header, 2026-10-01 — the owner: "I don't know if we need a back button… we have the X, the X makes much more sense to me"). The ✕ already closes the sheet all the way, from any height including full screen (`close()`, `rail.js`), so a second button doing almost the same thing was one control too many. Only the phone's own hardware back button steps a full sheet down to "open" first, one state at a time.
 
 Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 
@@ -10,9 +12,9 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
 |---|---|---|
 | closed | `/framework/` | the bottom rail only |
 | open | `/framework/?sheet=open` | the sheet over part of the screen, at the height you last left it |
-| full | `/framework/?sheet=full` | the sheet is the whole screen, with ‹ Back in its head |
+| full | `/framework/?sheet=full` | the sheet is the whole screen |
 
-Going **up** a state adds a history entry: tapping ✦ (closed → open), or letting go of a drag near the top (open → full). Going **down** a state goes back through those same entries: the phone's back, ‹ Back, ✕ (all the way to closed), or letting go of a drag near the bottom. So the phone's back button always steps the sheet down one state, and it never leaves the site while the sheet is showing.
+Going **up** a state adds a history entry: tapping ✦ (closed → open), or letting go of a drag near the top (open → full). Going **down** a state goes back through those same entries: the phone's back (one state at a time), ✕ (all the way to closed, from any height), or letting go of a drag near the bottom. So the phone's back button always steps the sheet down one state, and it never leaves the site while the sheet is showing.
 
 A reload or a shared link at `?sheet=full` opens the sheet at full height, and first rebuilds the two entries under it (closed, then open). The phone's back still steps down twice before it would leave. A sheet opened from the url starts **quiet**: the microphone waits for a tap, because nobody asked it to listen.
 
@@ -31,6 +33,58 @@ While you drag, the sheet has a real height (`.drawer-rail-sheet-sized`), not on
 
 ## Watch out
 
+- **Nesting a sheet inside this sheet doesn't work — but giving a bar inside it its own independent height does.** `DrawerRailSheetV1` is `position: fixed`, which always measures from the real screen's edge, never from its own DOM parent — a second instance put inside the first would float on top of it, not live inside it. The actual mechanism (a plain box, `ext/grip`'s y-axis handle, one CSS height variable) nests fine, because `grip()` only ever reads its own immediate parent's edge — a live, draggable proof of both halves: [nested-sheet-example](/framework/ai/2026-10-01/nested-sheet-example/).
 - Show or hide the sheet with `rail.to(mode)`, never by toggling `.on` yourself. Otherwise the url, the history and the screen stop agreeing.
 - The sheet's own box also has the class `.drawer-rail-sheet-panel` (View stamps the class name `DrawerRailSheetPanel`). A bare rule for that class hits the sheet too: a `display: flex` there once kept the sheet on screen after ✕ (fixed with a descendant selector in `rail.css`).
 - Above 52em the sheet is hidden but the url is left alone. Narrowing the window again shows whatever the url names.
+- Chrome's own toolbar auto-hide never reaches this sheet, even dragged to `full` — and the fix is bigger than it looks. Full story below.
+
+## Chrome's toolbar auto-hide does not reach the full sheet (2026-10-01, sheet-chrome-autohide)
+
+The owner's question: on an ordinary page, scrolling down lets Chrome's own address bar slide out
+of the way on a phone, and scrolling up a little brings it back. Does that ever happen on this
+sheet, dragged all the way to `full`? The owner's own guess was that the chat thread scrolling in
+its own nested box, instead of the page itself scrolling, was why not.
+
+**No, it never reaches the sheet — but "a nested scroll area" is not quite the reason, and the
+real fix is not a small one.** Two separate facts:
+
+1. **Every page's own scroll on this whole site is already a nested box**, not the document.
+   `html`/`body`/`.app` are all pinned to exactly 100% height (`framework.css`), so the real
+   `<body>` never scrolls at all — `.pages` (`core/Page/Page.css`, `overflow-y: scroll`) is the
+   one box that does, on every page. Chrome still hides its toolbar when `.pages` scrolls, because
+   Chromium promotes whichever single scrollable box fills almost the whole screen, with nothing
+   else competing, to act as the page's scroll for exactly this purpose (its "implicit root
+   scroller" — the same rule that lets any single-page app's one big scroll div drive the
+   toolbar). So a nested scroll box, by itself, was never the blocker — `.pages` is one, and it
+   already gets the toolbar to hide.
+2. **The sheet can never offer Chrome a box like that.** `.drawer-rail-sheet` is
+   `position: fixed; inset-inline: 0; inset-block-end: 0` even in its `full` state (`rail.css`) —
+   a second box stacked OVER `.pages`, not part of it, so the box Chrome actually promoted
+   (`.pages`) just sits underneath, covered and motionless, while you scroll inside the sheet. And
+   even taken on its own, the part of the sheet that actually scrolls — the thread
+   (`.drawer-rail-sheet-thread`, or `Widget.js`'s own `.ux-dictate-widget-thread` /
+   `-feed-wrap`) — is only part of the fixed box: the head row and the composer sit beside it as
+   separate flex children (`.drawer-rail-sheet-head`, `.drawer-rail-sheet-panel` in `rail.css`),
+   so the thread itself never fills the full screen either. Chrome will not promote a scroller
+   that doesn't fill the viewport, so neither box ever qualifies, fixed or not.
+
+**What a real fix would take, if the owner wants it built:** make the thread itself the one
+`position: fixed; inset: 0` box while the sheet is full, with the head and the composer laid out
+as `position: sticky` children INSIDE that same scrolling box instead of flex siblings around it
+— and hide `.pages` outright (`display: none`, not just a lower `z-index`) while the sheet is
+full, so it stops being the box Chrome already promoted. That is a real rewrite of the full
+sheet's shape: the grip handle's height math, the composer's own keyboard-avoidance, and the
+sticky-bottom autoscroll (`ext/Chat/doc/scroll.md`) all currently assume today's head/composer-
+as-siblings layout, and would need re-checking against the new one. Not a CSS tweak.
+
+**Why this was researched, not built:** there is no way to verify the one thing that actually
+matters — whether Chrome's real toolbar hides — without a real phone. A headless screenshot
+(Playwright, `site.shot`, devtools device emulation) never draws Chrome's own address bar at all;
+the "device" in every one of those tools IS the whole viewport, so no screenshot could ever show
+this working or not. Landing a rewrite of a part of the sheet that had three separate regressions
+land the same day (`fullscreen-rail-void`, `voice-sheet-header`, this file's own history above)
+with no way to confirm it actually fixes the one thing it is for is the wrong trade — the owner's
+own hunch (nested scroll) pointed at the right neighbourhood but the actual wall is
+`position: fixed`, and the fix above is the scoped follow-up task if it is still wanted, to be
+proven on an actual phone, not a prototype guess.

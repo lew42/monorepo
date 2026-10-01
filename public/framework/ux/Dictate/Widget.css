@@ -19,6 +19,7 @@
 	.ux-dictate-widget-card { max-block-size: min(60vh, 32em); }
 	.ux-dictate-widget-thread {
 		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
+		position: relative;   /* the containing block for `.chatbox-jump`, ext/Chat/Chat.css */
 	}
 
 	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
@@ -150,4 +151,55 @@
 
 	.ux-dictate-widget-debug-toggle { font-size: 0.85em; }
 	.ux-dictate-widget-debug-panel { margin-top: 0.5em; }
+
+	/* THE PULSING DOT (`pulse: true`, 2026-10-01 — `Widget.Pulse`'s own class doc has the
+	 * mechanics). `.ux-dictate-widget-feed-wrap` replaces `.ux-dictate-widget-thread` as the
+	 * flex item the card's own column gives room to — the THREAD now fills it with
+	 * `inset: 0` instead of taking that flex slot directly, so the lock card and the dot
+	 * (also `inset`/bottom-right children of this SAME wrap, both outside the thread's own
+	 * scrolling box) stay lined up with the visible feed no matter how far the thread itself
+	 * has scrolled down into old history. */
+	.ux-dictate-widget-feed-wrap {
+		position: relative; flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em;
+	}
+	.ux-dictate-widget-feed-wrap > .ux-dictate-widget-thread { position: absolute; inset: 0; }
+
+	/* `.ux-dictate-widget-pulse` is the dot's own positioned ancestor — `inset: 0` so its two
+	 * children can place themselves against the full feed, `pointer-events: none` so it never
+	 * blocks a scroll or a tap on the thread underneath; only the lock card and the dot
+	 * (both `pointer-events: auto`, right below) actually catch a click. */
+	.ux-dictate-widget-pulse { position: absolute; inset: 0; pointer-events: none; }
+
+	/* THE LOCK — mic off, the default: one dark card over the whole feed, "tap to talk" in
+	 * the middle. A plain `rgba` black, not a token, on purpose: the point is to read as
+	 * DARKENED in both light and dark mode, which a theme-aware token (`--ink`, light in dark
+	 * mode) would not give — `css` skill: a deliberate exception, named here so it's never
+	 * "fixed" into a token by mistake later. */
+	/* `[hidden]` here, not just `.ux-dictate-widget-pulse-lock` alone: this rule's own
+	 * `display: flex` is an AUTHOR declaration, and an author rule always beats the
+	 * browser's built-in `[hidden] { display: none }` regardless of selector specificity —
+	 * so without the attribute repeated here, `Widget.Pulse`'s own `this.$lock.el.hidden =
+	 * true` would be silently ignored and the dark card would never actually go away. */
+	.ux-dictate-widget-pulse-lock:not([hidden]) {
+		position: absolute; inset: 0; pointer-events: auto; cursor: pointer;
+		display: flex; align-items: center; justify-content: center;
+		background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 0.9em;
+		border-radius: var(--radius);
+	}
+
+	/* THE DOT — mic on: small, `--prim` (the site's one accent, "orange" in the owner's own
+	 * words), bottom-right, and UNOBTRUSIVE at rest (0.85em) — the owner: "pretty small."
+	 * `transform: scale(...)` reads `--ux-dictate-widget-pulse-level` (0..1, `Widget.Pulse`'s
+	 * own `set_level()`, the SAME smoothed number `level`'s meter bar reads) so the dot
+	 * visibly grows with the live voice instead of a fixed-height bar filling up — the
+	 * mechanic this option replaces. `transition` is what makes it look like it "bounces"
+	 * with each word rather than snapping between sizes. */
+	.ux-dictate-widget-pulse-dot {
+		position: absolute; right: 0.6em; bottom: 0.6em; pointer-events: auto; cursor: pointer;
+		inline-size: 0.85em; block-size: 0.85em; border-radius: 50%;
+		background: var(--prim);
+		box-shadow: 0 0 0.5em color-mix(in srgb, var(--prim) 55%, transparent);
+		transform: scale(calc(1 + var(--ux-dictate-widget-pulse-level, 0) * 1.6));
+		transition: transform 90ms linear;
+	}
 }

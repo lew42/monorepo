@@ -53,19 +53,51 @@ milliseconds"), the box clears, and the sentence joins the LAST bubble as a new 
 the one before it was said within the last 10 seconds (`ext/Chat/Chat.js`'s `speak()` —
 "the chat bubbles before were actually pretty good," the owner's own words) — so three
 sentences said one after another read as one bubble, not three. The mic, Send and any extras
-(the settings gear, the "raw" dig-back toggle) sit in one row BELOW the box, which is full
+(the ⚙ settings menu, the "raw" dig-back toggle) sit in one row BELOW the box, which is full
 width, auto-height, up to a ceiling, with no empty void below a short line (the bug the owner
-found: the old box "renders like over the top of something else").
+found: the old box "renders like over the top of something else"). The ⚙ opens a FULL-SCREEN
+menu now, not a small popover — it used to be two separate buttons and two separate popovers
+(`⋯` for the engine/status info, a second gear for settings); see
+[`ext/Chat/readme.md`'s "The settings menu — now one button, full screen"](/framework/ext/Chat/)
+(chat-menu-merge, 2026-10-01).
 
 **`v1: true`** keeps the OLD thread (one bubble per sentence, never merged) and the OLD
 composer (`Dictate`'s own `mode: "open"` mic, nothing ever typed into the box) reachable on
 any `Widget` — a plain switch back if either regresses something: `doc/chat.md`'s "the older
 versions" table, `Widget.js`'s own class doc.
 
-Four plain properties, every one `false`/off by default:
+**`mode: "dictate" | "chat" | "live"`** picks one row of `Widget.js`'s own `MODES` table — a
+named preset, never a second code path (CLAUDE.md law 6). `"dictate"` (the default) is
+everything above: voice first, into the box, auto-sent. `"chat"` is typed first: manual Send
+only, dictation (if used) still goes into the box, bubbles never merge. **`"live"`**
+(clean-dictate-mode, 2026-10-01 — the owner: "instead of writing into this text area, we just
+do the same thing in the chat bubble where it's going to be sent") skips the box entirely: a
+sentence grows straight into a chat bubble on the owner's own side of the log, through the
+already-built "Live bubbles" feature below, never shown or typed into the composer's text box
+at all. Pair it with `revision: "clean"` to get the clean-revised wording in the bubble (`mode`
+decides WHERE the words land, `revision` decides WHAT they say):
+
+```js
+new Widget({ mode: "live", revision: "clean" });
+```
+
+Mechanics and why each mode changes only what it says it does: `Widget.js`'s own `MODES` doc
+comment, right above the table.
+
+Five plain properties, every one `false`/off by default:
 
 - **`level`** — a level meter beside the mic (the same smoothed number `Dictate`'s own
   tiny bar already reads, via `on_meter`).
+- **`pulse`** — a small dot, bottom-right of the feed, in the site's one accent color
+  (`--prim`), that grows and shrinks with the live audio — the SAME smoothed number
+  `level`'s own bar reads, just shown as a dot instead of a fixed-height bar (2026-10-01,
+  the owner's own words: "a little orange dot... pretty small, but then kind of just
+  grows, bounces... the size of it pulses with the audio"). While the mic is off, a
+  darkened card covers the whole feed saying "tap to talk" — tapping it anywhere both
+  unlocks (the card goes away) AND starts the mic, in one tap; tapping the dot once live
+  stops the mic again and brings the lock back. `level` and `pulse` can both be on at
+  once (two displays of the same number); `Widget.Pulse`'s own class doc (`Widget.js`)
+  has the exact mechanics and why it needs its own wrapping box around the feed.
 - **`source`** — a `<select>` of audio input devices, remembered the same way every
   `Dictate` on the site remembers one.
 - **`debug`** — a small "Debug ▾" toggle, collapsed by default. Opening it mounts the
@@ -175,6 +207,11 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
   reload left the chat sitting empty until the owner said something new, even though
   the conversation was saved — fixed by re-reading the whole file from line 0 on
   every mount: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
+- **Every real reply used to draw twice.** `chat.js` listens for a new line two ways at
+  once (a fast SSE push, and a slower full-file poll as the safety net) — the owner,
+  2026-10-01: "both messages... added twice... four messages total." Fixed by keeping a
+  set of lines already drawn, so the second channel's copy of the same line is dropped:
+  [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
 - **A chat mounted by a url, not a click, could get the wrong font.** Fixed in
   `ext/drawer/drawer.js`, not here: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
 - **The mic is given back the moment the page is hidden.** Switching apps on a phone used to leave
@@ -184,6 +221,10 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
   while live stops itself too (`Dictate.js`, `LIVE`; mic-hijack, 2026-09-30). Dictating while another
   app is in front would need a PWA with a background process, or a native app.
 
+- **The stop chime could drop or double.** `beep()` (`ext/Chat/Mic.js`) scheduled its
+  notes on an `AudioContext` clock that was still frozen (never waited for `resume()`),
+  and a whisper error mid-stop could fire the "stop" chime twice. Fixed 2026-10-01:
+  [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/).
 - **The caption is never cleared before the real text is ready to replace it.** An earlier
   build cleared the grey guess the INSTANT a segment closed, then repainted the caption
   again once Whisper's answer came back — two real frames, with the caption visibly

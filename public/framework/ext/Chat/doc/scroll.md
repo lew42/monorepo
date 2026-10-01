@@ -6,6 +6,11 @@ The log keeps one true-or-false fact, `locked` (`talk.locked()` reads it). It st
 - **Reaching the bottom locks it again** (within 4px), and the next new line follows.
 - **New lines follow only while locked.** After a line is drawn, the box jumps to the bottom if `locked` is true.
 - **A resize of the box re-pins the bottom.** A `ResizeObserver` watches the box itself: its first layout (it is 0px tall until the page is on screen) and the composer under it growing both change its size without firing any scroll event.
+- **A small ↓ button shows while unlocked** (chat-autoscroll, 2026-10-01) — a click jumps to the bottom and relocks, same as scrolling down by hand.
+
+## One function, every caller (2026-10-01)
+
+All of this lives in ONE place — `sticky_scroll(box)`, exported from `Chat.js` — not copied per caller (CLAUDE.md law 6). `chat()` (this file) and `ux/Dictate/Widget.js`'s `Thread`/`ThreadV1` (built by the Dictate page and the ✦ sheet, through `ux/Dictate/chat.js`) both call it on the element that actually scrolls. `Widget.Thread` used to call `this.$bubbles.el.scrollTop = …` instead — `$bubbles` is a plain, non-scrolling child div; the real scroll box is the `Thread` view's own element (`ux-dictate-widget-thread`, `overflow-y: auto`). Setting `scrollTop` on an element with nothing to scroll is a silent no-op, so neither the Dictate page nor the sheet ever actually auto-scrolled before this fix — this bug, not a design gap, is why the owner saw no follow at all. `sticky_scroll()` also moves its own button to the very end of `box` every time it jumps, so it never sits in `.chatbox-log > :first-child`'s own push-to-the-bottom spot (below).
 
 ## Why "only a move up" (2026-09-24)
 

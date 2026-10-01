@@ -405,6 +405,56 @@ export function card_of(b){
 	return { key: bubble_key(b), title: title || "(untitled)", who: b.querySelector(":scope > .chatbox-who, :scope > .who")?.textContent ?? "", children };
 }
 
+/** STICKY-BOTTOM SCROLL — one scroll behavior for every scrolling chat log on the site:
+ *  this file's own `chat()` log below, and `ux/Dictate/Widget.js`'s `Thread` (the Dictate
+ *  page and the ✦ sheet both build their chat through that class, not through `chat()` —
+ *  it owns a lighter box with no selection/reaction/drill wiring — so it used to hand-roll
+ *  its OWN, broken copy of this same idea; CLAUDE.md law 6 says fix it once, here, and have
+ *  every caller use this instead of a second copy. `box` is the element that actually
+ *  scrolls (`overflow-y: auto` in its own CSS) — this appends a small jump-to-bottom
+ *  button into it, so `box`'s CSS also needs `position: relative` for the button to anchor
+ *  to the scrolling box itself rather than drift off to some ancestor.
+ *
+ *  `locked` starts true — "the reader is at the bottom, so every new line follows" (the
+ *  owner's own words: sticks to the bottom, follows every new message, UNLESS scrolled up,
+ *  in which case it stays put and a small button appears; clicking it jumps back down and
+ *  resumes following). Scrolling UP turns it false and shows the button; reaching the
+ *  bottom again (by hand, or the button) turns it back on.
+ *
+ *  `pin()` — call it once after drawing new lines — jumps to the bottom only while locked;
+ *  it is also what a `ResizeObserver` on `box` calls, so a composer growing under the log,
+ *  or the box's own first layout (0px tall until the page is on screen), re-pins the
+ *  bottom with no scroll event at all. See `doc/scroll.md` for why only a move UP unlocks
+ *  it (reading "am I at the bottom?" on every event lost the lock on first load, because
+ *  our own jump-to-bottom's scroll event arrives a frame later, after the box is already
+ *  taller). The button is moved to the very end of `box` every time it jumps — never left
+ *  as `box`'s first child — so `.chatbox-log > :first-child`'s own push-to-the-bottom
+ *  margin (Chat.css) still lands on the real first message, not on the button. */
+export function sticky_scroll(box){
+	let locked = true, last = 0;
+	const at_bottom = () => box.scrollHeight - box.scrollTop - box.clientHeight < 4;
+	const $btn = document.createElement("button");
+	$btn.type = "button";
+	$btn.className = "chatbox-jump";
+	$btn.title = "jump to the newest message";
+	$btn.setAttribute("aria-label", "jump to the newest message");
+	$btn.textContent = "↓";
+	$btn.hidden = true;
+	box.appendChild($btn);
+	const show = on => { $btn.hidden = !on; };
+	const go_down = () => { box.appendChild($btn); box.scrollTop = box.scrollHeight; last = box.scrollTop; };
+	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
+	box.addEventListener("scroll", () => {
+		const top = box.scrollTop;
+		if (at_bottom()){ locked = true; show(false); }
+		else if (top < last){ locked = false; show(true); }
+		last = top;
+	}, { passive: true });
+	const pin = () => { if (locked) go_down(); };
+	if (typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+	return { pin, locked: () => locked };
+}
+
 export function chat({ source, keep = () => true, answer = () => {}, on_select, rename, marks: fetch_marks, on_unclear, on_open, on_react, on_reply } = {}){
 	let $script;
 	const seen = new Set();
@@ -413,31 +463,13 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		$script = $s;
 	});
 
-	/* SMART SCROLL: `locked` is true while the reader sits at the bottom. Scroll UP
-	   and it goes false (new lines then leave the view alone); reach the bottom again
-	   and it goes true.
-	   ⚠ Only a move UP unlocks (layout-unify, 2026-09-24). Reading `at_bottom()` on
-	     every scroll event lost the lock on a card's first load: the event for our own
-	     jump to the bottom arrives a frame later, after the next batch of lines has
-	     already made the box taller, so "not at the bottom" read as "the reader
-	     scrolled away" and every card opened on its OLDEST lines. Our own jumps only
-	     ever move down, so a smaller scrollTop than last time is the reader's.
-	   ⚠ The ResizeObserver re-pins the bottom when the BOX changes size — its first
-	     layout (0px tall until the page is on screen), or the composer under it
-	     growing — which fires no scroll event at all. */
-	let locked = true, last = 0;
-	const at_bottom = () => { const el = $script.el; return el.scrollHeight - el.scrollTop - el.clientHeight < 4; };
-	$script.el.addEventListener("scroll", () => {
-		const top = $script.el.scrollTop;
-		if (at_bottom()) locked = true;
-		else if (top < last) locked = false;
-		last = top;
-	}, { passive: true });
-	const down = () => { if (!locked) return; const el = $script.el; el.scrollTop = el.scrollHeight; last = el.scrollTop; };
-	if (typeof ResizeObserver === "function") new ResizeObserver(down).observe($script.el);
-	// The second try is for a box not on the page yet (its height is 0 until then).
-	// ONE pin per batch, not one per line: `down` forces a layout, and the Live card (hundreds of
-	// lines) paid that once per line - 5.7 s. The microtask runs after the synchronous batch.
+	// SMART SCROLL — `sticky_scroll()`, above, owns the lock/button logic; `doc/scroll.md`
+	// has the why (only a move UP unlocks it, and the ResizeObserver re-pins a growing box).
+	const scroll = sticky_scroll($script.el);
+	// ONE pin per batch, not one per line: `scroll.pin()` forces a layout, and the Live
+	// card (hundreds of lines) paid that once per line - 5.7 s. The microtask runs after
+	// the synchronous batch; the second try (`requestAnimationFrame`) is for a box not on
+	// the page yet (its height is 0 until then).
 	let pinning = false;
 	/* LIVE BUBBLES (dictation-stream, 2026-09-30) are not lines of the log: your words while you are
 	   still speaking (`live()`) and an assistant's reply while it is still being written (`stream()`).
@@ -445,7 +477,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	   after it — `mergeable()` then never sees one as "the last bubble". A real line from the same
 	   speaker removes its live bubble (`chat_line()`). */
 	const lives = new Map();   // key -> { el, text, timer }
-	const follow = fn => { for (const l of lives.values()) l.el.remove(); fn(); for (const l of lives.values()) $script.el.append(l.el); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; down(); }); requestAnimationFrame(down); };
+	const follow = fn => { for (const l of lives.values()) l.el.remove(); fn(); for (const l of lives.values()) $script.el.append(l.el); if (pinning) return; pinning = true; queueMicrotask(() => { pinning = false; scroll.pin(); }); requestAnimationFrame(scroll.pin); };
 
 	/* SELECTION (the owner: "when you click on a specific card, first it kind of
 	   selects that card"). One bubble at a time, in THIS log; a second tap on the
@@ -711,6 +743,17 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	/* A REPLY'S HEADING (the owner, 2026-09-24): a `heading` field, or a first line
 	   written `# Heading`, shows as a short bold title above the body. */
 	function reply(e){
+		// A THREADED REPLY (card-threaded-replies, 2026-10-01): `thread: true` + `re` (the id
+		// of the prompt or reply this one answers) nests it right under that line, the same
+		// `thread_item()` a `{chat:{thread,re}}` voice-session line already uses (THREADS,
+		// above). Tried first — a heading on a threaded reply is rare, but if the parent isn't
+		// on screen (opened mid-conversation), this falls through to the plain flow below
+		// rather than vanish, same rule `chat_line()`'s own threaded branch follows.
+		if (e.thread && e.re){
+			let placed = false;
+			follow(() => { placed = thread_item(e, "chatbox-reply", e.by, Date.parse(e.at ?? 0) || Date.now()); });
+			if (placed) return;
+		}
 		let head = e.heading, body = e.text ?? "";
 		const nl = body.search(/[\r\n]/), first = (nl < 0 ? body : body.slice(0, nl)).trim();
 		if (!head && first.startsWith("#")){ head = first.replace(/^#+\s*/, ""); body = nl < 0 ? "" : body.slice(nl + 1).trim(); }
@@ -894,7 +937,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 	return {
 		view,
 		/** Is the box following new lines right now? */
-		locked: () => locked,
+		locked: scroll.locked,
 		/** Kept so callers still work: your words are drawn once, when they are logged, never twice. */
 		echo(){},
 		/** Start (or re-start) the rename flow on whatever is currently selected —

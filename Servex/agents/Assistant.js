@@ -196,7 +196,8 @@ export default class Assistant {
 			inputSchema: { type: "object", required: ["card", "text"], properties: {
 				card: { type: "string", description: "The card id you were given — `topic-…`, `live`, or `<card>/<sub>` for a sub-card." },
 				text: { type: "string", description: "What to say." },
-				from: { type: "string", description: "Your own agent id, so the owner sees who is talking." }
+				from: { type: "string", description: "Your own agent id, so the owner sees who is talking." },
+				re: { type: "string", description: "Optional: answering ONE particular earlier line on this card (not the card as a whole) — pass its `id`, a prompt's `p-…` or an earlier reply's `m-…`, both visible in `read_card`'s transcript. Nests this reply right under that line instead of appending to the flat bottom of the chat." }
 			} },
 			// the caller Servex stamped (`?as=`) wins over a typed `from`: every agent talks under its own id
 			handler: (args = {}, ctx = {}) => this.card_reply({ ...args, from: ctx.caller ?? args.from })
@@ -228,12 +229,16 @@ export default class Assistant {
 		} catch (e){ return fail(String(e.message || e)); }
 	}
 
-	async card_reply({ card, text, from } = {}){
+	async card_reply({ card, text, from, re } = {}){
 		if (!card || !text) return JSON.stringify({ ok: false, why: "card and text are both required" });
 		try {
 			const folder = this.servex.cards?.canonical(card);
 			if (folder){
-				const out = await this.servex.cards.append(folder, { message: { by: from || "agent", text, kind: "reply" } });
+				// `re` (card-threaded-replies, 2026-10-01): the id of the one earlier prompt or
+				// reply THIS reply answers. Only the folder-card path can carry it — the legacy
+				// board-card log below already uses its own `re` for a different thing (which
+				// CARD this reply targets), so threading isn't offered there; see Cards.js readme.
+				const out = await this.servex.cards.append(folder, { message: { by: from || "agent", text, kind: "reply", ...(re ? { re } : {}) } });
 				return JSON.stringify(out.ok ? { ok: true, id: out.id, shown: true } : out);
 			}
 			const out = await this.servex.log.append(`cards/${String(card).split("/")[0]}`, { type: "reply", by: from || "agent", re: card, text });

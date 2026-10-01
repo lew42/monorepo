@@ -4,7 +4,7 @@ import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
-import { speak, patch_piece, retag_piece, split_bubble } from "../../ext/Chat/Chat.js";
+import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll } from "../../ext/Chat/Chat.js";
 import { composer } from "../../ext/Chat/Composer.js";
 
 View.stylesheet(import.meta, "Widget.css");
@@ -32,10 +32,12 @@ export function model(value){
  *     new Widget({ debug: true });                     // + the "Debug ▾" bar
  *     new Widget({ revision: "edit" });                 // ux/Revise tidies each sentence
  *     new Widget({ models: true });                     // + the model picker
+ *     new Widget({ pulse: true });                       // a small bottom-right dot that grows with the voice, instead of `level`'s bar
  *     new Widget({ mode: "chat" });                     // typed first, manual send, never merges bubbles — see MODES, below
+ *     new Widget({ mode: "live", revision: "clean" });  // voice first, STRAIGHT TO A BUBBLE, never the box — see MODES, below
  *
  * Every option is `false`/`null`/off by default, so the plain `new Widget()` call stays the
- * smallest one. `level`/`source`/`debug`/`revision`/`models` are display-only; `history()`,
+ * smallest one. `level`/`source`/`debug`/`revision`/`models`/`pulse` are display-only; `history()`,
  * `deliver(entry)`, `on_text(text)`, `answer(choice)` and `marks: true` wire it to a real
  * conversation (`ux/Dictate/chat.js` is the one caller that uses all of them). What each one
  * does, and `v1: true`'s switch back to the old one-bubble-per-sentence thread and open-mic
@@ -44,8 +46,9 @@ export function model(value){
  * Parts as static subclasses (the `code` skill, §3): `Widget.Thread` (the bubbles, built from
  * `ext/Chat/Chat.js`'s own `speak()` — a sentence from the same sender merges onto the last
  * bubble as a new paragraph, the same rule every chat on the site uses), `Widget.Composer`
- * (the bottom row, `ext/Chat/Composer.js`'s own `composer()`), `Widget.Models` and
- * `Widget.Debug`. `Widget`'s own public surface — `submit`, `sync`, `stream`, `draw`, `mark`,
+ * (the bottom row, `ext/Chat/Composer.js`'s own `composer()`), `Widget.Models`, `Widget.Debug`
+ * and `Widget.Pulse` (the `pulse: true` dot, own doc right above its class). `Widget`'s own
+ * public surface — `submit`, `sync`, `stream`, `draw`, `mark`,
  * `mark_failed`, `retag`, `reset` — is the seam every caller builds on; it hasn't changed
  * shape since this drew through `ChatPanel` instead.
  */
@@ -59,10 +62,26 @@ export function model(value){
  *  `mode_now()`/`live_active()` — a per-mic override, never the shared, owner-saved
  *  `SETTINGS`, and the gear still wins over it for that one box), and `join`, read by
  *  `Widget.Thread` below to call `ext/Chat/Chat.js`'s own `speak()` with its `join: false`
- *  opt-out so a chat-mode send never merges into the last bubble. */
+ *  opt-out so a chat-mode send never merges into the last bubble.
+ *
+ *  `"live"` (clean-dictate-mode, 2026-10-01 — the owner: "instead of writing into this text
+ *  area, we just do the same thing in the chat bubble where it's going to be sent") is the
+ *  box-skipping mode: a finished, clean-revised sentence grows straight into a chat bubble and
+ *  is never shown or typed into the composer's text box at all. This is NOT a new pipeline —
+ *  it is the exact "Live bubbles" feature `ext/Chat/readme.md` already documents for
+ *  `ChatPanel` (`Mic.js`'s own `SETTINGS.into: "chat"` default, gated on a host passing
+ *  `on_live`), wired onto THIS widget's composer for the first time. `into: "chat"` is set
+ *  explicitly here (not left to the shared default) so this mode behaves the same regardless
+ *  of what the owner's own gear has saved; `bubble: true` is the one new flag, read by
+ *  `Widget.Composer` below to decide whether to pass `on_live` at all — every other mode leaves
+ *  it unset, so dictation keeps landing in the box exactly as it always has. Pair it with
+ *  `revision: "clean"` (a separate, already-existing `Widget` option) to get the clean-revised
+ *  wording in the bubble, which is what the owner actually asked for — `mode` only decides
+ *  WHERE the words appear, `revision` decides WHAT they say. */
 const MODES = {
 	dictate: {},
 	chat: { send_mode: "manual", into: "box", join: false },
+	live: { into: "chat", bubble: true },
 };
 
 export default class Widget extends View {
@@ -80,7 +99,15 @@ export default class Widget extends View {
 		const Composer = this.v1 ? this.constructor.ComposerV1 : this.constructor.Composer;
 		div.c("ux-dictate-widget-card card pad flex v gap", () => {
 			if (this.models) new this.constructor.Models({ widget: this });
-			new Thread({ widget: this });
+			// `pulse: true` (the pulsing-dot mic indicator, 2026-10-01) wraps the thread in
+			// one extra box so the lock overlay and the dot can sit ON TOP of the feed
+			// without scrolling away with it — see `Widget.Pulse`'s own class doc, right
+			// below `Widget.Debug`, for why a plain child of the scrolling thread wouldn't work.
+			if (this.pulse) div.c("ux-dictate-widget-feed-wrap", () => {
+				new Thread({ widget: this });
+				new this.constructor.Pulse({ widget: this });
+			});
+			else new Thread({ widget: this });
 			new Composer({ widget: this });
 		});
 		if (this.debug) new this.constructor.Debug({ widget: this });
@@ -188,13 +215,14 @@ Widget.prototype.source = false;     // show the audio-source (mic) picker
 Widget.prototype.debug = false;      // show the collapsed "Debug ▾" bar
 Widget.prototype.revision = false;   // "clean" | "edit" | "summary" | false — Dictate's own `revise`
 Widget.prototype.models = false;     // show the model picker above the thread
+Widget.prototype.pulse = false;      // the pulsing-dot mic indicator in place of `level` — see `Widget.Pulse` below
 Widget.prototype.history = null;     // () => past lines, drawn once on mount — see class doc
 Widget.prototype.deliver = null;     // async (entry) => ok — see class doc
 Widget.prototype.on_text = null;     // (text) => … — fires the moment a sentence is ready, before `deliver`
 Widget.prototype.answer = null;      // (choice) => … — a choice-button question's pick (`say({type:"ask",...})`)
 Widget.prototype.marks = false;      // show a ✓/`?` beside each of the OWNER'S OWN bubbles (`ux/Understand`)
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
-Widget.prototype.mode = "dictate";   // "dictate" (voice first, the default) | "chat" (typed first) — see MODES, above
+Widget.prototype.mode = "dictate";   // "dictate" (voice first, the default) | "chat" (typed first) | "live" (voice first, straight to a bubble, never the box) — see MODES, above
 Widget.MODES = MODES;
 
 /** **THE OLD THREAD** (`v1: true`) — one bubble per line, drawn with this widget's own
@@ -209,6 +237,9 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 		this.lines = new Map();   // at -> {$bubble, $text}
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something — it shows up here as its own bubble.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
+		// Same fix as `Widget.Thread`, below (chat-autoscroll, 2026-10-01): THIS view's own
+		// element scrolls, not `$bubbles` — see that class's own comment for the why.
+		this.scroll = sticky_scroll(this.el);
 	}
 
 	/** `{chat: {at, from, text, via, fix}}` — `fix: true` updates the line already drawn
@@ -246,7 +277,7 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 			});
 		});
 		this.lines.set(at, { $bubble, $text });
-		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		this.scroll.pin();
 		// THE CHAT HITL MARK (`widget.marks`, restored round 4) — only for the OWNER'S
 		// OWN line, same rule `ChatPanel`'s `mark_owner_piece()` used. Asked once, in the
 		// background; a small ✓/`?` lands beside the text whenever the answer comes back,
@@ -279,7 +310,7 @@ Widget.ThreadV1 = class WidgetThreadV1 extends View {
 				});
 			});
 		});
-		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		this.scroll.pin();
 	}
 
 	/** `ux/Understand`'s own `marks()`, reused, never rebuilt here — asks once, adds a
@@ -344,6 +375,15 @@ Widget.Thread = class WidgetThread extends View {
 		this.lives = new Map();   // "stream:" + who -> {el, text} — a STILL-STREAMING reply, kept OUT of speak()'s merge
 		this.$empty = div.c("ux-dictate-widget-empty muted", "Say something, or press the mic. Your words show up here.");
 		this.$bubbles = div.c("ux-dictate-widget-bubbles flex v gap");
+		// STICKY-BOTTOM SCROLL (`ext/Chat/Chat.js`'s own `sticky_scroll()`, CLAUDE.md law 6 —
+		// one scroll behavior, not a second copy here): THIS view's own element (`this.el`,
+		// class `ux-dictate-widget-thread`) is the box that actually scrolls — `Widget.css`'s
+		// `overflow-y: auto` is on it, not on `this.$bubbles`. Every place below that used to
+		// set `this.$bubbles.el.scrollTop` was therefore scrolling an element with nothing to
+		// scroll — a silent no-op, which is why neither the Dictate page nor the ✦ sheet ever
+		// auto-scrolled (chat-autoscroll, 2026-10-01). `this.scroll.pin()` replaces every one
+		// of those calls now.
+		this.scroll = sticky_scroll(this.el);
 	}
 
 	/** Run `fn` with every live (still-streaming) bubble lifted out first, and put back
@@ -389,6 +429,15 @@ Widget.Thread = class WidgetThread extends View {
 		// landing while a slower run, or the smart assistant's own stream, still shows).
 		if (assistant) this.drop_live("stream:" + (chat.from?.id ?? "assistant"));
 
+		// MODE "live" ONLY: a real, settled OWNER line replaces the faded "sent:" draft
+		// bubble `live()` (below) left behind the instant it went out — the same cleanup
+		// `ext/Chat/Chat.js`'s own `chat()` does for its `type:"prompt"` lines. A no-op
+		// for every other mode, where `live()` is never called, so no "sent:" key exists.
+		if (!assistant){
+			const sent_key = [...this.lives.keys()].find(k => k.startsWith("sent:"));
+			if (sent_key) this.drop_live(sent_key);
+		}
+
 		const sender = chat.from?.id || chat.from?.kind || (assistant ? "assistant" : "owner");
 		const who = chat.from?.id ?? (assistant ? "assistant" : "owner");
 		const bubble = this.follow(() => speak(this.$bubbles, {
@@ -403,7 +452,7 @@ Widget.Thread = class WidgetThread extends View {
 		const text_node = bubble.lastElementChild;
 		const ref = { id: at };   // `retag()` below updates `ref.id` in place — see `mark()`'s own doc
 		this.lines.set(at, { bubble, text: text_node, ref });
-		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		this.scroll.pin();
 		// THE CHAT HITL MARK (`widget.marks`) — only for the OWNER'S OWN line, same rule
 		// `WidgetThreadV1` used. `mark()` below stores it ON THE PIECE (`patch_piece()`),
 		// not on this node directly, so it survives a LATER merge too (review finding 1).
@@ -434,7 +483,7 @@ Widget.Thread = class WidgetThread extends View {
 				});
 			});
 		});
-		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		this.scroll.pin();
 	}
 
 	/** A reply STILL being written — a bubble of its own, parked at `this.lives`, never
@@ -463,14 +512,73 @@ Widget.Thread = class WidgetThread extends View {
 			this.lives.set(key, hit = { el: node, text: text_el });
 		}
 		md_into(hit.text, text, true);
-		this.$bubbles.el.scrollTop = this.$bubbles.el.scrollHeight;
+		this.scroll.pin();
+	}
+
+	/** MODE "live" ONLY (clean-dictate-mode, 2026-10-01) — the OWNER's own words while still
+	 *  speaking, growing in a bubble on their side of the log instead of the composer's text
+	 *  box: `settled` is Whisper's finished words (the clean-up swapped in once it lands — the
+	 *  same text `ComposerMic.show_live()` would otherwise type into the real box), `guess`
+	 *  the still-moving tail, drawn grey, plain text (markdown never half-renders a word that
+	 *  is still changing). `sent: true` with an empty `text` is the one call `consume_sent()`
+	 *  makes the instant the words actually go out: the bubble stays, faded, as proof they were
+	 *  heard, until the real settled line lands (`draw()`, above, drops it then) or 15s pass
+	 *  with nothing, same as the timeout below.
+	 *
+	 *  Mirrors `ext/Chat/Chat.js`'s own `chat().live()` (the "Live bubbles" feature,
+	 *  `ext/Chat/readme.md`) exactly, including the look (`chatbox-you chatbox-draft`,
+	 *  `.chatbox-guess`, `.chatbox-live-sent` — all `Chat.css` rules, loaded already since
+	 *  `draw()` above imports `speak` from the same file) — not reused directly because that
+	 *  version lives inside `chat()`'s own closure (its own `lives`/`follow()`), which this
+	 *  class can't reach into; this class already keeps its own copy of both, for
+	 *  `show_stream()` just above, so `live()` builds on those instead of a third copy.
+	 *
+	 *  Passed straight through as `composer()`'s own `on_live` option by `Widget.Composer`
+	 *  below, and ONLY when `mode: "live"`'s own preset (`MODES`, top of file) asks for it —
+	 *  every other mode never calls this at all, so dictation keeps landing in the box exactly
+	 *  as it always has for them. */
+	live({ text = "", settled = text, guess = "", sent = false } = {}){
+		if (!text){
+			const hit = this.lives.get("draft");
+			if (!hit) return;
+			if (!sent) return this.drop_live("draft");
+			this.lives.delete("draft");
+			hit.el.classList.add("chatbox-live-sent");   // `Chat.css`'s own fade rule — reused, not a new class
+			this.live_sent_n = (this.live_sent_n ?? 0) + 1;
+			const key = "sent:" + this.live_sent_n;
+			hit.timer = setTimeout(() => this.drop_live(key), 15000);
+			this.lives.set(key, hit);
+			return;
+		}
+		this.$empty.hide();
+		this.follow(() => {
+			let hit = this.lives.get("draft");
+			if (!hit){
+				let node, text_el;
+				this.$bubbles.append(() => {
+					node = div.c("chatbox chatbox-you chatbox-live chatbox-draft", () => {
+						who_label("owner");
+						text_el = div.c("chatbox-text").el;
+					}).el;
+				});
+				this.lives.set("draft", hit = { el: node, text: text_el });
+			}
+			hit.text.textContent = settled;
+			if (guess) hit.text.append(span.c("chatbox-guess").text((settled ? " " : "") + guess).el);
+		});
+		this.scroll.pin();
 	}
 
 	/** Remove a live (streaming) bubble, if one is showing — the real line replacing it
-	 *  (`draw()`, above) or an explicit empty `stream(who, "")` both call this. */
+	 *  (`draw()`, above) or an explicit empty `stream(who, "")`/`live()` call both call this.
+	 *  Clears a pending fade-out timer too (`live()`'s own "sent:" entry, above) so a bubble
+	 *  dropped early (the real line arrived before the 15s fade ran out) never fires a second,
+	 *  stale removal later — harmless either way (`drop_live` is a no-op on a missing key), just
+	 *  not worth leaving a timer running for nothing. */
 	drop_live(key){
 		const hit = this.lives.get(key);
 		if (!hit) return;
+		clearTimeout(hit.timer);
 		hit.el.remove();
 		this.lives.delete(key);
 	}
@@ -517,7 +625,6 @@ Widget.Thread = class WidgetThread extends View {
 	 *  ended up. A session re-read from line 0 (`ux/Dictate/chat.js`'s own `sync()`) hits this
 	 *  same method, at the same point in the sequence, so a reload draws the same picture. */
 	split_paragraph(re){
-		const box = this.$bubbles.el, at_end = box.scrollHeight - box.scrollTop - box.clientHeight < 40;   // follow only a reader already at the bottom
 		const hit = this.lines.get(re);
 		if (!hit) return;   // the paragraph named isn't on screen (opened mid-conversation) — nothing to split
 		const old_bubble = hit.bubble;
@@ -529,7 +636,7 @@ Widget.Thread = class WidgetThread extends View {
 			line.bubble = moved_node ? made : old_bubble;
 			line.text = moved_node ?? old_bubble.querySelector(`[data-re="${at}"]`) ?? line.text;
 		}
-		if (at_end) box.scrollTop = box.scrollHeight;
+		this.scroll.pin();   // follows only if the reader was already at the bottom — `scroll.locked()`
 	}
 
 	add(text){ this.draw({ chat: { at: new Date().toISOString(), from: { kind: "owner" }, text } }); }
@@ -699,7 +806,16 @@ Widget.Composer = class WidgetComposer extends View {
 			revise: w.revision || false,
 			on_text: text => w.on_text?.(text),
 			deliver: entry => w.submit_entry(entry),
-			on_meter: w.level ? level => this.set_level(level) : undefined,
+			// `pulse` reads the SAME smoothed number `level` does (`Dictate`'s own
+			// `on_meter`, 0..1) — both can be on at once, each drives its own display.
+			on_meter: (w.level || w.pulse) ? level => { this.set_level(level); w.$pulse?.set_level(level); } : undefined,
+			// MODE "live" ONLY (`w.mic_preset.bubble`, set by `MODES.live` above): the
+			// mic's own `live_active()` check (`Mic.js`) is `!!this.on_live && into === "chat"` —
+			// `on_live` left `undefined` for every other mode is what keeps dictation
+			// landing in the real box for them, unchanged. `this.widget.$thread` always
+			// exists by the time this fires (`Thread` is built before `Composer`, `Widget`'s
+			// own `render()`, above).
+			on_live: w.mic_preset.bubble ? state => this.widget.$thread?.live?.(state) : undefined,
 		});
 		w.dictate = view.mic;
 		// THE MODE PRESET (one-dictation item 1) lands on this ONE mic instance, after it
@@ -709,6 +825,17 @@ Widget.Composer = class WidgetComposer extends View {
 		if (view.mic){
 			if ("send_mode" in w.mic_preset) view.mic.send_mode = w.mic_preset.send_mode;
 			if ("into" in w.mic_preset) view.mic.into = w.mic_preset.into;
+			// `pulse` (the pulsing-dot indicator) needs to know the instant the mic is
+			// asked to start or really stops, so it can swap the locked overlay for the
+			// dot and back — plain instance hooks (`Dictate.prototype.on_start`/`on_stop`,
+			// null by default), set directly on this ONE mic the same way `send_mode`/
+			// `into` are, just above. `view.mic.on_start` fires the moment `start()` is
+			// called (asked-for, maybe still a permission prompt away); `on_stop` fires
+			// once `stop()` actually runs — `Widget.Pulse`'s own doc has the full picture.
+			if (w.pulse){
+				view.mic.on_start = () => w.$pulse?.locked(false);
+				view.mic.on_stop = () => w.$pulse?.locked(true);
+			}
 		}
 		if (w.level) this.meter();
 		if (w.source) this.source_picker();
@@ -764,5 +891,71 @@ Widget.Debug = class WidgetDebug extends View {
 			this.built = true;
 			this.$panel.append(() => { pg.widget(); });
 		}
+	}
+};
+
+/** **THE PULSING DOT** (`pulse: true`, 2026-10-01 — the owner's own words: "a little orange
+ *  dot, the primary color, pretty small, but then kind of just grows, bounces... it stays in
+ *  place but fluctuates, the size of it pulses with the audio... bottom right corner maybe").
+ *  Replaces `level`'s meter bar's job (no fixed-height bar needed) with one small circle, so
+ *  `level` and `pulse` are two different DISPLAYS of the exact same smoothed 0..1 number
+ *  (`Dictate`'s own `on_meter` — see `Widget.Composer`'s own `on_meter` line, above) — turn
+ *  on whichever one a caller wants, or neither; turning one on never touches the other.
+ *
+ *  TWO STATES, matching the owner's own words exactly:
+ *  - **locked** (mic off, the default): a darkened card over the whole feed, "tap to talk" —
+ *    tapping it anywhere calls `widget.start_mic()`, which both unlocks (this card goes away,
+ *    `locked(false)`, fired by the mic's own `on_start` hook below) AND turns the mic on, in
+ *    one tap, same as the owner described.
+ *  - **live** (mic on): the lock is gone, just the small dot, bottom-right, sized by
+ *    `set_level()` below. Tapping the dot calls `widget.stop_mic()` — the owner: "maybe you
+ *    can tap on it" — which re-locks once the mic really stops (`on_stop`, below).
+ *
+ *  WHY A WRAPPING BOX (`Widget.render()`'s own `ux-dictate-widget-feed-wrap`, above) instead
+ *  of a plain child of `Widget.Thread`: the thread's own element is what SCROLLS now
+ *  (`sticky_scroll`, the chat-autoscroll merge) — a child positioned `absolute` inside a
+ *  scrolling box scrolls away with it, so both the lock and the dot would drift out of sight
+ *  the moment there's enough history to scroll. The wrap sits OUTSIDE that scrolling element,
+ *  so this view's own `inset: 0`/bottom-right positioning always lines up with the visible
+ *  feed, never the scrolled-away content (`Widget.css`'s own comment has the exact rule).
+ *
+ *  `set_level()` only ever runs while live (`Widget.Composer`'s own `on_meter` still fires
+ *  while idle too, briefly, before the first `on_start`? — no: `on_meter` is `Dictate`'s own
+ *  `on_level()`, only ever called from inside its audio-processing loop, which only runs
+ *  while the mic is actually open — so a stray call while locked cannot happen). */
+Widget.Pulse = class WidgetPulse extends View {
+	render(){
+		this.ac("ux-dictate-widget-pulse");
+		const w = this.widget;
+		w.$pulse = this;
+
+		this.$lock = div.c("ux-dictate-widget-pulse-lock").attr("role", "button").attr("tabindex", "0")
+			.attr("title", "tap to start listening").text("tap to talk")
+			.click(() => w.start_mic())
+			.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); w.start_mic(); } });
+
+		this.$dot = div.c("ux-dictate-widget-pulse-dot").attr("role", "button").attr("tabindex", "0")
+			.attr("title", "tap to stop listening")
+			.click(() => w.stop_mic())
+			.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); w.stop_mic(); } });
+
+		// Starts LOCKED — `w.dictate` (the real mic) isn't built yet at this point in
+		// `Widget.render()` (`Thread`/`Pulse` are built before `Composer`), so `mic_active()`
+		// reads as idle either way; this just states the true default out loud.
+		this.locked(true);
+	}
+
+	/** The live audio level, 0..1 — the exact number `level`'s meter bar reads, grown into a
+	 *  CSS custom property (`Widget.css`'s own `--ux-dictate-widget-pulse-level`) so the dot's
+	 *  own `transform: scale(...)` can read it with no JS layout work on every audio frame. */
+	set_level(level){ this.$dot.style("--ux-dictate-widget-pulse-level", Math.min(1, level).toFixed(3)); }
+
+	/** `true` = locked (mic off): show the darkened "tap to talk" card, hide the dot, and
+	 *  reset the dot back to its resting size so the NEXT time it shows live it starts small,
+	 *  never still scaled up from whatever the level was the instant the mic stopped. */
+	locked(is_locked){
+		this.$lock.el.hidden = !is_locked;
+		this.$dot.el.hidden = is_locked;
+		if (is_locked) this.set_level(0);
 	}
 };

@@ -4,19 +4,25 @@ import { ComposerMic, SETTINGS, CLEAN_CHANGED_EVENT } from "./Mic.js";
 View.stylesheet(import.meta, "Chat.css");
 
 /**
- * ONE BOX ON TOP, FULL WIDTH; the mic, Send and everything else folded behind a
- * `⋯` sit in ONE ROW below it (one-dictation, 2026-10-01 — the owner, on a phone:
- * "the text area was kind of partial width and would grow really tall and then
- * create this big void of empty space… if the text area is gonna grow, it needs
- * to be like full width… the send button could be below it"). This is the SAME
- * layout `ux/Dictate/Widget.js`'s own composer already used — every caller of
- * this one function gets it now, not just the Dictate widget.
+ * ONE BOX ON TOP, FULL WIDTH; the mic, Send and one ⚙ menu button sit in ONE ROW
+ * below it (one-dictation, 2026-10-01 — the owner, on a phone: "the text area was
+ * kind of partial width and would grow really tall and then create this big void
+ * of empty space… if the text area is gonna grow, it needs to be like full
+ * width… the send button could be below it"). This is the SAME layout
+ * `ux/Dictate/Widget.js`'s own composer already used — every caller of this one
+ * function gets it now, not just the Dictate widget.
  *
  * IT NEVER GROWS BEYOND A CEILING, and that is a requirement, not a detail: rows
  * sit under it, so a composer that gains a line pushes everything down (`Chat.css`'s
  * `max-height` on the box itself now, not a row that has to match it). What
  * `ux/Dictate` draws that does not shrink — its engine name, its status, its
- * "stop after a pause" checkbox — lives in a popover positioned OUT OF FLOW.
+ * "stop after a pause" checkbox — USED to live in one small popover, and the
+ * settings grid in a second, separate one behind its own gear button (two
+ * buttons, two popovers). **Merged into ONE ⚙ button that opens ONE full-screen
+ * menu** (chat-menu-merge, 2026-10-01 — the owner, looking at both: "I think the
+ * gear and that more button should be merged together into one menu… it maybe
+ * should swap out the entire UI, right? Like full screen") — see `build_menu()`
+ * below, same full-screen shape as `Drill.js`'s own `.chatbox-drill`.
  *
  *     composer({ deliver: async entry => (await post(entry)).ok, re: () => "card-1" })
  *
@@ -54,9 +60,9 @@ export function composer({
 			$input = textarea().attr("rows", "2").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
 		});
 
-		// ONE ROW, UNDER THE BOX: the mic, Send, and everything that doesn't fit folded
-		// behind `⋯` — never beside the box any more, so the box can be the full width of
-		// the row above it (`Chat.css`'s `.chatbox-compose-row`).
+		// ONE ROW, UNDER THE BOX: the mic, Send, and the one ⚙ menu button that opens
+		// everything else full screen — never beside the box any more, so the box can
+		// be the full width of the row above it (`Chat.css`'s `.chatbox-compose-row`).
 		div.c("chatbox-compose-row", () => {
 			if (with_mic) mic = new ComposerMic({
 				re,
@@ -78,16 +84,15 @@ export function composer({
 
 			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
 
-			// Everything that does not fit on one line. `.open` is toggled here and
-			// the popover is positioned out of flow, so opening it moves nothing.
-			if (with_mic) button.c("chatbox-compose-more").attr("type", "button").attr("title", "engine, microphone and status")
-				.text("⋯").click(() => view.el.classList.toggle("open"));
-			// A real gear (an SVG), not the ⚙ character: on a phone that glyph drew as a
-			// ship's wheel (the owner, 2026-09-30).
+			// ONE MENU BUTTON (chat-menu-merge, 2026-10-01) — used to be TWO buttons here,
+			// `⋯` (engine, microphone and status) and a separate gear (settings); see
+			// `build_menu()` below for the one full-screen panel this now opens. A real
+			// gear (an SVG), not the ⚙ character: on a phone that glyph drew as a ship's
+			// wheel (the owner, 2026-09-30).
 			if (with_mic){
-				const $gear = button.c("chatbox-compose-more chatbox-compose-gear").attr("type", "button").attr("title", "dictation settings")
-					.attr("aria-label", "dictation settings").click(() => mic?.gear?.());
-				$gear.el.innerHTML = GEAR;
+				const $menu_btn = button.c("chatbox-compose-more chatbox-compose-menu").attr("type", "button")
+					.attr("title", "dictation settings").attr("aria-label", "dictation settings").click(() => open_menu());
+				$menu_btn.el.innerHTML = GEAR;
 			}
 			// Deliverable 3 - "dig back": one small toggle shows exactly what Whisper produced,
 			// in place of the clean-up, for whatever is currently in the box. Only worth showing
@@ -113,13 +118,56 @@ export function composer({
 		$note = small.c("chatbox-compose-note muted").text(hint);
 	});
 
-	/* The popover IS Dictate's own info block — the engine, the status and the
-	   "stop after a pause" box — MOVED out of the one-line row rather than hidden
-	   or copied. One node, so it cannot disagree with the microphone it describes. */
+	/* ONE FULL-SCREEN MENU (chat-menu-merge, 2026-10-01 — the owner, looking at the
+	   gear and the `⋯` button side by side: "I think the gear and that more button
+	   should be merged together into one menu... it maybe should swap out the
+	   entire UI, right? Like full screen"). It holds BOTH halves that used to be
+	   two separate small popovers:
+	     - Dictate's own info block — the engine, the status, the "stop after a
+	       pause" box. One node, moved here bodily (not copied), so it can never
+	       disagree with the microphone it describes.
+	     - The settings grid, `Mic.js`'s own `settings_panel()` — it used to
+	       position ITSELF as a small floating popover with inline styles; now it
+	       is a plain in-flow grid (`Chat.css`'s `.chatbox-mic-settings`) and this
+	       full-screen panel decides where it sits.
+	   Built once, on first open, and appended to <body> — the same full-screen
+	   shape `Drill.js`'s own `.chatbox-drill` uses for its own full-screen shell,
+	   so there is one way a chat surface goes full screen, not two. */
 	const $info = mic?.el.querySelector(".ux-dictate-info");
-	if ($info) view.el.appendChild($info);
+	let $menu;
+	function build_menu(){
+		const box = document.createElement("div");
+		box.className = "chatbox-compose-menu-panel";
+		box.hidden = true;
+		box.setAttribute("role", "dialog");
+		box.setAttribute("aria-label", "dictation settings");
+		const head = document.createElement("div");
+		head.className = "chatbox-compose-menu-head";
+		const title = document.createElement("div");
+		title.className = "chatbox-compose-menu-title";
+		title.textContent = "Dictation settings";
+		const close = document.createElement("button");
+		close.type = "button";
+		close.className = "chatbox-compose-menu-close";
+		close.textContent = "✕ Close";
+		close.addEventListener("click", close_menu);
+		head.append(title, close);
+		const body = document.createElement("div");
+		body.className = "chatbox-compose-menu-body";
+		if ($info) body.append($info);
+		if (mic) body.append(mic.settings_panel());
+		box.append(head, body);
+		box.addEventListener("keydown", e => { if (e.key === "Escape") close_menu(); });
+		document.body.append(box);
+		return box;
+	}
+	function open_menu(){
+		$menu ??= build_menu();
+		$menu.hidden = false;
+		$menu.querySelector(".chatbox-compose-menu-close")?.focus({ preventScroll: true });
+	}
+	function close_menu(){ if ($menu) $menu.hidden = true; }
 
-	if (mic) view.el.appendChild(mic.settings_panel());
 	$input.on("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
 
 	async function send(){
@@ -147,9 +195,11 @@ export function composer({
 		note(ok ? sent : failed);
 	}
 
-	/* ⚠ The status goes in the PLACEHOLDER as well as the folded note, because a
-	   note nobody can see is not feedback. The placeholder is inside a
-	   fixed-height box, so saying something there cannot move anything. */
+	/* ⚠ The status goes in the PLACEHOLDER as well as the small note under the row
+	   (`$note`, a plain line now — chat-menu-merge, 2026-10-01 — it used to be
+	   folded out of sight behind the `⋯` button, which is gone), because a note
+	   nobody can see is not feedback. The placeholder is inside a fixed-height
+	   box, so saying something there cannot move anything. */
 	function note(text){
 		$note.text(text);
 		$input.attr("placeholder", text);

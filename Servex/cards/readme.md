@@ -35,7 +35,7 @@ Line 1 builds the card; every later line is one change, and the latest line wins
 | `{"class": "/framework/ai2/card.js", "title", "type", "id", "created", "by", "tags": []}` | Line 1 only. |
 | `{"type": "request"}` | Turns the card into another kind — question, request, task… |
 | `{"tags": ["site"]}` · `{"status": "open"\|"done"}` · `{"title": "…"}` | Latest wins. |
-| `{"message": {"by", "text", "at", "kind"}}` | Anything said or that happened (`kind` = reply, update, task…). `at` is stamped if missing. |
+| `{"message": {"by", "text", "at", "kind", "id", "re"}}` | Anything said or that happened (`kind` = reply, update, task…). `at` and `id` are stamped if missing. |
 | `{"prompt": {…}}` | One of the owner's own prompts — below. |
 | `{"cites": ["<card id>#<prompt id>"]}` | This card answers or builds on that prompt. |
 | `{"attach": "agent-id"}` · `{"detach": "agent-id"}` | Who is working on the card. |
@@ -55,6 +55,26 @@ Line 1 builds the card; every later line is one change, and the latest line wins
 - A later `prompt` line with the SAME `id` merges into it, field by field — that is how a cleaned reading lands.
 - Its global name is `<card id>#<prompt id>`; any card cites it with a `cites` line.
 - `POST /card/append` with a new prompt forwards its `text` to every live agent attached to the card.
+
+**A threaded reply** (card-threaded-replies, 2026-10-01) answers ONE specific earlier line —
+a prompt or another reply — instead of the card's flat chat as a whole:
+
+```json
+{"message": {"id": "m-mfz3k2a9x4", "by": "assistant-fast", "kind": "reply",
+  "text": "Yes — that one's already fixed.", "re": "p-mfz3k2a9x4"}}
+```
+
+- `re` names the `id` of the prompt or reply this one answers (an agent reads it off
+  `read_card`'s transcript). Every message now gets its own `id`, the same way a prompt does,
+  so a LATER reply can answer IT too.
+- The `card_reply` MCP tool takes `re` as an optional argument; AI 2 (`ai2/card.js`'s
+  `chat_line()`) turns it into `thread: true` for `ext/Chat/Chat.js`, which draws the reply
+  nested right under its parent bubble, collapsed to "N replies" — the same thread mechanism
+  the global voice session already uses (`ext/Chat/readme.md`'s THREADS).
+- With no `re`, a reply lands exactly as it always did: appended to the flat bottom of the chat.
+- Only the folder-card path (this one) carries it. The legacy board-card log (`Assistant.js`'s
+  `card_reply`, used only when a card predates folder cards) already spends its own `re` field
+  on a different thing — which card a reply targets — so threading isn't offered there.
 
 ## Watch out
 

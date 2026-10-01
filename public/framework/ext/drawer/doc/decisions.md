@@ -132,6 +132,22 @@ kept in sync by hand.
   same thing a few lines down. Mic feedback (the sound only once the mic is
   truly on, the wording of each message) is `ux/Dictate`'s job; this sheet
   only supplies where its widget lives and what a finished sentence becomes.
+- **The ‹ Back button was removed from the sheet's head (voice-sheet-header,
+  2026-10-01 — the owner: "I don't know if we need a back button… we have the
+  X, the X makes much more sense to me").** It only ever did one thing the ✕
+  didn't already do (step a full-height sheet down to "open" instead of all
+  the way closed), and the phone's own hardware back button still does that.
+  Removing it also fixed the header's "text alignment is way off" complaint:
+  the row was three buttons spread by `.flex.split` (`justify-content:
+  space-between`), and once "Back" was CSS-hidden outside full height, only
+  one of the two gaps still had a second button to push against, so the
+  title+path block drifted instead of sitting flush left. The fix is
+  `drawer-rail-sheet-heading { flex: 1 1 auto }` (`rail.css`): the title fills
+  whatever space the ✕ (and "More") don't need, so it is always flush left
+  and they are always flush right, with no `space-between` guesswork left at
+  all. The ✕ also shrank from a 2.75rem touch target to 2.2rem, matching
+  "More" beside it, for the owner's separate "make the header smaller,
+  vertically, much more compact" — it was the tallest thing in the row.
 
 ## What will bite you
 

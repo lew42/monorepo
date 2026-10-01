@@ -351,3 +351,37 @@ wav>"] })` plus `context.grantPermissions?.(["microphone"])`-equivalent
 (`newContext({ permissions: ["microphone"] })`); without the file-capture flag the fake
 device's default tone may or may not cross the speech-loudness floor, so a real recorded
 clip (`ai/2026-09-22/whisper-servex/clip.wav` was used here) is the reliable choice.
+
+## The stop chime dropped or doubled, fixed 2026-10-01
+
+The owner, on the Dictate Overview: "Seems like the transcription stopped and I didn't
+get a sound to let me know that it stopped. It doesn't seem like the sounds are playing
+properly." Both sentences traced to the same function, `beep()` in `ext/Chat/Mic.js`
+(the start/stop chime — see "Mic feedback" above for where `on_listening()` wires the
+START one; plain `Dictate` has no sound at all, only `ComposerMic` does):
+
+1. **Scheduled on a frozen clock.** `beep()` called `AudioContext.resume()` but never
+   *waited* for it before reading `currentTime` and scheduling its two oscillator notes.
+   A brand-new (or still-suspended) context's clock is frozen at 0 until `resume()`
+   actually finishes — so any chime fired with no fresh click right behind it (the very
+   first beep on a page, or the STOP chime fired by `release_on_hide()` when
+   `visibilitychange`/`pagehide` releases the mic — `readme.md`'s "Watch out", the
+   mic-hijack feature this landed the day before) could be scheduled against that
+   frozen instant and come out silent, clipped, or mistimed once the context actually
+   woke up a moment later. Fixed: `beep()` is now `async` and does
+   `if (beep_ctx.state !== "running") await beep_ctx.resume();` before computing `t0` —
+   every call site (`on_listening()`, both `stop()`s, `set_error()`) was already
+   fire-and-forget, so nothing needed to start awaiting `beep()` itself.
+2. **Doubled on an error mid-stop.** `ComposerMic.stop()`'s own `finally` beeped "stop"
+   whenever `was` (captured at the top, before `super.stop()` ran) was true — even when,
+   moments earlier in that SAME call, whisper going unreachable while sending the last
+   segment (`Dictate.close_segment()`'s own catch) had already called `set_error()`,
+   whose own override beeps "stop" right there (state is still `"transcribing"` then).
+   One stop produced TWO overlapping chimes — a garbled noise, not a clean tone, which
+   reads as "the sounds aren't playing properly" as much as a missing sound does. Fixed:
+   `stop()`'s `finally` now reads `if (was && this.state !== "error") beep("stop");` —
+   skipped when `set_error()` already beeped for this same stop.
+
+Neither case needed a live microphone to find — both are deterministic once you trace
+exactly when each `beep()` call happens relative to the async chain around it. Full
+reasoning: `ai/2026-10-01/dictate-stop-sound/task.jsonl`.

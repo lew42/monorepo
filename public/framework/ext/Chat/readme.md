@@ -16,19 +16,33 @@ Markdown is safe (`md.js`), each bubble starts with its sender's avatar (`roles.
 
 `composer()`'s own box is now ALWAYS a full-width column — the typed/dictated buffer on top
 (it grows up to a ceiling, `Chat.css`'s `max-height: 7lh` on `.chatbox-compose-input`, then
-scrolls), and the mic, Send and everything folded behind `⋯` (the gear, the "raw" toggle) in
-ONE row underneath it, never beside the box. Every caller of `composer()` gets this — AI 2's
-card composer, the ✦ sheet, the desktop drawer, and now [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/),
+scrolls), and the mic, Send, one ⚙ menu button and the "raw" toggle in ONE row underneath it,
+never beside the box. Every caller of `composer()` gets this — AI 2's card composer, the ✦
+sheet, the desktop drawer, and now [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/),
 which used to build a second, separate composer of its own (`one-dictation`, CLAUDE.md law 6).
 `Mic.js`'s `SETTINGS.paragraph_pause_ms` (how long a finished sentence waits before it is sent
 and the box clears) is `700`ms by default now, not `1500` — the owner asked for "500 to 1000
 milliseconds."
+
+## The settings menu — now one button, full screen (2026-10-01)
+
+The ⚙ used to open a small popover of dictation settings, and a SEPARATE `⋯` button opened
+a second small popover (the engine name, its status, the "stop after a pause" checkbox) —
+two buttons, two popovers, for things that are really one topic. The owner, looking at both:
+"I think the gear and that more button should be merged together into one menu... it maybe
+should swap out the entire UI, right? Like full screen." Now there is ONE ⚙ button, and it
+opens ONE full-screen panel holding both halves — the same full-screen shape
+[`Drill.js`](#drill-in-open-a-card-as-its-own-small-page-2026-09-30)'s own card shell uses
+(`Composer.js`'s `build_menu()`, `Chat.css`'s `.chatbox-compose-menu-panel`). The "raw"
+dig-back toggle (below) stays its own small button in the row — the owner only asked about
+the gear and the `⋯`, not that one.
 
 ## Reactions, avatars and threads (2026-09-30)
 
 - **React to a bubble like an SMS tap-back:** hold it on a phone, right-click it on a desktop, or click the ☺ beside it. Pick 👍 ✅ ❤️ 😂 ❓ 👎; the same one again takes it off. Each is a `{"react": {at, re, emoji, from}}` line in the log, so it survives a reload. Pass `on_react` to `chat()` (or `react` to `ChatPanel`) to save it.
 - **The icon is the name:** ⚡ fast, 🧠 smart, 👤 you (`set_avatar()` picks your own), on the same line as the words.
 - **Reply in a thread:** tap a bubble, press Reply, and your next message is drawn in a thread under it ("▸ N replies"), not at the bottom. The line carries `re` (the parent's `at`) and `thread: true`. `ChatPanel` offers it with its own list or `threads: true`.
+- **A card's own reply can thread too** (card-threaded-replies, 2026-10-01), with no Reply button needed: Servex's `card_reply` tool takes an optional `re` (the id of the prompt or reply it answers), and `ai2/card.js` turns that into the same `re` + `thread: true` this file already renders nested — [`Servex/cards/readme.md`](/Servex/cards/readme.md) has the shape.
 - How it works, who saves what, and how the assistants react and thread: [doc/reactions.md](./doc/reactions.md).
 
 ## ChatPanel — the log, the composer and the mic, as one widget
@@ -63,7 +77,7 @@ unrelated systems. Only the `"clean"` level does anything special here — `"edi
 no box swap. With `"clean"`, `ComposerMic` (`Mic.js`) now swaps each finished utterance's raw
 words for the fast assistant's clean-up IN PLACE, right in the box — raw shows first, clean
 replaces it once `/api/tidy` answers, same idea as the still-moving Whisper guess it already
-showed. A small **"raw" chip** beside ⋯/⚙ is a toggle button: click it and the whole box swaps,
+showed. A small **"raw" chip** beside ⚙ is a toggle button: click it and the whole box swaps,
 in place, to exactly what Whisper heard; click again to swap back to clean — nothing opens in a
 popover or separate panel. The composer's own gear (⚙) has a **"clean transcription"**
 checkbox next to the other mic settings — this is `Mic.js`'s `SETTINGS.clean`, the kill
@@ -93,6 +107,10 @@ panel.stream("smart", "Yes, the words now");                     // "" removes i
 - Only a composer whose host passes `on_live` can do this (`ChatPanel` does); a bare
   `composer()` (AI 2's) always uses the box.
 - `ChatPanel` now defaults `revise` to `"clean"`; `revise: false` turns it off for one host.
+- **A second host now passes `on_live` too** (clean-dictate-mode, 2026-10-01):
+  [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/), with `new Widget({ mode: "live" })` —
+  the exact same mechanism as `ChatPanel`'s above, not a second one; see
+  [`ux/Dictate/readme.md`](/framework/ux/Dictate/)'s "Widget" section.
 
 ## The universal chat line — one shape for voice, typed, and an agent's own reply
 
@@ -186,7 +204,7 @@ A selected card that holds something grows an **Open ⤢** button. It takes the 
 - A caller's clean-up hook is `on_clean`, never `on_revised`: View's constructor copies every option onto the instance, so an `on_revised` option (even `undefined`) hid `ComposerMic`'s own method, and clean mode silently never swapped anything (fixed 2026-09-30; `Mic.js`, `on_revised`).
 - Live bubbles are not log lines: `chat()` lifts them out and puts them back at the end around every real line it draws, so `mergeable()` never sees one.
 
-- Smart scroll: at the bottom it follows; scroll up and it freezes; scroll back down and it follows again. [doc/scroll.md](./doc/scroll.md)
+- Smart scroll: at the bottom it follows; scroll up and it freezes with a small ↓ button; click it, or scroll back down by hand, and it follows again — `sticky_scroll()`, one function, shared by this file's own `chat()` and `ux/Dictate/Widget.js`'s `Thread` (the Dictate page, the ✦ sheet). [doc/scroll.md](./doc/scroll.md)
 - One bubble per run: same sender, under `MERGE_GAP_MS` (10 s) apart, nobody between → one bubble, one paragraph per message; drawing only, the log stays separate. Every bubble is `--chat-bubble` wide.
 - A `{type:"refined", of, sections:[{text, from}]}` line replaces a merged owner bubble's raw paragraphs with its sections; a section opens in place to the raw pieces it cites, and a click on the bubble opens all raw pieces.
 - A line is drawn once and never moves, so call `sync()` as often as you like.

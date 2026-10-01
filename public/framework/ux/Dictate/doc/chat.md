@@ -119,6 +119,23 @@ answered (so typing feels instant). When that same message comes back a moment l
 `watch()` reading the file, this file remembers it already drew that one (by its exact
 timestamp) and skips it, so it is never drawn twice.
 
+## Every real line is drawn once, even though two channels both deliver it (2026-10-01)
+
+`attach()` wires up BOTH `Session.watch()` (the full-file poll, above) and `Session.stream()`
+(an SSE push the instant Servex writes a line, so a reply "does not wait for the next poll" —
+`ext/Session/Session.js`'s own doc comment on `stream()`). That is on purpose: `watch()` is the
+full-history catch-up and the safety net for a dropped SSE connection; `stream()` is the fast
+path. But it means EVERY real line — not just the owner's own echoed send — is expected to
+arrive from both channels, once each.
+
+**The bug this replaces:** `own_ats` only ever caught the owner's OWN sent message coming back.
+An assistant's reply was never covered, so the fast and smart assistants' own replies each drew
+as TWO separate bubbles — the owner, 2026-10-01: "both messages... added twice... four messages
+total." `draw(line)` now keeps a second set, `seen_chat`, keyed the same way `ext/Chat/Chat.js`'s
+own `chat()` factory already dedupes its lines (the line's `at`, plus its text when it's a
+`fix` — a later correction at the same `at` must still draw, never get swallowed as "already
+seen"). Reset alongside `own_ats` every time `attach()` rebuilds for a new or resumed session.
+
 ## `nav(path, card)`: telling the session about a move
 
 Most mounts get a brand new `chat()` call every time they open (the desktop AI tab, the dev
