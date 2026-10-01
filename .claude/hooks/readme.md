@@ -1,5 +1,28 @@
 # .claude/hooks
 
+## Writing to a .jsonl: always through a tool that checks the line first
+
+A log line that does not fit its file can break the live page that reads it, so every write is
+checked before anything is written (the owner, 2026-09-30).
+
+- **`append.mjs`** — `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, with the lines
+  as a JSON array written by the Write tool. `"NOW"` becomes the clock. A line that does not fit is
+  refused (exit 3, nothing written) and the right shape is printed.
+- **`jsonl-schema.mjs`** — the one list of what a line may look like, per file: `task.jsonl`,
+  `day.jsonl`, `board.jsonl`, `asks.jsonl`, `page.jsonl`. Add a new verb here AND in its reader
+  (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
+- **Servex's `append_log`** — for Servex's own event logs only (an object with a string `type`);
+  it is checked against the same module.
+- **`jsonl-guard.mjs`** — wired on Bash and PowerShell: a shell `>>`, `>`, `tee`,
+  `Add-Content`, `Out-File` or `Set-Content` into a `.jsonl` is blocked with the pointer
+  to `append.mjs`. It fails open on its own errors. Test: `node .claude/hooks/jsonl-guard.test.mjs`.
+  ⚠ It reads the command text, so a commit message that quotes `>> x.jsonl` is blocked too: reword it.
+
+Old lines are never judged; the logs are append-only. Design and proof:
+[validated-writes](/framework/ai/2026-09-30/proposal-flow/validated-writes/).
+
+## ledger.mjs
+
 `ledger.mjs` is one script, four Claude Code hook events. It writes the
 **mechanical** half of a task ledger so the harness enforces what the AI used to
 have to remember. Judgment lines — `log` findings, `now`, `outcome`, `steps` —
