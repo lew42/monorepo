@@ -39,10 +39,11 @@ export const schemas = {
 			experiment: { fields: ["try", "measure", "result"], eg: { try: "…", measure: "…", result: "…" } },
 			review:     { fields: [], eg: { found: 3, real: 2, fixed: 2 } },
 			shots:      { fields: ["pages"], eg: { at: "NOW", pages: ["/x/"], dir: "shots/" } },
+			bands:      { fields: [], eg: { at: "NOW", page: "/x/", bands: 3 } },
 			// `{"group": "slug"}` puts the task in a group — read by ai2/groups.js's Member.apply(), not a verb method.
 			group:      { type: "string", extra: "public/framework/ai2/groups.js", eg: "system-design" },
 		},
-		pending: ["shots"],
+		pending: [],
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/<date>/day.jsonl)",
