@@ -37,3 +37,14 @@ thinking, inside one API response; the thinking level sets how much) and what ru
 machine (the harness's tool loop: the model asks for a tool, the harness runs it and sends back
 the result, and each round trip is one more billed model call). Say what that means for cost: a
 turn with 8 tool calls is about 8 model calls. The Models page links it beside "effort".
+
+## Addition (Phase 10): how thinking spends tokens, in the same thinking note
+Four points, each checked against the provider's own docs (Anthropic's extended-thinking docs
+and OpenRouter's reasoning-tokens docs), with the link, and marked where an OpenRouter model
+differs:
+1. Thinking is billed as OUTPUT tokens.
+2. In a tool loop, earlier thinking is sent back as input: mostly cached, often trimmed.
+3. Streaming can be cancelled, but a thought can't be steered mid-way.
+4. With interleaved thinking, the model thinks between tool calls (e.g. after each web search).
+Also: the Models page reads test runs from `public/framework/ai/tests/*/page.jsonl` (one line per
+run, after line 1) as well as results.jsonl. minion-test-library is moving the tests there.

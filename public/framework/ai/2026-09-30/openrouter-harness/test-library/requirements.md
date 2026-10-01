@@ -138,3 +138,22 @@ Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest fir
   the judge sets it when it writes `reference.md`). Each `library/<id>/test.json` becomes the
   data for one instance. `library.mjs` reads the prompt from the file and spawns from it, so no
   one re-types a prompt. Don't build a second runner: library.mjs is the runner.
+
+## Amendment 5: Phase 10 (read the parent's "Phase 10"). An AITest is a PAGE
+- **Move the class** to `public/framework/ai/tests/AITest.js`, a page class the way AI 2's
+  `/framework/ai2/card.js` is one. Look at how a card's `page.jsonl` line 1
+  (`{"class": "/framework/ai2/card.js", …}`) makes PageLog load that class, and do the same.
+  Never use `core/Item` / `Item.register`.
+- **Each test is a folder** `public/framework/ai/tests/<slug>/` holding `page.jsonl`, whose line 1
+  is `{"class": "/framework/ai/tests/AITest.js", "title", "kind", "rung", "skills", "prompt":
+  "prompt.md", "criteria", "expected", "judge", "confidence"}`, plus `prompt.md` and `fixture/`.
+  `Servex/ext/openrouter/evals/library/` goes away; `library.mjs` reads the tests from there.
+- **Each run is one line appended to its test's page.jsonl** (through append.mjs): the same
+  fields as the results line (model, effort, pass, score, reasoning, cost_usd, ms, note).
+  results.jsonl keeps only the rule tests and the probes. The Models page reads both.
+- **`/framework/ai/tests/`** is a small index page whose `children:` names each test (nothing
+  crawls). The test page shows its prompt, criteria and confidence, then its runs as a table.
+  Load the `page` and `new-page` skills first; check it at 400 and 1200.
+- **The default sample:** the NEWEST version of each family at MEDIUM thinking. Write it down if
+  an older version beats a newer one.
+- Move the existing tests and their runs over. Don't rerun anything for the move.
