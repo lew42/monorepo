@@ -430,6 +430,9 @@ export default class Sessions {
 			from: { kind: "assistant", id: "smart", agent: s.smart }, via: "text", text,
 			...(re ? { re } : {}), ...(level ? { level } : {}) };
 		this.write(s, { chat: line });
+		/* One content model (inbox-ext item 9): a refined line also goes into its card's page.jsonl,
+		 * the very same object, so the card draws it in page mode. Cards.append never throws. */
+		if (card && level) this.servex?.cards?.append?.(card, { chat: line });
 		return { ok: true, at: line.at };
 	}
 

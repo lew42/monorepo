@@ -141,6 +141,23 @@ check("line() on a CARD SESSION always attributes its own card — nothing to lo
 	assert.equal(line.card, "2026/09/30/demo-card");
 });
 
+check("line() copies a refined line into its card's page.jsonl, the same object; an unrefined one stays out", () => {
+	const s = make();
+	const appended = [];
+	s.servex = { agents, cards: { append: (id, obj) => { appended.push({ id, obj }); return Promise.resolve({ ok: true }); } } };
+	const made = s.create({ path: "/a/" });
+	const at1 = s.say({ session: made.session, path: "/a/", text: "hello", via: "text" }).at;
+	s.nav({ session: made.session, from: "/a/", to: "/a/", card: "card-x" });
+	const at2 = s.say({ session: made.session, path: "/a/", text: "on the card", via: "text" }).at;
+	s.line({ session: made.session, text: "refined, no card", re: at1, level: "clean" });
+	const r = s.line({ session: made.session, text: "refined on card", re: at2, level: "summary" });
+	s.line({ session: made.session, text: "a plain smart reply" });
+	assert.equal(appended.length, 1, "only the refined line said on a card is copied");
+	assert.equal(appended[0].id, "card-x");
+	const written = lines(path.join(repo, "public", made.file.replace(/^\//, ""))).find(l => l.chat?.at === r.at).chat;
+	assert.deepEqual(appended[0].obj, { chat: written }, "the card gets the very same line");
+});
+
 // ── item 4: recent_project — every session of a project, any page or card ─────────────
 check("recent_project() lists every session of one project, newest first, across folders", () => {
 	const s = make();
