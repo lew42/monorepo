@@ -43,6 +43,15 @@ new Widget({ debug: true });                      // + the "Debug ▾" bar
 new Widget({ revision: "edit" });                  // ux/Revise tidies each sentence too
 ```
 
+**The composer is a column, not a row** (one-dictation, 2026-10-01 — the owner: the typed
+box "needs to be like full width… the send button could be below it"): the typed buffer sits
+on top, full width, growing taller line by line with no fixed height and no empty void below
+a short line; the mic, Send and any extras (meter, mic picker, Sample) sit in their own row
+underneath it. The live, still-moving guess (the grey caption) is never `position: absolute`
+any more — it takes its own space below the mic button and the whole card grows to fit it,
+instead of painting over whatever came next (the bug the owner found: "it's just rendering
+like over the top of something else").
+
 Four plain properties, every one `false`/off by default:
 
 - **`level`** — a level meter beside the mic (the same smoothed number `Dictate`'s own
@@ -70,18 +79,32 @@ transcription is below another paragraph or two." The OLD Overview (the five-tab
 playground leading, same as it always did) is kept one click away at
 [v1](/framework/ux/Dictate/v1/) — never destroy a viable version.
 
-## chat.js — one mount, one global session, every surface
+**This page IS the workbench** (one-dictation, 2026-10-01 — the owner: "the Dictate page
+is the workbench… this whole thing is based on these AI sessions"). The Overview's demo is
+not just a display any more — it is a real [`chat()`](#chatjs--one-mount-one-conversation-every-surface)
+mount, so saying something there is actually answered, same as every other surface, and a fix
+proved right there reaches all of them. Its own conversation is real but never remembered
+(`keep: false` — see below); its own "New session" button is the one every surface shares.
 
-`chat(el, {path, card, placeholder})` draws the one chat box every surface uses — the
-✦ sheet, the ☰ AI tab, a card's own sidebar, the dev bar — all sharing exactly ONE
-conversation per browser tab, so a sentence said on the phone is still there at the desk.
-The call, why a reopened chat never loses old messages, and every older version still
-kept reachable (`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
+## chat.js — one mount, one conversation, every surface
+
+`chat(el, {path, card, placeholder, keep, level, source, debug})` draws the one chat box
+every surface uses — the ✦ sheet, the ☰ AI tab, a card's own sidebar, the dev bar, and now
+the Dictate page's own demo. `keep: true` (the default) joins the ONE global conversation
+per browser tab, kept across every page; `keep: false` gives this one mount its OWN
+conversation, remembered only as long as the mount itself exists — leave the page and come
+back to a brand-new, empty one. `new_session_button(mount)` is the one "New session" button
+every surface now shares, instead of each building its own. The call, `keep`'s exact rules,
+why a reopened chat never loses old messages, and every older version still kept reachable
+(`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
 
 ## Surfaces — the same chat, live on every place it is mounted
 
 [`surfaces/`](/framework/ux/Dictate/surfaces/) shows all five places `chat.js` is mounted,
-side by side, each with a screenshot and the one line of code that built it.
+side by side, each with a screenshot and the one line of code that built it. The full
+site-wide audit — every `new Widget(`/`new Dictate(`/`dictate(`/`chat(` call found, which
+ones are live, and why the rest are old versions kept reachable on purpose — is
+[`ai/2026-09-30/one-dictation/minion-workbench/audit.md`](/framework/ai/2026-09-30/one-dictation/minion-workbench/audit.md).
 
 ## Revise — clean up the words after they're heard
 

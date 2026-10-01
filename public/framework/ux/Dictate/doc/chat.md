@@ -8,19 +8,67 @@ function all of them call. Change it once, and every surface changes.
 ## The call
 
 ```js
-import chat from "/framework/ux/Dictate/chat.js";
+import chat, { new_session_button } from "/framework/ux/Dictate/chat.js";
 
-const mount = chat(el, { path: "/framework/", card: undefined, placeholder: "say something" });
+const mount = chat(el, { path: "/framework/", card: undefined, placeholder: "say something",
+	keep: true, level: false, source: false, debug: false });
 
 mount.panel;         // the Widget this mount drew, if a caller needs it directly
 mount.session();     // the live session id, or null if nothing has been said yet
 mount.nav(path, card);  // this mount's page (and, maybe, its card) changed
+mount.reset();        // drop THIS mount's own conversation; the next sentence starts fresh
 mount.remove();      // this ONE mount is gone; the conversation itself keeps going
+
+new_session_button(mount);  // the one "New session" button every surface shares (below)
 ```
 
 `chat(el, opts)` draws a chat [`Widget`](/framework/ux/Dictate/) into `el` and wires it up so
 typing or talking into it sends a real message and real replies come back. `path` is the page
-this mount is on right now; `card` is explained below.
+this mount is on right now; `card` is explained below. `level`, `source` and `debug` are passed
+straight through to the `Widget` this draws (a bigger level meter, the mic picker, the "Debug ▾"
+bar) — the Dictate page's own demo (below) is the one caller that turns all three on.
+
+## `keep`: whose conversation this mount joins (item 2, one-dictation)
+
+`keep` (default `true`) answers one question: when this mount goes away, is its conversation
+remembered?
+
+- **`keep: true`** — this mount joins the ONE global session every `keep: true` mount on this
+  browser tab shares (the section right below). Leave the page, come back, open a different
+  surface — it's still the same conversation. This is what makes the ✦ rail useful: say
+  something on one page, keep talking on the next.
+- **`keep: false`** — this ONE mount gets its OWN session, private to it, remembered only for
+  as long as the mount itself exists. It is a REAL session — the first sentence said really
+  does start two real agents and really does cost what any other session costs — it is just
+  never written to `sessionStorage`, so nothing can ever read it back. Leave the page (the mount
+  is torn down) and come back (a brand-new `chat()` call builds a brand-new mount) and there is
+  nothing to resume: a fresh, empty conversation, exactly as if nothing had been said before.
+
+The Dictate page's own demo (`ux/Dictate/page.js`'s `demo_mount()`) is the one `keep: false`
+caller today — "the dictate page is the workbench," the owner's own words, and a workbench's own
+demo conversation should never leak into, or be confused with, the owner's real, kept-forever ✦
+conversation. A `keep: false` mount's controller is built fresh, by the same `create_controller()`
+function the global one uses, so the two share every bit of logic except whether `sessionStorage`
+is touched — see `chat.js`'s own comments on `create_controller` for the exact shape.
+
+**A gap, left as it is, not a bug:** the mic's own "the owner went quiet" / "the mic just turned
+off" reports (`Session.report_quiet`/`report_pause`, wired once, for the GLOBAL session only)
+never fire for a `keep: false` mount's own session. Fixing that would mean tracking which
+controller's mic is "the" one listening right now, across however many mounts are open at
+once — real work, and nothing in this task's brief needed it (the demo's own session answers
+fine without the fast assistant's quiet-prompt).
+
+## The shared "New session" button (item 3, one-dictation)
+
+`new_session_button(mount, { label, title })` builds the one button every surface uses to drop
+a conversation and start over. It calls `mount.reset()` — for a `keep: true` mount that IS
+`chat.reset()` (the global conversation, cleared for every open mount at once); for a
+`keep: false` mount it only ever affected that one mount anyway. `mount` can also be a function,
+`() => mount`, for a caller (like the ✦ sheet) that builds this button before it has built its
+own mount yet — the function is read fresh at click time, never captured early.
+
+The ✦ sheet (`ext/drawer/rail.js`) and the Dictate page's own demo both call this now, instead
+of each hand-rolling their own button — CLAUDE.md law 6, "one of everything."
 
 ## The global session: one conversation per browser tab
 

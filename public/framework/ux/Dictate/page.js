@@ -1,6 +1,6 @@
 import { Doc, md, demo, div, span, textarea, h2, icon, a, small, h4 } from "/app.js";
 import Dictate from "./Dictate.js";
-import Widget from "./Widget.js";
+import chat, { new_session_button } from "./chat.js";
 import { page_work_strip } from "/framework/core/Page/ai/work.js";
 
 /* Level 1, above the fold: what the dictation SYSTEM is made of, as linked
@@ -58,13 +58,53 @@ const words = () => div.c("flex v gap-2em", () => {
 	div.c("flex v gap", () => { div.c("h4 muted", "ui-contrast ui-compact"); demo_box().ac("ui-contrast ui-compact"); }).style("--gap", "calc(var(--gap) * 0.5)");
 });
 
+/* THE WORKBENCH (one-dictation, "the Dictate page is the workbench" — the owner,
+ * 2026-10-01). Before this, the main demo was a bare `new Widget({level, source,
+ * debug})`, with no session wired up, so nobody ever answered it. Now it's a real
+ * `chat()` mount — the exact same call the ✦ sheet, the ☰ drawer and every card
+ * sidebar make (`doc/chat.md`) — so a fix proved right here reaches every one of
+ * them. `keep: false`: this demo gets its OWN session, same as a real conversation
+ * (the first thing said really does start two real agents), but never remembered —
+ * leave this page and the mic stops; come back and it's a brand new, empty mount,
+ * never the old one resumed. The global, kept-forever session (the ✦ rail's own
+ * reason to exist) is never touched by this demo. `new_session_button()` (item 3)
+ * is the one button every surface shares — this demo gets it too, so a reader can
+ * clear this one demo's own session without affecting anything else on the site. */
+function demo_mount(){
+	let $slot, mount;
+	const $box = div.c("flex v gap", () => {
+		div.c("flex wrap gap v-center", () => {
+			new_session_button(() => mount);
+			span.c("muted", "This demo has its own session. It starts fresh when you leave the page.");
+		});
+		$slot = div.c("ux-dictate-page-demo");
+	}).style("--gap", "calc(var(--gap) * 0.5)");
+
+	mount = chat($slot.el, { placeholder: "say something", keep: false, level: true, source: true, debug: true });
+
+	// LEAVING THE PAGE: there is no framework-wide "unmount" hook to hang a cleanup
+	// on (`Dictate.js`'s own `hotkey()` doc names the same gap) — this watches for
+	// the slot itself leaving the page's DOM, the same trick `ext/drawer/tabs/ai.js`'s
+	// own mount cleanup uses, then stops the mic and drops the mount so its private
+	// session is gone for good, not just hidden.
+	const mo = new MutationObserver(() => {
+		if ($slot.el.isConnected) return;
+		mo.disconnect();
+		mount.panel?.stop_mic();
+		mount.remove();
+	});
+	mo.observe(document.body, { childList: true, subtree: true });
+
+	return $box;
+}
+
 export default new Doc({
 	meta: import.meta,
 	title: "Dictate",
 	description: "A mic button with a state you can always see and an error said in plain words — whisper running on this machine first, the browser's own recognition second.",
 	icon: "mic",
 
-	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css page.js readme.md",
+	files: "Dictate.js capture.js pcm-worklet.js Dictate.css Widget.js Widget.css chat.js page.js readme.md",
 	notes: "handover decisions silence https-lan widget chat",
 
 	children: [
@@ -101,9 +141,14 @@ export default new Doc({
 		// Overview led with (Widget.Debug reuses `pg.widget()`, never rebuilds it); `level`
 		// and `source` add the meter and the mic picker. The OLD Overview, unchanged, is
 		// one click away at "v1" (deliverable 5, "never destroy a viable version").
-		new Widget({ level: true, source: true, debug: true });
+		//
+		// THIS IS THE WORKBENCH NOW (one-dictation, 2026-10-01) — not a bare `new
+		// Widget(...)` any more, but a real `chat()` mount (`demo_mount()`, above): say
+		// something here and the fast/smart pair actually answers, same as every other
+		// surface. See `demo_mount()`'s own doc for why `keep: false`.
+		demo_mount();
 
-		md("**The same widget as the ✦ sheet** — say something, or talk into the mic. [Docs](doc/) has the rest.");
+		md("**The same widget as the ✦ sheet, now actually answered** — say something, or talk into the mic. [Docs](doc/) has the rest.");
 
 		h2("How it works");
 		md("**Dictation, assembled from four parts.** Talk into a mic; Whisper turns the sound into raw text; Revise cleans, edits or summarizes it; then it lands wherever it's going — a card, a composer, a prompt log.");
