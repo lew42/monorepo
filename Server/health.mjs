@@ -670,39 +670,66 @@ const read_lines = file => {
 	try { return fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); }
 	catch { return []; }
 };
-const landed = entries => entries.some(e => e.assign?.landed_at);
+// Landed the ledger's way (.claude/hooks/ledger.mjs state()): every assign line
+// merged in order, so a later {"assign":{"landed_at":null}} reopens a task.
+const landed = entries => !!Object.assign({}, ...entries.filter(e => e.assign).map(e => e.assign)).landed_at;
 
-function* task_files(dir, depth = 0){
+function* task_files(dir, max_depth = 3, depth = 0){
 	let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
 	for (const e of entries){
 		if (e.isFile() && e.name === "task.jsonl") yield path.join(dir, e.name);
-		else if (e.isDirectory() && depth < 3 && e.name !== "shots" && e.name[0] !== ".") yield* task_files(path.join(dir, e.name), depth + 1);
+		else if (e.isDirectory() && depth < max_depth && e.name !== "shots" && e.name !== "node_modules" && e.name[0] !== ".") yield* task_files(path.join(dir, e.name), max_depth, depth + 1);
 	}
 }
 
+/* One task.jsonl, read once per change: whether it is landed, and the newest
+   ledger `action` time per file it lists. Keyed by path, re-read only when the
+   file's mtime or size moves, so the full scan below costs a stat per task
+   (about 900 of them, 13 MB) instead of a read. */
+const task_cache = new Map();
+function task_info(file){
+	let st; try { st = fs.statSync(file); } catch { task_cache.delete(file); return null; }
+	const hit = task_cache.get(file);
+	if (hit && hit.mtime === st.mtimeMs && hit.size === st.size) return hit;
+	const entries = read_lines(file);
+	const files = new Map();
+	for (const e of entries) for (const f of e.action?.files || []){
+		const at = String(e.action.at || "");
+		if (!files.has(f) || at >= files.get(f)) files.set(f, at);
+	}
+	const info = { mtime: st.mtimeMs, size: st.size, landed: landed(entries), files };
+	task_cache.set(file, info);
+	return info;
+}
+
+// The newest unlanded task among `tasks` whose action lines list rel_file.
+function newest_task(tasks, rel_file){
+	let best = null, best_at = "";
+	for (const t of tasks){
+		const info = task_info(t);
+		if (!info || info.landed || !info.files.has(rel_file)) continue;
+		const at = info.files.get(rel_file);
+		if (!best || at >= best_at){ best = t; best_at = at; }
+	}
+	return best;
+}
+
 /* Which task made this edit? First the file's own folder (a file inside a task
-   dir belongs to that task, the ledger's own first rule); else the newest
-   unlanded task from today or yesterday whose ledger `action` lines list the
-   file. Null when nothing knows. */
+   dir belongs to that task, the ledger's own first rule). Else the newest
+   unlanded task whose ledger `action` lines list the file: today's and
+   yesterday's day folders first (the quick, usual answer), then every task
+   under ai/, so a task opened days ago (a foundational one runs for days) still
+   gets its line. Null when nothing knows. */
 function task_for(rel_file){
 	let dir = path.dirname(path.join(ROOT, rel_file));
 	while (dir.startsWith(AI_DIR + path.sep)){
 		const t = path.join(dir, "task.jsonl");
-		if (fs.existsSync(t)) return landed(read_lines(t)) ? null : t;
+		if (fs.existsSync(t)){ const info = task_info(t); return info && !info.landed ? t : null; }
 		dir = path.dirname(dir);
 	}
 	const days = [local_date(), local_date(new Date(Date.now() - DAY_MS))];
-	let best = null, best_at = "";
-	for (const day of days) for (const t of task_files(path.join(AI_DIR, day))){
-		const entries = read_lines(t);
-		if (landed(entries)) continue;
-		for (const e of entries){
-			if (!e.action?.files?.includes(rel_file)) continue;
-			const at = String(e.action.at || "");
-			if (at >= best_at){ best = t; best_at = at; }
-		}
-	}
-	return best;
+	return newest_task(days.flatMap(day => [...task_files(path.join(AI_DIR, day))]), rel_file)
+		?? newest_task(task_files(AI_DIR, 4), rel_file);
 }
 
 function summary(url, error_findings, meta){
@@ -815,8 +842,9 @@ const ignored = file =>
 let skipped = new Set(), skipped_timer = null;
 function note_skipped(file){
 	skipped.add(rel_to(ROOT, file));
-	clearTimeout(skipped_timer);
+	if (skipped_timer) return; // one line per window from the FIRST skip, so a steady stream of appends still prints
 	skipped_timer = setTimeout(() => {
+		skipped_timer = null;
 		const list = [...skipped];
 		skipped = new Set();
 		console.log(`health.mjs: data only, no check — ${list.length} file${list.length > 1 ? "s" : ""} (${list.slice(0, 3).join(", ")}${list.length > 3 ? ", …" : ""})`);

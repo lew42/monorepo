@@ -56,9 +56,11 @@ A layout scan is not part of it yet.
   edit, written through `.claude/hooks/append.mjs` (the validated route):
   `{"log":{"at":…,"msg":"health: /page/ — 0 console errors, stall 3.0 s, shot /framework/ai/health/shots/…png"}}`.
   The task is found the way the ledger hook records it. A file inside a task folder belongs to
-  that task. Otherwise it is the newest unlanded task from today or yesterday whose `action`
-  lines list the file. When no task is known (a merge, or a hand edit), the same line goes to the
-  health day log as a `log` line instead.
+  that task. Otherwise it is the newest unlanded task whose `action` lines list the file. Today's
+  and yesterday's day folders are searched first. If they have no match, every task under `ai/` is
+  searched, so a task opened days ago still gets its line. Each task log is re-read only when it
+  changes. When no task is known (a merge, or a hand edit), the same line goes to the health day
+  log as a `log` line instead.
 
 ## Proof (2026-09-30)
 
@@ -69,7 +71,8 @@ Run in the `proposal-flow` worktree against its own server. The files are in
 - A `throw` in `ai/health/page.js` gave "3 console errors". The editor's next write was blocked
   by health-guard. Restoring the file gave "0 console errors" and an `ok` line.
 - An append to a task.jsonl caused no check. The console said `data only, no check — 1 file`.
-- Two supervisors were started 4 s apart. The second exited with code 0, and one supervisor with one `health.mjs` child kept running.
+- Two supervisors were started 4 s apart. The second exited with code 0, and one supervisor with one `health.mjs` child kept running ([console](/framework/ai/2026-09-30/proposal-flow/monitor/proof/supervisor-twice.log)).
+- A file edited by a task opened five days earlier found that task, not a newer landed one ([output](/framework/ai/2026-09-30/proposal-flow/monitor/proof/task-lookup.log)).
 
 ## Watch out
 
