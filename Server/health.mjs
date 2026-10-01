@@ -6,7 +6,7 @@
  * script loads the pages that file could have broken in a hidden browser and
  * writes down what went wrong — so whoever made the edit hears about it at
  * their very next write, through `.claude/hooks/health-guard.mjs`, and the
- * owner sees one line on that agent's task card (report_to_dashboard()).
+ * owner sees one line per batch on that agent's task card (report_to_dashboard()).
  *
  * EACH CHECK (2026-09-30, proposal-flow/monitor): console errors, page errors,
  * failed requests, a blank page, a stall (any long task over 2 s, or a page
@@ -552,6 +552,13 @@ async function check_one(context, url){
 		const lint = await page.evaluate(lint_findings);
 		for (const f of lint) add("warning", f.kind, f.text);
 
+		// Long tasks so far — read BEFORE the 1920 resize and the padding sweep below, whose relayouts are this watcher's work, not the page's.
+		const tasks = await within(page.evaluate(() => window.__health_longtasks || []), 10_000, []);
+		const worst = tasks.reduce((a, b) => (b.ms > (a?.ms ?? 0) ? b : a), null);
+		meta.stall_ms = worst?.ms ?? 0;
+		if (worst && worst.ms > STALL_MS)
+			add("error", "stall", `the main thread was blocked for ${(worst.ms / 1000).toFixed(1)} s (a long task starting ${(worst.start / 1000).toFixed(1)} s after navigation; ${tasks.filter(t => t.ms > STALL_MS).length} over ${STALL_MS / 1000} s)`);
+
 		// The screenshot, at the width the owner works at; the same file is overwritten each check.
 		const shot_abs = path.join(SHOTS_DIR, local_date(), shot_slug(url) + ".png");
 		fs.mkdirSync(path.dirname(shot_abs), { recursive: true });
@@ -559,13 +566,6 @@ async function check_one(context, url){
 		await page.waitForTimeout(200);
 		if (await within(page.screenshot({ path: shot_abs, timeout: 10_000 }).then(() => true), 12_000, false))
 			meta.shot = rel_to(ROOT, shot_abs);
-
-		// Long tasks so far — read BEFORE the padding sweep below, whose 3440 relayout is this watcher's work, not the page's.
-		const tasks = await within(page.evaluate(() => window.__health_longtasks || []), 10_000, []);
-		const worst = tasks.reduce((a, b) => (b.ms > (a?.ms ?? 0) ? b : a), null);
-		meta.stall_ms = worst?.ms ?? 0;
-		if (worst && worst.ms > STALL_MS)
-			add("error", "stall", `the main thread was blocked for ${(worst.ms / 1000).toFixed(1)} s (a long task starting ${(worst.start / 1000).toFixed(1)} s after navigation; ${tasks.filter(t => t.ms > STALL_MS).length} over ${STALL_MS / 1000} s)`);
 
 		// THE PADDING LAW, at the width that actually breaks it (padding-law,
 		// 2026-09-22). This watcher's viewport is 1280 — just under the 82em
@@ -617,6 +617,7 @@ async function check_batch(files){
 	const day_file = today_path();
 	const br = await ensure_browser();
 	const context = await br.newContext({ viewport: { width: 1280, height: 900 } });
+	const results = [];   // one per checked page, reported as ONE line per batch below
 	// Block the dev socket so a checked page never keeps a live WebSocket open
 	// after its context closes, and its reconnect-backoff noise never counts
 	// as a console error — dev/Socket/Socket.js opens `ws://<same host>/`.
@@ -646,15 +647,16 @@ async function check_batch(files){
 			failing.set(url, false);
 			append_line(day_file, "ok", { at: now_iso(), url });
 		}
-		report_to_dashboard(day_file, url, files_arr, error_findings, meta);
+		results.push({ url, files: files_arr, error_findings, meta });
 	}
 
 	await context.close();
+	report_to_dashboard(day_file, results);
 }
 
 /* ── the second report: the dashboard ────────────────────────────────────────
  * The editor already hears about a broken page through health-guard.mjs. The
- * owner reads task cards, not this log, so every check also leaves ONE line in
+ * owner reads task cards, not this log, so every batch also leaves ONE line in
  * the task of the agent that made the edit — the same task.jsonl the ledger
  * hook (.claude/hooks/ledger.mjs) records that agent's edits in:
  *   {"log":{"at":…,"msg":"health: <page> — <N> console errors, stall <s> s, shot <path>"}}
@@ -744,11 +746,32 @@ function summary(url, error_findings, meta){
 	return `health: ${url} — ${parts.join(", ")}` + (first ? ` — first: ${first.kind}: ${first.text.replace(/\s+/g, " ").slice(0, 160)}` : "");
 }
 
+/* One line for a whole batch, so a shared-module edit (up to 8 pages) puts one
+   line on the card, not eight. A batch of one page keeps that page's detail. */
+function batch_summary(results){
+	if (results.length === 1){ const r = results[0]; return summary(r.url, r.error_findings, r.meta); }
+	const errors = results.reduce((n, r) => n + r.error_findings.length, 0);
+	const stalls = results.filter(r => r.error_findings.some(f => f.kind === "stall" || f.kind === "unsettled")).length;
+	const worst = results.reduce((a, b) => (b.error_findings.length > a.error_findings.length || (b.error_findings.length === a.error_findings.length && b.meta.stall_ms > a.meta.stall_ms) ? b : a));
+	const first = worst.error_findings[0];
+	const n = (k, word) => `${k} ${word}${k === 1 ? "" : "s"}`;
+	const worst_part = worst.error_findings.length || worst.meta.stall_ms ? `, worst ${worst.url}` : "";
+	return `health: ${results.length} pages — ${n(errors, "error")}, ${n(stalls, "stall")}${worst_part}, shots /framework/ai/health/shots/${local_date()}/`
+		+ (first ? ` — first: ${first.kind}: ${first.text.replace(/\s+/g, " ").slice(0, 160)}` : "");
+}
+
 let lines_seq = 0;
-function report_to_dashboard(day_file, url, files, error_findings, meta){
-	const msg = summary(url, error_findings, meta);
-	const tasks = [...new Set(files.map(task_for).filter(Boolean))];
-	for (const task of tasks){
+function report_to_dashboard(day_file, results){
+	if (!results.length) return;
+	const by_task = new Map();   // task.jsonl -> the results whose changed files that task made
+	const orphans = [];
+	for (const r of results){
+		const tasks = [...new Set(r.files.map(task_for).filter(Boolean))];
+		if (!tasks.length) orphans.push(r);
+		for (const t of tasks){ if (!by_task.has(t)) by_task.set(t, []); by_task.get(t).push(r); }
+	}
+	for (const [task, rs] of by_task){
+		const msg = batch_summary(rs);
 		const tmp = path.join(os.tmpdir(), `lew42-health-line-${process.pid}-${++lines_seq}.json`);
 		try {
 			fs.writeFileSync(tmp, JSON.stringify([{ log: { at: "NOW", msg } }]));
@@ -758,9 +781,10 @@ function report_to_dashboard(day_file, url, files, error_findings, meta){
 			console.error(`health.mjs: append.mjs refused the line for ${rel_to(ROOT, task)} — ${e?.message || e}`);
 		} finally { try { fs.unlinkSync(tmp); } catch {} }
 	}
-	if (!tasks.length){
-		append_line(day_file, "log", { at: now_iso(), msg, url, files, shot: meta.shot });
-		console.log(`health.mjs: ${msg} (no task knows ${files[0]} — health log only)`);
+	if (orphans.length){
+		const msg = batch_summary(orphans);
+		append_line(day_file, "log", { at: now_iso(), msg, urls: orphans.map(r => r.url), files: [...new Set(orphans.flatMap(r => r.files))], shot: orphans[0].meta.shot });
+		console.log(`health.mjs: ${msg} (no task knows ${orphans[0].files[0]} — health log only)`);
 	}
 }
 

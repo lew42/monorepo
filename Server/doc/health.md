@@ -30,6 +30,10 @@ HEALTH_BASE=http://localhost:62566 node Server/health.mjs   # by hand, against a
 | `.js`, `.mjs` (including `page.js`), `.css`, `.html` under `public/` | a check of the pages it could break |
 | `.jsonl`, `.json`, `.md` and anything else | nothing. It is data, drawn by templates already tested. The console says `data only, no check` |
 
+A `.md` change does not trigger a check either, because the owner asked for templates, not data. A broken
+`readme.md` or `doc/*.md` is only seen when its page is next checked for a template change, or when
+someone opens its Docs tab.
+
 Which pages: a `page.js` → its own page; any other file → the page whose folder holds it; a
 shared module (`framework/core/`, `ui/`, `ux/`, `ext/`, `framework.css`, `app.js`) → its own
 page plus five canary pages. At most 8 pages per batch; changes within 1.5 s are one batch.
@@ -52,9 +56,11 @@ A layout scan is not part of it yet.
   `error`, `warning` or `ok` line. At the agent's next write, `.claude/hooks/health-guard.mjs`
   blocks it with "you broke <page>" if one of its own files caused an error. A page that
   starts failing also posts a `needs-you` card through `say.mjs`.
-- **To the dashboard:** one line per checked page goes into the task of the agent that made the
-  edit, written through `.claude/hooks/append.mjs` (the validated route):
+- **To the dashboard:** one line per batch goes into the task of the agent that made the edit,
+  written through `.claude/hooks/append.mjs` (the validated route). A batch of one page names it:
   `{"log":{"at":…,"msg":"health: /page/ — 0 console errors, stall 3.0 s, shot /framework/ai/health/shots/…png"}}`.
+  A bigger batch (a shared-module edit checks up to 8 pages) is summed up:
+  `health: 8 pages — 2 errors, 1 stall, worst /framework/ux/, shots /framework/ai/health/shots/<date>/`.
   The task is found the way the ledger hook records it. A file inside a task folder belongs to
   that task. Otherwise it is the newest unlanded task whose `action` lines list the file. Today's
   and yesterday's day folders are searched first. If they have no match, every task under `ai/` is
