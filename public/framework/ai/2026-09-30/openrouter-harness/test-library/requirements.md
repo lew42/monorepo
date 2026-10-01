@@ -68,3 +68,61 @@ OpenRouter spend for this brief: about $4 at most. Check `/api/v1/key` usage thr
 `provider.js` `key_usage()` before the strong set and after it. Reply to your parent with: the
 results table (test × model: score, $, s), the reference agreement rate per test, the commit
 hashes, and anything that looked like a harness failure (label c).
+
+## Amendment: Phase 4 folded in (no new tests)
+Read the parent's "Phase 4". Four small changes to the same five tests:
+1. **Price as a multiplier.** The table shows each model's price as a multiple of `claude-sonnet-5`
+   ("0.1×"), from the public `GET /api/v1/models` prices, computed when it prints. Keep the
+   per-run `cost_usd` too.
+2. **The routing table.** `library.mjs --route` reads results.jsonl (newest line per
+   model × effort × test wins) and writes `evals/routing.json`: for each test kind, the cheapest
+   model + effort whose runs score at least `ok`, with its multiplier and the evidence (runs,
+   scores). Recomputed from scratch on every run, so it updates as results arrive. Nothing reads
+   it yet.
+3. **Two scores.** The judge's `score` is the outcome (primary). When a run wrote a decision
+   record (decide.mjs; at least plan-counter), the judge also writes `reasoning`:
+   terrible|ok|great, plus a one-line note. A sound decision record with a missed outcome is
+   worth flagging.
+4. **Replay a landed task.** `test.json` may carry `from_task: "<ai/... task dir>"`, meaning the
+   prompt and accepted outcome come from that landed task. Document it in the readme's
+   "how to add a test". Don't add such a test now.
+
+## Amendment 2: Phase 5, the ladder (this REPLACES the test list in deliverable 1)
+Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest first:
+
+| rung | test | replaces | what it checks |
+|---|---|---|---|
+| 1 | `h1-page`: "Make a page here with an H1 that says <X>." | new-page-glossary | reads the skills, writes a page.js in the page skill's shape, the H1 renders in the right place. Every model should pass: this is the floor |
+| 2 | `fix-label` | (same) | one self-evident fix, nothing else changed |
+| 2 | `broken-import` | (same) | finds and fixes the one wrong path |
+| 3 | `broken-overflow` | (same) | names the one cause |
+| 4 | `plan-views`: "Suggest three object-oriented architectures (class signatures, methods, how they talk) for a small <system with 3 named classes doing X, Y, Z>, in our style: a jQuery-like object-oriented View library, no virtual DOM, no React-style reactivity. Pick one." Through decide.mjs. | plan-counter | system design, OOP, naming; plus the reasoning score |
+
+- **Minimal context.** Each prompt names only the files it needs (for plan-views, the View
+  module's readme and nothing else). Don't paste the codebase into a prompt.
+- **Bad tests get dropped.** If the strong set disagrees on a test (fewer than 3 of 4), fix it or
+  drop it; don't score cheap models against it.
+- **Climb, don't sweep.** Run every model on rung 1. Then run the next rung. Stop raising the
+  difficulty once some cheap models fail. One run per model per test. Strong set:
+  `claude-opus-5-5`, `claude-sonnet-5` (subscription, never through OpenRouter), `openai/gpt-6-sol`,
+  `google/gemini-3.1-pro-preview`.
+- **Look for the cheap gems.** On top of the cheap set, add the two cheapest tool-capable models
+  from `/api/v1/models` (older ones count) to rungs 1 and 2 only.
+- **The reply** leads with one small table: model · rung · pass (n/n) · $/run · price multiplier
+  vs Sonnet. Then the agreement rate per test, and anything labelled c.
+
+## Amendment 3: Phase 7, the pace and vision (read the parent's "Phase 7")
+- **The pace is now a hard limit:** $1.50/day and $10/week of OpenRouter (the spend guard refuses
+  past either). Today and this week are already at $7.49, so **no OpenRouter runs until the UTC
+  day resets (00:00 UTC = 19:00 local)**, and then about $1.50 a day with $2.51 left until Monday.
+  Run the Claude parts now (Opus, Sonnet, Haiku, on the subscription). Queue the OpenRouter parts
+  for after the reset, cheapest first: the strong OpenRouter pair (gpt-6-sol, gemini-3.1-pro)
+  only on tests where Opus and Sonnet disagree with each other.
+- **Your OpenRouter budget is now $1.50 a day, not $4.**
+- **Vision, the next rung after the ladder:** `ui-fouls`. Make 3 screenshots with KNOWN fouls,
+  each planted in a tiny fixture page: text touching a background or border edge with zero
+  padding (the canonical one), content overflowing at 400px, and one low-contrast pair. Prompt:
+  "Describe this UI, then name its worst design fouls, most serious first." Benchmark: Opus.
+  Score: did it find each planted foul, and did it invent any that aren't there? Sample 4–6
+  configs, the cheapest vision-capable ones first (check `architecture.input_modalities` in
+  `/api/v1/models`). Note any model that can't take an image at all.

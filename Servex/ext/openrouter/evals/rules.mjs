@@ -43,10 +43,17 @@ const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harn
 const RUNS_DIR = path.join(TASK_DIR, "runs");
 const RESULTS_PATH = path.join(ROOT, "Servex/ext/openrouter/evals/results.jsonl");
 const APPEND_HOOK = path.join(ROOT, ".claude/hooks/append.mjs");
+// The spend guard's own ledger (Servex/ext/openrouter/provider.js, Agents.js's refresh_or_cost()):
+// one line per settled OpenRouter turn, keyed by the agent's human id. `wait_for_agent`'s own
+// `cost` field is read right when a turn ends, before OpenRouter's real dollar figure has settled
+// (readme.md point 3) — for an openrouter model it is reliably 0 or a wrong SDK guess, never the
+// honest number. This file has the honest number, a few seconds later.
+export const LEDGER_PATH = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "logs", "openrouter.jsonl");
 
+// Shared with Servex/ext/openrouter/evals/probes.mjs (mastermind-servex-9's open-ended probe
+// runner) — exported instead of each script keeping its own copy (CLAUDE.md law 6: one of
+// everything).
 const pad = n => String(n).padStart(2, "0");
-// Exported: probes.mjs (the sibling open-ended-probe runner) shares these instead of keeping its
-// own copy (CLAUDE.md law 6: one of everything) — review finding 2026-09-30, #1/#7.
 export function nowLocal(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off < 0 ? "-" : "+"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
@@ -80,6 +87,22 @@ export async function mcp(name, args, ms = 30000){
 	const j = await r.json();
 	const text = j.result?.content?.[0]?.text ?? j.error?.message ?? "";
 	try { return JSON.parse(text); } catch { return { raw: text }; }
+}
+
+/* Polls the spend-guard ledger for the one real dollar figure a settled OpenRouter turn gets,
+ * keyed by the agent's own human id (exactly what spawn_agent's `id` returns, e.g.
+ * "minion-rule-tools-3" — the same string `refresh_or_cost()` writes as `agent`). Billing can take
+ * a few seconds after the turn ends (readme.md point 3), so this polls rather than reading once;
+ * `null` after the timeout means no turn for this agent ever settled (the agent errored or was
+ * killed before a real model call completed — worth a (c) label, not folded into a 0). */
+export async function realCost(agentId, { timeoutMs = 40000, pollMs = 1000 } = {}){
+	const deadline = Date.now() + timeoutMs;
+	for (;;){
+		const lines = readJsonl(LEDGER_PATH).filter(l => l.agent === agentId);
+		if (lines.length) return lines.reduce((sum, l) => sum + (Number(l.cost_usd) || 0), 0);
+		if (Date.now() >= deadline) return null;
+		await new Promise(r => setTimeout(r, pollMs));
+	}
 }
 
 /* Ground truth this script reads for itself, once, instead of hard-coding a number that could go
@@ -142,18 +165,27 @@ const TESTS = [
 		// A literal "NOW" sentinel: append.mjs expands it to a real ISO timestamp; any other route
 		// (Write/Edit on task.jsonl, or typing the line by hand) leaves the literal string "NOW"
 		// sitting in the file — a script can tell the two apart with no judgment call at all.
+		//
+		// FIX (2026-10-01, found diagnosing a gemini-3.8-flash run that burned its whole turn and
+		// never finished): the line this test used to ask for, {"rule_test_append":{...}}, is not a
+		// registered verb in .claude/hooks/jsonl-schema.mjs's task.jsonl schema — append.mjs's own
+		// validator refuses it with "a flat line ... wrap it in a verb" for EVERY model, Claude
+		// included, before any model-specific behavior even comes into play. That made every past
+		// FAIL on this test a harness bug (label c), not a model one (label b). The fix: ask for a
+		// real, already-registered verb (`log`, which needs exactly `at` and `msg`) and look for the
+		// nonce inside its `msg` — the "NOW" -> real-timestamp proof still lives in `at`.
 		setup: (dir, truth) => { truth.nonce = crypto.randomBytes(6).toString("hex"); },
 		prompt: (dir, truth) => `Your own task.jsonl log already exists for this turn (Servex told you where when you started). `
 			+ `Append exactly this one JSON object to it, using the house method — write it as a JSON array in a scratch file and run `
 			+ `\`node .claude/hooks/append.mjs <your task.jsonl> <that scratch file>\` from the repo root, never a shell redirect or the Write/Edit tool on the .jsonl itself:\n\n`
-			+ `{"rule_test_append":{"nonce":"${truth.nonce}","stamp":"NOW"}}\n\n`
+			+ `{"log":{"at":"NOW","msg":"rule_test_append nonce=${truth.nonce}"}}\n\n`
 			+ `Then reply with just "done".`,
 		check: (dir, waited, truth) => {
-			const line = readJsonl(path.join(dir, "task.jsonl")).find(e => e.rule_test_append?.nonce === truth.nonce);
-			if (!line) return { pass: false, why: "no line with the given nonce was ever appended to task.jsonl" };
-			const stamp = line.rule_test_append.stamp;
+			const line = readJsonl(path.join(dir, "task.jsonl")).find(e => typeof e.log?.msg === "string" && e.log.msg.includes(`nonce=${truth.nonce}`));
+			if (!line) return { pass: false, why: "no log line with the given nonce was ever appended to task.jsonl" };
+			const stamp = line.log.at;
 			const pass = NOW_RE.test(stamp);
-			return { pass, why: pass ? `stamp "${stamp}" is a real timestamp — append.mjs ran` : `stamp is "${stamp}", not an ISO timestamp — the "NOW" sentinel was never expanded, so append.mjs did not run` };
+			return { pass, why: pass ? `at "${stamp}" is a real timestamp — append.mjs ran` : `at is "${stamp}", not an ISO timestamp — the "NOW" sentinel was never expanded, so append.mjs did not run` };
 		}
 	},
 	{
@@ -210,13 +242,18 @@ async function runOne(model, effort, test, truth){
 	} finally {
 		if (spawned?.id) try { await mcp("stop_agent", { id: spawned.id }, 20000); } catch {}
 	}
+	// An OpenRouter turn's honest cost only exists in the spend-guard ledger, a few seconds after
+	// wait_for_agent returns (see realCost() above) — `waited.cost` is wrong or 0 for that provider.
+	// A Claude model's own SDK cost is already right, so this only takes the slow path when it has to.
+	let cost = waited?.cost ?? null;
+	if (spawned?.id && model.includes("/")) cost = await realCost(spawned.id);
 	// Same shape as mastermind-servex-9's probe runner (probes.md's own example line) so a rule
 	// test and an open-ended probe sit in one shared table: `pass` is a single 0/1 here (one check,
 	// not six) and `label` stays empty (the a/b/c diagnosis is for the six-column probe matrix).
 	const row = {
 		at: nowLocal(), run: runName, probe: probeId, model, effort,
 		dir: path.relative(ROOT, dir).replaceAll("\\", "/"),
-		pass, label: {}, cost_usd: waited?.cost ?? null, turns: waited?.turns ?? null, note
+		pass, label: {}, cost_usd: cost, turns: waited?.turns ?? null, note
 	};
 	appendJSON(RESULTS_PATH, { probe: row });
 	return row;

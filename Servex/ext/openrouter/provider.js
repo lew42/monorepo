@@ -109,7 +109,7 @@ export async function key_status(key){
 	const d = body?.data ?? {};
 	if (typeof d.usage !== "number") throw new Error("OpenRouter /key response had no numeric data.usage");
 	const num = v => typeof v === "number" ? v : null;
-	return { usage: d.usage, usage_daily: num(d.usage_daily), limit: num(d.limit), limit_remaining: num(d.limit_remaining) };
+	return { usage: d.usage, usage_daily: num(d.usage_daily), usage_weekly: num(d.usage_weekly), limit: num(d.limit), limit_remaining: num(d.limit_remaining) };
 }
 
 /* The per-turn cost OpenRouter itself computed for one generation id. The SDK's
@@ -175,7 +175,11 @@ export async function real_turn_cost({ key, message_id, message_ids, usage_befor
  * `Agents.spawn()` needs a yes/no answer SYNCHRONOUSLY, once per spawn, with no
  * network call on the hot path — so the real `/key` read happens on a 30s
  * background timer, and spawn() only ever reads whatever that timer last found. */
-export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || 8;
+/* THE PACE (owner, Phase 7, 2026-10-01): $50/month ≈ $10/week ≈ $1.50/day. The
+ * daily cap keeps one day from eating the week; the weekly cap is the real budget.
+ * OpenRouter resets usage_daily at UTC midnight and usage_weekly on Monday 00:00 UTC. */
+export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || 1.5;
+export const OR_WEEKLY_CAP_USD = Number(process.env.SERVEX_OR_WEEKLY_CAP) || 10;
 const OR_GUARD_CACHE_MS = 30_000;
 let or_guard_status = null;       // last successful key_status() reading
 let or_guard_checked_at = 0;
@@ -191,11 +195,14 @@ function write_usage_snapshot(status){
 	try {
 		if (!status) return;   // a failed read leaves the last good snapshot up, not a blank one
 		const midnight = new Date(); midnight.setUTCHours(24, 0, 0, 0);   // OpenRouter resets usage_daily at UTC midnight
-		const percent = typeof status.usage_daily === "number"
-			? Math.round(status.usage_daily / OR_DAILY_CAP_USD * 100) : 0;
+		const monday = new Date(midnight); monday.setUTCDate(monday.getUTCDate() + ((8 - monday.getUTCDay()) % 7));
+		const pct = (used, cap) => typeof used === "number" ? Math.round(used / cap * 100) : 0;
 		const snapshot = { utilization: { limits: [{
-			kind: "openrouter_daily", group: "daily", percent, resets_at: midnight.toISOString(),
-			usage_daily: status.usage_daily, limit_remaining: status.limit_remaining
+			kind: "openrouter_daily", group: "daily", percent: pct(status.usage_daily, OR_DAILY_CAP_USD), resets_at: midnight.toISOString(),
+			usage_daily: status.usage_daily, cap: OR_DAILY_CAP_USD, limit_remaining: status.limit_remaining
+		}, {
+			kind: "openrouter_weekly", group: "weekly", percent: pct(status.usage_weekly, OR_WEEKLY_CAP_USD), resets_at: monday.toISOString(),
+			usage_weekly: status.usage_weekly, cap: OR_WEEKLY_CAP_USD
 		}] } };
 		fs.mkdirSync(path.dirname(USAGE_SNAPSHOT), { recursive: true });
 		fs.writeFileSync(USAGE_SNAPSHOT, JSON.stringify(snapshot, null, 2));
@@ -226,11 +233,13 @@ function ensure_or_guard_timer(){
  * no clock) so it can be tested directly against a made-up reading instead of
  * a live OpenRouter account. `cap` defaults to the module's own
  * `OR_DAILY_CAP_USD` but takes an override for a test's own numbers. */
-export function evaluate_guard(status, cap = OR_DAILY_CAP_USD){
+export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_WEEKLY_CAP_USD){
 	if (!status) return { ok: false,
 		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — retry in a few seconds" };
 	if (typeof status.usage_daily === "number" && status.usage_daily >= cap)
 		return { ok: false, reason: `today's OpenRouter spend ($${status.usage_daily.toFixed(2)}) is at or over the $${cap}/day cap` };
+	if (typeof status.usage_weekly === "number" && status.usage_weekly >= weekly_cap)
+		return { ok: false, reason: `this week's OpenRouter spend (${status.usage_weekly.toFixed(2)}) is at or over the ${weekly_cap}/week cap (resets Monday 00:00 UTC)` };
 	if (typeof status.limit_remaining === "number" && status.limit_remaining < 1)
 		return { ok: false, reason: `OpenRouter credit left ($${status.limit_remaining.toFixed(2)}) is under $1` };
 	return { ok: true, reason: null };

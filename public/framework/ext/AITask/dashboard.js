@@ -289,10 +289,12 @@ export function rail(page){
 			active_strip(list);
 			// The credit-left figure lives in the raw limit, not the meter's own fields,
 			// so it rides along as a label override rather than a second number on the page.
-			const or_limit = or_usage?.utilization?.limits?.[0];
-			usage_rail(merge_usage(usage, or_usage), or_limit?.limit_remaining != null
-				? { openrouter_daily: `OpenRouter — today ($${or_limit.limit_remaining.toFixed(2)} credit left)` }
-				: undefined);
+			const [or_day, or_week] = or_usage?.utilization?.limits ?? [];
+			const money = v => typeof v === "number" ? `${v.toFixed(2)}` : "?";
+			usage_rail(merge_usage(usage, or_usage), or_day ? {
+				openrouter_daily: `OpenRouter — today, ${money(or_day.usage_daily)} of ${money(or_day.cap)}` + (or_day.limit_remaining != null ? ` (${money(or_day.limit_remaining)} credit left)` : ""),
+				...(or_week ? { openrouter_weekly: `OpenRouter — this week, ${money(or_week.usage_weekly)} of ${money(or_week.cap)}` } : {})
+			} : undefined);
 			highlights(list);
 			div.c("ai-out", () => {
 				span.c("muted", "Every task of every day, newest first — ");

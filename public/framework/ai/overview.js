@@ -70,6 +70,16 @@ export function tab_page(root, name, url = root.url + name + "/"){
 				for (const g of GROUPS){
 					heading(g.title, g.gist);
 					cards([...CONCEPTS.filter(c => c.group === g.id).map(c => concept_card(base, c)), ...(g.links ?? [])]);
+					if (g.id === "who"){
+						// WHO SPAWNS AGENTS, WHERE AND HOW (the owner via vscode-mastermind, 2026-10-01).
+						heading("Who starts the agents", "Servex starts almost every agent, through the Claude Agent SDK. The one exception is the VS Code sidebar session, which you start by hand.");
+						cards([
+							{ name: "Servex, through the Agent SDK", icon: "hub", gist: "Masterminds, minions, reviewers and both assistants. The spawn_agent tool starts each one (Servex/agents/Agents.js), and its tools run inside Servex.", href: "/framework/servex/" },
+							{ name: "OpenRouter minions", icon: "alt_route", gist: "The same SDK loop, sent to OpenRouter's address instead of Anthropic's, so another model family does the work (Servex/ext/openrouter/).", href: "/framework/servex/" },
+							{ name: "You, by hand", icon: "person", gist: "The VS Code sidebar session, vscode-mastermind. You start it yourself; Servex does not spawn it." },
+						]);
+						md("More: [Servex](/framework/servex/) · [its lifecycle](/framework/servex/lifecycle/) · [roles](/framework/servex/doc/roles.md)");
+					}
 				}
 				heading("How it works together", "The path your words take, from the moment you speak to the card that shows the result.");
 				flow(FLOW.map(([n, slug, text]) => [n, base + slug + "/", text]));
