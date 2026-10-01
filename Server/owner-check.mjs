@@ -29,10 +29,11 @@
  * before writing this) is shaped as `## <date> — <topic>` sections of running dictation, no
  * numbers or bullets inside it. Splitting that into individual SENTENCES would hand the
  * reviewer a wall of hundreds of fragments with no topic to check them against, so a FOURTH,
- * higher tier is added ahead of the brief's three: two or more `##`/`###` headings split one
- * item per heading section (label = the heading's own words, already a one-line summary of what
- * was asked there); only text with no headings falls through to numbered / bulleted / sentences,
- * exactly as asked.
+ * higher tier is added ahead of the brief's three: two or more `##` headings (exactly two `#`,
+ * never `###` — a sub-heading inside one dated section stays part of that section, it does not
+ * start a new item) split one item per heading section (label = the heading's own words, already
+ * a one-line summary of what was asked there); only text with no `##` headings falls through to
+ * numbered / bulleted / sentences, exactly as asked.
  *
  * THE REVIEW ITSELF is one fresh Sonnet agent, spawned inside Servex the same way
  * `Server/clarity.mjs` and `Server/review.mjs` already do (spawn_agent, wait_for_agent,
@@ -127,7 +128,10 @@ function find_owner_words(taskDir){
 /* Splits owner-words text into items — see the header comment's "SPLITTING INTO ITEMS". */
 export function split_items(text){
 	const body = text.replace(/\r\n/g, "\n").trim();
-	const headings = [...body.matchAll(/^#{2,3}\s+(.+)$/gm)];
+	// `##` only, never `###` (fresh-eyes review finding 5): a `###` sub-heading inside one dated
+	// section (a possible future convention, not seen in any real owner-words.md today) would
+	// otherwise fragment one topic into two items instead of staying part of its own section.
+	const headings = [...body.matchAll(/^##(?!#)\s+(.+)$/gm)];
 	if (headings.length >= 2)
 		return headings.map((h, i) => ({ label: h[1].trim(),
 			text: body.slice(h.index, i + 1 < headings.length ? headings[i + 1].index : body.length).trim() }));
@@ -217,6 +221,12 @@ async function main(){
 		+ `For EACH item above, read the actual files in the repo (not only the outcome text) and decide: "done" (fully built), "partly" (started or partially covers it), or "missing" (not addressed at all). `
 		+ `Write ${rel(path.join(taskDir, "owner-check.md"))}: a markdown table, header row "| # | item | verdict | evidence |", one data row per item, the item column a short paraphrase (not the full quote), verdict exactly one of done/partly/missing, evidence a file, a line, or a one-sentence reason. Make no code edits. One pass, then stop.`;
 
+	// A stale owner-check.md from an earlier run must never be read back as this run's own
+	// (fresh-eyes review finding 3) — delete it before spawning, same as review.mjs does for
+	// review.md, so a reviewer that fails to write one is reported as failed, not stale-correct.
+	const reportPath = path.join(taskDir, "owner-check.md");
+	try { fs.unlinkSync(reportPath); } catch {}
+
 	let table = null, spawnErr = null;
 	try {
 		const spawned = await mcp("spawn_agent", { role: "reviewer", name: `owner-check-${path.basename(taskDir)}`.replace(/[^a-z0-9-]+/gi, "-").slice(0, 60),
@@ -224,7 +234,6 @@ async function main(){
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		await mcp("stop_agent", { id: spawned.id }, 20000);
-		const reportPath = path.join(taskDir, "owner-check.md");
 		if (fs.existsSync(reportPath)) table = parse_table(fs.readFileSync(reportPath, "utf8"));
 		else spawnErr = "the reviewer wrote no owner-check.md";
 	} catch (e){ spawnErr = String(e?.message || e).slice(0, 200); }
@@ -234,7 +243,10 @@ async function main(){
 	const done = table.filter(r => r.verdict === "done").length;
 	const partly = table.filter(r => r.verdict === "partly").length;
 	const missing = table.filter(r => r.verdict === "missing");
-	log_line(taskJsonl, `owner-check: ${items.length} items, ${done} done, ${partly} partly, ${missing.length} missing — owner-check.md`);
+	// Counted from the table's OWN rows, not `items.length` (fresh-eyes review finding 4): a
+	// reviewer that merges or skips an item means the row count and the item count can differ,
+	// and the log line must say what was actually verdicted, not what was asked for.
+	log_line(taskJsonl, `owner-check: ${table.length} items, ${done} done, ${partly} partly, ${missing.length} missing — owner-check.md`);
 	if (missing.length) await card_nag(taskDir, `Owner-check found ${missing.length} item(s) the owner asked for that aren't done: `
 		+ missing.map(r => `#${r.n} ${r.item}`).join("; ") + `. See ${rel(path.join(taskDir, "owner-check.md"))}.`);
 }

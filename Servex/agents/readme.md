@@ -33,7 +33,8 @@ agents.stop(a.id);
 **A fresh `minion` with no worktree `cwd` is moved into a pool slot first** (session-gate,
 2026-10-01, `Pool.take_sync()`) — a voice session or anything else that spawns a minion directly,
 not through a task mastermind, can no longer hand it the main tree with no smoke test and no
-review; none ready, and it just keeps spawning with the cwd it was given.
+review; none ready, and the spawn is refused outright rather than falling back there. A host with
+no `servex.pool` at all (a demo, a test, a bare `new Agents()`) is untouched by this.
 It opens an SDK `query()` in **streaming-input mode**: the prompt is an async iterable we
 never finish, so one `query()` is a session that stays alive between turns instead of ending
 after its first answer.

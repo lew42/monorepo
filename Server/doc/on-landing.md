@@ -43,26 +43,33 @@ quick fixes have no dictation behind them, and that is not a failure.
 numbered lines, bullet lines, else whole sentences. Every real `owner-words.md` in this repo is
 instead shaped as `## <date> — <topic>` sections of running dictation, with no numbers or bullets
 inside it — splitting that into bare sentences would hand the reviewer hundreds of fragments with
-no topic to check them against. So a fourth, higher tier runs first: two or more `##`/`###`
-headings split one item per section, labelled with the heading's own words (already a one-line
-summary of what was asked there). Only text with no headings falls through to numbered / bulleted
-/ sentences, exactly as asked.
+no topic to check them against. So a fourth, higher tier runs first: two or more `##` headings
+(exactly two `#`, never `###` — a sub-heading inside one dated section stays part of that
+section's own item, it does not start a new one) split one item per section, labelled with the
+heading's own words (already a one-line summary of what was asked there). Only text with no `##`
+headings falls through to numbered / bulleted / sentences, exactly as asked.
 
 **The review:** one fresh Sonnet, spawned inside Servex the same way `clarity.mjs` and
 `review.mjs` already do (never a resume — it has not seen the task's own conversation), given
-every item, the landing's own `outcome` text, and — best-effort, from an `"(… merge <sha>)"`
-mention in that outcome — a `git show --stat` of the actual merge. It writes
-`<task dir>/owner-check.md` itself: a markdown table, one row per item, verdict `done` / `partly`
-/ `missing`, with evidence. `owner-check.mjs` only reads that table back, to log one line —
-`owner-check: N items, D done, P partly, M missing — owner-check.md` — and nag the task's card
-(same shape as `doc-check`'s own nag) for any `missing` item.
+every item, the landing's own `outcome` text, and — best-effort — a `git show --stat` of the
+actual merge, read from a `"(… merge <sha>)"` mention in that outcome text (the convention every
+landed task's outcome already uses, e.g. proposal-flow's own). A landing whose outcome never
+names a merge sha gets no diff at all — the reviewer still has every item and the outcome text
+itself, just not the stat. It writes `<task dir>/owner-check.md` itself: a markdown table, one
+row per item, verdict `done` / `partly` / `missing`, with evidence (any STALE `owner-check.md`
+from an earlier run is deleted first, so a reviewer that fails to write one is reported as
+failed, never read back as if it were fresh). `owner-check.mjs` only reads that table back, to
+log one line — `owner-check: N items, D done, P partly, M missing — owner-check.md`, N counted
+from the table's own rows, since a reviewer that merges or skips an item can return a different
+count than it was asked to verdict — and nag the task's card (same shape as `doc-check`'s own
+nag) for any `missing` item.
 
 Run it by hand on any landed task: `node Server/owner-check.mjs <task dir>`.
 
 ## Proved 2026-10-01
 
 Against a real landed task, `public/framework/ai/2026-09-30/proposal-flow` (owner-words.md
-present, 6 heading sections): `owner-check.md` came back with 8 items (one per heading), each
+present, 8 `##` heading sections): `owner-check.md` came back with 8 items, one per heading, each
 with real evidence read from the actual files — 1 done, 1 partly, 6 missing — matching that
 task's own "wave A landed, wave B waits" framing exactly. Against a task dir with no owner-words
 file, no ancestor, and no quoted owner's-words in its brief: one line, `owner-check: no owner

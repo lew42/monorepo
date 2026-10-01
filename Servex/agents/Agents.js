@@ -104,20 +104,22 @@ export class Agents {
 		 * smoke test, no review — it edited the live site directly (registry.json, 2026-10-01:
 		 * minion-chat-duplicate-messages and five siblings, all `cwd: C:\Code\lew42\monorepo`).
 		 * A FRESH minion (never a resume — `reopen()` needs the session's ORIGINAL cwd, this
-		 * file's own comment above) whose `cwd` is not already inside `worktrees/` is moved into
-		 * a pool slot before its first turn. `pool.take_sync()` (Servex/Pool.js) claims a READY
-		 * slot with no `await` — this function stays synchronous on purpose, same reason as the
-		 * openrouter spend guard below (a dozen-plus callers assume a plain return, not a
-		 * promise) — and answers `null` with nothing claimed when none is ready, so a minion is
-		 * never blocked waiting for one; it just keeps the cwd it was given. */
-		if (spec.role === "minion" && !again && !worktree_of(spec.cwd)){
-			const slot = this.servex?.pool?.take_sync?.(spec.parent ?? id);
-			if (slot){
-				spec = { ...spec, cwd: slot.path };
-				this.servex?.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
-			} else {
-				this.servex?.say?.(`minion ${id} spawned with no pool worktree ready — writing in ${spec.cwd ?? process.cwd()}`, { event: "pool" });
-			}
+		 * file's own comment above), spawned on a host that actually HAS a pool (real Servex —
+		 * a demo, a test or a bare `new Agents()` has none, and is left exactly as it was before
+		 * this feature), whose `cwd` is not already inside `worktrees/` is moved into a pool slot
+		 * before its first turn. `pool.take_sync()` (Servex/Pool.js) claims a READY slot with no
+		 * `await` — this function stays synchronous on purpose, same reason as the openrouter
+		 * spend guard below (a dozen-plus callers assume a plain return, not a promise).
+		 *
+		 * ⚠ NONE READY REFUSES THE SPAWN — it does not fall back to the main tree (fresh-eyes
+		 * review, finding 1: an earlier version did exactly that, silently recreating the very
+		 * incident this feature exists to close, the moment the pool ran dry). The caller sees a
+		 * clear error and can wait, retry, or spawn a `task-mastermind` instead (session-smart.md). */
+		if (spec.role === "minion" && !again && !worktree_of(spec.cwd) && this.servex?.pool){
+			const slot = this.servex.pool.take_sync(spec.parent ?? id);
+			if (!slot) throw new Error(`No pool worktree is ready for minion "${id}" — main stays refused for minions. Wait for the pool (take_worktree/return_worktree), or spawn a task-mastermind instead.`);
+			spec = { ...spec, cwd: slot.path };
+			this.servex.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
 		}
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
 		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a

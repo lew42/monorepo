@@ -5,7 +5,7 @@
  * test, no review (session-smart.md used to let exactly that happen — registry.json,
  * 2026-10-01: six minions, all `cwd: C:\Code\lew42\monorepo`).
  *
- * Four cases, against a FAKE pool (no real git, no real worktree) and a FAKE Agent (no real
+ * Five cases, against a FAKE pool (no real git, no real worktree) and a FAKE Agent (no real
  * claude.exe — Agents.spawn() would otherwise launch an actual SDK session for every case
  * below). No network, no filesystem touched outside one scratch SERVEX_HOME. */
 import assert from "node:assert/strict";
@@ -64,11 +64,22 @@ check("task-mastermind + no cwd -> left untouched, pool never asked (only a `min
 	assert.equal(pool.calls(), 0, "take_sync was never asked — only a minion is moved");
 });
 
-check("minion + no cwd, but no pool slot ready -> spawned anyway, never blocked", () => {
+check("minion + no cwd, no pool slot ready -> refused, NEVER falls back to the main tree", () => {
+	// fresh-eyes review finding 1: an earlier version of this fell back to spawning in the main
+	// tree here, silently recreating the exact incident this feature exists to close.
 	const pool = fake_pool(null);
-	const agent = fresh(pool).spawn({ role: "minion", name: "w", prompt: "do it" });
-	assert.equal(agent.cwd, process.cwd(), "falls back to the Agent class's own default cwd");
+	const agents = fresh(pool);
+	assert.throws(() => agents.spawn({ role: "minion", name: "w", prompt: "do it" }), /no pool worktree is ready/i);
 	assert.equal(pool.calls(), 1, "take_sync was still asked once");
+});
+
+check("minion + no cwd, but no `servex.pool` at all (a demo/test host) -> left untouched, never refused", () => {
+	// A host with no pool object — demo.mjs, a plain `new Agents()`, most tests — is NOT the real
+	// Servex this feature is guarding against, so it is left exactly as it behaved before this
+	// feature existed: no redirect, no throw.
+	const agents = new TestAgents({ registry_dir: path.join(dir, `reg-${++n}`) });   // no `servex` at all
+	const agent = agents.spawn({ role: "minion", name: "v", prompt: "do it" });
+	assert.equal(agent.cwd, process.cwd(), "falls back to the Agent class's own default cwd, unchanged from before this feature");
 });
 
 console.log(`spawn-worktree.test.mjs: ${checks} checks passed`);
