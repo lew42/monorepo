@@ -16,7 +16,7 @@ function test(name, fn){ fn(); n++; console.log(`ok - ${name}`); }
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "openrouter-test-"));
 process.env.LOCALAPPDATA = scratch;
 
-const { env_for, provider_for, KEY_PATH, read_key, has_key } = await import("./provider.js?t=" + Date.now());
+const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for } = await import("./provider.js?t=" + Date.now());
 
 test("provider_for: a model id with a / is openrouter", () => {
 	assert.equal(provider_for("openai/gpt-6-luna"), "openrouter");
@@ -56,6 +56,14 @@ test("env_for('openrouter') gives the four vars right, with a key file present",
 	// past the base-url swap and bill the Claude subscription instead of OpenRouter
 	assert.equal(env.ANTHROPIC_API_KEY, "");
 	assert.equal(env.CLAUDE_CODE_OAUTH_TOKEN, "");
+});
+
+test("disallowed_tools_for: blocks ArtifactData on Gemini only (the tool-schema 400)", () => {
+	assert.deepEqual(disallowed_tools_for("google/gemini-3.1-pro-preview"), ["ArtifactData"]);
+	assert.deepEqual(disallowed_tools_for("google/gemini-3.8-flash"), ["ArtifactData"]);
+	assert.deepEqual(disallowed_tools_for("openai/gpt-6-luna"), []);
+	assert.deepEqual(disallowed_tools_for("deepseek/deepseek-v4.1-flash"), []);
+	assert.deepEqual(disallowed_tools_for(undefined), []);
 });
 
 fs.rmSync(scratch, { recursive: true, force: true });

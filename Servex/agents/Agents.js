@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, key_usage, read_key } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, key_usage, read_key, disallowed_tools_for } from "../ext/openrouter/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -773,6 +773,12 @@ Agents.Agent = class Agent {
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
 			...this.sdk,
+			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
+			 * `...this.sdk` so it always applies even when a spec sets its own
+			 * disallowedTools for an unrelated reason. */
+			...(this.provider === "openrouter" && disallowed_tools_for(this.model).length
+				? { disallowedTools: [...new Set([...(this.sdk?.disallowedTools ?? []), ...disallowed_tools_for(this.model)])] }
+				: {}),
 			...(this.one_shot ? this.refusal() : {})
 		};
 	}
@@ -1086,7 +1092,15 @@ Agents.Agent = class Agent {
 		if (this.provider !== "openrouter") return;
 		try {
 			const now = await key_usage(read_key());
-			if (typeof this.or_usage_before === "number") this.cost = Math.max(0, now - this.or_usage_before);
+			/* CUMULATIVE, like the SDK's own `total_cost_usd` (cost-cumulative-fix,
+			 * 2026-10-01): each call only sees the delta since the LAST call, so it
+			 * is added onto a running `or_cost`, never used to replace `this.cost`
+			 * outright — a fresh per-turn delta would make the session total reset
+			 * on every turn instead of growing. */
+			if (typeof this.or_usage_before === "number"){
+				this.or_cost = (this.or_cost ?? 0) + Math.max(0, now - this.or_usage_before);
+				this.cost = this.or_cost;
+			}
 			this.or_usage_before = now;
 			this.host?.register?.(this);
 		} catch {}   // billing not settled yet, or no key — this.cost keeps its last value
@@ -1099,9 +1113,12 @@ Agents.Agent = class Agent {
 	result(message){
 		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
-		// the SDK's own guess, kept as the number until refresh_or_cost() (below) replaces it with the real one
-		this.cost = message.total_cost_usd ?? this.cost;
+		/* total_cost_usd is the SDK's own guess, priced off Anthropic's table —
+		 * wrong for an openrouter agent under the wrong model name entirely
+		 * (openrouter/readme.md point 3), so it must never touch `this.cost`
+		 * here; refresh_or_cost() below owns `this.cost` for that agent instead. */
 		if (this.provider === "openrouter") this.refresh_or_cost();
+		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		/* `words` = everything said this turn, which is what a fork's wake and
@@ -1151,8 +1168,8 @@ Agents.Agent = class Agent {
 		const c = this.compacting;
 		this.compacting = null;
 		this.compacted_turn = this.turns;
-		this.cost = message.total_cost_usd ?? this.cost;
 		if (this.provider === "openrouter") this.refresh_or_cost();
+		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];

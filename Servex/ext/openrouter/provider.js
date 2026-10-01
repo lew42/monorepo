@@ -63,9 +63,28 @@ export function env_for(provider){
  * provider without having to say so. */
 export const provider_for = model => (String(model ?? "").includes("/") ? "openrouter" : "anthropic");
 
+/* GEMINI TOOL-SCHEMA GAP (spike.mjs, 2026-10-01): google/gemini-3.1-pro-preview
+ * AND google/gemini-3.8-flash both 400 before any tool call —
+ * tools[0].function_declarations[3].parameters.properties.query.properties.where.items.items
+ * — because Gemini's strict function-calling validator demands every nested
+ * array carry its own `items` schema, and the built-in ArtifactData tool's
+ * `query.where` (an array of [field, operator, value] tuples) only declares
+ * `prefixItems` on the inner array, no `items`. ArtifactData ships with the
+ * SDK itself — outside this module's fence (Servex/ext/openrouter/*,
+ * Servex/agents/Agents.js) — so there is no schema to patch here; the fix is
+ * to not offer it to Gemini at all. Confirmed on two different Gemini models,
+ * so this is Gemini's validator, not one model's quirk. */
+export const disallowed_tools_for = model => (String(model ?? "").startsWith("google/") ? ["ArtifactData"] : []);
+
 /* OpenRouter's running total for this key, in dollars — goes up by exactly
  * what a turn cost once that turn's billing settles (usually within a few
- * seconds; occasionally longer under load, per OpenRouter's docs). */
+ * seconds; occasionally longer under load, per OpenRouter's docs).
+ *
+ * ⚠ This total is PER KEY, not per agent: if two OpenRouter agents run turns
+ * on the same key at once, a before/after diff can't tell whose spend is
+ * whose — Agents.js's refresh_or_cost() will mis-attribute cost between them.
+ * Fine for now (today's usage is one agent at a time); a real fix needs
+ * either a key per agent or OpenRouter exposing a per-request cost header. */
 export async function key_usage(key){
 	const res = await fetch("https://openrouter.ai/api/v1/key", { headers: { Authorization: `Bearer ${key}` } });
 	if (!res.ok) throw new Error(`OpenRouter /key returned ${res.status}`);

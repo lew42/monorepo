@@ -64,10 +64,30 @@ running total for the key, not the SDK's wrong guess — lands on its `cost` fie
 Claude agent's does. Missing key: the spawn fails at start with `no OpenRouter key at <path>`, one
 line, nothing cryptic.
 
+### Gemini needed one built-in tool turned off
+
+Both `google/gemini-3.1-pro-preview` and `google/gemini-3.8-flash` 400'd before calling any
+tool at all: Gemini's own function-calling validator demands every nested array carry its own
+`items` schema, and the built-in `ArtifactData` tool's `query.where` (an array of
+`[field, operator, value]` tuples) only declares `prefixItems` on the inner array, not `items`.
+`ArtifactData` ships with the SDK itself, outside this folder's fence, so `provider.js` exports
+`disallowed_tools_for(model)` — `["ArtifactData"]` for any `google/*` model, `[]` otherwise — and
+both `spike.mjs` and `Agents.js` pass it as `disallowedTools`. Confirmed fixed by rerunning the
+spike on both Gemini models.
+
+### Cost is per key, not per agent
+
+`key_usage()` is OpenRouter's running total for the whole key. Two OpenRouter agents spending on
+the same key at once can't be told apart by a before/after diff — `Agents.js`'s
+`refresh_or_cost()` will attribute one agent's spend to the other. Fine while only one OpenRouter
+agent runs at a time; a real fix needs a key per agent, or OpenRouter adding a per-request cost
+figure.
+
 ## What's here
 
 - [`provider.js`](./provider.js) — `env_for(provider)` (the four env vars; throws if the key file
-  is missing), `provider_for(model)` (the slash rule), and the real-cost lookups.
+  is missing), `provider_for(model)` (the slash rule), `disallowed_tools_for(model)` (the Gemini
+  tool-schema fix, below), and the real-cost lookups.
 - [`spike.mjs`](./spike.mjs) — the spike script, above.
 - [`provider.test.mjs`](./provider.test.mjs) — runs with no key, no network, no cost:
   `node Servex/ext/openrouter/provider.test.mjs`.

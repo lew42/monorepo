@@ -25,7 +25,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { env_for, has_key, key_usage, generation_cost, read_key, KEY_PATH } from "./provider.js";
+import { env_for, has_key, key_usage, generation_cost, read_key, KEY_PATH, disallowed_tools_for } from "./provider.js";
 
 const DEFAULT_MODELS = [
 	"openai/gpt-6-luna",            // cheap
@@ -73,6 +73,8 @@ async function run_turn({ model, cwd, prompt, resume }){
 				includePartialMessages: true,
 				maxTurns: MAX_TURNS,
 				abortController: aborter,
+				// GEMINI TOOL-SCHEMA GAP (provider.js) — ArtifactData 400s on Gemini before any tool call
+				...(disallowed_tools_for(model).length ? { disallowedTools: disallowed_tools_for(model) } : {}),
 				...(resume ? { resume } : {})
 			}
 		});
