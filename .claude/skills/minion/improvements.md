@@ -44,3 +44,5 @@ A recurring line is a rule waiting to be written; the owner promotes.
 - 2026-09-30 (mastermind-servex-9): the skill never said HOW a review finding is answered; three minions wrote under the finding in review.md and merge.mjs kept refusing "10 unanswered". Added rule 10 and made merge.mjs's refusal name the line shape.
 
 - 2026-10-01 (mastermind-servex-9, from the probe (a) cells): the new-task step assumed a brief naming an existing task dir; a probe with a rough prompt and no dir left every model opening no task, or inventing a task.jsonl path. One line added. Alternative kept in todo: Servex opens a task dir for every spawn that has none, so the skill line becomes unneeded.
+
+- **A landed minion does not loop (2026-10-01, session-gate):** after its landing line it posted "next loop check in 30 minutes" and would have woken every half hour at a paid turn. Once landed: `return_worktree`, the last card line, and END the turn for good; nothing is left to check. If the skill has a step after landing, delete it.
