@@ -33,3 +33,8 @@
 {"log":{"at":"2026-09-30T15:22:30-05:00","task":"ai2-inbox-read","msg":"landed — Inbox read/unread, archive, auto-resolve, search, Needs-you chip, Now wording fix. /framework/ai2/"}}
 {"log":{"at":"2026-09-30T15:31:17-05:00","task":"process-monitor","msg":"task opened — a process monitor: RAM and CPU per task, orphans, a graph"}}
 {"log":{"at":"2026-09-30T16:39:55-05:00","task":"one-dictation-system","msg":"landed — handed off to task-mastermind-one-dictation (plan, seam, rulings); nothing built here"}}
+{"log":{"at":"2026-09-30T16:18:07-05:00","task":"inbox-ext/ai2-hang","msg":"landed — AI 2's load hang: two redraw hot spots found by a CPU profile and cached (Groups.members in groups.js, place()'s layout re-measure in live.js)."}}
+{"log":{"at":"2026-09-30T16:48:10-05:00","task":"inbox-ext/ai2-hang","msg":"landed — full batch: the freeze fix, × alignment, a pinned Now card, × that actually archives, Clear all, and the inbox-zero score filter. One Servex CORS gap flagged to the parent. Ready to merge."}}
+{"log":{"at":"2026-09-30T17:16:33-05:00","task":"process-monitor/graph","msg":"landed — Processes section on the Live card: RAM/CPU graph, by-task sparklines, orphans, worktree count"}}
+{"log":{"at":"2026-09-30T22:06:12-05:00","task":"selection","msg":"task opened: inspect mode, mobile tap-to-select with drill-down, selection travels with dictation"}}
+{"log":{"at":"2026-09-30T22:10:52-05:00","task":"process-monitor","msg":"landed — the Live card shows our RAM and CPU by task with a graph; Servex reaps our orphans and removed 20 finished worktrees (branches kept)"}}
