@@ -110,3 +110,19 @@ Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest fir
   from `/api/v1/models` (older ones count) to rungs 1 and 2 only.
 - **The reply** leads with one small table: model · rung · pass (n/n) · $/run · price multiplier
   vs Sonnet. Then the agreement rate per test, and anything labelled c.
+
+## Amendment 3: Phase 7, the pace and vision (read the parent's "Phase 7")
+- **The pace is now a hard limit:** $1.50/day and $10/week of OpenRouter (the spend guard refuses
+  past either). Today and this week are already at $7.49, so **no OpenRouter runs until the UTC
+  day resets (00:00 UTC = 19:00 local)**, and then about $1.50 a day with $2.51 left until Monday.
+  Run the Claude parts now (Opus, Sonnet, Haiku, on the subscription). Queue the OpenRouter parts
+  for after the reset, cheapest first: the strong OpenRouter pair (gpt-6-sol, gemini-3.1-pro)
+  only on tests where Opus and Sonnet disagree with each other.
+- **Your OpenRouter budget is now $1.50 a day, not $4.**
+- **Vision, the next rung after the ladder:** `ui-fouls`. Make 3 screenshots with KNOWN fouls,
+  each planted in a tiny fixture page: text touching a background or border edge with zero
+  padding (the canonical one), content overflowing at 400px, and one low-contrast pair. Prompt:
+  "Describe this UI, then name its worst design fouls, most serious first." Benchmark: Opus.
+  Score: did it find each planted foul, and did it invent any that aren't there? Sample 4–6
+  configs, the cheapest vision-capable ones first (check `architecture.input_modalities` in
+  `/api/v1/models`). Note any model that can't take an image at all.

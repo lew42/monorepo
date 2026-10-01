@@ -7,7 +7,7 @@ import { div, span, p } from "../../core/View/View.js";
 // openrouter_daily (Servex/ext/openrouter/provider.js's spend guard, Phase 2 item 1c,
 // 2026-10-01): the SAME meter the Claude session/weekly windows use, one more `limit`
 // in the list dashboard.js merges in from openrouter-usage.json — never a second meter.
-const KINDS = { session: "5h session", weekly_all: "weekly — all models", openrouter_daily: "OpenRouter — today" };
+const KINDS = { session: "5h session", weekly_all: "weekly — all models", openrouter_daily: "OpenRouter — today", openrouter_weekly: "OpenRouter — this week" };
 const label_of = l => KINDS[l.kind]
 	?? (l.kind === "weekly_scoped" ? "weekly — " + (l.scope?.model?.display_name ?? "scoped") : l.kind);
 
