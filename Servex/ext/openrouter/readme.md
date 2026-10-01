@@ -11,11 +11,16 @@ decided, what's still open, and where every claim comes from.
 1. **Proxy route** — point `ANTHROPIC_BASE_URL` at OpenRouter, give the agent an OpenRouter key
    instead of a Claude login, and the same Claude Agent SDK loop runs a non-Claude model.
    → [`snapshot.md`](./snapshot.md) (node `cjuqp`), `Servex/agents/Agents.js:514`
-2. **Provider field** — `tiers.js` already has a `provider` field nothing reads yet; wiring it up
-   is the one-line switch that turns the proxy on per tier.
+2. **Provider field, now live** — `tiers.js`'s `provider` field is read by `roles.js`'s `defaults()`
+   and by `Agents.spawn()` (the slash rule on a bare `model` covers the rest), so moving a tier to
+   `provider: "openrouter"` is the one-line switch that turns the proxy on for every role on it.
    → [`snapshot.md`](./snapshot.md) (node `cx5h6`), `Servex/agents/tiers.js:4`
-3. **Proxied cost arrives free** — OpenRouter puts the real dollar cost on every reply; the SDK's
-   own guess is wrong, because it prices a proxied turn off Anthropic's price table.
+3. **Proxied cost takes a few seconds, not free** — the SDK's own cost guess is wrong (it prices a
+   proxied turn off Anthropic's price table), and OpenRouter's own real dollar figure does not
+   arrive instantly either: billing settles a few seconds after a turn ends, and the per-generation
+   lookup can be exact when the SDK's message id matches (confirmed on gemini-3.8-flash) or needs a
+   before/after key-total diff when it doesn't. `real_turn_cost()` in `provider.js` tries both,
+   polling for it rather than reading once.
    → [`snapshot.md`](./snapshot.md)
 4. **Subscription boundary** — Claude itself stays on the subscription; paying per token for
    Claude through any gateway could cost far more for the same work.
@@ -44,7 +49,10 @@ node Servex/ext/openrouter/spike.mjs
 
 Needs an OpenRouter key at `%LOCALAPPDATA%\lew42\servex\openrouter.key` (never in the repo) — with
 no key it prints `no key at <path>` and exits 2, so it's safe to run before the key exists. Each
-model is capped at about $0.25. Results land one JSON line per model in
+model is capped at about $0.25 by `maxTurns` plus a check between turns: there's no live cost
+figure to abort a turn mid-stream on (real cost only settles after a turn ends), so if turn 1 alone
+already blew the cap, the resume turn is skipped rather than spending more. Results land one JSON
+line per model in
 [`spike.jsonl`](/framework/ai/2026-09-30/openrouter-harness/spike.jsonl), with a short pass/fail
 table on stdout. Pass your own model ids as arguments to try others than the three defaults.
 
@@ -59,10 +67,12 @@ spawn_agent({ role: "minion", name: "cheap-scan", prompt: "...",
 ```
 
 (Same as passing `provider: "openrouter"` explicitly, which also works and is what you'd do if a
-future OpenRouter model id ever stops having a `/` in it.) The agent's real cost — OpenRouter's own
-running total for the key, not the SDK's wrong guess — lands on its `cost` field the same way a
-Claude agent's does. Missing key: the spawn fails at start with `no OpenRouter key at <path>`, one
-line, nothing cryptic.
+future OpenRouter model id ever stops having a `/` in it.) `Agents.spawn()` refuses the one
+combination that would quietly bill the Claude subscription per token instead — `provider:
+"openrouter"` with a `claude-*` model — with one clear line. The agent's real cost — OpenRouter's
+own figure, not the SDK's wrong guess — lands on its `cost` field the same way a Claude agent's
+does, a few seconds after each turn ends (never blocking the turn itself — see below). Missing key:
+the spawn fails at start with `no OpenRouter key at <path>`, one line, nothing cryptic.
 
 ### Gemini needed one built-in tool turned off
 
@@ -87,7 +97,7 @@ figure.
 
 - [`provider.js`](./provider.js) — `env_for(provider)` (the four env vars; throws if the key file
   is missing), `provider_for(model)` (the slash rule), `disallowed_tools_for(model)` (the Gemini
-  tool-schema fix, below), and the real-cost lookups.
+  tool-schema fix, below), and `real_turn_cost()` (the honest per-turn dollar figure, polled).
 - [`spike.mjs`](./spike.mjs) — the spike script, above.
 - [`provider.test.mjs`](./provider.test.mjs) — runs with no key, no network, no cost:
   `node Servex/ext/openrouter/provider.test.mjs`.

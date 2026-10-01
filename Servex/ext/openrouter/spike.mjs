@@ -15,17 +15,21 @@
  * table on stdout.
  *
  * SAFETY: every model is capped at ~$0.25 by `maxTurns` (a looping model
- * cannot run forever) and a wall-clock timeout per turn (a stuck model cannot
- * hang forever either). Real cost — OpenRouter's own dollar figure, not the
- * SDK's wrong guess (readme.md point 3) — is read via `key_usage()` before
- * and after each turn, which is why they are deliberately NOT run in
- * parallel: a shared key's usage total can't tell two concurrent turns apart. */
+ * cannot run forever), a wall-clock timeout per turn (a stuck model cannot
+ * hang forever either), AND a check between turns — real cost only settles
+ * once a turn is over (review.md findings 2-3: there is no live, trustworthy
+ * cost signal DURING a turn to abort on), so turn 1's real cost is checked
+ * against the cap before turn 2 (the resume) is even started. Real cost —
+ * OpenRouter's own dollar figure, not the SDK's wrong guess (readme.md point
+ * 3) — comes from `real_turn_cost()`, which is why models are deliberately
+ * run one at a time, never in parallel: a shared key's usage total can't
+ * tell two concurrent turns apart. */
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { env_for, has_key, key_usage, generation_cost, read_key, KEY_PATH, disallowed_tools_for } from "./provider.js";
+import { env_for, has_key, key_usage, real_turn_cost, read_key, KEY_PATH, disallowed_tools_for } from "./provider.js";
 
 const DEFAULT_MODELS = [
 	"openai/gpt-6-luna",            // cheap
@@ -119,7 +123,7 @@ async function spike_one(model){
 	const fixture = path.join(dir, "notes.txt");
 	fs.writeFileSync(fixture, "the sky is red today\n");
 
-	const usage_before = await key_usage(key).catch(() => null);
+	let usage_baseline = await key_usage(key).catch(() => null);
 
 	const turn1 = await run_turn({
 		model, cwd: dir,
@@ -131,39 +135,44 @@ async function spike_one(model){
 	const edited = fs.existsSync(fixture) ? fs.readFileSync(fixture, "utf8") : null;
 	const edit_landed = edited != null && edited.includes("blue") && !edited.includes("red");
 
-	const usage_mid = turn1.session_id ? await key_usage(key).catch(() => null) : usage_before;
+	/* real_turn_cost() (provider.js): tries the exact per-generation figure by
+	 * turn1's own assistant message id first, polling over ~10-20s for billing
+	 * to settle, then falls back to a before/after key-total diff. */
+	const r1 = await real_turn_cost({ key, message_id: turn1.assistant_message_id, usage_before: usage_baseline });
+	const cost1 = r1?.cost ?? null;
+	if (r1?.usage_now != null) usage_baseline = r1.usage_now;
 
-	let turn2 = { result_text: null, is_error: true, error_text: "no session id from turn 1 (can't resume)" };
-	if (turn1.session_id){
+	/* ENFORCE THE CAP between turns (see the file header): there is no live cost
+	 * signal to abort turn 1 mid-stream, but turn 1's real cost IS known before
+	 * turn 2 starts, so a turn 1 that alone already blew the cap skips the resume
+	 * turn rather than spending more. */
+	const over_cap_already = cost1 != null && cost1 > COST_CAP_USD;
+
+	let turn2 = { result_text: null, is_error: true,
+		error_text: over_cap_already
+			? `turn 1 alone cost $${cost1.toFixed(4)}, over the $${COST_CAP_USD} cap — resume turn skipped`
+			: "no session id from turn 1 (can't resume)" };
+	let cost2 = null;
+	if (turn1.session_id && !over_cap_already){
 		turn2 = await run_turn({
 			model, cwd: dir, resume: turn1.session_id,
 			prompt: "In one short sentence: what word did you just change in notes.txt, and what did you change it to?"
 		});
+		const r2 = await real_turn_cost({ key, message_id: turn2.assistant_message_id, usage_before: usage_baseline });
+		cost2 = r2?.cost ?? null;
 	}
 
-	const usage_after = await key_usage(key).catch(() => null);
-
-	/* Whether `message.id` IS the OpenRouter generation id (open question in
-	 * readme.md) — tried once per model, live, against turn 1's own id. */
-	let generation_id_matches = null;
-	if (turn1.assistant_message_id){
-		const gen = await generation_cost(key, turn1.assistant_message_id).catch(() => null);
-		generation_id_matches = gen != null;
-	}
-
-	const cost1 = (usage_before != null && usage_mid != null) ? Math.max(0, usage_mid - usage_before) : null;
-	const cost2 = (usage_mid != null && usage_after != null) ? Math.max(0, usage_after - usage_mid) : null;
-	const real_cost_total = cost1 != null && cost2 != null ? cost1 + cost2 : null;
+	const real_cost_total = cost1 != null ? cost1 + (cost2 ?? 0) : null;
 
 	const row = {
 		at: new Date().toISOString(), model,
 		turn1: { tool_calls: turn1.tool_calls, partial_messages: turn1.partial, edit_landed,
 			is_error: turn1.is_error, error: turn1.error_text, duration_ms: turn1.duration_ms,
-			cost_sdk_usd: turn1.cost_sdk, real_cost_usd: cost1 },
+			cost_sdk_usd: turn1.cost_sdk, real_cost_usd: cost1, cost_source: r1?.source ?? null },
 		resume: { answer: turn2.result_text, is_error: turn2.is_error, error: turn2.error_text,
-			duration_ms: turn2.duration_ms ?? null, cost_sdk_usd: turn2.cost_sdk ?? 0, real_cost_usd: cost2 },
+			duration_ms: turn2.duration_ms ?? null, cost_sdk_usd: turn2.cost_sdk ?? 0, real_cost_usd: cost2,
+			skipped_over_cap: over_cap_already },
 		real_cost_total_usd: real_cost_total,
-		generation_id_matches_message_id: generation_id_matches,
 		over_cap: real_cost_total != null && real_cost_total > COST_CAP_USD
 	};
 

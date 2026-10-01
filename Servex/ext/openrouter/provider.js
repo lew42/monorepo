@@ -34,8 +34,8 @@ export function read_key(){
 	return key;
 }
 
-/* `true` the cheap way — no key read, no throw — for a caller (Agents.js'
- * `door()`) that just wants to know whether to bother. */
+/* `true` the cheap way — no key read, no throw — for a caller (spike.mjs, before
+ * spending anything) that just wants to know whether to bother. */
 export function has_key(){
 	try { return !!fs.readFileSync(KEY_PATH, "utf8").trim(); }
 	catch { return false; }
@@ -94,10 +94,11 @@ export async function key_usage(key){
 	return usage;
 }
 
-/* The per-turn cost OpenRouter itself computed for one generation id. Use this
- * when the SDK's assistant `message.id` turns out to BE the OpenRouter
- * generation id (spike.mjs checks this once, live); otherwise fall back to a
- * before/after `key_usage()` diff, which works regardless. */
+/* The per-turn cost OpenRouter itself computed for one generation id. The SDK's
+ * assistant `message.id` DOES turn out to be the OpenRouter generation id —
+ * confirmed on gemini-3.8-flash's spike row (2026-10-01), though not every
+ * model/run has shown it matching, so `real_turn_cost()` below tries this
+ * first and falls back to a before/after `key_usage()` diff when it doesn't. */
 export async function generation_cost(key, id){
 	const res = await fetch(`https://openrouter.ai/api/v1/generation?id=${encodeURIComponent(id)}`,
 		{ headers: { Authorization: `Bearer ${key}` } });
@@ -108,13 +109,43 @@ export async function generation_cost(key, id){
 	return cost;
 }
 
-/* The one function Agents.js calls: "what did this turn really cost", given
- * the key-usage dollar figure read just before the turn started. Never
- * throws — a failed lookup (network hiccup, billing not settled yet) means
- * "don't know yet", not "crash the agent"; the caller keeps its last cost. */
-export async function real_cost({ key, usage_before }){
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* THE ONE FUNCTION Agents.js and spike.mjs both call for "what did this turn
+ * really cost" (review.md findings 2-4, 2026-10-01). Billing settles a few
+ * seconds after a turn ends, not the instant it ends — a read taken right at
+ * turn-end usually sees last turn's number, or $0 — so this polls instead of
+ * reading once:
+ *
+ *  1. Try `generation_cost(key, message_id)` a few times, a few seconds apart.
+ *     Exact, and per-agent (immune to the shared-key mix-up two concurrent
+ *     OpenRouter agents would cause — see `key_usage()` above), so it's tried
+ *     first whenever a message id is known.
+ *  2. If it never resolves (no message id, or the generation record never
+ *     showed up), fall back to a before/after `key_usage()` diff — the same
+ *     wait has already given billing time to settle.
+ *
+ * Never throws — a dead network or a still-unsettled charge just means "don't
+ * know yet", not "crash the agent"; the caller keeps its last cost. Runs in
+ * the background (the caller never awaits it): ~10-20s total, but that time
+ * is spent after the turn has already finished, never delaying it. */
+export async function real_turn_cost({ key, message_id, usage_before, attempts = 6, interval_ms = 3000 }){
 	try {
-		const now = await key_usage(key);
-		return Math.max(0, now - usage_before);
+		// No message id yet (the baseline read before any turn has run, in start()):
+		// nothing to poll for, so read once and return — no point waiting ~15s for
+		// a generation that was never going to appear.
+		if (message_id){
+			for (let i = 0; i < attempts; i++){
+				const cost = await generation_cost(key, message_id).catch(() => null);
+				if (cost != null){
+					const usage_now = await key_usage(key).catch(() => usage_before);
+					return { cost, usage_now, source: "generation" };
+				}
+				if (i < attempts - 1) await sleep(interval_ms);
+			}
+		}
+		const usage_now = await key_usage(key);
+		if (typeof usage_before !== "number") return { cost: null, usage_now, source: "key_diff" };
+		return { cost: Math.max(0, usage_now - usage_before), usage_now, source: "key_diff" };
 	} catch { return null; }
 }

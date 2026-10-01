@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, key_usage, read_key, disallowed_tools_for } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for } from "../ext/openrouter/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -104,7 +104,14 @@ export class Agents {
 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
 		 * gets the openrouter provider for free — nobody has to say `provider`
 		 * by hand. An explicit `spec.provider` always wins. */
-		const provider = spec.provider ?? provider_for(model);
+		const provider = spec.provider ?? role_defaults(spec.role).provider ?? provider_for(model);
+		/* CLAUDE STAYS ON THE SUBSCRIPTION (requirements.md; review.md finding 6):
+		 * an explicit `provider: "openrouter"` paired with a Claude model id would
+		 * bill that model per token through the gateway instead. The slash rule
+		 * above can't cause this by itself (every OpenRouter slug has a `/`), but
+		 * a caller or a future tier could still say both — refuse it here, once. */
+		if (provider === "openrouter" && !String(model).includes("/"))
+			throw new Error(`provider "openrouter" needs an OpenRouter model id (e.g. "openai/gpt-6-luna"), not "${model}" — Claude itself stays on the subscription (openrouter/provider.js)`);
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
@@ -1063,6 +1070,9 @@ Agents.Agent = class Agent {
 	assistant(message){
 		const nested = !!message.parent_tool_use_id;
 		if (!nested && message.message?.usage) this.last_usage = message.message.usage;
+		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
+		// which OpenRouter's /generation endpoint can look up directly and exactly.
+		if (!nested && message.message?.id) this.last_assistant_message_id = message.message.id;
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
@@ -1091,17 +1101,26 @@ Agents.Agent = class Agent {
 	async refresh_or_cost(){
 		if (this.provider !== "openrouter") return;
 		try {
-			const now = await key_usage(read_key());
+			const key = read_key();
+			/* real_turn_cost() (openrouter/provider.js, review.md findings 2-4): tries
+			 * the exact per-generation figure first, by this turn's own assistant
+			 * message id; falls back to a before/after key-total diff. Either way it
+			 * polls for ~10-20s for billing to settle — this call is never awaited by
+			 * its caller (start()/result()/compact_done()), so that wait never
+			 * delays the agent's own turn. */
+			const r = await real_turn_cost({
+				key, message_id: this.last_assistant_message_id, usage_before: this.or_usage_before
+			});
+			if (!r) return;
 			/* CUMULATIVE, like the SDK's own `total_cost_usd` (cost-cumulative-fix,
-			 * 2026-10-01): each call only sees the delta since the LAST call, so it
-			 * is added onto a running `or_cost`, never used to replace `this.cost`
-			 * outright — a fresh per-turn delta would make the session total reset
-			 * on every turn instead of growing. */
-			if (typeof this.or_usage_before === "number"){
-				this.or_cost = (this.or_cost ?? 0) + Math.max(0, now - this.or_usage_before);
+			 * 2026-10-01): a turn's own cost is ADDED onto a running `or_cost`, never
+			 * used to replace `this.cost` outright — replacing it would make the
+			 * session total reset on every turn instead of growing. */
+			if (typeof r.cost === "number"){
+				this.or_cost = (this.or_cost ?? 0) + r.cost;
 				this.cost = this.or_cost;
 			}
-			this.or_usage_before = now;
+			if (typeof r.usage_now === "number") this.or_usage_before = r.usage_now;
 			this.host?.register?.(this);
 		} catch {}   // billing not settled yet, or no key — this.cost keeps its last value
 	}
