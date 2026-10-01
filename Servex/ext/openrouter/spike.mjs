@@ -64,6 +64,7 @@ async function run_turn({ model, cwd, prompt, resume }){
 	const timer = setTimeout(() => aborter.abort(), TURN_TIMEOUT_MS);
 	const tool_calls = [];       // { name, ok }
 	const by_id = new Map();     // tool_use_id -> the tool_calls entry, filled in as its result arrives
+	const message_ids = new Set();
 	let partial = false, session_id = null, assistant_message_id = null, result_text = null,
 		cost_sdk = 0, is_error = false, error_text = null;
 	try {
@@ -87,6 +88,7 @@ async function run_turn({ model, cwd, prompt, resume }){
 			if (message.type === "stream_event") partial = true;
 			else if (message.type === "assistant"){
 				assistant_message_id = message.message?.id ?? assistant_message_id;
+				if (message.message?.id) message_ids.add(message.message.id);
 				for (const block of message.message?.content ?? []){
 					if (block.type === "tool_use"){
 						const entry = { name: block.name, ok: null };
@@ -114,7 +116,7 @@ async function run_turn({ model, cwd, prompt, resume }){
 	} finally {
 		clearTimeout(timer);
 	}
-	return { session_id, assistant_message_id, tool_calls, partial, result_text,
+	return { session_id, assistant_message_id, message_ids: [...message_ids], tool_calls, partial, result_text,
 		cost_sdk, is_error, error_text, duration_ms: Date.now() - started };
 }
 
@@ -138,7 +140,7 @@ async function spike_one(model){
 	/* real_turn_cost() (provider.js): tries the exact per-generation figure by
 	 * turn1's own assistant message id first, polling over ~10-20s for billing
 	 * to settle, then falls back to a before/after key-total diff. */
-	const r1 = await real_turn_cost({ key, message_id: turn1.assistant_message_id, usage_before: usage_baseline });
+	const r1 = await real_turn_cost({ key, message_ids: turn1.message_ids, usage_before: usage_baseline });
 	const cost1 = r1?.cost ?? null;
 	if (r1?.usage_now != null) usage_baseline = r1.usage_now;
 
@@ -158,7 +160,7 @@ async function spike_one(model){
 			model, cwd: dir, resume: turn1.session_id,
 			prompt: "In one short sentence: what word did you just change in notes.txt, and what did you change it to?"
 		});
-		const r2 = await real_turn_cost({ key, message_id: turn2.assistant_message_id, usage_before: usage_baseline });
+		const r2 = await real_turn_cost({ key, message_ids: turn2.message_ids, usage_before: usage_baseline });
 		cost2 = r2?.cost ?? null;
 	}
 

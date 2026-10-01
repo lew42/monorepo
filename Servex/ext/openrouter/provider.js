@@ -147,24 +147,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
  * know yet", not "crash the agent"; the caller keeps its last cost. Runs in
  * the background (the caller never awaits it): ~10-20s total, but that time
  * is spent after the turn has already finished, never delaying it. */
-export async function real_turn_cost({ key, message_id, usage_before, attempts = 6, interval_ms = 3000 }){
+export async function real_turn_cost({ key, message_id, message_ids, usage_before, attempts = 8, interval_ms = 3000 }){
+	/* A turn is usually MANY model calls (a review: 45), each its own generation —
+	 * so its cost is the SUM over every assistant message id in the turn, not the
+	 * last one (cross-family review, 2026-10-01: the last-id-only figure undercounted). */
+	const ids = [...new Set([...(message_ids ?? []), ...(message_id ? [message_id] : [])])];
+	const costs = new Map();
 	try {
-		// No message id yet (the baseline read before any turn has run, in start()):
-		// nothing to poll for, so read once and return — no point waiting ~15s for
-		// a generation that was never going to appear.
-		if (message_id){
-			for (let i = 0; i < attempts; i++){
-				const cost = await generation_cost(key, message_id).catch(() => null);
-				if (cost != null){
-					const usage_now = await key_usage(key).catch(() => usage_before);
-					return { cost, usage_now, source: "generation" };
-				}
-				if (i < attempts - 1) await sleep(interval_ms);
-			}
+		for (let i = 0; ids.length && i < attempts; i++){
+			await Promise.all(ids.filter(id => !costs.has(id)).map(async id => {
+				const c = await generation_cost(key, id).catch(() => null);
+				if (c != null) costs.set(id, c);
+			}));
+			if (costs.size === ids.length) break;
+			if (i < attempts - 1) await sleep(interval_ms);
 		}
-		const usage_now = await key_usage(key);
-		if (typeof usage_before !== "number") return { cost: null, usage_now, source: "key_diff" };
-		return { cost: Math.max(0, usage_now - usage_before), usage_now, source: "key_diff" };
+		const usage_now = await key_usage(key).catch(() => null);
+		if (ids.length && costs.size === ids.length)
+			return { cost: [...costs.values()].reduce((a, b) => a + b, 0), usage_now, source: "generation", calls: ids.length };
+		if (typeof usage_before !== "number" || typeof usage_now !== "number") return { cost: null, usage_now, source: "key_diff", calls: ids.length };
+		return { cost: Math.max(0, usage_now - usage_before), usage_now, source: "key_diff", calls: ids.length };
 	} catch { return null; }
 }
 

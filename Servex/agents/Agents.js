@@ -104,7 +104,9 @@ export class Agents {
 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
 		 * gets the openrouter provider for free — nobody has to say `provider`
 		 * by hand. An explicit `spec.provider` always wins. */
-		const provider = spec.provider ?? role_defaults(spec.role).provider ?? provider_for(model);
+		// the role's provider goes with the role's MODEL: a caller's own `model` (e.g. a slug on a
+		// `minion`) picks its provider by the slash rule, or a fast-tier minion sent `openai/...` to Anthropic (2026-10-01)
+		const provider = spec.provider ?? (spec.model ? provider_for(model) : role_defaults(spec.role).provider) ?? provider_for(model);
 		/* CLAUDE STAYS ON THE SUBSCRIPTION (requirements.md; review.md finding 6):
 		 * an explicit `provider: "openrouter"` paired with a Claude model id would
 		 * bill that model per token through the gateway instead. The slash rule
@@ -1081,7 +1083,7 @@ Agents.Agent = class Agent {
 		if (!nested && message.message?.usage) this.last_usage = message.message.usage;
 		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
 		// which OpenRouter's /generation endpoint can look up directly and exactly.
-		if (!nested && message.message?.id) this.last_assistant_message_id = message.message.id;
+		if (!nested && message.message?.id){ this.last_assistant_message_id = message.message.id; (this.turn_message_ids ??= new Set()).add(message.message.id); }
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
@@ -1117,9 +1119,12 @@ Agents.Agent = class Agent {
 			 * polls for ~10-20s for billing to settle — this call is never awaited by
 			 * its caller (start()/result()/compact_done()), so that wait never
 			 * delays the agent's own turn. */
-			const r = await real_turn_cost({
-				key, message_id: this.last_assistant_message_id, usage_before: this.or_usage_before
-			});
+			// every model call this turn made, then a fresh set for the next turn
+			const message_ids = [...(this.turn_message_ids ?? [])];
+			this.turn_message_ids = new Set();
+			const r = await real_turn_cost({ key, message_ids, usage_before: this.or_usage_before });
+			if (!r || typeof r.cost !== "number")
+				this.host?.store?.().append("servex", { type: "openrouter-cost-unknown", agent: this.id, calls: message_ids.length, source: r?.source ?? null }).catch(() => {});
 			if (!r) return;
 			/* CUMULATIVE, like the SDK's own `total_cost_usd` (cost-cumulative-fix,
 			 * 2026-10-01): a turn's own cost is ADDED onto a running `or_cost`, never
@@ -1134,7 +1139,7 @@ Agents.Agent = class Agent {
 				 * settling a turn at once can never tear a line in the ledger file. */
 				this.host?.store?.().append("openrouter", {
 					agent: this.id, model: this.model, effort: this.effort,
-					turn: this.turns, cost_usd: r.cost, source: r.source
+					turn: this.turns, cost_usd: r.cost, source: r.source, calls: r.calls
 				}).catch(() => {});
 			}
 			if (typeof r.usage_now === "number") this.or_usage_before = r.usage_now;
