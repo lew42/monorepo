@@ -44,8 +44,10 @@ export default class Worktrees extends Events {
 		this.base ??= "michael/dev";
 		this.every ??= Number(process.env.SERVEX_WORKTREES_EVERY_MS) || 10 * 60000;
 		this.removing ??= process.env.SERVEX_WORKTREE_CLEANUP !== "0";
+		this.stopping ??= process.env.SERVEX_WORKTREE_STOP_SERVERS !== "0";
 		this.quiet_hours ??= Number(process.env.SERVEX_WORKTREE_QUIET_HOURS) || 2;
 		this.removed = [];       // { at, name, branch, why }
+		this.servers_stopped = 0;   // how many worktrees had their dev server and/or health watcher stopped, this Servex run
 		this.last = null;        // the latest pass: { at, items, junctions }
 	}
 
@@ -106,6 +108,60 @@ export default class Worktrees extends Events {
 		return out ? out.split("\n").map(l => ({ code: l.slice(0, 2), path: l.slice(3).replace(/^"|"$/g, "") })) : [];
 	}
 
+	/* ASK 1 (process-monitor, "the RAM squeeze", 2026-10-01): stop what an idle worktree runs.
+	 * Removing a worktree (`remove()`, above) needs its branch MERGED first, because deleting the
+	 * FOLDER can't be undone — but stopping just its dev server and health watcher is reversible
+	 * (the proxy restarts the server on its next request, and a fresh health-supervisor starts
+	 * the next time an agent works there), so the bar for stopping is lower: its task being
+	 * paused, landed or stopped is enough on its own, and so is the same "quiet_hours of git"
+	 * signal `judge()` already reads — neither needs the branch to be merged. Never while a
+	 * live Servex agent is actually working there right now (reason: null). */
+	idle_enough(wt, task){
+		const agent = this.agent_in(wt.path);
+		if (agent && (agent.state === "working" || agent.state === "starting")) return null;
+		if (task?.paused) return "its task is paused";
+		if (task?.landed) return "its task has landed";
+		if (task?.agent && !this.alive(task.agent)) return `its task's agent ${task.agent} has stopped`;
+		const quiet = this.quiet_min(wt);
+		if (quiet !== null && quiet >= this.quiet_hours * 60) return `quiet for ${quiet} min`;
+		return null;
+	}
+
+	/* Stops an idle worktree's dev server through Servex's OWN stop path — `command(name,
+	 * "stop")`, the exact call `stop_server` makes — so Servex's own record of it (`status`,
+	 * used by the proxy's autostart) stays correct; never a guessed pid. Its health.mjs watcher
+	 * (and the Chromium that is a child of it) is found and stopped through Lifecycle's own
+	 * `open()`/`close()`: `Server/health-supervisor.mjs` already calls `Lifecycle.track("health",
+	 * …, { path: ROOT })` on its own start, naming its own pid and the worktree it watches, so
+	 * closing it is also never a guessed pid — `close()`'s `taskkill /T` takes the Chromium
+	 * child down with it. Never a qf-* pool slot: Pool.js looks after those itself. */
+	async stop_idle(items, tasks){
+		const lc = this.servex?.lifecycle;
+		let health = []; try { health = lc ? lc.open().filter(e => e.kind === "health") : []; } catch {}
+		let count = 0;
+		for (const item of items){
+			if (/^qf-\d+$/.test(item.name) || item.state === "locked" || item.state === "no branch") continue;
+			const reason = this.idle_enough({ name: item.name, path: item.path }, tasks.get(norm(item.path)));
+			if (!reason) continue;
+			let did = false;
+			const runner = this.servex?.processes?.get(item.name);
+			if (runner && runner.status !== "stopped"){
+				try { await this.servex.command(item.name, "stop"); did = true; }
+				catch (e){ this.log({ msg: `worktrees: ${item.name} server stop failed: ${e.message}` }); }
+			}
+			for (const row of health.filter(e => same_or_under(e.path, item.path))){
+				try { await lc.close(row, `worktree idle (${reason})`); did = true; }
+				catch (e){ this.log({ msg: `worktrees: ${item.name} health stop failed: ${e.message}` }); }
+			}
+			if (did){
+				count++;
+				this.log({ msg: `worktrees: stopped idle servers for ${item.name} — ${reason}`, worktree: item.name, why: reason });
+			}
+		}
+		this.servers_stopped += count;
+		return count;
+	}
+
 	/* Copy a worktree's log noise out before it goes: the diff of the changed logs, and every new file. */
 	async salvage(item){
 		const to = path.join(place("salvage"), "worktrees", `${item.name}-${stamp().slice(0, 16).replace(/[:T]/g, "-")}`);
@@ -120,14 +176,26 @@ export default class Worktrees extends Events {
 		return to;
 	}
 
-	/* Minutes since git last touched this worktree: its index, HEAD or logs/HEAD
-	 * under main's .git/worktrees/<name>/ (a commit, a checkout, a status refresh). */
+	/* Minutes since git last touched this worktree: its index, HEAD (by mtime) or
+	 * logs/HEAD (by its LAST LINE's own timestamp, not the file's mtime — git gc or
+	 * reflog expire rewrites logs/HEAD without adding an entry, which bumped the
+	 * mtime of all 36 worktrees at once on 2026-10-01 and made every one look freshly
+	 * used). A commit, a checkout or a status refresh is what actually counts. */
 	quiet_min(wt){
 		if (!this.common) return null;
 		const gitdir = path.join(this.common, "worktrees", wt.name);
 		let last = 0;
-		for (const f of ["index", "HEAD", path.join("logs", "HEAD")]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
+		for (const f of ["index", "HEAD"]) try { last = Math.max(last, fs.statSync(path.join(gitdir, f)).mtimeMs); } catch {}
+		last = Math.max(last, this.reflog_last(path.join(gitdir, "logs", "HEAD")));
 		return last ? Math.round((Date.now() - last) / 60000) : null;
+	}
+
+	/* The timestamp git itself wrote on logs/HEAD's last line: `... <email> <unix> <tz>\t<message>`. */
+	reflog_last(file){
+		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return 0; }
+		const last = text.split("\n").filter(Boolean).at(-1);
+		const m = last?.match(/<[^>]*>\s+(\d+)\s+[+-]\d{4}\t/);
+		return m ? Number(m[1]) * 1000 : 0;
 	}
 
 	agent_in(dir){
@@ -144,7 +212,12 @@ export default class Worktrees extends Events {
 	}
 
 	/* Which task took which worktree: `{assign: {worktree}}` in its task.jsonl
-	 * (Lifecycle.took writes it). Only the last three weeks of task dirs. */
+	 * (Lifecycle.took writes it). Only the last three weeks of task dirs. Every `assign` line
+	 * is merged, later wins (the same rule Heartbeat.read() and TaskLoop's own reader use) —
+	 * `paused` is read the same way: `{"assign":{"paused":true}}` anywhere in the log. `landed`
+	 * needs an `outcome` too (or a `closed_by`), not just `landed_at` on its own, matching
+	 * finish-task's own "done" check — the two are always written together, so this only makes
+	 * the signal stricter, never looser. */
 	tasks(){
 		const ai = path.join(this.main, "public", "framework", "ai"), out = new Map();
 		const since = Date.now() - 21 * 86400000;
@@ -154,15 +227,14 @@ export default class Worktrees extends Events {
 			for (const slug of slugs){
 				let text; try { text = fs.readFileSync(path.join(ai, day, slug, "task.jsonl"), "utf8"); } catch { continue; }
 				if (!text.includes("\"worktree\"")) continue;
-				const t = { key: `${day}/${slug}`, landed: false, agent: null, worktree: null };
+				const state = {};
 				for (const line of text.split("\n")){
 					let a; try { a = JSON.parse(line).assign; } catch { continue; }
-					if (!a) continue;
-					if (a.worktree) t.worktree = a.worktree;
-					if (a.agent) t.agent = a.agent;
-					if (a.landed_at) t.landed = true;
+					if (a) Object.assign(state, a);
 				}
-				if (t.worktree) out.set(norm(t.worktree), t);
+				if (!state.worktree) continue;
+				const landed = !!(state.landed_at && String(state.outcome ?? "").trim()) || !!state.closed_by;
+				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree });
 			}
 		}
 		return out;
@@ -182,6 +254,7 @@ export default class Worktrees extends Events {
 			this.common ??= path.resolve(this.main, (await this.git(["rev-parse", "--git-common-dir"])).out || ".git");
 			const tasks = this.tasks(), items = [];
 			for (const wt of await this.list()) items.push({ name: wt.name, path: wt.path, branch: wt.branch, ...(await this.judge(wt, tasks)) });
+			if (this.stopping) await this.stop_idle(items, tasks).catch(e => this.log({ msg: `worktrees: stop_idle failed: ${e.message}` }));
 			const finished = items.filter(i => i.state === "finished");
 			let junctions = null;
 			if (finished.length && this.removing){
@@ -235,6 +308,7 @@ export default class Worktrees extends Events {
 			at: this.last?.at ?? null, total: items.filter(i => i.state !== "removed").length,
 			pool: count("pool"), in_use: count("in use"), open: count("open"), uncommitted: count("uncommitted"),
 			finished: count("finished"), removed_today: this.removed.filter(r => new Date(r.at).toDateString() === today).length,
+			servers_stopped: this.servers_stopped,
 			junctions_ok: this.last?.junctions ? this.last.junctions.ok : null,
 			items: items.map(({ name, branch, state, why }) => ({ name, branch, state, why }))
 		};

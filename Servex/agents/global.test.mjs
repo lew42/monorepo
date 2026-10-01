@@ -258,6 +258,9 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 // entirely and it never stopped). Waking a stopped one by message is generic
 // Agents.js behavior (`send` -> `wake` -> `reopen` by session id, outside this
 // fence); the live proof on the private Servex exercises the real thing.
+// TIMING REVISED (process-monitor, ask 2b, 2026-10-01): a task-mastermind is a
+// one-off role now (`default_after`), so it sleeps the MOMENT it is found idle —
+// it no longer waits out the 3-minute `dormant_ms` first.
 {
 	reset();
 	const f = fake_servex();
@@ -265,14 +268,15 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const tm = f.add({ id: "task-mastermind-recursive-pairs", role: "task-mastermind", state: "idle", parent: "dispatcher", turns: 3, session_id: "tm-sid" });
 	f.servex.agents.live.set(tm.id, tm);
 	g.sweep(Date.now());
-	t(tm.state === "idle", "not dormant before dormant_ms");
-	g.sweep(Date.now() + g.dormant_ms + 1000);
-	t(tm.state === "dormant", "an idle task-mastermind goes dormant after dormant_ms (3 minutes), child or no child");
+	t(tm.state === "dormant", "an idle task-mastermind goes dormant the moment it is swept, not after the 3-minute dormant_ms (ask 2b: one-off roles default to 0)");
 	t(f.logged.some(l => l.type === "dormant" && l.id === "task-mastermind-recursive-pairs"), "its dormancy is logged");
 	clearInterval(g.reap_timer);
 }
 
-// The reaper
+// The reaper. TIMING REVISED (process-monitor, ask 2b, 2026-10-01): one-off roles
+// (minion, reviewer, task-mastermind) default to `dormant_after: 0` — they sleep the
+// moment they are found idle, not "every role after the same 3-minute dormant_ms" as
+// before. A plain role (manager, here) is unaffected: it still keeps dormant_ms.
 {
 	reset();
 	const f = fake_servex();
@@ -284,11 +288,88 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const mgr = a({ id: "manager-x", role: "manager", state: "idle", turns: 3 });
 	const now = Date.now();
 	g.sweep(now);
-	t(done.state === "idle", "not dormant before dormant_ms");
-	g.sweep(now + g.dormant_ms + 1);
-	t(done.state === "dormant" && f.logged.some(l => l.type === "dormant" && l.id === "minion-done"), "idle finished minion goes dormant, logged");
-	t(fresh.state === "dormant" && mgr.state === "dormant", "every role goes dormant: a turn-less minion and a manager too");
+	t(done.state === "dormant" && fresh.state === "dormant", "a one-off role (minion) sleeps the moment it is swept idle, turn-less or not — not after dormant_ms");
+	t(f.logged.some(l => l.type === "dormant" && l.id === "minion-done"), "its dormancy is logged");
+	t(mgr.state === "idle", "a plain role (manager) is NOT dormant yet: it still waits out the normal dormant_ms");
 	t(busy.state === "working", "a working agent is kept");
+	g.sweep(now + g.dormant_ms + 1);
+	t(mgr.state === "dormant", "the plain role goes dormant once dormant_ms has actually passed");
+	clearInterval(g.reap_timer);
+}
+
+// ask 2 (the RAM squeeze, 2026-10-01): free RAM under `tight_mb` shortens a PLAIN role's
+// wait from the normal `dormant_ms` (3 min) to `dormant_tight_ms` (30 s); no reading yet
+// from the process monitor keeps the normal timer; the flip is logged once each way, never
+// on every check.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const mgr = f.servex.agents.live.set("manager-tight", f.add({ id: "manager-tight", role: "manager", state: "idle", turns: 1 })).get("manager-tight");
+	f.servex.procmon = {};   // no reading yet
+	g.check_tight();
+	t(g.tight === false && g.wait_ms(mgr) === g.dormant_ms && g.dormant_ms === 180000, "no RAM reading yet: the normal 3-minute timer");
+	f.servex.procmon = { now: { free_mb: 8000 } };
+	g.check_tight();
+	t(g.tight === false, "plenty of free RAM: still the normal timer");
+	f.servex.procmon = { now: { free_mb: 5000 } };
+	g.check_tight();
+	t(g.tight === true && g.wait_ms(mgr) === g.dormant_tight_ms && g.dormant_tight_ms === 30000, "under 6 GB free (SERVEX_TIGHT_MB): the fast 30 s timer");
+	t(f.logged.filter(l => l.type === "dormant-tight").length === 1, "logged once, on the flip into tight — not on every check");
+	g.check_tight(); g.check_tight();
+	t(f.logged.filter(l => l.type === "dormant-tight").length === 1, "still once: re-checking an unchanged tight state logs nothing more");
+	f.servex.procmon = { now: { free_mb: 8000 } };
+	g.check_tight();
+	t(g.tight === false && f.logged.filter(l => l.type === "dormant-tight").length === 2, "flipping back out of tight logs exactly once more");
+	clearInterval(g.reap_timer);
+}
+
+// ask 2b (dormancy is per agent AND per request, revised 2026-10-01 16:20): the voice
+// pair's own roles never auto-sleep, however long they sit idle — ending their session is
+// some OTHER mechanism's job, never this sweep.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const sf = f.servex.agents.live.set("session-fast-v1", f.add({ id: "session-fast-v1", role: "session-fast", state: "idle", turns: 5 })).get("session-fast-v1");
+	g.sweep(Date.now());
+	g.sweep(Date.now() + 10 * g.dormant_ms);   // miles past the normal timer
+	t(sf.state === "idle", "session-fast never goes dormant on its own, however long it sits idle, in a live session");
+	clearInterval(g.reap_timer);
+}
+
+// ask 2b: a per-request `dormant_after` (what `send_to_agent`'s own argument sets directly
+// on the agent object — Servex/agents/tools.js, outside this fence) overrides the role's
+// default, warming a one-off role for exactly as long as asked.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const warm = f.servex.agents.live.set("minion-warm", f.add({ id: "minion-warm", role: "minion", state: "idle", turns: 1, dormant_after: 60 })).get("minion-warm");
+	const now = Date.now();
+	g.sweep(now);
+	t(warm.state === "idle", "dormant_after: 60 overrides the one-off role's default (0): not dormant right away");
+	g.sweep(now + 59000);
+	t(warm.state === "idle", "still warm at 59 s");
+	g.sweep(now + 61000);
+	t(warm.state === "dormant", "dormant once its own 60 s have actually passed");
+	clearInterval(g.reap_timer);
+}
+
+// ask 2b: never sleeps an agent with a live, working (or just-starting) CHILD — a reply is
+// likely imminent, and sleeping now would only add resume latency to delivering it.
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex }).install(); await g.ready;
+	const parent = f.servex.agents.live.set("manager-parent", f.add({ id: "manager-parent", role: "manager", state: "idle", turns: 2 })).get("manager-parent");
+	const child = f.servex.agents.live.set("minion-child", f.add({ id: "minion-child", role: "minion", parent: "manager-parent", state: "working", turns: 1 })).get("minion-child");
+	const now = g.last_active(parent, Date.now());   // seed its idle baseline now, while the child is already working
+	g.sweep(now + g.dormant_ms + 1000);
+	t(parent.state === "idle", "a parent with a live working child is never put dormant, even past dormant_ms");
+	child.state = "idle";
+	g.sweep(now + g.dormant_ms + 1000);
+	t(parent.state === "dormant", "once the child is no longer working, the parent goes dormant on its own normal timer");
 	clearInterval(g.reap_timer);
 }
 

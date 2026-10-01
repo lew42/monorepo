@@ -1,9 +1,13 @@
 # Dormant agents, the working cap, and compaction
 
-An idle agent costs nothing. After 3 minutes idle, its claude process exits and the agent goes
-**dormant**. It keeps its id, its session and its place in `list_agents`. The next message wakes
-it: Servex resumes the same session, and the agent answers a few seconds later with its whole
-conversation intact.
+An idle agent costs nothing. Its claude process exits and the agent goes **dormant**. It keeps
+its id, its session and its place in `list_agents`. The next message wakes it: Servex resumes the
+same session, and the agent answers a few seconds later with its whole conversation intact.
+
+**How long an agent waits before sleeping depends on its role, and can be set per agent and per
+request** (`dormant_after` — see "Per-role and per-request timing" below). The plain default,
+for a role that is neither the voice pair nor a one-off worker, is still **3 minutes**
+(`SERVEX_DORMANT_MS`).
 
 At most **5 agents work at once**. A new spawn above that waits in the spawn queue until one
 of them ends its turn.
@@ -25,7 +29,7 @@ An agent whose context passes **200k tokens**, or whose process passes **500 MB*
 dormant agent as alive, so a dormant task mastermind is never "revived" as if it had died. That is
 why the old idle release (node-reliability, 2026-09-29) needed exceptions (15 minutes for a task
 mastermind with no child, 15 for the global agents, never for assistants). Dormancy needs none:
-every role sleeps after 3 minutes.
+every role sleeps, but not all on the same clock — see "Per-role and per-request timing" below.
 
 ## How it works
 
@@ -34,13 +38,69 @@ every role sleeps after 3 minutes.
   in-process MCP servers. The registry row says `dormant`.
 - `Agent.send()` on a dormant agent calls `awaken()`: it starts a new process with
   `resume: <its session id>`, the same cwd, model, tools and options, then pushes the message.
-- `Global.sweep()` (`agents/Global.js`) runs every minute and puts every agent idle past
-  `SERVEX_DORMANT_MS` (180000) to sleep.
+- `Global.sweep()` (`agents/Global.js`) runs every minute and checks every agent against its own
+  wait (`Global.wait_ms`, below). A turn ending ALSO checks that one agent at once, through the
+  `agents.register` wrap in `reaper()` — a one-off worker does not wait for the next minute's
+  sweep to fall asleep.
 - **Kept awake:** an agent with a live background task (a background Bash or Monitor it waits
-  on would die with its process). It stays `idle`, process up, and sleeps on the first sweep
-  after the task ends. The SDK's `background_tasks_changed` message keeps that count.
+  on would die with its process — `Agent.sleep()`'s own check, unchanged) — it stays `idle`,
+  process up, and sleeps on the first sweep after the task ends; or an agent with a live CHILD
+  still `working` or `starting` (`Global.has_working_child`) — a reply is probably seconds away,
+  and sleeping the parent now would only add a resume delay to delivering it.
 - **After a Servex restart** a dormant row stays dormant. The boot never reopens it; the first
   message does (`send` → `wake` → `reopen`).
+
+## Per-role and per-request timing (`dormant_after`)
+
+Exiting after every single reply would be wrong for a live voice chat — autosend means many
+small messages, and restarting the process for each one is wasteful and slow. So how long an
+agent waits, idle, before it sleeps is not one global number — it is a property of the AGENT,
+`dormant_after`, read by `Global.wait_ms()`:
+
+| `dormant_after` | meaning |
+|---|---|
+| `"session"` | never auto-sleep, for as long as this is a live, ongoing session |
+| a number (seconds) | sleep after being idle this long; `0` means "the moment the turn ends" |
+| not set | the role's own default, below |
+
+**Role defaults** (`Global.default_after`, when nothing more specific was asked):
+- **`session-fast`, `session-smart`** (the voice session's own pair) → `"session"`. Never sleeps
+  mid-conversation; something else (the session ending) is what eventually stops these, not this
+  sweep.
+- **`minion`, `reviewer`, `task-mastermind`** (one-off work) → `0`. These mostly wait on a child
+  or on the owner anyway, and a resume is cheap (see "Measured: is a cold resume actually slow?"
+  below) — so they sleep the instant their turn ends.
+- **Every other role** (a manager, an assistant, `master-assistant`, `mastermind-servex`, the
+  Dispatcher) → the plain timer: `SERVEX_DORMANT_MS` (3 minutes) normally, or
+  `SERVEX_DORMANT_TIGHT_MS` (30 seconds) when free RAM is under `SERVEX_TIGHT_MB` (default 6144
+  MB, read from the process monitor's `free_mb` — `Global.check_tight()`, logged once on each
+  flip into or out of tight, never every tick). A dormant agent holds no process, so this is a
+  cheap, reversible way to claw back RAM the moment it is actually scarce.
+
+**Set it per agent, per request:** `spawn_agent`'s `dormant_after` sets the new agent's default;
+`send_to_agent`'s `dormant_after` changes an EXISTING agent's for its next idle wait (it sets the
+property directly on the live agent object, since `Agent.send()` itself only reads `from`,
+`reply_to` and `priority` off its note — `agents/tools.js`). Use it when you are about to read an
+agent's reply and might ask a quick follow-up (keep it warm briefly, e.g. 60 s) versus handing it
+a multi-minute review (let it sleep now; a resume when it is actually needed is cheap). The
+`mastermind` skill's own guidance: *about to read the reply and maybe follow up → `60`; handing it
+to a 3-5 minute review → `0`* (a line proposed to the skills owner, never edited here directly).
+
+**Measured: is a cold resume actually slow?** (2026-10-01, two resumes of stopped minion
+sessions three days old — past any cache TTL — one ~82k tokens, one ~215k): `time_to_request_ms`
+(process start + session load — the part of a resume that is actually DIFFERENT from an
+already-warm process) was 139-149 ms both times. That is the number this design cares about, and
+it is nowhere near "slow", so `dormant_after: 0` stays a true instant exit by default
+(`SERVEX_DORMANT_GRACE_MS`, default `0`). The first actual token still took 3.0-3.4 s either way
+(`ttft_ms`) — but that is ordinary first-token API latency, paid on any turn whether the agent
+was dormant or already running, not a cost of having exited between turns. If a future, more
+direct measurement of resume overhead alone ever does cross about 3 seconds, raise
+`SERVEX_DORMANT_GRACE_MS`: every `dormant_after: 0`, for every role, waits that long instead of
+truly zero.
+
+**RAM freed:** each sleep sums the agent's last-measured working set (`agent.rss_mb`, from
+`Global.measure()`) into `dormant_freed_mb`, shown by `Global.summary()` — today's running total
+of RAM given back this way.
 
 ## The working cap
 
