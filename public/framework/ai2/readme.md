@@ -141,6 +141,13 @@ as before. Every row says who it came from; `you` is marked.
 every reply — from the fast assistant, from a helper it started, or from a task mastermind
 working on it. Only one microphone is on at a time; pressing one stops the other.
 
+**The chat refines INTO the card, too** (2026-09-30, item 9: "chat and card are ONE content
+model"). While a card is selected and you dictate, the smart assistant also writes a refined
+reading straight into that card's own Overview — your points, newest first, with the full
+tidied-up transcript folded underneath, closed. The sidebar stays the informal rambling; the
+card's own body is the settled version. [`doc/cards.md`](./doc/cards.md)'s vocabulary list has
+the exact line shape (`chat(line)`).
+
 **What it cost.** Every group row shows what its tasks cost together, and every row that points
 at a task shows that task's dollars (a "+" means an agent on it is still running). A group's
 card opens with a table of its tasks, each split into mastermind and minions, and each task page

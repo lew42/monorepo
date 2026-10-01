@@ -64,7 +64,7 @@ export const TYPES = ["question", "request", "sub-question", "note", "task"];
 /* The words line 1 may carry that are METHODS here. ⚠ Line 1 goes through the
    constructor's `assign()`, which would REPLACE `type()` and `tags()` with
    data — Servex writes both on line 1 — so `assign()` below calls them instead. */
-const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item"]);
+const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item", "chat"]);
 
 /** Today's time alone; any other day with its date — `faces.js` holds it now. */
 export { when };
@@ -163,6 +163,22 @@ export default class Card extends Page {
 		this.talk?.sync();
 	}
 
+	/* CHAT AND CARD ARE ONE CONTENT MODEL (one-dictation item 9, 2026-09-30): while this card
+	 * is selected and the owner dictates in the global sidebar, the smart assistant refines
+	 * what was said and writes it straight into this card's own page.jsonl — the same line
+	 * `Servex/agents/Sessions.js`'s `line()` writes to the session file, shape
+	 * `{at, session, path, card, from:{kind:"assistant", id:"smart"}, via, text, re, level}`.
+	 * Only a LEVELED line reaches a card (Sessions.js only calls `cards.append` when both
+	 * `card` and `level` are set), so a plain chat echo never lands here — that one stays the
+	 * sidebar's job. `refinements()` below draws the result. */
+	chat(line){
+		if (!line?.level) return;
+		const list = this.chats ??= [];
+		const had = line.at != null && list.find(c => c.at === line.at);
+		had ? Object.assign(had, line) : list.push({ ...line });
+		this.talk?.sync();
+	}
+
 	attach(agent){ const list = this.attached ??= []; if (!list.includes(agent)) list.push(agent); }
 	detach(agent){ this.attached = (this.attached ?? []).filter(x => x !== agent); }
 	legacy(id){ (this.legacies ??= []).push(id); }
@@ -179,6 +195,7 @@ export default class Card extends Page {
 		this.legacies = [];
 		this.citing = [];
 		this.refined = null;
+		this.chats = [];
 	}
 
 	/* ── sub-cards ─────────────────────────────────────────────────────────── */
@@ -356,7 +373,7 @@ export default class Card extends Page {
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
 			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
-			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.items?.values() ?? [])]]);
+			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.items?.values() ?? [])], this.chats]);
 	}
 
 	redraw(){
@@ -703,15 +720,40 @@ export default class Card extends Page {
 		if (items.length) new Menu({ label: "Actions", items, onPick: it => it.act() }).ac("ai2-actions");
 	}
 
+	/** The page-mode reading of the dictation (item 9): `summary`/`edit` lines are the card's
+	 *  own points, newest first — reusing `.ai2-refined`, the same class the board's rows
+	 *  already use for a refined reading (`faces.js`). `clean` lines are the tidied transcript
+	 *  they came from, folded underneath in the same closed-details shape `more()` uses below,
+	 *  so a reader sees the point first and opens the words only if they want them. A card
+	 *  with no refinement yet draws nothing here — unchanged from before this feature. */
+	refinements(){
+		const chats = this.chats ?? [];
+		if (!chats.length) return;
+		// `at` is an ISO string from Servex (a number in older lines): compare as times, never subtract strings.
+		const t = c => typeof c.at === "number" ? c.at : Date.parse(c.at) || 0;
+		const by_time = (a, b) => t(b) - t(a);
+		const points = chats.filter(c => c.level === "summary" || c.level === "edit").sort(by_time);
+		const clean = chats.filter(c => c.level === "clean").sort(by_time);
+		if (!points.length && !clean.length) return;
+		if (points.length) div.c("flow", () => {
+			points.forEach(c => div.c("ai2-refined md", $t => { md_into($t.el, c.text); }));
+		});
+		if (clean.length) details.c("ai2-more", () => {
+			summary.c("ai2-more-head muted").text("What was said, cleaned up");
+			clean.forEach(c => div.c("ai2-text md", $t => { md_into($t.el, c.text); }));
+		});
+	}
+
 	/** The outline: what it is, where it stands, what was asked and delivered. Everything
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
+		this.refinements();
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 		if (this.by_request()) this.request_outline(items);
 		else outline(this, items);
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
-		if (!line && !items.length && !this.prompts?.length && !this.messages?.length)
+		if (!line && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
 			p.c("ai2-ol-about muted").text("Nothing has been asked here yet. Talk into this " + (this.parent instanceof Card ? "request" : "card") + " and your words land here.");
 		if (this.flag_note) small.c("ai2-flag-said muted")
 			.text("flagged" + (this.flag_note.quote ? " on “" + this.flag_note.quote + "”" : "") + " — " + (this.flag_note.note ?? ""));

@@ -24,6 +24,14 @@ method calls it; anything else is kept as data. The methods are the vocabulary:
 
 - `message(m)` — anything said or that happened; it lands in the chat at the bottom.
 - `prompt(p)` — the owner's own words. A later line with the same `id` is merged in.
+- `chat(line)` — a REFINEMENT of something said, one of `{"chat": {…, "level":
+  "summary"|"edit"|"clean"}}` (one-dictation item 9: "chat and card are ONE content model").
+  Written by `Servex/agents/Sessions.js`'s `line()`, the same object its own session file gets,
+  whenever the smart assistant refines what the owner said WHILE this card was selected. Drawn
+  at the top of the Overview, above everything else: `summary`/`edit` lines are the card's own
+  points, newest first; `clean` lines (the tidied transcript they came from) fold underneath in
+  a closed details box. A plain chat line with no `level` never reaches a card — Sessions.js
+  only appends a leveled one — so this is never the same thing as `message(m)` above.
 - `type(t)`, `tags(t)`, `status(s)` — the latest line wins.
 - `attach(a)`, `detach(a)`, `legacy(id)`, `cites(refs)`.
 - `file` is core's own: `{"file": "wider/page.jsonl"}` lists a sub-card.
@@ -32,7 +40,9 @@ A new kind of line is a new method on `Card`. Nothing else has to change.
 
 - `{"type": "refined", "text", …}` is **not** a retype: `Card.set()` keeps it whole as the
   card's summary (latest wins). Through core's `set()` it would have made the card a
-  "refined" and overwritten the card's own `text` and `by`.
+  "refined" and overwritten the card's own `text` and `by`. This is a DIFFERENT, older
+  mechanism than `chat(line)`'s `level` lines above (one value, latest wins, written by
+  `Servex/agents/Layers.js`, not Sessions.js) — both exist today, side by side, unmerged.
 
 ## The tabs (2026-09-25)
 
