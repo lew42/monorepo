@@ -663,6 +663,9 @@ async function main() {
 		}
 	} catch {}
 
+	// a `--model` with a `/` (an OpenRouter slug, e.g. `deepseek/deepseek-v4.1-flash`) needs
+	// nothing else here — Agents.spawn()'s slash rule (Servex/ext/openrouter/provider.js)
+	// already reads `model` and picks the openrouter provider for the spawn_agent call below
 	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5");
 	const name = path.basename(taskDir).replace(/[^a-z0-9-]+/gi, "-").slice(0, 40);
 	// A page review writes review/report.md and asks the reviewer to load the review skill;

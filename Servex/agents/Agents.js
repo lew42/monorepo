@@ -9,6 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
+import { env_for, provider_for, key_usage, read_key } from "../ext/openrouter/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -99,6 +100,11 @@ export class Agents {
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
+		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
+		 * gets the openrouter provider for free — nobody has to say `provider`
+		 * by hand. An explicit `spec.provider` always wins. */
+		const provider = spec.provider ?? provider_for(model);
 		const session_id = spec.task && !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, model, worktree: worktree_of(spec.cwd), parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		const fresh = !again && !spec.system;
@@ -109,7 +115,7 @@ export class Agents {
 			? `${base}\n\nYour task is already open at ${spec.task.dir}/task.jsonl; don't run new-task, log there.`
 			: base;
 		const agent = new this.constructor.Agent({
-			...role_defaults(spec.role), ...spec, id, prompt,
+			...role_defaults(spec.role), ...spec, id, prompt, provider,
 			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
@@ -661,6 +667,7 @@ Agents.Agent = class Agent {
 		return {
 			role: "agent",
 			model: "claude-sonnet-5",
+			provider: "anthropic",
 			effort: "high",
 			visibility: "team",
 			cwd: process.cwd(),
@@ -688,6 +695,12 @@ Agents.Agent = class Agent {
 		 * runs) — `??=` keeps that one instead of minting a second. */
 		if (this.resume && !this.fork) this.session_id ??= this.resume;
 		else { this.session_id ??= randomUUID(); this.minted = true; }
+		/* Baseline for the real-cost diff (see `refresh_or_cost()`): read the
+		 * key's running total BEFORE the first turn, so the first result() call
+		 * has something to subtract from. Fire-and-forget — a slow or failing
+		 * read just means the first turn's cost stays whatever the SDK guessed
+		 * until the next turn settles it. */
+		if (this.provider === "openrouter") this.refresh_or_cost();
 		this.query = query({ prompt: this.queue.stream(), options: this.options() });
 		this.pump(this.gen = (this.gen ?? 0) + 1);
 		if (!this.prompt){ this.state = "idle"; return this; }
@@ -708,7 +721,7 @@ Agents.Agent = class Agent {
 	 * `env` are code or secrets and are not kept; a fork keeps none. */
 	recipe(){
 		if (this.one_shot) return null;
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
 			"permission_mode", "allowed_tools", "setting_sources", "system"];
 		return strip(Object.fromEntries(keys.map(k => [k, this[k]])));
 	}
@@ -806,13 +819,18 @@ Agents.Agent = class Agent {
 	 * and nothing else", throwing away the project's own MCP servers that the
 	 * agent may well need. Servex's door is added BESIDE whatever it already has. */
 	door(){
+		/* OPENROUTER (Servex/ext/openrouter/provider.js): four env vars swap the
+		 * SDK's own Anthropic call for an OpenRouter one; read once here, right
+		 * before the process spawns, so a missing key fails this agent's own
+		 * start() with one clear line instead of a confusing SDK auth error. */
+		const or_env = this.provider === "openrouter" ? env_for("openrouter") : null;
 		const url = this.mcp_url ?? this.host?.mcp_url;
-		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers
-		if (!url) return this.mcp_servers ? { mcpServers: this.mcp_servers } : {};
+		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });
 
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
-			env: { ...process.env, SERVEX_MCP: url, ...this.env }
+			env: { ...process.env, SERVEX_MCP: url, ...(or_env ?? {}), ...this.env }
 		};
 	}
 
@@ -1056,6 +1074,24 @@ Agents.Agent = class Agent {
 		return text.length > max ? text.slice(0, max) + "…" : text;
 	}
 
+	/* THE REAL COST (openrouter/provider.js, openrouter/readme.md point 3): the
+	 * SDK's own `total_cost_usd` prices a proxied turn off ANTHROPIC's table
+	 * under the wrong model name, so it is simply wrong once a turn runs through
+	 * OpenRouter. The honest number is OpenRouter's own running dollar total for
+	 * the key, read before the turn (`start()`) and after it (here); the
+	 * difference is what that turn cost. Never awaited by its caller — a slow
+	 * or failed read just leaves `this.cost` at its last known value, never
+	 * blocks the agent's own turn from finishing. */
+	async refresh_or_cost(){
+		if (this.provider !== "openrouter") return;
+		try {
+			const now = await key_usage(read_key());
+			if (typeof this.or_usage_before === "number") this.cost = Math.max(0, now - this.or_usage_before);
+			this.or_usage_before = now;
+			this.host?.register?.(this);
+		} catch {}   // billing not settled yet, or no key — this.cost keeps its last value
+	}
+
 	/* A turn ended — but the agent is only IDLE if nothing is queued behind it.
 	 * `queued_turn_count` is how the CLI says "another turn follows without
 	 * further input"; without that check a watcher reads the gap between two
@@ -1063,7 +1099,9 @@ Agents.Agent = class Agent {
 	result(message){
 		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
+		// the SDK's own guess, kept as the number until refresh_or_cost() (below) replaces it with the real one
 		this.cost = message.total_cost_usd ?? this.cost;
+		if (this.provider === "openrouter") this.refresh_or_cost();
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		/* `words` = everything said this turn, which is what a fork's wake and
@@ -1114,6 +1152,7 @@ Agents.Agent = class Agent {
 		this.compacting = null;
 		this.compacted_turn = this.turns;
 		this.cost = message.total_cost_usd ?? this.cost;
+		if (this.provider === "openrouter") this.refresh_or_cost();
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
 		this.said = [];
