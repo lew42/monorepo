@@ -73,6 +73,7 @@ export default new Doc({
 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),
 		"playground",
 		"variants",
+		"surfaces",
 		"v1",
 	],
 
@@ -136,7 +137,7 @@ export default new Doc({
 
 		md("**Press 🎤 and talk.** With `whisper-server` running on this machine nothing else shows; without it, the small text beside the button says `the browser's recognizer`. Words appear GREYED while whisper is still guessing at the sentence in the air, and turn solid the moment a pause settles it — that live guess is what the old control never showed.");
 
-		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/). The same box under `ui-contrast ui-compact` is at [words](words/); the [old Overview](v1/) (the five-tab playground leading) is still one click away.");
+		md("**This plain mic button is what other pages embed** — no tabs, no diff view, just the one control. Want a different LOOK on top of the same mic — a wall of prompt cards, a one-line compact toolbar mic? See [Variants](/framework/ux/Dictate/variants/). Want to see the SAME `chat()` widget live on every real surface — the ✦ sheet, the drawer, a card, the dev bar — side by side, saying the same thing at once? See [Surfaces](/framework/ux/Dictate/surfaces/). The same box under `ui-contrast ui-compact` is at [words](words/); the [old Overview](v1/) (the five-tab playground leading) is still one click away.");
 
 		demo.exhibit({
 			page: this,

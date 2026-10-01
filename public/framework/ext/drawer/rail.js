@@ -1116,11 +1116,11 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 	// tells the controller where the reader is now, through the ONE `nav()` seam.
 	sync_card(){
 		this.card_ref = this.active_card();
-		this.mount?.nav(drawer.page());
+		this.mount?.nav(drawer.page(), this.card_ref?.id ?? null);
 	}
 
 	navigated(){
-		this.mount?.nav(drawer.page());
+		this.mount?.nav(drawer.page(), this.active_card()?.id ?? null);
 	}
 
 	// "New session" — resets the ONE global conversation (`chat.js`'s own `reset()`);

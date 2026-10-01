@@ -61,7 +61,19 @@ import * as Session from "/framework/ext/Session/Session.js";
  * navigation happened. `report_nav()` (below) is the single place `Session.nav()` is
  * ever actually called, compared against the controller's own last-reported path — so
  * two different callers noticing the same real navigation (the rail's own `navigated()`
- * and a fresh mount's own path) still only send ONE `nav` event, never two.
+ * and a fresh mount's own path) still only send ONE `nav` event, never two. **`nav(path,
+ * card)`** (one-dictation, item 1): a caller whose own card can change WITHOUT a fresh
+ * mount — `ext/drawer/rail.js`'s sheet, which can show a different card while it stays
+ * open — passes the new one (or `null` for none) so a later refinement is attributed correctly; see
+ * `Servex/agents/Sessions.js`'s own `nav()`/`card_at()`.
+ *
+ * **Pauses and selection** (one-dictation, items 2 and 6): `Session.report_pause()`,
+ * started once below beside `report_quiet()`, posts an invisible marker when the mic
+ * stops altogether and when it starts again — distinct from an ordinary mid-sentence
+ * quiet gap. A `window` `selection-change` event (`ext/drawer/select.js`'s own, NOT
+ * imported here since that file is still mid-merge elsewhere) is kept on `ctl.selection`
+ * and posted as its own invisible marker the moment it changes, and stamped onto the
+ * next `say()` too, so the assistants see what was picked.
  */
 
 /**
@@ -112,6 +124,8 @@ const ctl = {
 	file: null,
 	starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
 	nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
+	nav_card: null,   // the card last actually reported alongside it (item 1, one-dictation)
+	selection: null,  // the reader's last picked element, `{kind, label, text, selector}` or null (item 6)
 };
 sync_from_storage();
 
@@ -131,14 +145,30 @@ function broadcast(){ for (const fn of listeners) fn(); }
 // The ONE real navigation report, whoever calls it — deduped against `ctl.nav_path` so
 // the rail's own `navigated()` hook AND a fresh mount noticing a new path never both
 // send the same move twice ("A route change… sends Session.nav() once, from the
-// controller, not per mount" — this task's own brief).
-function report_nav(path){
-	if (!ctl.session){ ctl.nav_path = path; return; }
-	if (path === ctl.nav_path) return;
+// controller, not per mount" — this task's own brief). `card` (item 1, one-dictation) is
+// the card selected right now, or undefined for none — it travels with every nav report
+// so a refinement written later can be attributed to the right card even after the owner
+// has since moved on (`doc/sessions.md`'s "Refinement goes to the card selected at the
+// time"; `Servex/agents/Sessions.js`'s `nav()` + `card_at()` do the actual attribution).
+function report_nav(path, card){
+	if (!ctl.session){ ctl.nav_path = path; ctl.nav_card = card; return; }
+	if (path === ctl.nav_path && card === ctl.nav_card) return;
 	const from = ctl.nav_path;
-	ctl.nav_path = path;
-	Session.nav({ session: ctl.session, from, to: path }).catch(() => {});
+	ctl.nav_path = path; ctl.nav_card = card;
+	Session.nav({ session: ctl.session, from, to: path, card }).catch(() => {});
 }
+
+// THE PAGE SELECTION (item 6, one-dictation: task-mastermind-selection's own
+// `ext/drawer/select.js`, `selection-change` on `window`, detail `{kind, label, text,
+// selector, url}` or null). That file is still mid-merge elsewhere, so this never imports
+// it — it only listens for the plain DOM event any version of it can dispatch. Kept at
+// the controller level, not per mount, since one browser tab has only one selection.
+// Reported the moment it changes (an invisible `select` line, same shape `nav` takes)
+// AND kept on `ctl.selection` so the next `say()` can stamp it onto that sentence too.
+window.addEventListener("selection-change", e => {
+	ctl.selection = e.detail ?? null;
+	if (ctl.session) Session.select({ session: ctl.session, selection: ctl.selection }).catch(() => {});
+});
 
 // The first sentence, from ANY mount, starts (or silently resumes, inside `Session.
 // start()` itself) the one session this browser tab will ever use until a reset.
@@ -193,6 +223,7 @@ function reset(){
 function current(){ return ctl.session; }
 
 Session.report_quiet(() => ctl.session);   // started once, here — never one watcher per mount
+Session.report_pause(() => ctl.session);   // the mic stopping and starting again (item 2, one-dictation)
 
 /**
  * Draw a chat `Widget` into `el` and wire it to the ONE global session. `path` is this
@@ -222,7 +253,7 @@ export default function chat(el, { path = location.pathname, card, placeholder }
 					floor.stamp(entry);
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
 					const r = await Session.say({ session: ctl.session, path: target.path, text: entry.text,
-						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, ...thread });
+						via, raw: entry.raw, floor: entry.floor, cues: entry.cues, selection: ctl.selection, ...thread });
 					own_ats.add(r.at);
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") watch_floor();
@@ -280,14 +311,19 @@ export default function chat(el, { path = location.pathname, card, placeholder }
 	}
 
 	attach();
-	report_nav(target.path);
+	report_nav(target.path, target.card);
 	const unsubscribe = subscribe(attach);
 
 	return {
 		panel,
 		session: () => ctl.session,
 		// Told by the caller on a real in-app navigation — see this file's own class doc.
-		nav(path){ target.path = path; report_nav(path); },
+		// `card` is optional (item 1): a caller that only knows the new PATH (most of them)
+		// can still call `nav(path)` alone, and whatever card this mount already had keeps
+		// being reported; a caller that tracks its own card changing under an open mount
+		// (`ext/drawer/rail.js`'s sheet, which can show a different card without rebuilding)
+		// should pass the new one too, `nav(path, newCardId)`, so it is not lost.
+		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; report_nav(path, target.card); },
 		// This ONE mount is gone; the global session, its file and its watch (any OTHER
 		// mount's own) all carry on untouched.
 		remove(){

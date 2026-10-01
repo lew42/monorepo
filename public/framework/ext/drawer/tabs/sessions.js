@@ -8,7 +8,7 @@ import * as Session from "/framework/ext/Session/Session.js";
 /* THE SESSIONS TAB — three lists, most important first (one-dictation, 2026-09-30):
    1. the live voice session, if this browser tab has one — `chat.js`'s own global
       session, marked "live" (`chat.current()`).
-   2. the PROJECT's other recent voice sessions (`project_recent()`, below) — not
+   2. the PROJECT's other recent voice sessions (`Session.recent_project()`) — not
       only this page's any more (review #8: "now that sessions are global… the
       project's recent sessions from any page"). Tapping one RESUMES it
       (`chat.resume()`), which becomes the new live session everywhere, then opens
@@ -22,33 +22,14 @@ import * as Session from "/framework/ext/Session/Session.js";
 
    `threads()` is the one thread walk: dev/DevBar/ask.js imports it from here.
    `ago()` — "1 day ago" — is now imported from `ux/Dictate/chat.js` (review fix
-   #9): this file and `ext/drawer/rail.js` used to each carry their own copy. */
+   #9): this file and `ext/drawer/rail.js` used to each carry their own copy.
 
-/* THE PROJECT'S sessions, not only this page's (review #8, 2026-09-30).
- * `Session.recent(page)` (`ext/Session/Session.js`'s own doc: "the sessions
- * started on, or passing through, `page`") only ever answers for ONE folder — there
- * is no project-wide call to ask it for instead, and the endpoint that could answer
- * one (`Servex/agents/Sessions.js`) is outside this task's fence, same as
- * `ext/Session/` itself. The best this file can do without either: ask for this
- * page's own folder AND the site's root folder, and merge, de-duped, newest first.
- * A session the owner carried across many pages in one GLOBAL conversation
- * (`chat.js`'s own `nav()`, called on every real navigation) visits both on its
- * way, so it surfaces from either query; an OLDER, unrelated session that never
- * passed through this page or the root still will not — a true project-wide list
- * needs that endpoint. Flagged in this task's own log for whoever owns it next. */
-async function project_recent(page, limit){
-	const [here, root] = await Promise.all([
-		Session.recent(page, { limit }).catch(() => []),
-		page === "/" ? [] : Session.recent("/", { limit }).catch(() => []),
-	]);
-	const seen = new Set(), out = [];
-	for (const row of [...here, ...root]){
-		if (seen.has(row.session)) continue;
-		seen.add(row.session);
-		out.push(row);
-	}
-	return out.sort((a, b) => Date.parse(b.last_at ?? b.at) - Date.parse(a.last_at ?? a.at)).slice(0, limit);
-}
+   `project_recent()`, which used to fake a project-wide list by asking this page's
+   own folder AND the site root and merging (review #8's own flagged gap — an OLDER,
+   unrelated session that never passed through either one could still be missed), is
+   GONE: item 4 (one-dictation) added the real thing, `Servex/agents/Sessions.js`'s
+   `recent_project()` (`GET /api/sessions?project=1`), wrapped here by
+   `ext/Session/Session.js`'s own `Session.recent_project()`. */
 
 // ⚠ The SPA fallback answers every miss with index.html — the content-type is the 404.
 const json = url => fetch(url)
@@ -104,7 +85,7 @@ export default function sessions({ page, card, tabs }){
 
 		div.c("drawer-rows flex v", async $rows => {
 			const live = chat.current();
-			const recent = await project_recent(page, 10).catch(() => []);
+			const recent = await Session.recent_project({ limit: 10 }).catch(() => []);
 			$rows.append(() => {
 				if (!recent.length) small.c("drawer-wait muted", "No voice sessions yet — say something to start one.");
 				recent.forEach(row => {

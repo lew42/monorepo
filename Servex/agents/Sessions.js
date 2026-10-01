@@ -14,6 +14,17 @@ const REPO = path.join(HERE, "../..");
 export const LEVELS = ["clean", "edit", "summary"];
 /* Is the owner still talking? Stamped by the composer (ext/Chat/doc/floor.md). */
 export const FLOORS = ["speaking", "done"];
+/* A pause marker's `phase` (one-dictation, item 2): the mic going off ("start") or coming back
+ * on ("end") — ext/Session/Session.js's `pause()`/`report_pause()`. */
+export const PAUSE_PHASES = ["start", "end"];
+/* What the chat is told about one picked element (ext/drawer/select.js's `item()`):
+ * `{kind, label, text, selector}`. Used to prefix the words sent to the assistants
+ * (`selected_prefix()` below) the same way Layers.js's `heard()` already does for a card chip. */
+/* A selection is kept small: its text is trimmed so a big selected block does not land on every line. */
+const trim_sel = sel => sel && typeof sel === "object"
+	? { ...sel, ...(typeof sel.text === "string" && sel.text.length > 500 ? { text: sel.text.slice(0, 500) + "…" } : {}) } : null;
+const selected_prefix = sel => sel && typeof sel === "object"
+	? `[Selected: ${sel.label ?? sel.kind ?? "element"} (${sel.selector ?? "?"})] ` : "";
 
 /* `<dir>/ai/log.jsonl`: a MINIMAL index of AI work in one folder, presence only, each line
  * pointing at its detail file. These three shapes and nothing else (voice-sessions item 8). */
@@ -357,6 +368,22 @@ export default class Sessions {
 			.slice(0, Math.max(1, Number(limit) || 10));
 	}
 
+	/* EVERY session of one PROJECT, any page or card it ever touched, newest first — item 4
+	 * (one-dictation): the real project-wide list. `recent()` above only ever answers for ONE
+	 * folder (walking that folder's own `ai/log.jsonl` plus every session whose home/visited
+	 * names it); this instead just filters the WHOLE map by project, which is the only way to
+	 * be sure an older session that happened to pass through neither this page nor the root
+	 * still surfaces (`ext/drawer/tabs/sessions.js`'s own `project_recent()` used to fake this
+	 * with a two-query merge, which could still miss one). */
+	recent_project({ project, host = null, limit = 10 } = {}){
+		project ??= this.project_of(host);
+		return Object.values(this.map)
+			.filter(s => this.project(s) === project)
+			.map(s => ({ session: s.id, home: s.home, ...this.summary_of(s), at: s.at, last_at: s.last_at ?? s.at }))
+			.sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at))
+			.slice(0, Math.max(1, Number(limit) || 10));
+	}
+
 	summary_of(s){
 		try { const j = JSON.parse(fs.readFileSync(this.summary_file(s), "utf8")); return { title: j.title ?? null, summary: j.summary ?? null }; }
 		catch { return { title: s.title ?? null, summary: s.summary ?? null }; }
@@ -382,26 +409,56 @@ export default class Sessions {
 	}
 
 	/* A line from the smart assistant. `re` alone: a reply to that owner line. `re` +
-	 * `level`: a REFINED version of it, drawn under the raw words. */
+	 * `level`: a REFINED version of it, drawn under the raw words.
+	 *
+	 * ITEM 3 (one-dictation): "refinement goes to the card selected at the time" — the session
+	 * is GLOBAL now, so by the time the smart assistant gets around to writing a refinement the
+	 * owner may well have navigated to a different card already. `s.path` (the session's CURRENT
+	 * location) would attribute the line to wherever the owner is NOW, not where they were when
+	 * they said it — so this reads the ORIGINAL owner line back (`find_line`) and uses ITS own
+	 * `path`, plus whichever card `card_at()` finds was selected at that same moment, instead. */
 	line({ session, text, re, level } = {}){
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		if (level != null && !LEVELS.includes(level)) throw Object.assign(new Error(`level must be one of ${LEVELS.join(", ")}`), { status: 400 });
 		/* Never guessed (review item 12): a refinement attached to the wrong owner line is worse than none. */
 		if (level != null && !re) throw Object.assign(new Error("a refined line needs `re`, the `at` of the owner line it refines"), { status: 400 });
-		const line = { at: now_ms(), session: s.id, path: s.path, from: { kind: "assistant", id: "smart", agent: s.smart }, via: "text", text,
+		const original = re ? this.find_line(s, re) : null;
+		const path = original?.path ?? s.path;
+		const card = this.card_at(s, original?.at ?? now_ms());
+		const line = { at: now_ms(), session: s.id, path, ...(card ? { card } : {}),
+			from: { kind: "assistant", id: "smart", agent: s.smart }, via: "text", text,
 			...(re ? { re } : {}), ...(level ? { level } : {}) };
 		this.write(s, { chat: line });
 		return { ok: true, at: line.at };
 	}
 
+	/* THE CARD SELECTED AT A GIVEN MOMENT (item 3, above). A CARD SESSION never wanders — its
+	 * home is that one card for its whole life — so there is nothing to look up. A GLOBAL
+	 * session's card changes only through a `nav` line's own `card` field (item 1): the latest
+	 * one at or before `at` wins; none yet found means no card was selected then. */
+	card_at(s, at){
+		let found = s.card ?? null;   // the card it started on, until a nav line says otherwise
+		try {
+			for (const l of fs.readFileSync(this.disk(s.file), "utf8").split("\n")){
+				if (!l.trim()) continue;
+				let j; try { j = JSON.parse(l); } catch { continue; }
+				if (!j.nav || j.nav.at > at) continue;
+				found = j.nav.card ?? null;
+			}
+			return found;
+		} catch { return found; }
+	}
+
 	/* `floor` and `cues` (ext/Chat/doc/floor.md) are optional and stored on the owner's line;
 	 * a say with no floor counts as "done", as before the floor existed. `raw` is what Whisper
-	 * heard when the clean-up changed it; `quiet_ms` is how long the owner had been quiet. */
+	 * heard when the clean-up changed it; `quiet_ms` is how long the owner had been quiet.
+	 * `selection` (item 6) is the element the reader had picked, `{kind, label, text, selector}`
+	 * or omitted — kept on the line AND prefixed onto what the assistants are sent, below. */
 	/* A THREADED reply (the owner pressed Reply on a bubble): `re` = that bubble's `at`,
 	 * `thread: true`. It is kept on the owner's line, the assistants are told which line
 	 * it answers, and their replies to it are threaded under the same bubble. */
-	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread } = {}){
+	say({ session, path: at, text, via = "text", raw, floor, cues, quiet_ms, re, thread, selection } = {}){
 		const s = this.get(session);
 		if (!String(text ?? "").trim()) throw Object.assign(new Error("text is required"), { status: 400 });
 		if (floor != null && !FLOORS.includes(floor)) throw Object.assign(new Error(`floor is ${FLOORS.join(" or ")}`), { status: 400 });
@@ -410,7 +467,8 @@ export default class Sessions {
 		const line = { at: now_ms(), session, path: site, from: { kind: "owner" }, via, text,
 			...(raw && String(raw).trim() && raw !== text ? { raw: String(raw) } : {}),
 			...(floor ? { floor } : {}), ...(cues && typeof cues === "object" ? { cues } : {}),
-			...(thread && re ? { re: String(re), thread: true } : {}) };
+			...(thread && re ? { re: String(re), thread: true } : {}),
+			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
@@ -435,20 +493,27 @@ export default class Sessions {
 			this.release_thought(s, "then typed this");
 		} else {
 			s.fast_re = line.at;
-			this.send(s, "fast", `[on ${site}] ${text}`);
+			this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
 			this.gather(s, line);
 		}
 		return { ok: true, at: line.at, answered_by: [
 			{ kind: "assistant", id: "fast", agent: s.fast }, { kind: "assistant", id: "smart", agent: s.smart }] };
 	}
 
-	nav({ session, from, to } = {}){
+	/* `card` (item 1, one-dictation): the card selected at this exact moment, or omitted for
+	 * none. Written onto the `nav` line itself (so `card_at()`, above, can look it back up for a
+	 * late-arriving refinement) AND pushed as an invisible note for the FAST assistant — before
+	 * this, only the smart assistant's own `moves` batching (`gather`/`release_thought`, below)
+	 * ever mentioned a move at all, so the fast one never learned of a navigation that came with
+	 * no new words. */
+	nav({ session, from, to, card } = {}){
 		const s = this.get(session);
 		const dest = page_path(to);
 		if (!dest) throw Object.assign(new Error(`"${to}" is not a page path`), { status: 400 });
-		const line = { at: now_ms(), from: page_path(from) ?? s.path, to: dest };
+		const line = { at: now_ms(), from: page_path(from) ?? s.path, to: dest, ...(card ? { card } : {}) };
 		this.write(s, { nav: line });
 		(s.moves ??= []).push(dest);
+		((s.notes ??= {}).fast ??= []).push(`(the owner moved to ${dest}${card ? `, card ${card}` : ""})`);
 		s.path = dest;
 		this.point(s, dest);
 		this.save();
@@ -542,7 +607,7 @@ export default class Sessions {
 			s.smart_re = w.lines[w.lines.length - 1].at;
 			this.save();
 			this.wake(s, "smart");
-			this.send(s, "smart", nav + w.lines.map(l => `[on ${l.path} at ${l.at}] ${l.text}`).join("\n"));
+			this.send(s, "smart", nav + w.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path} at ${l.at}] ${l.text}`).join("\n"));
 		};
 		w.timer = setTimeout(fire, this.quiet_ms);
 		this.waiting.set(s.id, w);
@@ -566,7 +631,7 @@ export default class Sessions {
 		this.thoughts.delete(s.id);
 		const moves = (s.moves ?? []).splice(0);
 		const nav = moves.length ? `(now on ${moves[moves.length - 1]})\n` : "";
-		const said = h.lines.map(l => `[on ${l.path}] ${l.text}`).join("\n");
+		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
 		const tail = `\n(the owner has stopped: ${why})`;
 		s.fast_re = s.smart_re = h.lines[h.lines.length - 1].at;
 		this.save();
@@ -586,6 +651,27 @@ export default class Sessions {
 		const released = (mic_off || n >= this.answer_quiet_ms)
 			&& this.release_thought(s, mic_off ? "the mic went off" : `quiet for ${(n / 1000).toFixed(1)} s`);
 		return { ok: true, released };
+	}
+
+	/* A PAUSE (item 2, one-dictation): the mic stopping altogether ("start") or picking back up
+	 * ("end"), maybe minutes later — different from the ordinary mid-sentence quiet `quiet()`
+	 * already reports. An invisible line, same category as `quiet`/`skip`: real context, never a
+	 * bubble. `ext/Session/Session.js`'s `report_pause()` is what actually calls this. */
+	pause({ session, phase } = {}){
+		const s = this.get(session);
+		if (!PAUSE_PHASES.includes(phase)) throw Object.assign(new Error(`phase is ${PAUSE_PHASES.join(" or ")}`), { status: 400 });
+		this.write(s, { pause: { at: now_ms(), phase } });
+		return { ok: true };
+	}
+
+	/* A SELECTION CHANGE (item 6, one-dictation): the element the reader picked on the page
+	 * changed, or was cleared (`selection: null`) — written the moment it happens, not only at
+	 * the next sentence, so a later reader can tell what was on screen at any past moment.
+	 * Invisible, same as `nav`/`pause`/`quiet`. */
+	select({ session, selection } = {}){
+		const s = this.get(session);
+		this.write(s, { select: { at: now_ms(), selection: trim_sel(selection) } });
+		return { ok: true };
 	}
 
 	send(s, role, text){
@@ -801,7 +887,7 @@ export default class Sessions {
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
 		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"]]){
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"], ["pause", "pause"], ["select", "select"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : verb === "react" ? { ...b, from: { kind: "owner" } } : b)); }
@@ -810,12 +896,17 @@ export default class Sessions {
 		}
 		router.get("/api/sessions", cors, (req, res) => {
 			try {
+				const project = this.project_of(host_of(req, { host: req.query.host }));
+				// `?project=1` (item 4): every session of this project, any page or card —
+				// `ext/Session/Session.js`'s `recent_project()`. Checked before `?card=`/`?page=`,
+				// since a project-wide list names neither.
+				if (req.query.project) return res.json({ ok: true, sessions: this.recent_project({ project, limit: req.query.limit }) });
 				let page = req.query.page ?? "/";
 				if (req.query.card){
 					page = this.card_home(req.query.card);
 					if (!page) throw Object.assign(new Error(`"${req.query.card}" is not a known card`), { status: 400 });
 				}
-				res.json({ ok: true, sessions: this.recent({ page, limit: req.query.limit, project: this.project_of(host_of(req, { host: req.query.host })) }) });
+				res.json({ ok: true, sessions: this.recent({ page, limit: req.query.limit, project }) });
 			}
 			catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 		});
