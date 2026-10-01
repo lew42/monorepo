@@ -9,13 +9,15 @@ A session starts on the page you are on (its home), follows you from page to pag
 ## Use
 
 ```js
-import { start, resume, recent, say, floor, nav, react, watch, entry } from "/framework/ext/Session/Session.js";
+import { start, resume, recent, say, floor, nav, pause, report_pause, select, react, watch, entry } from "/framework/ext/Session/Session.js";
 
 const { session, file, resumed, previous } = await start({ path: location.pathname });
 const stop = watch(file, line => draw(entry(line)));   // every line, old and new
 await say({ session, text: "can you hear me?", via: "voice", floor: "speaking" });
 await floor({ session, floor: "done" });               // the owner stopped talking: the held fast reply lands
-await nav({ session, from: "/a/", to: "/b/" });
+await nav({ session, from: "/a/", to: "/b/", card });   // card: optional, the card showing now
+const unpause = report_pause(() => session);   // writes pause start/end as the mic stops and starts again
+await select({ session, selection });            // the element the reader picked; null clears it
 const rows = await recent(location.pathname);          // this page's sessions, newest first
 await resume(rows[0].session);                          // continue one
 const unlive = stream(session, ev => ev.kind === "stream" ? panel.stream(ev.role, ev.text) : draw(ev.line));

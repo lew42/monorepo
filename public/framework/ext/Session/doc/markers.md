@@ -13,6 +13,8 @@ that?" even long after the moment has passed.
 | `pause` | the mic stops altogether, and starts again later (not just an ordinary mid-sentence quiet gap) | tells the assistants "the owner put the mic down and picked it back up", which reads differently than a pause mid-thought |
 | `select` | the reader picks (or clears) an element on the page, such as a paragraph or a card | lets the assistants know exactly what was on screen and selected at any past moment |
 
+`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`).
+
 All three are written by `Session.js` (`nav()`, `pause()`/`report_pause()`, `select()`) and are
 never turned into a chat bubble — `Session.entry()` skips them on purpose, the same way it
 already skips `quiet` and `skip` lines. The file format for each one is in

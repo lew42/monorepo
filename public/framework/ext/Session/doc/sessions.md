@@ -11,7 +11,9 @@ One session is one append-only file, `public<home>ai/<session>.jsonl`. The brows
 {"chat": {"at": "…", "session": "v-1xrmuro", "path": "/framework/", "from": {"kind": "owner"}, "via": "voice", "text": "can you hear me?"}}
 {"chat": {"at": "…", "session": "v-1xrmuro", "path": "/framework/", "from": {"kind": "assistant", "id": "fast", "agent": "session-fast-v-1xrmuro"}, "via": "text", "text": "…", "re": "<the owner line's at>"}}
 {"chat": {"at": "…", …, "from": {"kind": "assistant", "id": "smart", …}, "text": "<the owner's words, cleaned>", "re": "<the owner line's at>", "level": "clean"}}
-{"nav": {"at": "…", "from": "/framework/", "to": "/framework/ext/"}}
+{"nav": {"at": "…", "from": "/framework/", "to": "/framework/ext/", "card": "<card id, when one is showing>"}}
+{"pause": {"at": "…", "phase": "start"}}
+{"select": {"at": "…", "selection": {"kind": "p", "label": "this paragraph", "text": "…", "selector": "main p"}}}
 {"backing": {"at": "…", "fast": "<uuid>", "smart": "<uuid>", "how": {"fast": "resume", "smart": "fresh"}}}
 {"quiet": {"at": "…", "ms": 2500, "path": "/framework/"}}
 {"skip": {"at": "…", "role": "fast", "text": "(listening)", "re": "<the owner line's at>"}}

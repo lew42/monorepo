@@ -71,6 +71,8 @@ owner navigates the page underneath it, so it has to tell this file when that ha
   - **leaving `card` out entirely (`undefined`)** means "nothing changed" — keep reporting
     whatever card this mount already had.
 
+`mount.nav()` is not the session's own `nav()`. It updates this mount's page and card, then calls `Session.nav({session, from, to, card})` in [`ext/Session`](/framework/ext/Session/), which is what writes the invisible `nav` line ([markers.md](/framework/ext/Session/doc/markers.md)).
+
 This matters because a later message gets credited to whichever card was showing when it was
 said (`ext/Session/doc/markers.md`'s "card attribution"), even if the owner has since moved on.
 
@@ -88,6 +90,13 @@ in the background. It now keeps the one mount it built in a module-level variabl
 `remove()` on it before building the next one — and also removes it if the tab is torn down a
 different way (the whole drawer closing, or a different tab taking over its content), so nothing
 is ever left running after its box is gone from the page.
+
+## Adding a new surface
+
+1. Call `chat(el, { path, card })` once, into the box the surface owns.
+2. Keep the mount it returns. Call `mount.remove()` when the box goes away, and before you build a new mount in the same place.
+3. Call `mount.nav(path, card)` only if the box stays on screen while the page or card under it changes (like the ✦ sheet).
+4. Add the surface to the [Surfaces](/framework/ux/Dictate/surfaces/) page, so everyone sees it.
 
 ## The older versions, still kept reachable
 
