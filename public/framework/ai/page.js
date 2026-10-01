@@ -1,4 +1,13 @@
-import { Page, md, div, AITask } from "/app.js";
+import { Page, md, div, a, h1, AITask } from "/app.js";
+import AIRail, { card_page } from "/framework/ai2/rail.js";   // the Inbox and Log tabs: the same rail AI 2 draws
+
+/* WHAT A RAIL ROW CAN BE CALLED — the tabs beside it, Live, Now, the views, a changed site
+   page, a dated card folder (`2026/…`), and the ids of rows that are not folders: a spoken
+   sentence (`p-393`), a stalled ask (`ask:…`), an old board card (a uuid, `topic-…`).
+   ⚠ Only these shapes: AI 2 claims EVERY unknown name as a card, but here a real folder
+   with its own page.js (`v/`, `talk/`, `collab/`…) is found by the probe AFTER route(). */
+const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
+const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
@@ -19,6 +28,8 @@ export default new Page({
 
 	// One nav link, whatever the date children say: the rail below is the way in.
 	leaf: true,
+	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+	classes: v1() ? undefined : "full fill",
 	children: "asks process review council audits 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
 
 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
@@ -28,18 +39,21 @@ export default new Page({
 	board_drawn: true,
 	content(){
 		if (!v1()){
-			// The same top tabs as a module's docs (the owner, 2026-09-30). The first
-			// tab owns this url; each tab's page is routed below (tab_page, overview.js).
-			// ⚠ The default tab is never routed to: tabs() only looks it up, so add it now.
-			// ⚠ Add every tab now, not only the default: the strip labels a tab from its
-			// page's `label`, and only once `loading` says every child is real, so a tab
-			// added late reads as its bare url name ("skills") until it is opened.
-			for (const t of TABS) if (!this.children.has(t)) this.add(t, tab_page(this, t));
-			this.loading ??= Promise.resolve();
-			const $tabs = this.tabs(TABS.join(" ")).ac("wide");   // the panel fills the screen, not the text measure
-			// Five short tabs wrap at a phone width rather than scroll: ext/tabs hides the
-			// scrollbar, so a scrolled strip loses Overview off the left edge.
-			$tabs.el.querySelector(".tab-bar")?.style.setProperty("flex-wrap", "wrap");
+			// THE BAND: the title and the tabs, one strip, as AI 2 has them. Inbox owns the bare
+			// url and wears `.tab-default` (ext/tabs' "not really a match" flag), so a card url,
+			// which matches no tab, lights Inbox by ext/tabs' first-child fallback.
+			div.c("inbox-head", () => {
+				div.c("doc-well", () => h1.c("doc-title h2", "AI"));
+				div.c("tabs block", () => div.c("tab-bar", () => {
+					a.c("tab tab-default").href(this.url).text("Inbox");
+					a.c("tab").href(this.url + "log/").text("Log");
+					a.c("tab").href(this.url + "system/").text("System");
+				}));
+			});
+			// THE RAIL — `AIRail`, the same class AI 2 builds: one of everything (CLAUDE.md law 6).
+			// Every page routed here opens in its detail column; a card beside the rail, any
+			// other page across the whole width (`add()` below).
+			this.ai2 = new AIRail({ page: this }).mount();
 			return;
 		}
 
@@ -67,6 +81,16 @@ export default new Page({
 	// `effort/` is the second segment a category tag can claim, and it earns the
 	// nesting: a bare slug here is indistinguishable from a typo, and would turn
 	// every miss under /framework/ai/ into a blank filter.
+	/* WHAT SITS BESIDE THE RAIL: the Inbox and Log tabs, a card, Live, Now and the card views.
+	   Every other page routed here (System, a day, a concept, the old board views) takes the
+	   whole width — `inbox-takeover` (ux/Inbox/Inbox.css) steps the rail aside while it is open. */
+	add(name, child){
+		const page = Page.prototype.add.call(this, name, child);
+		if (!v1() && !RAIL_ID.test(name))
+			page.classes = [page.classes, "inbox-takeover"].filter(Boolean).join(" ");
+		return page;
+	},
+
 	route(name){
 		/* THE FIVE VIEWS ARE FIVE URLS (board-declutter, 2026-09-22) —
 		   `/framework/ai/days/`, `/framework/ai/now/`, `/framework/ai/grid/`,
@@ -78,7 +102,8 @@ export default new Page({
 		   of the five can ever look like a date, `log` or `effort`. The board
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
-		if (TABS.includes(name)) return tab_page(this, name);
+		// (Under ?v1 the old board owns `log/`: the task log below.)
+		if (TABS.includes(name) && !(v1() && name === "log")) return tab_page(this, name);
 		// Old urls keep working: the Overview is now System, and its parts moved under it.
 		if (name === "overview") return tab_page(this, "system", this.url + "overview/");
 		if (SYSTEM_PARTS.includes(name)) return tab_page(this, name);
@@ -94,6 +119,13 @@ export default new Page({
 		// needed for a one-note read), same content AI 2's own `/framework/ai2/now/`
 		// shows (`ai2/page.js`, `card_page(this, "now")`).
 		if (name === "now") return now_page(this);
+
+		// THE RAIL'S OWN ADDRESSES — Live, a card at its real folder (`2026/09/30/<card>/`, the
+		// year, month and day are pages too), the card views, a changed site page. The same
+		// `AIRail.route()` AI 2 uses, so a card opens the same way on both.
+		if (!v1() && (name === "live" || name === "view" || name === "framework" || /^\d{4}$/.test(name))) return AIRail.route(this, name);
+		// A row that is not a card folder opens the same card page AI 2 gives it.
+		if (!v1() && CARD_ID.test(name)) return card_page(this, name);
 
 		const board_view = board_route(this, name);
 		if (board_view) return board_view;
@@ -127,11 +159,13 @@ export default new Page({
 		// its own page.js, for one reason — the date route above is a regex on the
 		// SAME segment, and a declared child would have to be kept out of its way
 		// forever. `effort/` is the prior art; `log` can never look like a date.
-		// Year/month/day path dirs (2026/09/25/<card>/…) are bare pass-throughs, so a card's own page.js is reachable below them.
+		// ?v1 only: the year/month/day dirs as bare pass-throughs (the rail answers them above).
 		if (/^\d{4}$/.test(name)){ const seg = (n, u, d) => new Page({ title: n, url: u, content(){}, route(m){ if (d < 3 && /^[\w-]+$/.test(m)) return seg(m, u + m + "/", d + 1); } }); return seg(name, this.url + name + "/", 0); }
 
-		if (name === "log") return new Page({
-			title: "Everything", icon: "history", url: this.url + "log/",
+		// THE TASK LOG — every task of every day, in flight first. It was `log/` until the Log
+		// tab (the rail at floor 0) took that url; under ?v1 `log/` still draws it.
+		if (name === "all-tasks" || name === "log") return new Page({
+			title: "Everything", icon: "history", url: this.url + name + "/",
 			description: "Every task of every day, in-flight first, forty at a time.",
 			content(){ return log_board(this); },
 		});
@@ -153,7 +187,7 @@ export default new Page({
    (the site's own no-DOM-after-an-await rule) so a slow fetch never leaves half a page. */
 function now_page(root){
 	return new Page({
-		title: "Now", icon: "push_pin", url: root.url + "now/",
+		title: "Now", icon: "push_pin", url: root.url + "now/", classes: "inbox-page",
 		content(){
 			const $box = div.c("ai-now");
 			fetch(this.url + "page.jsonl").then(r => r.ok ? r.text() : "").then(text => {

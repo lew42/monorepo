@@ -92,7 +92,7 @@
 		display: flex;
 		flex-wrap: wrap;
 		--gutter-x: clamp(1em, 2%, 3em);
-		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--well: var(--darken-1);
 		--tab-fill: var(--ground, var(--wash));
 	}
 
@@ -156,6 +156,11 @@
 
 	.inbox-shell:has(> .inbox-detail > .page.inbox-takeover:is(.active-page, .active-ancestor)) > :is(.inbox-rail, .inbox-sub) {
 		display: none;
+	}
+
+	/* A page opened UNDER a takeover (a day's task) is not marked itself: the column scrolls. */
+	.inbox-shell:has(> .inbox-detail > .page.inbox-takeover:is(.active-page, .active-ancestor)) > .inbox-detail {
+		overflow-y: auto;
 	}
 
 	/* A page in the detail column scrolls by itself (the column never does). A takeover
@@ -327,11 +332,11 @@
 		height: 1.4em;
 		padding-inline: 0.35em;
 		margin-inline-start: 0.4em;
-		border-radius: 999px;
+		border-radius: var(--radius);
 		font-size: 0.75em;
 		font-weight: 700;
 		background: var(--prim);
-		color: var(--on-prim, #fff);
+		color: white;   /* framework.css's own `.prim` text: there is no on-colour token */
 	}
 
 	.inbox-badge:not([hidden]) { display: inline-flex; }
@@ -345,7 +350,7 @@
 		inset-inline: 0.7em;
 		top: 0.5em;
 		width: auto;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+		box-shadow: 0 2px 8px var(--shade-a32);
 	}
 
 	.inbox-new.on {
@@ -364,11 +369,11 @@
 		margin-block-end: var(--gap-35, 0.5em);
 		font-size: 0.8em;
 		padding: 0.25em 0.7em;
-		border-radius: 999px;
+		border-radius: var(--radius);
 		background: var(--surface);
 		border: 1px solid var(--line);
 		color: var(--subtle);
-		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+		box-shadow: 0 1px 4px var(--shade-a16);
 	}
 
 	.inbox-updated:hover { color: var(--ink); border-color: var(--prim); }
@@ -522,7 +527,7 @@
 		display: inline-block;
 		min-width: 1.6em;
 		padding: 0.05em 0.4em;
-		border-radius: 1em;
+		border-radius: var(--radius);
 		background: var(--fill-a08);
 		font-size: 0.75em;
 		font-weight: 700;
@@ -620,6 +625,11 @@
 		/* A sub-page is open: the detail stands aside for it. Keyed on the SUB column. */
 		.inbox-shell:has(> .inbox-sub > .page:is(.active-page, .active-ancestor)) > .inbox-detail { display: none; }
 		.inbox-shell:has(> .inbox-sub > .page:is(.active-page, .active-ancestor)) > .inbox-sub { display: block; }
+
+		/* A TAB THAT IS THE RAIL'S OWN VIEW (the AI page's Inbox and Log: `inbox-tab inbox-page`)
+		   has nothing to show but the rail, so on a phone the rail is that screen. */
+		.inbox-shell:has(> .inbox-detail > .page.inbox-tab.inbox-page.active-page) > .inbox-rail { display: flex; }
+		.inbox-shell:has(> .inbox-detail > .page.inbox-tab.inbox-page.active-page) > .inbox-detail { display: none; }
 
 		/* ⚠ One column, sub-page open or not: the three-column rule above outranks the bare one. */
 		.inbox-shell:has(> .inbox-sub > .page.active-page) { grid-template-columns: minmax(0, 1fr); }

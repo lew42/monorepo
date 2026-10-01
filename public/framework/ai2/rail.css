@@ -100,7 +100,7 @@
 		font: inherit;
 		line-height: 1;
 		cursor: pointer;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+		box-shadow: 0 2px 8px var(--shade-a16);
 	}
 
 	.ai2-selection-flag.on {

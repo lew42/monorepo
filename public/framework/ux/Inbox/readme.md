@@ -1,8 +1,8 @@
 # Inbox — a rail of page previews beside the page you picked, and nothing jumps
 
 See it: **[the demo](/framework/ux/Inbox/)** — click a row and its page opens on the right
-while the rail stays exactly where it is. AI 2 is the same rail with AI data
-([/framework/ai2/](/framework/ai2/)); the AI page's Inbox and Log tabs use it in the next merge.
+while the rail stays exactly where it is. The AI page's Inbox and Log tabs and AI 2 are the
+same rail with AI data ([/framework/ai/](/framework/ai/), [/framework/ai2/](/framework/ai2/)).
 
 ## Use
 
@@ -24,7 +24,7 @@ this.rail = new MyRail({ page: this }).mount();
   `toggles()`, `face()`, `when()`, `archive()`, `is_read()`… The list is at the top of
   [`Rail.js`](/framework/core/Page/ext/Inbox/Rail.js).
 - **The score floor**: rows under `?min=` (default 90) stay out. `0` shows everything —
-  the AI page's Log will be the same rail at 0 (next merge). A tab says its own floor with `rail.tab_floor(n)`.
+  the AI page's Log is the same rail at 0. A tab says its own floor with `rail.tab_floor(n)`.
 - A page that takes the whole shell (a System tab, an Overview) wears `inbox-takeover`;
   a plain page beside the rail wears `inbox-page` so it scrolls by itself.
 - **`.flush-stack`** — rows touching, no padding, no gap, one box, only its outer corners

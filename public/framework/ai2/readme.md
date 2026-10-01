@@ -95,7 +95,7 @@ still answers, on the card's own page.
 rail's own filter checkbox — relabelled "Needs you" (was "Needs review"), right beside "+ New
 card" — and carries a small count badge, hidden at zero, the same one the tab used to wear. The
 tab is gone from the strip; `needs/` is still a real, working address for an old link or
-bookmark, just unlinked. `page.js`'s `board()` function draws it now; `needs.js`'s own page
+bookmark, just unlinked. The rail draws it now (`InboxRail.needs_chip()`); `needs.js`'s own page
 (`needs_view()`) is unchanged. All three (the chip, the old `needs/` page, and Servex's own
 `/waiting` route) still read one shared rule: [`doc/needs-you.md`](./doc/needs-you.md),
 [`needs-rule.js`](./needs-rule.js).
@@ -299,7 +299,10 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - The rebuild and its measurements: [`ai/2026-09-22/ai2-master-detail/`](/framework/ai/2026-09-22/ai2-master-detail/)
 - Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
 - [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
-- Files that matter: `page.js` (the shell, the selection, the third column), `card.js` (a
+- Files that matter: `rail.js` (`AIRail`, the rail: the base class `InboxRail` in
+  [core/Page/ext/Inbox](/framework/core/Page/ext/Inbox/) plus the usage meters, "+ New card", Live, Now and the
+  groups, and the card pages; the AI page's Inbox and Log tabs build the same one), `rail.css` (its AI-only look; the
+  rest is [ux/Inbox](/framework/ux/Inbox/)), `page.js` (AI 2's own tabs and routes), `card.js` (a
   card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
   draw, and the per-card log), `groups.json` + `groups.js` (the groups and who is in them),
   `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (the look),

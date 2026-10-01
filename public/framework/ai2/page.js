@@ -4,7 +4,6 @@ import overview from "./overview.js";
 import needs_view from "./needs.js";
 import log_view from "./log.js";
 import { LIVE } from "./live.js";
-import { RealPage } from "./real.js";
 
 View.stylesheet(import.meta, "ai2.css");
 
@@ -71,7 +70,7 @@ export default new Page({
 		});
 		// THE RAIL IS ALWAYS MOUNTED — every route shows it; `needs/`, `log/` and `overview/`
 		// take over the whole shell instead (`inbox-takeover`, ux/Inbox/Inbox.css). It is one
-		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs will build (next merge).
+		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs build.
 		this.ai2 = new AIRail({ page: this }).mount();
 	},
 
@@ -93,11 +92,8 @@ export default new Page({
 		// or a bookmark made during that window still opens the same rail-and-card view the
 		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
-		if (id === LIVE || id === "view" || /^\d{4}$/.test(id)) return AIRail.route(this, id);
+		if (id === LIVE || id === "view" || id === "framework" || /^\d{4}$/.test(id)) return AIRail.route(this, id);
 		if (id === "now") return this.now_page ??= card_page(this, "now");
-		// A REAL SITE PAGE, shown here as itself: `framework/core/Page/` is the page at
-		// `/framework/core/Page/` — the same Page object and view (real.js).
-		if (id === "framework") return new RealPage({ path: "/framework/", title: "framework", shell: this });
 		return card_page(this, id);
 	},
 });

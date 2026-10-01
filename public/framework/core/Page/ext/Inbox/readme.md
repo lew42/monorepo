@@ -26,7 +26,7 @@ After that, every `{"inbox": …}` line on that page — before the `ext` line o
 
 `Rail.js` is the class that DRAWS an inbox: a rail of row previews beside the page you
 picked, persistent and never jumping. Any page builds one with
-`new InboxRail({ page: this }).mount()`; AI 2 builds its subclass `AIRail` (the AI page will, next merge).
+`new InboxRail({ page: this }).mount()`; the AI page and AI 2 build its subclass `AIRail`.
 Its look and demo are the ux block, [/framework/ux/Inbox/](/framework/ux/Inbox/) — start
 there.
 

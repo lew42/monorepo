@@ -4,9 +4,11 @@ import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
 import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
 
-/* THE TOP TABS of /framework/ai/ (Inbox, the default dashboard; System, all the AI system docs) (the owner, 2026-09-30: "use the same docs kind
-   of UI for top tabs"). Each tab is a routed page; ai/page.js calls tab_page(). */
-export const TABS = ["inbox", "system"];
+/* THE TOP TABS of /framework/ai/: Inbox (the default), Log and System (the owner, 2026-09-30:
+   "log is everything. And inbox is only… priority… and above"). Inbox and Log are the SAME
+   rail (`AIRail`, ai2/rail.js) at two floors, 90 and 0; System holds all the AI system docs and
+   takes the whole width. Each tab is a routed page; ai/page.js draws the strip and calls tab_page(). */
+export const TABS = ["inbox", "log", "system"];
 // The System tab's own pages (/framework/ai/system/<name>/). Each still answers at its old
 // url, /framework/ai/<name>/, so no link breaks (ai/page.js route()).
 export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring"];
@@ -35,22 +37,34 @@ const KINDS = [
 	["companion", "Companions", "Small skills another skill reminds you of."],
 ];
 
+// The detail column's empty state — the same two lines the rail's own shell shows.
+const empty = (line, sub) => div.c("inbox-empty muted", () => { span(line); if (sub) small(sub); });
+
 export function tab_page(root, name, url = root.url + name + "/"){
 	const base = root.url;
 	const pages = {
-		/* THE DEFAULT TAB IS A DASHBOARD: the inbox (the owner, 2026-09-30). The AI 2 inbox
-		   moves here with the inbox-ext task; until then this points at it, never a second inbox. */
+		/* THE DEFAULT TAB IS THE INBOX (the owner, 2026-09-30): the rail beside it, at the
+		   Inbox's floor — only rows scoring 90 and up. Its own page is just the empty detail. */
 		inbox: {
-			title: "Inbox", icon: "inbox",
+			title: "Inbox", icon: "inbox", classes: "inbox-page inbox-tab",
+			activated(){ root.ai2?.tab_floor(90); },
+			content(){ empty("Pick something on the left.", "It opens here, and the list stays where it is."); },
+		},
+		/* THE LOG IS THE SAME RAIL AT 0: every row, newest first (the owner, 2026-09-30: "log is
+		   everything"). Leaving it puts the Inbox's floor back, unless the url names one. */
+		log: {
+			title: "Log", icon: "history", classes: "inbox-page inbox-tab",
+			activated(){ root.ai2?.tab_floor(0, "AI log"); },
+			deactivated(){ root.ai2?.tab_floor(90); },
 			content(){
-				md("**Your inbox: what needs you, newest first.** It lives on [AI 2](/framework/ai2/) until it moves here.");
-				md("[Open the inbox](/framework/ai2/) · [Every task](" + base + "log/) · [The old board](" + base + "v/3/)");
+				empty("Everything, newest first. Pick something on the left.", "");
+				md("Every task by day, in flight first: [the task log](" + base + "all-tasks/).");
 			},
 		},
 		/* THE SYSTEM TAB holds all the AI system docs (the owner, 2026-09-30): the parts,
 		   then the docs pages (its route() below), then design and code, linked not copied. */
 		system: {
-			title: "System", icon: "account_tree",
+			title: "System", icon: "account_tree", classes: "inbox-takeover inbox-tab",
 			content(){
 				md("**The AI system: who does the work, what it knows, how work is tracked, and how it lands.** Click any part for its own page.");
 				for (const g of GROUPS){
