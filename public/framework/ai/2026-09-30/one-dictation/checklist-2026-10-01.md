@@ -15,8 +15,8 @@ The voice session's minions edited main directly, and several had no shell, so n
 ## The items
 
 1. [x] **Duplicates:** on the Dictate page the fast and smart replies appeared TWICE. The ✦ sheet didn't duplicate. (minion-chat-duplicate-messages) **Proven:** one bubble each, demo and sheet, push and poll ([minion-prove](minion-prove/report.md)).
-2. [ ] **One widget, really:** the Dictate page and the ✦ sheet look alike but behave differently (duplicates, autosend). Same code, same behaviour.
-3. [ ] **Autosend works by default,** after a reasonable pause. The owner thinks splitting "autosend" into a separate mode was a mistake.
+2. [x] **One widget, really:** the Dictate page and the ✦ sheet look alike but behave differently (duplicates, autosend). Same code, same behaviour. **Landed** (a474261a): the demo makes the sheet's exact `chat()` call; only `keep` differs ([shot](minion-onewidget/shots/merge-demo-1920.png)).
+3. [x] **Autosend works by default,** after a reasonable pause. The owner thinks splitting "autosend" into a separate mode was a mistake. **Landed** (a474261a): the Dictate | Chat switch and the gear's "manual" are gone, a saved "manual" becomes "pause", and a spoken sentence went out with no Send press, headless.
 4. [x] **Full-screen sheet:** the text area doesn't fill the space, and there's an empty gap under the buttons. **Proven:** the empty band is gone ([shot](minion-prove/shots/full-screen-sheet-400.png)).
 5. [ ] **Auto-scroll with a scroll state:** stuck to the bottom by default, following new messages. Scrolling up releases it and shows a "jump to bottom" button. (minion-chat-autoscroll) **Proven:** it sticks, releases on scroll-up, and the button shows ([shot](minion-prove/shots/autoscroll-1200.png)).
 6. [ ] **"Clean transcribe" mode** (a settings toggle, maybe the default): transcribe straight into the outgoing chat bubble, with no text area and no Send button. Keep today's text-area mode, which works. Possibly its own class or an extension.
