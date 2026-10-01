@@ -1,10 +1,18 @@
 // append.mjs — append the objects in <lines.json> to <target.jsonl>, one JSON line each.
 // Every string value that is exactly "NOW" becomes the local clock at the moment of the append
 // (ISO 8601 with offset) — never a time typed from memory.
+//
+// VALIDATED FIRST (2026-09-30): every new line is judged against the target's schema
+// (jsonl-schema.mjs, picked by the file's basename: task.jsonl, day.jsonl, board.jsonl,
+// asks.jsonl, page.jsonl). An unknown verb, a flat line with no verb, or a verb missing a
+// required field is REFUSED — exit 3, nothing written, the reason and the right shape printed.
+// A file the schema does not know is only checked for being JSON objects. Old lines are never judged.
+//
 // The trailing newline is sniffed (a file written by the Write tool has none), the lines are
 // appended, and every line of the target is re-parsed; a bad line exits non-zero and names itself.
 // usage: node .claude/hooks/append.mjs <target.jsonl> <lines.json>
 import { readFileSync, appendFileSync, existsSync, statSync, openSync, readSync, closeSync } from "node:fs";
+import { check, shape } from "./jsonl-schema.mjs";
 
 const pad = n => String(n).padStart(2, "0");
 function nowLocal(){
@@ -24,7 +32,18 @@ const strip_bom = s => s.replace(/^﻿/, "");
 const items = JSON.parse(strip_bom(readFileSync(source, "utf8")));
 const list = Array.isArray(items) ? items : [items];
 const t = nowLocal();
-let out = list.map(o => JSON.stringify(fill(o, t))).join("\n") + "\n";
+const filled = list.map(o => fill(o, t));
+
+const refused = filled.map((o, i) => [i, check(target, o)]).filter(([, why]) => why);
+if (refused.length){
+	for (const [i, why] of refused) console.error(`REFUSED line ${i + 1} of ${source}: ${why}\n  ${JSON.stringify(list[i]).slice(0, 160)}`);
+	const s = shape(target);
+	if (s) console.error(`The right shape — ${s}`);
+	console.error(`Nothing was written to ${target}.`);
+	process.exit(3);
+}
+
+let out = filled.map(o => JSON.stringify(o)).join("\n") + "\n";
 if (existsSync(target) && statSync(target).size > 0) {
 	const size = statSync(target).size, fd = openSync(target, "r"), buf = Buffer.alloc(1);
 	readSync(fd, buf, 0, 1, size - 1); closeSync(fd);
