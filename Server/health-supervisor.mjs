@@ -76,6 +76,8 @@
  */
 import { fork, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import MtimeFilter from "./MtimeFilter.js";
@@ -89,6 +91,39 @@ const HEARTBEAT_PATH = path.join(ROOT, "public", "framework", "ai", "health", "h
 // task's task.jsonl. Set once here so it shows up in `ps`/Task Manager
 // command lines too, not just as an invisible fallback inside health.mjs.
 const HEALTH_BASE = process.env.HEALTH_BASE || "http://monorepo.localhost";
+
+/* ONE SUPERVISOR PER TREE (proposal-flow/monitor, 2026-09-30): two of these
+ * were running at once over the main tree. A pid file in the OS temp dir,
+ * keyed by this checkout's root like health.mjs's own lock: a LIVE supervisor
+ * already named there means this one exits quietly (code 0). "Live" is checked
+ * by command line, not just pid, because Windows reuses pids (Servex/Pool.js
+ * once found a recorded watcher pid had become whisper-server). */
+const TREE_KEY = crypto.createHash("sha1").update(path.resolve(ROOT).toLowerCase()).digest("hex").slice(0, 8);
+const LOCK_PATH = path.join(os.tmpdir(), `lew42-health-supervisor-${TREE_KEY}.lock`);
+
+function is_supervisor(pid){
+	try { process.kill(pid, 0); } catch { return false; }
+	if (process.platform !== "win32") return true;
+	const r = spawnSync("powershell.exe", ["-NoProfile", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}").CommandLine`], { encoding: "utf8", windowsHide: true, timeout: 10_000 });
+	if (r.status !== 0 || r.error) return true;   // can't tell — assume it is ours rather than start a second one
+	return /health-supervisor/.test(r.stdout || "");
+}
+
+{
+	// "wx" creates the file only if it is absent, so two supervisors started in the same instant can't both win.
+	let mine = false;
+	try { fs.writeFileSync(LOCK_PATH, String(process.pid), { flag: "wx" }); mine = true; } catch {}
+	if (!mine){
+		let prev = 0;
+		try { prev = Number(fs.readFileSync(LOCK_PATH, "utf8").trim()); } catch {}
+		if (prev && prev !== process.pid && is_supervisor(prev)){
+			console.log(`[health-supervisor] already running as pid ${prev} (${LOCK_PATH}) — exiting quietly.`);
+			process.exit(0);
+		}
+		fs.writeFileSync(LOCK_PATH, String(process.pid));   // a stale lock: its supervisor is gone
+	}
+	process.on("exit", () => { try { if (Number(fs.readFileSync(LOCK_PATH, "utf8").trim()) === process.pid) fs.unlinkSync(LOCK_PATH); } catch {} });
+}
 
 // The creation log (lifecycle, 2026-09-29): its own start and end in Servex's lifecycle.jsonl,
 // so the reaper can find it by pid and owner. Never blocks. Servex/Lifecycle.js.
@@ -176,7 +211,12 @@ function spawn_child(){
 			return;
 		}
 
-		if (uptime_ms < BOOT_GRACE_MS){
+		if (code === 3){
+			// health.mjs's own lock: another watcher (one started by hand) already covers this tree. Not a
+			// crash — check back at the slowest pace, and take over the moment that one is gone.
+			backoff = BACKOFF_MAX_MS;
+			console.log(`[health-supervisor] another health.mjs already watches this tree — checking again in ${backoff}ms.`);
+		} else if (uptime_ms < BOOT_GRACE_MS){
 			// Never really up — back off instead of crash-looping a tree that
 			// can't run at all (Playwright missing, a broken import, etc.).
 			backoff = Math.min(backoff * 2, BACKOFF_MAX_MS);

@@ -1,9 +1,18 @@
-/* `node Server/health.mjs` — a standalone "is it working" watcher.
+/* `node Server/health.mjs` — a standalone "is it working" watcher: the monitor
+ * on the main branch, which the owner browses live as production.
  *
- * WHAT IT DOES, in one sentence: every time a file under public/ changes, this
+ * WHAT IT DOES, in one sentence: every time a TEMPLATE file under public/
+ * changes (.js, .css, .html — never a .jsonl/.json/.md, which is data), this
  * script loads the pages that file could have broken in a hidden browser and
  * writes down what went wrong — so whoever made the edit hears about it at
- * their very next write, through `.claude/hooks/health-guard.mjs`.
+ * their very next write, through `.claude/hooks/health-guard.mjs`, and the
+ * owner sees one line on that agent's task card (report_to_dashboard()).
+ *
+ * EACH CHECK (2026-09-30, proposal-flow/monitor): console errors, page errors,
+ * failed requests, a blank page, a stall (any long task over 2 s, or a page
+ * still busy 10 s after navigation), `JSONL: unknown verb` warnings counted,
+ * and a 1920-wide screenshot at public/framework/ai/health/shots/<date>/<slug>.png.
+ * How to run and read it: Server/doc/health.md.
  *
  * WHY ITS OWN PROCESS, not a server plugin: a watcher that could slow or crash
  * the dev server would be worse than no watcher. This script never imports
@@ -39,13 +48,12 @@
  * the supervisor, not this file directly, unless you are deliberately
  * debugging this file alone.
  *
- * Full story: public/framework/ai/health/readme.md (⚠ written before this
- * revival — still says the default target is port 8123 and doesn't mention
- * the supervisor yet; this header and health-supervisor.mjs's own are the
- * current source of truth until that file's owner updates it).
+ * Full story: Server/doc/health.md (how to run it, what it reports, the proofs);
+ * the live log page is public/framework/ai/health/.
  */
 import fs from "node:fs";
 import os from "node:os";
+import crypto from "node:crypto";
 import path from "node:path";
 import zlib from "node:zlib";
 import { execFileSync } from "node:child_process";
@@ -65,6 +73,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = path.join(ROOT, "public");
 const HEALTH_DIR = path.join(PUBLIC, "framework", "ai", "health");
 const ARCHIVE_DIR = path.join(HEALTH_DIR, "archive");
+const SHOTS_DIR = path.join(HEALTH_DIR, "shots");   // shots/<date>/<slug>.png, 1920 wide, overwritten per page (gitignored)
+const SHOT_WIDTH = 1920, SHOT_HEIGHT = 1080;
+const STALL_MS = 2000;      // a long task over this is a stall finding (an error: the owner's tab "crashed" on a 13 s one)
+const SETTLE_MS = 10_000;   // a page whose main thread is still busy this long after navigation starts "did not settle"
 // Default changed 2026-09-19 (health-revive): the mastermind's :8123 is not always up, and
 // checking a copy of the site proves nothing about the one the owner actually uses. The
 // owner's own :80 is read-only here — a capped, debounced handful of GET page-loads per
@@ -77,9 +89,17 @@ const MAX_PAGES_PER_BATCH = 8;
 const DEBOUNCE_MS = 1500;
 const DAY_FILE_CAP_BYTES = 2 * 1024 * 1024;
 
-/* ── one copy only — a pid file in the OS temp dir ──────────────────────── */
+/* ── one copy per tree — a pid file in the OS temp dir ──────────────────────
+ * Keyed by this checkout's root (proposal-flow/monitor, 2026-09-30): one lock
+ * for the whole machine meant a worktree's watcher exited the moment the main
+ * tree's was running, so Servex/Pool.js had to fake a private TEMP dir per
+ * slot to get one at all. Each tree now has its own lock; the main tree still
+ * gets exactly one. Exit code 3 tells health-supervisor.mjs "someone else
+ * already watches this tree", not "I crashed". */
 
-const LOCK_PATH = path.join(os.tmpdir(), "lew42-health.lock");
+const TREE_KEY = crypto.createHash("sha1").update(ROOT.toLowerCase()).digest("hex").slice(0, 8);
+const LOCK_PATH = path.join(os.tmpdir(), `lew42-health-${TREE_KEY}.lock`);
+const LOCKED_EXIT = 3;   // health-supervisor.mjs repeats this number; importing this file would start a watcher
 
 function is_running(pid){
 	try { process.kill(pid, 0); return true; } catch { return false; }
@@ -90,7 +110,7 @@ function acquire_lock(){
 		const prev = Number(fs.readFileSync(LOCK_PATH, "utf8").trim());
 		if (prev && prev !== process.pid && is_running(prev)){
 			console.log(`health.mjs: already running as pid ${prev} (${LOCK_PATH}) — exiting.`);
-			process.exit(0);
+			process.exit(LOCKED_EXIT);
 		}
 	} catch {}
 	fs.writeFileSync(LOCK_PATH, String(process.pid));
@@ -279,6 +299,12 @@ function archive_sweep(){
 		if (!m) continue;
 		if ((now - new Date(m[1] + "T00:00:00").getTime()) / DAY_MS > 30) try { fs.unlinkSync(path.join(ARCHIVE_DIR, name)); } catch {}
 	}
+	// Screenshots: one folder a day, each page's shot overwritten in place; a day's folder goes after 7 days.
+	let shot_days; try { shot_days = fs.readdirSync(SHOTS_DIR); } catch { shot_days = []; }
+	for (const name of shot_days){
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(name) || name === local_date()) continue;
+		if ((now - new Date(name + "T00:00:00").getTime()) / DAY_MS > 7) try { fs.rmSync(path.join(SHOTS_DIR, name), { recursive: true, force: true }); } catch {}
+	}
 }
 
 /* ── Chromium, via the one shared launcher (Server/browser.mjs) ──────────── */
@@ -429,16 +455,44 @@ function lint_findings(){
 
 /* ── loading one page and reading back what went wrong ───────────────────── */
 
+/* Stalls (proposal-flow/monitor, 2026-09-30): /framework/ai2/ blocked its main
+   thread for ~13 s after load and the owner's tab "crashed", with this watcher
+   running and saying nothing. Two measurements, both cheap:
+   - every long task, recorded by a PerformanceObserver that context.addInitScript
+     installs before any page script runs (`buffered` catches the earliest ones);
+     any over STALL_MS is an error;
+   - "did it settle": a one-frame probe (requestAnimationFrame) can only answer
+     once the main thread is free, so no answer within SETTLE_MS of the start of
+     navigation means the page was still busy — also an error. */
+const LONGTASK_INIT = `(() => {
+	window.__health_longtasks = [];
+	try {
+		new PerformanceObserver(list => {
+			for (const e of list.getEntries()) window.__health_longtasks.push({ start: Math.round(e.startTime), ms: Math.round(e.duration) });
+		}).observe({ type: "longtask", buffered: true });
+	} catch {}
+})();`;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+// A page.evaluate() waits for a busy main thread; never let one hang a batch.
+const within = (promise, ms, fallback) => Promise.race([promise.catch(() => fallback), sleep(ms).then(() => fallback)]);
+const shot_slug = url => url.replace(/^\/+|\/+$/g, "").replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase() || "home";
+
+/* What the page looked like and how it behaved, beside the findings:
+   { stall_ms, settled, settle_ms, shot (repo-relative path or null), unknown_verbs }. */
 async function check_one(context, url){
 	const page = await context.newPage();
 	const findings = [];   // {verb, kind, text}
 	const add = (verb, kind, text) => findings.push({ verb, kind, text: String(text ?? "") });
+	const meta = { stall_ms: 0, settled: true, settle_ms: null, shot: null, unknown_verbs: 0 };
+	const unknown = [];   // the text of every `JSONL: unknown verb` warning — counted as ONE finding, not one each
 
 	page.on("console", msg => {
 		const t = msg.type();
 		if (t !== "error" && t !== "warning") return;
 		const text = msg.text();
 		if (KNOWN_CONSOLE.some(k => k.test(text))) return;
+		if (/JSONL: unknown verb/.test(text)) { unknown.push(text); return; }
 		add(t === "error" ? "error" : "warning", "console", text);
 	});
 	page.on("pageerror", err => add("error", "pageerror", err?.message || String(err)));
@@ -455,8 +509,22 @@ async function check_one(context, url){
 		add("error", "status", `${status} ${u}`);
 	});
 
+	const t0 = Date.now();
 	try {
-		await page.goto(HEALTH_BASE + url, { waitUntil: "networkidle", timeout: 15000 });
+		let nav_error = null;
+		await page.goto(HEALTH_BASE + url, { waitUntil: "networkidle", timeout: 15000 }).catch(e => { nav_error = e; });
+
+		// Did it settle? One animation frame can only run on a free main thread.
+		const probe = page.evaluate(() => new Promise(r => requestAnimationFrame(() => r(true))));
+		let answered = await within(probe, Math.max(0, t0 + SETTLE_MS - Date.now()), false);
+		meta.settle_ms = answered ? Date.now() - t0 : null;
+		if (!answered){
+			meta.settled = false;
+			add("error", "unsettled", `the page was still busy ${SETTLE_MS / 1000} s after navigation started (its main thread never ran a frame)`);
+			answered = await within(probe, 20_000, false);   // give it time to come back before measuring the rest
+			if (!answered) throw new Error(`still busy ${Math.round((Date.now() - t0) / 1000)} s after navigation — gave up on the rest of this check`);
+		}
+		if (nav_error) throw nav_error;
 		await page.waitForTimeout(1000);
 		// ⚠ A routed page nests peer pages inside it (core/Page/doc/data-children.md
 		// — "nested pages ARE peers via display: contents"), so a bare `.page`
@@ -484,6 +552,21 @@ async function check_one(context, url){
 		const lint = await page.evaluate(lint_findings);
 		for (const f of lint) add("warning", f.kind, f.text);
 
+		// The screenshot, at the width the owner works at; the same file is overwritten each check.
+		const shot_abs = path.join(SHOTS_DIR, local_date(), shot_slug(url) + ".png");
+		fs.mkdirSync(path.dirname(shot_abs), { recursive: true });
+		await page.setViewportSize({ width: SHOT_WIDTH, height: SHOT_HEIGHT });
+		await page.waitForTimeout(200);
+		if (await within(page.screenshot({ path: shot_abs, timeout: 10_000 }).then(() => true), 12_000, false))
+			meta.shot = rel_to(ROOT, shot_abs);
+
+		// Long tasks so far — read BEFORE the padding sweep below, whose 3440 relayout is this watcher's work, not the page's.
+		const tasks = await within(page.evaluate(() => window.__health_longtasks || []), 10_000, []);
+		const worst = tasks.reduce((a, b) => (b.ms > (a?.ms ?? 0) ? b : a), null);
+		meta.stall_ms = worst?.ms ?? 0;
+		if (worst && worst.ms > STALL_MS)
+			add("error", "stall", `the main thread was blocked for ${(worst.ms / 1000).toFixed(1)} s (a long task starting ${(worst.start / 1000).toFixed(1)} s after navigation; ${tasks.filter(t => t.ms > STALL_MS).length} over ${STALL_MS / 1000} s)`);
+
 		// THE PADDING LAW, at the width that actually breaks it (padding-law,
 		// 2026-09-22). This watcher's viewport is 1280 — just under the 82em
 		// (1312px) breakpoint where `ext/toc`'s rail rule replaces the page
@@ -501,8 +584,15 @@ async function check_one(context, url){
 		add("error", "nav", e?.message || String(e));
 	}
 
+	// Lines that parse but fit no reader's schema (proposal-flow item 12): one finding, counted, so they can't creep back unseen.
+	meta.unknown_verbs = unknown.length;
+	if (unknown.length){
+		const verbs = [...new Set(unknown.map(t => /unknown verb "([^"]*)" in (\S+)/.exec(t)).filter(Boolean).map(m => `"${m[1]}" in ${m[2]}`))];
+		add("warning", "unknown-verb", `${unknown.length} \`JSONL: unknown verb\` warnings — ${verbs.slice(0, 5).join("; ")}${verbs.length > 5 ? "; …" : ""}`);
+	}
+
 	await page.close().catch(() => {});
-	return findings;
+	return { findings, meta };
 }
 
 /* Every changed file in this debounce window, mapped to the (at most 8) urls
@@ -531,22 +621,23 @@ async function check_batch(files){
 	// after its context closes, and its reconnect-backoff noise never counts
 	// as a console error — dev/Socket/Socket.js opens `ws://<same host>/`.
 	try { await context.routeWebSocket(/.*/, ws => ws.close()); } catch {}
+	await context.addInitScript(LONGTASK_INIT);
 
 	for (const [url, triggers] of batch){
 		if (KNOWN_PAGES.some(k => k.test(url))) continue;
 
 		const was_failing = failing.get(url) === true;
-		const raw = await check_one(context, url);
+		const { findings: raw, meta } = await check_one(context, url);
 		const seen = new Set();   // collapse identical (kind, text) findings from this one page load
 		let had_error = false;
 		const error_findings = [];
+		const files_arr = [...triggers];
 		for (const f of raw){
 			const key = f.verb + "|" + f.kind + "|" + f.text;
 			if (seen.has(key)) continue;
 			seen.add(key);
 			if (f.verb === "error"){ had_error = true; error_findings.push(f); }
-			const files_arr = [...triggers];
-			append_line(day_file, f.verb, { at: now_iso(), url, kind: f.kind, text: f.text.slice(0, 300), file: files_arr[0], files: files_arr });
+			append_line(day_file, f.verb, { at: now_iso(), url, kind: f.kind, text: f.text.slice(0, 300), file: files_arr[0], files: files_arr, shot: meta.shot });
 		}
 		if (had_error) {
 			failing.set(url, true);
@@ -555,9 +646,95 @@ async function check_batch(files){
 			failing.set(url, false);
 			append_line(day_file, "ok", { at: now_iso(), url });
 		}
+		report_to_dashboard(day_file, url, files_arr, error_findings, meta);
 	}
 
 	await context.close();
+}
+
+/* ── the second report: the dashboard ────────────────────────────────────────
+ * The editor already hears about a broken page through health-guard.mjs. The
+ * owner reads task cards, not this log, so every check also leaves ONE line in
+ * the task of the agent that made the edit — the same task.jsonl the ledger
+ * hook (.claude/hooks/ledger.mjs) records that agent's edits in:
+ *   {"log":{"at":…,"msg":"health: <page> — <N> console errors, stall <s> s, shot <path>"}}
+ * written through .claude/hooks/append.mjs, the validated route, never a raw
+ * append. When no task is known (a merge, a hand edit, a file no ledger saw),
+ * the same line goes to today's health log alone, as a `log` line its reader
+ * (log.js, a plain JSONL) already understands. */
+
+const APPEND_SCRIPT = path.join(ROOT, ".claude", "hooks", "append.mjs");
+const AI_DIR = path.join(PUBLIC, "framework", "ai");
+
+const read_lines = file => {
+	try { return fs.readFileSync(file, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); }
+	catch { return []; }
+};
+const landed = entries => entries.some(e => e.assign?.landed_at);
+
+function* task_files(dir, depth = 0){
+	let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+	for (const e of entries){
+		if (e.isFile() && e.name === "task.jsonl") yield path.join(dir, e.name);
+		else if (e.isDirectory() && depth < 3 && e.name !== "shots" && e.name[0] !== ".") yield* task_files(path.join(dir, e.name), depth + 1);
+	}
+}
+
+/* Which task made this edit? First the file's own folder (a file inside a task
+   dir belongs to that task, the ledger's own first rule); else the newest
+   unlanded task from today or yesterday whose ledger `action` lines list the
+   file. Null when nothing knows. */
+function task_for(rel_file){
+	let dir = path.dirname(path.join(ROOT, rel_file));
+	while (dir.startsWith(AI_DIR + path.sep)){
+		const t = path.join(dir, "task.jsonl");
+		if (fs.existsSync(t)) return landed(read_lines(t)) ? null : t;
+		dir = path.dirname(dir);
+	}
+	const days = [local_date(), local_date(new Date(Date.now() - DAY_MS))];
+	let best = null, best_at = "";
+	for (const day of days) for (const t of task_files(path.join(AI_DIR, day))){
+		const entries = read_lines(t);
+		if (landed(entries)) continue;
+		for (const e of entries){
+			if (!e.action?.files?.includes(rel_file)) continue;
+			const at = String(e.action.at || "");
+			if (at >= best_at){ best = t; best_at = at; }
+		}
+	}
+	return best;
+}
+
+function summary(url, error_findings, meta){
+	const count = kinds => error_findings.filter(f => kinds.includes(f.kind)).length;
+	const parts = [`${count(["console", "pageerror"])} console errors`, `stall ${(meta.stall_ms / 1000).toFixed(1)} s`];
+	if (!meta.settled) parts.push(`did not settle in ${SETTLE_MS / 1000} s`);
+	const other = error_findings.filter(f => !["console", "pageerror", "stall", "unsettled"].includes(f.kind));
+	if (other.length) parts.push(`${other.length} other errors (${[...new Set(other.map(f => f.kind))].join(", ")})`);
+	if (meta.unknown_verbs) parts.push(`${meta.unknown_verbs} unknown-verb warnings`);
+	parts.push(`shot ${meta.shot ? "/" + meta.shot.replace(/^public\//, "") : "none"}`);
+	const first = error_findings[0];
+	return `health: ${url} — ${parts.join(", ")}` + (first ? ` — first: ${first.kind}: ${first.text.replace(/\s+/g, " ").slice(0, 160)}` : "");
+}
+
+let lines_seq = 0;
+function report_to_dashboard(day_file, url, files, error_findings, meta){
+	const msg = summary(url, error_findings, meta);
+	const tasks = [...new Set(files.map(task_for).filter(Boolean))];
+	for (const task of tasks){
+		const tmp = path.join(os.tmpdir(), `lew42-health-line-${process.pid}-${++lines_seq}.json`);
+		try {
+			fs.writeFileSync(tmp, JSON.stringify([{ log: { at: "NOW", msg } }]));
+			execFileSync(process.execPath, [APPEND_SCRIPT, task, tmp], { cwd: ROOT, stdio: "ignore", windowsHide: true });
+			console.log(`health.mjs: ${msg} → ${rel_to(ROOT, task)}`);
+		} catch (e) {
+			console.error(`health.mjs: append.mjs refused the line for ${rel_to(ROOT, task)} — ${e?.message || e}`);
+		} finally { try { fs.unlinkSync(tmp); } catch {} }
+	}
+	if (!tasks.length){
+		append_line(day_file, "log", { at: now_iso(), msg, url, files, shot: meta.shot });
+		console.log(`health.mjs: ${msg} (no task knows ${files[0]} — health log only)`);
+	}
 }
 
 /* ── out of band: a dead page must reach the owner somewhere that isn't the
@@ -620,12 +797,31 @@ const filter = new MtimeFilter();
 // as LiveReload.js.
 const is_dir = file => { try { return fs.statSync(file).isDirectory(); } catch { return false; } };
 
-const ARCHIVE_PREFIX = ARCHIVE_DIR + path.sep;
+/* TEMPLATE, NOT DATA (the owner, 2026-09-30: "for log updates, that's not what
+   I'm talking about. Those are just templated… It's more the template change").
+   Only a file that changes how a page is BUILT triggers a check: .js/.mjs
+   (page.js included), .css, .html. A .jsonl/.json/.md is data, drawn by
+   templates already tested, so it never loads a page — the console says
+   "data only, no check" instead, once per batch. */
+const TEMPLATE_RE = /\.(m?js|css|html)$/i;
+const is_template = file => TEMPLATE_RE.test(file);
+
+const HEALTH_PREFIX = HEALTH_DIR + path.sep;
 const ignored = file =>
-	file.endsWith(".json") || file.endsWith(".jsonl")   // logs (ai/, directory.json) — data, not code
-	|| file.startsWith(ARCHIVE_PREFIX)                  // this watcher's own gzip archive
+	file.startsWith(HEALTH_PREFIX) && !is_template(file)   // this watcher's own output: day logs, archive, shots, heartbeat
 	|| file.includes(path.sep + ".git" + path.sep) || file.includes("node_modules")
 	|| is_dir(file);
+
+let skipped = new Set(), skipped_timer = null;
+function note_skipped(file){
+	skipped.add(rel_to(ROOT, file));
+	clearTimeout(skipped_timer);
+	skipped_timer = setTimeout(() => {
+		const list = [...skipped];
+		skipped = new Set();
+		console.log(`health.mjs: data only, no check — ${list.length} file${list.length > 1 ? "s" : ""} (${list.slice(0, 3).join(", ")}${list.length > 3 ? ", …" : ""})`);
+	}, DEBOUNCE_MS);
+}
 
 // A hold longer than this stops being "mid-batch-write" and starts being
 // "however this page looks right now, it's been looking that way a while" —
@@ -670,8 +866,9 @@ function start_watch(){
 		if (!name) return;
 		const file = path.join(PUBLIC, name);
 		if (ignored(file)) return;
-		if (event === "rename"){ filter.remember(file); queue(file); }
-		else filter.passes(file, ok => { if (ok) queue(file); });
+		const go = () => is_template(file) ? queue(file) : note_skipped(file);
+		if (event === "rename"){ filter.remember(file); go(); }
+		else filter.passes(file, ok => { if (ok) go(); });
 	});
 	watcher.on("error", err => console.error("health.mjs: watch error —", err?.message || err));
 }
