@@ -93,6 +93,8 @@ export default class Socket {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");
 		this.connected = true;
 		this.fails = 0;
+		this.ever_connected = true;
+		this.hide_reconnecting();
 		this.ready.resolve();
 		this.rpc("hello", window.location.pathname, this.tab());
 	}
@@ -118,10 +120,53 @@ export default class Socket {
 			this.ready = promise();
 		}
 
+		// Only once this tab has ever really connected — the very first attempt,
+		// before the server has even finished starting on a cold load, is not a
+		// restart and should not say it is one.
+		if (this.ever_connected) this.show_reconnecting();
+
 		// 250ms, 500ms, 1s, 2s ... capped at 10s
 		const delay = Math.min(250 * 2 ** this.fails++, 10000);
 		console.warn(`Socket closed, reconnecting in ${delay}ms.`);
 		this.retry = setTimeout(() => this.connect(), delay);
+	}
+
+	/* THE HOLD STRIP (2026-10-01, page-holds) — the owner's words: a restart
+	 * blanked the page; it should hold and reconnect, never go white. Nothing
+	 * in this file ever reloads on a close (reconnect() above only retries —
+	 * search this file for `reload()` and every caller is changed()/a stale
+	 * pill click, never the socket lifecycle), so the page was never actually
+	 * going blank FROM the disconnect itself. What was missing is this: zero
+	 * sign that anything is happening, so a few hundred ms of silence during
+	 * the supervisor's boot-tested swap (Server/doc/watch.md) reads as "it
+	 * died" instead of "it's coming back." This shows one small, fixed,
+	 * un-clickable line the moment a reconnect is scheduled and removes it the
+	 * instant `open()` succeeds — it never reloads or blocks anything itself. */
+	show_reconnecting() {
+		if (this.strip || !document.body) return;
+		this.inject_style("dev-reconnect", "@layer util { .dev-reconnect-strip { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 61; padding: 0.3em 0.9em; background: #78350f; color: #fef3c7; font: 0.8rem system-ui, sans-serif; text-align: center; } }");
+		const strip = this.strip = document.createElement("div");
+		strip.className = "dev-reconnect-strip";
+		strip.textContent = "server restarting… reconnecting";
+		document.body.prepend(strip);
+	}
+
+	hide_reconnecting() {
+		this.strip?.remove();
+		this.strip = null;
+	}
+
+	/* Shared by show_reconnecting() and mark_stale(): both are a fixed, un-asked-for
+	 * notice over whatever is already on screen, and both need their one `<style>`
+	 * rule in the DOM exactly once no matter how many times they fire. `marker`
+	 * becomes a `data-<marker>` attribute so a second call is a no-op instead of a
+	 * second `<style>` tag. */
+	inject_style(marker, css) {
+		if (document.querySelector(`style[data-${marker}]`)) return;
+		const style = document.createElement("style");
+		style.setAttribute(`data-${marker}`, "");
+		style.textContent = css;
+		document.head.append(style);
 	}
 	// A reply to a pending request(), or the server calling a method on us.
 	message(res) {
@@ -160,8 +205,7 @@ export default class Socket {
 	 * one click to fix it; never reload by itself. Plain DOM, so it works on any page. */
 	mark_stale() {
 		if (this.pill || !document.body) return;
-		const style = document.createElement("style");
-		style.textContent = "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }";
+		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
 		const pill = this.pill = document.createElement("button");
 		pill.className = "dev-stale-pill";
 		pill.textContent = "This page is out of date — reload";

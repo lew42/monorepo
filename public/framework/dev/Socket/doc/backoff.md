@@ -66,3 +66,15 @@ enough to read in one sitting.
 The `console.warn` on every attempt is deliberate noise. A socket quietly
 retrying forever against a server you forgot to start is indistinguishable from
 a socket that works.
+
+## The strip (2026-10-01)
+
+The `console.warn` above is invisible to anyone not watching devtools — which is everyone. A real
+restart (`Server/doc/watch.md`'s boot-tested swap) is usually back in well under a second, but
+with no sign on screen at all it read as "the page died," not "it's coming back"
+([`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/)). `reconnect()`
+now calls `show_reconnecting()` the moment it schedules its first retry — a small fixed strip,
+"server restarting… reconnecting" — and `open()` calls `hide_reconnecting()` the instant the
+socket is back. It never reloads anything itself; it is purely a notice over whatever is already
+on screen. Gated on `this.ever_connected` so a tab's very first connect attempt, before the dev
+server has even finished starting, never shows it — that is not a restart.

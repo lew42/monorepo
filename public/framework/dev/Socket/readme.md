@@ -25,6 +25,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - `mark_stale()` shows a fixed "This page is out of date — reload" pill when a reload was refused (Block) or postponed (mic busy). One click reloads; it never reloads by itself. Cause it fixes: a refused/deferred reload left old code on screen with no sign.
 - `window.$BLOCKRELOAD` never affected `.jsonl` streaming — a real 2026-09-19 bug that LOOKED like it did was `ext/JSONL/live.js` keying its stream registry by whatever url a caller passed (`import.meta.resolve()` returns one WITH an origin; the server's replies never carry one), so the subscribe reply never matched and the reader silently went deaf after one fallback fetch. Fixed in `live.js` and defensively in `Server/plugins/SocketServer/Tail.js`.
 - Editing `public/index.html` reloads nothing — it is a navigation entry, not a resource entry. Hard-reload by hand. [doc/method/changed.md](./doc/method/changed.md)
+- `reconnect()` never reloads the page by itself, only on disconnect — it only retries with backoff. A restart used to look like the page died because nothing said otherwise; `show_reconnecting()`/`hide_reconnecting()` now put a small fixed strip up the moment a retry is scheduled and take it down the moment `open()` fires. [doc/backoff.md](./doc/backoff.md)
 
 ## More
 

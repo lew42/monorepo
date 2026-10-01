@@ -209,6 +209,46 @@ function supervise(){
 	let pending = new Set();
 	let debounce = null;
 
+	/* ── which files the running server actually loads (2026-10-01, page-holds) ──
+	 * Restarts must be rare — the owner's words, after a restart blanked their
+	 * page. Before this, ANY ".js" file anywhere under Server/ queued a restart,
+	 * whether run.js loads it or not. Every TOOL script here (merge.mjs,
+	 * review.mjs, health.mjs, on-landing.mjs, hold.mjs, worktree-*.mjs, every
+	 * *.test.mjs) already happens to be ".mjs", so it already never matched —
+	 * but by accident, with no log line saying so, and a stray or future ".js"
+	 * file nobody imports would still have restarted the server for nothing.
+	 * This walks the REAL static import graph from server.js + Server/run.js —
+	 * the two files that are actually forked — so a change only restarts when
+	 * it could really change what the live child runs. Recomputed fresh on
+	 * every event (a few small files, well under a millisecond) rather than
+	 * cached once, so teaching run.js to import a new plugin takes effect on
+	 * the very next edit to that plugin, not only after the next restart has
+	 * already happened once. Static `import`/`export ... from` only, same as
+	 * the brief asks — a computed `import()` (Lifecycle.js, built from a path
+	 * variable) is deliberately invisible to this, and MtimeFilter.js is
+	 * seeded by hand because server.js's own dynamic import of it (above) is
+	 * built from a path too, so the regex below can't see that one either. */
+	const MTIME_FILTER_FILE = path.join(__dirname, "Server", "MtimeFilter.js");
+	const IMPORT_RE = /\b(?:import|export)\s+(?:[^'";]*?\bfrom\s*)?["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+
+	function loaded_files(){
+		const seen = new Set();
+		const stack = [SELF, RUN, MTIME_FILTER_FILE];
+		while (stack.length){
+			const file = path.resolve(stack.pop());
+			if (seen.has(file) || !fs.existsSync(file)) continue;
+			seen.add(file);
+			let src;
+			try { src = fs.readFileSync(file, "utf8"); } catch { continue; }
+			for (const m of src.matchAll(IMPORT_RE)){
+				const spec = m[1] || m[2];
+				if (!spec || !spec.startsWith(".")) continue;   // skip bare specifiers: fs, path, child_process, crypto, …
+				stack.push(path.resolve(path.dirname(file), spec));
+			}
+		}
+		return seen;
+	}
+
 	function queue(file){
 		pending.add(file);
 		clearTimeout(debounce);
@@ -216,10 +256,16 @@ function supervise(){
 	}
 
 	function on_event(event, file){
-		if (!file.endsWith(".js") || file.includes("node_modules")) return;
+		if (!/\.m?js$/.test(file) || file.includes("node_modules")) return;
 		const kind = event === "rename" ? "rename" : "change";
+		if (kind === "rename") filter.remember(file);
+
+		if (!loaded_files().has(path.resolve(file))) {
+			console.log(`[supervisor] changed ${path.relative(__dirname, file)} — not loaded by the server, no restart.`);
+			return;
+		}
+
 		if (kind === "rename") {
-			filter.remember(file);
 			queue(file);
 		} else {
 			filter.passes(file, ok => { if (ok) queue(file); });

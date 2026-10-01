@@ -193,3 +193,36 @@ and a real write once went out unheld. `../../.claude/hooks/hold-guard.mjs` fixe
 the expiry: on an agent's own next write, it notices a hold that agent took has since lapsed and
 renews it, printing one line so the agent knows. Story and proof:
 [`/framework/ai/2026-09-19/hold-guard/`](/framework/ai/2026-09-19/hold-guard/).
+
+## A restart only fires for a file the live child actually loads (2026-10-01)
+
+Before this, `supervise()`'s watcher matched ANY `.js` file under `Server/` — whether
+`Server/run.js` imports it or not. Every tool script here (`merge.mjs`, `review.mjs`,
+`health.mjs`, `on-landing.mjs`, `hold.mjs`, every `worktree-*.mjs`, every `*.test.mjs`) is
+`.mjs`, so it already never matched by accident — but with no log line saying so, and a stray or
+future `.js` file nobody imports would still have restarted the server for nothing.
+
+`loaded_files()` in `server.js` walks the real static `import`/`export … from` graph starting at
+`server.js` and `Server/run.js` (plus `MtimeFilter.js`, loaded by a computed path so the regex
+can't see it) and only queues a restart for a file in that set. Everything else — a doc, a tool
+script, a dead `.js` nobody imports — logs one line and changes nothing:
+`[supervisor] changed Server\merge.mjs — not loaded by the server, no restart.` It's a regex walk,
+not a real parser, so it can over-include (a prose code sample that happens to look like an
+`import` line) but never under-include a real one — the safe direction for "should this restart."
+Recomputed fresh on every change, so teaching `run.js` to import a new plugin takes effect on the
+very next edit to that plugin. Proof and the owner's words behind it:
+[`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/).
+
+## The page holds through the gap — it never goes white (2026-10-01)
+
+`reconnect()` in `Socket.js` never reloaded the page — it only retries with backoff (see
+[`/framework/dev/Socket/doc/backoff.md`](/framework/dev/Socket/doc/backoff.md)) — so a restart
+was never actually blanking the page. What was missing was any SIGN that a reconnect was in
+flight: the owner saw nothing, so a few hundred ms of silence during the boot-tested swap above
+read as "it died," not "it's coming back." `Socket.js` now shows one small fixed strip —
+"server restarting… reconnecting" — the moment a reconnect is scheduled, and clears it the
+instant the socket reopens. It is purely a notice: it never reloads or blocks anything, and it
+never shows on a tab's very first connect attempt (only after the tab has connected at least
+once). Proved headless: editing `Server/run.js` on a live tab shows the strip, the page's own
+content (even a running clock widget) never resets, and the strip clears on reconnect —
+screenshots at [`/framework/ai/2026-10-01/page-holds/`](/framework/ai/2026-10-01/page-holds/).
