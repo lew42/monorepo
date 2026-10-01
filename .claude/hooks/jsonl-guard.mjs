@@ -13,7 +13,7 @@
  * FAILS OPEN: any error inside this hook lets the command through. */
 
 const WRITE = [
-	/>>?\s*["']?[^\s"'|;&]*\.jsonl\b/i,                         // > x.jsonl, >> "x.jsonl"
+	/(?<![=\-])>>?\s*["']?[^\s"'|;&]*\.jsonl\b/i,                         // > x.jsonl, >> "x.jsonl" (never => or ->)
 	/\btee\b[^|;&]*\.jsonl\b/i,                                  // tee -a x.jsonl
 	/\b(Add-Content|Out-File|Set-Content)\b[^|;&]*\.jsonl\b/i,   // PowerShell writers
 ];
