@@ -86,3 +86,27 @@ Read the parent's "Phase 4". Four small changes to the same five tests:
 4. **Replay a landed task.** `test.json` may carry `from_task: "<ai/... task dir>"`, meaning the
    prompt and accepted outcome come from that landed task. Document it in the readme's
    "how to add a test". Don't add such a test now.
+
+## Amendment 2: Phase 5, the ladder (this REPLACES the test list in deliverable 1)
+Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest first:
+
+| rung | test | replaces | what it checks |
+|---|---|---|---|
+| 1 | `h1-page`: "Make a page here with an H1 that says <X>." | new-page-glossary | reads the skills, writes a page.js in the page skill's shape, the H1 renders in the right place. Every model should pass: this is the floor |
+| 2 | `fix-label` | (same) | one self-evident fix, nothing else changed |
+| 2 | `broken-import` | (same) | finds and fixes the one wrong path |
+| 3 | `broken-overflow` | (same) | names the one cause |
+| 4 | `plan-views`: "Suggest three object-oriented architectures (class signatures, methods, how they talk) for a small <system with 3 named classes doing X, Y, Z>, in our style: a jQuery-like object-oriented View library, no virtual DOM, no React-style reactivity. Pick one." Through decide.mjs. | plan-counter | system design, OOP, naming; plus the reasoning score |
+
+- **Minimal context.** Each prompt names only the files it needs (for plan-views, the View
+  module's readme and nothing else). Don't paste the codebase into a prompt.
+- **Bad tests get dropped.** If the strong set disagrees on a test (fewer than 3 of 4), fix it or
+  drop it; don't score cheap models against it.
+- **Climb, don't sweep.** Run every model on rung 1. Then run the next rung. Stop raising the
+  difficulty once some cheap models fail. One run per model per test. Strong set:
+  `claude-opus-5-5`, `claude-sonnet-5` (subscription, never through OpenRouter), `openai/gpt-6-sol`,
+  `google/gemini-3.1-pro-preview`.
+- **Look for the cheap gems.** On top of the cheap set, add the two cheapest tool-capable models
+  from `/api/v1/models` (older ones count) to rungs 1 and 2 only.
+- **The reply** leads with one small table: model · rung · pass (n/n) · $/run · price multiplier
+  vs Sonnet. Then the agreement rate per test, and anything labelled c.
