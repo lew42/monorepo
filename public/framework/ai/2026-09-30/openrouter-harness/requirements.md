@@ -2,6 +2,23 @@
 
 The owner's words are verbatim in [owner-words.md](owner-words.md). **Top priority.** Re-read them before each step.
 
+## Current plan, in priority order (updated 2026-10-01 02:30)
+The goal: for each kind of task, find the cheapest model that does the job properly.
+1. **Done:** our harness runs through OpenRouter, and real costs are recorded. A weekly spend
+   pace protects the $50/month (phases 1, 2, 7, 8).
+2. **Done:** five tests, each a page at [/framework/ai/tests/](/framework/ai/tests/), all scored
+   on Claude (Opus, Sonnet, Haiku). Each test reports how good a test it is (phases 3–5, 9–11).
+3. **Done:** the [Models page](/framework/ai/system/models/) ranks value per task kind (phase 8).
+4. **Next, tonight after the OpenRouter reset:** run the cheap models on the same tests, the
+   probes, the vision test and the web-search cost check (phases 5–7).
+5. **Then: the quality bar before cost (phase 15).** A model must score about as well as
+   Sonnet on a task kind before its price counts at all.
+6. **Then: tests that separate models (phase 16).** Each test gets a `differentiation` score.
+   Questions with no known answer become Exploration pages, which tally what many models
+   recommend or avoid.
+7. **Later:** a ledger of every run (phase 13), tests per system (phase 14), and real-work
+   trials. Each test names where its truth comes from (phase 12).
+
 ## Why
 - Cheaper models for routine work.
 - Alternative feedback from other model families, to form a consensus. Anthropic models tend to decide alike.
@@ -70,3 +87,149 @@ The spike needs an OpenRouter API key at `%LOCALAPPDATA%\lew42\servex\openrouter
      - **(c) Config or feature parity:** OpenRouter or the model lacks something (a tool schema, caching, thinking, a hook). Fix the harness, or note the gap.
 
    Write each run as one line in a results log, so the model + task matrix (item 4) fills itself in.
+
+## Phase 3 (the owner, 2026-10-01 00:05): the test library. See owner-words.md, last section
+- **Don't break the core system for one provider.** The core (masterminds, the fast/smart assistants, Claude minions) stays on Claude exactly as it is. OpenRouter is for NEW minions, especially collaborative ones (3–5 minions that propose, vote and weigh options). Check that the Gemini tool-schema fix didn't change the tool definitions Claude agents see. If it did, keep the Gemini change behind the OpenRouter path only. Document every provider or model gap you find (what fails, why, the source) in `Servex/ext/openrouter/`, so we can weigh it.
+- **First priority: does a model use our features properly?** (the rule tests plus the probes). Then sophistication and cost.
+- **A test library: a folder of tasks, each with a known good outcome.** Kinds:
+  1. **Broken pages:** a small library of deliberately broken pages on the site. "Study this page and say what's wrong with its layout", or "fix it".
+  2. **New pages:** "write a new page about X". Check syntax errors, HTML built through JS in house style, object-oriented code, naming, and whether it follows the brief.
+  3. **Quick fixes:** a self-evident problem description with one right fix.
+  4. **Planning, before code:** "propose the shape; the options and the pros and cons". Some models may plan better and others may code better, so test both.
+
+  Tag each test by skill (CSS, HTML, JS, OOP, layout, system design, naming) and by complexity (the number of requirements).
+- **The benchmark by consensus.** If 3–5 strong models (Claude Opus/Sonnet, the best OpenRouter ones) solve a test the same way about 80–90% of the time, that solution is the reference. A run that misses its key elements failed to follow the directions.
+- **A judge mastermind** reads each result against the reference and gives a rough score: terrible, OK or great.
+- **Record, don't over-architect.** One line per run: test, model, effort, score, cost, time. The model + task matrix and the "cheapest good-enough model per kind" fall out of it. A model at a tenth of the cost can be used much more liberally, even if it's a bit worse.
+- **Planning versus decisions:** a planning test's output (shape, options, pros and cons) is what the decision system (ai/2026-09-30/decision-system) documents. Keep the formats the same.
+
+## Phase 4 (the owner, 2026-10-01 00:25): choosing a model is an ongoing decision. See owner-words.md, last section
+- **Cost is the easy axis.** The price per token is fixed, and a given prompt has about the same input and output tokens on any model. So compare price MULTIPLIERS (e.g. "a tenth of Sonnet"), not per-run dollars. **Value = good AND cheap.**
+- **Tiers:**
+  - default to the cheapest model that is good enough for the task kind;
+  - use the top models (Fable, Opus) for mission-critical or stuck work and for the very important decisions, not to nitpick every nuance.
+- **A routing table:** task kind → model + thinking level, chosen from cost × past performance. It keeps updating as results arrive, so the testing is ONGOING, not a one-off benchmark.
+- **Every task can become a test** (selectively, not all of them). A landed task already has the prompt and the accepted outcome. Replay the prompt on other models and score them against what we kept. Bug fixes, pages, even module architecture.
+- **Two ways to score a model:**
+  - (a) **the outcome:** does the code work and match the reference? This is simpler and faster, and it's the primary score;
+  - (b) **the reasoning record:** the decision tree it writes while working (the decision-system format). It costs a little more, but it shows whether the LOGIC is sound even when the code misses, which can redeem a model.
+
+## Phase 5 (the owner, 2026-10-01 00:40): a ladder of concrete tests
+- **Rung 1, the smoke test every model should pass:** "make a page here with an H1 that says X". Can it read the skills, write a page.js, use the page skill, and put the H1 in the right place? A 100% pass is GOOD news ("the thing is not completely stupid"). Record it as the floor, then raise the difficulty.
+- **Rungs 2+, harder:** for example, "suggest three object-oriented architectures (class signatures, methods, how they talk) for a system with these classes that does X, Y, Z, in OUR style: a jQuery-like object-oriented View library, no virtual DOM, no React-style reactivity". Then "explore different navigation techniques", and so on, until some models fail.
+- **Beware bad tests.** A test half the models "pass" by guessing, or one whose author's answer is wrong, proves nothing. Judge a hard test by its consensus, and drop or fix a test where the strong models disagree.
+- **Each test checks the SYSTEM and the MODEL together:** could an agent, or a person, complete it using our docs and skills?
+- **Minimal context:** give a model only what the test needs, not the whole codebase. That's cheaper, and it tests comprehension.
+- **Find the gems:** cheap models, older ones too, that do well, especially at brainstorming. Stress-test how cheap we can go.
+- **Care with the $50.** A few quick, minimal runs on a handful of models per rung. No big sweeps.
+- **Claude through OpenRouter:** no. Claude stays on the subscription through the SDK's own login (decided in the snapshot). Paying per token for Claude, and for Fable especially, would cost far more. OpenRouter is for non-Claude models.
+
+## Phase 6 (the owner, 2026-10-01 00:50): web search, and who pays for it
+Investigation (the first phase of every task) leans on web search, so it must work on OpenRouter minions WITHOUT quietly spending Anthropic tokens. Test each of these and record the answer, with the evidence:
+1. **`WebSearch` on a proxied non-Claude minion.** In Claude Code it's an Anthropic server-side tool. Through OpenRouter, does the request fail, get dropped, or get served by OpenRouter's own web search (its `web` plugin or `:online` models, which bill per result)? Does ANY call reach Anthropic?
+2. **`WebFetch`.** It fetches locally, then summarises with a small model. Which model does that summary call go to when the base URL is OpenRouter (the small/fast model setting)? If it's routed to Anthropic, that's a leak.
+3. **Measure with OpenRouter's exact per-request cost** (the generation stats), not the Claude usage percentages, which are too vague to attribute to one agent. To be sure nothing hits Anthropic, run the test with no Anthropic credentials in that child's environment at all: anything that needs them fails loudly.
+4. **The recommendation:** the cheapest reliable search for OpenRouter minions. That could be OpenRouter's web plugin, a search API exposed as our own in-process node tool (Servex tools), or WebFetch on known URLs only. Give the cost per search.
+5. **Does a model have web search? The current-events test.** Ask THREE detailed questions about events from the last 24 hours. Getting all three right is astronomically unlikely from memory alone, so it proves a real search. Run it per model, with and without our tool.
+6. **If a model has no search, build OUR tool,** one for every model, so search isn't a variable between models. Two kinds of tool:
+   - **page → markdown (fetch):** Cloudflare offers [markdown.new](http://markdown.new/), a demo and endpoint, plus the [Browser Run `/markdown` endpoint](https://developers.cloudflare.com/browser-run/quick-actions/markdown-endpoint/) (REST, needs an account token; check the free limits) and [Workers AI `toMarkdown()`](https://developers.cloudflare.com/workers-ai/features/markdown-conversion/). Also send `Accept: text/markdown` to sites behind Cloudflare's "Markdown for Agents". Check rate limits and terms before pointing minions at it.
+   - **search (query → results):** a search API (OpenRouter's web plugin; or Brave, Google Programmable Search, Exa or Tavily). Compare the price per search and the free tiers.
+
+   Expose it as an in-process Servex node tool (the house pattern: `Servex/agents/tools.js`, see the in-process-tools decision), not as a new MCP server.
+7. **The owner suggested a flood test** (thousands of searches per second, while watching the Claude usage meter for a jump). **Do NOT run it.** It risks being blocked or breaking terms, and the usage meter is too coarse. The no-Anthropic-credentials test (item 3) answers the same question definitively for free. At most, if item 3 is ambiguous: a small burst (about 50 searches) while nothing else is running, with the meter read before and after.
+
+## Phase 7 (the owner, 2026-10-01 01:10): vision for UI review, and a monthly pace
+- **The OpenRouter budget pace:** $50/month, so about **$10/week, roughly $1.50/day.** Set the spend guard's daily cap to match, and show the week's spend against $10. The owner may raise it to $100–200/month later, but the job now is to do the best with what we have.
+- **Vision tests.** Can each model take a screenshot in a prompt at all? Then: describe the UI accurately, and name its most serious DESIGN FOULS. The canonical foul: text sitting on a background or border change with ZERO padding, which should never happen. Use a few screenshots with KNOWN fouls (planted ones, plus real ones the layout and padding checks already found).
+  - The benchmark is Claude: the owner finds its UI judgement good.
+  - The aim is to find cheap models that are accurate enough to join a UI-review consensus (a fan-out over a screenshot). A cheap model that sometimes adds an insight nobody else gave is worth running if it costs a fraction of a cent.
+- **Configurations multiply** (provider × model × version × thinking level). Sample them; don't sweep. Start with the most promising 4–6 configurations per test.
+
+## Phase 8 (the owner, 2026-10-01 01:20): value = performance ÷ cost, against Claude
+- **Every test is benchmarked against a few Anthropic models:** Haiku, Sonnet and Opus, plus Fable on the strong tests. Price the Anthropic runs at Anthropic's LIST prices (the SDK's own cost estimate) even though the owner pays a flat subscription. It's the yardstick for comparing against OpenRouter's real prices.
+- **Value = performance ÷ cost.** Rank every configuration (model × thinking level) by value, per task kind. Publish it as ONE page with a chart and a table, under /framework/ai/ (System tab, "Models"), so "which models are best for what?" is answered by a link.
+- **Expected tiers:**
+  - cheap models (Haiku-class, cheap OpenRouter ones) for search, audits and pattern-finding;
+  - higher models for system architecture and the page system, where paying more buys better results.
+- **A pace, not a ceiling.** Turn the monthly OpenRouter budget into a WEEKLY pace (monthly ÷ 4), metered like the Claude meters (used% ≤ elapsed%). $50/month is a starting point, not a hard wall. The owner would raise it, even toward $1,000/month, for models that prove accurate, so the investigation is worth some spend. Cost per task matters: at $1–2 per OpenRouter task, 20–100 tasks a day burns any budget, so find the configurations that do the job for cents.
+- **Later, after the tests:** try the best-value OpenRouter models on REAL work (the dictation UX, the page system) under a Claude mastermind, which judges the output and asks the minion to clarify anything incoherent.
+
+## Phase 9 (the owner, 2026-10-01 01:30)
+- **Thinking levels:** start every model at MEDIUM. If a result is borderline, especially where other models score high, add two sample points at about 25% and 75% of its range. Use min and max only to prove a test DISCRIMINATES (it fails at min and passes at max). Finding the exact threshold isn't important.
+- **An `AITest` class** (under /framework/ai/, one instance per test). Each test holds:
+  - the prompt (or a path to it);
+  - the criteria and the expected result;
+  - instructions for the judge;
+  - its own CONFIDENCE (how sure we are that the test is good: consensus among strong models raises it).
+
+  Runs are PROGRAMMATIC. Node spawns the minion with the test's prompt FILE, collects the output, and hands it to the judge. No mastermind re-types the prompt.
+- **Document how thinking works** on the AI page, with a link: what runs on the provider's server (the model's thinking, inside one API response) and what runs on our machine (the harness's tool loop: the model asks for a tool, the harness runs it and sends back the result).
+
+## Phase 10 (the owner, 2026-10-01 01:45)
+- **The default sample:** the NEWEST version of each model family, at MEDIUM thinking. Assume newer is better for now, but note any case where an older version beats it (it happens: Midjourney).
+- **Where an `AITest` lives:** as a PAGE. Each test is a folder `ai/tests/<slug>/` whose `page.jsonl` line 1 is `{"class": "/framework/ai/tests/AITest.js", …}`. `PageLog` loads that class before it builds the page (the same way AI 2 cards become `Card`s), and each run is one appended line. Don't use the second system, `core/Item` (its `{type, id, data, items}` tree with `Item.register`). Note for mastermind-servex: two serialize/instantiate systems exist (`PageLog` class lines, and `Item.types`). Recommend one (CLAUDE.md law 6).
+- **Write down how thinking spends tokens,** on the AI page:
+  - thinking is billed as OUTPUT tokens;
+  - in a tool loop, earlier thinking is sent back as input, mostly cached and often trimmed;
+  - streaming can be cancelled, but a thought can't be steered mid-way;
+  - with interleaved thinking the model thinks between tool calls (e.g. after each web search).
+
+  Verify each point per provider; OpenRouter models may differ.
+
+## Phase 11 (the owner, 2026-10-01 01:50): is the test a good test?
+A test's own WEIGHT is its quality. It's shown on the test's page with the models it has run on.
+- **Pass rate near 100%:** easy. It only weeds out the worst models. It's still useful as the floor (rung 1), but it weighs little for ranking.
+- **Pass rate near 0%:** probably a BROKEN test (a wrong expected answer, an impossible ask). Review the test, not the models.
+- **In between:** possibly a real test. But a 50% pass rate can still be a bad test if the criteria are too strict and the "fails" were mostly right.
+
+**How to guard (my proposal; the item-response-theory idea):**
+1. **Partial credit:** score each criterion 0–1 and sum them, instead of a single pass/fail. A near-miss scores 0.8, not 0.
+2. **Discrimination:** does the score track each model's overall strength? Strong models score high and weak ones low. A test where weak models beat strong ones is suspect.
+3. **Near-miss review:** the judge re-reads a sample of FAILED runs and asks "was this actually mostly right?" Too many yeses means the criteria are too strict: loosen them, and lower the test's confidence until it's fixed.
+
+Test weight = discrimination × confidence.
+
+## Phase 12 (the owner, 2026-10-01 01:55): where the truth comes from
+An AI judge is only as good as the truth it judges against. Every test names its SOURCE OF TRUTH, strongest first:
+1. **Mechanical: code checks it, no judge.** Does it parse? Does the page load with no console errors? Is the H1 there with the right text? Is the page linked from its parent? Did the task log land? Prefer tests built on these.
+2. **The owner's kept outcomes.** A landed task the owner accepted is the reference answer for its replay.
+3. **Consensus of strong models.** PROVISIONAL truth, with its agreement shown. It's good enough to rank models, not to overrule 1 or 2.
+4. **The owner's spot check.** Now and then the owner looks at a few judged runs (via the Inbox, never blocking). Each yes or no calibrates the judge.
+
+A question with NO truth yet (a new design, a name) is not a test. It's an EXPLORATION, run as a brainstorm with weighted ratings (phase 2, item 5). Its winner can later become a test's reference once it's kept.
+
+## Phase 13 (the owner, 2026-10-01 02:00): record every run now, judge it later
+- **A RUN LEDGER.** Every agent run Servex makes, Claude or OpenRouter, gets one line: when, agent, role, model + thinking level, task kind, the prompt (a PATH to it, never pasted), the output (a path: the transcript, the files changed), the cost, and the task. Most of this already exists in pieces (the Servex session logs, task.jsonl, the spend ledger). Join them into one queryable index. Don't create a second store.
+- **Work blindly now, judge later.** A run with no known answer still counts. Later we can:
+  - query "every run of model X" (say 100 of them) and judge them in bulk;
+  - replay their prompts on alternative models and compare.
+- **Agreement accumulates into truth.** When 5–10 models review the same page, system or process and 3 or more make the same recommendation, that's probably signal, not noise. Record each recommendation as a STATEMENT with its agreement and weight. As more runs agree, its confidence rises, and a high-confidence statement can become a test's reference (phase 12, level 3).
+- **Judging is graded:** how thorough and how complete, by a smart judge model. Rarely all-right or all-wrong.
+
+## Phase 14 (the owner, 2026-10-01 02:10): AI tests per SYSTEM
+- **Each system (module or path) has its own tools and its own AI tests.** For example, the Page system's "create a page" and "edit a page". Write them ON DEMAND: when agents keep getting something wrong that they should get right, or when we want to find a model that's good at it.
+- **Core systems first:** Page, layout, UI and CSS, code (OOP in our style). Systems can carry a weight, so the most important get tests first.
+- **Convergence is the reference.** Run a design-type test about 10 times on the best models, and the answers converge on a small handful of likely shapes: method names, APIs. That set, with its weights, is the reference.
+- **Name and list tallies:** a suggested name IS its own ID (the string). Each time a model suggests it, its weight goes up, so the most-suggested names rise. Then look at the outliers: a surprising top name, or a good name suggested only 2–3 times. Optionally, every model gives feedback on every name (phase 2, item 5).
+- **Thinking level:** for a promising model, re-run the same test at other levels to see whether thinking improves the answers (completeness, correctness). Don't sweep everything.
+
+## Phase 15 (the owner, 2026-10-01 02:20): capability BEFORE cost
+"It's better to pay a little more and get it done properly than pay a tenth the cost and get a tenth the result."
+- **A QUALITY BAR comes first.** For each task kind, a model must clear the bar (e.g. it scores at least as well as Sonnet on that kind's tests, or within a small margin) before its price is considered at all. Value (performance ÷ cost) ranks ONLY the models that pass the bar.
+- A cheap model below the bar isn't "good value". It's out for that task kind, except as an extra voice in a brainstorm or vote, where a sometimes-useful idea is still worth a fraction of a cent.
+- Count the hidden cost of a weak result: the re-do, the review, and the time a wrong answer burns.
+
+## Phase 16 (the owner, 2026-10-01 02:25): differentiation, and recording strong signals. The recording format is DECIDED below.
+- **`differentiation` is a named property of every AITest:** how well its scores separate models (the spread of scores across models, adjusted for discrimination per phase 11). It's the strongest reason to run a test on MORE models. A mastermind may raise a test's weight when its differentiation is high. The test's weight = differentiation × confidence.
+- **Strong signals are what we're looking for:**
+  - an item that many models recommend independently (a name, an option, a strategy);
+  - an item that many models say to AVOID.
+
+  Both are strong.
+- **How they're recorded (decided; alternative below):**
+  - an exploration question is a PAGE: `ai/explore/SLUG/page.jsonl`, whose line 1 is a class line pointing to an `Exploration` class (shown with the decision UI);
+  - each model's answer is appended as lines: `{"suggest": {item, by: model, rank, weight}}` for "recommend X", and `{"avoid": {item, by: model, why}}` for "steer clear of Y";
+  - an item IS its string ID (normalised: trimmed, case-folded for matching, original spelling kept), so repeats tally automatically;
+  - the page shows a ranked list: count, mean weight and spread, with strong-recommend and strong-avoid at the top and bottom.
+- **Alternative (rejected):** one shared signals.jsonl for every question. It's simpler to append, but harder to browse, and it breaks "everything is a page".
+- The first exploration is the naming question from phase 2, item 5.
