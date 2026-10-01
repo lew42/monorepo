@@ -169,7 +169,9 @@ async function spike_one(model){
 		turn1: { tool_calls: turn1.tool_calls, partial_messages: turn1.partial, edit_landed,
 			is_error: turn1.is_error, error: turn1.error_text, duration_ms: turn1.duration_ms,
 			cost_sdk_usd: turn1.cost_sdk, real_cost_usd: cost1, cost_source: r1?.source ?? null },
-		resume: { answer: turn2.result_text, is_error: turn2.is_error, error: turn2.error_text,
+		resume: { answer: turn2.result_text, is_error: turn2.is_error,
+			// a resume passes only if it remembers the edit (review, gpt-6-sol #6: an empty answer once counted)
+			ok: !turn2.is_error && /red/i.test(turn2.result_text ?? "") && /blue/i.test(turn2.result_text ?? ""), error: turn2.error_text,
 			duration_ms: turn2.duration_ms ?? null, cost_sdk_usd: turn2.cost_sdk ?? 0, real_cost_usd: cost2,
 			skipped_over_cap: over_cap_already },
 		real_cost_total_usd: real_cost_total,
@@ -201,7 +203,7 @@ for (const r of rows){
 		String(r.turn1.tool_calls.length).padEnd(5),
 		String(r.turn1.partial_messages).padEnd(6),
 		String(r.turn1.edit_landed).padEnd(4),
-		String(!r.resume.is_error).padEnd(9),
+		String(r.resume.ok).padEnd(9),
 		r.real_cost_total_usd != null ? `$${r.real_cost_total_usd.toFixed(4)}` : "unknown"
 	);
 }
