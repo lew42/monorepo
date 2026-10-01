@@ -68,3 +68,21 @@ OpenRouter spend for this brief: about $4 at most. Check `/api/v1/key` usage thr
 `provider.js` `key_usage()` before the strong set and after it. Reply to your parent with: the
 results table (test × model: score, $, s), the reference agreement rate per test, the commit
 hashes, and anything that looked like a harness failure (label c).
+
+## Amendment: Phase 4 folded in (no new tests)
+Read the parent's "Phase 4". Four small changes to the same five tests:
+1. **Price as a multiplier.** The table shows each model's price as a multiple of `claude-sonnet-5`
+   ("0.1×"), from the public `GET /api/v1/models` prices, computed when it prints. Keep the
+   per-run `cost_usd` too.
+2. **The routing table.** `library.mjs --route` reads results.jsonl (newest line per
+   model × effort × test wins) and writes `evals/routing.json`: for each test kind, the cheapest
+   model + effort whose runs score at least `ok`, with its multiplier and the evidence (runs,
+   scores). Recomputed from scratch on every run, so it updates as results arrive. Nothing reads
+   it yet.
+3. **Two scores.** The judge's `score` is the outcome (primary). When a run wrote a decision
+   record (decide.mjs; at least plan-counter), the judge also writes `reasoning`:
+   terrible|ok|great, plus a one-line note. A sound decision record with a missed outcome is
+   worth flagging.
+4. **Replay a landed task.** `test.json` may carry `from_task: "<ai/... task dir>"`, meaning the
+   prompt and accepted outcome come from that landed task. Document it in the readme's
+   "how to add a test". Don't add such a test now.
