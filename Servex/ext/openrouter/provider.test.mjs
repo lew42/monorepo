@@ -91,6 +91,14 @@ test("evaluate_guard: a custom cap overrides OR_DAILY_CAP_USD", () => {
 	assert.equal(evaluate_guard({ usage_daily: 2, limit_remaining: 40 }, 5).ok, true);
 });
 
+test("evaluate_guard: the weekly pace allows one day ahead of the clock, no more", () => {
+	// a $10 week, half elapsed: allowed = 10 × (0.5 + 1/7) ≈ $6.43
+	assert.equal(evaluate_guard({ usage_daily: 0, usage_weekly: 6.3, limit_remaining: 40 }, 100, 10, 0.5).ok, true);
+	const r = evaluate_guard({ usage_daily: 0, usage_weekly: 6.5, limit_remaining: 40 }, 100, 10, 0.5);
+	assert.equal(r.ok, false);
+	assert.match(r.reason, /ahead of pace/);
+});
+
 test("evaluate_guard: FAILS CLOSED with no reading at all (null status), and says to retry", () => {
 	const r = evaluate_guard(null);
 	assert.equal(r.ok, false);

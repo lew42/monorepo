@@ -175,11 +175,22 @@ export async function real_turn_cost({ key, message_id, message_ids, usage_befor
  * `Agents.spawn()` needs a yes/no answer SYNCHRONOUSLY, once per spawn, with no
  * network call on the hot path — so the real `/key` read happens on a 30s
  * background timer, and spawn() only ever reads whatever that timer last found. */
-/* THE PACE (owner, Phase 7, 2026-10-01): $50/month ≈ $10/week ≈ $1.50/day. The
- * daily cap keeps one day from eating the week; the weekly cap is the real budget.
- * OpenRouter resets usage_daily at UTC midnight and usage_weekly on Monday 00:00 UTC. */
-export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || 1.5;
-export const OR_WEEKLY_CAP_USD = Number(process.env.SERVEX_OR_WEEKLY_CAP) || 10;
+/* THE PACE (owner, Phases 7-8, 2026-10-01): the monthly OpenRouter budget ÷ 4 is the
+ * week's budget, metered like the Claude windows. Spend may run at most one day ahead
+ * of the clock: used ≤ week × (elapsed + 1/7). It's a pace, not a wall: raise
+ * SERVEX_OR_MONTHLY_USD when a model earns it. OpenRouter resets usage_weekly on
+ * Monday 00:00 UTC. The daily cap is only a runaway backstop, so one bad day can't
+ * empty the week. */
+export const OR_MONTHLY_USD = Number(process.env.SERVEX_OR_MONTHLY_USD) || 50;
+export const OR_WEEKLY_CAP_USD = OR_MONTHLY_USD / 4;
+export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || OR_WEEKLY_CAP_USD / 2;
+const WEEK_MS = 7 * 86400e3;
+/* How far into the OpenRouter week (from Monday 00:00 UTC), 0..1. */
+export function week_elapsed(now = Date.now()){
+	const d = new Date(now);
+	const monday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+	return Math.min(1, (now - monday) / WEEK_MS);
+}
 const OR_GUARD_CACHE_MS = 30_000;
 let or_guard_status = null;       // last successful key_status() reading
 let or_guard_checked_at = 0;
@@ -198,11 +209,8 @@ function write_usage_snapshot(status){
 		const monday = new Date(midnight); monday.setUTCDate(monday.getUTCDate() + ((8 - monday.getUTCDay()) % 7));
 		const pct = (used, cap) => typeof used === "number" ? Math.round(used / cap * 100) : 0;
 		const snapshot = { utilization: { limits: [{
-			kind: "openrouter_daily", group: "daily", percent: pct(status.usage_daily, OR_DAILY_CAP_USD), resets_at: midnight.toISOString(),
-			usage_daily: status.usage_daily, cap: OR_DAILY_CAP_USD, limit_remaining: status.limit_remaining
-		}, {
 			kind: "openrouter_weekly", group: "weekly", percent: pct(status.usage_weekly, OR_WEEKLY_CAP_USD), resets_at: monday.toISOString(),
-			usage_weekly: status.usage_weekly, cap: OR_WEEKLY_CAP_USD
+			usage_weekly: status.usage_weekly, cap: OR_WEEKLY_CAP_USD, monthly: OR_MONTHLY_USD, usage_daily: status.usage_daily
 		}] } };
 		fs.mkdirSync(path.dirname(USAGE_SNAPSHOT), { recursive: true });
 		fs.writeFileSync(USAGE_SNAPSHOT, JSON.stringify(snapshot, null, 2));
@@ -233,13 +241,14 @@ function ensure_or_guard_timer(){
  * no clock) so it can be tested directly against a made-up reading instead of
  * a live OpenRouter account. `cap` defaults to the module's own
  * `OR_DAILY_CAP_USD` but takes an override for a test's own numbers. */
-export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_WEEKLY_CAP_USD){
+export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_WEEKLY_CAP_USD, elapsed = week_elapsed()){
 	if (!status) return { ok: false,
 		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — retry in a few seconds" };
 	if (typeof status.usage_daily === "number" && status.usage_daily >= cap)
 		return { ok: false, reason: `today's OpenRouter spend ($${status.usage_daily.toFixed(2)}) is at or over the $${cap}/day cap` };
-	if (typeof status.usage_weekly === "number" && status.usage_weekly >= weekly_cap)
-		return { ok: false, reason: `this week's OpenRouter spend (${status.usage_weekly.toFixed(2)}) is at or over the ${weekly_cap}/week cap (resets Monday 00:00 UTC)` };
+	const allowed = weekly_cap * Math.min(1, elapsed + 1 / 7);
+	if (typeof status.usage_weekly === "number" && status.usage_weekly >= allowed)
+		return { ok: false, reason: `this week's OpenRouter spend ($${status.usage_weekly.toFixed(2)}) is ahead of pace: $${allowed.toFixed(2)} of the $${weekly_cap}/week budget is allowed by now (one day ahead of the clock; resets Monday 00:00 UTC)` };
 	if (typeof status.limit_remaining === "number" && status.limit_remaining < 1)
 		return { ok: false, reason: `OpenRouter credit left ($${status.limit_remaining.toFixed(2)}) is under $1` };
 	return { ok: true, reason: null };

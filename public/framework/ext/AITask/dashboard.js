@@ -287,13 +287,12 @@ export function rail(page){
 			//   page. Silent when there are none, which is the normal state. needs.js.
 			needs_strip(needs_all(list));
 			active_strip(list);
-			// The credit-left figure lives in the raw limit, not the meter's own fields,
-			// so it rides along as a label override rather than a second number on the page.
-			const [or_day, or_week] = or_usage?.utilization?.limits ?? [];
-			const money = v => typeof v === "number" ? `${v.toFixed(2)}` : "?";
-			usage_rail(merge_usage(usage, or_usage), or_day ? {
-				openrouter_daily: `OpenRouter — today, ${money(or_day.usage_daily)} of ${money(or_day.cap)}` + (or_day.limit_remaining != null ? ` (${money(or_day.limit_remaining)} credit left)` : ""),
-				...(or_week ? { openrouter_weekly: `OpenRouter — this week, ${money(or_week.usage_weekly)} of ${money(or_week.cap)}` } : {})
+			// The dollar figures live in the raw limit, not the meter's own fields, so they
+			// ride along as a label override rather than a second number on the page.
+			const or_week = or_usage?.utilization?.limits?.find(l => l.kind === "openrouter_weekly");
+			const money = v => typeof v === "number" ? "$" + v.toFixed(2) : "?";
+			usage_rail(merge_usage(usage, or_usage), or_week ? {
+				openrouter_weekly: `OpenRouter — this week, ${money(or_week.usage_weekly)} of ${money(or_week.cap)} (${money(or_week.monthly)}/month)`
 			} : undefined);
 			highlights(list);
 			div.c("ai-out", () => {

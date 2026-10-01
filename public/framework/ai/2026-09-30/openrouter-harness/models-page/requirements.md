@@ -1,0 +1,31 @@
+# Minion brief: the Models page (value = performance ÷ cost)
+
+Parent: `task-mastermind-openrouter`. Read the parent's `requirements.md` "Phase 8". Load the
+`page`, `code`, `new-page` and `dataviz` skills before you write.
+
+## What
+ONE page that answers "which models are best for what?" with a link:
+`/framework/ai/system/models/`. It's a part under the AI page's System tab
+(`public/framework/ai/overview.js`, `SYSTEM_PARTS`); add it there the way the other parts are
+declared.
+
+- **Data:** read `Servex/ext/openrouter/evals/results.jsonl` (the newest line per
+  model × effort × test wins) at build time, plus the price multipliers. Don't copy numbers into
+  the page by hand. If the page can't fetch a file outside `public/`, write a small generator,
+  `evals/models.mjs`, that writes `public/framework/ai/system/models/models.json`, and run it.
+- **Performance:** great = 1, ok = 0.5, terrible or fail = 0; for rule tests, pass = 1.
+  **Cost:** dollars per run. Claude is priced at Anthropic's LIST prices (the SDK's own cost
+  figure), and OpenRouter models at their real billed cost. **Value** = mean performance ÷ mean
+  $/run.
+- **Above the fold:** one chart, value per configuration (model × effort), grouped by task kind,
+  best first. Under it, one table: kind · model · effort · performance · $/run · ×Sonnet ·
+  value. Then one line that says which model is best value per kind, in plain words.
+- One screen, shown not told (CLAUDE.md "Presentation"). Check it at 400, 1200, 1920 and 3440.
+
+## Fence
+The qf-7 worktree. Write only `public/framework/ai/system/models/`, the one `SYSTEM_PARTS` entry
+in `overview.js`, `evals/models.mjs`, and this task dir. Hold reloads while you write
+(`node Server/hold.mjs`). Claude spend: keep it small, about $4.
+
+## Reply
+The page link, a screenshot at 1200, and the best-value model per kind in one line each.
