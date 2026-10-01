@@ -187,9 +187,10 @@
 
 	/* ── the head: the name, then ONE ROW OF WORDS, and it never grows ──
 	   The rows sit under this, so a head that gains a line pushes every row down. */
+	/* Its text lines up with the rows' text: their `--pad-card` plus the 3px selection edge. */
 	.inbox-top {
 		flex: none;
-		padding: 0.5em;
+		padding: 0.5em calc(var(--pad-card) + 3px);
 		font-size: 0.85em;
 		background: var(--surface);
 		border-block-end: 1px solid var(--line);
