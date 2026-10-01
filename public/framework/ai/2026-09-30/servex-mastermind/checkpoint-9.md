@@ -41,3 +41,13 @@ cards-and-logs (review-fix minion), review (walkthrough minion, then land), page
 - process-monitor merged ecaba702; Servex restarted for it (17:25). dormant-idle then measures `/api/processes` live and lands — if I am gone, tell it Servex is up. Skill lines applied (servex-mastermind Processes bullet; fans step 0; owner's-tab clarification).
 - Weekly window 96% until 10 PM: no new spawns before then. 10 PM batch: proposal-flow, ui-system, padding, selection.
 - 5 PM fans: three worktree servers spinning without a port, killed; spin.md updated.
+
+## Added 22:15 CDT — proposal-flow is mine; wave A queued
+
+- The owner (via `vscode-mastermind`, 22:04): the weekly reset passed, usage 0%; "you and your minions build it… Do items 9–12 FIRST". So the proposal-flow task is owned by me, not a task mastermind. Brief: `proposal-flow/requirements.md`; owner words verbatim in `proposal-flow/owner-words.md`.
+- Plan + picture: `proposal-flow/plan.md`, `plan.svg` (42ab5b85). Card: `2026/09/30/proposal-flow-main-is-production-then-pr`.
+- Worktree `C:/Code/lew42/worktrees/proposal-flow`, branch `worktree/proposal-flow`, server `http://localhost:62566/` (made with `node Server/worktree-up.mjs proposal-flow`).
+- Wave A minions (parent me, bypassPermissions, task dirs `proposal-flow/<name>`): `minion-health-monitor` (Opus, $12), `minion-validated-writes` (Opus, $12), `minion-verbs-reader` (Sonnet, $5). They sit in Servex's spawn queue (positions 1–3 at 22:15) behind the 5/5 working cap; `system_health` → `queue[]` shows them (the `/agents` list does not). Servex wakes me when each starts and when it ends a turn.
+- On "ready to merge" (card): merge each piece through `Server/merge.mjs`, verify headless, commit per-file leftovers by exact path. validated-writes touches `.claude/settings.json` hooks and Servex `append_log` → one batched Servex restart.
+- Wave B briefs (Proposal class, node-led loop, merge rows + revert, template weights, page.jsonl archiving + promotion, session focus) are written after A lands.
+- process-monitor landed by dormant-idle (eefbf20e + acf942cb CSS). Nothing left for me there.
