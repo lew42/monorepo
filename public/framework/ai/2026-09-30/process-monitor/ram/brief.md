@@ -29,6 +29,25 @@ Stop them through Servex's own stop path (the one `stop_server` uses), never by 
 
 `Global.js` sends an idle agent dormant after `dormant_ms` (3 min). When free RAM is under 6 GB (`SERVEX_TIGHT_MB`, default 6144), use 30 seconds instead (`SERVEX_DORMANT_TIGHT_MS`). Read free RAM from `servex.processes.now.free_mb`. If the monitor has no reading yet, keep the normal timer. Log the switch once each way, not every tick.
 
+## 2b. Dormant the moment a turn ends, per role (added 16:10)
+
+Read the requirements' newest section, "dormant the moment a turn ends". The transcript is already on disk, so an idle claude.exe only wastes RAM.
+
+**Measure first, then pick the number.**
+- Time a cold resume twice: one small session and one large session (around 150k context; find one in `~/.claude/projects/`, but never resume a session that is live). Measure process start, session load and first token. One short `claude -p --resume <id> "reply ok"` run each (hidden, Sonnet) is enough.
+- Check the prompt cache still hits after the resume: `cache_read` > 0 in the result's usage.
+- Write the numbers in your report.
+
+**Then build `dormant_after` per role** in `Global.js`:
+- masterminds (`mastermind`, `task-mastermind`, `directory-mastermind`), minions (`agent`, `helper`, `fork`) and reviewers: **0** if a resume takes about 3 s or less; otherwise a 20 s grace (`SERVEX_DORMANT_GRACE_MS`).
+- Kept warm: `session-fast` while its voice session is live; and any agent with a live background task or a child that is still working.
+- "0" means sleep when the turn ends. The `agents.register` wrap in `reaper()` already sees each state change; don't wait for the minute sweep.
+- The tight-RAM rule (2) stays for every other role.
+- Log `type: "dormant"` with `after_ms`. Count the RAM it frees: put `dormant_freed_mb` (the last measured MB of each process put to sleep, summed today) in `summary()` or the processes log, so the monitor can show it.
+- Tests: a minion goes dormant on turn end; `session-fast` in a live session does not; an agent with a working child does not.
+
+Add `Servex/agents/Agent.js` to your fence only if the turn-end hook needs it.
+
 ## Proof
 
 - Add checks to `Servex/processes.test.mjs`: with made-up state, a landed task's worktree gets its server stopped, and a taken qf slot does not. The dormant time is 30 s under 6 GB free, and 3 min otherwise or with no reading.
