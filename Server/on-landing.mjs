@@ -68,6 +68,13 @@ try {
 	} catch (e) {
 		try { append(task, "doc-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}
+	// Owner-check (session-gate, 2026-10-01): does this LANDED task do what the owner actually
+	// asked, item by item — not just match requirements.md's own summary of the ask? Detached,
+	// same reason as the clarity agent above: it spawns its own fresh reviewer and can wait
+	// several minutes for it, and on-landing's own checks below must not wait on that. It writes
+	// its own log line (and a card nag for anything missing) once it finishes, on its own time.
+	try { spawn(process.execPath, [path.join(root, "Server/owner-check.mjs"), dir], { detached: true, stdio: "ignore", windowsHide: true }).unref(); }
+	catch (e) { try { append(task, "owner-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {} }
 	// Worktree teardown (task-loop, worktree-down, 2026-09-29): a landed task's own private dev
 	// server (its task.jsonl line 1 `worktree`) goes down the moment it's actually safe — landed,
 	// its branch merged into michael/dev, and nobody still working there. can_stop() in

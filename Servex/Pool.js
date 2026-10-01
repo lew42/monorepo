@@ -135,6 +135,32 @@ export default class Pool extends Events {
         throw new Error("No worktree could be made ready — see the servex log (event: pool).");
     }
 
+    /* SYNC TAKE (session-gate, 2026-10-01): Agents.spawn() is synchronous on purpose — a
+     * dozen-plus callers assume a spawn() call hands back a real Agent at once, not a
+     * promise — so it cannot `await take()` above. This claims a READY slot the same way
+     * take() does, synchronously: no retry loop, no reclaim, no prepare-and-wait, just one
+     * BOUNDED git call (a real `timeout`, fresh-eyes review finding 2 — not just a name), the
+     * same style as main_repo() and free_id() above. Returns null — nothing claimed — when no
+     * slot is ready right now, so a caller (a minion with no worktree yet) is never blocked
+     * waiting for one. */
+    take_sync(caller){
+        const slot = this.slots.find(s => s.state === "ready");
+        if (!slot) return null;
+        Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
+        this.save();
+        try { execFileSync("git", ["-C", slot.path, "merge", "--ff-only", this.base], { windowsHide: true, stdio: "ignore", timeout: 15000 }); }
+        catch (e){
+            slot.state = "bad";
+            this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped`, { id: slot.id });
+            this.remove(slot);
+            return null;
+        }
+        try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
+        this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
+        this.top_up();
+        return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+    }
+
     async give_back(id){
         const slot = this.slots.find(s => s.id === id);
         if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);

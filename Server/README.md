@@ -59,6 +59,12 @@ directory on disk) can flag those as dead when the site actually serves them fin
 understand the router, on purpose, to stay this simple.
 [`public/framework/ai/2026-09-28/task-loop/landing-checks/`](/framework/ai2/2026-09-28/task-loop/landing-checks/).
 
+**`Server/owner-check.mjs`** (2026-10-01) is the last check on-landing.mjs runs: does the landed
+task do what the OWNER actually asked, item by item — not just match its own requirements.md? It
+finds the owner's dictated words (an `owner-words.md`, a parent task's, or one quoted in the
+brief), splits them into items, and asks one fresh Sonnet reviewer to verdict each one done /
+partly / missing against the real files. Detail: [`doc/on-landing.md`](./doc/on-landing.md).
+
 **Landing needs an outcome.** The ledger hook (`.claude/hooks/ledger.mjs`) refuses a `landed_at`
 with an empty or missing `outcome` — it blocks the stop, every time, and logs the refusal to the
 task once (not on every retry), so `landed_at` alone can never read as done.
