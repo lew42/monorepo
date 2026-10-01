@@ -1,8 +1,9 @@
-import { Page, md, div, a, span, small, strong, icon, h2 } from "/app.js";
+import { Page, md, div, a, span, small, strong, icon, h2, h3 } from "/app.js";
 import { code } from "/framework/ext/highlight/highlight.js";
 import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
 import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
+import { table } from "/framework/ui/table/table.js";
 
 /* THE TOP TABS of /framework/ai/: Inbox (the default), Log and System (the owner, 2026-09-30:
    "log is everything. And inbox is only… priority… and above"). Inbox and Log are the SAME
@@ -11,7 +12,7 @@ import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js"
 export const TABS = ["inbox", "log", "system"];
 // The System tab's own pages (/framework/ai/system/<name>/). Each still answers at its old
 // url, /framework/ai/<name>/, so no link breaks (ai/page.js route()).
-export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring"];
+export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring", "models", "thinking"];
 
 /* THE AUTHORING PIECES, used on every tab below and shown on the Authoring tab.
    A section is a heading, one gist line, then its items; nothing else. */
@@ -90,6 +91,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 					{ name: "Readmes", icon: "menu_book", gist: "The chain of readmes an agent reads, root first.", href: base + "readmes/" },
 					{ name: "Objects", icon: "category", gist: "Each thing as a chip, a row and a panel.", href: url + "objects/" },
 					{ name: "Authoring", icon: "edit_note", gist: "The pieces these pages are built from, simple to complex.", href: url + "authoring/" },
+					{ name: "Models", icon: "query_stats", gist: "Which model is best value, for which kind of work.", href: url + "models/" },
 					{ name: "Servex", icon: "hub", gist: "The process that runs the agents. Its own docs.", href: "/framework/servex/" },
 					{ name: "Design system", icon: "palette", gist: "How a page looks: layout, spacing, colour, controls, content.", href: "/framework/design/" },
 					{ name: "Code system", icon: "code", gist: "How the code is written: objects, pages, views, the traps.", href: "/framework/code/" },
@@ -212,6 +214,19 @@ export function tab_page(root, name, url = root.url + name + "/"){
 		},
 	};
 
+	pages["models"] = {
+		title: "Models", icon: "query_stats",
+		content(){
+			md("**Which model is best value, for which kind of task?** Value = how often it gets the work right, divided by what a run costs — higher is better. The `effort` knob this depends on, and what it costs in tool-call round trips, is explained in [How thinking works](" + base + "system/thinking/).");
+			const box = div.c("wide");
+			later(box, base + "system/models/models.json", JSON.parse, render_models);
+		},
+	};
+	pages["thinking"] = {
+		title: "How thinking works", icon: "psychology",
+		content(){ render_thinking(); },
+	};
+
 	// ⚠ title "" — the tab sits under the page's own h1 ("AI"); a second page-size
 	// heading on top of the panel read as two titles. The strip reads `label`.
 	const { title, ...cfg } = pages[name];
@@ -247,4 +262,106 @@ export function readme_chain(dir = "public/framework/ai/"){
 		});
 	}));
 	return box;
+}
+
+/* THE MODELS PAGE (ai/system/models/, Phase 8–11 of 2026-09-30/openrouter-harness). All the
+   numbers come from Servex/ext/openrouter/evals/models.mjs — this just draws what it found. */
+
+// Fixed hue per model (never cycled: CLAUDE.md "color follows the entity"), colorblind-safe
+// (Okabe-Ito). Claude is the baseline control, drawn in ink grey rather than a competing hue.
+const MODEL_COLOR = {
+	"openai/gpt-6-luna": "#E69F00",
+	"deepseek/deepseek-v4.1-flash": "#0072B2",
+	"google/gemini-3.8-flash": "#009E73",
+	"google/gemini-3.1-pro-preview": "#CC79A7",
+};
+const model_color = model => MODEL_COLOR[model] ?? (model.startsWith("claude-") ? "#767676" : "#999");
+const model_name = model => model.startsWith("claude-") ? "Claude Haiku (control)" : (model.split("/")[1] ?? model);
+const fmt_usd = n => n == null ? "—" : n < 0.001 ? "<$0.001" : "$" + n.toFixed(n < 1 ? 3 : 2);
+const fmt_pct = n => n == null ? "—" : Math.round(n * 100) + "%";
+
+// One facet (small multiple) per kind — kinds differ wildly in scale (a rule test's value is in
+// the tens, a probe's is near zero), so each gets its own x-axis rather than one shared scale
+// that would crush the small ones to invisible (dataviz: "two measures of different scale -> two
+// charts or small multiples").
+function bar_facet_svg(rows){
+	const real = rows.filter(r => r.value != null);
+	if (!real.length) return null;
+	const max = Math.max(...real.map(r => r.value), 0.01);
+	const rowH = 28, pad = 8, L = 190, R = 60, W = 640, H = real.length * rowH + pad * 2;
+	let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Value per configuration, best first">`;
+	real.forEach((r, i) => {
+		const y = pad + i * rowH, bw = Math.max(2, (r.value / max) * (W - L - R));
+		const label = model_name(r.model) + (r.effort ? " · " + r.effort : "");
+		s += `<text x="${L - 8}" y="${y + 15}" text-anchor="end" style="fill:var(--ink);font-size:.8rem">${label}</text>`;
+		s += `<rect x="${L}" y="${y + 3}" width="${bw}" height="16" rx="4" fill="${model_color(r.model)}"></rect>`;
+		s += `<text x="${L + bw + 6}" y="${y + 15}" style="fill:var(--ink-muted,#666);font-size:.8rem">${r.value}</text>`;
+	});
+	s += `</svg>`;
+	return s;
+}
+
+function render_models(data){
+	heading("Value per configuration, by kind", "Best first in each row group. One bar is one model at one effort level; the number is value (performance ÷ $/run).");
+	div.c("card").append(() => {
+		data.kinds.filter(k => k.rows.some(r => r.value != null)).forEach(k => {
+			const svgText = bar_facet_svg(k.rows);
+			if (!svgText) return;
+			h3(k.label.split(" — ")[0]).style({ fontSize: "1rem", marginTop: "1.25rem" });
+			div().html_unsafe(svgText);
+		});
+		small.c("muted", data.weighting_note || "Each test is weighted by how well it separates strong models from weak ones.");
+	});
+
+	heading("Every configuration tried");
+	const head = ["kind", "model", "effort", "performance", "$/run", "×Claude", "value"];
+	const allRows = data.kinds.flatMap(k => k.rows.map(r => [
+		k.kind, model_name(r.model), r.effort ?? "—", fmt_pct(r.performance), fmt_usd(r.cost),
+		r.xClaude == null ? "—" : r.xClaude + "×", r.value == null ? "—" : String(r.value),
+	]));
+	table(head, allRows);
+
+	heading("Best value, per kind, in plain words");
+	data.kinds.forEach(k => {
+		const line = k.best
+			? `**${k.label.split(" — ")[0]}:** ${model_name(k.best.model)}${k.best.effort ? " at " + k.best.effort + " effort" : ""} — ${k.best.value} value per dollar.`
+			: `**${k.label.split(" — ")[0]}:** not enough real runs yet to say.`;
+		md(line);
+	});
+	md("*Rows with no cost or no real run are left out of the chart and the best-value line, not shown as zero.*");
+}
+
+/* "How thinking works" — ai/system/thinking/ (Phase 9 + 10). One screen, one picture: what runs on
+   the PROVIDER's server (inside one billed API call) vs. what runs on OUR machine (the harness's
+   own tool loop, each round trip its own billed call). */
+function render_thinking(){
+	md("**A \"turn\" is many separate calls to the model, and only the thinking inside each one is free to watch.** The picture: one box is the provider's server, the other is this machine.");
+	div.c("card").html_unsafe(`
+		<svg viewBox="0 0 640 220" width="100%" height="220" role="img" aria-label="The provider's server runs the model's thinking inside one API call; our machine runs the tool loop between calls">
+			<rect x="10" y="20" width="270" height="180" rx="10" fill="none" stroke="var(--ink-muted,#888)"></rect>
+			<text x="145" y="44" text-anchor="middle" style="fill:var(--ink);font-weight:700">Provider's server</text>
+			<rect x="35" y="70" width="220" height="50" rx="8" fill="#0072B2" opacity=".18"></rect>
+			<text x="145" y="100" text-anchor="middle" style="fill:var(--ink)">thinking + answer</text>
+			<text x="145" y="150" text-anchor="middle" style="fill:var(--ink-muted,#666);font-size:.8rem">one billed API call</text>
+			<text x="145" y="170" text-anchor="middle" style="fill:var(--ink-muted,#666);font-size:.8rem">effort sets how much thinking</text>
+			<rect x="360" y="20" width="270" height="180" rx="10" fill="none" stroke="var(--ink-muted,#888)"></rect>
+			<text x="495" y="44" text-anchor="middle" style="fill:var(--ink);font-weight:700">Our machine</text>
+			<rect x="385" y="70" width="220" height="50" rx="8" fill="#E69F00" opacity=".18"></rect>
+			<text x="495" y="100" text-anchor="middle" style="fill:var(--ink)">the tool loop</text>
+			<text x="495" y="150" text-anchor="middle" style="fill:var(--ink-muted,#666);font-size:.8rem">runs the tool, sends the result back</text>
+			<text x="495" y="170" text-anchor="middle" style="fill:var(--ink-muted,#666);font-size:.8rem">each round trip = one more call</text>
+			<line x1="282" y1="95" x2="358" y2="95" stroke="var(--ink-muted,#888)" marker-end="url(#arrow)"></line>
+			<line x1="358" y1="115" x2="282" y2="115" stroke="var(--ink-muted,#888)" marker-end="url(#arrow)"></line>
+			<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--ink-muted,#888)"></path></marker></defs>
+		</svg>
+	`);
+	md("**What that means for cost:** a turn with 8 tool calls is about 8 billed model calls, not one — the model asks for a tool, the harness runs it on our machine, and sends the result back as a fresh call. `effort` only sets how much the provider thinks *inside* one of those calls.");
+	heading("How thinking spends tokens", "Four points, each checked against the provider's own docs.");
+	md([
+		"1. **Thinking is billed as OUTPUT tokens** — at the output rate, same as the answer text. [Anthropic: extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking) · [OpenRouter: reasoning tokens](https://openrouter.ai/docs/use-cases/reasoning-tokens)",
+		"2. **In a tool loop, earlier thinking is sent back as input** on the next call (the model needs its own prior reasoning to keep using a tool's result) — mostly served from the prompt cache, and providers trim or drop older thinking blocks rather than re-billing them in full. Same links as above.",
+		"3. **Streaming can be cancelled, but a thought can't be steered mid-way** — you can stop generation early, but there's no way to inject a correction into a thinking block while it's still being written; the next steer has to wait for a fresh call.",
+		"4. **With interleaved thinking, the model thinks between tool calls** (Anthropic's interleaved-thinking mode) — e.g. it can reason again right after a web search comes back, inside the same turn, instead of only once at the start.",
+		"**Where OpenRouter differs:** it passes a model's reasoning through as a normalized `reasoning` field, but not every upstream provider exposes the raw thinking text (some summarize or redact it) — check a model's own page on openrouter.ai before assuming you can read it.",
+	].join("\n"));
 }

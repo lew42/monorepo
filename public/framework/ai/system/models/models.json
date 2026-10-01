@@ -1,0 +1,138 @@
+{
+	"generated_at": "2026-10-01T06:13:51.299Z",
+	"weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
+	"kinds": [
+		{
+			"kind": "rules",
+			"label": "Rule adherence — 5 house rules (CLAUDE.md law, readme chain, tool IDs, append.mjs, the fence)",
+			"rows": [
+				{
+					"model": "openai/gpt-6-luna",
+					"effort": "low",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.012571356,
+					"xClaude": 0.11,
+					"value": 79.55
+				},
+				{
+					"model": "openai/gpt-6-luna",
+					"effort": "high",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.013536297,
+					"xClaude": 0.12,
+					"value": 73.88
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"effort": "low",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.028532321200000006,
+					"xClaude": 0.26,
+					"value": 35.05
+				},
+				{
+					"model": "deepseek/deepseek-v4.1-flash",
+					"effort": "high",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.029061854399999996,
+					"xClaude": 0.26,
+					"value": 34.41
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"effort": "low",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.06689348,
+					"xClaude": 0.6,
+					"value": 14.95
+				},
+				{
+					"model": "google/gemini-3.8-flash",
+					"effort": "high",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.10138535,
+					"xClaude": 0.91,
+					"value": 9.86
+				},
+				{
+					"model": "claude-haiku-4-5-20251001",
+					"effort": "low",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.11182874000000002,
+					"xClaude": 1,
+					"value": 8.94
+				},
+				{
+					"model": "google/gemini-3.1-pro-preview",
+					"effort": "low",
+					"n": 5,
+					"performance": 1,
+					"cost": 0.21294960625,
+					"xClaude": 1.9,
+					"value": 4.7
+				}
+			],
+			"best": {
+				"model": "openai/gpt-6-luna",
+				"effort": "low",
+				"value": 79.55
+			}
+		},
+		{
+			"kind": "page-blog",
+			"label": "Probe: write a blog post page from a one-line brief",
+			"rows": [
+				{
+					"model": "claude-haiku-4-5-20251001",
+					"effort": "low",
+					"n": 3,
+					"performance": 0.16666666666666666,
+					"cost": 0.32932063333333333,
+					"xClaude": 1,
+					"value": 0.51
+				}
+			],
+			"best": {
+				"model": "claude-haiku-4-5-20251001",
+				"effort": "low",
+				"value": 0.51
+			}
+		},
+		{
+			"kind": "log-line",
+			"label": "Probe: log one line to today's task",
+			"rows": [
+				{
+					"model": "claude-haiku-4-5-20251001",
+					"effort": "low",
+					"n": 2,
+					"performance": 0,
+					"cost": 0.09484830000000001,
+					"xClaude": 1,
+					"value": 0
+				},
+				{
+					"model": "claude-haiku-4-5-20251001",
+					"effort": null,
+					"n": 1,
+					"performance": 0,
+					"cost": 0.0810043,
+					"xClaude": 0.85,
+					"value": 0
+				}
+			],
+			"best": {
+				"model": "claude-haiku-4-5-20251001",
+				"effort": "low",
+				"value": 0
+			}
+		}
+	]
+}
