@@ -6,3 +6,9 @@
 - A group's agents (`g.agents`) and the orphan and reaped lists were built against an empty sample. Look at them once the live Servex has real task groups.
 - Some working agents in Running now show no pid line (Rail, Shell paper demo at 22:10). Check whether they run outside Servex's spawn, and whether they should read "no process".
 - A few groups are named by an agent id (`clarity-look-ai2-3`) because that agent has no task. Name them by role instead.
+
+## After the RAM squeeze (2026-10-01)
+
+- Measure live after the Servex restart: free RAM before (2.3 GB) and after, `servers_stopped`, the `dormant-tight` switch, `sessions.stale`, `dormant_freed_mb`, and worktrees no longer all "in use".
+- A stopped worktree server that someone opens again is stopped again on the next pass while git stays quiet. Count a proxy request as "used".
+- Send the skills owner the suggested mastermind-skill line on choosing `dormant_after` (see ram/pm-ram-report.md).
