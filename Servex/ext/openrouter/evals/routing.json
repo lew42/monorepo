@@ -1,0 +1,58 @@
+{
+	"at": "2026-10-01T02:02:47-05:00",
+	"sonnet_price_known": true,
+	"routing": {
+		"broken-page": {
+			"model": "claude-haiku-4-5-20251001",
+			"effort": "low",
+			"multiplier": null,
+			"avg_cost_usd": 0.199,
+			"evidence": [
+				{
+					"run": "broken-import-claude-haiku-4-5-20251001-low-1790834233288",
+					"score": "great"
+				},
+				{
+					"run": "broken-overflow-claude-haiku-4-5-20251001-low-1790834363651",
+					"score": "great"
+				}
+			]
+		},
+		"quick-fix": {
+			"model": "claude-haiku-4-5-20251001",
+			"effort": "low",
+			"multiplier": null,
+			"avg_cost_usd": 0.1491,
+			"evidence": [
+				{
+					"run": "fix-label-claude-haiku-4-5-20251001-low-1790832790037",
+					"score": "great"
+				}
+			]
+		},
+		"new-page": {
+			"model": "claude-opus-5-5",
+			"effort": "low",
+			"multiplier": null,
+			"avg_cost_usd": 0.3267,
+			"evidence": [
+				{
+					"run": "h1-page-claude-opus-5-5-low-1790833429684",
+					"score": "great"
+				}
+			]
+		},
+		"planning": {
+			"model": "claude-haiku-4-5-20251001",
+			"effort": "low",
+			"multiplier": null,
+			"avg_cost_usd": 0.2396,
+			"evidence": [
+				{
+					"run": "plan-views-claude-haiku-4-5-20251001-low-1790834633103",
+					"score": "ok"
+				}
+			]
+		}
+	}
+}

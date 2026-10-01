@@ -5,3 +5,4 @@
 {"log":{"at":"2026-09-30T23:42:23-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-09-30T23:43:24-05:00","heartbeat":"deliberate","msg":"minion-rule-readme-chain its agent is not running: it was stopped on purpose by unknown at 2026-09-30T23:38:00-05:00; not revived."}}
 {"log":{"at":"2026-10-01T00:15:36-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T00:45:36-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

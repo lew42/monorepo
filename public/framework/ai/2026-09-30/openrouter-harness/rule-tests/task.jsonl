@@ -29,3 +29,25 @@
 {"log":{"at":"2026-10-01T00:38:54-05:00","msg":"Fix confirmed: reran the append test alone on all 7 model+effort combos with the corrected rules.mjs. All 7 now PASS with real settled costs from the spend-guard ledger. Combined with the 28 already-valid claude-md/readme-chain/tools/fence results (cost-backfilled from the same ledger), every one of the 35 real-model cells (3 models x low+high, plus gemini-3.1-pro-preview x low, x 5 tests) now passes. Total OpenRouter spend across this whole task: roughly $2.2 of the ~$3 budget."}}
 {"log":{"at":"2026-10-01T00:38:54-05:00","msg":"One more harness wrinkle found and left as a documented edge case, not a bug to fix: gemini-3.1-pro-preview's readme-chain run answered correctly but got killed by the 180s wait_for_agent timeout one line before it could finish, so its real cost never settled (ledger has no entry for it) -- pass is still correctly recorded true (the answer text was captured before the kill), cost_usd is honestly null rather than a wrong zero."}}
 {"log":{"at":"2026-10-01T00:38:54-05:00","msg":"Committing rules.mjs, results.jsonl and this task log in the main tree now, by exact path, per the parent's instruction."}}
+{"log":{"at":"2026-10-01T00:44:39-05:00","heartbeat":"escalated","msg":"minion-openrouter-rules it did not answer the status check, and was already revived 2 times this hour (2 today)"}}
+{"log":{"at":"2026-10-01T00:50:37-05:00","msg":"task-loop chase 2 of 2: woke minion-openrouter-rules","chase":2}}
+{"log":{"at":"2026-10-01T01:03:52-05:00","msg":"Probe job: fixed and committed findNewTaskJsonlInRoot in probes.mjs (qf-7, then copied to main tree) so the scorer looks for a probe's task.jsonl in the tree Servex actually opens it in, not just the throwaway worktree. Reran the Haiku control on page-blog and log-line twice -- the first rerun landed right as Servex restarted mid-turn and got corrupted (SIGKILL mid-run); the second, clean rerun reproduced the parent's original numbers exactly: page-blog [1,0,0,0,0,0], log-line check 5 fails."}}
+{"log":{"at":"2026-10-01T01:03:52-05:00","msg":"Read both control agents' own logs. Real cause, different from the wrong-tree hypothesis: page-blog's agent never calls new-task at all (goes straight from the minion skill to new-page/page and does real, good work -- even a full merge.mjs smoke test -- without ever opening a task); log-line's agent DOES write a task.jsonl, but invents an ad hoc path inside its own scratch dir (.../probe/<run>/ai/task.jsonl, non-standard shape) because nothing tells it where a probe with no pre-existing brief should log to. Since the CONTROL fails both the same way, this is label (a) per probes.md's own rule, not (b) or (c) -- my wrong-tree fix is still correct and worth keeping (it would catch a model that opens the task in the right place but the wrong tree), it just was not the cause here."}}
+{"log":{"at":"2026-10-01T01:03:52-05:00","msg":"Started the 3 cheap-model runs on page-blog/log-line at low effort. First one (openai/gpt-6-luna, page-blog) was REFUSED by the spend guard: today's OpenRouter spend ($7.65) is at or over a $1.5/day cap. This is the global daily total across every agent sharing the key, not just this task -- a real block, not something I can sidestep. Stopping the probe-model runs here and reporting to the parent rather than continuing to hit refusals."}}
+{"action":{"at":"2026-10-01T00:41:09-05:00","did":"edit","files":["Servex/ext/openrouter/evals/probes.mjs"]}}
+{"log":{"at":"2026-10-01T00:50:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-01T01:08:19-05:00","msg":"skill: page"}}
+{"log":{"at":"2026-10-01T01:08:19-05:00","msg":"skill: new-page"}}
+{"log":{"at":"2026-10-01T01:08:19-05:00","msg":"skill: dataviz"}}
+{"log":{"at":"2026-10-01T01:08:19-05:00","msg":"skill: code"}}
+{"log":{"at":"2026-10-01T01:28:33-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T01:28:34-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-01T01:32:04-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T01:37:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-01T01:42:04-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T01:52:59-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-01T02:00:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-01T01:57:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T01:58:35-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-01T02:05:05-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T02:11:00-05:00","msg":"session resumed"}}

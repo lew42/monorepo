@@ -2,3 +2,8 @@
 {"log":{"at":"2026-10-01T00:37:22-05:00","msg":"skill: minion"}}
 {"log":{"at":"2026-10-01T00:37:33-05:00","msg":"rule_test_append nonce=17252c6c3c58"}}
 {"log":{"at":"2026-10-01T00:37:43-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-01T00:40:37-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-01T00:43:38-05:00","heartbeat":"deliberate","msg":"minion-rule-append-14 its agent is not running: it was stopped on purpose by unknown at 2026-10-01T00:37:43-05:00; not revived."}}
+{"log":{"at":"2026-10-01T00:51:01-05:00","heartbeat":"deliberate","msg":"minion-rule-append-14 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:37:43-05:00; not revived."}}
+{"log":{"at":"2026-10-01T01:10:57-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T01:40:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

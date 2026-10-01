@@ -13,6 +13,7 @@ they always had.
 | 4 | Gemini 3.8 Flash stalled on the append test | — | it was our test's bug, now fixed | not a gap |
 | 5 | Long sessions: compaction through the proxy | all | none | untested |
 | 6 | Does `effort` reach a non-Claude model? | all | none | untested |
+| 7 | Web search on an OpenRouter model | tested: deepseek, gpt-6-luna | none needed | works; exact cost being checked |
 
 ## 1. Gemini refuses the ArtifactData tool's schema
 
@@ -55,3 +56,19 @@ they always had.
   summary call works through OpenRouter.
 - **Effort:** we pass `effort` and the low and high runs cost differently, but we haven't checked
   that OpenRouter maps it to each model's own reasoning setting.
+
+## 7. Web search works on OpenRouter models; its exact cost is being checked
+
+- **What was checked:** whether WebSearch and WebFetch on an OpenRouter model ever reach
+  Anthropic. That includes WebFetch's summary step, which the Claude CLI normally hands to a
+  small Claude model.
+- **How:** [`evals/websearch.mjs`](./evals/websearch.mjs) ran one turn each on deepseek-v4.1-flash
+  and gpt-6-luna with every Anthropic credential removed: the API key and login token blanked,
+  and the CLI's config folder pointed at an empty one, so it had no stored login either.
+- **Result:** both searched and fetched without error, so nothing reached Anthropic: there was no
+  login that could have been billed.
+- **Not settled yet: the cost.** The turn listed 2 generations, $0.0067 (deepseek) and $0.0024
+  (gpt-6-luna). But the search and the summary are separate requests that a turn's message list
+  may not include. The check compares the key's total spend before and after, against those
+  listed generations.
+- **Evidence:** [`web-search/websearch.jsonl`](../../../public/framework/ai/2026-09-30/openrouter-harness/web-search/websearch.jsonl).

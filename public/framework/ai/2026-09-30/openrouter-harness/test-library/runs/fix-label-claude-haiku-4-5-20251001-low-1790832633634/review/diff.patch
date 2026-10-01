@@ -1,0 +1,467 @@
+diff --git a/Servex/ext/openrouter/evals/library/broken-import/fixture/dates.js b/Servex/ext/openrouter/evals/library/broken-import/fixture/dates.js
+new file mode 100644
+index 00000000..5e6f2ae1
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/broken-import/fixture/dates.js
+@@ -0,0 +1,5 @@
++/* The real helper — the fixture's page.js imports the wrong filename (./date.js
++ * instead of ./dates.js). This file is correct and should not need to change. */
++export function formatDate(d){
++	return d.toISOString().slice(0, 10);
++}
+diff --git a/Servex/ext/openrouter/evals/library/broken-import/fixture/page.js b/Servex/ext/openrouter/evals/library/broken-import/fixture/page.js
+new file mode 100644
+index 00000000..e4a584b8
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/broken-import/fixture/page.js
+@@ -0,0 +1,17 @@
++import { Page, p } from "/app.js";
++import { formatDate } from "./date.js"; // WRONG — the real file is ./dates.js (one letter missing)
++
++/* Deliberately broken for the openrouter test library
++ * (Servex/ext/openrouter/evals/library/broken-import/test.json): this import
++ * 404s because the file is named `dates.js`, not `date.js`, so the whole page
++ * throws before it ever renders. The fix is the one path, nothing else. Never
++ * fix this file directly: library.mjs copies it into a fresh run dir per run. */
++export default new Page({
++	meta: import.meta,
++	title: "Last updated",
++	description: "Shows the date — broken on purpose, for the model test library.",
++
++	content(){
++		p("Last updated: " + formatDate(new Date()));
++	}
++});
+diff --git a/Servex/ext/openrouter/evals/library/broken-import/test.json b/Servex/ext/openrouter/evals/library/broken-import/test.json
+new file mode 100644
+index 00000000..324cde60
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/broken-import/test.json
+@@ -0,0 +1,12 @@
++{
++	"id": "broken-import",
++	"kind": "broken-page",
++	"skills": ["js"],
++	"requirements": [
++		"finds the real cause: page.js imports a file (./date.js) that does not exist",
++		"fixes it by pointing the import at the file that does exist (./dates.js), not by deleting the import or inventing a new helper",
++		"the page then loads with no console error",
++		"nothing else in the file changes"
++	],
++	"prompt": "This page doesn't load. Fix it."
++}
+diff --git a/Servex/ext/openrouter/evals/library/broken-overflow/fixture/page.js b/Servex/ext/openrouter/evals/library/broken-overflow/fixture/page.js
+new file mode 100644
+index 00000000..fa15c008
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/broken-overflow/fixture/page.js
+@@ -0,0 +1,20 @@
++import { Page, div, p } from "/app.js";
++
++/* Deliberately broken for the openrouter test library
++ * (Servex/ext/openrouter/evals/library/broken-overflow/test.json): the status
++ * line below is pinned to a fixed 900px width with an inline style, so at any
++ * viewport narrower than that — 400px included — it runs off the right edge.
++ * The one cause is that one `.style("width", "900px")` call; everything else
++ * on the page is unrelated. Never fix this file directly: library.mjs copies
++ * it into a fresh run dir per test run. */
++export default new Page({
++	meta: import.meta,
++	title: "Status panel",
++	description: "A one-line status panel — broken on purpose, for the model test library.",
++
++	content(){
++		p("Last check: all systems normal.");
++		div("This status line is pinned to a fixed width wider than the page, so narrow screens see it run off the right edge instead of wrapping.")
++			.style("width", "900px");
++	}
++});
+diff --git a/Servex/ext/openrouter/evals/library/broken-overflow/test.json b/Servex/ext/openrouter/evals/library/broken-overflow/test.json
+new file mode 100644
+index 00000000..61cf6ca1
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/broken-overflow/test.json
+@@ -0,0 +1,11 @@
++{
++	"id": "broken-overflow",
++	"kind": "broken-page",
++	"skills": ["css", "layout"],
++	"requirements": [
++		"names the fixed pixel width set on the status line as the cause (not font size, not an image, not a missing stylesheet)",
++		"says it breaks at narrow widths (400px / mobile), not just \"it's broken\"",
++		"does not invent a second, wrong cause alongside the real one"
++	],
++	"prompt": "Study this page's layout and say what's wrong with it."
++}
+diff --git a/Servex/ext/openrouter/evals/library/fix-label/fixture/page.js b/Servex/ext/openrouter/evals/library/fix-label/fixture/page.js
+new file mode 100644
+index 00000000..d302d33e
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/fix-label/fixture/page.js
+@@ -0,0 +1,17 @@
++import { Page, div, p } from "/app.js";
++
++/* Deliberately broken for the openrouter test library
++ * (Servex/ext/openrouter/evals/library/fix-label/test.json): the button's
++ * label has one typo, "Sumbit" instead of "Submit" — the one, self-evident
++ * fix. Never fix this file directly: library.mjs copies it into a fresh run
++ * dir per test run. */
++export default new Page({
++	meta: import.meta,
++	title: "Contact form",
++	description: "A tiny form — one typo on purpose, for the model test library.",
++
++	content(){
++		p("Send us a message.");
++		div.c("btn", "Sumbit");
++	}
++});
+diff --git a/Servex/ext/openrouter/evals/library/fix-label/test.json b/Servex/ext/openrouter/evals/library/fix-label/test.json
+new file mode 100644
+index 00000000..2bc84e21
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/fix-label/test.json
+@@ -0,0 +1,10 @@
++{
++	"id": "fix-label",
++	"kind": "quick-fix",
++	"skills": ["js"],
++	"requirements": [
++		"changes exactly the word \"Sumbit\" to \"Submit\"",
++		"touches no other line in the file"
++	],
++	"prompt": "This page has one button with a typo in its label. Find it and fix it — change nothing else in the file."
++}
+diff --git a/Servex/ext/openrouter/evals/library/new-page-glossary/fixture/page.js b/Servex/ext/openrouter/evals/library/new-page-glossary/fixture/page.js
+new file mode 100644
+index 00000000..fa3597ae
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/new-page-glossary/fixture/page.js
+@@ -0,0 +1,17 @@
++import { Page } from "/app.js";
++
++/* The "here" for the new-page-glossary test
++ * (Servex/ext/openrouter/evals/library/new-page-glossary/test.json): a plain
++ * landing page with no children yet. The model's job is to add a
++ * `glossary/page.js` beside this file and list "glossary" in `children:`
++ * below so `this.previews()` draws a visible link to it — never to touch
++ * anything else here. library.mjs copies this into a fresh run dir per run. */
++export default new Page({
++	meta: import.meta,
++	title: "Web terms",
++	description: "A home for small glossaries of web terms.",
++
++	content(){
++		this.previews();
++	}
++});
+diff --git a/Servex/ext/openrouter/evals/library/new-page-glossary/test.json b/Servex/ext/openrouter/evals/library/new-page-glossary/test.json
+new file mode 100644
+index 00000000..f14a61fc
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/new-page-glossary/test.json
+@@ -0,0 +1,13 @@
++{
++	"id": "new-page-glossary",
++	"kind": "new-page",
++	"skills": ["js", "oop", "html", "naming"],
++	"requirements": [
++		"adds a new page.js (a glossary child under this run's fixture page) that parses with no syntax error",
++		"the new page loads in the browser with no console error",
++		"the page is built through JS calls in house style (`new Page({ meta: import.meta, ... })`), not a raw HTML string or innerHTML",
++		"the glossary lists five distinct web terms, each with its own short definition",
++		"the new page is linked from its parent: added to the parent page.js's own `children:` list"
++	],
++	"prompt": "Write a new page here: a glossary of five web terms. Name it \"glossary\", make it a child of this page (add it to this page's `children:` list so the link shows up), and build it the way this site's other pages are built."
++}
+diff --git a/Servex/ext/openrouter/evals/library/plan-counter/fixture/readme.md b/Servex/ext/openrouter/evals/library/plan-counter/fixture/readme.md
+new file mode 100644
+index 00000000..5d6aae3f
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/plan-counter/fixture/readme.md
+@@ -0,0 +1,7 @@
++# plan-counter — no files to edit
++
++This test has no broken page and no code to touch. The agent's only job is to think before
++coding: propose a shape for a small click-counter module and record the decision with
++`Server/decide.mjs` (see `test.json`'s prompt). This file exists only so the test has a
++`fixture/` folder like every other test in the library (CLAUDE.md law 6: one shape for
++everything in the library, even when a test needs nothing copied in).
+diff --git a/Servex/ext/openrouter/evals/library/plan-counter/test.json b/Servex/ext/openrouter/evals/library/plan-counter/test.json
+new file mode 100644
+index 00000000..1246c3c2
+--- /dev/null
++++ b/Servex/ext/openrouter/evals/library/plan-counter/test.json
+@@ -0,0 +1,12 @@
++{
++	"id": "plan-counter",
++	"kind": "planning",
++	"skills": ["system-design", "oop", "naming"],
++	"requirements": [
++		"gives 2 or 3 real options for the module's shape (files, classes, names), not one option dressed up as several",
++		"each option names at least one real pro and one real con",
++		"picks one option as the recommendation, with a reason",
++		"the result is written through Server/decide.mjs (a real `{\"decision\":...}` line), not just prose in the reply"
++	],
++	"prompt": "Before any code: propose the shape of a small click-counter module (files, classes, names). Give 2 to 3 options with pros and cons, and pick one. Use the `decide` skill (`Server/decide.mjs`) to write this down — don't invent your own format."
++}
+diff --git a/Servex/ext/openrouter/evals/rules.mjs b/Servex/ext/openrouter/evals/rules.mjs
+index d6d4ea37..305a2c10 100644
+--- a/Servex/ext/openrouter/evals/rules.mjs
++++ b/Servex/ext/openrouter/evals/rules.mjs
+@@ -43,9 +43,18 @@ const TASK_DIR = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harn
+ const RUNS_DIR = path.join(TASK_DIR, "runs");
+ const RESULTS_PATH = path.join(ROOT, "Servex/ext/openrouter/evals/results.jsonl");
+ const APPEND_HOOK = path.join(ROOT, ".claude/hooks/append.mjs");
++// The spend guard's own ledger (Servex/ext/openrouter/provider.js, Agents.js's refresh_or_cost()):
++// one line per settled OpenRouter turn, keyed by the agent's human id. `wait_for_agent`'s own
++// `cost` field is read right when a turn ends, before OpenRouter's real dollar figure has settled
++// (readme.md point 3) — for an openrouter model it is reliably 0 or a wrong SDK guess, never the
++// honest number. This file has the honest number, a few seconds later.
++export const LEDGER_PATH = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "logs", "openrouter.jsonl");
+ 
++// Shared with Servex/ext/openrouter/evals/probes.mjs (mastermind-servex-9's open-ended probe
++// runner) — exported instead of each script keeping its own copy (CLAUDE.md law 6: one of
++// everything).
+ const pad = n => String(n).padStart(2, "0");
+-function nowLocal(){
++export function nowLocal(){
+ 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
+ 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off < 0 ? "-" : "+"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
+ }
+@@ -56,7 +65,7 @@ const NOW_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
+ /* Appends one line to a .jsonl through the validated hook — "NOW" fields become this moment's
+  * real timestamp, and the whole file is re-parsed so a bad line is caught here, not on the page
+  * that reads it live. Throws loudly (never a silent drop) if the hook itself fails. */
+-function appendJSON(file, obj){
++export function appendJSON(file, obj){
+ 	fs.mkdirSync(path.dirname(file), { recursive: true });
+ 	const scratch = path.join(os.tmpdir(), `rules-append-${process.pid}-${Date.now()}.json`);
+ 	fs.writeFileSync(scratch, JSON.stringify([obj]));
+@@ -65,14 +74,14 @@ function appendJSON(file, obj){
+ 		if (r.status !== 0) throw new Error(`append.mjs exited ${r.status}: ${r.stderr || r.stdout}`);
+ 	} finally { try { fs.unlinkSync(scratch); } catch {} }
+ }
+-function readJsonl(file){
++export function readJsonl(file){
+ 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+ 	catch { return []; }
+ }
+-function sha256(file){ try { return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); } catch { return null; } }
+-const slug = s => String(s).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
++export function sha256(file){ try { return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); } catch { return null; } }
++export const slug = s => String(s).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+ 
+-async function mcp(name, args, ms = 30000){
++export async function mcp(name, args, ms = 30000){
+ 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+ 		body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
+ 	const j = await r.json();
+@@ -80,6 +89,22 @@ async function mcp(name, args, ms = 30000){
+ 	try { return JSON.parse(text); } catch { return { raw: text }; }
+ }
+ 
++/* Polls the spend-guard ledger for the one real dollar figure a settled OpenRouter turn gets,
++ * keyed by the agent's own human id (exactly what spawn_agent's `id` returns, e.g.
++ * "minion-rule-tools-3" — the same string `refresh_or_cost()` writes as `agent`). Billing can take
++ * a few seconds after the turn ends (readme.md point 3), so this polls rather than reading once;
++ * `null` after the timeout means no turn for this agent ever settled (the agent errored or was
++ * killed before a real model call completed — worth a (c) label, not folded into a 0). */
++export async function realCost(agentId, { timeoutMs = 40000, pollMs = 1000 } = {}){
++	const deadline = Date.now() + timeoutMs;
++	for (;;){
++		const lines = readJsonl(LEDGER_PATH).filter(l => l.agent === agentId);
++		if (lines.length) return lines.reduce((sum, l) => sum + (Number(l.cost_usd) || 0), 0);
++		if (Date.now() >= deadline) return null;
++		await new Promise(r => setTimeout(r, pollMs));
++	}
++}
++
+ /* Ground truth this script reads for itself, once, instead of hard-coding a number that could go
+  * stale: the "tools" test's port comes from list_servers right now, not a guess. */
+ async function groundTruth(){
+@@ -140,18 +165,27 @@ const TESTS = [
+ 		// A literal "NOW" sentinel: append.mjs expands it to a real ISO timestamp; any other route
+ 		// (Write/Edit on task.jsonl, or typing the line by hand) leaves the literal string "NOW"
+ 		// sitting in the file — a script can tell the two apart with no judgment call at all.
++		//
++		// FIX (2026-10-01, found diagnosing a gemini-3.8-flash run that burned its whole turn and
++		// never finished): the line this test used to ask for, {"rule_test_append":{...}}, is not a
++		// registered verb in .claude/hooks/jsonl-schema.mjs's task.jsonl schema — append.mjs's own
++		// validator refuses it with "a flat line ... wrap it in a verb" for EVERY model, Claude
++		// included, before any model-specific behavior even comes into play. That made every past
++		// FAIL on this test a harness bug (label c), not a model one (label b). The fix: ask for a
++		// real, already-registered verb (`log`, which needs exactly `at` and `msg`) and look for the
++		// nonce inside its `msg` — the "NOW" -> real-timestamp proof still lives in `at`.
+ 		setup: (dir, truth) => { truth.nonce = crypto.randomBytes(6).toString("hex"); },
+ 		prompt: (dir, truth) => `Your own task.jsonl log already exists for this turn (Servex told you where when you started). `
+ 			+ `Append exactly this one JSON object to it, using the house method — write it as a JSON array in a scratch file and run `
+ 			+ `\`node .claude/hooks/append.mjs <your task.jsonl> <that scratch file>\` from the repo root, never a shell redirect or the Write/Edit tool on the .jsonl itself:\n\n`
+-			+ `{"rule_test_append":{"nonce":"${truth.nonce}","stamp":"NOW"}}\n\n`
++			+ `{"log":{"at":"NOW","msg":"rule_test_append nonce=${truth.nonce}"}}\n\n`
+ 			+ `Then reply with just "done".`,
+ 		check: (dir, waited, truth) => {
+-			const line = readJsonl(path.join(dir, "task.jsonl")).find(e => e.rule_test_append?.nonce === truth.nonce);
+-			if (!line) return { pass: false, why: "no line with the given nonce was ever appended to task.jsonl" };
+-			const stamp = line.rule_test_append.stamp;
++			const line = readJsonl(path.join(dir, "task.jsonl")).find(e => typeof e.log?.msg === "string" && e.log.msg.includes(`nonce=${truth.nonce}`));
++			if (!line) return { pass: false, why: "no log line with the given nonce was ever appended to task.jsonl" };
++			const stamp = line.log.at;
+ 			const pass = NOW_RE.test(stamp);
+-			return { pass, why: pass ? `stamp "${stamp}" is a real timestamp — append.mjs ran` : `stamp is "${stamp}", not an ISO timestamp — the "NOW" sentinel was never expanded, so append.mjs did not run` };
++			return { pass, why: pass ? `at "${stamp}" is a real timestamp — append.mjs ran` : `at is "${stamp}", not an ISO timestamp — the "NOW" sentinel was never expanded, so append.mjs did not run` };
+ 		}
+ 	},
+ 	{
+@@ -208,13 +242,18 @@ async function runOne(model, effort, test, truth){
+ 	} finally {
+ 		if (spawned?.id) try { await mcp("stop_agent", { id: spawned.id }, 20000); } catch {}
+ 	}
++	// An OpenRouter turn's honest cost only exists in the spend-guard ledger, a few seconds after
++	// wait_for_agent returns (see realCost() above) — `waited.cost` is wrong or 0 for that provider.
++	// A Claude model's own SDK cost is already right, so this only takes the slow path when it has to.
++	let cost = waited?.cost ?? null;
++	if (spawned?.id && model.includes("/")) cost = await realCost(spawned.id);
+ 	// Same shape as mastermind-servex-9's probe runner (probes.md's own example line) so a rule
+ 	// test and an open-ended probe sit in one shared table: `pass` is a single 0/1 here (one check,
+ 	// not six) and `label` stays empty (the a/b/c diagnosis is for the six-column probe matrix).
+ 	const row = {
+ 		at: nowLocal(), run: runName, probe: probeId, model, effort,
+ 		dir: path.relative(ROOT, dir).replaceAll("\\", "/"),
+-		pass, label: {}, cost_usd: waited?.cost ?? null, turns: waited?.turns ?? null, note
++		pass, label: {}, cost_usd: cost, turns: waited?.turns ?? null, note
+ 	};
+ 	appendJSON(RESULTS_PATH, { probe: row });
+ 	return row;
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/page.js b/public/framework/ai/2026-09-30/openrouter-harness/test-library/page.js
+new file mode 100644
+index 00000000..a8e079b8
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/page.js
+@@ -0,0 +1,38 @@
++import { Page, p, a, div } from "/app.js";
++import { page_work } from "/framework/core/Page/ai/work.js";
++
++/* The test library: five small tasks, each with a known good outcome, run on
++ * both Claude and OpenRouter models to find which model is good enough —
++ * and cheapest — for each kind of work. The tests themselves live in
++ * Servex/ext/openrouter/evals/library/ (one folder per test: test.json +
++ * fixture/); `library.mjs` runs them and appends one result line per run to
++ * Servex/ext/openrouter/evals/results.jsonl.
++ *
++ * THIS FILE, NOT AN AITask: every run under runs/<name>/ needs its own real
++ * url a spawned model can navigate to and "study" or "fix" (a broken page,
++ * a quick fix, a new page) — so this page is a plain hand-written Page, with
++ * no custom `route()`. That means `runs/` and anything under it resolve the
++ * ordinary way every undeclared name on this site does: Page.child()'s own
++ * filesystem probe, which dynamically imports `<url><name>/page.js` the
++ * moment that file exists on disk. `library.mjs` copies a test's fixture/
++ * into a fresh folder there, and the folder is a real page the instant it
++ * has a page.js — nothing here has to be told a run happened. */
++export default new Page({
++	meta: import.meta,
++	title: "Test library",
++	description: "Five small tasks with known good outcomes, run across models to see which is cheapest and good enough.",
++	icon: "science",
++
++	content(){
++		p("The five tests: ",
++			a("broken-overflow").href("/framework/ai/2026-09-30/openrouter-harness/test-library/#broken-overflow"), ", ",
++			a("broken-import").href("/framework/ai/2026-09-30/openrouter-harness/test-library/#broken-import"), ", ",
++			a("new-page-glossary").href("/framework/ai/2026-09-30/openrouter-harness/test-library/#new-page-glossary"), ", ",
++			a("fix-label").href("/framework/ai/2026-09-30/openrouter-harness/test-library/#fix-label"), " and ",
++			a("plan-counter").href("/framework/ai/2026-09-30/openrouter-harness/test-library/#plan-counter"),
++			" — each a folder under ",
++			a("Servex/ext/openrouter/evals/library/").href("https://github.com/search"), " with a ", a("test.json").href("#"), " and a ", a("fixture/").href("#"), ".");
++		p("Run it: ", a("node Servex/ext/openrouter/evals/library.mjs --models a,b [--effort low] [--only id] [--judge]").href("#"), ". Results land one line per run in ", a("Servex/ext/openrouter/evals/results.jsonl").href("#"), ".");
++		div.c("card pad", $box => page_work($box, { match: ["openrouter", "test library", "library.mjs"], page: this }));
++	},
++});
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/page.js b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/page.js
+new file mode 100644
+index 00000000..9eac7d40
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/page.js
+@@ -0,0 +1,17 @@
++import { Page, div, p } from "/app.js";
++
++/* Deliberately broken for the openrouter test library
++ * (Servex/ext/openrouter/evals/library/fix-label/test.json): the button's
++ * label has one typo, "Sumbit" instead of "Submit" — the one, self-evident
++ * fix. Never fix this file directly: library.mjs copies it into a fresh run
++ * dir per test run. */
++export default new Page({
++	meta: import.meta,
++	title: "Contact form",
++	description: "A tiny form — one typo on purpose, for the model test library.",
++
++	content(){
++		p("Send us a message.");
++		div.c("btn", "Submit");
++	}
++});
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/requirements.md b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/requirements.md
+new file mode 100644
+index 00000000..272161d3
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/requirements.md
+@@ -0,0 +1,13 @@
++# Fix label typo
++
++## Brief
++
++Find the button with a typo in its label and fix it — change nothing else in the file.
++
++## Deliverable
++
++1. Button label corrected from "Sumbit" to "Submit" on line 15 of page.js
++
++## Context
++
++This is a test file used by the openrouter test library. The one intentional typo is in the button label text.
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/review.md b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/review.md
+new file mode 100644
+index 00000000..de96e2a7
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/fix-label-claude-haiku-4-5-20251001-low-1790832633634/review.md
+@@ -0,0 +1,3 @@
++verdict: pass
++
++1. [pass] The button label typo "Sumbit" has been corrected to "Submit" on line 15 of page.js. No other changes made to the file.
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/page.js b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/page.js
+new file mode 100644
+index 00000000..cfe55262
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/runs/page.js
+@@ -0,0 +1,21 @@
++import { Page, p } from "/app.js";
++
++/* The parent of every test-library run (Servex/ext/openrouter/evals/library.mjs).
++ * A run folder here has no task.jsonl, so `AITask.route()` (the task-dir
++ * template every ancestor folder up to this one uses) never claims it — it
++ * falls through to `Page.child()`'s own filesystem probe, which looks for
++ * `<this url><run-name>/page.js` and loads it directly. That is the one
++ * mechanism this whole library leans on: `library.mjs` copies a test's
++ * `fixture/` into a fresh folder here, and the folder becomes a real,
++ * browsable page the moment it has a `page.js` in it — no parent edit, no
++ * `children:` list to keep in sync with runs that come and go by the
++ * thousands. This index page itself is never linked to; it exists only so
++ * the "runs" segment resolves to something instead of 404ing. */
++export default new Page({
++	meta: import.meta,
++	title: "Test library runs",
++	description: "One folder per run of the openrouter test library — never browsed directly.",
++	content(){
++		p("Each run of the test library (Servex/ext/openrouter/evals/library.mjs) gets its own folder here, copied from a test's fixture/. See the library's own doc for the list of tests.");
++	}
++});
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl b/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl
+new file mode 100644
+index 00000000..5f1a1997
+--- /dev/null
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl
+@@ -0,0 +1,4 @@
++{"assign":{"step":2,"now":"built the five fixtures + test.json; verified headless: broken-overflow overflows at 400px, broken-import throws on load, fix-label/new-page-glossary/test-library load clean"}}
++{"log":"test-library needed its own hand-written page.js (not left to AITask's dynamic routing) so runs/<name>/ resolves by the plain Page.child() filesystem probe — AITask.route() only claims a subfolder that has its own task.jsonl, so 'runs' (no task.jsonl) always fell through correctly, but giving test-library a real page.js made the whole chain predictable instead of leaning on AITask depth I hadn't verified."}
++{"log":"found and fixed two real bugs while verifying fixtures headless: page_work(this) is wrong — the real signature is div.c('card pad', $box => page_work($box, {match:[...], page: this})); and div(text).c('class') is wrong — div.c('class', text) is the real chaining order (.c is a static method on the element factory, not an instance method)."}
++{"log":"the openrouter-harness task dir in this worktree has no requirements.md (health-guard flagged it) — that file exists in the main tree (read it from there to write this brief's fixtures) but isn't in worktree qf-7; pre-existing, outside this task's fence, not fixed here."}

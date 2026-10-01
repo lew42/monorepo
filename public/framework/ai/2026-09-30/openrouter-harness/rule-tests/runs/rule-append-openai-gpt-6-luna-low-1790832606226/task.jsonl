@@ -5,3 +5,6 @@
 {"log":{"at":"2026-10-01T00:30:19-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-01T00:30:36-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-01T00:35:38-05:00","heartbeat":"deliberate","msg":"minion-rule-append-8 its agent is not running: it was stopped on purpose by unknown at 2026-10-01T00:30:19-05:00; not revived."}}
+{"log":{"at":"2026-10-01T00:51:01-05:00","heartbeat":"deliberate","msg":"minion-rule-append-8 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:30:19-05:00; not revived."}}
+{"log":{"at":"2026-10-01T01:00:59-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T01:35:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

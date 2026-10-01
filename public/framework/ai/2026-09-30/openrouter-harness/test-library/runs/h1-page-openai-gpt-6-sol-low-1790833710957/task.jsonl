@@ -1,0 +1,6 @@
+{"assign":{"session_id":"01df3dca-b8df-4d42-8553-bd9cb7e97670","agent":"minion-lib-h1-page-7","model":"openai/gpt-6-sol","worktree":"C:\\Code\\lew42\\worktrees\\qf-7","requested_at":"2026-10-01T00:48:30-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-01T00:53:59-05:00","heartbeat":"revive-queued","msg":"minion-lib-h1-page-7 its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-01T00:55:58-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-01T00:57:01-05:00","heartbeat":"escalated","msg":"minion-lib-h1-page-7 its agent is not running, and the revive failed: openrouter spawn refused: today's OpenRouter spend ($7.65) is at or over the $1.5/day cap"}}
+{"log":{"at":"2026-10-01T01:31:03-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T02:20:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

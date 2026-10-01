@@ -4,6 +4,20 @@ Load the `minion` skill first. Parent: `task-mastermind-openrouter`. Read the pa
 `requirements.md` "Phase 3" section and the last section of `owner-words.md`
 (`public/framework/ai/2026-09-30/openrouter-harness/`).
 
+## Current scope (read this first — everything below is the history that got here)
+- Each test is a page: `public/framework/ai/tests/<slug>/page.jsonl` (class `AITest.js`), not a
+  `library/<id>/test.json` folder — that layout is retired (Amendment 10).
+- Five ladder tests + the vision rung: `h1-page`, `fix-label`, `broken-import`,
+  `broken-overflow`, `plan-views`, `ui-fouls`.
+- `library.mjs` is the one runner (reads prompts/tests from the pages above); no second runner.
+- Each run appends one line to its test's `page.jsonl`: model, effort, pass, `score`
+  (terrible/ok/great), `credit` (0–1 partial), `reasoning` (decision tests only), cost_usd, ms,
+  note.
+- Test quality, computed from existing runs, no reruns: `discrimination` (Spearman, `null` under
+  4 models), `confidence`, `weight = discrimination × confidence`.
+- Budget now: OpenRouter capped at $1.50/day, $10/week (spend guard enforced); Claude
+  subscription models (opus/sonnet/haiku/fable) run anytime.
+
 ## Why
 The owner wants to know which model is good enough, and cheapest, for each kind of task. A test
 library is a folder of small tasks, each with a known good outcome. Strong models set the

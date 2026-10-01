@@ -233,3 +233,15 @@ A question with NO truth yet (a new design, a name) is not a test. It's an EXPLO
   - the page shows a ranked list: count, mean weight and spread, with strong-recommend and strong-avoid at the top and bottom.
 - **Alternative (rejected):** one shared signals.jsonl for every question. It's simpler to append, but harder to browse, and it breaks "everything is a page".
 - The first exploration is the naming question from phase 2, item 5.
+
+## Phase 17 (the owner, 2026-10-01 02:35): keys to success, the benchmark corpus we already have
+- **Every prompt has KEYS TO SUCCESS:** the primary statements, to-dos, questions and decisions that must happen for the answer to succeed, whether or not the answer is known yet.
+- **The corpus:** the owner's own past prompts, verbatim, in `.claude/prompts/*.jsonl` (author "owner"), plus each task's `owner-words.md`.
+- **The test:** a model gets ONE prompt (plus minimal context) and lists its keys. Then:
+  1. many models do the same prompt;
+  2. a judge MERGES keys that mean the same thing under different wording (similar ideas named differently reinforce each other);
+  3. the merged keys carry consensus weights. That's the presumed-true key set, rising with every model that agrees;
+  4. each model is scored against it: recall (did it find the heavy keys?) and precision (did it invent keys nobody else saw?).
+- **Start with about 10 prompts** of mixed length, on the newest model of each family at medium, plus Sonnet and Opus as the yardstick.
+- **A free bonus:** the merged keys for a prompt are a checklist of what the owner asked for. Diff them against `ai/asks.jsonl` to catch asks that never got routed ("nothing in limbo").
+- **Privacy:** the owner's prompts go to third-party providers. In the owner's OpenRouter account, set "no training / no prompt logging" (Settings → Privacy), and route only to providers that honour it. Until that's confirmed, use prompts that hold no personal details.

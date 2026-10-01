@@ -3,3 +3,5 @@
 {"log":{"at":"2026-10-01T00:00:39-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-01T00:02:37-05:00","heartbeat":"deliberate","msg":"minion-rule-claude-md its agent is not running: it was stopped on purpose by unknown at 2026-09-30T23:57:00-05:00; not revived."}}
 {"log":{"at":"2026-10-01T00:35:40-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T00:51:02-05:00","heartbeat":"deliberate","msg":"minion-rule-claude-md its agent is not running: it was stopped on purpose by owner at 2026-09-30T23:57:00-05:00; not revived."}}
+{"log":{"at":"2026-10-01T01:15:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}

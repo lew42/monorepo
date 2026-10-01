@@ -3,3 +3,6 @@
 {"action":{"at":"2026-10-01T00:10:53-05:00","did":"edit","files":["public/framework/ai/2026-09-30/openrouter-harness/rule-tests/runs/rule-append-google-gemini-3-8-flash-high-1790831429167/scratch_append.json"]}}
 {"log":{"at":"2026-10-01T00:15:38-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
 {"log":{"at":"2026-10-01T00:18:38-05:00","heartbeat":"deliberate","msg":"minion-rule-append-6 its agent is not running: it was stopped on purpose by unknown at 2026-10-01T00:13:29-05:00; not revived."}}
+{"log":{"at":"2026-10-01T00:50:36-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T00:55:58-05:00","heartbeat":"deliberate","msg":"minion-rule-append-6 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:13:29-05:00; not revived."}}
+{"log":{"at":"2026-10-01T01:20:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
