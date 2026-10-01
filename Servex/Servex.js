@@ -40,6 +40,7 @@ import tidy from "./agents/tidy.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
+import { warm_guard } from "./ext/openrouter/provider.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -151,6 +152,16 @@ export default class Servex extends Events {
             log: this.log, servex: this,
             mcp_url: `http://127.0.0.1:${this.dashboard_port}/mcp`
         });
+
+        /* WARM THE OPENROUTER SPEND GUARD (openrouter/provider.js, review follow-up):
+         * its 30s cache starts empty, and an empty cache fails every spawn closed —
+         * right once something has actually gone wrong, needlessly so right after a
+         * plain restart. One read here, before anything could possibly spawn yet,
+         * so the cache is already warm. A no-op (and no network call at all) on a
+         * worktree with no real OpenRouter key; any other failure just leaves the
+         * cache empty, same as today, and the first real spawn attempt fails closed
+         * with a "retry in a few seconds" reason. Never blocks boot. */
+        warm_guard().catch(() => {});
 
         /* CARD FOLDERS — one folder per card under ai/, written only by Cards. */
         this.cards = new this.constructor.Cards({ agents: this.agents, log: this.log });

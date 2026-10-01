@@ -85,6 +85,32 @@ tool at all: Gemini's own function-calling validator demands every nested array 
 both `spike.mjs` and `Agents.js` pass it as `disallowedTools`. Confirmed fixed by rerunning the
 spike on both Gemini models.
 
+### The spend guard (the owner's $50 credit, Phase 2)
+
+Three pieces, all in `provider.js` unless noted:
+- **The cap** — `spend_guard()` refuses an openrouter spawn with one clear line once today's
+  OpenRouter spend (`usage_daily`) is at or over `SERVEX_OR_DAILY_CAP` (default $8), or credit
+  left (`limit_remaining`) drops under $1. `Agents.spawn()` calls it before creating the agent.
+  It answers from a 30s cache — never a live network call on a spawn — and **fails closed**: no
+  reading yet, or the last `/key` read failed, refuses too. `evaluate_guard(status, cap)` is the
+  pure decision underneath it, tested directly in `provider.test.mjs` (no network needed).
+- **The ledger** — once a turn's real cost settles, `Agents.js`'s `refresh_or_cost()` appends one
+  line (`{at, agent, model, effort, turn, cost_usd, source}`) to the `openrouter` log, through the
+  host's own `Log` — the same single-writer object every other agent event already goes through,
+  so two agents settling a turn at once can never tear a line.
+- **The dashboard** — the spend guard also writes `openrouter-usage.json` (next to `usage.json`),
+  and `ext/AITask/dashboard.js`'s `rail()` merges its one `limit` into the SAME `usage_rail()`
+  meter the Claude session/weekly windows already draw — one more bar, not a second widget.
+  Credit left rides along as the meter's label.
+- **Warm at boot, not on import** — the guard's cache starts empty, and an empty cache fails
+  every openrouter spawn closed, so `Servex.js` calls `warm_guard()` once right after it builds
+  `this.agents` — before anything could possibly spawn — so the very first spawn after a restart
+  isn't refused for no real reason. `Agents.spawn()` itself stays synchronous (it has a dozen-plus
+  non-`await`ed callers across the codebase; making it async is the kind of surgery CLAUDE.md says
+  to ask about, not a one-line fix), so a spawn that still finds an empty cache — the key file
+  missing, or the boot-time read itself failed — fails closed with a reason that says "retry in a
+  few seconds", rather than waiting on a live read itself.
+
 ### Cost is per key, not per agent
 
 `key_usage()` is OpenRouter's running total for the whole key. Two OpenRouter agents spending on
@@ -92,6 +118,25 @@ the same key at once can't be told apart by a before/after diff — `Agents.js`'
 `refresh_or_cost()` will attribute one agent's spend to the other. Fine while only one OpenRouter
 agent runs at a time; a real fix needs a key per agent, or OpenRouter adding a per-request cost
 figure.
+
+### Rule tests — can a cheap model follow our own instructions?
+
+Five small tests, each with exactly one right answer a script checks (never a judge's opinion):
+reading CLAUDE.md, following the readme chain, calling our tools, appending the house way
+(through `append.mjs`, not a shell write), and staying inside a fence even when the brief itself
+tempts it to stray. One real Servex agent is spawned per model × effort × test, in a fresh temp
+task dir under `rule-tests/runs/`.
+
+```
+node Servex/ext/openrouter/evals/rules.mjs --models claude-haiku-4-5-20251001,deepseek/deepseek-v4.1-flash --effort low,high
+```
+
+Default (no flags): one model, `claude-haiku-4-5-20251001`, at `low` effort — the safe dry run
+before an OpenRouter model is allowed to spend anything. All five pass on it today. Results land
+as one `{"probe":{...}}` line per run in
+[`evals/results.jsonl`](./evals/results.jsonl) — the same file and shape
+mastermind-servex-9's probe runner uses (`public/framework/ai/2026-09-30/probe-tasks/probes.md`),
+so a rule test and an open-ended probe sit in one shared table instead of two parallel ones.
 
 ## What's here
 
@@ -101,6 +146,8 @@ figure.
 - [`spike.mjs`](./spike.mjs) — the spike script, above.
 - [`provider.test.mjs`](./provider.test.mjs) — runs with no key, no network, no cost:
   `node Servex/ext/openrouter/provider.test.mjs`.
+- [`evals/rules.mjs`](./evals/rules.mjs) — the rule tests, above. Results in
+  [`evals/results.jsonl`](./evals/results.jsonl).
 - [`snapshot.md`](./snapshot.md) — the condensed state a fresh mastermind starts from: one line
   per conclusion, each with a credence and a cited source.
 - [`sources/`](./sources/readme.md) — an index into the one source library

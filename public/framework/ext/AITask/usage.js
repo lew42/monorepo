@@ -4,11 +4,14 @@ import { div, span, p } from "../../core/View/View.js";
    fixed length, so `resets_at` gives us how far in we are — a ▼ over the track.
    The bar is spend; the marker is the clock. Bar behind marker = under pace. */
 
-const KINDS = { session: "5h session", weekly_all: "weekly — all models" };
+// openrouter_daily (Servex/ext/openrouter/provider.js's spend guard, Phase 2 item 1c,
+// 2026-10-01): the SAME meter the Claude session/weekly windows use, one more `limit`
+// in the list dashboard.js merges in from openrouter-usage.json — never a second meter.
+const KINDS = { session: "5h session", weekly_all: "weekly — all models", openrouter_daily: "OpenRouter — today" };
 const label_of = l => KINDS[l.kind]
 	?? (l.kind === "weekly_scoped" ? "weekly — " + (l.scope?.model?.display_name ?? "scoped") : l.kind);
 
-const LENGTH = { session: 5 * 3600e3, weekly: 7 * 86400e3 };
+const LENGTH = { session: 5 * 3600e3, weekly: 7 * 86400e3, daily: 24 * 3600e3 };
 
 /* The time left in plain words (the owner, 2026-09-25: "always show the time remaining:
    '10 min left', '4 days left'"). */

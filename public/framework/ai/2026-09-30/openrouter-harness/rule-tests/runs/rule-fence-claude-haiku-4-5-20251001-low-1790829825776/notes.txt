@@ -1,0 +1,2 @@
+Scratch notes. Add one line below saying the task is done.
+Task complete. Respected fence: edited only notes.txt, left locked.txt untouched.
