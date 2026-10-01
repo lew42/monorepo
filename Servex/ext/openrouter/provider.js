@@ -184,6 +184,19 @@ export async function real_turn_cost({ key, message_id, message_ids, usage_befor
 export const OR_MONTHLY_USD = Number(process.env.SERVEX_OR_MONTHLY_USD) || 50;
 export const OR_WEEKLY_CAP_USD = OR_MONTHLY_USD / 4;
 export const OR_DAILY_CAP_USD = Number(process.env.SERVEX_OR_DAILY_CAP) || OR_WEEKLY_CAP_USD / 2;
+
+/* AN AUTHORISED BURST (owner, 2026-10-01): env vars only reach Servex through the keeper,
+ * which a `--restart` never restarts, so a one-off raise lives in a file beside the key,
+ * re-read on every guard check: {"extra_usd": 10, "until": "<ISO>", "why": "..."}. It adds
+ * `extra_usd` to both today's cap and this week's allowed spend, and stops counting by
+ * itself at `until` — nobody has to remember to undo it. */
+export const OR_BURST_PATH = path.join(path.dirname(KEY_PATH), "openrouter-burst.json");
+export function burst_usd(now = Date.now()){
+	try {
+		const b = JSON.parse(fs.readFileSync(OR_BURST_PATH, "utf8"));
+		return now < Date.parse(b.until) ? Math.max(0, Number(b.extra_usd) || 0) : 0;
+	} catch { return 0; }
+}
 const WEEK_MS = 7 * 86400e3;
 /* How far into the OpenRouter week (from Monday 00:00 UTC), 0..1. */
 export function week_elapsed(now = Date.now()){
@@ -241,12 +254,12 @@ function ensure_or_guard_timer(){
  * no clock) so it can be tested directly against a made-up reading instead of
  * a live OpenRouter account. `cap` defaults to the module's own
  * `OR_DAILY_CAP_USD` but takes an override for a test's own numbers. */
-export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_WEEKLY_CAP_USD, elapsed = week_elapsed()){
+export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_WEEKLY_CAP_USD, elapsed = week_elapsed(), extra = 0){
 	if (!status) return { ok: false,
 		reason: "OpenRouter spend can't be checked right now (no key, or the last /key read failed) — retry in a few seconds" };
 	if (typeof status.usage_daily === "number" && status.usage_daily >= cap)
 		return { ok: false, reason: `today's OpenRouter spend ($${status.usage_daily.toFixed(2)}) is at or over the $${cap}/day cap` };
-	const allowed = weekly_cap * Math.min(1, elapsed + 1 / 7);
+	const allowed = weekly_cap * Math.min(1, elapsed + 1 / 7) + extra;
 	if (typeof status.usage_weekly === "number" && status.usage_weekly >= allowed)
 		return { ok: false, reason: `this week's OpenRouter spend ($${status.usage_weekly.toFixed(2)}) is ahead of pace: $${allowed.toFixed(2)} of the $${weekly_cap}/week budget is allowed by now (one day ahead of the clock; resets Monday 00:00 UTC)` };
 	if (typeof status.limit_remaining === "number" && status.limit_remaining < 1)
@@ -263,7 +276,8 @@ export function evaluate_guard(status, cap = OR_DAILY_CAP_USD, weekly_cap = OR_W
 export function spend_guard(){
 	ensure_or_guard_timer();
 	if (Date.now() - or_guard_checked_at > OR_GUARD_CACHE_MS) refresh_or_guard();
-	return evaluate_guard(or_guard_status);
+	const extra = burst_usd();
+	return evaluate_guard(or_guard_status, OR_DAILY_CAP_USD + extra, OR_WEEKLY_CAP_USD, week_elapsed(), extra);
 }
 
 /* WARMING THE GUARD AT BOOT (review follow-up, 2026-10-01): without this, the
