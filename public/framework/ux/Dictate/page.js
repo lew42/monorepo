@@ -75,7 +75,7 @@ function demo_mount(){
 	const $box = div.c("flex v gap", () => {
 		div.c("flex wrap gap v-center", () => {
 			new_session_button(() => mount);
-			span.c("muted", "— this demo's own session, forgotten the moment you leave this page");
+			span.c("muted", "This demo has its own session. It starts fresh when you leave the page.");
 		});
 		$slot = div.c("ux-dictate-page-demo");
 	}).style("--gap", "calc(var(--gap) * 0.5)");

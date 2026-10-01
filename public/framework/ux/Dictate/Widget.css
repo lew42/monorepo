@@ -113,17 +113,34 @@
 	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible, the
 	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice.
 	 *
-	 * THE FIX (item 4, one-dictation): `.ux-dictate` itself (the mic button plus its
-	 * caption, ONE child of the controls row) gets `flex-wrap: wrap` so the live guess
-	 * drops to its OWN line under the button instead of forcing the row wider, and
-	 * `min-width: 0` on both it and the caption so the browser is allowed to WRAP that
-	 * text to the available width instead of growing the box to fit it unwrapped — a
-	 * flex item's default `min-width` is its own unwrapped content size, which is
-	 * exactly what made the earlier `position: absolute` escape hatch feel necessary.
-	 * Normal flow now: the guess takes its own space below the button, and every box
-	 * around it (the controls row, the composer, the card) grows to fit, no overlap. */
-	.ux-dictate-widget-controls .ux-dictate { flex-wrap: wrap; min-width: 0; }
-	.ux-dictate-widget-controls .ux-dictate-info { flex: 1 1 100%; min-width: 0; }
+	 * THE FIX, ROUND 2 (mastermind review, 2026-10-01, from the owner's own shots — the
+	 * mic sat on its own row, apart from Send; the live guess and any error landed
+	 * BETWEEN the mic and Send instead of above the whole row). Round 1 only let the
+	 * info column wrap INSIDE `.ux-dictate`'s own little box — that box still sat as
+	 * ONE item among Send/meter/source, with its own separate width, which is exactly
+	 * why the mic ended up apart from Send instead of beside it.
+	 *
+	 * `display: contents` on `.ux-dictate` removes that box: its two real children —
+	 * the mic BUTTON and the INFO column (engine/status/countdown + the live caption,
+	 * all `Dictate.js`'s own, untouched) — become direct items of THIS row's own flex
+	 * layout, exactly as if `Widget.js` had built them here itself. The info column
+	 * gets `order: -1` and `flex: 1 1 100%`, so the row's own `wrap` forces it onto its
+	 * OWN full-width line, first — sitting right after the typed buffer, it reads as
+	 * the buffer's own continuation, above the second line below. That second line is
+	 * everything else — the button, then Send (tied at the default `order: 0`, so DOM
+	 * order wins: the button is built first), then the optional extras (already
+	 * `order: 10`) — one baseline, nothing wrapping beneath any single one of them.
+	 *
+	 * ⚠ `!important`, because `.ux-dictate` itself still carries the plain `.flex`
+	 * UTILITY class (`Dictate.js`'s own `this.ac("ux-dictate flex v-center gap")`),
+	 * and `.flex { display: flex }` lives in `@layer util` — a layer that beats ANY
+	 * `@layer theme` rule regardless of selector specificity (`css` skill, rule 3).
+	 * Without it, `display: flex` quietly won, `.ux-dictate` never actually went
+	 * `contents`, and the button stayed centered beside the (now very tall) info
+	 * column instead of dropping to the row below — exactly the first shot of this
+	 * round's own fix showed, before this line was added. */
+	.ux-dictate-widget-controls .ux-dictate { display: contents !important; }
+	.ux-dictate-widget-controls .ux-dictate-info { order: -1; flex: 1 1 100%; min-width: 0; }
 	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }
 
 	/* A second, bigger level meter (`level: true`) — small and right beside the button, never
