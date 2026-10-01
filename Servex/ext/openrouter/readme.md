@@ -33,6 +33,9 @@ decided, what's still open, and where every claim comes from.
    same-model review misses; `Server/review.mjs --model` is where that plugs in.
    → [`snapshot.md`](./snapshot.md) (node `ad16o`)
 
+**What breaks per provider or model** (what fails, why, the workaround, the evidence) is in
+[`gaps.md`](./gaps.md). Every workaround applies only to agents on the OpenRouter path.
+
 ## It's wired up now
 
 `provider.js`, `spike.mjs` and the `provider` field on every spawn are built — this is no longer
