@@ -91,9 +91,11 @@ spike on both Gemini models.
 ### The spend guard (the owner's $50 credit, Phase 2)
 
 Three pieces, all in `provider.js` unless noted:
-- **The cap** — `spend_guard()` refuses an openrouter spawn with one clear line once today's
-  OpenRouter spend (`usage_daily`) is at or over `SERVEX_OR_DAILY_CAP` (default $8), or credit
-  left (`limit_remaining`) drops under $1. `Agents.spawn()` calls it before creating the agent.
+- **The pace** — the budget is weekly: `SERVEX_OR_MONTHLY_USD` (default $50) ÷ 4 = $12.50 a
+  week, resetting Monday 00:00 UTC. `spend_guard()` refuses an openrouter spawn with one clear
+  line once this week's spend (`usage_weekly`) is more than one day ahead of the clock (allowed =
+  week × (elapsed + 1/7)), once today's spend reaches `SERVEX_OR_DAILY_CAP` (default half a week,
+  $6.25), or once credit left (`limit_remaining`) drops under $1. `Agents.spawn()` calls it before creating the agent.
   It answers from a 30s cache — never a live network call on a spawn — and **fails closed**: no
   reading yet, or the last `/key` read failed, refuses too. `evaluate_guard(status, cap)` is the
   pure decision underneath it, tested directly in `provider.test.mjs` (no network needed).
@@ -141,6 +143,64 @@ as one `{"probe":{...}}` line per run in
 mastermind-servex-9's probe runner uses (`public/framework/ai/2026-09-30/probe-tasks/probes.md`),
 so a rule test and an open-ended probe sit in one shared table instead of two parallel ones.
 
+### Test library — real work, not one right answer
+
+Rule tests (above) check whether a model follows our own rules. The test library goes one step
+further: a climbing ladder of small real-work tasks (rung 1, the floor every model should pass, up
+to rung 4, system design) — a broken page to diagnose, a broken page to fix, a new page to write, a
+one-word bug to fix, a plan to write before any code. **Each test is a real page**
+([`#AITest`](/framework/ai/tests/AITest.js)), not a script-only folder:
+[`/framework/ai/tests/`](/framework/ai/tests/) shows every test, its prompt, its criteria and every
+run it has had — open it and click one, the same as any other page on the site. Each test's folder
+(`public/framework/ai/tests/<id>/`) holds `page.jsonl` (line 1 names `AITest.js` as its class, the
+same shape AI 2's card uses), `prompt.md`, and a `fixture/` with whatever files the agent should
+start from. There's no single right answer to "fix this page", so a script checks what it CAN check
+(does the result parse, does it load with no console error, did the untouched files stay untouched)
+and a judge model scores the rest.
+
+```
+node Servex/ext/openrouter/evals/library.mjs --models claude-haiku-4-5-20251001,deepseek/deepseek-v4.1-flash --effort medium
+node Servex/ext/openrouter/evals/library.mjs --judge   # scores every run with no score yet
+node Servex/ext/openrouter/evals/library.mjs --route   # rebuilds the model+task matrix
+```
+
+Every run appends one `{"run":{...}}` line to THAT TEST's own `page.jsonl` — not a shared results
+file; `evals/results.jsonl` keeps only the rule tests and the probes now (Amendment 5 split them
+apart: a test's runs are part of the page that test lives on). A row carries `model`, `effort`,
+`pass`, `score` ("terrible"|"ok"|"great", `null` until judged), `cost_usd`, `ms`, `mechanical`,
+`note`, keyed by its own `run` name — a later judge-written line with the SAME `run` name merges
+onto it (AITest.js's `run()` method does this merge live; `library.mjs`'s `testRuns()` does the
+identical merge in node, since that browser class can't be loaded outside one). A run that wrote a
+real decision record (`Server/decide.mjs`, **anywhere in its run dir** — there's no single
+canonical filename, so the check scans every `.jsonl` there) gets a second `reasoning` score too —
+the thinking, graded separately from the outcome.
+
+**The reference, by consensus:** run a test once each on the strong set (`claude-opus-5-5`,
+`claude-sonnet-5`, `openai/gpt-6-sol`, `google/gemini-3.1-pro-preview`), then `--judge` — once 3 of
+those 4 runs are in for a test, the judge writes `tests/<id>/reference.md` itself (the key elements
+at least 3 agree on, what they disagree on, the agreement rate) before scoring anything against it.
+A test where fewer than 3 agree gets no reference, and the file says why instead.
+
+**The routing table:** `--route` reads every test's own `page.jsonl` (the newest line per
+model × effort × test wins) and writes [`evals/routing.json`](./evals/routing.json) — for each
+test KIND, the cheapest model + effort whose runs score at least "ok", its price as a multiple of
+`claude-sonnet-5` (from OpenRouter's public `/v1/models` catalog) and the evidence (which runs,
+which scores). It recomputes from scratch every time, so it just keeps catching up as more runs
+land. Nothing reads it yet — it's the model-for-task matrix the owner asked for, built to be read
+later rather than guessed at.
+
+**Add a test:** make a new folder under `public/framework/ai/tests/`, named the test's own slug.
+Give it a `page.jsonl` whose line 1 is `{"class": "/framework/ai/tests/AITest.js", "title", "kind",
+"rung", "skills", "prompt": "prompt.md", "criteria", "expected", "judge", "confidence"}`, a
+`prompt.md`, and a `fixture/` folder. Then add the slug to `/framework/ai/tests/page.js`'s `SLUGS`
+list (its own `child()` override needs it) and its `children:` string (so it shows in the preview
+wall). If the fixture is a page, check it really is broken (or really does load clean) headless
+once before trusting it. ⚠ Don't name a test-only field `child` — it collides with every Page's own
+`child()` method and gets dropped (h1-page uses `new_child` for exactly this reason). A test can
+instead carry `from_task: "<ai/… task dir>"` — meaning its prompt and accepted outcome come from a
+real, already-landed task rather than a hand-built fixture — but `library.mjs` doesn't read that
+field yet; it's documented here for whoever builds that next, not built now.
+
 ## What's here
 
 - [`provider.js`](./provider.js) — `env_for(provider)` (the four env vars; throws if the key file
@@ -152,6 +212,15 @@ so a rule test and an open-ended probe sit in one shared table instead of two pa
 - [`evals/rules.mjs`](./evals/rules.mjs) — the rule tests, above, and the shared `mcp()`/append/
   timestamp helpers `evals/probes.mjs` imports rather than duplicating. Results in
   [`evals/results.jsonl`](./evals/results.jsonl).
+- [`evals/library.mjs`](./evals/library.mjs) — the test library runner, above. The tests
+  themselves live as pages at [`/framework/ai/tests/`](/framework/ai/tests/), not under `evals/`
+  anymore (Amendment 5); routing table at [`evals/routing.json`](./evals/routing.json).
+- [`evals/websearch.mjs`](./evals/websearch.mjs) — does WebSearch/WebFetch on a proxied minion
+  ever reach Anthropic, and who pays for WebFetch's own summary call. [`gaps.md`](./gaps.md)
+  has the answer.
+- [`evals/ui-fouls.mjs`](./evals/ui-fouls.mjs) — the vision rung: three tiny fixture pages, each
+  with one planted design foul, shown to a model via its own Read tool. Results in
+  [`evals/ui-fouls/ui-fouls-results.jsonl`](./evals/ui-fouls/ui-fouls-results.jsonl).
 - [`snapshot.md`](./snapshot.md) — the condensed state a fresh mastermind starts from: one line
   per conclusion, each with a credence and a cited source.
 - [`sources/`](./sources/readme.md) — an index into the one source library
