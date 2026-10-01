@@ -165,7 +165,7 @@ function groupByModelEffort(list){
 // /api/v1/models pricing (checked 2026-10-01; prompt/completion $ per token). Blended at a plain
 // 1:1 prompt:completion average — this is a relative ranking number, not a cost estimate.
 const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, Anthropic's list prices
-	"claude-opus-5": { prompt: 15e-6, completion: 75e-6 },
+	"claude-opus-5-5": { prompt: 15e-6, completion: 75e-6 }, // the real model id (test-library runs confirm it), not "claude-opus-5"
 	"claude-sonnet-5": { prompt: 3e-6, completion: 15e-6 },
 	"claude-haiku-4-5-20251001": { prompt: 1e-6, completion: 5e-6 },
 };
@@ -221,6 +221,22 @@ function xSonnetOf(model){
 // merely the only thing in the list.
 const passes = r => r.performance != null && r.performance > 0;
 
+// Phase 15: "capability before cost" — the owner's rule is that a model's price doesn't even get
+// weighed until it does the job about as well as claude-sonnet-5. The bar for a kind is Sonnet's
+// own performance there, minus 0.1 (a small margin so a near-tie isn't punished). Some kinds have
+// no Sonnet run yet (the test library is still filling in) — then the bar is the best Claude score
+// on that kind instead, and the kind says so (`bar.source`).
+const SONNET_ID = "claude-sonnet-5";
+const isClaudeModel = model => model.startsWith("claude-");
+function qualityBar(rowsOut){
+	const sonnetPerf = rowsOut.filter(r => r.model === SONNET_ID && r.performance != null).map(r => r.performance);
+	if (sonnetPerf.length) return { value: Math.max(0, Math.max(...sonnetPerf) - 0.1), source: "sonnet", model: SONNET_ID };
+	const claudeRows = rowsOut.filter(r => isClaudeModel(r.model) && r.performance != null);
+	if (!claudeRows.length) return null; // no Claude run on this kind at all — nothing to gate against yet
+	const best = claudeRows.reduce((a, b) => (b.performance > a.performance ? b : a));
+	return { value: best.performance, source: "claude-best", model: best.model };
+}
+
 function buildKind(kindId, label, list, { alreadyFinal } = {}){
 	const final = mergeMissingEffort(alreadyFinal ? list : list.filter(reallyRan));
 	const grouped = groupByModelEffort(final);
@@ -235,9 +251,17 @@ function buildKind(kindId, label, list, { alreadyFinal } = {}){
 		r.xSonnet = xSonnetOf(r.model);
 		r.value = r.cost && r.performance != null ? +(r.performance / r.cost).toFixed(2) : null;
 	}
+	const bar = qualityBar(rowsOut);
+	for (const r of rowsOut) r.belowBar = !!(bar && r.performance != null && r.performance < bar.value);
 	rowsOut.sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
-	const best = rowsOut.filter(passes).find(r => r.value != null) ?? null;
-	return { kind: kindId, label, rows: rowsOut, best: best && { model: best.model, effort: best.effort, value: best.value } };
+	// Value ranks (and "best value" is drawn from) only configurations at or above the bar — a
+	// below-bar row stays in rowsOut for the table, just marked, never in the chart or as "best".
+	const best = rowsOut.filter(passes).filter(r => !r.belowBar).find(r => r.value != null) ?? null;
+	return {
+		kind: kindId, label, rows: rowsOut,
+		bar: bar && { value: +bar.value.toFixed(2), source: bar.source, model: bar.model },
+		best: best && { model: best.model, effort: best.effort, value: best.value },
+	};
 }
 
 const kinds = [

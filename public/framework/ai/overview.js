@@ -276,7 +276,14 @@ const MODEL_COLOR = {
 	"google/gemini-3.1-pro-preview": "#CC79A7",
 };
 const model_color = model => MODEL_COLOR[model] ?? (model.startsWith("claude-") ? "#767676" : "#999");
-const model_name = model => model.startsWith("claude-") ? "Claude Haiku (control)" : (model.split("/")[1] ?? model);
+// Phase 15 adds Sonnet and Opus runs alongside Haiku's (the test library), so the three Claude
+// models need their own names here, not one label shared by all of them.
+const CLAUDE_NAME = {
+	"claude-opus-5-5": "Claude Opus (control)",
+	"claude-sonnet-5": "Claude Sonnet (control)",
+	"claude-haiku-4-5-20251001": "Claude Haiku (control)",
+};
+const model_name = model => CLAUDE_NAME[model] ?? (model.startsWith("claude-") ? "Claude (control)" : (model.split("/")[1] ?? model));
 const fmt_usd = n => n == null ? "—" : n < 0.001 ? "<$0.001" : "$" + n.toFixed(n < 1 ? 3 : 2);
 const fmt_pct = n => n == null ? "—" : Math.round(n * 100) + "%";
 
@@ -285,7 +292,8 @@ const fmt_pct = n => n == null ? "—" : Math.round(n * 100) + "%";
 // that would crush the small ones to invisible (dataviz: "two measures of different scale -> two
 // charts or small multiples").
 function bar_facet_svg(rows){
-	const real = rows.filter(r => r.value != null);
+	// Phase 15: a below-the-bar row never appears in the chart, only ranked ones do.
+	const real = rows.filter(r => r.value != null && !r.belowBar);
 	if (!real.length) return null;
 	const max = Math.max(...real.map(r => r.value), 0.01);
 	const rowH = 28, pad = 8, L = 190, R = 60, W = 640, H = real.length * rowH + pad * 2;
@@ -303,6 +311,7 @@ function bar_facet_svg(rows){
 
 function render_models(data){
 	heading("Value per configuration, by kind", "Best first in each row group. One bar is one model at one effort level; the number is value (performance ÷ $/run).");
+	md("A model must do the job about as well as Sonnet before its price counts.");
 	div.c("card").append(() => {
 		data.kinds.filter(k => k.rows.some(r => r.value != null)).forEach(k => {
 			const svgText = bar_facet_svg(k.rows);
@@ -315,10 +324,16 @@ function render_models(data){
 
 	heading("Every configuration tried", "×Sonnet is a price ratio, not this run's cost: each model's list price per token, divided by claude-sonnet-5's. Claude rows use Anthropic's list prices; the rest use OpenRouter's.");
 	const head = ["kind", "model", "effort", "performance", "$/run", "×Sonnet", "value"];
-	const allRows = data.kinds.flatMap(k => k.rows.map(r => [
-		k.kind, model_name(r.model), r.effort ?? "—", fmt_pct(r.performance), fmt_usd(r.cost),
-		r.xSonnet == null ? "—" : r.xSonnet + "×", r.value == null ? "—" : String(r.value),
-	]));
+	// Phase 15: a row below its kind's quality bar stays in the table — it's still a real result —
+	// but greyed, and its value cell says why it isn't ranked instead of showing a number.
+	const allRows = data.kinds.flatMap(k => k.rows.map(r => {
+		const cells = [
+			k.kind, model_name(r.model), r.effort ?? "—", fmt_pct(r.performance), fmt_usd(r.cost),
+			r.xSonnet == null ? "—" : r.xSonnet + "×",
+			r.belowBar ? "below the bar" : (r.value == null ? "—" : String(r.value)),
+		];
+		return r.belowBar ? cells.map(text => () => small.c("muted", text)) : cells;
+	}));
 	table(head, allRows);
 
 	heading("Best value, per kind, in plain words");
