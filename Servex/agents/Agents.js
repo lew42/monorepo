@@ -99,6 +99,26 @@ export class Agents {
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
+		/* A MINION NEVER GETS THE MAIN TREE (session-gate, 2026-10-01): session-smart.md used to
+		 * let a voice session spawn a `minion` straight into the repo root, with no worktree, no
+		 * smoke test, no review — it edited the live site directly (registry.json, 2026-10-01:
+		 * minion-chat-duplicate-messages and five siblings, all `cwd: C:\Code\lew42\monorepo`).
+		 * A FRESH minion (never a resume — `reopen()` needs the session's ORIGINAL cwd, this
+		 * file's own comment above) whose `cwd` is not already inside `worktrees/` is moved into
+		 * a pool slot before its first turn. `pool.take_sync()` (Servex/Pool.js) claims a READY
+		 * slot with no `await` — this function stays synchronous on purpose, same reason as the
+		 * openrouter spend guard below (a dozen-plus callers assume a plain return, not a
+		 * promise) — and answers `null` with nothing claimed when none is ready, so a minion is
+		 * never blocked waiting for one; it just keeps the cwd it was given. */
+		if (spec.role === "minion" && !again && !worktree_of(spec.cwd)){
+			const slot = this.servex?.pool?.take_sync?.(spec.parent ?? id);
+			if (slot){
+				spec = { ...spec, cwd: slot.path };
+				this.servex?.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
+			} else {
+				this.servex?.say?.(`minion ${id} spawned with no pool worktree ready — writing in ${spec.cwd ?? process.cwd()}`, { event: "pool" });
+			}
+		}
 		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
 		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
