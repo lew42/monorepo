@@ -4,89 +4,17 @@ import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
 
 /**
- * **ONE chat, everywhere** (`ai/2026-09-30/one-dictation/`, the owner: "we want to have
- * one set of code… one system that works the same everywhere, whether it's the mobile
- * rail or the right sidebar"). `chat(el, {path, card, placeholder})` draws a `Widget`
- * into `el` and wires it to the fast/smart voice-session pair (`ext/Session/Session.js`).
- * Every caller — the mobile ✦ sheet (`ext/drawer/rail.js`), the desktop ☰ drawer's AI
- * tab (`ext/drawer/tabs/ai.js`), the Dictate page — calls this ONE function; none of
- * them hold any session logic of their own any more.
- *
- *     const chat_handle = chat(el, { path: "/framework/", placeholder: "say something" });
- *     chat_handle.panel;      // the Widget, if a caller needs it directly
- *     chat_handle.session();  // the live global session id, or null
- *     chat_handle.nav("/framework/other/");  // this mount moved to a new page — see below
- *     chat_handle.remove();   // this ONE mount is gone; the session and its watch live on
- *
- * **THE SESSION IS GLOBAL** (the owner, 2026-09-30: "we're not doing per directory
- * assistants any more… we're doing global dictation assistance… you don't want to cut
- * off the user's transcription just because they clicked on a link"). One browser tab
- * has at most ONE voice session, in `sessionStorage["lew42-voice-session"]` — the exact
- * key `ext/Session/Session.js`'s own docs name. It is never looked up a second time by
- * card or page: whichever mount first says something calls `Session.start()`, and every
- * later mount — a different card, a different page, a second surface open at once — just
- * picks that same session back up. `card` is only a HINT for that very first sentence
- * (it becomes the session's home folder, `ext/Session/Session.js`'s own doc); `path` is
- * sent fresh with every single `say()`, never frozen at mount time.
- *
- * **THE BUG THIS REPLACES** (`ai/2026-09-30/one-dictation/minion-chat/requirements.md`):
- * `rail.js`'s card branch and this tab both used to start watching the session file only
- * *inside* `deliver` — the moment a sentence was sent. A widget rebuilt by a card switch,
- * a tab reopen, or a page reload never called `deliver`, so it sat empty until the owner
- * spoke again, even though the conversation was still there on disk. Every mount here
- * calls `Session.watch()` itself, on the way up (`attach()`, below) — `watch()` always
- * starts reading a file from its first line, so a brand new `Widget` gets the WHOLE
- * conversation at once, not just whatever is said after it appears. Several mounts open
- * at once (the sheet and the drawer, say) each run their own `watch()`/`stream()` pair
- * and so each draw the exact same full history — cheap, since a session's file is small,
- * and far simpler than one shared cursor several widgets would have to fight over.
- *
- * **Sending de-dupes itself.** A mount that just said something already drew its own
- * bubble (`Widget.submit()`, optimistic) before the server even answered; once it does,
- * this file's `own_ats` — one `Set` per MOUNT, not shared — remembers the real `at` so
- * that mount's own `watch()` doesn't draw the very same line a second time when it reads
- * it back off disk a moment later. A mount that did NOT send it never had a local bubble
- * to begin with, so it just draws the line once, normally, the first time `watch()` sees it.
- *
- * **Reactions and threads** (`ext/Chat` + `ext/Session`'s "chat-reactions" work, merged
- * 2026-09-30): every `Widget` this file builds gets `threads: true` and a live `react`
- * handler wired to `Session.react()`, same as `rail.js`'s pair used to wire by hand —
- * `Widget` itself does not draw reaction UI yet (`readme.md` names the gap), but the data
- * path is real today so nothing has to change here once it does.
- *
- * **`nav(path)` is not in this task's own three-member list** (`{remove, panel, session}`)
- * but is real and necessary: the ✦ sheet is the ONE surface that stays mounted across a
- * real page navigation (the desktop AI tab and the Dictate page both get a brand new
- * `chat()` call on every open instead), so its caller has to tell this module a
- * navigation happened. `report_nav()` (below) is the single place `Session.nav()` is
- * ever actually called, compared against the controller's own last-reported path — so
- * two different callers noticing the same real navigation (the rail's own `navigated()`
- * and a fresh mount's own path) still only send ONE `nav` event, never two. **`nav(path,
- * card)`** (one-dictation, item 1): a caller whose own card can change WITHOUT a fresh
- * mount — `ext/drawer/rail.js`'s sheet, which can show a different card while it stays
- * open — passes the new one (or `null` for none) so a later refinement is attributed correctly; see
- * `Servex/agents/Sessions.js`'s own `nav()`/`card_at()`.
- *
- * **Pauses and selection** (one-dictation, items 2 and 6): `Session.report_pause()`,
- * started once below beside `report_quiet()`, posts an invisible marker when the mic
- * stops altogether and when it starts again — distinct from an ordinary mid-sentence
- * quiet gap. A `window` `selection-change` event (`ext/drawer/select.js`'s own, NOT
- * imported here since that file is still mid-merge elsewhere) is kept on `ctl.selection`
- * and posted as its own invisible marker the moment it changes, and stamped onto the
- * next `say()` too, so the assistants see what was picked.
+ * ONE chat box, one conversation, every surface. `chat(el, {path, card, placeholder})`
+ * draws a `Widget` into `el` and wires it to the global voice session
+ * (`ext/Session/Session.js`). Every caller — the ✦ sheet, the ☰ drawer's AI tab, a
+ * card's sidebar — calls this one function; none of them hold their own session logic.
+ * The call, why a reopened chat never loses old messages, `nav(path, card)`'s exact
+ * rules, and every older version still kept reachable:
+ * [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
  */
 
-/**
- * **THE FONT GUARD, REMOVED** (review fix #2, 2026-09-30). This file used to read
- * the live theme's own resolved font and set it inline on every mount, working
- * around a real bug in `ext/drawer/drawer.js`'s `build()`: it could mount the whole
- * desktop drawer outside `.theme-lew42` before `core/App/App.js`'s `inject()` had
- * attached the real `.app` div to the document, so Montserrat (and colour-scheme)
- * never reached it. `drawer.js` is now fixed at the root — `build()` waits for the
- * real `.app` (`window.app.ready`) and re-parents into it the moment it exists, so
- * every tab in that drawer inherits the right font on its own, the normal way
- * (`font: inherit`), and no per-mount patch is needed here any more.
- */
+// The font fix for a drawer mounted before `.app` exists lives in `ext/drawer/drawer.js`
+// now, not here — see `doc/chat.md`.
 const SESSION_KEY = "lew42-voice-session";
 const RESUME_OFFER_MS = 60 * 60 * 1000;   // matches Servex's own SERVEX_SESSION_RESUME_MS default
 

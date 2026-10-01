@@ -83,32 +83,11 @@ function size(px){
 	return w;
 }
 
-/* ⚠ Inside `.app`, not on `<body>`: colour-scheme is forced there (App/mode.js), so a rail
-   on the body renders light while the page around it is dark — and `--drawer` is read on
-   `.app` alone, so the push (and the site's own Montserrat — both are `.app`-scoped) would
-   be lost too.
- *
- * **THE RACE THIS USED TO LOSE** (review fix #2, `ai/2026-09-30/one-dictation/minion-chat/`,
- * found proving `ux/Dictate/chat.js`'s font requirement): `menu.js`'s auto-open — a url that
- * already names an open tab, `?drawer=…` — calls this the moment `app.styles_loaded()`
- * resolves, which is only every `<link>` tag finishing, NOT the page itself: `core/App/App.js`'s
- * own `instantiate()` still has to `await this.load()` (the Router, every page module) before
- * `inject()` ever appends the real `.app` div to the document at all. Stylesheets, small files
- * on a warm cache, can easily win that race — confirmed live, `document.readyState` was still
- * `"interactive"` here. `document.querySelector(".app")` found nothing, fell back to
- * `document.body`, and the old code CACHED that wrong parent forever (the guard right below,
- * `if ($rail) return`) — every tab in this drawer then inherited the wrong font and the wrong
- * colour scheme, not just the one caller that happened to trigger the race.
- *
- * A real user click on ☰ never hits this: by the time anyone can click, the page has already
- * painted, so `.app` is always there. Only that one background, url-triggered path can run
- * early — so rather than making every caller of `drawer()` wait on a promise (a dozen call
- * sites, several outside this file), this still builds AT ONCE, same as always, and only
- * self-heals in the rare case it had to guess: `window.app.ready` (`core/App/App.js`'s own
- * "the target exists and is in the document" moment, used the same way all over `/core/new/1/site/`)
- * resolves once, after `inject()`; if the real `.app` turns up somewhere else once it does, this
- * moves the rail into it — a DOM `appendChild` on a node that already has a parent detaches it
- * from the old one, so nothing double-mounts. */
+/* Mounts inside `.app`, not `<body>` — the theme's font and colour-scheme are read there.
+ * `.app` may not exist yet (a url like `?drawer=…` can open this before the page has
+ * finished loading), so this builds into `document.body` as a fallback and moves itself
+ * into the real `.app` once `window.app.ready` resolves. Full story, and the bug this
+ * replaced, in `ux/Dictate/doc/chat.md`. */
 function build(){
 	if ($rail) return;
 

@@ -4,6 +4,7 @@ A session starts on the page you are on (its home), follows you from page to pag
 
 - **The two roles:** `session-fast` is the fast assistant, `session-smart` the smart one (`Servex/agents/session-fast.md`, `session-smart.md`).
 - **The routes:** `/new` starts a session (or continues this page's from the last hour), `/say` sends one owner line to both assistants, `/nav` records a move to another page. `/resume`, `/floor` and `GET /api/sessions` are the rest ([doc/sessions.md](./doc/sessions.md)).
+- **Invisible markers:** a move to another page, the mic pausing, and what the reader has selected are all written to the file but never shown as chat bubbles — how they work, and how a reply gets credited to the right card: [doc/markers.md](./doc/markers.md).
 
 ## Use
 

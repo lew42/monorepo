@@ -222,31 +222,13 @@ function chips_row(tabs){
 	return { view: $chips, context: () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined };
 }
 
-/* THE ONE LIVE MOUNT (review fix #3, 2026-09-30: a leak). `ai()` below is called
- * fresh on every refill of the drawer's body (`tabs.js`'s own `fill()`: every open,
- * every tab switch back to "ai", every `drawer.refresh()` on a navigation) — each
- * call built a brand new `chat()` mount and never told the OLD one to `remove()`,
- * so every refill left its poller (`Session.watch()`), its `EventSource`
- * (`Session.stream()`) and its `subscribe()` listener running forever, on top of
- * whichever ones came before. Proof: open and close the AI tab 5 times headless —
- * unfixed, 5 live watches and 5 live EventSources; fixed, 1 of each, always.
- *
- * `live_chat` is the one mount this tab has ever built, module-level like
- * `live_card` above (this tab is a singleton, same reasoning). Two different things
- * can make an old mount's content leave the drawer, and this covers both without
- * needing `tabs.js` or `drawer.js` to say so out loud (neither is this task's fence):
- *   - THIS tab reopens, or redraws (a switch away and back, a navigation refresh):
- *     `ai()` runs again and disposes whatever `live_chat` already held before
- *     building the new one.
- *   - a DIFFERENT tab replaces this one's content (`tabs.js`'s `$body.empty()`),
- *     or the drawer shuts (`drawer.close()`'s own `drawer-close` event): neither
- *     calls `ai()` again, so this mount's own `MutationObserver` (set up when it was
- *     built, watching the drawer body's direct children) notices its `$slot` left
- *     the document and disposes itself — and the module-level `drawer-close`
- *     listener, added once, disposes it immediately on a shut rather than waiting
- *     for the DOM to actually change (it usually doesn't: closing only hides the
- *     rail with CSS, so without this a closed-and-never-reopened tab's mount would
- *     sit there, watching and streaming, until the page itself unloads). */
+/* THE ONE LIVE MOUNT. `ai()` below builds a `chat.js` mount every time the drawer
+ * refills this tab — this module-level slot (singleton, like `live_card` above)
+ * remembers it so the OLD one gets `remove()`d first, instead of leaking a
+ * poller and an `EventSource` on every reopen. A `MutationObserver` plus the
+ * `drawer-close` event catch the two ways the mount can leave the page without
+ * `ai()` running again: a different tab replacing this one's content, or the
+ * whole drawer shutting. Full reasoning: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/). */
 let live_chat = null;
 function dispose_chat(){
 	const handle = live_chat;
