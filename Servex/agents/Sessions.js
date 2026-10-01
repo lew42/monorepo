@@ -495,7 +495,7 @@ export default class Sessions {
 			this.hold_thought(s, line);
 			this.release_thought(s, "then typed this");
 		} else {
-			s.fast_re = line.at;
+			s.fast_re = s.fast_thought_at = line.at;
 			this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}`);
 			this.gather(s, line);
 		}
@@ -637,6 +637,7 @@ export default class Sessions {
 		const said = h.lines.map(l => `${selected_prefix(l.selection)}[on ${l.path}] ${l.text}`).join("\n");
 		const tail = `\n(the owner has stopped: ${why})`;
 		s.fast_re = s.smart_re = h.lines[h.lines.length - 1].at;
+		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
 		this.save();
 		this.wake(s, "fast");
 		this.send(s, "fast", said + tail);
@@ -796,9 +797,24 @@ export default class Sessions {
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
 		if (event.stopped) return;
-		const text = String(event.text ?? agent.last_text ?? "").trim();
+		let text = String(event.text ?? agent.last_text ?? "").trim();
 		if (!text) return;
 		const re = s[`${who.role}_re`];
+		/* A NEW PARAGRAPH (one-dictation, the `para` marker, merge 9): the fast assistant decided
+		 * the thought it just heard starts a new topic, not a continuation of the one before it
+		 * (`session-fast.md`'s own rule). `(new paragraph)` at the very start of its reply is
+		 * stripped off here and written as an invisible `{para: {at, re}}` marker instead — `re` is
+		 * the `at` of the FIRST owner line of that thought (`s.fast_thought_at`, stamped wherever a
+		 * thought is sent to the fast assistant, above). Never a bubble itself: same category as
+		 * `nav`/`pause`/`select` (`ext/Session/doc/markers.md`) — `ext/Session/Session.js`'s
+		 * `entry()` passes it through for `ux/Dictate/Widget.js`'s `Thread` to act on, splitting
+		 * that paragraph (and everything merged in after it) into a new bubble of its own. Whatever
+		 * text is left after the marker (usually nothing) falls straight through to the filler
+		 * check below, same as any other fast reply. */
+		if (who.role === "fast" && NEW_PARAGRAPH.test(text)){
+			this.write(s, { para: { at: now_ms(), re: s.fast_thought_at ?? re } });
+			text = text.replace(NEW_PARAGRAPH, "").trim();
+		}
 		/* NO FILLER (the owner, 2026-09-30: "you don't need to say, keep going, I'm listening, noted...
 		 * most of the time just listening"): the fast one's `(listening)`, or a filler line, is kept
 		 * as an invisible `{skip}` line and never drawn. */
@@ -923,6 +939,10 @@ export default class Sessions {
 /* A fast reply that says nothing: its brief's `(listening)`, or a short filler line ("Go ahead, listening."). */
 const FILLER = /^(?:keep going|go (?:on|ahead)|i'?m (?:here|listening)|still (?:here|listening|with you)|noted|got it|take your time|mm-?hm+|ok(?:ay)?|listening|sure)\b[\s,.!-]*(?:(?:i'?m |i am )?(?:still )?(?:listening|here|with you)[\s,.!-]*)?$/i;
 export const is_filler = text => { const t = String(text ?? "").trim(); return !t || /^\(listening\)/i.test(t) || (t.length <= 40 && FILLER.test(t)); };
+
+/* The fast assistant's "this is a new topic" marker (`session-fast.md`): always the first
+ * thing in its reply, stripped off by `heard()` above before anything else reads the text. */
+const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
 
 /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
 function body(req){

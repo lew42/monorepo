@@ -1,24 +1,28 @@
-# Invisible markers — nav, pause, select — and the project-wide list
+# Invisible markers — nav, pause, select, para — and the project-wide list
 
 A voice session's file holds more than what the owner said and the assistants answered. A few
-kinds of line are written automatically, in the background, and never drawn on screen. They
-exist so the smart assistant can answer questions like "what was I looking at when I said
-that?" even long after the moment has passed.
+kinds of line are written automatically, in the background, and never drawn on screen as a
+bubble of their own. They exist so the smart assistant can answer questions like "what was I
+looking at when I said that?" even long after the moment has passed — `para` is the one
+exception: still never a bubble itself, but passed through to the screen anyway, because it
+changes how an EARLIER bubble is drawn (see its own row below).
 
-## The three invisible markers
+## The four invisible markers
 
 | Marker | Written when | What it is for |
 |---|---|---|
 | `nav` | the owner moves to a different page while the session is open | lets a later reader see which page a sentence was said on, even after several moves |
 | `pause` | the mic stops altogether, and starts again later (not just an ordinary mid-sentence quiet gap) | tells the assistants "the owner put the mic down and picked it back up", which reads differently than a pause mid-thought |
 | `select` | the reader picks (or clears) an element on the page, such as a paragraph or a card | lets the assistants know exactly what was on screen and selected at any past moment |
+| `para` | the fast assistant decides a thought it just heard starts a new topic, not a continuation | tells [`ux/Dictate/Widget.js`](/framework/ux/Dictate/)'s `Thread` to split that paragraph, and everything merged in after it, out of its bubble into a new one — `doc/chat.md`'s "The para marker" |
 
-`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`).
+`pause` is written by `report_pause()`, which every chat mount turns on (`ux/Dictate/chat.js`). It hears the mic itself turn off and back on (`floor.js`), so no caller reports it by hand. `select` comes from the drawer's pick-an-element tool (`ext/drawer/select.js`). `para` is written by `Servex/agents/Sessions.js`'s `heard()`, the moment the fast assistant's reply starts with `(new paragraph)` (`Servex/agents/session-fast.md`'s own rule).
 
-All three are written by `Session.js` (`nav()`, `pause()`/`report_pause()`, `select()`) and are
-never turned into a chat bubble — `Session.entry()` skips them on purpose, the same way it
-already skips `quiet` and `skip` lines. The file format for each one is in
-[`doc/sessions.md`](./sessions.md).
+`nav`, `pause` and `select` are written by `Session.js` and never turned into a chat bubble —
+`Session.entry()` skips them on purpose, the same way it already skips `quiet` and `skip`
+lines. `para` is skipped as a bubble too, but `entry()` passes it through (as `{type: "para",
+re}`) instead of dropping it, because `ux/Dictate/Widget.js`'s `Thread` needs it to act on an
+already-drawn bubble. The file format for each one is in [`doc/sessions.md`](./sessions.md).
 
 ## Card attribution: who gets credit for what was said
 

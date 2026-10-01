@@ -124,6 +124,26 @@ owner navigates the page underneath it, so it has to tell this file when that ha
 This matters because a later message gets credited to whichever card was showing when it was
 said (`ext/Session/doc/markers.md`'s "card attribution"), even if the owner has since moved on.
 
+## The `para` marker: a late correction, not a new message
+
+A new sentence usually continues the owner's last thought, so it joins the last bubble as a
+new paragraph instead of opening a second one (`ext/Chat/Chat.js`'s `speak()`/`mergeable()`,
+`MERGE_GAP_MS` = 10s). Sometimes the fast assistant decides, a moment later, that the LATEST
+paragraph it heard was actually the start of something new. It says so by beginning its reply
+with `(new paragraph)` (`Servex/agents/session-fast.md`); Servex turns that into an invisible
+`{para: {at, re}}` line in the session file — `re` is the `at` of the first owner line of the
+thought the fast assistant just heard (`ext/Session/doc/markers.md`'s own row on it).
+
+`ux/Dictate/Widget.js`'s `Widget.Thread` is what acts on it (`split_paragraph(re)`): the
+paragraph named `re`, and everything merged into the SAME bubble after it, move out into a
+brand-new bubble placed right after the original — same sender, same look. The actual move
+(`split_bubble()`, exported from `ext/Chat/Chat.js` for this) keeps that bubble's own
+piece-and-mark bookkeeping correct on both halves, so a later merge, a ✓/? mark or a `retag()`
+on either one still works. A whole-file redraw from line 0 (a reload, `sync()`) hits the same
+`para` line at the same point in the sequence, so it draws the identical picture.
+
+`chat.js`'s `draw(line)` forwards a raw `{para: ...}` session line to `panel.say({para})`, the same way it forwards `{chat}` and `{react}`.
+
 ## `remove()`
 
 Call this when ONE mount is taken off the page — closing the sheet, switching a drawer tab away

@@ -228,6 +228,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	// shape `Widget.say()` already reads (`ext/Chat/readme.md`'s universal chat line).
 	function draw(line){
 		if (line?.react) return void panel.say({ react: line.react });
+		if (line?.para) return void panel.say({ para: line.para });   // the fast assistant split a bubble (doc/chat.md)
 		if (!line?.chat) return;
 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
 		panel.say({ chat: line.chat });

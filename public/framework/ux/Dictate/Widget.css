@@ -1,20 +1,15 @@
 /* ux/Dictate/Widget — the one compact widget: a framed card, bubbles on top, a composer
- * row at the bottom (typed box, mic, Send) — the SAME shape as the ✦ sheet's own mic panel
- * (`ext/drawer/rail.css`). Layout is plain framework.css utilities (`card`, `pad`, `flex`,
- * `gap`, `muted`); the bespoke bits here are the bubble look, the scrolling thread, the
- * compact meter/picker and hiding `Dictate`'s own settled caption lines (it still draws the
- * live, still-moving guess — see `Widget.js`'s own doc for why that one stays).
+ * row at the bottom (typed box, mic, Send). Layout is plain framework.css utilities
+ * (`card`, `pad`, `flex`, `gap`, `muted`); the bespoke bits here are the bubble look, the
+ * scrolling thread, the compact meter/picker, and hiding `Dictate`'s own settled caption
+ * lines (it still draws the live, still-moving guess).
  *
- * ONE-DICTATION, 2026-10-01: `Widget.Thread` and `Widget.Composer` are now built from
- * `ext/Chat`'s own parts (`Chat.js`'s `speak()`, `Composer.js`'s `composer()`) — most of
- * their look comes from `ext/Chat/Chat.css` now, loaded automatically by `Widget.js`'s own
- * import. The `.ux-dictate-widget-input`/`-controls`/`-send`/`-sample` rules below are
- * `Widget.ComposerV1`'s (`v1: true`, kept reachable) — the new composer needs none of
- * them. `-meter*`/`-source` are SHARED by both (review finding 4, 2026-10-01): `ComposerV1`
- * shows them inline in its own row (`order: 10` there, among the mic/Send trio); the new
- * `Widget.Composer` has no such row of its own to join, so they stack as their own small
- * lines right under the box-and-row `ext/Chat/Composer.js` already draws — plainer, not
- * yet polished into that row (CLAUDE.md law 1: fastest working version first). */
+ * `Widget.Thread`/`Widget.Composer` are built from `ext/Chat`'s own parts (`Chat.js`'s
+ * `speak()`, `Composer.js`'s `composer()`), so most of their look comes from
+ * `ext/Chat/Chat.css` now, loaded automatically by `Widget.js`'s own import. The
+ * `.ux-dictate-widget-input`/`-controls`/`-send`/`-sample` rules below are
+ * `Widget.ComposerV1`'s only (`v1: true`, kept reachable); `-meter*`/`-source` are shared
+ * by both composers. History: [`doc/chat.md`](doc/chat/). */
 @layer theme {
 
 	.ux-dictate-widget-empty:empty { display: none; }
@@ -26,32 +21,18 @@
 		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
 	}
 
-	/* THE REAL BUBBLES NOW COME FROM `ext/Chat/Chat.css` (one-dictation, 2026-10-01):
-	 * `Widget.Thread` draws every sentence through `ext/Chat/Chat.js`'s own `speak()`
-	 * (`chatbox-you`/`chatbox-reply` — the soft tinted background, the round avatar, no
-	 * border), so importing `speak` into `Widget.js` loads `Chat.css` too and these rules
-	 * never fire for it. `--chat-bubble` is `Chat.css`'s own sizing variable for those
-	 * classes (`.chatbox-you { width: var(--chat-bubble) }`) — `.chatbox-log`, the real
-	 * chat's own container, sets it; this widget's bubbles container isn't one, so it is
-	 * repeated here, same value. */
+	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
+	 * sentence through `Chat.js`'s own `speak()`), so the rules below only ever fire for
+	 * `ThreadV1`'s own bubbles and the "ask" cards. `--chat-bubble` is `Chat.css`'s own
+	 * sizing variable (`.chatbox-you { width: var(--chat-bubble) }`), normally set by
+	 * `.chatbox-log`; this widget's bubbles container isn't one, so it's repeated here. */
 	.ux-dictate-widget-bubbles { --chat-bubble: min(85%, 34rem); }
 
-	/* `.card.pad` is the framework's own boxed-content look (framework.css) — this just
-	 * keeps a bubble from stretching the full width of the thread. Still used by
-	 * `Widget.ThreadV1` (the old, un-merged thread, `v1: true`) and by the "ask" choice
-	 * cards both threads draw (`draw_ask()` — unchanged by this task, `readme.md`'s "Not
-	 * this merge"). An assistant's reply reads as a second voice: right-aligned, a quiet
-	 * neutral tint, never the owner's own plain look — the one visual rule a two-sided
-	 * thread needs.
-	 *
-	 * THE ORANGE BORDER, REMOVED (one-dictation, 2026-09-30 — the owner: "the chat bubbles
-	 * before were actually pretty good… there's like an orange border around some of
-	 * them"). `box-shadow: inset 0 0 0 1px var(--prim)` drew that ring on every assistant
-	 * bubble (`--prim` is `#FF8F60`, "the mark's own orange" — `styles/layers/theme/
-	 * lew42/lew42.css`). The bubbles the owner remembered as good are `ext/Chat/Chat.css`'s
-	 * `.chatbox-you`/`.chatbox-reply` — a soft tinted BACKGROUND on each side, no border
-	 * at all — copied here verbatim: the owner's own words get the orange tint (it was the
-	 * more prominent side there), the reply a quiet neutral one. */
+	/* `.card.pad` is the framework's own boxed-content look — keeps a bubble from
+	 * stretching the full width of the thread. Used by `Widget.ThreadV1` (`v1: true`) and
+	 * by the "ask" choice cards both threads draw. A soft tinted BACKGROUND on each side,
+	 * no border — copied from `ext/Chat/Chat.css`'s `.chatbox-you`/`.chatbox-reply`, which
+	 * is what `Widget.Thread`'s own real bubbles now use directly. History: `doc/chat.md`. */
 	.ux-dictate-widget-bubble {
 		align-self: flex-start; max-width: 85%;
 		background: color-mix(in srgb, var(--prim) 22%, transparent);
@@ -99,14 +80,10 @@
 	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
 	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
 
-	/* `Widget.ComposerV1` ONLY (`v1: true`), TOP TO BOTTOM (item 4 + 5, one-dictation —
-	 * the owner: the live guess "renders like over the top of something else… the layout
-	 * is broken"; the typed box should be "full width… the send button could be below
-	 * it"). The new default composer (`Widget.Composer`, `ext/Chat/Composer.js`) gets this
-	 * same column shape from `Chat.css` now instead — these rules below style `ComposerV1`
-	 * alone. Nothing in this column is `position: absolute` any more — every child, the
-	 * live-guess caption included, sits in normal flow, so the card's own height GROWS to fit it instead of the
-	 * guess painting on top of whatever comes next. */
+	/* `Widget.ComposerV1` ONLY (`v1: true`) — the typed box, then the mic/Send/extras row
+	 * below it. The default composer (`Widget.Composer`) gets this same column shape from
+	 * `Chat.css` now instead. Nothing here is `position: absolute`: every child, the
+	 * live-guess caption included, sits in normal flow, so the card grows to fit it. */
 	.ux-dictate-widget-composer { padding-block-end: 0.3em; }
 
 	/* THE TYPED BUFFER — full width (the card's own `.pad` already gives it the "a
@@ -136,35 +113,19 @@
 
 	/* `Dictate`'s own markup is [button][engine/status/countdown/caption] — a settled
 	 * sentence draws one `.ux-dictate-line` per line there, which is ALREADY this widget's
-	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible, the
-	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice.
+	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible.
 	 *
-	 * THE FIX, ROUND 2 (mastermind review, 2026-10-01, from the owner's own shots — the
-	 * mic sat on its own row, apart from Send; the live guess and any error landed
-	 * BETWEEN the mic and Send instead of above the whole row). Round 1 only let the
-	 * info column wrap INSIDE `.ux-dictate`'s own little box — that box still sat as
-	 * ONE item among Send/meter/source, with its own separate width, which is exactly
-	 * why the mic ended up apart from Send instead of beside it.
+	 * `display: contents` on `.ux-dictate` removes ITS OWN box, so its two real children —
+	 * the mic button and the info column (engine/status/countdown + the live caption) —
+	 * become direct items of this row's own flex layout. The info column gets `order: -1`
+	 * and `flex: 1 1 100%`, so the row's own `wrap` forces it onto its own full-width
+	 * line, first; everything else — the button, Send, the optional extras — sits on one
+	 * baseline below it.
 	 *
-	 * `display: contents` on `.ux-dictate` removes that box: its two real children —
-	 * the mic BUTTON and the INFO column (engine/status/countdown + the live caption,
-	 * all `Dictate.js`'s own, untouched) — become direct items of THIS row's own flex
-	 * layout, exactly as if `Widget.js` had built them here itself. The info column
-	 * gets `order: -1` and `flex: 1 1 100%`, so the row's own `wrap` forces it onto its
-	 * OWN full-width line, first — sitting right after the typed buffer, it reads as
-	 * the buffer's own continuation, above the second line below. That second line is
-	 * everything else — the button, then Send (tied at the default `order: 0`, so DOM
-	 * order wins: the button is built first), then the optional extras (already
-	 * `order: 10`) — one baseline, nothing wrapping beneath any single one of them.
-	 *
-	 * ⚠ `!important`, because `.ux-dictate` itself still carries the plain `.flex`
-	 * UTILITY class (`Dictate.js`'s own `this.ac("ux-dictate flex v-center gap")`),
-	 * and `.flex { display: flex }` lives in `@layer util` — a layer that beats ANY
-	 * `@layer theme` rule regardless of selector specificity (`css` skill, rule 3).
-	 * Without it, `display: flex` quietly won, `.ux-dictate` never actually went
-	 * `contents`, and the button stayed centered beside the (now very tall) info
-	 * column instead of dropping to the row below — exactly the first shot of this
-	 * round's own fix showed, before this line was added. */
+	 * ⚠ `!important`: `.ux-dictate` still carries the plain `.flex` UTILITY class, and
+	 * `@layer util` beats ANY `@layer theme` rule regardless of selector specificity (`css`
+	 * skill, rule 3) — without it, `display: flex` quietly wins and `.ux-dictate` never
+	 * actually goes `contents`. History: `doc/chat.md`. */
 	.ux-dictate-widget-controls .ux-dictate { display: contents !important; }
 	.ux-dictate-widget-controls .ux-dictate-info { order: -1; flex: 1 1 100%; min-width: 0; }
 	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }

@@ -158,6 +158,44 @@ check("line() copies a refined line into its card's page.jsonl, the same object;
 	assert.deepEqual(appended[0].obj, { chat: written }, "the card gets the very same line");
 });
 
+// ── the 'para' marker (one-dictation, merge 9): a fast reply starting "(new paragraph)" ──
+check("heard() writes a para marker when the fast reply starts '(new paragraph)', re = the thought's own owner line", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	const at1 = s.say({ session: made.session, path: "/a/", text: "first sentence", via: "text" }).at;
+	const fast_id = s.map[made.session].fast;
+	s.heard({ type: "result", text: "(new paragraph)" }, { id: fast_id });
+	const written = lines(path.join(repo, "public", made.file.replace(/^\//, "")));
+	const para = written.find(l => l.para)?.para;
+	assert.ok(para, "a para line was written");
+	assert.equal(para.re, at1);
+	assert.ok(written.some(l => l.skip), "the now-empty remainder is logged as skipped, not drawn as a bubble");
+	assert.equal(written.some(l => l.chat?.from?.kind === "assistant"), false, "no chat bubble from this fast turn");
+});
+
+check("heard() writes no para marker for an ordinary fast reply with no marker", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "hi", via: "text" });
+	const fast_id = s.map[made.session].fast;
+	s.heard({ type: "result", text: "(listening)" }, { id: fast_id });
+	const written = lines(path.join(repo, "public", made.file.replace(/^\//, "")));
+	assert.equal(written.some(l => l.para), false);
+});
+
+check("a para marker's re is the FIRST owner line of a held voice thought, not the last", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	const at1 = s.say({ session: made.session, path: "/a/", text: "one", via: "voice", floor: "speaking" }).at;
+	s.say({ session: made.session, path: "/a/", text: "two", via: "voice", floor: "speaking" });
+	s.say({ session: made.session, path: "/a/", text: "three", via: "voice", floor: "done" });   // releases the held thought at once
+	const fast_id = s.map[made.session].fast;
+	s.heard({ type: "result", text: "(new paragraph)" }, { id: fast_id });
+	const written = lines(path.join(repo, "public", made.file.replace(/^\//, "")));
+	const para = written.filter(l => l.para).pop()?.para;
+	assert.equal(para.re, at1);
+});
+
 // ── item 4: recent_project — every session of a project, any page or card ─────────────
 check("recent_project() lists every session of one project, newest first, across folders", () => {
 	const s = make();

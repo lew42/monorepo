@@ -312,6 +312,38 @@ export function retag_piece(bubble, old_id, new_id){
 	return true;
 }
 
+/** Split a bubble in two (the `para` marker, one-dictation): the piece named `at_id`, and
+ *  every piece merged into this SAME bubble after it, move out into a brand-new bubble of
+ *  its own, placed right after the original — same sender, same look, built the normal way
+ *  `speak()` would (registered in this module's own piece-tracking, so a LATER merge, mark
+ *  or `retag()` on either half still works, same reason `patch_piece()`/`retag_piece()` above
+ *  are exported instead of a caller reaching into that private state itself). `false`/`null`
+ *  when `at_id` isn't on this bubble, or is already its FIRST piece — nothing to split off.
+ *  Exported for `ux/Dictate/Widget.js`'s `Thread`, built from this module's own `speak()`
+ *  rather than the whole `chat()` factory — see that class's own doc. */
+export function split_bubble($box, bubble, at_id){
+	const st = bubble && bubbles.get(bubble);
+	if (!st) return null;
+	const i = st.pieces.findIndex(pc => pc.id === at_id);
+	if (i <= 0) return null;
+	const moved = st.pieces.splice(i);
+	fill(bubble);
+	bubble.dataset.at = st.pieces[st.pieces.length - 1].at;
+	const who = bubble.dataset.sender;
+	let made = null;
+	$box.append(() => {
+		p.c(bubble.className, $b => {
+			made = $b.el;
+			if (who){ made.dataset.sender = who; made.dataset.at = moved[moved.length - 1].at; }
+			if (who && who !== "task") who_label(who);
+			bubbles.set(made, { pieces: moved, refined: null });
+			fill(made);
+		});
+	});
+	bubble.after(made);   // `$box.append()` only ever adds at the end — move it right after the original
+	return made;
+}
+
 /** A refined line: the latest one whose `of` ids are in a bubble replaces its raw paragraphs. */
 export function refine($box, e){
 	const of = e.of ?? [], at = Date.parse(e.at ?? 0) || 0;

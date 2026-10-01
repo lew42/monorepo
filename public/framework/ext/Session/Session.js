@@ -191,6 +191,11 @@ export function entry(line){
 	}
 	// `nav` is invisible now (one-dictation, item 1) — same category as `quiet`/`skip`/`pause`/
 	// `select` below: real context Servex keeps, never a bubble the reader has to read past.
+	// `para` (one-dictation, the 'para' marker) is the same — never a bubble of its own — but,
+	// unlike those, it is PASSED THROUGH rather than dropped: `re` names a paragraph already on
+	// screen, and `ux/Dictate/Widget.js`'s `Thread` needs this shape to split it, and everything
+	// merged in after it, into a new bubble (`ext/Session/doc/markers.md`).
+	if (line.para) return { type: "para", at: line.para.at, re: line.para.re };
 	if (line.backing) return { type: "update", at: line.backing.at, text: "the assistants woke up" };
 	if (line.session) return { type: "update", at: line.session.at, text: `session ${line.session.id} started on ${line.session.home}` };
 	return null;
