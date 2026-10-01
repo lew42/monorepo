@@ -103,10 +103,10 @@ export class DrawerRail extends View {
 
 	     closed   /framework/                 the rail only
 	     open     /framework/?sheet=open      the sheet, part of the screen
-	     full     /framework/?sheet=full      the sheet IS the screen, with ‹ Back
+	     full     /framework/?sheet=full      the sheet IS the screen
 
 	   Stepping UP (✦, a drag to the top) pushes an entry; stepping DOWN (the phone's
-	   back, ‹ Back, ✕, a drag down) goes back through those same entries, so the
+	   back, ✕, a drag down) goes back through those same entries, so the
 	   phone's back always steps the sheet down one state and never leaves the site
 	   while the sheet is showing. `history.state.depth` counts how many of our own
 	   entries sit on top of the closed one (open = 1, full = 2); when it is missing
@@ -185,7 +185,11 @@ export class DrawerRail extends View {
 	// Make the screen match a state. Never touches history.
 	apply(mode, listen = false){
 		this.mode = mode;
-		if (mode === "closed" || !this.small()){ this.$sheet?.hide(); return; }
+		// `keep_mic: true` only for a REAL close ("closed" — the ✕, the drag down, the
+		// phone's back) — not for the OTHER branch here, a window WIDENED past the 52em
+		// breakpoint (`watch_breakpoint()`'s own comment: the sheet becomes unreachable
+		// then, so its mic is still released, same as always).
+		if (mode === "closed" || !this.small()){ this.$sheet?.hide({ keep_mic: mode === "closed" }); return; }
 		const sheet = this.sheet();
 		if (!sheet.showing()) sheet.show({ listen });
 		sheet.state(mode);
@@ -316,13 +320,24 @@ export class DrawerRailSheetV1 extends View {
 		this.$mic = div.c("drawer-rail-sheet-mic");
 	}
 
+	// No ‹ Back button (the owner, 2026-10-01: "I don't know if we need a back
+	// button... we have the X, the X makes much more sense to me — get rid of
+	// the back button"). The ✕ already steps the sheet all the way closed from
+	// ANY height, full screen included (`close()`, below), so a second button
+	// that did almost the same thing was one control too many. The phone's own
+	// hardware back button still steps a full sheet down to "open" first, the
+	// one thing the removed button offered beyond what ✕ already did.
+	//
+	// The row used to be three buttons spread by `justify-content:
+	// space-between` ("Back", the title, ✕), which spaced them unevenly and
+	// read as misaligned once "Back" was hidden outside full height — only
+	// two of the three gaps had anything to push against. Now it is just the
+	// title on the left and ✕ on the right: `drawer-rail-sheet-heading` is
+	// `flex: 1 1 auto` (rail.css), so it fills all the space ✕ (and "More",
+	// added by a subclass below) doesn't need, keeping the title flush left
+	// and ✕ flush right with no `space-between` guesswork.
 	head(){
-		return div.c("drawer-rail-sheet-head flex v-center split", () => {
-			// ‹ Back — shown only at full height (rail.css), where the sheet reads as
-			// a page of its own. It steps down to the open sheet, exactly as the
-			// phone's own back button does.
-			button.c("drawer-rail-sheet-back", "‹ Back").attr("type", "button")
-				.attr("title", "Back to the page").click(() => this.rail?.to("open"));
+		return div.c("drawer-rail-sheet-head flex v-center", () => {
 			div.c("drawer-rail-sheet-heading flex v-center wrap", () => {
 				span.c("drawer-rail-sheet-title", "Ask, by voice");
 				this.$path = span.c("drawer-rail-sheet-path muted");
@@ -408,7 +423,7 @@ export class DrawerRailSheetV1 extends View {
 		this.style("--sheet-h", h);
 	}
 
-	/** "open" (its own height) or "full" (the whole screen, ‹ Back showing). */
+	/** "open" (its own height) or "full" (the whole screen). */
 	state(mode){
 		this.el.classList.toggle("drawer-rail-sheet-full", mode === "full");
 		this.el.classList.remove("drawer-rail-sheet-collapsed");   // "open"/"full" both leave the one-line state
@@ -418,9 +433,11 @@ export class DrawerRailSheetV1 extends View {
 
 	showing(){ return this.el.classList.contains("on"); }
 
-	/** ✕ — closes the sheet the way the phone's back does, through history. */
+	/** ✕ — closes the sheet the way the phone's back does, through history. Keeps the
+	 *  mic running either way (mic-keeps-running, 2026-10-01) — see `DrawerRailSheetChat.
+	 *  hide()`'s own doc for why closing is no longer "stop the mic". */
 	close(){
-		return this.rail ? this.rail.to("closed") : Promise.resolve(this.hide());
+		return this.rail ? this.rail.to("closed") : Promise.resolve(this.hide({ keep_mic: true }));
 	}
 
 	// Shared by the live drag (`handle()` above) AND a height read back from
@@ -776,8 +793,11 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		return this;
 	}
 
-	hide(){
-		this.stop_mic();
+	/** `keep_mic: true` (the ✕, the drag down, the phone's back — a real close, not the
+	 *  breakpoint-widen case) leaves the mic running: `DrawerRailSheetChat.hide()`'s own
+	 *  doc has the full reasoning, which applies here the same way. */
+	hide({ keep_mic = false } = {}){
+		if (!keep_mic) this.stop_mic();
 		this.rc("on");
 		return this;
 	}
@@ -1104,8 +1124,29 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 		return this;
 	}
 
-	hide(){
-		this.stop_mic();
+	/** Hide the sheet's BOX — the widget and its mic stay exactly as they were
+	 *  (mic-keeps-running, 2026-10-01 — the owner: "I don't necessarily like that
+	 *  closing it stops recording"). Before this, EVERY hide (✕, drag down, the phone's
+	 *  back, even just the window widening past 52em) called `stop_mic()`, because the
+	 *  old mic-only sheet (`DrawerRailSheetV1`) used to throw its whole mic+thread away
+	 *  on close and a live `Dictate` taken off the page stops itself anyway — so stopping
+	 *  it on the way out looked like nothing lost. It no longer is: this class's own
+	 *  widget (`this.panel`, built once by `ensure_mount()`) stays mounted in the DOM the
+	 *  whole time the sheet is hidden — `rc("on")` is a CSS class, not a removal — so the
+	 *  mic the owner just started keeps listening and keeps posting into the SAME global
+	 *  conversation (`chat.js`'s `GLOBAL` session) whether the sheet is open or not; the
+	 *  owner can keep talking with the sheet closed and see it land on reopening it, or on
+	 *  the desktop drawer's own AI tab, which shares that same session.
+	 *
+	 *  `keep_mic: false` (the default, unchanged) is still used for the ONE case this was
+	 *  never about: the window widening past 52em makes the sheet itself unreachable
+	 *  (`DrawerRail.watch_breakpoint()`), so its mic is still released there, same as the
+	 *  mic-hijack rule already does when the whole PAGE goes hidden
+	 *  (`ux/Dictate/Dictate.js`'s own `LIVE`/`visibilitychange` — untouched by this; that
+	 *  rule still stops every live `Dictate` the instant the tab itself is hidden or
+	 *  navigated away from, this sheet's mic included). */
+	hide({ keep_mic = false } = {}){
+		if (!keep_mic) this.stop_mic();
 		this.rc("on");
 		return this;
 	}

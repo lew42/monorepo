@@ -33,6 +33,21 @@ While you drag, the sheet has a real height (`.drawer-rail-sheet-sized`), not on
 
 ## Watch out
 
+- **Closing the sheet keeps the mic running** (mic-keeps-running, 2026-10-01 — the owner: "I don't
+  necessarily like that closing it stops recording"). Before this, `hide()` called `stop_mic()` on
+  every hide, no matter why — the ✕, a drag down, the phone's back, OR the window just widening past
+  52em. That looked safe because the OLD mic-only sheet threw its whole mic+thread away on close, and
+  `ux/Dictate`'s own mic-hijack rule (`Dictate.js`'s `LIVE`/`visibilitychange`) already stops a
+  `Dictate` taken off the page — but this sheet's widget (`this.panel`, `DrawerRailSheetChat.
+  ensure_mount()`) stays mounted in the DOM the whole time the sheet is hidden, `rc("on")` is only a
+  CSS class, so nothing was ever actually unmounting it; `stop_mic()` was the only thing stopping the
+  mic, called on purpose, every time. Now `hide({ keep_mic })` only stops it for the ONE case that is
+  still a real "unreachable" problem — the window widening past 52em (`DrawerRail.apply()`/
+  `watch_breakpoint()`) — a REAL close (`apply()`'s `mode === "closed"`) leaves it running: the owner
+  can keep talking with the sheet shut and see it land on reopening it, or on the desktop drawer's own
+  AI tab, which shares the same global session (`ux/Dictate/chat.js`). The page-hidden/pagehide
+  mic-hijack rule itself is untouched — it still stops every live `Dictate` the instant the whole TAB
+  is hidden or left, this sheet's mic included.
 - **Nesting a sheet inside this sheet doesn't work — but giving a bar inside it its own independent height does.** `DrawerRailSheetV1` is `position: fixed`, which always measures from the real screen's edge, never from its own DOM parent — a second instance put inside the first would float on top of it, not live inside it. The actual mechanism (a plain box, `ext/grip`'s y-axis handle, one CSS height variable) nests fine, because `grip()` only ever reads its own immediate parent's edge — a live, draggable proof of both halves: [nested-sheet-example](/framework/ai/2026-10-01/nested-sheet-example/).
 - Show or hide the sheet with `rail.to(mode)`, never by toggling `.on` yourself. Otherwise the url, the history and the screen stop agreeing.
 - The sheet's own box also has the class `.drawer-rail-sheet-panel` (View stamps the class name `DrawerRailSheetPanel`). A bare rule for that class hits the sheet too: a `display: flex` there once kept the sheet on screen after ✕ (fixed with a descendant selector in `rail.css`).
