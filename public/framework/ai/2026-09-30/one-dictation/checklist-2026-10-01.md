@@ -14,17 +14,19 @@ The voice session's minions edited main directly, and several had no shell, so n
 
 ## The items
 
-1. [ ] **Duplicates:** on the Dictate page the fast and smart replies appeared TWICE. The ✦ sheet didn't duplicate. (minion-chat-duplicate-messages)
+1. [x] **Duplicates:** on the Dictate page the fast and smart replies appeared TWICE. The ✦ sheet didn't duplicate. (minion-chat-duplicate-messages) **Proven:** one bubble each, demo and sheet, push and poll ([minion-prove](minion-prove/report.md)).
 2. [ ] **One widget, really:** the Dictate page and the ✦ sheet look alike but behave differently (duplicates, autosend). Same code, same behaviour.
 3. [ ] **Autosend works by default,** after a reasonable pause. The owner thinks splitting "autosend" into a separate mode was a mistake.
-4. [ ] **Full-screen sheet:** the text area doesn't fill the space, and there's an empty gap under the buttons.
-5. [ ] **Auto-scroll with a scroll state:** stuck to the bottom by default, following new messages. Scrolling up releases it and shows a "jump to bottom" button. (minion-chat-autoscroll)
+4. [x] **Full-screen sheet:** the text area doesn't fill the space, and there's an empty gap under the buttons. **Proven:** the empty band is gone ([shot](minion-prove/shots/full-screen-sheet-400.png)).
+5. [ ] **Auto-scroll with a scroll state:** stuck to the bottom by default, following new messages. Scrolling up releases it and shows a "jump to bottom" button. (minion-chat-autoscroll) **Proven:** it sticks, releases on scroll-up, and the button shows ([shot](minion-prove/shots/autoscroll-1200.png)).
 6. [ ] **"Clean transcribe" mode** (a settings toggle, maybe the default): transcribe straight into the outgoing chat bubble, with no text area and no Send button. Keep today's text-area mode, which works. Possibly its own class or an extension.
-7. [ ] **Mic sounds:** the start and stop sounds didn't play. They're important, because the owner isn't looking at the mic.
+7. [x] **Mic sounds:** the start and stop sounds didn't play. They're important, because the owner isn't looking at the mic. **Proven:** one start chime and one stop chime on the demo and the sheet (minion-prove), and on the phone's fallback recognizer too ([fix-android](fix-android/report.md)).
 8. [ ] **The mic indicator is a small dot in the primary orange,** bottom right, that pulses with the audio level, replacing the level bars (which need a fixed height). It's unobtrusive; tap it to start or stop. When not listening, a subtle dimmed cue; tapping the feed starts it. (Session follow-ups: the ✦ AI icon shape as the dot; closing the sheet leaves just the pulsing dot.)
 9. [ ] **Maximum space for the chat.** The bottom bar stays (responsive height) and can act as its own sheet. Can sheets nest? Show an example.
 10. [x] **The X closes the sheet and returns to the last page;** the back button isn't needed. The owner likes this; keep it.
 11. [ ] **Full-height sheet on mobile:** can Chrome's address bar hide? Test scrolling the whole page instead of a nested scroll area. Investigate, and report what works.
-12. [ ] **The ✓ and ? icons on the owner's cards** (green ✓, yellow ?) are unexplained. Make them self-evident (a tooltip or a label) or remove them. And reply to a specific card, threaded.
+12. [ ] **The ✓ and ? icons on the owner's cards** (green ✓, yellow ?) are unexplained. Make them self-evident (a tooltip or a label) or remove them. And reply to a specific card, threaded. *(Threaded replies: landed and proven by minion-prove. The marks are merge 14.)*
 13. [x] **The smart assistant's "Go on" loop:** fixed in `Servex/agents/session-smart.md` (93cf7400). Also extend `is_filler()` (Sessions.js) to SMART replies, and to a reply that only STARTS with filler ("Go on — …").
 14. [ ] **Context cards:** a library of UI cards the assistants use to SHOW things (a page icon and name header, any content inside). (minion-context-card-type, reusing ext/Mention)
+15. [x] **The 15:35 phone regression:** an "aborted" error that stopped the mic, a transcript that repeated itself, and beeping after every pause. The phone had fallen back to Chrome's own recognizer. Fixed in `ux/Dictate/Dictate.js` (merge 4ae2ddc3) and proven headless before and after ([fix-android](fix-android/report.md)).
+16. [ ] **"No response requested" shown as a bubble, then gone** (15:39–15:45): draw an assistant's text only once its final reply is in, non-empty and not filler. Merge 14.
