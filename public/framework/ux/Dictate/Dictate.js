@@ -688,10 +688,10 @@ export default class Dictate extends View {
 		/* ⚠ "aborted" AND "no-speech" ARE NOT A STOPPED MIC (2026-10-01, the owner's "abort error"
 		 * on the phone). Android ends its recognizer after every pause and often reports "aborted"
 		 * as it does; Chrome reports "no-speech" after a quiet spell. Both are followed by `onend`,
-		 * which restarts it below. Treating them as errors stopped the mic mid-dictation and pushed
+		 * which restarts it below (or, after a press, sets it idle). Treating them as errors stopped the mic mid-dictation and pushed
 		 * an error line into the layout. Only a press (`this.stopping`) ends it. */
 		rec.onerror = e => {
-			if ((e.error === "aborted" || e.error === "no-speech") && !this.stopping) return console.warn("ux/Dictate: SpeechRecognition", e.error, "(restarting)");
+			if (e.error === "aborted" || e.error === "no-speech") return console.warn("ux/Dictate: SpeechRecognition", e.error, this.stopping ? "(stopping)" : "(restarting)");
 			console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error);
 		};
 		// Chrome stops on its own after a few seconds of silence even with
