@@ -3,7 +3,7 @@ import Dictate from "/framework/ux/Dictate/Dictate.js";
 import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
 import Widget from "/framework/ux/Dictate/Widget.js";
-import chat, { ago } from "/framework/ux/Dictate/chat.js";
+import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
 import DrawerInbox from "./inbox.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
@@ -1123,13 +1123,22 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 		this.mount?.nav(drawer.page(), this.active_card()?.id ?? null);
 	}
 
-	// "New session" — resets the ONE global conversation (`chat.js`'s own `reset()`);
-	// every other open mount (the desktop drawer's AI tab, if it happens to be open in
-	// another tab of the same browser… it cannot be, `sessionStorage` is per-tab, but a
-	// second sheet open on the SAME tab would) clears together, because after this
-	// there is only the one conversation again, empty until the next sentence.
-	new_session(){
-		chat.reset();
+	// THE SHARED BUTTON (item 3, one-dictation — "a New session button lives in
+	// chat.js, so every surface gets the same one"). `chat_new_session_button()`
+	// calls `this.mount.reset()` on click, which is exactly what this class's old
+	// `new_session()` override did by hand (`chat.reset()` — a `keep: true` mount's
+	// own `reset()` IS `chat.reset()`); that override is gone now, replaced by this
+	// one button method (`DrawerRailSheet.new_session()`, the CARD-page route, is
+	// untouched — a plain page's sheet never calls it). The sheet's own look
+	// (`rail.css`'s `.drawer-rail-sheet-link`) is kept by adding those classes onto
+	// the shared button, not by styling a second one.
+	new_session_button(){
+		// `() => this.mount`, not `this.mount` — this button is built in `render()`,
+		// before `show()`'s own `ensure_mount()` has built the mount at all; the thunk
+		// reads it fresh at click time instead of capturing `undefined` forever.
+		return chat_new_session_button(() => this.mount)
+			.ac("drawer-rail-sheet-link drawer-rail-sheet-new")
+			.attr("title", "Clear this sheet and start a fresh conversation");
 	}
 }
 

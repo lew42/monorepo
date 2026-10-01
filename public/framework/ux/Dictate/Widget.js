@@ -1,4 +1,4 @@
-import { View, div, span, button, select, option, label, input } from "../../core/View/View.js";
+import { View, div, span, button, select, option, label, textarea } from "../../core/View/View.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
@@ -328,42 +328,62 @@ Widget.Thread = class WidgetThread extends View {
 	}
 };
 
-/** **The composer** — the sheet's own bottom row: a typed box ("say something"), the mic
- *  button, Send. `mode: "open"` — the live open mic: nothing is ever written into the typed
- *  box (that box is typing's own, never the mic's), every finished sentence reaches
- *  `on_text` instead, which becomes a bubble. Typing and Send work the same way, for a
- *  reader who would rather not talk. */
+/** **The composer** — the rough-transcription buffer on top, FULL width, growing taller
+ *  as the owner types or talks (no empty void underneath a short line, never a fixed
+ *  height); the mic button and Send sit in their own row BELOW it (item 5, one-dictation
+ *  — the owner: "the text area was kind of partial width and would grow really tall and
+ *  then create this big void of empty space… if the text area is gonna grow, it needs to
+ *  be like full width… the send button could be below it"). `mode: "open"` — the live
+ *  open mic: nothing is ever written into the typed box (that box is typing's own, never
+ *  the mic's), every finished sentence reaches `on_text` instead, which becomes a bubble.
+ *  Typing and Send work the same way, for a reader who would rather not talk. */
 Widget.Composer = class WidgetComposer extends View {
 	render(){
-		this.ac("ux-dictate-widget-composer flex gap v-center");
+		this.ac("ux-dictate-widget-composer flex v gap");
 		const w = this.widget;
 
-		this.$input = input.c("ux-dictate-widget-input").attr("type", "text")
+		this.$input = textarea.c("ux-dictate-widget-input")
 			.attr("placeholder", w.placeholder || "say something")
-			.on("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); this.send(); } });
+			.attr("rows", "1")
+			.on("input", () => this.autosize())
+			// Enter sends (matches the old single-line box); Shift+Enter makes a new
+			// line in the buffer, same as any other multi-line text box on the web.
+			.on("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); this.send(); } });
 
-		w.dictate = new Dictate({
-			mode: "open",
-			revise: w.revision || false,
-			on_text: text => w.submit(text, "voice"),
-			on_revised: text => w.submit(text, "voice"),
-			on_meter: w.level ? level => this.set_level(level) : undefined,
+		// THE CONTROLS ROW — mic, Send, and the optional extras (meter, mic picker,
+		// Sample), all beneath the typed buffer now instead of beside it.
+		div.c("ux-dictate-widget-controls flex gap v-center wrap", () => {
+			w.dictate = new Dictate({
+				mode: "open",
+				revise: w.revision || false,
+				on_text: text => w.submit(text, "voice"),
+				on_revised: text => w.submit(text, "voice"),
+				on_meter: w.level ? level => this.set_level(level) : undefined,
+			});
+
+			if (w.level) this.meter();
+			if (w.source) this.source_picker();
+
+			this.$send = button.c("ux-dictate-widget-send", "Send").attr("type", "button")
+				.click(() => this.send());
+
+			// Same debug flag as the "Debug ▾" bar — no mic, no whisper, a scripted growing
+			// guess then a settle, through `Dictate`'s OWN `partial_text`/`draw_caption()`/
+			// `commit()` (the exact methods a real segment calls), so "does this widget
+			// actually transcribe" can be shown on a machine with no mic and no whisper-server
+			// — the playground's own `run_sample()` does the same thing, one level down.
+			if (w.debug) this.$sample = button.c("ux-dictate-widget-sample", "▶ Sample").attr("type", "button")
+				.attr("title", "a scripted line, no mic needed — proves the bubble + live-guess pipeline")
+				.click(() => this.sample());
 		});
+	}
 
-		if (w.level) this.meter();
-		if (w.source) this.source_picker();
-
-		this.$send = button.c("ux-dictate-widget-send", "Send").attr("type", "button")
-			.click(() => this.send());
-
-		// Same debug flag as the "Debug ▾" bar — no mic, no whisper, a scripted growing
-		// guess then a settle, through `Dictate`'s OWN `partial_text`/`draw_caption()`/
-		// `commit()` (the exact methods a real segment calls), so "does this widget
-		// actually transcribe" can be shown on a machine with no mic and no whisper-server
-		// — the playground's own `run_sample()` does the same thing, one level down.
-		if (w.debug) this.$sample = button.c("ux-dictate-widget-sample", "▶ Sample").attr("type", "button")
-			.attr("title", "a scripted line, no mic needed — proves the bubble + live-guess pipeline")
-			.click(() => this.sample());
+	// The buffer grows with what's typed into it, no scrollbar and no fixed number of
+	// rows — set to the browser's own natural "auto" first so a DELETED line can shrink
+	// the box back down too, not just grow it.
+	autosize(){
+		this.$input.el.style.height = "auto";
+		this.$input.el.style.height = this.$input.el.scrollHeight + "px";
 	}
 
 	send(){
@@ -371,6 +391,7 @@ Widget.Composer = class WidgetComposer extends View {
 		if (!text) return;
 		this.widget.submit(text, "typed");
 		this.$input.el.value = "";
+		this.autosize();
 	}
 
 	// ⚠ Grows the guess through `partial_text`/`draw_caption()` (real `Dictate` fields and

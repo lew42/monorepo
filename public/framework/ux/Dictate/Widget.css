@@ -73,58 +73,58 @@
 	 * (`ext/drawer/tabs/ai.js`, moved here round 3). */
 	.ux-dictate-widget-models { align-self: flex-end; gap: 0.4em; font-size: 0.9em; }
 
-	/* THE COMPOSER ROW — the typed box, the mic button (`.ux-dictate`), Send stay on one
-	 * row at every width; the live-guess caption and the optional extras (meter, picker,
-	 * Sample) drop to their own line underneath, never between the box and Send.
-	 * ⚠ `Dictate.js`'s own root (`.ux-dictate`, "flex v-center gap") wraps its button AND
-	 * its caption as ONE composer child, not two. That one box's OWN width is computed
-	 * from its children's unwrapped (max-content) size, caption included — so giving the
-	 * caption `order`/`flex-basis: 100%` only reordered it INSIDE that inner box; the box
-	 * itself still claimed the full button+caption width in the composer row, and Send
-	 * still wrapped to a second line at 1920 (caught only by reading each composer
-	 * child's own `getBoundingClientRect()` — the first shot looked right by eye, because
-	 * a hidden caption with no live guess yet is invisible either way, before or after).
-	 * `display: contents` would remove the box and let the trio's rules apply to the
-	 * caption directly, but the element ALSO carries framework.css's own `.flex` utility
-	 * class (`display: flex`), and a utility in `@layer util` always wins over a
-	 * component's `@layer theme` rule regardless of selector specificity (`css` skill,
-	 * rule 3) — so `display: contents` here is silently overridden back to `flex`.
-	 * The fix that actually works: take the caption OUT of flex flow entirely with
-	 * `position: absolute`, pinned under `.ux-dictate` by its own row (composer gets
-	 * `position: relative` as the containing block). An absolutely positioned box
-	 * contributes nothing to `.ux-dictate`'s width, so `.ux-dictate` shrinks to just its
-	 * button and the trio's combined width (about 230px) stays well under even a
-	 * 320px-wide card. */
-	/* `gap: 0.4em`, not the `.gap` utility's `var(--gap)` — `--gap` is a PAGE-scale clamp
-	 * (`css` skill: "a control or row keeps its own em"), and it measured 24.7px between
-	 * just three small controls at a wide viewport — on its own enough to push Send onto
-	 * a second line. `!important`: the composer's own markup (`Widget.js`) carries the
-	 * `.gap` utility class directly, which lives in `@layer util` — a layer that beats
-	 * ANY `@layer theme` rule regardless of specificity (`css` skill, rule 3), so a plain
-	 * `gap: 0.4em` here is silently ignored, proven with a DOM-rect measurement after it
-	 * had no effect. The skill's own sanctioned fix — drop the utility class from the
-	 * markup — is a `Widget.js` edit, outside this brief's CSS-only fence; `!important` is
-	 * the only lever left inside this one file. */
-	.ux-dictate-widget-composer {
-		position: relative; flex-wrap: wrap; gap: 0.4em !important; padding-block-end: 1.3em;
+	/* THE COMPOSER, TOP TO BOTTOM (item 4 + 5, one-dictation — the owner: the live
+	 * guess "renders like over the top of something else… the layout is broken"; the
+	 * typed box should be "full width… the send button could be below it"). The
+	 * composer is now a COLUMN: the typed buffer first, full width; the controls row
+	 * (mic, Send, the optional extras) underneath it. Nothing in this column is
+	 * `position: absolute` any more — every child, the live-guess caption included,
+	 * sits in normal flow, so the card's own height GROWS to fit it instead of the
+	 * guess painting on top of whatever comes next. */
+	.ux-dictate-widget-composer { padding-block-end: 0.3em; }
+
+	/* THE TYPED BUFFER — full width (the card's own `.pad` already gives it the "a
+	 * little side padding on mobile" the brief asks for; no separate rule needed here),
+	 * auto-height (`Widget.js`'s own `autosize()` sets `style.height` to the content's
+	 * `scrollHeight` on every keystroke), and `resize: none` so the browser's own
+	 * corner-drag handle — which would fight that auto-height — never shows. `rows="1"`
+	 * (the markup) plus this `min-block-size` is the empty box's own one-line height;
+	 * it only grows taller than that once there is more than one line typed. */
+	.ux-dictate-widget-input {
+		width: 100%; resize: none; overflow: hidden; box-sizing: border-box;
+		min-block-size: 2.4em; font: inherit; line-height: 1.35;
 	}
-	/* `flex-basis: 0`, not `10em` — flex-wrap decides which line an item lands on using
-	 * its BASIS, not its post-shrink size, so a 10em basis (160px) made the browser treat
-	 * the box as "too wide" to share a line with the mic and Send even though `min-width:
-	 * 8em` (128px) was all it would ever actually render at — Send kept landing on its own
-	 * line at the drawer's ~250px width. `min-width` still floors the basis at 8em. */
-	.ux-dictate-widget-input { flex: 1 1 0; min-width: 8em; }
+
+	/* THE CONTROLS ROW — mic, Send, and the optional extras (meter, picker, Sample),
+	 * below the typed buffer. `gap: 0.4em`, not the `.gap` utility's `var(--gap)` —
+	 * `--gap` is a PAGE-scale clamp (`css` skill: "a control or row keeps its own em"),
+	 * and it measured 24.7px between just three small controls at a wide viewport — on
+	 * its own enough to push Send onto a second line. `!important`: the row's own
+	 * markup (`Widget.js`) carries the `.gap` utility class directly, which lives in
+	 * `@layer util` — a layer that beats ANY `@layer theme` rule regardless of
+	 * selector specificity (`css` skill, rule 3), so a plain `gap: 0.4em` here would be
+	 * silently ignored. */
+	.ux-dictate-widget-controls { gap: 0.4em !important; }
 	.ux-dictate-widget-send { flex: 0 0 auto; }
 	.ux-dictate-widget-sample { flex: 0 0 auto; order: 10; }
 
 	/* `Dictate`'s own markup is [button][engine/status/countdown/caption] — a settled
 	 * sentence draws one `.ux-dictate-line` per line there, which is ALREADY this widget's
 	 * own bubble above; only the `.muted` one (the still-moving guess) stays visible, the
-	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice. */
+	 * exact trick `ext/drawer/rail.css` uses for the ✦ sheet so nothing paints twice.
+	 *
+	 * THE FIX (item 4, one-dictation): `.ux-dictate` itself (the mic button plus its
+	 * caption, ONE child of the controls row) gets `flex-wrap: wrap` so the live guess
+	 * drops to its OWN line under the button instead of forcing the row wider, and
+	 * `min-width: 0` on both it and the caption so the browser is allowed to WRAP that
+	 * text to the available width instead of growing the box to fit it unwrapped — a
+	 * flex item's default `min-width` is its own unwrapped content size, which is
+	 * exactly what made the earlier `position: absolute` escape hatch feel necessary.
+	 * Normal flow now: the guess takes its own space below the button, and every box
+	 * around it (the controls row, the composer, the card) grows to fit, no overlap. */
+	.ux-dictate-widget-controls .ux-dictate { flex-wrap: wrap; min-width: 0; }
+	.ux-dictate-widget-controls .ux-dictate-info { flex: 1 1 100%; min-width: 0; }
 	.ux-dictate-widget-composer .ux-dictate-line:not(.muted) { display: none; }
-	.ux-dictate-widget-composer .ux-dictate-info {
-		position: absolute; inset-inline: 0; top: 100%; margin-top: 0.2em; min-width: 0;
-	}
 
 	/* A second, bigger level meter (`level: true`) — small and right beside the button, never
 	 * a full-width pill. Driven by the SAME smoothed number `Dictate`'s own tiny bar reads.
