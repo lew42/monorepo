@@ -68,7 +68,7 @@ export default new Page({
 	description: "The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend.",
 	icon: "layers",
 
-	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename",
+	children: "Auth Wizard Tree Course Filter Menu Pagination Tags Dictate Revise Popover Content Understand Rename Inbox",
 
 	// The two long-form docs — `doc/system.md`, `doc/decisions.md` — are NOT declared
 	// children: a declared child is a CARD in the wall below, and a doc page is not a

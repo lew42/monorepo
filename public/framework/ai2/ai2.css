@@ -1,251 +1,27 @@
 @layer theme {
 
-	/* The rail head's gap as a real length — see `.ai2-top` below for why. */
-	@property --ai2-head-gap {
-		syntax: "<length>";
-		inherits: true;
-		initial-value: 0px;
-	}
-
-	/* A rail row's one step between its parts, frozen on the row — see `.ai2-rows .ai2-row`. */
-	@property --ai2-step {
-		syntax: "<length>";
-		inherits: true;
-		initial-value: 0px;
-	}
-
-	/* AI 2 — a rail of previews on the left, one card's own page on the right.
-	   Why any of it is the way it is: `doc/decisions.md`.
-
-	   ── the shell ──
-	   THE PAGE ITSELF DOES NOT SCROLL. The rail and the card page each scroll
-	   inside themselves, so a card arriving cannot move what you are reading.
-	   ⚠ `.page.full`, not a bare `.page`: `.page.fill` (core/Page/Page.css) says
-	     `overflow: auto` at the same weight, and load order would decide. */
-	/* ⚠ `.ai2-shell` (deliverable 7, ai2-nested) wraps BOTH views — the overview
-	   and `.ai2` itself — so it is no longer a DIRECT child of `.page.full`;
-	   these two rules drop the `>` to keep matching through it. `display:
-	   contents` is what keeps the wrapper invisible to the grid it sits
-	   inside, so nothing about the page's own height math changes. */
-	.ai2-shell {
-		display: contents;
-	}
-
-	.page.full:has(.ai2) {
-		display: block;
-		height: 100%;
-		overflow: hidden;
-		padding: 0;
-	}
-
-	/* The page's own "AI 2" heading says what the rail already highlights. */
-	.page:has(.ai2) > .page-title {
-		display: none;
-	}
+	/* AI 2 — the rail is gone from this file (2026-09-30): it is `InboxRail`, styled by the
+	   ux block (ux/Inbox/Inbox.css), and the AI-only parts of it are ai2/rail.css. What is
+	   left here is a card's own page, the Overview, Needs you and the Log, until each moves
+	   into a ui/ux block too (inbox-ext plan, step 7). Why anything is the way it is:
+	   `doc/decisions.md`. */
 
 	/* NO STRAY "FOLDER" LABEL ANYWHERE IN AI 2 (brief D, brief E — the owner, 2026-09-29: "the
-	   folder icon at the top above the AI2 page just looks way out of place and takes up a
-	   bunch of space"). Every page with a real address gets one free, straight from core
-	   (`Page.class.js`'s own "any path slash fs" link) — right, for a plain content page; wrong
-	   here, where it sits above the AI 2 title, above the Overview's grid, and above every card
-	   (including the Live card), doing nothing anyone asked for. Every one of this module's own
-	   pages carries "ai2" somewhere in its class list (the root shell, the overview, a card, a
-	   card's own tab pages), so one attribute selector covers all of them at once instead of a
-	   separate rule per page shape; every other page on the site keeps its link.
-	   ⚠ `!important`: `Page.class.js` writes this link's `display: inline-flex` as an INLINE
-	   style, which beats a plain rule at any specificity or layer order. */
+	   folder icon at the top above the AI2 page just looks way out of place"). Core gives
+	   every page an "any path slash fs" link; every one of this module's pages carries "ai2"
+	   in its class list, so one attribute selector covers them all.
+	   ⚠ `!important`: core writes this link's display as an INLINE style. */
 	.page[class*="ai2"] > .page-fs-link {
 		display: none !important;
 	}
 
-	/* `--ai2-rail` is the grip's px override; `em` is the default because a rail
-	   is sized by its own text (331px at 1280).
-	   ⚠ `grid-template-rows: minmax(0, 1fr)` — WITHOUT IT NOTHING SCROLLS. A
-	     grid's implicit row is `auto`, so it grows with its content however tall
-	     the grid is told to be: `.ai2` measured a correct 900px while the rail
-	     inside it stood 23,429px and ran off the bottom — no scrollbar, nothing
-	     in the console. */
-	.ai2 {
-		--ai2-rail: 22em;
-		display: grid;
-		grid-template-columns: var(--ai2-rail) minmax(0, 1fr);
-		grid-template-rows: minmax(0, 1fr);
-		height: 100%;
-		min-height: 0;
-		margin-block-start: 0;
-	}
-
-	/* TWO VIEWS, TWO URLS (2026-09-23) — the inbox (rail + card) is AI 2's
-	   own address; the four-column overview is `overview/`. Which one shows is
-	   decided by the Router's own `.active-page` mark, never a class a button
-	   flips — see the overview rules further down. */
-
-	/* THE THIRD COLUMN (deliverable 2, ai2-nested) — two columns split the
-	   space "generally... in two: the preview column resizable, the detail
-	   page taking the rest, with a measure" (the owner, 2026-09-22); a
-	   sub-card opening is what makes it three, and the card and the sub-card
-	   then share what the rail leaves, half each (2026-09-24; until then the
-	   card clamped to its measure and the sub-card took the rest).
-	   ⚠ `:has(.ai2-sub > .page.active-page)` reads the framework's own mark —
-	     no state of this page's own has to agree with the Router about
-	     whether a sub-card is open. */
-	/* ⚠ Both columns FILL now, half each (the owner, 2026-09-24: detail pages
-	     "should fill the rest of the page area"). The card column used to clamp
-	     to its measure and hand the sub-card everything else; both hold their
-	     own prose at the measure on the text itself (`.ai2-full-card > *`), so
-	     neither needs the column to do it. */
-	/* ⚠ `2fr` (layout-unify, 2026-09-24): the sub-card's column also carries the chat,
-	     so card | sub-card | chat come out as thirds (the block at the end of this file). */
-	.ai2:has(.ai2-sub > .page.active-page) {
-		grid-template-columns: var(--ai2-rail) minmax(0, 1fr) var(--ai2-subw, minmax(0, 2fr));
-	}
-
-	.ai2-sub {
-		display: none;
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-		background: var(--surface);
-		border-inline-start: 1px solid var(--line);
-	}
-
-	.ai2:has(.ai2-sub > .page.active-page) .ai2-sub {
-		display: block;
-	}
-
-	/* ONE SCROLLBAR, NOT TWO (deliverable 4 — "we have two scrollbars, the
-	   framework page forces overflow-y scroll"). `.pages` is the SITE-WIDE
-	   region every top-level page mounts into (`core/App/App.js`'s own
-	   `$pages`), and its own rule two files up is `overflow-y: scroll` — a
-	   real, permanent gutter, on purpose, for every OTHER page on the site.
-	   AI 2 does not want it: the columns already scroll inside themselves
-	   (`.ai2-full` below), so the outer region showing a second, empty
-	   scrollbar track was never anything but the "two scrollbars" the owner
-	   saw. Scoped to this page only — nothing else on the site loses its own
-	   gutter.
-	   ⚠ ONLY WHILE AI 2 IS SHOWING. A page you have left stays in the DOM, hidden,
-	     so a bare `:has(> .page--ai2)` kept matching, and every page opened after
-	     AI 2 in the same tab could not scroll (2026-09-24, the owner on an md/ page). */
-	.pages:has(> .page--ai2.active-page, > .page--ai2.active-ancestor) {
-		overflow-y: hidden;
-	}
-
-	/* ── the rail ──
-	   ⚠ `display: flex` declared here, not worn as the `.flex v` utility: util
-	     beats theme at any specificity, so a `.flex` on this box could never be
-	     hidden by the `< 40em` rule at the bottom of this file. */
-	.ai2-rail {
-		position: relative;   /* the grip is absolutely placed inside it */
-		display: flex;
-		flex-direction: column;
-		min-width: 0;
-		min-height: 0;
-		background: var(--tint);
-		border-inline-end: 1px solid var(--line);
-	}
-
-	/* ── the composer: ONE LINE, and it never grows ──
-	   The owner, 2026-09-22: "the area on top with the text input is massive,
-	   way too much padding… the microphone at the end of the text area like
-	   normal… it's taking a third of my screen." It measured 277px.
-
-	   The rail's rows sit under this, so a composer that gains a line pushes
-	   every card down. Three things hold the height: the box is a single-line
-	   `<input>`, everything `ux/Dictate` draws that does not shrink is in a
-	   popover taken OUT OF FLOW below, and the mic sits INSIDE the field rather
-	   than beside it. */
-	.ai2-top {
-		flex: none;
-		padding: 0.5em;
-		font-size: 0.85em;
-		background: var(--surface);
-		border-block-end: 1px solid var(--line);
-	}
-
-	/* THE WORDS UNDER THE COMPOSER — one line when the rail is wide enough, else
-	   a tidy two: the ACTIONS (+ New card, auto-transcribe) on the first,
-	   overview and the count on the second. The filters (views, notes,
-	   archived) sit at the foot of the rail, `.ai2-rail-foot` below. Before (2026-09-24) it
-	   was one unwrapping row that could not fit at any default rail width:
-	   "notes" ran out of the rail into the detail pane and "auto-transcribe"
-	   broke onto two lines at 1280 and 1920.
-	   ⚠ No label ever breaks: every word is `nowrap` + `flex: none`, and the row
-	     wraps between whole words instead (`flex-wrap`, written here because the
-	     `.flex` utility sets only `display`).
-	   ⚠ The second line is FORCED by `::before`, a full-width empty flex item
-	     placed by `order` between the two groups — CSS only, so page.js's markup
-	     (and the `+ New card` handler inside it) keeps its order.
-	   ⚠ The count pushes itself and "notes" to the right with `flex-grow`, NOT
-	     `margin-inline-start: auto` — framework.css's `.flex > * { margin: 0 }`
-	     is `@layer util` and beat that margin at any specificity. */
-	.ai2-top {
-		container: ai2-top / inline-size;
-		--ai2-head-gap: var(--gap-25);
-	}
-
-	/* ⚠ THE GAPS KEEP THE SIZE THEY HAD BEFORE `.ai2-top` BECAME A CONTAINER.
-	   `--gap` is declared on every element (framework.css's `:where(*)`) and
-	   its `cqi` measures the NEAREST container — so the container above
-	   re-based the `gap-25` of the three rows inside it onto the rail's width:
-	   6.18px → 3.4px at 1920, 3.84px → 3.2px at 1280 (caught 2026-09-24).
-	   `.ai2-top`'s OWN styles still measure the container above it, so the gap
-	   is computed there, frozen into a real length by the `@property` below
-	   (an unregistered property would inherit as unresolved text and re-base
-	   all over again), and handed to the three rows as their `--gap-25` — the
-	   `gap-25` word in the markup keeps working, at its old value. */
-	.ai2-top :is(.ai2-chrome, .ai2-auto, .ai2-count) {
-		--gap-25: var(--ai2-head-gap);
-	}
-
-	.ai2-chrome {
-		margin-block-start: 0.4em;
-		flex-wrap: wrap;
-	}
-
-	.ai2-chrome > * {
-		flex: none;
-		white-space: nowrap;
-	}
-
-	.ai2-chrome::before {
-		content: "";
-		flex-basis: 100%;
-		order: 1;
-	}
-
-	.ai2-chrome > :is(.ai2-count, .ai2-word) {
-		order: 2;
-	}
-
-	/* Wide enough for all the words on one line (measured: they need ~28em of
-	   `.ai2-top`'s own text) — the forced break goes and the words take their
-	   markup order again. */
-	@container ai2-top (width >= 30em) {
-		.ai2-chrome::before { display: none; }
-		.ai2-chrome > :is(.ai2-count, .ai2-word) { order: 0; }
-	}
-
-	/* Dragged narrow (the grip's floor is 200px): "+ New card" and the whole
-	   "auto-transcribe" no longer fit side by side, so the label says "auto" —
-	   its `title` still says what it does — and the gaps tighten a little, so
-	   the head stays two lines instead of four. */
-	@container ai2-top (width < 17em) {
-		.ai2-auto-tail { display: none; }
-		/* `--gap-25`, not `gap`: the `gap-25` utility is `@layer util` and beats
-		   a `gap` written here at any specificity. */
-		.ai2-top :is(.ai2-chrome, .ai2-count) { --gap-25: 0.25em; }
-		.ai2-chrome > .ai2-word { padding-inline: 0.3em; }
-	}
-
-	.ai2-newcard,
+	/* A QUIET WORD BUTTON — used by a card's own page, its agent panel and the Live card.
+	   (The rail's own words are `.inbox-word`, the same look, in the ux block.) */
 	.ai2-word {
 		flex: none;
 		padding: 0.1em 0.5em;
 		font-size: 0.95em;
 		line-height: 1.5;
-	}
-
-	.ai2-word {
 		border: 0;
 		background: none;
 		color: inherit;
@@ -259,49 +35,75 @@
 		color: var(--prim-ink);
 	}
 
-	.ai2-chrome > .ai2-count {
-		flex-grow: 1;
-		justify-content: flex-end;
+	/* A card face's own ✕ (faces.js `full()`, the Live card's rows). */
+	.ai2-clear {
+		margin-inline-start: auto;
+		flex: none;
+		border: 0;
+		background: none;
+		opacity: 0.55;
+		cursor: pointer;
 	}
 
-	.ai2-unread-count {
-		font-weight: 700;
+	.ai2-clear:hover {
+		opacity: 1;
 	}
 
-	.ai2-off {
-		font-style: italic;
-	}
-
-	/* THE "N NEW ↑" PILL — "nothing jumps", made visible. `.prim` is
-	   framework.css's own filled button; this rule only says where it sits.
-	   ⚠ IT FLOATS; it is not a row. Sat in the flow above the rows, its own
-	     arrival pushed every row down 36px — the control whose whole job is to
-	     stop a jump, causing one (first row's top, 150.75 → 186.84). */
-	.ai2-new {
-		display: none;
-		position: absolute;
-		z-index: 2;
-		inset-inline: 0.7em;
-		top: 0.5em;
-		width: auto;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
-	}
-
-	.ai2-new.on {
+	/* ── THE LOG TAB'S ROWS (log.js), AI 2's v1 Log ──
+	   The same row shape as the rail's (`.inbox-row`), kept here under the old names for
+	   log.js until AI 2 is retired; the AI page's Log is the rail itself at `?min=0`. */
+	.ai2-row {
 		display: block;
+		padding: var(--pad-card);
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
 	}
 
-	/* THE "N UPDATED ↑" PILL (the owner, 2026-09-30, verbatim: "a small ... pill") — it says some
-	   ROW ALREADY ON SCREEN has new activity and a tap will re-sort (never silently, while
-	   you're looking — `page.js`'s `order_rows()`). Small and quiet on purpose — a plain outline
-	   chip, not `.prim`'s loud filled button (review finding, 2026-09-30: "the loudest thing on
-	   the page"); the owner is not asked to act on it, only told it exists.
-	   ⚠ STICKY AND IN THE FLOW, unlike `.ai2-new` above — the first version floated over the rows
-	   the exact same way and sat on top of the Live row's own head, hiding it (an earlier review
-	   finding). `page.js` mounts it as the FIRST CHILD of `.ai2-rows` (the scrolling box), so
-	   `position: sticky` pins it to that box's own top edge and the row below it is simply pushed
-	   down, never covered. `[hidden]` is a plain attribute here (`$el.hidden = …`), not the `.on`
-	   class `.ai2-new` uses. */
+	.ai2-row:hover {
+		background: var(--fill-a04);
+	}
+
+	.ai2-row:is(.active, .in-path) {
+		background: var(--surface);
+		border-inline-start-color: var(--prim);
+	}
+
+	.ai2-row-head {
+		align-items: flex-start;
+	}
+
+	.ai2-row-title {
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+		line-height: 1.35;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-row-when {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	/* One step between every part of a row, computed ONCE on the row (`--ai2-step`). */
+	@property --ai2-step {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
+	.ai2-log-rows .ai2-row {
+		--ai2-step: var(--gap-35);
+	}
+
+	.ai2-log-rows .ai2-row > * + * {
+		margin-block-start: var(--ai2-step);
+	}
+
+	/* The Log's "N updated ↑" pill — the rail's own (`.inbox-updated`), under its old name. */
 	.ai2-updated {
 		display: none;
 		position: sticky;
@@ -320,312 +122,9 @@
 	.ai2-updated:hover { color: var(--ink); border-color: var(--prim); }
 	.ai2-updated:not([hidden]) { display: inline-flex; }
 
-	/* The box the pill floats over, so its `top` means the top of the ROWS and
-	   not the top of the rail, where the composer is. */
-	.ai2-stream {
-		position: relative;
-		display: flex;
-		flex: 1 1 auto;
-		min-height: 0;
-	}
-
-	/* The one box on this page that is MEANT to scroll.
-	   ⚠ A CONTAINER, so the spacing inside the rail follows the RAIL (ai2-rail-rhythm,
-	     2026-09-28). `--gap` and its rungs are `cqi`, and `cqi` with no container
-	     reads the WINDOW: a 351px rail used a 24px gap at 1920 and 43px at 3440.
-	     Declared here, every row's `--gap-35` is ~5.6px at every window width.
-	     `flex: 1 1 auto` is what sizes it — a container cannot be sized by its own
-	     contents, and it never is here. */
-	.ai2-rows {
-		container: ai2-rows / inline-size;
-		flex: 1 1 auto;
-		min-width: 0;
-		overflow-y: auto;
-	}
-
-	/* ── a preview ──
-	   A ROW IS AN ANCHOR — a real link to the card's own url, which is what makes
-	   Back, a reload and a pasted url work with no code of ours.
-	   THE SITE'S DEFAULT PADDING (the owner, 2026-09-28: "if that's our default
-	   padding, which it should be"). A preview is a framed box, so it takes
-	   `--pad-card` — the same word `.card` wears (16px in this rail; it grows with
-	   the rail if the grip widens it). It used to be `0.55em 0.7em` (8.8 × 11.2px),
-	   written by hand on the theory that a row is a control; the rows then ran
-	   together. Not the `.card` class itself: that adds a border and a radius on
-	   all four sides, and the rail's rows sit flush, one hairline apart.
-	   ONE CADENCE: every part of a row sits `--gap-35` below the one before
-	   (`.ai2-rows .ai2-row > * + *` below) — title, meter, path, "what happened". */
-	.ai2-row {
-		display: block;
-		padding: var(--pad-card);
-		border-block-end: 1px solid var(--line);
-		border-inline-start: 3px solid transparent;
-		color: inherit;
-		text-decoration: none;
-		cursor: pointer;
-	}
-
-	.ai2-row:hover {
-		background: var(--fill-a04);
-	}
-
-	/* `.active` is `Router.mark_links()`'s — the selection is never drawn here. `.in-path`
-	   is the same card with one of its tab pages open (`…/<card>/activity/`). */
-	.ai2-row:is(.active, .in-path) {
-		background: var(--surface);
-		border-inline-start-color: var(--prim);
-	}
-
-	.ai2-row.ai2-flagged {
-		border-inline-start-color: var(--error);
-	}
-
-	/* Archived, never deleted — greyed in place when shown at all (item 12). */
-	.ai2-row.ai2-archived {
-		opacity: 0.45;
-	}
-
-	.ai2-archived-word {
-		display: block;
-		margin: 0.3em 0.7em;
-	}
-
-	/* Beside "+ New card" — a checkbox, not a button, so its own state reads at
-	   a glance without a click (item 10). */
-	.ai2-auto {
-		gap: 0.3em;
-	}
-
-	/* THE "NEEDS REVIEW" FILTER (brief E) — a checkbox beside "+ New card", same shape as
-	   the auto-transcribe one right above it, so the toolbar reads as one row of controls. */
-	.ai2-review {
-		gap: 0.3em;
-	}
-
-	.ai2-clear {
-		margin-inline-start: auto;
-		flex: none;
-		border: 0;
-		background: none;
-		opacity: 0.55;
-		cursor: pointer;
-	}
-
-	.ai2-clear:hover {
-		opacity: 1;
-	}
-
-	/* ⚠ `visibility`, not `display`: the dot keeps its space, so reading a card
-	     cannot shift the title beside it. A REAL `<button>` now (deliverable 2, 2026-09-30:
-	     press it to mark read/unread), so the three resets below undo the browser's own
-	     button chrome — without them a default border and padding grew it past 0.5em. */
-	.ai2-dot {
-		width: 0.5em;
-		height: 0.5em;
-		border-radius: 50%;
-		background: var(--prim);
-		flex: none;
-		visibility: hidden;
-		border: 0;
-		padding: 0;
-		cursor: pointer;
-	}
-
-	.ai2-row.ai2-unread .ai2-dot {
-		visibility: visible;
-	}
-
-	/* ⚠ 2026-09-30 FIX (review finding #7): a bare `<button>` inherits the browser's own form-
-	   control box model (its own font, line-height and box-sizing), not the page's — on an
-	   otherwise-unstyled button that can grow past the explicit 0.5em square into a tall pill.
-	   These three make it a plain box again, the same as the `<span>` it replaced. */
-	.ai2-dot {
-		box-sizing: border-box;
-		font: inherit;
-		line-height: 1;
-		/* ⚠ Measured 8×38 px, a tall oval (the owner, 2026-09-30): the row head is a flex
-		   row that stretches its items, and buttons carry a touch-target minimum height. */
-		align-self: flex-start;
-		min-block-size: 0;
-		block-size: 0.5em;
-	}
-
-	/* ASK 2, "bold/different": an unread row's own title, not just its dot — the dot alone
-	   asks the owner to notice one more tiny thing; the title is what they are already
-	   reading. `700`, one step up from a row title's own `600` (just above). */
-	.ai2-row.ai2-unread .ai2-row-title {
-		font-weight: 700;
-	}
-
-	/* DELIVERABLE 5 — SEARCH, beside the other two filters in the same chrome row; `flex: 1`
-	   so it takes the row's own leftover space instead of sizing to its placeholder text. */
-	.ai2-search {
-		flex: 1 1 8em;
-		min-width: 6em;
-	}
-
-	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "I don't like the truncated
-	   preview… render the whole thing as tall as it needs to be"). The old
-	   "a row's height cannot change" rule is retired; a new row still only
-	   enters when the list is quiet, which is what keeps it from jumping. */
-	.ai2-row-title {
-		flex: 1;
-		min-width: 0;
-		font-weight: 600;
-		line-height: 1.35;   /* a title, not prose: the theme's 1.8 made a wrapped title read as a paragraph */
-		overflow-wrap: anywhere;
-	}
-
-	/* The dot, the icon and the time sit at the TOP, on the title's first line,
-	   not the middle of a tall one (the markup dropped `.v-center` for this; a
-	   util word would beat this rule at any specificity). `first baseline` was
-	   tried first: the icon font's glyph rides above the baseline and stood high. */
-	.ai2-row-head {
-		align-items: flex-start;
-	}
-
-	/* A STALLED ASK'S OWN READ STATE (course correction, 2026-09-30, deliverable 4: "unread
-	   is bold, read is plain") — every other row here is always unread by the owner's own
-	   choice (`inbox.js`'s comment on `Says`), so this is scoped to `.ai2-row-ask`
-	   (`faces.js`'s `row()` own marker for `kind: "stalled"`) alone; nothing else on this
-	   page changes weight. `.ai2-row-title`'s own rule above (600) is the READ state's
-	   floor everywhere else — this only raises or lowers it for THIS one row kind. */
-	.ai2-row.ai2-unread .ai2-row-ask .ai2-row-title {
-		font-weight: 700;
-	}
-
-	.ai2-row:not(.ai2-unread) .ai2-row-ask .ai2-row-title {
-		font-weight: 400;
-	}
-
-	/* Centred on the title's first line box (1.35em tall): (1.35 - 0.5) / 2.
-	   ⚠ `top`, not a margin: framework.css's `.flex > * { margin: 0 }` is
-	     `@layer util` and zeroed the margin at any specificity. */
-	.ai2-row-head > .ai2-dot {
-		position: relative;
-		top: 0.425em;
-	}
-
-	/* THE ARCHIVE × — the same stretch bug the dot had, and the same fix (commit
-	   9ecda14e, michael/dev, 2026-09-30): `.ai2-row-head` is a flex row with no
-	   `v-center`, so it stretches every child — including a bare `<button>`, which
-	   also carries the browser's own touch-target minimum height on top of that —
-	   into a tall grey rectangle instead of a small "×" sitting on the title's
-	   first line. Scoped to the preview row only: the Live card's own ✕
-	   (`.ai2-live-item .ai2-clear`) sits in a grid, not this flex row, and keeps
-	   its own sizing. */
-	.ai2-row-head > .ai2-clear {
-		align-self: flex-start;
-		min-block-size: 0;
-		block-size: 1.35em;   /* matches .ai2-row-title's own line-height */
-		/* A bare `<button>` also carries the browser's own padding and content-box
-		   sizing on top of the stretch — without these three `block-size` alone
-		   still left it tall (the same trap the dot's own box-sizing/font/line-height
-		   reset, just above, exists for). */
-		box-sizing: border-box;
-		padding-block: 0;
-		line-height: 1;
-	}
-
-
-	/* THE CADENCE — one step between every part of a row, whichever parts it has.
-	   (0,2,0), so it beats each part's own older margin (`.ai2-news`,
-	   `.ai2-meter-line`), which still apply wherever those parts appear outside
-	   the rail.
-	   ⚠ The step is computed ONCE, on the row, into `--ai2-step` (a registered
-	     `<length>`, top of this file): `--gap-35` is re-declared on every element
-	     in that element's own `em`, so the 0.85em "what happened" bar got 4.76px
-	     and the title's head 5.6px — the same word, three different steps. */
-	/* `.ai2-log-rows` reuses the exact same rule (the owner, 2026-09-30: "the same layout, the
-	   same CSS" across Inbox and the Log). */
-	.ai2-rows .ai2-row,
-	.ai2-log-rows .ai2-row {
-		--ai2-step: var(--gap-35);
-	}
-
-	.ai2-rows .ai2-row > * + *,
-	.ai2-log-rows .ai2-row > * + * {
-		margin-block-start: var(--ai2-step);
-	}
-
-	.ai2-row-when {
-		flex: none;
-		font-size: 0.8em;
-	}
-
-	.ai2-row-foot {
-		margin-block-start: 0.15em;
-	}
-
-	.ai2-row-line {
-		flex: 1;
-		min-width: 0;
-		font-size: 0.9em;
-		overflow-wrap: anywhere;
-	}
-
-	/* ── the groups, at the top of the rail ──
-	   A group row is a preview like any other, a little heavier: the name, then
-	   the newest member's own words, whole. */
-	.ai2-group-row .ai2-row-title {
-		font-size: 1.05em;
-	}
-
-	.ai2-group-row .ai2-row-when {
-		white-space: nowrap;
-	}
-
-	.ai2-group-what,
-	.ai2-group-line {
-		display: block;
-		margin-block-start: 0.15em;
-		font-size: 0.88em;
-		line-height: 1.4;
-		overflow-wrap: anywhere;
-	}
-
-	/* THE FACE OF A CARD: a bar and a dollar figure (meter.js). The bar is a
-	   track with a fill; a running one pulses, a finished one is solid. */
-	.ai2-meter-line {
-		margin-block-start: 0.3em;
-	}
-
-	/* SHORT, never the row's width (the owner, 2026-09-25: "a 2,000-pixel line across my
-	   screen as a progress bar makes no sense"). Its count sits beside it in words. */
-	.ai2-meter {
-		flex: 0 0 4em;
-		min-width: 0;
-		height: 0.4em;
-		border-radius: 0.2em;
-		background: var(--line);
-		overflow: hidden;
-	}
-
-	.ai2-meter-fill {
-		height: 100%;
-		border-radius: inherit;
-		background: var(--accent, currentColor);
-	}
-
-	.ai2-meter.live .ai2-meter-fill {
-		animation: ai2-pulse 1.4s ease-in-out infinite;
-	}
-
+	/* A card's running state pulses (`.ai2-state`, the outline's rows). */
 	@keyframes ai2-pulse {
 		50% { opacity: 0.45; }
-	}
-
-	.ai2-meter-cost {
-		flex: none;
-		font-size: 0.8em;
-		white-space: nowrap;
-	}
-
-	/* Everything no group holds yet: one quiet word that opens the old list. */
-	.ai2-unfiled-head {
-		padding: 0.55em var(--pad-card);
-		cursor: pointer;
-		font-size: 0.9em;
 	}
 
 	/* ── the task pages inside a card ──
@@ -697,47 +196,6 @@
 		background: var(--prim);
 		color: white;
 		opacity: 1;
-	}
-
-	/* ── the page on the right ──
-	   The two grounds: the rail on `--tint` (3.5% off white), the card's page on
-	   `--surface`. Ink on both, 15.3:1 and 16.1:1. */
-	/* ⚠ `hidden`, not `auto` — the mounted card page manages its own scroll
-	   (`.ai2-full` below) at a fixed `height: 100%`, so this region's own
-	   content never actually overflows; `auto` here was the region half of
-	   the "two scrollbars" bug, showing a second, always-empty scroll track
-	   the instant a card page's real content was one pixel taller than
-	   estimated. The empty state is two short lines and never needs to
-	   scroll. */
-	.ai2-detail {
-		min-width: 0;
-		min-height: 0;
-		overflow: hidden;
-		background: var(--surface);
-	}
-
-	.ai2-empty {
-		padding: var(--pad);
-	}
-
-	.ai2-empty > small {
-		display: block;
-		margin-block-start: 0.4em;
-	}
-
-	/* Stands down the moment a card page is routed here. ⚠ `:is(.active-page,
-	   .active-ancestor)`, not `.active-page` alone — a card page stays
-	   `.active-ancestor` (not the deepest leaf any more) the instant a
-	   sub-card opens beside it in the THIRD column, a different container
-	   entirely (deliverable 2, ai2-nested). Testing `.active-page` only made
-	   this rule stop matching the moment a sub-card opened, so `.ai2-empty`
-	   reappeared above the still-mounted card page and pushed its whole
-	   content down by its own height (measured: the detail column's own
-	   title row at y 45 → 130 with nothing in the content itself changed).
-	   `:is(.active-page, .active-ancestor)` is the arrangement contract's own
-	   words for "is any of this mine" (core/Page/Page.css). */
-	.ai2-detail:has(> .page:is(.active-page, .active-ancestor)) > .ai2-empty {
-		display: none;
 	}
 
 	/* TWO FIXED REGIONS: the ideas above, the transcript footer pinned below.
@@ -1112,108 +570,25 @@
 		width: 100%;
 	}
 
-	/* THE FLAG OVER A SELECTION — fixed, placed from the selection's own rect. */
-	.ai2-selection-flag {
-		display: none;
-		position: fixed;
-		z-index: 5;
-		transform: translateX(-50%);
-		padding: 0.25em 0.6em;
-		border: 1px solid var(--line);
-		border-radius: 1em;
-		background: var(--surface);
-		color: var(--error);
-		font: inherit;
-		line-height: 1;
-		cursor: pointer;
-		box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
-	}
-
-	.ai2-selection-flag.on {
-		display: block;
-	}
-
 	/* ── one screen at a time, on a phone ──
-	   Below 40em EACH LEVEL IS ITS OWN SCREEN (deliverable 2: "At 400 each
-	   level is its own screen with a back link") — the rail, then a card's
-	   page, then a sub-card's page, three deep now instead of two. Which one
-	   shows is decided entirely by the framework's own marks: a page is
-	   `.active-ancestor` exactly when a DEEPER page is open inside it, so
-	   nothing here has to track "how many levels down am I" by hand. */
+	   Below 40em each level is its own screen (the rail, a card, a sub-card) — the
+	   shell's own rule, ux/Inbox/Inbox.css. A card's "← all cards" link is the way back
+	   up, so it shows only there. */
 	.ai2-back {
 		display: none;
 	}
 
 	@media (width < 40em) {
-		.ai2 { grid-template-columns: minmax(0, 1fr); }
-		.ai2-detail, .ai2-sub { display: none; }
-
-		/* Screen 2: a card is open. Root is `.active-ancestor` either way (a
-		   sub-card open makes it doubly true), so the rail hides and the detail
-		   column shows — then the next rule takes the detail column away again
-		   if a sub-card has been opened beneath it. */
-		.page--ai2.active-ancestor .ai2-rail { display: none; }
-		.page--ai2.active-ancestor .ai2-detail { display: block; }
-
-		/* Screen 3: a sub-card is open, in the sub column — so the card's own column
-		   stands aside for it. ⚠ Keyed on the SUB column, not on the card being
-		   `.active-ancestor`: a card's tab pages (`…/<card>/activity/`, the tiny
-		   tabs) make it an ancestor too, and they draw inside the card itself. */
-		.ai2:has(.ai2-sub > .page:is(.active-page, .active-ancestor)) .ai2-detail { display: none; }
-		.ai2:has(.ai2-sub > .page:is(.active-page, .active-ancestor)) .ai2-sub { display: block; }
-
 		/* The card page has no padding of its own, so the link carries its own
 		   inset — it sat at 0px from the screen's edge (padding check, 2026-09-24). */
 		.ai2-back { display: inline-block; padding: 0.5em 1em; }
-
 	}
 }
 
 /* ── the head and the Overview (ai2-overview, 2026-09-28) ─────────────────── */
 @layer theme {
 
-	/* THE HEAD: "AI 2" and the Inbox · Overview tabs, one band, like a class doc page.
-	   ext/Doc's `.doc-well` + ext/tabs' `.tabs.block` markup; these few lines are the
-	   `.page.doc-page` rules restated, because this page is not a Doc.
-	   ⚠ The page is a flex COLUMN now: the band on top, the inbox (or the overview)
-	     taking the rest. `min-height: 0` on `.ai2`, or nothing inside it scrolls. */
-	.page.full:has(.ai2) { display: flex; flex-direction: column; }
-	.page.full:has(.ai2) > .ai2-shell > .ai2 { flex: 1 1 0; height: auto; }
-	/* `margin: 0`: the page is `.flow`, and the hidden h1 still counts as a sibling. */
-	.ai2-head {
-		flex: none; margin: 0;
-		display: flex; flex-wrap: wrap;
-		--gutter-x: clamp(1em, 2%, 3em);
-		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
-		--tab-fill: var(--ground, var(--wash));
-	}
-	.ai2-head > .tabs { display: contents; }
-	.ai2-head > .tabs > .tab-bar {
-		background: var(--well);
-		flex: 1 1 16em; min-width: 0;
-		align-items: flex-end;
-		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
-		padding-inline-end: 0.8em;
-	}
-	/* two tabs is a rail: ext/tabs hides a bar of ONE, never ours */
-	.ai2-head .doc-well { padding-block: 0.8em 0.3em; }
-
-	/* THE NEEDS-YOU TAB'S COUNT (the owner, 2026-09-30: "a small count badge on the tab when
-	   something's truly waiting") — a small pill, never a wall of red; hidden at zero.
-	   ⚠ `:not([hidden])`, not a bare `display: inline-flex` — a plain rule here beats the
-	   browser's own `[hidden] { display: none }` (equal specificity, author beats UA regardless
-	   of layers — the exact trap `.ai2-need-err` already names below, review finding 2026-09-30:
-	   a bare `display: inline-flex` left a small empty pill on the tab at zero). */
-	.ai2-tab-badge {
-		display: none;
-		align-items: center; justify-content: center;
-		min-width: 1.4em; height: 1.4em; padding-inline: 0.35em;
-		margin-inline-start: 0.4em;
-		border-radius: 999px;
-		font-size: 0.75em; font-weight: 700;
-		background: var(--prim); color: var(--on-prim, #fff);
-	}
-	.ai2-tab-badge:not([hidden]) { display: inline-flex; }
+	/* THE HEAD: "AI 2" and its tabs, one band — `.inbox-head`, ux/Inbox/Inbox.css. */
 
 	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
 	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
@@ -1241,13 +616,9 @@
 	.ai2-head .tab-bar::after { order: 5; }
 
 	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
-	   card; while it is the active page it takes the whole shell and scrolls by itself. */
-	.ai2:has(.ai2-overview-page.active-page) { grid-template-columns: minmax(0, 1fr); }
-	.ai2:has(.ai2-overview-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
+	   card; while it is the active page it takes the whole shell (`inbox-takeover`). */
 	.page.ai2-overview-page {
 		display: block;
-		height: 100%;
-		overflow-y: auto;
 		padding: 0;
 	}
 	/* the tab already names this view */
@@ -1258,14 +629,9 @@
 	/* NEEDS YOU AND THE LOG — routed children now (2026-09-30: Inbox moved BACK to the bare
 	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
 	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
-	   whole shell — no rail, no sub column — while they are the active page. */
-	/* One block for both — same four rules, repeated (review finding, 2026-09-30). */
-	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) { grid-template-columns: minmax(0, 1fr); }
-	.ai2:has(.ai2-needs-page.active-page, .ai2-log-page.active-page) :is(.ai2-rail, .ai2-sub) { display: none; }
+	   whole shell (`inbox-takeover`) while they are the active page. */
 	.page:is(.ai2-needs-page, .ai2-log-page) {
 		display: block;
-		height: 100%;
-		overflow-y: auto;
 		padding: var(--pad);
 	}
 	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
@@ -1387,12 +753,11 @@
 	.ai2-need-body { flex: 1; min-width: 0; }
 
 	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
-	   on every row (brief D). `.ai2-score` is the same look for the Inbox's own rows: `inbox.js`
-	   computes `it.score` and `row()` in faces.js draws it. Muted grey normally; only a
+	   on every row (brief D). `.inbox-score` (ux/Inbox) is the same look for the rail's own
+	   rows. Muted grey normally; only a
 	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
 	   something on this page instead of decorating every row. */
-	.ai2-need-score,
-	.ai2-score {
+	.ai2-need-score {
 		flex: none;
 		display: inline-block;
 		min-width: 1.6em;
@@ -1404,8 +769,7 @@
 		text-align: center;
 	}
 
-	.ai2-need-score-hot,
-	.ai2-score-hot {
+	.ai2-need-score-hot {
 		background: var(--error);
 		color: white;
 	}
@@ -1757,7 +1121,7 @@
    open between usage and tasks. The page is still the ONE scroll box.
    Rules, numbers and screenshots: doc/columns.md. */
 @layer theme {
-	.ai2-detail:has(> .ai2-card-live) {
+	.inbox-detail:has(> .ai2-card-live) {
 		container: ai2-live / inline-size;
 	}
 
@@ -1855,14 +1219,6 @@
 	.ai2-live-idle > summary { cursor: pointer; color: var(--muted, inherit); padding-block: 0.4em; }
 	.ai2-talk-more { display: block; }
 
-	/* USAGE at the top of the rail: three bars with the pace marker, no notes. */
-	.ai2-usage-top { padding-block-end: 0.5em; }
-	.ai2-usage-top .ai-usage { display: flex; gap: 0.75em; }
-	.ai2-usage-top .ai-meter { flex: 1; min-width: 0; font-size: 0.8em; }
-	/* Time left shows (the owner, 2026-09-25: "always show the time remaining"); the pace projection does not fit. */
-	.ai2-usage-top .ai-note { display: block; font-size: 0.9em; white-space: nowrap; }
-	.ai2-usage-top .ai-proj { display: none; }
-	.ai2-usage-key { display: block; font-size: 0.72em; margin-block-start: 0.2em; }
 	.ai2-live-on { font-weight: 600; }
 
 	.ai2-live-takeover :is(.ai2-live-section, .ai2-foot) {
@@ -1981,13 +1337,6 @@
 		padding: 0.15em 0.4em;
 	}
 
-	/* A sub-card of a sub-card replaces its parent in the third column; the
-	   parent is one "← back" away. */
-	.ai2-sub > .page.active-ancestor,
-	.ai2-detail > .page.ai2-index-page.active-ancestor {
-		display: none;
-	}
-
 	.page.ai2-index-page {
 		height: 100%;
 		min-height: 0;
@@ -2006,23 +1355,6 @@
 		margin-block-end: var(--gap-50);
 	}
 
-	.ai2-rail-foot {
-		gap: 0.25em;
-		padding: 0.3em 0.45em;
-	}
-
-	.ai2-rail-foot > .ai2-archived-word {
-		margin: 0;
-	}
-
-	/* ⚠ On a phone ONE column, sub-card open or not: the three-column rule near
-	   the top (`.ai2:has(.ai2-sub > .page.active-page)`) outranks the phone
-	   rule's bare `.ai2`, so a sub-card got 308 of 400px beside two empty tracks. */
-	@media (width < 40em) {
-		.ai2:has(.ai2-sub > .page.active-page) {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
 }
 
 /* THE CARD'S AGENT PANEL (agents.js): one row per agent, a thin bar for its context. */
@@ -2170,11 +1502,11 @@
 		}
 
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
-		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page {
+		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page {
 			grid-template-columns: minmax(0, 1fr);
 		}
 
-		.ai2:has(.ai2-sub > .page.active-page) .ai2-detail > .page.ai2-card-page > .ai2-foot {
+		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page > .ai2-foot {
 			display: none;
 		}
 	}
@@ -2350,14 +1682,6 @@
 	}
 }
 
-/* The rail's own name, above the usage bars. */
-@layer theme {
-	.ai2-rail-name { margin: 0 0 0.3em; font-size: 0.9em; }
-	/* The workspace word sits at the name's far end (workspace.js). */
-	.ai2-top > .ai2-rail-name { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5em; }
-	.ai2-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }
-}
-
 /* ── TINY TOP TABS, FULL BLEED (card.js `tiny_tabs()`) ─────────────────────────
    Opt-in per card: a `{"layout": "tabs"}` line in its page.jsonl. Every section of
    the card is a tab and one shows at a time, edge to edge with no padding. The chat
@@ -2429,24 +1753,10 @@
 		> .page.default:not(.active-page, .active-ancestor) { display: none; }
 }
 
-/* WHAT HAPPENED (activity.js): the one-line bar under a resurfaced row, and the
-   Activity tab it opens. The bar is a quiet tinted strip in the accent colour,
-   clipped to one line; the full words are one click away. A new event wears the
-   same left edge as the bar, and the word "new". */
+/* WHAT HAPPENED (activity.js): the Activity tab a row's "what happened" bar opens (the
+   bar itself is the rail's, ai2/rail.css). A new event wears the bar's left edge, and
+   the word "new". */
 @layer theme {
-	.ai2-news {
-		margin-block-start: 0.35em;
-		padding: 0.15em 0.45em;
-		border-inline-start: 2px solid var(--prim);
-		background: var(--fill-a04);
-		font-size: 0.85em;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		cursor: pointer;
-	}
-	.ai2-news:hover { background: var(--surface); }
-	.ai2-news-who { font-weight: 600; }
 
 	.ai2-act-sum { display: block; margin-block-end: 0.6em; }
 	.ai2-act-row {
@@ -2490,12 +1800,6 @@
 
 	.ai2-real-none { padding: var(--pad); }
 
-	.ai2-real-path {
-		display: block;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
 }
 
 /* ── the Processes section (process-monitor, 2026-09-30) ──────────────────

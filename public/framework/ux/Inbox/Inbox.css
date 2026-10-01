@@ -1,0 +1,626 @@
+@layer base, theme, site, util;
+
+/* INBOX — a rail of previews on the left, the picked one's own page beside it, and
+   nothing that jumps. The look of `InboxRail` (core/Page/ext/Inbox/Rail.js); moved here
+   whole from ai2.css (2026-09-30) and renamed `ai2-*` → `inbox-*`, so any page's rail
+   looks the same. The AI-only parts (usage meters, a row's progress bar) are in
+   ai2/rail.css. Why each rule is the way it is: ux/Inbox/doc/decisions.md and, for the
+   history, ai2/doc/decisions.md. */
+@layer theme {
+
+	/* The rail head's gap and a row's one step, each frozen into a real length — see
+	   `.inbox-top` and `.inbox-rows .inbox-row` below for why. */
+	@property --inbox-head-gap {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
+	@property --inbox-step {
+		syntax: "<length>";
+		inherits: true;
+		initial-value: 0px;
+	}
+
+	/* ── THE FLUSH STACK (the owner's name, design/layout/doc/rules.md) ──
+	   Rows touching: no padding, no gap, one box. Only the stack's OUTER corners round
+	   (`--flush-radius`, square by default); the rows inside stay square, so rounded rows
+	   never meet in pinched notches. Any list can wear it. */
+	.flush-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		padding: 0;
+		border-radius: var(--flush-radius, 0);
+	}
+
+	.flush-stack > * {
+		margin: 0;
+		border-radius: 0;
+	}
+
+	.flush-stack > :first-child {
+		border-start-start-radius: var(--flush-radius, 0);
+		border-start-end-radius: var(--flush-radius, 0);
+	}
+
+	.flush-stack > :last-child {
+		border-end-start-radius: var(--flush-radius, 0);
+		border-end-end-radius: var(--flush-radius, 0);
+	}
+
+	/* ── the page ──
+	   THE PAGE ITSELF DOES NOT SCROLL: a band on top (the title and tabs), the shell taking
+	   the rest, and the rail and the detail each scroll inside themselves — so a row
+	   arriving cannot move what you are reading. The page wears `full fill`.
+	   ⚠ `.page.full`, not a bare `.page`: `.page.fill` says `overflow: auto` at the same weight. */
+	.page.full:has(> .inbox-shell) {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		overflow: hidden;
+		padding: 0;
+	}
+
+	.page.full:has(> .inbox-shell) > .inbox-shell {
+		flex: 1 1 0;
+		height: auto;
+	}
+
+	/* The band says the page's name; core's own title and its "Folder" link would sit
+	   above it doing nothing (⚠ `!important`: core writes that link's display inline). */
+	.page:has(> .inbox-shell) > .page-title {
+		display: none;
+	}
+
+	.page:has(> .inbox-shell) > .page-fs-link {
+		display: none !important;
+	}
+
+	/* ONE SCROLLBAR, NOT TWO: `.pages` (core/App) is `overflow-y: scroll` for every other
+	   page; this one's columns already scroll. Only while it is showing — a page you left
+	   stays in the DOM, and a bare `:has()` would stop every later page scrolling. */
+	.pages:has(> .page:is(.active-page, .active-ancestor) > .inbox-shell) {
+		overflow-y: hidden;
+	}
+
+	/* THE BAND: the page title and its tabs, one strip, like a class doc page (ext/Doc's
+	   `.doc-well` + ext/tabs' `.tabs.block` markup, restated because this page is no Doc). */
+	.inbox-head {
+		flex: none;
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		--gutter-x: clamp(1em, 2%, 3em);
+		--well: light-dark(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.35));
+		--tab-fill: var(--ground, var(--wash));
+	}
+
+	.inbox-head > .tabs { display: contents; }
+
+	.inbox-head > .tabs > .tab-bar {
+		background: var(--well);
+		flex: 1 1 16em;
+		min-width: 0;
+		align-items: flex-end;
+		padding-inline-start: calc(var(--gutter-x) - var(--tab-pad-x));
+		padding-inline-end: 0.8em;
+	}
+
+	.inbox-head .doc-well { padding-block: 0.8em 0.3em; }
+
+	/* ── the shell ──
+	   `--inbox-rail` is the grip's px override; `em` by default, because a rail is sized
+	   by its own text.
+	   ⚠ `grid-template-rows: minmax(0, 1fr)` — WITHOUT IT NOTHING SCROLLS: the implicit row
+	     is `auto` and grows with its content (a 23,429px rail in a 900px shell). */
+	.inbox-shell {
+		--inbox-rail: 22em;
+		display: grid;
+		grid-template-columns: var(--inbox-rail) minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
+		height: 100%;
+		min-height: 0;
+		margin-block-start: 0;
+	}
+
+	/* THE THIRD COLUMN: a sub-page opening makes three; the page and the sub-page share
+	   what the rail leaves. Read off the Router's own mark — no state of ours to go stale. */
+	.inbox-shell:has(> .inbox-sub > .page.active-page) {
+		grid-template-columns: var(--inbox-rail) minmax(0, 1fr) var(--inbox-subw, minmax(0, 2fr));
+	}
+
+	.inbox-sub {
+		display: none;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		background: var(--surface);
+		border-inline-start: 1px solid var(--line);
+	}
+
+	.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-sub {
+		display: block;
+	}
+
+	/* A sub-page of a sub-page replaces its parent in the third column. */
+	.inbox-sub > .page.active-ancestor {
+		display: none;
+	}
+
+	/* A TAKEOVER PAGE — a tab like System or Overview — has the whole shell while it (or a
+	   page under it) is open: no rail, no sub column. */
+	.inbox-shell:has(> .inbox-detail > .page.inbox-takeover:is(.active-page, .active-ancestor)) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.inbox-shell:has(> .inbox-detail > .page.inbox-takeover:is(.active-page, .active-ancestor)) > :is(.inbox-rail, .inbox-sub) {
+		display: none;
+	}
+
+	/* A page in the detail column scrolls by itself (the column never does). A takeover
+	   page always; any other page opts in with `.inbox-page` — AI 2's cards size their
+	   own regions instead. */
+	.page:is(.inbox-takeover, .inbox-page) {
+		height: 100%;
+		min-height: 0;
+		overflow-y: auto;
+	}
+
+	/* A tab page's own title repeats its tab. */
+	.page.inbox-tab > .page-title {
+		display: none;
+	}
+
+	/* ── the rail ──
+	   ⚠ `display: flex` declared here, not worn as the `.flex v` utility: util beats theme,
+	     so a `.flex` on this box could never be hidden by the phone rule below. */
+	.inbox-rail {
+		position: relative;   /* the grip is absolutely placed inside it */
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		min-height: 0;
+		background: var(--tint);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	/* ── the head: the name, then ONE ROW OF WORDS, and it never grows ──
+	   The rows sit under this, so a head that gains a line pushes every row down. */
+	.inbox-top {
+		flex: none;
+		padding: 0.5em;
+		font-size: 0.85em;
+		background: var(--surface);
+		border-block-end: 1px solid var(--line);
+		container: inbox-top / inline-size;
+		--inbox-head-gap: var(--gap-25);
+	}
+
+	.inbox-rail-name { margin: 0 0 0.3em; font-size: 0.9em; }
+
+	/* The name's far end holds one quiet word when a subclass adds one (AIRail: workspace). */
+	.inbox-top > .inbox-rail-name {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5em;
+	}
+
+	/* ⚠ THE GAPS KEEP THE SIZE THEY HAD BEFORE `.inbox-top` BECAME A CONTAINER: `--gap` is
+	   `cqi`, and a container re-bases it onto the rail's own width (6.18px → 3.4px at 1920).
+	   It is computed on `.inbox-top`, frozen by `@property`, and handed down. */
+	.inbox-top :is(.inbox-chrome, .inbox-auto, .inbox-count) {
+		--gap-25: var(--inbox-head-gap);
+	}
+
+	/* The words: one line when the rail is wide enough, else a tidy two. No label ever
+	   breaks (`nowrap`, `flex: none`); the row wraps between whole words.
+	   ⚠ The second line is FORCED by `::before`, a full-width empty item placed by `order`
+	     — CSS only, so the markup keeps its order. */
+	.inbox-chrome {
+		margin-block-start: 0.4em;
+		flex-wrap: wrap;
+	}
+
+	.inbox-chrome > * {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.inbox-chrome::before {
+		content: "";
+		flex-basis: 100%;
+		order: 1;
+	}
+
+	.inbox-chrome > :is(.inbox-count, .inbox-word) {
+		order: 2;
+	}
+
+	/* Wide enough for every word on one line: the forced break goes. */
+	@container inbox-top (width >= 30em) {
+		.inbox-chrome::before { display: none; }
+		.inbox-chrome > :is(.inbox-count, .inbox-word) { order: 0; }
+	}
+
+	/* Dragged narrow (the grip's floor is 200px): a long label shortens, the gaps tighten. */
+	@container inbox-top (width < 17em) {
+		.inbox-auto-tail { display: none; }
+		/* `--gap-25`, not `gap`: the `gap-25` utility is `@layer util` and would win. */
+		.inbox-top :is(.inbox-chrome, .inbox-count) { --gap-25: 0.25em; }
+		.inbox-chrome > .inbox-word { padding-inline: 0.3em; }
+	}
+
+	.inbox-newcard,
+	.inbox-word {
+		flex: none;
+		padding: 0.1em 0.5em;
+		font-size: 0.95em;
+		line-height: 1.5;
+	}
+
+	.inbox-word {
+		border: 0;
+		background: none;
+		color: inherit;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.inbox-word:hover,
+	.inbox-word.on {
+		opacity: 1;
+		color: var(--prim-ink);
+	}
+
+	/* ⚠ `flex-grow`, NOT `margin-inline-start: auto` — framework.css's `.flex > * { margin: 0 }`
+	   is `@layer util` and beats that margin at any specificity. */
+	.inbox-chrome > .inbox-count {
+		flex-grow: 1;
+		justify-content: flex-end;
+	}
+
+	.inbox-off {
+		font-style: italic;
+	}
+
+	/* The filters: checkboxes, not buttons, so their own state reads at a glance. */
+	.inbox-auto,
+	.inbox-review,
+	.inbox-floor {
+		gap: 0.3em;
+	}
+
+	/* SEARCH takes the row's leftover space instead of sizing to its placeholder. */
+	.inbox-search {
+		flex: 1 1 8em;
+		min-width: 6em;
+	}
+
+	/* THE FLOOR — a short number box, wide enough for "100". */
+	/* ⚠ Two classes: the control rule (framework.css) is `input:not(...)`, (0,1,1), and its
+	   2.4em `min-height` made this one row taller than the button beside it. */
+	.inbox-chrome .inbox-floor-input {
+		width: 3.4em;
+		min-height: 0;
+		padding: 0.1em 0.3em;
+		text-align: end;
+		-moz-appearance: textfield;
+	}
+
+	/* No spinner arrows: they took half of a three-digit box. Arrow keys still step it. */
+	.inbox-floor-input::-webkit-inner-spin-button,
+	.inbox-floor-input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	/* A COUNT on a chip or a tab: a small pill, never a wall of red; hidden at zero.
+	   ⚠ `:not([hidden])`: a bare `display` here would beat the browser's own `[hidden]`. */
+	.inbox-badge {
+		display: none;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.4em;
+		height: 1.4em;
+		padding-inline: 0.35em;
+		margin-inline-start: 0.4em;
+		border-radius: 999px;
+		font-size: 0.75em;
+		font-weight: 700;
+		background: var(--prim);
+		color: var(--on-prim, #fff);
+	}
+
+	.inbox-badge:not([hidden]) { display: inline-flex; }
+
+	/* THE "N NEW ↑" PILL — "nothing jumps", made visible. It FLOATS: in the flow, its own
+	   arrival pushed every row down 36px. `.prim` is framework.css's filled button. */
+	.inbox-new {
+		display: none;
+		position: absolute;
+		z-index: 2;
+		inset-inline: 0.7em;
+		top: 0.5em;
+		width: auto;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+	}
+
+	.inbox-new.on {
+		display: block;
+	}
+
+	/* THE "N UPDATED ↑" PILL — a row already on screen changed, and a tap re-sorts. Small
+	   and quiet: the owner is told, not asked. STICKY and in the flow (floating, it once
+	   covered the row under it). */
+	.inbox-updated {
+		display: none;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+		width: fit-content;
+		margin-block-end: var(--gap-35, 0.5em);
+		font-size: 0.8em;
+		padding: 0.25em 0.7em;
+		border-radius: 999px;
+		background: var(--surface);
+		border: 1px solid var(--line);
+		color: var(--subtle);
+		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+	}
+
+	.inbox-updated:hover { color: var(--ink); border-color: var(--prim); }
+	.inbox-updated:not([hidden]) { display: inline-flex; }
+
+	/* The box the pill floats over, so its `top` means the top of the ROWS. */
+	.inbox-stream {
+		position: relative;
+		display: flex;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	/* The one box that is MEANT to scroll.
+	   ⚠ A CONTAINER, so the spacing inside the rail follows the RAIL, not the window (a
+	     351px rail once used a 24px gap at 1920 and 43px at 3440). */
+	.inbox-rows {
+		container: inbox-rows / inline-size;
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow-y: auto;
+	}
+
+	/* ── a row ──
+	   A ROW IS AN ANCHOR — a real link to its page, which is what makes Back, a reload and
+	   a pasted url work. A preview is a framed box, so it takes `--pad-card` (the word
+	   `.card` wears); the rows sit flush, one hairline apart. */
+	.inbox-row {
+		display: block;
+		padding: var(--pad-card);
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	.inbox-row:hover {
+		background: var(--fill-a04);
+	}
+
+	/* `.active` is `Router.mark_links()`'s — the selection is never drawn by hand. `.in-path`
+	   is the same row with one of its own sub-pages open. */
+	.inbox-row:is(.active, .in-path) {
+		background: var(--surface);
+		border-inline-start-color: var(--prim);
+	}
+
+	.inbox-row.inbox-flagged {
+		border-inline-start-color: var(--error);
+	}
+
+	/* Archived, never deleted — greyed in place when shown at all. */
+	.inbox-row.inbox-archived {
+		opacity: 0.45;
+	}
+
+	/* THE CADENCE — one step between every part of a row, computed ONCE on the row:
+	   `--gap-35` is re-declared on every element in its own `em`, so each part read a
+	   different step until it was frozen here. */
+	.inbox-rows .inbox-row {
+		--inbox-step: var(--gap-35);
+	}
+
+	.inbox-rows .inbox-row > * + * {
+		margin-block-start: var(--inbox-step);
+	}
+
+	/* The dot, the icon and the time sit at the TOP, on the title's first line. */
+	.inbox-row-head {
+		align-items: flex-start;
+	}
+
+	/* WHOLE, NEVER CLIPPED (the owner, 2026-09-24: "render the whole thing as tall as it
+	   needs to be"). A title, not prose: the theme's 1.8 line-height read as a paragraph. */
+	.inbox-row-title {
+		flex: 1;
+		min-width: 0;
+		font-weight: 600;
+		line-height: 1.35;
+		overflow-wrap: anywhere;
+	}
+
+	/* Unread is bold, not just a dot. */
+	.inbox-row.inbox-unread .inbox-row-title {
+		font-weight: 700;
+	}
+
+	/* A stalled ask: unread bold, read plain. */
+	.inbox-row.inbox-unread .inbox-row-ask .inbox-row-title {
+		font-weight: 700;
+	}
+
+	.inbox-row:not(.inbox-unread) .inbox-row-ask .inbox-row-title {
+		font-weight: 400;
+	}
+
+	.inbox-row-when {
+		flex: none;
+		font-size: 0.8em;
+	}
+
+	.inbox-row-foot {
+		margin-block-start: 0.15em;
+	}
+
+	.inbox-row-line {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.9em;
+		overflow-wrap: anywhere;
+	}
+
+	/* THE UNREAD DOT — a real `<button>` (press it to mark read/unread).
+	   ⚠ `visibility`, not `display`: it keeps its space, so reading a row never shifts the
+	     title. The resets undo a bare button's own form-control box, and `align-self` +
+	     `block-size` keep it a DOT: the row head stretches its items, and it once measured
+	     8×38px, a tall oval (the owner, 2026-09-30). */
+	.inbox-dot {
+		width: 0.5em;
+		height: 0.5em;
+		border-radius: 50%;
+		background: var(--prim);
+		flex: none;
+		visibility: hidden;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
+		box-sizing: border-box;
+		font: inherit;
+		line-height: 1;
+		align-self: flex-start;
+		min-block-size: 0;
+		block-size: 0.5em;
+	}
+
+	.inbox-row.inbox-unread .inbox-dot {
+		visibility: visible;
+	}
+
+	/* Centred on the title's first line box (1.35em tall): (1.35 - 0.5) / 2.
+	   ⚠ `top`, not a margin: framework.css's `.flex > * { margin: 0 }` would zero it. */
+	.inbox-row-head > .inbox-dot {
+		position: relative;
+		top: 0.425em;
+	}
+
+	/* THE IMPORTANCE BADGE — a row's score. Grey; 70 and up turns it the error colour. */
+	.inbox-score {
+		flex: none;
+		display: inline-block;
+		min-width: 1.6em;
+		padding: 0.05em 0.4em;
+		border-radius: 1em;
+		background: var(--fill-a08);
+		font-size: 0.75em;
+		font-weight: 700;
+		text-align: center;
+	}
+
+	.inbox-score-hot {
+		background: var(--error);
+		color: white;
+	}
+
+	/* THE ARCHIVE × — the dot's stretch bug, and the dot's fix: a small "×" on the title's
+	   first line, not a tall grey rectangle. */
+	.inbox-clear {
+		margin-inline-start: auto;
+		flex: none;
+		border: 0;
+		background: none;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.inbox-clear:hover {
+		opacity: 1;
+	}
+
+	.inbox-row-head > .inbox-clear {
+		align-self: flex-start;
+		min-block-size: 0;
+		block-size: 1.35em;   /* the title's own line-height */
+		box-sizing: border-box;
+		padding-block: 0;
+		line-height: 1;
+	}
+
+	/* ── the rail's foot: the quieter filters ── */
+	.inbox-rail-foot {
+		gap: 0.25em;
+		padding: 0.3em 0.45em;
+	}
+
+	.inbox-archived-word {
+		display: block;
+		margin: 0.3em 0.7em;
+	}
+
+	.inbox-rail-foot > .inbox-archived-word {
+		margin: 0;
+	}
+
+	/* ── the detail: the picked row's own page ──
+	   The two grounds: the rail on `--tint`, the page on `--surface`.
+	   ⚠ `hidden`, not `auto` — the page mounted here scrolls itself; `auto` showed a second,
+	     always-empty scrollbar the moment it was one pixel taller than estimated. */
+	.inbox-detail {
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		background: var(--surface);
+	}
+
+	.inbox-empty {
+		padding: var(--pad);
+	}
+
+	.inbox-empty > small {
+		display: block;
+		margin-block-start: 0.4em;
+	}
+
+	/* Stands down the moment a page is routed here — `.active-ancestor` too: a page stays
+	   that the instant a sub-page opens beside it, in the third column. */
+	.inbox-detail:has(> .page:is(.active-page, .active-ancestor)) > .inbox-empty {
+		display: none;
+	}
+
+	/* ONE PAGE AT A TIME in the detail: when the open page is here, the pages above it
+	   (a year, a month, a tab) step aside. A page whose sub-page opened in the third
+	   column stays — the open page is not here then. */
+	.inbox-detail:has(> .page.active-page) > .page.active-ancestor {
+		display: none;
+	}
+
+	/* ── ONE SCREEN AT A TIME, ON A PHONE ──
+	   Below 40em each level is its own screen: the rail, then a row's page, then a
+	   sub-page. Which shows is read off the Router's own marks: the page that owns the
+	   rail is `.active-ancestor` exactly when something is open in it. */
+	@media (width < 40em) {
+		.inbox-shell { grid-template-columns: minmax(0, 1fr); }
+		.inbox-detail, .inbox-sub { display: none; }
+
+		.page.active-ancestor > .inbox-shell > .inbox-rail { display: none; }
+		.page.active-ancestor > .inbox-shell > .inbox-detail { display: block; }
+
+		/* A sub-page is open: the detail stands aside for it. Keyed on the SUB column. */
+		.inbox-shell:has(> .inbox-sub > .page:is(.active-page, .active-ancestor)) > .inbox-detail { display: none; }
+		.inbox-shell:has(> .inbox-sub > .page:is(.active-page, .active-ancestor)) > .inbox-sub { display: block; }
+
+		/* ⚠ One column, sub-page open or not: the three-column rule above outranks the bare one. */
+		.inbox-shell:has(> .inbox-sub > .page.active-page) { grid-template-columns: minmax(0, 1fr); }
+	}
+}
