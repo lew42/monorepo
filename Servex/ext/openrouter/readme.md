@@ -111,6 +111,25 @@ the same key at once can't be told apart by a before/after diff — `Agents.js`'
 agent runs at a time; a real fix needs a key per agent, or OpenRouter adding a per-request cost
 figure.
 
+### Rule tests — can a cheap model follow our own instructions?
+
+Five small tests, each with exactly one right answer a script checks (never a judge's opinion):
+reading CLAUDE.md, following the readme chain, calling our tools, appending the house way
+(through `append.mjs`, not a shell write), and staying inside a fence even when the brief itself
+tempts it to stray. One real Servex agent is spawned per model × effort × test, in a fresh temp
+task dir under `rule-tests/runs/`.
+
+```
+node Servex/ext/openrouter/evals/rules.mjs --models claude-haiku-4-5-20251001,deepseek/deepseek-v4.1-flash --effort low,high
+```
+
+Default (no flags): one model, `claude-haiku-4-5-20251001`, at `low` effort — the safe dry run
+before an OpenRouter model is allowed to spend anything. All five pass on it today. Results land
+as one `{"probe":{...}}` line per run in
+[`evals/results.jsonl`](./evals/results.jsonl) — the same file and shape
+mastermind-servex-9's probe runner uses (`public/framework/ai/2026-09-30/probe-tasks/probes.md`),
+so a rule test and an open-ended probe sit in one shared table instead of two parallel ones.
+
 ## What's here
 
 - [`provider.js`](./provider.js) — `env_for(provider)` (the four env vars; throws if the key file
@@ -119,6 +138,8 @@ figure.
 - [`spike.mjs`](./spike.mjs) — the spike script, above.
 - [`provider.test.mjs`](./provider.test.mjs) — runs with no key, no network, no cost:
   `node Servex/ext/openrouter/provider.test.mjs`.
+- [`evals/rules.mjs`](./evals/rules.mjs) — the rule tests, above. Results in
+  [`evals/results.jsonl`](./evals/results.jsonl).
 - [`snapshot.md`](./snapshot.md) — the condensed state a fresh mastermind starts from: one line
   per conclusion, each with a credence and a cited source.
 - [`sources/`](./sources/readme.md) — an index into the one source library
