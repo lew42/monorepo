@@ -26,6 +26,17 @@ import { expert_tools } from "./experts.js";
 
 const ID = { type: "string", description: "The agent's human-readable id, as `list_agents` gives it — e.g. `minion-servex-port`. Never a uuid." };
 
+/* ASK 2b (process-monitor, "dormancy is per agent AND per request", revised 2026-10-01 16:20):
+ * how long an agent waits, idle, before its claude process exits to free RAM (it resumes in
+ * place on the next message — a cold resume measured 3+ seconds to first token, so this is
+ * never a hard "instant kill", see Servex/agents/Global.js). A number of SECONDS, or the one
+ * word "session" to never auto-sleep for as long as this is a live, ongoing session (the voice
+ * pair's own default). Left out, the agent's ROLE picks a sensible default
+ * (`Global.default_after`): the voice pair's "session", 0 for one-off workers (minion, reviewer,
+ * task-mastermind), the plain few-minutes timer for everyone else. */
+const DORMANT_AFTER = { description: "Seconds to stay idle before sleeping to free RAM (resumes in place on the next message), or the word \"session\" to never auto-sleep while this is a live session. Omit it to use the role's own default — see Servex/agents/Global.js's `default_after`.",
+	anyOf: [{ type: "number" }, { type: "string", enum: ["session"] }] };
+
 const tool = (name, description, properties, required, handler) => {
 	const inputSchema = { type: "object", required, properties };
 	return { name, description, inputSchema, schema: inputSchema, handler };
@@ -111,7 +122,8 @@ return [
 			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
 			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
 			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
-			task: { type: "object", description: "Open this agent's task.jsonl for it, before its first turn: `{dir, card, brief}`. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too." }
+			task: { type: "object", description: "Open this agent's task.jsonl for it, before its first turn: `{dir, card, brief}`. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too." },
+			dormant_after: DORMANT_AFTER
 		},
 		[],
 		(args, ctx = {}) => {
@@ -183,10 +195,11 @@ return [
 			from: { type: "string", description: "Who is asking — your own agent id or name. The agent sees this." },
 			reply_to: { type: "string", description: "Where the answer should go, in plain words: `log agent-host`, `message mastermind-servex`." },
 			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." },
-			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." }
+			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." },
+			dormant_after: DORMANT_AFTER
 		},
 		["id", "text"],
-		({ id, text, ...note }, ctx = {}) => {
+		({ id, text, dormant_after, ...note }, ctx = {}) => {
 			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29)
 			if (typeof text !== "string" || !text.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `text` (what to say); it was missing or empty." });
 			id = agents.holder?.(id) ?? id;
@@ -194,7 +207,14 @@ return [
 			if(!ruling.ok) return JSON.stringify({ ok: false, why: ruling.why });
 			const from = ctx.caller ?? note.from;
 			policy.heard(from ?? "owner", id);
-			const sent = card(agents.send(id, text, { ...note, from }));
+			const agent = agents.send(id, text, { ...note, from });
+			// Agent.send() only reads {from, reply_to, priority} off its note and drops everything
+			// else (ask 2b, process-monitor) — set it on the returned agent object directly, so a
+			// caller can change how long THIS agent waits before it sleeps, per request, without
+			// needing a change to Agents.js itself. `agents.send()` always returns the live agent
+			// (or a held/external stand-in) it just delivered to.
+			if (dormant_after !== undefined && agent && typeof agent === "object") agent.dormant_after = dormant_after;
+			const sent = card(agent);
 			/* a peer message between task masterminds: the sender's parent gets a copy, so no interface between tasks is invisible */
 			const up = ruling.rule === "peer" && policy.parent(from);
 			if (up && up !== id) try { agents.send(up, `copy: ${from} -> ${id}: ${text}`, { from: "servex-peer-copy" }); } catch {}

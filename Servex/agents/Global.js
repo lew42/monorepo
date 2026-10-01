@@ -30,6 +30,15 @@ const REPO = path.join(HERE, "../..");
 const HEARD = ["landed", "blocked", "error"];
 /* The front desk's roles: their spawns are never held by the working cap. */
 const DESK = /^(assistant|manager|master-assistant|page-|session|helper)/;
+/* THE DEFAULT `dormant_after` BY ROLE (process-monitor, "dormant the moment a turn ends",
+ * revised 2026-10-01 16:20). The voice session's own pair stays warm for its whole session —
+ * autosend means many small replies, and exiting after each one would restart the process
+ * constantly. One-off workers sleep the moment their turn ends: a resume is "a few seconds"
+ * and they mostly wait on a child or the owner anyway. Every OTHER role (a manager, an
+ * assistant, mastermind-servex, master-assistant, dispatcher) keeps the plain `dormant_ms`
+ * timer, below, which the tight-RAM rule (ask 2) still shortens when memory is scarce. */
+const SESSION_ROLE = /^session-(fast|smart)$/;
+const ONE_SHOT_ROLE = /^(minion|reviewer|task-mastermind)$/;
 const env = (name, dflt) => Number(process.env[name]) || dflt;
 const today = () => new Date().toLocaleDateString("en-CA");
 
@@ -59,6 +68,20 @@ export default class Global {
 		return { servex: null, master_id: "master-assistant", mastermind_id: "mastermind-servex",
 			batch_ms: Number(process.env.SERVEX_MASTER_BATCH_MS) || 20000,
 			dormant_ms: env("SERVEX_DORMANT_MS", 180000), reap_every_ms: env("SERVEX_REAP_EVERY_MS", 60000),
+			// ask 2 (the RAM squeeze): under this much free RAM, the normal 3-minute dormant timer
+			// shortens to 30 s — a dormant agent holds no process, and a resume is cheap.
+			tight_mb: env("SERVEX_TIGHT_MB", 6144), dormant_tight_ms: env("SERVEX_DORMANT_TIGHT_MS", 30000), tight: false,
+			// ask 2b: what `dormant_after: 0` actually waits. MEASURED 2026-10-01 (two cold
+			// resumes, a ~82k-token and a ~215k-token session, both three days stale so past any
+			// cache TTL): `time_to_request_ms` (process start + session load — the part that is
+			// actually SPECIFIC to being cold, versus already warm) was 139-149 ms either way, well
+			// under the "about 3 s" line, so 0 stays a true instant exit by default. (`ttft_ms` /
+			// `first_content_frame_ms`, time to the first actual token, was 3.0-3.4 s both times —
+			// but that is ordinary first-token API latency, paid on ANY turn whether the process
+			// was dormant or already running, not a cost of exiting between turns.) If a later,
+			// more direct measurement of resume overhead alone ever crosses 3 s, raise this.
+			// Detail and the raw numbers: doc/dormant.md.
+			grace_ms: env("SERVEX_DORMANT_GRACE_MS", 0), dormant_freed_mb: 0,
 			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 4096),
 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
 	}
@@ -242,20 +265,29 @@ export default class Global {
 
 	/* THE DORMANCY SWEEP — every minute (dormant-idle, 2026-09-30; it replaces the
 	 * idle reaper of node-reliability, which STOPPED idle agents on three clocks).
-	 * EVERY agent, whatever its role, idle past `dormant_ms` (3 min) goes DORMANT
-	 * (`Agent.sleep`): its claude process exits, its object, id and session stay,
-	 * and the next message resumes it in place. Because a dormant agent is not
+	 * EVERY agent, whatever its role, idle past ITS OWN wait (`wait_ms`, below) goes
+	 * DORMANT (`Agent.sleep`): its claude process exits, its object, id and session
+	 * stay, and the next message resumes it in place. Because a dormant agent is not
 	 * stopped, the heartbeat never reads it as a death, so the old 15-minute
 	 * exceptions (no-child task masterminds, the two global agents) are gone.
-	 * Kept awake: an agent with a live background task (Agent.sleep refuses).
-	 * Every `measure_every_ms` it also reads each claude.exe's memory
+	 * Kept awake: an agent with a live background task (`Agent.sleep` itself refuses
+	 * that), or one whose own child is still working or starting (`has_working_child`
+	 * — a reply is likely imminent, and sleeping now would just add resume latency to
+	 * delivering it). Every `measure_every_ms` it also reads each claude.exe's memory
 	 * (`measure`), and an idle one past `compact_mb` compacts. */
 	reaper(){
 		this.reap_timer = setInterval(() => this.sweep(), this.reap_every_ms);
 		this.reap_timer.unref?.();
-		/* A turn ending frees a working slot: drain the spawn queue at once, not on the next monitor tick. */
+		/* A turn ending frees a working slot: drain the spawn queue at once, not on the next
+		 * monitor tick. It is ALSO the moment a one-off agent (`dormant_after: 0`) should go
+		 * dormant — "act when the turn ends", not wait up to a minute for the next sweep(). */
 		const reg = this.agents.register?.bind(this.agents);
-		if (reg) this.agents.register = agent => { const row = reg(agent); if (agent.state !== "working" && agent.state !== "starting") this.kick(); return row; };
+		if (reg) this.agents.register = agent => {
+			const row = reg(agent);
+			if (agent.state !== "working" && agent.state !== "starting") this.kick();
+			if (agent.state === "idle") this.maybe_sleep(agent);
+			return row;
+		};
 	}
 
 	kick(){
@@ -263,12 +295,80 @@ export default class Global {
 		this.kicked = setImmediate(() => { this.kicked = null; try { this.servex.drain?.(); } catch {} });
 	}
 
+	/* THE DEFAULT `dormant_after` FOR A ROLE that never had one set at spawn: "session" (never
+	 * auto-sleep) for the voice pair, 0 (sleep the moment the turn ends) for one-off workers,
+	 * `null` for everyone else (the plain `dormant_ms`/tight-RAM timer, in `wait_ms`). An
+	 * explicit `agent.dormant_after` from `spawn_agent` or `send_to_agent` always wins over this. */
+	default_after(role = ""){
+		if (SESSION_ROLE.test(role)) return "session";
+		if (ONE_SHOT_ROLE.test(role)) return 0;
+		return null;
+	}
+
+	/* How long this ONE agent waits, idle, before it goes dormant. `Infinity` means never
+	 * (the voice pair, for its whole session). A number of SECONDS from `dormant_after` becomes
+	 * ms here; `0` resolves to `grace_ms` (0 by default — see `grace_ms` above for why that
+	 * stayed 0, and when to raise it) rather than being read as literal zero everywhere, so one
+	 * env var can add a grace period to EVERY zero-wait role at once if a future measurement
+	 * ever calls for it. */
+	wait_ms(agent){
+		const after = agent.dormant_after ?? this.default_after(agent.role ?? "");
+		if (after === "session") return Infinity;
+		if (typeof after === "number") return after > 0 ? after * 1000 : this.grace_ms;
+		return this.tight ? this.dormant_tight_ms : this.dormant_ms;
+	}
+
+	/* Free RAM crossing `tight_mb` flips global dormancy into the fast 30-second timer for
+	 * every role that uses it (ask 2) — logged once on each flip, never every tick. No reading
+	 * yet from the process monitor (`servex.processes.now`, owned by a sibling module) just
+	 * keeps the normal timer: "if the monitor has no reading yet, keep the normal timer." */
+	check_tight(){
+		const free = this.servex?.processes?.now?.free_mb;
+		const tight = typeof free === "number" && free < this.tight_mb;
+		if (tight === this.tight) return;
+		this.tight = tight;
+		this.servex.log?.append("servex", { type: "dormant-tight", tight, free_mb: free ?? null, tight_mb: this.tight_mb })?.catch?.(() => {});
+	}
+
+	/* A live child, of this agent, still working or just starting: sleeping the PARENT right
+	 * now would only add a resume delay to delivering the child's report a moment later. */
+	has_working_child(id){
+		for (const a of this.agents.live.values()) if (a.parent === id && (a.state === "working" || a.state === "starting")) return true;
+		return false;
+	}
+
+	/* The one check both `sweep()` (every minute, every agent) and the `register` hook (the
+	 * instant one agent goes idle) run. Never sleeps a working/starting agent (`agent.sleep`
+	 * itself also refuses a live background task), one with a live child, or the voice pair
+	 * mid-session (`wait_ms` returns `Infinity` for those). */
+	maybe_sleep(agent, now = Date.now()){
+		if (agent.state !== "idle" || typeof agent.sleep !== "function") return false;
+		if (this.has_working_child(agent.id)) return false;
+		const wait = this.wait_ms(agent);
+		if (wait === Infinity) return false;
+		if (wait > 0 && now - this.last_active(agent, now) <= wait) return false;
+		if (!agent.sleep("idle")) return false;
+		this.mark_slept(agent, wait);
+		return true;
+	}
+
+	/* One log line per agent put to sleep, naming how long it waited; the RAM it was last
+	 * measured holding (`agent.rss_mb`, set by `measure()`) is summed into `dormant_freed_mb`
+	 * for `summary()`, so the monitor can show today's running total. */
+	mark_slept(agent, wait){
+		this.dormant_freed_mb += agent.rss_mb ?? 0;
+		this.servex.log.append("servex", { type: "dormant", id: agent.id, role: agent.role ?? null, context: agent.context ?? null, after: wait, freed_mb: agent.rss_mb ?? null })?.catch?.(() => {});
+	}
+
+	/* What the process monitor shows for dormancy: RAM saved so far today, and the two
+	 * thresholds in play (tight-RAM state included, since it changes the plain-role timer). */
+	summary(){
+		return { dormant_freed_mb: Math.round(this.dormant_freed_mb), tight: this.tight, dormant_ms: this.dormant_ms, dormant_tight_ms: this.dormant_tight_ms, grace_ms: this.grace_ms };
+	}
+
 	sweep(now = Date.now()){
-		for (const agent of [...this.agents.live.values()]){
-			if (agent.state !== "idle" || typeof agent.sleep !== "function") continue;
-			if (now - this.last_active(agent, now) <= this.dormant_ms) continue;
-			if (agent.sleep("idle")) this.servex.log.append("servex", { type: "dormant", id: agent.id, role: agent.role ?? null, context: agent.context ?? null })?.catch?.(() => {});
-		}
+		this.check_tight();
+		for (const agent of [...this.agents.live.values()]) this.maybe_sleep(agent, now);
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
 		if (now - this.last_measure >= this.measure_every_ms){ this.last_measure = now; this.measure().catch(() => {}); }
 	}

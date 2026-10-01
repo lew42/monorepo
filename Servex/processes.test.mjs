@@ -116,4 +116,29 @@ ok(sx.projects.length === 1 && !sx.processes.has("gone-wt") && !("gone-wt" in sx
 	ok(min !== null && min >= 3 * 24 * 60 - 5, "logs/HEAD touched now but last entry 3 days old still counts as quiet");
 	fs.rmSync(tmp, { recursive: true, force: true });
 }
+
+// ask 1 (process-monitor, the RAM squeeze): stop_idle() stops a landed task's worktree server
+// through Servex's own stop path, and never touches a qf-* pool slot.
+{
+	const norm2 = p => path.resolve(String(p)).replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+	const landed_path = path.resolve("C:/Code/lew42/worktrees/landed-wt");
+	const sx2 = {
+		commands: [],
+		processes: new Map([["landed-wt", { status: "online" }], ["qf-9", { status: "online" }]]),
+		command: async (name, verb) => { sx2.commands.push({ name, verb }); },
+		agents: { live: new Map() },   // no live agent anywhere: nothing is "actively working there right now"
+		lifecycle: { open: () => [], close: async () => {} },
+		log: { append: async () => ({ ok: true }) }
+	};
+	const wtr = new Worktrees({ servex: sx2 });
+	const tasksMap = new Map([[norm2(landed_path), { key: "x/landed", landed: true, paused: false, agent: null, worktree: landed_path }]]);
+	const items = [
+		{ name: "landed-wt", path: landed_path, branch: "worktree/landed-wt", state: "open", why: "its branch holds unmerged commits" },
+		{ name: "qf-9", path: path.resolve("C:/Code/lew42/worktrees/qf-9"), branch: "worktree/qf-9", state: "pool", why: "the quick-fix pool recycles it" }
+	];
+	const stopped = await wtr.stop_idle(items, tasksMap);
+	ok(stopped === 1 && sx2.commands.length === 1 && sx2.commands[0].name === "landed-wt" && sx2.commands[0].verb === "stop",
+		"a landed task's worktree server is stopped, through Servex's own stop path (command(name, \"stop\"))");
+	ok(!sx2.commands.some(c => c.name === "qf-9"), "a qf-* pool slot's server is never touched, taken or not");
+}
 console.log(`processes.test (with worktrees): ${pass} checks pass`);

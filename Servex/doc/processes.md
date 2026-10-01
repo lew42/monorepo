@@ -27,7 +27,7 @@ What `/api/processes` answers, trimmed:
   "orphans": [{ "pid": 600, "name": "tail.exe", "mb": 5 }],
   "reaped": [{ "pid": 601, "name": "grep.exe", "ok": true }],
   "running": [{ "id": "minion-x", "state": "working", "pid": 200, "mb": 250, "lost": false }],
-  "worktrees": { "total": 45, "pool": 3, "in_use": 6, "open": 9, "uncommitted": 5, "finished": 2, "removed_today": 4 },
+  "worktrees": { "total": 45, "pool": 3, "in_use": 6, "open": 9, "uncommitted": 5, "finished": 2, "removed_today": 4, "servers_stopped": 19 },
   "history": [{ "at": "…", "cpu": 13.3, "ours_mb": 6100, "other_mb": 14200, "free_mb": 11000, "groups": { "orphans": [10, 0] } }]
 }
 ```
@@ -56,7 +56,7 @@ Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own
 
 - **pool** (`qf-*`): the quick-fix pool recycles these. Never touched here.
 - **locked** or **no branch** (a detached HEAD): never touched.
-- **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or `logs/HEAD`, so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
+- **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or the LAST LINE of `logs/HEAD` (read by its own timestamp, not the file's mtime — `git gc` or a reflog expiry can rewrite `logs/HEAD` without adding a line, which once made 36 worktrees at once look freshly used), so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
 - **uncommitted**: it has real changes. Never touched.
 - **open**: its branch has commits michael/dev does not.
 - **finished**: its branch is merged or applied by merge.mjs, or the task that took it has landed and its owner has stopped.
@@ -69,6 +69,32 @@ A **finished** worktree is removed:
 5. Servex forgets the project, its port and its subdomain.
 
 If `git worktree remove` refuses, the worktree is shown as open with git's reason. Every removal is one line in the `servex` log (`type: "worktrees"`). `SERVEX_WORKTREE_CLEANUP=0` only reports. The count shows in `system_health` and in `/api/processes` (`worktrees`).
+
+## Stopping an idle worktree's SERVERS (not removing it)
+
+A worktree's dev server, its `Server/health.mjs` watcher and that watcher's Playwright Chromium
+together cost 2-3 GB, and used to keep running long after the work on them was done — 19 of them
+were still up on 2026-10-01 for tasks already paused or landed. Removing the worktree FOLDER needs
+the branch merged first (deleting it can't be undone), but stopping just its servers is
+reversible — the proxy auto-starts a project again on its next request — so the bar is lower,
+and `Worktrees.js` checks it on every pass, independently of the `pool`/`locked`/… state above:
+
+- **its task is paused, landed, or its agent has stopped** (`{"assign":{"paused":true}}`,
+  `landed_at` + `outcome`, or the agent named in its log is no longer live) — stopped at once, no
+  2-hour wait; or
+- **nothing has used it for the same 2 quiet hours** as the `in use` check above, with no live
+  agent working there right now.
+- **Never** a `qf-*` pool slot (`Pool.js` looks after those itself).
+
+The dev server stops through Servex's own stop path — `command(name, "stop")`, the exact call
+`stop_server` makes — so Servex's own record of it stays correct and the proxy's autostart still
+works afterward (checked by hand after this landed). The health watcher (and the Chromium that is
+a child of it) is found and stopped through `Lifecycle.open()`/`close()`: `health-supervisor.mjs`
+already calls `Lifecycle.track("health", …, { path })` on its own start, naming its own pid and
+the worktree it watches, so neither stop is ever a guessed pid. One `servex` log line
+(`type: "worktrees"`) per worktree actually stopped; the running total is `summary().
+servers_stopped`. `SERVEX_WORKTREE_STOP_SERVERS=0` turns this off (the removal flow above is
+unaffected).
 
 ## Cost
 
