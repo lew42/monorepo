@@ -1,0 +1,34 @@
+// Proof 4: start health-supervisor.mjs twice in this tree, 4 s apart. The second must exit at once
+// and the first must keep exactly one health.mjs child. Every spawn hidden; A is killed by its real pid.
+import { spawn, execFileSync } from "child_process";
+const env = { ...process.env, HEALTH_BASE: "http://localhost:62566" };
+const stamp = () => new Date().toTimeString().slice(0, 8);
+const out = [];
+const say = s => { const l = `[${stamp()}] ${s}`; out.push(l); console.log(l); };
+const run = name => {
+	const c = spawn(process.execPath, ["Server/health-supervisor.mjs"], { cwd: process.cwd(), env, windowsHide: true });
+	say(`started supervisor ${name}, pid ${c.pid}`);
+	for (const s of [c.stdout, c.stderr]) s.on("data", d => String(d).split(/\r?\n/).filter(Boolean).forEach(l => say(`${name}: ${l}`)));
+	c.on("exit", code => say(`supervisor ${name} exited, code ${code}`));
+	return c;
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ps = () => JSON.parse(execFileSync("powershell", ["-NoProfile", "-Command",
+	"Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'health' } | Select-Object ProcessId,ParentProcessId,CommandLine | ConvertTo-Json -Compress"],
+	{ windowsHide: true, encoding: "utf8" }) || "[]");
+const a = run("A");
+await sleep(4000);
+const b = run("B");
+await sleep(6000);
+const mine = [a.pid, b.pid];
+const procs = [].concat(ps());
+const sups = procs.filter(p => mine.includes(p.ProcessId));
+const kids = procs.filter(p => mine.includes(p.ParentProcessId) && /health\.mjs/.test(p.CommandLine));
+say(`still running from this proof: ${sups.length} supervisor(s) [${sups.map(p => p.ProcessId)}], ${kids.length} health.mjs child(ren) [${kids.map(p => `${p.ProcessId} under ${p.ParentProcessId}`)}]`);
+const wh = execFileSync("powershell", ["-NoProfile", "-Command", `(Get-Process -Id ${a.pid}).MainWindowHandle`], { windowsHide: true, encoding: "utf8" }).trim();
+say(`supervisor A MainWindowHandle: ${wh}`);
+say(sups.length === 1 && sups[0].ProcessId === a.pid && kids.length === 1 && b.exitCode === 0 ? "PASS: one supervisor, one watcher; the second exited 0" : "FAIL");
+execFileSync("taskkill", ["/PID", String(a.pid), "/T", "/F"], { windowsHide: true });
+say(`killed supervisor A's tree (pid ${a.pid})`);
+await sleep(500);
+process.exit(0);

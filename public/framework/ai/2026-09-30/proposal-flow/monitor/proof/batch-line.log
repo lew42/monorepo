@@ -1,0 +1,5 @@
+health.mjs: health: 8 pages — 2 errors, 1 stall, worst /framework/ux/, shots /framework/ai/health/shots/2026-09-30/ — first: console: TypeError: x is undefined → ai\2026-09-28\some-task\task.jsonl
+  → ai/2026-09-28/some-task/task.jsonl: health: 8 pages — 2 errors, 1 stall, worst /framework/ux/, shots /framework/ai/health/shots/2026-09-30/ — first: console: TypeError: x is undefined
+health.mjs: health: /framework/ai/health/ — 0 console errors, stall 0.0 s, shot /framework/ai/health/shots/2026-09-30/x.png → ai\2026-09-28\some-task\task.jsonl
+  → ai/2026-09-28/some-task/task.jsonl: health: /framework/ai/health/ — 0 console errors, stall 0.0 s, shot /framework/ai/health/shots/2026-09-30/x.png
+  → health day log (log): health: 2 pages — 0 errors, 0 stalls, shots /framework/ai/health/shots/2026-09-30/

@@ -1,0 +1,28 @@
+// Proof for note 7: a batch of several pages puts ONE line on the editing task's card.
+// Runs the real report code from Server/health.mjs; only append.mjs and the day log are stubbed.
+import fs from "fs"; import path from "path"; import os from "os";
+const ROOT = process.cwd(), PUBLIC = path.join(ROOT, "public");
+const src = fs.readFileSync("Server/health.mjs", "utf8");
+const body = src.slice(src.indexOf("const APPEND_SCRIPT"), src.indexOf("/* ── out of band"));
+const sent = [];
+const execFileSync = (_n, [, task, tmp]) => sent.push([task, JSON.parse(fs.readFileSync(tmp, "utf8"))[0].log.msg]);
+const append_line = (_f, verb, o) => sent.push(["health day log (" + verb + ")", o.msg]);
+const local_date = () => "2026-09-30";
+const report = new Function("fs", "path", "os", "ROOT", "PUBLIC", "DAY_MS", "local_date", "SETTLE_MS", "execFileSync", "append_line", "rel_to", "now_iso",
+	body + "\nreturn { report_to_dashboard, set: f => { task_for = f; } };");
+let r = report(fs, path, os, ROOT, PUBLIC, 864e5, local_date, 10000, execFileSync, append_line, (a, b) => path.relative(a, b), () => "now");
+// task_for is a function declaration inside the extracted body; shadow it via a wrapper by re-evaluating with a replaced body
+const body2 = body.replace("function task_for(rel_file){", "function task_for(rel_file){ return rel_file.includes(\"orphan\") ? null : \"ai/2026-09-28/some-task/task.jsonl\";");
+r = new Function("fs", "path", "os", "ROOT", "PUBLIC", "DAY_MS", "local_date", "SETTLE_MS", "execFileSync", "append_line", "rel_to", "now_iso",
+	body2 + "\nreturn { report_to_dashboard };")(fs, path, os, ROOT, PUBLIC, 864e5, local_date, 10000, execFileSync, append_line, (a, b) => path.relative(a, b), () => "now");
+const meta = (ms, shot) => ({ stall_ms: ms, settled: true, shot, unknown_verbs: 0 });
+const ok = (url, ms = 0) => ({ url, files: ["public/framework/core/View.js"], error_findings: [], meta: meta(ms, "public/framework/ai/health/shots/2026-09-30/x.png") });
+const results = [ok("/framework/"), ok("/framework/ai2/", 400),
+	{ url: "/framework/ux/", files: ["public/framework/core/View.js"], error_findings: [{ kind: "console", text: "TypeError: x is undefined" }, { kind: "stall", text: "blocked 3.1 s" }], meta: meta(3100, "s.png") },
+	ok("/framework/ext/"), ok("/framework/ui/"), ok("/framework/web/"), ok("/framework/core/"), ok("/notes/")];
+console.log("batch of 8 pages from one shared-module edit:");
+r.report_to_dashboard("day", results); for (const [t, m] of sent.splice(0)) console.log(`  → ${t}: ${m}`);
+console.log("batch of 1 page:");
+r.report_to_dashboard("day", [ok("/framework/ai/health/")]); for (const [t, m] of sent.splice(0)) console.log(`  → ${t}: ${m}`);
+console.log("batch where no task knows the file:");
+r.report_to_dashboard("day", [{ ...ok("/framework/"), files: ["public/orphan.js"] }, { ...ok("/notes/"), files: ["public/orphan.js"] }]); for (const [t, m] of sent.splice(0)) console.log(`  → ${t}: ${m}`);
