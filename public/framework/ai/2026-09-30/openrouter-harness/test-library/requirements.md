@@ -157,3 +157,21 @@ Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest fir
 - **The default sample:** the NEWEST version of each family at MEDIUM thinking. Write it down if
   an older version beats a newer one.
 - Move the existing tests and their runs over. Don't rerun anything for the move.
+
+## Amendment 6: Phase 11 (read the parent's "Phase 11"): is the test a good test?
+No new runs for this. It is computed from the runs the tests already have.
+1. **Partial credit.** The judge scores each of a test's `criteria` 0–1 and writes `credit` (the
+   mean, 0..1) on the run line, plus `criteria_scores[]`. `score` (terrible/ok/great) stays. Old
+   runs: the judge rescores them from their run dirs, with no rerun.
+2. **Discrimination**, computed by `AITest` from its own run lines: does `credit` track each
+   model's overall strength? Strength = the model's mean credit over all OTHER tests. Use the
+   Spearman rank correlation, from -1 to 1. Fewer than 4 models means `null` ("not enough runs").
+   Negative means weak models beat strong ones, so the test is suspect.
+3. **Near-miss review.** `library.mjs --review <slug>`: the judge re-reads up to 3 FAILED runs
+   and asks "was this actually mostly right?" Each answer is appended as a `review` line. If
+   2 or more say yes, the criteria are too strict: lower `confidence` and say which criterion
+   to loosen.
+4. **Weight = discrimination × confidence** (a floor of 0 when discrimination is negative). The
+   test's page shows pass rate, discrimination, confidence and weight above its runs table. The
+   index shows the weight per test. A pass rate near 100% is labelled "floor", and near 0% is
+   labelled "review the test". The Models page weights each test's credit by its weight.
