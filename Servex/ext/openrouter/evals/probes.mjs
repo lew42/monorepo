@@ -172,6 +172,42 @@ function findNewTaskJsonl(wtPath, startedAfterMs) {
 	return { path: candidates[0], lines };
 }
 
+// FIX (2026-10-01, task-mastermind-openrouter's own diagnosis, confirmed): a probe agent's cwd is
+// the throwaway worktree's scratch dir, but `new-task` goes through Servex, and Servex opens every
+// task dir against the ONE project it knows (the main tree's own public/framework/ai/<date>/), not
+// the agent's own cwd. findNewTaskJsonl() above only ever looked inside the worktree — the task.jsonl
+// a probe opens is never there, so check 5 (and check 4, which reads the same file for `skill:`
+// lines) misread "the hook never fired" when the real story is "wrong tree". This searches the
+// orchestrator's own tree (the main checkout probes.mjs itself runs from — `ROOT`, below) for a
+// task.jsonl whose first `assign` names this exact agent id, newest-modified match wins. Only
+// today's and yesterday's date dirs, one level deep (a probe always opens a fresh top-level task,
+// never a nested one) — cheap, and right for what a probe actually does.
+function findNewTaskJsonlInRoot(root, agentId, startedAfterMs) {
+	const aiDir = path.join(root, "public/framework/ai");
+	let dateDirs;
+	try { dateDirs = fs.readdirSync(aiDir, { withFileTypes: true }).filter(e => e.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(e.name)); }
+	catch { return null; }
+	dateDirs.sort((a, b) => b.name.localeCompare(a.name));
+	for (const d of dateDirs.slice(0, 2)) {
+		const dayPath = path.join(aiDir, d.name);
+		let slugs;
+		try { slugs = fs.readdirSync(dayPath, { withFileTypes: true }).filter(e => e.isDirectory()); }
+		catch { continue; }
+		const candidates = slugs
+			.map(s => path.join(dayPath, s.name, "task.jsonl"))
+			.map(full => { let mtime = 0; try { mtime = fs.statSync(full).mtimeMs; } catch {} return { full, mtime }; })
+			.filter(c => c.mtime > 0 && c.mtime >= startedAfterMs)
+			.sort((a, b) => b.mtime - a.mtime);
+		for (const c of candidates) {
+			let lines;
+			try { lines = fs.readFileSync(c.full, "utf8").split("\n").flatMap(l => { try { return l.trim() ? [JSON.parse(l)] : []; } catch { return []; } }); }
+			catch { continue; }
+			if (lines.some(e => e.assign?.agent === agentId)) return { path: path.relative(root, c.full).replaceAll("\\", "/"), lines };
+		}
+	}
+	return null;
+}
+
 // The new page.js the agent wrote under the scratch dir, if any — one level down, never the
 // seeded parent itself.
 function findChildPage(scratchDir) {
@@ -248,6 +284,7 @@ async function runOne({ model, probeId, byId, spec, effort, topicOpt, dryRun }) 
 			`export default new Page({\n\tmeta: import.meta,\n\ttitle: "probe scratch — ${run}",\n` +
 			`\tdescription: "A throwaway run of the probe-tasks tool. Safe to delete.",\n\ticon: "science",\n\tchildren: [],\n});\n`);
 
+		const runStartMs = Date.now();
 		let spawned;
 		try {
 			spawned = await mcp("spawn_agent", { role: "minion", name: run.slice(0, 30), prompt, model, effort, permission_mode: "bypassPermissions", cwd: scratchDir });
@@ -267,7 +304,10 @@ async function runOne({ model, probeId, byId, spec, effort, topicOpt, dryRun }) 
 			const want = n => checksWanted.includes(n);
 			const parentPage = path.join(scratchDir, "page.js");
 			const child = findChildPage(scratchDir);
-			const task = findNewTaskJsonl(wtPath);
+			// Servex opens the agent's task dir against the MAIN tree, not this throwaway worktree
+			// (see the FIX comment on findNewTaskJsonlInRoot, above) — try the worktree first (in
+			// case that ever changes), then where it actually lands today.
+			const task = findNewTaskJsonl(wtPath) || (spawned?.id ? findNewTaskJsonlInRoot(ROOT, spawned.id, runStartMs) : null);
 
 			const relScratch = path.relative(wtPath, scratchDir).replaceAll("\\", "/");
 			const c1 = want(1) ? checkParses(wtPath, relScratch, [`${relScratch}/readme.md`, `${relScratch}/page.js`]) : null;
