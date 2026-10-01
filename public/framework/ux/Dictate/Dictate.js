@@ -256,9 +256,13 @@ export default class Dictate extends View {
 	/* Re-checked on every press, not just once — the owner may start
 	 * whisper-server, or it may have been stopped, between two presses of the
 	 * same button. */
+	/* ⚠ 2.5 s, not 0.8 s (2026-10-01). A phone's first request after a quiet spell can take
+	 * longer than 800 ms just to wake its Wi-Fi radio. Whisper then looked "unreachable", the
+	 * phone fell back to its own recognizer, and that recognizer repeats and beeps (see
+	 * `heard_browser()`). The cost of the longer wait is only paid when whisper really is down. */
 	async detect_engine(){
 		try {
-			const r = await fetch_timeout(this.whisper_url + "/", {}, 800);
+			const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
 			if (r.ok) return "whisper";
 		} catch { /* not reachable — fall through */ }
 		return Recognition ? "browser" : null;
@@ -677,15 +681,24 @@ export default class Dictate extends View {
 		rec.onstart = () => {
 			clearTimeout(this.connect_watchdog);
 			if (this.cancel_connect){ try { rec.stop(); } catch {} return; }
+			this.browser_last = "";   // a new recognizer session: its results start from nothing again
 			this.set_state("listening");
 		};
 		rec.onresult = e => this.heard_browser(e);
-		rec.onerror = e => { console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error); };
+		/* ⚠ "aborted" AND "no-speech" ARE NOT A STOPPED MIC (2026-10-01, the owner's "abort error"
+		 * on the phone). Android ends its recognizer after every pause and often reports "aborted"
+		 * as it does; Chrome reports "no-speech" after a quiet spell. Both are followed by `onend`,
+		 * which restarts it below (or, after a press, sets it idle). Treating them as errors stopped the mic mid-dictation and pushed
+		 * an error line into the layout. Only a press (`this.stopping`) ends it. */
+		rec.onerror = e => {
+			if (e.error === "aborted" || e.error === "no-speech") return console.warn("ux/Dictate: SpeechRecognition", e.error, this.stopping ? "(stopping)" : "(restarting)");
+			console.error("ux/Dictate: SpeechRecognition error:", e.error); this.browser_error(e.error);
+		};
 		// Chrome stops on its own after a few seconds of silence even with
 		// `continuous` — restart unless a real press asked to stop (`this.stopping`).
 		rec.onend = () => {
 			if (this.stopping){ this.stopping = false; this.set_state("idle"); }
-			else if (this.state === "listening" || this.state === "connecting") rec.start();
+			else if (this.state === "listening" || this.state === "connecting") try { rec.start(); } catch (e){ console.warn("ux/Dictate: restart failed:", e); }
 		};
 		rec.start();
 	}
@@ -696,12 +709,29 @@ export default class Dictate extends View {
 		floor.level(this, true);   // the browser engine has no level meter: a result is the only "loud" it can report
 		let interim = "";
 		for (let i = e.resultIndex; i < e.results.length; i++){
-			const said = e.results[i][0].transcript;
-			e.results[i].isFinal ? this.commit(said.trim()) : (interim += said);
+			const said = e.results[i][0].transcript.trim();
+			if (!e.results[i].isFinal){ interim += " " + said; continue; }
+			const fresh = this.browser_fresh(said);
+			if (fresh) this.commit(fresh);
 		}
-		this.partial_text = interim.trim();
+		this.partial_text = this.browser_fresh(interim.trim(), true);
 		this.draw_caption();
 		this.on_guess?.(this.partial_text);
+	}
+
+	/* ⚠ CHROME ON ANDROID REPEATS THE WHOLE PHRASE IN EVERY RESULT (2026-10-01, the owner's
+	 * "so so tell so tell me so tell me why…"). Desktop Chrome gives each finished piece once:
+	 * "hello there", then "how are you". Android gives "so", then "so tell", then "so tell me",
+	 * each marked final, so committing each one wrote the sentence over and over. A result that
+	 * starts with the last one (or repeats it) only adds the words after it. `peek` reads
+	 * without remembering, for the grey guess. Reset when the recognizer restarts (`onstart`). */
+	browser_fresh(said, peek = false){
+		const last = this.browser_last ?? "";
+		if (!peek && said) this.browser_last = said;
+		if (!last || !said) return said;
+		if (said.toLowerCase() === last.toLowerCase()) return "";
+		if (said.toLowerCase().startsWith(last.toLowerCase())) return said.slice(last.length).trim();
+		return said;
 	}
 
 	browser_error(error){

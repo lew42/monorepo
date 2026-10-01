@@ -385,3 +385,19 @@ START one; plain `Dictate` has no sound at all, only `ComposerMic` does):
 Neither case needed a live microphone to find — both are deterministic once you trace
 exactly when each `beep()` call happens relative to the async chain around it. Full
 reasoning: `ai/2026-10-01/dictate-stop-sound/task.jsonl`.
+
+## Why the phone repeated every sentence and beeped after every pause (2026-10-01)
+
+On the phone, the page's 800 ms check for whisper timed out, so the mic quietly used
+Chrome's own recognizer instead. On Android that recognizer sends the whole phrase again
+in every result ("so", "so tell", "so tell me"), so each one was written after the last:
+"so so tell so tell me…". It also ends itself after every pause, which plays Android's own
+beep twice and often reports "aborted", and that error stopped the mic and pushed an error
+line into the layout. Three fixes in `Dictate.js`:
+- `browser_fresh()` keeps only the words after the last result, when a result repeats it;
+- "aborted" and "no-speech" no longer stop the mic, because the recognizer restarts by itself;
+- the whisper check waits 2.5 s, so a phone waking its Wi-Fi still finds whisper.
+
+Android's own restart beep can't be silenced from a page. With whisper found, the
+recognizer isn't used, so the beeps go too.
+Proof: `ai/2026-09-30/one-dictation/fix-android/`.
