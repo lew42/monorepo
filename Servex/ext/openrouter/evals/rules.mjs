@@ -45,7 +45,9 @@ const RESULTS_PATH = path.join(ROOT, "Servex/ext/openrouter/evals/results.jsonl"
 const APPEND_HOOK = path.join(ROOT, ".claude/hooks/append.mjs");
 
 const pad = n => String(n).padStart(2, "0");
-function nowLocal(){
+// Exported: probes.mjs (the sibling open-ended-probe runner) shares these instead of keeping its
+// own copy (CLAUDE.md law 6: one of everything) — review finding 2026-09-30, #1/#7.
+export function nowLocal(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off < 0 ? "-" : "+"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
 }
@@ -56,7 +58,7 @@ const NOW_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
 /* Appends one line to a .jsonl through the validated hook — "NOW" fields become this moment's
  * real timestamp, and the whole file is re-parsed so a bad line is caught here, not on the page
  * that reads it live. Throws loudly (never a silent drop) if the hook itself fails. */
-function appendJSON(file, obj){
+export function appendJSON(file, obj){
 	fs.mkdirSync(path.dirname(file), { recursive: true });
 	const scratch = path.join(os.tmpdir(), `rules-append-${process.pid}-${Date.now()}.json`);
 	fs.writeFileSync(scratch, JSON.stringify([obj]));
@@ -65,14 +67,14 @@ function appendJSON(file, obj){
 		if (r.status !== 0) throw new Error(`append.mjs exited ${r.status}: ${r.stderr || r.stdout}`);
 	} finally { try { fs.unlinkSync(scratch); } catch {} }
 }
-function readJsonl(file){
+export function readJsonl(file){
 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	catch { return []; }
 }
-function sha256(file){ try { return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); } catch { return null; } }
-const slug = s => String(s).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
+export function sha256(file){ try { return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"); } catch { return null; } }
+export const slug = s => String(s).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 
-async function mcp(name, args, ms = 30000){
+export async function mcp(name, args, ms = 30000){
 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 		body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
 	const j = await r.json();
