@@ -126,3 +126,15 @@ Read the parent's "Phase 5". Still five tests, now ordered as rungs, easiest fir
   Score: did it find each planted foul, and did it invent any that aren't there? Sample 4–6
   configs, the cheapest vision-capable ones first (check `architecture.input_modalities` in
   `/api/v1/models`). Note any model that can't take an image at all.
+
+## Amendment 4: Phase 9 (read the parent's "Phase 9"); keep it small
+- **Thinking level:** every model runs at `medium` (not `low`). Add 25% and 75% points only where
+  a result is borderline while other models score high. Use min and max only to prove a test
+  discriminates (it fails at min and passes at max). Never sweep.
+- **`AITest`, one class:** `public/framework/ai/test/AITest.js`, a plain data class that node and
+  the browser can both import (no DOM, no node-only imports). It has `id, kind, skills, rung`, a
+  prompt FILE (`prompt.md` beside the test), `criteria[]`, `expected`, `judge` (instructions)
+  and `confidence` (0..1: how sure we are the test is good, raised when the strong models agree;
+  the judge sets it when it writes `reference.md`). Each `library/<id>/test.json` becomes the
+  data for one instance. `library.mjs` reads the prompt from the file and spawns from it, so no
+  one re-types a prompt. Don't build a second runner: library.mjs is the runner.

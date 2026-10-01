@@ -29,3 +29,11 @@ in `overview.js`, `evals/models.mjs`, and this task dir. Hold reloads while you 
 
 ## Reply
 The page link, a screenshot at 1200, and the best-value model per kind in one line each.
+
+## Addition (Phase 9): "How thinking works", a short note linked from the Models page
+A sibling page `/framework/ai/system/thinking/` (or a Docs-tab doc; pick what the AI page already
+uses), one screen with one picture. It explains what runs on the PROVIDER's server (the model's
+thinking, inside one API response; the thinking level sets how much) and what runs on OUR
+machine (the harness's tool loop: the model asks for a tool, the harness runs it and sends back
+the result, and each round trip is one more billed model call). Say what that means for cost: a
+turn with 8 tool calls is about 8 model calls. The Models page links it beside "effort".
