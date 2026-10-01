@@ -54,7 +54,7 @@ If you were opened with `spawn_agent`'s `task: {dir}` option, you start with the
 
 ## Before the first edit
 
-Run `new-task` inside the task dir your brief names — it already exists; you write its `task.jsonl` launch line, with your own `session_id`.
+Run `new-task` inside the task dir your brief names — it already exists; you write its `task.jsonl` launch line, with your own `session_id`. **No brief and no task dir?** (a rough prompt such as "make a new page here") Run `new-task` FIRST, before the first edit, so the task opens under `public/framework/ai/<today>/<slug>/` — never a `task.jsonl` at a path you invent. (2026-10-01: the probe runs showed every model skipping this, so it was the skill, not the model.)
 
 **This skill and `new-task` are all you carry by default. Everything else is "read X when Y":** `code` before your first JS edit under `public/` · `layout` before building or restyling anything with a size · `css` before a declaration, `new-css-class` before a new class name · `new-page` before creating a `page.js` · `ui-test` to prove a drag, resize or hover really works · `research` before writing down anything you researched · `documentation` then `finish-task` at landing · `skill-improvement` for any skill that misled you.
 
