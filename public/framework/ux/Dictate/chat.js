@@ -177,6 +177,9 @@ Session.report_pause(() => GLOBAL.ctl.session);
  * Dictate page's own demo wants its meter, mic picker and Debug bar, same as the bare
  * `new Widget(...)` it used to build directly).
  *
+ * `mode` (item 1, "modes" — default `"dictate"`) is passed straight through to the `Widget`
+ * this draws; see `Widget.js`'s own `MODES` table for what `"dictate"` and `"chat"` each mean.
+ *
  * `keep` (item 2, one-dictation; default `true`) chooses which conversation this mount
  * joins:
  * - `keep: true` — today's one global session per browser tab, kept across every page
@@ -189,7 +192,7 @@ Session.report_pause(() => GLOBAL.ctl.session);
  *   is never touched by a `keep: false` mount: they are two entirely separate controllers,
  *   built by the same `create_controller()` above, one shared, one private.
  */
-export default function chat(el, { path = location.pathname, card, placeholder, keep = true, level, source, debug, revision, models } = {}){
+export default function chat(el, { path = location.pathname, card, placeholder, keep = true, level, source, debug, revision, models, mode = "dictate" } = {}){
 	const target = { path, card };
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
 	let panel, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
@@ -197,7 +200,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 
 	new View({ el, capture: false }).append(() => {
 		panel = new Widget({
-			placeholder, level, source, debug, revision, models,
+			placeholder, level, source, debug, revision, models, mode,
 			marks: true,
 			deliver: async entry => {
 				try {

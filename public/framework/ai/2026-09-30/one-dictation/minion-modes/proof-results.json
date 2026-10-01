@@ -1,0 +1,112 @@
+[
+  {
+    "name": "400: dictate mode is the default (no ?mode=)",
+    "ok": true,
+    "detail": "widget.mode: dictate"
+  },
+  {
+    "name": "400: dictate mode — two sends make ONE bubble",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "400: that one bubble holds both sentences",
+    "ok": true,
+    "detail": "2 paragraph(s)"
+  },
+  {
+    "name": "400: no console/page errors (dictate)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1920: dictate mode is the default (no ?mode=)",
+    "ok": true,
+    "detail": "widget.mode: dictate"
+  },
+  {
+    "name": "1920: dictate mode — two sends make ONE bubble",
+    "ok": true,
+    "detail": "1 bubble(s)"
+  },
+  {
+    "name": "1920: that one bubble holds both sentences",
+    "ok": true,
+    "detail": "2 paragraph(s)"
+  },
+  {
+    "name": "1920: no console/page errors (dictate)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "400: ?mode=chat builds the widget in chat mode",
+    "ok": true,
+    "detail": "widget.mode: chat"
+  },
+  {
+    "name": "400: the Chat button in the switch shows picked",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "400: chat mode — two sends make TWO bubbles",
+    "ok": true,
+    "detail": "2 bubble(s)"
+  },
+  {
+    "name": "400: no console/page errors (chat)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1920: ?mode=chat builds the widget in chat mode",
+    "ok": true,
+    "detail": "widget.mode: chat"
+  },
+  {
+    "name": "1920: the Chat button in the switch shows picked",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "1920: chat mode — two sends make TWO bubbles",
+    "ok": true,
+    "detail": "2 bubble(s)"
+  },
+  {
+    "name": "1920: no console/page errors (chat)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "before reload: ?mode=chat built chat mode",
+    "ok": true,
+    "detail": "widget.mode: chat"
+  },
+  {
+    "name": "after a reload: still chat mode, from the URL alone",
+    "ok": true,
+    "detail": "widget.mode: chat, url: http://localhost:51812/framework/ux/Dictate/?mode=chat"
+  },
+  {
+    "name": "the URL itself still carries ?mode=chat",
+    "ok": true,
+    "detail": "http://localhost:51812/framework/ux/Dictate/?mode=chat"
+  },
+  {
+    "name": "clicking Dictate remounts the demo in dictate mode",
+    "ok": true,
+    "detail": "widget.mode: dictate"
+  },
+  {
+    "name": "clicking Dictate clears ?mode= from the URL",
+    "ok": true,
+    "detail": "http://localhost:51812/framework/ux/Dictate/"
+  },
+  {
+    "name": "no console/page errors (reload/switch)",
+    "ok": true,
+    "detail": ""
+  }
+]

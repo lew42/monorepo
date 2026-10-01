@@ -28,6 +28,20 @@ this mount is on right now; `card` is explained below. `level`, `source` and `de
 straight through to the `Widget` this draws (a bigger level meter, the mic picker, the "Debug ▾"
 bar) — the Dictate page's own demo (below) is the one caller that turns all three on.
 
+## Modes, and where the Dictate box sits
+
+The Dictate box — entry, Whisper, correction, Send — is not its own thing. It sits *inside*
+the Chat widget (`Widget.js`), which owns the bubbles above it. Every sentence becomes one more
+line in the same conversation a typed message would.
+
+A **mode** (`chat(el, {mode})`, `new Widget({mode})`) is a named preset, never a second code
+path — one row in `Widget.js`'s `MODES` table, over settings `Mic.js`/`Chat.js` already have.
+`"dictate"` (default): a sentence sends itself, sentences merge into one bubble. `"chat"`: Enter
+or Send only, every send its own bubble; the mic still works, typing into the box only.
+
+The same chat is open to an agent too: its reply is just another line in the same session file,
+with its own `from`.
+
 ## `keep`: whose conversation this mount joins (item 2, one-dictation)
 
 `keep` (default `true`) answers one question: when this mount goes away, is its conversation

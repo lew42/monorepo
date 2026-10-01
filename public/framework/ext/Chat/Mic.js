@@ -214,7 +214,12 @@ export class ComposerMic extends Dictate {
 	   and each change is handed to `on_live({text, settled, guess, sent})` for the chat log to draw. The
 	   real box is left to typing. Sending, clean-up, paragraphs and the auto-send all work unchanged,
 	   because they only ever read `this.box()`. */
-	live_active(){ return !!this.on_live && SETTINGS.into === "chat"; }
+	// `this.into` (one-dictation, item 1): a mode preset's own override, same seam
+	// `send_mode`/`mode_now()` already has — set directly on ONE mic instance
+	// (`ux/Dictate/Widget.js`'s own mode table), never on the shared `SETTINGS`, so it
+	// never touches what the owner's gear has saved. The gear itself still wins: picking
+	// "into" there clears this override (`settings_panel()`, below).
+	live_active(){ return !!this.on_live && (this.into ?? SETTINGS.into) === "chat"; }
 	box(){ return this.live_active() ? (this.ghost ??= document.createElement("textarea")) : this.field?.el; }
 
 	/* The box this mic draws into changed (first draw, or the gear's "into" setting flipped): take the
@@ -332,6 +337,7 @@ export class ComposerMic extends Dictate {
 			input.addEventListener("change", () => {
 				SETTINGS[key] = kind === "number" ? Math.max(0, Number(input.value) || 0) : kind === "boolean" ? input.checked : input.value;
 				if (key === "send_mode") this.send_mode = undefined;   // the panel wins over a per-mic override
+				if (key === "into") this.into = undefined;   // same rule, for the mode table's own "into" override
 				if (key === "box_lines" && this.field?.el) this.field.el.style.maxHeight = SETTINGS.box_lines + "lh";
 				// SETTINGS is shared and read live everywhere, but a DOM node outside this
 				// mic (Composer.js's own "raw" chip — review finding 7: it must hide when

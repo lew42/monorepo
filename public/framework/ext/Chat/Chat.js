@@ -260,9 +260,12 @@ function draw_reacts(b){
  *  time a merge's `fill()` redrew the bubble from its stored pieces — `patch_piece()`,
  *  below, is how that same caller updates one of these AFTER it was drawn, e.g. a
  *  mark that only answers once the bubble is already on screen). */
-export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed }){
+export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark, failed, join = true }){
 	at = Date.parse(at ?? 0) || Date.now();
-	const last = mergeable($box, sender, at), piece = { id, text, at, via, mark, failed };
+	// `join: false` (one-dictation, item 2 — a chat-mode preset's own opt-out): never merge
+	// onto the last bubble, even from the same sender within `MERGE_GAP_MS` — every send is
+	// its own bubble. Default `true` is every caller before this task, unchanged.
+	const last = join ? mergeable($box, sender, at) : null, piece = { id, text, at, via, mark, failed };
 	if (last){
 		bubbles.get(last).pieces.push(piece);
 		last.dataset.at = at;

@@ -32,6 +32,7 @@ export function model(value){
  *     new Widget({ debug: true });                     // + the "Debug ▾" bar
  *     new Widget({ revision: "edit" });                 // ux/Revise tidies each sentence
  *     new Widget({ models: true });                     // + the model picker
+ *     new Widget({ mode: "chat" });                     // typed first, manual send, never merges bubbles — see MODES, below
  *
  * Every option is `false`/`null`/off by default, so the plain `new Widget()` call stays the
  * smallest one. `level`/`source`/`debug`/`revision`/`models` are display-only; `history()`,
@@ -48,10 +49,33 @@ export function model(value){
  * `mark_failed`, `retag`, `reset` — is the seam every caller builds on; it hasn't changed
  * shape since this drew through `ChatPanel` instead.
  */
+/** **THE MODE PRESETS** (`mode`, one-dictation item 1 — "a mode is a named preset, never a
+ *  second code path", CLAUDE.md law 6). One small table, one row per mode: everything a mode
+ *  changes already exists, so a third mode is one more row here, never a new `if` anywhere
+ *  else. `"dictate"` (the default) changes nothing — it IS what every surface already does:
+ *  voice first, a sentence goes out by itself at its end, and sentences from the same sender
+ *  join the last bubble. `"chat"` (typed first) sets exactly three things, all of them already
+ *  real seams: `send_mode`/`into`, read by ONE `ComposerMic` instance (`Mic.js`'s own
+ *  `mode_now()`/`live_active()` — a per-mic override, never the shared, owner-saved
+ *  `SETTINGS`, and the gear still wins over it for that one box), and `join`, read by
+ *  `Widget.Thread` below to call `ext/Chat/Chat.js`'s own `speak()` with its `join: false`
+ *  opt-out so a chat-mode send never merges into the last bubble. */
+const MODES = {
+	dictate: {},
+	chat: { send_mode: "manual", into: "box", join: false },
+};
+
 export default class Widget extends View {
 
 	render(){
 		this.ac("ux-dictate-widget flex v gap");
+		// `this.mode` (default "dictate") picks one row of `MODES` above; an unknown name
+		// falls back to "dictate" rather than throwing — a typo'd mode should look like the
+		// default, not break the page. `this.mic_preset` is read by `Widget.Composer` below;
+		// `this.join` is read by `Widget.Thread`'s own `draw()`.
+		const preset = this.constructor.MODES[this.mode] ?? this.constructor.MODES.dictate;
+		this.mic_preset = preset;
+		this.join = preset.join !== false;
 		const Thread = this.v1 ? this.constructor.ThreadV1 : this.constructor.Thread;
 		const Composer = this.v1 ? this.constructor.ComposerV1 : this.constructor.Composer;
 		div.c("ux-dictate-widget-card card pad flex v gap", () => {
@@ -170,6 +194,8 @@ Widget.prototype.on_text = null;     // (text) => … — fires the moment a sen
 Widget.prototype.answer = null;      // (choice) => … — a choice-button question's pick (`say({type:"ask",...})`)
 Widget.prototype.marks = false;      // show a ✓/`?` beside each of the OWNER'S OWN bubbles (`ux/Understand`)
 Widget.prototype.v1 = false;         // true = the OLD thread (one bubble per sentence) + composer (Dictate's own open mic)
+Widget.prototype.mode = "dictate";   // "dictate" (voice first, the default) | "chat" (typed first) — see MODES, above
+Widget.MODES = MODES;
 
 /** **THE OLD THREAD** (`v1: true`) — one bubble per line, drawn with this widget's own
  *  markup, never merged even when the same sender speaks again right away. Kept reachable
@@ -368,6 +394,7 @@ Widget.Thread = class WidgetThread extends View {
 		const bubble = this.follow(() => speak(this.$bubbles, {
 			cls: assistant ? "chatbox-reply" : "chatbox-you",
 			who, text: chat.text, sender, at, id: at, via: chat.via,
+			join: this.widget.join,   // chat mode's own opt-out (one-dictation item 2) — see MODES, above Widget
 		}));
 		// `speak()` either made a brand-new bubble (this piece is its only, so its last and
 		// only child) or merged this piece onto the thread's last bubble as a new paragraph
@@ -675,6 +702,14 @@ Widget.Composer = class WidgetComposer extends View {
 			on_meter: w.level ? level => this.set_level(level) : undefined,
 		});
 		w.dictate = view.mic;
+		// THE MODE PRESET (one-dictation item 1) lands on this ONE mic instance, after it
+		// already exists — never on the shared `SETTINGS` (`Mic.js`'s own `send_mode`/`into`
+		// per-mic overrides, same seam `mode_now()`/`live_active()` already read), so a mode
+		// never touches what the owner's gear has saved, and the gear still wins for this box.
+		if (view.mic){
+			if ("send_mode" in w.mic_preset) view.mic.send_mode = w.mic_preset.send_mode;
+			if ("into" in w.mic_preset) view.mic.into = w.mic_preset.into;
+		}
 		if (w.level) this.meter();
 		if (w.source) this.source_picker();
 	}

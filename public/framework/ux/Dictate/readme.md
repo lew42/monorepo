@@ -98,12 +98,15 @@ proved right there reaches all of them. Its own conversation is real but never r
 
 ## chat.js — one mount, one conversation, every surface
 
-`chat(el, {path, card, placeholder, keep, level, source, debug})` draws the one chat box
+`chat(el, {path, card, placeholder, keep, level, source, debug, mode})` draws the one chat box
 every surface uses — the ✦ sheet, the ☰ AI tab, a card's own sidebar, the dev bar, and now
 the Dictate page's own demo. `keep: true` (the default) joins the ONE global conversation
 per browser tab, kept across every page; `keep: false` gives this one mount its OWN
 conversation, remembered only as long as the mount itself exists — leave the page and come
-back to a brand-new, empty one. `new_session_button(mount)` is the one "New session" button
+back to a brand-new, empty one. `mode` (`"dictate"`, the default, or `"chat"`) is a named
+preset for voice-first vs. typed-first — the Dictate page's own demo has a Dictate | Chat
+switch for it: [`doc/chat.md`'s "Modes, and where the Dictate box sits"](/framework/ux/Dictate/doc/chat/#modes-and-where-the-dictate-box-sits).
+`new_session_button(mount)` is the one "New session" button
 every surface now shares, instead of each building its own. The call, `keep`'s exact rules,
 why a reopened chat never loses old messages, and every older version still kept reachable
 (`aiV2`, `askV1`, `chat_v1`, `foot()`): [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
