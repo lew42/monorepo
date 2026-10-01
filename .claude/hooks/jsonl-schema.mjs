@@ -42,7 +42,7 @@ export const schemas = {
 			// `{"group": "slug"}` puts the task in a group — read by ai2/groups.js's Member.apply(), not a verb method.
 			group:      { type: "string", extra: "public/framework/ai2/groups.js", eg: "system-design" },
 		},
-		pending: ["experiment", "review", "shots"],
+		pending: ["shots"],
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/<date>/day.jsonl)",
