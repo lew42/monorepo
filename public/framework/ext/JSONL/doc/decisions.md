@@ -43,6 +43,38 @@ is how a reader says that moment is never coming.
 Full record — the registry, the several-readers case, the reset loop it avoids:
 [live](./live.md).
 
+## Flat lines render as a plain log line, never warn
+
+`day.jsonl` has always had lines with no verb wrapper — `{"at", "task",
+"msg"}` — and the oldest task logs wrote `{"type": "launch", …}`, before
+every writer agreed on "one verb per key". Before 2026-09-30, `apply()`
+dispatched key by key, so a three-key flat line warned three times —
+`/framework/ai2/`, 2026-09-30: `JSONL: unknown verb …` spam from exactly
+these lines.
+
+`static flat(entry)` is the fix: when no key is a known verb and the entry
+carries something to read (`msg`, `text` or `title`) beside a `type` or `at`,
+it's handed to `log()` as one line. With a real `at` but nothing to read,
+`apply()` folds it into `assign` instead — the way `session.json` always
+merged. Only a line with neither still warns, once per stray key.
+
+Old lines are never rewritten (the logs are append-only); this only changes
+how the *reader* treats a shape it already had to tolerate.
+
+## `experiment`, `review`, `shots` and `bands` join `logs`, not a new array
+
+The `servex-mastermind`, `page-audit` and `review` skills told agents to log
+`{"experiment": {...}}`, `{"review": {...}}`, `{"shots": {...}}` and
+`{"bands": {...}}` lines before the reader knew any of the four — every page
+replaying such a log warned `unknown verb` for whichever one it hadn't
+registered yet (2026-09-30).
+
+None grows its own array — each pushes one computed `msg` onto `logs`, same
+as `log` itself. `shots` can't be a plain method (`TaskJSONL` already has a
+`shots` array); `apply()` renders it through `static lines` instead — see
+[task-jsonl.md](./task-jsonl.md#experiment-review-shots-and-bands) for the
+full shapes.
+
 ## `TaskJSONL` — the task manifest as a log
 
 `TaskJSONL extends JSONL`, adding `agent` (appended at dispatch, merged by

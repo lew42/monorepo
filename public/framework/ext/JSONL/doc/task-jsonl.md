@@ -263,6 +263,46 @@ verb every `TaskJSONL` reader gets now, so any other board can render notes
 without redeclaring them, and no reader warns `unknown verb "note"` on a file
 another reader is writing.
 
+## `experiment`, `review`, `shots` and `bands`
+
+```json
+{"experiment": {"at": "…", "try": "4 Haiku agents on a private Servex, 3 idle",
+  "measure": "claude.exe holding their sessions", "result": "at +33s: 4 processes, 251/262/253/270 MB"}}
+
+{"review": {"found": 7, "real": 6, "fixed": 6}}
+{"review": {"answer": {"n": 1, "reply": "fixed: review.mjs posts verdict + report + sheet links to the task's card"}}}
+
+{"shots": {"at": "…", "pages": ["/framework/ai/", "/framework/ai/review/"], "dir": "shots/", "sheet": "shots/…/sheet.png"}}
+{"bands": {"at": "…", "round": 2, "read": ["wall band: 7-9 columns too narrow — FAIL", "sent back: --column 22-26em"]}}
+```
+
+`experiment` is one thing tried, in three parts — what was done (`try`, or
+`name` on an older line), how it was checked (`measure`), what came of it
+(`result`). `review` is a review pass, written in one of two shapes a line can
+take: the SUMMARY, once per pass (`found`/`real`/`fixed`), or one ANSWER to a
+single finding (`answer: {n, reply}` — `fixed`, `declined: <why>` or `noted`,
+`Server/doc/review.md`'s own reply convention). `shots` and `bands` are
+`Server/review.mjs`'s own two lines: `shots` once per pass, naming the pages
+it screenshotted and where (`pages`, `dir`); `bands` once per audit round,
+the findings that round actually read off those screenshots (`round`, `read`
+— `round` omitted on the first pass).
+
+None of the four grows an array of its own — see
+[decisions.md](./decisions.md#experiment-review-shots-and-bands-join-logs-not-a-new-array)
+for why. All four push one line onto `logs`, same as `log` itself:
+`"<try> → <measure> → <result>"` for an experiment (missing parts just drop
+out of the join), `"review: found N, real M, fixed K"` for a review's
+summary, `"review: #N — <reply>"` for one answer, `"shots: N pages at 4
+widths → <dir>"`, `"bands: round N, M read"`.
+
+⚠ `shots` can't dispatch to a method of its own name: `TaskJSONL` already has
+an instance ARRAY called `shots` (the plain `shot` verb's own list, read by
+`shot_wall()`), and a field always wins over a same-named method on `this`.
+`static lines` on `TaskJSONL`, read by `dispatch()` in `JSONL.js`, renders
+this one verb straight onto `logs` instead of calling `this.shots(...)`. No
+other verb needs this — it's a one-off collision, not a pattern to repeat the
+next time a verb happens to share a field's name.
+
 ## `{"group": "<id>"}` — which AI 2 group the task is filed under (latest line wins)
 
 ⚠ Not `assign.group`, the older "effort" field. `TaskJSONL` does not know it yet (one console warning per file); AI 2 reads it — [`ai2/doc/groups.md`](/framework/ai2/doc/groups.md).
@@ -280,15 +320,19 @@ an append-only file can never retract a miscount. With a single index,
 
 `apply()` only dispatches a key that's in `this.constructor.verbs` — a
 handler method alone isn't enough. `TaskJSONL.verbs` restates the base list
-plus its own six names; forgetting the override compiles clean and fails
-silently, with `apply()` routing every `agent`/`ask`/`chat`/`shot` line straight
-to `skip()` and a console warning easy to miss in a wall of task output.
+plus its own twelve names (`agent`, `chat`, `shot`, `ask`, `decision`,
+`verdict`, `rank`, `note`, `experiment`, `review`, `shots`, `bands`);
+forgetting the override compiles clean and fails silently, with `apply()`
+routing every one of those lines straight to `skip()` and a console warning
+easy to miss in a wall of task output.
 
 The array a new verb appends to needs the same second thought in
 [`reset()`](/framework/ext/JSONL/api/reset/) — `TaskJSONL` clears `agents`,
 `asks`, `chats`, `shots`, `decisions`, `verdicts` and `notes` there before calling `super`. Miss it and only one
 scenario breaks: a streamed log that gets rewritten replays its rows on top
-of the old ones.
+of the old ones. `experiment`, `review`, `shots` and `bands` have no array of
+their own to clear — they push onto `logs`, which `super.reset()` already
+empties.
 
 A verb that's genuinely still unknown (a typo, an old verb a subclass dropped,
 a malformed line carrying a stray top-level key) warns through `console.warn`

@@ -90,10 +90,90 @@ export class JSONL {
 		return this;
 	}
 
+	/**
+	 * A line with no verb of its own — `{"at", "task", "msg"}` in a day log, or
+	 * the `{"type": "launch", …}` / `{"type": "decision", …}` shape old task
+	 * logs wrote before every line had a verb. Still a real record, not noise:
+	 * it carries something to read (`msg`, `text` or `title`) alongside a
+	 * `type` or `at` that marks it as a genuine line rather than a stray key.
+	 * Returns a value shaped like a `log` line's own (`{..., msg}`), or `null`
+	 * when there is nothing to show as one line — `apply()` then tries treating
+	 * the whole thing as `assign` before it ever gives up and warns.
+	 */
+	static flat(entry){
+		const text = entry.msg ?? entry.text ?? entry.title;
+		return (entry.type || entry.at) && text ? { ...entry, msg: text } : null;
+	}
+
+	/* Every key splits into a known VERB (dispatches to its handler) or a STRAY
+	   (anything else) — then three old, still-live shapes get a real line
+	   instead of one `skip()` warning per stray key:
+
+	     1. NO verb at all — `{"at", "task", "msg"}` in a day log, or the
+	        `{"type": "launch", …}` old task logs wrote before every line had a
+	        verb. `flat()` turns it into a `log` line when there's something to
+	        read (`msg`/`text`/`title`); failing that, a real `at` makes it a
+	        pre-wrapper `{"assign": {...}}` line — written the way `session.json`
+	        always was, a bare object of fields (`now`, `step`, `steps`,
+	        `worktree`, `branch`, …) — and it merges onto the instance exactly as
+	        `assign` would (the module's own history: `assign` lines replaced
+	        whole-object `session.json` writes verb-for-verb).
+
+	     2. EXACTLY ONE verb, plus keys that belong INSIDE its value —
+	        `{"log": "built…", "at": "…"}` instead of `{"log": {"at": "…", "msg":
+	        "built…"}}` — fold straight into that verb's own value (the value's
+	        own fields win a clash) rather than dispatch and then warn on the
+	        rest.
+
+	     3. Two or more real verbs on one line, still carrying stray progress
+	        fields — `{"log": "…", "decision": {...}, "step": 5, "now": "…"}`,
+	        live in several 2026-09-30 task logs — every verb still dispatches,
+	        and a stray's `at` says "this is a real assign", not junk.
+
+	   A stray with no `at` to vouch for it, on a line with no verb to fold into,
+	   is the one case nothing here can make sense of — it still warns, same as
+	   always. */
 	apply(entry){
-		for (const verb of Object.keys(entry))
-			this.constructor.verbs.includes(verb) ? this[verb](entry[verb]) : this.skip(verb, entry);
+		const keys = Object.keys(entry ?? {});
+		if (!keys.length) return this;
+		const verbs = keys.filter(k => this.constructor.verbs.includes(k));
+		const strayKeys = keys.filter(k => !verbs.includes(k));
+		const stray = Object.fromEntries(strayKeys.map(k => [k, entry[k]]));
+
+		if (!verbs.length){
+			const flat = this.constructor.flat(entry);
+			if (flat){ this.log(flat); return this; }
+			if (entry.at){ this.assign(entry); return this; }
+			strayKeys.forEach(k => this.skip(k, entry));
+			return this;
+		}
+
+		if (verbs.length === 1 && strayKeys.length){
+			const [verb] = verbs, value = entry[verb];
+			const isDict = value && typeof value === "object" && !Array.isArray(value);
+			this.dispatch(verb, isDict ? { ...stray, ...value } : { ...stray, msg: value });
+			return this;
+		}
+
+		verbs.forEach(verb => this.dispatch(verb, entry[verb]));
+		if (strayKeys.length){
+			if (stray.at) this.assign(stray);
+			else strayKeys.forEach(k => this.skip(k, entry));
+		}
 		return this;
+	}
+
+	/* A verb normally dispatches to `this[verb]()`, its own method of the same
+	   name. One verb can't: `TaskJSONL`'s `shots` would call a method of that
+	   name, but a FIELD of that name already exists on the instance (the plain
+	   `shot` verb's own array, read by `shot_wall()`) — a field always wins
+	   over a method, so `this.shots` IS the array, not a function, and calling
+	   it throws. `static lines`, set only where that collision is real, renders
+	   such a verb straight onto `logs` instead; every other verb dispatches
+	   exactly as it always has. */
+	dispatch(verb, value){
+		const line = this.constructor.lines?.[verb];
+		line ? this.log(line(value)) : this[verb](value);
 	}
 
 	log(value){ this.logs.push(value); }
@@ -124,7 +204,15 @@ export class JSONL {
  * once) and `step` (the 1-based index underway). See `stats.js`'s `progress()`.
  */
 export class TaskJSONL extends JSONL {
-	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note"];
+	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands"];
+
+	/* `shots` (plural) is `Server/review.mjs`'s own line — a page-shot batch,
+	   naming pages/dir — and it collides with the `shots` ARRAY field below
+	   (the plain `shot` verb's list). `dispatch()` renders anything listed
+	   here onto `logs` by calling the function instead of `this[verb]()`. */
+	static lines = {
+		shots: value => ({ ...value, msg: value.msg ?? `shots: ${value.pages?.length ?? 0} pages at 4 widths → ${value.dir ?? ""}` }),
+	};
 
 	agents = [];
 	chats = [];
@@ -255,6 +343,46 @@ export class TaskJSONL extends JSONL {
 	note(value){
 		const known = value.id && this.notes.find(n => n.id === value.id);
 		known ? Object.assign(known, value) : this.notes.push(value);
+	}
+
+	/**
+	 * ONE THING TRIED, in three parts: `{"experiment": {"try", "measure", "result"}}`
+	 * — what was done, how it was checked, what came of it (some write `name`
+	 * instead of `try`; both read). No array of its own: it joins `logs`, the
+	 * same plain line every other reader of this file already draws, as
+	 * `"<try> → <measure> → <result>"` with any missing part left out.
+	 */
+	experiment(value){
+		const msg = value.msg ?? [value.try ?? value.name, value.measure, value.result].filter(Boolean).join(" → ");
+		this.logs.push({ ...value, msg });
+	}
+
+	/**
+	 * A REVIEW PASS, in one of two shapes the skills already write: the
+	 * SUMMARY, once per pass — `{"review": {"found", "real", "fixed"}}` — or
+	 * one ANSWER to a single finding — `{"review": {"answer": {"n", "reply"}}}`.
+	 * Like `experiment`, it joins `logs` rather than growing its own array:
+	 * `"review: found N, real M, fixed K"` for the summary, `"review: #N — <reply>"`
+	 * for one answer.
+	 */
+	review(value){
+		const a = value.answer;
+		const msg = value.msg ?? (a ? `review: #${a.n} — ${a.reply}`
+			: value.found != null ? `review: found ${value.found}, real ${value.real}, fixed ${value.fixed}`
+			: JSON.stringify(value));
+		this.logs.push({ ...value, msg });
+	}
+
+	/**
+	 * ONE AUDIT ROUND'S READING, written by `Server/review.mjs --bands`:
+	 * `{"bands": {"round", "read": [...]}}` — `round` is the pass number (the
+	 * first line omits it, meaning round 1), `read` is what that pass actually
+	 * checked. Joins `logs`, same family as `experiment`/`review`/`shots`:
+	 * `"bands: round N, M read"`.
+	 */
+	bands(value){
+		const msg = value.msg ?? `bands: round ${value.round ?? 1}, ${value.read?.length ?? 0} read`;
+		this.logs.push({ ...value, msg });
 	}
 
 	reset(){

@@ -2,24 +2,24 @@
 
 ## Use
 
-`node Server/health.mjs` (background, beside any server — `HEALTH_BASE` picks which one to load
-pages against, default the mastermind's `:8123`). It watches `public/`, and for every file that
-changes works out which page(s) to check: a `page.js` → its own url; any other file under a
-page's dir → that page; a shared module (`framework/core/**`, `framework/framework.css`,
-`app.js`, `framework/ui/**`, `framework/ux/**`, `framework/ext/**`) → a fixed canary set plus its
-own page. Each check loads headless, 1280×900, and writes one line per finding to today's log,
-`public/framework/ai/health/<date>.jsonl` — read it live on [this page](/framework/ai/health/) or
-tail the file. Full design, the mapping rules, the archiving and the hook: `Server/health.mjs`'s
-own header comment (it is the spec) and [`doc/decisions.md`](./doc/decisions.md).
+Run `node Server/health-supervisor.mjs`. It keeps one `Server/health.mjs` per tree alive, and
+that loads pages from `HEALTH_BASE`, the owner's `http://monorepo.localhost` by default. A change
+to a **template** (`.js`, `.css`, `.html`) under `public/` loads the pages it could break. A
+change to a `.jsonl`, `.json` or `.md` file is data, so it never triggers a check. Each check looks
+for console errors, stalls over 2 s and `JSONL: unknown verb` warnings, and it takes a 1920-wide
+screenshot into `shots/<date>/`. Findings go to today's log, `public/framework/ai/health/<date>.jsonl`:
+read it live on [this page](/framework/ai/health/). Each check also writes one line into the
+editing agent's task. **How to run it, what it reports, and the proofs:
+`Server/doc/health.md`.**
 
 ## Watch out
 
 - **Two spacing lint checks are WARNINGS, never errors** (added 2026-09-19, `card-word`):
   a framed box holding text with under 8px of padding on any side, and a list of more than
-  eight sibling rows pitched over 40px apart. One `page.evaluate()`, capped at ten combined
+  eight sibling rows pitched over 250px apart. One `page.evaluate()`, capped at ten combined
   findings per page — `lint_findings()` in `Server/health.mjs`, read it there; it excludes
-  the framework's own control family (buttons, fields) on purpose. **A running watcher must
-  be restarted to pick this up** — editing `Server/health.mjs` restarts nothing by itself.
+  the framework's own control family (buttons, fields) on purpose. Under the supervisor, saving
+  `Server/health.mjs` restarts the watcher; saving `health-supervisor.mjs` does not.
 - **The feedback loop is the point, not the page.** `.claude/hooks/health-guard.mjs` (a sibling of
   `syntax-guard.mjs`, wired the same one-line way into `ledger.mjs`) is what actually tells an
   agent "you broke this" — at that agent's very NEXT write, never mid-write. Reading the log

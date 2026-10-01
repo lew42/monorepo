@@ -35,8 +35,8 @@ If your brief names a task dir, Servex already opened it: log there and skip ste
 **Append with the helper — it is what makes the encoding traps stop mattering.** `node .claude/hooks/append.mjs <target.jsonl> <lines.json>` appends the objects in a JSON array as one line each, turns every string value that is exactly `"NOW"` into the local clock at the moment of the append, sniffs the trailing newline, then re-parses the whole file and exits non-zero naming any bad line. Write `<lines.json>` with the **Write tool** — never a heredoc, never a shell string. That one route closes the BOM, ANSI-byte, em-dash and hand-typed-clock traps.
 
 **What a line IS: one JSON object, one verb.** The verbs are `assign` `log` `action` `agent`
-`chat` `shot` `ask` `decision` `verdict` `rank`; `log` is `{at, msg}`; an invented verb or key
-renders as nothing at all, with no error. The schema — including `topic`, `needs` and `conclusion`
+`chat` `shot` `ask` `decision` `verdict` `rank` `experiment` `review`; `log` is `{at, msg}`. `append.mjs` refuses an
+invented verb, a flat line or a missing field, and prints the right shape: the list is [`.claude/hooks/jsonl-schema.mjs`](../../hooks/jsonl-schema.mjs). The schema — including `topic`, `needs` and `conclusion`
 on an `ask` — is [`ext/JSONL/doc/task-jsonl.md`](/framework/ext/JSONL/doc/task-jsonl.md).
 ⚠ `note` is the one exception: it is `/framework/ai/v/2/`'s own board verb and renders as nothing
 on any other task's log.
