@@ -10,6 +10,7 @@ import Events from "../Server/Events.js";
 import Log from "./Log.js";
 import Monitor from "./Monitor.js";
 import Processes from "./Processes.js";
+import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import Heartbeat from "./Heartbeat.js";
@@ -211,6 +212,11 @@ export default class Servex extends Events {
         /* THE PROCESS MONITOR (process-monitor, 2026-09-30): every process, ours vs.
          * everything else, RAM and CPU per task, orphans reaped. Processes.js says how. */
         if (!process.env.SERVEX_NO_PROCESSES) this.procmon = new this.constructor.Processes({ servex: this }).start();
+        /* GAMES (same task, ask 4): close StarCraft (and similar) only when the PC has
+         * been idle past SERVEX_GAME_IDLE_MIN AND RAM is tight — never while playing.
+         * Games.js says the rule; it reads idle time and RAM off `this.procmon`, so it
+         * starts after it, same as Worktrees below. */
+        if (!process.env.SERVEX_NO_GAMES) this.games = new this.constructor.Games({ servex: this }).start();
         /* WORKTREE CLEAN-UP (same task): a finished worktree is removed, its branch kept,
          * and Servex forgets its project, port and subdomain. Worktrees.js says when. */
         if (!process.env.SERVEX_NO_WORKTREES) this.worktrees = new this.constructor.Worktrees({ servex: this }).start();
@@ -1019,6 +1025,7 @@ export default class Servex extends Events {
             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
             try { this.monitor?.stop(); } catch {}
             try { this.procmon?.stop(); } catch {}
+            try { this.games?.stop(); } catch {}
             try { this.worktrees?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}
@@ -1186,6 +1193,7 @@ Servex.External = External;
 Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.Processes = Processes;
+Servex.Games = Games;
 Servex.Worktrees = Worktrees;
 Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;

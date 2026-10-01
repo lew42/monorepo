@@ -23,9 +23,13 @@ What `/api/processes` answers, trimmed:
   "ours": { "n": 124, "mb": 6100, "cpu": 8.2 },
   "other": { "n": 310, "mb": 14200, "cpu": 5.1 },
   "free_mb": 11000, "total_mb": 32000,
-  "groups": [{ "key": "task 2026-09-30/process-monitor", "kind": "task", "label": "2026-09-30/process-monitor", "n": 9, "mb": 1200, "cpu": 3.4, "pids": [47356], "agents": ["task-mastermind-dormant-idle"] }],
+  "commit_mb": 42700, "commit_limit_mb": 54000, "idle_s": 1842.3,
+  "groups": [{ "key": "task 2026-09-30/process-monitor", "kind": "task", "label": "2026-09-30/process-monitor", "n": 9, "mb": 1200, "cpu": 3.4, "pids": [47356], "agents": ["task-mastermind-dormant-idle"] },
+             { "key": "session 400", "kind": "session", "label": "Claude Code session (pid 400)", "n": 2, "mb": 1800, "idle_h": 3.2, "stale": true }],
+  "sessions": { "n": 6, "stale": 3, "stale_mb": 1850, "stale_h": 2 },
   "orphans": [{ "pid": 600, "name": "tail.exe", "mb": 5 }],
   "reaped": [{ "pid": 601, "name": "grep.exe", "ok": true }],
+  "games_closed": [{ "type": "game-closed", "name": "StarCraft.exe", "pid": 7788, "idle_min": 34, "free_mb": 5200, "graceful": true }],
   "running": [{ "id": "minion-x", "state": "working", "pid": 200, "mb": 250, "lost": false }],
   "worktrees": { "total": 45, "pool": 3, "in_use": 6, "open": 9, "uncommitted": 5, "finished": 2, "removed_today": 4 },
   "history": [{ "at": "…", "cpu": 13.3, "ours_mb": 6100, "other_mb": 14200, "free_mb": 11000, "groups": { "orphans": [10, 0] } }]
@@ -33,6 +37,43 @@ What `/api/processes` answers, trimmed:
 ```
 
 `history` holds up to 360 points, one every 10 seconds: the last hour.
+
+## Stale VS Code conversations
+
+A **Claude Code session** group ([table above](#)) is **stale** once nothing inside it — the
+claude.exe itself, or any shell under it — has used any CPU for `SERVEX_STALE_SESSION_H` hours
+(default 2). It uses the same `idle_since` every process already keeps, taken as the group's
+LATEST member (one still-busy shell keeps the whole conversation "fresh"), so staleness is never
+claimed while anything under it is doing something. Each session group gets `stale: true` and
+`idle_h`; the top-level `sessions: {n, stale, stale_mb}` counts all of them; `line()` and the Live
+card both name how many and how much RAM. **Never closed here** — the owner closes a VS Code
+conversation themselves; this only flags it.
+
+## Games: closed only when idle AND RAM is tight
+
+`Games.js` closes a listed game (`SERVEX_GAMES`, default `StarCraft.exe, SC2.exe, SC2_x64.exe,
+Battle.net.exe`) only when ALL three hold, checked once a minute:
+
+- idle past `SERVEX_GAME_IDLE_MIN` minutes (default 30) — no keyboard or mouse input at all,
+  read by `GetLastInputInfo` in the process monitor's own PowerShell loop (`idle_s` above);
+- free RAM under `SERVEX_TIGHT_MB` (default 6144 MB);
+- one of the listed names is actually running.
+
+`decide()` is the whole rule as one pure function (`Games.js`), so the proof checks the exact
+edges — idle 29, 8 GB free, no game running — with no PowerShell and no Servex at all. Closing
+tries `CloseMainWindow()` first; only if the SAME pid is still alive 60 seconds later does
+`taskkill /PID` end it — never a fresh lookup by name, so a relaunch in that window is never
+touched. `SERVEX_CLOSE_GAMES=0` only logs what it would have closed. Every close (or would-close)
+is one `{type: "game-closed", name, pid, idle_min, free_mb, graceful}` line on the `processes` log
+and shows under `games_closed` here.
+
+## The commit charge
+
+`commit_mb` / `commit_limit_mb` is the machine's total commit charge (Windows'
+`Win32_OperatingSystem`: total minus free virtual memory) — RAM plus whatever has spilled to the
+pagefile. Free RAM alone can look fine while the pagefile is almost full; commit charge is the
+number that actually explains thrashing. Read by the same PowerShell loop as everything else,
+once a tick.
 
 ## Running means a real process
 
