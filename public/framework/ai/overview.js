@@ -313,11 +313,11 @@ function render_models(data){
 		small.c("muted", data.weighting_note || "Each test is weighted by how well it separates strong models from weak ones.");
 	});
 
-	heading("Every configuration tried");
-	const head = ["kind", "model", "effort", "performance", "$/run", "×Claude", "value"];
+	heading("Every configuration tried", "×Sonnet is a price ratio, not this run's cost: each model's list price per token, divided by claude-sonnet-5's. Claude rows use Anthropic's list prices; the rest use OpenRouter's.");
+	const head = ["kind", "model", "effort", "performance", "$/run", "×Sonnet", "value"];
 	const allRows = data.kinds.flatMap(k => k.rows.map(r => [
 		k.kind, model_name(r.model), r.effort ?? "—", fmt_pct(r.performance), fmt_usd(r.cost),
-		r.xClaude == null ? "—" : r.xClaude + "×", r.value == null ? "—" : String(r.value),
+		r.xSonnet == null ? "—" : r.xSonnet + "×", r.value == null ? "—" : String(r.value),
 	]));
 	table(head, allRows);
 
@@ -325,7 +325,9 @@ function render_models(data){
 	data.kinds.forEach(k => {
 		const line = k.best
 			? `**${k.label.split(" — ")[0]}:** ${model_name(k.best.model)}${k.best.effort ? " at " + k.best.effort + " effort" : ""} — ${k.best.value} value per dollar.`
-			: `**${k.label.split(" — ")[0]}:** not enough real runs yet to say.`;
+			: k.rows.length
+				? `**${k.label.split(" — ")[0]}:** No model passes this yet (the check itself is under review).`
+				: `**${k.label.split(" — ")[0]}:** not enough real runs yet to say.`;
 		md(line);
 	});
 	md("*Rows with no cost or no real run are left out of the chart and the best-value line, not shown as zero.*");

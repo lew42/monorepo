@@ -123,6 +123,32 @@ for (const slug of testHeaders.keys()){
 	testWeight.set(slug, discrimination == null ? 1 : Math.max(0, discrimination) * confidence);
 }
 
+// A run that never recorded its effort (a harness gap, not a third configuration) merges into
+// the SAME model's other rows rather than sitting alone as its own "effort: —" row — otherwise
+// one model shows up twice for what was really one setting. Reassign it to whichever effort that
+// model ran most elsewhere; a model with ONLY effort-less runs is left alone (nothing to merge into).
+function mergeMissingEffort(list){
+	const byModel = new Map();
+	for (const r of list){
+		if (!byModel.has(r.model)) byModel.set(r.model, []);
+		byModel.get(r.model).push(r);
+	}
+	const out = [];
+	for (const items of byModel.values()){
+		const withEffort = items.filter(r => r.effort);
+		const withoutEffort = items.filter(r => !r.effort);
+		if (withEffort.length && withoutEffort.length){
+			const counts = new Map();
+			for (const r of withEffort) counts.set(r.effort, (counts.get(r.effort) ?? 0) + 1);
+			const effort = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+			out.push(...withEffort, ...withoutEffort.map(r => ({ ...r, effort })));
+		} else {
+			out.push(...items);
+		}
+	}
+	return out;
+}
+
 function groupByModelEffort(list){
 	const g = new Map();
 	for (const r of list){
@@ -132,6 +158,42 @@ function groupByModelEffort(list){
 	}
 	return g;
 }
+
+// §1: ×Sonnet — the owner's ask is a PRICE ratio (list $/token), not a cost-of-this-run ratio, so
+// it holds steady across kinds and doesn't wobble with how many tokens one run happened to use.
+// Claude rows: Anthropic's own published list prices. OpenRouter rows: openrouter.ai's public
+// /api/v1/models pricing (checked 2026-10-01; prompt/completion $ per token). Blended at a plain
+// 1:1 prompt:completion average — this is a relative ranking number, not a cost estimate.
+const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, Anthropic's list prices
+	"claude-opus-5": { prompt: 15e-6, completion: 75e-6 },
+	"claude-sonnet-5": { prompt: 3e-6, completion: 15e-6 },
+	"claude-haiku-4-5-20251001": { prompt: 1e-6, completion: 5e-6 },
+};
+// Fallback snapshot of OpenRouter's public pricing (fetched 2026-10-01) in case the live fetch
+// below can't reach the network when this generator runs; refreshed automatically when it can.
+const OPENROUTER_PRICE_SNAPSHOT = {
+	"openai/gpt-6-luna": { prompt: 1e-7, completion: 5e-7 },
+	"deepseek/deepseek-v4.1-flash": { prompt: 1.5543e-8, completion: 3.96e-7 },
+	"google/gemini-3.8-flash": { prompt: 7.5e-7, completion: 3.75e-6 },
+	"google/gemini-3.1-pro-preview": { prompt: 2e-6, completion: 1.2e-5 },
+};
+async function fetchOpenRouterPrices(){
+	try{
+		const res = await fetch("https://openrouter.ai/api/v1/models");
+		if (!res.ok) return OPENROUTER_PRICE_SNAPSHOT;
+		const body = await res.json();
+		const out = {};
+		for (const m of body.data ?? []){
+			if (!m.pricing) continue;
+			const prompt = Number(m.pricing.prompt), completion = Number(m.pricing.completion);
+			if (Number.isFinite(prompt) && Number.isFinite(completion)) out[m.id] = { prompt, completion };
+		}
+		return Object.keys(out).length ? out : OPENROUTER_PRICE_SNAPSHOT;
+	} catch {
+		return OPENROUTER_PRICE_SNAPSHOT;
+	}
+}
+function blended(p){ return p ? (p.prompt + p.completion) / 2 : null; }
 
 // Weighted mean of each run's credit, weighted by its test's weight (1 for rule tests and probes,
 // which have no discrimination/confidence of their own yet).
@@ -146,8 +208,21 @@ function weightedPerformance(items){
 	return den ? num / den : null;
 }
 
+const openrouterPrices = await fetchOpenRouterPrices();
+const SONNET_RATE = blended(ANTHROPIC_PRICE_PER_TOKEN["claude-sonnet-5"]);
+function xSonnetOf(model){
+	const rate = blended(ANTHROPIC_PRICE_PER_TOKEN[model] ?? openrouterPrices[model]);
+	return rate && SONNET_RATE ? +(rate / SONNET_RATE).toFixed(2) : null;
+}
+
+// A row "passes" a kind when it actually gets the work right at least some of the time — a
+// configuration that scores 0 every time (the log-line control, today) is not a value leader, it
+// is a broken check, and the owner asked that it never get named "best" on the strength of being
+// merely the only thing in the list.
+const passes = r => r.performance != null && r.performance > 0;
+
 function buildKind(kindId, label, list, { alreadyFinal } = {}){
-	const final = alreadyFinal ? list : list.filter(reallyRan);
+	const final = mergeMissingEffort(alreadyFinal ? list : list.filter(reallyRan));
 	const grouped = groupByModelEffort(final);
 	const rowsOut = [];
 	for (const [key, items] of grouped){
@@ -156,14 +231,12 @@ function buildKind(kindId, label, list, { alreadyFinal } = {}){
 		const cost = mean(items.map(r => r.cost_usd));
 		rowsOut.push({ model, effort: effort || null, n: items.length, performance, cost });
 	}
-	// Baseline for ×Claude: the Anthropic control's cost in this kind (any claude-* model, any effort).
-	const baseline = rowsOut.find(r => r.model.startsWith("claude-"));
 	for (const r of rowsOut){
-		r.xClaude = baseline?.cost ? (r.cost != null ? +(r.cost / baseline.cost).toFixed(2) : null) : null;
+		r.xSonnet = xSonnetOf(r.model);
 		r.value = r.cost && r.performance != null ? +(r.performance / r.cost).toFixed(2) : null;
 	}
 	rowsOut.sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
-	const best = rowsOut.find(r => r.value != null) ?? null;
+	const best = rowsOut.filter(passes).find(r => r.value != null) ?? null;
 	return { kind: kindId, label, rows: rowsOut, best: best && { model: best.model, effort: best.effort, value: best.value } };
 }
 
