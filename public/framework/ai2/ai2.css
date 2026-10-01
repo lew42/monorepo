@@ -1775,6 +1775,7 @@
 				"head head"
 				"run  tasks"
 				"run  chat"
+				"run  pool"
 				"run  .";
 			align-content: start;
 			align-items: start;
@@ -1792,6 +1793,12 @@
 		.ai2-card-live .ai2-live-run-col { grid-area: run; margin-block-start: 0; min-width: 0; }
 		.ai2-card-live .ai2-live-running { margin-block-start: 0; }
 		.ai2-card-live .ai2-live-tasks { grid-area: tasks; }
+		/* The pool has its own cell. Auto-placed, it fell into the row after
+		   the run column ended, so once Processes made that column tall it sat
+		   under an empty gap (process-monitor, 2026-09-30). The last row is the
+		   1fr one, so the run column's extra height goes there, not between
+		   the boxes beside it. */
+		.ai2-card-live .ai2-live-pool { grid-area: pool; }
 		.ai2-card-live .ai2-live-talk-col { grid-area: agent; }
 
 		/* The chat is a box of its own among the columns: its tinted ground
@@ -1813,6 +1820,7 @@
 				"head head  head"
 				"run  agent tasks"
 				"run  agent chat"
+				"run  agent pool"
 				"run  agent .";
 		}
 
@@ -1827,6 +1835,7 @@
 			grid-template-areas:
 				"head head  head head"
 				"run  agent tasks chat"
+				"run  agent pool  chat"
 				"run  agent .     chat";
 		}
 
@@ -2330,13 +2339,13 @@
 	@container ai2-live (min-width: 95em) {
 		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-			grid-template-areas: "head head" "run tasks" "run chat" "run .";
+			grid-template-areas: "head head" "run tasks" "run chat" "run pool" "run .";
 		}
 	}
 	@container ai2-live (min-width: 130em) {
 		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
-			grid-template-areas: "head head head" "run tasks chat" "run . chat";
+			grid-template-areas: "head head head" "run tasks chat" "run pool chat" "run . chat";
 		}
 	}
 }
