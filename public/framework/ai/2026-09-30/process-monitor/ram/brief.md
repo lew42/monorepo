@@ -29,24 +29,23 @@ Stop them through Servex's own stop path (the one `stop_server` uses), never by 
 
 `Global.js` sends an idle agent dormant after `dormant_ms` (3 min). When free RAM is under 6 GB (`SERVEX_TIGHT_MB`, default 6144), use 30 seconds instead (`SERVEX_DORMANT_TIGHT_MS`). Read free RAM from `servex.processes.now.free_mb`. If the monitor has no reading yet, keep the normal timer. Log the switch once each way, not every tick.
 
-## 2b. Dormant the moment a turn ends, per role (added 16:10)
+## 2b. dormant_after: set per agent and per request (REVISED 16:20)
 
-Read the requirements' newest section, "dormant the moment a turn ends". The transcript is already on disk, so an idle claude.exe only wastes RAM.
+Read the requirements' last section, "REVISED 16:20". This replaces the earlier per-role 0: exiting after every reply would restart live chats constantly.
 
-**Measure first, then pick the number.**
-- Time a cold resume twice: one small session and one large session (around 150k context; find one in `~/.claude/projects/`, but never resume a session that is live). Measure process start, session load and first token. One short `claude -p --resume <id> "reply ok"` run each (hidden, Sonnet) is enough.
-- Check the prompt cache still hits after the resume: `cache_read` > 0 in the result's usage.
-- Write the numbers in your report.
+**Measure first.** Time a cold resume twice: one small session and one large session (around 150k context; find one in `~/.claude/projects/`, and never resume a live session). Measure process start, session load and first token. One short hidden `claude -p --resume <id> "reply ok"` on Sonnet each is enough. Check the prompt cache still hits after the resume (`cache_read` > 0). Put the numbers in your report.
 
-**Then build `dormant_after` per role** in `Global.js`:
-- masterminds (`mastermind`, `task-mastermind`, `directory-mastermind`), minions (`agent`, `helper`, `fork`) and reviewers: **0** if a resume takes about 3 s or less; otherwise a 20 s grace (`SERVEX_DORMANT_GRACE_MS`).
-- Kept warm: `session-fast` while its voice session is live; and any agent with a live background task or a child that is still working.
-- "0" means sleep when the turn ends. The `agents.register` wrap in `reaper()` already sees each state change; don't wait for the minute sweep.
-- The tight-RAM rule (2) stays for every other role.
-- Log `type: "dormant"` with `after_ms`. Count the RAM it frees: put `dormant_freed_mb` (the last measured MB of each process put to sleep, summed today) in `summary()` or the processes log, so the monitor can show it.
-- Tests: a minion goes dormant on turn end; `session-fast` in a live session does not; an agent with a working child does not.
+**Build:**
+- `dormant_after` is a property of the agent: seconds, or `"session"` (stay warm while its session is live).
+- `spawn_agent` and `send_to_agent` take `dormant_after` and set it on the agent. Add `Servex/agents/tools.js` to your fence for that.
+- Defaults: `session-fast` and `session-smart` → `"session"`. Minions, reviewers and task masterminds → 0 (sleep as soon as the turn ends). Every other role keeps `dormant_ms`, and rule 2 (30 s under tight RAM) still applies to them.
+- If a cold resume measures over about 3 s, the default 0 becomes 20 s (`SERVEX_DORMANT_GRACE_MS`).
+- Never sleep an agent with a live background task or a child still working.
+- Act when the turn ends: the `agents.register` wrap in `reaper()` already sees each state change; don't wait for the minute sweep.
+- Log `type: "dormant"` with `after`. Sum the last measured MB of each process put to sleep today as `dormant_freed_mb` in `summary()`, so the monitor can show it.
+- Tests: a minion sleeps on turn end; `session-fast` in a live session does not; `send_to_agent` with `dormant_after: 60` keeps it warm 60 s; an agent with a working child does not sleep.
 
-Add `Servex/agents/Agent.js` to your fence only if the turn-end hook needs it.
+**Don't edit any skill.** Write in your report the one line you suggest for the mastermind skill on how to choose `dormant_after` (about to read the reply and maybe follow up: 60 s; handing it to a 3–5 minute review: 0). I send it to the skills owner.
 
 ## Proof
 

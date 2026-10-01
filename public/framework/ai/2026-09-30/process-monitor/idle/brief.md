@@ -38,6 +38,10 @@ The owner's exact rule: close StarCraft (and similar) ONLY when the PC has been 
 - **Logging:** each close is one line in the `processes` log (`type: "game-closed"`: name, pid, idle_min, free_mb, graceful) and goes under `games_closed` in `/api/processes`.
 - `SERVEX_CLOSE_GAMES=0` only logs what it would do. The default is ON, because the owner allowed it. Keep the decision a pure function you can test.
 
+## 5. Commit charge (added 16:20)
+
+Add the machine's commit charge to `/api/processes` (`commit_mb`, `commit_limit_mb`, from the same hidden PowerShell read: `Win32_OperatingSystem` TotalVirtualMemorySize minus FreeVirtualMemory). The pagefile is the overflow, so this shows pressure that free RAM hides. Show it on the Live card's Processes totals as "commit 41 / 48 GB".
+
 ## Proof
 
 - Add checks to `Servex/processes.test.mjs`:
