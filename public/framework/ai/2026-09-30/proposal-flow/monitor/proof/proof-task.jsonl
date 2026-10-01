@@ -1,0 +1,7 @@
+{"assign":{"session_id":"health-proof-scratch","agent":"health-proof","now":"scratch task for the monitor proof; deleted after"}}
+{"action":{"at":"2026-09-30T22:30:00-05:00","did":"edit","files":["public/framework/ai/health/page.js"]}}
+{"action":{"at":"2026-09-30T22:18:40-05:00","did":"edit","files":["public/framework/ai/2026-09-30/health-proof/page.js"]}}
+{"log":{"at":"2026-09-30T22:18:53-05:00","msg":"health: /framework/ai/2026-09-30/health-proof/ — 0 console errors, stall 3.0 s, 49 unknown-verb warnings, shot /framework/ai/health/shots/2026-09-30/framework-ai-2026-09-30-health-proof.png — first: stall: the main thread was blocked for 3.0 s (a long task starting 6.2 s after navigation; 1 over 2 s)"}}
+{"log":{"at":"2026-09-30T22:19:06-05:00","msg":"health: /framework/ai/health/ — 3 console errors, stall 0.0 s, 2 other errors (status, request), shot /framework/ai/health/shots/2026-09-30/framework-ai-health.png — first: console: Page.load(\"/framework/ai/health/page.js\") — the file EXISTS but failed to load: Error: health-proof: a deliberate break\n    at http://localhost:62566/framework/"}}
+{"log":{"at":"2026-09-30T22:19:21-05:00","msg":"health: /framework/ai/health/ — 0 console errors, stall 0.0 s, shot /framework/ai/health/shots/2026-09-30/framework-ai-health.png"}}
+{"log":{"at":"2026-09-30T22:19:29-05:00","msg":"proof: a data append must not trigger a page check"}}
