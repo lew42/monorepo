@@ -144,12 +144,7 @@ export default class Socket {
 	 * instant `open()` succeeds — it never reloads or blocks anything itself. */
 	show_reconnecting() {
 		if (this.strip || !document.body) return;
-		if (!document.querySelector("style[data-dev-reconnect]")) {
-			const style = document.createElement("style");
-			style.setAttribute("data-dev-reconnect", "");
-			style.textContent = "@layer util { .dev-reconnect-strip { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 61; padding: 0.3em 0.9em; background: #78350f; color: #fef3c7; font: 0.8rem system-ui, sans-serif; text-align: center; } }";
-			document.head.append(style);
-		}
+		this.inject_style("dev-reconnect", "@layer util { .dev-reconnect-strip { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 61; padding: 0.3em 0.9em; background: #78350f; color: #fef3c7; font: 0.8rem system-ui, sans-serif; text-align: center; } }");
 		const strip = this.strip = document.createElement("div");
 		strip.className = "dev-reconnect-strip";
 		strip.textContent = "server restarting… reconnecting";
@@ -159,6 +154,19 @@ export default class Socket {
 	hide_reconnecting() {
 		this.strip?.remove();
 		this.strip = null;
+	}
+
+	/* Shared by show_reconnecting() and mark_stale(): both are a fixed, un-asked-for
+	 * notice over whatever is already on screen, and both need their one `<style>`
+	 * rule in the DOM exactly once no matter how many times they fire. `marker`
+	 * becomes a `data-<marker>` attribute so a second call is a no-op instead of a
+	 * second `<style>` tag. */
+	inject_style(marker, css) {
+		if (document.querySelector(`style[data-${marker}]`)) return;
+		const style = document.createElement("style");
+		style.setAttribute(`data-${marker}`, "");
+		style.textContent = css;
+		document.head.append(style);
 	}
 	// A reply to a pending request(), or the server calling a method on us.
 	message(res) {
@@ -197,8 +205,7 @@ export default class Socket {
 	 * one click to fix it; never reload by itself. Plain DOM, so it works on any page. */
 	mark_stale() {
 		if (this.pill || !document.body) return;
-		const style = document.createElement("style");
-		style.textContent = "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }";
+		this.inject_style("dev-stale", "@layer util { .dev-stale-pill { position: fixed; inset-block-end: 1rem; inset-inline-start: 1rem; z-index: 60; padding: 0.4em 0.9em; border-radius: 2em; border: 1px solid #b45309; background: #fef3c7; color: #78350f; font: 0.85rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px #0004; } }");
 		const pill = this.pill = document.createElement("button");
 		pill.className = "dev-stale-pill";
 		pill.textContent = "This page is out of date — reload";
