@@ -320,10 +320,10 @@ export default class Global {
 
 	/* Free RAM crossing `tight_mb` flips global dormancy into the fast 30-second timer for
 	 * every role that uses it (ask 2) — logged once on each flip, never every tick. No reading
-	 * yet from the process monitor (`servex.processes.now`, owned by a sibling module) just
+	 * yet from the process monitor (`servex.procmon.now`, owned by a sibling module) just
 	 * keeps the normal timer: "if the monitor has no reading yet, keep the normal timer." */
 	check_tight(){
-		const free = this.servex?.processes?.now?.free_mb;
+		const free = this.servex?.procmon?.now?.free_mb;
 		const tight = typeof free === "number" && free < this.tight_mb;
 		if (tight === this.tight) return;
 		this.tight = tight;

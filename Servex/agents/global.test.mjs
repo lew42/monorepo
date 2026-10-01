@@ -306,19 +306,19 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	const f = fake_servex();
 	const g = new Global({ servex: f.servex }).install(); await g.ready;
 	const mgr = f.servex.agents.live.set("manager-tight", f.add({ id: "manager-tight", role: "manager", state: "idle", turns: 1 })).get("manager-tight");
-	f.servex.processes = {};   // no reading yet
+	f.servex.procmon = {};   // no reading yet
 	g.check_tight();
 	t(g.tight === false && g.wait_ms(mgr) === g.dormant_ms && g.dormant_ms === 180000, "no RAM reading yet: the normal 3-minute timer");
-	f.servex.processes = { now: { free_mb: 8000 } };
+	f.servex.procmon = { now: { free_mb: 8000 } };
 	g.check_tight();
 	t(g.tight === false, "plenty of free RAM: still the normal timer");
-	f.servex.processes = { now: { free_mb: 5000 } };
+	f.servex.procmon = { now: { free_mb: 5000 } };
 	g.check_tight();
 	t(g.tight === true && g.wait_ms(mgr) === g.dormant_tight_ms && g.dormant_tight_ms === 30000, "under 6 GB free (SERVEX_TIGHT_MB): the fast 30 s timer");
 	t(f.logged.filter(l => l.type === "dormant-tight").length === 1, "logged once, on the flip into tight — not on every check");
 	g.check_tight(); g.check_tight();
 	t(f.logged.filter(l => l.type === "dormant-tight").length === 1, "still once: re-checking an unchanged tight state logs nothing more");
-	f.servex.processes = { now: { free_mb: 8000 } };
+	f.servex.procmon = { now: { free_mb: 8000 } };
 	g.check_tight();
 	t(g.tight === false && f.logged.filter(l => l.type === "dormant-tight").length === 2, "flipping back out of tight logs exactly once more");
 	clearInterval(g.reap_timer);
