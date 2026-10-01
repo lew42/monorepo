@@ -11,11 +11,14 @@ The goal: for each kind of task, find the cheapest model that does the job prope
 3. **Done:** the [Models page](/framework/ai/system/models/) ranks value per task kind (phase 8).
 4. **Next, tonight after the OpenRouter reset:** run the cheap models on the same tests, the
    probes, the vision test and the web-search cost check (phases 5–7).
-5. **Then: the quality bar before cost (phase 15).** A model must score about as well as
+5. **Done: the quality bar before cost (phase 15).** A model must score about as well as
    Sonnet on a task kind before its price counts at all.
-6. **Then: tests that separate models (phase 16).** Each test gets a `differentiation` score.
-   Questions with no known answer become Exploration pages, which tally what many models
-   recommend or avoid.
+6. **Half done: tests that separate models (phase 16).** Each test has a `differentiation`
+   score. Still to build: Exploration pages, where questions with no known answer tally what
+   many models recommend or avoid.
+6b. **Building now: keys to success (phase 17).** Models list the keys to about 10 of the
+   owner's past prompts. Their consensus is the presumed truth, and each model is scored on
+   recall and precision. Only providers that don't train on or log prompts are used.
 7. **Later:** a ledger of every run (phase 13), tests per system (phase 14), and real-work
    trials. Each test names where its truth comes from (phase 12).
 
@@ -47,7 +50,14 @@ The spike needs an OpenRouter API key at `%LOCALAPPDATA%\lew42\servex\openrouter
 - Stay WELL under the token allotment (the owner, 2026-09-30). One mastermind with at most 1–2 Sonnet minions, no fan-out. Measure first, then build.
 - Plan on a card, then work. Pool worktree for Servex changes, `merge.mjs`, and a Servex restart only through `sustain.mjs --restart`.
 
-## Phase 2 (the owner, 2026-09-30 23:20): which model is good at which task. See owner-words.md, last section
+## Full detail, phase by phase
+The owner kept adding phases (2 through 17) as the investigation went on. Each one's
+instructions still apply — they're just not all above the fold any more. Read them at
+[phases.md](phases.md).
+
+<!-- moved to phases.md on 2026-10-01 for clarity (the clarity skill): this file had grown to
+247 lines, which buries the current plan under 17 phases of history. Nothing was cut. -->
+
 **Do these in order, cheaply. The owner put $50 of OpenRouter credit on the account, and it could easily go in a day if we're careless.**
 1. **Spend guard first.** Set a per-key credit limit on OpenRouter, the owner's own setting (e.g. $10/day, if the key settings allow it). Servex records the real `cost` on every proxied reply in one ledger, and stops proxied spawns at a daily cap. Show OpenRouter spend on the dashboard beside the Claude meters.
 2. **Rule-following tests with KNOWN answers.** Does a non-Claude model, through our harness:
