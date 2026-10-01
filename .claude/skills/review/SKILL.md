@@ -30,6 +30,13 @@ You are a fresh reviewer. You did not build this work, and you don't fix it: you
 
 The shots are already taken when you start (by the task mastermind, or by `Server/review.mjs` with `node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/`). Don't run it yourself.
 
+**Pick the widths by what changed** (the owner, 2026-10-01). Extra shots cost time and tell you nothing.
+- **Page layout** (columns, sidebars, shells, grids, anything that rearranges with width): all four, **400, 1200, 1920, 3440**.
+- **A component that hits its max width early** (a card, a chat bubble, a control, the ✦ sheet): if it's right at its own width, it's right everywhere. Shoot **400** (or its natural width), plus **one** wide shot only if it sits in a layout that changes around it.
+- **Mobile-only UI** (the rail, the sheet): **400** only.
+
+Say which set you used, and why, in one line of the review.
+
 ## The order
 
 Answer in this order, one system at a time:
