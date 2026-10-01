@@ -45,45 +45,35 @@ Full record — the registry, the several-readers case, the reset loop it avoids
 
 ## Flat lines render as a plain log line, never warn
 
-`day.jsonl` has always had lines with no verb wrapper at all — `{"at": "…",
-"task": "…", "msg": "…"}` — and the oldest task logs wrote `{"type": "launch",
-…}` / `{"type": "decision", …}` the same unwrapped way, before every writer
-agreed on "one verb per key". Neither is malformed; both are just older than
-the convention. Before 2026-09-30, `apply()` had no way to tell "an old,
-flat record" from "a stray key on a real line" — it dispatched key by key, so
-a three-key flat line warned three times, once per key, in the console on
-every page that loaded one (`/framework/ai2/`, 2026-09-30: the owner saw
-`JSONL: unknown verb …` spam from exactly these lines).
+`day.jsonl` has always had lines with no verb wrapper — `{"at", "task",
+"msg"}` — and the oldest task logs wrote `{"type": "launch", …}`, before
+every writer agreed on "one verb per key". Before 2026-09-30, `apply()`
+dispatched key by key, so a three-key flat line warned three times —
+`/framework/ai2/`, 2026-09-30: `JSONL: unknown verb …` spam from exactly
+these lines.
 
-`static flat(entry)` is the fix: before `apply()` dispatches anything, it
-checks whether NONE of the entry's top-level keys is a known verb. If so, and
-the entry carries something to read (`msg`, `text` or `title`) next to a
-`type` or `at` that marks it as a real record rather than noise, the whole
-entry is handed to `log()` as `{...entry, msg: <that text>}` — one line,
-rendered exactly like a `{"log": {...}}` line always has been, by whatever
-already reads `.logs` (e.g. the `reload-hold` demo's `entry.msg ?? JSON.stringify(entry)`).
-A flat line with nothing to read at all — no `msg`/`text`/`title` — still
-falls through to the old per-key warning, because there is genuinely nothing
-to show instead.
+`static flat(entry)` is the fix: when no key is a known verb and the entry
+carries something to read (`msg`, `text` or `title`) beside a `type` or `at`,
+it's handed to `log()` as one line. With a real `at` but nothing to read,
+`apply()` folds it into `assign` instead — the way `session.json` always
+merged. Only a line with neither still warns, once per stray key.
 
 Old lines are never rewritten (the logs are append-only); this only changes
 how the *reader* treats a shape it already had to tolerate.
 
-## `experiment` and `review` — two more verbs that join `logs`, not a new array
+## `experiment`, `review`, `shots` and `bands` join `logs`, not a new array
 
-The `servex-mastermind`, `page-audit` and `review` skills already told agents
-to log `{"experiment": {"try", "measure", "result"}}` and `{"review": {...}}`
-lines (one line's `found`/`real`/`fixed` summary, or one `answer` to a single
-finding) before the reader knew either verb — every page that replayed a log
-carrying one warned `unknown verb "experiment"` / `"review"` (2026-09-30).
+The `servex-mastermind`, `page-audit` and `review` skills told agents to log
+`{"experiment": {...}}`, `{"review": {...}}`, `{"shots": {...}}` and
+`{"bands": {...}}` lines before the reader knew any of the four — every page
+replaying such a log warned `unknown verb` for whichever one it hadn't
+registered yet (2026-09-30).
 
-Registered 2026-09-30, both follow the same rule `log`/`action` already set:
-no array of their own, because nothing reads them separately from the rest of
-a task's log — they push a computed one-line `msg` onto `logs` instead
-(`"<try> → <measure> → <result>"`, `"review: found N, real M, fixed K"`, or
-`"review: #N — <reply>"` for a single answer), so whatever already renders
-`logs` as plain text shows them with no further change. Full shape:
-[task-jsonl.md](./task-jsonl.md#experiment-and-review).
+None grows its own array — each pushes one computed `msg` onto `logs`, same
+as `log` itself. `shots` can't be a plain method (`TaskJSONL` already has a
+`shots` array); `apply()` renders it through `static lines` instead — see
+[task-jsonl.md](./task-jsonl.md#experiment-review-shots-and-bands) for the
+full shapes.
 
 ## `TaskJSONL` — the task manifest as a log
 

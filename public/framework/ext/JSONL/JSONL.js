@@ -151,16 +151,29 @@ export class JSONL {
 		if (verbs.length === 1 && strayKeys.length){
 			const [verb] = verbs, value = entry[verb];
 			const isDict = value && typeof value === "object" && !Array.isArray(value);
-			this[verb](isDict ? { ...stray, ...value } : { ...stray, msg: value });
+			this.dispatch(verb, isDict ? { ...stray, ...value } : { ...stray, msg: value });
 			return this;
 		}
 
-		verbs.forEach(verb => this[verb](entry[verb]));
+		verbs.forEach(verb => this.dispatch(verb, entry[verb]));
 		if (strayKeys.length){
 			if (stray.at) this.assign(stray);
 			else strayKeys.forEach(k => this.skip(k, entry));
 		}
 		return this;
+	}
+
+	/* A verb normally dispatches to `this[verb]()`, its own method of the same
+	   name. One verb can't: `TaskJSONL`'s `shots` would call a method of that
+	   name, but a FIELD of that name already exists on the instance (the plain
+	   `shot` verb's own array, read by `shot_wall()`) — a field always wins
+	   over a method, so `this.shots` IS the array, not a function, and calling
+	   it throws. `static lines`, set only where that collision is real, renders
+	   such a verb straight onto `logs` instead; every other verb dispatches
+	   exactly as it always has. */
+	dispatch(verb, value){
+		const line = this.constructor.lines?.[verb];
+		line ? this.log(line(value)) : this[verb](value);
 	}
 
 	log(value){ this.logs.push(value); }
@@ -191,7 +204,15 @@ export class JSONL {
  * once) and `step` (the 1-based index underway). See `stats.js`'s `progress()`.
  */
 export class TaskJSONL extends JSONL {
-	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review"];
+	static verbs = [...JSONL.verbs, "agent", "chat", "shot", "ask", "decision", "verdict", "rank", "note", "experiment", "review", "shots", "bands"];
+
+	/* `shots` (plural) is `Server/review.mjs`'s own line — a page-shot batch,
+	   naming pages/dir — and it collides with the `shots` ARRAY field below
+	   (the plain `shot` verb's list). `dispatch()` renders anything listed
+	   here onto `logs` by calling the function instead of `this[verb]()`. */
+	static lines = {
+		shots: value => ({ ...value, msg: value.msg ?? `shots: ${value.pages?.length ?? 0} pages at 4 widths → ${value.dir ?? ""}` }),
+	};
 
 	agents = [];
 	chats = [];
@@ -349,6 +370,18 @@ export class TaskJSONL extends JSONL {
 		const msg = value.msg ?? (a ? `review: #${a.n} — ${a.reply}`
 			: value.found != null ? `review: found ${value.found}, real ${value.real}, fixed ${value.fixed}`
 			: JSON.stringify(value));
+		this.logs.push({ ...value, msg });
+	}
+
+	/**
+	 * ONE AUDIT ROUND'S READING, written by `Server/review.mjs --bands`:
+	 * `{"bands": {"round", "read": [...]}}` — `round` is the pass number (the
+	 * first line omits it, meaning round 1), `read` is what that pass actually
+	 * checked. Joins `logs`, same family as `experiment`/`review`/`shots`:
+	 * `"bands: round N, M read"`.
+	 */
+	bands(value){
+		const msg = value.msg ?? `bands: round ${value.round ?? 1}, ${value.read?.length ?? 0} read`;
 		this.logs.push({ ...value, msg });
 	}
 

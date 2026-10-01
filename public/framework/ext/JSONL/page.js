@@ -34,7 +34,7 @@ agent(value){
 
 			md("`ask` does the same by `id` — one thing the owner asked for, kept in their own words with the `uuid` of the message they said it in, so [ext/AITask](/framework/ext/AITask/) can show it as a card that links back to the real sentence. `chat` (one browser turn), `shot` (one screenshot taken outside the repo — path, url, viewport width, label), and a `steps`/`step` progress pair follow the same rule: an extra verb or an extra assigned field, never a second file. `decision` and `verdict` are a PAIR on the same rule: the worker writes down a choice and the alternatives it was made over, the owner presses Approve or Improve on [ext/AITask](/framework/ext/AITask/doc/decisions-tab/)'s Decisions tab, and the press is a verdict line in this same log. [TaskJSONL](/framework/ext/JSONL/doc/task-jsonl/) has the full shape, including the subclassing trap the static `verbs` list sets.");
 		} },
-		{ title: "experiment and review", icon: "science", description: "Two verbs the skills already write — rendered as one line each, no new array.", content(){
+		{ title: "experiment, review, shots and bands", icon: "science", description: "Four verbs, one line each — no new array.", content(){
 
 			code.js(`experiment(value){
 	const msg = value.msg ?? [value.try ?? value.name, value.measure, value.result].filter(Boolean).join(" → ");
@@ -47,16 +47,26 @@ review(value){
 		: value.found != null ? \`review: found \${value.found}, real \${value.real}, fixed \${value.fixed}\`
 		: JSON.stringify(value));
 	this.logs.push({ ...value, msg });
-}`, "framework/ext/JSONL/JSONL.js");
+}
+
+bands(value){
+	const msg = value.msg ?? \`bands: round \${value.round ?? 1}, \${value.read?.length ?? 0} read\`;
+	this.logs.push({ ...value, msg });
+}
+
+// shots collides with the TaskJSONL.shots ARRAY field — dispatch() renders it from here instead
+static lines = { shots: value => ({ ...value, msg: value.msg ?? \`shots: \${value.pages?.length ?? 0} pages at 4 widths → \${value.dir ?? ""}\` }) };`, "framework/ext/JSONL/JSONL.js");
 
 			demo(() => {
 				const task = new TaskJSONL().read(JSONL.parse([
 					`{"experiment": {"try": "4 Haiku agents on a private Servex, 3 idle", "measure": "claude.exe holding their sessions", "result": "at +33s: 4 processes, 251/262/253/270 MB"}}`,
 					`{"review": {"found": 7, "real": 6, "fixed": 6}}`,
+					`{"shots": {"pages": ["/framework/ai/", "/framework/ai/review/"], "dir": "shots/"}}`,
+					`{"bands": {"round": 2, "read": ["empty 74%->49% at 1920", "wall band 7-9 columns too narrow"]}}`,
 				].join("\n")));
 
 				task.logs.forEach(entry => p(entry.msg));
-			}, "Neither verb grows its own array — both push a plain one-line `msg` onto `logs`, the same array `log` itself fills, so any reader of `logs` already knows how to show them.");
+			}, "None of the four grows its own array — all push a plain one-line `msg` onto `logs`, the same array `log` itself fills, so any reader of `logs` already knows how to show them.");
 
 			md("A line with no verb at all — an old day-log line, or a pre-verb `{\"type\": \"launch\", …}` task line — renders the same way, as long as it carries something to read (`msg`, `text` or `title`) beside a `type` or `at`:");
 
