@@ -1,57 +1,65 @@
 # Architecture: the main classes at a glance
 
-A quick map of what each important class HAS and DOES, in pseudo-JS. `[X]` is an array of X. ✅ built · 🔶 decided, not built · 💭 proposed.
-Keep this file current: when a class changes shape, update its block here (the owner, 2026-10-01).
+What each important class HAS and DOES, most useful first. `[X]` is an array of X. ✅ built · 🔶 decided, not built · 💭 proposed.
+Keep it current: when a class changes shape, update its block here AND at the top of its own readme (the owner, 2026-10-01).
 
-## Pages and content (design: ai/2026-09-30/proposal-flow/page-item-design.md)
+## Pages, items and lists
 
 ```js
-class List {                         // ✅ core/List (array today named `children` → 🔶 `items`)
-  items: [any]
-  view: ListView                     // 🔶 a part, made when first drawn; sortable by default
-  add(x), insert(x, before), remove(x), each(fn), find(fn), on(event, fn)
+class Page extends Item {            // 💭 "extends Item" needs the owner's OK (Page ✅ today)
+  url, title
+  items: Content                     // what's on the page; a sub-page is an item that grew
+  view: View
+  set(line)                          // ✅ one page.jsonl line: a method key calls, others are data
+  route(name) → Page
 }
 
-class Content extends List {         // 🔶 core/Item/Content.js
+class Item {                         // ✅ core/Item: the persistent object
+  id, type                           // type = its class name, found through `types`
+  data: {}                           // get(key), set({...}) → emits "change"
+  items: Content                     // ✅ its children (a List today; 🔶 a Content), made on the first add
+  parent: Item
+  add(item), remove(item), move(parent, before)
+  on(event, fn)                      // events bubble up to the root
+  save()                             // ✅ whole-file write today → 🔶 each change = one line in the nearest page.jsonl
+}
+
+class Content extends List {         // 🔶 core/Item/Content.js: editing by id
   items: [Item]
   add({id, type, after}), set({id, ...}), move({id, after}), remove(id)
 }
 
-class Item {                         // ✅ core/Item (persists by whole-file save → 🔶 page.jsonl lines)
-  id, type, data: {}, parent: Item
-  content: Content                   // 🔶 rename of `items`; made on the first add
-  get(key), set({...}), on(event, fn), save()
+class List {                         // ✅ core/List: the plain array wrapper, upgrade once for every list
+  items: [any]                       // 🔶 named `children` today
+  view: ListView                     // 🔶 a part, made when first drawn; sortable by default
+  add(x), insert(x, before), remove(x), each(fn), find(fn), on(event, fn)
 }
 
-class Page extends Item {            // 💭 "extends Item" needs the owner's OK; Page ✅ today
-  url, title, view: View
-  content: Content                   // what's on the page; sub-pages are items that grew
-  route(name) → Page, set(line)      // ✅ page.jsonl replay: a method key calls, others are data
-}
-
-class Card extends Page { }          // ✅ ai2/card.js · core/Page/card (the rules)
+class Card extends Page { }          // ✅ a smaller page (ai2/card.js; rules in core/Page/card)
 class System extends Page { }        // 🔶 design, code, ui, ux, ai: shared top tabs, readmes, an inbox
 class View { el }                    // ✅ core/View: the DOM side
 
-class Saver { load(), append(line) } // ✅ ext/Saver (write today; 🔶 append)
+class Saver { load(), append(line) } // ✅ ext/Saver (write today; 🔶 append, then a CloudSaver)
 types = { register(Class, name), get(name | url) }   // 🔶 core/types: one registry for Page and Item
 ```
+
+`page.items.add({...})` adds content. `page.items.items` is the raw array, and you rarely need it: use `each` and `find`.
 
 ## Servex: the agent system (Servex/)
 
 ```js
-class Servex {                       // ✅ Servex.js, the always-on process (:8090; proxy on :80)
+class Servex {                       // ✅ the always-on process, :8090 (proxy on :80)
   agents: Agents                     // spawn, message, stop, dormant, the working cap of 5
-  sessions: Sessions                 // voice sessions: one fast + one smart assistant, global
+  sessions: Sessions                 // voice: one fast + one smart assistant, global
   dispatcher: Dispatcher             // routes a prompt to the right agent
-  pool: Pool, worktrees: Worktrees   // the quick-fix worktree pool; per-task worktrees
   task_loop: TaskLoop                // node-led: re-prompts and escalates a task's steps
-  heartbeat: Heartbeat               // status checks → triage → escalate
+  heartbeat: Heartbeat               // status check → triage → escalate
   lifecycle: Lifecycle               // reaps finished or stuck agents
-  cards: Cards, inbox: Inbox, asks: Asks   // the AI board's cards; page inboxes; the asks ledger
+  pool: Pool, worktrees: Worktrees   // the quick-fix pool; per-task worktrees
+  cards: Cards, inbox: Inbox, asks: Asks   // AI board cards; page inboxes; the asks ledger
   log: Log, stream: Stream           // single-writer logs; live streams to the browser
   usage: Usage, procmon: Processes   // usage meters; the process monitor
-  mcp: MCP, proxy: ReverseProxy, ports: PortRegistry   // tools over HTTP; *.localhost routing
+  mcp: MCP, proxy: ReverseProxy, ports: PortRegistry   // HTTP tools; *.localhost routing
 }
 
 class Agent {                        // ✅ Agents.Agent: one Claude Agent SDK session
@@ -60,7 +68,15 @@ class Agent {                        // ✅ Agents.Agent: one Claude Agent SDK s
   session_id, parent, cost, context
   send(text), stop(), revive()
 }
-// tools: in-process node functions (agents/tools.js), not HTTP. The VS Code session uses the MCP servers.
+// Agent tools are in-process node functions (agents/tools.js). The VS Code session uses the MCP servers.
+```
+
+## Dictation (ux/Dictate, ext/Chat, ext/Session)
+
+```js
+class Dictate { mic, whisper, buffer, autosend }       // ✅ the one widget
+class ChatPanel { messages: [Message], composer }      // ✅ the chat it lives in
+class Session { id, fast: Agent, smart: Agent, focus } // ✅ global; nav and pause markers
 ```
 
 ## Models and tests (ai/2026-09-30/openrouter-harness)
@@ -78,12 +94,4 @@ class Exploration extends Page {     // 🔶 ai/explore/SLUG/page.jsonl
   suggest: [{ item, by, rank, weight }]
   avoid:   [{ item, by, why }]       // ranked by count, mean weight and spread
 }
-```
-
-## Dictation (ux/Dictate, ext/Chat, ext/Session)
-
-```js
-class Dictate { mic, whisper, buffer (the text area), autosend }   // ✅ the one widget
-class ChatPanel { messages: [Message], composer }                  // ✅ the chat it lives in
-class Session { id, fast: Agent, smart: Agent, focus: card }        // ✅ global; nav and pause markers
 ```

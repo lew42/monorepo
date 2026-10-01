@@ -2,6 +2,7 @@
 
 ## Index
 
+- [Architecture](./doc/architecture.md) — the main classes at a glance: what each has and does
 - [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List)
 - [ext](./ext/) — opt-in addons; core never imports them
 - [ui](./ui/) — the template tier: components, one page each
