@@ -45,3 +45,25 @@ This is an optimisation loop: keep adjusting the model until its render matches 
 ## Next
 
 People have surely worked on this (line-based structure from motion, wireframe reconstruction). The next step is a small research pass: what exists, what works, and whether a quick prototype on a photo of a box is worth trying.
+
+## Part 2: refining the idea (same day)
+
+### Why bother
+Turning ordinary images into 3D quickly and deterministically matters. The first target isn't perfect accuracy: it's rough, useful shapes. A shipping box is 8 corners and 12 edges, and a custom product shape would otherwise take hours of 3D modelling.
+
+### What "linear" really means
+The line score isn't how big the colour jump is. Two adjacent walls can differ by a whisker. It's three things:
+- **Length:** how far the line holds.
+- **Straightness:** how little it bends.
+- **Signal strength and consistency:** how steadily the change repeats along its length. A faint change that holds for a long stretch, in the right place, is a strong line. A random flicker isn't.
+
+Under the hood it's a derivative: for each pixel, the change to its neighbours in hue, saturation and brightness, **and the direction** of that change. A gradient is a steady flow in one direction, like the start and end points you drag out in a drawing program. A line is where many neighbouring pixels agree on the same direction of change.
+
+### The filter
+Output a mostly white image where the more confident a line is, the darker it draws. The result is **line art** of the photo. Text gets traced as outlines like everything else.
+
+### From lines to a scene
+- **Objects:** an LLM can help recognise regions ("this is a table") so its parts stay linked. Their boundaries come out of the line pass anyway.
+- **The camera first:** placing the camera is the key step. A wall whose four edges are visible pins it down, even if something hides an exact corner: extend the lines.
+- **Scale:** near things look bigger, so solve for real-world units. You need a unit system anyway to place points in 3D.
+- **A solver:** try numbers, wiggle them, keep what helps. Each object gets an anchor point and rough heights and widths, refined until its render matches the line art.
