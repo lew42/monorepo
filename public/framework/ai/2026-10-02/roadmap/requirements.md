@@ -1,0 +1,19 @@
+# Queue: the owner's 2026-10-02 evening asks, in priority order (not spawned yet: we're over the weekly pace)
+
+Each item becomes its own task when a slot and budget free up. Estimates are Sonnet unless noted, from today's actuals (a one-page task costs $1.5–5; a module with minions costs $10–20).
+
+| # | Ask | Who / where | Estimate |
+|---|---|---|---|
+| 1 | **Stalled tasks on the dashboard, top priority:** a node check marks a task stalled (no log line for 2 h, not landed, no live agent). The Dashboard shows stalled first, with Snooze / Kill / Re-prioritise buttons. 33 tasks are open-not-landed today. | @mastermind-servex-9 (the asks tick already marks stalled asks) | $8 |
+| 2 | **Budgets on every task:** the brief carries `Budget: $X`; the card shows estimate vs actual. Today only 5 of 29 landed tasks had a budget, and 3 of those went over (1.1×–2.4×). | servex-9, with the card pipeline | $5 |
+| 3 | **AI page tabs: Overview + Dashboard + Inbox.** Overview = quick links (every AI page, hierarchical, with icons). Dashboard = a grid of previews: the Inbox top 5, the Log top 5 (duplicates of inbox items removed), in flight + queued with progress bars, stalled first; each tile links to its full view. The Inbox stays its own tab. | @task-mastermind-panel2-sessions (Part 2) | in its task |
+| 4 | **LiveList tests that also teach:** a handful of small runnable tests, each one short code that proves a behaviour and reads as an example. No core test runner exists any more (core/test is gone); /framework/ai/tests is the newest test page. | @task-mastermind-page-extends-item | in its task |
+| 5 | **Filters for Panel 2:** audit the UI controls (checkbox, toggle chips, segmented, range with two thumbs, search, sort) and add the missing ones. A panel gets a filter icon; filters bind to a LiveList and show a filtered view (no copy). | new task after Panel 2 lands | $12 |
+| 6 | **The scroll system documented with live demos:** which box scrolls (page, panel, inner), fixed vs auto height, sticky header/footer, horizontal scroll; side-by-side examples, self-evident. Part of core/Page. | new task | $10 |
+| 7 | **Layout approval:** every layout in a grid; click one for a single view (nav left, the layout centre at its own default width, 1000px unless it says otherwise); Approve / Improve. Reuse /layouts/browse/ (it already has Approve/Improve). | new task | $12 |
+| 8 | **Demo UI rework:** demos become Panel 2s with a title bar and menu buttons; each demo has a width (default 1000px); hide the mobile→mega width buttons (keep the code). Syntax highlighting stays. | new task after Panel 2 | $10 |
+| 9 | **Page uses a panel; the panel system is a LiveList of panels; page columns** (a page's layout from its parent, and within itself). | after 1–8 | $20, Opus for the design |
+| 10 | **Page weight sorts pages:** `page.pages` sorts by weight by default (views, references, importance, a composite per view); ids stay stable so permalinks never break. core/Page/weight exists already. | after Page extends Item lands | $8 |
+| 11 | Markdown + live instances as fences (page-item-design.md) | after Page extends Item | $8 |
+| 12 | Question cards: an answer added later, tags | after the card pipeline | $4 |
+| 13 | Reference autocomplete in the composer (queued with one-dictation) | one-dictation | $5 |
