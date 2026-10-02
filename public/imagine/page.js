@@ -140,7 +140,7 @@ export default new Page({
 				this.parent.previews(new Map([...this.parent.children].filter(([name]) => name !== this.name)))
 					.style("--column", "15em");
 
-				md("Everything you change is remembered by **url** — the team's board and your run in the world both survive a reload, keyed on the page's own address ([how](/imagine/readme/)).");
+				md("Everything you change is remembered by **url** — the team's board and your run in the world both survive a reload, keyed on the page's own address ([how](/imagine/readme.md)).");
 			},
 		},
 
