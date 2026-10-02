@@ -142,6 +142,14 @@ export const posts = [
 
 	{
 		section: "ai",
+		name: "lines-to-3d",
+		title: "Idea: from straight lines to 3D",
+		date: "2026-10-01",
+		description: "Gaussian splats rebuild a scene from blobs. What if we started from lines instead: score how straight every edge is, then fit a 3D model until its render lines up?",
+	},
+
+	{
+		section: "ai",
 		name: "playwright",
 		title: "Playwright: a browser you can write to",
 		date: "2026-09-08",
