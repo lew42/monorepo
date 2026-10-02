@@ -1,9 +1,13 @@
-import View, { div, span, a, ul, li, details, summary } from "../../../core/View/View.js";
+import View, { div, span, a, ul, li, details, summary, icon } from "../../../core/View/View.js";
 
 /**
  * class ObjectCard extends View — a small card that shows what a real object IS instead
- * of explaining it in words: its class name, its instance name when it has one, its
- * properties as `name = value`, and its methods as names.
+ * of explaining it in words: its icon, its class name, its instance name when it has
+ * one, its properties as `name = value`, and its methods as names. The icon comes from
+ * `static icon = "material-symbol-name"` on the class — any class may declare one;
+ * absent, this card falls back to "data_object" (see `icon_name()` below). `Inspect.js`,
+ * beside this file, is the bigger, recursive version of this same card for a separate
+ * debug/inspector view (`inspect()`); this one stays the small, no-frills version.
  *
  *   object(page)                          // an instance — header shows its name too
  *   object(Page)                          // a class itself — no instance name
@@ -35,6 +39,17 @@ export default class ObjectCard extends View {
 
 	/* The class behind the subject: itself, when the subject IS a class. */
 	klass(){ return typeof this.subject === "function" ? this.subject : this.subject?.constructor; }
+
+	/* The class's own icon — any class may declare `static icon = "material-symbol-name"`
+	 * (a convention, not a new mechanism: nothing enforces it, a class just carries the
+	 * name of its own icon the same way it carries any other static). Read off the
+	 * subject's class when the subject is an instance, or the subject itself when it
+	 * IS the class. Falls back to "data_object", the same default `DefaultView` already
+	 * draws when a class says nothing — one shared fallback, not two. */
+	icon_name(){
+		const owner = typeof this.subject === "function" ? this.subject : this.klass();
+		return owner?.icon ?? "data_object";
+	}
 
 	/* Explicit list wins (a class's own declared properties, named by the caller);
 	 * otherwise every own enumerable value worth showing — skip functions, DOM/View
@@ -82,6 +97,7 @@ export default class ObjectCard extends View {
 		const label = typeof this.subject === "function" ? null : (this.subject?.name ?? this.subject?.path ?? this.subject?.url);
 
 		div.c("ux-content-object-head", () => {
+			icon(this.icon_name()).ac("ux-content-object-icon");
 			span.c("ux-content-object-class", klass?.name ?? "Object");
 			if (label) span.c("ux-content-object-label", String(label));
 		});

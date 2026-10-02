@@ -4,6 +4,7 @@ import PageOverview from "../../../core/Page/page.js";
 import { page_object } from "../../../core/Page/object.js";
 import { object } from "./Object.js";
 import { view, DefaultView } from "./DefaultView.js";
+import { inspect } from "./Inspect.js";
 import { item } from "../../../ui/item/item.js";
 
 // The same names core/Page/page.js's own Doc declares and links to real doc pages —
@@ -31,7 +32,7 @@ export default new Doc({
 	description: "A little card that shows what a real object IS — class, name, properties, methods — instead of explaining it in words.",
 	icon: "data_object",
 
-	files: "Object.js DefaultView.js page.js readme.md",
+	files: "Object.js Inspect.js DefaultView.js page.js readme.md",
 	notes: "shape default-view",
 	children: "page app",
 
@@ -74,6 +75,27 @@ export default new Doc({
 			div.c("flex v gap", () => { md("### This page, as an instance (`Doc`, a `Page` subclass)"); object(this, { properties: "title url children icon parent" }); });
 			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS }); });
 			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
+		});
+
+		md("### `inspect()` — the debug view, the fourth size");
+
+		md("A class's own doc page opens with THIS, not `object()` — the same icon, bigger, and a property whose value is itself an object opens as its own nested card instead of saying \"Array(3)\".");
+
+		div.c("ux-content-wall wide", () => {
+			div.c("flex v gap", () => {
+				md("#### The `Page` class itself — a class card");
+				md("Same icon as the instance below, in a visibly heavier frame; properties AND methods together.");
+				inspect(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS });
+			});
+			div.c("flex v gap", $box => {
+				md("#### This page, as an instance — click a property open to see its own card");
+				md("`parent` is a real `Page` underneath, not a one-line description — click it open (closed by default, same as `view()`) to see IT has its own `parent`, `children`, and so on.");
+				PageOverview.load_all_children(1).loading.then(() => $box.append(() => inspect(PageOverview, { properties: "title url icon parent" })));
+			});
+			div.c("flex v gap", () => {
+				md("#### `minimal` — an Inbox-style chip, icon + name only");
+				inspect(PageOverview, { variant: "minimal" });
+			});
 		});
 
 		md.details(import.meta, "readme.md", "Readme");

@@ -38,3 +38,17 @@ Live example: `public/framework/ai/objects.js`, `AIObject` with `Skill`, `Ask`, 
   touching the others.
 - **A page about an object renders a real instance from its real data**, never a description of
   it — this is the "show, don't tell" law applied to a class.
+
+## render vs inspect
+
+A class may have a `render()` — its own real template, whatever that looks like for this class,
+or nothing at all if it has no UI of its own. `inspect()` (`ux/Content/Object/Inspect.js`) is a
+SEPARATE method that every object gets, whether or not it has a `render()`: icon, instance name,
+class name, and its properties — a property that is itself an object opens as its own nested
+`inspect()` card, not a one-line description. `inspect()` never touches `render()` and `render()`
+never touches `inspect()` — one is the thing's real face, the other is for seeing its structure.
+
+A class itself can be inspected too (`inspect(SomeClass)`): the same icon, a heavier frame, and
+its properties AND methods listed together, core API first — the visual form of this readme's own
+`## Architecture` block. Live: the [`inspect()` demo](/framework/ux/Content/Object/) on the Object
+page, beside `object()`/`view()`.

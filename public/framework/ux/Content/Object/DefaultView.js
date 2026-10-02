@@ -39,7 +39,10 @@ export default class DefaultView extends View {
 		const article = /^[aeiou]/i.test(klass?.name ?? "Object") ? "an " : "a ";
 
 		item({
-			icon: "data_object",
+			// Any class may declare `static icon = "material-symbol-name"` (the same
+			// convention `ObjectCard.icon_name()` and `Inspect.js` read) — absent, this
+			// falls back to "data_object", same as it always has.
+			icon: klass?.icon ?? "data_object",
 			name: article + (klass?.name ?? "Object"),
 			end: label ? () => span.c("item-end muted", String(label)) : undefined,
 		});
