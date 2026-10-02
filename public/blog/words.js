@@ -3,7 +3,7 @@
    `posts.js` reads this to say how long a post is; the words-per-minute is there. */
 export default {
 	"ai/drone-scans": 317,
-	"ai/lines-to-3d": 1256,
+	"ai/lines-to-3d": 1250,
 	"ai/playwright": 1809,
 	"framework/hello-lew42": 1380,
 	"framework/how-this-blog-works": 952,

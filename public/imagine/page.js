@@ -38,7 +38,7 @@ View.stylesheet(import.meta, "imagine.css");
    copied here with the two lines added — see the comment on it. */
 
 const GROUPS = [
-	["Tools",   "paging importance research stream cms generated"],
+	["Tools",   "lines paging importance research stream cms generated"],
 	["Worlds",  "game scenes team gallery codrops youtube feeds"],
 	["Studies", "platform review vary"],
 ];
@@ -140,7 +140,7 @@ export default new Page({
 				this.parent.previews(new Map([...this.parent.children].filter(([name]) => name !== this.name)))
 					.style("--column", "15em");
 
-				md("Everything you change is remembered by **url** — the team's board and your run in the world both survive a reload, keyed on the page's own address ([how](/imagine/readme/)).");
+				md("Everything you change is remembered by **url** — the team's board and your run in the world both survive a reload, keyed on the page's own address ([how](/imagine/readme.md)).");
 			},
 		},
 
