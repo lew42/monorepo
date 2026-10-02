@@ -8,6 +8,7 @@ knows, at three sizes.
 
 - The default view: `view(thing)`
 - The three sizes — chip, row, panel
+- The debug view: `inspect(thing)` — the fourth size, separate from `render()`
 - Objects the owner sees (`AIObject`, `Skill`, `Ask`, `Task`)
 
 ## Use
@@ -16,6 +17,8 @@ knows, at three sizes.
 Thing.View = class extends DefaultView { … };   // overrides the default for every Thing
 track(MyClass);          // once, in the module
 MyClass.track(this);     // once, in the constructor — makes instances findable at all
+static icon = "material-symbol-name";           // any class may carry one — inspect() reads it
+inspect(myThing)                                // the debug view — icon, name, properties, nested
 ```
 Live: [the Object demo](/framework/ux/Content/Object/).
 
@@ -28,5 +31,6 @@ Live: [the Object demo](/framework/ux/Content/Object/).
 
 ## More
 
-- [doc/views.md](doc/views.md) — the full explanation, with the `AIObject` example
+- [doc/views.md](doc/views.md) — the full explanation, with the `AIObject` example, and
+  "render vs inspect" — why they're two separate methods
 - [patterns](../patterns/) — parts as static subclasses, the mechanism `Thing.View = …` relies on

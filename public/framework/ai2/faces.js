@@ -147,7 +147,7 @@ export function full(it, on){
 	// ⚠ `page-link` is the site's class for a link that is NOT inside prose, and
 	// it is why these are no longer browser-blue: framework.css scopes link
 	// colour to prose, so an anchor in a bare div got no rule at all (measured:
-	// rgb(0, 0, 238) on all twelve). `ai2.css` says the rest.
+	// rgb(0, 0, 238) on all twelve). `ux/Card/Card.css` says the rest.
 	if (it.links.length) div.c("ai2-links flex wrap gap-25", () => {
 		it.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
 	});

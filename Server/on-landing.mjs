@@ -94,7 +94,7 @@ try {
 				// "not-merged" fixes itself once merge.mjs lands the branch — this loop's own next
 				// tick sweeps it then, no one needs to act — so only every OTHER reason (still
 				// busy, no task found) is worth a line on the card.
-				if (card && reason !== "not-merged") {
+				if (card && reason !== "not-merged" && reason !== "pool") {   // a pool slot is handed back by return_worktree; nothing to nag about
 					let untracked = "";
 					try {
 						const st = execFileSync("git", ["-C", entry.path, "status", "--porcelain"], { encoding: "utf8", windowsHide: true });

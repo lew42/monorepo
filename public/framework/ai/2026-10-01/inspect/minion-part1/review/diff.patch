@@ -1,0 +1,829 @@
+diff --git a/public/framework/ai/2026-10-01/inspect/files.jsonl b/public/framework/ai/2026-10-01/inspect/files.jsonl
+new file mode 100644
+index 00000000..19fce1d2
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"minion-part1/"}
++{"file":"minion-part2/"}
++{"file":"owner-words.md"}
++{"file":"requirements.md"}
+diff --git a/public/framework/ai/2026-10-01/inspect/minion-part1/requirements.md b/public/framework/ai/2026-10-01/inspect/minion-part1/requirements.md
+new file mode 100644
+index 00000000..6f065208
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/minion-part1/requirements.md
+@@ -0,0 +1,126 @@
++# Part 1: `inspect()` — the house pattern for seeing any object
++
++You are a Sonnet minion. Load the `minion` skill first. Your parent is task-mastermind-inspect;
++its task dir (full transcript, the owner's raw words) is
++[public/framework/ai/2026-10-01/inspect/](../). Read `../owner-words.md` and `../requirements.md`
++before you start — they're short. This brief is just Part 1 of that; Part 2 (the Dictate
++playground) is a separate minion, after you land.
++
++**Work in the worktree already up:** `C:\Code\lew42\worktrees\inspect` (proxy
++`http://inspect.localhost/`, branch `worktree/inspect`). Commit there; don't touch the main tree.
++
++## Why (the owner's own words, trimmed — full text in `../owner-words.md`)
++
++The owner wants every class to carry its own icon and a built-in "show me what you are" view,
++separate from whatever `render()` a class already has for its real UI. "An inspect method...
++renders its icon and its instance name and its class name... like a log view... these content
++cards and context cards." A class gets a bigger, more formal version of the same card — "the
++whole inspect card... the class card essentially." This is step one of a bigger plan: once this
++exists, Part 2 uses it to turn the Dictate playground into a live diagram of real objects.
++
++## What already exists — build on it, don't duplicate (law 6)
++
++Read these three files first, in full:
++- `/framework/ux/Content/Object/Object.js` — `object(subject)`: one small card (class name,
++  `name = value` per property, method names). This is the "card" look you extend.
++- `/framework/ux/Content/Object/DefaultView.js` — `view(thing)`: a lazy tree of `ui/item` rows.
++  A class overrides it with `static View = class extends DefaultView {...}`.
++- `/framework/code/objects/readme.md` — the existing pattern: "every class ships a view of its
++  state," at three sizes (chip, row, panel) — your `minimal`/`card`/`full` variants ARE this.
++
++Also skim `/framework/ux/Content/Object/readme.md` and `/framework/code/patterns/readme.md`
++("parts as statics," the `Thing.View = class...` convention `static icon` follows).
++
++## Deliverables
++
++1. **`static icon = "material-symbol-name"`** — a convention, not a new mechanism: any class may
++   declare it (default to `"data_object"`, the same fallback `DefaultView` already uses, when
++   absent). Read it off `subject.constructor.icon` (instance) or `subject.icon` (the class
++   itself). Render it with the site's existing `icon()` (`ui/icon` — `import { icon } from
++   "/app.js"` or wherever `ObjectCard`'s render already imports from `core/View/View.js`; check
++   how `DefaultView`'s `item({ icon: "data_object", ... })` already does it and match that).
++
++2. **`inspect(subject, opts)`** — a new function, same one-call shape as `object()`/`view()`
++   (`ux/Content` modules are always "one call, everything in one data object"). Put it in a new
++   file, `Inspect.js`, beside `Object.js`. This is the `render()`-separate debug/inspector view
++   the owner asked for — it never touches or requires a class's own `render()`.
++   - **Instance card** (`inspect(someInstance)`): icon (bigger than `object()`'s, enough to read
++     as "a definition," per the owner), instance name if it has one, class name, the key
++     properties (same selection rules `ObjectCard.own_properties()` already uses, or an explicit
++     `properties:` override), and — the new part — **a property whose value is itself an object
++     or array renders as a NESTED `inspect()` card, not a one-line description.** Recursive: a
++     nested card's own object properties nest again. Guard cycles the same way
++     `DefaultView.expandable()` does (a `path` Set of ancestors; a value already in it shows
++     "↺ already open above" instead of recursing forever) — reuse that exact idea, don't invent a
++     second one.
++   - **Class card** (`inspect(SomeClass)`): the SAME icon, in a visibly bigger/heavier frame (the
++     owner: "a more substantial frame... the icon is bigger... looks like a class definition").
++     Lists properties AND methods together, core API members first (pass an explicit `properties:
++     methods:` order the same way `object(Page, {properties: PAGE_PROPERTIES, methods:
++     PAGE_METHODS})` already does on this module's own `page.js` — don't invent a second
++     "core API" detector), each member as its own small nested card/row, not a flat list.
++   - **Three variants**, a `variant:` option: `"minimal"` (icon + instance/class name only — the
++     owner compared this to "an Inbox context card" — check `/framework/ext/Mention/` or wherever
++     Inbox's context chip lives for that exact look and match its size), `"card"` (the default —
++     everything above), `"full"` (same as card today; leave a clear seam — a comment naming what
++     "full" should eventually add beyond card — the owner hasn't decided that detail yet, record
++     it as a decision/caveat in your log rather than guessing).
++
++3. **One default view, not an array.** Keep `Thing.View = class extends DefaultView` as the one
++   override mechanism (already true). Do NOT add a `views: []` array — the owner raised it as an
++   option he's used before, then named its own cost himself ("tricky too for updates... have to
++   loop through each view"). Log a one-line `decision` in your task.jsonl recording that you kept
++   one view and why, so it's not re-litigated.
++
++4. **Document it.** Two small doc edits, not a rewrite:
++   - `/framework/code/objects/readme.md` — add `inspect()` to its "Use" block and Index (it's the
++     fourth size: "the debug view," alongside chip/row/panel), one line, link to your new doc.
++   - `/framework/code/objects/doc/views.md` — append a short "render vs inspect" section: render()
++     is the object's own real template (or absent); inspect() always exists, is never the same
++     method, and is for seeing structure, not using the thing.
++   - `/framework/ux/Content/Object/readme.md` — add `inspect()` next to `object()`/`view()` in its
++     "Two ways in" list (now three), with a one-line example, same style as what's there.
++   - **A class's doc page opens with its class card:** prove this on ONE real page —
++     `/framework/ux/Content/Object/page.js` itself. Add a short section, near its existing
++     `object()`/`view()` demos, showing `inspect(Page)` (the class card) and `inspect(somePage)`
++     (an instance card, nested properties visible) side by side. This is the "show it, then use
++     words" proof — don't just claim it opens with the card, make this page's own content block
++     actually do it.
++
++5. **CSS.** New rules go in `/framework/ux/Content/content.css`, inside the existing layer that
++   file already uses (check its top — probably `@layer site` or similar; match it, never add a
++   bare untiered rule — see CLAUDE.md "every CSS rule inside a layer"). Class names follow the
++   existing `ux-content-object-*`/new `ux-content-inspect-*` prefix convention — run the `css` and
++   `new-css-class` skills before naming anything new.
++
++## Fence (yours only — nothing outside this list)
++
++- `public/framework/ux/Content/Object/Object.js`
++- `public/framework/ux/Content/Object/DefaultView.js`
++- `public/framework/ux/Content/Object/Inspect.js` (new)
++- `public/framework/ux/Content/Object/page.js`
++- `public/framework/ux/Content/Object/readme.md`
++- `public/framework/ux/Content/content.css`
++- `public/framework/code/objects/readme.md`
++- `public/framework/code/objects/doc/views.md`
++
++If you find you need a file outside this list, stop and say so in your task log rather than
++editing it — tell your parent (task-mastermind-inspect) before touching anything in
++`ux/Dictate/` (claimed by a sibling minion, Part 2, landing after you).
++
++## Prove it, don't just build it
++
++- Screenshots at **400** and **1920** of `/framework/ux/Content/Object/` (your new section),
++  through the worktree's own server (`http://inspect.localhost/framework/ux/Content/Object/`).
++- `node Server/merge.mjs <worktree> /framework/ux/Content/Object/ /framework/code/objects/` before
++  you tell your parent you're done — zero console errors, zero failed requests.
++- Open your own `inspect()` card and check by eye: does an instance card actually nest a real
++  array/object property as a smaller card inside it, not just say "Array(3)"? That's the one
++  thing a screenshot proves that a green build doesn't.
++
++## Land
++
++Own task dir: `public/framework/ai/2026-10-01/inspect/minion-part1/` — open it with `new-task`
++before your first edit (parent_task: `public/framework/ai/2026-10-01/inspect`). Log milestones
++and the one decision above as you go. When done, tell task-mastermind-inspect directly
++(`send_to_agent`) with your task dir path — don't wait to be asked.
+diff --git a/public/framework/ai/2026-10-01/inspect/minion-part1/task.jsonl b/public/framework/ai/2026-10-01/inspect/minion-part1/task.jsonl
+new file mode 100644
+index 00000000..60e05377
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/minion-part1/task.jsonl
+@@ -0,0 +1,14 @@
++{"assign":{"session_id":"83c6a9df-03b5-407b-bfe2-1d76323976ac","agent":"minion-inspect-part1","card":"2026/10/01/inspect-object-class-cards-then-dictate","brief":"public/framework/ai/2026-10-01/inspect/minion-part1/requirements.md","model":"claude-sonnet-5","worktree":"C:\\Code\\lew42\\worktrees\\inspect","parent_task":"public/framework/ai/2026-10-01/inspect","requested_at":"2026-10-01T22:58:20-05:00","now":"starting","steps":[],"step":1}}
++{"action":{"at":"2026-10-01T23:03:04-05:00","did":"edit","files":["public/framework/ux/Content/Object/Object.js"]}}
++{"action":{"at":"2026-10-01T23:03:33-05:00","did":"edit","files":["public/framework/ux/Content/Object/DefaultView.js"]}}
++{"action":{"at":"2026-10-01T23:03:59-05:00","did":"edit","files":["public/framework/ux/Content/Object/Inspect.js"]}}
++{"action":{"at":"2026-10-01T23:04:22-05:00","did":"edit","files":["public/framework/ux/Content/content.css"]}}
++{"action":{"at":"2026-10-01T23:04:45-05:00","did":"edit","files":["public/framework/ux/Content/Object/page.js"]}}
++{"action":{"at":"2026-10-01T23:05:16-05:00","did":"edit","files":["public/framework/ux/Content/Object/readme.md"]}}
++{"action":{"at":"2026-10-01T23:05:37-05:00","did":"edit","files":["public/framework/code/objects/readme.md"]}}
++{"action":{"at":"2026-10-01T23:05:47-05:00","did":"edit","files":["public/framework/code/objects/doc/views.md"]}}
++{"assign":{"steps":["read the three existing files (Object.js, DefaultView.js, code/objects readme)","add static icon convention + icon rendering to ObjectCard and DefaultView","write Inspect.js (inspect(), InspectCard, nested recursion, cycle guard, 3 variants)","CSS for ux-content-inspect-*","doc edits (4 files) + page.js demo","screenshots + merge.mjs + land"],"step":2,"now":"read Object.js, DefaultView.js, code/objects/readme.md, code/patterns/readme.md, ux/Content/Object/readme.md, ui/icon, ui/item, ext/Mention (minimal-variant reference), css-scopes.txt"}}
++{"decision":{"at":"2026-10-01T23:06:33-05:00","question":"One default view (Thing.View) or a views: [] array?","options":["Keep one override mechanism (Thing.View = class extends DefaultView), as today","Add a views: [] array so a class can register several live views"],"chose":"Keep one override mechanism — no views array added.","why":"The owner named the array's own cost himself ('tricky too for updates... have to loop through each view'). object()/view()/inspect() are three separate named entry points, not three slots in one list, so a class never has to pick an array index for a given look."}}
++{"decision":{"at":"2026-10-01T23:06:33-05:00","question":"What should variant: \"full\" add beyond \"card\" on inspect()?","options":["Guess at extra content now (uncapped lists, inline doc text, expanded nesting)","Render full identically to card, leave a named seam for when the owner decides"],"chose":"full renders identically to card today — no behavior difference yet.","why":"The owner said explicitly he hasn't decided that detail ('I haven't really thought that through'). A comment in Inspect.js names exactly where to branch once he does, instead of guessing and having to undo a wrong guess."}}
++{"log":{"at":"2026-10-01T23:06:33-05:00","msg":"Caveat: a nested inspect() card reuses ObjectCard.own_properties(), which reads Object.keys(subject) — for a Map or Set value (not a plain object/array) that returns zero own enumerable properties, so a nested Map/Set card today shows only its icon and class name, no entries. This is the SAME gap object()'s own card already has (DefaultView.describe() special-cases Map/Set; ObjectCard.own_properties()/describe() do not) — matched the existing selection rule exactly as the brief asked, rather than fixing a second, unrelated thing. A real fix is a few lines treating Map entries/Set members as indexed properties, the way DefaultView.entries() already does, but it touches ObjectCard's shared logic outside this brief's ask."}}
++{"log":{"at":"2026-10-01T23:06:33-05:00","msg":"The static icon convention now reaches three places, not just inspect(): ObjectCard (object()) and DefaultView (view()) both read it the same way, falling back to data_object. Implied by the brief's own phrase 'icon (bigger than object()'s...)' — object() drew no icon at all before this task, so added one there too (smaller size) rather than leaving that comparison meaningless. Object.js and DefaultView.js are both in this brief's fence."}}
+diff --git a/public/framework/ai/2026-10-01/inspect/minion-part2/requirements.md b/public/framework/ai/2026-10-01/inspect/minion-part2/requirements.md
+new file mode 100644
+index 00000000..7726c766
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/minion-part2/requirements.md
+@@ -0,0 +1,142 @@
++# Part 2: the Dictate playground as a full-bleed, live system diagram
++
++You are a Sonnet minion. Load the `minion` skill, then the `layout` skill (you're building a
++whole-page layout) before you touch CSS. Your parent is task-mastermind-inspect; its task dir is
++[public/framework/ai/2026-10-01/inspect/](../) — read `owner-words.md` and `requirements.md`
++there first. **Do not start until Part 1 has landed** (`minion-part1/`, in the same worktree) —
++you need its `inspect()` + `static icon` to do this job; check with your parent if unsure.
++
++**Work in the worktree already up:** `C:\Code\lew42\worktrees\inspect` (proxy
++`http://inspect.localhost/`, branch `worktree/inspect`). Part 1 is already committed there when
++you start — pull/rebase is not needed, you're in the same checkout.
++
++## Why (the owner's own words, trimmed — full text in `../owner-words.md`)
++
++"For the dictate tab... what I want this minion to do... is, is, uh, well, it can do both of these
++things. It can create the [inspect] class... and as a test case, we can use it to build out the
++dictate work... playground... All of the things that the dictate is creating, all the data
++structures, we want those to be object oriented so that we can give them an icon... we want to see
++everything that's going on visually so that like it's a system diagram and it's real time... on
++desktop, we have a lot of space... we probably want to use like a full bleed tab for the playground
++so that we have as much space... some sort of 2D layout system."
++
++## What exists today — read these two files in full first
++
++- `/framework/ux/Dictate/playground/Playground.js` (634 lines) — the pipeline. Read it end to
++  end before changing anything; it's dense but short. Today's state is almost entirely **plain
++  objects and arrays**, exactly what the owner wants turned into real classes:
++  - `this.chunks` — `[{raw, gap, cut, cleaned, deltas, source_kind, model, ms, level, session}]`,
++    one per settled sentence, pushed in `settle()`, filled in by `clean_chunk()`.
++  - `this.resends` — `[{t, segment, text, since_prev}]`, one per Whisper resend, pushed in
++    `guess()`.
++  - `this.partial` (string, the live still-moving guess), `this.cleaned_so_far` (string).
++  - Six tabs already exist (`TABS` const): Clean, Raw, Chunks, Corrections (debug), Live (debug),
++    Side by side — each just shows/hides a pre-built panel, nothing re-renders per tab.
++- `/framework/ux/Dictate/playground/page.js` and `Playground.css` — the one page that mounts this,
++  and its current look (`max-width: 60em`, a tab strip, code-font panels).
++
++Also skim `/framework/ux/Dictate/readme.md`'s "Widget" section (just to know the mic/chat widget
++this diagram sits NEXT TO — you are not changing it) and
++`/framework/ai/2026-09-30/one-dictation/checklist-2026-10-01.md` (the sibling task owning that
++widget's own bugs — not your fence, don't touch `Widget.js` or `ext/Chat/`).
++
++## Deliverables
++
++1. **Real classes instead of plain objects.** In a new file,
++   `/framework/ux/Dictate/playground/objects.js`:
++   - `Chunk` — one settled sentence: `raw`, `cleaned`, `deltas`, `source_kind`, `model`, `ms`,
++     `level`, `gap`, `cut`, `session`. `static icon = "..."` (pick one that reads as "a settled
++     line of text" — check `/framework/ui/icon/` or Google's Material Symbols names).
++   - `Resend` — one Whisper resend: `t`, `segment`, `text`, `since_prev`. `static icon`.
++   - `Analysis` — the "coming phase" the owner named (prompt analysis / investigation /
++     planning) — **a stub class only**: a few placeholder fields (`status: "not built yet"`) and
++     its own icon, so it exists as a real, inspectable thing in the diagram even though nothing
++     fills it in yet. Say this plainly in its own doc comment — don't pretend it does more than
++     it does.
++   - `Source` — the audio/mic state panel already drawn by `audio_panel()`/`meter()`: which
++     device, the live level number. `static icon`.
++   - `Session` — one dictation session: owns `chunks: [Chunk]`, `resends: [Resend]`, `source:
++     Source`, `analysis: Analysis`, `partial` (string). This is `Playground`'s own per-session
++     state (`reset()`'s block), pulled out into its own class so the WHOLE session is one
++     inspectable object, not scattered fields on `Playground` itself.
++   Change `Playground.js` to build and hold a `Session` instance (`this.current =
++   new Session()`), push real `Chunk`/`Resend` instances instead of plain object literals, and
++   read/write through it. **Every existing behavior must keep working exactly as before** — this
++   is a representation change, not a feature change: the six tabs, the diff, the Side view, the
++   Sample button, all of it. Prove this with the existing walkthrough
++   (`/framework/ux/Dictate/playground/walkthrough/`) if it has a scripted check, or manually run
++   ▶ Sample and confirm all six tabs still show the same content as before your change.
++
++2. **`static icon` + `inspect()` on all five**, from Part 1
++   (`/framework/ux/Content/Object/Inspect.js` — `import { inspect } from
++   "/framework/ux/Content/Object/Inspect.js"`). Don't reinvent any card look; use what Part 1
++   built.
++
++3. **A live structure panel**: one place on the page showing `inspect(session)` — the WHOLE
++   session as one nested card/tree (Session → its Chunks, Resends, Source, Analysis), updating
++   as new chunks/resends arrive. This is the "visual rendering of the hierarchy" the owner asked
++   for, and it's what makes Part 1 worth having built: if this panel doesn't visibly change while
++   you talk (or press ▶ Sample), the deliverable isn't done. You will likely need the simplest
++   working re-render (re-call `inspect(session)` into the same box after each `settle()`/`guess()`)
++   — don't over-engineer a diffing update for a first version; note the cost as a caveat if it's
++   worth a fancier approach later.
++
++4. **Full-bleed, 2D desktop layout.** Run the `layout` skill's three sizing questions before
++   picking anything. The page (`playground/page.js`) becomes a full page: `classes: "full"` (see
++   `/framework/core/Page/doc/property/classes.md` — the default `"standard"` page is a measured
++   column; `"full"` takes the whole screen). Check `/framework/core/Layout/` (30 named
++   arrangements, proven at seven widths) for one that already fits "several columns side by side,
++   one wider structure panel" before hand-rolling CSS grid — reuse one if it fits (law 6), note in
++   your log if none does and why.
++   - **Columns, left to right, roughly:** Source (mic/level) → Raw → Clean → Analysis (stub) →
++     the live Structure panel (deliverable 3). This can be the six EXISTING panels re-arranged as
++     always-visible columns instead of tab-switched, at ≥1200 or so — your call, from the `layout`
++     skill's own sizing question about breakpoints — PLUS the new Structure column.
++   - **On mobile, keep today's tab strip** — the owner said so explicitly ("a stack with tabs is
++     fine"). Don't delete `TABS`/`select_tab()`; gate the two layouts with a media query or a
++     container query, whichever `layout`/`css` skills say this codebase prefers for a page-level
++     switch.
++   - **Chat column — do NOT build one.** The owner listed "chat messages, replies and reactions"
++     as part of the system, but that widget is `@task-mastermind-one-dictation`'s (fixing its
++     bugs right now) and the brief says explicitly: "Part 2 builds the diagram around their
++     widget, not a second widget." Leave a clearly-labelled placeholder column ("chat — see the
++     widget above/beside this page") rather than mounting a second `chat()` call. Log this as a
++     `decision` in your task.jsonl: scope cut, alternative named (a future pass reads
++     `ext/Chat`'s thread file read-only and shows it as `inspect()` cards here), why (avoid a
++     second live chat composer on one page).
++
++5. **Immutable, never-reorders.** Verify (don't just assume) that converting to classes didn't
++   change today's actual behavior: the Raw column's lines are never removed or edited once
++   drawn; the Clean column updates a chunk's own line in place (raw → cleaned) without touching
++   the Raw column at all; nothing ever reorders. If you find a spot where today's code already
++   violates this (the brief's Rules section flags "jumpy" as an existing owner complaint), you may
++   fix it, but say so as a named `decision`, don't rewrite the pipeline wholesale.
++
++## Fence (yours only — nothing outside this list)
++
++- `public/framework/ux/Dictate/playground/objects.js` (new)
++- `public/framework/ux/Dictate/playground/Playground.js`
++- `public/framework/ux/Dictate/playground/Playground.css`
++- `public/framework/ux/Dictate/playground/page.js`
++- `public/framework/ux/Dictate/playground/readme.md`
++
++Do not touch `ux/Dictate/Widget.js`, `ux/Dictate/Dictate.js`, `ux/Dictate/chat.js`, or anything
++under `ext/Chat/` — all owned by @task-mastermind-one-dictation, live right now. If you think you
++need one of them, stop and message your parent (task-mastermind-inspect) first.
++
++## Prove it, don't just build it
++
++- Screenshots at **1920** and **3440** of `http://inspect.localhost/framework/ux/Dictate/playground/`
++  — the full-bleed desktop layout, mid-session (press ▶ Sample first, screenshot after it
++  finishes so the columns have real content, not empty-state text).
++- A screenshot at **400** showing the mobile tab fallback still works.
++- One screenshot of the Structure panel BEFORE and AFTER pressing ▶ Sample, proving it actually
++  updates live, not just once at page load.
++- `node Server/merge.mjs <worktree> /framework/ux/Dictate/playground/` — zero console errors,
++  zero failed requests, before you tell your parent you're done.
++
++## Land
++
++Own task dir: `public/framework/ai/2026-10-01/inspect/minion-part2/` — open with `new-task`
++before your first edit (parent_task: `public/framework/ai/2026-10-01/inspect`). When done, message
++task-mastermind-inspect directly with your task dir path.
+diff --git a/public/framework/ai/2026-10-01/inspect/owner-words.md b/public/framework/ai/2026-10-01/inspect/owner-words.md
+new file mode 100644
+index 00000000..5e0e1722
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/owner-words.md
+@@ -0,0 +1,4 @@
++
++## 2026-10-01 22:40 — inspect(): every object and class as a card; the Dictate playground as a live, full-bleed system diagram
++
++So for this task, I want to create a desktop, like, you know, widescreen, 3440 friendly uh, version, essentially, of the dictate page. So the dictate page has a lot of stuff going on and it's not really well organized. It's kind of a lot of the wrong things in the wrong place. What I want to see is number one, obviously class hierarchy. By the way, on those README, so we we did something earlier about like class architecture, you know, like little text sketches or whatever. And those, you know, syntax highlighted actually work really well. Um, However, we could, I also have been talking about icon items and rendering views for classes. And so, you know, well, so for each class, you know, having some sort of visual hierarchy of the, the structure of the system, like, you know, the classes, the subclasses, the instances, the properties, the whatever, like um, having a visual rendering of probably like an instance, you know, of and the thing that then you can use. And well, okay, so for the dictate thing, when it comes to the experience of using that, I think it's the playground, that's the one that breaks it down into different tabs. And that's what could easily be, you know, uh, well, fixed on desktop. So I don't know the best way to do it. But I guess what my gut's telling me is if every instance that's associated with the dictate system, uh, you know, is properly displayed on screen, then I should be able to just see naturally the structure of all the data, all the chunks, all the messages, all the whatever those objects are. And if they're not objects, and they could or should be, they should be. And so we want to lean into our object-oriented design system so that whenever we create classes and subclasses, we can just kind of give them an icon. I don't know if it's class.icon, you know, it's just the name of the icon that gets rendered. Seems to make sense to me. Um, so we give each class an icon and uh, well, try to create demos where we're, we're essentially creating a view for each object. And well, so If each object can only have one view, it could be limiting. Sometimes I've used a views array, views plural. Um, that can be tricky too for updates. Then you have to like loop through each uh, view to update them. However, well, and also having multiple versions of views. So like the dictate widget, I don't know if the dictate class has a render method. In the past, my general pattern and make a note of this if it's not noted elsewhere, is that any object could have a render method and that method could just create raw markup without using any classes or could create a new class or a new instance rather of its own view. A lot of different ways to handle this, you know, in terms of the structure and complexity and, and needs. Um, however, I do want to lean into the, the rendering of classes that might not even otherwise have a render method. Now, I do think that maybe having an alternate render mode, like a debug mode, or a, it's sort of like an inspector. Um, I'm not, yeah, I mean, maybe like an uh, inspect method is the one to draw an object in a way that, you know, renders its icon and its instance name and its class name. And it's just kind of like a, a log view, you know, we're, we're talking about making these content cards and context cards where we can reference anything and just see its icon and its name and whatever, like this is the same system, right? Like we want, we need these content cards for each class. And, uh, and on the documentation page, the first thing we should see is either, well, may, maybe the class uh, view, maybe a class has a, a view that's different. And so Um, well, it, maybe it's a cl it's class name dot inspect. So an instance could have an inspect rendering, and a class could have an inspect rendering. The icon could be the same, and maybe just framed differently. So maybe the class gets like a more substantial frame, and the icon is bigger, and so it looks like a uh, class definition. You know, the class card essentially should is what we're talking about here. The whole inspect card. Um, Unless we want to just lean into render. If there's no other render method being provided and there's no like future need for the render method, then you could just use render. The only thing with the inspect is, is that it allows you to then keep the render method available if you wanted to have just like a standard template, like an alter, a different standard template than the inspection. The inspection, you know, the inspector thing could just be a default view that just automatically shows Uh, maybe all the properties, maybe, maybe you could filter it down with some sort of like config. Uh, but yeah, in terms of the dictate tab and seeing that process on my big widescreen, what I want this minion to do is, is, uh, well, it can do both of these things. It can create the class. Let's lean into inspect for now. It's sort of, it's a render function and alternate to the render function, it can create any kind of markup and it can be captured. And so, um, you know, any class, we can use the inspect to render it, uh, to, re to render a little card that is a, I don't know how, if it's a preview or like the full friggin' view, but yeah, maybe, maybe we have different variants of it. Um, I'm not sure exactly how to handle that. I haven't really thought that through, but uh, we, we at least want to have a minimal view that provides the structure, kind of like these class architectural uh, code snippets. But you know, we could then render a little sub, a nested card for each property and method, um, especially the core API. And, and so sculpting these renderings and naming them different things might, you know, need some massaging to figure out the, the right uh, feel of it. But okay, so the point is, is that first, you know, the, the minion can create this system. And as a test case, we can use it to build out the dictate work, work uh, play, playground, I think is what it's called. So All of the things that the dictate is creating, all the data structures, we want those to be object oriented so that we can give them an icon and that we can customize their view, their card view. So we can render them, well, they, maybe we use recursively the inspect method. So every, each class, you know, can be inspected. And so then we know that this inspection is like a debug layer just to, to see what it looks like essentially. It could be like a log method where you, you know, invoke the log method and it, uh, renders something, but I don't know, a lot of different ways and, and potential uh, outcomes and, and, and layouts and, and kind of the, the way that all that works. But let's at least just get, so, so the, the core idea here is that for the dictation widget and all those tabs on the playground currently where we can see the, the raw text, you know, should be very, it, it still seems like it jumps around a lot. It still, it should be as, much like a log is possible. So everything that happens, it should be immutable, right? Like we don't, we don't want to be updating things and root, you know, losing the raw transcription that used to be there. And it seems a little jumpy right now, like it might be. But yeah, so we want to see everything that's created during that uh, transcription session, especially all the object oriented, the hierarchy, the properties, the arrays of items, the log items, the, you know, all the data that gets written to all the files, You know, we want to be able to see everything that's going on visually so that like it's a system diagram and it's real time. So as we're transcribing the little preview cards, like update in real time. And so the transcriptions can go right in, you know, the raw transcriptions can go in a card and, you know, on desktop, we have a lot of space. So then the, the clean transcriptions can go probably, you know, in a table like way or just spaced in a way where it's clear. The source, you know, the audio source, the tra actual transcription, um, the clean transcription, and then like we're getting towards the uh, the planning, the well, the analysis, the investigation, and the planning of the response. So like the prompt analysis essentially is like a whole nother phase of this, and then the whole chat app and the whole like user uh, the user experience and reacting to post like comments or messages. Uh, all of those things are need to be enhanced and we want to build those into the dictate page. And so, uh, yeah, I mean, maybe the playground is the best spot for it right now. We probably want to use like a full bleed tab for the playground so that we have as much space. We might want to try and use some sort of 2D, uh, 2D layout system. So th this is a pretty big task. It might take... Uh, maybe even several min minions. I don't know if, 
+diff --git a/public/framework/ai/2026-10-01/inspect/requirements.md b/public/framework/ai/2026-10-01/inspect/requirements.md
+new file mode 100644
+index 00000000..a68c0803
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/inspect/requirements.md
+@@ -0,0 +1,36 @@
++# inspect(): every object and class as a card, and Dictate as a live system diagram: requirements
++
++The owner's words are verbatim in [owner-words.md](owner-words.md). A big task, in two parts. Part 1 first.
++
++## Part 1: `inspect()`, the house pattern for seeing any object
++- **Build on what exists, don't duplicate (law 6):** /framework/ux/Content/Object:
++  - `object()` gives one card: the class name, `name = value` per property, and the method names;
++  - `view()` / `DefaultView.js` gives a lazy tree of ui/item rows;
++  - a class can override it with `Thing.View`.
++- **`static icon = "…"`** on a class: the name of its icon (the icon system). An instance shows its class's icon.
++- **`instance.inspect()` and `Class.inspect()`:** a render method kept SEPARATE from `render()`. `render()` stays free for the object's real template; `inspect()` is the debug and inspector view, available on every object even without a render method. It captures markup like any factory.
++  - **An instance card:** icon, instance name, class name, the key properties (configurable), and arrays as nested cards. It works recursively: a property's value inspects itself.
++  - **A class card:** the SAME icon in a more substantial frame (bigger, "a class definition"), listing properties and methods with the core API first, each as a nested card. It's the visual form of the readme's `## Architecture` block.
++  - Variants: `minimal` (icon + names, like an Inbox context card), `card` (the default), `full`. Name them well; the owner expects some sculpting.
++- **One view or many:** keep one default (`Thing.View`). Multiple live views are possible, but note the update cost (you have to loop the views). Recommend, and record the alternative.
++- **Document it in the code system** (/framework/code/patterns: "render vs inspect"; parts as statics; `static icon`). A class's doc page opens with its class card.
++
++## Part 2: the /framework/ux/Dictate/ playground as a full-bleed, live system diagram (3440-friendly)
++- The playground tab goes **full bleed**, using a 2D layout (columns and rows) that fills a widescreen.
++- **Every object a dictation session creates is a real object with an icon,** shown with `inspect()` and updating live as you talk:
++  1. the audio source (mic, levels);
++  2. the segments;
++  3. the RAW transcriptions;
++  4. the CLEAN ones;
++  5. the prompt analysis (investigation and planning, a coming phase);
++  6. the chat messages, replies and reactions;
++  7. the session and its files (what's written where: the JSONL lines as they land).
++
++  If something is a plain string or blob today and should be an object, make it one.
++- **Like a log: immutable.** Nothing is overwritten. A raw transcription stays visible after its clean version arrives. No jumping: new things append, and the view never reorders under you.
++- **Layout:** source → raw → clean → analysis → chat as columns (or a table) on desktop, with the session's objects as a structure panel. On mobile, a stack with tabs is fine (the existing tabs).
++
++## Rules
++- Coordinate with @task-mastermind-one-dictation, which owns the dictation widget and is fixing its core bugs. Part 2 builds the **diagram** around their widget, not a second widget.
++- A Sonnet task mastermind with at most 2 Sonnet minions, in a pool worktree, through merge.mjs. Screenshots at 1920 and 3440 (it's a layout), plus 400 for the inspect cards.
++- Land Part 1 first, then Part 2.
+diff --git a/public/framework/code/objects/doc/views.md b/public/framework/code/objects/doc/views.md
+index 3efe4b27..724f174a 100644
+--- a/public/framework/code/objects/doc/views.md
++++ b/public/framework/code/objects/doc/views.md
+@@ -38,3 +38,17 @@ Live example: `public/framework/ai/objects.js`, `AIObject` with `Skill`, `Ask`,
+   touching the others.
+ - **A page about an object renders a real instance from its real data**, never a description of
+   it — this is the "show, don't tell" law applied to a class.
++
++## render vs inspect
++
++A class may have a `render()` — its own real template, whatever that looks like for this class,
++or nothing at all if it has no UI of its own. `inspect()` (`ux/Content/Object/Inspect.js`) is a
++SEPARATE method that every object gets, whether or not it has a `render()`: icon, instance name,
++class name, and its properties — a property that is itself an object opens as its own nested
++`inspect()` card, not a one-line description. `inspect()` never touches `render()` and `render()`
++never touches `inspect()` — one is the thing's real face, the other is for seeing its structure.
++
++A class itself can be inspected too (`inspect(SomeClass)`): the same icon, a heavier frame, and
++its properties AND methods listed together, core API first — the visual form of this readme's own
++`## Architecture` block. Live: the [`inspect()` demo](/framework/ux/Content/Object/) on the Object
++page, beside `object()`/`view()`.
+diff --git a/public/framework/code/objects/readme.md b/public/framework/code/objects/readme.md
+index fc9f42e3..0ca41037 100644
+--- a/public/framework/code/objects/readme.md
++++ b/public/framework/code/objects/readme.md
+@@ -8,6 +8,7 @@ knows, at three sizes.
+ 
+ - The default view: `view(thing)`
+ - The three sizes — chip, row, panel
++- The debug view: `inspect(thing)` — the fourth size, separate from `render()`
+ - Objects the owner sees (`AIObject`, `Skill`, `Ask`, `Task`)
+ 
+ ## Use
+@@ -16,6 +17,8 @@ knows, at three sizes.
+ Thing.View = class extends DefaultView { … };   // overrides the default for every Thing
+ track(MyClass);          // once, in the module
+ MyClass.track(this);     // once, in the constructor — makes instances findable at all
++static icon = "material-symbol-name";           // any class may carry one — inspect() reads it
++inspect(myThing)                                // the debug view — icon, name, properties, nested
+ ```
+ Live: [the Object demo](/framework/ux/Content/Object/).
+ 
+@@ -28,5 +31,6 @@ Live: [the Object demo](/framework/ux/Content/Object/).
+ 
+ ## More
+ 
+-- [doc/views.md](doc/views.md) — the full explanation, with the `AIObject` example
++- [doc/views.md](doc/views.md) — the full explanation, with the `AIObject` example, and
++  "render vs inspect" — why they're two separate methods
+ - [patterns](../patterns/) — parts as static subclasses, the mechanism `Thing.View = …` relies on
+diff --git a/public/framework/ux/Content/Object/DefaultView.js b/public/framework/ux/Content/Object/DefaultView.js
+index d167e74f..20d92387 100644
+--- a/public/framework/ux/Content/Object/DefaultView.js
++++ b/public/framework/ux/Content/Object/DefaultView.js
+@@ -39,7 +39,10 @@ export default class DefaultView extends View {
+ 		const article = /^[aeiou]/i.test(klass?.name ?? "Object") ? "an " : "a ";
+ 
+ 		item({
+-			icon: "data_object",
++			// Any class may declare `static icon = "material-symbol-name"` (the same
++			// convention `ObjectCard.icon_name()` and `Inspect.js` read) — absent, this
++			// falls back to "data_object", same as it always has.
++			icon: klass?.icon ?? "data_object",
+ 			name: article + (klass?.name ?? "Object"),
+ 			end: label ? () => span.c("item-end muted", String(label)) : undefined,
+ 		});
+diff --git a/public/framework/ux/Content/Object/Inspect.js b/public/framework/ux/Content/Object/Inspect.js
+new file mode 100644
+index 00000000..b458f316
+--- /dev/null
++++ b/public/framework/ux/Content/Object/Inspect.js
+@@ -0,0 +1,151 @@
++import { div, span, li, icon } from "../../../core/View/View.js";
++import { item } from "../../../ui/item/item.js";
++import ObjectCard from "./Object.js";
++
++/**
++ * class InspectCard extends ObjectCard — the "show me what you are" view the owner
++ * asked for, kept SEPARATE from a class's own `render()` on purpose: `render()` stays
++ * free for whatever real template a class already has (or none at all); `inspect()`
++ * always exists, on every object, whether or not that object has a `render()`. It is
++ * never the same method and it never touches `render()`.
++ *
++ *   inspect(somePage)                          // an instance card
++ *   inspect(Page)                              // a class card — same icon, heavier frame
++ *   inspect(somePage, { variant: "minimal" })  // icon + name only, an Inbox-style chip
++ *   inspect(somePage, { variant: "full" })     // same as "card" today — see the note
++ *                                               // on the `full` branch below
++ *   inspect(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS })
++ *
++ * This reuses everything `ObjectCard` (`Object.js`, beside this file) already works
++ * out: which properties/methods to show (`own_properties()`/`own_methods()`, or an
++ * explicit `properties:`/`methods:` override — the SAME lists a module's own Doc
++ * already names, so "core API first" is just passing that list, not a second
++ * detector), each value's one-line description (`describe()`), and the class's own
++ * icon (`icon_name()`, `static icon` on the class, `"data_object"` when absent).
++ *
++ * **The one new idea beyond `object()`:** a property whose value is itself an object
++ * or array draws as a NESTED `inspect()` card, not `Array(3)` on one line — and that
++ * nested card nests its own object properties again, as deep as the real data goes.
++ * A cycle (an ancestor object showing up again further down its own tree) is caught
++ * the exact way `DefaultView.expandable()` already catches one: `path`, a running
++ * Set of every object already open above this point on this branch. Reusing that
++ * exact idea (not inventing a second cycle guard) means a value already in `path`
++ * shows "↺ already open above" instead of recursing forever — see `nested()` below.
++ */
++export default class InspectCard extends ObjectCard {
++
++	render(){
++		const variant = this.variant ?? "card";
++		const is_class = typeof this.subject === "function";
++
++		// `path` starts empty at the top of a tree (`inspect(subject)` with no `path`
++		// option) and grows by one ancestor each time `nested()` opens a property's
++		// value — never shared backwards, so two unrelated branches never collide.
++		this.path = this.path ?? new Set();
++
++		this.ac(`ux-content-inspect-${variant}`);
++		if (is_class) this.ac("ux-content-inspect-classcard");
++
++		if (variant === "minimal") return this.minimal(is_class);
++
++		this.head(is_class);
++
++		// Arrays/Maps/Sets read better as "Items" than "Properties" — same list, a
++		// truer label for what's actually inside.
++		const props = this.own_properties();
++		const label = Array.isArray(this.subject) ? "Items" : "Properties";
++		if (props.length) this.group(label, "ux-content-inspect-properties", props, name => this.property_row(name));
++
++		// Methods only ever show on a CLASS card. An instance's own methods are
++		// behaviour, not state — the same reasoning `ObjectCard`/`DefaultView` already
++		// use to skip functions everywhere else; a class card is the one place the
++		// owner asked to see them, "properties AND methods together."
++		//
++		// `variant === "full"` falls through to here too: it renders identically to
++		// "card" for now. The owner raised "full" as a name he expects to want but
++		// hadn't decided what more it should show beyond "card" — more properties
++		// uncapped, inline doc text, something else — logged as a decision in this
++		// task's log rather than guessed here. Branch on `variant === "full"` right
++		// here once that's decided.
++		if (is_class){
++			const methods = this.own_methods();
++			if (methods.length) this.group("Methods", "ux-content-inspect-methods", methods, name => this.method_row(name));
++		}
++	}
++
++	/* `minimal` — no card chrome at all, just icon + one name, the owner's own
++	 * comparison point: "like an Inbox context card" (`ext/Mention`'s inline chip,
++	 * `item({ icon, name }).ac("inline")`). Reusing `item()` directly, rather than
++	 * drawing a second icon+name row by hand, is what makes this actually match that
++	 * chip's size instead of a lookalike. */
++	minimal(is_class){
++		const klass = this.klass();
++		const name = is_class ? (klass?.name ?? "Object") : (this.label_text() ?? klass?.name ?? "Object");
++		item({ icon: this.icon_name(), name: String(name) }).ac("inline");
++	}
++
++	/* The card/full header: the icon (bigger than `object()`'s — "enough to read as a
++	 * definition," the owner's own phrase), the instance's own name above the class
++	 * name when it has one, or just the class name when the subject IS the class. */
++	head(is_class){
++		div.c("ux-content-inspect-head", () => {
++			icon(this.icon_name()).ac("ux-content-inspect-icon");
++			div.c("ux-content-inspect-titles", () => {
++				const label = is_class ? null : this.label_text();
++				if (label) span.c("ux-content-inspect-label", String(label));
++				span.c("ux-content-inspect-classname", this.klass()?.name ?? "Object");
++			});
++		});
++	}
++
++	/* An instance's own name, the same three fields `object()`'s header already
++	 * checks (`name`, else `path`, else `url` — whichever a class actually carries). */
++	label_text(){
++		return this.subject?.name ?? this.subject?.path ?? this.subject?.url;
++	}
++
++	/* A property row: `name = value` for a plain value, same as `object()` — but a
++	 * value that is itself an object or array nests its own card instead (`nested()`). */
++	property_row(name){
++		const value = this.value_for(name);
++		return li.c("ux-content-inspect-property", () => {
++			this.name_span("ux-content-inspect-name", name, "property");
++			if (value === undefined) return;
++			if (value !== null && typeof value === "object") return this.nested(value);
++
++			span.c("ux-content-inspect-eq", "=");
++			span.c("ux-content-inspect-value").attr("title", this.describe(value, true)).append(this.describe(value));
++		});
++	}
++
++	/* A method row — a name only, same look `object()` already uses for methods; a
++	 * method has no state of its own to nest into. */
++	method_row(name){
++		return li.c("ux-content-inspect-method", () => this.name_span("ux-content-inspect-link", name, "method"));
++	}
++
++	/* The recursive part: `value` becomes its own, smaller `inspect()` card, right
++	 * inside this property's row. `this.path` is every ancestor already open above
++	 * this row on this branch; `value` already in it is a cycle (an object pointing
++	 * back at one of its own ancestors), so it gets a plain note instead of opening
++	 * into itself forever — the exact guard `DefaultView.expandable()` already uses,
++	 * reused here rather than reinvented. */
++	nested(value){
++		if (this.path.has(value)){
++			span.c("ux-content-inspect-cycle muted", "↺ already open above");
++			return;
++		}
++
++		div.c("ux-content-inspect-nested", () => {
++			new InspectCard({ subject: value, variant: "card", path: new Set(this.path).add(value) });
++		});
++	}
++}
++
++InspectCard.prototype.classes = "ux-content-inspect";
++
++/* The one call: `inspect(instance)` or `inspect(Class)` — the same one-call shape as
++ * `object()`/`view()` beside it, everything it needs arriving as one data object. */
++export function inspect(subject, opts = {}){ return new InspectCard({ subject, ...opts }); }
++
++export { InspectCard };
+diff --git a/public/framework/ux/Content/Object/Object.js b/public/framework/ux/Content/Object/Object.js
+index 62afaa85..22134a4f 100644
+--- a/public/framework/ux/Content/Object/Object.js
++++ b/public/framework/ux/Content/Object/Object.js
+@@ -1,9 +1,13 @@
+-import View, { div, span, a, ul, li, details, summary } from "../../../core/View/View.js";
++import View, { div, span, a, ul, li, details, summary, icon } from "../../../core/View/View.js";
+ 
+ /**
+  * class ObjectCard extends View — a small card that shows what a real object IS instead
+- * of explaining it in words: its class name, its instance name when it has one, its
+- * properties as `name = value`, and its methods as names.
++ * of explaining it in words: its icon, its class name, its instance name when it has
++ * one, its properties as `name = value`, and its methods as names. The icon comes from
++ * `static icon = "material-symbol-name"` on the class — any class may declare one;
++ * absent, this card falls back to "data_object" (see `icon_name()` below). `Inspect.js`,
++ * beside this file, is the bigger, recursive version of this same card for a separate
++ * debug/inspector view (`inspect()`); this one stays the small, no-frills version.
+  *
+  *   object(page)                          // an instance — header shows its name too
+  *   object(Page)                          // a class itself — no instance name
+@@ -36,6 +40,17 @@ export default class ObjectCard extends View {
+ 	/* The class behind the subject: itself, when the subject IS a class. */
+ 	klass(){ return typeof this.subject === "function" ? this.subject : this.subject?.constructor; }
+ 
++	/* The class's own icon — any class may declare `static icon = "material-symbol-name"`
++	 * (a convention, not a new mechanism: nothing enforces it, a class just carries the
++	 * name of its own icon the same way it carries any other static). Read off the
++	 * subject's class when the subject is an instance, or the subject itself when it
++	 * IS the class. Falls back to "data_object", the same default `DefaultView` already
++	 * draws when a class says nothing — one shared fallback, not two. */
++	icon_name(){
++		const owner = typeof this.subject === "function" ? this.subject : this.klass();
++		return owner?.icon ?? "data_object";
++	}
++
+ 	/* Explicit list wins (a class's own declared properties, named by the caller);
+ 	 * otherwise every own enumerable value worth showing — skip functions, DOM/View
+ 	 * nodes, and `undefined` (nothing to see there, just noise). */
+@@ -82,6 +97,7 @@ export default class ObjectCard extends View {
+ 		const label = typeof this.subject === "function" ? null : (this.subject?.name ?? this.subject?.path ?? this.subject?.url);
+ 
+ 		div.c("ux-content-object-head", () => {
++			icon(this.icon_name()).ac("ux-content-object-icon");
+ 			span.c("ux-content-object-class", klass?.name ?? "Object");
+ 			if (label) span.c("ux-content-object-label", String(label));
+ 		});
+diff --git a/public/framework/ux/Content/Object/page.js b/public/framework/ux/Content/Object/page.js
+index dfa1bbb6..dc2ffdaf 100644
+--- a/public/framework/ux/Content/Object/page.js
++++ b/public/framework/ux/Content/Object/page.js
+@@ -4,6 +4,7 @@ import PageOverview from "../../../core/Page/page.js";
+ import { page_object } from "../../../core/Page/object.js";
+ import { object } from "./Object.js";
+ import { view, DefaultView } from "./DefaultView.js";
++import { inspect } from "./Inspect.js";
+ import { item } from "../../../ui/item/item.js";
+ 
+ // The same names core/Page/page.js's own Doc declares and links to real doc pages —
+@@ -31,7 +32,7 @@ export default new Doc({
+ 	description: "A little card that shows what a real object IS — class, name, properties, methods — instead of explaining it in words.",
+ 	icon: "data_object",
+ 
+-	files: "Object.js DefaultView.js page.js readme.md",
++	files: "Object.js Inspect.js DefaultView.js page.js readme.md",
+ 	notes: "shape default-view",
+ 	children: "page app",
+ 
+@@ -76,6 +77,27 @@ export default new Doc({
+ 			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
+ 		});
+ 
++		md("### `inspect()` — the debug view, the fourth size");
++
++		md("A class's own doc page opens with THIS, not `object()` — the same icon, bigger, and a property whose value is itself an object opens as its own nested card instead of saying \"Array(3)\".");
++
++		div.c("ux-content-wall wide", () => {
++			div.c("flex v gap", () => {
++				md("#### The `Page` class itself — a class card");
++				md("Same icon as the instance below, in a visibly heavier frame; properties AND methods together.");
++				inspect(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS });
++			});
++			div.c("flex v gap", $box => {
++				md("#### This page, as an instance — nested properties open as their own cards");
++				md("`parent` is a real `Page` underneath, not a one-line description — open its nested card to see IT has its own `parent`, `children`, and so on.");
++				PageOverview.load_all_children(1).loading.then(() => $box.append(() => inspect(PageOverview, { properties: "title url icon parent" })));
++			});
++			div.c("flex v gap", () => {
++				md("#### `minimal` — an Inbox-style chip, icon + name only");
++				inspect(PageOverview, { variant: "minimal" });
++			});
++		});
++
+ 		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ 
+diff --git a/public/framework/ux/Content/Object/readme.md b/public/framework/ux/Content/Object/readme.md
+index d7f1f3b0..be2c4227 100644
+--- a/public/framework/ux/Content/Object/readme.md
++++ b/public/framework/ux/Content/Object/readme.md
+@@ -1,23 +1,34 @@
+ # Object — show a real object instead of explaining it
+ 
+-Two ways in, both from one real object, a class, or a class instance:
++Three ways in, all from one real object, a class, or a class instance:
+ 
+-- **`object()`** (`Object.js`) — one small card: class name, `name = value` for
++- **`object()`** (`Object.js`) — one small card: icon, class name, `name = value` for
+   each property, method names. Reads nothing, writes nothing, draws once.
+ - **`view()`** (`DefaultView.js`) — a tree of [`ui/item`](/framework/ui/item/)
+   rows instead: a header row, then one row per property, and a property that is
+   itself an object opens (lazily — nothing under it is read until you click) to
+   show its own properties the same way, as deep as you keep going. Best guess by
+   default; a class overrides it with its own `Thing.View`.
++- **`inspect()`** (`Inspect.js`) — the debug/inspector view, separate from a class's
++  own `render()` (it exists even when a class has no `render()` at all). Bigger than
++  `object()`'s card, and a property whose value is itself an object nests its own
++  `inspect()` card instead of a one-line `Array(3)`. A class gets the SAME icon in a
++  heavier frame, listing properties and methods together.
++
++Any class may carry `static icon = "material-symbol-name"` — all three views read it
++the same way, falling back to `"data_object"` when a class says nothing.
+ 
+ ## Use
+ ```js
+ import { object } from "/framework/ux/Content/Object/Object.js";
+ import { view } from "/framework/ux/Content/Object/DefaultView.js";
++import { inspect } from "/framework/ux/Content/Object/Inspect.js";
+ 
+ object(somePage)                                       // the small card
+ object(Page, { doc: "/framework/core/Page/" })         // a class, names link to its doc pages
+ view(somePage)                                          // the tree — Page has no Thing.View, so this is DefaultView
++inspect(somePage)                                       // the debug view — icon, name, properties, nested
++inspect(Page)                                           // the SAME debug view, as a class card
+ ```
+ One call, like `new Question({...})` — everything it needs arrives as one data object.
+ 
+@@ -29,10 +40,13 @@ two live pages below possible.
+ ## Watch out
+ - `object()`'s `doc` and `api` are the two ways a name becomes a link — this card
+   cannot guess where a class's docs live, so pass one whenever you know it. `api`
+-  wins when both are given (`shape.md`).
+-- Both skip functions and DOM/View nodes by default; `object()` also takes
+-  `properties: [...]` to choose exactly which ones show.
++  wins when both are given (`shape.md`). `inspect()` takes the same two.
++- All three skip functions and DOM/View nodes by default; `object()`/`inspect()`
++  also take `properties: [...]` (and `methods: [...]`) to choose exactly which
++  ones show, in order — the way to put "core API" members first.
+ - A long value is cut to one line; hover it for the full text (a `title` attribute).
++- `inspect()`'s `variant: "full"` renders identically to `"card"` today — the owner
++  hasn't decided yet what more it should add; see the comment in `Inspect.js`.
+ - Most classes should NOT call `track()` — it's for the handful where "see every
+   one of these" is actually useful, not a default every class pays for.
+ 
+diff --git a/public/framework/ux/Content/content.css b/public/framework/ux/Content/content.css
+index 718aa58a..aebfe242 100644
+--- a/public/framework/ux/Content/content.css
++++ b/public/framework/ux/Content/content.css
+@@ -59,6 +59,7 @@
+ 	.ux-content-object.inline { width: max-content; max-width: 100%; }
+ 
+ 	.ux-content-object-head { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; margin-block-end: var(--gap-50); }
++	.ux-content-object-icon { font-size: 1.1em; line-height: 1; }
+ 	.ux-content-object-class { font-weight: 700; font-size: 1.1em; }
+ 	.ux-content-object-label { color: var(--subtle); font-family: var(--mono, monospace); }
+ 
+@@ -112,6 +113,76 @@
+ 	.ux-content-object-more .ux-content-object-methods { margin-block-start: .2em; }
+ }
+ 
++/* Inspect: the render()-separate debug/inspector view (`Inspect.js`) — the same idea
++   as the card above, built to be LOOKED AT rather than used, and the one place a
++   property whose value is itself an object or array nests its OWN inspect() card
++   instead of a one-line "Array(3)". Three variants: minimal (no card at all — the
++   exact look of an inline Mention/Inbox chip, ui/item's own .inline row), card (the
++   default, pictured by the rules below), full (identical to card today — the open
++   seam is a comment in Inspect.js, not a CSS difference, because there isn't one
++   yet). A class card (inspect(SomeClass)) gets a visibly heavier frame — "looks like
++   a class definition" (the owner) — via .ux-content-inspect-classcard. */
++@layer theme {
++	.ux-content-inspect {
++		display: block; width: 100%; min-width: 0; max-width: 32em;
++		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
++		padding: var(--pad-card); font-size: .95em;
++	}
++
++	/* Minimal: strip every bit of card chrome so this reads as one inline chip, not a
++	   shrunk card — same reasoning as object()'s own .inline, taken all the way. */
++	.ux-content-inspect.ux-content-inspect-minimal {
++		width: max-content; max-width: 100%; background: none; border: none; padding: 0;
++	}
++
++	/* The class card: same icon, a heavier frame — thicker border, a wash ground, and
++	   more room, so a class definition visibly outweighs an instance of it. */
++	.ux-content-inspect.ux-content-inspect-classcard {
++		border-width: 3px; background: var(--wash); padding: calc(var(--pad-card) * 1.3);
++	}
++
++	.ux-content-inspect-head { display: flex; align-items: flex-start; gap: .6em; margin-block-end: var(--gap-50); }
++	.ux-content-inspect-icon { font-size: 1.6em; line-height: 1; }
++	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-icon { font-size: 2.2em; }
++	.ux-content-inspect-titles { display: flex; flex-direction: column; gap: .1em; min-width: 0; }
++	.ux-content-inspect-label { color: var(--subtle); font-family: var(--mono, monospace); font-size: .85em; }
++	.ux-content-inspect-classname { font-weight: 700; font-size: 1.1em; }
++	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-classname { font-size: 1.3em; }
++
++	.ux-content-inspect-properties, .ux-content-inspect-methods {
++		list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3em;
++	}
++	.ux-content-inspect-methods { flex-direction: row; flex-wrap: wrap; gap: .3em; }
++	.ux-content-inspect-property {
++		display: flex; flex-wrap: wrap; align-items: baseline; gap: .4em;
++		font-family: var(--mono, monospace); min-width: 0;
++	}
++	.ux-content-inspect-name { color: var(--prim); flex: none; }
++	a.ux-content-inspect-name { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prim) 40%, transparent); }
++	a.ux-content-inspect-name:hover { text-decoration-color: var(--prim); }
++	.ux-content-inspect-eq { color: var(--subtle); flex: none; }
++	.ux-content-inspect-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
++	.ux-content-inspect-method { font-family: var(--mono, monospace); font-size: .9em; }
++	.ux-content-inspect-link {
++		display: inline-block; color: inherit; text-decoration: none; background: var(--wash);
++		border-radius: .3em; padding: .1em .5em;
++	}
++	a.ux-content-inspect-link { color: var(--prim); }
++	a.ux-content-inspect-link:hover { background: color-mix(in srgb, var(--prim) 15%, var(--wash)); }
++
++	/* A nested card sits indented with a rule down its left edge, so the eye can
++	   follow which property it belongs to without re-reading its name. `min-width: 0`
++	   and `width: 100%` matter here, not just decoration: this div is a flex ITEM of
++	   `.ux-content-inspect-property` (flex-wrap row), and a flex item's default
++	   automatic minimum width is its content's min-content size — an unbreakable long
++	   value deep inside (a url, say) would otherwise force this box, and the whole
++	   card above it, wider than the viewport instead of letting the ellipsis rules
++	   below actually cut it off. */
++	.ux-content-inspect-nested { width: 100%; min-width: 0; margin-block-start: .3em; padding-inline-start: .75em; border-inline-start: 2px solid var(--line); }
++	.ux-content-inspect-nested .ux-content-inspect { max-width: 100%; }
++	.ux-content-inspect-cycle { font-size: .9em; }
++}
++
+ @layer theme {
+ 	.ux-content-spend { display: block; width: 100%; min-width: 0; }
+ 	.ux-content-spend svg { display: block; width: 100%; height: auto; }

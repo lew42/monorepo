@@ -106,6 +106,13 @@ changed. `load_module({modules})` returns the same reading for any session to lo
 [`doc/experts.md`](./doc/experts.md) has the recipe, the verbs and the measurements.
 `ask_directory({dir, question, session})` is the other way in: a FRESH mastermind for one folder, started from its readmes only, never forked: [`doc/directory.md`](./doc/directory.md).
 
+## The fixer — the fast path from "fix this" to a live edit
+
+One standing agent, `fixer-1` (`Fixer.js` + `fixer.md`), holds one quick-fix worktree for its
+whole life and turns a small, concrete page change (the `quick_fix` tool, which `session-smart.md`
+sends it) into a live fix in roughly 10-30 seconds, no spawn and no new worktree on the hot path:
+[`Servex/doc/fixer.md`](../doc/fixer.md), [`/framework/ai/quick-fix/`](/framework/ai/quick-fix/).
+
 ## Voice sessions
 
 One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one: it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).

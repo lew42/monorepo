@@ -22,10 +22,18 @@ if (!name) {
 	process.exit(1);
 }
 
+/* Same shape as worktree-up.mjs: a write re-reads the shared registry and removes only this
+ * worktree's entry (a stale whole-object write lost other worktrees' entries on 2026-10-01), and a
+ * file that does not parse is refused rather than treated as empty. */
 function read_registry(){
-	try { return JSON.parse(fs.readFileSync(REGISTRY, "utf8")); } catch { return {}; }
+	let text;
+	try { text = fs.readFileSync(REGISTRY, "utf8"); } catch { return {}; }
+	try { return JSON.parse(text.replace(/^\uFEFF/, "")); }
+	catch (e) { console.error(`worktree-down: ${REGISTRY} does not parse (${e.message}) — fix it by hand; refusing to overwrite it.`); process.exit(1); }
 }
-function write_registry(reg){
+function write_registry(entry_name, entry){
+	const reg = read_registry();
+	if (entry) reg[entry_name] = entry; else delete reg[entry_name];
 	if (!Object.keys(reg).length) { try { fs.unlinkSync(REGISTRY); } catch {} return; }
 	fs.writeFileSync(REGISTRY, JSON.stringify(reg, null, "\t"));
 }
@@ -76,8 +84,7 @@ if (!fs.existsSync(entry.path)) {
 	try { execFileSync("git", ["branch", "-D", entry.branch], { cwd: ROOT, windowsHide: true }); }
 	catch (e) { console.error(`worktree-down: could not delete branch ${entry.branch} — remove it by hand (\`git branch -D ${entry.branch}\`).`); }
 	if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
-	delete registry[name];
-	write_registry(registry);
+	write_registry(name, null);
 	console.log(`worktree-down: done.`);
 	process.exit(0);
 }
@@ -94,8 +101,7 @@ if (status.trim()) {
 	console.log(`worktree-down: ${entry.path} has uncommitted changes — NOT removing it, so nothing is discarded:`);
 	console.log(status.trim().split("\n").map(l => "    " + l).join("\n"));
 	console.log(`worktree-down: server stopped. The worktree and its branch (${entry.branch}) are left on disk at ${entry.path} — remove them yourself once you've dealt with those changes (\`git -C ${ROOT} worktree remove ${entry.path}\` once it's clean).`);
-	delete registry[name];
-	write_registry(registry);
+	write_registry(name, null);
 	process.exit(0);
 }
 
@@ -111,8 +117,7 @@ try {
 	console.log(`worktree-down: removed ${entry.path}.`);
 } catch (e) {
 	console.error(`worktree-down: \`git worktree remove\` failed — the worktree is left in place at ${entry.path}. Server is already stopped.`);
-	delete registry[name];
-	write_registry(registry);
+	write_registry(name, null);
 	process.exit(1);
 }
 
@@ -127,6 +132,5 @@ try {
 
 if (entry.log) { try { fs.unlinkSync(entry.log); } catch {} }
 
-delete registry[name];
-write_registry(registry);
+write_registry(name, null);
 console.log(`worktree-down: done.`);

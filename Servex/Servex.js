@@ -28,6 +28,7 @@ import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
+import Fixer from "./agents/Fixer.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
 import Asks from "./asks/Asks.js";
@@ -42,6 +43,9 @@ import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
 import { warm_guard } from "./ext/openrouter/provider.js";
+import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
+import { LocalProxy } from "./ext/local/llama.js";
+import { local_chat, local_model_slugs } from "./ext/local/chat.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -261,6 +265,15 @@ export default class Servex extends Events {
          * takes with take_worktree. Pool.js and doc/pool.md. `SERVEX_NO_POOL=1` boots without it. */
         if (!process.env.SERVEX_NO_POOL) this.pool = new this.constructor.Pool({ servex: this }).start();
 
+        /* THE FIXER (quick-fix-path, 2026-10-01): one standing quick-fix worker, warm for as
+         * long as Servex runs, holding one pool worktree for its whole life (never a
+         * take/return per fix — see Fixer.js's own comment on why). The `quick_fix` tool
+         * (Sessions.js + tools.js) is the door a voice session's smart assistant sends a small,
+         * concrete page change through. Needs `this.pool`, so it boots right after it.
+         * `SERVEX_NO_FIXER=1` boots without it, same pattern as every other optional piece here. */
+        this.fixer = new this.constructor.Fixer({ servex: this });
+        if (!process.env.SERVEX_NO_FIXER && this.pool) setImmediate(() => this.fixer.start());
+
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
         this.tools();
@@ -287,6 +300,7 @@ export default class Servex extends Events {
 
         this.gate();
         this.whisper();
+        this.llama();
         this.shutdown();
 
         this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/${this.gated ? ` (gate -> :${this.proxy_internal})` : ""} · ${this.projects.length} projects under ${this.root}`);
@@ -410,6 +424,26 @@ export default class Servex extends Events {
 
         this.processes.set("whisper", runner);
         runner.start();
+        return runner;
+    }
+
+    /* llama-server, supervised the same way whisper() supervises whisper-server —
+     * `Process.Llama` (Servex/ext/local/llama.js) adds swap-on-demand and idle
+     * unload on top of the same restart/backoff machinery. Nothing is spawned
+     * at boot: `ensure(slug)` starts llama-server the first time a `local/...`
+     * agent actually sends a request, and the idle timer stops it again once
+     * nothing has asked for a while — the GPU sits empty until someone wants
+     * it. The small proxy in front of it (what `ANTHROPIC_BASE_URL` for a local
+     * agent actually points at) DOES start right away — it's just an HTTP
+     * listener, no GPU, no process. */
+    llama(){
+        const runner = new Process.Llama({
+            name: "llama", log: this.log, port: LLAMA_PORT,
+            command: LLAMA_EXE, args: []
+        }).start_idle_watch();
+
+        this.processes.set("llama", runner);
+        this.local_proxy = new LocalProxy({ llama: runner, port: LOCAL_PROXY_PORT }).start();
         return runner;
     }
 
@@ -566,6 +600,24 @@ export default class Servex extends Events {
             if (body.op !== "marks" && body.op !== "rename")
                 return res.status(400).json({ ok: false, why: `unknown op "${body.op}"` });
             res.json(await hitl(body));
+        });
+
+        /* THE LOCAL-MODELS CHAT PAGE'S OWN CALLS (public/framework/ai/local/,
+         * requirements.md Phase 2 ask 2) — one GET (the dropdown's own list,
+         * whatever gguf files actually exist right now) and one POST (a
+         * one-shot "ask it something", the exact same no-tools `query()` shape
+         * `/api/tidy` already uses, just pointed at the local provider instead
+         * of straight at Claude — Servex/ext/local/chat.js). CORS, same as
+         * `/api/tidy`/`/api/hitl`: a browser page posts here cross-origin from
+         * its own `<name>.localhost` origin. */
+        router.options("/api/local-chat", cors, (req, res) => res.status(204).end());
+
+        router.get("/api/local-chat", cors, (req, res) => res.json({ models: local_model_slugs() }));
+
+        router.post("/api/local-chat", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            const body = req.body ?? {};
+            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
+            res.json(await local_chat(body));
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));
@@ -1029,6 +1081,7 @@ export default class Servex extends Events {
             try { this.worktrees?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}
+            try { this.local_proxy?.stop(); } catch {}   // the local-models HTTP proxy (Servex/ext/local/llama.js) — not a Process, stopped on its own
             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
@@ -1183,6 +1236,7 @@ Servex.Log = class ServexLog extends Log {
 };
 
 Servex.Assistant = Assistant;
+Servex.Fixer = Fixer;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
 Servex.Asks = Asks;

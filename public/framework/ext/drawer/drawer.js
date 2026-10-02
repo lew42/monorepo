@@ -26,6 +26,19 @@ const FLOOR = 26 * parseFloat(getComputedStyle(document.documentElement).fontSiz
 
 let $rail, $shell, $slot, $body, fill;
 
+/* ⚠ THE ONE WRITER of the rail's two size tokens (drawer-close, 2026-10-02). They belong on
+   `.app`, but `build()` can run before `.app` exists (a reload with `?drawer=ai` open) and
+   then wrote them on `<body>`. `.app` inherited them, `close()` cleared only `.app`, and the
+   page stayed squeezed with the ☰ out of its corner until the next reload. Every write and
+   every clear goes through here: it always writes on the current `.app` and clears any
+   copy left on `<body>`, whatever opened the rail and whoever last resized it. */
+function token(name, value){
+	const app = document.querySelector(".app");
+	document.body.style.removeProperty(name);
+	app?.style.removeProperty(name);
+	if (value) (app ?? document.body).style.setProperty(name, value);
+}
+
 /* Show something in the rail, opening it if it was shut. `fn($slot, $body)` fills the two
    slots with `empty(fn)`; the ✕ beside `$slot` is the rail's own and is never handed over,
    so nothing a caller draws can leave the rail with no way out. Returns the rail. */
@@ -34,7 +47,7 @@ export default function drawer(fn){
 	fill = fn;
 
 	$rail.ac("on");
-	$shell.style("--drawer", WIDE);
+	token("--drawer", WIDE);
 	drawer.refresh();
 
 	return $rail;
@@ -49,7 +62,7 @@ drawer.refresh = () => { if (fill && drawer.showing()) fill($slot, $body); };
    lose the rail — a caller redraws it saying so instead. */
 drawer.close = () => {
 	$rail?.rc("on");
-	$shell?.style("--drawer", "");
+	token("--drawer", "");
 	// Said out loud, so a caller that wrote state somewhere else (the menu's `?drawer=`
 	// word in the url, tabs.js) can take it back when the ✕ shuts the rail.
 	window.dispatchEvent(new Event("drawer-close"));
@@ -79,7 +92,7 @@ drawer.page = function(path){
 // number that gets remembered is the one that was actually applied.
 function size(px){
 	const w = Math.round(Math.max(MIN, Math.min(px, innerWidth - FLOOR)));
-	$shell.style("--drawer-w", w + "px");
+	token("--drawer-w", w + "px");
 	return w;
 }
 
@@ -97,12 +110,18 @@ function build(){
 
 	if (!first) Promise.resolve(window.app?.ready).then(() => {
 		const real = document.querySelector(".app");
-		if (real && real !== $shell.el){ $shell.el = real; real.appendChild($rail.el); }
+		if (real && real !== $shell.el){
+			$shell.el = real; real.appendChild($rail.el);
+			// Move whatever was written on <body> while `.app` didn't exist yet onto `.app`.
+			const w = document.body.style.getPropertyValue("--drawer-w");
+			if (w) token("--drawer-w", w);
+			token("--drawer", drawer.showing() ? WIDE : "");
+		}
 	});
 
 	// The width you left it at, before the first paint of the rail.
 	const saved = localStorage.getItem(KEY);
-	if (saved) $shell.style("--drawer-w", saved);
+	if (saved) token("--drawer-w", saved);
 
 	// The head is pinned and the body scrolls under it — a rail whose ✕ scrolls away is a
 	// rail you cannot shut.

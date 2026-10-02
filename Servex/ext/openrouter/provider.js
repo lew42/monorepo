@@ -153,6 +153,14 @@ export async function real_turn_cost({ key, message_id, message_ids, usage_befor
 	 * last one (cross-family review, 2026-10-01: the last-id-only figure undercounted). */
 	const ids = [...new Set([...(message_ids ?? []), ...(message_id ? [message_id] : [])])];
 	const costs = new Map();
+	/* No model calls, no cost. The key-total diff below is the WHOLE key's spend since
+	 * this agent's last reading, so for a turn with no calls of its own (a start(), a
+	 * wake) it was every OTHER agent's spend: ~$2.84 of a GPT mastermind's turn was
+	 * booked to an idle free-model minion this way (2026-10-01). */
+	if (!ids.length){
+		const usage_now = await key_usage(key).catch(() => null);
+		return { cost: 0, usage_now, source: "no_calls", calls: 0 };
+	}
 	try {
 		for (let i = 0; ids.length && i < attempts; i++){
 			await Promise.all(ids.filter(id => !costs.has(id)).map(async id => {

@@ -73,7 +73,14 @@
 		width: calc(var(--grip-out) + var(--grip-in));
 	}
 	.grip-start::before { inset-inline-start: auto; inset-inline-end: var(--grip-out); }
-	.grip-start .grip-pill { inset-inline-start: auto; inset-inline-end: var(--grip-out); }
+	/* ⚠ The pill is anchored by its END here, so the base `translate(-50%)` (which
+	   centres a START-anchored pill on its edge) pushed it a whole pill-width left
+	   of the line (owner, 2026-10-02). Flip the shift to +50%, and anchor 1px further
+	   in, so the pill's centre sits on the 2px line's centre. */
+	.grip-start .grip-pill {
+		inset-inline-start: auto; inset-inline-end: calc(var(--grip-out) + 1px);
+		transform: translate(50%, -50%);
+	}
 
 	/* `--prim`, the one affordance colour — same hue as the lit line, the open tab
 	   and the lit preset. */
@@ -156,7 +163,7 @@
 		height: calc(var(--grip-out) + var(--grip-in));
 	}
 	.grip-start.grip-y::before { inset-block: auto var(--grip-out); }
-	.grip-start.grip-y .grip-pill { top: auto; bottom: var(--grip-out); }
+	.grip-start.grip-y .grip-pill { top: auto; bottom: calc(var(--grip-out) + 1px); transform: translate(-50%, 50%); }
 
 	/* TOUCH / COARSE POINTER (grip-everywhere, 2026-09-29) — a hover-only hairline
 	   means nothing to a thumb: there is no hover to reveal it, and 2px is not
@@ -176,10 +183,10 @@
 		   wholly inside, flush with the true edge, just at the touch width. */
 		.grip-start { inset-inline-end: 0; width: 1.25rem; }
 		.grip-start::before { inset-inline-end: 0; }
-		.grip-start .grip-pill { inset-inline-start: auto; inset-inline-end: 0; }
+		.grip-start .grip-pill { inset-inline-start: auto; inset-inline-end: 2px; }
 		.grip-start.grip-y { inset-block: auto 0; height: 1.25rem; }
 		.grip-start.grip-y::before { inset-block: auto 0; }
-		.grip-start.grip-y .grip-pill { top: auto; bottom: 0; }
+		.grip-start.grip-y .grip-pill { top: auto; bottom: 2px; }
 	}
 
 	/* ⚠ Around this width both rails stop being rails — the dev bar is a bottom sheet

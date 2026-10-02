@@ -255,7 +255,7 @@ export function live_row(it){
 	});
 }
 
-/** THE PAGE — scrolls as one; ai2.css splits it into columns when it is wide:
+/** THE PAGE — scrolls as one; ux/Card/Card.css splits it into columns when it is wide:
  *  usage (three pace meters), who is running, the tasks, then the chat. A task
  *  has a ✕ that clears it; the chat says who cleared what.
  *
@@ -279,7 +279,7 @@ export function live_full(it, model){
 	/* NOTHING OPENS UNTIL YOU CLICK (ai2-lead audit, 2026-09-25; the owner: "don't render the
 	   fast assistant's chat messages inline, taking space"). The agent column used to open
 	   assistant-fast by default; with nothing selected it is now left out of the grid
-	   (`.ai2-live-nosel`, ai2.css) and the other columns share the width. */
+	   (`.ai2-live-nosel`, ux/Card/Card.css) and the other columns share the width. */
 
 	const $col = div.c("ai2-live-talk-col", () => {
 		a.c("ai2-live-back").attr("tabindex", "0").text("← Live").click(() => {
@@ -326,7 +326,7 @@ export function live_full(it, model){
 	// marks it lost, or nothing yet when an older Servex has no `running[]` at all.
 	const running_by_id = running_index(it.processes?.running);
 	// Processes (ask 1) sits directly under "Running now", in the SAME grid
-	// column (`.ai2-live-run-col`, ai2.css) — not its own row after both
+	// column (`.ai2-live-run-col`, ux/Card/Card.css) — not its own row after both
 	// columns. A row of its own only starts once the TALLER column (tasks +
 	// chat) finishes, which left a ~650px empty hole above it at 1920
 	// (task-mastermind-dormant-idle's shot review, 2026-09-30). Stacked in one
@@ -351,7 +351,7 @@ export function live_full(it, model){
 	place(model, $col, rows);
 }
 
-/** Is the card wide enough for the agent column? ai2.css says so with a
+/** Is the card wide enough for the agent column? ux/Card/Card.css says so with a
  *  custom property on the column, set by the same container query that
  *  shows it — one source of truth for the width. */
 const wide = $col => Number(getComputedStyle($col.el).getPropertyValue("--ai2-live-cols")) >= 3;

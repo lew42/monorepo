@@ -133,7 +133,21 @@ async function live_agents(){
  *  machine code a caller can branch on without parsing `why` — `on-landing.mjs` uses it to skip
  *  nagging the card over "not-merged", the one reason that fixes itself (this loop's own next
  *  tick, once `merge.mjs` lands the branch, sees it merged and sweeps the server then). */
+
+/* True when this registry entry is one of the quick-fix pool's slots (.worktree-pool.json). */
+export function is_pool_slot(entry){
+	try {
+		const slots = JSON.parse(fs.readFileSync(path.join(ROOT, ".worktree-pool.json"), "utf8")).slots || [];
+		return slots.some(sl => sl.id === entry.name || (sl.path && entry.path && norm(sl.path) === norm(entry.path)));
+	} catch { return /^qf-\d+$/.test(entry.name || ""); }
+}
+
 export async function can_stop(entry){
+	// A POOL SLOT (qf-N, Servex/Pool.js) is never torn down here: the pool owns its server and its
+	// registry entry, and hands it to the next task with return_worktree. On 2026-10-01 a task that
+	// had taken qf-4 landed, this ran worktree-down qf-4, and the slot lost its server and its
+	// .worktrees.json entry twice while another minion was already working in it.
+	if (is_pool_slot(entry)) return { ok: false, reason: "pool", why: `${entry.name} is a pool slot — return_worktree hands it back; worktree-down never touches it` };
 	const task = find_task_for_worktree(entry.path);
 	if (!task) return { ok: false, reason: "no-task", why: `no task.jsonl names this worktree (${entry.path}) in its line 1` };
 	if (!task.landed_at || !String(task.outcome ?? "").trim())

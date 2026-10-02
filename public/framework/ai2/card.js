@@ -27,7 +27,10 @@ import { mark_read } from "./rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
 
-View.stylesheet(import.meta, "ai2.css");
+// A card's own look — its grid, the Live card, the outline, folders, the tiny tabs —
+// is all in the ux block now (merge 7, inbox-ext, 2026-10-01): ai2.css carries only
+// AI 2's own v1 screens, which this file never draws.
+View.stylesheet("/framework/ux/Card/Card.css");
 
 /** A top-level card's tabs. The words (the owner, 2026-09-25): a CARD is a topic,
  *  a REQUEST is one thing asked inside it, a TASK is what an agent does for a request.
@@ -243,7 +246,7 @@ export default class Card extends Page {
 	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its chat — the
 	   right-hand column on a screen 40em and wider, the footer on a phone. A
 	   top-level card's sub-cards open in AI 2's third column, beside it, and the
-	   deepest open card's chat is the one on screen (ai2.css, the last block). */
+	   deepest open card's chat is the one on screen (ux/Card/Card.css, the last block). */
 	content(){
 		const shell = this.shell;
 		const sub = this.parent instanceof Card;
@@ -292,7 +295,7 @@ export default class Card extends Page {
 			 * call the ✦ sheet and the ☰ drawer's AI tab already make, on the one global
 			 * session (CLAUDE.md law 6 — "one of everything"). `ai2-foot-head` is what makes
 			 * it read as THIS card's own — a plain line naming the card, above the mount.
-			 * `ai2.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
+			 * `ux/Card/Card.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
 			 * conversation in the ✦ sheet, and a second copy pinned to the bottom of every
 			 * card on a phone is the very "two chats" shape this task removes. */
 			div.c("ai2-foot ai2-foot-chat", () => {

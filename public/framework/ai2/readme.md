@@ -27,6 +27,18 @@ page (a stray `order` on the tabs out-ordered the `::after` spacer that is meant
 leftover space — `ai2.css`), sits beside the title again, the same placement Doc pages use.
 Task: [`ai/2026-09-30/ai2-inbox-log-fix/`](/framework/ai/2026-09-30/ai2-inbox-log-fix/).
 
+**2026-10-01, `ai2.css` retired down to AI 2's own v1 screens (merge 7, inbox-ext).** The owner:
+"we probably shouldn't even have an ai2.css… maybe we need it for specific overrides, but kept
+really minimal." Every rule a card's own page needs — its grid, the outline, card folders, the
+Live card, the tiny tabs — moved out, cut and pasted verbatim, into
+[`ux/Card/Card.css`](/framework/ux/Card/), loaded by `card.js` and this page's own `page.js`. The
+Processes section moved the same way into its own file, [`processes.css`](./processes.css),
+loaded by `processes.js`. `ai2.css` went from 1,993 lines to under 500: only the old Log tab's
+rows, the Overview tab, the old Needs-you screen and the old Log screen are left — AI-2-v1-only,
+staying "until AI 2 is retired" (that file's own words, since before this move). Before/after
+screenshots at four widths and a computed-style fingerprint of the moved rules' elements:
+[`ai/2026-09-30/inbox-ext/ai2-css/`](/framework/ai/2026-09-30/inbox-ext/ai2-css/).
+
 **Handover, 2026-09-25 (the AI 2 lead).** Start here if you are the next agent on AI 2.
 
 - **What it is now**, one step per screen: [AI 2, step by step](/framework/ai/2026-09-25/ai2-lead/).
@@ -312,10 +324,13 @@ To draw a card from anywhere, append a line to one of the logs it reads:
   rest is [ux/Inbox](/framework/ux/Inbox/)), `page.js` (AI 2's own tabs and routes), `card.js` (a
   card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
   draw, and the per-card log), `groups.json` + `groups.js` (the groups and who is in them),
-  `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (the look),
+  `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (what is
+  left of the look: only AI 2's own v1 screens — the old Log tab's rows, Overview, Needs-you, Log — since
+  everything a card's own page needs is [`ux/Card/Card.css`](/framework/ux/Card/) now, merge 7, 2026-10-01),
   `floating.js` (the Floating page layout: a left nav beside a centred page; no AI 2 imports),
   `workspace.js` (the `?view=workspace` switch), `real.js` (a real site page shown in the detail column, and its rail row),
   `needs.js` (the `needs/` page), `needs-rule.js` (the shared "does this need the owner" rule),
   `log.js` (the Log tab — everything in flight, one row per task, a status dot), `rules.js`
   (read/unread, archive-from-the-row, and automatic resolution — the rail's three small row rules),
-  `processes.js` (the Live card's Processes section: the poller, the graph, the by-task rows)
+  `processes.js` (the Live card's Processes section: the poller, the graph, the by-task rows; its
+  look is [`processes.css`](./processes.css), its own file now too)

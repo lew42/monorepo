@@ -52,10 +52,20 @@ if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) {
 	process.exit(1);
 }
 
+/* The registry is shared by every worktree-up / worktree-down running at once. Reading it once at
+ * start and writing the whole object back at the end lost entries (2026-10-01: two boots launched
+ * together each wrote its own stale copy, and qf-4 vanished twice). So a write re-reads the file
+ * and changes only this worktree's entry, and a file that does not parse is refused, never
+ * silently treated as empty and overwritten. */
 function read_registry(){
-	try { return JSON.parse(fs.readFileSync(REGISTRY, "utf8")); } catch { return {}; }
+	let text;
+	try { text = fs.readFileSync(REGISTRY, "utf8"); } catch { return {}; }
+	try { return JSON.parse(text.replace(/^\uFEFF/, "")); }
+	catch (e) { console.error(`worktree-up: ${REGISTRY} does not parse (${e.message}) — fix it by hand; refusing to overwrite it.`); process.exit(1); }
 }
-function write_registry(reg){
+function write_registry(entry_name, entry){
+	const reg = read_registry();
+	if (entry) reg[entry_name] = entry; else delete reg[entry_name];
 	if (!Object.keys(reg).length) { try { fs.unlinkSync(REGISTRY); } catch {} return; }
 	fs.writeFileSync(REGISTRY, JSON.stringify(reg, null, "\t"));
 }
@@ -188,13 +198,11 @@ const child = { pid: Number(String(started.stdout).trim()) || null };
 const ok = await wait_for_boot(port);
 if (!ok) {
 	console.error(`worktree-up: server did not answer HTTP 200 within 15s — see ${log_path}. The worktree and its (probably dead) server are left in place; run worktree-down.mjs ${name} to clean up.`);
-	registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: false };
-	write_registry(registry);
+	write_registry(name, { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: false });
 	process.exit(1);
 }
 
-registry[name] = { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: true };
-write_registry(registry);
+write_registry(name, { name, path: target, branch, port, pid: child.pid, log: log_path, created_at: new Date().toISOString(), booted: true });
 
 /* THE CREATION LOG (lifecycle, 2026-09-29): one start line in Servex's lifecycle.jsonl, and the
  * task's own log learns its worktree. Never fails the up. Servex/Lifecycle.js. */

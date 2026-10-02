@@ -83,6 +83,31 @@ function session_tools(agents){
 				level: { type: "string", enum: ["clean", "edit", "summary"], description: "Only on a refinement: `clean`, `edit` or `summary`." } },
 			["session", "text"],
 			args => JSON.stringify(sessions().line(args))),
+		tool("quick_fix",
+			"The fast path: a small, concrete change to the page the owner is looking at (\"make this bold\", \"this gap is too"
+			+ " big\", a word, a colour, a size) goes straight to the standing fixer, fixer-1 — no spawn, nothing new made,"
+			+ " landing in roughly 10-30 seconds. Writes the request to public/framework/ai/quick-fix/page.jsonl and hands it"
+			+ " to the fixer at once. If the fixer is mid-fix, this one queues behind it and the answer says how many are ahead."
+			+ " The fixer itself decides if the change turns out to be bigger than a quick fix and hands it to a task-mastermind"
+			+ " instead — you do not have to guess right before calling this.",
+			{ page: { type: "string", description: "The site path being looked at, e.g. `/framework/ext/Chat/`." },
+				selection: { type: "object", description: "The one element picked out, if any: `{kind, label, text, selector}` — the same shape `ext/drawer/select.js` reports." },
+				text: { type: "string", description: "What to change, in the owner's own words." },
+				session: SESSION },
+			["page", "text"],
+			args => JSON.stringify(sessions().quick_fix(args))),
+		tool("quick_fix_landed",
+			"The fixer calls this once its OWN `merge.mjs` run has actually landed a quick fix — never before, and never with a"
+			+ " guessed or stated elapsed time: this computes the real seconds from the `asked_at` quick_fix gave you (CLAUDE.md"
+			+ " law 7, \"compute, don't recall\"). Pass through exactly what merge.mjs told you.",
+			{ asked_at: { type: "string", description: "The `asked_at` quick_fix's answer gave you — copied exactly, not retyped from memory." },
+				sha: { type: "string", description: "The commit merge.mjs landed (its `merged` or `applied` field)." },
+				files: { type: "number", description: "How many files the fix touched." },
+				lines: { type: "number", description: "The diff's total added + deleted lines." },
+				width: { type: "number", description: "The one screenshot width used, if you took one (fixer.md step 7)." },
+				shot: { type: "string", description: "The screenshot's path under public/framework/ai/quick-fix/shots/, if you took one." } },
+			["asked_at", "sha"],
+			args => JSON.stringify(sessions().quick_fix_landed(args))),
 		tool("dir_log",
 			"Append ONE line to a folder's `ai/log.jsonl`: the minimal index of AI work in that folder, presence only, each line"
 			+ " pointing at its detail file. Write it as you go, not at the end. Exactly one of these three shapes, nothing else:"

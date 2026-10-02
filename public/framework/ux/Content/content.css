@@ -59,6 +59,7 @@
 	.ux-content-object.inline { width: max-content; max-width: 100%; }
 
 	.ux-content-object-head { display: flex; align-items: baseline; gap: .5em; flex-wrap: wrap; margin-block-end: var(--gap-50); }
+	.ux-content-object-icon { font-size: 1.1em; line-height: 1; }
 	.ux-content-object-class { font-weight: 700; font-size: 1.1em; }
 	.ux-content-object-label { color: var(--subtle); font-family: var(--mono, monospace); }
 
@@ -110,6 +111,84 @@
 	.ux-content-object-more > details[open] > summary { margin-block-end: .3em; }
 	.ux-content-object-more .ux-content-object-properties,
 	.ux-content-object-more .ux-content-object-methods { margin-block-start: .2em; }
+}
+
+/* Inspect: the render()-separate debug/inspector view (`Inspect.js`) — the same idea
+   as the card above, built to be LOOKED AT rather than used, and the one place a
+   property whose value is itself an object or array nests its OWN inspect() card
+   instead of a one-line "Array(3)". Three variants: minimal (no card at all — the
+   exact look of an inline Mention/Inbox chip, ui/item's own .inline row), card (the
+   default, pictured by the rules below), full (identical to card today — the open
+   seam is a comment in Inspect.js, not a CSS difference, because there isn't one
+   yet). A class card (inspect(SomeClass)) gets a visibly heavier frame — "looks like
+   a class definition" (the owner) — via .ux-content-inspect-classcard. */
+@layer theme {
+	.ux-content-inspect {
+		display: block; width: 100%; min-width: 0; max-width: 32em;
+		background: var(--surface); border: 2px solid var(--line); border-radius: .4em;
+		padding: var(--pad-card); font-size: .95em;
+	}
+
+	/* Minimal: strip every bit of card chrome so this reads as one inline chip, not a
+	   shrunk card — same reasoning as object()'s own .inline, taken all the way. */
+	.ux-content-inspect.ux-content-inspect-minimal {
+		width: max-content; max-width: 100%; background: none; border: none; padding: 0;
+	}
+
+	/* The class card: same icon, a heavier frame — thicker border, a wash ground, and
+	   more room, so a class definition visibly outweighs an instance of it. */
+	.ux-content-inspect.ux-content-inspect-classcard {
+		border-width: 3px; background: var(--wash); padding: calc(var(--pad-card) * 1.3);
+	}
+
+	.ux-content-inspect-head { display: flex; align-items: flex-start; gap: .6em; margin-block-end: var(--gap-50); }
+	.ux-content-inspect-icon { font-size: 1.6em; line-height: 1; }
+	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-icon { font-size: 2.2em; }
+	.ux-content-inspect-titles { display: flex; flex-direction: column; gap: .1em; min-width: 0; }
+	.ux-content-inspect-label { color: var(--subtle); font-family: var(--mono, monospace); font-size: .85em; }
+	.ux-content-inspect-classname { font-weight: 700; font-size: 1.1em; }
+	.ux-content-inspect-classcard > .ux-content-inspect-head .ux-content-inspect-classname { font-size: 1.3em; }
+
+	.ux-content-inspect-properties, .ux-content-inspect-methods {
+		list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .3em;
+	}
+	.ux-content-inspect-methods { flex-direction: row; flex-wrap: wrap; gap: .3em; }
+	.ux-content-inspect-property {
+		display: flex; flex-wrap: wrap; align-items: baseline; gap: .4em;
+		font-family: var(--mono, monospace); min-width: 0;
+	}
+	.ux-content-inspect-name { color: var(--prim); flex: none; }
+	a.ux-content-inspect-name { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--prim) 40%, transparent); }
+	a.ux-content-inspect-name:hover { text-decoration-color: var(--prim); }
+	.ux-content-inspect-eq { color: var(--subtle); flex: none; }
+	.ux-content-inspect-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+	.ux-content-inspect-method { font-family: var(--mono, monospace); font-size: .9em; }
+	.ux-content-inspect-link {
+		display: inline-block; color: inherit; text-decoration: none; background: var(--wash);
+		border-radius: .3em; padding: .1em .5em;
+	}
+	a.ux-content-inspect-link { color: var(--prim); }
+	a.ux-content-inspect-link:hover { background: color-mix(in srgb, var(--prim) 15%, var(--wash)); }
+
+	/* A property worth opening into (`nestable()` in Inspect.js said yes) draws as a
+	   closed disclosure row, reusing ui/item's own `.item-node`/`.item`/`.item-caret`
+	   classes and CSS (the caret rotation, `.item-children`'s indent) instead of a
+	   second copy of that mechanism — only this list's own OWN row needs rules here. */
+	.ux-content-inspect-expandable { min-width: 0; }
+	.ux-content-inspect-expandable > .item-node > .item { font-family: var(--mono, monospace); }
+
+	/* The nested card itself, once opened: indented by `.item-children`'s own
+	   padding already, plus a rule down its left edge so the eye can follow which
+	   property it belongs to without re-reading the name above it. `min-width: 0` on
+	   the card matters, not just decoration — without it, one long unbreakable value
+	   deep inside (a url, say) can force this box, and everything above it, wider
+	   than the viewport instead of letting the ellipsis rule below actually cut it
+	   off. */
+	.ux-content-inspect-expandable .item-children {
+		border-inline-start: 2px solid var(--line); margin-block-start: .3em;
+	}
+	.ux-content-inspect-expandable .item-children .ux-content-inspect { max-width: 100%; min-width: 0; margin-block-start: .3em; }
+	.ux-content-inspect-cycle { font-size: .9em; }
 }
 
 @layer theme {

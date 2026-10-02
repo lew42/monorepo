@@ -15,7 +15,13 @@ export const TIERS = {
 	 * worked by accident when the model also happened to contain a `/`), so the
 	 * only thing stopping this today is "nobody has measured whether a cheap
 	 * OpenRouter model finishes a scan as well as Haiku does" (the spike's job). */
-	scan_openrouter: { provider: "openrouter", model: "deepseek/deepseek-v4.1-flash" }
+	scan_openrouter: { provider: "openrouter", model: "deepseek/deepseek-v4.1-flash" },
+	/* EXAMPLE, not wired to any role yet (public/framework/ai/2026-10-01/local-ai/):
+	 * a role on this tier runs entirely on this machine's own GPU through
+	 * Servex/ext/local/ — no network, no per-token cost, but a much smaller
+	 * model than Haiku. Swap `local/qwen2.5-coder` for `local/gemma-3-4b` or
+	 * `local/gemma-4-e4b` to try the other two models this GPU fits. */
+	local_qwen: { provider: "local", model: "local/qwen2.5-coder" }
 };
 
 export const model = tier => TIERS[tier]?.model ?? tier;

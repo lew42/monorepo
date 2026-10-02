@@ -18,10 +18,14 @@ its own url), `active` (this is the tab a reader lands on when they visit the PA
 bare url, instead of the first-declared one) or `order` (breaks a tie) on top of that.
 
 **A `settings` line is a whole PAGE's own preference**, written on ITS OWN `page.jsonl` (or
-a sibling `settings.jsonl` for a `page.js` folder — the same rule `weight.jsonl` uses). The
-first and only setting is `nav`: "does this page appear in its parent's navigation?" — the
-right drawer's Settings tab has an "Appears in navigation" checkbox for whichever page
-you're looking at, and it writes exactly this line.
+a sibling `settings.jsonl` for a `page.js` folder — the same rule `weight.jsonl` uses).
+`nav` — "does this page appear in its parent's navigation?" — is the one the right drawer's
+Settings tab writes (its "Appears in navigation" checkbox). Two more, added 2026-10-01 for
+`/framework/ai/`'s own top tab strip: `tab` — "does this page join a DETECTED tab bar?" —
+and `weight` — where it sits, ascending, default 1. Nothing here draws a tab bar from these;
+`page_settings()` below only reads the line. `public/framework/ai/overview.js`'s
+`detect_tabs()` is the one caller, and its own readme (`public/framework/ai/readme.md`)
+says what it does with the answer.
 
 ## One nav rule, read in one place (2026-09-29 fix round)
 

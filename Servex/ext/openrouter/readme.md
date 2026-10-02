@@ -221,6 +221,13 @@ field yet; it's documented here for whoever builds that next, not built now.
 - [`evals/ui-fouls.mjs`](./evals/ui-fouls.mjs) — the vision rung: three tiny fixture pages, each
   with one planted design foul, shown to a model via its own Read tool. Results in
   [`evals/ui-fouls/ui-fouls-results.jsonl`](./evals/ui-fouls/ui-fouls-results.jsonl).
+- [`evals/keys.mjs`](./evals/keys.mjs) — Phase 17, "keys to success": a model reads one of the
+  owner's own past prompts (`test-library/keys-prompts.jsonl`, 10 picked for mixed length with no
+  personal details) and lists the primary statements, to-dos and decisions a good answer has to
+  cover; several models do the same prompt, a judge merges keys that mean the same thing, and
+  each model is scored for recall (found the heavy keys?) and precision (invented any nobody else
+  saw?). Results live as pages at [`/framework/ai/tests/keys-to-success/`](/framework/ai/tests/keys-to-success/).
+  `--models a,b [--effort medium] [--only id]` extracts; `--judge` merges and scores.
 - [`snapshot.md`](./snapshot.md) — the condensed state a fresh mastermind starts from: one line
   per conclusion, each with a credence and a cited source.
 - [`sources/`](./sources/readme.md) — an index into the one source library

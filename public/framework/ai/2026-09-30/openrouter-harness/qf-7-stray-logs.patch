@@ -1,0 +1,1959 @@
+diff --git a/.claude/skills/clarity/flags.jsonl b/.claude/skills/clarity/flags.jsonl
+index d57f2f25b..d45161b16 100644
+--- a/.claude/skills/clarity/flags.jsonl
++++ b/.claude/skills/clarity/flags.jsonl
+@@ -174,3 +174,6 @@
+ {"at":"2026-10-01T05:34:12.040Z","target":"public/framework/ai/2026-09-30/openrouter-harness/requirements.md","verdict":"queued","kind":"proposal"}
+ {"at":"2026-10-01T05:35:12.999Z","target":"public/framework/ai/2026-09-30/openrouter-harness/requirements.md","verdict":"spawned","to":"clarity-openrouter-harness"}
+ {"at":"2026-10-01T05:37:04.393Z","target":"public/framework/ai/2026-09-30/openrouter-harness/requirements.md","verdict":"rewrote","what":"file text was clear on its own but mislabeled: it is a fixture spec for the test-library's one Fix Label case, not the openrouter-harness proposal (the real one, with Why/Asks/5 Phases, lives at the same path in the monorepo, missing from this worktree). Anyone opening this worktree task dir would read the whole initiative as 'fix one typo'. Owning agent task-mastermind-openrouter is idle/revivable but outside my message permissions (not my parent, hasn't messaged me), so applied the rewrite directly: added one line pointing to the real proposal location.","to":"public/framework/ai/2026-09-30/openrouter-harness/requirements.md"}
++{"at":"2026-10-01T07:29:27.596Z","target":"look:ai2","verdict":"queued","kind":"look"}
++{"at":"2026-10-01T07:29:27.665Z","target":"look:ai2","verdict":"spawned","to":"clarity-look-ai2"}
++{"at":"2026-10-01T07:31:25.604Z","target":"look:ai2 rail — top three cards (Now, Live, OpenRouter-done) + one done card","verdict":"clear","what":"Rail reads in ten seconds: Now card states what landed in prose, Live shows 4 working/1 running with real processes, OpenRouter card (score 97, green check) is the done one — title is the ask, preview line under it is the delivered answer, needs-you Remote access card (99, question mark) does not contradict it. Two shots (inbox view, 2 min apart) agree.","to":"none"}
+diff --git a/public/framework/ai/2026-08-17/vision-sweep/files.jsonl b/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
+index 2d33117a0..d6ed7655e 100644
+--- a/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
++++ b/public/framework/ai/2026-08-17/vision-sweep/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/feeds-lab/files.jsonl b/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
++++ b/public/framework/ai/2026-08-29/feeds-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl b/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
+index 554cc5670..64e72c973 100644
+--- a/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
++++ b/public/framework/ai/2026-08-29/imagine-tidy/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/screens-comp/files.jsonl b/public/framework/ai/2026-08-29/screens-comp/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-08-29/screens-comp/files.jsonl
++++ b/public/framework/ai/2026-08-29/screens-comp/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-08-29/screens-lab/files.jsonl b/public/framework/ai/2026-08-29/screens-lab/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-08-29/screens-lab/files.jsonl
++++ b/public/framework/ai/2026-08-29/screens-lab/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/imagine-review/files.jsonl b/public/framework/ai/2026-09-04/imagine-review/files.jsonl
+index 259d976d7..42314686c 100644
+--- a/public/framework/ai/2026-09-04/imagine-review/files.jsonl
++++ b/public/framework/ai/2026-09-04/imagine-review/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
++++ b/public/framework/ai/2026-09-04/omnibox-prototype/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-clarity/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-core/files.jsonl b/public/framework/ai/2026-09-04/paging-core/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-04/paging-core/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-core/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+index 3a2c345f3..4e57b24dc 100644
+--- a/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-explorer/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-rightnav/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
++++ b/public/framework/ai/2026-09-04/paging-toolbars/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-3/files.jsonl b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/codrops-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-3/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops-4/files.jsonl b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/codrops-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops-4/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/codrops/files.jsonl b/public/framework/ai/2026-09-05/codrops/files.jsonl
+index a71bcd0f0..6e1cbf391 100644
+--- a/public/framework/ai/2026-09-05/codrops/files.jsonl
++++ b/public/framework/ai/2026-09-05/codrops/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-1/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-2/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-3/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-4/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-4b/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-5/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-5b/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
+index 492a43e4d..0a2a8191d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-6/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-6b/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
+index 492a43e4d..0a2a8191d 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-7/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-7b/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl b/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
+index 82edaefef..8028bafd2 100644
+--- a/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
++++ b/public/framework/ai/2026-09-05/paging-audit-8/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+index 7e97225b6..555c7272f 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-a/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+index f60758487..6a359bcde 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-b/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
+index 23ef4beec..8166f643a 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-c/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl b/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
+index 7e97225b6..555c7272f 100644
+--- a/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-audit-d/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/spacing-study/files.jsonl b/public/framework/ai/2026-09-05/spacing-study/files.jsonl
+index 19bdba717..f428b923d 100644
+--- a/public/framework/ai/2026-09-05/spacing-study/files.jsonl
++++ b/public/framework/ai/2026-09-05/spacing-study/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-blogx/files.jsonl b/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
+index 53c8d74ea..a468ba57a 100644
+--- a/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-blogx/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-cms/files.jsonl b/public/framework/ai/2026-09-05/ux-cms/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-cms/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-cms/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-decks/files.jsonl b/public/framework/ai/2026-09-05/ux-decks/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-decks/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-decks/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-design/files.jsonl b/public/framework/ai/2026-09-05/ux-design/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-design/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-design/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-feeds/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-gallery/files.jsonl b/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-gallery/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-game/files.jsonl b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-game/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-game/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-generated/files.jsonl b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-generated/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-generated/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-mag/files.jsonl b/public/framework/ai/2026-09-05/ux-mag/files.jsonl
+index 32c08643e..692367c08 100644
+--- a/public/framework/ai/2026-09-05/ux-mag/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-mag/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-platform/files.jsonl b/public/framework/ai/2026-09-05/ux-platform/files.jsonl
+index f614b0e72..d2cf95c48 100644
+--- a/public/framework/ai/2026-09-05/ux-platform/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-platform/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-research/files.jsonl b/public/framework/ai/2026-09-05/ux-research/files.jsonl
+index bb2a0234d..9c7712f0f 100644
+--- a/public/framework/ai/2026-09-05/ux-research/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-research/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-rethink/files.jsonl b/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
+index 8fcf399e9..85704b1f5 100644
+--- a/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-rethink/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-scenes/files.jsonl b/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
+index 53c8d74ea..a468ba57a 100644
+--- a/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-scenes/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-05/ux-screens/files.jsonl b/public/framework/ai/2026-09-05/ux-screens/files.jsonl
+index 676ce481b..67bddce46 100644
+--- a/public/framework/ai/2026-09-05/ux-screens/files.jsonl
++++ b/public/framework/ai/2026-09-05/ux-screens/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-06/spacing-constants/files.jsonl b/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
++++ b/public/framework/ai/2026-09-06/spacing-constants/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/critic-3440/files.jsonl b/public/framework/ai/2026-09-08/critic-3440/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-08/critic-3440/files.jsonl
++++ b/public/framework/ai/2026-09-08/critic-3440/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/critic-layouts/files.jsonl b/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
++++ b/public/framework/ai/2026-09-08/critic-layouts/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-08/layouts-standard/files.jsonl b/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
+index a9805132a..2de38501d 100644
+--- a/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
++++ b/public/framework/ai/2026-09-08/layouts-standard/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/polish-critic/files.jsonl b/public/framework/ai/2026-09-17/polish-critic/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-17/polish-critic/files.jsonl
++++ b/public/framework/ai/2026-09-17/polish-critic/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/practice-critic/files.jsonl b/public/framework/ai/2026-09-17/practice-critic/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-17/practice-critic/files.jsonl
++++ b/public/framework/ai/2026-09-17/practice-critic/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/tree-component/files.jsonl b/public/framework/ai/2026-09-17/tree-component/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-17/tree-component/files.jsonl
++++ b/public/framework/ai/2026-09-17/tree-component/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-17/type-color-study/files.jsonl b/public/framework/ai/2026-09-17/type-color-study/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-17/type-color-study/files.jsonl
++++ b/public/framework/ai/2026-09-17/type-color-study/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-18/stage-cap/files.jsonl b/public/framework/ai/2026-09-18/stage-cap/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-18/stage-cap/files.jsonl
++++ b/public/framework/ai/2026-09-18/stage-cap/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/blunder-critic/files.jsonl b/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
+index 95e270b18..c7e71deb2 100644
+--- a/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
++++ b/public/framework/ai/2026-09-19/blunder-critic/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/card-adopt/files.jsonl b/public/framework/ai/2026-09-19/card-adopt/files.jsonl
+index 459466eaa..d2a3832b4 100644
+--- a/public/framework/ai/2026-09-19/card-adopt/files.jsonl
++++ b/public/framework/ai/2026-09-19/card-adopt/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/devbar-chat/files.jsonl b/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
+index 32c770fda..1e4562052 100644
+--- a/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
++++ b/public/framework/ai/2026-09-19/devbar-chat/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/incident-site-down/files.jsonl b/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
+index 459466eaa..d2a3832b4 100644
+--- a/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
++++ b/public/framework/ai/2026-09-19/incident-site-down/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/skill-roles/files.jsonl b/public/framework/ai/2026-09-19/skill-roles/files.jsonl
+index 8c87af71a..51637acba 100644
+--- a/public/framework/ai/2026-09-19/skill-roles/files.jsonl
++++ b/public/framework/ai/2026-09-19/skill-roles/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/v3-data/files.jsonl b/public/framework/ai/2026-09-19/v3-data/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-19/v3-data/files.jsonl
++++ b/public/framework/ai/2026-09-19/v3-data/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/verify-design/files.jsonl b/public/framework/ai/2026-09-19/verify-design/files.jsonl
+index fd128dfe7..67efc85a7 100644
+--- a/public/framework/ai/2026-09-19/verify-design/files.jsonl
++++ b/public/framework/ai/2026-09-19/verify-design/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/verify-server/files.jsonl b/public/framework/ai/2026-09-19/verify-server/files.jsonl
+index 3f3483e46..58f1aba8d 100644
+--- a/public/framework/ai/2026-09-19/verify-server/files.jsonl
++++ b/public/framework/ai/2026-09-19/verify-server/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-19/whisper-local/files.jsonl b/public/framework/ai/2026-09-19/whisper-local/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-19/whisper-local/files.jsonl
++++ b/public/framework/ai/2026-09-19/whisper-local/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/ai-padding/files.jsonl b/public/framework/ai/2026-09-20/ai-padding/files.jsonl
+index 459466eaa..d2a3832b4 100644
+--- a/public/framework/ai/2026-09-20/ai-padding/files.jsonl
++++ b/public/framework/ai/2026-09-20/ai-padding/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/approve-loop/files.jsonl b/public/framework/ai/2026-09-20/approve-loop/files.jsonl
+index 311df40e3..3e18e8d3b 100644
+--- a/public/framework/ai/2026-09-20/approve-loop/files.jsonl
++++ b/public/framework/ai/2026-09-20/approve-loop/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/dictate-fix/files.jsonl b/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
++++ b/public/framework/ai/2026-09-20/dictate-fix/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+index 311df40e3..3e18e8d3b 100644
+--- a/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
++++ b/public/framework/ai/2026-09-20/v3-axis-fix/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/reuse-audit/files.jsonl b/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
+index 613c0e679..1d0e46409 100644
+--- a/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
++++ b/public/framework/ai/2026-09-22/reuse-audit/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/review-3-days/files.jsonl b/public/framework/ai/2026-09-22/review-3-days/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-22/review-3-days/files.jsonl
++++ b/public/framework/ai/2026-09-22/review-3-days/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/servex-hardening/files.jsonl b/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
++++ b/public/framework/ai/2026-09-22/servex-hardening/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/servex-integrate/files.jsonl b/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
++++ b/public/framework/ai/2026-09-22/servex-integrate/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl b/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
++++ b/public/framework/ai/2026-09-22/talk-to-assistant/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/tiers-design/files.jsonl b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+index 27bafc2f3..619795e1c 100644
+--- a/public/framework/ai/2026-09-22/tiers-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/tiers-design/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+index 822e2cf61..86242764e 100644
+--- a/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
++++ b/public/framework/ai/2026-09-22/ux-subpages/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+index c8f99ee31..793cc7f90 100644
+--- a/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
++++ b/public/framework/ai/2026-09-22/whisper-servex/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-design/files.jsonl b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-22/worktree-design/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-design/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+index 53516c35a..ad191fecf 100644
+--- a/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
++++ b/public/framework/ai/2026-09-22/worktree-proof/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl b/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
+index 746891729..9f90cd2db 100644
+--- a/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
++++ b/public/framework/ai/2026-09-23/ai2-live-card/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+index f82cefa50..28a38e8ae 100644
+--- a/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
++++ b/public/framework/ai/2026-09-24/assistant-layers/files.jsonl
+@@ -16,3 +16,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/card-consolidation/files.jsonl b/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
+index aba2a7940..2b617dc96 100644
+--- a/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
++++ b/public/framework/ai/2026-09-24/card-consolidation/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/concurrency/files.jsonl b/public/framework/ai/2026-09-24/concurrency/files.jsonl
+index 9499f1c43..f42df0c6c 100644
+--- a/public/framework/ai/2026-09-24/concurrency/files.jsonl
++++ b/public/framework/ai/2026-09-24/concurrency/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/core-columns/files.jsonl b/public/framework/ai/2026-09-24/core-columns/files.jsonl
+index ff5fb7900..6bf93bf53 100644
+--- a/public/framework/ai/2026-09-24/core-columns/files.jsonl
++++ b/public/framework/ai/2026-09-24/core-columns/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-24/popups/files.jsonl b/public/framework/ai/2026-09-24/popups/files.jsonl
+index 670eb1a21..35cc4250f 100644
+--- a/public/framework/ai/2026-09-24/popups/files.jsonl
++++ b/public/framework/ai/2026-09-24/popups/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/ai2-lead/files.jsonl b/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
+index 8850c7942..bc7f0c6b9 100644
+--- a/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
++++ b/public/framework/ai/2026-09-25/ai2-lead/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl b/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
+index 22c972039..522bc3422 100644
+--- a/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
++++ b/public/framework/ai/2026-09-25/ai2-resurface-bar/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/feedback-council/files.jsonl b/public/framework/ai/2026-09-25/feedback-council/files.jsonl
+index aeb2d92d5..b03b9f505 100644
+--- a/public/framework/ai/2026-09-25/feedback-council/files.jsonl
++++ b/public/framework/ai/2026-09-25/feedback-council/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/layout-check/files.jsonl b/public/framework/ai/2026-09-25/layout-check/files.jsonl
+index 1a7b67aeb..4b2888b77 100644
+--- a/public/framework/ai/2026-09-25/layout-check/files.jsonl
++++ b/public/framework/ai/2026-09-25/layout-check/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl b/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
+index a80dede83..167eeb464 100644
+--- a/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
++++ b/public/framework/ai/2026-09-25/now-card-tabs/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/overview-fix/files.jsonl b/public/framework/ai/2026-09-25/overview-fix/files.jsonl
+index 54bfba054..8ec5e7e4f 100644
+--- a/public/framework/ai/2026-09-25/overview-fix/files.jsonl
++++ b/public/framework/ai/2026-09-25/overview-fix/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl b/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
+index 13a7ab98b..0f4a37b5e 100644
+--- a/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
++++ b/public/framework/ai/2026-09-25/recursive-pairs/files.jsonl
+@@ -30,3 +30,11 @@
+ {"file":"review/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"fix/","gone":true}
++{"file":"fix2/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"merge/","gone":true}
++{"file":"report.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
+diff --git a/public/framework/ai/2026-09-25/tabbed-card/files.jsonl b/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
+index a80dede83..167eeb464 100644
+--- a/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
++++ b/public/framework/ai/2026-09-25/tabbed-card/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-overview/files.jsonl b/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
+index b014d09c0..c39358e52 100644
+--- a/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-overview/files.jsonl
+@@ -7,3 +7,12 @@
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
+ {"file":"ui/"}
++{"file":"index/","gone":true}
++{"file":"live-1920.png","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"ui/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl b/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
+index 1fa0a7750..6e22b00e2 100644
+--- a/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-rail-rhythm/files.jsonl
+@@ -10,3 +10,6 @@
+ {"file":"shots/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"shots/","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl b/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
+index 87472c17d..d56b8a4a9 100644
+--- a/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
++++ b/public/framework/ai/2026-09-28/ai2-workspace/files.jsonl
+@@ -4,3 +4,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/ask-each/files.jsonl b/public/framework/ai/2026-09-28/ask-each/files.jsonl
+index 5ac09f46a..71aa4f260 100644
+--- a/public/framework/ai/2026-09-28/ask-each/files.jsonl
++++ b/public/framework/ai/2026-09-28/ask-each/files.jsonl
+@@ -6,3 +6,11 @@
+ {"file":"task.jsonl"}
+ {"file":"test-context.md"}
+ {"file":"test-questions.md"}
++{"file":"answers-one-at-a-time.md","gone":true}
++{"file":"answers-one-prompt.md","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"test-context.md","gone":true}
++{"file":"test-questions.md","gone":true}
+diff --git a/public/framework/ai/2026-09-28/collab-rounds/files.jsonl b/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
+index fafcec428..8a93bc46a 100644
+--- a/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
++++ b/public/framework/ai/2026-09-28/collab-rounds/files.jsonl
+@@ -22,3 +22,5 @@
+ {"file":"shots/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"layout-check/","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/commit-live-system/files.jsonl b/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
+index de284cdf5..c4bf390f7 100644
+--- a/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
++++ b/public/framework/ai/2026-09-28/commit-live-system/files.jsonl
+@@ -13,3 +13,5 @@
+ {"file":"spend.json","gone":true}
+ {"file":"layout-check/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl b/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
+index d4715aca7..3b5a967de 100644
+--- a/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
++++ b/public/framework/ai/2026-09-28/figma-sept-frame/files.jsonl
+@@ -15,3 +15,5 @@
+ {"file":"ui-reuse.md","gone":true}
+ {"file":"review.jsonl"}
+ {"file":"ui-reuse.md"}
++{"file":"review.jsonl","gone":true}
++{"file":"ui-reuse.md","gone":true}
+diff --git a/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl b/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
+index 1b16f3af6..42a55f666 100644
+--- a/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
++++ b/public/framework/ai/2026-09-28/file-explorer-fs/files.jsonl
+@@ -19,3 +19,8 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"walkthrough/page.js"}
++{"file":"minion-c/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"walkthrough/page.js","gone":true}
+diff --git a/public/framework/ai/2026-09-28/harness-research/files.jsonl b/public/framework/ai/2026-09-28/harness-research/files.jsonl
+index a8750872c..ce454523c 100644
+--- a/public/framework/ai/2026-09-28/harness-research/files.jsonl
++++ b/public/framework/ai/2026-09-28/harness-research/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/layout-system/files.jsonl b/public/framework/ai/2026-09-28/layout-system/files.jsonl
+index c01cc7fed..29aea8900 100644
+--- a/public/framework/ai/2026-09-28/layout-system/files.jsonl
++++ b/public/framework/ai/2026-09-28/layout-system/files.jsonl
+@@ -5,3 +5,10 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-28/section-variants/files.jsonl b/public/framework/ai/2026-09-28/section-variants/files.jsonl
+index 8b21be45d..5c98d6fc2 100644
+--- a/public/framework/ai/2026-09-28/section-variants/files.jsonl
++++ b/public/framework/ai/2026-09-28/section-variants/files.jsonl
+@@ -20,3 +20,6 @@
+ {"file":"layout-check/"}
+ {"file":"review/"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/shared-browser/files.jsonl b/public/framework/ai/2026-09-28/shared-browser/files.jsonl
+index fc5607cf7..c944e917a 100644
+--- a/public/framework/ai/2026-09-28/shared-browser/files.jsonl
++++ b/public/framework/ai/2026-09-28/shared-browser/files.jsonl
+@@ -19,3 +19,8 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"spend.json"}
++{"file":"layout-check/","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
+diff --git a/public/framework/ai/2026-09-28/source-library/files.jsonl b/public/framework/ai/2026-09-28/source-library/files.jsonl
+index f55358c47..a8814f22b 100644
+--- a/public/framework/ai/2026-09-28/source-library/files.jsonl
++++ b/public/framework/ai/2026-09-28/source-library/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/task-loop/files.jsonl b/public/framework/ai/2026-09-28/task-loop/files.jsonl
+index 159c23c2d..d59989ff7 100644
+--- a/public/framework/ai/2026-09-28/task-loop/files.jsonl
++++ b/public/framework/ai/2026-09-28/task-loop/files.jsonl
+@@ -21,3 +21,7 @@
+ {"file":"step-loop/"}
+ {"file":"taskloop-gate/"}
+ {"file":"worktree-down/"}
++{"file":"heartbeat/","gone":true}
++{"file":"step-loop/","gone":true}
++{"file":"taskloop-gate/","gone":true}
++{"file":"worktree-down/","gone":true}
+diff --git a/public/framework/ai/2026-09-28/task-placement/files.jsonl b/public/framework/ai/2026-09-28/task-placement/files.jsonl
+index b0625d019..a1221d4e8 100644
+--- a/public/framework/ai/2026-09-28/task-placement/files.jsonl
++++ b/public/framework/ai/2026-09-28/task-placement/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl b/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
+index b0625d019..a1221d4e8 100644
+--- a/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
++++ b/public/framework/ai/2026-09-28/tooling-gaps/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl b/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
+index 82fc0e022..455eace0c 100644
+--- a/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
++++ b/public/framework/ai/2026-09-28/waiting-on-you/files.jsonl
+@@ -76,3 +76,20 @@
+ {"file":"review/"}
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
++{"file":"answer-refused-1920.png","gone":true}
++{"file":"brief-d-needs-you.md","gone":true}
++{"file":"brief-e-review-filter.md","gone":true}
++{"file":"brief-f-servex.md","gone":true}
++{"file":"brief-g-page.md","gone":true}
++{"file":"card-reviewed-1920.png","gone":true}
++{"file":"contract-v2.md","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"live-1920.png","gone":true}
++{"file":"needs-1280.png","gone":true}
++{"file":"needs-1920.png","gone":true}
++{"file":"overview-1920.png","gone":true}
++{"file":"owner-words-0929.md","gone":true}
++{"file":"rail-review-1920.png","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
+diff --git a/public/framework/ai/2026-09-29/audio/files.jsonl b/public/framework/ai/2026-09-29/audio/files.jsonl
+index d9c1c0ef0..f2577130f 100644
+--- a/public/framework/ai/2026-09-29/audio/files.jsonl
++++ b/public/framework/ai/2026-09-29/audio/files.jsonl
+@@ -25,3 +25,5 @@
+ {"file":"next-clean-transcription/"}
+ {"file":"shots/"}
+ {"file":"shots/"}
++{"file":"next-drill-in/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/card-mobile/files.jsonl b/public/framework/ai/2026-09-29/card-mobile/files.jsonl
+index dd8bbae1e..61504d686 100644
+--- a/public/framework/ai/2026-09-29/card-mobile/files.jsonl
++++ b/public/framework/ai/2026-09-29/card-mobile/files.jsonl
+@@ -2,3 +2,6 @@
+ {"file":"inbox-400.png"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"card-experiment-400.png","gone":true}
++{"file":"inbox-400.png","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/cards-and-logs/files.jsonl b/public/framework/ai/2026-09-29/cards-and-logs/files.jsonl
+index c1e50564e..9f7a8a9b0 100644
+--- a/public/framework/ai/2026-09-29/cards-and-logs/files.jsonl
++++ b/public/framework/ai/2026-09-29/cards-and-logs/files.jsonl
+@@ -26,3 +26,5 @@
+ {"file":"review-fix-2/"}
+ {"file":"docs-check.md"}
+ {"file":"docs-check.md"}
++{"file":"left.md"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl b/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
+index bc1a516fd..efc193115 100644
+--- a/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/chip-context-fix/files.jsonl
+@@ -2,3 +2,7 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/decide-tool/files.jsonl b/public/framework/ai/2026-09-29/decide-tool/files.jsonl
+index 907deeb6b..316419dbd 100644
+--- a/public/framework/ai/2026-09-29/decide-tool/files.jsonl
++++ b/public/framework/ai/2026-09-29/decide-tool/files.jsonl
+@@ -33,3 +33,11 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/dictate-lag/files.jsonl b/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
+index 8969784d1..eb1cc1f05 100644
+--- a/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
++++ b/public/framework/ai/2026-09-29/dictate-lag/files.jsonl
+@@ -2,3 +2,7 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"task.jsonl"}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl b/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
+index c9b6b0f71..34c82f797 100644
+--- a/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
++++ b/public/framework/ai/2026-09-29/dictate-spacing/files.jsonl
+@@ -12,3 +12,17 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"task.jsonl"}
++{"file":"after-1920.png","gone":true}
++{"file":"after-400.png","gone":true}
++{"file":"answer-haiku.md","gone":true}
++{"file":"answer-opus.md","gone":true}
++{"file":"answer-sonnet.md","gone":true}
++{"file":"before-1920.png","gone":true}
++{"file":"before-400.png","gone":true}
++{"file":"brief.md","gone":true}
++{"file":"desktop-1920.png","gone":true}
++{"file":"mobile-400.png","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/file-system/files.jsonl b/public/framework/ai/2026-09-29/file-system/files.jsonl
+index 3f03cb28d..1ac5c59c3 100644
+--- a/public/framework/ai/2026-09-29/file-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/file-system/files.jsonl
+@@ -32,3 +32,18 @@
+ {"file":"shots-before/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"audit.md","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"minion-a/","gone":true}
++{"file":"minion-b/","gone":true}
++{"file":"minion-c/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"shots-after/","gone":true}
++{"file":"shots-before/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/files.jsonl b/public/framework/ai/2026-09-29/files.jsonl
+index c1dd4b558..07a7c161e 100644
+--- a/public/framework/ai/2026-09-29/files.jsonl
++++ b/public/framework/ai/2026-09-29/files.jsonl
+@@ -110,3 +110,7 @@
+ {"file":"servex-mastermind/"}
+ {"file":"slow-card-fix/"}
+ {"file":"summary-styles/"}
++{"file":"cards-and-logs/"}
++{"file":"decided-default/"}
++{"file":"grip-everywhere/"}
++{"file":"voice-on-panel/"}
+diff --git a/public/framework/ai/2026-09-29/follow/files.jsonl b/public/framework/ai/2026-09-29/follow/files.jsonl
+index 495cbb928..e81a94081 100644
+--- a/public/framework/ai/2026-09-29/follow/files.jsonl
++++ b/public/framework/ai/2026-09-29/follow/files.jsonl
+@@ -4,3 +4,6 @@
+ {"file":"task.jsonl"}
+ {"file":"build/"}
+ {"file":"build/"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"build/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/harness-spike/files.jsonl b/public/framework/ai/2026-09-29/harness-spike/files.jsonl
+index a1221d4e8..c3126997b 100644
+--- a/public/framework/ai/2026-09-29/harness-spike/files.jsonl
++++ b/public/framework/ai/2026-09-29/harness-spike/files.jsonl
+@@ -1,2 +1,4 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/item-ui/files.jsonl b/public/framework/ai/2026-09-29/item-ui/files.jsonl
+index 30a060c9a..7f370ca9d 100644
+--- a/public/framework/ai/2026-09-29/item-ui/files.jsonl
++++ b/public/framework/ai/2026-09-29/item-ui/files.jsonl
+@@ -7,3 +7,12 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"a-item/","gone":true}
++{"file":"b-census/","gone":true}
++{"file":"c-views/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/layout-explorer/files.jsonl b/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
+index 2b68da8bb..f164ea6f9 100644
+--- a/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
++++ b/public/framework/ai/2026-09-29/layout-explorer/files.jsonl
+@@ -31,3 +31,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/lifecycle/files.jsonl b/public/framework/ai/2026-09-29/lifecycle/files.jsonl
+index c6e06aa1e..e9251da60 100644
+--- a/public/framework/ai/2026-09-29/lifecycle/files.jsonl
++++ b/public/framework/ai/2026-09-29/lifecycle/files.jsonl
+@@ -39,3 +39,7 @@
+ {"file":"layout-check/"}
+ {"file":"review/"}
+ {"file":"spend.json"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/mobile-nav/files.jsonl b/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
+index 61a3276ad..a7e7ae9a9 100644
+--- a/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
++++ b/public/framework/ai/2026-09-29/mobile-nav/files.jsonl
+@@ -24,3 +24,4 @@
+ {"file":"review-1/"}
+ {"file":"review-2/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/module-experts/files.jsonl b/public/framework/ai/2026-09-29/module-experts/files.jsonl
+index 91b69be19..6b102c636 100644
+--- a/public/framework/ai/2026-09-29/module-experts/files.jsonl
++++ b/public/framework/ai/2026-09-29/module-experts/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/naming-skill/files.jsonl b/public/framework/ai/2026-09-29/naming-skill/files.jsonl
+index 8bd5cb284..86846cdf3 100644
+--- a/public/framework/ai/2026-09-29/naming-skill/files.jsonl
++++ b/public/framework/ai/2026-09-29/naming-skill/files.jsonl
+@@ -1,3 +1,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/nested-tasks/files.jsonl b/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
+index 28916a705..c55aac0da 100644
+--- a/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
++++ b/public/framework/ai/2026-09-29/nested-tasks/files.jsonl
+@@ -11,3 +11,14 @@
+ {"file":"tree-live-1920.png"}
+ {"file":"layout-check/"}
+ {"file":"layout-check/"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"minion-data/","gone":true}
++{"file":"minion-view/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"tree-live-1920.png","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl b/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
+index e52e72960..4001cd02e 100644
+--- a/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
++++ b/public/framework/ai/2026-09-29/node-modules-guard/files.jsonl
+@@ -5,3 +5,10 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"cause/","gone":true}
++{"file":"guards/","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/node-reliability/files.jsonl b/public/framework/ai/2026-09-29/node-reliability/files.jsonl
+index a1221d4e8..9622bb2b7 100644
+--- a/public/framework/ai/2026-09-29/node-reliability/files.jsonl
++++ b/public/framework/ai/2026-09-29/node-reliability/files.jsonl
+@@ -1,2 +1,10 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
++{"file":"checkpoint-1.md"}
++{"file":"draft/"}
++{"file":"jsonl-keep-proof.txt"}
++{"file":"queue-proof.txt"}
++{"file":"review-queue.md"}
++{"file":"review.md"}
++{"file":"revive-guard-proof.txt"}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl b/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
+index a03f99c9b..a33cdd062 100644
+--- a/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
++++ b/public/framework/ai/2026-09-29/openrouter-brain/files.jsonl
+@@ -5,3 +5,10 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"minion-a-snapshot-sources/","gone":true}
++{"file":"minion-b-readme-skill/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-files-log/files.jsonl b/public/framework/ai/2026-09-29/page-files-log/files.jsonl
+index cd31e86d0..39a8abca5 100644
+--- a/public/framework/ai/2026-09-29/page-files-log/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-files-log/files.jsonl
+@@ -52,3 +52,21 @@
+ {"file":"deleted-folders.txt"}
+ {"file":"deleted-paths.txt"}
+ {"file":"deleted-paths.txt"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"main-tree-groups.js.patch","gone":true}
++{"file":"measure/","gone":true}
++{"file":"merge-union/","gone":true}
++{"file":"owner-words.md","gone":true}
++{"file":"readers/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"writer/","gone":true}
++{"file":"md-1920.png","gone":true}
++{"file":"fs-1920.png","gone":true}
++{"file":"files-jsonl/","gone":true}
++{"file":"deleted-folders.txt","gone":true}
++{"file":"deleted-paths.txt","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl b/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
+index 6f25d0d53..748bb0abe 100644
+--- a/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-files-merge-fix/files.jsonl
+@@ -2,3 +2,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/page-system/files.jsonl b/public/framework/ai/2026-09-29/page-system/files.jsonl
+index 6d0ecd859..4be7b04e8 100644
+--- a/public/framework/ai/2026-09-29/page-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/page-system/files.jsonl
+@@ -44,3 +44,4 @@
+ {"file":"inventory-audit/"}
+ {"file":"inventory-audit.md"}
+ {"file":"inventory-audit.md"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/prompt-refine/files.jsonl b/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
+index 444a25a4b..d915338a7 100644
+--- a/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
++++ b/public/framework/ai/2026-09-29/prompt-refine/files.jsonl
+@@ -24,3 +24,7 @@
+ {"file":"review/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"inbox.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/readme-system/files.jsonl b/public/framework/ai/2026-09-29/readme-system/files.jsonl
+index 8bd5cb284..86846cdf3 100644
+--- a/public/framework/ai/2026-09-29/readme-system/files.jsonl
++++ b/public/framework/ai/2026-09-29/readme-system/files.jsonl
+@@ -1,3 +1,5 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"task.jsonl"}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl b/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
+index c01cc7fed..29aea8900 100644
+--- a/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
++++ b/public/framework/ai/2026-09-29/restart-outside-tree/files.jsonl
+@@ -5,3 +5,10 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl b/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
+index d72bfb878..a9874309a 100644
+--- a/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
++++ b/public/framework/ai/2026-09-29/servex-docs-tab/files.jsonl
+@@ -27,3 +27,10 @@
+ {"file":"requirements.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"docs-tab-live-openrouter.png","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"minion-b-ui/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl b/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
+index c9572cc74..ad1d44b8d 100644
+--- a/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
++++ b/public/framework/ai/2026-09-29/servex-mastermind/files.jsonl
+@@ -4,3 +4,10 @@
+ {"file":"gate.mjs"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"checkpoint-7.md"}
++{"file":"audit/","gone":true}
++{"file":"checkpoint-4.md","gone":true}
++{"file":"checkpoint-5.md","gone":true}
++{"file":"gate.mjs","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl b/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
+index 4cfa282a4..9ab37389f 100644
+--- a/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
++++ b/public/framework/ai/2026-09-29/slow-card-fix/files.jsonl
+@@ -6,3 +6,11 @@
+ {"file":"review.md"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"measurement.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"review/","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"review.md","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/summary-styles/files.jsonl b/public/framework/ai/2026-09-29/summary-styles/files.jsonl
+index 028d113ad..60700181d 100644
+--- a/public/framework/ai/2026-09-29/summary-styles/files.jsonl
++++ b/public/framework/ai/2026-09-29/summary-styles/files.jsonl
+@@ -3,3 +3,8 @@
+ {"file":"shots/"}
+ {"file":"spend.json"}
+ {"file":"task.jsonl"}
++{"file":"layout-check/","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"shots/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"task.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl b/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
+index 0a1bf95e6..63c9061f3 100644
+--- a/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
++++ b/public/framework/ai/2026-09-29/voice-on-panel/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"review.jsonl"}
+ {"file":"review.md"}
+ {"file":"review.md"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-29/voice-sessions/files.jsonl b/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
+index 22d97a745..b97779c1b 100644
+--- a/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
++++ b/public/framework/ai/2026-09-29/voice-sessions/files.jsonl
+@@ -7,3 +7,18 @@
+ {"file":"refine-640/"}
+ {"file":"refine-655/"}
+ {"file":"task.jsonl"}
++{"file":"a-slice1/"}
++{"file":"b-slice2/"}
++{"file":"c-roles/"}
++{"file":"d-directory/"}
++{"file":"docs-check.md"}
++{"file":"e-fixes/"}
++{"file":"f-dupe-line/"}
++{"file":"g-card/"}
++{"file":"inbox.jsonl"}
++{"file":"owner-words-2.md"}
++{"file":"report.md"}
++{"file":"review/"}
++{"file":"review-fresh.md"}
++{"file":"review.jsonl"}
++{"file":"review.md"}
+diff --git a/public/framework/ai/2026-09-30/ai2-inbox-read/files.jsonl b/public/framework/ai/2026-09-30/ai2-inbox-read/files.jsonl
+index adc348710..056880d09 100644
+--- a/public/framework/ai/2026-09-30/ai2-inbox-read/files.jsonl
++++ b/public/framework/ai/2026-09-30/ai2-inbox-read/files.jsonl
+@@ -23,3 +23,4 @@
+ {"file":"task.jsonl"}
+ {"file":"review.jsonl"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/design-code/files.jsonl b/public/framework/ai/2026-09-30/design-code/files.jsonl
+index c5c32edf3..a3a7dc381 100644
+--- a/public/framework/ai/2026-09-30/design-code/files.jsonl
++++ b/public/framework/ai/2026-09-30/design-code/files.jsonl
+@@ -17,3 +17,12 @@
+ {"file":"review.jsonl"}
+ {"file":"code/"}
+ {"file":"docs-check.md"}
++{"file":"owner-words.md","gone":true}
++{"file":"requirements.md","gone":true}
++{"file":"task.jsonl","gone":true}
++{"file":"design/","gone":true}
++{"file":"spend.json","gone":true}
++{"file":"inbox.jsonl","gone":true}
++{"file":"review/","gone":true}
++{"file":"shots/","gone":true}
++{"file":"review.jsonl","gone":true}
+diff --git a/public/framework/ai/2026-09-30/files.jsonl b/public/framework/ai/2026-09-30/files.jsonl
+index 8e3b90431..a856f2a22 100644
+--- a/public/framework/ai/2026-09-30/files.jsonl
++++ b/public/framework/ai/2026-09-30/files.jsonl
+@@ -82,3 +82,4 @@
+ {"file":"servex-docs/","gone":true}
+ {"file":"ai-page/","gone":true}
+ {"file":"merge-approval/","gone":true}
++{"file":"probe-tasks/"}
+diff --git a/public/framework/ai/2026-09-30/one-dictation/minion-docs/task.jsonl b/public/framework/ai/2026-09-30/one-dictation/minion-docs/task.jsonl
+index bc4027af1..6f5b4a782 100644
+--- a/public/framework/ai/2026-09-30/one-dictation/minion-docs/task.jsonl
++++ b/public/framework/ai/2026-09-30/one-dictation/minion-docs/task.jsonl
+@@ -15,3 +15,4 @@
+ {"agent":{"kind":"outcome","task":"minion-docs","result":"landed 6/6 — ux/Dictate readme trimmed + doc/chat.md written, ext/Session readme + new doc/markers.md, ext/drawer readme noted the sheet collapse, three long comments (chat.js, drawer.js, ai.js) cut to a few lines each pointing at doc/chat.md, no docs-check.mjs to run. 5 pages verified headless, zero console errors. Commit 13754e1c in michael/dev.","tokens":0},"landed_at":"2026-09-30T23:00:31-05:00"}
+ {"log":{"at":"2026-09-30T23:01:05-05:00","msg":"session ended (other) without landing"}}
+ {"log":{"at":"2026-09-30T23:01:36-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
++{"log":{"at":"2026-10-01T14:50:39-05:00","msg":"health: 6 pages — 15 errors, 0 stalls, worst /framework/ai/, shots /framework/ai/health/shots/2026-10-01/ — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+diff --git a/public/framework/ai/2026-09-30/one-dictation/task.jsonl b/public/framework/ai/2026-09-30/one-dictation/task.jsonl
+index af0cd3d11..716df4850 100644
+--- a/public/framework/ai/2026-09-30/one-dictation/task.jsonl
++++ b/public/framework/ai/2026-09-30/one-dictation/task.jsonl
+@@ -223,3 +223,4 @@
+ {"review":{"answer":{"n":1,"reply":"declined: the ✦ sheet's collapse to one line is merge 4's, already in michael/dev (6a586e90), with shots at shots/after-surfaces-400.png. This merge's own sheet shots are minion-workbench/shots/sheet-400.png, sheet-400-sent.png and sheet-400-after-nav.png: it opens, sends and keeps its chat across a navigation."}}}
+ {"review":{"answer":{"n":2,"reply":"declined: the one content model is a separate merge already in michael/dev (49f93b37, Sessions.test.mjs 10/10). Merge 7 does not touch it."}}}
+ {"review":{"answer":{"n":3,"reply":"noted: the tab bar is shared site chrome, within the 3-row rule."}}}
++{"log":{"at":"2026-10-01T14:50:39-05:00","msg":"health: /framework/ai/ — 1 console errors, stall 0.0 s, 7 other errors (status, request), shot /framework/ai/health/shots/2026-10-01/framework-ai.png — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl b/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
+index a3d36cf83..c134805ca 100644
+--- a/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
++++ b/public/framework/ai/2026-09-30/openrouter-harness/files.jsonl
+@@ -48,3 +48,6 @@
+ {"file":"wire-provider/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"web-search/","gone":true}
++{"file":"web-search/"}
+diff --git a/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl b/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl
+index de500d584..8f6ea814f 100644
+--- a/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl
++++ b/public/framework/ai/2026-09-30/openrouter-harness/test-library/task.jsonl
+@@ -108,3 +108,4 @@
+ {"log":{"at":"2026-10-01T17:35:07-05:00","msg":"health: 2 pages — 12 errors, 0 stalls, worst /framework/ai/2026-09-30/openrouter-harness/test-library/runs/, shots /framework/ai/health/shots/2026-10-01/ — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+ {"log":{"at":"2026-10-01T18:02:16-05:00","msg":"health: /framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-thinkingmachines-inkling-small-free-medium-1790895731731/ — 1 console errors, stall 0.0 s, 5 other errors (status, request), shot /framework/ai/health/shots/2026-10-01/framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-thinkingmachines-inkling-small-free-medium-1790895731731.png — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+ {"log":{"at":"2026-10-01T18:26:16-05:00","msg":"health: /framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-thinkingmachines-inkling-free-medium-1790897171958/ — 1 console errors, stall 0.0 s, 5 other errors (status, request), shot /framework/ai/health/shots/2026-10-01/framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-thinkingmachines-inkling-free-medium-1790897171958.png — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"log":{"at":"2026-10-01T20:54:53-05:00","msg":"health: /framework/ai/tests/keys-to-success/ — 1 console errors, stall 0.0 s, 5 other errors (status, request), shot /framework/ai/health/shots/2026-10-01/framework-ai-tests-keys-to-success.png — first: status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+diff --git a/public/framework/ai/2026-09-30/page-inbox/files.jsonl b/public/framework/ai/2026-09-30/page-inbox/files.jsonl
+index 857da07e8..1d1c2588c 100644
+--- a/public/framework/ai/2026-09-30/page-inbox/files.jsonl
++++ b/public/framework/ai/2026-09-30/page-inbox/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"review.md"}
+ {"file":"review.jsonl"}
+ {"file":"review.jsonl"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/proposal-flow/files.jsonl b/public/framework/ai/2026-09-30/proposal-flow/files.jsonl
+index f21545fe8..f0e1991ed 100644
+--- a/public/framework/ai/2026-09-30/proposal-flow/files.jsonl
++++ b/public/framework/ai/2026-09-30/proposal-flow/files.jsonl
+@@ -24,3 +24,4 @@
+ {"file":"review.md"}
+ {"file":"shots/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/review/files.jsonl b/public/framework/ai/2026-09-30/review/files.jsonl
+index 5dddb9938..7bb7e1c09 100644
+--- a/public/framework/ai/2026-09-30/review/files.jsonl
++++ b/public/framework/ai/2026-09-30/review/files.jsonl
+@@ -24,3 +24,4 @@
+ {"file":"walkthrough/"}
+ {"file":"walkthrough/page.js"}
+ {"file":"walkthrough/page.js"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026-09-30/sheet-regression/files.jsonl b/public/framework/ai/2026-09-30/sheet-regression/files.jsonl
+index adca7988a..7fb355875 100644
+--- a/public/framework/ai/2026-09-30/sheet-regression/files.jsonl
++++ b/public/framework/ai/2026-09-30/sheet-regression/files.jsonl
+@@ -8,3 +8,7 @@
+ {"file":"requirements.md"}
+ {"file":"task.jsonl"}
+ {"file":"shots/"}
++{"file":"review/","gone":true}
++{"file":"review.md","gone":true}
++{"file":"review.jsonl","gone":true}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+index f129abca2..bf997aebc 100644
+--- a/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
++++ b/public/framework/ai/2026/09/25/cards-that-show-the-thing/page.jsonl
+@@ -27,3 +27,4 @@
+ {"message":{"by":"assistant-cards-that-show-the-thing","text":"Got it — desktop proof received (1790720395042).","kind":"reply","at":"2026-09-29T17:19:58-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+index 5091a2d04..5a2f715c2 100644
+--- a/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
++++ b/public/framework/ai/2026/09/25/why-padding-keeps-going-missing/page.jsonl
+@@ -10,3 +10,4 @@
+ {"message":{"by":"task-mastermind-padding-system","text":"Landed. The padding check now sees neighbouring columns, controls and framed boxes, and it runs by itself on every landing. The page skill asks \"how wide, does it need padding, how does it meet its neighbours\" every time. Padding stays opt-in with .pad. It already caught one real miss: the Assistant box on AI 2 at 1280.","kind":"reply","at":"2026-09-25T18:14:12-05:00"}}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl b/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
+index 3741d78b7..035bb6c24 100644
+--- a/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
++++ b/public/framework/ai/2026/09/28/ai-2-rhythm-tabs-sections-and-sidebar-va/page.jsonl
+@@ -20,3 +20,6 @@
+ {"file":"walkthrough.md"}
+ {"place":"walkthrough.md"}
+ {"file":"walkthrough.md"}
++{"file":"owner-words.md","gone":true}
++{"file":"imagine-merge.md","gone":true}
++{"file":"which-sidebar-variant/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/29/files.jsonl b/public/framework/ai/2026/09/29/files.jsonl
+index e3d6553c2..52fd6fca1 100644
+--- a/public/framework/ai/2026/09/29/files.jsonl
++++ b/public/framework/ai/2026/09/29/files.jsonl
+@@ -38,3 +38,21 @@
+ {"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl"}
+ {"file":"the-page-system-layout-navigation-new-pa/page.jsonl"}
+ {"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl"}
++{"file":"audio-a-library-of-audio-parts-transcrip/page.jsonl","gone":true}
++{"file":"choosing-a-layout-five-questions-and-col/page.jsonl","gone":true}
++{"file":"experiment-3-models-read-the-dictate-spa/page.jsonl","gone":true}
++{"file":"familiar-structure-every-named-system-ge/page.jsonl","gone":true}
++{"file":"file-system-file-and-directory-objects-f/page.jsonl","gone":true}
++{"file":"item-ui-and-object-views-icon-items-tree/page.jsonl","gone":true}
++{"file":"lifecycle-nothing-left-running-nested-ta/page.jsonl","gone":true}
++{"file":"mobile-nav-back-an-ai-rail-at-the-bottom/page.jsonl","gone":true}
++{"file":"module-experts-a-ready-page-mastermind-t/page.jsonl","gone":true}
++{"file":"new-card/page.jsonl","gone":true}
++{"file":"openrouter-brain-a-knowledge-base-that-o/page.jsonl","gone":true}
++{"file":"openrouter-key-for-the-harness-spike/page.jsonl","gone":true}
++{"file":"personal-errands/page.jsonl","gone":true}
++{"file":"personal-errands-2/page.jsonl","gone":true}
++{"file":"summary-details-styles-full-width-varian/page.jsonl","gone":true}
++{"file":"system-audit-skills-tools-handover-loose/page.jsonl","gone":true}
++{"file":"the-page-system-layout-navigation-new-pa/page.jsonl","gone":true}
++{"file":"why-yesterday-s-paid-tasks-never-landed/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl b/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
+index dd2b91fee..3180eadab 100644
+--- a/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
++++ b/public/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/page.jsonl
+@@ -41,3 +41,13 @@
+ {"message":{"by":"task-mastermind-prompt-refine","text":"The repair round works: on the harness dictation, the asks the tool's first brief had dropped went from 8 to 1, for 26 cents. The audit so far: the VS Code tab dropped 4, 3 and 7 of your asks and turned several suggestions into rules, but it always passed your raw words along beside the brief.","at":"2026-09-29T15:38:23-05:00"}}
+ {"message":{"by":"task-mastermind-prompt-refine","text":"Landed. refine.mjs is merged, and this card shows it on your three dictations beside the audit table. It went well over budget: $47 against $10, mostly two minions whose context kept growing through five Servex restarts. The next step is coverage checked per idea, not per sentence, because the audit shows the current check still misses drops inside long sentences.","at":"2026-09-29T15:58:26-05:00"}}
+ {"file":"content.js"}
++{"file":"owner-words.md","gone":true}
++{"file":"drawer-element-picker-context-pill-file/page.jsonl","gone":true}
++{"file":"hover-before-fold.png","gone":true}
++{"file":"hover-before.png","gone":true}
++{"file":"hover-while.png","gone":true}
++{"file":"codeblock-only.png","gone":true}
++{"file":"codeblock-hover.png","gone":true}
++{"file":"select-drag.png","gone":true}
++{"file":"layout-explorer-3-column-browse-categori/page.jsonl","gone":true}
++{"file":"study-sidebar-paging-html-structure-site/page.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/page.jsonl b/public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/page.jsonl
+index feac0fd95..fa2ffb2eb 100644
+--- a/public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/page.jsonl
++++ b/public/framework/ai/2026/09/30/shell-header-sidebars-footer-the-dark-de/page.jsonl
+@@ -11,3 +11,5 @@
+ {"file":"design-2.md"}
+ {"place":"design-2.md"}
+ {"message":{"by":"task-mastermind-dev-shell","text":"A plan for your new words is on this card (design-2.md). Any page gets a nine-grid shell: white paper in the middle and a gray well around it. A page's sidebars line up with its paper, and the ☰ drawer moves out to the window's edge, so it no longer cuts into AI 2's tab row. AI 2's right side will be the one chat widget from the dictation task (ux/Dictate/chat.js), not a new chat. I build it in three small merges once that widget lands.","kind":"reply","at":"2026-09-30T15:08:04-05:00"}}
++{"file":"owner-words.md","gone":true}
++{"file":"design.md","gone":true}
+diff --git a/public/framework/ai/2026/09/page.jsonl b/public/framework/ai/2026/09/page.jsonl
+index d8d6105cf..7ee1bb1ee 100644
+--- a/public/framework/ai/2026/09/page.jsonl
++++ b/public/framework/ai/2026/09/page.jsonl
+@@ -16,3 +16,5 @@
+ {"file":"29/page.jsonl"}
+ {"file":"29/"}
+ {"file":"29/page.jsonl"}
++{"file":"29/"}
++{"file":"30/"}
+diff --git a/public/framework/ai/board.jsonl b/public/framework/ai/board.jsonl
+index ed21cd670..320d6a3db 100644
+--- a/public/framework/ai/board.jsonl
++++ b/public/framework/ai/board.jsonl
+@@ -803,3 +803,30 @@
+ {"card":{"at":"2026-10-01T01:12:21-05:00","id":"health-framework-ai-tests-h1-page-fixture","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/tests/h1-page/fixture/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/tests/h1-page/page.js"}}
+ {"card":{"at":"2026-10-01T01:14:34-05:00","id":"health-framework-ai-tests","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/tests/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/tests/broken-import/fixture/date.js"}}
+ {"card":{"at":"2026-10-01T02:00:03-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/ is not loading","text":"request: net::ERR_ABORTED http://127.0.0.1:8090/cards?view=open"}}
++{"card":{"at":"2026-10-01T02:33:32-05:00","id":"health-framework-ai-tests","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/tests/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T02:33:38-05:00","id":"health-framework-ai-tests-keys-to-success","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/tests/keys-to-success/ is not loading","text":"console: Error: 404 — nothing matches \"/framework/ai/tests/keys-to-success/\"\n    at App.load (http://127.0.0.1:59600/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://127.0.0.1:59600/framework/core/App/App.js:26:4)"}}
++{"card":{"at":"2026-10-01T14:50:14-05:00","id":"health-framework-ai","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T14:50:26-05:00","id":"health-framework-ai-v-3","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/v/3/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T14:53:49-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-super-120b-a12b-free-medium-1790884424872","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-super-120b-a12b-free-medium-1790884424872/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-super-120b-a12b-free-medium-1790884424872/page.js"}}
++{"card":{"at":"2026-10-01T15:04:58-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-super-120b-a12b-free-medium-1790885093751","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-super-120b-a12b-free-medium-1790885093751/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:13:16-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885591913","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885591913/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:15:15-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885710769","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885710769/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:23:28-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-deepseek-deepseek-v4-flash-medium-1790886203806","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-deepseek-deepseek-v4-flash-medium-1790886203806/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:33:19-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885591913-hello","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-ultra-550b-a55b-free-medium-1790885591913/hello/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:42:10-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-apodex-apodex-1-1-mini-free-medium-1790887326060","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-apodex-apodex-1-1-mini-free-medium-1790887326060/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:49:35-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-cohere-north-mini-code-free-medium-1790887767455","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-cohere-north-mini-code-free-medium-1790887767455/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T15:57:00-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-dots-studio-dots-3-note-preview-free-medium-1790888212351","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-dots-studio-dots-3-note-preview-free-medium-1790888212351/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:04:22-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-google-gemma-4-26b-a4b-it-free-medium-1790888653773","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-google-gemma-4-26b-a4b-it-free-medium-1790888653773/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:08:51-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-google-gemma-4-26b-a4b-it-free-medium-1790888923909","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-google-gemma-4-26b-a4b-it-free-medium-1790888923909/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/2026-10-01/files.jsonl"}}
++{"card":{"at":"2026-10-01T16:11:43-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-google-gemma-4-31b-it-free-medium-1790889095231","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-google-gemma-4-31b-it-free-medium-1790889095231/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:14:37-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-inclusionai-ling-3-0-flash-sante-free-medium-1790889272216","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-inclusionai-ling-3-0-flash-sante-free-medium-1790889272216/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:17:35-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-liquid-lfm-2-5-2-6b-free-medium-1790889450728","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-liquid-lfm-2-5-2-6b-free-medium-1790889450728/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:21:16-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-google-gemma-4-26b-a4b-it-free-medium-1790889671392","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-google-gemma-4-26b-a4b-it-free-medium-1790889671392/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:21:37-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-nano-omni-30b-a3b-reasoning-free-medium-1790889692705","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-nano-omni-30b-a3b-reasoning-free-medium-1790889692705/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:36:57-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-apodex-apodex-1-1-mini-free-medium-1790890612133","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-apodex-apodex-1-1-mini-free-medium-1790890612133/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:37:04-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-nvidia-nemotron-3-5-lightning-free-medium-1790890619136","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-nvidia-nemotron-3-5-lightning-free-medium-1790890619136/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T16:40:08-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-poolside-laguna-s-2-1-free-medium-1790890803958","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-poolside-laguna-s-2-1-free-medium-1790890803958/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T17:07:41-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-poolside-laguna-xs-2-1-free-medium-1790892453406","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-poolside-laguna-xs-2-1-free-medium-1790892453406/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T17:35:06-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-qwen-qwen3-8-27b-free-medium-1790894098888","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-qwen-qwen3-8-27b-free-medium-1790894098888/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T18:02:16-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-thinkingmachines-inkling-small-free-medium-1790895731731","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-thinkingmachines-inkling-small-free-medium-1790895731731/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
++{"card":{"at":"2026-10-01T18:26:16-05:00","id":"health-framework-ai-2026-09-30-openrouter-harness-test-library-runs-h1-page-thinkingmachines-inkling-free-medium-1790897171958","author":"health-watch","status":"needs-you","icon":"bug_report","title":"/framework/ai/2026-09-30/openrouter-harness/test-library/runs/h1-page-thinkingmachines-inkling-free-medium-1790897171958/ is not loading","text":"status: 404 http://127.0.0.1:59600/framework/ai/usage.json"}}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 826671904..e552e1ff7 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -143,3 +143,4 @@
+ {"file":"tests/"}
+ {"file":"tests/page.js"}
+ {"file":"test/","gone":true}
++{"file":"system/"}
+diff --git a/public/framework/ai2/files.jsonl b/public/framework/ai2/files.jsonl
+index f0253a94c..648b8ec1a 100644
+--- a/public/framework/ai2/files.jsonl
++++ b/public/framework/ai2/files.jsonl
+@@ -38,3 +38,6 @@
+ {"file":"ai/","gone":true}
+ {"file":"ai/"}
+ {"file":"processes.js"}
++{"file":"rail.css"}
++{"file":"rail.js"}
++{"file":"ai/","gone":true}
+diff --git a/public/framework/audio/sound-recorder/files.jsonl b/public/framework/audio/sound-recorder/files.jsonl
+index db3521fac..11a6d927b 100644
+--- a/public/framework/audio/sound-recorder/files.jsonl
++++ b/public/framework/audio/sound-recorder/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"ai/"}
+ {"file":"ai/"}
+ {"file":"readme.md","gone":true}
++{"file":"ai/","gone":true}
+diff --git a/public/framework/core/Page/audit/design/files.jsonl b/public/framework/core/Page/audit/design/files.jsonl
+index a96ad2fc4..7ae1b1c41 100644
+--- a/public/framework/core/Page/audit/design/files.jsonl
++++ b/public/framework/core/Page/audit/design/files.jsonl
+@@ -1,3 +1,4 @@
+ {"file":"shots/"}
+ {"file":"data.js"}
+ {"file":"page.js"}
++{"file":"findings.md"}
+diff --git a/public/framework/core/Page/ext/Inbox/files.jsonl b/public/framework/core/Page/ext/Inbox/files.jsonl
+index bf7d54886..ce736f3ff 100644
+--- a/public/framework/core/Page/ext/Inbox/files.jsonl
++++ b/public/framework/core/Page/ext/Inbox/files.jsonl
+@@ -1,2 +1,4 @@
+ {"file":"Inbox.js"}
+ {"file":"readme.md"}
++{"file":"Rail.js"}
++{"file":"servex.js"}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index 8961f6622..31bf7f19a 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -53,3 +53,6 @@
+ {"file":"words.js"}
+ {"file":"settings/page.jsonl"}
+ {"file":"settings/page.jsonl"}
++{"file":"audit/page.js"}
++{"file":"card/page.js"}
++{"file":"ext/page.jsonl"}
+diff --git a/public/framework/core/Page/layout/files.jsonl b/public/framework/core/Page/layout/files.jsonl
+index 6349d2dad..ad45c0a81 100644
+--- a/public/framework/core/Page/layout/files.jsonl
++++ b/public/framework/core/Page/layout/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"doc/"}
+ {"file":"v2/page.js"}
+ {"file":"weight.jsonl"}
++{"file":"switcher/page.js"}
+diff --git a/public/framework/core/files.jsonl b/public/framework/core/files.jsonl
+index 44a88481f..983bc853b 100644
+--- a/public/framework/core/files.jsonl
++++ b/public/framework/core/files.jsonl
+@@ -32,3 +32,4 @@
+ {"file":"Sidebar/page.js"}
+ {"file":"track/"}
+ {"file":"View/page.js"}
++{"file":"Shell/page.js"}
+diff --git a/public/framework/dev/files.jsonl b/public/framework/dev/files.jsonl
+index 89d6e4169..919add82a 100644
+--- a/public/framework/dev/files.jsonl
++++ b/public/framework/dev/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
+ {"file":"servex_url.js"}
++{"file":"DevShell/page.js"}
+diff --git a/public/framework/ext/Chat/files.jsonl b/public/framework/ext/Chat/files.jsonl
+index 7cfd1ef4e..cfa6d3c3a 100644
+--- a/public/framework/ext/Chat/files.jsonl
++++ b/public/framework/ext/Chat/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"ai/"}
+ {"file":"drill/page.js"}
+ {"file":"Drill.js"}
++{"file":"ai/","gone":true}
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 956ef0aed..28d5f2d64 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"doc/"}
+ {"file":"fixture/"}
+ {"file":"ai/"}
++{"file":"ai/","gone":true}
+diff --git a/public/framework/ext/files.jsonl b/public/framework/ext/files.jsonl
+index 7595810dc..81e682d7c 100644
+--- a/public/framework/ext/files.jsonl
++++ b/public/framework/ext/files.jsonl
+@@ -100,3 +100,5 @@
+ {"file":"tabs/page.js"}
+ {"file":"Timeline/page.js"}
+ {"file":"toc/page.js"}
++{"file":"Mention/page.js"}
++{"file":"Session/page.js"}
+diff --git a/public/framework/ext/tabs/files.jsonl b/public/framework/ext/tabs/files.jsonl
+index 0bb599e20..801147231 100644
+--- a/public/framework/ext/tabs/files.jsonl
++++ b/public/framework/ext/tabs/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"tabs.js"}
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
++{"file":"switcher.js"}
+diff --git a/public/framework/sources/openrouter/files.jsonl b/public/framework/sources/openrouter/files.jsonl
+index 07c909232..dc6bef257 100644
+--- a/public/framework/sources/openrouter/files.jsonl
++++ b/public/framework/sources/openrouter/files.jsonl
+@@ -20,3 +20,7 @@
+ {"file":"anthropic-agent-sdk-integration-openrouter-sdk-support.md"}
+ {"file":"claude-code-integration-guide-openrouter.md"}
+ {"file":"claude-code-with-openrouter-setup.md"}
++{"file":"agent-sdk-overview-anthropic.md","gone":true}
++{"file":"anthropic-agent-sdk-integration-openrouter-sdk-support.md","gone":true}
++{"file":"claude-code-integration-guide-openrouter.md","gone":true}
++{"file":"claude-code-with-openrouter-setup.md","gone":true}
+diff --git a/public/framework/ui/files.jsonl b/public/framework/ui/files.jsonl
+index 16a994747..dd6f8754a 100644
+--- a/public/framework/ui/files.jsonl
++++ b/public/framework/ui/files.jsonl
+@@ -33,3 +33,4 @@
+ {"file":"words/page.js"}
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
++{"file":"icon/page.js"}
+diff --git a/public/framework/ux/Content/Disclosure/doc/files.jsonl b/public/framework/ux/Content/Disclosure/doc/files.jsonl
+index acfb368b0..68bef37f3 100644
+--- a/public/framework/ux/Content/Disclosure/doc/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/doc/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"decisions.md"}
++{"file":"decisions.md","gone":true}
+diff --git a/public/framework/ux/Content/Disclosure/files.jsonl b/public/framework/ux/Content/Disclosure/files.jsonl
+index b9e5f357f..6f5537b42 100644
+--- a/public/framework/ux/Content/Disclosure/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"variants/page.js","gone":true}
+ {"file":"doc/"}
+ {"file":"variants/page.js"}
++{"file":"variants/"}
+diff --git a/public/framework/ux/Content/Disclosure/variants/files.jsonl b/public/framework/ux/Content/Disclosure/variants/files.jsonl
+index ffae31dad..e2383848c 100644
+--- a/public/framework/ux/Content/Disclosure/variants/files.jsonl
++++ b/public/framework/ux/Content/Disclosure/variants/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"page.js"}
++{"file":"page.js","gone":true}
+diff --git a/public/framework/ux/Dictate/ai/files.jsonl b/public/framework/ux/Dictate/ai/files.jsonl
+index 948b1a60a..2d9a41b94 100644
+--- a/public/framework/ux/Dictate/ai/files.jsonl
++++ b/public/framework/ux/Dictate/ai/files.jsonl
+@@ -1 +1,2 @@
+ {"file":"chat.jsonl"}
++{"file":"chat.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/doc/files.jsonl b/public/framework/ux/Dictate/doc/files.jsonl
+index 0571c36d9..44c88f92a 100644
+--- a/public/framework/ux/Dictate/doc/files.jsonl
++++ b/public/framework/ux/Dictate/doc/files.jsonl
+@@ -2,3 +2,5 @@
+ {"file":"handover.md"}
+ {"file":"https-lan.md"}
+ {"file":"silence.md"}
++{"file":"chat.md"}
++{"file":"widget.md"}
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index 5c6d0d502..ccf30b05d 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -13,3 +13,9 @@
+ {"file":"ai/"}
+ {"file":"ai/","gone":true}
+ {"file":"ai/"}
++{"file":"chat.js"}
++{"file":"floor.js"}
++{"file":"surfaces/page.js"}
++{"file":"v1/page.js"}
++{"file":"Widget.css"}
++{"file":"Widget.js"}
+diff --git a/public/framework/ux/files.jsonl b/public/framework/ux/files.jsonl
+index 967f5d54c..b270d4ea5 100644
+--- a/public/framework/ux/files.jsonl
++++ b/public/framework/ux/files.jsonl
+@@ -36,3 +36,7 @@
+ {"file":"doc/"}
+ {"file":"ai/"}
+ {"file":"ai/","gone":true}
++{"file":"Inbox/page.js"}
++{"file":"Rename/page.js"}
++{"file":"Revise/page.js"}
++{"file":"Understand/page.js"}
+diff --git a/public/notes/files.jsonl b/public/notes/files.jsonl
+index 976ab37ea..244cd3375 100644
+--- a/public/notes/files.jsonl
++++ b/public/notes/files.jsonl
+@@ -77,3 +77,4 @@
+ {"file":"inbox/"}
+ {"file":"inbox/","gone":true}
+ {"file":"inbox/"}
++{"file":"inbox/","gone":true}

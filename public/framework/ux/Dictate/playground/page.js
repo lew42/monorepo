@@ -13,6 +13,13 @@ export default new Page({
 	description: "Press 🎤 and watch a whisper session become raw text, then a fast-assistant diff, then a clean live version.",
 	icon: "science",
 
+	// **Full-bleed** (requirements.md deliverable 4 — "on desktop, we have a lot of
+	// space... we probably want to use like a full bleed tab for the playground"). `full`
+	// is the one page-shape word for "a gallery or board, no measure" (`core/Page/doc/
+	// css.md`'s own table); `pad` puts the normal side padding back so text still keeps
+	// its distance from the viewport edge — `full` alone zeroes it.
+	classes: "full pad",
+
 	children: ["walkthrough"],
 
 	content(){

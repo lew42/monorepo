@@ -1,6 +1,7 @@
 import { Page, div, small } from "/app.js";
 
 const SLUGS = ["h1-page", "fix-label", "broken-import", "broken-overflow", "plan-views"];
+const OTHER_CHILDREN = ["keys-to-success"]; // a real page.js folder, not a page.jsonl — core's own child() handles it
 
 /* The test library's index — every AITest (AITest.js), a wall of previews.
  *
@@ -17,7 +18,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Test library",
 	description: "Small tasks with a known-good outcome, run across models to see which is cheapest and good enough.",
-	children: "h1-page fix-label broken-import broken-overflow plan-views",
+	children: "h1-page fix-label broken-import broken-overflow plan-views keys-to-success",
 
 	/* ⚠ THE ONE OVERRIDE A page.jsonl CHILD NEEDS. Core's own `child(name, levels)`
 	 * (Page.class.js) only probes a DECLARED name's `page.js` (`Page.load()`); it never
@@ -30,9 +31,21 @@ export default new Page({
 	 * nothing loaded at all). Found this the hard way: the index rendered fine, but
 	 * every test link under it was a dead click until this was added. */
 	async child(name, levels){
-		if (!SLUGS.includes(name)) return null;
-		const page = await Page.jsonl(this.url + name + "/");
-		return page && this.add(name, page).load_all_children(levels);
+		if (SLUGS.includes(name)){
+			const page = await Page.jsonl(this.url + name + "/");
+			return page && this.add(name, page).load_all_children(levels);
+		}
+		// `keys-to-success` is a real page.js folder (Phase 17), not a page.jsonl — this object
+		// literal's `child` REPLACES Page.class.js's own method rather than extending it (there is
+		// no superclass to fall back to), so a name outside SLUGS needs its own probe: the same
+		// `Page.load(url, 0)` core's child() would have tried. Found this the same way as the
+		// jsonl override above: the link rendered, every click 404'd, because this whole method
+		// used to just return null for anything not in SLUGS.
+		if (OTHER_CHILDREN.includes(name)){
+			const page = await Page.load(this.url + name + "/", 0);
+			return page && this.add(name, page).load_all_children(levels);
+		}
+		return null;
 	},
 
 	content(){

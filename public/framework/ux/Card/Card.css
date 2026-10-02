@@ -1,0 +1,1371 @@
+@layer base, theme, site, util;
+
+/* CARD — everything about an AI card's own page that is the same whether it is opened
+   at /framework/ai/<card>/ or /framework/ai2/<card>/: both load this file through
+   card.js. Moved here WHOLE from ai2.css (inbox-ext, merge 7, 2026-10-01) — cut and
+   pasted verbatim, comments and all, so nothing about a card's look changed, only
+   which file it lives in. What is left in ai2.css is only AI 2's own v1 screens (the
+   old Log rows, Overview, Needs-you, Log), which still use a few of this file's bare
+   classes too (`.ai2-row`'s family, see ai2.css). This file stands alone: its
+   `@keyframes ai2-pulse` lives here, beside the two rules that pulse with it.
+   Why anything here is the way it is: the inline comments carry the full history, and
+   ai2/doc/decisions.md and ai2/doc/columns.md have the rest. */
+
+@layer theme {
+
+	/* NO STRAY "FOLDER" LABEL ANYWHERE IN AI 2 (brief D, brief E — the owner, 2026-09-29: "the
+	   folder icon at the top above the AI2 page just looks way out of place"). Core gives
+	   every page an "any path slash fs" link; every one of this module's pages carries "ai2"
+	   in its class list, so one attribute selector covers them all.
+	   ⚠ `!important`: core writes this link's display as an INLINE style. */
+	.page[class*="ai2"] > .page-fs-link {
+		display: none !important;
+	}
+
+	/* A QUIET WORD BUTTON — used by a card's own page, its agent panel and the Live card.
+	   (The rail's own words are `.inbox-word`, the same look, in the ux block.) */
+	.ai2-word {
+		flex: none;
+		padding: 0.1em 0.5em;
+		font-size: 0.95em;
+		line-height: 1.5;
+		border: 0;
+		background: none;
+		color: inherit;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.ai2-word:hover,
+	.ai2-word.on {
+		opacity: 1;
+		color: var(--prim-ink);
+	}
+
+	/* A card face's own ✕ (faces.js `full()`, the Live card's rows). */
+	.ai2-clear {
+		margin-inline-start: auto;
+		flex: none;
+		border: 0;
+		background: none;
+		opacity: 0.55;
+		cursor: pointer;
+	}
+
+	.ai2-clear:hover {
+		opacity: 1;
+	}
+
+	/* ── the task pages inside a card ──
+	   Wider than the card's own prose: a task page is tabs, tables and a wall
+	   of asks, and it keeps its own paragraphs on the measure itself (ai.css). */
+	.ai2-full > .ai2-tasks {
+		max-width: none;
+	}
+
+	/* ⚠ A TAB STRIP MUST NOT CATCH THE WHEEL (the owner, 2026-09-24: "this page
+	     doesn't scroll", on the AI dashboard group card). `ext/tabs` gives every
+	     `.tab-bar` `overflow: auto` on BOTH axes, and the -1px margin that seats a
+	     tab on the strip's rule makes it 1px taller inside than out — so each strip
+	     is a vertical scroller with 1px of room. Chrome hands a whole wheel gesture
+	     to the scroller under the pointer, so a gesture that starts over a strip
+	     moves it 1px and the page not at all. AI dashboard stacks eight embedded
+	     task pages, eight strips (System design has four), and one sits a third of
+	     the way down the column, right where a resting pointer is. A strip only
+	     ever scrolls sideways; `hidden` on the other axis still clips the same
+	     pixel, so nothing looks different.
+	   ⚠ An embedded task page is content, never a scroll region of its own: it
+	     cannot set a height or an overflow that would give it one. */
+	.ai2 .tab-bar {
+		overflow-y: hidden;
+	}
+
+	.ai2-task-body > * {
+		height: auto;
+		max-height: none;
+		overflow: visible;
+	}
+
+	.ai2-task {
+		margin-block-start: var(--gap);
+		padding-block-start: var(--gap-50);
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-task-head {
+		margin-block-end: var(--gap-50);
+	}
+
+	/* Grows beside its icon, so a long title wraps under itself, not below the icon. */
+	.ai2-task-title {
+		flex: 1 1 12em;
+		min-width: 0;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
+
+	/* WHO SAID IT — one word on every row and every page (the owner: "the items
+	   in the inbox need an author so I know who it's coming from, whether it's
+	   something I said"). A quiet grey pill, except for `you`, which is the one
+	   the question is really asking: the accent, so the owner's own sentences
+	   read apart from everything else at a glance. */
+	.ai2-who {
+		flex: none;
+		/* 0.45em of 0.75em text is ~5px — 0.35em was 3.9px, under the 4px padding floor. */
+		padding: 0 0.45em;
+		border-radius: 0.25em;
+		background: var(--fill-a08);
+		font-size: 0.75em;
+		text-transform: lowercase;
+		white-space: nowrap;
+		opacity: 0.75;
+	}
+
+	.ai2-who-you {
+		background: var(--prim);
+		color: white;
+		opacity: 1;
+	}
+
+	/* TWO FIXED REGIONS: the ideas above, the transcript footer pinned below.
+	   The page is a two-row grid — `minmax(0, 1fr)` for the ideas so they scroll
+	   inside their own box, `auto` for the footer — so neither region can move
+	   the other however many sentences stream in.
+	   ⚠ Two classes: `.page` IS the page grid by default, and one class ties. */
+	/* ⚠ EACH REGION NAMES ITS OWN ROW. Leaving them to fall into the template in
+	   source order is silently wrong: `.ai2-back` is `display: none` above 40em,
+	   so it creates no grid item, the other two shift up a row, and the FOOTER
+	   inherits the `1fr` — it measured 749px tall starting a third of the way
+	   down the column, while every number in the proof still read "unchanged"
+	   because it genuinely never moved. Only the screenshot showed it. */
+	/* ⚠ ONE COLUMN, THE WHOLE WIDTH (the owner, 2026-09-24: "they should fill
+	     the rest of the page area, and only content/flow should use --measure").
+	     A card page is a `.page`, and a `.page` is core's page GRID, whose main
+	     track is the measure — so the card, its task pages and its chat all
+	     stood in a 640px strip at the left of a 1,312px column (measured, 1920).
+	     One track, and every region spans it; the measure moves onto the text. */
+	.page.ai2-card-page {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr) auto;
+		height: 100%;
+		min-height: 0;
+		padding: 0;
+		--flow: var(--gap-50);
+	}
+
+	.ai2-back { grid-row: 1; }
+	.ai2-full { grid-row: 2; }
+	.ai2-foot { grid-row: 3; }
+
+	/* ⚠ `margin: 0`: the page is `.flow`, whose zero-specificity `* + *` rhythm put
+	   a 32-48px empty band above the first region (more on a sub-card, where the
+	   clamped --flow is larger). The three regions butt; padding is their own. */
+	.page.ai2-card-page > * {
+		grid-column: 1 / -1;
+		margin: 0;
+	}
+
+	.ai2-full {
+		min-height: 0;
+		overflow-y: auto;
+		padding: var(--pad);
+		max-width: none;
+	}
+
+	/* The card's own words hold the measure; its cost table does not. The task
+	   pages below it (`.ai2-tasks`) run the full width and cap their own prose
+	   (ext/AITask's ai.css), so their tables, steps bar and shots are wide.
+	   On the text, never on the scrolling box, so the scrollbar stays at the
+	   column's edge.
+	   ⚠ card-measure-gap, 2026-09-30 (the owner: "there's no border at the right
+	   side of this measure and so it just looks like it's stopped randomly").
+	   The container is wider than the reading column on purpose (`doc/decisions.md`),
+	   so the stop needs a reason to look deliberate: a hairline, the same
+	   `border-inline-end` vocabulary a bounded column already uses elsewhere in
+	   this file (line 144). Padded off the text so the rule doesn't touch a
+	   descender. */
+	:is(.ai2-full-card, .ai2-card-tabs > .tab-panel) > :is(.ai2-text, .ai2-refined, .ai2-summary, .ai2-tally, p) {
+		max-width: var(--measure);
+		padding-inline-end: var(--gap-50);
+		border-inline-end: 1px solid var(--line);
+	}
+
+	.ai2-full-card > .ai2-cost {
+		max-width: none;
+	}
+
+	/* A GROUP'S COST TABLE (card.js `cost_block()`): the task names wrap, the
+	   dollars never do, and a column too narrow for it (a half column at 1280)
+	   scrolls the table sideways instead of clipping the totals off its edge.
+	   ⚠ `overflow-y: hidden`, never `auto` on both axes: a box that scrolls
+	     vertically by even 1px catches the wheel (see `.ai2 .tab-bar`). */
+	.ai2-cost {
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	/* A GROUP'S ONE SCREEN (tasks.js `group_faces()`): a sentence, then one
+	   row per task — what was asked, what it cost, what happened. The rest
+	   folds under the row. */
+	.ai2-faces-sum {
+		margin: 0 0 var(--gap-50);
+		font-weight: 600;
+	}
+
+	.ai2-face {
+		border-block-start: 1px solid var(--line);
+	}
+
+	.ai2-face-head {
+		display: grid;
+		gap: 0.2em;
+		padding-block: var(--gap-50);
+		cursor: pointer;
+	}
+
+	.ai2-face-asked {
+		align-items: baseline;
+		min-width: 0;
+	}
+
+	.ai2-face-q {
+		flex: none;
+		font-size: 0.75em;
+		text-transform: uppercase;
+		opacity: 0.6;
+	}
+
+	.ai2-face-said {
+		min-width: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		font-weight: 600;
+		text-align: start;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-face-out.done::before {
+		content: "✓ ";
+	}
+
+	.ai2-face-full {
+		padding: var(--gap-50);
+		border-radius: 0.25em;
+		background: var(--line);
+	}
+
+	.ai2-face-text {
+		margin: 0;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		font: inherit;
+	}
+
+	.ai2-face-body {
+		padding-block-end: var(--gap);
+	}
+
+	/* The chat is running text too: its lines and its box keep the measure,
+	   while its grey ground runs the width of the column. */
+	.ai2-foot > * {
+		max-width: var(--measure);
+	}
+
+	/* THE TRANSCRIPT FOOTER — the live words, pinned to the bottom, never moving
+	   (the owner, 2026-09-22: "I don't like that my words disappear… that card
+	   could have, in a footer, the transcription — the last paragraph always on
+	   screen"). Its height is FIXED: the words scroll inside `.chatbox-log`, so
+	   ten sentences and one sentence leave the ideas above in exactly the same
+	   place.
+	   ⚠ ONE CONTROL HEIGHT PLUS ONE RUNG OF PADDING (the owner, 2026-09-22: "way
+	     taller than it needs to be… it should be flush or bordered properly").
+	     Two things were fighting: `.chatbox-log`'s flat `5.5em` reserved almost
+	     three lines even for a silent card, and its own padding (`0.5em`)
+	     didn't match `.ai2-full`'s (`var(--pad)`), so the grey ground's inset
+	     read as arbitrary against the column above it rather than a deliberate
+	     edge. Padding now matches the column it sits under; the script's own
+	     height is a `clamp` that starts at one line and only grows once there
+	     is something to show, capping well short of the old fixed reservation. */
+	.ai2-foot {
+		padding: var(--gap-25) var(--pad);
+		background: var(--tint);
+		border-block-start: 1px solid var(--line);
+	}
+
+	/* THE CARD'S OWN SIDEBAR MOUNT (one-dictation, 2026-09-30) — desktop only. Hidden here
+	   (below 40em); the `width >= 40em` block further down (`.ai2-foot-chat` un-capped
+	   rules) turns it back on with a selector that outranks this one, same trick the Live
+	   card's own rules already use elsewhere in this file. Below 40em the phone's own ✦
+	   sheet already shows this exact conversation — a second copy here would be the "two
+	   chats" shape this task removes. */
+	.ai2-foot-chat { display: none; }
+	.ai2-foot-head {
+		font-weight: 600;
+		margin-block-end: 0.3em;
+	}
+
+	/* `title:` is the card's ID, for the tab and the framework, not the reader —
+	   the card's real title is the line below it. */
+	.page.ai2-card-page > .page-title {
+		display: none;
+	}
+
+	/* "Folder" TWICE (one-ai, 2026-09-29): core's own page chrome
+	   (`core/Page/Page.class.js` `render()`) draws a "📁 Folder" link on EVERY
+	   page, before that page's own `content()` ever runs — so a card page showed
+	   it once for the AI 2 shell it sits inside AND again for itself, one above
+	   "AI 2" and one above "← all cards". The card's own fold ("More…") already
+	   has its own way into the folder (`draw_folder()`), so the card's copy is
+	   the redundant one; the shell's stays as the one, real way in.
+	   ⚠ `!important`: core sets this with `.style()`, an inline style, which
+	   nothing but `!important` can beat (`css` skill's own cascade order). */
+	.page.ai2-card-page > .page-fs-link {
+		display: none !important;
+	}
+
+	.ai2-full-title {
+		font-weight: 700;
+		font-size: 1.2em;
+		flex: 1;
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-meta {
+		margin-block-start: 0.15em;
+	}
+
+	/* THE FLAG IS NOT A BUTTON-SHAPED BUTTON: the control grammar's padding,
+	   hairline and fill are right for Send, wrong for a glyph beside a title. */
+	.ai2-flag {
+		flex: none;
+		padding: 0 0.3em;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		line-height: 1;
+		opacity: 0.4;
+	}
+
+	.ai2-flag:hover,
+	.ai2-flag.on {
+		opacity: 1;
+		color: var(--error);
+	}
+
+	/* "REVIEWED ✓" (brief E, §5) — an OBVIOUS control, on purpose (contract-v2: "an obvious
+	   'Reviewed ✓' control that clears the flag"), so it wears the site's own filled-button
+	   look rather than sitting quiet like the flag glyph beside it. Pushed to the far end of
+	   the head row so it never crowds the title. */
+	.ai2-reviewed {
+		flex: none;
+		padding: 0.15em 0.7em;
+		border: 1px solid var(--prim);
+		border-radius: 0.3em;
+		background: none;
+		color: var(--prim);
+		font: inherit;
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	.ai2-reviewed:hover {
+		background: var(--prim);
+		color: white;
+	}
+
+	.ai2-sentence {
+		margin-block: 0.2em;
+		color: color-mix(in srgb, currentColor 80%, transparent);
+	}
+
+	/* ── the table of contents (deliverable 3) ──
+	   Every sub-card, a row that opens the third column. Same row shape as a
+	   rail preview — title plus one clamped line — so learning to read one
+	   list teaches the other. */
+	.ai2-toc {
+		margin-block-start: var(--flow);
+	}
+
+	.ai2-toc-head {
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	.ai2-toc-rows {
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		overflow: hidden;
+	}
+
+	.ai2-toc-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		padding: 0.5em 0.6em;
+		border-block-end: 1px solid var(--line);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.ai2-toc-row:last-child {
+		border-block-end: 0;
+	}
+
+	.ai2-toc-row:hover {
+		background: var(--fill-a04);
+	}
+
+	.ai2-toc-row.ai2-toc-done .ai2-toc-title { text-decoration: line-through; opacity: 0.7; }
+	.ai2-toc-row.ai2-toc-done .icon { color: var(--accent, currentColor); }
+
+	.ai2-toc-row.active {
+		background: var(--surface);
+		font-weight: 600;
+	}
+
+	.ai2-toc-body {
+		min-width: 0;
+	}
+
+	.ai2-toc-title {
+		display: block;
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.ai2-toc-line {
+		display: block;
+		font-size: 0.85em;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* The sub-card page's own back link — "← <card>" (deliverable 2: "closes
+	   when the detail is clicked again"). ⚠ Unlike `.ai2-back` (hidden until
+	   40em, where it is the phone's own one-screen-at-a-time nav) this one
+	   shows AT EVERY WIDTH: at 1280 the third column has no other way to say
+	   "done with this sub-card, back to the detail" — closing it is a real
+	   navigation, not a hover state. Two classes on the one link, so this
+	   beats the bare `.ai2-back` rule regardless of source order. */
+	.ai2-back.ai2-sub-back {
+		display: inline-block;
+		margin-block-end: var(--gap-50);
+	}
+
+	.ai2-said-head {
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
+	/* ONE PILL, TWO USES — a minted name, and a link off the card.
+	   ⚠ THE LINKS ALSO WEAR `page-link`, in the markup, and that is the whole fix
+	     for "the links are blue": framework.css scopes link colour to prose
+	     (`:where(p, li, …) a`) so that navigation can opt out, and an anchor in a
+	     bare div got no rule at all. Nothing here restates the theme. */
+	.ai2-chip,
+	.ai2-link {
+		padding: 0.1em 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		font-size: 0.85em;
+		white-space: nowrap;
+		text-decoration: none;
+	}
+
+	.ai2-proposal {
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.7em;
+	}
+
+	.ai2-proposal-title {
+		display: block;
+		font-weight: 600;
+	}
+
+	.ai2-flag-said,
+	.ai2-flag-input {
+		display: block;
+		width: 100%;
+	}
+
+	/* ── one screen at a time, on a phone ──
+	   Below 40em each level is its own screen (the rail, a card, a sub-card) — the
+	   shell's own rule, ux/Inbox/Inbox.css. A card's "← all cards" link is the way back
+	   up, so it shows only there. */
+	.ai2-back {
+		display: none;
+	}
+
+	@media (width < 40em) {
+		/* The card page has no padding of its own, so the link carries its own
+		   inset — it sat at 0px from the screen's edge (padding check, 2026-09-24). */
+		.ai2-back { display: inline-block; padding: 0.5em 1em; }
+	}
+}
+
+/* ── the Live card (card-folders, layout-unify, 2026-09-23 to 2026-09-25) ──
+   Rows, the RAM/CPU-style layout, the scroll-as-one rule, columns on a wide screen,
+   and talking to one running agent. Drawn on both /framework/ai/live/ and
+   /framework/ai2/live/ — both load this file through live.js's own card. */
+/* ── the chat and the Live card (ai2-live-card, 2026-09-23) ──────────────── */
+@layer theme {
+	/* THE LIVE ROW — one line taller than a card row, and always that height:
+	   title, the usage bars, one line of what is running. */
+	.ai2-live-bars {
+		display: flex;
+		gap: 0.35em;
+		margin-block-start: 0.35em;
+		height: 0.35em;
+	}
+
+	.ai2-live-bar {
+		flex: 1;
+		border-radius: 0.2em;
+		background: var(--fill-a08);
+		overflow: hidden;
+	}
+
+	.ai2-live-bar > span {
+		display: block;
+		height: 100%;
+		background: var(--prim);
+	}
+
+	.ai2-live-bar.crit > span {
+		background: var(--error);
+	}
+
+	.ai2-live-section {
+		margin-block-start: 1em;
+	}
+
+	/* A GRID, not a flex row: the ✕ names its own column, so it sits at the
+	   right edge even when the item has no line to push it there. */
+	.ai2-live-item {
+		display: grid;
+		grid-template-columns: 5.5em minmax(0, max-content) minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 0.5em;
+		/* inline padding too: a selected or hovered row paints a ground, and
+		   text never sits at 0 from the edge of a ground. */
+		padding: 0.3em 0.4em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-live-state {
+		font-size: 0.8em;
+		opacity: 0.7;
+	}
+
+	.ai2-live-working .ai2-live-state,
+	.ai2-live-state.ai2-live-working {
+		color: var(--prim);
+		opacity: 1;
+	}
+
+	/* Spoken while dispatch was paused — it will never run, so it is not
+	   dressed as work in progress. */
+	.ai2-live-state.ai2-live-not-started {
+		opacity: 0.5;
+		font-style: italic;
+	}
+
+	/* A free worktree slot: bold, so what is free reads at a glance. */
+	.ai2-live-state.ai2-live-ready {
+		color: var(--prim);
+		font-weight: 700;
+		opacity: 1;
+	}
+
+	.ai2-live-state.ai2-live-blocked {
+		color: var(--error);
+		opacity: 1;
+	}
+
+	.ai2-live-name {
+		grid-column: 2;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
+
+	.ai2-live-item .ai2-clear {
+		grid-column: 4;
+		margin: 0;
+	}
+
+	.ai2-live-line {
+		grid-column: 3;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+/* ── the Live card scrolls as one (live-card, 2026-09-24) ─────────────────
+   The owner: "I don't like these independently scrollable areas… it's a
+   pretty narrow column." Every other card keeps its pinned chat footer; on
+   the Live card the PAGE is the one scroll box and the usage, the lists and
+   the chat flow down it in one column. */
+@layer theme {
+	.page.ai2-card-page.ai2-card-live {
+		display: block;
+		overflow-y: auto;
+	}
+
+	.ai2-card-live .ai2-full {
+		overflow: visible;
+	}
+
+	.ai2-card-live .chatbox-log {
+		max-height: none;
+		overflow: visible;
+	}
+
+	/* THE BOX ON TOP, THE NEWEST LINE UNDER IT (live-reply, 2026-09-24). The
+	   owner: "When I respond on that page … the usage meters disappear." The
+	   chat is the longest thing on the card, so with its box at the bottom,
+	   focusing it scrolled the whole page down to it and usage and running
+	   now went off the top. Box first, newest first: it sits near the top at
+	   every width, so typing and sending never scroll the page. */
+	.ai2-card-live .ai2-foot {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.ai2-card-live .ai2-foot > .chatbox-compose {
+		order: -1;
+		margin-block-end: 0.35em;
+	}
+
+	.ai2-card-live .chatbox-log {
+		display: flex;
+		flex-direction: column-reverse;
+		justify-content: flex-end;
+	}
+
+	/* Every line of reading text holds the measure — the chat and its
+	   composer too, which used to run the whole width (2,622px at 3440). */
+	.ai2-card-live .ai2-foot > * {
+		max-width: var(--measure);
+	}
+}
+
+/* ── the Live card in columns on a wide screen (live-card-wide, 2026-09-24) ──
+   The owner: "Take a screenshot at 3440 and you'll see that 50% of the page
+   is just empty space… I think we want to rely on columns more."
+
+   The card's parts become columns as its OWN width allows — measured on the
+   detail region it sits in, not the window, because the sidebar and the rail
+   (which you can drag wider) eat into the window first:
+
+     narrower than 60em   one column, as before
+     60em                 two:   usage, tasks, chat  |  running now
+     95em                 three: usage, tasks, chat  |  running now  |  agent
+     130em                four:  usage, tasks  |  running now  |  agent  |  chat
+
+   The agent column is ALWAYS FILLED once it exists — live.js opens a default
+   agent — so picking another never moves or resizes anything else. Below
+   95em there is no column: a clicked agent TAKES OVER the card's body
+   (`.ai2-live-takeover`, below) instead of pushing the list down. The columns are
+   equal `1fr` tracks; the text inside each still stops at `--measure`.
+   Every row the short columns sit in is `auto`, and the last row is `1fr`
+   that only the long columns span, so a long "Running now" never pulls gaps
+   open between usage and tasks. The page is still the ONE scroll box.
+   Rules, numbers and screenshots: doc/columns.md. */
+@layer theme {
+	.inbox-detail:has(> .ai2-card-live) {
+		container: ai2-live / inline-size;
+	}
+
+	.ai2-live-talk-col {
+		display: none;
+		min-width: 0;
+	}
+
+	@container ai2-live (min-width: 60em) {
+		.page.ai2-card-page.ai2-card-live {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-rows: auto auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head head"
+				"run  tasks"
+				"run  chat"
+				"run  pool"
+				"run  .";
+			align-content: start;
+			align-items: start;
+			column-gap: var(--gap);
+			padding: var(--pad);
+		}
+
+		.ai2-card-live .ai2-full { display: contents; }
+		.ai2-card-live .ai2-full-head { grid-area: head; margin-block-end: var(--gap-50); }
+		.ai2-card-live .ai2-live-usage { grid-area: use; margin-block-start: 0; }
+		/* Running now + Processes share this one box (live.js), so the grid
+		   area is the WRAPPER, not the list — Processes then starts the
+		   instant Running now's own content ends, never after the taller
+		   column beside it (process-monitor/graph fix round, 2026-09-30). */
+		.ai2-card-live .ai2-live-run-col { grid-area: run; margin-block-start: 0; min-width: 0; }
+		.ai2-card-live .ai2-live-running { margin-block-start: 0; }
+		.ai2-card-live .ai2-live-tasks { grid-area: tasks; }
+		/* The pool has its own cell. Auto-placed, it fell into the row after
+		   the run column ended, so once Processes made that column tall it sat
+		   under an empty gap (process-monitor, 2026-09-30). The last row is the
+		   1fr one, so the run column's extra height goes there, not between
+		   the boxes beside it. */
+		.ai2-card-live .ai2-live-pool { grid-area: pool; }
+		.ai2-card-live .ai2-live-talk-col { grid-area: agent; }
+
+		/* The chat is a box of its own among the columns: its tinted ground
+		   keeps its padding, all the way round. */
+		.ai2-card-live .ai2-foot {
+			grid-area: chat;
+			margin-block-start: 1em;
+			border: 1px solid var(--line);
+			border-radius: 0.4em;
+		}
+
+		.ai2-card-live .ai2-live-section > h3:first-child { margin-block-start: 0; }
+	}
+
+	@container ai2-live (min-width: 95em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-areas:
+				"head head  head"
+				"run  agent tasks"
+				"run  agent chat"
+				"run  agent pool"
+				"run  agent .";
+		}
+
+		/* live.js reads this to know the column is here (`wide()`). */
+		.ai2-card-live .ai2-live-talk-col { display: block; --ai2-live-cols: 3; }
+	}
+
+	@container ai2-live (min-width: 130em) {
+		.page.ai2-card-page.ai2-card-live {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			grid-template-rows: auto auto auto minmax(0, 1fr);
+			grid-template-areas:
+				"head head  head head"
+				"run  agent tasks chat"
+				"run  agent pool  chat"
+				"run  agent .     chat";
+		}
+
+		.ai2-card-live .ai2-foot { margin-block-start: 0; }
+	}
+
+	/* THE TAKEOVER — no room for a column, so the clicked agent's conversation
+	   replaces the card's body: usage, lists and chat step aside, the column
+	   shows, and "← Live" (shown only here) brings them back. One class on the
+	   card page, set by live.js's `place()`; the card is a plain block again so
+	   the two-column grid has nothing to lay out. */
+	.page.ai2-card-page.ai2-card-live.ai2-live-takeover {
+		display: block;
+	}
+
+	/* Idle agents fold into one line; a row inside keeps the list look. */
+	.ai2-live-idle > summary { cursor: pointer; color: var(--muted, inherit); padding-block: 0.4em; }
+	.ai2-talk-more { display: block; }
+
+	.ai2-live-on { font-weight: 600; }
+
+	.ai2-live-takeover :is(.ai2-live-section, .ai2-foot) {
+		display: none;
+	}
+
+	.ai2-card-live.ai2-live-takeover .ai2-live-talk-col {
+		display: block;
+		margin-block-start: 1em;
+	}
+
+	/* `position: relative` lifts it over the rail's own words, which reach a
+	   few px into this column at 1280 and 1920 and took its clicks. */
+	.ai2-live-back {
+		display: none;
+		position: relative;
+		color: var(--prim);
+		cursor: pointer;
+	}
+
+	.ai2-live-takeover .ai2-live-back {
+		display: inline-block;
+		margin-block-end: 0.75em;
+	}
+
+	/* The conversation says whose it is — its row may be far from it. */
+	.ai2-live-talk-col .ai2-talk-title {
+		display: block;
+		font-weight: 600;
+		margin-block-end: 0.35em;
+	}
+
+	.ai2-live-talk-col .ai2-talk {
+		border: 1px solid var(--line);
+		border-inline-start: 2px solid var(--prim);
+		border-radius: 0.4em;
+	}
+
+}
+
+/* ── talking to one agent from the Live card (agent-chat, 2026-09-24) ─────
+   A "Running now" row selects its agent; the conversation opens in the
+   agent column or takes over the card (the block above), and grows with the page: no height cap, no scroll box
+   of its own (the page is the one scroll, see the block above). */
+@layer theme {
+	.ai2-live-talkable {
+		cursor: pointer;
+	}
+
+	.ai2-live-talkable:hover,
+	.ai2-live-open {
+		background: var(--fill-a08);
+	}
+
+	.ai2-talk {
+		padding: 0.5em 0.75em 0.75em;
+		border-inline-start: 2px solid var(--prim);
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-talk-form {
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		margin-block-start: 0.5em;
+	}
+
+	.ai2-talk-input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.ai2-talk-send {
+		flex: none;
+		white-space: nowrap;
+	}
+
+	.ai2-talk-status:empty {
+		display: none;
+	}
+
+	.ai2-talk-status {
+		display: block;
+		margin-block-start: 0.3em;
+		font-weight: 600;
+	}
+}
+
+/* ── card folders and the agent panel (card-folders, 2026-09-24) ── */
+/* ── card folders (card-folders, 2026-09-24) ──────────────────────────────
+   A card is a folder now (`card.js`): its head carries a type picker, its
+   table of contents is its sub-cards with a "+ sub-card" button, and the
+   year, month and day above it and the views are small listing pages. */
+@layer theme {
+	/* The picker sizes to its word — framework.css gives form controls the
+	   whole row, which crushed the title beside it to one letter a line. */
+	/* The card's Actions menu sits at the head's right edge, so its list opens leftward. */
+	.ai2-actions { flex: none; margin-inline-start: auto; }
+	.ai2-actions .ui-menu-list { left: auto; right: 0; white-space: nowrap; }
+
+	.ai2-type {
+		flex: none;
+		width: auto;
+		max-width: 11em;
+		padding: 0.1em 0.3em;
+		font-size: 0.85em;
+	}
+
+	.ai2-card-toc > .ai2-toc-head {
+		cursor: default;
+		margin-block-end: 0.3em;
+	}
+
+	.ai2-sub-input {
+		width: 20em;
+		max-width: 100%;
+		padding: 0.15em 0.4em;
+	}
+
+	.page.ai2-index-page {
+		height: 100%;
+		min-height: 0;
+		overflow-y: auto;
+		padding: var(--pad);
+	}
+
+	.ai2-index {
+		max-width: var(--measure);
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		overflow: hidden;
+	}
+
+	.ai2-view-words {
+		margin-block-end: var(--gap-50);
+	}
+
+}
+
+/* THE CARD'S AGENT PANEL (agents.js): one row per agent, a thin bar for its context. */
+@layer theme {
+	.ai2-agents {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25em;
+	}
+
+	.ai2-agent-id {
+		font-weight: 600;
+	}
+
+	.ai2-agent-bar {
+		flex: 0 0 5em;
+		height: 0.4em;
+		border-radius: 1em;
+		background: color-mix(in srgb, currentColor 15%, transparent);
+		overflow: hidden;
+	}
+
+	.ai2-agent-fill {
+		height: 100%;
+		background: color-mix(in srgb, currentColor 55%, transparent);
+	}
+
+	.ai2-agent-fill.hot {
+		background: #d9534f;
+	}
+}
+
+/* ── ONE LAYOUT FOR EVERY CARD: the chat is the right-hand column (layout-unify, 2026-09-24) ──
+   Three edits had left the chat flipping between a right column and a footer (a
+   container query at 60em that the card fell under the moment a sub-card opened),
+   two chats on screen at once, and a sub-card's short body over a white void.
+   One rule set now, for a card and a sub-card at any depth:
+
+     window under 40em   one screen at a time; the chat is the card's footer
+     no sub-card open    card | chat              the chat is a third of the room right of the rail
+     a sub-card open     card | sub-card | chat   thirds; the chat is the DEEPEST card's own,
+                                                  the parent card's chat steps aside
+
+   The switch is the WINDOW's width — the same 40em every other AI 2 phone rule uses —
+   never the column's, so opening a sub-card can never send the chat to the bottom.
+   The chat's log is its one scroll box (ext/Chat's smart scroll); the box under it grows.
+   Seams (card.js `Card.seam()`): card | chat writes `--ai2-chat`, card | sub-card writes
+   `--ai2-subw`; each moves only the two columns beside it. The Live card has its own grid. */
+@layer theme {
+	.page.ai2-sub-page { position: relative; }
+	.ai2-foot > .grip,
+	.page.ai2-sub-page > .grip { display: none; }
+
+	@media (width >= 40em) {
+		/* A top-level card has the whole room: a third of it is the chat.
+		   ⚠ card-measure-gap, 2026-09-30 — `:has(> .ai2-foot)` added. Card.V1 (the
+		   old bottom composer/chat split, doc/one-ai.md) is off by default now, so
+		   most cards draw no `.ai2-foot` at all — but this rule used to fire
+		   anyway, reserving a THIRD of the page for a chat column that was never
+		   drawn. The card's content then stopped at the other two-thirds with
+		   nothing there to explain it: a growing, empty gap beside the Actions
+		   dropdown as the drawer widened and took the rest (the owner: "a five
+		   hundred pixel void… between the right sidebar and this card's actions
+		   dropdown"). Reserve the column only when there is a chat to put in it;
+		   the single-column rule above (line 760) already covers every other card. */
+		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) {
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
+			grid-template-rows: auto minmax(0, 1fr);
+		}
+
+		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
+		   so half of it is the same third. */
+		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live):has(> .ai2-foot) {
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot {
+			position: relative;
+			grid-column: 2;
+			grid-row: 1 / -1;
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			padding-block: var(--pad);
+			border-block-start: 0;
+			border-inline-start: 1px solid var(--line);
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > * { max-width: none; }
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .chatbox-compose { flex: none; }
+
+		/* The log takes the column's height and is the only thing in it that scrolls. */
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .chatbox-log {
+			flex: 1 1 0;
+			min-height: 0;
+			max-height: none;
+		}
+
+		.page.ai2-card-page:not(.ai2-card-live) > .ai2-foot > .grip,
+		.page.ai2-sub-page > .grip { display: block; }
+
+		/* THE MOUNT FILLS THE COLUMN (one-dictation, 2026-09-30) — `.ai2-foot-chat`'s own
+		   `display: none` above loses to this selector's higher specificity, so the sidebar
+		   shows here. `Widget.css`'s own height caps (`max-block-size`, sized for a
+		   STANDALONE widget on a page) are un-capped the same way `ext/drawer/drawer.css`
+		   already un-caps them for the desktop AI tab: the column here is a real flex
+		   height (`.ai2-foot`'s own `display: flex; flex-direction: column` two rules up),
+		   so each box just fills what its flex parent actually has, all the way down to
+		   the thread — only the thread scrolls; the head and the composer keep their size. */
+		.ai2-foot-chat-slot {
+			flex: 1 1 auto;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+		}
+		.ai2-foot-chat-slot > .ux-dictate-widget {
+			flex: 1 1 auto;
+			min-height: 0;
+		}
+		.ai2-foot-chat-slot .ux-dictate-widget-card {
+			flex: 1 1 auto;
+			min-height: 0;
+			max-block-size: none;
+		}
+		.ai2-foot-chat-slot .ux-dictate-widget-thread {
+			max-block-size: none;
+		}
+
+		/* ONE FRAME, NOT TWO (minion-polish, item 2, 2026-09-30 — the owner: "the
+		   head sits above a second framed box"). `.ai2-foot`'s own left border
+		   (above) is already this column's one frame; `Widget.css`'s
+		   `.ux-dictate-widget-card` draws a SECOND full box — border, radius,
+		   background — around the thread and composer, so the head line reads as
+		   floating above a box-inside-a-box. Stripped here, scoped to this one
+		   mount (`.ai2-foot-chat-slot`), so a `Widget` used anywhere else (the ✦
+		   sheet, the ☰ drawer) keeps its own frame — those mounts have no
+		   outer column border of their own to double up with. */
+		.ai2-foot-chat-slot .ux-dictate-widget-card {
+			border: none;
+			border-radius: 0;
+			background: none;
+			padding: 0;
+		}
+
+		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
+		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page > .ai2-foot {
+			display: none;
+		}
+	}
+
+	/* ── a top-level card's two tabs (card.js `draw()`) ──
+	   The strip and the mark are ext/tabs' own. The tabs are links with no href
+	   (an href would be routed), so the pointer is stated here; the panel's 3em
+	   top pad is for a document, too much under a card's head. */
+	.ai2-card-tabs { margin-block-start: var(--gap-50); }
+	.ai2-card-tabs > .tab-bar > .tab { cursor: pointer; }
+	/* ⚠ `inherit`: ext/tabs sets `--measure: none` on every panel, so the card's prose ran 1770px wide at 3440. */
+	.ai2-card-tabs > .tab-panel { padding-top: var(--gap); --measure: inherit; }
+
+	/* A heading over each group of requests on the Tasks tab. */
+	.ai2-toc-group {
+		font-size: 0.85em;
+		font-weight: 600;
+		margin-block: 0 0.3em;
+	}
+
+	/* The groups as columns: one on a phone, two at 1920, three at 3440. */
+	.ai2-toc-groups {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 26em), 1fr));
+		align-items: start;
+		gap: var(--gap);
+		margin-block-start: var(--gap);
+	}
+
+	.ai2-summary-head { display: block; }
+	.ai2-tally-go { cursor: pointer; text-decoration: underline; }
+}
+
+/* THE OUTLINE (outline.js): status, then one checklist. Rows are a tick, the
+   title, the time asked and a link to the proof. */
+@layer theme {
+	.ai2-full-name {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 0.2em var(--gap-50);
+	}
+
+	/* ⚠ NOT `flex: none` (found 2026-09-29, "title runs under Actions"):
+	   `.ai2-full-name` is itself shrunk to `min-width: 0` by its parent flex row,
+	   but a `flex-shrink: 0` title inside it refuses to follow — the title kept
+	   its full one-line width and ran straight under the Actions button at
+	   400px, the exact "flex-shrink defaults to 1" trap in reverse (`code` skill
+	   §7). Letting it shrink and wrap (its own `overflow-wrap: anywhere`, above)
+	   is what stacking the state badge onto its own line below now depends on. */
+	.ai2-full-name > .ai2-full-title { flex: 1 1 auto; min-width: 0; }
+
+	.ai2-state {
+		font-size: 0.9em;
+		white-space: nowrap;
+	}
+
+	.ai2-state-dot { margin-inline-end: 0.3em; color: var(--line); }
+	/* A card's running state pulses (`.ai2-state`, the outline's rows). */
+	@keyframes ai2-pulse {
+		50% { opacity: 0.45; }
+	}
+	.ai2-state.live .ai2-state-dot { color: var(--accent, currentColor); animation: ai2-pulse 1.4s ease-in-out infinite; }
+	.ai2-state.done .ai2-state-dot { color: var(--accent, currentColor); }
+
+	.ai2-ol-about, .ai2-ol-status { max-width: var(--measure); }
+	.ai2-ol { max-width: 60em; }
+
+	.ai2-ol-status { font-weight: 600; }
+
+	.ai2-ol { margin-block-start: var(--gap); }
+
+	.ai2-ol-head {
+		font-weight: 700;
+		padding-block-end: 0.3em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-ol-row {
+		display: grid;
+		grid-template-columns: 1.4em minmax(0, 1fr) auto 5em;
+		align-items: baseline;
+		gap: 0 var(--gap-50);
+		padding-block: 0.35em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-ol-mark { color: var(--accent, currentColor); }
+	.ai2-ol-time { white-space: nowrap; }
+	.ai2-ol-proof { white-space: nowrap; grid-column: 4; }
+
+	/* The count grid: three numbers you read at a glance, and they are the list's filter. */
+	.ai2-ol-grid {
+		display: flex;
+		gap: var(--gap-50);
+		margin-block-end: var(--gap-50);
+	}
+	.ai2-ol-count {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		min-width: 6em;
+		padding: 0.4em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		background: none;
+		cursor: pointer;
+		text-align: start;
+	}
+	.ai2-ol-count.on { border-color: var(--accent, currentColor); box-shadow: inset 0 0 0 1px var(--accent, currentColor); }
+	.ai2-ol-n { font-size: 1.6em; font-weight: 700; line-height: 1.1; }
+	.ai2-ol-name { font-size: 0.85em; }
+	.ai2-ol-list { border-block-start: 1px solid var(--line); }
+	.ai2-ol.show-open .ai2-ol-row.done,
+	.ai2-ol.show-done .ai2-ol-row.open { display: none; }
+	.ai2-ol-row.live .ai2-ol-mark { animation: ai2-pulse 1.4s ease-in-out infinite; }
+
+	/* A card summed up by its requests: the groups sit side by side on a wide screen, and a
+	   group the filter empties goes with its rows. */
+	.ai2-ol.ai2-ol-requests { max-width: none; }
+	.ai2-ol-requests .ai2-toc-groups { margin-block-start: var(--gap-50); }
+	.ai2-ol-requests .ai2-ol-row { grid-template-columns: 1.4em minmax(0, 1fr) auto; }
+	.ai2-ol-requests .ai2-ol-row.done .ai2-ol-title { color: var(--muted, inherit); }
+	.ai2-topics { margin-block-start: var(--gap); max-width: 60em; }
+	.ai2-topics .ai2-ol-row { grid-template-columns: 1.4em minmax(0, 1fr) auto; }
+	.ai2-ol.show-open .ai2-toc-section:not(:has(.ai2-ol-row.open)),
+	.ai2-ol.show-done .ai2-toc-section:not(:has(.ai2-ol-row.done)) { display: none; }
+}
+
+/* ── Live: the assistant is one row (ai2-lead audit, 2026-09-25) ──
+   The owner: "don't render the fast assistant's chat messages inline, taking space. Show the
+   assistant as a small card or row, and clicking it opens its chat." The chat is folded inside
+   `.ai2-live-assistant`; that fold takes the chat's grid slot, and the chat's own box styling
+   (border, margin) applies only once it is open. */
+@layer theme {
+	.ai2-live-assistant { max-width: var(--measure); margin-block-start: var(--gap); }
+	.ai2-live-assistant-row {
+		cursor: pointer;
+		padding: 0.5em 0.8em;
+		border: 1px solid var(--line);
+		border-radius: 0.4em;
+		font-weight: 600;
+	}
+	.ai2-live-assistant[open] > .ai2-live-assistant-row { border-end-start-radius: 0; border-end-end-radius: 0; }
+	.ai2-live-assistant > .ai2-foot { margin-block-start: 0; }
+	/* ⚠ Under 60em the fold sits straight in the card page, whose padding is 0 and whose
+	     `> * { margin: 0 }` (0,2,0) wiped its own margins: its box touched the pane's edge
+	     at 400 and 1280 (padding-check, ai2-rail-rhythm 2026-09-28). The same `--pad` inset
+	     `.ai2-full` gives the sections above it, and the gap back. */
+	@container ai2-live (width < 60em) {
+		.page.ai2-card-page > .ai2-live-assistant {
+			margin: var(--gap) var(--pad) var(--pad);
+		}
+	}
+	@container ai2-live (min-width: 60em) {
+		.ai2-card-live .ai2-live-assistant { grid-area: chat; }
+		.ai2-card-live .ai2-live-assistant > .ai2-foot { grid-area: auto; margin-block-start: 0; border-start-start-radius: 0; border-start-end-radius: 0; border-block-start: 0; }
+	}
+}
+
+/* Live with no agent clicked: the agent column leaves the grid (live.js `place()`). */
+@layer theme {
+	.ai2-live-nosel .ai2-live-talk-col { display: none; }
+	@container ai2-live (min-width: 95em) {
+		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-areas: "head head" "run tasks" "run chat" "run pool" "run .";
+		}
+	}
+	@container ai2-live (min-width: 130em) {
+		.page.ai2-card-page.ai2-card-live.ai2-live-nosel {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-areas: "head head head" "run tasks chat" "run pool chat" "run . chat";
+		}
+	}
+}
+
+/* ── TINY TOP TABS, FULL BLEED (card.js `tiny_tabs()`) ─────────────────────────
+   Opt-in per card: a `{"layout": "tabs"}` line in its page.jsonl. Every section of
+   the card is a tab and one shows at a time, edge to edge with no padding. The chat
+   is not a tab: it keeps its right-hand column (the card's usual grid, unchanged here).
+   The strip is small on purpose: 0.75em type, one line, stuck to the top while the panel scrolls. */
+@layer theme {
+	.page.ai2-card-page:has(> .ai2-full > .ai2-full-card > .ai2-tiny-tabs) > .ai2-full {
+		grid-column: 1;
+		padding: 0;
+	}
+
+	.ai2-full-card:has(> .ai2-tiny-tabs) > .ai2-full-head {
+		padding: var(--gap-25) var(--gap-50);
+	}
+
+	.ai2-tiny-bar {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		display: flex;
+		overflow-x: auto;
+		overflow-y: hidden;
+		background: var(--tint);
+		border-block: 1px solid var(--line);
+		font-size: 0.75em;
+		line-height: 1.2;
+		white-space: nowrap;
+	}
+
+	.ai2-tiny-tab {
+		padding: 0.35em 0.8em;
+		color: inherit;
+		text-decoration: none;
+		cursor: pointer;
+		opacity: 0.7;
+		border-block-end: 2px solid transparent;
+	}
+
+	.ai2-tiny-tab:hover { opacity: 1; }
+
+	.ai2-tiny-tab[aria-selected="true"] {
+		opacity: 1;
+		font-weight: 600;
+		border-block-end-color: var(--prim);
+	}
+
+	/* The panel holds the tab PAGES (card.js `route()`): each is a routed child page
+	   wearing the framework's `.pad`, so its content keeps the page's own inset while
+	   the strip above runs edge to edge. One track, the whole width: not core's page grid. */
+	.ai2-tiny-panel { --measure: none; }
+
+	.page.ai2-tab-page {
+		display: block;
+		max-width: none;
+	}
+
+	.page.ai2-tab-page > .page-title { display: none; }
+
+	/* The title is hidden, so the body is first on screen: no flow gap above it. */
+	.page.ai2-tab-page > .ai2-tab-body { margin-block-start: 0; }
+
+	.ai2-tab-body > * + * { margin-block-start: var(--gap-50); }
+}
+
+/* The outline is the panel's `.default`: shown until a tab page is routed beside it —
+   the same rule ext/tabs keeps for `.tab-panel`, in `util` beside core's arrangement contract. */
+@layer util {
+	.ai2-tiny-panel:has(> .page:is(.active-page, .active-ancestor))
+		> .page.default:not(.active-page, .active-ancestor) { display: none; }
+}
+
+/* WHAT HAPPENED (activity.js): the Activity tab a row's "what happened" bar opens (the
+   bar itself is the rail's, ai2/rail.css). A new event wears the bar's left edge, and
+   the word "new". */
+@layer theme {
+
+	.ai2-act-sum { display: block; margin-block-end: 0.6em; }
+	.ai2-act-row {
+		padding: 0.45em 0.7em;
+		border-block-end: 1px solid var(--line);
+		border-inline-start: 3px solid transparent;
+	}
+	.ai2-act-row.ai2-act-new { border-inline-start-color: var(--prim); background: var(--fill-a04); }
+	.ai2-act-who { font-weight: 600; flex: none; }
+	.ai2-act-where { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.ai2-act-mark { flex: none; }
+	.ai2-act-when { margin-inline-start: auto; flex: none; }
+	.ai2-act-mark {
+		font-size: 0.75em;
+		font-weight: 600;
+		text-transform: uppercase;
+		color: var(--prim);
+	}
+	.ai2-act-what {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 4;
+		overflow: hidden;
+		overflow-wrap: anywhere;
+	}
+}
+
+/* A REAL SITE PAGE IN THE DETAIL COLUMN (real.js) — the page itself, full height and
+   the whole width, scrolling inside its own box the way a card page does. The real
+   page keeps its own classes; only the box around it is ours. */
+@layer theme {
+	.page.ai2-real {
+		display: block;
+		height: 100%;
+		min-height: 0;
+		overflow: auto;
+		padding: 0;
+	}
+
+	.page.ai2-real > .ai2-real-top { min-height: 100%; }
+
+	.ai2-real-none { padding: var(--pad); }
+
+}
