@@ -67,3 +67,17 @@ Output a mostly white image where the more confident a line is, the darker it dr
 - **The camera first:** placing the camera is the key step. A wall whose four edges are visible pins it down, even if something hides an exact corner: extend the lines.
 - **Scale:** near things look bigger, so solve for real-world units. You need a unit system anyway to place points in 3D.
 - **A solver:** try numbers, wiggle them, keep what helps. Each object gets an anchor point and rough heights and widths, refined until its render matches the line art.
+
+## Part 3: the pipeline, end to end
+
+1. **The line map.** The filter from part 2: line art where darker means more confident. It works on any photo, and on video too, even in real time. There can be more than one layer, from different formulas.
+2. **The corner map.** A second map scores where lines END, TURN or CROSS: endpoints, corners, intersections. (The classic tools are corner detectors, like Harris or Shi–Tomasi, run on the same gradients.)
+3. **Connect the dots.** For every pair of nearby corner points, ask the line map: is there darkness along the straight path between them? How confident? Draw the strong ones as edges.
+4. **2D vectors.** Points plus edges make a vector drawing (an SVG). Check it by rendering the SVG and comparing it pixel by pixel with the line map. They're the same size and the same frame, so a plain difference (or a distance-to-nearest-line score) shows what's missing or invented. Iterate until they agree.
+5. **3D: the hard part.** Run several strategies side by side and keep what agrees:
+   - **Start with the easy geometry:** floors, walls, ceilings, cabinets, tabletops. Big, straight, mostly at right angles.
+   - **Place the camera from the lines:** parallel edges in the world meet at vanishing points in the photo. Two or three vanishing points give the camera's angle and focal length, and then where every plane must sit.
+   - **Then size and scale:** known things (a door, a counter height) set real-world units.
+6. **Beyond shape:** textures, materials, lighting, then sound and time on a timeline. A walkthrough with a 360° camera could scan a whole space.
+
+**One rule: don't invent.** Where the scan has no data (a room you never walked into), leave it empty, or fill it but mark it clearly as imagined. A scan has to stay honest to be trusted.
