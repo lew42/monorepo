@@ -929,6 +929,12 @@ Agents.Agent = class Agent {
 	 * would die with the process). Global.sweep() calls it after 3 idle minutes. */
 	sleep(why = "idle"){
 		if (this.state !== "idle" || this.one_shot || !this.session_id) return false;
+		/* ⚠ PHANTOMS (2026-10-01): awaken() registers, the registration runs the idle sweep,
+		   and the sweep saw an idle clock from BEFORE the sleep. So the agent went straight
+		   back to sleep in the same millisecond, its new queue closed, and the waking message
+		   was lost while send() marked it "working" with no process. An agent awoken in the
+		   last minute is never put back to sleep. */
+		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
 		if (this.bg_tasks > 0) return false;
 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
 		this.queue.close();
@@ -948,7 +954,7 @@ Agents.Agent = class Agent {
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
-		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0 });
+		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.start();
 		this.emit({ type: "awake", by: by ?? null, slept_since: slept });
 		this.host?.register?.(this);
