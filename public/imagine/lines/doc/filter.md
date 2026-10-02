@@ -2,13 +2,15 @@
 
 [Try it](/imagine/lines/) with the faint seam sample: a small grey step runs down the image, with loud random texture below it. The map rewards the steady seam rather than the brightness of the noise.
 
+The filter looks for colour changes that keep the same direction and strength along a line, rather than changes that scatter in every direction.
+
 ## Three ingredients
 
-1. **Change:** centred differences in hue, saturation and brightness. Hue wraps at red and is weighted by saturation, because a grey pixel has no useful hue. Transparent pixels are composited onto white.
-2. **Direction:** a structure tensor adds the gradient outer products across channels, then averages a square window. Its eigenvalue gap divided by its trace is coherence: close to one for an agreed direction, close to zero for mixed directions.
-3. **Consistency:** sample along the tangent (perpendicular to the gradient). Reward neighbours whose direction agrees and whose signal keeps its strength. Divide gradient strength by itself plus the noise floor and incoherent local energy.
+1. **Change:** compare the pixels on either side of each pixel, horizontally and vertically. Do this for hue, saturation and brightness. Hue wraps at red and matters less in nearly grey pixels. Transparent pixels are laid over white first.
+2. **Direction:** gather these changes in a small square. If they mostly point the same way, the direction score is high; mixed directions make it low. This agreement score is called **coherence**. The calculation uses a structure tensor, a small table that combines the horizontal and vertical changes.
+3. **Consistency:** follow the possible line, at right angles to the colour change. Nearby pixels support it when their direction agrees and their change stays strong. This gives **along-line support**. Compare change strength with the noise floor and locally mixed directions to get **relative signal strength**: a steady faint edge can beat loud random texture.
 
-Confidence is coherence × along-line support × relative signal strength. It is bounded from zero to one. Display grey is `255 × (1 − confidence^gamma)`; smaller gamma makes weak responses darker without changing the map.
+Confidence multiplies Direction's coherence by Consistency's along-line support and relative signal strength. It stays between zero and one. Display grey is `255 × (1 − confidence^gamma)`; smaller gamma makes weak responses darker without changing the map.
 
 ## The four sliders
 
