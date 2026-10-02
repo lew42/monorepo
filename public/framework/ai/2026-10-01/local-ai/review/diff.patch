@@ -1,0 +1,1298 @@
+diff --git a/.claude/skills/code/improvements.md b/.claude/skills/code/improvements.md
+index 8457d0ad..a2aeb6c5 100644
+--- a/.claude/skills/code/improvements.md
++++ b/.claude/skills/code/improvements.md
+@@ -22,3 +22,5 @@ Applied and cleared 2026-09-21 — all 20 entries (21 traps) folded into SKILL.m
+ - 2026-09-24 (minion-card-view): Windows and git (core.ignorecase) treat card.js and Card.js as ONE file. Writing ai2/Card.js silently replaced the existing ai2/card.js, and git kept the lowercase name. Before creating a file, check for a sibling whose name differs only in case.
+ - 2026-09-29 (minion-page-fix-tabs): a module reached from `core/Page/Log.js` (imported statically, since `Page extends PageLog`) can close a circular import just by adding one ordinary-looking `import` — `core/Page/settings/settings.js` added `import PageMarkdown from "../Markdown.js"` (to read the dev server's file list before fetching, avoiding a blind probe), and `Markdown.js` itself imports `Page.class.js` — closing `Page.class.js → Log.js → settings.js → Markdown.js → Page.class.js` and throwing `Cannot access 'Page' before initialization` on every single page, sitewide (caught immediately by a `node --check` PASS + a real headless page load, which is why loading a page after every edit, not just checking syntax, matters). The trap: nothing about the new import LOOKS dangerous — no cycle is visible from the file being edited, only from walking what Log.js's own importers eventually reach. The rule worth stating in §7: before adding a static import to any file `core/Page/Log.js` or `Page.class.js` transitively imports, grep for whether the NEW target (or anything it imports) imports `Page.class.js` back — if so, use a dynamic `import()` inside the function that needs it, or duplicate the few lines instead of importing. → applied 2026-09-30
+ - 2026-09-28 (recursive-pairs/inbox): a Node test file that sets `process.env.SERVEX_HOME` (or any module-level env-read constant) then `import`s the module that reads it is WRONG even though it runs green — ES module `import` statements are hoisted ahead of every other statement in the file, so `Servex/home.js`'s top-level `export const HOME = process.env.SERVEX_HOME || ...` had already frozen on the REAL machine's path before the env-var line ever executed textually above it. Two runs of `Servex/agents/External.test.mjs` silently wrote real lines into the LIVE Servex's `logs/inbox/`, with all 9 checks still passing (the scratch `registry_dir` option masked it for the registry half, since that one is passed explicitly rather than read from the frozen constant). Fix: set the env var first, then `await import(...)` the dependent modules dynamically — `Servex/agents/global.test.mjs` already does this for the same reason, uncommented. Worth one line in section 7: a fresh `Servex/agents/*.test.mjs` that touches `SERVEX_HOME`, `SERVEX_POLICY`, or any other env-read module constant needs dynamic imports, not static ones, or the isolation is a lie that never throws. → applied 2026-09-30
++
++- 2026-10-01 (local-ai/build): a direct `query()` call (claude-agent-sdk) that only sets `allowedTools` to restrict tools does NOT trim what the model is actually OFFERED — `allowedTools` is an auto-approve list, not a roster cut. With no `mcpServers` override it inherits this repo's whole .mcp.json (~50 tools, each a JSON-schema-turned-GBNF-grammar) and blew a 32k-context local model's prompt to 91k tokens before the task was even seen; fixing that but keeping `allowedTools` instead of `tools` still offered the CALLING session's own ~30 built-in tools (Agent, Workflow, etc.) — 44k tokens, still over budget. `options.tools: [...]` (sdk.d.ts: "specify the BASE SET of available built-in tools") is the real restriction; `agents/tidy.js`'s one-shot calls already use this shape (`tools: []`), worth naming explicitly for any future script that spawns a real tool-using `query()` turn outside Servex's own `Agents.spawn()` (which sets this correctly via its own `door()`).
+diff --git a/.claude/skills/new-page/improvements.md b/.claude/skills/new-page/improvements.md
+index 5c7f0e1d..87e8ebb2 100644
+--- a/.claude/skills/new-page/improvements.md
++++ b/.claude/skills/new-page/improvements.md
+@@ -2,3 +2,5 @@
+ 
+ Any agent may append. One line each: `YYYY-MM-DD · what should change · why (the evidence)`.
+ A recurring line is a rule waiting to be written; the owner promotes.
++
++- 2026-10-01 (local-ai/build) · `create_page` should ask, or default to the bare name, when the caller is about to delete the stub and hand-write a page.js · the skill itself (step 3) blesses "write page.js, delete the stub", but `create_page` always appends `<name>/page.jsonl` to the parent's `children:` string regardless — my page.js-based page at /framework/ai/local/ had a dead link in the parent until I caught and fixed it by hand.
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 8f97df62..c1e5798b 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -42,6 +42,9 @@ import hitl from "./agents/hitl.js";
+ import Inbox from "./agents/inbox.js";
+ import { docs_list, docs_read_file } from "./pages.js";
+ import { warm_guard } from "./ext/openrouter/provider.js";
++import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js";
++import { LocalProxy } from "./ext/local/llama.js";
++import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+@@ -287,6 +290,7 @@ export default class Servex extends Events {
+ 
+         this.gate();
+         this.whisper();
++        this.llama();
+         this.shutdown();
+ 
+         this.say(`Servex up — dashboard http://127.0.0.1:${this.dashboard_port}/ · proxy http://127.0.0.1:${this.proxy_port}/${this.gated ? ` (gate -> :${this.proxy_internal})` : ""} · ${this.projects.length} projects under ${this.root}`);
+@@ -413,6 +417,26 @@ export default class Servex extends Events {
+         return runner;
+     }
+ 
++    /* llama-server, supervised the same way whisper() supervises whisper-server —
++     * `Process.Llama` (Servex/ext/local/llama.js) adds swap-on-demand and idle
++     * unload on top of the same restart/backoff machinery. Nothing is spawned
++     * at boot: `ensure(slug)` starts llama-server the first time a `local/...`
++     * agent actually sends a request, and the idle timer stops it again once
++     * nothing has asked for a while — the GPU sits empty until someone wants
++     * it. The small proxy in front of it (what `ANTHROPIC_BASE_URL` for a local
++     * agent actually points at) DOES start right away — it's just an HTTP
++     * listener, no GPU, no process. */
++    llama(){
++        const runner = new Process.Llama({
++            name: "llama", log: this.log, port: LLAMA_PORT,
++            command: LLAMA_EXE, args: []
++        }).start_idle_watch();
++
++        this.processes.set("llama", runner);
++        this.local_proxy = new LocalProxy({ llama: runner, port: LOCAL_PROXY_PORT }).start();
++        return runner;
++    }
++
+     /* ── the door ─────────────────────────────────────────────────────── */
+ 
+     /* Everything binds 127.0.0.1 already; this is the second lock on the same
+@@ -568,6 +592,24 @@ export default class Servex extends Events {
+             res.json(await hitl(body));
+         });
+ 
++        /* THE LOCAL-MODELS CHAT PAGE'S OWN CALLS (public/framework/ai/local/,
++         * requirements.md Phase 2 ask 2) — one GET (the dropdown's own list,
++         * whatever gguf files actually exist right now) and one POST (a
++         * one-shot "ask it something", the exact same no-tools `query()` shape
++         * `/api/tidy` already uses, just pointed at the local provider instead
++         * of straight at Claude — Servex/ext/local/chat.js). CORS, same as
++         * `/api/tidy`/`/api/hitl`: a browser page posts here cross-origin from
++         * its own `<name>.localhost` origin. */
++        router.options("/api/local-chat", cors, (req, res) => res.status(204).end());
++
++        router.get("/api/local-chat", cors, (req, res) => res.json({ models: local_model_slugs() }));
++
++        router.post("/api/local-chat", cors, express.json({ limit: "64kb" }), async (req, res) => {
++            const body = req.body ?? {};
++            if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
++            res.json(await local_chat(body));
++        });
++
+         router.get("/api/logs", (req, res) => res.json(this.log.names()));
+ 
+         /* The dashboard's first paint. After this it hears about every change on
+@@ -1029,6 +1071,7 @@ export default class Servex extends Events {
+             try { this.worktrees?.stop(); } catch {}
+             try { this.task_loop?.stop(); } catch {}
+             try { this.heartbeat?.stop(); } catch {}
++            try { this.local_proxy?.stop(); } catch {}   // the local-models HTTP proxy (Servex/ext/local/llama.js) — not a Process, stopped on its own
+             for (const agent of this.agents.live.values()) try { agent.stop(); } catch {}
+             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
+             this.log.close();
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 22504320..6353c69f 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -10,6 +10,7 @@ import Registry from "./registry.js";
+ import { defaults as role_defaults, opening } from "./roles.js";
+ import { first_prompt } from "./readme-chain.js";
+ import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
++import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+ 
+ /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
+  * What lands here is the PROJECTION: one typed event per SDK message, written
+@@ -125,10 +126,18 @@ export class Agents {
+ 		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
+ 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
+ 		 * gets the openrouter provider for free — nobody has to say `provider`
+-		 * by hand. An explicit `spec.provider` always wins. */
++		 * by hand. An explicit `spec.provider` always wins.
++		 *
++		 * LOCAL MODELS (ext/local/provider.js, requirements.md Phase 3): a
++		 * `local/qwen2.5-coder` id ALSO has a `/` in it, so it has to be
++		 * checked FIRST — `provider_for()` itself only knows the OpenRouter
++		 * half of the rule and can't be changed from here (outside this file's
++		 * fence), so the `local/` prefix is caught here instead, one line
++		 * ahead of the generic slash rule. */
++		const provider_of = m => is_local_model(m) ? "local" : provider_for(m);
+ 		// the role's provider goes with the role's MODEL: a caller's own `model` (e.g. a slug on a
+ 		// `minion`) picks its provider by the slash rule, or a fast-tier minion sent `openai/...` to Anthropic (2026-10-01)
+-		const provider = spec.provider ?? (spec.model ? provider_for(model) : role_defaults(spec.role).provider) ?? provider_for(model);
++		const provider = spec.provider ?? (spec.model ? provider_of(model) : role_defaults(spec.role).provider) ?? provider_of(model);
+ 		/* CLAUDE STAYS ON THE SUBSCRIPTION (requirements.md; review.md finding 6):
+ 		 * an explicit `provider: "openrouter"` paired with a Claude model id would
+ 		 * bill that model per token through the gateway instead. The slash rule
+@@ -869,7 +878,8 @@ Agents.Agent = class Agent {
+ 		 * SDK's own Anthropic call for an OpenRouter one; read once here, right
+ 		 * before the process spawns, so a missing key fails this agent's own
+ 		 * start() with one clear line instead of a confusing SDK auth error. */
+-		const or_env = this.provider === "openrouter" ? env_for("openrouter") : null;
++		const or_env = this.provider === "openrouter" ? env_for("openrouter")
++			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
+ 		const url = this.mcp_url ?? this.host?.mcp_url;
+ 		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
+ 		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });
+diff --git a/Servex/agents/tiers.js b/Servex/agents/tiers.js
+index 0149c0e0..4414a3c1 100644
+--- a/Servex/agents/tiers.js
++++ b/Servex/agents/tiers.js
+@@ -15,7 +15,13 @@ export const TIERS = {
+ 	 * worked by accident when the model also happened to contain a `/`), so the
+ 	 * only thing stopping this today is "nobody has measured whether a cheap
+ 	 * OpenRouter model finishes a scan as well as Haiku does" (the spike's job). */
+-	scan_openrouter: { provider: "openrouter", model: "deepseek/deepseek-v4.1-flash" }
++	scan_openrouter: { provider: "openrouter", model: "deepseek/deepseek-v4.1-flash" },
++	/* EXAMPLE, not wired to any role yet (public/framework/ai/2026-10-01/local-ai/):
++	 * a role on this tier runs entirely on this machine's own GPU through
++	 * Servex/ext/local/ — no network, no per-token cost, but a much smaller
++	 * model than Haiku. Swap `local/qwen2.5-coder` for `local/gemma-3-4b` or
++	 * `local/gemma-4-e4b` to try the other two models this GPU fits. */
++	local_qwen: { provider: "local", model: "local/qwen2.5-coder" }
+ };
+ 
+ export const model = tier => TIERS[tier]?.model ?? tier;
+diff --git a/Servex/ext/local/chat.js b/Servex/ext/local/chat.js
+new file mode 100644
+index 00000000..776589ec
+--- /dev/null
++++ b/Servex/ext/local/chat.js
+@@ -0,0 +1,42 @@
++/* chat.js — one no-tools, one-shot call to a LOCAL model, for the chat page at
++ * /framework/ai/local/. Same shape as `Servex/agents/tidy.js`'s `tidy()` (a
++ * single `query()` turn, `maxTurns: 1`, no tools, no persisted session) — the
++ * one new thing is the `env` override: a plain `query()` call otherwise
++ * inherits Servex's own environment, which points at real Anthropic, so
++ * without this override "ask a local model" would quietly bill the owner's
++ * Claude subscription instead of ever reaching llama-server. */
++import { query } from "@anthropic-ai/claude-agent-sdk";
++import { env_for, is_local_model, available_models } from "./provider.js";
++
++/* {model: "local/<slug>", text} -> {ok:true, text, model, ms} or {ok:false, why}.
++ * `run_query` is swappable so a test can fake the model call, same as tidy.js. */
++export async function local_chat({ model, text } = {}, { run_query = query } = {}){
++	if (typeof text !== "string" || !text.trim()) return { ok: false, why: "text must be a non-empty string" };
++	if (!is_local_model(model)) return { ok: false, why: `model must be a "local/<slug>" id, got ${JSON.stringify(model)}` };
++
++	const t0 = Date.now();
++	let out = "";
++	try {
++		for await (const m of run_query({ prompt: text, options: {
++			/* Same minimal config as tidy.js — see its own comment on why. */
++			model, tools: [], mcpServers: {}, strictMcpConfig: true, skills: [],
++			settingSources: [], maxTurns: 1, persistSession: false,
++			extraArgs: { "disable-slash-commands": null },
++			env: { ...process.env, ...env_for("local") }
++		} })){
++			if (m.type === "result") out = m.result ?? out;
++			else if (m.type === "assistant") out = (m.message?.content ?? []).filter(b => b.type === "text").map(b => b.text).join("") || out;
++		}
++	} catch (e){ return { ok: false, why: String(e.message || e) }; }
++
++	if (!out.trim()) return { ok: false, why: "empty model reply" };
++	return { ok: true, text: out.trim(), model, ms: Date.now() - t0 };
++}
++
++/* What the chat page's dropdown reads: every model slug a file actually
++ * exists for right now, prefixed the way `local_chat()` and the proxy both
++ * expect it (`local/<slug>`) — but the page shows the BARE slug (the prefix
++ * is an implementation detail, not something worth printing in a dropdown). */
++export const local_model_slugs = () => available_models();
++
++export default local_chat;
+diff --git a/Servex/ext/local/llama.js b/Servex/ext/local/llama.js
+new file mode 100644
+index 00000000..ec9a0007
+--- /dev/null
++++ b/Servex/ext/local/llama.js
+@@ -0,0 +1,159 @@
++/* llama.js — Servex supervises llama-server.exe the same way Process.Whisper
++ * (Servex/Process.js) supervises whisper-server: one ordinary Process, with
++ * the four failure modes Process.js already handles for free (dead on
++ * restart, crash-looping, port already taken, a long-healthy process crashing
++ * once). The one thing llama-server needs that whisper-server doesn't:
++ * SWAPPING MODELS. This GPU (RTX 4070 SUPER, 12 GB VRAM) can hold exactly one
++ * of the three gguf files at a time, so `ensure(slug)` stops whichever model
++ * is running (if it's not already the one asked for) and starts the new one. */
++import fs from "node:fs";
++import http from "node:http";
++import Process from "../../Process.js";
++import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT, LLAMA_IDLE_MINUTES, MODELS } from "./provider.js";
++
++Process.Llama = class Llama extends Process {
++
++	initialize(){
++		super.initialize();
++		this.loaded = null;              // the slug currently loaded, or null
++		this.last_request_at = 0;        // bumped by LocalProxy on every real request
++	}
++
++	args_for(file){ return ["-m", file, "--port", String(this.port)]; }
++
++	/* Make sure `slug`'s model is the one actually running, and wait for it to
++	 * answer before returning — a caller forwarding a real chat turn needs the
++	 * model LOADED, not just "told to start". Throws one plain line for: the
++	 * exe missing, an unknown slug, or that slug's file missing (the owner,
++	 * requirements.md "What not to do": never touch another app's models, so a
++	 * model this finder didn't locate just isn't offered, never "fixed" here). */
++	async ensure(slug){
++		if (!fs.existsSync(this.command)) throw new Error(`llama-server.exe not found at ${this.command} — local models are not installed`);
++		const file = MODELS[slug];
++		if (!file) throw new Error(`no local model called "${slug}" — known: ${Object.keys(MODELS).filter(k => MODELS[k]).join(", ") || "(none found on disk)"}`);
++		if (!fs.existsSync(file)) throw new Error(`model file missing for "${slug}": ${file}`);
++
++		if (this.loaded === slug && this.child) return this.wait_ready();
++
++		if (this.child){
++			this.say(`swapping ${this.loaded ?? "(nothing)"} -> ${slug} — only one model fits this GPU at a time`);
++			await this.stop();
++		}
++		this.args = this.args_for(file);
++		this.loaded = slug;
++		await this.start();
++		return this.wait_ready();
++	}
++
++	/* ⚠ THE PORT ANSWERS LONG BEFORE THE MODEL IS LOADED (measured, 2026-10-01):
++	 * llama-server's HTTP listener comes up in well under a second, but a 4-7 GB
++	 * model takes tens of seconds to actually load onto the GPU — every request
++	 * in between gets a plain 503 `{"error":{"message":"Loading model"}}`.
++	 * `Process.ready()`'s own plain TCP connect (`stranger()`) is exactly what
++	 * caught that race the first time this was tried: the port answered, the
++	 * model wasn't loaded yet, and the very next real chat request 503'd. So
++	 * this polls llama-server's own `/health` endpoint instead — the thing it
++	 * flips to 200 once a model is actually ready to answer — not just the
++	 * port. Up to 2 minutes: the biggest of the three models (gemma-4-e4b,
++	 * 5.5 GB) is the slow case this has to cover. */
++	async wait_ready(){
++		const deadline = Date.now() + 120000;
++		while (Date.now() < deadline){
++			if (await this.health()) return true;
++			await new Promise(r => setTimeout(r, 500));
++		}
++		throw new Error(`llama-server did not finish loading within 2 minutes (port ${this.port})`);
++	}
++
++	health(){
++		return new Promise(resolve => {
++			const req = http.get({ host: "127.0.0.1", port: this.port, path: "/health", timeout: 1500 }, res => {
++				res.resume();
++				resolve(res.statusCode === 200);
++			});
++			req.on("error", () => resolve(false));
++			req.on("timeout", () => { req.destroy(); resolve(false); });
++		});
++	}
++
++	/* UNLOAD WHEN IDLE (requirements.md: free the GPU after N idle minutes — the
++	 * knob is LLAMA_IDLE_MINUTES in provider.js, one constant, one place).
++	 * Checked once a minute; never fights a model that's mid-swap (`this.child`
++	 * only gates the check, `ensure()` is what actually changes `this.loaded`). */
++	start_idle_watch(){
++		this.idle_timer = setInterval(() => {
++			if (!this.child || !this.loaded || !this.last_request_at) return;
++			const idle_min = (Date.now() - this.last_request_at) / 60000;
++			if (idle_min < LLAMA_IDLE_MINUTES) return;
++			this.say(`idle ${idle_min.toFixed(1)} min >= ${LLAMA_IDLE_MINUTES} — unloading ${this.loaded} to free the GPU`);
++			this.loaded = null;
++			this.stop();
++		}, 60000);
++		this.idle_timer.unref();
++		return this;
++	}
++
++	release(){
++		clearInterval(this.idle_timer);
++		super.release();
++	}
++};
++
++/* THE PROXY IN FRONT OF IT (requirements.md: "the Servex proxy route that
++ * forwards to it is the one place that sees every request" — this IS that
++ * route, just its own tiny HTTP server on its own port instead of a path on
++ * the dashboard's express router, so `ANTHROPIC_BASE_URL` can be a plain
++ * `http://127.0.0.1:<port>` the way openrouter/provider.js's is).
++ *
++ * Every request's JSON body already carries a `model` field (the Anthropic
++ * Messages API shape) — `"local/qwen2.5-coder"` — so THAT tells this proxy
++ * which model to make sure is loaded before forwarding; nothing in the path or
++ * headers needs to repeat it. The body has to be read in full before it can be
++ * parsed for that field, but it is then forwarded byte-for-byte unchanged, so
++ * nothing about the request itself is altered — only the timing (wait for
++ * `ensure()`, then send). The reply is piped straight through, unread, so
++ * streaming (SSE) answers still stream. */
++export class LocalProxy {
++
++	constructor({ llama, port = LOCAL_PROXY_PORT }){
++		this.llama = llama;
++		this.port = port;
++	}
++
++	start(){
++		this.server = http.createServer((req, res) => this.handle(req, res).catch(e => {
++			if (!res.headersSent) res.writeHead(502, { "content-type": "text/plain" }).end(String(e?.message || e));
++		}));
++		this.server.on("error", e => this.llama?.say?.(`local proxy error: ${e.message}`));
++		this.server.listen(this.port, "127.0.0.1");
++		return this;
++	}
++
++	stop(){ this.server?.close(); }
++
++	async handle(req, res){
++		const chunks = [];
++		for await (const chunk of req) chunks.push(chunk);
++		const body = Buffer.concat(chunks);
++
++		let model = null;
++		try { model = JSON.parse(body.toString("utf8") || "{}").model; } catch { /* a non-JSON or bodyless request: no model to load for it */ }
++		const slug = String(model ?? "").replace(/^local\//, "");
++		await this.llama.ensure(slug);
++		this.llama.last_request_at = Date.now();
++
++		await new Promise((resolve, reject) => {
++			const upstream = http.request({
++				host: "127.0.0.1", port: this.llama.port, path: req.url, method: req.method,
++				headers: { ...req.headers, host: `127.0.0.1:${this.llama.port}`, "content-length": String(Buffer.byteLength(body)) }
++			}, up => {
++				res.writeHead(up.statusCode, up.headers);
++				up.pipe(res);
++				up.on("end", resolve);
++				up.on("error", reject);
++			});
++			upstream.on("error", reject);
++			upstream.end(body);
++		});
++	}
++}
+diff --git a/Servex/ext/local/provider.js b/Servex/ext/local/provider.js
+new file mode 100644
+index 00000000..653c4e7b
+--- /dev/null
++++ b/Servex/ext/local/provider.js
+@@ -0,0 +1,105 @@
++/* provider.js — the "local" half of the Claude Agent SDK proxy trick.
++ *
++ * Same trick as `Servex/ext/openrouter/provider.js` (read that one first — this
++ * is the short version of it): the SDK only ever talks to "the Anthropic API",
++ * so pointing its base url at something else that SPEAKS the Anthropic Messages
++ * API makes the exact same `query()` loop run a different model. Verified live,
++ * 2026-10-01: `llama-server.exe -m <model.gguf> --port 8999`, then a normal
++ * Anthropic-shaped `POST /v1/messages`, got back a normal Anthropic-shaped
++ * reply (`type:"message"`, `content:[{type:"text",...}]`, `stop_reason`). No
++ * shim needed — `local/MODEL` works exactly like `openrouter/MODEL`.
++ *
++ * The one real difference from OpenRouter: there is no server answering at
++ * `ANTHROPIC_BASE_URL` until Servex starts one. So the base url this module
++ * hands out does not point straight at llama-server — it points at Servex's
++ * OWN small proxy (`LocalProxy`, in `llama.js`), which:
++ *   1. reads which model the request wants (the `model` field in the request
++ *      body, e.g. `"local/qwen2.5-coder"`),
++ *   2. makes sure THAT model is the one loaded (starting or swapping llama-
++ *      server if it isn't — only one model fits on this GPU at a time),
++ *   3. remembers the time, so the idle-unload timer knows when to free the GPU,
++ *   4. forwards the request on to llama-server and streams the reply straight
++ *      back.
++ * That's also the answer to "where does Servex see every request" — the proxy
++ * route IS the one place that happens, by construction. */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++/* WHERE THINGS ARE. `LLAMA_HOME` is where the llama.cpp release was unzipped;
++ * `qwen2.5-coder` is the one model actually copied into its `models/` folder
++ * today. The owner's env can move any of this without a code change. */
++export const LLAMA_HOME = process.env.LLAMA_HOME || "C:\\llama";
++export const LLAMA_EXE = path.join(LLAMA_HOME, "llama-server.exe");
++export const LLAMA_PORT = Number(process.env.SERVEX_LLAMA_PORT) || 8999;        // llama-server's own port, Servex-only
++export const LOCAL_PROXY_PORT = Number(process.env.SERVEX_LOCAL_PROXY_PORT) || 8998;  // what ANTHROPIC_BASE_URL points at
++
++/* THE IDLE KNOB (requirements.md: "pick something sane, e.g. 10 — put it in one
++ * constant, name it, so the owner can change it in one place"). How many
++ * minutes with no request before Servex stops the loaded model and gives the
++ * GPU's 12 GB back. Change this one line (or set SERVEX_LLAMA_IDLE_MIN) to
++ * change it everywhere — `llama.js`'s idle timer reads only this. */
++export const LLAMA_IDLE_MINUTES = Number(process.env.SERVEX_LLAMA_IDLE_MIN) || 10;
++
++/* A shallow, bounded search for a file under `root` whose name matches `test`
++ * — used below to find the two models that live in someone else's cache
++ * instead of `C:\llama\models`, without hardcoding a path that changes (Hugging
++ * Face names its snapshot folder after a hash that changes when the model
++ * updates). Stops at `depth` levels down so a huge cache can't make this slow;
++ * returns the first match, or null if `root` doesn't exist or nothing matches. */
++function find_gguf(root, test, depth = 4){
++	let entries;
++	try { entries = fs.readdirSync(root, { withFileTypes: true }); } catch { return null; }
++	for (const e of entries) if (e.isFile() && test.test(e.name)) return path.join(root, e.name);
++	if (depth <= 0) return null;
++	for (const e of entries) if (e.isDirectory()){
++		const hit = find_gguf(path.join(root, e.name), test, depth - 1);
++		if (hit) return hit;
++	}
++	return null;
++}
++
++const home = os.homedir();
++
++/* THE THREE MODELS THIS GPU FITS (requirements.md's "already answered": RTX
++ * 4070 SUPER, 12 GB VRAM — qwen2.5-coder 4.7 GB, gemma-3-4b 2.5 GB, gemma-4-e4b
++ * 5.5 GB; only one loaded at a time). Only qwen2.5-coder is copied into
++ * `C:\llama\models` today; the other two are read straight out of wherever LM
++ * Studio and the Hugging Face cache already put them — found by file name
++ * instead of copying multi-gigabyte files around, which is both slower and one
++ * more place for the same bytes to go stale. A model whose file isn't found
++ * yet is `null`, not a crash; everything downstream (the dropdown, `ensure()`)
++ * already treats a missing model as "not offered", not an error. */
++export const MODELS = {
++	"qwen2.5-coder": path.join(LLAMA_HOME, "models", "qwen2.5-coder.gguf"),
++	"gemma-3-4b": find_gguf(path.join(home, ".lmstudio", "models"), /^gemma-3-4b.*\.gguf$/i),
++	"gemma-4-e4b": find_gguf(path.join(home, ".cache", "huggingface", "hub"), /^gemma-4-e4b.*\.gguf$/i)
++};
++
++/* The dropdown's list: every slug whose file actually exists on disk right
++ * now, newest/biggest first doesn't matter — alphabetical is fine. */
++export function available_models(){
++	return Object.keys(MODELS).filter(slug => MODELS[slug] && fs.existsSync(MODELS[slug])).sort();
++}
++
++/* A model id with a `local/` prefix (`local/qwen2.5-coder`) picks this
++ * provider — checked AHEAD of OpenRouter's plain "/" rule in Agents.js, since
++ * `local/qwen2.5-coder` also contains a `/`. */
++export const is_local_model = model => String(model ?? "").startsWith("local/");
++export const slug_of = model => String(model ?? "").replace(/^local\//, "");
++
++/* The env a spawned `claude` process needs to run through the local proxy
++ * instead of Anthropic. No key: it's loopback-only and llama-server never asks
++ * for one. `ANTHROPIC_API_KEY`/`CLAUDE_CODE_OAUTH_TOKEN` are blanked for the
++ * same reason openrouter/provider.js blanks them — either one left set lets
++ * the CLI authenticate straight past the base-url swap and bill the owner's
++ * real Claude subscription instead of talking to the local model at all. */
++export function env_for(provider){
++	if (provider !== "local") return {};
++	return {
++		ANTHROPIC_BASE_URL: `http://127.0.0.1:${LOCAL_PROXY_PORT}`,
++		ANTHROPIC_AUTH_TOKEN: "",
++		ANTHROPIC_API_KEY: "",
++		CLAUDE_CODE_OAUTH_TOKEN: ""
++	};
++}
+diff --git a/Servex/ext/local/readme.md b/Servex/ext/local/readme.md
+new file mode 100644
+index 00000000..e6532f12
+--- /dev/null
++++ b/Servex/ext/local/readme.md
+@@ -0,0 +1,83 @@
++# local — a model running on this machine's own GPU, as a third provider
++
++Servex already has two providers for the Claude Agent SDK: `anthropic` (the
++owner's subscription) and `openrouter` (`../openrouter/`, a paid cloud
++gateway to other companies' models). This is the third: `local`, a model
++running on this machine's own GPU through `llama.cpp`, free and offline.
++Same trick as OpenRouter — point the SDK's `ANTHROPIC_BASE_URL` at
++something that speaks the Anthropic Messages API, and the exact same
++`query()` loop runs a different model — verified live, 2026-10-01:
++`llama-server.exe` really does answer a normal `POST /v1/messages` with a
++normal Anthropic-shaped reply.
++
++## Use
++
++A `local/<slug>` model id picks this provider, the same way a `/` in an
++OpenRouter slug does (`Servex/agents/Agents.js`'s `provider_of()` checks for
++`local/` first, since it would otherwise match OpenRouter's own rule too):
++
++```js
++spawn_agent({ role: "minion", model: "local/qwen2.5-coder", prompt: "..." })
++```
++
++This needs `llama-server.exe` itself installed (a built llama.cpp release,
++not just model files) at `LLAMA_HOME` (default `C:\llama`) — `provider.js`
++only searches for model *files*; the exe has to already be there.
++
++`slug` is one of `MODELS`' keys in [`provider.js`](./provider.js) — today
++`qwen2.5-coder`, `gemma-3-4b`, `gemma-4-e4b` (whichever ones actually have a
++file on disk; `available_models()` is the live list). Only one loads at a
++time — this machine's GPU (an RTX 4070 Super, 12 GB VRAM) can't hold two —
++so picking a different model stops the one running and starts the new one,
++a few seconds' wait.
++
++The chat page at [`/framework/ai/local/`](/framework/ai/local/) is the
++easiest way to try this without writing any code.
++
++## What's here
++
++- [`provider.js`](./provider.js) — where the model files are (`MODELS`,
++  found by searching the LM Studio install and the Hugging Face cache, not
++  hardcoded paths that go stale), the idle-unload knob
++  (`LLAMA_IDLE_MINUTES`), and `env_for("local")` — the env that points a
++  spawned agent at Servex's own local proxy instead of Anthropic.
++- [`llama.js`](./llama.js) — `Process.Llama` (starts, stops and swaps
++  `llama-server.exe`, same supervision `Process.Whisper` in
++  `Servex/Process.js` already uses, plus a `/health` poll before calling a
++  model "ready" — see "Watch out" below) and `LocalProxy` (the one HTTP
++  server every local-model request passes through: it reads which model the
++  request wants from the request body, makes sure that one is loaded, then
++  forwards).
++- [`chat.js`](./chat.js) — `local_chat()`, a one-shot no-tools call (same
++  shape as `Servex/agents/tidy.js`'s `tidy()`) that the chat page's
++  `/api/local-chat` route runs.
++
++## Watch out
++
++- **The port answers long before the model is loaded.** A plain TCP connect
++  succeeds in under a second; the model itself takes tens of seconds to
++  actually load onto the GPU, and a request in that window gets a plain 503
++  `{"error":{"message":"Loading model"}}`. `Process.Llama.wait_ready()`
++  polls llama-server's own `GET /health` instead of just the port — see its
++  comment for the measurement that found this.
++- **`allowedTools` does not restrict what a model is OFFERED** — it only
++  auto-approves. The SDK's `tools` option is the real restriction (see
++  `h1-eval.mjs`, `public/framework/ai/2026-10-01/local-ai/build/`, for the
++  measurement: a small model's whole context window can be blown by the
++  grammar for tools it was never going to call — a 50-tool repo `.mcp.json`
++  first, then the calling session's own ~30 built-in tools, both before the
++  real task ever reached the model).
++- **No spend guard here, on purpose** — unlike OpenRouter, there is nothing
++  to meter: a local model is free and this machine's own GPU is the only
++  limit, which `LLAMA_IDLE_MINUTES` (not a dollar cap) already manages.
++- **The live, shared Servex only gets this once the branch is merged and
++  restarted** — same as any other Servex change. Until then, a page that
++  calls `/api/local-chat` gets a clean 404 (CORS-blocked in the browser's
++  console, not a crash) — see `public/framework/ai/local/readme.md`.
++
++## More
++
++- Task that built this: `public/framework/ai/2026-10-01/local-ai/build/`
++- The OpenRouter provider this one's shape is copied from: [`../openrouter/`](../openrouter/)
++- Every model Servex has tried, local and cloud, side by side:
++  [`/framework/ai/system/models/`](/framework/ai/system/models/)
+diff --git a/Servex/ext/openrouter/evals/models.mjs b/Servex/ext/openrouter/evals/models.mjs
+index 098e99fd..57daf755 100644
+--- a/Servex/ext/openrouter/evals/models.mjs
++++ b/Servex/ext/openrouter/evals/models.mjs
+@@ -268,6 +268,17 @@ const kinds = [
+ 	buildKind("rules", "Rule adherence — 5 house rules (CLAUDE.md law, readme chain, tool IDs, append.mjs, the fence)", ruleFinal, { alreadyFinal: true }),
+ 	buildKind("page-blog", "Probe: write a blog post page from a one-line brief", results.filter(r => r.probe === "page-blog")),
+ 	buildKind("log-line", "Probe: log one line to today's task", results.filter(r => r.probe === "log-line")),
++	/* local-ai, 2026-10-01: a local-provider model can't run through the real test-library harness
++	 * yet (library.mjs spawns through the LIVE Servex's spawn_agent, which only learns the "local"
++	 * provider once this branch merges and restarts) — so a local model's h1-page attempt is run
++	 * standalone (public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs) and lands here, in
++	 * results.jsonl, the same `{"probe":{...}}` shape every row above already uses, rather than on
++	 * tests/h1-page/page.jsonl (the test-library's own file, outside this task's fence). A separate
++	 * kind, not merged into a future "new-page" library kind, because the harness differs (no
++	 * readme-chain/minion-skill preamble a real spawn_agent minion gets) — comparable to the cloud
++	 * h1-page runs in spirit, not apples-to-apples in method.
++	 */
++	buildKind("h1-page (local provider)", "A local model's own attempt at the test library's h1-page floor test, run standalone", results.filter(r => r.probe === "h1-page")),
+ ];
+ 
+ // One more kind per distinct `kind` the test library declares (new-page, quick-fix, planning,
+diff --git a/Servex/ext/openrouter/evals/results.jsonl b/Servex/ext/openrouter/evals/results.jsonl
+index 1ea0aeea..073233b9 100644
+--- a/Servex/ext/openrouter/evals/results.jsonl
++++ b/Servex/ext/openrouter/evals/results.jsonl
+@@ -99,3 +99,4 @@
+ {"probe":{"at":"2026-10-01T01:01:04-05:00","run":"page-blog-a-walk-in-the-rain-4hnca","probe":"page-blog","model":"claude-haiku-4-5-20251001","effort":"low","dir":"public/framework/sandbox/probe/page-blog-a-walk-in-the-rain-4hnca","pass":[1,0,0,0,0,0],"label":{},"reached":true,"hook_missing":true,"cost_usd":0.30788810000000005,"turns":1,"note":"1:1 file(s) checked | 2:no page.js found to load | 3:no page.js at the expected place | 4:no task.jsonl found — can't tell what it loaded | 5:no task.jsonl found | 6:no child page"}}
+ {"probe":{"at":"2026-10-01T01:01:46-05:00","run":"log-line-a-walk-in-the-rain-4lohu","probe":"log-line","model":"claude-haiku-4-5-20251001","effort":"low","dir":"public/framework/sandbox/probe/log-line-a-walk-in-the-rain-4lohu","pass":[null,null,null,null,0,null],"label":{},"reached":true,"hook_missing":true,"cost_usd":0.0994701,"turns":1,"note":"5:no task.jsonl found"}}
+ {"probe":{"at":"2026-10-01T01:03:15-05:00","run":"page-blog-owls-4o46p","probe":"page-blog","model":"openai/gpt-6-luna","effort":"low","dir":"public/framework/sandbox/probe/page-blog-owls-4o46p","pass":[1,0,0,0,0,0],"label":{},"reached":false,"hook_missing":true,"cost_usd":null,"turns":null,"note":"spawn_agent gave no id: {\"raw\":\"openrouter spawn refused: today's OpenRouter spend ($7.65) is at or over the $1.5/day cap\"} | 1:1 file(s) checked | 2:no page.js found to load | 3:no page.js at the expected place | 4:no task.jsonl found — can't tell what it loaded | 5:no task.jsonl found | 6:no child page"}}
++{"probe":{"at":"2026-10-01T21:12:10-05:00","run":"h1-page-qwen2-5-coder-1790907120870","probe":"h1-page","model":"local/qwen2.5-coder","effort":"medium","dir":"public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870","pass":0,"label":{},"reached":true,"cost_usd":0,"turns":1,"note":"no tool call: the model answered in one short text turn (97 output tokens) instead of writing any file, so the fixture's page.js is untouched. hello not found in parent's children: | H1s were [\"Page Load Error\"], wanted \"Hello from the floor test\". Run standalone (public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs), not through the live Servex's spawn_agent (requirements.md's known gap: provider \"local\" only exists on this branch, not restarted into the shared Servex yet) — no readme-chain/minion-skill preamble a real spawn_agent minion gets, so this is a floor-test attempt, not a like-for-like comparison with the cloud h1-page runs."}}
+diff --git a/public/framework/ai/2026-10-01/day.jsonl b/public/framework/ai/2026-10-01/day.jsonl
+index 0ce72705..89ed5b36 100644
+--- a/public/framework/ai/2026-10-01/day.jsonl
++++ b/public/framework/ai/2026-10-01/day.jsonl
+@@ -13,3 +13,4 @@
+ {"log":{"at":"2026-10-01T15:58:00-05:00","task":"minion-prove","msg":"landed — proved 7 afternoon chat fixes live, 36/38 checks pass (pulse dot not wired into any real surface yet)"}}
+ {"log":{"at":"2026-10-01T16:20:26-05:00","task":"page-holds","msg":"landed — restarts scoped to loaded files (merge.mjs skip proven), Socket.js shows a reconnect strip instead of blanking (headless-proved), 15:32 cause named, catch-up reload left as a named out-of-fence follow-up"}}
+ {"log":{"at":"2026-10-01T16:37:51-05:00","task":"process-monitor","msg":"landed again: idle worktree servers stop, agents sleep sooner under tight RAM and per request, stale VS Code conversations are flagged, games close only when the PC is idle and RAM is tight"}}
++{"log":{"at":"2026-10-01T21:19:54-05:00","task":"local-ai/build","msg":"landed — Servex runs a local model on this machine's GPU (llama-server, a local provider, a chat page, one model on the test ladder); the Ollama tool-use bug and ComfyUI images are investigated and logged, not built."}}
+diff --git a/public/framework/ai/2026-10-01/files.jsonl b/public/framework/ai/2026-10-01/files.jsonl
+new file mode 100644
+index 00000000..cc17bb7a
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"day.jsonl"}
++{"file":"local-ai/"}
++{"file":"never-lose-a-wake/"}
++{"file":"page-holds/"}
++{"file":"quick-fix-path/"}
++{"file":"session-gate/"}
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs b/public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs
+new file mode 100644
+index 00000000..c76fba24
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs
+@@ -0,0 +1,163 @@
++// Standalone h1-page run through the LOCAL provider — the live, shared Servex
++// does not know about provider "local" until this branch merges and restarts
++// (same gap the chat page hit), so `evals/library.mjs`'s own spawn_agent-over-
++// MCP path can't reach a local model today. This script does the same real
++// work library.mjs's runOne() does (real tools, real file writes, the same
++// mechanical checks), just calling the SDK's query() directly with env_for
++// ("local") instead of going through the live Servex.
++//
++// Everything this script WRITES stays inside this task's own dir
++// (public/framework/ai/2026-10-01/local-ai/build/h1-eval/), which is inside
++// this minion's fence.
++//
++// Usage (from anywhere, needs Servex's own node_modules — `npm install` in
++// Servex/ first if this worktree doesn't have them):
++//   node public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs local/qwen2.5-coder
++import fs from "node:fs";
++import path from "node:path";
++import { pathToFileURL } from "node:url";
++import { spawnSync } from "node:child_process";
++
++const ROOT = "C:/Code/lew42/worktrees/local-ai";
++const SERVEX = ROOT + "/Servex/";
++const u = p => pathToFileURL(SERVEX + p).href;
++
++const { query } = await import(u("node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs"));
++const Log = (await import(u("Log.js"))).default;
++await import(u("ext/local/llama.js"));
++const Process = (await import(u("Process.js"))).default;
++const { LocalProxy } = await import(u("ext/local/llama.js"));
++const { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT, env_for } = await import(u("ext/local/provider.js"));
++const { browser } = await import(pathToFileURL(ROOT + "/Server/browser.mjs").href);
++
++const TEST_DIR = path.join(ROOT, "public/framework/ai/tests/h1-page");
++const RUN_ROOT = path.join(ROOT, "public/framework/ai/2026-10-01/local-ai/build/h1-eval");
++const SITE_BASE = "http://local-ai.localhost";
++
++const MODEL = process.argv[2] || "local/qwen2.5-coder";
++const slug = MODEL.replace(/^local\//, "");
++const runName = `h1-page-${slug.replace(/[^a-z0-9]+/gi, "-")}-${Date.now()}`;
++const runDir = path.join(RUN_ROOT, runName);
++const runUrlPath = `/framework/ai/2026-10-01/local-ai/build/h1-eval/${runName}/`;
++
++// ---- copy the fixture, page.fixture.js -> page.js, same rule library.mjs uses ----
++const as_run = name => name === "page.fixture.js" ? "page.js" : name;
++function copyDir(from, to){
++	fs.mkdirSync(to, { recursive: true });
++	for (const e of fs.readdirSync(from, { withFileTypes: true })){
++		const src = path.join(from, e.name), dst = path.join(to, as_run(e.name));
++		if (e.isDirectory()) copyDir(src, dst); else fs.copyFileSync(src, dst);
++	}
++}
++copyDir(path.join(TEST_DIR, "fixture"), runDir);
++
++const lines = fs.readFileSync(path.join(TEST_DIR, "page.jsonl"), "utf8").split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l));
++const def = lines[0];
++const promptText = fs.readFileSync(path.join(TEST_DIR, def.prompt), "utf8").trim();
++const orient = `This folder is a real page on the live site: ${SITE_BASE}${runUrlPath} — it already has a page.js (a plain "Floor test" landing page). Work inside this folder.\n\n`;
++const prompt = orient + promptText;
++
++console.log("model:", MODEL, "\nrunDir:", runDir, "\nprompt:", prompt);
++
++// ---- bring up a standalone llama-server + local proxy (same ports provider.js names) ----
++const log = new Log();
++const llama = new Process.Llama({ name: "llama-h1eval", log, port: LLAMA_PORT, command: LLAMA_EXE, args: [] });
++llama.on("say", msg => console.log("[llama]", msg));
++const proxy = new LocalProxy({ llama, port: LOCAL_PROXY_PORT }).start();
++
++let turns = 0, result_text = "", t0 = Date.now(), errored = null;
++try {
++	for await (const m of query({ prompt, options: {
++		model: MODEL,
++		cwd: runDir,
++		permissionMode: "bypassPermissions",
++		/* ⚠ FOUND THE HARD WAY (first two runs): `allowedTools` only auto-approves
++		 * — it does NOT trim what the model is actually offered. `tools` is the
++		 * option that does (sdk.d.ts: "specify the BASE SET of available built-in
++		 * tools"). Run 1, with no mcpServers override, inherited this repo's whole
++		 * .mcp.json (~50 Servex/figma/site tools) and blew the prompt to 91k
++		 * tokens before the model ever saw the task. Run 2, with mcpServers:{}
++		 * but only `allowedTools` set, still offered every built-in tool this
++		 * CALLING session itself has (Agent, Workflow, 30+ others) — 44k tokens,
++		 * still over qwen2.5-coder's 32k context. `tools` is the real restriction;
++		 * same minimal shape agents/tidy.js already uses for its own one-shot calls. */
++		tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"],
++		mcpServers: {}, strictMcpConfig: true, skills: [], settingSources: [],
++		maxTurns: 20,
++		env: { ...process.env, ...env_for("local") }
++	} })){
++		if (m.type === "assistant") turns++;
++		if (m.type === "result") result_text = m.result ?? result_text;
++	}
++} catch (e){ errored = String(e?.message || e); console.error("query() threw:", errored); }
++const ms = Date.now() - t0;
++
++// ---- mechanical checks (same checks library.mjs makes, reimplemented small here since
++// its own functions are module-private and this script's fence doesn't include that file) ----
++function allFiles(dir){
++	const out = [];
++	for (const e of fs.readdirSync(dir, { withFileTypes: true })){
++		const p = path.join(dir, e.name);
++		if (e.isDirectory()) out.push(...allFiles(p)); else out.push(p);
++	}
++	return out;
++}
++function checksParse(dir){
++	const bad = [];
++	for (const f of allFiles(dir).filter(f => f.endsWith(".js"))){
++		const r = spawnSync("node", ["--check", f], { encoding: "utf8", windowsHide: true });
++		if (r.status !== 0) bad.push(path.relative(dir, f) + ": " + (r.stderr || "").split("\n")[0]);
++	}
++	return { ok: bad.length === 0, bad };
++}
++function checksLinked(dir, child){
++	const parent = path.join(dir, "page.js");
++	if (!fs.existsSync(parent)) return { ok: false, why: "fixture's own page.js is gone" };
++	const text = fs.readFileSync(parent, "utf8");
++	const ok = new RegExp(`children\\s*:[^,}]*\\b${child}\\b`).test(text);
++	return { ok, why: ok ? `${child} is in children:` : `${child} not found in parent's children:` };
++}
++async function checksH1(url, expected){
++	const b = await browser();
++	const page = await (await b.newContext()).newPage();
++	const page_errors = [];
++	page.on("pageerror", e => page_errors.push(e.message));
++	try {
++		await page.goto(url, { waitUntil: "load", timeout: 20000 });
++		await page.waitForTimeout(1200);
++		const { found, all } = await page.evaluate(exp => {
++			const texts = [...document.querySelectorAll(".page.active-page h1, .page.active-page .page-title")].map(e => e.textContent?.trim() ?? "");
++			return { found: texts.includes(exp), all: texts };
++		}, expected);
++		await page.close();
++		return { ok: found, found: all, errors: page_errors, why: found ? "an H1 matched exactly" : `H1s were ${JSON.stringify(all)}, wanted ${JSON.stringify(expected)}` };
++	} catch (e){
++		try { await page.close(); } catch {}
++		return { ok: false, found: null, errors: [...page_errors, String(e?.message || e)], why: "the child page did not load" };
++	}
++}
++
++const parse = checksParse(runDir);
++const linked = checksLinked(runDir, def.new_child);
++const h1 = (def.new_child && def.h1_text) ? await checksH1(`${SITE_BASE}${runUrlPath}${def.new_child}/`, def.h1_text) : null;
++
++proxy.stop();
++await llama.stop();
++log.close?.();
++
++const mechanicalOk = !errored && parse.ok && linked.ok && (!h1 || h1.ok);
++const pass = mechanicalOk ? 1 : 0;
++const note = errored ? `agent run failed: ${errored.slice(0, 300)}`
++	: mechanicalOk ? "mechanical checks passed"
++	: [!parse.ok && `parse failed: ${parse.bad.join("; ")}`, !linked.ok && linked.why, h1 && !h1.ok && h1.why].filter(Boolean).join(" | ");
++
++const row = {
++	at: new Date().toISOString(), run: runName, probe: "h1-page", model: MODEL, effort: "medium",
++	dir: path.relative(ROOT, runDir).replaceAll("\\", "/"),
++	pass, label: {}, reached: true, cost_usd: 0, turns, ms,
++	mechanical: { parse: parse.ok, linked, h1 },
++	note
++};
++console.log("\nmodel's own final reply:", JSON.stringify(result_text));
++console.log("\nRESULT:", JSON.stringify(row, null, 2));
++fs.writeFileSync(path.join(RUN_ROOT, runName + ".result.json"), JSON.stringify(row, null, 2));
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870.result.json b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870.result.json
+new file mode 100644
+index 00000000..336da1cb
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870.result.json
+@@ -0,0 +1,30 @@
++{
++  "at": "2026-10-02T02:12:10.746Z",
++  "run": "h1-page-qwen2-5-coder-1790907120870",
++  "probe": "h1-page",
++  "model": "local/qwen2.5-coder",
++  "effort": "medium",
++  "dir": "public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870",
++  "pass": 0,
++  "label": {},
++  "reached": true,
++  "cost_usd": 0,
++  "turns": 1,
++  "ms": 6691,
++  "mechanical": {
++    "parse": true,
++    "linked": {
++      "ok": false,
++      "why": "hello not found in parent's children:"
++    },
++    "h1": {
++      "ok": false,
++      "found": [
++        "Page Load Error"
++      ],
++      "errors": [],
++      "why": "H1s were [\"Page Load Error\"], wanted \"Hello from the floor test\""
++    }
++  },
++  "note": "hello not found in parent's children: | H1s were [\"Page Load Error\"], wanted \"Hello from the floor test\""
++}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/files.jsonl b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/files.jsonl
+new file mode 100644
+index 00000000..a24cbf25
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"page.fixture.js"}
++{"file":"page.js"}
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/page.js b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/page.js
+new file mode 100644
+index 00000000..915dde12
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-qwen2-5-coder-1790907120870/page.js
+@@ -0,0 +1,17 @@
++import { Page } from "/app.js";
++
++/* The "here" for the h1-page test (rung 1, the floor every model should pass):
++ * a plain landing page with no children yet. The model's job is to add a new
++ * child page.js beside this one — library.mjs copies this into a fresh run
++ * dir per run, and the run dir itself IS this page (the model may also just
++ * edit THIS file directly; either reading is fine, the mechanical check only
++ * looks for an H1 saying the right words somewhere reachable from this url). */
++export default new Page({
++	meta: import.meta,
++	title: "Floor test",
++	description: "The simplest page in the test library — a home for the h1-page test.",
++
++	content(){
++		this.previews();
++	}
++});
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/requirements.md b/public/framework/ai/2026-10-01/local-ai/build/requirements.md
+new file mode 100644
+index 00000000..756cdf9d
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/requirements.md
+@@ -0,0 +1,128 @@
++# Minion brief: Servex runs llama.cpp as a local model provider
++
++Parent task: `task-mastermind-local-ai`, dir `public/framework/ai/2026-10-01/local-ai/` (read
++`requirements.md` there — Phase 2 and Phase 3 — and `report-sonnet.md`, the install inventory).
++Load the `minion` skill first, then `code`.
++
++## Already answered — don't re-check these
++- **llama-server DOES speak the Anthropic Messages API.** Tested live 2026-10-01: started
++  `C:\llama\llama-server.exe -m models\qwen2.5-coder.gguf --port 8999`, then
++  `POST /v1/messages` with a normal Anthropic-shaped body → got back a proper Anthropic-shaped
++  reply (`"type":"message"`, `content:[{type:"text",...}]`, `stop_reason`). So **no shim** —
++  `local/MODEL` is exactly like `openrouter/MODEL`: point `ANTHROPIC_BASE_URL` at
++  `http://127.0.0.1:<port>` and the Claude Agent SDK talks to it directly.
++- GPU: RTX 4070 SUPER, 12 GB VRAM. All three LLM ggufs fit: qwen2.5-coder (4.7 GB),
++  gemma-3-4b (2.5 GB), gemma-4-E4B (5.5 GB). `C:\llama\models\qwen2.5-coder.gguf` exists now;
++  the other two are at the Hugging Face cache / LM Studio paths in `report-sonnet.md` §2 — copy
++  or symlink is fine, your call, whichever is less code.
++- Ollama's CLI (`ollama list`) hangs for 2 minutes instead of failing fast when its daemon
++  isn't running — a real rough edge, not yours to fix, just don't let it eat your turn: always
++  run ollama commands with a short timeout.
++
++## The pattern to copy
++`Servex/ext/openrouter/provider.js` is the OpenRouter half of this exact trick (read it whole —
++it's short). `Process.Whisper` in `Servex/Process.js` (bottom of the file) is how Servex already
++supervises one GPU/CPU-bound local server the same way you need to supervise llama-server —
++read it whole too, and `Servex.js`'s `whisper()` method (~line 399) for how it's wired in.
++
++## Build, in this order — land what works, note what you cut
++### 1. Servex supervises llama-server (Phase 3 ask 1)
++- A `Process.Llama` (same file as `Process.Whisper`, or its own `Servex/ext/local/` module —
++  your call, whichever reads cleaner) that starts `C:\llama\llama-server.exe -m <model> --port
++  <port>`, stops it, and **swaps models** (stop the running one, start the new one — only ONE
++  model loaded at a time, this GPU can't hold two).
++- Unload when idle: track the last request time (the Servex proxy route that forwards to it is
++  the one place that sees every request) and stop the process after N minutes idle (pick
++  something sane, e.g. 10 — put it in one constant, name it, so the owner can change it in one
++  place). Say in your log where you put the knob.
++- Wire it into the existing process monitor (`servex.procmon.now` — grep `Global.js` for where
++  that's read) so llama-server's RAM shows up there like every other process. VRAM: `nvidia-smi
++  --query-gpu=memory.used --format=csv` run on an interval is the straightforward way to attach
++  a number to this one process (it's the only thing loading the GPU) — if that's more than a
++  quick add, skip it and say so in your log; RAM is the must-have, VRAM is a nice-to-have.
++- `C:\llama\models\` holding whichever model is NOT currently loaded is fine; only one process
++  may run.
++
++### 2. The `local` provider (Phase 3 ask 2, Phase 2 ask 3)
++- New `Servex/ext/local/provider.js` mirroring `openrouter/provider.js`'s shape: `env_for("local")`
++  returns `{ ANTHROPIC_BASE_URL: "http://127.0.0.1:<port>" }` (no auth token needed — it's
++  loopback only, llama-server has no key). `provider_for()` needs a rule for `local/MODEL` the
++  same way it already has one for an OpenRouter slug (a `/` in the model id) — read how
++  `Agents.js` calls `provider_for`/`env_for` today (grep it) and add the `local` branch beside the
++  `openrouter` one. Whichever model name the caller passes as `local/qwen2.5-coder` etc., your
++  Process.Llama's start/swap is what actually has to be loaded first — wire spawn to request
++  that swap before (or reuse an existing poll-until-ready, same idea as `stranger()` in
++  Process.js).
++- Add one example row to `Servex/agents/tiers.js` the way `scan_openrouter` is there as an
++  example (not wired to a role) — e.g. `local_qwen: { provider: "local", model:
++  "local/qwen2.5-coder" }` with a one-line comment pointing at this task.
++
++### 3. The chat harness at `/framework/ai/local/` (Phase 2 ask 2)
++- ONE page, reusing `ux/Dictate` + `ChatPanel` (grep for an existing page that already composes
++  them — there should be one chat surface in the framework; **do not build a second chat
++  component**, CLAUDE.md law 6). It needs: pick a local model (a small dropdown of the 2-3 gguf
++  files), talk to it (which should just be spawning/sending to an agent on the `local` provider
++  from step 2), see the reply. Load the `page` skill before writing it, and `new-page` for the
++  mechanics.
++- Follow `new-page`'s `create_page` tool rather than hand-rolling `page.js`.
++
++### 4. Record local models on the existing test ladder (Phase 3 ask 3)
++- The Models page already exists: `/framework/ai/system/models/`, generated by
++  `Servex/ext/openrouter/evals/models.mjs` from `Servex/ext/openrouter/evals/results.jsonl`
++  (read `public/framework/ai/2026-09-30/openrouter-harness/models-page/requirements.md` for the
++  shape). Run the `h1-page` test (`public/framework/ai/tests/h1-page/`) through the `local`
++  provider for whichever model(s) you got running in step 1-2, append the results the same way
++  the OpenRouter runs did, and re-run `models.mjs` so they show up on the page beside the cloud
++  ones. Expect small local models to do worse — that's a finding, not a bug; write what each one
++  actually managed (can it read the page spec and produce something, even if rough?).
++
++### If you have turns left after 1-4 (cut these first, in reverse order, if short on time)
++### 5. Revisit the Ollama + Qwen tool-use bug (Phase 2 ask 4)
++`C:\Code\test\pi-mono\qwen.fix` is a hand-written Ollama Modelfile that patches the chat
++template to add `<tools>`/`<tool_call>` tags. Run `ollama show qwen2.5-fixed --modelfile` (give it
++a short timeout — see the warning above) and diff against `qwen.fix`. If they match, test one
++real tool call against `qwen2.5-fixed` and record whether it actually calls the tool. If they
++don't match, re-run `ollama create qwen2.5-fixed -f C:\Code\test\pi-mono\qwen.fix` then test.
++Write the result (worked / didn't / exact error) in your log — this has been an open question
++since before this task.
++
++### 6. Images (Phase 3 ask 4)
++A node tool `generate_image({prompt, page})` calling ComfyUI's HTTP API (SD 1.5 or DreamShaper —
++**not** flux1-dev-fp8, it doesn't fit in 12 GB VRAM, don't use it as the default) — but ComfyUI
++on this machine is only the Electron desktop app (`C:\Users\mike\AppData\Local\Programs\ComfyUI`),
++not a plain server you can just spawn headless; check whether its `resources\` folder has a
++python/ComfyUI backend you can start with `--listen` directly (the usual ComfyUI CLI flag) before
++assuming you need the desktop shell running. If this turns out to need real exploration, STOP,
++write exactly what you found and what the remaining step is, and leave it there — don't burn the
++whole budget chasing ComfyUI's packaging.
++
++## What not to do
++- Don't touch ComfyUI's checkpoints/models themselves, don't start Stability Matrix, don't start
++  LM Studio's desktop app (checked: its own background service needs the desktop app running,
++  and CLAUDE.md says no surprise windows popping up).
++- Every spawned process: `windowsHide: true` (Process.js already does this for the kinds it
++  spawns — check your own code doesn't add a new unhidden spawn anywhere, e.g. in a test script).
++- No new npm dependency.
++
++## Fence
++Worktree: `C:\Code\lew42\worktrees\local-ai` (branch `worktree/local-ai`, its own dev server
++already running on port 52694, proxy `local-ai.localhost`). Write only:
++- `Servex/Process.js` or a new `Servex/ext/local/` directory
++- `Servex/Servex.js` (wiring, routes)
++- `Servex/agents/Agents.js` (the `local` branch beside `openrouter`)
++- `Servex/agents/tiers.js` (one example row)
++- `public/framework/ai/local/` (the new chat page)
++- `Servex/ext/openrouter/evals/models.mjs` (extend, don't fork)
++- `Servex/ext/openrouter/evals/results.jsonl` (append local runs)
++- `public/framework/ai/2026-10-01/local-ai/` (this task dir: your own log, a readme/doc pass at
++  the end)
++
++Hold reloads (`node Server/hold.mjs on "minion-local-ai-build — …"` / `off`) around each batch of
++page/site writes. Commit as you land each numbered step — don't wait until the end to commit.
++
++## Land
++Write/update `readme.md` + `doc/` for anything new under `Servex/ext/local/` (the `documentation`
++skill). Then stop and report back to `task-mastermind-local-ai` (your parent) with: what's
++running, the chat page link, the Models page link, and — for anything from 1-6 you cut — one
++line saying what and the smallest next step. Don't run `merge.mjs` yourself; your parent does
++that after reading your result.
+diff --git a/public/framework/ai/2026-10-01/local-ai/build/task.jsonl b/public/framework/ai/2026-10-01/local-ai/build/task.jsonl
+new file mode 100644
+index 00000000..e6b0a0a7
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/build/task.jsonl
+@@ -0,0 +1,39 @@
++{"assign":{"session_id":"2b1f3d61-2173-4e80-98ce-b1da245acb94","agent":"minion-local-ai-build","tab":"local-ai-build","group":"local-ai","request":"Build steps 1-4 of the local-ai brief: Servex supervises llama-server (start/stop/swap one model at a time, unload when idle), a `local` provider for the Claude Agent SDK, a chat page at /framework/ai/local/ picking a local model, and recording local model runs on the Models test ladder. Steps 5-6 (Ollama tool-use bug, ComfyUI images) only if turns remain.","requested_at":"2026-10-01T20:50:00-05:00","model":"claude-sonnet-5","now":"reading the pattern (openrouter/provider.js, Process.Whisper, Servex.js whisper())","steps":["Read requirements.md, openrouter/provider.js, Process.js/Process.Whisper, Servex.js whisper(), Agents.js provider wiring, tiers.js","Step 1: Process.Llama (start/stop/swap, idle unload, RAM via existing process-monitor grouping)","Step 2: Servex/ext/local/ provider (env_for, proxy that ensures the model then forwards), Agents.js local branch, tiers.js example row","Step 3: /framework/ai/local/ chat page reusing ux/Dictate + the existing chat surface","Step 4: run the h1-page test through the local provider, append to the OpenRouter results.jsonl, regenerate models.mjs","docs + readme pass, report to task-mastermind-local-ai"],"step":1}}
++{"log":{"at":"2026-10-01T20:49:19-05:00","msg":"skill: code"}}
++{"action":{"at":"2026-10-01T20:49:53-05:00","did":"edit","files":["Servex/ext/local/provider.js"]}}
++{"log":{"at":"2026-10-01T20:52:00-05:00","msg":"parent (task-mastermind-local-ai) added a rule mid-turn: /framework/ai/local/ is a top TABS entry in public/framework/ai/overview.js, added in the SAME commit as the page (not before, to avoid a 404). public/framework/ai/overview.js is outside my written fence list but the parent explicitly authorized this one edit. Not adding an 'images' tab — no page for that in this brief."}}
++{"action":{"at":"2026-10-01T20:50:32-05:00","did":"edit","files":["Servex/ext/local/llama.js"]}}
++{"action":{"at":"2026-10-01T20:50:38-05:00","did":"edit","files":["Servex/Servex.js"]}}
++{"action":{"at":"2026-10-01T20:51:55-05:00","did":"edit","files":["Servex/agents/Agents.js"]}}
++{"action":{"at":"2026-10-01T20:52:27-05:00","did":"edit","files":["Servex/agents/tiers.js"]}}
++{"log":{"at":"2026-10-01T20:58:00-05:00","msg":"parent corrected the tab instruction: don't hand-edit TABS in overview.js (inbox-ext is auto-detecting tabs). Instead give the /framework/ai/local/ page's page.jsonl a {\"settings\":{\"tab\":true}} line and it appears as a top tab on its own. Will not touch overview.js."}}
++{"decision":{"at":"2026-10-01T21:05:00-05:00","what":"wait_ready() polls llama-server's own GET /health until 200, not just a TCP connect","alternative":"Process.ready()'s plain port-answers check — rejected: measured live, the port answers in well under a second but the model itself takes tens of seconds to load, and a real chat request in between got a 503 \"Loading model\"; /health is what llama-server itself flips once a model can actually answer"}}
++{"experiment":{"try":"standalone proof (own ports 18998/18999, not the shared Servex): ensure(qwen2.5-coder) -> real POST /v1/messages through LocalProxy -> ensure(qwen2.5-coder) again (no-op) -> ensure(gemma-3-4b) (swap)","measure":"does the model actually load, does the proxy forward correctly, does swapping change the pid and keep working, does a repeat ensure() of the same model skip a restart","result":"qwen2.5-coder: real reply \"Pong\", 200. Repeat ensure(): same pid, no restart. Swap to gemma-3-4b: new pid, real reply \"pong\", 200. Step 1 (Process.Llama: start/stop/swap) and step 2 (the local provider + proxy) both work end to end on real hardware."}}
++{"log":{"at":"2026-10-01T21:05:10-05:00","msg":"gemma-4-e4b not proof-tested individually (same code path as gemma-3-4b, found the same way) — skipped to save GPU/time; its file was confirmed to exist via available_models() above."}}
++{"log":{"at":"2026-10-01T20:56:30-05:00","msg":"skill: new-page"}}
++{"log":{"at":"2026-10-01T20:56:33-05:00","msg":"skill: page"}}
++{"action":{"at":"2026-10-01T20:58:18-05:00","did":"edit","files":["public/framework/ai/local/page.js"]}}
++{"action":{"at":"2026-10-01T20:58:33-05:00","did":"edit","files":["Servex/ext/local/chat.js"]}}
++{"action":{"at":"2026-10-01T21:00:10-05:00","did":"edit","files":["public/framework/ai/local/readme.md"]}}
++{"action":{"at":"2026-10-01T21:00:44-05:00","did":"edit","files":["public/framework/ai/page.js"]}}
++{"action":{"at":"2026-10-01T21:15:00-05:00","did":"edit","files":["public/framework/ai/local/page.js","public/framework/ai/local/readme.md","Servex/ext/local/chat.js"]}}
++{"decision":{"at":"2026-10-01T21:16:00-05:00","what":"the chat page's own backend is a tiny one-shot /api/local-chat route (Servex/ext/local/chat.js, same shape as agents/tidy.js) instead of the full ux/Dictate voice-session system","alternative":"wire the page into ext/Session's global voice session (the pattern ux/Dictate/chat.js and the drawer's AI tab use) — rejected for this one page: that session system is the owner's one cross-page conversation thread, shared site-wide, with its own model/provider baked into Servex's existing session-spawn path; forcing a model override through it for a one-off local-model test harness would mean changing a shared, heavily-used system for a brief's narrow ask (\"pick a local model, talk to it, see the reply\") — ChatPanel is still reused (law 6), only `deliver` is new, and that now matches how ux/Understand's marks() and ux/Dictate's clean-up both already call a small dedicated Servex route instead of the big session machinery"}}
++{"log":{"at":"2026-10-01T21:17:00-05:00","msg":"create_page's own parent link was wrong for a hand-written page.js: it appended \"local/page.jsonl\" to /framework/ai/page.js's children string (the tool assumes the page.jsonl shape). Fixed to plain \"local\" — every sibling in that children string is a bare name, and I deleted the stub page.jsonl per new-page skill step 3 (replaced by a real page.js for the interactivity this page needs). Flagging for skill-improvement: create_page should either ask, or default to the bare name, since a hand-written page.js is the sanctioned alternative the skill itself names."}}
++{"log":{"at":"2026-10-01T21:18:00-05:00","msg":"headless proof: page.js loads clean, no page errors, page_work() correctly surfaces this very task. The model dropdown is empty and a chat send shows a graceful \"could not answer\" — expected: /api/local-chat only exists in THIS branch's Servex/Servex.js, and the shared, already-running Servex has not restarted onto this branch yet. The browser also logs a CORS/404 console error for the fetch to the not-yet-existing route (same category as ux/Understand's documented note: '/api/hitl... live only after a later restart'). The backend itself is proven working end to end, twice, standalone: a direct POST through LocalProxy (ext/local/llama.js proof) and local_chat() itself calling through a real claude-agent-sdk query() (ext/local/chat.js proof) — both got real model replies. This page will show real models and real replies the moment Servex restarts on this branch; until then the console error is a known, accepted gap, not a defect in this page's code."}}
++{"action":{"at":"2026-10-01T21:12:08-05:00","did":"edit","files":["Servex/ext/openrouter/evals/models.mjs"]}}
++{"action":{"at":"2026-10-01T21:13:50-05:00","did":"edit","files":["public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs"]}}
++{"decision":{"at":"2026-10-01T21:20:00-05:00","what":"local model runs land in Servex/ext/openrouter/evals/results.jsonl as a new probe kind \"h1-page\", not in public/framework/ai/tests/h1-page/page.jsonl (the test library's own convention since Amendment 5)","alternative":"append to tests/h1-page/page.jsonl the way every cloud h1-page run already does — rejected only because that file is outside this task's written fence (the fence names results.jsonl explicitly) and the brief's own wording (\"append the results the same way the OpenRouter runs did\") points at results.jsonl; models.mjs is extended with one new buildKind() call reading this new probe kind, so it still lands on the Models page beside the cloud ones, just as its own clearly-labelled row group (\"h1-page (local provider)\") rather than merged into the existing \"new-page\" kind"}}
++{"experiment":{"try":"h1-page test (make a child page 'hello' with an exact H1) run against local/qwen2.5-coder, standalone (public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs): real query() call, real Write/Edit/Bash tools, through the local provider","measure":"does it parse, is the child linked from the parent, does the child's H1 match","result":"FAILED on the first real attempt: no tool call at all — the model answered in one short text turn (97 output tokens) instead of writing any file. pass:0. Two real harness bugs found and fixed along the way (see decisions): run 1 inherited this repo's whole 50-tool .mcp.json into the grammar (91k tokens, over qwen2.5-coder's 32k context, 400 before the model saw the task); run 2 still offered my own calling session's ~30 built-in tools because `allowedTools` only auto-approves, it doesn't restrict what's offered — `tools: [...]` is the real restriction (sdk.d.ts). Run 3, correctly scoped to 6 tools, used only 9043 tokens and got a real reply — but the reply was prose, not a tool call."}}
++{"log":{"at":"2026-10-01T21:21:00-05:00","msg":"qwen2.5-coder is a 7B coding model with no particular tool-use training emphasis — one data point, not a verdict on every local model. gemma-3-4b and gemma-4-e4b were not run against h1-page (time budget); the harness (h1-eval.mjs) takes a model id as its one argument, so either is one command away: node public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs local/gemma-3-4b. models.mjs merges any new result into the same \"h1-page (local provider)\" kind automatically on its next run."}}
++{"action":{"at":"2026-10-01T21:22:00-05:00","did":"edit","files":["Servex/ext/openrouter/evals/models.mjs","Servex/ext/openrouter/evals/results.jsonl","public/framework/ai/system/models/models.json","public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs"]}}
++{"log":{"at":"2026-10-01T21:14:23-05:00","msg":"skill: documentation"}}
++{"action":{"at":"2026-10-01T21:14:56-05:00","did":"edit","files":["Servex/ext/local/readme.md"]}}
++{"experiment":{"try":"revisit the Ollama + Qwen tool-use bug (requirements.md step 5): diff the live qwen2.5-fixed model's chat template against C:\\Code\\test\\pi-mono\\qwen.fix, then test a real tool call","measure":"does the TEMPLATE block match the reference patch; does a real POST /api/chat (Ollama's own API, port 11434) with a tools array actually produce a structured tool_calls reply","result":"TEMPLATE block is byte-identical to qwen.fix (confirmed by diff; the only differences were ollama show's own auto-generated header/footer — the resolved FROM blob path, an inherited SYSTEM line, and the base model's LICENSE text, none of which is the template itself). So the earlier premise (\"does the patch even match what's installed\") is true: it does."}}
++{"experiment":{"try":"a real tool-enabled POST to qwen2.5-fixed (get_weather tool, \"what's the weather in Boston\")","measure":"HTTP status and body","result":"500 Internal Server Error, EMPTY body — no error message at all. Tried: fresh after `ollama stop` + reload (same 500), after `ollama create qwen2.5-fixed -f qwen.fix` from scratch (same 500), and — most telling — a PLAIN chat with no tools at all ALSO 500s on this model. So this is not a tool-schema problem: the patched chat template breaks Ollama's response handling for every request, tool-enabled or not. `ollama run qwen2.5-fixed \"...\"` (the CLI, not the HTTP API) returned nothing and no visible error either — same failure, no better diagnostics."}}
++{"experiment":{"try":"the SAME tool-enabled request against the UNPATCHED base model, qwen2.5-coder, as a control","measure":"same","result":"200 OK — but reproduces the ORIGINAL bug the patch was meant to fix: the model's reply has `message.content = '{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Boston\"}}'` — a tool call, but as PLAIN TEXT content, not Ollama's structured `message.tool_calls` field (so a caller reading `tool_calls` the normal way sees nothing and the raw JSON just shows up as the model's words)."}}
++{"log":{"at":"2026-10-01T21:35:00-05:00","msg":"Verdict for the open question (\"since before this task\"): the qwen.fix patch is correctly installed but does NOT fix the bug — it trades one failure for a worse one. Unpatched: tool call works but lands as unstructured text (the original bug). Patched: Ollama 500s on every request, tool or not, so nothing works at all. Neither qwen2.5-coder nor qwen2.5-fixed is usable for real tool calls through Ollama today. Not investigated further (time-boxed, lower priority than steps 1-4): WHY the patched template 500s — likely a Go template syntax Ollama's own engine chokes on (the `{{ end }}</tool_call>{{ end }}` closing sequence is a plausible suspect, untested) — Ollama gave no error text to confirm either way, and Ollama's own server log location wasn't located in this pass. Smallest next step: run Ollama in foreground (not as a background service) so its stderr is visible, send the same plain-chat request, and read the actual panic/error instead of guessing."}}
++{"log":{"at":"2026-10-01T21:40:00-05:00","msg":"Step 6 (images/ComfyUI), bounded 10-minute look per requirements.md's own stop instruction. Found: C:\\Users\\mike\\AppData\\Local\\Programs\\ComfyUI\\resources\\ComfyUI\\ IS a plain, real Python ComfyUI backend (main.py, server.py, requirements.txt) bundled inside the Electron app's resources folder — not just the desktop shell. main.py:348 confirms the standard `--listen`/`--port` CLI flags exist, so `generate_image({prompt, page})` calling a headless `main.py --listen 127.0.0.1 --port <port>` is plausible in principle. STOPPING here, per the brief, rather than chasing it further: two real gaps remain before this could actually work: (1) models/checkpoints/ in that install is EMPTY (only the placeholder put_checkpoints_here file) — no SD1.5, DreamShaper or any other checkpoint is present to generate anything with, and `requirements.md`'s own \"what not to do\" rules out downloading/touching checkpoints myself; (2) the Python environment main.py needs wasn't located — the install ships its own `uv` (resources/uv/win), suggesting the desktop app manages a private venv rather than using a system Python, but I did not find where. Smallest next step for whoever picks this up: find the venv uv created (a likely place: a sibling or child dir of the Electron app's own userData folder, not searched here), confirm an SD1.5 or DreamShaper checkpoint file exists somewhere on this machine (or get one), then try `<that venv>/python main.py --listen 127.0.0.1 --port <port>` by hand once, outside Servex, before building generate_image() around it."}}
++{"log":{"at":"2026-10-01T21:18:06-05:00","msg":"skill: skill-improvement"}}
++{"log":{"at":"2026-10-01T21:18:58-05:00","msg":"skill: finish-task"}}
++{"log":{"at":"2026-10-01T21:19:08-05:00","msg":"skill: check-claude-usage"}}
++{"assign":{"step":6,"landed_at":"2026-10-01T21:19:45-05:00","title":"llama-server as a local model provider: chat page, test ladder, two findings","outcome":"**Servex runs a model on this machine's own GPU — proven with real replies, not just wired up.**\n\n- [x] start/stop/swap one llama-server model, idle unload: `Servex/ext/local/llama.js`\n- [x] a `local` provider for the SDK (`local/<slug>`): `Servex/ext/local/provider.js`, `Agents.js`, `tiers.js`\n- [x] a chat page: [/framework/ai/local/](/framework/ai/local/) (ChatPanel reused, not rebuilt)\n- [x] one local model on the test ladder: [/framework/ai/system/models/](/framework/ai/system/models/) — qwen2.5-coder failed h1-page, a real finding\n- [ ] Ollama+Qwen tool bug — investigated, can't be fixed from here (logged)\n- [ ] ComfyUI images — a real backend found, no checkpoint or venv yet (next step logged)","links":[{"url":"/framework/ai/local/","label":"Local Models chat page"},{"url":"/framework/ai/system/models/","label":"Models test ladder"},{"url":"/Servex/ext/local/","label":"Servex/ext/local/ readme"}],"window":{"before":null,"after":0.14},"tokens":null}}
+diff --git a/public/framework/ai/2026-10-01/local-ai/files.jsonl b/public/framework/ai/2026-10-01/local-ai/files.jsonl
+new file mode 100644
+index 00000000..60f6a6bb
+--- /dev/null
++++ b/public/framework/ai/2026-10-01/local-ai/files.jsonl
+@@ -0,0 +1 @@
++{"file":"build/"}
+diff --git a/public/framework/ai/local/files.jsonl b/public/framework/ai/local/files.jsonl
+new file mode 100644
+index 00000000..cf4934c1
+--- /dev/null
++++ b/public/framework/ai/local/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ai/local/page.js b/public/framework/ai/local/page.js
+new file mode 100644
+index 00000000..5a59ba8d
+--- /dev/null
++++ b/public/framework/ai/local/page.js
+@@ -0,0 +1,91 @@
++import { Page, p, div, select, option } from "/app.js";
++import { page_work } from "/framework/core/Page/ai/work.js";
++import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
++import { servex_url } from "/framework/dev/servex_url.js";
++
++/* THE LOCAL-MODELS CHAT HARNESS (requirements.md Phase 2 ask 2, Phase 3 ask 2) —
++ * one page to actually TALK to a model running on this machine's own GPU,
++ * through Servex's `local` provider (Servex/ext/local/). It reuses the one
++ * chat widget the whole framework already has, `ChatPanel` (ext/Chat), the
++ * same component the drawer's AI tab and the mobile ✦ sheet use — CLAUDE.md
++ * law 6, one of everything. The only new piece is `deliver`: instead of going
++ * to the owner's own cloud agent (the drawer's `send()`), it posts straight to
++ * `/api/local-chat` (Servex.js), a tiny one-shot call that runs through the
++ * local provider — Servex starts (or swaps) llama-server for whichever model
++ * the dropdown picked, and this page only ever sees the finished reply.
++ *
++ * `GET /api/local-chat` answers the dropdown's own list — every gguf file
++ * `Servex/ext/local/provider.js` actually found on disk right now, so a model
++ * that isn't there yet (the brief's "copy or symlink" choice) just isn't
++ * offered, with no error anywhere. */
++const CHAT_ENDPOINT = "/api/local-chat";
++
++export default new Page({
++	meta: import.meta,
++	title: "Local Models",
++	description: "Talk to a model running on this machine's own GPU — no cloud, no cost, pick which gguf file answers.",
++	icon: "chat",
++	/* Once inbox-ext's auto-tab-detection lands (public/framework/ai/2026-09-30/
++	 * inbox-ext/), a page.jsonl line {"settings":{"tab":true}} is what makes a
++	 * page show up as its own top tab with no further edit. This page has no
++	 * page.jsonl (it needs real interactivity, so it's a hand-written page.js
++	 * instead — new-page skill, step 3), so the same flag is set here, on the
++	 * instance, instead — it does nothing until that feature reads it, and
++	 * nothing here has to change again once it does. */
++	settings: { tab: true },
++
++	content(){
++		p("This box talks straight to a model that runs on your own graphics card, through "
++			+ "a small program called llama.cpp — no internet connection, no cloud company, and "
++			+ "no cost per word. The FIRST time you ask it something, Servex (the always-on helper "
++			+ "process on this machine) starts that model, which takes a few seconds; after that "
++			+ "it answers fast. If you stop asking for a while, Servex shuts the model back down "
++			+ "on its own, to give the GPU back for anything else you're doing.");
++
++		let models = [], picked = null, panel;
++		const $picker = div.c("pad");
++
++		const draw_picker = () => {
++			$picker.empty(() => {
++				if (!models.length){
++					p.c("muted", "No local model file was found on disk. See this page's readme for where Servex looks.");
++					return;
++				}
++				picked = models.includes(picked) ? picked : models[0];
++				select(() => models.forEach(m => option(m).attr("value", m)))
++					.attr("value", picked)
++					.on("change", e => { picked = e.target.value; });
++			});
++		};
++		draw_picker();   // an empty picker first, so the page has something to show before the fetch answers
++
++		fetch(servex_url(CHAT_ENDPOINT)).then(r => r.json()).then(body => { models = body.models ?? []; draw_picker(); }).catch(() => {});
++
++		div.c("card pad", () => {
++			panel = new ChatPanel({
++				placeholder: "ask the local model something",
++				deliver: async entry => {
++					if (!picked){
++						panel.say({ chat: { at: new Date().toISOString(), from: { kind: "assistant" }, text: "_No local model is available yet — see this page's readme._" } });
++						return false;
++					}
++					const reply_at = new Date(Date.now() + 1).toISOString();
++					panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: `_${picked} is thinking…_` } });
++					try {
++						const r = await fetch(servex_url(CHAT_ENDPOINT), { method: "POST", headers: { "content-type": "application/json" },
++							body: JSON.stringify({ model: `local/${picked}`, text: entry.text }) });
++						const body = await r.json();
++						panel.say({ chat: { at: reply_at, from: { kind: "assistant" },
++							text: body.ok ? body.text : `**${picked} could not answer:** ${body.why}`, fix: true } });
++						return !!body.ok;
++					} catch (e){
++						panel.say({ chat: { at: reply_at, from: { kind: "assistant" }, text: `**Could not reach Servex:** ${e.message}`, fix: true } });
++						return false;
++					}
++				},
++			});
++		});
++
++		div.c("card pad", $box => page_work($box, { match: ["local model", "llama", "gguf", "local-ai"], page: this }));
++	},
++});
+diff --git a/public/framework/ai/local/readme.md b/public/framework/ai/local/readme.md
+new file mode 100644
+index 00000000..cbb4e78e
+--- /dev/null
++++ b/public/framework/ai/local/readme.md
+@@ -0,0 +1,51 @@
++# Local Models — talk to a model running on this machine's own GPU
++
++## What
++This page (`page.js`) is a small chat box wired to Servex's **local provider**
++instead of Claude or OpenRouter: pick a model from the dropdown, type
++something, get a reply. Nothing leaves this machine and nothing costs
++anything — the model is a `.gguf` file running through `llama.cpp`
++(`llama-server.exe`), which Servex starts the first time you ask it
++something and stops again after it's been idle a while.
++
++## Use
++- The dropdown lists every model file Servex actually found on disk just
++  now (`GET /api/local-chat`) — if it's empty, no model file was found; see
++  "Watch out" below.
++- Type a message and send it. The first reply after a model has been idle
++  takes a few extra seconds (loading the model onto the GPU); after that
++  it's fast.
++- The chat box itself is `ext/Chat`'s `ChatPanel` — the same widget the
++  drawer's AI tab and the mobile ✦ sheet use (CLAUDE.md law 6, one of
++  everything) — just pointed at a different `deliver` function.
++
++## Watch out
++- **Only one model loads at a time.** This machine's GPU (an RTX 4070
++  Super, 12 GB VRAM) can't hold more than one of these at once, so picking
++  a different model from the dropdown stops the one currently running and
++  starts the new one — a few seconds' wait, same as the first message.
++- **A model not in the dropdown yet** means its file wasn't found where
++  `Servex/ext/local/provider.js`'s `MODELS` table looks — today that's
++  `C:\llama\models\qwen2.5-coder.gguf`, plus a search under the LM Studio
++  install and the Hugging Face cache for `gemma-3-4b` and `gemma-4-e4b`. See
++  that file's own comment for exactly where.
++- **The real plumbing lives in `Servex/ext/local/`**, not here — this page
++  is a thin UI on top of it:
++  - [`provider.js`](/Servex/ext/local/provider.js) — where the model files
++    are, the idle-unload minutes knob, and the env that points a spawned
++    agent's `ANTHROPIC_BASE_URL` at Servex's own local proxy.
++  - [`llama.js`](/Servex/ext/local/llama.js) — `Process.Llama` (starts,
++    stops and swaps `llama-server.exe`, same supervision `Process.Whisper`
++    already uses) and `LocalProxy` (the one place every request passes
++    through: it makes sure the right model is loaded, then forwards).
++  - [`chat.js`](/Servex/ext/local/chat.js) — the one-shot `local_chat()`
++    call this page's `/api/local-chat` route runs, the same shape
++    `agents/tidy.js`'s `tidy()` uses for its own one-shot cloud calls.
++- **Small models do worse, and that's expected** — the Models test ladder
++  (below) records what each one actually managed, as a finding, not a bug
++  to fix here.
++
++## More
++- The task that built this: `public/framework/ai/2026-10-01/local-ai/build/`
++- Every model Servex has tried, local and cloud, side by side:
++  [`/framework/ai/system/models/`](/framework/ai/system/models/)
+diff --git a/public/framework/ai/page.js b/public/framework/ai/page.js
+index 10b78acf..70bc2116 100644
+--- a/public/framework/ai/page.js
++++ b/public/framework/ai/page.js
+@@ -30,7 +30,7 @@ export default new Page({
+ 	leaf: true,
+ 	// The page is the band and the rail, and nothing scrolls but their columns (ux/Inbox).
+ 	classes: v1() ? undefined : "full fill",
+-	children: "asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08",
++	children: "asks process review council audits tests 2026-09-28 2026-09-25 2026-09-24 2026-09-23 2026-09-22 2026-09-21 2026-09-20 2026-09-19 2026-09-18 2026-09-17 2026-09-14 2026-09-13 2026-09-08 2026-09-06 2026-09-05 2026-09-04 2026-09-01 2026-08-31 2026-08-30 2026-08-29 2026-08-28 2026-08-27 2026-08-26 2026-08-21 2026-08-19 2026-08-18 2026-08-17 2026-08-16 2026-08-15 2026-08-14 2026-08-13 2026-08-12 2026-08-11 2026-08-10 2026-08-09 2026-08-08 local",
+ 
+ 	/* LEVEL 1 IS THE AI SYSTEM, SHOWN (the owner, 2026-09-30: "just delete the
+ 	   current AI page"). The V3 board that stood here lives on at /framework/ai/v/3/,
+diff --git a/public/framework/ai/system/models/models.json b/public/framework/ai/system/models/models.json
+index bf20985a..f4284441 100644
+--- a/public/framework/ai/system/models/models.json
++++ b/public/framework/ai/system/models/models.json
+@@ -1,5 +1,5 @@
+ {
+-	"generated_at": "2026-10-01T07:00:47.288Z",
++	"generated_at": "2026-10-02T02:12:51.468Z",
+ 	"weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
+ 	"kinds": [
+ 		{
+@@ -32,7 +32,7 @@
+ 					"n": 5,
+ 					"performance": 1,
+ 					"cost": 0.028532321200000006,
+-					"xSonnet": 0.03,
++					"xSonnet": 0.04,
+ 					"value": 35.05,
+ 					"belowBar": false
+ 				},
+@@ -42,7 +42,7 @@
+ 					"n": 5,
+ 					"performance": 1,
+ 					"cost": 0.029061854399999996,
+-					"xSonnet": 0.03,
++					"xSonnet": 0.04,
+ 					"value": 34.41,
+ 					"belowBar": false
+ 				},
+@@ -146,6 +146,24 @@
+ 			},
+ 			"best": null
+ 		},
++		{
++			"kind": "h1-page (local provider)",
++			"label": "A local model's own attempt at the test library's h1-page floor test, run standalone",
++			"rows": [
++				{
++					"model": "local/qwen2.5-coder",
++					"effort": "medium",
++					"n": 1,
++					"performance": 0,
++					"cost": 0,
++					"xSonnet": null,
++					"value": null,
++					"belowBar": false
++				}
++			],
++			"bar": null,
++			"best": null
++		},
+ 		{
+ 			"kind": "broken-page",
+ 			"label": "broken-page",
+@@ -281,16 +299,6 @@
+ 					"xSonnet": 0.67,
+ 					"value": 1.79,
+ 					"belowBar": false
+-				},
+-				{
+-					"model": "openai/gpt-6-luna",
+-					"effort": "low",
+-					"n": 1,
+-					"performance": 0,
+-					"cost": null,
+-					"xSonnet": 0.03,
+-					"value": null,
+-					"belowBar": true
+ 				}
+ 			],
+ 			"bar": {
