@@ -340,7 +340,30 @@ function bar_facet_svg(rows){
 }
 
 function render_models(data){
-	heading("Value per configuration, by kind", "Best first in each row group. One bar is one model at one effort level; the number is value (performance ÷ $/run).");
+			// --- The cheap ladder: which models pass the four simple rungs, cheapest first? ---
+		if (data.ladder && data.ladder.rows.length){
+			heading("The cheap ladder", "Which models pass four simple tests? Cheapest first — free models at the top.");
+			md(data.ladder.summary);
+			const rungIds = data.ladder.rungs.map(r => r.id);
+			const rungNames = data.ladder.rungs.map(r => r.title);
+			const head = ["model", "$/1M in", "$/1M out", ...rungNames, "$/run", "×Sonnet"];
+			const fmt_price = n => n == null ? "—" : n === 0 ? "free" : "$" + (n < 1 ? n.toFixed(4) : n.toFixed(2));
+			const fmt_rung = r => r === "pass" ? span.c("pass", "pass") : r === "fail" ? span.c("fail", "fail") : span.c("muted", "—");
+			const rows = data.ladder.rows.map(r => {
+				const cells = [
+					model_name(r.model),
+					fmt_price(r.price_in_per_m),
+					fmt_price(r.price_out_per_m),
+					...rungIds.map(slug => fmt_rung(r.rungs[slug])),
+					r.mean_cost == null ? "—" : fmt_usd(r.mean_cost),
+					r.xSonnet == null ? "—" : r.xSonnet + "×",
+				];
+				return cells;
+			});
+			table(head, rows);
+		}
+		
+		heading("Value per configuration, by kind", "Best first in each row group. One bar is one model at one effort level; the number is value (performance ÷ $/run).");
 	md("A model must do the job about as well as Sonnet before its price counts.");
 	div.c("card").append(() => {
 		data.kinds.filter(k => k.rows.some(r => r.value != null)).forEach(k => {

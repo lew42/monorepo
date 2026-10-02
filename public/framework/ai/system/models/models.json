@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-10-02T02:34:32.826Z",
+	"generated_at": "2026-10-02T04:10:06.190Z",
 	"weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
 	"kinds": [
 		{
@@ -309,6 +309,106 @@
 					"xSonnet": 0.67,
 					"value": 1.79,
 					"belowBar": false
+				},
+				{
+					"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 1,
+					"cost": 0,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": false
+				},
+				{
+					"model": "google/gemma-4-31b-it:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "inclusionai/ling-3.0-flash-sante:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "liquid/lfm-2.5-2.6b:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "google/gemma-4-26b-a4b-it:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "nvidia/nemotron-3.5-lightning:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "qwen/qwen3.8-27b:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "thinkingmachines/inkling-small:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
+				},
+				{
+					"model": "thinkingmachines/inkling:free",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": null,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": true
 				}
 			],
 			"bar": {
@@ -378,5 +478,224 @@
 				"value": 1.33
 			}
 		}
-	]
+	],
+	"ladder": {
+		"rungs": [
+			{
+				"id": "h1-page",
+				"title": "H1 page"
+			},
+			{
+				"id": "fix-label",
+				"title": "Fix label"
+			},
+			{
+				"id": "broken-import",
+				"title": "Broken import"
+			},
+			{
+				"id": "broken-overflow",
+				"title": "Broken overflow"
+			}
+		],
+		"summary": "The cheapest model that passed all four rungs is Claude Haiku ($0.2230/run).",
+		"rows": [
+			{
+				"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "pass",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": 0,
+				"xSonnet": null
+			},
+			{
+				"model": "google/gemma-4-26b-a4b-it:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "google/gemma-4-31b-it:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "inclusionai/ling-3.0-flash-sante:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "liquid/lfm-2.5-2.6b:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "nvidia/nemotron-3.5-lightning:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "qwen/qwen3.8-27b:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "thinkingmachines/inkling-small:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "thinkingmachines/inkling:free",
+				"free": true,
+				"price_in_per_m": 0,
+				"price_out_per_m": 0,
+				"rungs": {
+					"h1-page": "fail",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": null,
+				"xSonnet": null
+			},
+			{
+				"model": "claude-haiku-4-5-20251001",
+				"free": false,
+				"price_in_per_m": 1,
+				"price_out_per_m": 5,
+				"rungs": {
+					"h1-page": "pass",
+					"fix-label": "pass",
+					"broken-import": "pass",
+					"broken-overflow": "pass"
+				},
+				"mean_cost": 0.223033,
+				"xSonnet": 0.33
+			},
+			{
+				"model": "openai/gpt-6-sol",
+				"free": false,
+				"price_in_per_m": 2,
+				"price_out_per_m": 10,
+				"rungs": {
+					"h1-page": "pass",
+					"fix-label": null,
+					"broken-import": null,
+					"broken-overflow": null
+				},
+				"mean_cost": 0.558215,
+				"xSonnet": 0.67
+			},
+			{
+				"model": "claude-sonnet-5",
+				"free": false,
+				"price_in_per_m": 3,
+				"price_out_per_m": 15,
+				"rungs": {
+					"h1-page": "pass",
+					"fix-label": "pass",
+					"broken-import": "pass",
+					"broken-overflow": "pass"
+				},
+				"mean_cost": 0.37691,
+				"xSonnet": 1
+			},
+			{
+				"model": "claude-opus-5-5",
+				"free": false,
+				"price_in_per_m": 15,
+				"price_out_per_m": 75,
+				"rungs": {
+					"h1-page": "pass",
+					"fix-label": "pass",
+					"broken-import": "pass",
+					"broken-overflow": "pass"
+				},
+				"mean_cost": 0.29394,
+				"xSonnet": 5
+			}
+		]
+	}
 }
