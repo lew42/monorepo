@@ -27,9 +27,16 @@ Fixed two ways, belt and braces:
 The "at most 5 working at once" cap (`doc/dormant.md`, "The working cap") used to count any row
 whose *state* said `working` — which a phantom from #1 could claim forever, holding a slot no
 agent was actually using. `Agents.working()` now checks the real process too (`claude_pid` and a
-direct `process.kill(pid, 0)`), the same test the registry's own cleanup already uses. A row that
-fails that check, past a short grace window for a spawn that is still booting, is logged once, set
-`idle`, and left out of the count.
+direct `process.kill(pid, 0)`, `registry.js`'s own `alive()` — one check, not three separate
+copies of it), past a short grace window for a spawn that is still booting.
+
+**Not `idle` — `dormant`** (fresh-eyes review finding 3): the brief that opened this task said
+"set it idle", but an `idle` agent's `send()` pushes a message straight onto whatever queue it has
+with no further check — and this agent's queue has nobody left reading it. The message would be
+accepted, then silently stranded, with nothing ever trying again (once marked, a phantom is never
+re-logged). Dormant is the state `send()` already knows means "no process, call `awaken()` first"
+— so a real message now actually starts a fresh process, and whatever was still sitting in the
+dead queue travels along as a held message (#5), not lost.
 
 ## 3. A spawn whose process never showed up at all is retried, not abandoned
 
@@ -71,10 +78,13 @@ queues in order behind that agent's first turn.)
 `Servex.reconcile()` runs on the same one-minute clock the dormancy sweep already uses (never a
 second timer). It does two things nothing moment-to-moment ever catches: re-queues a `starting`
 row stuck past 60 seconds (#3), and looks for a live `claude.exe` whose own registry row claims it
-is `dormant` or `stopped` — a stray process Servex's bookkeeping lost track of. When that row still
-has a full spec, the stray is **adopted** (resumed in place, under its own id); otherwise it is
-simply **stopped**, since an unmanaged process costs memory for nothing and there is no spec left
-to resume it from. One summary line is logged only when something actually changed.
+is `dormant` or `stopped` — a stray process Servex's bookkeeping lost track of. The stray is always
+**stopped first** (two processes writing one session at once is the actual unsafe side — fresh-eyes
+review finding 1 caught an earlier version of this spawning the resume before killing the stray).
+When the row still has a full spec, it is then **adopted** — resumed in place, under its own id, as
+a single clean process; a row with nothing to resume it from is just left stopped, since an
+unmanaged process costs memory for nothing. One summary line is logged only when something
+actually changed.
 
 ## 7. A spawn the gate admits, but something inside spawn() still refuses, waits — not fails
 

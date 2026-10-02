@@ -91,6 +91,7 @@ await check("awaken: the idle clock resets, so an aggressive idle sweep cannot p
 	const agents = fresh();
 	const agent = agents.spawn({ id: "minion-race", role: "minion", name: "race", prompt: "go" });
 	assert.equal(agent.state, "working", "a fresh prompted spawn starts working");
+	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
 
 	// simulate the turn ending the way Agent.result() does: state -> idle, then register() —
 	// which THIS host's register() uses to try to sleep it (it is actually idle, so it succeeds).
@@ -149,24 +150,36 @@ await check("send(): a message to a starting (mid-first-turn) agent queues behin
 	assert.equal(agent.state, "working", "still just working — the second message did not get lost or corrupt the state");
 });
 
-// ── item 2: a dead pid does not count, and is set idle exactly once ─────────────────────
-await check("working(): a row whose claude.exe has died is excluded from the cap and set idle, logged once", () => {
+// ── item 2: a dead pid does not count, and is cleared exactly once ──────────────────────
+await check("working(): a row whose claude.exe has died is excluded from the cap and cleared, logged once", () => {
 	const agents = plain();
 	const agent = agents.spawn({ id: "minion-dead", role: "minion", name: "dead", prompt: "go" });
+	agent.queue.items.shift();   // the real SDK's pump() would already have consumed the first prompt by now
 	assert.equal(agents.working().some(a => a.id === agent.id), true, "alive (this test's own pid): counts");
 
 	agent.claude_pid = 999999999;   // almost certainly not a real pid on this machine
 	agent.started_at = new Date(Date.now() - 60000).toISOString();   // long past the starting grace
+	agent.queue.push(agent.turn("a message that arrived right as the process died"));   // still unconsumed
 
 	let says = 0;
 	agents.servex.say = () => { says++; };
 	const working_once = agents.working();
 	assert.equal(working_once.some(a => a.id === agent.id), false, "a dead pid does not count toward the cap");
-	assert.equal(agent.state, "idle", "the phantom was set idle, not left claiming to be working");
+	/* fresh-eyes review finding 3: NOT "idle" — an idle agent's send() pushes straight onto a
+	 * queue nothing is reading any more and the message would be accepted, then silently
+	 * stranded, with marked_phantom blocking this method from ever getting a second chance.
+	 * "dormant" makes send() call awaken() first, which actually starts a fresh process. */
+	assert.equal(agent.state, "dormant", "the phantom is DORMANT, not idle — so a real message still wakes a real process");
+	assert.equal(agent.held_messages?.length, 1, "whatever was stuck in the dead queue travels to held_messages, not lost");
 	assert.equal(says, 1, "logged once");
 
 	agents.working();   // called again: must not re-log or flap the state a second time
-	assert.equal(says, 1, "still once — mark_phantom is idempotent");
+	assert.equal(says, 1, "still once — mark_phantom is idempotent until the agent actually awakens");
+
+	// and a real message to it now actually wakes a (fake) process and delivers both messages
+	agents.send("minion-dead", "are you there now?", { from: "test" });
+	assert.equal(agent.state, "working", "awaken() ran a real start(), so this is genuinely working again");
+	assert.equal(agent.queue.items.length, 2, "the stranded message AND the new one, both delivered");
 });
 
 // ── item 3: a `starting` row that never began at all is re-queued, never dropped ───────
@@ -187,6 +200,12 @@ await check("Servex.requeue_stuck_start(): a starting agent re-queued at the hea
 	assert.equal(entry.spec.prompt, "never got anywhere", "its original, UNWRAPPED prompt travels with it — never re-wrapped a second time");
 	assert.equal(entry.spec._held_turns.length, 2, "both the start prompt's own turn and the one sent while it waited travel with it");
 	assert.match(entry.reason, /never began/);
+
+	// fresh-eyes review finding 5: does a turn object survive `save_queue()`'s JSON.stringify,
+	// so a Servex restart does not lose it — exactly the loss this whole task exists to close?
+	const revived = JSON.parse(JSON.stringify(entry));
+	assert.deepEqual(revived.spec._held_turns, entry.spec._held_turns, "a turn object round-trips through JSON whole");
+	assert.equal(revived.spec._held_turns[0].message.content, entry.spec._held_turns[0].message.content);
 });
 
 // ── item 7: a spawn the gate admits but the pool refuses waits, instead of vanishing ────

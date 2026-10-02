@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
-import Registry from "./registry.js";
+import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
@@ -547,7 +547,7 @@ export class Agents {
 			&& !a.waiting_on && !STANDING.test(a.id ?? "") && a instanceof Agents.Agent);
 		const out = [];
 		for (const a of rows){
-			if (a.claude_pid && pid_alive(a.claude_pid)){ out.push(a); continue; }
+			if (a.claude_pid && alive(a.claude_pid)){ out.push(a); continue; }
 			const age = Date.now() - (Date.parse(a.started_at) || Date.now());
 			if (age < STARTING_GRACE_MS){ out.push(a); continue; }   // just spawned: no pid yet, still counts
 			if (a.state === "working") this.mark_phantom(a);        // dead process, holding a slot: freed here
@@ -556,18 +556,33 @@ export class Agents {
 		return out;
 	}
 
-	/* Logged once per phantom, never a flapping state: once `marked_phantom` is set this agent
-	 * no longer matches `working()`'s own state filter, so there is nothing left to re-log. The
-	 * agent itself is left otherwise alone — idle, same session, same id — so a real message
-	 * still finds it exactly as it would any other idle agent (a later dormancy sweep, or a
-	 * send that resumes it). */
+	/* Logged once per phantom. `marked_phantom` is reset the moment this agent next actually
+	 * awakens (`awaken()`), so a second, later phantom episode on the SAME agent object is still
+	 * caught — it only guards against re-logging the one episode over and over on every
+	 * `working()` call.
+	 *
+	 * ⚠ Set `dormant`, not `idle` (fresh-eyes review finding 3 — the brief's own first sentence
+	 * said "idle", and this is the one place this task diverges from it, on purpose): an `idle`
+	 * agent's `send()` just pushes straight onto `this.queue` with no further check, so a real
+	 * message to this row would land in the SAME dead queue nothing is reading any more —
+	 * accepted, never delivered, and with `marked_phantom` already true this method would never
+	 * get a second chance to notice. `dormant` makes `send()` call `awaken()` first, which is the
+	 * path that actually starts a fresh process and replays anything still waiting — so whatever
+	 * was sitting in the dead queue, unconsumed, is carried over to `held_messages` here (the
+	 * same mechanism item 5 built for `sleep()`'s own queue.close()), never abandoned with it. */
 	mark_phantom(agent){
 		if (agent.marked_phantom) return;
 		agent.marked_phantom = true;
-		agent.state = "idle";
-		const msg = `${agent.id} was "working" with no live process (the awaken race) — set idle, its cap slot freed`;
+		const pending = agent.queue?.items?.splice(0) ?? [];
+		if (pending.length) (agent.held_messages ??= []).push(...pending);
+		try { agent.queue?.close(); } catch {}
+		try { agent.query?.close?.(); } catch {}
+		try { agent.aborter?.abort?.(); } catch {}
+		agent.state = "dormant";
+		agent.dormant_at = stamp();
+		const msg = `${agent.id} was "working" with no live process (the awaken race) — set dormant, its cap slot freed`;
 		this.servex?.say?.(msg, { event: "phantom", id: agent.id });
-		this.store().append("servex", { type: "phantom", id: agent.id, role: agent.role ?? null }).catch(() => {});
+		this.store().append("servex", { type: "phantom", id: agent.id, role: agent.role ?? null, held: pending.length || undefined }).catch(() => {});
 		this.register(agent);
 		agent.settle?.();
 	}
@@ -749,13 +764,6 @@ export const STANDING = /^(assistant-|manager-|master-assistant|session-|dispatc
  * always AFTER the synchronous `spawn()` call that started it returns. */
 export const STARTING_GRACE_MS = Number(process.env.SERVEX_STARTING_GRACE_MS) || 5000;
 
-/* The one direct test — same as `registry.js`'s own `alive()` — never a poll of some other
- * module's periodic snapshot (Processes.js samples every 10 s; a phantom should not get to hold
- * a cap slot for up to 10 s longer just because nobody asked recently). */
-function pid_alive(pid){
-	if (!pid) return false;
-	try { process.kill(pid, 0); return true; } catch (e){ return e.code === "EPERM"; }
-}
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
@@ -1021,12 +1029,21 @@ Agents.Agent = class Agent {
 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
 		if (this.bg_tasks > 0) return false;
 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
+		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
+		 * sets `idle` only when `queued_turn_count` is 0 — so `this.queue.items` should always be
+		 * empty here already. Captured anyway, belt and braces: a push that managed to land
+		 * between that check above and this line (the same single-tick window item 1 closes) is
+		 * carried to `held_messages` instead of silently discarded by `close()`, exactly like
+		 * `mark_phantom()`'s own copy of this same guard. */
+		const pending = this.queue.items.splice(0);
+		if (pending.length) (this.held_messages ??= []).push(...pending);
 		this.queue.close();
 		try { this.query.close(); } catch {}
 		try { this.aborter.abort(); } catch {}
 		this.state = "dormant";
 		this.dormant_at = stamp();
-		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns });
+		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns, held: pending.length || undefined });
 		this.host?.register?.(this);
 		this.settle();
 		return true;
@@ -1054,6 +1071,11 @@ Agents.Agent = class Agent {
 		const slept = this.dormant_at;
 		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
 		this.last_at = stamp();
+		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
+		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
+		 * same agent's life must still be caught, so the flag clears here, the moment it is
+		 * actually running again. */
+		this.marked_phantom = false;
 		this.start();
 		/* NEVER-LOSE-A-WAKE, item 5: anything `send()` had to set aside while this agent was
 		 * closed off (see `send()`'s own comment) is replayed now, as this agent's first turns —

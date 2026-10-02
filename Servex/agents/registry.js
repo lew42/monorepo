@@ -108,7 +108,10 @@ export default class Registry {
 	}
 }
 
-function alive(pid){
+/* Exported (fresh-eyes review, never-lose-a-wake, finding 6 — law 6, one of everything): this
+ * was the third and fourth copy of the exact same `process.kill(pid, 0)` check, in Agents.js and
+ * Servex.js. Both import this one now instead of keeping their own. */
+export function alive(pid){
 	try { process.kill(pid, 0); return true; }
 	catch (e){ return e.code === "EPERM"; }
 }

@@ -34,6 +34,7 @@ import Asks from "./asks/Asks.js";
 import Layers from "./agents/Layers.js";
 import Sessions from "./agents/Sessions.js";
 import Global, { claude_processes } from "./agents/Global.js";
+import { alive } from "./agents/registry.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
@@ -1081,10 +1082,12 @@ export default class Servex extends Events {
      *      stray process Servex's own bookkeeping has lost track of, found by the session id on
      *      its command line (the same trick `Global.measure()` already uses for memory). The
      *      safe side is chosen: when the row still carries a `spec` (so it can be opened exactly
-     *      as `wake()` would), it is ADOPTED — resumed in place, under its own id, no second
-     *      process; a row with nothing to resume it from is simply STOPPED, since an unmanaged
-     *      process costs RAM for nothing, and nothing can be lost by closing one no spec exists
-     *      to resume.
+     *      as `wake()` would), it is ADOPTED — the stray is stopped FIRST (never two processes
+     *      on one session at once — fresh-eyes review finding 1: an earlier version of this
+     *      spawned the resume before killing the stray, which is the unsafe order it claimed not
+     *      to be), then resumed in place under its own id; a row with nothing to resume it from
+     *      is simply STOPPED outright, since an unmanaged process costs RAM for nothing and
+     *      nothing is lost closing one no spec exists to resume.
      *
      * One summary line only when something actually changed — a quiet machine stays quiet. */
     async reconcile(){
@@ -1093,7 +1096,7 @@ export default class Servex extends Events {
 
         for (const agent of [...this.agents.live.values()]){
             if (!(agent instanceof this.agents.constructor.Agent) || agent.state !== "starting") continue;
-            if (agent.claude_pid && process_alive(agent.claude_pid)) continue;
+            if (agent.claude_pid && alive(agent.claude_pid)) continue;
             const age = now - (Date.parse(agent.started_at) || now);
             if (age < 60000) continue;
             this.requeue_stuck_start(agent);
@@ -1109,7 +1112,11 @@ export default class Servex extends Events {
             if ([...this.agents.live.values()].some(a => a.session_id === sid && a.state !== "stopped")) continue;   // already ours, live
             const row = Object.values(rows).find(r => r.session_id === sid);
             if (!row || !["dormant", "stopped"].includes(row.state)) continue;
-            if (row.spec){
+            // the stray always stops first — a resume on the SAME session while it is still
+            // running would be two processes writing one session, which is the actual unsafe side
+            let stopped = false;
+            try { process.kill(p.pid); stopped = true; } catch (e){ this.log.append("system", { type: "reconcile", why: "stray-stop-failed", id: row.id, pid: p.pid, error: String(e.message || e) }).catch(() => {}); }
+            if (row.spec && stopped){
                 try {
                     this.agents.spawn({ ...row.spec, id: row.id, resume: sid, cwd: row.cwd ?? row.spec.cwd });
                     out.adopted++;
@@ -1117,8 +1124,7 @@ export default class Servex extends Events {
                     continue;
                 } catch (e){ this.log.append("system", { type: "reconcile", why: "adopt-failed", id: row.id, error: String(e.message || e) }).catch(() => {}); }
             }
-            try { process.kill(p.pid); out.stopped_stray++; this.log.append("system", { type: "reconcile", why: "stopped-stray", id: row.id, pid: p.pid }).catch(() => {}); }
-            catch {}
+            if (stopped){ out.stopped_stray++; this.log.append("system", { type: "reconcile", why: "stopped-stray", id: row.id, pid: p.pid }).catch(() => {}); }
         }
 
         if (out.starting_stuck || out.adopted || out.stopped_stray)
@@ -1129,6 +1135,9 @@ export default class Servex extends Events {
     /* A `starting` agent that never began at all: stopped, and its own spec — plus anything
      * already waiting in its queue, unconsumed — put back at the head of the spawn gate's queue. */
     requeue_stuck_start(agent){
+        // `_held_turns` is plain data — `{type, message:{role, content}, parent_tool_use_id, priority?}`,
+        // the exact shape `Agent.turn()` builds — so `save_queue()`'s own `JSON.stringify` round-trips it
+        // whole (fresh-eyes review finding 5; proved by `awaken-race.test.mjs`'s own JSON round-trip check).
         const held = agent.queue?.items?.splice(0) ?? [];
         // `raw_prompt` (Agents.js spawn(), item 3): the caller's own prompt, before the skill-load
         // preamble and readme chain were baked in — spawning again with THAT, never `agent.prompt`
@@ -1393,10 +1402,3 @@ const WAIT_REFUSALS = [
     { test: /^openrouter spawn refused:/, reason: "waits for the OpenRouter pace guard to clear", top_up: false }
 ];
 
-/* The reconcile's own direct liveness test — same as `registry.js`'s `alive()` and
- * `Agents.js`'s `pid_alive()` (each file keeps its own tiny copy rather than import across a
- * fence that does not otherwise need one). */
-function process_alive(pid){
-    if (!pid) return false;
-    try { process.kill(pid, 0); return true; } catch (e){ return e.code === "EPERM"; }
-}
