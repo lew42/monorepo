@@ -30,3 +30,6 @@ The voice session's minions edited main directly, and several had no shell, so n
 14. [ ] **Context cards:** a library of UI cards the assistants use to SHOW things (a page icon and name header, any content inside). (minion-context-card-type, reusing ext/Mention)
 15. [x] **The 15:35 phone regression:** an "aborted" error that stopped the mic, a transcript that repeated itself, and beeping after every pause. The phone had fallen back to Chrome's own recognizer. Fixed in `ux/Dictate/Dictate.js` (merge 4ae2ddc3) and proven headless before and after ([fix-android](fix-android/report.md)).
 16. [ ] **"No response requested" shown as a bubble, then gone** (15:39–15:45): draw an assistant's text only once its final reply is in, non-empty and not filler. Merge 14.
+
+## Queued after the drawer work (vscode-mastermind, 2026-10-02)
+17. [ ] **Reference suggestions while typing:** in the one chat composer, typing `@`, `#` or `/` shows a strip of chips from Mention's own map, just above the keyboard, and picking one inserts the reference. Low priority, minimal version. ([brief](minion-autocomplete/requirements.md))
