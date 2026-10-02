@@ -16,4 +16,5 @@ Read and write files only inside that folder. Do NOT touch `C:/Code/lew42/monore
 - Read the readme chain first: `readme.md` (root), `public/framework/readme.md`, and the readme of each folder you work in.
 - **Log as you go** in your task log, which is already open (its path is in your first message). Append lines with `node .claude/hooks/append.mjs <task.jsonl> <lines.json>`, never with shell redirection.
 - **Check it works:** `node Server/smoke.mjs <your worktree> /imagine/lines/` (run from your worktree) must exit 0. Also load the page in a headless browser with no console errors. Save two screenshots in YOUR task folder: `shot-1200.png` and `shot-400.png`.
+- **Never open or Read a .png (or any image).** Your model takes no image input: one image read ends your turn with an API 400. Save the screenshots, check the console text, and trust smoke.mjs.
 - When it's done, write `result.md` in your task folder: what you built, the files, what works, what doesn't. Five to ten plain lines. Then stop.
