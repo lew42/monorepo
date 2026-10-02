@@ -164,9 +164,9 @@ function groupByModelEffort(list){
 // Claude rows: Anthropic's own published list prices. OpenRouter rows: openrouter.ai's public
 // /api/v1/models pricing (checked 2026-10-01; prompt/completion $ per token). Blended at a plain
 // 1:1 prompt:completion average — this is a relative ranking number, not a cost estimate.
-const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, Anthropic's list prices
-	"claude-opus-5-5": { prompt: 15e-6, completion: 75e-6 }, // the real model id (test-library runs confirm it), not "claude-opus-5"
-	"claude-sonnet-5": { prompt: 3e-6, completion: 15e-6 },
+const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, OpenRouter catalog prices for these ids, checked 2026-10-01 (Sonnet 5 $2/$10, Opus 5.5 $4/$20)
+	"claude-opus-5-5": { prompt: 4e-6, completion: 20e-6 }, // the real model id (test-library runs confirm it), not "claude-opus-5"
+	"claude-sonnet-5": { prompt: 2e-6, completion: 10e-6 },
 	"claude-haiku-4-5-20251001": { prompt: 1e-6, completion: 5e-6 },
 };
 // Fallback snapshot of OpenRouter's public pricing (fetched 2026-10-01) in case the live fetch
