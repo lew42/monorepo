@@ -286,3 +286,4 @@
 {"log":{"at":"2026-10-02T04:25:56.539Z","msg":"Fixer landed as applied-not-merged (main was dirty); verified vs worktree/fixer, tests 11/11, committed fa00e7d4; restart batched with never-lose-a-wake"}}
 {"log":{"at":"2026-10-02T04:25:56.539Z","msg":"pool removed qf-4 at 23:13:39 (returned 23:13:11, then its server died → remove+top_up); qf-4 dir left on disk with 8 noise lines; Pool.remove calls worktree-down on a slot it already forgot — follow-up for the pool brief"}}
 {"log":{"at":"2026-10-02T22:47:05.735Z","msg":"owner ask D (JSONL writer audit, five gaps): brief ai/2026-10-02/jsonl-writers/requirements.md $12, card 2026/10/02/one-jsonl-system-the-five-unchecked-writ, minion-jsonl-writers (Sonnet, medium) spawned"}}
+{"log":{"at":"2026-10-02T23:13:09.805Z","msg":"jsonl-writers landed (applied, not merged — main dirty); verified tests 75/75; committed; Append.js needs the dev-server restart (batched)"}}
