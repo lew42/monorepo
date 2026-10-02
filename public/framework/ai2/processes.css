@@ -1,0 +1,211 @@
+@layer base, theme, site, util;
+
+/* THE PROCESSES SECTION (process-monitor, 2026-09-30; moved out of ai2.css, merge 7,
+   2026-10-01) — the Live card's RAM/CPU graph, the by-task rows, orphans and
+   worktrees. `processes.js` draws it; this is only the rules its own classes need
+   beyond what Card.css's `.ai2-live-section` / `.ai2-live-item` already give every
+   block on the Live card. Every class here starts `ai2-proc-`. */
+/* ── the Processes section (process-monitor, 2026-09-30) ──────────────────
+   `processes.js` draws the RAM+CPU graph, the by-task rows, orphans and
+   worktrees; these are only the rules its own classes need beyond what the
+   Live card's own `.ai2-live-section` / `.ai2-live-item` already give every
+   block on this page (`live.js`). Every class here starts `ai2-proc-`. */
+@layer theme {
+	.ai2-proc-headline {
+		display: block;
+		margin-block-start: 0.3em;
+	}
+
+	.ai2-proc-legend {
+		margin-block-start: 0.4em;
+		align-items: center;
+	}
+
+	.ai2-proc-dot {
+		width: 0.6em;
+		height: 0.6em;
+		border-radius: 50%;
+		flex: none;
+	}
+	.ai2-proc-dot-ours { background: var(--prim); }
+	.ai2-proc-dot-other { background: var(--subtle); opacity: 0.6; }
+
+	/* RAM on top, CPU below, one shared hover crosshair — `position: relative`
+	   is what lets `processes.js` place the crosshair and tooltip (both
+	   absolutely positioned) against the pointer's fraction across the graph. */
+	.ai2-proc-graph {
+		position: relative;
+		margin-block-start: 0.6em;
+		cursor: crosshair;
+	}
+
+	/* Fixed pixel bands, not `cqi` — this box sits with no sizing container of
+	   its own, and `cqi` with none reads as zero (a trap this module's own
+	   readme names for the rail, `ai2-rail-rhythm`). `vw` still answers the
+	   layout skill's four widths: the chart is shorter at 400, taller at 3440. */
+	.ai2-proc-ram-svg {
+		display: block;
+		width: 100%;
+		height: clamp(70px, 10vw, 140px);
+	}
+
+	.ai2-proc-cpu-svg {
+		display: block;
+		width: 100%;
+		height: clamp(28px, 4vw, 56px);
+		margin-block-start: 0.2em;
+	}
+
+	.ai2-proc-cross {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 1px;
+		background: var(--line);
+		pointer-events: none;
+	}
+
+	.ai2-proc-tip {
+		position: absolute;
+		top: -0.3em;
+		transform: translate(-50%, -100%);
+		max-width: 22em;
+		padding: 0.3em 0.5em;
+		border: 1px solid var(--line);
+		border-radius: 0.3em;
+		background: var(--surface);
+		font-size: 0.8em;
+		white-space: nowrap;
+		pointer-events: none;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+		z-index: 1;
+	}
+
+	.ai2-proc-hide { display: none; }
+
+	/* A group row — `<details>`/`<summary>` for the fold, so a click opens its
+	   processes or agents with no script of its own.
+	   ⚠ IT WEARS `.ai2-live-item` FOR ITS LOOK (border, padding) ONLY — that
+	   class is also a 4-COLUMN GRID (`5.5em / max-content / 1fr / auto`) built
+	   for a plain row's exact four parts (state badge, name, line, ✕), and a
+	   grid only auto-places a child it was never told where to put into
+	   column ONE — 5.5em wide. `<summary>` landed there with no placement of
+	   its own, and its OWN flex children (the name, the count, the sparkline)
+	   then wrapped inside that 88px sliver — `.ai2-live-name`'s `overflow-wrap:
+	   anywhere` turned "dev servers" into one letter per line, 600px tall (the
+	   headless proof's own child-height dump caught it: a span 10px wide and
+	   604px tall). Every direct child spanning the whole grid is the fix —
+	   `<summary>` and the body (the pid chips, or the agent rows) both need
+	   it, so this targets `> *`, not `> summary` alone. */
+	.ai2-proc-row > summary {
+		cursor: pointer;
+		list-style: none;
+		/* A bare `<summary>` also wears framework.css's "control grammar" — a
+		   button's fill, border and radius, and `width: fit-content`, which
+		   sized each row to its OWN text instead of the list: "Dev servers"
+		   came out ~290px wide, "Claude Code session (pid …)" ~450px, no two
+		   the same (fix round, 2026-09-30). This row is a list row, not a
+		   control — `.ai2-ov-done > summary` and `.research-node > summary`
+		   take their own look off the same way. Layer order (`theme` after
+		   `base`) wins this regardless of specificity, so no `!important`. */
+		width: 100%;
+		max-width: none;
+		min-height: 0;
+		padding: 0;
+		background: none;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.ai2-proc-row > summary::-webkit-details-marker { display: none; }
+	.ai2-proc-row > summary::marker { content: ""; }
+	.ai2-proc-row > * {
+		grid-column: 1 / -1;
+	}
+
+	/* ⚠ A CLOSED `<details>` ONLY STAYS CLOSED BECAUSE THE BROWSER'S OWN STYLE HIDES
+	   ITS BODY, AND THAT IS A USER-AGENT RULE — the lowest-priority origin there is,
+	   so ANY author `display` declaration on the body beats it even from `@layer
+	   base`. `.ai2-proc-pids` sets `display: flex` on exactly that body (a direct
+	   child of `<details>`, sibling of `<summary>`), which silently defeated the
+	   collapse: every one of ~24 group rows rendered its full pid list all the time,
+	   closed or not, and the Live card measured 14,000px tall instead of ~250 (the
+	   headless proof's own hover shot caught it). This rule restores the collapse as
+	   an explicit AUTHOR declaration, which is what `display` always needed to be
+	   here — (0,2,1) beats `.ai2-proc-pids`'s (0,1,0) regardless of source order. */
+	.ai2-proc-row:not([open]) > :not(summary) {
+		display: none;
+	}
+
+	.ai2-proc-row-head {
+		justify-content: space-between;
+	}
+
+	.ai2-proc-spark-box {
+		flex: none;
+		width: 5em;
+	}
+
+	.ai2-proc-spark {
+		display: block;
+		width: 100%;
+		height: 1.2em;
+	}
+
+	/* The bare PIDs a non-agent group rolls up — a wrapping row of small
+	   chips, scrolling on its own past a handful of lines rather than
+	   stretching the card (a "dev servers" group alone had 53 of them). */
+	.ai2-proc-pids {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3em;
+		max-height: 6em;
+		overflow-y: auto;
+		margin-block-start: 0.4em;
+	}
+
+	.ai2-proc-pid {
+		padding: 0.05em 0.4em;
+		border: 1px solid var(--line);
+		border-radius: 1em;
+		font-size: 0.78em;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	/* Worktrees: two plain lines, flush left like Orphans above it — not
+	   `.ai2-live-item`'s 4-column grid, which is built for a badge + name +
+	   line + ✕ row and has no column for two lines of running text. */
+	.ai2-proc-worktrees {
+		padding: 0.3em 0.4em;
+		border-block-end: 1px solid var(--line);
+	}
+
+	.ai2-proc-worktrees-line {
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* Ask 2: the real process behind a "Running now" row — a quiet line under
+	   its existing one, same look as every other muted line on this card. */
+	.ai2-proc-badge {
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Ask 3: a stale VS Code conversation's own badge ("stale · idle 5 h") on
+	   its group row, and the one-line summary under the headline. `--warn` is
+	   the same token the usage rail's own ramp uses for "notice, not broken" —
+	   nothing is closed here, so this is never `--error`. */
+	.ai2-proc-stale {
+		color: var(--warn);
+		font-weight: 600;
+	}
+
+	.ai2-proc-stale-line {
+		display: block;
+		color: var(--warn);
+		margin-block-start: 0.2em;
+	}
+}

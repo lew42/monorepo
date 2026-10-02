@@ -1,5 +1,7 @@
-import { div, span, small, h3, details, summary } from "/app.js";
+import { View, div, span, small, h3, details, summary } from "/app.js";
 import { servex_base } from "./inbox.js";
+
+View.stylesheet(import.meta, "processes.css");
 
 /**
  * THE PROCESSES SECTION — `/framework/ai2/live/`'s "Processes" block (the owner,

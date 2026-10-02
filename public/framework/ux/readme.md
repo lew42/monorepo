@@ -5,6 +5,7 @@
 Every module here, and what you would use it for.
 
 - [Auth](./Auth/) — login, signup, password reset and a social-login row, as one class you can extend.
+- [Card](./Card/) — the look of an AI card's own page: a head, an outline, a chat column. The AI 2 and AI card pages.
 - [Content](./Content/) — cards that read and append to a `.jsonl` log: Question, Decision, Quotation, Spend.
 - [Course](./Course/) — chapters of lessons with a side rail, a reading column and a next-up card.
 - [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard.

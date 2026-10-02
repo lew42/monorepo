@@ -5,7 +5,11 @@ import needs_view from "./needs.js";
 import log_view from "./log.js";
 import { LIVE } from "./live.js";
 
+// ai2.css is only the v1 screens this file routes to (needs/, log/, overview/);
+// everything about a card's own look is the ux block, loaded here too because this
+// page is the shell every card opens inside (merge 7, inbox-ext, 2026-10-01).
 View.stylesheet(import.meta, "ai2.css");
+View.stylesheet("/framework/ux/Card/Card.css");
 
 /**
  * AI 2 — A LIST ON THE LEFT, ONE PAGE ON THE RIGHT, AND NOTHING EVER JUMPS
@@ -131,7 +135,7 @@ function log_page(root){
 		title: "Log",
 		url: root.url + "log/",
 		classes: "ai2-log-page inbox-takeover",
-		content(){ log_view(root.ai2.on_tasks); },
+		content(){ log_view(fn => root.ai2.on_tasks(fn)); },
 	});
 }
 
