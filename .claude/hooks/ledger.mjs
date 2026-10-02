@@ -3,7 +3,14 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { check } from "./jsonl-schema.mjs";
+
+// A review (2026-10-02) caught this: a STATIC `import { check } from "./jsonl-schema.mjs"`
+// means that if jsonl-schema.mjs ever fails to load (a syntax slip, a bad merge), ledger.mjs
+// can't even start — so every task log goes silent, with nothing reporting it. That is exactly
+// what the owner's top rule forbids, and the try/catch around check()'s own CALL can't catch a
+// failed IMPORT. So: a dynamic import, with a safe "nothing is wrong" fallback if it fails.
+let check = () => null;
+try { ({ check } = await import("./jsonl-schema.mjs")); } catch {}
 
 const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
 

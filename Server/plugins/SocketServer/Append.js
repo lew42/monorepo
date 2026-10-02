@@ -1,6 +1,13 @@
 import fs from "fs";
 import path from "path";
-import { check } from "../../../.claude/hooks/jsonl-schema.mjs";
+
+// A dynamic import with a safe fallback, not a static one — a review (2026-10-02) pointed
+// out that a static import ties the WHOLE dev server's boot to jsonl-schema.mjs loading
+// cleanly. A static import fails loudly (the server won't start at all) rather than silently,
+// so it is less dangerous than the same mistake in ledger.mjs, but matching ledger.mjs's own
+// fallback here means a broken checker degrades this ONE plugin instead of the whole server.
+let check = () => null;
+try { ({ check } = await import("../../../.claude/hooks/jsonl-schema.mjs")); } catch {}
 
 const PUBLIC = path.resolve("public");
 

@@ -34,7 +34,11 @@ process.stdin.on("data", d => raw += d).on("end", () => {
 		const input = JSON.parse(raw);
 		const tool = input.tool_name;
 		if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
-			const file = input.tool_input?.file_path;
+			// NotebookEdit's tool_input carries `notebook_path`, not `file_path` — a review
+			// (2026-10-02) caught that reading only `file_path` left NotebookEdit's half of the
+			// matcher doing nothing. Harmless in practice (nobody edits a .jsonl as a notebook),
+			// but the fallback costs nothing and makes the matcher mean what it claims.
+			const file = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
 			if (file && /\.jsonl$/i.test(String(file)) && existsSync(String(file))) {
 				process.stderr.write(MESSAGE);
 				process.exit(2);
