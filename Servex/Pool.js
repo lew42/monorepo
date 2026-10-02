@@ -70,7 +70,7 @@ export default class Pool extends Events {
 
     list(){
         return { K: this.K, N_hours: this.N_hours, slots: this.slots.map(s => ({ id: s.id, state: s.state, url: s.url, path: s.path,
-            branch: s.branch, taken_by: s.taken_by, taken_at: s.taken_at, idle_since: s.idle_since })) };
+            branch: s.branch, taken_by: s.taken_by, taken_at: s.taken_at, idle_since: s.idle_since, held_by: s.held_by ?? null })) };
     }
 
     say(msg, extra = {}){
@@ -161,6 +161,31 @@ export default class Pool extends Events {
         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
     }
 
+    /* HOLD (fixer, 2026-10-01): a standing holder — the fixer, or anything else that takes a
+     * slot once and keeps it for its whole life, never calling return_worktree between fixes —
+     * marks its own slot so the 10-minute sweep's `reclaim()` never second-guesses it from
+     * registry state alone. Registry state can blip (a Servex restart's own "before revive runs
+     * yet" window, say) while the real holder is still very much alive and about to write there;
+     * pool.md's own story (qf-9, 2026-09-30) is exactly a holder that LOOKED stopped and was not.
+     * `held()` below checks this FIRST, before asking the registry anything. Idempotent — call it
+     * again any time, e.g. after a restart, to reassert it; `by` is for the log line only. */
+    hold(id, by){
+        const slot = this.slots.find(s => s.id === id);
+        if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
+        slot.held_by = by || slot.taken_by || "unknown";
+        this.save();
+        this.say(`pool: ${id} held by ${slot.held_by} — the sweep will never reclaim it`, { id, held_by: slot.held_by });
+        return { id, held_by: slot.held_by };
+    }
+
+    /* The other half, for symmetry — not used by the fixer (which never gives its slot back),
+     * but here so a held slot is not stuck held forever if a future caller does return it. */
+    unhold(id){
+        const slot = this.slots.find(s => s.id === id);
+        if (slot) { delete slot.held_by; this.save(); }
+        return { id, held_by: null };
+    }
+
     async give_back(id){
         const slot = this.slots.find(s => s.id === id);
         if (!slot) throw new Error(`No worktree "${id}" in the pool. It has: ${this.slots.map(s => s.id).join(", ") || "none"}.`);
@@ -242,6 +267,7 @@ export default class Pool extends Events {
     /* Why a taken slot is still held, or null when rules 1 and 2 above let it go.
      * `dead` is true when only rule 2 keeps it (the holder itself has stopped). */
     held(slot, rows, queued = []){
+        if (slot.held_by) return { why: `held by ${slot.held_by}` };   // an explicit hold wins outright — see hold() above
         const LIVE = ["idle", "working", "queued", "starting"];
         const row = rows.find(r => r.id === slot.taken_by || r.name === slot.taken_by);
         if (!row) return { why: `${slot.taken_by} is not a Servex agent` };

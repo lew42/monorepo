@@ -289,6 +289,58 @@ export default class Sessions {
 		return { ok: true, file: `${at.name}ai/log.jsonl`, line: checked };
 	}
 
+	// ── the fast path: quick_fix / quick_fix_landed (fixer, 2026-10-01) ────────
+
+	/* `public/framework/ai/quick-fix/page.jsonl` — its own page, "data lives with its page".
+	 * One line per request (`quick_fix`, below) and one more per landing (`quick_fix_landed`),
+	 * both sharing the same `quickfix.asked_at` so the page can fold them into one row. */
+	quickfix_file(){ return path.join(this.disk("/framework/ai/quick-fix/"), "page.jsonl"); }
+
+	/* THE HOT-PATH DOOR (quick_fix tool, tools.js): a small, concrete page change goes straight
+	 * to the standing fixer, `fixer-1` — no spawn, nothing new made. Writes the `asked` line
+	 * itself, here, in node (CLAUDE.md law 7: measured, never recalled — the fixer is never asked
+	 * to state when IT was asked, because it would have to recall that, not compute it), then
+	 * hands the request on. `session` is optional: a test, or a direct `send_to_agent`, has none. */
+	quick_fix({ page, selection, text, session } = {}){
+		if (!String(page ?? "").trim()) throw Object.assign(new Error("quick_fix needs `page`, the site path being edited"), { status: 400 });
+		if (!String(text ?? "").trim()) throw Object.assign(new Error("quick_fix needs `text`, what to change"), { status: 400 });
+		const fixer = this.servex?.fixer;
+		if (!fixer) throw Object.assign(new Error("the fixer is not running in this Servex (SERVEX_NO_FIXER, or SERVEX_NO_POOL?)"), { status: 503 });
+		const sel = selection && typeof selection === "object" ? trim_sel(selection) : null;
+		const asked_at = now_ms();
+		this.append(this.quickfix_file(), { quickfix: { asked_at, page, selection: sel, text, session: session ?? null, fixer: fixer.id } });
+
+		let agent;
+		try { agent = fixer.ensure(); }
+		catch (e){ return { ok: false, asked_at, why: `logged, but the fixer could not be reached: ${e.message || e}` }; }
+
+		// mid a fix already -> this one queues behind it, and the caller is told how far back;
+		// otherwise (idle, or just starting) it cuts in at once — nothing real to interrupt.
+		const ahead = agent.state === "working" ? (agent.queued ?? 0) + 1 : 0;
+		const note = `[quick fix${session ? `, session ${session}` : ""}] page: ${page}\n${selected_prefix(sel)}${text}`
+			+ `\n\n(asked_at: ${asked_at} — pass this back, exactly, to quick_fix_landed)`;
+		this.servex.agents.send(fixer.id, note, { from: session ?? "voice",
+			...(session ? { reply_to: `session ${session}` } : {}), ...(ahead ? {} : { priority: "now" }) });
+
+		return { ok: true, fixer: fixer.id, asked_at, ahead, note: ahead ? `fixer busy, ${ahead} ahead` : "sent to the fixer" };
+	}
+
+	/* THE FIXER CALLS THIS ONCE ITS OWN `merge.mjs` HAS ACTUALLY LANDED THE FIX. `ms` is computed
+	 * here, from the real `asked_at` this same class logged above — never something the model
+	 * states, because an agent's own sense of elapsed wall-clock time is a guess, not a
+	 * measurement (CLAUDE.md law 7, fixer.md step 8). Everything else (`sha`, `files`, `lines`,
+	 * `width`, `shot`) is real tool output the fixer is only relaying, not inventing. */
+	quick_fix_landed({ asked_at, sha, files, lines, width, shot } = {}){
+		if (!String(asked_at ?? "").trim()) throw Object.assign(new Error("quick_fix_landed needs the `asked_at` quick_fix gave you"), { status: 400 });
+		if (!String(sha ?? "").trim()) throw Object.assign(new Error("quick_fix_landed needs `sha`, merge.mjs's own commit"), { status: 400 });
+		const landed_at = now_ms();
+		const ms = Date.parse(landed_at) - Date.parse(asked_at);
+		if (!Number.isFinite(ms)) throw Object.assign(new Error(`"${asked_at}" is not a time quick_fix could have given you`), { status: 400 });
+		this.append(this.quickfix_file(), { quickfix: { asked_at, landed_at, sha,
+			files: files ?? null, lines: lines ?? null, width: width ?? null, shot: shot ?? null, ms } });
+		return { ok: true, ms, seconds: Math.round(ms / 100) / 10 };
+	}
+
 	presence(s, site, event){
 		this.append(path.join(this.disk(site), "ai", "log.jsonl"),
 			{ session: { id: s.id, event, title: s.title ?? null, file: s.file, at: now_ms() } });

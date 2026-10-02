@@ -28,6 +28,7 @@ import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
+import Fixer from "./agents/Fixer.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
 import Asks from "./asks/Asks.js";
@@ -263,6 +264,15 @@ export default class Servex extends Events {
         /* THE WORKTREE POOL (quickfix-worktrees, 2026-09-25): one warm worktree any agent
          * takes with take_worktree. Pool.js and doc/pool.md. `SERVEX_NO_POOL=1` boots without it. */
         if (!process.env.SERVEX_NO_POOL) this.pool = new this.constructor.Pool({ servex: this }).start();
+
+        /* THE FIXER (quick-fix-path, 2026-10-01): one standing quick-fix worker, warm for as
+         * long as Servex runs, holding one pool worktree for its whole life (never a
+         * take/return per fix — see Fixer.js's own comment on why). The `quick_fix` tool
+         * (Sessions.js + tools.js) is the door a voice session's smart assistant sends a small,
+         * concrete page change through. Needs `this.pool`, so it boots right after it.
+         * `SERVEX_NO_FIXER=1` boots without it, same pattern as every other optional piece here. */
+        this.fixer = new this.constructor.Fixer({ servex: this });
+        if (!process.env.SERVEX_NO_FIXER && this.pool) setImmediate(() => this.fixer.start());
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
         this.routes();
@@ -1226,6 +1236,7 @@ Servex.Log = class ServexLog extends Log {
 };
 
 Servex.Assistant = Assistant;
+Servex.Fixer = Fixer;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
 Servex.Asks = Asks;
