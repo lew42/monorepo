@@ -268,6 +268,17 @@ const kinds = [
 	buildKind("rules", "Rule adherence — 5 house rules (CLAUDE.md law, readme chain, tool IDs, append.mjs, the fence)", ruleFinal, { alreadyFinal: true }),
 	buildKind("page-blog", "Probe: write a blog post page from a one-line brief", results.filter(r => r.probe === "page-blog")),
 	buildKind("log-line", "Probe: log one line to today's task", results.filter(r => r.probe === "log-line")),
+	/* local-ai, 2026-10-01: a local-provider model can't run through the real test-library harness
+	 * yet (library.mjs spawns through the LIVE Servex's spawn_agent, which only learns the "local"
+	 * provider once this branch merges and restarts) — so a local model's h1-page attempt is run
+	 * standalone (public/framework/ai/2026-10-01/local-ai/build/h1-eval.mjs) and lands here, in
+	 * results.jsonl, the same `{"probe":{...}}` shape every row above already uses, rather than on
+	 * tests/h1-page/page.jsonl (the test-library's own file, outside this task's fence). A separate
+	 * kind, not merged into a future "new-page" library kind, because the harness differs (no
+	 * readme-chain/minion-skill preamble a real spawn_agent minion gets) — comparable to the cloud
+	 * h1-page runs in spirit, not apples-to-apples in method.
+	 */
+	buildKind("h1-page (local provider)", "A local model's own attempt at the test library's h1-page floor test, run standalone", results.filter(r => r.probe === "h1-page")),
 ];
 
 // One more kind per distinct `kind` the test library declares (new-page, quick-fix, planning,

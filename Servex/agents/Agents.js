@@ -10,6 +10,7 @@ import Registry from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
  * What lands here is the PROJECTION: one typed event per SDK message, written
@@ -125,10 +126,18 @@ export class Agents {
 		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
 		 * gets the openrouter provider for free — nobody has to say `provider`
-		 * by hand. An explicit `spec.provider` always wins. */
+		 * by hand. An explicit `spec.provider` always wins.
+		 *
+		 * LOCAL MODELS (ext/local/provider.js, requirements.md Phase 3): a
+		 * `local/qwen2.5-coder` id ALSO has a `/` in it, so it has to be
+		 * checked FIRST — `provider_for()` itself only knows the OpenRouter
+		 * half of the rule and can't be changed from here (outside this file's
+		 * fence), so the `local/` prefix is caught here instead, one line
+		 * ahead of the generic slash rule. */
+		const provider_of = m => is_local_model(m) ? "local" : provider_for(m);
 		// the role's provider goes with the role's MODEL: a caller's own `model` (e.g. a slug on a
 		// `minion`) picks its provider by the slash rule, or a fast-tier minion sent `openai/...` to Anthropic (2026-10-01)
-		const provider = spec.provider ?? (spec.model ? provider_for(model) : role_defaults(spec.role).provider) ?? provider_for(model);
+		const provider = spec.provider ?? (spec.model ? provider_of(model) : role_defaults(spec.role).provider) ?? provider_of(model);
 		/* CLAUDE STAYS ON THE SUBSCRIPTION (requirements.md; review.md finding 6):
 		 * an explicit `provider: "openrouter"` paired with a Claude model id would
 		 * bill that model per token through the gateway instead. The slash rule
@@ -869,7 +878,8 @@ Agents.Agent = class Agent {
 		 * SDK's own Anthropic call for an OpenRouter one; read once here, right
 		 * before the process spawns, so a missing key fails this agent's own
 		 * start() with one clear line instead of a confusing SDK auth error. */
-		const or_env = this.provider === "openrouter" ? env_for("openrouter") : null;
+		const or_env = this.provider === "openrouter" ? env_for("openrouter")
+			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
 		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
 		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });

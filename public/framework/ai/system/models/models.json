@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-10-01T07:00:47.288Z",
+	"generated_at": "2026-10-02T02:34:32.826Z",
 	"weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
 	"kinds": [
 		{
@@ -32,7 +32,7 @@
 					"n": 5,
 					"performance": 1,
 					"cost": 0.028532321200000006,
-					"xSonnet": 0.03,
+					"xSonnet": 0.04,
 					"value": 35.05,
 					"belowBar": false
 				},
@@ -42,7 +42,7 @@
 					"n": 5,
 					"performance": 1,
 					"cost": 0.029061854399999996,
-					"xSonnet": 0.03,
+					"xSonnet": 0.04,
 					"value": 34.41,
 					"belowBar": false
 				},
@@ -144,6 +144,34 @@
 				"source": "claude-best",
 				"model": "claude-haiku-4-5-20251001"
 			},
+			"best": null
+		},
+		{
+			"kind": "h1-page (local provider)",
+			"label": "A local model's own attempt at the test library's h1-page floor test, run standalone",
+			"rows": [
+				{
+					"model": "local/qwen2.5-coder",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": 0,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": false
+				},
+				{
+					"model": "local/gemma-3-4b",
+					"effort": "medium",
+					"n": 1,
+					"performance": 0,
+					"cost": 0,
+					"xSonnet": null,
+					"value": null,
+					"belowBar": false
+				}
+			],
+			"bar": null,
 			"best": null
 		},
 		{
@@ -281,16 +309,6 @@
 					"xSonnet": 0.67,
 					"value": 1.79,
 					"belowBar": false
-				},
-				{
-					"model": "openai/gpt-6-luna",
-					"effort": "low",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": 0.03,
-					"value": null,
-					"belowBar": true
 				}
 			],
 			"bar": {

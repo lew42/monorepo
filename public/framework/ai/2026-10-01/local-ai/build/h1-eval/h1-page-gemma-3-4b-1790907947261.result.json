@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-02T02:25:56.896Z",
+  "run": "h1-page-gemma-3-4b-1790907947261",
+  "probe": "h1-page",
+  "model": "local/gemma-3-4b",
+  "effort": "medium",
+  "dir": "public/framework/ai/2026-10-01/local-ai/build/h1-eval/h1-page-gemma-3-4b-1790907947261",
+  "pass": 0,
+  "label": {},
+  "reached": true,
+  "cost_usd": 0,
+  "turns": 1,
+  "ms": 6382,
+  "mechanical": {
+    "parse": true,
+    "linked": {
+      "ok": false,
+      "why": "hello not found in parent's children:"
+    },
+    "h1": {
+      "ok": false,
+      "found": [
+        "Page Load Error"
+      ],
+      "errors": [],
+      "why": "H1s were [\"Page Load Error\"], wanted \"Hello from the floor test\""
+    }
+  },
+  "note": "hello not found in parent's children: | H1s were [\"Page Load Error\"], wanted \"Hello from the floor test\""
+}
