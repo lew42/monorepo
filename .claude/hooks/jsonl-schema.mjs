@@ -73,15 +73,18 @@ export const schemas = {
 		},
 	},
 	/* flags.jsonl's lines are FLAT (no verb key wrapping the rest, unlike every schema above) —
-	 * computed 2026-10-02 from the 173 lines that existed then (never guessed): every single one
-	 * has `at`, `target` and `verdict`; `kind`, `to` and `what` are sometimes there, never required.
-	 * `verdict` is one of the seven values actually in use. `flat: true` tells check() to skip the
-	 * one-verb-per-line logic entirely and just look for these keys. */
+	 * computed 2026-10-02 from the lines that existed then (never guessed): every single one has
+	 * `at`, `target` and `verdict`; `kind`, `to` and `what` are sometimes there, never required.
+	 * `verdict` is every value actually in use as of 2026-10-02 — if a NEW one ever gets refused,
+	 * that is this list falling behind real usage, not a bad line: add the value here (never edit
+	 * flags.jsonl itself; `jsonl-schema.test.mjs` re-checks every live line and says exactly which
+	 * one and why). `flat: true` tells check() to skip the one-verb-per-line logic entirely and
+	 * just look for these keys. */
 	"flags.jsonl": {
 		what: "the clarity skill's flag log (.claude/skills/clarity/flags.jsonl)",
 		flat: true,
 		fields: ["at", "target", "verdict"],
-		enums: { verdict: ["queued", "spawned", "clear", "rewrote", "ui", "sent", "not run"] },
+		enums: { verdict: ["queued", "spawned", "clear", "rewrote", "ui", "sent", "not run", "skipped"] },
 		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
 	},
 	/* A card's (or any page's) page.jsonl is OPEN on purpose: line 1 is the constructor, every later
