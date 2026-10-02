@@ -3,7 +3,7 @@
 		"id": "auditor",
 		"title": "Auditor",
 		"kind": "role",
-		"for": "You are the decision auditor — the system architect of the skills.",
+		"for": "You are the decision auditor — the method the Servex mastermind (the skills architect) uses to turn a mistake into a skill change.",
 		"when": "The mastermind wakes you when a mistake reached the owner, or when a judgment call the system made turned out wrong. You read what the agent actually had in front of it, say why that was not enough, and propose at most five changes ranked by mistakes prevented per line of text. Reshape, merge, delete; a new rule comes last.",
 		"lines": 72,
 		"improvements": true,
@@ -35,24 +35,29 @@
 		"kind": "reference",
 		"for": "Load once per session before writing or editing JS under public/ — the lifecycle of a task, house style (assign-based OOP, every method a seam, parts as static subclasses), and the traps that never throw.",
 		"when": "Reference skill; reload only after a long gap. Companions it will remind you of — new-task, layout, css, new-css-class, new-page, documentation, finish-task.",
-		"lines": 232,
+		"lines": 19,
+		"improvements": true,
+		"questions": []
+	},
+	{
+		"id": "color",
+		"title": "color",
+		"kind": "trigger",
+		"for": "Colour and contrast: tokens, ratios, light and dark.",
+		"when": "Invoke before choosing or setting any colour, background or contrast pair.",
+		"lines": 13,
 		"improvements": true,
 		"questions": []
 	},
 	{
 		"id": "content",
-		"title": "Content: seen first, read second",
+		"title": "content",
 		"kind": "trigger",
 		"for": "Invoke before writing anything the owner will read — a card, a report, a task outcome, a readme, a page's text, a chat reply.",
-		"when": "How to make it understood at a glance: show the structure with layout and widgets, then add as few words as it takes. Thirty seconds; re-read it whenever a reply is getting long.",
-		"lines": 70,
+		"when": "How to make it understood at a glance. Thirty seconds; re-read it whenever a reply is getting long.",
+		"lines": 16,
 		"improvements": false,
-		"questions": [
-			[
-				"Words",
-				11
-			]
-		]
+		"questions": []
 	},
 	{
 		"id": "css",
@@ -60,18 +65,9 @@
 		"kind": "trigger",
 		"for": "Invoke before writing any substantial CSS in this repo — it has you read framework.css itself (the utility vocabulary, exact definitions) and decide where the declaration belongs before you write it.",
 		"when": "Re-invoke if it has been a while since the last time (context drifts); skip it for a one-line tweak. Naming a new class → the new-css-class skill; sizing a page → layout.",
-		"lines": 124,
+		"lines": 27,
 		"improvements": true,
-		"questions": [
-			[
-				"Spacing and padding",
-				10
-			],
-			[
-				"Colour and contrast",
-				8
-			]
-		]
+		"questions": []
 	},
 	{
 		"id": "decide",
@@ -109,7 +105,7 @@
 		"kind": "trigger",
 		"for": "Run every time a task lands — the closing report the /framework/ai/ board renders: a landing line whose `outcome` is the report (a headline, then links to everything produced, a picture when there is one, what was left), the deliverables linked from where a reader already is, and the day log closed.",
 		"when": "Simple, clear, visual — a screen, not an essay. Trigger skill; the Stop hook will nag until it runs.",
-		"lines": 95,
+		"lines": 97,
 		"improvements": true,
 		"questions": []
 	},
@@ -125,30 +121,13 @@
 	},
 	{
 		"id": "layout",
-		"title": "Layout",
+		"title": "layout",
 		"kind": "reference",
 		"for": "Invoke before building or restyling anything with a size — a page, a container, a card, a grid, a dashboard — and again when a page looks cramped, squeezed, or wastes the screen.",
-		"when": "Five questions, answered in one line each before the first factory call. Reference; re-invoke when stale. Measuring is ext/DesignTool; the CSS itself is the css skill.",
-		"lines": 392,
+		"when": "Reference; re-invoke when stale.",
+		"lines": 14,
 		"improvements": true,
-		"questions": [
-			[
-				"Layout",
-				12
-			],
-			[
-				"Sizing",
-				7
-			],
-			[
-				"Wrapping",
-				5
-			],
-			[
-				"Flow",
-				6
-			]
-		]
+		"questions": []
 	},
 	{
 		"id": "log-assistant",
@@ -176,7 +155,7 @@
 		"kind": "role",
 		"for": "Become the mastermind — the continuously-running Fable executive that governs the usage budget, finds the highest-priority work, and spawns minions down the model ladder (Haiku scans, Sonnet builds, Opus judges, Fable when the owner says) to do it — several tasks at once.",
 		"when": "Invoke on \"you are the mastermind, begin\", \"/mastermind\", or any wakeup carrying /mastermind. Fable decides, workers execute; only the owner stands it down.",
-		"lines": 488,
+		"lines": 489,
 		"improvements": true,
 		"questions": []
 	},
@@ -186,7 +165,7 @@
 		"kind": "trigger",
 		"for": "Load this first, before touching anything, when you have been started as a minion — a worker `claude` CLI session, with its own session id, given a task and a requirements.md brief to execute for the mastermind or another orchestrator.",
 		"when": "Triggers on \"you are a minion\", \"your brief is at\", or any prompt that names a requirements.md. Points you at your brief, the three laws, the never-list that has actually burned agents before, and how to land.",
-		"lines": 140,
+		"lines": 141,
 		"improvements": true,
 		"questions": []
 	},
@@ -201,12 +180,22 @@
 		"questions": []
 	},
 	{
+		"id": "navigation",
+		"title": "navigation",
+		"kind": "trigger",
+		"for": "The path — how links look, persistent or switching, transitions, back and reload.",
+		"when": "Invoke before building tabs, a rail, a sidebar, a sheet, a modal or a full-screen view.",
+		"lines": 13,
+		"improvements": true,
+		"questions": []
+	},
+	{
 		"id": "new-css-class",
 		"title": "New CSS class",
 		"kind": "trigger",
-		"for": "Run every time you are about to introduce (or rename) a CSS class name in this repo — it checks the name against the reserved prefixes in framework/styles/css-scopes.txt and the live census, and makes it carry its owning module's prefix.",
+		"for": "Run every time you are about to introduce (or rename) a CSS class name in this repo — folded into css; the six-step checklist (reserved prefixes in framework/styles/css-scopes.txt, the live census, the owning module's prefix) is at /framework/code/css/doc/rules.md#5.",
 		"when": "Thirty seconds; skip only when reusing a class that already exists.",
-		"lines": 57,
+		"lines": 13,
 		"improvements": true,
 		"questions": []
 	},
@@ -231,23 +220,24 @@
 		"questions": []
 	},
 	{
+		"id": "openrouter",
+		"title": "openrouter",
+		"kind": "role",
+		"for": "Become the OpenRouter mastermind — load when starting OpenRouter/harness work, or on any question about proxying a model through OpenRouter, the tiers.js provider field, cross-family review, or the model switcher.",
+		"when": "",
+		"lines": 8,
+		"improvements": false,
+		"questions": []
+	},
+	{
 		"id": "page",
-		"title": "Page: from the top down",
+		"title": "page",
 		"kind": "trigger",
 		"for": "Invoke before making or reshaping ANY page, card or view the owner will look at — the whole job top-down: what kind of page, where it lives, how it's reached, its layout, its content and the order of that content.",
-		"when": "Umbrella over `new-page` (the mechanics), `layout` (sizing), `css` (styling) and `content` (words). Load it yourself instead of handing a page to a specialist agent: you keep the context.",
-		"lines": 135,
+		"when": "This is now the pointer into the design system; the rules themselves live on the pages it names.",
+		"lines": 14,
 		"improvements": true,
-		"questions": [
-			[
-				"Page structure",
-				12
-			],
-			[
-				"Navigation",
-				10
-			]
-		]
+		"questions": []
 	},
 	{
 		"id": "research",
@@ -265,7 +255,7 @@
 		"kind": "role",
 		"for": "Become the fresh-eyes reviewer — one pass that checks finished work against the owner's asks and every design system (page, navigation, layout, sizing, wrapping, spacing, colour, flow, words), answering each system's questions with a screenshot or a number as proof.",
 		"when": "Invoke on \"review\", \"use your review skill\", \"fresh-eyes review\", \"review this page\", or when Server/review.mjs starts you.",
-		"lines": 83,
+		"lines": 94,
 		"improvements": false,
 		"questions": []
 	},
@@ -275,8 +265,8 @@
 		"kind": "role",
 		"for": "Become the Servex Mastermind — the systems architect that runs on Servex as `mastermind-servex`.",
 		"when": "You oversee how the whole agent system works (quality audits of layout, contrast and use of space; spend; coordination; crashes) and improve the SYSTEM (skills, briefs, tools), never doing routine work yourself. Load when started as mastermind-servex, or on \"you are the Servex mastermind\".",
-		"lines": 102,
-		"improvements": false,
+		"lines": 107,
+		"improvements": true,
 		"questions": []
 	},
 	{
@@ -295,7 +285,17 @@
 		"kind": "role",
 		"for": "Become a task mastermind — the agent that owns exactly ONE task end to end.",
 		"when": "The master-mastermind hands you a requirements page and a fence; you decide whether the task needs a worktree, split it into minion-sized pieces with non-overlapping file fences, spawn and watch the minions, judge each deliverable against the owner's own sentence, land the task, and report one screen upward. Invoke when a brief names you a task mastermind, or on \"you own this task\".",
-		"lines": 260,
+		"lines": 261,
+		"improvements": true,
+		"questions": []
+	},
+	{
+		"id": "ui",
+		"title": "ui",
+		"kind": "trigger",
+		"for": "Buttons, toolbars, dropdowns, icons — states and targets.",
+		"when": "Invoke before building or placing any control the reader presses.",
+		"lines": 13,
 		"improvements": true,
 		"questions": []
 	},
