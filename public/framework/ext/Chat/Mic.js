@@ -591,8 +591,24 @@ export class ComposerMic extends Dictate {
 		await Promise.race([Promise.all(waiters), new Promise(res => setTimeout(res, ms))]);
 	}
 
+	/* ⚠ ONE MICROPHONE AT A TIME, STILL TRUE FOR A LATE ANSWER (review finding 1/2,
+	 * one-dictation, 2026-10-02 — the owner: "duplicate transcriptions on the same
+	 * card... it seemed to even chunk one into a new card"). `start()`'s own singleton
+	 * (`ComposerMic.on`) stops whichever mic was running before this one — but Whisper
+	 * is a network round trip: a segment already in flight on the OLD mic when it is
+	 * stolen from can still resolve AFTER `stop()`'s own final flush has already run,
+	 * landing in `commit()` -> `log_prompt()` -> here, on a mount nobody is looking at
+	 * any more (a card the reader has since navigated away from, its own composer kept
+	 * mounted — `ext/drawer/rail.js`'s and `ai2/card.js`'s own doc on why mounts are
+	 * never torn down on navigation). `auto_check()` already guards the exact same way
+	 * (`this.state !== "listening" && this.state !== "transcribing"`); this arms every
+	 * other autosend path (`log_prompt()`'s own segment-finished call, and the safety
+	 * chunk cut) the same way, so a stale mic's late words still land in ITS OWN thread
+	 * (nothing is lost — `log_prompt()` above this call still drew them) but never
+	 * leave as a second, wrongly-attributed `say()` no reader asked for. */
 	arm(){
 		if (this.mode_now() === "manual") return;
+		if (this.state !== "listening" && this.state !== "transcribing") return;
 		this.chunk_start ??= performance.now();
 		if (SETTINGS.sentences_per_send | 0) this.send_sentences(SETTINGS.sentences_per_send | 0); else this.check_chunk();
 	}

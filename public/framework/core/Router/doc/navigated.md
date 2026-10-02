@@ -21,19 +21,6 @@ two seats independently re-derived "is this the first navigation" — one from
 `from.length`, one by counting. It was already computed on line one of
 `activate()` and was being thrown away.
 
-**Where it fires (changed, nav-before-push, one-dictation, 2026-10-01):** no
-longer from inside `activate()` itself — `App.load()` calls it once, right after
-the FIRST `router.load()` (first paint: there is no url to push yet, so no
-ordering issue); `Router.go()` calls it after its own `history.pushState()`
-(every later forward move); `Router.popped()` calls it right after its own
-`load()` (Back/Forward: the browser already moved `location` first). Calling it
-from `activate()` ran it BEFORE `go()`'s `pushState()`, so anything in here that
-reads the current page (`location.pathname`, or `drawer.page()`, which falls
-back to it) saw the page just LEFT, not the one just reached — proven on the ✦
-sheet, whose own session messages were logging the wrong page right after a
-navigation. [`doc/method/go.md`](/framework/core/Router/doc/method/go/) has the
-exact line.
-
 ## What this site does with it
 
 Two things, both in `/app.js`, and the second is why the hook earns its keep:

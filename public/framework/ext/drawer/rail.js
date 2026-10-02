@@ -1160,8 +1160,14 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 		this.mount?.nav(drawer.page(), this.card_ref?.id ?? null);
 	}
 
+	// Deferred a tick, same reason `DrawerRail.navigated()` (line 203) and
+	// `DrawerRailSheetPanel.navigated()` (above) already defer: `Router.go()`
+	// calls `history.pushState()` only AFTER `activate()` fires this whole chain,
+	// so `drawer.page()` read right here, synchronously, is still the page the
+	// reader is LEAVING (review finding 5, one-dictation, 2026-10-02) — the other
+	// two call sites already knew this; this one didn't.
 	navigated(){
-		this.mount?.nav(drawer.page(), this.active_card()?.id ?? null);
+		setTimeout(() => this.mount?.nav(drawer.page(), this.active_card()?.id ?? null));
 	}
 
 	// THE SHARED BUTTON (item 3, one-dictation — "a New session button lives in

@@ -18,12 +18,9 @@ export class Router {
 	// `?query` or `#hash` differs — the phone's ✦ sheet steps, ext/drawer/rail.js)
 	// is not a navigation: reloading it scrolled the page to the top and re-fired
 	// `navigated()` on every step (sheet-as-page, 2026-09-30).
-	//
-	// ⚠ `navigated()` fires HERE, not inside `activate()` any more (nav-before-push,
-	// one-dictation bug 3/4) — see `go()`'s own comment for why.
 	popped(){
 		if (this.active && location.pathname === this.path) return;
-		this.load(location.pathname).then(ok => { if (ok) this.app.navigated?.(this.active, this._nav_from); });
+		this.load(location.pathname);
 	}
 
 	click(e){
@@ -61,22 +58,10 @@ export class Router {
 
 	// Load first, push second, so a failed navigation leaves no history entry. There
 	// is no synchronous "is this a real page" gate — see doc/registry-gate.md.
-	//
-	// ⚠ NAV-BEFORE-PUSH (one-dictation, bug 3/4, 2026-10-01 — proven headless: a mount
-	// that reads `drawer.page()`/`location.pathname` from inside `navigated()` got the
-	// PAGE IT LEFT, forever one step behind, because `activate()` (which used to call
-	// `app.navigated?.()` itself) always ran — and finished — before the line below
-	// ever touched the url. `go()` now calls `navigated()` itself, AFTER `pushState()`,
-	// so anything that reads the current page from inside it sees the page it just
-	// arrived at, not the one before. `popped()` (Back/Forward) calls it right after
-	// its own `load()` instead, since the browser already moved `location` before
-	// `popped()` ever runs — reordering here would do nothing for that path and isn't
-	// needed. `this._nav_from` is set by `activate()`, read here a tick later.
 	async go(url){
 		// The walk resolves the PATH; history keeps the whole url.
 		if (await this.load(new URL(url, location.origin).pathname)){
 			history.pushState({}, "", url);
-			this.app.navigated?.(this.active, this._nav_from);
 		} else {
 			location.assign(url);
 		}
@@ -123,7 +108,6 @@ export class Router {
 		to.slice(shared).forEach(p => p.activate());                 // shallowest first
 
 		this.active = page;
-		this._nav_from = from;   // read a tick later, by whichever caller fires navigated() — go() or popped()
 		this.mark();
 		document.title = page.title ?? document.title;
 
@@ -131,12 +115,8 @@ export class Router {
 		// this looks safe (scrollTop clamps); it isn't. doc/scroll-reset.md.
 		page.view.el.closest(".pages")?.scrollTo(0, 0);
 
-		// `navigated()` (duck-typed; doc/navigated.md) is NOT called here any more —
-		// `go()`/`popped()` call it themselves, each after `location` truly reflects
-		// this page (see `go()`'s own "nav-before-push" comment). Calling it here ran
-		// it before `go()`'s `history.pushState()`, so anything reading the current
-		// page from inside it (`ext/drawer/rail.js`'s ✦ sheet, `drawer.page()`) saw
-		// the page just LEFT, not the one just reached.
+		// Duck-typed, so it costs nothing until a site defines it. doc/navigated.md.
+		this.app.navigated?.(page, from);
 	}
 
 	chain(){ return this.active ? this.active.chain() : []; }

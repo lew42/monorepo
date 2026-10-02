@@ -35,9 +35,5 @@ navigation, and moving them means a second thing to call in the right order.
 [scroll-reset](/framework/core/Router/doc/scroll-reset/) says why deleting the scroll
 line only *looks* safe.
 
-`this._nav_from = from` is the one thing this leaves behind for `navigated()` to
-read — `activate()` itself no longer calls `this.app.navigated?.()` (nav-before-push,
-one-dictation, 2026-10-01): `go()` calls it after `history.pushState()`, and `popped()`
-calls it after its own `load()`, because `activate()` runs BEFORE the url is pushed and
-anything reading the current page from inside `navigated()` (`drawer.page()`,
-`location.pathname`) used to see the page this method just LEFT. [navigated](/framework/core/Router/doc/navigated/).
+`this.app.navigated?.(page, from)` is duck-typed, so it costs nothing until a site
+defines it. [navigated](/framework/core/Router/doc/navigated/).

@@ -62,10 +62,6 @@ export class App {
 
 			if (!await this.router.load(location.pathname))
 				throw new Error(`404 — nothing matches "${location.pathname}"`);
-			// `navigated()` fires on first paint too (doc/navigated.md) — safe to call
-			// right here, unlike `go()`'s own call: there is no `pushState` to wait for
-			// on a cold boot, `location` already names the page that just loaded.
-			this.navigated?.(this.router.active, []);
 		}
 		catch (error){ return this.error(error); }
 
