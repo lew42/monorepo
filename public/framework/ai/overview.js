@@ -476,10 +476,10 @@ function render_writers(base){
 	table(["writer", "who runs it", "checked?"], WRITERS.map(w => [
 		w.name,
 		w.who,
-		w.ok ? span.c("pass", "yes") : span.c("fail", "no"),
+		() => w.ok ? span.c("pass", "yes") : span.c("fail", "no"),
 	]));
 	md(WRITERS.map(w => `- **[${w.name}](${file_link(w.path)})**: ${w.note}`).join("\n"));
-	heading("Where this came from", "The owner's 2026-10-02 ask named 9 routes (5 already solid, 4 gaps); [jsonl-writers](" + base + "2026-10-02/jsonl-writers/) closed 2 of those 4 the same day. **Re-check this against the code** — a repo-wide grep for `appendFileSync` the same day found 20-plus more call sites never scoped into that count (several inside Servex's own agent code). Those are lower-risk — they write Servex's own internal logs, not a page a reader loads — but a full sweep hasn't been done.");
+	heading("Where this came from", "The owner's 2026-10-02 ask cited an audit of \"12 writers,\" but only 9 were ever named (5 already solid, 4 gaps, listed above) — the other 3 were never written down anywhere this page could find. [jsonl-writers](" + base + "2026-10-02/jsonl-writers/) closed 2 of the 4 named gaps the same day. **Re-check this against the code, don't trust either number** — a repo-wide grep for `appendFileSync` the same day found 20-plus further call sites outside both counts (several inside Servex's own agent code). Those are lower-risk — they write Servex's own internal logs, not a page a reader loads — but nobody has swept them yet.");
 	heading("The one rule above the table", "A validator that fails must never take the writer down with it.");
 	md("`ledger.mjs` and `Append.js` both follow it: if `check()` itself throws (a bug in the checker, not the line), the line is written anyway and the failure is logged, never swallowed. The write/edit guard (`.claude/hooks/jsonl-guard.mjs`) adds a second layer: a hand `Write`/`Edit` onto a `.jsonl` file that already exists is refused outright — a brand-new file is still allowed, so opening a task's log still works.");
 }
