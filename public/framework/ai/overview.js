@@ -1,5 +1,6 @@
 import { Page, md, div, a, span, small, strong, icon, h2, h3 } from "/app.js";
 import { code } from "/framework/ext/highlight/highlight.js";
+import { file_link } from "/framework/ext/filesystem/file_link.js";
 import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
 import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
@@ -16,7 +17,7 @@ import { page_settings } from "/framework/core/Page/settings/settings.js";
 export const VIRTUAL_TABS = ["inbox", "log", "system"];
 // The System tab's own pages (/framework/ai/system/<name>/). Each still answers at its old
 // url, /framework/ai/<name>/, so no link breaks (ai/page.js route()).
-export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring", "models", "thinking"];
+export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring", "models", "thinking", "data", "saving"];
 
 /* THE REST OF THE TAB BAR IS DETECTED, NOT HAND-LISTED (the owner, relayed 2026-10-01): a
    child joins the strip when its OWN page.jsonl says `{"settings":{"tab":true}}` — optionally
@@ -119,6 +120,8 @@ export function tab_page(root, name, url = root.url + name + "/"){
 					{ name: "Skills", icon: "school", gist: "How to do one kind of job well, one page per skill.", href: url + "skills/" },
 					{ name: "CLAUDE.md", icon: "gavel", gist: "The file every agent loads first, and an audit of what it names.", href: url + "claude-md/" },
 					{ name: "Readmes", icon: "menu_book", gist: "The chain of readmes an agent reads, root first.", href: base + "readmes/" },
+					{ name: "Data: how it's written", icon: "fact_check", gist: "Every JSONL writer, and whether code checks the line before it lands.", href: url + "data/" },
+					{ name: "How a page saves", icon: "save", gist: "page.jsonl, set(delta), and the live stream to every open tab.", href: url + "saving/" },
 					{ name: "Objects", icon: "category", gist: "Each thing as a chip, a row and a panel.", href: url + "objects/" },
 					{ name: "Authoring", icon: "edit_note", gist: "The pieces these pages are built from, simple to complex.", href: url + "authoring/" },
 					{ name: "Models", icon: "query_stats", gist: "Which model is best value, for which kind of work.", href: url + "models/" },
@@ -255,6 +258,14 @@ export function tab_page(root, name, url = root.url + name + "/"){
 	pages["thinking"] = {
 		title: "How thinking works", icon: "psychology",
 		content(){ render_thinking(); },
+	};
+	pages["data"] = {
+		title: "Data: how it's written", icon: "fact_check",
+		content(){ render_writers(base); },
+	};
+	pages["saving"] = {
+		title: "How a page saves", icon: "save",
+		content(){ render_saving(base); },
 	};
 
 	// ⚠ title "" — the tab sits under the page's own h1 ("AI"); a second page-size
@@ -433,5 +444,66 @@ function render_thinking(){
 		"3. **Streaming can be cancelled, but a thought can't be steered mid-way** — you can stop generation early, but there's no way to inject a correction into a thinking block while it's still being written; the next steer has to wait for a fresh call.",
 		"4. **With interleaved thinking, the model thinks between tool calls** (Anthropic's interleaved-thinking mode) — e.g. it can reason again right after a web search comes back, inside the same turn, instead of only once at the start.",
 		"**Where OpenRouter differs:** it passes a model's reasoning through as a normalized `reasoning` field, but not every upstream provider exposes the raw thinking text (some summarize or redact it) — check a model's own page on openrouter.ai before assuming you can read it.",
+	].join("\n"));
+}
+
+/* "Data: how it's written" — ai/system/data/ (the owner, 2026-10-02, on mobile: "how is data
+   written... does code enforce it"). Checked against the code on 2026-10-02 by reading each file,
+   not copied from any one audit — a table like this goes stale the moment a file changes, so it
+   says so and names the one route (jsonl-schema.mjs's `check()`) that decides "validated". */
+const WRITERS = [
+	{ name: "append.mjs", path: ".claude/hooks/append.mjs", who: "AI running a script", ok: true,
+		note: "the route every skill tells you to use; stamps `at`, checks the shape, re-parses the whole file after." },
+	{ name: "append_log", path: "Servex/Log.js", who: "AI tool call (MCP)", ok: true,
+		note: "Servex's own tool; the same `check()` runs inside Log.js before the line is kept." },
+	{ name: "store.mjs", path: "public/framework/ext/Research/store.mjs", who: "AI running a script", ok: true,
+		note: "a research entry's shape is enforced in the function itself, not by calling jsonl-schema.mjs." },
+	{ name: "decide.mjs", path: "Server/decide.mjs", who: "node script (the decision wizard)", ok: true,
+		note: "walks one decision into being field by field — there's no raw line a caller could hand it." },
+	{ name: "Cards.js", path: "Servex/cards/Cards.js", who: "node, inside Servex", ok: true,
+		note: "the one place a card's page.jsonl is ever written; every card write is queued through it." },
+	{ name: "ledger.mjs", path: ".claude/hooks/ledger.mjs", who: "an AI hook (fires after every tool call)", ok: true,
+		note: "closed 2026-10-02: a bad line is still written, with `unchecked: \"<reason>\"` added, so a page never loses a line — see the rule below." },
+	{ name: "rpc:append (Append.js)", path: "Server/plugins/SocketServer/Append.js", who: "browser UI (any page's save)", ok: true,
+		note: "closed 2026-10-02: every line is checked before it's written; one bad line refuses the whole batch." },
+	{ name: "PageFiles.js", path: "Server/plugins/PageFiles.js", who: "node — the file watcher, on every save under public/", ok: false,
+		note: "writes each folder's files.jsonl automatically; still open." },
+	{ name: "Usage.js", path: "Servex/Usage.js", who: "node — a 15-minute timer", ok: false,
+		note: "writes usage.jsonl and usage.json from the usage snapshot; still open." },
+];
+function render_writers(base){
+	md("**Every `.jsonl` file is one object's history, and a line that skips the check can corrupt the page that reads it.** This table names who can write one, and whether `jsonl-schema.mjs`'s `check()` runs on the line first. The rule that outranks all of it: **a guard must never go silent** — a broken checker still writes the line (marked, if it can tell) rather than dropping it.");
+	table(["writer", "who runs it", "checked?"], WRITERS.map(w => [
+		w.name,
+		w.who,
+		w.ok ? span.c("pass", "yes") : span.c("fail", "no"),
+	]));
+	md(WRITERS.map(w => `- **[${w.name}](${file_link(w.path)})**: ${w.note}`).join("\n"));
+	heading("Where this came from", "The owner's 2026-10-02 ask named 9 routes (5 already solid, 4 gaps); [jsonl-writers](" + base + "2026-10-02/jsonl-writers/) closed 2 of those 4 the same day. **Re-check this against the code** — a repo-wide grep for `appendFileSync` the same day found 20-plus more call sites never scoped into that count (several inside Servex's own agent code). Those are lower-risk — they write Servex's own internal logs, not a page a reader loads — but a full sweep hasn't been done.");
+	heading("The one rule above the table", "A validator that fails must never take the writer down with it.");
+	md("`ledger.mjs` and `Append.js` both follow it: if `check()` itself throws (a bug in the checker, not the line), the line is written anyway and the failure is logged, never swallowed. The write/edit guard (`.claude/hooks/jsonl-guard.mjs`) adds a second layer: a hand `Write`/`Edit` onto a `.jsonl` file that already exists is refused outright — a brand-new file is still allowed, so opening a task's log still works.");
+}
+
+/* "How a page saves" — ai/system/saving/ (deliverable 3: page.jsonl lines, set(delta), Store,
+   LiveList, the dev socket's append and tail). This is a converging design, not a finished one —
+   the page says so and points at the one proposal instead of re-explaining it three times. */
+function render_saving(base){
+	md("**A page's data is lines in its own `page.jsonl`.** Change something on a page, and one line is appended — never a whole-file rewrite. Every other open tab on that same page hears the new line within milliseconds, no reload.");
+	heading("The path one edit takes", "Six steps, in order.");
+	flow([
+		["You change something", null, "type a word, drag a card, check a box."],
+		["set(delta)", null, "the page's own method — a method name runs it, a settable value is merged in, anything else is data."],
+		["one line is appended", "/framework/ext/JSONL/", "`{\"set\": {...}}`, never a rewrite of the whole file — ext/JSONL's format."],
+		["the dev socket sends it", "/framework/dev/Socket/", "`rpc:append`, checked (see \"Data: how it's written\")."],
+		["the file grows one line", null, "`page.jsonl` on disk — the whole history of that page, replayable from line one."],
+		["every open tab hears it", "/framework/dev/Socket/", "the socket's `tail`: new lines only, pushed the moment they land — see `Server/plugins/SocketServer/Tail.js`."],
+	]);
+	heading("Converging today", "Not finished: file and saving code is still spread across four places, being pulled into one.");
+	md([
+		"- [ext/Saver](/framework/ext/Saver/) — whole-JSON rewrites (`FileSaver`, `LocalStorageSaver`).",
+		"- [ext/filesystem](/framework/ext/filesystem/) — `FsFile`/`FsDir`, reading and writing a path on disk.",
+		"- [ext/JSONL](/framework/ext/JSONL/) — the append-only line format every log here uses (`assign`, `log`, `set`, …).",
+		"- [dev/Socket](/framework/dev/Socket/) — the one WebSocket every save, reload and live stream rides.",
+		"**The plan:** one file object as the only caller of the dev socket, so these four stop being four. Full design: [page-item-design.md](" + base + "2026-09-30/proposal-flow/page-item-design.md) — read its LATEST section first, the rest is superseded passes kept for the record. The build: [page-extends-item](" + base + "2026-10-02/page-extends-item/requirements.md).",
 	].join("\n"));
 }
