@@ -1011,6 +1011,10 @@ Agents.Agent = class Agent {
 		if (this.state === "stopped") return this;
 		const mid_turn = this.state === "working";
 		this.state = "stopped";
+		/* A turn stopped before it ends never reaches result(), so its model calls were
+		 * never billed to anyone: a GPT-6.1 Sol mastermind that did its whole job in one
+		 * turn showed $0 while OpenRouter charged ~$3 (2026-10-01). Settle them now. */
+		if (this.provider === "openrouter" && this.turn_message_ids?.size) this.refresh_or_cost();
 		this.emit({ type: "result", stopped: true, mid_turn, turns: this.turns, cost: this.cost });
 		this.host?.register?.(this);
 		this.settle();
