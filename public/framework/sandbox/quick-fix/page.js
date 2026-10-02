@@ -15,7 +15,7 @@ export default new Page({
 	leaf: true,
 
 	content(){
-		h1("Quick-fix sandbox");
+		h1("Quick-fix sandbox").style("font-weight", "bold");
 		p("This heading exists so a quick-fix proof has something small and real to change.");
 	},
 });
