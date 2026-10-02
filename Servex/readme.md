@@ -122,7 +122,7 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
 
-**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md).
+**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md). Waking a dormant agent used to be able to lose the very message that woke it (a phantom "working" row with no process behind it) — the seven fixes that close every way that was found to happen, and the reconcile that catches what nothing moment-to-moment does, are at [`doc/never-lose-a-wake.md`](./doc/never-lose-a-wake.md).
 
 **Budgets**: at 100% of a task's budget its mastermind and parent are told once and new spawns under it are refused; at 150% its minions stop. See [`doc/budget.md`](./doc/budget.md).
 

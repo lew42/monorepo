@@ -371,6 +371,12 @@ export default class Global {
 		for (const agent of [...this.agents.live.values()]) this.maybe_sleep(agent, now);
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
 		if (now - this.last_measure >= this.measure_every_ms){ this.last_measure = now; this.measure().catch(() => {}); }
+		/* NEVER-LOSE-A-WAKE, items 3 and 6 (2026-10-01): the reconcile reuses THIS same
+		 * one-minute tick rather than starting a second timer — `Servex.reconcile()` walks the
+		 * registry for a `starting` row stuck past 60 s and a live claude.exe its own row has
+		 * lost track of. Never on a host with no `reconcile` at all (a demo, a test, a bare
+		 * `new Agents()`), and never let a failure here stop the ordinary dormancy sweep above. */
+		this.servex?.reconcile?.().catch(e => this.say(`reconcile: ${e.message || e}`));
 	}
 
 	/* MEMORY PER AGENT: every claude.exe's working set, matched to an agent by the

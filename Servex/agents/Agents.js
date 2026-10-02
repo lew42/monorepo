@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
-import Registry from "./registry.js";
+import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
 import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
@@ -165,6 +165,11 @@ export class Agents {
 			: base;
 		const agent = new this.constructor.Agent({
 			...role_defaults(spec.role), ...spec, id, prompt, provider,
+			/* NEVER-LOSE-A-WAKE, item 3: the caller's own, UNWRAPPED prompt — `prompt` above is
+			 * the skill-load preamble and readme chain already baked in, which a re-queued retry
+			 * (`Servex.requeue_stuck_start`) must never wrap a second time. Fresh spawns only — a
+			 * resume has no prompt of its own to remember this way. */
+			...(fresh && spec.prompt ? { raw_prompt: spec.prompt } : {}),
 			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
@@ -523,10 +528,65 @@ export class Agents {
 	 * master-assistant, voice sessions, the Dispatcher stand-in) and an agent
 	 * blocked in wait_for_agent. Global.admit() queues a new spawn above it. */
 	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 5; }
+
+	/* NEVER-LOSE-A-WAKE, item 2 (2026-10-01): a row counts toward the cap only while its
+	 * claude.exe is actually alive — `claude_pid` and a direct `process.kill(pid, 0)`, the same
+	 * test `registry.js`'s own sweep uses. Before this, the awaken race (item 1; `sleep()`'s
+	 * queue closing a moment before `send()`'s own push, item 5) could leave a row stuck
+	 * "working" with no process at all — a PHANTOM that held one of the 5 working slots
+	 * forever, with nothing to ever free it. A row just spawned (no pid YET, because
+	 * `spawn_claude` has not had its first tick — `pump()` only runs it once this synchronous
+	 * call returns) still counts, inside `STARTING_GRACE_MS`, so a burst of spawns in the same
+	 * tick cannot slip past the cap in that gap. Past the grace: a WORKING row with no live
+	 * process is the phantom (`mark_phantom`, logged once, set idle, never counted again); a
+	 * STARTING row that old never got a process at all, which is item 3's job (the one-minute
+	 * reconcile in Servex.js owns the actual re-queue — this method only excludes it from the
+	 * count, since re-queuing needs the spawn gate's own queue, which this class does not hold). */
 	working(){
-		return [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
+		const rows = [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
 			&& !a.waiting_on && !STANDING.test(a.id ?? "") && a instanceof Agents.Agent);
+		const out = [];
+		for (const a of rows){
+			if (a.claude_pid && alive(a.claude_pid)){ out.push(a); continue; }
+			const age = Date.now() - (Date.parse(a.started_at) || Date.now());
+			if (age < STARTING_GRACE_MS){ out.push(a); continue; }   // just spawned: no pid yet, still counts
+			if (a.state === "working") this.mark_phantom(a);        // dead process, holding a slot: freed here
+			// a STARTING row this old never started at all: left for item 3's reconcile to re-queue
+		}
+		return out;
 	}
+
+	/* Logged once per phantom. `marked_phantom` is reset the moment this agent next actually
+	 * awakens (`awaken()`), so a second, later phantom episode on the SAME agent object is still
+	 * caught — it only guards against re-logging the one episode over and over on every
+	 * `working()` call.
+	 *
+	 * ⚠ Set `dormant`, not `idle` (fresh-eyes review finding 3 — the brief's own first sentence
+	 * said "idle", and this is the one place this task diverges from it, on purpose): an `idle`
+	 * agent's `send()` just pushes straight onto `this.queue` with no further check, so a real
+	 * message to this row would land in the SAME dead queue nothing is reading any more —
+	 * accepted, never delivered, and with `marked_phantom` already true this method would never
+	 * get a second chance to notice. `dormant` makes `send()` call `awaken()` first, which is the
+	 * path that actually starts a fresh process and replays anything still waiting — so whatever
+	 * was sitting in the dead queue, unconsumed, is carried over to `held_messages` here (the
+	 * same mechanism item 5 built for `sleep()`'s own queue.close()), never abandoned with it. */
+	mark_phantom(agent){
+		if (agent.marked_phantom) return;
+		agent.marked_phantom = true;
+		const pending = agent.queue?.items?.splice(0) ?? [];
+		if (pending.length) (agent.held_messages ??= []).push(...pending);
+		try { agent.queue?.close(); } catch {}
+		try { agent.query?.close?.(); } catch {}
+		try { agent.aborter?.abort?.(); } catch {}
+		agent.state = "dormant";
+		agent.dormant_at = stamp();
+		const msg = `${agent.id} was "working" with no live process (the awaken race) — set dormant, its cap slot freed`;
+		this.servex?.say?.(msg, { event: "phantom", id: agent.id });
+		this.store().append("servex", { type: "phantom", id: agent.id, role: agent.role ?? null, held: pending.length || undefined }).catch(() => {});
+		this.register(agent);
+		agent.settle?.();
+	}
+
 	counts(){
 		const all = [...this.live.values()].filter(a => a instanceof Agents.Agent);
 		const n = s => all.filter(a => a.state === s).length;
@@ -698,6 +758,12 @@ export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
 
 /* The standing front desk: never counted against the working cap. */
 export const STANDING = /^(assistant-|manager-|master-assistant|session-|dispatcher$)/;
+
+/* Item 2's own grace window: a row this young with no `claude_pid` yet is just booting, not a
+ * phantom — `spawn_claude` only runs once the SDK's async pump gets its first tick, which is
+ * always AFTER the synchronous `spawn()` call that started it returns. */
+export const STARTING_GRACE_MS = Number(process.env.SERVEX_STARTING_GRACE_MS) || 5000;
+
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
@@ -908,11 +974,27 @@ Agents.Agent = class Agent {
 		return head ? `[${head}]\n${text}` : text;
 	}
 
+	/* NEVER-LOSE-A-WAKE, item 5 (2026-10-01): `awaken()`, called just above when this agent was
+	 * dormant, can — through `register()`'s own idle sweep, in the very same tick — decide to go
+	 * straight back to sleep before this method ever gets to push its own turn (the exact race
+	 * that started this task: the register() call INSIDE awaken() used to find a stale idle
+	 * clock and re-close the brand new queue before the line below could use it). Item 1's clock
+	 * reset and the belt in `sleep()` close that window; this is the second, independent net —
+	 * `queue.push()` now says whether the queue was actually open to take it, and a push that
+	 * missed is held on `held_messages`, never silently gone. The very next `awaken()` replays
+	 * it first, before anything else. */
 	send(text, { from, reply_to, priority } = {}){
 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
 		if (this.state === "dormant") this.awaken(from);
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
-		this.queue.push(this.turn(this.envelope(text, { from, reply_to }), priority));
+		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
+		if (!this.queue.push(turn)){
+			(this.held_messages ??= []).push(turn);
+			this.emit({ type: "held", why: "the queue closed before this message could be pushed; it will be replayed on the next awaken" });
+			this.state = "dormant";   // honest: nothing is running to receive it right now
+			this.host?.register?.(this);
+			return this;
+		}
 		this.state = "working";
 		this.host?.register?.(this);
 		return this;
@@ -947,12 +1029,21 @@ Agents.Agent = class Agent {
 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
 		if (this.bg_tasks > 0) return false;
 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
+		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
+		 * sets `idle` only when `queued_turn_count` is 0 — so `this.queue.items` should always be
+		 * empty here already. Captured anyway, belt and braces: a push that managed to land
+		 * between that check above and this line (the same single-tick window item 1 closes) is
+		 * carried to `held_messages` instead of silently discarded by `close()`, exactly like
+		 * `mark_phantom()`'s own copy of this same guard. */
+		const pending = this.queue.items.splice(0);
+		if (pending.length) (this.held_messages ??= []).push(...pending);
 		this.queue.close();
 		try { this.query.close(); } catch {}
 		try { this.aborter.abort(); } catch {}
 		this.state = "dormant";
 		this.dormant_at = stamp();
-		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns });
+		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns, held: pending.length || undefined });
 		this.host?.register?.(this);
 		this.settle();
 		return true;
@@ -960,13 +1051,39 @@ Agents.Agent = class Agent {
 
 	/* A dormant agent's session, resumed in place: a new claude process on the
 	 * same session id, cwd, model, tools and options. Nothing is sent here; the
-	 * caller's `send()` pushes the turn that woke it. */
+	 * caller's `send()` pushes the turn that woke it.
+	 *
+	 * NEVER-LOSE-A-WAKE, item 1 (2026-10-01): the PHANTOM bug — `awaken()` registers, the
+	 * registration runs the idle sweep, and the sweep saw an idle clock from BEFORE the sleep,
+	 * so the agent went straight back to sleep in the same millisecond, before `send()` ever got
+	 * to push the message that woke it. `Global.last_active()` reads `agent.last_at` first,
+	 * ahead of the agent's own log file's mtime (which lags — the "awake" event below is written
+	 * through an async queue and has not reached disk yet when `register()`, right after, asks)
+	 * — but nothing had ever SET `last_at` on a live agent, so that read always fell through to
+	 * the stale mtime. Setting it to now, right here, BEFORE `register()` runs, is the actual
+	 * fix: the sweep then sees a correct "just woke up", not a stale one. The 60 s `awoken_at`
+	 * guard in `sleep()` (the first patch, committed on michael/dev) stays as the belt — right
+	 * for the exact incident it closes, but incomplete on its own: it is a wall-clock special
+	 * case on `sleep()`, not a fix to the clock `last_active()` reads, so any OTHER caller that
+	 * asks "how long has this agent been idle" during this same window still got a wrong answer. */
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
 		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		this.last_at = stamp();
+		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
+		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
+		 * same agent's life must still be caught, so the flag clears here, the moment it is
+		 * actually running again. */
+		this.marked_phantom = false;
 		this.start();
-		this.emit({ type: "awake", by: by ?? null, slept_since: slept });
+		/* NEVER-LOSE-A-WAKE, item 5: anything `send()` had to set aside while this agent was
+		 * closed off (see `send()`'s own comment) is replayed now, as this agent's first turns —
+		 * before the `register()` call below can do anything else with it. */
+		const held = this.held_messages?.splice(0) ?? [];
+		for (const item of held) this.queue.push(item);
+		if (held.length) this.state = "working";
+		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
 	}
@@ -1275,12 +1392,15 @@ Agents.Agent.Queue = class AgentQueue {
 	constructor(...args){ this.assign({ items: [], waiting: [], done: false }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
+	/* NEVER-LOSE-A-WAKE, item 5: returns whether the item was actually taken — `false` once this
+	 * queue is `close()`d, instead of a silent, always-truthy `this` a caller could not tell
+	 * apart from a real success. `Agent.send()` is the one caller that acts on it. */
 	push(item){
-		if (this.done) return this;
+		if (this.done) return false;
 		const wake = this.waiting.shift();
 		if (wake) wake({ value: item, done: false });
 		else this.items.push(item);
-		return this;
+		return true;
 	}
 
 	close(){

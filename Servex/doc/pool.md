@@ -105,3 +105,10 @@ Why: on 2026-09-30 the sweep salvaged qf-9 twice (12:53 and 13:23), because its 
 ## Slot names free themselves (2026-09-30)
 
 Names run `qf-1` to `qf-9`. A name held only by a leftover (a merged `worktree/qf-N` branch with no worktree, or an empty folder) is cleared and reused; before this, leftovers filled all nine and `take_worktree` failed with "No worktree could be made ready". A slot missing from `.worktrees.json` is removed with plain `git worktree remove` + `git branch -d`.
+
+## A minion the spawn gate admits but the pool refuses waits, not fails (2026-10-01)
+
+`Agents.spawn()`'s own minion-to-pool redirect (above) can still find no slot ready the instant a
+queued minion spawn reaches the front of the spawn gate's queue. That used to drop the spec
+outright, with nobody told. It is re-queued at the head instead, with its held messages, and the
+pool is asked to top itself up: [`../never-lose-a-wake.md`](../never-lose-a-wake.md).
