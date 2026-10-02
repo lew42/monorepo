@@ -44,7 +44,7 @@ This is an optimisation loop: keep adjusting the model until its render matches 
 
 ## Next
 
-People have surely worked on this (line-based structure from motion, wireframe reconstruction). The next step is a small research pass: what exists, what works, and whether a quick prototype on a photo of a box is worth trying.
+[Try the line-map prototype](/imagine/lines/): drop a photo, compare the original with line art, and tune how strongly faint, steady edges show up. Corners, vectors and 3D come after this first map works.
 
 ## Part 2: refining the idea (same day)
 

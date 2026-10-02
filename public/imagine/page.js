@@ -38,7 +38,7 @@ View.stylesheet(import.meta, "imagine.css");
    copied here with the two lines added — see the comment on it. */
 
 const GROUPS = [
-	["Tools",   "paging importance research stream cms generated"],
+	["Tools",   "lines paging importance research stream cms generated"],
 	["Worlds",  "game scenes team gallery codrops youtube feeds"],
 	["Studies", "platform review vary"],
 ];

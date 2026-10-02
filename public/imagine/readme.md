@@ -7,6 +7,7 @@ a lane, a room three realms down — is another column in the same row, under on
 
 ## Use
 
+- [**Line art**](/imagine/lines/) — compare an image with its line-confidence map; upload a photo or tune four samples.
 - **The root is the experience.** `/imagine/page.js` is a 14em rail and nothing else; `Start`
   is its `default` column and its cards are the nav. There is no page to read before you arrive.
 - **`team/`** — a roster rail, a person, her assignments, and a board that follows the
