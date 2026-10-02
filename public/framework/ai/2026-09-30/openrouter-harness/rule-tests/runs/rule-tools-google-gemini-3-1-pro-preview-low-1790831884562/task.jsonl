@@ -6,3 +6,12 @@
 {"log":{"at":"2026-10-01T00:50:37-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
 {"log":{"at":"2026-10-01T00:55:59-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
 {"log":{"at":"2026-10-01T01:50:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-01T02:38:37-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T03:37:15-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:01:54-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:21:03-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:49:44-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T14:55:45-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T16:39:27-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T20:36:28-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}
+{"log":{"at":"2026-10-01T21:42:07-05:00","heartbeat":"deliberate","msg":"minion-rule-tools-7 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:19:44-05:00; not revived."}}

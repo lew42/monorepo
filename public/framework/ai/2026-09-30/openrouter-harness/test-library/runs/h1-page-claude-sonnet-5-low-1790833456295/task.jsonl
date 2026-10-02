@@ -14,3 +14,12 @@
 {"log":"node --check passed on both files; curled hello/page.js from the live dev server, 200 OK, content matches."}
 {"landed_at":"2026-10-01T00:45:19-05:00","outcome":"Built /hello/ under this run's floor-test page: a Page with an H1 reading exactly \"Hello from the floor test\". Files: page.js (hello) and page.js (parent, now lists hello as a child)."}
 {"log":{"at":"2026-10-01T02:15:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-01T02:38:38-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T03:37:15-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:01:55-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:21:03-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:49:44-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T14:55:46-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T16:39:28-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T20:36:28-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}
+{"log":{"at":"2026-10-01T21:42:07-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-5 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:45:24-05:00; not revived."}}

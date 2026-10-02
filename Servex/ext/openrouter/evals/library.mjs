@@ -59,7 +59,7 @@ import os from "node:os";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { provider_for } from "../provider.js";
+import { provider_for, read_key } from "../provider.js";
 // NOT public/framework/ai/tests/AITest.js — that class imports from "/app.js" (a browser-only
 // path App.js resolves at runtime), so node can never load it. This script only ever needs the
 // PLAIN DATA a test's page.jsonl line 1 carries, read directly below (loadTests()) — the class
@@ -90,14 +90,14 @@ const SITE_BASE = (() => {
 const OR_LOG_PATH = path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "lew42", "servex", "logs", "openrouter.jsonl");
 
 const pad = n => String(n).padStart(2, "0");
-function nowLocal(){
+export function nowLocal(){
 	const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${off < 0 ? "-" : "+"}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
 }
 const slug = s => String(s).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function appendJSON(file, obj){
+export function appendJSON(file, obj){
 	fs.mkdirSync(path.dirname(file), { recursive: true });
 	const scratch = path.join(os.tmpdir(), `library-append-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.json`);
 	fs.writeFileSync(scratch, JSON.stringify([obj]));
@@ -106,7 +106,7 @@ function appendJSON(file, obj){
 		if (r.status !== 0) throw new Error(`append.mjs exited ${r.status}: ${r.stderr || r.stdout}`);
 	} finally { try { fs.unlinkSync(scratch); } catch {} }
 }
-function readJsonl(file){
+export function readJsonl(file){
 	try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
 	catch { return []; }
 }
@@ -119,7 +119,20 @@ function readJsonl(file){
  * reports `queued`, or a wait comes back with no `turns` at all, ask again — the real turn hasn't
  * happened yet — until either a turn actually completes or this run's own overall budget (7 min,
  * matching the old single timeout) runs out. */
-async function waitForRealTurn(spawned, budgetMs = 420_000){
+export async function waitForRealTurn(spawned, budgetMs = 420_000, queueBudgetMs = 1_200_000){
+	// 2026-10-01 (cheap ladder, free batch): the fix above (queued -> ask again) stopped a QUEUED
+	// spawn being mistaken for an instant idle completion, but the 7-minute response budget still
+	// started ticking the moment we spawned — including however long Servex's own global cap
+	// (5 working agents AT ONCE, across every task on the machine, not just this batch) left the
+	// run sitting in line behind unrelated agents. A run queued for 6 of its 7 minutes behind other
+	// tasks' agents then got judged on 1 real minute of model response time and skipped — same
+	// "never reached the model" shape as the name-collision bug, different cause (capacity, not a
+	// collision). Fix: wait out the QUEUE on its own, more generous budget (20 min — this machine's
+	// cap clears as other tasks finish turns, not instantly, but it does clear) before the model's
+	// own 7-minute response clock starts counting at all.
+	const queueDeadline = Date.now() + queueBudgetMs;
+	while (spawned?.id && Date.now() < queueDeadline && await isQueued(spawned.id)) await sleep(5000);
+
 	const deadline = Date.now() + budgetMs;
 	let waited = spawned.queued ? null : await mcp("wait_for_agent", { id: spawned.id, timeout_s: 420 }, 430000);
 	while ((!waited || waited.turns == null) && Date.now() < deadline){
@@ -129,7 +142,26 @@ async function waitForRealTurn(spawned, budgetMs = 420_000){
 	return waited;
 }
 
-async function mcp(name, args, ms = 30000){
+async function isQueued(id){
+	try {
+		// system_health's own text is "<one-line verdict>\n\n<the real JSON>" — NOT pure JSON, so
+		// mcp()'s generic `JSON.parse(whole text)` always fails and falls back to `{raw: text}`,
+		// which silently made the very first version of this check always return false (no queue
+		// grace at all, every time) without ever throwing. Parse the JSON object out of the raw
+		// text ourselves rather than trusting mcp()'s generic parse for this one tool.
+		const r = await fetch("http://127.0.0.1:8090/mcp", { method: "POST",
+			headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "system_health", arguments: {} } }),
+			signal: AbortSignal.timeout(20000) });
+		const j = await r.json();
+		const text = j.result?.content?.[0]?.text ?? "";
+		const brace = text.indexOf("{");
+		const h = brace >= 0 ? JSON.parse(text.slice(brace)) : null;
+		return !!(h?.queue || []).some(row => row.id === id);
+	} catch { return false; } // can't tell -> assume it already started, fall through to the normal response wait
+}
+
+export async function mcp(name, args, ms = 30000){
 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
 		body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
 	const j = await r.json();
@@ -201,7 +233,7 @@ function sha256(file){ try { return crypto.createHash("sha256").update(fs.readFi
 /* Every .js file in the run dir parses — `node --check`, the same first line every edit in this
  * repo gets (CLAUDE.md's "Never" list). One failure is enough to fail the whole run: a page that
  * doesn't parse doesn't load, whatever else it got right. */
-function checksParse(runDir){
+export function checksParse(runDir){
 	const bad = [];
 	for (const f of allFiles(runDir).filter(f => f.endsWith(".js"))){
 		const r = spawnSync("node", ["--check", f], { encoding: "utf8", windowsHide: true });
@@ -215,7 +247,7 @@ function checksParse(runDir){
  * Chromium (never a second one — CLAUDE.md law 6), imported by its real file:// url because it is
  * resolved relative to THIS module, not the run dir. Runs only if the run dir (still) has a
  * page.js — plan-counter never does, and that's fine: there's nothing to load. */
-async function checksLoadClean(runUrl){
+export async function checksLoadClean(runUrl){
 	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
 	const b = await browser();
 	const page = await (await b.newContext()).newPage();
@@ -238,7 +270,7 @@ async function checksLoadClean(runUrl){
  * it touch only what it was supposed to". A file the run ADDED (not in the fixture at all) is
  * listed separately: expected for new-page-glossary, a red flag for fix-label. task.jsonl is the
  * run's own log, never part of the fixture, so it is always excluded from this diff. */
-function diffFromFixture(fixtureDir, runDir){
+export function diffFromFixture(fixtureDir, runDir){
 	const before = new Map(allFiles(fixtureDir).map(f => [path.join(path.dirname(path.relative(fixtureDir, f)), as_run(path.basename(f))), sha256(f)]));
 	const after = new Map(allFiles(runDir).filter(f => path.basename(f) !== "task.jsonl").map(f => [path.relative(runDir, f), sha256(f)]));
 	const changed = [], added = [], removed = [];
@@ -258,7 +290,7 @@ function diffFromFixture(fixtureDir, runDir){
  * a run is free to log its decision into task.jsonl, page.jsonl, or its own decisions.jsonl.
  * (Found the hard way: plan-views's first real runs wrote valid decisions into page.jsonl and
  * decisions.jsonl respectively, and a task.jsonl-only check scored both as FAIL.) */
-async function checksDecision(runDir){
+export async function checksDecision(runDir){
 	const decide = await import(pathToFileURL(path.join(ROOT, "Server/decide.mjs")).href);
 	const logs = fs.readdirSync(runDir).filter(n => n.endsWith(".jsonl"));
 	const decisions = logs.flatMap(name => [...decide.logged(path.join(runDir, name)).values()]);
@@ -271,7 +303,7 @@ async function checksDecision(runDir){
  * does the same thing for you, per the new-page skill). Plain text search, not a parse: good
  * enough for one word in one small file, and avoids importing the parent as a live module just to
  * ask this. */
-function checksLinked(runDir, child){
+export function checksLinked(runDir, child){
 	const parent = path.join(runDir, "page.js");
 	if (!fs.existsSync(parent)) return { ok: false, why: "fixture's own page.js is gone" };
 	const text = fs.readFileSync(parent, "utf8");
@@ -283,7 +315,7 @@ function checksLinked(runDir, child){
 /* The other half of a new-page test: does the CHILD page itself render the exact H1 text the test
  * asked for? Loaded headless at the child's own url (not the parent's — the parent is checked
  * separately by checksLinked above, and by the generic checksLoadClean on the run dir's own page). */
-async function checksH1(childUrl, expectedText){
+export async function checksH1(childUrl, expectedText){
 	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
 	const b = await browser();
 	const page = await (await b.newContext()).newPage();
@@ -314,7 +346,7 @@ async function checksH1(childUrl, expectedText){
  * by agent id, in `openrouter.jsonl`. Polled up to 40s, same as provider.js's own poll. A Claude
  * model (`provider_for(model) === "anthropic"`) skips all of this — its cost is real immediately,
  * because it is billed on the subscription, not through this ledger at all. */
-async function resolveCost(model, agentId, waitedCost){
+export async function resolveCost(model, agentId, waitedCost){
 	if (provider_for(model) !== "openrouter") return waitedCost ?? null;
 	for (let i = 0; i < 20; i++){
 		const lines = readJsonl(OR_LOG_PATH).filter(l => l.agent === agentId);
@@ -322,6 +354,19 @@ async function resolveCost(model, agentId, waitedCost){
 		await sleep(2000);
 	}
 	return null; // never settled in 40s — recorded as unknown, not zero (a silent zero would look free)
+}
+
+/* OpenRouter's own daily free-request counter (GET /key, `data.free_model_daily_requests.used`) —
+ * read fresh each call, never cached, since it's only ever used as a before/after delta around one
+ * run. A failed read (no key, network hiccup) returns null rather than throwing: this is a diagnostic
+ * extra, never something a run's pass/fail should hinge on. */
+async function freeRequestsUsed(){
+	try {
+		const res = await fetch("https://openrouter.ai/api/v1/key", { headers: { Authorization: `Bearer ${read_key()}` } });
+		if (!res.ok) return null;
+		const used = (await res.json())?.data?.free_model_daily_requests?.used;
+		return typeof used === "number" ? used : null;
+	} catch { return null; }
 }
 
 /* ── one test, one model, one run ── */
@@ -339,10 +384,21 @@ async function runOne(test, model, effort){
 	const prompt = orient + test.prompt;
 
 	const t0 = Date.now();
-	let spawned, waited, note = "";
+	const freeBefore = await freeRequestsUsed();
+	let spawned, waited, note = "", firstTurnMs = null;
 	try {
 		spawned = await mcp("spawn_agent", {
-			role: "minion", name: `lib-${test.id}`, prompt, model, effort, cwd: ROOT,
+			// 2026-10-01 (the cheap ladder): the name used to be plain `lib-${test.id}`, reused by
+			// EVERY model that ran this same test. Running three models back to back under that one
+			// name did not give each a fresh agent — Servex found the earlier, not-yet-dead agent
+			// under that same name and fed it the new prompt as a continuation, instead of a clean
+			// spawn. The result: two of three runs recorded as a confident "mechanical FAIL" with
+			// turns:null, cost:null (they never reached a model at all — OpenRouter's own /key
+			// free_model_daily_requests was unchanged), while the third model's real work landed late,
+			// under the WRONG run's id, well after that run had already given up and been scored.
+			// A name unique per run (model + timestamp, same shape runName already has) means every
+			// run gets its own agent, every time — no two runs can ever collide under one id again.
+			role: "minion", name: `lib-${test.id}-${slug(model)}-${Date.now()}`, prompt, model, effort, cwd: ROOT,
 			permission_mode: "bypassPermissions",
 			task: { dir: path.relative(ROOT, runDir).replaceAll("\\", "/") }
 		});
@@ -359,14 +415,38 @@ async function runOne(test, model, effort){
 			}
 			throw new Error(why);
 		}
+		const t1 = Date.now();
 		waited = await waitForRealTurn(spawned);
+		if (waited?.turns != null) firstTurnMs = Date.now() - t1;
 	} catch (e) {
 		note = `run failed: ${String(e?.message || e).slice(0, 300)}`;
 	} finally {
 		if (spawned?.id) try { await mcp("stop_agent", { id: spawned.id }, 20000); } catch {}
 	}
+	// SAME RULE AS THE SPEND-CAP REFUSAL ABOVE: `waitForRealTurn`'s own budget ran out with the
+	// agent never once producing a turn (not "it tried and failed" — it never got a turn at all,
+	// same Servex-queueing gap the comment on the spawn above explains). Recording that as a model
+	// "FAIL" is the exact lie the owner flagged on 2026-10-01 — delete the run dir, skip it.
+	if (spawned?.id && waited?.turns == null && !note) {
+		fs.rmSync(runDir, { recursive: true, force: true });
+		return { skipped: true, test: test.id, model, effort, reason: "spawned but never produced a real turn within its budget (Servex queue, not a model failure)" };
+	}
 	const ms = Date.now() - t0;
 	const cost_usd = spawned?.id ? await resolveCost(model, spawned.id, waited?.cost) : null;
+	// Phase 19 (phases.md line 213): per-run timing + OpenRouter rate-limit signal. `firstTurnMs` is
+	// the closest this layer can get to "time to first token" — this script only ever sees Servex's
+	// own wait_for_agent polling, never the raw HTTP exchange the `claude` child process has with
+	// OpenRouter (that happens inside the Claude Agent SDK's own process, with no hook this repo owns
+	// to read its request/response log) — so a real per-request HTTP status / retry-after is NOT
+	// something this script can honestly report; this is said here instead of guessing a number.
+	// What IS real and checkable: OpenRouter's own `/key` free-model counter, read before and after —
+	// a free run that used zero of its own quota is exactly the "never reached the model" case above,
+	// caught a second, independent way.
+	const freeAfter = provider_for(model) === "openrouter" ? await freeRequestsUsed() : null;
+	const rate = {
+		ms_total: ms, ms_to_first_turn: firstTurnMs,
+		free_requests_used_delta: (freeBefore != null && freeAfter != null) ? freeAfter - freeBefore : null,
+	};
 
 	// Mechanical checks — what a script can tell, kind by kind (requirements.md deliverable 2).
 	const parse = checksParse(runDir);
@@ -394,7 +474,7 @@ async function runOne(test, model, effort){
 		model, effort, dir: path.relative(ROOT, runDir).replaceAll("\\", "/"),
 		pass, label: {}, score: null, reasoning: null, cost_usd, turns: waited?.turns ?? null, ms,
 		mechanical: { parse: parse.ok, load_clean: load.ok, diff, decision, linked, h1 },
-		note
+		rate, note
 	};
 	// Amendment 5: a run lands on the TEST's own page.jsonl now, not the shared results.jsonl —
 	// results.jsonl keeps only the rule tests and the probes (a different harness, rules.mjs's own

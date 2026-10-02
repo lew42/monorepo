@@ -1,0 +1,41 @@
+{
+  "fetched_at": "2026-10-01T20:30:00Z",
+  "source": "https://openrouter.ai/api/v1/models (no key needed)",
+  "note": "Phase 18 (owner, phases.md line 206): free models run first, ALL of them, before any paid ones. The free list below is COMPUTED, not typed by hand: every model whose id ends \":free\" AND whose supported_parameters includes \"tools\", read straight off /api/v1/models.",
+  "free_filter": "data.filter(m => m.id.endsWith(':free') && m.supported_parameters?.includes('tools'))",
+  "free_models": [
+    "apodex/apodex-1.1-mini:free",
+    "cohere/north-mini-code:free",
+    "dots-studio/dots-3-note-preview:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "google/gemma-4-31b-it:free",
+    "inclusionai/ling-3.0-flash-sante:free",
+    "liquid/lfm-2.5-2.6b:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "nvidia/nemotron-3.5-lightning:free",
+    "poolside/laguna-s-2.1:free",
+    "poolside/laguna-xs-2.1:free",
+    "qwen/qwen3.8-27b:free",
+    "thinkingmachines/inkling-small:free",
+    "thinkingmachines/inkling:free"
+  ],
+  "free_models_count": 16,
+  "free_models_run_so_far": {
+    "nvidia/nemotron-3-super-120b-a12b:free": "skipped — never reached the model (a Servex agent-name collision across sequential runs; see library.mjs's 2026-10-01 fix; not a model failure, not counted)",
+    "nvidia/nemotron-3-ultra-550b-a55b:free": "PASS on h1-page (rung 1) — scored after the fact once the orphaned real agent finished; cost $0 (free), 1 turn, ~290s"
+  },
+  "paid_candidates_once_free_tier_is_exhausted": [
+    { "name": "DeepSeek V4 Flash", "id": "deepseek/deepseek-v4-flash", "prompt_per_m": 0.0419, "completion_per_m": 0.0837, "supports_tools": true },
+    { "name": "Qwen3 Coder (paid)", "id": "qwen/qwen3-coder-30b-a3b-instruct", "prompt_per_m": 0.07, "completion_per_m": 0.28, "supports_tools": true },
+    { "name": "GPT-6 Luna", "id": "openai/gpt-6-luna", "prompt_per_m": 0.1, "completion_per_m": 0.5, "supports_tools": true },
+    { "name": "DeepSeek V4 Pro", "id": "deepseek/deepseek-v4-pro", "prompt_per_m": 0.2088, "completion_per_m": 0.4176, "supports_tools": true },
+    { "name": "GLM 5.3 Flash", "id": "z-ai/glm-5.3-flash", "prompt_per_m": 0.15, "completion_per_m": 0.5, "supports_tools": true },
+    { "name": "Gemini 3.8 Flash", "id": "google/gemini-3.8-flash", "prompt_per_m": 0.75, "completion_per_m": 3.75, "supports_tools": true },
+    { "name": "Gemini 3.1 Pro", "id": "google/gemini-3.1-pro-preview", "prompt_per_m": 2, "completion_per_m": 12, "supports_tools": true, "note": "reference only — no new runs" }
+  ],
+  "paid_candidates_run_so_far": {
+    "deepseek/deepseek-v4-flash": "skipped — never reached the model (same agent-name collision; not a model failure, not counted); re-run only if no free model passes all four simple rungs, per the owner's order"
+  }
+}

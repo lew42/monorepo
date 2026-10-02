@@ -6,3 +6,12 @@
 {"event":"log","note":"added hello/page.js and children: \"hello\""}
 {"log":{"at":"2026-10-01T02:15:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"event":"log","note":"added hello/page.js and children: \"hello\""}
+{"log":{"at":"2026-10-01T02:38:38-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T03:37:15-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:01:55-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:21:03-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:49:44-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T14:55:46-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T16:39:28-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T20:36:28-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}
+{"log":{"at":"2026-10-01T21:42:07-05:00","heartbeat":"deliberate","msg":"minion-lib-h1-page-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T00:44:12-05:00; not revived."}}

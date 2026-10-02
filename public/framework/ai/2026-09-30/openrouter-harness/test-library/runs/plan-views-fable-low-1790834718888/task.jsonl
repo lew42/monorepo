@@ -9,3 +9,13 @@
 {"log":"decide.mjs trap: a then entry must be a drafted child decision id, not prose; I had typed prose, then only unions, so I stripped the prose from decide-drafts.json (the tool's own draft store) and reran recommend. Four follow-on decisions drafted with --depends-on and logged too."}
 {"assign":{"step":3,"now":"nothing built, nothing to smoke-test: page.jsonl + task.jsonl only"}}
 {"landed_at":"2026-10-01T01:07:22-05:00","outcome":"Three View-style architectures for Notice / NoticeList / NoticeTray, with pros and cons, written as one decision plus four follow-ons in page.jsonl (Decisions module placed). Pick: B, the list owns the data and emits; the tray only listens."}
+{"log":{"at":"2026-10-01T02:30:57-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-01T02:38:38-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T03:37:15-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:01:55-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:21:03-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:49:44-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T14:55:46-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T16:39:28-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T20:36:28-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}
+{"log":{"at":"2026-10-01T21:42:08-05:00","heartbeat":"deliberate","msg":"minion-lib-plan-views-4 its agent is not running: it was stopped on purpose by owner at 2026-10-01T01:07:33-05:00; not revived."}}

@@ -11,3 +11,22 @@
 {"log":{"at":"2026-10-01T02:11:07-05:00","heartbeat":"answered","msg":"Holding: Phase 15 quality-bar fix landed and reported (commit `c340ed94`), waiting on the 19:00 OpenRouter reset to run the remaining probes."}}
 {"log":{"at":"2026-10-01T02:25:59-05:00","heartbeat":"check","msg":"status check sent to minion-openrouter-rules"}}
 {"log":{"at":"2026-10-01T02:26:05-05:00","heartbeat":"answered","msg":"Still holding: Phase 15 quality-bar fix landed and reported (commit `c340ed94`), waiting on the 19:00 OpenRouter reset to run the remaining probes. No new work queued in the meantime."}}
+{"log":{"at":"2026-10-01T02:38:36-05:00","heartbeat":"revive-queued","msg":"minion-openrouter-rules its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-01T02:38:39-05:00","heartbeat":"revive","msg":"revived minion-openrouter-rules from session 2dd8d9fb-40ca-4268-985a-7147033dbde9"}}
+{"log":{"at":"2026-10-01T02:38:58-05:00","heartbeat":"answered","msg":"Holding: both review rounds (commits `1e740623`, `c340ed94`) are landed and reported. Still waiting on the 19:00 UTC OpenRouter reset (~11.5h out) before running the remaining probes — flagged to the "}}
+{"log":{"at":"2026-10-01T02:53:33-05:00","heartbeat":"check","msg":"status check sent to minion-openrouter-rules"}}
+{"log":{"at":"2026-10-01T02:53:39-05:00","heartbeat":"answered","msg":"Holding: both review rounds landed (commits `1e740623`, `c340ed94`), waiting on the 19:00 UTC OpenRouter reset before running the remaining probes. Nothing new to report."}}
+{"log":{"at":"2026-10-01T03:18:32-05:00","msg":"task-loop chase 1 of 2: woke minion-openrouter-rules","chase":1}}
+{"log":{"at":"2026-10-01T03:18:45-05:00","heartbeat":"answered","msg":"Quiet is expected: holding for the 19:00 UTC OpenRouter daily-cap reset before running the remaining probes (page-blog, log-line on the three cheap models). Both review rounds already landed and reported (1e740623, c340ed94). Nothing else queued until the reset; no action needed."}}
+{"log":{"at":"2026-10-01T03:28:33-05:00","heartbeat":"check","msg":"status check sent to minion-openrouter-rules"}}
+{"log":{"at":"2026-10-01T03:28:39-05:00","heartbeat":"answered","msg":"Holding: both review rounds landed (`1e740623`, `c340ed94`), waiting on the 19:00 UTC OpenRouter reset before running the remaining probes. No change."}}
+{"log":{"at":"2026-10-01T03:37:13-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T03:52:10-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-01T04:22:10-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-01T07:01:53-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:21:02-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T07:49:43-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T14:55:44-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T16:39:25-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T20:36:26-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
+{"log":{"at":"2026-10-01T21:42:05-05:00","heartbeat":"deliberate","msg":"minion-openrouter-rules its agent is not running: it was stopped on purpose by task-mastermind-openrouter at 2026-10-01T03:28:45-05:00; not revived."}}
