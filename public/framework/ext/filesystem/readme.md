@@ -1,5 +1,7 @@
 # filesystem — the DATA behind every file on the site: `FsFile` and `FsDir`, plus a link to any of them
 
+> **⚠ Converge (the owner, 2026-10-02):** file and saving code is scattered across [ext/Saver](/framework/ext/Saver/) (whole-JSON rewrites), [ext/filesystem](/framework/ext/filesystem/) (`FsFile`, `FsDir` → `Dir`), [ext/files](/framework/ext/files/) (the tree UI), [ext/JSONL](/framework/ext/JSONL/), and about 15 direct `Socket` `"append"`/`"write"` calls. Before adding to any of them, consider consolidating: ONE file object (`FsFile`: `read`, `write`, `append`, and a `store` for .jsonl) as the only caller of the dev socket. Logs are appended one line at a time, never rewritten. A `LiveList`'s change events are both the view update and the line that gets appended. Design: [page-item-design.md](/framework/ai/2026-09-30/proposal-flow/page-item-design.md).
+
 The browsing WIDGET (the tree you click through) is a different module, [`ext/files`](/framework/ext/files/) — its name is easy to confuse with this one's. This module only holds the plain objects; `ext/files` draws them.
 
 ## What
