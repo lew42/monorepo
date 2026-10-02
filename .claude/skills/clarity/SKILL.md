@@ -38,7 +38,7 @@ Pieces can each be right while the whole screen is wrong. Every agent's screensh
 2. Answer from the picture alone, in ten seconds: **What is its status? What was asked? What was delivered?** If you can't answer one of them, it fails.
 3. Look for parts that contradict each other, for example a chat that says "Landed" above a counter that says "0 done".
 
-A failure here is usually code, so don't fix it yourself. Send the owning mastermind the screenshot path, your three answers, and the fix you would make. If nobody owns it any more, write it as a `"verdict": "ui"` line in flags.jsonl, and mastermind-servex reads those.
+A failure here is usually code, so don't fix it yourself. Send the owning mastermind the screenshot path, your three answers, and the fix you would make. If nobody owns it any more, write it as a `"verdict": "ui"` line in flags.jsonl the same validated way (step 3 below), and mastermind-servex reads those.
 
 ## A failure becomes a rewrite, never a critique
 
@@ -46,7 +46,7 @@ Write the fixed version itself: the new outcome, the new paragraph as a tree, th
 
 1. **The owner is running** (`list_agents` shows the task's agent working or idle): `send_to_agent` it the rewrite, with one line saying what was wrong and where.
 2. **Nobody owns it any more:** apply the rewrite yourself. Edit only the task dir's `.md` files, and append one `{"assign": {"outcome": "…"}}` line. Never touch code.
-3. **Always** append one line to `.claude/skills/clarity/flags.jsonl`:
-   `{"at": "<full ISO time>", "target", "verdict": "clear" | "rewrote" | "sent" | "ui", "what": "<one line>", "to": "<agent or file>"}`
+3. **Always** write the line to a scratch `.json` array, then run `node .claude/hooks/append.mjs .claude/skills/clarity/flags.jsonl <lines.json>` (validated against `flags.jsonl`'s schema in `.claude/hooks/jsonl-schema.mjs`, same as any task log):
+   `{"at": "<full ISO time>", "target": "<task dir or url>", "verdict": "clear" | "rewrote" | "sent" | "ui", "what": "<one line>", "to": "<agent or file>"}`
 
 A clear target still gets its one "clear" line. Then stop: no report, no card reply.

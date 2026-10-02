@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { check } from "../../../.claude/hooks/jsonl-schema.mjs";
 
 const PUBLIC = path.resolve("public");
 
@@ -45,12 +46,29 @@ export default class Append {
 
 	/* One or many lines, always whole. ⚠ `appendFileSync` opens with "a", so two writers
 	   interleave BETWEEN lines and never inside one — which is the whole point: a torn
-	   half-line is unparseable to every reader of the file, not just to its writer. */
+	   half-line is unparseable to every reader of the file, not just to its writer.
+	   VALIDATED FIRST (2026-10-02): every line is judged against the target's schema
+	   (jsonl-schema.mjs's check(), the same rule append.mjs enforces) before anything is
+	   written. One bad line refuses the WHOLE batch, nothing partial — the browser gets
+	   the reason back instead of a half-written file. A file with no schema only has to
+	   be a plain JSON object, which check() already guarantees. */
 	append(file, lines, index){
 		const full = resolve(file);
 		if (!full) return this.answer(index, "append refused");
 
-		const text = [lines].flat()
+		const list = [lines].flat().filter(Boolean);
+		if (!list.length) return this.answer(index, "append empty");
+
+		for (const raw of list){
+			let obj = raw;
+			if (typeof raw === "string") {
+				try { obj = JSON.parse(raw); } catch { return this.answer(index, "append refused: a line must be valid JSON"); }
+			}
+			const why = check(full, obj);
+			if (why) return this.answer(index, `append refused: ${why}`);
+		}
+
+		const text = list
 			.map(line => (typeof line === "string" ? line : JSON.stringify(line)).replace(/[\r\n]+/g, " "))
 			.filter(Boolean)
 			.map(line => line + "\n")
