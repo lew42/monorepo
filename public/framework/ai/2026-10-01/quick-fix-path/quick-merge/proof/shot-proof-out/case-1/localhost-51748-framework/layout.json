@@ -1,0 +1,14 @@
+{
+ "url": "http://localhost:51748/framework/",
+ "widths": {
+  "1200": {
+   "empty": 0.657,
+   "widest_text": 533,
+   "widest_text_sample": "A no-build, native-ESM web framework",
+   "overflow_x": false,
+   "items": 158,
+   "narrow_share": 0.184
+  }
+ },
+ "errors": []
+}
