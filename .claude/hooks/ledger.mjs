@@ -4,6 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
+// A review (2026-10-02) caught this: a STATIC `import { check } from "./jsonl-schema.mjs"`
+// means that if jsonl-schema.mjs ever fails to load (a syntax slip, a bad merge), ledger.mjs
+// can't even start — so every task log goes silent, with nothing reporting it. That is exactly
+// what the owner's top rule forbids, and the try/catch around check()'s own CALL can't catch a
+// failed IMPORT. So: a dynamic import, with a safe "nothing is wrong" fallback if it fails.
+let check = () => null;
+try { ({ check } = await import("./jsonl-schema.mjs")); } catch {}
+
 const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
 
 // Appending to any of these from PostToolUse would log the log, forever.
@@ -20,10 +28,22 @@ const lines = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => {
 
 // A log whose last line has no newline glues our entry onto it — and a line holding
 // two objects fails JSON.parse, so BOTH silently vanish from every reader.
-const append = (file, entry) => {
+//
+// VALIDATED (2026-10-02), but never BLOCKING: a guard must never stop logging itself (the
+// owner's rule that outranks every other rule in this file). So `check()` runs first, but
+// its answer only ever changes what gets written, never whether it gets written:
+//   - check() says the line is fine → write it unchanged.
+//   - check() names a reason it's not → write it anyway, with "unchecked": "<reason>" added,
+//     so a reader can see the line never passed and why, instead of losing it.
+//   - check() itself throws (its own bug) → write the line unchanged, exactly as before this
+//     existed — a broken checker must never make the ledger go silent.
+export const append_checked = (file, entry) => {
+	let bad = null;
+	try { bad = check(file, entry); } catch { bad = null; }
+	const out = bad ? { ...entry, unchecked: bad } : entry;
 	let lead = "";
 	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
-	fs.appendFileSync(file, lead + JSON.stringify(entry) + "\n");
+	fs.appendFileSync(file, lead + JSON.stringify(out) + "\n");
 };
 
 const state = file => Object.assign({}, ...lines(file).filter(e => e.assign).map(e => e.assign));
@@ -118,7 +138,7 @@ const run = async () => {
 
 	if (event === "posttooluse" && input.tool_name === "Skill") {
 		const task = cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
-		if (task && input.tool_input?.skill) append(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
+		if (task && input.tool_input?.skill) append_checked(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
 		// The marker prompt-relay.mjs (the UserPromptSubmit hook) checks to know a session is "the assistant".
 		try { if (["assistant", "every-prompt"].includes(input.tool_input?.skill)) fs.writeFileSync(path.join(os.tmpdir(), `claude-assistant-${String(input.session_id).replace(/[^\w-]/g, "_")}`), ""); } catch {}
 		return;
@@ -164,11 +184,11 @@ const run = async () => {
 				try {
 					const day = path.join(root, "public", "framework", "ai", "health", now().slice(0, 10) + ".jsonl");
 					fs.mkdirSync(path.dirname(day), { recursive: true });
-					fs.appendFileSync(day, JSON.stringify({ warning: {
+					append_checked(day, { warning: {
 						at: now(), url: "(hook)", kind: "guard-threw",
 						text: name + " threw and was swallowed: " + (e && e.message ? e.message : String(e)),
 						file, files: file ? [file] : [],
-					} }) + "\n");
+					} });
 				} catch {}
 			}
 		};
@@ -198,7 +218,7 @@ const run = async () => {
 		const task = by_path || cached_task(input.agent_id, input.session_id) || (input.agent_id || unborn ? null : find_task(input.session_id, true));
 		if (!task) return;
 		if (lines(task).some(e => e.action?.files?.includes(r))) return; // first touch only
-		append(task, { action: { at: now(), did: "edit", files: [r] } });
+		append_checked(task, { action: { at: now(), did: "edit", files: [r] } });
 		return;
 	}
 
@@ -212,7 +232,7 @@ const run = async () => {
 		// stop the agent bounces off this, so the log stays a record, not a chant.
 		if (s.landed_at && !String(s.outcome || "").trim()) {
 			const refusal = "landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}.";
-			if (!lines(task).some(e => e.log?.msg === refusal)) append(task, { log: { at: now(), msg: refusal } });
+			if (!lines(task).some(e => e.log?.msg === refusal)) append_checked(task, { log: { at: now(), msg: refusal } });
 			console.log(JSON.stringify({
 				decision: "block",
 				reason: `${rel(task)} has landed_at but no outcome, so it is not landed. Append ONE line: {"assign": {"outcome": "**what landed** — …"}} — then stop again.`
@@ -253,13 +273,26 @@ const run = async () => {
 	if (!task) return;
 
 	if (event === "sessionstart") {
-		if (input.source === "resume") append(task, { log: { at: now(), msg: "session resumed" } });
+		if (input.source === "resume") append_checked(task, { log: { at: now(), msg: "session resumed" } });
 		return;
 	}
 
 	if (event === "sessionend" && !state(task).landed_at)
-		append(task, { log: { at: now(), msg: `session ended (${input.reason || "other"}) without landing` } });
+		append_checked(task, { log: { at: now(), msg: `session ended (${input.reason || "other"}) without landing` } });
 };
 
-try { await run(); } catch {}
-process.exit(0);
+// Run the hook only when this file is executed directly (`node ledger.mjs <event>`, the only
+// way settings.json ever calls it) — never when a test imports it to reach append_checked,
+// which would otherwise fire a real stdin read and a real process.exit(0) mid-test.
+//
+// A review (2026-10-02) flagged the obvious `import.meta.url === pathToFileURL(argv[1]).href`
+// check: if Node ever resolves the two to different strings (a symlink or junction in the path,
+// a drive-letter case mismatch) this hook goes silent with NOTHING reporting it — exactly what
+// the owner's top rule forbids. Matching the FILENAME instead is cheap and can't silently
+// diverge the same way: it only answers "is argv[1] some ledger.mjs", which is true whenever
+// settings.json is the one calling this file, and false for a test's own argv[1].
+const is_main = () => /ledger\.mjs$/i.test(process.argv[1] ?? "");
+if (is_main()) {
+	try { await run(); } catch {}
+	process.exit(0);
+}

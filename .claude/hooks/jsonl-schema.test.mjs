@@ -45,7 +45,7 @@ function verbs_of(file, name){
 
 console.log("— 1. the schema agrees with each reader —");
 for (const [kind, s] of Object.entries(schemas)){
-	if (s.reader.class){
+	if (s.reader?.class){
 		const reader = new Set(verbs_of(s.reader.file, s.reader.class));
 		const mine = Object.entries(s.verbs).filter(([, v]) => !v.extra).map(([k]) => k);
 		const pending = new Set(s.pending ?? []);
@@ -86,6 +86,18 @@ ok(/one JSON object/.test(check("x/usage.jsonl", [1]) ?? ""), "an array line is 
 ok(check_event("cards/live", { type: "focus", ref: "x" }) === null, "append_log: a typed event is accepted");
 ok(/task.jsonl-style/.test(check_event("servex", { log: { msg: "x" } }) ?? ""), "append_log: a verb-shaped task line is refused with the pointer");
 ok(/never a repo file/.test(check_event("task", { type: "x" }) ?? ""), "append_log: a name that means a repo task log is refused");
+
+console.log("— 2b. flags.jsonl: a FLAT schema (no verb key) —");
+ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear" }) === null, "flags.jsonl: the three required fields are accepted");
+ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear", what: "…", to: "…", kind: "landing" }) === null, "flags.jsonl: the optional fields ride along fine");
+ok(/missing "verdict"/.test(check("flags.jsonl", { at: "t", target: "x" }) ?? ""), "flags.jsonl: a line with no verdict is refused");
+ok(/must be one of/.test(check("flags.jsonl", { at: "t", target: "x", verdict: "not-a-real-verdict" }) ?? ""), "flags.jsonl: an unlisted verdict is refused");
+{
+	const fs_mod = await import("node:fs");
+	const lines = fs_mod.readFileSync(join(ROOT, ".claude/skills/clarity/flags.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+	const bad = lines.map((l, i) => [i + 1, check("flags.jsonl", l)]).filter(([, why]) => why);
+	ok(bad.length === 0, `flags.jsonl: every existing line passes the schema${bad.length ? " — first bad: line " + bad[0][0] + ": " + bad[0][1] : ""}`);
+}
 
 console.log("— 3. append.mjs end to end —");
 {

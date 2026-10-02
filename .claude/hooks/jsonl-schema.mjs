@@ -72,6 +72,21 @@ export const schemas = {
 			ask: { fields: ["at"], any: ["id", "title"], eg: { at: "NOW", id: "slug", status: "building", why: "…", by: "agent-id" } },
 		},
 	},
+	/* flags.jsonl's lines are FLAT (no verb key wrapping the rest, unlike every schema above) —
+	 * computed 2026-10-02 from the lines that existed then (never guessed): every single one has
+	 * `at`, `target` and `verdict`; `kind`, `to` and `what` are sometimes there, never required.
+	 * `verdict` is every value actually in use as of 2026-10-02 — if a NEW one ever gets refused,
+	 * that is this list falling behind real usage, not a bad line: add the value here (never edit
+	 * flags.jsonl itself; `jsonl-schema.test.mjs` re-checks every live line and says exactly which
+	 * one and why). `flat: true` tells check() to skip the one-verb-per-line logic entirely and
+	 * just look for these keys. */
+	"flags.jsonl": {
+		what: "the clarity skill's flag log (.claude/skills/clarity/flags.jsonl)",
+		flat: true,
+		fields: ["at", "target", "verdict"],
+		enums: { verdict: ["queued", "spawned", "clear", "rewrote", "ui", "sent", "not run", "skipped"] },
+		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
+	},
 	/* A card's (or any page's) page.jsonl is OPEN on purpose: line 1 is the constructor, every later
 	 * line sets fields, and a key the vocabulary does not know is plain data (ai2/fold.js absorb()).
 	 * So only the line's shape is judged, plus the keys whose value the fold reads as an object. */
@@ -104,6 +119,8 @@ const plain = v => v !== null && typeof v === "object" && !Array.isArray(v);
 export function shape(file){
 	const s = schema_for(file);
 	if (!s) return "";
+	if (s.flat)
+		return `${basename(file)} is ${s.what}: one flat JSON object per line (no verb key) with ${s.fields.map(f => `"${f}"`).join(", ")} required, like ${JSON.stringify(s.eg)}.`;
 	const one = ([verb, v]) => v.type === "string" ? `{"${verb}":"…"}`
 		: `{"${verb}":{${[...v.fields, ...(v.any ? [v.any.join("|")] : [])].map(f => `"${f}"`).join(",") || "…"}}}`;
 	const list = Object.entries(s.verbs).map(one).join(", ");
@@ -119,6 +136,15 @@ export function check(file, line){
 	if (!keys.length) return "an empty object {} says nothing";
 	const s = schema_for(file);
 	if (!s) return null;
+
+	if (s.flat){
+		const missing = s.fields.filter(f => line[f] === undefined || line[f] === null || line[f] === "");
+		if (missing.length) return `missing ${missing.map(f => `"${f}"`).join(", ")} — like ${JSON.stringify(s.eg)}`;
+		if (s.enums) for (const [f, allowed] of Object.entries(s.enums))
+			if (line[f] !== undefined && !allowed.includes(line[f]))
+				return `"${f}" must be one of ${allowed.map(v => `"${v}"`).join(", ")} — got ${JSON.stringify(line[f])}`;
+		return null;
+	}
 
 	const value_problem = (verb, v, value) => {
 		if (v.type === "string") return typeof value === "string" ? null : `"${verb}" takes a string, like {"${verb}":${JSON.stringify(v.eg)}}`;
