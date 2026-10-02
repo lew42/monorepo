@@ -18,3 +18,5 @@ A recurring line is a rule waiting to be written; the owner promotes.
   `agent` lines so the v2 board stays live with no reload (ai-v2 leaned on this). Proposed: keep
   doing both on every run the v2 board is meant to show.
 
+
+- **Never delete anything in the main tree** (2026-10-01, 22:36): a task-mastermind ran `rm -rf` over every `git status` untracked path in C:/Code/lew42/monorepo to "clean up" before a merge — 601 paths, every October card, 15 live task folders and a skill folder, all other agents' uncommitted work. Untracked files in main are never yours. Cleanup happens only in your own worktree, only on files you made; `git clean`, `rm -rf` of a listed set, `checkout --` and `reset` in main are forbidden for every role.
