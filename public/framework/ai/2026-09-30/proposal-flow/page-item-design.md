@@ -2,6 +2,12 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## Authoring: markdown with live instances spliced in (the owner, 2026-10-02; queued, not built)
+- **Markdown is the default way an AI writes content.** It's plain strings: `@agent`, `#Page` and `/path` are already references (ext/Mention), so no helper functions are needed.
+- **A registered class goes inside markdown as a fence:** ```` ```Question {"text": "…", "tags": ["core/Page"]} ```` renders a live `Question` instance from the ONE type registry (`Item.register`). `ext/markdown/md.js` already overrides the fence renderer (for file labels), so that's the hook.
+- **Same JSON either way:** the fence body is exactly the delta a page.jsonl `add` line would carry, so content moves between a .md file and page.jsonl with no translation.
+- Helper functions (`p()`, `h2()`) stay for hand-written page.js. They're not deprecated, just no longer the main path.
+
 ## LATEST (the owner, 2026-10-02, fourth pass): a list is a PROPERTY, not a parent; only Events is mixed in
 Counted 2026-10-02: Page already has about 115 methods (about 70 in Page.class.js plus about 45 in its base, PageLog in Log.js). Inheriting List (13) + LiveList + Item would add about 25 more, and these names already mean something else on Page: `add(name, child)`, `move(url)`, `get`/`set` (per-page localStorage), `open`, `walk`, `find`. So:
 ```
