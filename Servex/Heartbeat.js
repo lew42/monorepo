@@ -204,7 +204,7 @@ export default class Heartbeat {
     async triage(file, t, w, why){
         w.check_at = null;
         const held = (this.servex.queue ?? []).find(e => e.spec.id === t.owner);
-        const once = async (kind, msg) => { if (w.told === kind) return; w.told = kind; await this.log(file, kind, msg); if (t.card) await this.post(t.card, msg); };
+        const once = async (kind, msg) => { if (w.told === kind) return; w.told = kind; await this.log(file, kind, msg); await this.post(t.card, msg, false, path.dirname(file)); };
         if (held) return once("queued", `${t.owner} ${why}: it is queued at the spawn gate (${held.reason}).`);
         if (t.paused) return once("paused", `${t.owner} ${why}, but the task is paused; not revived.`);
         const by = this.stopped_by.get(t.owner);
@@ -242,7 +242,7 @@ export default class Heartbeat {
             else this.agents.reopen({ id: t.owner, session_id: t.session_id }).send(text, { from: FROM });
             w.check_at = Date.now(); w.told = null;
             await this.log(job.file, "revive", `revived ${t.owner} from session ${t.session_id}${unread ? ", with its unread inbox" : ""}`);
-            if (t.card) await this.post(t.card, `${t.owner} ${job.why}; Servex revived it and asked where it is at.`);
+            await this.post(t.card, `${t.owner} ${job.why}; Servex revived it and asked where it is at.`, false, dir);
         } catch (e){ await this.escalate(job.file, t, `${t.owner} ${job.why}, and the revive failed: ${e.message || e}`); }
     }
 
@@ -259,16 +259,42 @@ export default class Heartbeat {
     /* The same door TaskLoop.escalate() uses: card_ask when registered, else a card message. */
     async escalate(file, t, why){
         await this.log(file, "escalated", why);
-        if (t.card) await this.post(t.card, `${why.replace(/\.+$/, "")}. Servex could not fix it; please look.`, true);
+        await this.post(t.card, `${why.replace(/\.+$/, "")}. Servex could not fix it; please look.`, true, path.dirname(file));
     }
 
-    async post(card, text, ask){
+    /* NEVER-LOSE-A-WAKE, item 4 (2026-10-01): an escalation with no card to post to used to just
+     * stop — `if (t.card) await this.post(...)` skipped the whole thing when a task's line 1
+     * never named one, so the owner heard nothing at all; and `card_ask`/`card_reply` answer a
+     * card that cannot be found with a plain `{ok:false, why}` rather than throwing, which the
+     * old try/catch here could never have caught anyway. Either way — no card named, or the
+     * named one answers "no card" — the note now falls back to the owner's Inbox instead of
+     * vanishing: `servex.inbox.drop()` (Servex/agents/inbox.js) walks up to the nearest real
+     * page when the task's own folder is not one itself, so it always lands somewhere the AI
+     * board already shows. `task_dir` is the task's own folder, repo-relative or absolute — the
+     * one piece every caller above already has and the inbox needs when there is no card. */
+    async post(card, text, ask, task_dir){
+        if (!card) return this.to_inbox(task_dir, text);
         const h = this.servex.mcp?.handlers, a = ask && h?.get("card_ask"), ctx = { caller: FROM };
+        let out;
         try {
-            return a ? await a({ card, question: text, options: ["look into it", "close it"] }, ctx)
+            out = a ? await a({ card, question: text, options: ["look into it", "close it"] }, ctx)
                 : h?.get("card_reply") ? await h.get("card_reply")({ card, text }, ctx)
                 : await this.servex.assistant?.card_reply({ card, from: FROM, text });
-        } catch (e){ this.servex.say?.(`heartbeat: card ${card} not posted: ${e.message || e}`); }
+        } catch (e){ return this.to_inbox(task_dir, text, e.message || String(e)); }
+        let parsed; try { parsed = typeof out === "string" ? JSON.parse(out) : out; } catch {}
+        if (parsed && parsed.ok === false) return this.to_inbox(task_dir, text, parsed.why);
+        return out;
+    }
+
+    /* The fallback itself, one line logged either way (found or not) so a missing Inbox is never
+     * silent either. */
+    to_inbox(task_dir, text, why){
+        if (!task_dir) { this.servex.say?.(`heartbeat: nothing to post to${why ? ` (${why})` : ""} and no task dir to fall back on: "${text}"`); return null; }
+        try {
+            const out = this.servex.inbox?.drop({ path: task_dir, text, from: FROM });
+            this.servex.say?.(`heartbeat: no card to post to${why ? ` (${why})` : ""} — left a note on ${out?.file ?? task_dir}`, { event: "heartbeat-inbox" });
+            return out;
+        } catch (e){ this.servex.say?.(`heartbeat: could not reach the inbox either, for ${task_dir}: ${e.message || e}`); return null; }
     }
 
     log(file, kind, msg){
