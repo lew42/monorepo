@@ -1,6 +1,8 @@
 import { View, div, span, button, select, option, a } from "../../../core/View/View.js";
 import Dictate, { remember_device, remembered_device } from "../Dictate.js";
 import Revise from "../../Revise/Revise.js";
+import { inspect } from "../../Content/Object/Inspect.js";
+import { Session, Chunk, Resend } from "./objects.js";
 
 View.stylesheet(import.meta, "Playground.css");
 
@@ -28,8 +30,25 @@ export const FADE_MS = 5000;
 // that is what a first-time reader of this page should see first: the finished result, not
 // the mechanism. Corrections and Live are relabelled "(debug)" — they still work exactly as
 // before, just no longer first.
-const TABS = ["clean", "raw", "chunks", "corrections", "live", "side"];
-const TAB_LABEL = { clean: "Clean", raw: "Raw", chunks: "Chunks", corrections: "Corrections (debug)", live: "Live (debug)", side: "Side by side" };
+// **Analysis**, **Chat** and **Structure** are new (minion-part2, 2026-10-01 — the
+// Dictate playground as a full-bleed, live system diagram): the same six-tab,
+// show/hide-only mechanism this file already used, just with three more panels. On a
+// narrow screen all nine are still ordinary tabs — "a stack with tabs is fine," the
+// owner's own words (requirements.md). At ≥1200px, `Playground.css` additionally makes
+// Raw/Clean/Analysis/Chat/Structure always-visible GRID COLUMNS (ignoring which tab is
+// "active") and Chunks/Corrections/Live/Side an always-visible debug row underneath —
+// see that file's "full-bleed, 2D desktop layout" section for exactly how.
+const TABS = ["clean", "raw", "chunks", "corrections", "live", "side", "analysis", "chat", "structure"];
+const TAB_LABEL = {
+	clean: "Clean", raw: "Raw", chunks: "Chunks", corrections: "Corrections (debug)", live: "Live (debug)", side: "Side by side",
+	analysis: "Analysis", chat: "Chat", structure: "Structure",
+};
+
+// The one line a reader sees in the Chat column — intentionally NOT a second `chat()`
+// mount. `@task-mastermind-one-dictation` owns the real widget (mic, bubbles, replies,
+// reactions); this diagram is built AROUND it, never a second copy of it (requirements.md
+// fence: "Part 2 builds the diagram around their widget, not a second widget").
+const CHAT_PLACEHOLDER = "chat — see the widget above/beside this page";
 
 // "like" and "i mean" are deliberately NOT here — a real sentence like "I like the
 // layout" would lose a real word, not a filler. That call needs context, which is
@@ -133,9 +152,14 @@ export default class Playground {
 	reset(){
 		this.prune_views();
 		this.session++;
-		this.chunks = [];          // [{ raw, gap, cleaned, deltas, source_kind, model, ms, session }], settled order
-		this.resends = [];         // [{ t, segment, text, since_prev }] — every Whisper RESEND, not just the final text (Chunks view)
-		this.partial = "";         // the still-moving guess, greyed in the Raw view
+
+		// **`this.current` is the one `Session` instance** for this run — it owns
+		// `chunks`/`resends`/`source`/`analysis`/`partial` (minion-part2, "real classes
+		// instead of plain objects"). `cleaned_so_far`/`last_chunk_at`/`clean_queue` stay
+		// HERE, on `Playground` itself, not on `Session` — they are the pipeline's own
+		// bookkeeping for cleaning the NEXT chunk, never something a reader asked to
+		// inspect (decision logged in this task's task.jsonl).
+		this.current = new Session();
 		this.cleaned_so_far = "";  // accumulated CLEANED text — the `before` context for /api/tidy
 		this.last_chunk_at = null; // performance.now() of the last settle, for the gap check
 		this.clean_queue = Promise.resolve();   // chunks clean IN ORDER, never out of turn
@@ -151,6 +175,8 @@ export default class Playground {
 			view.$live.empty(() => { view.$live_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$side.empty(() => { view.$side_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT); });
 			view.$status.text("");
+			this.render_analysis(view);
+			this.render_structure(view);
 			this.toggle_empty(view);
 		});
 	}
@@ -166,15 +192,17 @@ export default class Playground {
 	}
 
 	// Shows/hides each panel's own "press 🎤…" line — visible until the panel has
-	// something real to show, then gone for the rest of the session.
+	// something real to show, then gone for the rest of the session. Analysis, Chat and
+	// Structure have no empty state of their own: Analysis and Structure always have a
+	// real `inspect()` card to show (a stub still IS a card), and Chat is static text.
 	toggle_empty(view){
-		if (view.$clean_empty) view.$clean_empty.el.hidden = this.chunks.length > 0;
-		if (view.$raw_empty) view.$raw_empty.el.hidden = this.chunks.length > 0;
-		if (view.$chunks_empty) view.$chunks_empty.el.hidden = this.resends.length > 0;
-		const has_clean = this.chunks.some(c => c.deltas);
+		if (view.$clean_empty) view.$clean_empty.el.hidden = this.current.chunks.length > 0;
+		if (view.$raw_empty) view.$raw_empty.el.hidden = this.current.chunks.length > 0;
+		if (view.$chunks_empty) view.$chunks_empty.el.hidden = this.current.resends.length > 0;
+		const has_clean = this.current.chunks.some(c => c.deltas);
 		if (view.$corrections_empty) view.$corrections_empty.el.hidden = has_clean;
 		if (view.$live_empty) view.$live_empty.el.hidden = has_clean;
-		if (view.$side_empty) view.$side_empty.el.hidden = this.chunks.length > 0;
+		if (view.$side_empty) view.$side_empty.el.hidden = this.current.chunks.length > 0;
 	}
 
 	// ---- the widget: mic, sample, audio source, status, tabs, panels --------
@@ -240,14 +268,34 @@ export default class Playground {
 					.on("click", e => { e.preventDefault(); this.select_tab(view, name); }));
 			});
 
-			div.c("ux-dictate-pg-panels", () => {
-				// ⚠ Each panel's PRE-EXISTING chunks (a widget mounted after a session
-				// already has some) are drawn AFTER the `view.$raw =` / `view.$corrections =`
-				// assignment finishes, never inside the same capture callback — the callback
-				// runs synchronously while that assignment is still in progress, so reading
-				// `view.$raw` from inside it reads `undefined` and every draw call silently
-				// no-ops (code skill, "no DOM after an await" family — the same trap, one
-				// step earlier: reading a ref before its own assignment has returned).
+			// **The full-bleed, 2D layout (deliverable 4).** Below ~1200px these two divs
+			// are plain blocks — exactly today's single `.ux-dictate-pg-panels` wrapper,
+			// just split in two, with every panel still shown/hidden one-at-a-time by
+			// `select_tab()` through the `[hidden]` attribute (nothing about the tab
+			// mechanism changed; "don't delete TABS/select_tab," requirements.md). At
+			// ≥1200px, `Playground.css` turns `.ux-dictate-pg-grid` into the owner's own
+			// column order — "source, raw, clean, analysis... chat" — Raw/Clean/
+			// Analysis/Chat/Structure become ALWAYS-VISIBLE grid columns (the CSS
+			// overrides `[hidden]` on just these five), with Structure wider than the
+			// rest ("a wider structure panel"). `.ux-dictate-pg-debug-row` does the same
+			// for the four debug panels, in their own row underneath — real detail,
+			// still there, just not the first thing a wide screen shows.
+			//
+			// ⚠ Each panel's PRE-EXISTING chunks (a widget mounted after a session
+			// already has some) are drawn AFTER the `view.$raw =` / `view.$corrections =`
+			// assignment finishes, never inside the same capture callback — the callback
+			// runs synchronously while that assignment is still in progress, so reading
+			// `view.$raw` from inside it reads `undefined` and every draw call silently
+			// no-ops (code skill, "no DOM after an await" family — the same trap, one
+			// step earlier: reading a ref before its own assignment has returned).
+			div.c("ux-dictate-pg-grid", () => {
+				// **Raw** (owner's own order: "the raw transcriptions can go in a card").
+				view.$raw = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-raw", () => {
+					view.$raw_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
+					view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
+				});
+				this.current.chunks.forEach(entry => this.draw_raw_line(view, entry));
+
 				// **Clean** (deliverable 5) — the clean text alone, no strike-through marks: what
 				// the real composer shows by default now. One line per settled chunk, drawn with
 				// its raw words the instant it settles (nothing worth showing yet is worse than a
@@ -257,30 +305,44 @@ export default class Playground {
 				view.$clean = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-clean", () => {
 					view.$clean_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
-				this.chunks.forEach(entry => this.draw_clean_line(view, entry));
+				this.current.chunks.forEach(entry => this.draw_clean_line(view, entry));
 
-				view.$raw = div.c("ux-dictate-pg-panel ux-dictate-pg-code ux-dictate-pg-raw", () => {
-					view.$raw_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
-					view.$guess = div.c("ux-dictate-pg-line ux-dictate-pg-guess muted");
-				});
-				this.chunks.forEach(entry => this.draw_raw_line(view, entry));
+				// **Analysis** — a STUB today (requirements.md deliverable 1): a real,
+				// inspectable object with its own icon, honest about doing nothing yet.
+				view.$analysis = div.c("ux-dictate-pg-panel ux-dictate-pg-analysis");
+				this.render_analysis(view);
 
+				// **Chat** — a placeholder, on purpose; see `CHAT_PLACEHOLDER`'s own comment.
+				// `card` (framework.css) is the one existing class for "a framed box" — no
+				// new CSS needed to make this read as its own column, same as Analysis and
+				// Structure already do through their own `inspect()` card's chrome.
+				view.$chat = div.c("ux-dictate-pg-panel ux-dictate-pg-chat card muted", CHAT_PLACEHOLDER);
+
+				// **Structure** (deliverable 3) — the WHOLE session, one nested card, built
+				// from `inspect(this.current)` and re-drawn after every `settle()`/`guess()`/
+				// `clean_chunk()` (`render_structure()`, below). This is the "visual
+				// rendering of the hierarchy" the owner asked for.
+				view.$structure = div.c("ux-dictate-pg-panel ux-dictate-pg-structure");
+				this.render_structure(view);
+			});
+
+			div.c("ux-dictate-pg-debug-row", () => {
 				// **Chunks** — every RESEND as its own row (not just the final text), so
 				// the guess visibly improves. `hidden` until picked, same as every panel here.
 				view.$chunks = div.c("ux-dictate-pg-panel ux-dictate-pg-chunks", () => {
 					view.$chunks_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
-				this.resends.forEach(r => this.draw_chunk_row(view, r));
+				this.current.resends.forEach(r => this.draw_chunk_row(view, r));
 
 				view.$corrections = div.c("ux-dictate-pg-panel ux-dictate-pg-diff ux-dictate-pg-corrections", () => {
 					view.$corrections_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
-				this.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$corrections, c, false));
+				this.current.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$corrections, c, false));
 
 				view.$live = div.c("ux-dictate-pg-panel ux-dictate-pg-diff ux-dictate-pg-live", () => {
 					view.$live_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
-				this.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$live, c, true));
+				this.current.chunks.filter(c => c.deltas).forEach(c => this.draw_diff_line(view.$live, c, true));
 
 				// **Side by side** — raw next to revised, in two plain columns, one row per
 				// settled chunk (ask 4b: "raw vs revised side by side, with a level picker" —
@@ -288,7 +350,7 @@ export default class Playground {
 				view.$side = div.c("ux-dictate-pg-panel ux-dictate-pg-side", () => {
 					view.$side_empty = div.c("ux-dictate-pg-empty muted", EMPTY_TEXT);
 				});
-				this.chunks.forEach(c => this.draw_side_row(view, c));
+				this.current.chunks.forEach(c => this.draw_side_row(view, c));
 			});
 		}).style("--gap", "0.6em");
 
@@ -308,15 +370,16 @@ export default class Playground {
 		return $root;
 	}
 
+	// One `[hidden]` toggle per tab name, read off `view.$<name>` — grown from six
+	// hand-written lines to a loop once Analysis/Chat/Structure made it nine (minion-part2).
+	// At ≥1200px `Playground.css` overrides `[hidden]` on five of the nine panels so they
+	// show regardless of which tab is "active" (see `widget()`'s own comment on the grid) —
+	// this method doesn't know or care about that; it always sets the real attribute
+	// honestly, same as before.
 	select_tab(view, name){
 		view.tab = name;
 		view.$tabs.forEach((t, i) => t.rc("active muted").ac(TABS[i] === name ? "active" : "muted"));
-		view.$clean.el.hidden = name !== "clean";
-		view.$raw.el.hidden = name !== "raw";
-		view.$chunks.el.hidden = name !== "chunks";
-		view.$corrections.el.hidden = name !== "corrections";
-		view.$live.el.hidden = name !== "live";
-		view.$side.el.hidden = name !== "side";
+		TABS.forEach(tab_name => { view["$" + tab_name].el.hidden = tab_name !== name; });
 		if (location.hash.slice(1) !== name) history.replaceState(null, "", location.pathname + location.search + "#" + name);
 	}
 
@@ -349,8 +412,17 @@ export default class Playground {
 		this.refresh_devices($select);
 	}
 
+	// ⚠ Mirrors the number into `this.current.source.level` (so the Structure panel's
+	// `inspect()` tree has a real value to show for "the audio source") but deliberately
+	// does NOT re-render Structure here — `meter()` fires ~12 times a second while the
+	// mic is live, and rebuilding a whole nested inspect tree that often would be real
+	// cost for a number nobody is watching pixel-by-pixel in that one card. Structure
+	// re-draws on `settle()`/`guess()`/`clean_chunk()` instead, so the level shown there
+	// can be up to one resend stale — noted here as the deliberate, cheaper choice
+	// (requirements.md: "don't over-engineer a diffing update... note the cost").
 	meter(level){
 		this.prune_views();
+		this.current.source.level = level;
 		this.views.forEach(view => view.$meter_fill?.style("--ux-dictate-pg-level", level.toFixed(3)));
 	}
 
@@ -378,11 +450,17 @@ export default class Playground {
 					.attr("selected", d.deviceId === picked?.deviceId ? "" : undefined);
 			});
 		});
+
+		this.current.source.device = $select.el.selectedOptions[0]?.textContent ?? null;
 	}
 
 	pick_device($select, id){
 		const opt = [...$select.el.options].find(o => o.value === id);
 		remember_device(id, opt?.textContent ?? "");
+		this.current.source.device = opt?.textContent ?? id;
+		// Picking a device is rare, unlike a meter tick — cheap to refresh Structure here too.
+		this.prune_views();
+		this.views.forEach(view => this.render_structure(view));
 	}
 
 	// ---- the pipeline: a settled chunk in, a raw line + a cleaned diff out ----
@@ -397,15 +475,15 @@ export default class Playground {
 	// an honest stand-in, labelled as such in the row itself (`draw_chunk_row()`).
 	guess(text){
 		this.prune_views();
-		if (text && text !== this.partial){
+		if (text && text !== this.current.partial){
 			const now = performance.now();
-			const prev = this.resends.at(-1);
-			const row = { t: now, segment: this.chunks.length + 1, text, since_prev: prev ? now - prev.t : null };
-			this.resends.push(row);
+			const prev = this.current.resends.at(-1);
+			const row = new Resend({ t: now, segment: this.current.chunks.length + 1, text, since_prev: prev ? now - prev.t : null });
+			this.current.resends.push(row);
 			this.views.forEach(view => this.draw_chunk_row(view, row));
 		}
-		this.partial = text;
-		this.views.forEach(view => { this.render_guess(view); this.toggle_empty(view); });
+		this.current.partial = text;
+		this.views.forEach(view => { this.render_guess(view); this.toggle_empty(view); this.render_structure(view); });
 	}
 
 	// A chunk has settled. Draws the raw line immediately (whisper's own answer, never
@@ -420,7 +498,7 @@ export default class Playground {
 		const gap = force_gap ?? (this.last_chunk_at != null && now - this.last_chunk_at > BIG_GAP_MS);
 		this.last_chunk_at = now;
 
-		this.partial = "";
+		this.current.partial = "";
 		this.views.forEach(view => this.render_guess(view));
 
 		// Stamped with the CURRENT session — `clean_chunk()` checks this stamp against
@@ -429,9 +507,9 @@ export default class Playground {
 		// session's panels. doc/decisions.md. `cut` (4a) says WHY this segment closed —
 		// "pause", "forced" (the 15s cap) or "manual" — undefined for the browser engine
 		// or a sample line, which never had a reason to give.
-		const entry = { raw, gap, cut, cleaned: null, deltas: null, source_kind: null, session: this.session };
-		this.chunks.push(entry);
-		this.views.forEach(view => { this.draw_raw_line(view, entry); this.draw_clean_line(view, entry); this.draw_cut_marker(view, entry); this.toggle_empty(view); });
+		const entry = new Chunk({ raw, gap, cut, session: this.session });
+		this.current.chunks.push(entry);
+		this.views.forEach(view => { this.draw_raw_line(view, entry); this.draw_clean_line(view, entry); this.draw_cut_marker(view, entry); this.toggle_empty(view); this.render_structure(view); });
 
 		this.clean_queue = this.clean_queue.then(() => this.clean_chunk(entry));
 	}
@@ -460,6 +538,7 @@ export default class Playground {
 			this.draw_side_row(view, entry);
 			this.toggle_empty(view);
 			this.update_status(view);
+			this.render_structure(view);
 		});
 	}
 
@@ -467,8 +546,29 @@ export default class Playground {
 	// per chunk (the owner: "noise"). Per-line detail still lives in each line's own
 	// `title` tooltip (`draw_diff_line()`).
 	update_status(view){
-		const last = this.chunks.findLast(c => c.source_kind);
+		const last = this.current.chunks.findLast(c => c.source_kind);
 		view.$status.text(last ? source_label(last) : "");
+	}
+
+	// ---- Analysis + Structure: the live, nested `inspect()` panels --------------
+
+	// Analysis is a STUB (`objects.js`) — it never changes after a session starts, so
+	// this only needs to run once per session (`reset()` calls it; nothing else does).
+	render_analysis(view){
+		if (!view.$analysis) return;
+		view.$analysis.empty(() => inspect(this.current.analysis));
+	}
+
+	// **The simplest working re-render, on purpose** (requirements.md deliverable 3:
+	// "don't over-engineer a diffing update for a first version"). Every call throws
+	// away the whole card and rebuilds `inspect(this.current)` from scratch — cheap
+	// enough for a session with a few dozen chunks, and far simpler than hand-patching
+	// one nested tree in place. If a session ever grows into the hundreds of chunks,
+	// the cost of re-walking the whole tree on every `settle()`/`guess()` is the thing
+	// to measure first; noted here rather than solved now.
+	render_structure(view){
+		if (!view.$structure) return;
+		view.$structure.empty(() => inspect(this.current, { variant: "card" }));
 	}
 
 	// ---- Raw panel -------------------------------------------------------------
@@ -486,8 +586,8 @@ export default class Playground {
 
 	render_guess(view){
 		if (!view.$guess) return;
-		view.$guess.text(this.partial);
-		view.$guess.el.style.display = this.partial ? "" : "none";
+		view.$guess.text(this.current.partial);
+		view.$guess.el.style.display = this.current.partial ? "" : "none";
 	}
 
 	// ---- Clean panel: the clean text alone, no marks (deliverable 5) -----------

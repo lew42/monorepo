@@ -6,10 +6,13 @@
  * fade-then-collapse. */
 @layer theme {
 
-	/* `wide` (JS) opts the widget out of the page's default 40em reading measure, so this
-	 * is the number that actually caps it — readable, not the full wide track's width. A
-	 * transcript line at the old ~550px wrapped constantly at 1920 and 3440. */
+	/* `wide` (JS) opts the widget out of the page's default 40em reading measure. Below
+	 * the 1200px full-bleed breakpoint (just underneath) this still caps the widget at a
+	 * readable 60em, same as always. AT or above it, the full-bleed grid (below) needs
+	 * the whole `full` page track, so the cap lifts — a desktop reader gets the "lots of
+	 * space" the owner asked for, not a 60em column with grey on both sides of it. */
 	.ux-dictate-pg { max-width: 60em; }
+	@media (min-width: 1200px){ .ux-dictate-pg { max-width: none; } }
 
 	.ux-dictate-pg-sample { white-space: nowrap; }
 
@@ -69,9 +72,55 @@
 	}
 	.ux-dictate-pg-tab.active { font-weight: 600; border-color: var(--prim); }
 
-	/* ---- the three panels ---------------------------------------------------- */
+	/* ---- the panels, and the full-bleed 2D layout (minion-part2) -------------- */
 
-	.ux-dictate-pg-panels { padding-block-start: .8em; }
+	/* Below 1200px these are plain blocks — exactly the old single `.ux-dictate-pg-
+	 * panels` wrapper this replaced, just split into two (the main five panels, and
+	 * the four debug ones). Every panel inside still shows/hides one at a time via its
+	 * own `[hidden]` attribute, set by `select_tab()` — nothing about narrow-mode
+	 * behavior changed; this is the "stack with tabs" the owner said is fine on
+	 * mobile. */
+	.ux-dictate-pg-grid, .ux-dictate-pg-debug-row { padding-block-start: .8em; }
+
+	/* At ≥1200px: the owner's own full-bleed, 2D desktop layout. **Explicit tracks, not
+	 * `auto-fit`** — the `layout` skill's own rule: a FIXED, known count (five named
+	 * panels here, never a variable one) wants the counts written out, not left to
+	 * `auto-fit`'s own guess. (`auto-fit` was tried first and wrapped the 5th column,
+	 * Structure, onto an unpredictable second row at in-between widths — fixed here.)
+	 * None of `core/Layout`'s 30 approved arrangements is an unequal-width row of named
+	 * panels either, so this is a new shape, logged as a `decision` (C5) rather than
+	 * invented silently. `[hidden]` is overridden on every child so ALL FIVE main
+	 * panels — Raw, Clean, Analysis, Chat, Structure — show AT ONCE regardless of which
+	 * tab is "active"; the debug row does the same for its four. With everything always
+	 * visible, the tab strip has nothing left to pick between, so it hides — see the
+	 * SEPARATE `@layer util` rule below this block for why that one line can't live
+	 * here. */
+	@media (min-width: 1200px){
+		/* Four even columns (Raw, Clean, Analysis, Chat), then one double-wide one —
+		 * "a wider structure panel," the owner's own phrase. */
+		.ux-dictate-pg-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(12em, 1fr)) minmax(20em, 2fr);
+			align-items: start;
+			gap: var(--gap);
+			padding-block-start: 0;
+		}
+		.ux-dictate-pg-debug-row {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(14em, 1fr));
+			align-items: start;
+			gap: var(--gap);
+			padding-block-start: 0;
+		}
+		/* The floor half of "every track needs a floor and a ceiling" (`layout` skill) —
+		 * without it a long raw sentence with no natural break (Raw/Chunks) pushes its
+		 * own grid track wider than its `minmax()`, instead of wrapping inside it. */
+		.ux-dictate-pg-grid > *, .ux-dictate-pg-debug-row > * { min-width: 0; }
+		/* Un-hides a `[hidden]` panel — normal cascade, no `!important` needed: this
+		 * selector (one class + child combinator + attribute) outranks the UA
+		 * stylesheet's own bare `[hidden] { display: none }`. */
+		.ux-dictate-pg-grid > [hidden], .ux-dictate-pg-debug-row > [hidden] { display: block; }
+	}
 
 	.ux-dictate-pg-code, .ux-dictate-pg-diff {
 		font-family: var(--mono);
@@ -115,4 +164,21 @@
 	.ux-dictate-pg-strike, .ux-dictate-pg-add { transition-property: opacity, color; transition-timing-function: ease-out; }
 	.ux-dictate-pg-faded .ux-dictate-pg-strike { opacity: 0; }
 	.ux-dictate-pg-faded .ux-dictate-pg-add { color: inherit; }
+}
+
+/* **This one rule has to live in `@layer util`, not `theme` above.** The tab strip's
+ * own div carries the `flex gap` UTILITY classes (`Playground.js`'s `widget()`) — and
+ * `styles/doc/cascade.md`'s own rule is exact: "`util` beats `theme` at any
+ * specificity — a component rule cannot win by adding classes, only by moving to
+ * `util` too." A `theme`-layer `display: none` here was silently losing to `util`'s
+ * `.flex { display: flex }` regardless of the media query (caught in a real 1920px
+ * screenshot — the tab strip stayed visible even with every panel already shown as a
+ * column). Same layer as `.flex`, equal specificity, and this file loads after
+ * framework.css, so normal source order decides it — no `!important`, which
+ * `cascade.md` calls "an escalation ratchet" (spend it once, every later page fighting
+ * this same div pays for it, not just this one). */
+@layer util {
+	@media (min-width: 1200px){
+		.ux-dictate-pg-tabs { display: none; }
+	}
 }
