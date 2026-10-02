@@ -17,6 +17,12 @@ checked before anything is written (the owner, 2026-09-30).
   `Add-Content`, `Out-File` or `Set-Content` into a `.jsonl` is blocked with the pointer
   to `append.mjs`. It fails open on its own errors. Test: `node .claude/hooks/jsonl-guard.test.mjs`.
   ⚠ It reads the command text, so a commit message that quotes `>> x.jsonl` is blocked too: reword it.
+- **`git-guard.mjs`** — wired on Bash and PowerShell: in the main checkout, `git stash`,
+  `reset --hard`, `checkout --`, `restore` and `clean -f` are blocked; since 2026-10-02 so is any
+  recursive delete (`rm -r`, `Remove-Item -Recurse`, `del /s`) whose target is inside main, from
+  any cwd, and any delete fed by `git status`/`ls-files` output run in main (the 2026-10-01 loss of
+  601 untracked files). Worktrees, the scratchpad and the temp dirs stay open; so does deleting one
+  file by its exact path. Fails open. Test: `node .claude/hooks/git-guard.test.mjs`.
 
 Old lines are never judged; the logs are append-only. Design and proof:
 [validated-writes](/framework/ai/2026-09-30/proposal-flow/validated-writes/).
