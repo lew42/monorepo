@@ -61,9 +61,34 @@ Read-only search of this PC (user `mike`). One drive (`C:`, 1.2 TB used, 753 GB 
 - **The Pi harness and vLLM venv** (`C:\Code\test\pi-mono\vllm-env`) look like one experiment session that was never cleaned up or landed — multiple scratch folders (`test-1`, `test-project`, `temp-convert`, etc.) with no README tying them together.
 - **Nothing is currently running** except the voice stack (`whisper-server`, port 8178) that Servex owns. Ollama, LM Studio and ComfyUI are all installed but idle — none start automatically as a background service on this machine (no Windows service registered for Ollama, despite it usually auto-starting on login elsewhere).
 
+## Addendum (2026-10-02) — the Qwen + tools verdict, actually tested
+
+The question above ("what I'd check") was run for real, with a live tool call, not just read:
+
+- The `qwen2.5-fixed` chat template is **byte-identical** to the `qwen.fix` patch — confirmed
+  by diff, so the patch really is installed (the earlier "it's unclear whether it was built
+  from this file" is resolved: yes).
+- But the patched model **fails completely**: every request to `qwen2.5-fixed` — tool call or
+  plain chat, freshly rebuilt with `ollama create` or not — returns `500 Internal Server Error`
+  with no error message. Ollama's own server log wasn't found in this pass to see why.
+- The **unpatched** `qwen2.5-coder`, tested the same way (a real `get_weather` tool offered,
+  "what's the weather in Boston"), reproduces the *original* bug: it answers `200 OK` with a
+  tool call, but as **plain text** inside `message.content` (`{"name": "get_weather", ...}`),
+  never in Ollama's structured `message.tool_calls` field — so any caller reading `tool_calls`
+  the normal way sees nothing.
+- **Verdict: neither model works for real tool calls through Ollama today.** The patch doesn't
+  fix the bug, it trades it for a worse one (nothing answers at all).
+- **Next step, if anyone picks this back up:** run Ollama in the foreground (not as the
+  background service) so its stderr is actually visible, send the same plain-chat request to
+  `qwen2.5-fixed`, and read the real error instead of guessing. The template's own closing tag
+  sequence (`{{ end }}</tool_call>{{ end }}`) is a plausible suspect, untested.
+- Full detail: `public/framework/ai/2026-10-01/local-ai/build/task.jsonl`, entries around
+  2026-10-01 21:05–21:35.
+
 ## 5. Unknowns — looked for and didn't find
 
 - **Jan, GPT4All, Piper, Coqui TTS, Open Code, vLLM actually running** — none found installed or running; only the `vllm-env` empty virtualenv shell suggests vLLM was once considered.
-- **Whether `qwen2.5-fixed` was ever actually tested against a tool-calling prompt** — no log or transcript found proving it worked or failed.
+- ~~Whether `qwen2.5-fixed` was ever actually tested against a tool-calling prompt~~ —
+  answered in the 2026-10-02 addendum above: tested, and it fails.
 - **A second drive** — this PC has only `C:`, so "other drives" turned up nothing to check.
 - **Any TTS (text-to-speech) program** — the voice task found earlier (whisper-server) is the *speech-to-text* half; I found no Piper/Coqui/other TTS install anywhere, so if the owner wants the AI to *speak*, that part doesn't exist yet on this machine.
