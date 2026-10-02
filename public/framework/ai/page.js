@@ -12,7 +12,10 @@ import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/fr
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
-import { TABS, SYSTEM_PARTS, tab_page, readme_chain, heading } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+import { VIRTUAL_TABS, SYSTEM_PARTS, tab_page, readme_chain, heading, detect_tabs } from "./overview.js";   // the top tabs: Overview · System · Skills · Objects · Authoring · CLAUDE.md
+
+// "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 import { fold_card, parse_lines } from "/framework/ai2/fold.js";   // the Now card's own small reader (followup.md item 2)
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
@@ -44,11 +47,18 @@ export default new Page({
 			// which matches no tab, lights Inbox by ext/tabs' first-child fallback.
 			div.c("inbox-head", () => {
 				div.c("doc-well", () => h1.c("doc-title h2", "AI"));
-				div.c("tabs block", () => div.c("tab-bar", () => {
-					a.c("tab tab-default").href(this.url).text("Inbox");
-					a.c("tab").href(this.url + "log/").text("Log");
-					a.c("tab").href(this.url + "system/").text("System");
-				}));
+				div.c("tabs block", () => {
+					// Inbox has no folder of its own — the band always draws it first.
+					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
+					// The REST of the strip is DETECTED, not hand-listed (overview.js's
+					// detect_tabs(), the owner, 2026-10-01): these links render after
+					// the page's own mark() pass, so they need their own, same as a late
+					// ext/tabs strip does (tabs.js's draw_bar()).
+					detect_tabs(this).then(tabs => {
+						$bar.append(() => tabs.forEach(({ name }) => a.c("tab").href(this.url + name + "/").text(cap(name))));
+						this.app?.router?.mark_links();
+					});
+				});
 			});
 			// THE RAIL — `AIRail`, the same class AI 2 builds: one of everything (CLAUDE.md law 6).
 			// Every page routed here opens in its detail column; a card beside the rail, any
@@ -103,7 +113,7 @@ export default new Page({
 		   itself owns the routing (`v/3/page.js`'s own `board_route`), so
 		   `/framework/ai/grid/` and `/framework/ai/v/3/grid/` cannot drift. */
 		// (Under ?v1 the old board owns `log/`: the task log below.)
-		if (TABS.includes(name) && !(v1() && name === "log")) return tab_page(this, name);
+		if (VIRTUAL_TABS.includes(name) && !(v1() && name === "log")) return tab_page(this, name);
 		// Old urls keep working: the Overview is now System, and its parts moved under it.
 		if (name === "overview") return tab_page(this, "system", this.url + "overview/");
 		if (SYSTEM_PARTS.includes(name)) return tab_page(this, name);

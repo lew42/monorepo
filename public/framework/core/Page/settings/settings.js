@@ -1,5 +1,8 @@
 // page_settings(page_url) — this page's own settings, read without loading the page: {
-//   nav: true|false   "does this page appear in its parent's navigation?"
+//   nav: true|false    "does this page appear in its parent's navigation?"
+//   tab: true|false|undefined   "does this page join a DETECTED tab bar?" (added 2026-10-01,
+//                        ai/overview.js's detect_tabs() — undefined means the line was never set)
+//   weight: number       orders a detected tab, ascending (default 1; only means anything when tab is true)
 // }
 //
 // A page.js folder's settings live in a sibling `settings.jsonl`, NEVER `page.jsonl` — the
@@ -87,8 +90,16 @@ function weight_of(lines){
 	return 1 + refs + manual;
 }
 
+// Reads the three settings keys this module knows off of one already-fetched line, the
+// latest-line-wins rule every one of them follows (a settings line is a "set").
+function read_settings_line(obj, out){
+	if (typeof obj.settings?.nav === "boolean") out.nav = obj.settings.nav;
+	if (typeof obj.settings?.tab === "boolean") out.tab = obj.settings.tab;
+	if (typeof obj.settings?.weight === "number") out.weight = obj.settings.weight;
+}
+
 export async function page_settings(page_url){
-	const out = { nav: undefined };
+	const out = { nav: undefined, tab: undefined, weight: 1 };
 
 	const settings_here = await has_file(page_url, "settings.jsonl");
 	const page_here = await has_file(page_url, "page.jsonl");
@@ -104,21 +115,21 @@ export async function page_settings(page_url){
 			if (!line.trim()) continue;
 			let obj;
 			try { obj = JSON.parse(line); } catch { continue; }
-			if (typeof obj.settings?.nav === "boolean") out.nav = obj.settings.nav;
+			read_settings_line(obj, out);
 		}
 	}
 
-	if (out.nav === undefined && page_here !== false){
+	// `tab`/`weight` have nowhere else to come from (no fallback, unlike `nav` below), so
+	// this always also checks page.jsonl when settings.jsonl didn't set them — not just
+	// when `nav` is still unset.
+	if ((out.nav === undefined || out.tab === undefined) && page_here !== false){
 		page_lines = await fetch_lines(new URL("page.jsonl", location.origin + page_url).href);
 
 		for (const line of page_lines ?? []){
 			if (!line.trim()) continue;
 			let obj;
 			try { obj = JSON.parse(line); } catch { continue; }
-
-			// The latest line wins — a settings line is a "set", never accumulated, the
-			// same rule weight.js's own manual number follows.
-			if (typeof obj.settings?.nav === "boolean") out.nav = obj.settings.nav;
+			read_settings_line(obj, out);
 		}
 	}
 

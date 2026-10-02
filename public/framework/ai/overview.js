@@ -4,15 +4,43 @@ import { CONCEPTS, GROUPS, FLOW } from "./concepts.js";
 import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
 import { table } from "/framework/ui/table/table.js";
+import { page_settings } from "/framework/core/Page/settings/settings.js";
 
 /* THE TOP TABS of /framework/ai/: Inbox (the default), Log and System (the owner, 2026-09-30:
    "log is everything. And inbox is only… priority… and above"). Inbox and Log are the SAME
    rail (`AIRail`, ai2/rail.js) at two floors, 90 and 0; System holds all the AI system docs and
-   takes the whole width. Each tab is a routed page; ai/page.js draws the strip and calls tab_page(). */
-export const TABS = ["inbox", "log", "system"];
+   takes the whole width. Each tab is a routed page; ai/page.js draws the strip and calls tab_page().
+   Inbox and Log and System are the three VIRTUAL built-ins: ai/page.js's route() always answers
+   these three names itself (tab_page(), below), so Page.child()'s usual filesystem probe never
+   runs for them — that is still true, hardcoded, and does not change with a new subsystem page. */
+export const VIRTUAL_TABS = ["inbox", "log", "system"];
 // The System tab's own pages (/framework/ai/system/<name>/). Each still answers at its old
 // url, /framework/ai/<name>/, so no link breaks (ai/page.js route()).
 export const SYSTEM_PARTS = ["skills", "claude-md", "objects", "authoring", "models", "thinking"];
+
+/* THE REST OF THE TAB BAR IS DETECTED, NOT HAND-LISTED (the owner, relayed 2026-10-01): a
+   child joins the strip when its OWN page.jsonl says `{"settings":{"tab":true}}` — optionally
+   with a `weight` (default 1) to say where it sits. Adding a new subsystem page (local,
+   images, models, …) is then one file, never a code change here or in ai/page.js.
+   Inbox is not a candidate at all — it has no folder of its own; ai/page.js's band always
+   draws it first, hardcoded. "log" and "system" are built-ins that need the SAME declaration
+   as everyone else (their folders hold only this one page.jsonl line — they never actually
+   render FROM it, since route() answers their name before any file is ever read as content). */
+const BUILT_IN_CANDIDATES = ["log", "system"];
+
+export async function detect_tabs(root){
+	// The page's own index (files.jsonl, read by core/Page's one reader, PageLog.listing())
+	// names every folder the watcher saw, so a new ai/local/ needs no children: edit either.
+	const listing = await Page.listing(root.url);
+	const candidates = [...new Set([...BUILT_IN_CANDIDATES, ...root.children.keys(),
+		...(listing?.dirs ?? []), ...(listing?.pages.keys() ?? [])])];
+	const found = await Promise.all(candidates.map(async name => {
+		const settings = await page_settings(root.url + name + "/");
+		return settings.tab === true ? { name, weight: settings.weight } : null;
+	}));
+	// Ascending weight, ties broken by name — the owner's own words for the order.
+	return found.filter(Boolean).sort((a, b) => a.weight - b.weight || a.name.localeCompare(b.name));
+}
 
 /* THE AUTHORING PIECES, used on every tab below and shown on the Authoring tab.
    A section is a heading, one gist line, then its items; nothing else. */
@@ -82,6 +110,8 @@ export function tab_page(root, name, url = root.url + name + "/"){
 						md("More: [Servex](/framework/servex/) · [its lifecycle](/framework/servex/lifecycle/) · [roles](/framework/servex/doc/roles.md)");
 					}
 				}
+				heading("How a page becomes a tab", "Declared, not crawled: the page reads its own file index (files.jsonl, which the watcher writes), never the disk.");
+				md("A page joins this strip (Inbox, Log, System, and whatever shows up next to them) by writing one line in its own `page.jsonl` (or `settings.jsonl`, when the folder has a `page.js`): `{\"settings\":{\"tab\":true,\"weight\":5}}`. `weight` orders it, smallest first (default 1), and Inbox always sits first no matter what. Adding a tab is that one line — nobody has to remember to list it anywhere else.");
 				heading("How it works together", "The path your words take, from the moment you speak to the card that shows the result.");
 				flow(FLOW.map(([n, slug, text]) => [n, base + slug + "/", text]));
 				heading("Its documentation", "One page each. Servex, design and code have their own pages; these cards link there.");
@@ -230,7 +260,7 @@ export function tab_page(root, name, url = root.url + name + "/"){
 	// ⚠ title "" — the tab sits under the page's own h1 ("AI"); a second page-size
 	// heading on top of the panel read as two titles. The strip reads `label`.
 	const { title, ...cfg } = pages[name];
-	const top = TABS.includes(name) && url === root.url + name + "/";
+	const top = VIRTUAL_TABS.includes(name) && url === root.url + name + "/";
 	return new Page({ ...cfg, label: title, title: top ? "" : title, url });
 }
 
