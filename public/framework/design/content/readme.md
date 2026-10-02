@@ -9,6 +9,7 @@ Content is what a page says, and in what order. The rule underneath all of it: *
 - **A title is 5–8 words, starting with the familiar concept** — "Page: the card system", never a sentence.
 - **The length check:** could the reader get the point in ten seconds? If not, cut and move the rest one click down.
 - **Helpful headings, everywhere, chat replies included** (the owner, 2026-10-02): every topic gets a heading that names it, as a statement or a question, so the reader is primed before the detail and can refer back to it. Deeper content goes in bullets under the heading, each starting with a **bold title**, then a sentence or two. A sub-item's heading carries its parent's name when the sub-name alone wouldn't stand ("Panel 2: the toolbar", not "Toolbar"). Keep it minimal and highly structured.
+- **A class looks like a class** (the owner, 2026-10-02): a card or an inline reference for a page that documents a CLASS uses the dark class look (`.class-card`, being built at /framework/). Content pages stay light.
 - **Connect the dots:** every mention of a concept with its own page links to it; name a system by its reference (`#Page`, `@agent`, `/path`) rather than describing it in prose.
 
 **How to structure a piece of content**, once you know what it is:

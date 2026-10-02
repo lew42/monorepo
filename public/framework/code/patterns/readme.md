@@ -27,6 +27,10 @@ new this.constructor.View({ list: this })      // use the part through the const
 class MyList extends List { static View = class extends List.View { } }   // …so a subclass swaps it
 ```
 
+**Naming a part's instance:** the property is the class name, lowercased: `inbox.rail` holds an `Inbox.Rail`, `item.store` a `Store`, `x.view` a `View`. Never `inbox_rail`. (the owner, 2026-10-02)
+
+**One source of truth:** keep each fact in ONE place and look it up by reference (a page's `icon` lives on the page; every nav row, card and mention reads it from there). A copy you have to keep in sync needs a stated reason (measured speed, or offline use) written beside it. (the owner, 2026-10-02)
+
 **Every class module's readme opens with `## Architecture`:** a code block with the class's shape, properties first, then the main methods, `[X]` for an array, and its parts and submodules. It's the ONLY copy (no duplicate guide), and whoever changes the class updates it.
 
 ## Watch out
