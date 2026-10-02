@@ -1,0 +1,594 @@
+diff --git a/.claude/hooks/jsonl-guard.mjs b/.claude/hooks/jsonl-guard.mjs
+index bd368ebd..f119a6fe 100644
+--- a/.claude/hooks/jsonl-guard.mjs
++++ b/.claude/hooks/jsonl-guard.mjs
+@@ -1,16 +1,24 @@
+-/* JSONL GUARD HOOK (2026-09-30): a PreToolUse hook on Bash and PowerShell.
++/* JSONL GUARD HOOK (2026-09-30, extended 2026-10-02): a PreToolUse hook on Bash, PowerShell,
++ * and now Write/Edit/MultiEdit/NotebookEdit.
+  *
+  * WHY. The owner treats the main branch as production: a malformed line in a live
+  * `.jsonl` (a board, a card, a task log) throws in the owner's open tab. The owner,
+  * 2026-09-30: "instead of using like bash to do file appends manually… tool calls… that
+  * then take the same data and validate it first before writing it to file."
+  *
+- * BLOCKS (exit 2, the reason on stderr): a shell write into a `.jsonl` file:
+- * `>>` / `>` redirection, `tee`, `Add-Content`, `Out-File`, `Set-Content`.
++ * BLOCKS (exit 2, the reason on stderr):
++ *   - a shell write into a `.jsonl` file: `>>` / `>` redirection, `tee`, `Add-Content`,
++ *     `Out-File`, `Set-Content` (the Bash/PowerShell matcher).
++ *   - a Write/Edit/MultiEdit/NotebookEdit onto a `.jsonl` file that ALREADY EXISTS — the
++ *     Write and Edit tools overwrite or splice the whole file by hand, which is exactly the
++ *     unvalidated path this hook exists to close. A brand-new `.jsonl` (the file does not
++ *     exist yet) is allowed, so a task can still open its own log for the first time.
++ *
+  * The validated routes stay open: `node .claude/hooks/append.mjs <file> <lines.json>` (re-parses
+  * the whole file, names any bad line) and Servex's `append_log` tool.
+  *
+- * FAILS OPEN: any error inside this hook lets the command through. */
++ * FAILS OPEN: any error inside this hook lets the call through. */
++import { existsSync } from "node:fs";
+ 
+ const WRITE = [
+ 	/(?<![=\-])>>?\s*["']?[^\s"'|;&]*\.jsonl\b/i,                         // > x.jsonl, >> "x.jsonl" (never => or ->)
+@@ -18,12 +26,24 @@ const WRITE = [
+ 	/\b(Add-Content|Out-File|Set-Content)\b[^|;&]*\.jsonl\b/i,   // PowerShell writers
+ ];
+ 
++const MESSAGE = "JSONL GUARD: a hand write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n";
++
+ let raw = "";
+ process.stdin.on("data", d => raw += d).on("end", () => {
+ 	try {
+-		const cmd = String(JSON.parse(raw).tool_input?.command ?? "");
++		const input = JSON.parse(raw);
++		const tool = input.tool_name;
++		if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
++			const file = input.tool_input?.file_path;
++			if (file && /\.jsonl$/i.test(String(file)) && existsSync(String(file))) {
++				process.stderr.write(MESSAGE);
++				process.exit(2);
++			}
++			process.exit(0); // a brand-new .jsonl, a non-.jsonl file, or no file_path at all: let it through
++		}
++		const cmd = String(input.tool_input?.command ?? "");
+ 		if (!WRITE.some(re => re.test(cmd))) process.exit(0);
+-		process.stderr.write("JSONL GUARD: a shell write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n");
++		process.stderr.write(MESSAGE);
+ 		process.exit(2);
+ 	} catch { process.exit(0); }
+ });
+diff --git a/.claude/hooks/jsonl-guard.test.mjs b/.claude/hooks/jsonl-guard.test.mjs
+index 2ecd04c5..9bf50eb3 100644
+--- a/.claude/hooks/jsonl-guard.test.mjs
++++ b/.claude/hooks/jsonl-guard.test.mjs
+@@ -4,10 +4,13 @@
+ import { spawnSync } from "node:child_process";
+ import { join, dirname } from "node:path";
+ import { fileURLToPath } from "node:url";
++import { mkdtempSync, writeFileSync } from "node:fs";
++import { tmpdir } from "node:os";
+ 
+ const hook = join(dirname(fileURLToPath(import.meta.url)), "jsonl-guard.mjs");
+ const run = stdin => spawnSync(process.execPath, [hook], { input: stdin, encoding: "utf8", windowsHide: true });
+ const as = (tool_name, command) => JSON.stringify({ tool_name, tool_input: { command } });
++const asFile = (tool_name, file_path) => JSON.stringify({ tool_name, tool_input: { file_path } });
+ let failed = 0, passed = 0;
+ const ok = (cond, what) => { cond ? passed++ : failed++; console.log(`${cond ? "pass" : "FAIL"}  ${what}`); };
+ 
+@@ -37,5 +40,22 @@ for (const [tool, cmd] of ALLOW) ok(run(as(tool, cmd)).status === 0, `allows  ${
+ ok(run("not json at all").status === 0, "fails open on input it cannot parse");
+ ok(run("{}").status === 0, "fails open on input with no command");
+ 
++console.log("\n— Write/Edit/MultiEdit/NotebookEdit guard —");
++const dir = mkdtempSync(join(tmpdir(), "jsonl-guard-test-"));
++const existingJsonl = join(dir, "existing.jsonl");
++writeFileSync(existingJsonl, "{}\n");
++const newJsonl = join(dir, "brand-new.jsonl"); // never written — a task opening its own log
++const existingJson = join(dir, "existing.json");
++writeFileSync(existingJson, "{}");
++
++for (const tool of ["Write", "Edit", "MultiEdit", "NotebookEdit"]){
++	const r = run(asFile(tool, existingJsonl));
++	ok(r.status === 2 && /append\.mjs/.test(r.stderr), `blocks  ${tool} on an existing .jsonl`);
++}
++ok(run(asFile("Write", newJsonl)).status === 0, "allows  Write on a brand-new .jsonl (a task opening its log)");
++ok(run(asFile("Edit", existingJson)).status === 0, "allows  Edit on a .json file");
++ok(run(asFile("Write", undefined)).status === 0, "allows  Write with no file_path (fails open)");
++ok(run("not json at all").status === 0, "fails open on malformed input to the Write/Edit matcher too");
++
+ console.log(`\n${passed} passed, ${failed} failed`);
+ process.exit(failed ? 1 : 0);
+diff --git a/.claude/hooks/jsonl-schema.mjs b/.claude/hooks/jsonl-schema.mjs
+index 94bb3eba..a85144d0 100644
+--- a/.claude/hooks/jsonl-schema.mjs
++++ b/.claude/hooks/jsonl-schema.mjs
+@@ -72,6 +72,18 @@ export const schemas = {
+ 			ask: { fields: ["at"], any: ["id", "title"], eg: { at: "NOW", id: "slug", status: "building", why: "…", by: "agent-id" } },
+ 		},
+ 	},
++	/* flags.jsonl's lines are FLAT (no verb key wrapping the rest, unlike every schema above) —
++	 * computed 2026-10-02 from the 173 lines that existed then (never guessed): every single one
++	 * has `at`, `target` and `verdict`; `kind`, `to` and `what` are sometimes there, never required.
++	 * `verdict` is one of the seven values actually in use. `flat: true` tells check() to skip the
++	 * one-verb-per-line logic entirely and just look for these keys. */
++	"flags.jsonl": {
++		what: "the clarity skill's flag log (.claude/skills/clarity/flags.jsonl)",
++		flat: true,
++		fields: ["at", "target", "verdict"],
++		enums: { verdict: ["queued", "spawned", "clear", "rewrote", "ui", "sent", "not run"] },
++		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
++	},
+ 	/* A card's (or any page's) page.jsonl is OPEN on purpose: line 1 is the constructor, every later
+ 	 * line sets fields, and a key the vocabulary does not know is plain data (ai2/fold.js absorb()).
+ 	 * So only the line's shape is judged, plus the keys whose value the fold reads as an object. */
+@@ -104,6 +116,8 @@ const plain = v => v !== null && typeof v === "object" && !Array.isArray(v);
+ export function shape(file){
+ 	const s = schema_for(file);
+ 	if (!s) return "";
++	if (s.flat)
++		return `${basename(file)} is ${s.what}: one flat JSON object per line (no verb key) with ${s.fields.map(f => `"${f}"`).join(", ")} required, like ${JSON.stringify(s.eg)}.`;
+ 	const one = ([verb, v]) => v.type === "string" ? `{"${verb}":"…"}`
+ 		: `{"${verb}":{${[...v.fields, ...(v.any ? [v.any.join("|")] : [])].map(f => `"${f}"`).join(",") || "…"}}}`;
+ 	const list = Object.entries(s.verbs).map(one).join(", ");
+@@ -120,6 +134,15 @@ export function check(file, line){
+ 	const s = schema_for(file);
+ 	if (!s) return null;
+ 
++	if (s.flat){
++		const missing = s.fields.filter(f => line[f] === undefined || line[f] === null || line[f] === "");
++		if (missing.length) return `missing ${missing.map(f => `"${f}"`).join(", ")} — like ${JSON.stringify(s.eg)}`;
++		if (s.enums) for (const [f, allowed] of Object.entries(s.enums))
++			if (line[f] !== undefined && !allowed.includes(line[f]))
++				return `"${f}" must be one of ${allowed.map(v => `"${v}"`).join(", ")} — got ${JSON.stringify(line[f])}`;
++		return null;
++	}
++
+ 	const value_problem = (verb, v, value) => {
+ 		if (v.type === "string") return typeof value === "string" ? null : `"${verb}" takes a string, like {"${verb}":${JSON.stringify(v.eg)}}`;
+ 		if (!plain(value)) return `"${verb}" takes an object, like {"${verb}":${JSON.stringify(v.eg)}} — got ${JSON.stringify(value)?.slice(0, 60)}`;
+diff --git a/.claude/hooks/jsonl-schema.test.mjs b/.claude/hooks/jsonl-schema.test.mjs
+index 87ffb663..34e8550c 100644
+--- a/.claude/hooks/jsonl-schema.test.mjs
++++ b/.claude/hooks/jsonl-schema.test.mjs
+@@ -45,7 +45,7 @@ function verbs_of(file, name){
+ 
+ console.log("— 1. the schema agrees with each reader —");
+ for (const [kind, s] of Object.entries(schemas)){
+-	if (s.reader.class){
++	if (s.reader?.class){
+ 		const reader = new Set(verbs_of(s.reader.file, s.reader.class));
+ 		const mine = Object.entries(s.verbs).filter(([, v]) => !v.extra).map(([k]) => k);
+ 		const pending = new Set(s.pending ?? []);
+@@ -87,6 +87,18 @@ ok(check_event("cards/live", { type: "focus", ref: "x" }) === null, "append_log:
+ ok(/task.jsonl-style/.test(check_event("servex", { log: { msg: "x" } }) ?? ""), "append_log: a verb-shaped task line is refused with the pointer");
+ ok(/never a repo file/.test(check_event("task", { type: "x" }) ?? ""), "append_log: a name that means a repo task log is refused");
+ 
++console.log("— 2b. flags.jsonl: a FLAT schema (no verb key) —");
++ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear" }) === null, "flags.jsonl: the three required fields are accepted");
++ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear", what: "…", to: "…", kind: "landing" }) === null, "flags.jsonl: the optional fields ride along fine");
++ok(/missing "verdict"/.test(check("flags.jsonl", { at: "t", target: "x" }) ?? ""), "flags.jsonl: a line with no verdict is refused");
++ok(/must be one of/.test(check("flags.jsonl", { at: "t", target: "x", verdict: "not-a-real-verdict" }) ?? ""), "flags.jsonl: an unlisted verdict is refused");
++{
++	const fs_mod = await import("node:fs");
++	const lines = fs_mod.readFileSync(join(ROOT, ".claude/skills/clarity/flags.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++	const bad = lines.map((l, i) => [i + 1, check("flags.jsonl", l)]).filter(([, why]) => why);
++	ok(bad.length === 0, `flags.jsonl: every existing line passes the schema${bad.length ? " — first bad: line " + bad[0][0] + ": " + bad[0][1] : ""}`);
++}
++
+ console.log("— 3. append.mjs end to end —");
+ {
+ 	const dir = mkdtempSync(join(tmpdir(), "jsonl-schema-test-"));
+diff --git a/.claude/hooks/ledger.mjs b/.claude/hooks/ledger.mjs
+index 03574a89..2648857e 100644
+--- a/.claude/hooks/ledger.mjs
++++ b/.claude/hooks/ledger.mjs
+@@ -1,8 +1,9 @@
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+-import { fileURLToPath } from "node:url";
++import { fileURLToPath, pathToFileURL } from "node:url";
+ import { spawn } from "node:child_process";
++import { check } from "./jsonl-schema.mjs";
+ 
+ const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
+ 
+@@ -20,10 +21,22 @@ const lines = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => {
+ 
+ // A log whose last line has no newline glues our entry onto it — and a line holding
+ // two objects fails JSON.parse, so BOTH silently vanish from every reader.
+-const append = (file, entry) => {
++//
++// VALIDATED (2026-10-02), but never BLOCKING: a guard must never stop logging itself (the
++// owner's rule that outranks every other rule in this file). So `check()` runs first, but
++// its answer only ever changes what gets written, never whether it gets written:
++//   - check() says the line is fine → write it unchanged.
++//   - check() names a reason it's not → write it anyway, with "unchecked": "<reason>" added,
++//     so a reader can see the line never passed and why, instead of losing it.
++//   - check() itself throws (its own bug) → write the line unchanged, exactly as before this
++//     existed — a broken checker must never make the ledger go silent.
++export const append_checked = (file, entry) => {
++	let bad = null;
++	try { bad = check(file, entry); } catch { bad = null; }
++	const out = bad ? { ...entry, unchecked: bad } : entry;
+ 	let lead = "";
+ 	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+-	fs.appendFileSync(file, lead + JSON.stringify(entry) + "\n");
++	fs.appendFileSync(file, lead + JSON.stringify(out) + "\n");
+ };
+ 
+ const state = file => Object.assign({}, ...lines(file).filter(e => e.assign).map(e => e.assign));
+@@ -118,7 +131,7 @@ const run = async () => {
+ 
+ 	if (event === "posttooluse" && input.tool_name === "Skill") {
+ 		const task = cached_task(input.agent_id, input.session_id) || (input.agent_id ? null : find_task(input.session_id, true));
+-		if (task && input.tool_input?.skill) append(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
++		if (task && input.tool_input?.skill) append_checked(task, { log: { at: now(), msg: `skill: ${input.tool_input.skill}` } });
+ 		// The marker prompt-relay.mjs (the UserPromptSubmit hook) checks to know a session is "the assistant".
+ 		try { if (["assistant", "every-prompt"].includes(input.tool_input?.skill)) fs.writeFileSync(path.join(os.tmpdir(), `claude-assistant-${String(input.session_id).replace(/[^\w-]/g, "_")}`), ""); } catch {}
+ 		return;
+@@ -164,11 +177,11 @@ const run = async () => {
+ 				try {
+ 					const day = path.join(root, "public", "framework", "ai", "health", now().slice(0, 10) + ".jsonl");
+ 					fs.mkdirSync(path.dirname(day), { recursive: true });
+-					fs.appendFileSync(day, JSON.stringify({ warning: {
++					append_checked(day, { warning: {
+ 						at: now(), url: "(hook)", kind: "guard-threw",
+ 						text: name + " threw and was swallowed: " + (e && e.message ? e.message : String(e)),
+ 						file, files: file ? [file] : [],
+-					} }) + "\n");
++					} });
+ 				} catch {}
+ 			}
+ 		};
+@@ -198,7 +211,7 @@ const run = async () => {
+ 		const task = by_path || cached_task(input.agent_id, input.session_id) || (input.agent_id || unborn ? null : find_task(input.session_id, true));
+ 		if (!task) return;
+ 		if (lines(task).some(e => e.action?.files?.includes(r))) return; // first touch only
+-		append(task, { action: { at: now(), did: "edit", files: [r] } });
++		append_checked(task, { action: { at: now(), did: "edit", files: [r] } });
+ 		return;
+ 	}
+ 
+@@ -212,7 +225,7 @@ const run = async () => {
+ 		// stop the agent bounces off this, so the log stays a record, not a chant.
+ 		if (s.landed_at && !String(s.outcome || "").trim()) {
+ 			const refusal = "landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}.";
+-			if (!lines(task).some(e => e.log?.msg === refusal)) append(task, { log: { at: now(), msg: refusal } });
++			if (!lines(task).some(e => e.log?.msg === refusal)) append_checked(task, { log: { at: now(), msg: refusal } });
+ 			console.log(JSON.stringify({
+ 				decision: "block",
+ 				reason: `${rel(task)} has landed_at but no outcome, so it is not landed. Append ONE line: {"assign": {"outcome": "**what landed** — …"}} — then stop again.`
+@@ -253,13 +266,19 @@ const run = async () => {
+ 	if (!task) return;
+ 
+ 	if (event === "sessionstart") {
+-		if (input.source === "resume") append(task, { log: { at: now(), msg: "session resumed" } });
++		if (input.source === "resume") append_checked(task, { log: { at: now(), msg: "session resumed" } });
+ 		return;
+ 	}
+ 
+ 	if (event === "sessionend" && !state(task).landed_at)
+-		append(task, { log: { at: now(), msg: `session ended (${input.reason || "other"}) without landing` } });
++		append_checked(task, { log: { at: now(), msg: `session ended (${input.reason || "other"}) without landing` } });
+ };
+ 
+-try { await run(); } catch {}
+-process.exit(0);
++// Run the hook only when this file is executed directly (`node ledger.mjs <event>`, the only
++// way settings.json ever calls it) — never when a test imports it to reach append_checked,
++// which would otherwise fire a real stdin read and a real process.exit(0) mid-test.
++const is_main = () => { try { return import.meta.url === pathToFileURL(process.argv[1]).href; } catch { return true; } };
++if (is_main()) {
++	try { await run(); } catch {}
++	process.exit(0);
++}
+diff --git a/.claude/hooks/ledger.test.mjs b/.claude/hooks/ledger.test.mjs
+new file mode 100644
+index 00000000..374da7f4
+--- /dev/null
++++ b/.claude/hooks/ledger.test.mjs
+@@ -0,0 +1,54 @@
++// ledger.test.mjs — proves append_checked() (ledger.mjs's one write path) writes in all three
++// cases: a line check() accepts, a line check() names a reason for (written anyway, with
++// "unchecked" added), and a case where check() itself throws (written unchanged, as if the
++// guard weren't there). "A guard must never stop logging itself" is the one rule this exists
++// to prove — the owner's rule that outranks every other rule in ledger.mjs.
++// usage: node .claude/hooks/ledger.test.mjs        (exit 0 = all pass)
++import { mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
++import { join } from "node:path";
++import { tmpdir } from "node:os";
++import { append_checked } from "./ledger.mjs";
++import { schemas } from "./jsonl-schema.mjs";
++
++let failed = 0, passed = 0;
++const ok = (cond, what) => { cond ? passed++ : failed++; console.log(`${cond ? "pass" : "FAIL"}  ${what}`); };
++const read = file => readFileSync(file, "utf8").trim().split("\n").map(l => JSON.parse(l));
++
++const dir = mkdtempSync(join(tmpdir(), "ledger-test-"));
++
++console.log("— 1. check() accepts the line —");
++{
++	const file = join(dir, "task.jsonl"); // the schema is keyed by basename, so this name is real
++	append_checked(file, { log: { at: "t", msg: "fine" } });
++	const [line] = read(file);
++	ok(JSON.stringify(line) === JSON.stringify({ log: { at: "t", msg: "fine" } }), "written exactly as given, no \"unchecked\" added: " + JSON.stringify(line));
++}
++
++console.log("— 2. check() names a reason: still written, with the reason attached —");
++{
++	const sub = join(dir, "sub1"); mkdirSync(sub, { recursive: true });
++	const file = join(sub, "task.jsonl");
++	append_checked(file, { log: { at: "t" } }); // missing "msg" — task.jsonl's schema requires it
++	const [line] = read(file);
++	ok(line.log && line.log.at === "t", "the original line survives untouched");
++	ok(typeof line.unchecked === "string" && /missing "msg"/.test(line.unchecked), "\"unchecked\" names the exact reason: " + JSON.stringify(line));
++}
++
++console.log("— 3. check() itself throws (its own bug): written unchanged —");
++{
++	// Simulate a real bug IN jsonl-schema.mjs — never a weird entry — by giving one basename a
++	// broken schema (verbs: null breaks the very first lookup check() does on it). The entry
++	// itself is a plain, ordinary object; only the schema it hits is broken.
++	schemas["broken-for-test.jsonl"] = { what: "a deliberately broken schema, for this test only", verbs: null };
++	const sub = join(dir, "sub2"); mkdirSync(sub, { recursive: true });
++	const file = join(sub, "broken-for-test.jsonl");
++	append_checked(file, { ordinary: { a: 1 } });
++	const [line] = read(file);
++	ok(JSON.stringify(line) === JSON.stringify({ ordinary: { a: 1 } }), "the line still landed, exactly as given");
++	ok(line.unchecked === undefined, "…and with no \"unchecked\" field — check()'s own crash never leaks into the data");
++	delete schemas["broken-for-test.jsonl"];
++}
++
++rmSync(dir, { recursive: true, force: true });
++console.log(`\n${passed} passed, ${failed} failed`);
++process.exit(failed ? 1 : 0);
+diff --git a/.claude/settings.json b/.claude/settings.json
+index ac088407..838becac 100644
+--- a/.claude/settings.json
++++ b/.claude/settings.json
+@@ -38,6 +38,19 @@
+             "timeout": 10
+           }
+         ]
++      },
++      {
++        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
++        "hooks": [
++          {
++            "type": "command",
++            "command": "node",
++            "args": [
++              "${CLAUDE_PROJECT_DIR}/.claude/hooks/jsonl-guard.mjs"
++            ],
++            "timeout": 10
++          }
++        ]
+       }
+     ],
+     "SessionStart": [
+diff --git a/.claude/skills/clarity/SKILL.md b/.claude/skills/clarity/SKILL.md
+index 695a4fa8..fefb7945 100644
+--- a/.claude/skills/clarity/SKILL.md
++++ b/.claude/skills/clarity/SKILL.md
+@@ -38,7 +38,7 @@ Pieces can each be right while the whole screen is wrong. Every agent's screensh
+ 2. Answer from the picture alone, in ten seconds: **What is its status? What was asked? What was delivered?** If you can't answer one of them, it fails.
+ 3. Look for parts that contradict each other, for example a chat that says "Landed" above a counter that says "0 done".
+ 
+-A failure here is usually code, so don't fix it yourself. Send the owning mastermind the screenshot path, your three answers, and the fix you would make. If nobody owns it any more, write it as a `"verdict": "ui"` line in flags.jsonl, and mastermind-servex reads those.
++A failure here is usually code, so don't fix it yourself. Send the owning mastermind the screenshot path, your three answers, and the fix you would make. If nobody owns it any more, write it as a `"verdict": "ui"` line in flags.jsonl the same validated way (step 3 below), and mastermind-servex reads those.
+ 
+ ## A failure becomes a rewrite, never a critique
+ 
+@@ -46,7 +46,7 @@ Write the fixed version itself: the new outcome, the new paragraph as a tree, th
+ 
+ 1. **The owner is running** (`list_agents` shows the task's agent working or idle): `send_to_agent` it the rewrite, with one line saying what was wrong and where.
+ 2. **Nobody owns it any more:** apply the rewrite yourself. Edit only the task dir's `.md` files, and append one `{"assign": {"outcome": "…"}}` line. Never touch code.
+-3. **Always** append one line to `.claude/skills/clarity/flags.jsonl`:
+-   `{"at": "<full ISO time>", "target", "verdict": "clear" | "rewrote" | "sent" | "ui", "what": "<one line>", "to": "<agent or file>"}`
++3. **Always** write the line to a scratch `.json` array, then run `node .claude/hooks/append.mjs .claude/skills/clarity/flags.jsonl <lines.json>` (validated against `flags.jsonl`'s schema in `.claude/hooks/jsonl-schema.mjs`, same as any task log):
++   `{"at": "<full ISO time>", "target": "<task dir or url>", "verdict": "clear" | "rewrote" | "sent" | "ui", "what": "<one line>", "to": "<agent or file>"}`
+ 
+ A clear target still gets its one "clear" line. Then stop: no report, no card reply.
+diff --git a/.claude/skills/new-task/SKILL.md b/.claude/skills/new-task/SKILL.md
+index 23df87c9..d5d5a36d 100644
+--- a/.claude/skills/new-task/SKILL.md
++++ b/.claude/skills/new-task/SKILL.md
+@@ -45,7 +45,7 @@ on any other task's log.
+ 
+ **Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
+ 
+-- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Append one line, creating the file if the day is new:
++- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Same route as your task log — `node .claude/hooks/append.mjs ai/<date>/day.jsonl <lines.json>` — which creates `day.jsonl` itself the first time a day opens; nothing to `mkdir` by hand (the day's own dir already exists, since your task dir sits inside it):
+ 
+ ```json
+ {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}
+diff --git a/Server/plugins/SocketServer/Append.js b/Server/plugins/SocketServer/Append.js
+index e2d9d6fe..0738041c 100644
+--- a/Server/plugins/SocketServer/Append.js
++++ b/Server/plugins/SocketServer/Append.js
+@@ -1,5 +1,6 @@
+ import fs from "fs";
+ import path from "path";
++import { check } from "../../../.claude/hooks/jsonl-schema.mjs";
+ 
+ const PUBLIC = path.resolve("public");
+ 
+@@ -45,12 +46,29 @@ export default class Append {
+ 
+ 	/* One or many lines, always whole. ⚠ `appendFileSync` opens with "a", so two writers
+ 	   interleave BETWEEN lines and never inside one — which is the whole point: a torn
+-	   half-line is unparseable to every reader of the file, not just to its writer. */
++	   half-line is unparseable to every reader of the file, not just to its writer.
++	   VALIDATED FIRST (2026-10-02): every line is judged against the target's schema
++	   (jsonl-schema.mjs's check(), the same rule append.mjs enforces) before anything is
++	   written. One bad line refuses the WHOLE batch, nothing partial — the browser gets
++	   the reason back instead of a half-written file. A file with no schema only has to
++	   be a plain JSON object, which check() already guarantees. */
+ 	append(file, lines, index){
+ 		const full = resolve(file);
+ 		if (!full) return this.answer(index, "append refused");
+ 
+-		const text = [lines].flat()
++		const list = [lines].flat().filter(Boolean);
++		if (!list.length) return this.answer(index, "append empty");
++
++		for (const raw of list){
++			let obj = raw;
++			if (typeof raw === "string") {
++				try { obj = JSON.parse(raw); } catch { return this.answer(index, "append refused: a line must be valid JSON"); }
++			}
++			const why = check(full, obj);
++			if (why) return this.answer(index, `append refused: ${why}`);
++		}
++
++		const text = list
+ 			.map(line => (typeof line === "string" ? line : JSON.stringify(line)).replace(/[\r\n]+/g, " "))
+ 			.filter(Boolean)
+ 			.map(line => line + "\n")
+diff --git a/Server/plugins/SocketServer/Append.test.mjs b/Server/plugins/SocketServer/Append.test.mjs
+new file mode 100644
+index 00000000..3aa789f9
+--- /dev/null
++++ b/Server/plugins/SocketServer/Append.test.mjs
+@@ -0,0 +1,69 @@
++// Append.test.mjs — exercises the rpc:append handler directly (no real socket, no real server).
++// usage (from the REPO ROOT — Append.js resolves "public" against process.cwd()):
++//   node Server/plugins/SocketServer/Append.test.mjs        (exit 0 = all pass)
++//
++// Covers the 2026-10-02 change: every line is run through jsonl-schema.mjs's check() before
++// anything is written. A good batch, a batch with one bad line (refuses the WHOLE batch, writes
++// nothing), and a file with no schema (only has to be a JSON object).
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Append from "./Append.js";
++
++let failed = 0, passed = 0;
++const ok = (cond, what) => { cond ? passed++ : failed++; console.log(`${cond ? "pass" : "FAIL"}  ${what}`); };
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(here, "..", "..", "..");
++if (path.resolve(process.cwd()) !== ROOT) {
++	console.error(`Append.test.mjs must run from the repo root (${ROOT}), not ${process.cwd()} — Append.js resolves "public" against the cwd.`);
++	process.exit(1);
++}
++
++// A scratch dir UNDER public/ — Append.js's resolve() refuses anything outside it — cleaned up at the end.
++const testDir = path.join(ROOT, "public", "framework", "ai", "_append-test-tmp");
++fs.mkdirSync(testDir, { recursive: true });
++const rel = name => path.join("framework", "ai", "_append-test-tmp", name).split(path.sep).join("/");
++const full = name => path.join(testDir, name);
++
++const calls = [];
++const fakeSocket = { on(){}, send: msg => calls.push(msg) };
++const appender = new Append(fakeSocket);
++const call = (file, lines) => { calls.length = 0; appender.append(file, lines, calls.length); return calls[0]; };
++
++// Both of these are named "task.jsonl" (the schema is keyed by BASENAME, so the name must match
++// exactly) but live in their own subdirs so the two cases don't collide.
++console.log("— a good batch against task.jsonl's schema —");
++{
++	const file = rel("good/task.jsonl"); // never existed before this call
++	const res = call(file, [{ assign: { step: 1 } }, { log: { at: "t", msg: "ok" } }]);
++	ok(res.response === "append successful", "a good batch is written: " + JSON.stringify(res));
++	const lines = fs.readFileSync(full("good/task.jsonl"), "utf8").trim().split("\n");
++	ok(lines.length === 2 && lines.every(l => JSON.parse(l)), "both lines landed, both parse");
++}
++
++console.log("— one bad line refuses the whole batch —");
++{
++	const file = rel("bad/task.jsonl"); // never existed before this call
++	const res = call(file, [{ log: { at: "t", msg: "ok" } }, { bogus: {} }]);
++	ok(res.response.startsWith("append refused:") && /flat line/.test(res.response), "the bad line's reason comes back: " + res.response);
++	ok(!fs.existsSync(full("bad/task.jsonl")), "nothing partial was written — the file was never created");
++}
++
++console.log("— a file with no schema only has to be a JSON object —");
++{
++	const file = rel("usage.jsonl"); // not in jsonl-schema.mjs's schemas
++	const res = call(file, [{ whatever: 1, anything: "goes" }]);
++	ok(res.response === "append successful", "an unknown-schema file accepts any plain object: " + JSON.stringify(res));
++	ok(fs.readFileSync(full("usage.jsonl"), "utf8").trim() === '{"whatever":1,"anything":"goes"}', "the line landed as given");
++
++	calls.length = 0;
++	appender.append(file, ["not valid json at all"], 0);
++	ok(/append refused/.test(calls[0].response), "a string line that isn't even valid JSON is refused, schema or not: " + calls[0].response);
++	appender.append(file, ['{"already":"serialized"}'], 0);
++	ok(calls.at(-1).response === "append successful", "a string line that IS already-serialized JSON is still accepted");
++}
++
++fs.rmSync(testDir, { recursive: true, force: true });
++console.log(`\n${passed} passed, ${failed} failed`);
++process.exit(failed ? 1 : 0);
+diff --git a/public/framework/ai/2026-10-02/jsonl-writers/files.jsonl b/public/framework/ai/2026-10-02/jsonl-writers/files.jsonl
+new file mode 100644
+index 00000000..8874e410
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/jsonl-writers/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"requirements.md"}
++{"file":"requirements.md"}
++{"file":"requirements.md"}
++{"file":"task.jsonl"}
+diff --git a/public/framework/ai/2026-10-02/jsonl-writers/requirements.md b/public/framework/ai/2026-10-02/jsonl-writers/requirements.md
+new file mode 100644
+index 00000000..2b66ec92
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/jsonl-writers/requirements.md
+@@ -0,0 +1,29 @@
++Budget: $12
++
++# One JSONL system: close the five unchecked writers
++
++**The owner's words (2026-10-02, via the JSONL writer audit):** twelve `.jsonl` writers exist; the validated routes (`append.mjs`, `append_log`, research `store.mjs`, `decide.mjs`, `Cards.js`) are solid. Five gaps let an unchecked line into a live file. Close them, in this order. "Compute, don't recall" (CLAUDE.md law 7): every line a live page reads goes through `jsonl-schema.mjs`'s `check()`.
++
++**The one rule that outranks the rest (the owner, earlier):** a guard must never stop logging itself. A hook that cannot decide lets the write through (fails open); a check that throws on its own bug logs and lets the line through. Nothing here may make `append.mjs`, `append_log`, `ledger.mjs` or `prompt-relay.mjs` go silent.
++
++## Items
++
++1. **Write/Edit guard.** `.claude/hooks/jsonl-guard.mjs` only reads `tool_input.command`. Add a second matcher in `.claude/settings.json` — `"matcher": "Write|Edit|MultiEdit|NotebookEdit"` — running the same hook. The hook reads `tool_input.file_path`: if it ends in `.jsonl` **and the file already exists**, exit 2 with the same message (name `append.mjs` and `append_log`). A brand-new `.jsonl` (file does not exist yet) is allowed, so a task can still open its log. Extend `jsonl-guard.test.mjs`: existing file blocked, new file allowed, a `.json` file allowed, malformed hook input lets through.
++2. **`Server/plugins/SocketServer/Append.js`** (the browser's `rpc:append`): before `appendFileSync`, run `check(full, line)` from `.claude/hooks/jsonl-schema.mjs` on every line (import it by relative path; it is plain ESM). One bad line refuses the whole batch and answers the browser with the check's reason; nothing partial is written. A file with no schema (`schema_for` → null) passes as before — the check only has to be valid JSON then, which `check()` already does. Add a test beside it (`Append.test.mjs`) with a good batch, a bad batch, and a no-schema file.
++3. **`.claude/hooks/ledger.mjs`**: both `appendFileSync` sites (line ~26 and ~167) go through one small `append_checked(file, entry)` that calls `check()` first. If the check **fails**, the hook still writes the line and adds `"unchecked": "<reason>"` to it, so a page never loses a log line and the reason is visible. If `check()` itself throws, write the line as before. Prove in a test that the hook writes in all three cases.
++4. **`.claude/skills/clarity/flags.jsonl`**: add a `flags.jsonl` schema to `jsonl-schema.mjs` from the lines that exist now (`at`, `target`, `verdict`, `what`, and whatever else every line already has — compute the field set with a script, don't guess), with `verdict` an enum of the values in use (`clear`, `ui`, …). Then change `.claude/skills/clarity/SKILL.md` step 3 (line ~49) and line ~41 so they say: write the line to a scratch `.json` array and run `node .claude/hooks/append.mjs .claude/skills/clarity/flags.jsonl <lines.json>`. Run the schema against every existing line; if any fails, loosen the schema (never edit the data).
++5. **`.claude/skills/new-task/SKILL.md`** day.jsonl step (line ~48): name the route — `node .claude/hooks/append.mjs ai/<date>/day.jsonl <lines.json>` — and say that `append.mjs` creates the file when the day is new (confirm it does; if not, make it).
++
++## Proof before landing
++
++- `node .claude/hooks/jsonl-guard.test.mjs`, `node .claude/hooks/jsonl-schema.test.mjs`, the new `Append.test.mjs`, and the ledger test all pass.
++- From your worktree, one real `append.mjs` write to your own task.jsonl and one `append_log` tool call both still land a line.
++- The hook never blocked you from writing your own task log (your task log already exists — you append with `append.mjs`, which is the point).
++
++## Fence
++
++You own: `.claude/hooks/jsonl-guard.mjs`, `jsonl-guard.test.mjs`, `jsonl-schema.mjs`, `jsonl-schema.test.mjs`, `ledger.mjs` (+ its test), `.claude/settings.json` (the one new matcher only), `Server/plugins/SocketServer/Append.js` (+ test), `.claude/skills/clarity/SKILL.md`, `.claude/skills/new-task/SKILL.md`, and this task dir. Nothing else. Never edit `flags.jsonl`'s data, CLAUDE.md, or any `.jsonl` by hand.
++
++## Land
++
++Work in your worktree, land through `node Server/merge.mjs` (it will refuse if a review is missing — this task touches no page, so say so in the landing line). Report on the card in five plain lines: what is now checked that was not, and the test counts. Note that the settings hook takes effect for sessions started after the merge, and `Append.js` after the dev server restarts (mastermind-servex handles restarts — don't restart anything).
+diff --git a/public/framework/ai/2026-10-02/jsonl-writers/task.jsonl b/public/framework/ai/2026-10-02/jsonl-writers/task.jsonl
+new file mode 100644
+index 00000000..0b7ccdd7
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/jsonl-writers/task.jsonl
+@@ -0,0 +1,19 @@
++{"assign":{"session_id":"67ca7a0c-ac3d-40a1-b928-dbceff37455e","agent":"minion-jsonl-writers","card":"2026/10/02/one-jsonl-system-the-five-unchecked-writ","brief":"public/framework/ai/2026-10-02/jsonl-writers/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/qf-9","requested_at":"2026-10-02T17:46:47-05:00","now":"starting","steps":[],"step":1}}
++{"assign":{"step":1,"now":"read the 5 targets; confirmed append.mjs creates a new .jsonl when the parent dir exists","steps":["write/edit guard: block existing .jsonl via a Write|Edit|MultiEdit|NotebookEdit matcher, allow brand-new files","Server/plugins/SocketServer/Append.js: check() every line before appendFileSync, refuse the whole batch on one bad line","ledger.mjs: append_checked wraps both appendFileSync sites, adds unchecked:<reason> when a line fails, writes unchanged if check() itself throws","jsonl-schema.mjs: add a flat flags.jsonl schema (at/target/verdict required, verdict enum) computed from the live file; update clarity SKILL.md's route","new-task SKILL.md: name the day.jsonl append.mjs route and confirm it creates the file"]}}
++{"action":{"at":"2026-10-02T17:51:14-05:00","did":"edit","files":[".claude/hooks/jsonl-guard.mjs"]}}
++{"action":{"at":"2026-10-02T17:51:22-05:00","did":"edit","files":[".claude/hooks/jsonl-guard.test.mjs"]}}
++{"action":{"at":"2026-10-02T17:51:41-05:00","did":"edit","files":[".claude/settings.json"]}}
++{"action":{"at":"2026-10-02T17:51:48-05:00","did":"edit","files":["Server/plugins/SocketServer/Append.js"]}}
++{"action":{"at":"2026-10-02T17:52:14-05:00","did":"edit","files":["Server/plugins/SocketServer/Append.test.mjs"]}}
++{"action":{"at":"2026-10-02T17:52:59-05:00","did":"edit","files":[".claude/hooks/ledger.mjs"]}}
++{"action":{"at":"2026-10-02T17:55:04-05:00","did":"edit","files":[".claude/hooks/ledger.test.mjs"]}}
++{"action":{"at":"2026-10-02T17:56:09-05:00","did":"edit","files":[".claude/hooks/jsonl-schema.mjs"]}}
++{"action":{"at":"2026-10-02T17:56:33-05:00","did":"edit","files":[".claude/hooks/jsonl-schema.test.mjs"]}}
++{"action":{"at":"2026-10-02T17:56:53-05:00","did":"edit","files":[".claude/skills/clarity/SKILL.md"]}}
++{"action":{"at":"2026-10-02T17:57:05-05:00","did":"edit","files":[".claude/skills/new-task/SKILL.md"]}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"item 1 done: jsonl-guard.mjs now also runs on Write|Edit|MultiEdit|NotebookEdit (second settings.json matcher), blocking a hand write to an EXISTING .jsonl but allowing a brand-new one; jsonl-guard.test.mjs: 24/24 pass"}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"item 2 done: Server/plugins/SocketServer/Append.js runs check() on every line before appendFileSync; one bad line refuses the whole batch, nothing partial written; a no-schema file still only needs to be valid JSON. New Append.test.mjs: 8/8 pass"}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"item 3 done: .claude/hooks/ledger.mjs's two appendFileSync sites both go through one append_checked(file,entry): passes through unchanged, or writes with unchecked:<reason> added, or (if check() itself throws) writes unchanged — never silent. New ledger.test.mjs: 5/5 pass. Had to add an is_main() guard so importing ledger.mjs for the test doesn't trigger its own stdin read + process.exit(0)."}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"item 4 done: jsonl-schema.mjs gained a flat (no-verb) schema kind; flags.jsonl's required fields (at/target/verdict) and verdict enum were computed from the live 173-line file, not guessed — all 173 pass the new schema. clarity/SKILL.md step 3 and the 'ui' line both now route through append.mjs instead of hand-writing"}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"item 5 done: new-task SKILL.md's day.jsonl step now names the append.mjs route explicitly; confirmed by hand that append.mjs creates a brand-new day.jsonl when the day's own dir already exists (it does, since the task dir is created first)"}}
++{"log":{"at":"2026-10-02T17:57:37-05:00","msg":"proof: jsonl-guard 24/24, jsonl-schema 38/38, ledger 5/5, Append 8/8 = 75/75 pass. One real append.mjs write landed this very line in my own task.jsonl; one real append_log call (name qf9-jsonl-writers-smoke-test) also landed. The write/edit guard never blocked my own task.jsonl appends."}}

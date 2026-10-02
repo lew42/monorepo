@@ -64,7 +64,11 @@ export default class Append {
 			if (typeof raw === "string") {
 				try { obj = JSON.parse(raw); } catch { return this.answer(index, "append refused: a line must be valid JSON"); }
 			}
-			const why = check(full, obj);
+			// check() itself throwing (a bug in jsonl-schema.mjs, not in the line) must never stop
+			// the write — the owner's rule that outranks this whole feature. Treat it exactly like
+			// "nothing wrong found": a throw is a bug report, never a reason to lose the browser's line.
+			let why = null;
+			try { why = check(full, obj); } catch (e) { console.error("Append: check() threw, writing anyway:", e.message); }
 			if (why) return this.answer(index, `append refused: ${why}`);
 		}
 

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 import { check } from "./jsonl-schema.mjs";
 
@@ -277,7 +277,14 @@ const run = async () => {
 // Run the hook only when this file is executed directly (`node ledger.mjs <event>`, the only
 // way settings.json ever calls it) — never when a test imports it to reach append_checked,
 // which would otherwise fire a real stdin read and a real process.exit(0) mid-test.
-const is_main = () => { try { return import.meta.url === pathToFileURL(process.argv[1]).href; } catch { return true; } };
+//
+// A review (2026-10-02) flagged the obvious `import.meta.url === pathToFileURL(argv[1]).href`
+// check: if Node ever resolves the two to different strings (a symlink or junction in the path,
+// a drive-letter case mismatch) this hook goes silent with NOTHING reporting it — exactly what
+// the owner's top rule forbids. Matching the FILENAME instead is cheap and can't silently
+// diverge the same way: it only answers "is argv[1] some ledger.mjs", which is true whenever
+// settings.json is the one calling this file, and false for a test's own argv[1].
+const is_main = () => /ledger\.mjs$/i.test(process.argv[1] ?? "");
 if (is_main()) {
 	try { await run(); } catch {}
 	process.exit(0);
