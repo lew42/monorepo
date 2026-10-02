@@ -23,6 +23,6 @@ Confidence multiplies Direction's coherence by Consistency's along-line support 
 
 This is a deterministic confidence heuristic, not a probability or an object recogniser. Straight texture, lettering and silhouettes can still score. Corners often lose coherence; the corner map is a separate later rung. A wireframe box sample draws all 12 edges and 8 vertices, including hidden edges, to provide a known input, not a detected geometry count.
 
-The interactive tool resizes to at most 640 pixels on its longer edge and keeps every image in your browser. The pure function has no resize limit. Tensor windows use summed-area tables; continuity cost grows with pixels × line length. This first version runs on the main thread, so large batches belong in Node or a future worker.
+The interactive tool resizes to at most 640 pixels on its longer edge and keeps every image in your browser. Sample and slider choices are in the URL, so reload restores them; uploaded files are not stored. The pure function has no resize limit. Tensor windows use summed-area tables; continuity cost grows with pixels × line length. This first version runs on the main thread, so large batches belong in Node or a future worker.
 
 The photo is the existing [paving and gull image](/edric/image/seagul.jpeg). Samples are drawn locally, without network or packages. There is no 3D, corner detection or SVG extraction yet.

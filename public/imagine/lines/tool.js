@@ -4,15 +4,23 @@ import { sample } from "./samples.js";
 export function mount(host){
 	host.innerHTML = `<div class="lines-inputs">
 		<label>Sample <select aria-label="Sample"><option value="box">Box · 8 corners, 12 edges</option><option value="seam">Faint seam + noise</option><option value="room">Room</option><option value="photo">Photo · paving + gull</option></select></label>
-		<label class="lines-upload">Choose image <input type="file" accept="image/*" aria-label="Choose image"></label>
+		<label class="lines-upload">Choose or drop image <input type="file" accept="image/*" aria-label="Choose image"></label>
 		<button type="button" class="lines-save">Save PNG</button>
 	</div><div class="lines-controls"></div>
-	<div class="lines-images"><figure><figcaption>Original</figcaption><canvas class="lines-original" aria-label="Original image"></canvas></figure><figure><figcaption>Line confidence</figcaption><canvas class="lines-result" aria-label="Line-confidence image"></canvas></figure></div>
+	<div class="lines-images"><figure><figcaption>Original</figcaption><canvas class="lines-original" aria-label="Original image"></canvas></figure><figure><figcaption>Line art</figcaption><canvas class="lines-result" aria-label="Line-confidence image"></canvas></figure></div>
 	<p class="lines-status muted" role="status" aria-live="polite"></p>`;
 	const original = host.querySelector('.lines-original'), output = host.querySelector('.lines-result');
 	const status = host.querySelector('.lines-status'), select = host.querySelector('select');
 	const controls = host.querySelector('.lines-controls');
 	const opts = { window: 5, length: 17, noise: 0.006, gamma: 0.8 };
+	const params = new URL(location.href).searchParams;
+	if ([...select.options].some(o => o.value === params.get('sample'))) select.value = params.get('sample');
+	function remember(){
+		const url = new URL(location.href);
+		url.searchParams.set('sample', select.value);
+		for (const [key, value] of Object.entries(opts)) url.searchParams.set(key, value);
+		history.replaceState(history.state, '', url);
+	}
 	let source, scores, timer, generation = 0;
 	for (const [key, title, min, max, step] of [
 		['window', 'Window size', 3, 21, 2], ['length', 'Line length', 3, 61, 2],
@@ -21,8 +29,10 @@ export function mount(host){
 		const label = document.createElement('label');
 		label.innerHTML = `<span>${title} <output>${opts[key]}</output></span><input type="range" aria-label="${title}" min="${min}" max="${max}" step="${step}" value="${opts[key]}">`;
 		const input = label.querySelector('input'), value = label.querySelector('output');
+		if (params.has(key) && Number.isFinite(Number(params.get(key)))) input.value = params.get(key);
+		opts[key] = Number(input.value); value.value = input.value;
 		input.addEventListener('input', () => {
-			opts[key] = Number(input.value); value.value = input.value;
+			opts[key] = Number(input.value); value.value = input.value; remember();
 			if (key === 'gamma') paint(); else schedule();
 		});
 		controls.append(label);
@@ -74,10 +84,11 @@ export function mount(host){
 		const url = URL.createObjectURL(file), token = ++generation;
 		load(url, token).finally(() => URL.revokeObjectURL(url));
 	}
-	select.addEventListener('change', choose);
+	select.addEventListener('change', () => { remember(); choose(); });
 	host.querySelector('input[type=file]').addEventListener('change', e => file(e.target.files[0]));
-	host.addEventListener('dragover', e => { e.preventDefault(); });
-	host.addEventListener('drop', e => { e.preventDefault(); file(e.dataTransfer.files[0]); });
+	host.addEventListener('dragover', e => { e.preventDefault(); host.classList.add('lines-dragging'); });
+	host.addEventListener('dragleave', e => { if (!host.contains(e.relatedTarget)) host.classList.remove('lines-dragging'); });
+	host.addEventListener('drop', e => { e.preventDefault(); host.classList.remove('lines-dragging'); file(e.dataTransfer.files[0]); });
 	host.querySelector('.lines-save').addEventListener('click', () => {
 		if (!scores) return;
 		output.toBlob(blob => {

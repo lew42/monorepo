@@ -8,5 +8,5 @@ export default new Page({
 		const meta = this.meta;
 		return { title: "How the filter works", content(){ return md.file(meta, "filter.md", { h1: false }); } };
 	},
-	content(){ md("[How the filter works](/imagine/lines/doc/filter/)"); },
+	content(){ return md.file(this.meta, "filter.md", { h1: false }); },
 });

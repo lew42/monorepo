@@ -22,8 +22,8 @@ export function lines(image, opts = {}){
 		const i = y * w + x, l = y * w + Math.max(0, x - 1), r = y * w + Math.min(w - 1, x + 1);
 		const t = Math.max(0, y - 1) * w + x, b = Math.min(h - 1, y + 1) * w + x;
 		// Hue wraps at red. Achromatic pixels have no meaningful hue.
-		const hx = circular(hue[r] - hue[l]) * Math.min(sat[l], sat[r]);
-		const hy = circular(hue[b] - hue[t]) * Math.min(sat[t], sat[b]);
+		const hx = circular(hue[r] - hue[l]) * Math.min(sat[l], sat[r]) / 2;
+		const hy = circular(hue[b] - hue[t]) * Math.min(sat[t], sat[b]) / 2;
 		const sx = (sat[r] - sat[l]) / 2, sy = (sat[b] - sat[t]) / 2;
 		const vx = (val[r] - val[l]) / 2, vy = (val[b] - val[t]) / 2;
 		xx[i] = hx * hx + sx * sx + vx * vx;

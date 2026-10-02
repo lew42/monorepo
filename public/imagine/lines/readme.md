@@ -1,6 +1,6 @@
 # Line art — darker pixels mark steadier, straighter edges
 
-[Open the filter](/imagine/lines/): drop an image, or choose the box, room, faint seam or photo. The original and line map sit together; four sliders tune the result.
+[Open the filter](/imagine/lines/): drop an image, or choose the box, room, faint seam or photo. The original and line art sit together; four sliders tune the result. On narrow screens, line art comes first. Sample and slider choices survive reload in the URL; uploaded images remain private and are not saved.
 
 ## Use
 

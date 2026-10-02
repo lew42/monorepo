@@ -1,6 +1,6 @@
-@layer base, theme, site, util;
 @layer site {
-	.lines-tool { display: grid; gap: var(--gap); max-width: 90em; margin-inline: auto; }
+	.lines-tool { display: grid; gap: var(--gap); max-width: 90em; margin-inline: auto; container-type: inline-size; }
+	.lines-tool.lines-dragging { outline: 2px dashed var(--ink); outline-offset: .4em; }
 	.lines-inputs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); }
 	.lines-inputs label { display: flex; flex-wrap: wrap; align-items: center; gap: .5em; }
 	.lines-inputs select, .lines-inputs input { max-width: 100%; font: inherit; }
@@ -15,8 +15,11 @@
 	.lines-images figcaption { margin-bottom: .5em; font-weight: 600; }
 	.lines-images canvas { display: block; width: 100%; height: auto; border: 1px solid var(--ink); }
 	.lines-status { min-height: 1.5em; margin: 0; }
-	@media (max-width: 800px) {
-		.lines-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-		.lines-images { grid-template-columns: 1fr; }
+	@container (max-width: 800px) {
+		.lines-inputs { order: 2; }
+		.lines-controls { order: 3; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.lines-images { order: 1; grid-template-columns: 1fr; }
+		.lines-images figure:last-child { order: -1; }
+		.lines-status { order: 4; }
 	}
 }
