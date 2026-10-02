@@ -142,6 +142,14 @@ export const posts = [
 
 	{
 		section: "ai",
+		name: "drone-scans",
+		title: "Idea: a fleet of drones that scans a home in minutes",
+		date: "2026-10-01",
+		description: "Send four small drones with 360° cameras through a house, and come back with a full 3D model: for listings, remodels and planning. The lines-to-3D pipeline is the engine.",
+	},
+
+	{
+		section: "ai",
 		name: "lines-to-3d",
 		title: "Idea: from straight lines to 3D",
 		date: "2026-10-01",

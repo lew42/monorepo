@@ -9,6 +9,15 @@
 	<updated>2026-10-01T00:00:00Z</updated>
 	<author><name>lew42</name></author>
 	<entry>
+		<title>Idea: a fleet of drones that scans a home in minutes</title>
+		<id>https://lew42.com/blog/ai/drone-scans/</id>
+		<link rel="alternate" type="text/html" href="https://lew42.com/blog/ai/drone-scans/"/>
+		<published>2026-10-01T00:00:00Z</published>
+		<updated>2026-10-01T00:00:00Z</updated>
+		<category term="ai"/>
+		<summary type="text">Send four small drones with 360° cameras through a house, and come back with a full 3D model: for listings, remodels and planning. The lines-to-3D pipeline is the engine.</summary>
+	</entry>
+	<entry>
 		<title>Idea: from straight lines to 3D</title>
 		<id>https://lew42.com/blog/ai/lines-to-3d/</id>
 		<link rel="alternate" type="text/html" href="https://lew42.com/blog/ai/lines-to-3d/"/>
