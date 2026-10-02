@@ -81,3 +81,14 @@ Output a mostly white image where the more confident a line is, the darker it dr
 6. **Beyond shape:** textures, materials, lighting, then sound and time on a timeline. A walkthrough with a 360° camera could scan a whole space.
 
 **One rule: don't invent.** Where the scan has no data (a room you never walked into), leave it empty, or fill it but mark it clearly as imagined. A scan has to stay honest to be trusted.
+
+## Why this is bigger than scanning
+
+Turning what a camera sees into 3D is the foundation for much more than models of rooms:
+- **Robots that navigate:** knowing where the walls, floors and doorways are is how a robot moves through a space.
+- **Obstacle avoidance:** what's in the way, how far away it is, and how big.
+- **Measuring things:** real-world sizes from an ordinary photo.
+- **Object recognition:** a table is its lines and planes, so shape helps say what a thing is.
+- **Scanning spaces:** see [a fleet of drones that scans a home in minutes](/blog/ai/drone-scans/).
+
+Lines, corners and planes are cheap to compute and easy to check. That makes them a strong first layer for all of it.
