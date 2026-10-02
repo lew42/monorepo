@@ -11,6 +11,8 @@ const confidence = lines({ width, height, data }, { window: 5, length: 17, noise
 
 `data` is RGBA bytes. The result is a `Float32Array`, one confidence from 0 to 1 per pixel. The core has no DOM and runs in Node. Gamma changes the display, not the confidence.
 
+Run the checks with `node public/imagine/lines/test.mjs`. The browser tool scales large images to a 640-pixel long edge; [limits](/imagine/lines/doc/filter/) explain the trade-off.
+
 ## More
 
 - [How the filter works](/imagine/lines/doc/filter/) — channel gradients, direction, continuity and limits.
