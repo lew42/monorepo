@@ -9,3 +9,7 @@ questions.md.
 Overview: show it, then tell it (a screenshot beats a paragraph); the tip of the iceberg comes
 first, detail one click down; a title is 5–8 words starting with the familiar concept; could the
 owner get this in ten seconds; link every mention of a concept that has its own page.
+
+Helpful headings (the owner, 2026-10-02), in chat replies too: a heading per topic that names it
+(a statement or a question, carrying the parent's name when the sub-name wouldn't stand alone);
+under it, bullets that start with a **bold title**, then a sentence or two. Minimal and highly structured.
