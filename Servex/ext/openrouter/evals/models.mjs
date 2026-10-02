@@ -22,7 +22,7 @@ const OUT = path.join(OUT_DIR, "models.json");
 function readJsonl(file){
 	if (!fs.existsSync(file)) return [];
 	return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(Boolean)
-		.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+	.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
 function mean(nums){
 	const xs = nums.filter(n => n != null && !Number.isNaN(n));
@@ -164,9 +164,9 @@ function groupByModelEffort(list){
 // Claude rows: Anthropic's own published list prices. OpenRouter rows: openrouter.ai's public
 // /api/v1/models pricing (checked 2026-10-01; prompt/completion $ per token). Blended at a plain
 // 1:1 prompt:completion average — this is a relative ranking number, not a cost estimate.
-const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, Anthropic's list prices
-	"claude-opus-5-5": { prompt: 15e-6, completion: 75e-6 }, // the real model id (test-library runs confirm it), not "claude-opus-5"
-	"claude-sonnet-5": { prompt: 3e-6, completion: 15e-6 },
+const ANTHROPIC_PRICE_PER_TOKEN = { // { prompt, completion } in $/token, OpenRouter catalog prices for these ids, checked 2026-10-01 (Sonnet 5 $2/$10, Opus 5.5 $4/$20)
+	"claude-opus-5-5": { prompt: 4e-6, completion: 20e-6 }, // the real model id (test-library runs confirm it), not "claude-opus-5"
+	"claude-sonnet-5": { prompt: 2e-6, completion: 10e-6 },
 	"claude-haiku-4-5-20251001": { prompt: 1e-6, completion: 5e-6 },
 };
 // Fallback snapshot of OpenRouter's public pricing (fetched 2026-10-01) in case the live fetch
@@ -290,10 +290,197 @@ for (const kindId of libraryKinds){
 	kinds.push(buildKind(kindId, kindId, list, { alreadyFinal: true }));
 }
 
+// --- Ladder: the cheap ladder — which models pass the four simple rungs, cheapest first? ---
+const LADDER_RUNGS = ["h1-page", "fix-label", "broken-import", "broken-overflow"];
+const LADDER_PRICES_FILE = path.join(ROOT, "public/framework/ai/2026-09-30/openrouter-harness/test-library/ladder-models.json");
+
+// Short readable name for a model id, used in the ladder summary and in the data.
+const CLAUDE_LADDER_NAME = {
+	"claude-opus-5-5": "Claude Opus",
+	"claude-sonnet-5": "Claude Sonnet",
+	"claude-haiku-4-5-20251001": "Claude Haiku",
+};
+function ladderModelName(model){
+	if (CLAUDE_LADDER_NAME[model]) return CLAUDE_LADDER_NAME[model];
+	if (model.startsWith("claude-")) return "Claude";
+	return model.split("/").pop() ?? model;
+}
+
+// Read each rung's page.jsonl: line 1 is the header, subsequent lines are runs.
+function readRungRuns(slug){
+	const file = path.join(TESTS_DIR, slug, "page.jsonl");
+	const lines = readJsonl(file);
+	if (!lines.length) return { header: null, runs: [] };
+	const header = lines[0];
+	const runs = [];
+	for (const line of lines.slice(1)){
+		const [, body] = Object.entries(line)[0] ?? [];
+		if (body && typeof body === "object" && "model" in body) runs.push(body);
+	}
+	return { header, runs };
+}
+
+// Is a run the final judge score (as opposed to a pre-judgment mechanical run)?
+const isJudgeRun = r => r.judge_score === true;
+
+// Did this model pass this rung? Judge-scored runs (credit > 0) take priority;
+// fall back to mechanical pass > 0. null = not run.
+function rungResult(runs){
+	if (!runs.length) return null;
+	const judgeRuns = runs.filter(isJudgeRun);
+	if (judgeRuns.length){
+		const best = Math.max(...judgeRuns.map(r => typeof r.credit === "number" ? r.credit : (r.pass ? 1 : 0)));
+		return best > 0 ? "pass" : "fail";
+	}
+	const bestPass = Math.max(...runs.map(r => typeof r.pass === "number" ? r.pass : (r.pass ? 1 : 0)));
+	return bestPass > 0 ? "pass" : "fail";
+}
+
+// Collect all runs across the four rungs, keyed by model -> rung-slug -> runs[].
+const rungData = {};
+const allLadderModels = new Set();
+for (const slug of LADDER_RUNGS){
+	const { runs } = readRungRuns(slug);
+	rungData[slug] = {};
+	for (const r of runs){
+		allLadderModels.add(r.model);
+		if (!rungData[slug][r.model]) rungData[slug][r.model] = [];
+		rungData[slug][r.model].push(r);
+	}
+}
+
+// Price per 1M tokens for the ladder table. Sources in priority order:
+//  (1) ladder-models.json (paid candidates have prompt_per_m/completion_per_m)
+//  (2) ANTHROPIC_PRICE_PER_TOKEN × 1e6 for Claude models
+//  (3) openrouterPrices (from /api/v1/models) × 1e6
+//  (4) Free models ($0)
+let ladderModelPrices = null; // lazily loaded
+function getLadderPrices(){
+	if (ladderModelPrices) return ladderModelPrices;
+	ladderModelPrices = {};
+	// Load ladder-models.json for explicit per-million prices
+	try {
+		if (fs.existsSync(LADDER_PRICES_FILE)){
+			const raw = JSON.parse(fs.readFileSync(LADDER_PRICES_FILE, "utf8"));
+			for (const m of raw.paid_candidates_once_free_tier_is_exhausted ?? []){
+				if (m.prompt_per_m != null) ladderModelPrices[m.id] = { prompt_per_m: m.prompt_per_m, completion_per_m: m.completion_per_m };
+			}
+			// Free models
+			for (const id of raw.free_models ?? []){
+				ladderModelPrices[id] = { prompt_per_m: 0, completion_per_m: 0 };
+			}
+		}
+	} catch {}
+	// Also mark anything ending in :free as free
+	return ladderModelPrices;
+}
+
+function pricePerMillion(model){
+	const lp = getLadderPrices();
+	if (model in lp) return { in_: lp[model].prompt_per_m, out: lp[model].completion_per_m };
+	// Claude models: ANTHROPIC_PRICE_PER_TOKEN × 1e6
+	if (ANTHROPIC_PRICE_PER_TOKEN[model]){
+		const p = ANTHROPIC_PRICE_PER_TOKEN[model];
+		return { in_: +(p.prompt * 1e6).toFixed(4), out: +(p.completion * 1e6).toFixed(4) };
+	}
+	// OpenRouter API prices (per token, convert to per million)
+	if (openrouterPrices[model]){
+		const p = openrouterPrices[model];
+		return { in_: +(p.prompt * 1e6).toFixed(4), out: +(p.completion * 1e6).toFixed(4) };
+	}
+	// Free model (ends with :free) -> $0
+	if (model.endsWith(":free")) return { in_: 0, out: 0 };
+	return { in_: null, out: null };
+}
+
+function isFreeModel(model){
+	if (model.endsWith(":free")) return true;
+	const lp = getLadderPrices();
+	if (lp[model]) return lp[model].prompt_per_m === 0 && lp[model].completion_per_m === 0;
+	return false;
+}
+
+// Build one row per model that has at least one run across the four rungs.
+const ladderRows = [];
+for (const model of allLadderModels){
+	const rungs = {};
+	let totalCost = 0, costCount = 0;
+	for (const slug of LADDER_RUNGS){
+		const runs = rungData[slug][model] ?? [];
+		rungs[slug] = rungResult(runs);
+		for (const r of runs){
+			if (typeof r.cost_usd === "number" && !Number.isNaN(r.cost_usd)){
+				totalCost += r.cost_usd;
+				costCount++;
+			}
+		}
+	}
+	const free = isFreeModel(model);
+	const prices = pricePerMillion(model);
+	const meanCost = costCount ? +(totalCost / costCount).toFixed(6) : null;
+	const xSonnet = xSonnetOf(model);
+	ladderRows.push({
+		model,
+		free,
+		price_in_per_m: prices.in_,
+		price_out_per_m: prices.out,
+		rungs,
+		mean_cost: meanCost,
+		xSonnet,
+	});
+}
+
+// Sort: free models first, then by xSonnet ascending (cheapest price ratio first),
+// then by mean_cost ascending, then alphabetically.
+ladderRows.sort((a, b) => {
+	if (a.free !== b.free) return a.free ? -1 : 1;
+	if (a.xSonnet != null && b.xSonnet != null && a.xSonnet !== b.xSonnet) return a.xSonnet - b.xSonnet;
+	if (a.mean_cost != null && b.mean_cost != null && a.mean_cost !== b.mean_cost) return a.mean_cost - b.mean_cost;
+	if (a.mean_cost != null && b.mean_cost == null) return -1;
+	if (a.mean_cost == null && b.mean_cost != null) return 1;
+	return a.model.localeCompare(b.model);
+});
+
+// Compute the summary sentence: the cheapest model that passed all four rungs,
+// or the one that passed the most.
+function countPasses(rungs){
+	let n = 0;
+	for (const slug of LADDER_RUNGS) if (rungs[slug] === "pass") n++;
+	return n;
+}
+let summary;
+const allFour = ladderRows.filter(r => countPasses(r.rungs) === 4);
+if (allFour.length){
+	const cheapest = allFour[0]; // already sorted
+	summary = `The cheapest model that passed all four rungs is ${ladderModelName(cheapest.model)} (${cheapest.free ? "free" : "$" + (cheapest.mean_cost ?? "?").toFixed(4) + "/run"}).`;
+} else {
+	const maxPasses = Math.max(...ladderRows.map(r => countPasses(r.rungs)), 0);
+	if (maxPasses > 0){
+		const candidates = ladderRows.filter(r => countPasses(r.rungs) === maxPasses);
+		const cheapest = candidates[0]; // already sorted
+		const names = candidates.length === 1 ? ladderModelName(cheapest.model) :
+			candidates.map(r => ladderModelName(r.model)).join(", ");
+		summary = `No model passed all four rungs yet. The cheapest model${candidates.length > 1 ? "s" : ""} that passed ${maxPasses} of 4: ${names}.`;
+	} else {
+		summary = "No model has passed any rung yet.";
+	}
+}
+
+const ladder = {
+	rungs: LADDER_RUNGS.map(slug => {
+		const { header } = readRungRuns(slug);
+		return { id: slug, title: header?.title ?? slug };
+	}),
+	summary,
+	rows: ladderRows,
+};
+
 fs.mkdirSync(OUT_DIR, { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify({
 	generated_at: new Date().toISOString(),
 	weighting_note: "Each test is weighted by how well it separates strong models from weak ones.",
 	kinds,
+	ladder,
 }, null, "\t"));
-console.log("wrote", OUT, "—", kinds.map(k => `${k.kind}: ${k.rows.length} rows`).join(", "));
+console.log("wrote", OUT, "—", kinds.map(k => `${k.kind}: ${k.rows.length} rows`).join(", "),
+	"; ladder:", ladderRows.length, "models,", summary);
