@@ -1,0 +1,15 @@
+# /framework/ai/sessions/: real per-session costs, the week's total vs the plan, and a live status grid
+
+Budget: $10.
+
+The owner, 2026-10-02 (trimmed): "every prompt and every session keeping a programmatic tally… input and output tokens… when you load a session page it looks up, via node, the actual cost… cached into the page.jsonl… updated after every prompt… tailed… get these Claude Code sessions into the browser… token usage per prompt and an overall total per session… the clean transcription and prompt refinement could balloon, so show their consumption… the weekly distribution: this week all the Claude tokens added up to this amount (the mobile app isn't counted, so it's a rough idea of how many dollars of tokens we have per week)… the largest tasks, broken into subtasks, plus all the small ones… click the cost header to sort… resizable columns… a very compact grid, one line each… in-flight sessions show a blinking green play icon… idle ones look idle… RAM per session if it's real-time, never stale data… differentiate Claude dollars from OpenRouter dollars: OpenRouter is paid penny for penny; Claude is an estimate covered by the $200 Max plan."
+
+## Build (computed by node, law 7)
+1. **Cost per session, from the transcript:** a node reader sums each assistant message's `usage` (input, output, cache read, cache write) × the model's price, per prompt and in total. After each prompt (the Stop hook), it appends one `{"cost": {...}}` line to the session's page (`ai/YYYY/MM/DD/session-<id8>/page.jsonl`), so the page tails it live. Servex agents use the same reader on their own transcripts.
+2. **Two currencies, never mixed:** **Claude $** is the equivalent at API prices, covered by the plan, an estimate. **OpenRouter $** is real money, reconciled against `/api/v1/credits` (`reconcile.mjs`). Separate columns and totals.
+3. **The week view:** this week's Claude $ across all sessions vs the $200 plan, beside the plan's own usage % (`usage.jsonl`), giving an estimate of "$ per 1% of the week". A note says the mobile and desktop app aren't counted. The breakdown runs largest first: session → task → subtasks, then the small ones grouped. The refiner and clean-transcription costs get their own line.
+4. **The grid:** one compact line per session. Sortable columns (click a header to toggle the sort), resizable columns (one width token per column, a minimum width, carried down the whole column), a CSS grid rather than a table (decided earlier; say why in the readme). Status: a blinking green ▶ while working, a quiet dot for idle or dormant. A ✓ for done appears only on the detail page. RAM per session (claude.exe pid → MB from Servex's monitor) is shown only when the sample is under 10 seconds old, otherwise left blank.
+5. A session's detail page shows each prompt with its tokens and cost.
+
+## Rules
+A Sonnet task mastermind (Gemini 3.8 Flash minions welcome for the reader tests). Reuse the Sessions tab code that landed (f5103369, 6123a53c, sessions-grid-v2) and Panel 2: extend it, don't rebuild. Review at 400 and 1920. Never wait on the owner.
