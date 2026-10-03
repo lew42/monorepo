@@ -396,6 +396,15 @@ export default class AIRail extends Inbox.Rail {
 		const said = [...(fold.messages ?? []).map(m => ({ at: m.at, text: m.text ?? m.raw })),
 			...(fold.prompts ?? []).map(p => ({ at: p.at, text: p.text ?? p.raw }))]
 			.filter(x => x.text).sort((x, y) => Date.parse(x.at ?? 0) - Date.parse(y.at ?? 0)).at(-1);
+		// THE ROW MUST NEVER READ "nothing written" WHILE SECTIONS EXIST (now-card-blank,
+		// 2026-10-03). A card like Now carries no chat `messages`/`prompts` at all — every word
+		// on it lives in its dashboard sections instead (`page_add()`'s `content` list, folded
+		// here as `fold.content` — the raw value of the LAST such line, `fold.js`'s own generic
+		// "unknown key, latest wins" rule, out of this fence). When that last line was adding a
+		// section, its own text IS the newest written sentence; failing that, the card's own
+		// one-line `chat` summary (always present once `chat()` is called) beats showing nothing.
+		const newest_section = fold.content?.add?.text ?? fold.content?.add?.title;
+		const fallback_text = newest_section ?? fold.chat?.text;
 		// `fold.id` is the REAL dated folder (`2026/10/03/now`) `resolve_card()` found — keep it so
 		// `pool()`/`decorate()` can also exclude the card's TRUE id, not only the literal alias
 		// "now" below. Without this the Now card doubled (bug, 2026-10-03): fixing the pinned
@@ -404,7 +413,7 @@ export default class AIRail extends Inbox.Rail {
 		// other fresh card, right under its own pinned row.
 		this.now_real_id = fold.id;
 		this.now_item = { id: "now", kind: "card", icon: "push_pin", title: plain(fold.title || "Now"),
-			at: fold.last ?? fold.created, text: said?.text ?? "", links: [], flag: null, author: fold.by,
+			at: fold.last ?? fold.created, text: said?.text ?? fallback_text ?? "", links: [], flag: null, author: fold.by,
 			unread: false, status: "open" };
 	}
 

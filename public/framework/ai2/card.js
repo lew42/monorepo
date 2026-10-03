@@ -831,13 +831,13 @@ export default class Card extends Page {
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
 		this.refinements();
-		// TOPICS FIRST (topic-cards, 2026-10-03 — the owner: "the top section becomes a short
-		// list of those topic cards"). Was after `dashboard_list()`; a request-backed card's
-		// Topics section is the most important thing on a card like Now, so it draws before the
-		// card's own free-text dashboard, not buried under it. Only moves ORDER, nothing new.
+		// DASHBOARD ABOVE TOPICS (now-card-blank, 2026-10-03 — the owner: dashboard rows back
+		// "above Topics"). 6d1de830 moved Topics first; put back ahead of it, so the Now card's
+		// own written sections (the dark reference rows, "How this card was made", …) are the
+		// first thing read, same as before that change.
+		this.dashboard_list();
 		if (this.by_request()) this.request_outline(items);
 		else outline(this, items);
-		this.dashboard_list();
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
