@@ -18,7 +18,7 @@
 //                                                          {"session_id": "..."} as JSON from stdin
 //                                                          (the Stop hook's own payload shape) —
 //                                                          never throws, always exits 0
-import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, tmpdir } from "node:os";
@@ -96,6 +96,67 @@ export function cost_of_transcript(path){
 		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model }));
 	const total_usd = r4(by_prompt.reduce((n, g) => n + g.usd, 0));
 	return { total_usd, by_prompt, unknown_models: [...unknown_models] };
+}
+
+// The one most useful string for a tool_use block's own `input` — ai/sessions'
+// "what was it doing" table (page.js) shows this as the row's own detail, and
+// the waste flags below group Read calls by it. Never throws on an unfamiliar
+// tool's input shape (2026-10-03 brief, trace_of_transcript) — anything not
+// named here just falls back to the tool's own name again.
+function target_of(name, input){
+	input = input || {};
+	if (name === "Read" || name === "Edit" || name === "Write" || name === "NotebookEdit") return input.file_path || name;
+	if (name === "Bash") return typeof input.command === "string" ? input.command.slice(0, 60) : name;
+	if (name === "Grep") return input.pattern || name;
+	if (name === "Glob") return input.path || name;
+	if (name === "Agent" || name === "Task") return typeof input.prompt === "string" ? input.prompt.slice(0, 60) : name;
+	return name;
+}
+
+// The per-tool-call trace behind ai/sessions' "cost-over-time chart" +
+// "what was it doing" table (2026-10-03 brief,
+// public/framework/ai/2026-10-03/session-trace/requirements.md). A DIFFERENT
+// shape from `cost_of_transcript()` above, read ALONGSIDE it, not instead of
+// it: that function already groups every assistant turn's $ under its nearest
+// earlier real `user` line — this one needs that SAME grouping (the $ only
+// exists per turn, never per individual tool call) plus every individual
+// `tool_use` block's own timestamp and target, which `cost_of_transcript`
+// throws away. Rather than re-deriving the $ a second time (a second price
+// table walk, a second chance to drift from `cost_of_transcript`'s own
+// numbers), this calls `cost_of_transcript(path)` once as a black box and
+// re-reads the file a second time ONLY to re-find each tool_use block and the
+// same turn-boundary rule (a real, non-sidechain, non-task_notification `user`
+// line starts a new turn) — the one piece `cost_of_transcript` computes
+// internally but doesn't expose. `cost_of_transcript` itself is untouched.
+export function trace_of_transcript(path){
+	const cost = cost_of_transcript(path);
+	const turn_usd = new Map(cost.by_prompt.map(g => [g.at, g.usd]));
+	const turn_model = new Map(cost.by_prompt.map(g => [g.at, g.model]));
+
+	const calls = [];
+	let current_at = "unknown";
+	for (const o of lines_of(path)){
+		if (o.type === "user" && !o.isSidechain && o.turnOrigin !== "task_notification"){
+			current_at = o.timestamp ?? "unknown";
+			continue;
+		}
+		if (o.type !== "assistant") continue;
+		const blocks = o.message?.content;
+		if (!Array.isArray(blocks)) continue;
+		for (const b of blocks){
+			if (b.type !== "tool_use") continue;
+			calls.push({
+				at: o.timestamp ?? current_at,
+				tool: b.name,
+				target: target_of(b.name, b.input),
+				usd_of_turn: turn_usd.get(current_at) ?? 0,
+				model: turn_model.get(current_at) ?? null,
+				input: b.input ?? null,   // kept raw — the waste flags (chunked reads, polling) need offset/limit/command, not just `target`'s derived string
+			});
+		}
+	}
+	const turns = cost.by_prompt.map(g => ({ at: g.at, usd: g.usd }));
+	return { calls, turns };
 }
 
 // Find a session's transcript by id. Search EVERY `c--Code-lew42-*` project folder, not
@@ -188,9 +249,30 @@ if (is_main){
 		if (!id) { console.error("usage: node Server/session-cost.mjs --append <session-id>"); process.exit(2); }
 		try { append_cost(id); } catch (e) { console.error("session-cost --append: " + (e?.message || e)); }
 		process.exit(0);
+	} else if (args[0] === "--trace"){
+		// `--trace <id>`: print trace_of_transcript() as JSON, for testing —
+		// same shape as the bare `<session-id>` mode below, just the other function.
+		const id = args[1];
+		if (!id) { console.error("usage: node Server/session-cost.mjs --trace <session-id>"); process.exit(2); }
+		const transcript = find_transcript(id);
+		if (!transcript) { console.error(`session-cost: no transcript found for session ${id}`); process.exit(1); }
+		console.log(JSON.stringify(trace_of_transcript(transcript), null, 2));
+	} else if (args[0] === "--trace-file"){
+		// `--trace-file <id> <out-path>`: write trace_of_transcript() to a file —
+		// the ai/sessions detail page (page.js) fetches this as `trace.json`
+		// beside its own session folder; a browser page can't read the raw
+		// transcript itself (no filesystem access), same reason sessions.json/
+		// transcripts/<id>.json already exist as written-by-hand snapshots.
+		const id = args[1], out = args[2];
+		if (!id || !out) { console.error("usage: node Server/session-cost.mjs --trace-file <session-id> <out-path>"); process.exit(2); }
+		const transcript = find_transcript(id);
+		if (!transcript) { console.error(`session-cost: no transcript found for session ${id}`); process.exit(1); }
+		mkdirSync(dirname(out), { recursive: true });
+		writeFileSync(out, JSON.stringify(trace_of_transcript(transcript)));
+		console.error(`session-cost: wrote ${out}`);
 	} else {
 		const id = args[0];
-		if (!id) { console.error("usage: node Server/session-cost.mjs <session-id> | --append <session-id> | --append-stdin"); process.exit(2); }
+		if (!id) { console.error("usage: node Server/session-cost.mjs <session-id> | --append <session-id> | --append-stdin | --trace <session-id> | --trace-file <session-id> <out-path>"); process.exit(2); }
 		const transcript = find_transcript(id);
 		if (!transcript) { console.error(`session-cost: no transcript found for session ${id}`); process.exit(1); }
 		console.log(JSON.stringify(cost_of_transcript(transcript), null, 2));
