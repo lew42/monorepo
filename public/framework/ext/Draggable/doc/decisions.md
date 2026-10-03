@@ -93,3 +93,46 @@ harmless — CSS can't override an inline value — and it remains the correct d
 any future caller that adds `.drag-source` without going through `Sortable`'s own
 `start()`/`end()`. Killing it would save nothing and risk a silent regression if that
 assumption ever stops holding.
+
+## 2026-10-03 — the ghost lost its font and colour mid-drag
+
+`Sortable.start()` built the ghost with `document.body.append(this.ghost)`. `position:
+fixed` needs no particular parent to measure from the viewport, so that always looked
+safe — but `document.body` sits OUTSIDE every themed/scoped ancestor (a dark island, a
+card's own font), and a cloned node reads its *inherited* properties (font-family, color,
+any custom property set by an ancestor selector) from wherever it actually lives in the
+DOM, not from where it was copied. A row dragged out of a themed section rendered its
+ghost in the page's own default font and colour instead of the row's (found live,
+2026-10-03, the owner).
+
+**Fix:** `start()` now does `this.view.el.after(this.ghost)` — the ghost becomes a
+sibling of the row it was cloned from, staying inside every ancestor the row was inside.
+`position: fixed` still measures from the viewport wherever a fixed element sits in the
+DOM, *unless* some ancestor between it and `<html>` sets `transform`, `filter` or
+`contain` (none of this framework's row containers do — if one ever does, its fixed
+descendants already behave differently, not just the ghost). Verified with a two-font
+probe page (Georgia/blue inside a themed wrapper vs. Courier/red on body): the ghost now
+reads `Georgia, serif` / `rgb(0, 0, 255)`, matching its row, not the body default.
+
+**Alternative considered:** snapshot the row's computed font/colour onto the ghost's
+inline style and keep appending to `body`. Rejected — it only patches the properties
+named in advance (font, color), while staying in the DOM inherits *everything* the row
+inherited, including a future ancestor rule nobody thought to snapshot. One mechanism,
+not a growing list of copied properties.
+
+## 2026-10-03 — default sortable stays opt-in for every page/card type
+
+Asked to "decide which card types are sortable by default: rankings the owner can
+override." Decision: **no type gets an automatic default** — `{"sortable": true}` on a
+page's own data (`core/Page/Page.class.js`, commit `9f6bf7ec`, the same day) stays the
+only way a content-list drags, for every type alike.
+
+**Why:** a ranking and a plain read list look identical in the data model — `Page` has
+no `role`/`kind`/`type` field today that reliably marks "this list is order-sensitive."
+Guessing from the page's title or path would be the kind of silent magic Law 6 warns
+against (one flag, one meaning, not an inferred one), and a wrong guess is asymmetric:
+a read-only canonical list that starts grabbing by accident reorders real data, while a
+ranking that stays one click short of sortable just needs the flag added. The owner's
+own "the owner can override" already names the real mechanism — this flag, set per page
+— so there is nothing left to build; this entry exists so the next agent doesn't
+reopen the question and build a parallel "smart default" system (Law 6).

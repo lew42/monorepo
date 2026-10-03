@@ -12,10 +12,17 @@ export default class Sortable extends Draggable {
 	start(){
 		const box = this.view.el.getBoundingClientRect();
 
+		// Stays INSIDE its own parent, never `document.body` — a ghost on body
+		// sits outside every themed/scoped ancestor (dark islands, a card's own
+		// font), so it rendered in the PAGE's font and colours instead of its
+		// row's (2026-10-03, the owner). `position: fixed` still measures from
+		// the viewport wherever it sits in the DOM, unless some ancestor between
+		// it and <html> sets `transform`/`filter`/`contain` — none of this
+		// framework's row containers do.
 		this.ghost = this.view.el.cloneNode(true);
 		this.ghost.classList.add("drag-ghost");
 		Object.assign(this.ghost.style, { left: box.left + "px", top: box.top + "px", width: box.width + "px" });
-		document.body.append(this.ghost);
+		this.view.el.after(this.ghost);
 
 		this.placeholder = document.createElement("div");
 		this.placeholder.className = "drag-placeholder";
