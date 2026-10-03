@@ -34,6 +34,10 @@ Nothing crawls: a page exists only once its parent's `children:` names it or the
 is about links it. `links` in the log is the record, not navigation. If you cannot say
 where a page is linked from, link it now.
 
+## 1b. Plug it in where it belongs (the owner, 2026-10-03)
+
+A new system isn't finished until it's wired into the places that already need it. Before landing, list every existing surface that does the same job (for a prompt refiner: the VS Code hook path, the Whisper dictation's fast assistant, the drawer chat). Wire in the obvious, cheap ones. For one that's a big architectural change or adds real token spend, post a question card for the owner ("integrate X into Y? cost ~$Z per day") and land without it: never block on the answer. A fresh agent for this is fine when the readmes are good; reuse a recent session only when it's still small.
+
 ## 2. The report is the `outcome`
 
 The board card shows its first line; the task page renders the whole thing as markdown.
