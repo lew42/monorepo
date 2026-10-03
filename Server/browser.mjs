@@ -99,6 +99,10 @@ async function launch(opts){
 	return b;
 }
 
+/** The shared browser's real chrome.exe pid, once `browser()` has resolved — null before that,
+ * or briefly while `log_browser()`'s own CDP round trip is still in flight right after launch. */
+export function pid(){ return current_pid; }
+
 /** Close the shared browser, if one is open. Idempotent: safe to call more
  * than once, and safe even if a caller already closed the Browser it was
  * given directly (`b.close()`) — there is nothing left to do then. */

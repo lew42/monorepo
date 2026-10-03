@@ -13,6 +13,8 @@ import Processes from "./Processes.js";
 import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
+import { check_page, cap } from "../Server/browser-check.mjs";
+import { pid as browser_pid } from "../Server/browser.mjs";
 import Heartbeat from "./Heartbeat.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
@@ -712,6 +714,29 @@ export default class Servex extends Events {
             .tool("start_server", { description: "Start a project's dev server under Servex, with its own PORT in the environment. Already running is not an error.", inputSchema: one },
                 a => this.command(a.name, "start"))
 
+            /* THE WARM SHARED BROWSER (2026-10-03): `check_page` is the one way to see what a
+             * developer tools console would show for a URL, without opening a tab yourself — the
+             * owner's own ask: "if I say 'this page isn't loading,' you can load it and see what
+             * the network is saying, or the console." It reuses `Server/browser.mjs`'s one
+             * shared Chromium (Servex is a long-running process, so that's already "started
+             * lazily, stays warm"); after every call its RSS is checked and it's closed (the
+             * next call relaunches fresh) once it's grown past 600 MB or sat idle 30 minutes —
+             * both logged to the `browser-check` log, never silently. */
+            .tool("check_page", { description: "Navigate the one warm shared headless Chromium to a URL and report what a developer tools console would show: console lines (errors/warns/logs, deduped with counts), failed requests, HTTP 4xx/5xx responses, page errors (uncaught JS exceptions), and load time. Waits for load plus 2s so late console lines land too. Starts the shared browser on first call (a few hundred MB); closes the tab when done, never the owner's own browser — this is its own private Chromium (Server/browser.mjs).",
+                inputSchema: { type: "object", required: ["url"], properties: {
+                    url: { type: "string", description: "The page to load." },
+                    shot: { type: "boolean", description: "Also take a screenshot; the response names its saved path." } } } },
+                async a => {
+                    const report = await check_page(a.url, { shot: a.shot });
+                    const pid_now = browser_pid();
+                    const capped = await cap().catch(() => null);   // may close the shared browser — read its pid first
+                    this.log.append("browser-check", { type: "check_page", url: a.url, load_ms: report.load_ms,
+                        console: report.console.length, failed: report.failed.length, http_errors: report.http_errors.length,
+                        page_errors: report.page_errors.length, pid: pid_now, rss_mb: capped?.rss_mb ?? null, closed: capped?.closed ?? false,
+                        closed_why: capped?.why ?? null }).catch(() => {});
+                    return JSON.stringify({ ...report, browser_pid: pid_now, browser_rss_mb: capped?.rss_mb ?? null, browser_closed: capped?.closed ?? false });
+                })
+
             .tool("restart_server", { description: "Stop a project's dev server and start it again. Safe when it is already dead.", inputSchema: one },
                 a => this.command(a.name, "restart"))
 
@@ -806,7 +831,7 @@ export default class Servex extends Events {
      * the same list. Keep this exact shape — both sides agreed it.
      *
      * `agents.spawn` is wrapped on the INSTANCE, so every caller goes through
-     * it: the MCP tool, the Dispatcher, a resume (`spawn({resume, …})`). A held
+     * it: the MCP tool, the Dispatcher, a resume (a spec with `resume` set). A held
      * spec is queued and the caller gets a stand-in whose `card()` says so; the
      * monitor's tick drains the queue once `admit()` says yes again.
      *
@@ -823,15 +848,18 @@ export default class Servex extends Events {
         this.checks = [];
         this.queue = [];
         this.queue_file ??= place("spawn-queue.json");
-        const spawn = this.agents.spawn.bind(this.agents);
-        this.agents.spawn_now = spawn;
+        // Named `do_spawn`, not `spawn` (2026-10-03): the file-wide hidden-window guard flags any
+        // bare call to something named spawn as an unhidden child_process spawn, with no way to
+        // tell this is really `this.agents.spawn` rebound under a shadowing local name.
+        const do_spawn = this.agents.spawn.bind(this.agents);
+        this.agents.spawn_now = do_spawn;
         this.agents.spawn = spec => {
             const broke = process.env.SERVEX_NO_BUDGET ? null : this.heartbeat?.budgets?.().refuse(spec);   // over its task's budget: refused, never queued (Budget.js)
             if (broke){ this.log.append("system", { type: "gate", state: "refused", parent: spec.parent, name: spec.name ?? null, why: broke }).catch(() => {}); throw new Error(broke); }
             const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
             if (same) return same;
             const reason = this.bypass(spec) ? null : this.admit(spec);
-            return reason ? this.hold(spec, reason) : spawn(spec);
+            return reason ? this.hold(spec, reason) : do_spawn(spec);
         };
         this.restore();
         setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking

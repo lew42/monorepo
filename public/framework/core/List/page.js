@@ -45,7 +45,11 @@ export default new Doc({
 
 	subject: List,
 	properties: "items owner length",
-	methods: "assign forEach map at adopt append insert_before take index_of key find add remove move order set toJSON",
+	// ⚠ `assign` and `set` are Item's, not List's own, since `List extends Item` (2026-10-03) —
+	// `Doc.members()` only shows a class's OWN prototype methods (`util/source/source.js`'s
+	// `member()`), so listing an inherited name here just warns "has no member" and adds
+	// nothing (found 2026-10-03, console-clean task, via a CDP console trace on /ai/live/).
+	methods: "forEach map at adopt append insert_before take index_of key find add remove move order toJSON",
 	notes: "decisions",
 	files: "List.js List.examples.js readme.md page.js",
 
