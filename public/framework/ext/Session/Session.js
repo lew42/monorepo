@@ -196,6 +196,15 @@ export function entry(line){
 	// screen, and `ux/Dictate/Widget.js`'s `Thread` needs this shape to split it, and everything
 	// merged in after it, into a new bubble (`ext/Session/doc/markers.md`).
 	if (line.para) return { type: "para", at: line.para.at, re: line.para.re };
+	// `refined` (one-dictation, minion-voice-refine): the FAST assistant's own refinement of
+	// the owner line `re` names -- the same shared `ext/Refine/engine.js` + `structure.js`
+	// Echo.js already runs for VS Code prompts (law 6, no second engine), run here in the
+	// background by `Servex/agents/Sessions.js`'s `refine()`. Passed straight through to
+	// `ux/Dictate/Widget.js`'s `Thread.draw()`, which draws it as a small collapsed block
+	// under that owner bubble -- never a bubble of its own.
+	if (line.refined) return { type: "refined", at: line.refined.at, re: line.refined.re,
+		sentences: line.refined.sentences, sections: line.refined.sections,
+		flags: line.refined.flags, cost_usd: line.refined.cost_usd };
 	if (line.backing) return { type: "update", at: line.backing.at, text: "the assistants woke up" };
 	if (line.session) return { type: "update", at: line.session.at, text: `session ${line.session.id} started on ${line.session.home}` };
 	return null;

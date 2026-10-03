@@ -245,6 +245,12 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	function draw(line){
 		if (line?.react) return void panel.say({ react: line.react });
 		if (line?.para) return void panel.say({ para: line.para });   // the fast assistant split a bubble (doc/chat.md)
+		// `refined` (one-dictation, minion-voice-refine): the fast assistant's own structured
+		// read of an owner line, written by `Servex/agents/Sessions.js`'s `refine()`.
+		// `Session.entry()` already knows this shape (the one other caller of this method,
+		// `ext/Session/page.js`); reused here rather than destructuring `line.refined` a
+		// second time (law 6).
+		if (line?.refined) return void panel.say(Session.entry(line));
 		if (!line?.chat) return;
 		if (own_ats.has(line.chat.at)) return;   // this mount's own send, already drawn optimistically
 		// `watch()` and `stream()` both call this for the SAME line (see the comment on

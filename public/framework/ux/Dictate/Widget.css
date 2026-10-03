@@ -97,6 +97,11 @@
 	.ux-dictate-widget-failed { font-size: 0.85em; }
 	.ux-dictate-widget-mark { font-size: 0.85em; margin-inline-start: 0.3em; }
 
+	/* THE REFINED BLOCK (minion-voice-refine) — a small collapsed `<details>` right after the
+	 * owner bubble it `re`s; closed by default, so it never competes with the raw words. */
+	.ux-dictate-widget-refined { font-size: 0.85em; margin-inline-start: 2.4em; }
+	.ux-dictate-widget-refined summary { cursor: pointer; }
+
 	/* A QUESTION FOR YOU (`answer`/choices, restored round 4) — one card, a short
 	 * heading, a row of buttons; the picked one stays visible once answered. */
 	.ux-dictate-widget-ask-heading { font-weight: 600; display: block; }
