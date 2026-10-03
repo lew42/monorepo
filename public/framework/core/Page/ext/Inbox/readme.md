@@ -42,6 +42,18 @@ After that, every `{"inbox": …}` line on that page — before the `ext` line o
 — collects into `page.inbox`, an array, oldest first. See it running at
 [core/Page/ext/](/framework/core/Page/ext/) — the extension system's own demo page.
 
+## The newer way in: `page_note` (2026-10-02)
+
+The `{"inbox": …}` line above goes through Servex's `drop` tool and is read through Servex's
+`/api/inbox` — so with Servex down, the box above is empty even though the note is sitting
+right there in the file. **`page_note(path, text, {to})`** (Servex) writes a `{"note": {id,
+from, to?, text, at}}` line instead, and `notes()` (`Inbox.js`) reads it straight from the
+page's own `page.jsonl` — no Servex needed, just the dev server serving the file. `to` (or the
+page's module coordinator, if it has one) also gets a short WAKE from Servex — never the note's
+own text, which already lives in the file; the agent reads it with `page_read`. The two note
+shapes are merged in one list by `notes()`, so nothing written the old way stops showing.
+`drop`/`clear`/`inbox` (the `{"inbox": …}` shape) keep working unedited, for one release.
+
 ## Architecture: before and after (restructured 2026-10-02)
 
 **Before:** two unrelated classes shared this folder, with no connection to each other —

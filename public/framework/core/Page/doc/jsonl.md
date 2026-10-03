@@ -146,3 +146,23 @@ content-type is the 404, as in `Page.read_json()`.
 
 `page.js` folders are untouched: nothing here probes for a `page.jsonl`, and `child()` only
 reads one when a listing named it.
+
+## Agent tools — writing a live page without touching the file (2026-10-02)
+
+An agent writes a page the same small way a browser tab would: one line at a time, through
+five Servex in-process tools (`Servex/agents/page_tools.js`, `Servex/agents/inbox.js`) over
+`Item.Store`'s own append — never a hand-written line, never a whole-file rewrite. Live demo:
+[`/framework/core/Page/jsonl/live/`](/framework/core/Page/jsonl/live/), built with these tools
+while a headless tab watched it grow.
+
+- **`page_add(path, item, {after})`** — one new item in the page's own content list.
+- **`page_set(path, id, delta)`** — change one item's data (by id), or the page's own fields
+  (no id).
+- **`page_log(path, text)`** — a "now doing X" line, posted BEFORE a long step so the owner
+  can watch the work happen, not just read about it after.
+- **`page_read(path, {format})`** — the page's CURRENT state, computed fresh from the log
+  every call, never a second copy: `markdown` (default) or `html` (the content's own markup,
+  no nav chrome). Read this before deciding what to add or change next.
+- **`page_note(path, text, {to})`** — a note for whoever reads this page next, read by the
+  page's own Inbox with no Servex dependency; `to` (or the module's coordinator) also gets a
+  short wake. [`ext/Inbox`](../ext/Inbox/) · `Servex/doc/inbox.md` (repo file).

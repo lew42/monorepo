@@ -1,6 +1,7 @@
 import { div, span, button, input, small } from "/framework/core/View/View.js";
 import { servex_base, servex_fetch } from "./servex.js";
 import Rail from "./Rail.js";
+import { PageLog } from "../../Log.js";
 
 /* THE PAGE'S INBOX — ONE CLASS, TWO VIEWS (restructured 2026-10-02, the owner's own ask —
  * see public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
@@ -35,14 +36,43 @@ import Rail from "./Rail.js";
 // A page's folder path: the url without its query or hash, ending in "/".
 export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
 
-// The page's inbox, {open, coordinator}: its open notes, newest first, and who coordinates
-// its module (or null). Empty when Servex is not running.
-export async function notes(page){
+/* The NEWER notes — `{"note": {id, from, to?, text, at}}` lines, written by Servex's
+ * `page_note` tool (Servex/doc/inbox.md) straight onto the page's own page.jsonl. Read with
+ * NO Servex at all: if the page is already the live one on screen, `PageLog.log_pages` has
+ * it and its `.notes` (collected below, live, by `Compact.setup()`) is already current; if
+ * not, one plain fetch of page.jsonl — the same file a static host serves with no server —
+ * picks up whatever is there today. Neither path ever asks Servex, which is the whole point:
+ * this is what still shows when Servex is down. */
+async function own_notes(path){
+	const live = PageLog.log_pages?.get(path);
+	if (live) return live.notes ?? [];
+
 	try {
-		const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(folder(page))}`);
-		const j = r.ok ? await r.json() : {};
-		return { open: j.open ?? [], coordinator: j.coordinator ?? null };
-	} catch { return { open: [], coordinator: null }; }
+		const res = await fetch(path + "page.jsonl");
+		if (!res.ok || res.headers.get("content-type")?.includes("html")) return [];
+		return (await res.text()).split("\n").filter(Boolean).flatMap(raw => {
+			try { const j = JSON.parse(raw); return j?.note ? [j.note] : []; } catch { return []; }
+		});
+	} catch { return []; }
+}
+
+// The page's inbox, {open, coordinator}: its open notes, newest first, and who coordinates
+// its module (or null). Merges the OLDER `inbox:`/`drop` notes (Servex's `/api/inbox` —
+// empty when Servex is not running) with the NEWER `note:` lines (`own_notes()`, above —
+// never empty just because Servex is down). Kept for one release; see this folder's doc.
+export async function notes(page){
+	const path = folder(page);
+	const servex = await (async () => {
+		try {
+			const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(path)}`);
+			const j = r.ok ? await r.json() : {};
+			return { open: j.open ?? [], coordinator: j.coordinator ?? null };
+		} catch { return { open: [], coordinator: null }; }
+	})();
+
+	const seen = new Set(servex.open.map(n => n.id));
+	const fresh = (await own_notes(path)).filter(n => !seen.has(n.id));
+	return { open: [...servex.open, ...fresh], coordinator: servex.coordinator };
 }
 
 // How many are open — the count on the AI tab's label.
@@ -103,12 +133,15 @@ Inbox.Compact = class Compact {
 	//   time. `page.on("line", …)` (also Log.js) covers anything after that.
 	static setup(page){
 		page.inbox = [];
+		page.notes = [];   // `note:` lines (page_note) — Servex-free: see own_notes(), above
 
 		const collect = line => {
-			if (!line?.inbox) return;
-			const { type = "message", text, at } = line.inbox;
-			const author = line.inbox.author ?? line.inbox.from;   // an older line said `from`
-			page.inbox.push({ type, author, text, at });
+			if (line?.inbox){
+				const { type = "message", text, at } = line.inbox;
+				const author = line.inbox.author ?? line.inbox.from;   // an older line said `from`
+				page.inbox.push({ type, author, text, at });
+			}
+			if (line?.note) page.notes.push({ ...line.note });
 		};
 
 		(page.jsonl_lines ?? []).forEach(collect);

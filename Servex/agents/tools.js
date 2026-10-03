@@ -10,6 +10,7 @@ import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { job_tools } from "./jobs.js";
 import { expert_tools } from "./experts.js";
+import { page_tools } from "./page_tools.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -55,12 +56,14 @@ const tool = (name, description, properties, required, handler) => {
 const card = agent => JSON.stringify(agent.card(), null, 2);
 
 /* Everything an agent can call: the seven agent verbs below, the three
- * operator tools (ops.js), the two job tools (jobs.js) and the four module-expert
- * tools (experts.js: ask_expert, list_experts, load_module, readme_modules) — so one line in
+ * operator tools (ops.js), the two job tools (jobs.js), the four module-expert
+ * tools (experts.js: ask_expert, list_experts, load_module, readme_modules) and the
+ * four page tools (page_tools.js: page_add, page_set, page_log, page_read — core/Page's
+ * readme, "storage") — so one line in
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents)];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents), ...page_tools()];
 }
 
 /* ---------- the Dashboard's three task buttons (stalled-and-budgets, 2026-10-02) ---------- */

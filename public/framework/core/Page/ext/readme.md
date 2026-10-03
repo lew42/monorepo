@@ -39,7 +39,9 @@ you're not sure it's finished yet (`demo.js`, on this page, does this).
 
 - **Inbox** (`./Inbox/`, its own readme) — collects a page's own `{"inbox": {…}}`
   lines (any agent, or the owner, just appending a message) into `page.inbox`. Click
-  through to it from this page's own file tree, below.
+  through to it from this page's own file tree, below. The newer `{"note": {…}}` line
+  (`page_note`, Servex) is read straight off this same page.jsonl, with no Servex
+  dependency — unlike `{"inbox": …}` (`drop`), which needs Servex's `/api/inbox` to show.
 
 ## Path extensions — a different kind: a page gains a URL, not a behavior
 

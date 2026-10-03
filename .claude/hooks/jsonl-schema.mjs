@@ -117,6 +117,13 @@ export const schemas = {
 		verbs: {
 			message: { fields: ["text"], eg: { by: "agent-id", text: "…", at: "NOW" } },
 			prompt:  { fields: ["id"], eg: { id: "uuid", text: "…" } },
+			// 2026-10-02 (page_note): the page-inbox note, moved onto the page's own log instead
+			// of only a Servex /api/inbox call — core/Page/ext/Inbox reads these by tailing
+			// page.jsonl, no Servex required. `to` is optional (an agent id, or the module's
+			// coordinator is used when it's left out — Servex/agents/inbox.js). The older
+			// `{"inbox": {...}}` shape (also page.jsonl, written by `drop`) keeps working too —
+			// it is plain data here already, kept for one release.
+			note:    { fields: ["id", "from", "text", "at"], eg: { id: "n-abc12", from: "agent-id", to: "owner", text: "…", at: "NOW" } },
 		},
 	},
 };
