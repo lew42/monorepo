@@ -3,7 +3,8 @@
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
 ## Tasks are pages too (the owner, 2026-10-02; design, after Page extends Item lands)
-- A task folder (`ai/<date>/<slug>/`) is a Page, and its `task.jsonl` is that page's log: the same Store, the same `set(delta)`, the same verbs (`assign`, `log`, `action`, `agent`…) as methods on a `Task extends Page` class. Today ext/JSONL + ext/AITask read it separately; that's the duplication to remove.
+- **Decided (the owner, 2026-10-02): one streaming system. A task's log becomes its `page.jsonl`,** so a task is simply a page and gets every page feature (saving, AI chat, the inbox). During the move, Store reads an existing `task.jsonl` as that page's log, and new tasks write `page.jsonl`.
+- A task folder (`ai/<date>/<slug>/`) is a Page, and its log is that page's log: the same Store, the same `set(delta)`, the same verbs (`assign`, `log`, `action`, `agent`…) as methods on a `Task extends Page` class. Today ext/JSONL + ext/AITask read it separately; that's the duplication to remove.
 - A Claude session transcript stays outside the repo and read-only. A task REFERENCES its sessions by id (`session_id`), so the session is never copied.
 - The Dashboard, the Log, the Inbox and the per-page AI cost all read Task pages through one LiveList, so their filters apply to one data set.
 
