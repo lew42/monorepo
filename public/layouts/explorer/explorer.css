@@ -194,6 +194,18 @@
 
 	.std-explorer-empty { padding: 2em; text-align: center; }
 
+	/* THE DECISION SEAT — `decide()` (imported from /layouts/browse/decide.js, the
+	   SAME box the wall at /layouts/browse/ uses) sits at its own reading width,
+	   1000px by default (`--w`, set in page.js from the node's own `width` field
+	   when it has one) — never stretched to the picture's full column width like
+	   the picture itself is. A verdict and two buttons read as a decision, not a
+	   banner; the picture above still fills the column because IT is "the layout,
+	   real size" — the two have different jobs and don't share a width rule. */
+	.std-explorer-decide-seat {
+		max-width: var(--w, 1000px);
+		margin-block-start: 1em;
+	}
+
 	/* DELIVERABLE 7's FALLBACK — a small strip under the centre's own picture, not
 	   the ☰ drawer (see page.js's own comment and the final report for why). Lives
 	   inside `.std-explorer-centre` now, so it scrolls with it. */

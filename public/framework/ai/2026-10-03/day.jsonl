@@ -9,3 +9,6 @@
 {"log":{"at":"2026-10-03T12:59:31-05:00","task":"console-clean","msg":"landed — /ai/live/ console 210->1(allowed), 404s 351->0; smoke.mjs gates on console noise; soak test found the tab-memory bug, brief written"}}
 {"log":{"at":"2026-10-03T13:00:06-05:00","task":"playwright-reap","msg":"landed — browser launches tagged/pid-fixed, chrome.exe reaper extended, check_page + warm shared browser added"}}
 {"log":{"at":"2026-10-03T13:08:00-05:00","task":"ghost-theme-fix","msg":"landed — the drag ghost stays inside its row's themed ancestor instead of jumping to document.body"}}
+{"log":{"at":"2026-10-03T13:24:46-05:00","task":"ref-content-rows","msg":"task opened — ref content rows (page-reference dark class card) on content lists; Now card AI/Page/Servex conversion to follow"}}
+{"log":{"at":"2026-10-03T13:26:00-05:00","task":"mention-auto-sync","msg":"task opened — make ext/Mention's refs.js index rebuild itself on a page.js/page.jsonl change, no manual sync.mjs run"}}
+{"log":{"at":"2026-10-03T13:27:56-05:00","task":"layout-approve-join","msg":"landed — explorer's centre carries the verdict now; browse stays the wall; one approved-list reader for page reviews"}}

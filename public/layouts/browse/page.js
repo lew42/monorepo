@@ -1,6 +1,6 @@
-import { Page, View, div, a, b, span, p, h2, img, input, button, details, summary, md, icon } from "/app.js";
+import { Page, View, div, a, b, span, p, h2, img, details, summary, md, icon } from "/app.js";
 import Layout, { load as load_layouts, find } from "/layouts/Layout.js";
-import { verdicts } from "./verdicts.js";
+import { verdicts, vkey, live, decide, mark, when } from "./decide.js";
 
 View.stylesheet(import.meta, "browse.css");
 
@@ -83,43 +83,10 @@ const SHOTS = [
    the picture of the reader's own width, then the other two widths one tap down. */
 const PHONE = matchMedia("(max-width: 39.99rem)");
 
-/* ── THE VERDICT KEY — mastermind decision `verdict-keyspace`, 2026-09-18 ─────────
-   A page's own corner control (`ext/Ask`, landed the same day this seam did) casts a
-   verdict keyed by that page's own url — so a catalogued item that IS a real page
-   reads and writes under that SAME key, and an Approve pressed on the page itself
-   shows up on its card here with no extra wiring. The twelve wire items have no real
-   page of their own — a wireframe is a picture of the abstract layout standard, not
-   a screenshot of anything a reader can open — so they keep their short catalogue id,
-   exactly as they always did. `real_url` is this file's own name for it (`BrowseItem`
-   below), because `Page` already reserves `.url` for the item's OWN address; a raw
-   `items.json` entry (the tier strip reads those directly) still calls it `url`. */
-const vkey = item => item.wire ? item.id : (item.real_url ?? item.url);
-
-/* ── LIVE BOXES ────────────────────────────────────────────────────────────────
-   A verdict cast in this window — or in another one, on this page's OWN corner
-   control, or by the owner on the command line — arrives off the dev socket as one
-   line, and every box registered here redraws itself: a card's mark, the strip's own
-   counts, and (one click down) an item's decision and its history. Boxes whose
-   element has left the document are dropped on the way past, so a reader who walks
-   twenty item pages does not leave twenty dead redraws behind. Off localhost there is
-   no socket, nothing ever fires, and the marks are simply whatever the file said when
-   the page loaded. */
-const boxes = new Set();
-
-verdicts.watch(() => boxes.forEach(box => {
-	if (!box.$box.el.isConnected) return void boxes.delete(box);
-	box.$box.empty(() => { box.draw(); });
-}));
-
-function live($box, draw){
-	boxes.add({ $box, draw });
-	$box.empty(() => { draw(); });
-	return $box;
-}
-
-// Fired at module eval, same reason it always was: a socket that is already warm by
-// the time anything asks for it costs nothing more to start early.
-verdicts.load();
+/* ── THE VERDICT KEY, LIVE BOXES, `decide()` and `mark()` all moved to
+   `./decide.js` (2026-10-03) — `/layouts/explorer/` needs the exact same box on
+   its centre, and importing one module beats keeping two copies in step. See
+   `decide.js`'s own header for what each piece does. */
 
 /* ── ONE CATALOGUED LAYOUT, AS A REAL PAGE ────────────────────────────────────────
    `Page` reserves `.name` (the url segment a parent addresses it by) and `.url` (its
@@ -253,26 +220,6 @@ function wire(item){
 			$pic.append(() => { if (entry) new Layout({ wire: entry.wire, id: entry.id }).frame(Layout.WIDTHS[1]); });
 		});
 	});
-}
-
-/* THE MARK — a check when the newest verdict approves, a pen when it asks for a
-   change, and NOTHING when the owner has not looked yet. Nothing is the honest
-   picture of "not judged": a grey dot on every other card would read as a state
-   the owner had put there. Its own small `live()` box, not a rebuild of the whole
-   wall — `this.browse()` builds each card once, so the mark has to update itself. */
-function mark(item){
-	const $mark = span.c("std-browse-mark");
-	return live($mark, () => draw_mark($mark, item));
-}
-
-function draw_mark($mark, item){
-	$mark.rc("is-approve is-improve");
-
-	const verdict = verdicts.latest(vkey(item));
-	if (!verdict) return;
-
-	$mark.ac("is-" + verdict.say).attr("title", verdict.say === "approve" ? "Approved" : "To improve: " + (verdict.note || "no note"));
-	icon(verdict.say === "approve" ? "check_circle" : "edit");
 }
 
 // WHERE A CARD SAYS IT COMES FROM — the module, and the word "drawing" when the
@@ -433,107 +380,8 @@ function trail(item){
 	});
 }
 
-/* THE DECISION — the verdict as it stands, and the two buttons that change it, in the
-   one box on the page. Everything else here is a plain line on the page's own ground:
-   a box means a background different from its parent's, and the only thing that earns
-   one is the thing the page exists for (the layout skill, 2026-09-17). */
-function decide(item){
-	return div.c("std-browse-decide", () => {
-		verdict_line(item);
-		acts(item);
-	});
-}
-
-// THE VERDICT AS IT STANDS — one line.
-function verdict_line(item){
-	const verdict = verdicts.latest(vkey(item));
-
-	return div.c("std-browse-verdict", () => {
-		if (verdict){
-			span.c("std-browse-mark is-" + verdict.say, () => { icon(verdict.say === "approve" ? "check_circle" : "edit"); });
-			b(verdict.say === "approve" ? "Approved" : "To improve");
-			if (verdict.note) span(verdict.note);
-			span.c("std-browse-when", when(verdict.at));
-			return;
-		}
-
-		/* ⚠ A BADGE IS NOT A VERDICT, and it used to read like one contradicting another.
-		   Five items carry "approved by the owner, 2026-09-01" from the realm that judged
-		   them before this page existed; one sentence now, and the tier count stays
-		   honest — no verdict has been cast HERE. */
-		span.c("std-browse-said", "No verdict cast here yet.");
-		if (item.badge) span.c("std-browse-said muted", "It was " + item.badge + ", before this page existed.");
-	});
-}
-
-/* THE TWO BUTTONS — the whole point of the page.
-
-   ⚠ They need the dev server AND the dev rail's edit switch (`ext/Ask/edit.js`'s
-     `edit()`, which `verdicts.writable()` already reads) — a verdict is a line
-     appended to a file, and a static host has nothing to append with. Off localhost,
-     or with edit turned off, the buttons are not there at all and the page says why:
-     a control that cannot work is worse than no control. The verdicts themselves
-     still render, because reading is a fetch. */
-function acts(item){
-	if (!verdicts.writable())
-		return void p.c("std-browse-said muted", "Approve and Improve write a line to `verdicts.jsonl` through the dev server, so they only appear on localhost with the dev rail's edit switch on. Everything above is read from the same file and works anywhere.");
-
-	return div.c("std-browse-acts", $acts => {
-		button.c("btn", () => { icon("check"); span("Approve"); })
-			.on("click", () => press($acts, item, "approve", ""));
-
-		button.c("btn", () => { icon("edit"); span("Improve"); })
-			.on("click", () => note($acts, item));
-	});
-}
-
-// IMPROVE, pressed: the row becomes a one-line field, in place. A control that
-// pushes the page down when you press it reads as a mistake.
-function note($acts, item){
-	let $field;
-
-	$acts.empty(() => {
-		$field = input.c("std-browse-note")
-			.attr("type", "text")
-			.attr("placeholder", "What has to change? One line.")
-			.on("keydown", event => { if (event.key === "Enter") press($acts, item, "improve", $field.el.value.trim()); });
-
-		button.c("btn", () => { icon("send"); span("Save"); })
-			.on("click", () => press($acts, item, "improve", $field.el.value.trim()));
-
-		a.c("std-browse-said muted").href(item.url)
-			.on("click", event => { event.preventDefault(); $acts.empty(() => { acts_in($acts, item); }); })
-			.append(() => { span("cancel"); });
-	});
-
-	$field.el.focus();
-}
-
-// The two buttons again, after a cancel — the same pair `acts()` builds, without
-// rebuilding the row that holds them.
-function acts_in($acts, item){
-	button.c("btn", () => { icon("check"); span("Approve"); })
-		.on("click", () => press($acts, item, "approve", ""));
-
-	button.c("btn", () => { icon("edit"); span("Improve"); })
-		.on("click", () => note($acts, item));
-}
-
-/* A PRESS. The row says "saving" and then does nothing more: the appended line comes
-   back off the dev socket, every live box redraws, and this whole row is rebuilt
-   from the file. One code path, and the server is the only orderer.
-   A refusal is the one thing that has to be said out loud here — a press that
-   silently did nothing is the worst failure this page could have. */
-function press($acts, item, say, text){
-	$acts.empty(() => { span.c("std-browse-said muted", "saving…"); });
-
-	verdicts.say(vkey(item), say, text).catch(error => {
-		$acts.empty(() => {
-			span.c("std-browse-said", "That did not save: " + error.message);
-			button.c("btn", "Try again").on("click", () => press($acts, item, say, text));
-		});
-	});
-}
+// THE DECISION BOX, the verdict mark and `when()` all moved to `./decide.js`
+// (2026-10-03) — see its header. `item_page()` above already calls `decide(item)`.
 
 // WHERE IT LIVES — the way to the real thing, as a plain link.
 function where(item){
@@ -618,10 +466,4 @@ function section(text, heading){
 	const rest = text.slice(found.index + found[0].length);
 	const next = rest.search(/^#{1,3}\s/m);
 	return rest.slice(0, next === -1 ? undefined : next).trim();
-}
-
-// A verdict's timestamp, as a reader reads one: the date, and the time of day.
-function when(at){
-	const date = new Date(at);
-	return isNaN(date) ? String(at) : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }

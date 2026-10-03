@@ -16,6 +16,13 @@ main view."
 - Adding a layout to the tree is one object in [`explorer.json`](./explorer.json) —
   [`doc/adding.md`](/layouts/explorer/doc/adding/) has the shape.
 
+**The centre carries the verdict too** (2026-10-03): under the picture, at its own reading
+width (1000px by default — `.std-explorer-decide-seat`, overridable per node with a
+`width` field), the same Approve/Improve box [`/layouts/browse/`](/layouts/browse/) uses
+on its wall — imported whole from [`browse/decide.js`](/layouts/browse/decide.js), one
+verdict store either page writes to. Browse stays the wall view of the same verdicts;
+explorer is where you'd actually sit and look at one.
+
 ## Watch out
 
 - **This is a SEPARATE tree from the site's real page tree**, on purpose — the html study this
