@@ -2,3 +2,5 @@
 {"log":{"at":"2026-10-03T00:16:38-05:00","task":"page-ai-cost","msg":"landed — Server/page-ai-cost.mjs: each task's cost split across the pages it touched; page header shows it; 49 real pages proven live"}}
 {"log":{"at":"2026-10-03T00:56:11-05:00","task":"page-no-log","msg":"task opened — fold PageLog away, Page extends Item directly"}}
 {"log":{"at":"2026-10-03T01:00:01-05:00","task":"page-no-log","msg":"landed — PageLog deleted, its body moved onto Page; Page extends Item directly, no middle class"}}
+{"log":{"at":"2026-10-03T01:26:09-05:00","task":"drop-at-key","msg":"task opened — drop the special `at` key; Item.get() is the single one-name resolver, nesting is the path"}}
+{"log":{"at":"2026-10-03T01:46:09-05:00","task":"drop-at-key","msg":"landed — `at` key dropped, List extends Item, id rules, all data lives in data"}}
