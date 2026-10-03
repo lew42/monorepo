@@ -459,6 +459,10 @@ try {
 			const patches = splitPatch(diffText);
 			const withPatch = quickInfo.nameStatus.map(x => ({ ...x, patch: patches.get(x.f) || "" }));
 			const widths = widthsFor(withPatch, quickInfo.numstat, pages);
+			// widthsFor normally answers with one width for a quick-eligible change, but on the
+			// rare one that still matches a layout word (rule 2: all four), take evidence at every
+			// width it named, not just the first — only the JSON line's own `width` field (the
+			// fixer's hot-path summary) stays singular, per requirements.md point 2's own schema.
 			const width = widths[0];
 			const wtBase = !skipSmoke && pages.length ? worktreeBase(dir) : null;
 			if (skipSmoke) console.log("--quick: --skip-smoke — no real server, so no screenshot (a scratch-repo proof only)");
@@ -468,11 +472,11 @@ try {
 				const shotDir = path.join(taskDir, "shots", head);
 				fs.mkdirSync(shotDir, { recursive: true });
 				const url = wtBase + pages[0];
-				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), url, "--widths", String(width), "--out", shotDir], MAIN);
+				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), url, "--widths", widths.join(","), "--out", shotDir], MAIN);
 				console.log(lc.stdout + lc.stderr);
-				quickShot = { path: path.join(shotDir, slugOf(url), `${width}.png`), width };
+				quickShot = { path: path.join(shotDir, slugOf(url), `${width}.png`), width, shots: widths.map(w => path.join(shotDir, slugOf(url), `${w}.png`)) };
 			}
-			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — one shot at ${width} — pass` });
+			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — ${widths.length === 1 ? `one shot at ${width}` : `shots at ${widths.join(", ")}`} — pass` });
 		}
 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
