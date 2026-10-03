@@ -8,6 +8,7 @@ its own state. Anyone — a person or an agent — reads it the same way.
 
 [patterns](./patterns/) — the shape of a module: assign-based classes, parts as static
 subclasses, the page shape, imports  
+[performance](./performance/) — draw only what is visible, one variable per drag, measure every load  
 [dos-and-donts](./dos-and-donts/) — the traps that never throw, and the house opinions on
 formatting and file size  
 [css](./css/) — layers, where a declaration belongs, class naming — the vocabulary itself lives
