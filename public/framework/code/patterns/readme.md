@@ -27,6 +27,8 @@ new this.constructor.View({ list: this })      // use the part through the const
 class MyList extends List { static View = class extends List.View { } }   // …so a subclass swaps it
 ```
 
+**A class lives in a file named after it** (the owner, 2026-10-02): `Task` is in `Task.js`, capitalised, one main class per file, so whoever looks for a class finds it by its name. A lowercase file (`objects.js`, `nested.js`) holds helpers or a view, never a class someone will search for. Known breaks to fix: `Task`/`Ask`/`Skill`/`AIObject` in ai/objects.js, `TaskJSONL` inside ext/JSONL/JSONL.js, `TaskTree` in ext/AITask/nested.js.
+
 **Naming a part's instance:** the property is the class name, lowercased: `inbox.rail` holds an `Inbox.Rail`, `item.store` a `Store`, `x.view` a `View`. Never `inbox_rail`. (the owner, 2026-10-02)
 
 **One source of truth:** keep each fact in ONE place and look it up by reference (a page's `icon` lives on the page; every nav row, card and mention reads it from there). A copy you have to keep in sync needs a stated reason (measured speed, or offline use) written beside it. (the owner, 2026-10-02)
