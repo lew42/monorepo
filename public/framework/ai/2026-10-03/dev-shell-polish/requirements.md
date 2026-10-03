@@ -15,3 +15,8 @@ Start after push-to-talk lands (same area).
 
 ## Fence
 dev/DevShell, dev/DevBar (tabs), core/Shell only for the handle bug, ux/Notice (new), this task dir. NEVER the mcp__playwright tools. Model: Sonnet. Budget $12.
+
+## Owner addition (same day): no custom CSS; the base system in dark mode
+> The dev shell chat sidebar should be the exact same UI as every other instance of the dictation widget. Dark mode should just apply. All our dev bar custom CSS: phase it out and lean into the base system in dark mode. The dev bar isn't using the theme fonts (the default font is fine, I'm not opposed). We don't want custom CSS for hardly anything. If something is missing from the framework's basic toolbox, think about adding it there, for everyone. If we don't need the CSS, delete it and use the nearest thing from the toolbox. That's been the whole point of our UI and CSS strategy.
+
+5. **Audit `dev/DevBar` + `dev/DevShell` CSS:** list every rule; for each, delete it (the base/dark theme already does it), replace it with a toolbox class, or, if it's genuinely missing and reusable, move it into the toolbox (`framework.css` / `styles/`) under its proper layer. Report the before/after line counts on the card. Dark comes from the base dark theme (`light-dark()` tokens), not dev-only colours.
