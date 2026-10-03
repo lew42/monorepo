@@ -138,6 +138,10 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`.
 
+## Big text moves by hook or by path, never through a tool call
+
+Every character an agent puts in a tool call is OUTPUT it pays to generate. So a long prompt, a file or a brief is never re-typed into `spawn_agent`, `send_to_agent` or a log write: a hook captures it where it already exists (the `UserPromptSubmit` hook logs every owner prompt as it arrives; the Stop hook can log the reply), and agents pass a PATH or an id instead (`task: {dir, brief}`). (the owner, 2026-10-02)
+
 ## Is the machine melting? — the monitor and the spawn queue
 
 `Monitor.js` checks the machine every 5 seconds: total CPU, free RAM, the five
