@@ -53,3 +53,9 @@ A data grid (Panel 2 + the filter system): model, family, provider, config, runs
 
 ## Rules
 A Sonnet task mastermind. Reuse models.mjs, models.json, reconcile.mjs and the openrouter harness; don't build a second one. Never wait on the owner.
+
+## No model is written off from one round (the owner, 2026-10-02)
+- The audit pilot was ONE round: 5 tasks, 4 judges. Each judge scored the TASKS independently; the consensus is the median of all four, and a model's "distance" is how far its scores sat from that median (its own score included, a small bias). That is a hint, not a verdict.
+- A model's weight shows its run count, and the Models tab marks anything under about 20 judged runs as provisional.
+- Every judge's raw answers stay one click away (each task's audit.jsonl), so the owner can read what each model actually said and judge for themselves.
+- Routing keeps rotating: the favoured model takes most of the cheap work, but others still get a share, so their scores keep updating. A model is avoided only when the problem is clear and repeated (incidents, machine checks), never because one round ranked it low.
