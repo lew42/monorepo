@@ -12,6 +12,10 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
+**How deep to go (the owner, 2026-10-02).** Start the basic version of every ask right away; the asks are the proposal, and no Start button is needed. Under the usage pace, keep going through everything the owner asked for, and never stop short to wait for their reply. Over the pace, do only what was asked, in its smallest working version, and queue the rest with an estimate. Never start unasked extras while over.
+
+**Live writing (the owner, 2026-10-02).** An assistant whose work the owner watches (refining a prompt, a card, a live answer) writes in small steps through tool calls (the tool stamps the time, author and ids; no hand-written JSON), so the page tailing the log shows the work growing. Code can still be written in one pass.
+
 **Review before merge, and settle fast (the owner, 2026-10-02).**
 1. **You read everything a minion did first:** the diff, the brief and the result.
 2. **Only if something is in doubt,** or it's a page or layout change, do you add a fresh reviewer (`Server/review.mjs`).
