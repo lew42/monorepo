@@ -42,10 +42,9 @@ own score still caught the bigger failure the review never saw.
 ## Go / no-go: **GO**
 
 The consensus caught the one known failure with full agreement, and every task's scores agreed
-≥75% across all three dimensions — comfortably over the 70% bar. Recommend scaling to every
-landed task since 2026-09-30 using gemini-3.8-flash and deepseek-v4.1-flash as the two cheap
-auditors; gpt-6-luna drifted furthest from consensus and is worth a second look before trusting
-it alone. Real OpenRouter spend for this whole pilot: **$1.07** — well inside the $8 budget.
+≥75% — comfortably over the 70% bar. Recommend scaling up with gemini-3.8-flash and
+deepseek-v4.1-flash as the two cheap auditors; gpt-6-luna drifted furthest and needs a second
+look first. Real OpenRouter spend for the whole pilot: **$1.07**, well inside the $8 budget.
 
 ## What the pilot also found, worth fixing before scaling
 
