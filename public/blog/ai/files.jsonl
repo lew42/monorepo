@@ -3,3 +3,5 @@
 {"file":"index.html"}
 {"file":"page.js"}
 {"file":"playwright/page.js"}
+{"file":"drone-scans/page.js"}
+{"file":"lines-to-3d/page.js"}
