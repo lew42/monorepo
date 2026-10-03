@@ -1,0 +1,197 @@
+{
+  "at": "2026-10-03T10:42:37.959Z",
+  "by": "node-reap",
+  "before": {
+    "count": 60,
+    "mb": 2319
+  },
+  "after": {
+    "count": 16,
+    "mb": 859
+  },
+  "freed_mb": 1460,
+  "stopped": [
+    {
+      "pid": 88664,
+      "mb": 288,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 65680,
+      "mb": 273,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 85368,
+      "mb": 228,
+      "where": "main",
+      "why": "an extra copy in main",
+      "ok": true
+    },
+    {
+      "pid": 70788,
+      "mb": 60,
+      "where": "prompt-refine",
+      "why": "prompt-refine: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 57936,
+      "mb": 59,
+      "where": "dictate-core",
+      "why": "dictate-core: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 8160,
+      "mb": 56,
+      "where": "qf-6",
+      "why": "qf-6: no live agent there (pool slot, taken, held by gone mastermind-servex-9)",
+      "ok": true
+    },
+    {
+      "pid": 41104,
+      "mb": 56,
+      "where": "qf-9",
+      "why": "qf-9: no live agent there (pool slot, taken, held by gone task-mastermind-task-audit)",
+      "ok": true
+    },
+    {
+      "pid": 66076,
+      "mb": 53,
+      "where": "panel2-sessions",
+      "why": "panel2-sessions: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 59144,
+      "mb": 47,
+      "where": "dictate-dot",
+      "why": "dictate-dot: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 55224,
+      "mb": 47,
+      "where": "dev-shell",
+      "why": "dev-shell: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 53900,
+      "mb": 47,
+      "where": "ui-system",
+      "why": "ui-system: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 56996,
+      "mb": 46,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 66564,
+      "mb": 46,
+      "where": "lt2-sonnet",
+      "why": "lt2-sonnet: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 35564,
+      "mb": 46,
+      "where": "selection",
+      "why": "selection: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 83884,
+      "mb": 45,
+      "where": "lt-sonnet",
+      "why": "lt-sonnet: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 29716,
+      "mb": 45,
+      "where": "lt-cheap",
+      "why": "lt-cheap: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 4604,
+      "mb": 45,
+      "where": "lt2-cheap",
+      "why": "lt2-cheap: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 44132,
+      "mb": 41,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 34820,
+      "mb": 41,
+      "where": "qf-5",
+      "why": "qf-5: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 3288,
+      "mb": 41,
+      "where": "qf-2",
+      "why": "qf-2: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 69636,
+      "mb": 41,
+      "where": "qf-7",
+      "why": "qf-7: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 83044,
+      "mb": 25,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 34964,
+      "mb": 21,
+      "where": null,
+      "why": "checkout unknown, no live agent shell above it",
+      "ok": true
+    },
+    {
+      "pid": 86936,
+      "mb": 20,
+      "where": "qf-2",
+      "why": "qf-2: no live agent there",
+      "ok": true
+    },
+    {
+      "pid": 16296,
+      "mb": 20,
+      "where": "qf-7",
+      "why": "qf-7: no live agent there",
+      "ok": true
+    }
+  ],
+  "kept": [
+    {
+      "pid": 65024,
+      "where": "main",
+      "why": "main's one dev server (newest)"
+    }
+  ]
+}
