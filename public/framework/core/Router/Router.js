@@ -138,8 +138,18 @@ export class Router {
 	mark(){
 		this.marked?.forEach(view => view.rc("active-page active-ancestor"));
 
+		// ⚠ `page.view?.`, never a bare `page.view.` (bug 5, 2026-10-03 — found live: the
+		// Activity tab's own `activated()` runs the card's `redraw()`, which captures new
+		// DOM synchronously OUTSIDE any render() of its own; it was throwing deep enough to
+		// leave one page in the chain with no `.view` yet). That bare read used to throw
+		// HERE, which is a bug in some page's own activate() — but it was corrupting EVERY
+		// later click, not just that one: the throw happened inside this `.map()`, so
+		// `this.marked` was never reassigned, and `this.path` (set by Router.load(), after
+		// activate() returns) was never updated either — the router was stuck mid-navigation
+		// until a hard reload reset both. One page's problem must never break navigation for
+		// every page after it; `.filter(Boolean)` drops the page that had nothing to mark.
 		this.marked = this.chain().map(page =>
-			page.view.ac(page === this.active ? "active-page" : "active-ancestor"));
+			page.view?.ac(page === this.active ? "active-page" : "active-ancestor")).filter(Boolean);
 
 		this.mark_links(this.active.url);
 	}
