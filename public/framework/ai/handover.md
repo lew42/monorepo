@@ -4,7 +4,10 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
+## After a PC restart: check this (2026-10-03, observed)
+- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Session-only crons (the hourly check-in) must be re-created. What came back and what didn't: [restart-observe](/framework/ai/2026-10-03/restart-observe/).
+
+## 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
 - **Answer on the Now card** (/framework/ai/2026/10/03/now/, `talking` item, newest first; write nested lines `{"talking": {...}}` with .claude/hooks/append.mjs); the sidebar gets a line + link.
 - **Cut off by the restart, revive after:** @task-mastermind-topic-cards (Now topics as sub-cards), @task-mastermind-system-class (nothing committed under core/System yet), @mastermind-servex-10 (the restart-kills-agents fix). Held: @task-mastermind-framework-home-grids, the git/context/cost pages (ai/2026-10-03/ai-git-context-cost/).
 - **Re-create the hourly check-in cron** (session-only, lost on restart). Usage far over pace (67% week at 38% elapsed): two agents at a time, Sonnet.

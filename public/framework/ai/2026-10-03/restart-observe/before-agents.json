@@ -1,0 +1,37 @@
+[
+ {
+  "id": "dispatcher",
+  "state": "idle",
+  "model": null,
+  "session_id": null,
+  "parent": null
+ },
+ {
+  "id": "mastermind-servex-10",
+  "state": "idle",
+  "model": "opus",
+  "session_id": "3b2ce1d8-f45d-4f0f-b45e-eb77bd2939fa",
+  "parent": null
+ },
+ {
+  "id": "mastermind-page-3",
+  "state": "idle",
+  "model": "claude-sonnet-5",
+  "session_id": "09399de1-a99a-48d3-b2ff-3a6d0869e874",
+  "parent": null
+ },
+ {
+  "id": "task-mastermind-system-class",
+  "state": "working",
+  "model": "claude-sonnet-5",
+  "session_id": "3b619139-2508-4041-b3b6-16add6796e7f",
+  "parent": "mastermind-page-3"
+ },
+ {
+  "id": "clarity-restart-keeps-agents",
+  "state": "working",
+  "model": "claude-sonnet-5",
+  "session_id": "dc5b604d-b38a-41d8-bfae-a9afecc05ea1",
+  "parent": null
+ }
+]
