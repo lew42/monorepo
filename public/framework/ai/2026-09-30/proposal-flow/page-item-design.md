@@ -2,6 +2,19 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## Sessions, prompts, asks, tasks: the AI record (vscode-mastermind's proposal, 2026-10-02)
+```
+Session                 a Claude conversation. Its transcript stays in ~/.claude (kept 10 years now), read-only; we read it only to recover or audit
+Prompt                  one owner message: raw text (.claude/prompts/<date>.jsonl, logged by a hook) + its refined forms (clean, structured, flags) as later lines
+ └─ sentences[]         each with an id, so everything downstream can point back to the exact words
+Ask                     one thing the owner wants, built FROM sentence ids (coverage: every sentence lands in an ask, or is marked "context")
+Task extends Page       a folder + page.jsonl: requirements (each line cites its ask ids), agents, cost, landing, approval
+Agent                   a Servex row: session_id, model, task, cost
+```
+- **The chain is by reference, never copied:** Task → Ask ids → Prompt sentence ids → the raw words. A requirement nobody can trace back to a sentence is flagged, and a sentence no ask covers is flagged. That's the line-by-line "was every word handled?" check, done by node.
+- **Confidence:** each ask carries the refiner's confidence. Low confidence → a clarification question on the card, answerable later.
+- Raw transcripts are NOT committed (secrets, size). The prompt log and its refined lines are the durable, committed record.
+
 ## Tasks are pages too (the owner, 2026-10-02; design, after Page extends Item lands)
 - **Decided (the owner, 2026-10-02): one streaming system. A task's log becomes its `page.jsonl`,** so a task is simply a page and gets every page feature (saving, AI chat, the inbox). During the move, Store reads an existing `task.jsonl` as that page's log, and new tasks write `page.jsonl`.
 - A task folder (`ai/<date>/<slug>/`) is a Page, and its log is that page's log: the same Store, the same `set(delta)`, the same verbs (`assign`, `log`, `action`, `agent`…) as methods on a `Task extends Page` class. Today ext/JSONL + ext/AITask read it separately; that's the duplication to remove.
