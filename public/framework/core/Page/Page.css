@@ -1352,6 +1352,42 @@
 		overflow: hidden;
 	}
 
+	/* A heavy module's card (`.big`, set by `/framework/page.js`'s own `module_card()` once
+	   its weight — core/Page/weight/weight.js — comes back over the threshold): bigger
+	   ink, a touch more room, and the architecture excerpt reads as code, not prose. No
+	   grid-column span (that was tried and reverted above, 2026-08-17, same "empty
+	   interior" problem) — the extra height comes from the real content a heavy card has
+	   to show, never from claiming space it doesn't fill. */
+	.page-preview.big .page-preview-title { font-size: 1.1em; }
+	.page-preview.big .icon { font-size: 1.3em; }
+
+	/* The unread-Inbox-item count (owner, 2026-10-02) — absent today (no module ever has
+	   one yet, `/framework/page.js`'s own `unread_count_for()` stub), so this rule has
+	   nothing to prove until that data exists; kept here, ready, rather than added later
+	   alongside the real source. */
+	.page-preview-badge {
+		position: absolute;
+		top: 0.5em; right: 0.5em;
+		min-width: 1.4em; height: 1.4em; padding: 0 0.35em;
+		display: flex; align-items: center; justify-content: center;
+		border-radius: 999px;
+		background: var(--prim); color: var(--prim-ink);
+		font-size: 0.75em; font-weight: 700; line-height: 1;
+	}
+
+	.page-preview-architecture {
+		margin: 0;
+		padding: 0.6em 0.7em;
+		background: var(--wash);
+		border-radius: calc(var(--radius) * 0.6);
+		font-size: 0.8em;
+		line-height: 1.4;
+		color: var(--subtle);
+		overflow: hidden;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
 	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the
 	     LINK and the card has to ask.
 	   ⚠ `:has(> a…)`, never `:has(a…)`: a live thumb can hold marked links of its own. */

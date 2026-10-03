@@ -1,19 +1,111 @@
-import { Page, Sidebar, View, div, md, h1, h2, a } from "/app.js";
+import { Page, Sidebar, View, div, p, pre, span, md, h1, h2, a } from "/app.js";
 import { stats } from "./stats.js";
 import sprawl from "/framework/ext/sprawl/sprawl.js";
+import { weight } from "/framework/core/Page/weight/weight.js";
 
-/* ONE SECTION PER SIDEBAR SECTION, every card the same shape — icon, name, one-line
- * description — even where a module would rather show something else. This is its own
- * small pass rather than `this.wall_rungs()` (core/Page/Page.class.js) for two review
- * findings (2026-10-02, round 3):
+// A card's size follows its WEIGHT (core/Page/weight/weight.js — 1, plus distinct
+// referencing pages, plus a manual bump; never guessed here, law 6/7). Past this same
+// threshold core/Page/weight's own demo already uses to make an item "not just first, but
+// bigger," a card here shows the first lines of its own readme's "## Architecture" section —
+// read live over fetch, never retyped (law 7). Every other card is icon + name only, no
+// description — the owner's own words, 2026-10-02: "small modules are icon plus name only."
+const BIG_WEIGHT = 10;
+const ARCHITECTURE_LINES = 6;
+
+// Reads a module's OWN readme.md live and pulls the first few lines of its fenced
+// "## Architecture" code block. Fails soft — no readme, no such section, offline, any of it —
+// by returning null, same as a module with no `description` today: nothing to show, not an
+// error. Never caches, never retypes: the next edit to a readme is the next fetch's answer.
+async function architecture_excerpt(url){
+	const text = await fetch(new URL("readme.md", location.origin + url).href)
+		.then(r => r.ok ? r.text() : null).catch(() => null);
+	if (!text) return null;
+
+	const after = text.split(/^## Architecture\s*$/m)[1];
+	if (!after) return null;
+
+	const section = after.split(/^## /m)[0];
+	const fenced = section.match(/```[a-z]*\n([\s\S]*?)```/);
+	// Every readme's Architecture block (core/Page/readme.md, core/Item/readme.md, …) is a
+	// shape followed by a long trailing `// comment` explaining it — right for a reader on
+	// the module's own page, far too much text for a small card. Strip everything from the
+	// first `//` on, so the card shows the SHAPE (`Page extends PageLog extends Item`), not
+	// the essay beside it; a real `://` in a url would be cut too, but none appear in these
+	// shape blocks today.
+	const lines = (fenced ? fenced[1] : section).split("\n")
+		.map(l => l.replace(/\/\/.*/, "").trimEnd())
+		.filter(l => l.trim())
+		.slice(0, ARCHITECTURE_LINES);
+
+	return lines.length ? lines.join("\n") : null;
+}
+
+// Unread badges, rolled up (owner, 2026-10-02): a card's badge is its module's unread
+// Inbox-item count; the sidebar's own "Framework" link shows the total, so a click drills
+// down (Framework (3) → the modules with items → that module's inbox, newest first). The
+// owner's own words: that per-module count comes from @mastermind-servex-10's card-pipeline
+// MODULE cards — a different, not-yet-built thing from Servex's own ASK-card pipeline
+// (ai/2026-10-02/card-pipeline/, which cards ASKS, not modules). Coordinated with them
+// 2026-10-02 (task.jsonl) and no answer yet on the data's shape, so — the owner's own words
+// again — "leave a 0 or hidden badge until then": this is the one function that changes once
+// that data exists; nothing else in `module_card()` or the sidebar needs to.
+async function unread_count_for(nav){
+	return 0;   // no per-module unread source exists yet — always hidden until it does
+}
+
+// The icon + name link draws immediately (`owner.preview_link`, core/Page/Page.class.js) —
+// weight is never on the critical path for first paint. The body (architecture excerpt, or a
+// plain description, or nothing) fills in once weight resolves: `$card.append(promise)` is
+// `core/View`'s own documented way to fill a box after an await (`View.append_promise`,
+// epoch-guarded against a card that's gone by the time its fetch comes back) — not a new
+// pattern, the same one `core/Page/Page.class.js`'s own async `content()` pages use.
+function module_card(owner, nav){
+	const $card = div.c("page-preview", () => owner.preview_link(nav))
+		.ac(nav.card).ac(nav.class_card && "page-surface-dark");
+
+	$card.append(unread_count_for(nav).then(n => n > 0
+		? card_body(() => span.c("page-preview-badge", String(n)))
+		: undefined));
+
+	$card.append(weight(nav.url).then(async w => {
+		// ⚠ `undefined`, never `null`: `View.append_promise` skips appending on
+		// `is.def(return_value) === false`, and `is.def(null)` is TRUE (null is a real
+		// answer, just not a DOM node) — appending it hit `Node.append(null)`, which
+		// stringifies to the literal text "null" in every card (caught live, screenshot).
+		if (w.weight <= BIG_WEIGHT) return undefined;   // icon + name only — nothing else to add
+
+		$card.ac("big");   // reuses the existing "bigger card" word (Page.css), not a new one
+		const code = await architecture_excerpt(nav.url);
+		if (!code) return nav.description ? card_body(() => p.c("page-preview-desc", nav.description)) : undefined;
+		return card_body(() => pre.c("page-preview-architecture", code));
+	}));
+
+	return $card;
+}
+
+// Built OUTSIDE whatever capture happens to be open by the time this promise resolves — the
+// same reason `home_sections()` below saves/clears/restores `View.captor` for its own
+// synchronous pass (core/View/doc/capturing.md).
+function card_body(fn){
+	const saved = View.captor;
+	View.captor = null;
+	try { return fn(); } finally { View.captor = saved; }
+}
+
+/* ONE SECTION PER SIDEBAR SECTION, every card the same shape — icon + name, weight-sized up
+ * to icon + name + an architecture excerpt (`module_card()`, above) — even where a module
+ * would rather show something else. This is its own small pass rather than `this.wall_rungs()`
+ * (core/Page/Page.class.js) for two review findings (2026-10-02, round 3), still true now that
+ * cards are built by `module_card()` instead of calling `preview_card()` directly:
  *
- *   1. A card here is ALWAYS `child.preview_card(nav)`, never `child.preview(nav)`. Several
- *      `ux/` modules (Dictate, Tree, Wizard, …) override `preview()` to show a live
- *      screenshot-style thumb instead — right for their own module page, wrong here: every
- *      OTHER section on this page is icon+name+description, so UX's cards silently broke
- *      that "one card shape" rule the moment `wall_rungs()`'s own `page.previews()` called
- *      the module's override instead of the plain card. `preview_card()` is the one method
- *      nothing overrides; calling it directly is what makes every card on this page agree.
+ *   1. A card here is ALWAYS this page's own `module_card(owner, nav)`, never
+ *      `child.preview(nav)`. Several `ux/` modules (Dictate, Tree, Wizard, …) override
+ *      `preview()` to show a live screenshot-style thumb instead — right for their own module
+ *      page, wrong here: every OTHER section on this page is the one card shape, so UX's
+ *      cards silently broke that rule the moment `wall_rungs()`'s own `page.previews()` called
+ *      the module's override instead of the plain card. `module_card()` only ever calls
+ *      `owner.preview_link(nav)` — the one method nothing overrides — which is what makes
+ *      every card on this page agree.
  *   2. A `leaf: true` section (UI, Audit, Sandbox, AI, AI 2 — "I present myself, not my
  *      children": its own children are TABS, not a nav wall, which is exactly why
  *      `wall_rungs()` correctly skips it everywhere else) still gets its OWN one-item
@@ -40,11 +132,11 @@ function home_sections(root){
 				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
 
 				div.c("page-previews bleed", () => {
-					if (page.leaf) return void page.preview_card(nav);   // itself: one card
+					if (page.leaf) return void module_card(page, nav);   // itself: one card
 
 					page.children.forEach((child, child_name) => {
 						const child_nav = page.nav_for(child_name);
-						(child ?? page).preview_card(child_nav);
+						module_card(child ?? page, child_nav);
 					});
 				});
 			}).style("--gap", "1em"));
