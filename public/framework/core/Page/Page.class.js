@@ -1146,18 +1146,6 @@ export class Page extends Item {
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
 
-			// "$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs onto this
-			// page's own log, never by this code (law 7: compute, don't recall). Fails soft:
-			// no figure yet (most pages) draws nothing at all, not a "$0.00".
-			if (this.title && this.url){
-				const $cost = span.c("page-ai-cost muted");
-				$cost.append(ai_cost(this.url).then(c => {
-					if (!c || !(c.usd > 0)) return undefined;
-					return a(`$${c.usd.toFixed(2)} of AI work · ${c.tasks} task${c.tasks === 1 ? "" : "s"}`)
-						.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
-				}));
-			}
-
 			// ⚠ NOT a floating "Folder" link here any more. One existed briefly
 			// (2026-09-28, "any path slash fs") and michael/dev re-added a refined
 			// version of it (in_doc()-guarded) in the SAME merge this comment
@@ -1197,6 +1185,17 @@ export class Page extends Item {
 		//   captor for exactly this one call, the same shape content_at() uses,
 		//   so nothing about the two branches above has to change.
 		if (this.related) this.view.append(() => { this.related_aside(); });
+		// "$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs onto this
+		// page's own log, never by this code (law 7). It goes at the END of the page: at
+		// the top it sat above a Doc page's tab title with no padding and pushed the whole
+		// page down (owner, 2026-10-03). Fails soft: no figure draws nothing.
+		if (this.title && this.url) this.view.append(() => {
+			span.c("page-ai-cost muted").append(ai_cost(this.url).then(c => {
+				if (!c || !(c.usd > 0)) return undefined;
+				return a(`$${c.usd.toFixed(2)} of AI work · ${c.tasks} task${c.tasks === 1 ? "" : "s"}`)
+					.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
+			}));
+		});
 
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);   // once, here — the early return above skips a second draw

@@ -209,9 +209,11 @@
 
 	/* "$N.NN of AI work · M tasks" — filled in async by Page.class.js's render() from
 	   core/Page/weight/ai-cost.js. Most pages have no figure yet, so this renders empty
-	   (no gap, no box) until it does; `font-size: small` only, no layout of its own. */
-	.page .page-ai-cost { display: block; font-size: small; }
+	   (no gap, no box) until it does. It sits at the END of the page, padded like the content. */
+	.page .page-ai-cost { display: block; font-size: small; padding: var(--gap, 1rem) var(--gutter-x, 1rem); }
 	.page .page-ai-cost:empty { display: none; }
+	/* An app-shaped page (a Doc with tabs, a full-height board) has no reading end to sit at. */
+	.page:has(.doc-title) > .page-ai-cost { display: none; }
 
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
