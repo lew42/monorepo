@@ -17,3 +17,4 @@
 {"log":{"at":"2026-10-03T13:39:02-05:00","task":"move-nesting-fix","msg":"landed — a dragged move now nests under its list's own name instead of writing a flat line that silently never replayed"}}
 {"log":{"at":"2026-10-03T13:43:04-05:00","task":"inbox-cards-work","msg":"landed — page_set data corruption, the your-prompts 404, Activity-tab nav break, jargon previews, and three more caught live, all fixed on michael/dev"}}
 {"log":{"at":"2026-10-03T13:45:20-05:00","task":"card-measure-colors","msg":"landed — widths lab found and fixed the real full-width bug (.page-content-rows uncapped outside a .page grid); adaptive backgrounds lab (bg-lighten/bg-darken, naming proposal); padding rule documented"}}
+{"log":{"at":"2026-10-03T13:56:18-05:00","task":"drawer-cleanup","msg":"landed — the AI tab's closed session switcher was never actually hidden ([hidden] vs @layer util .flex); fixed, footer now flush/default-padded"}}
