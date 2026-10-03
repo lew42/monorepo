@@ -387,7 +387,9 @@ export class Doc extends Page {
 	}
 
 	// The title and the tab strip share one row in a full-bleed band. See readme.md.
-	well(){ return div.c("doc-well", () => h1.c("doc-title h2", this.title)); }
+	// The page's own icon before its name (the owner, 2026-10-03): the same icon the
+	// sidebar shows, so the heading and the nav entry read as one thing.
+	well(){ return div.c("doc-well", () => h1.c("doc-title h2", () => { if (this.icon) icon(this.icon); span(this.title); })); }
 
 	// True once an ANCESTOR is another Doc — I am rendering inside its `.tab-panel`.
 	// Two `--well` bands stacked over `--wash` read as broken alternating stripes
