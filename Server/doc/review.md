@@ -1,17 +1,32 @@
-# review — a fresh agent checks the work, in four turns
+# review — the mastermind reads first, a fresh agent checks when it's needed
 
-An agent that reviews its own code agrees with itself. So before a branch merges, a **fresh**
-agent — one that never saw the author's conversation — reads the brief and the diff and says
+## Who reviews (the owner, 2026-10-02)
+
+1. **The mastermind reads every minion's diff itself first:** the brief, the diff and the result. It has the files in its context already, so this read costs almost nothing.
+2. **A fresh reviewer is added only when something is in doubt, or when the change touches a page or a layout.** That reviewer is `review.mjs`, below. A page or layout change always gets one, with screenshots.
+3. **The fix goes to whoever is best placed.** That is usually the fresh reviewer: it knows the problem best, and it can be revived to make the fix (`send_to_agent` to its `reviewer-<task>` id, with `revive: true`). The builder answers instead when it knows why the fix won't work.
+4. **The mastermind rules once** (turn 4). Its ruling is the last word.
+
+Every agent in a review seeks agreement and the simplest fix that works (the MVP), as fast as possible. Raising a concern is good; arguing is not. A review must never turn into analysis paralysis.
+
+**When the mastermind's own read is enough** (no doubt, no page), it records that read so the merge gate sees one: `node Server/review.mjs <taskdir> <worktree> --size none --why "mastermind read: <what it checked, one line>"`. The `--why` is logged as a `decision` line. Token reduction item 5 (`ai/2026-10-02/token-reduction/`) will give this read its own record. Until then, `--size none` is the route.
+
+## Why a fresh agent
+
+An agent that reviews its own code agrees with itself. So when a review is needed, a **fresh**
+agent (one that never saw the author's conversation) reads the brief and the diff and says
 pass or fix. Nothing is said out of turn or goes unheard: every finding is answered, every
-decline is heard back, and anything still stuck goes to a person. Everything below is logged,
+decline is heard back, and anything still stuck goes to the mastermind. Everything below is logged,
 one small line per step, to a new file beside the task: `<taskdir>/review.jsonl`.
+
+⚠ **Answers live in `task.jsonl`; `review.jsonl` holds a copy only after `--turns` runs.** Count answers from `task.jsonl`. On 2026-10-02, 30 of 57 `review.jsonl` files held findings but no answers, although many of those tasks had answered every finding in their `task.jsonl` (stalled-and-budgets: 7 findings, 7 answers, none copied).
 
 ## The four turns
 
 | # | Turn | Who writes it | Command |
 |---|---|---|---|
 | 1 | **Finding** — the reviewer reads the diff and says what's wrong | a fresh reviewer agent | `node Server/review.mjs <taskdir> [<worktree>]` |
-| 2 | **Answer** — the author fixes it or explains why not | the author, by hand, in `task.jsonl` | `node Server/review.mjs --turns <taskdir>` (mirrors it in) |
+| 2 | **Answer** — whoever is best placed fixes it (usually the reviewer, revived), or the builder explains why it won't work | that agent, in `task.jsonl` | `node Server/review.mjs --turns <taskdir>` (mirrors it in) |
 | 3 | **Reply** — for a decline only: does the reviewer accept the reason, or still hold it needs fixing | a second fresh reviewer agent | (also `--turns`, automatic) |
 | 4 | **Ruling** — for a hold only: the mastermind settles it, once | the task mastermind, by hand | `node Server/review.mjs --rule <taskdir> <n> <fix\|stands> "<why>"` |
 
@@ -164,6 +179,12 @@ run. This is unchanged by the turns above — the gate only ever reads `task.jso
 also touches a page is refused unless that review has its own page report (`review/report.md`,
 with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
 gets is not enough for a page.
+
+Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
+layout problems, same as a console error: text sitting within 2px of its box's own edge with no
+real padding between them (the "$1,128 of AI work" line that sat flush against a page's top
+edge, 2026-10-03), and anything painted above a page's own `h1.page-title`/`h1.doc-title`. Detail
+and the exact rule is in `layout_edge_problems()`'s own header comment in `smoke.mjs`.
 
 `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
 board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or

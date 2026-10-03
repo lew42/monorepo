@@ -161,6 +161,176 @@ async function links_on(page){
 	return out;
 }
 
+/* THE LAYOUT-EDGE GATE (2026-10-03, layout-gate). The owner's own bug report: the AI-cost
+ * line sat flush against /framework/ai/'s top edge with zero padding, pushed the whole page
+ * down, and nothing here caught it — because nothing here ever looked at where things SIT,
+ * only at whether they loaded. Two checks, run once per page, inside the browser (this is
+ * page geometry — pixels after layout — so it has to run in page.evaluate, not in Node):
+ *   - text touching its box: walk every visible text node inside `.page.active-page` up to
+ *     the NEAREST ancestor that opted into a visual box (non-zero padding, a visible border,
+ *     or a non-transparent background) and treat that ancestor's content box as the "safe
+ *     area" the text should sit inside. Within 2px of any edge of that box is a finding — a
+ *     padded ancestor with text flush against its OWN padding is fine, the bug is text with
+ *     NO padding at all between it and the edge, exactly the dollar-sign line.
+ *   - something above the title: the page's own `h1.page-title`/`h1.doc-title` should be the
+ *     first thing a reader sees. Anything else inside `.page.active-page`, painted higher on
+ *     the page than that title, is a finding.
+ * Same scoping `links_on` already uses (`.page.active-page`, minus `.sidebar-rail`,
+ * `.page-crumbs`, `.dev-bar` — the chrome that repeats on every page and isn't this page's own
+ * content). Returns plain objects; the caller below turns them into the same kind of plain-
+ * English string a console error becomes, so they fail the run the same way.
+ * Detail: `Server/doc/review.md`. */
+async function layout_edge_problems(page){
+	return page.evaluate(() => {
+		const EXCLUDE = ".sidebar-rail, .page-crumbs, .dev-bar";
+		const root = document.querySelector(".page.active-page");
+		if (!root) return [];
+		const excluded = el => el.closest(EXCLUDE) !== null;
+		const hidden = el => { const s = getComputedStyle(el); return s.visibility === "hidden" || s.display === "none" || parseFloat(s.opacity) === 0; };
+
+		// A short, readable name for an element — its id, or its classes, never the whole
+		// ancestor chain: "a CSS selector (or short description)", not a debugging dump.
+		function describe(el){
+			if (!el || el === document.body) return "(body)";
+			if (el.id) return "#" + el.id;
+			const cls = (el.className || "").toString().trim().split(/\s+/).filter(Boolean);
+			return cls.length ? "." + cls.join(".") : el.tagName.toLowerCase();
+		}
+
+		const problems = [];
+
+		// ── 1. text touching its box ──
+		// ⚠ The box is found PER SIDE, not once for all four. A `<ul>` with
+		//   `padding-block` but no `padding-inline` (a real, common pattern — the
+		//   vertical gap is deliberate, the horizontal one is handled by an outer
+		//   gutter) IS "a box with non-zero padding", but only on two of its four
+		//   sides. Checking all four sides against that one box's rect produced a
+		//   flood of false "0px from left" findings on completely ordinary `ul`,
+		//   `td`, `code` elements the first time this ran (never a real bug, never
+		//   reported) — so each side keeps walking past an ancestor that doesn't
+		//   itself guard THAT side, until it finds one that does, or runs out.
+		const SIDES = ["top", "right", "bottom", "left"];
+		const CAP_WORD = { top: "Top", right: "Right", bottom: "Bottom", left: "Left" };
+		function visualBg(s){ const bg = s.backgroundColor; return bg && bg !== "transparent" && !/^rgba\([^)]*,\s*0\s*\)$/.test(bg); }
+		function hasEscaped(el){
+			// `.bleed` is this codebase's own name for "this deliberately touches the
+			// edge, on purpose" (CLAUDE.md) — the sanctioned opt-out, not a bug.
+			// `position: fixed/absolute` takes an element out of its ancestors'
+			// padding box entirely, so "nearest padded ancestor" stops meaning
+			// anything (a demo widget's overlay control, say) — skip, don't guess.
+			for (let a = el; a && a !== root.parentElement; a = a.parentElement) {
+				if (a.classList?.contains("bleed")) return true;
+				const pos = getComputedStyle(a).position;
+				if (pos === "fixed" || pos === "absolute") return true;
+			}
+			return false;
+		}
+
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode(node){
+				if (!node.textContent || !node.textContent.trim()) return NodeFilter.FILTER_SKIP;
+				const el = node.parentElement;
+				if (!el || excluded(el) || hidden(el)) return NodeFilter.FILTER_SKIP;
+				return NodeFilter.FILTER_ACCEPT;
+			}
+		});
+		let node;
+		textloop: while ((node = walker.nextNode())) {
+			const range = document.createRange();
+			range.selectNodeContents(node);
+			const rect = range.getBoundingClientRect();
+			if (rect.width === 0 && rect.height === 0) continue;   // collapsed whitespace, not actually painted
+			if (hasEscaped(node.parentElement)) continue;
+
+			// For each side, walk up to the nearest ancestor that guards THAT side —
+			// its own padding or border on that side, or any ancestor's background
+			// (a filled box reaches its own padding edge on every side alike).
+			const found = {};
+			let el = node.parentElement;
+			while (el && el !== root.parentElement && SIDES.some(s => !found[s])) {
+				const s = getComputedStyle(el);
+				const bg = visualBg(s);
+				for (const side of SIDES) {
+					if (found[side]) continue;
+					const pad = parseFloat(s["padding" + CAP_WORD[side]]) || 0;
+					const borderW = parseFloat(s["border" + CAP_WORD[side] + "Width"]) || 0;
+					const hasBorder = borderW > 0 && s["border" + CAP_WORD[side] + "Style"] !== "none";
+					if (pad > 0 || hasBorder || bg) found[side] = { el, pad, border: hasBorder ? borderW : 0 };
+				}
+				el = el.parentElement;
+			}
+
+			const EDGE = 2;
+			// ⚠ NOT the same number as EDGE. A side is exempt the moment it has ANY
+			// real padding or border at all, however small — `code { padding: 0.15em
+			// 0.4em }` resolves to ~1.8px top at this site's usual font sizes, which
+			// is deliberate (a monospace snippet's vertical padding is allowed to be
+			// tighter than its horizontal one) and would otherwise fail this check on
+			// every single inline `<code>` on the site, a false positive this caught
+			// empirically on 2026-10-03. The bug this check exists for is padding
+			// that is actually ABSENT (0), not merely small.
+			const MEANINGFUL = 0.5;
+			for (const side of SIDES) {
+				const f = found[side];
+				if (!f) continue;   // nothing up to the page root guards this side — nothing to measure against
+				const inset = f.pad + f.border;
+				// ⚠ REAL padding on THIS side already does its job, whatever the text
+				// does next to it. Text that simply fills its container — which is
+				// most text, almost all the time — ends exactly at the inner edge of
+				// that padding (distance ~0 from the CONTENT box), and that is normal,
+				// not a bug: "a padded ancestor with the text flush against its
+				// padding IS fine — padding already keeps 2px+ away" (from the edge
+				// that actually matters, the box's OUTER one). So a side only needs
+				// checking at all when its own inset is itself near-zero — a box that
+				// qualified here only through a background or a border, or only
+				// through padding on some OTHER side (the `<ul>` with vertical but no
+				// horizontal padding, the first false-positive class this caught on
+				// 2026-10-03: content box ≈ outer box on this side, so "distance to
+				// the content edge" IS "distance to the edge that's actually there".
+				if (inset >= MEANINGFUL) continue;
+				if ((side === "left" || side === "right") && hasEscaped(f.el)) continue;
+				const r = f.el.getBoundingClientRect();
+				const safeEdge = side === "top" ? r.top + inset : side === "bottom" ? r.bottom - inset
+					: side === "left" ? r.left + inset : r.right - inset;
+				const dist = side === "top" ? rect.top - safeEdge : side === "bottom" ? safeEdge - rect.bottom
+					: side === "left" ? rect.left - safeEdge : safeEdge - rect.right;
+				// A big negative distance means this text isn't really inside that
+				// ancestor's box at all (a transform, a scroller, overlapping layout) —
+				// not the flush-against-an-edge bug this check is for.
+				if (dist < EDGE && dist > -20) {
+					problems.push({ selector: describe(f.el), side, distance: Math.round(dist) });
+					continue textloop;   // one finding per text node is enough to flag the box
+				}
+			}
+		}
+
+		// ── 2. something above the title ──
+		const title = root.querySelector("h1.page-title, h1.doc-title");
+		if (title && !excluded(title) && !hidden(title)) {
+			const floor = title.getBoundingClientRect().top;
+			const ancestors = new Set();
+			for (let a = title.parentElement; a; a = a.parentElement) ancestors.add(a);
+			for (const el of root.querySelectorAll("*")) {
+				if (el === title || ancestors.has(el) || el.contains(title) || excluded(el) || hidden(el)) continue;
+				const text = (el.textContent || "").trim();
+				if (!text) continue;
+				const r = el.getBoundingClientRect();
+				if (r.width === 0 && r.height === 0) continue;
+				if (r.bottom >= floor) continue;
+				// Only the outermost offending element — a span inside an offending div is the
+				// same finding, not a second one.
+				if (el.parentElement && !ancestors.has(el.parentElement)) {
+					const pr = el.parentElement.getBoundingClientRect();
+					if (pr.width > 0 || pr.height > 0) { if (pr.bottom < floor) continue; }
+				}
+				problems.push({ aboveTitle: true, selector: describe(el), text: text.slice(0, 60) });
+			}
+		}
+
+		return problems;
+	});
+}
+
 let loadedCount = 0;
 for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	const { url: p, follow, foundOn } = queue[qi];
@@ -192,6 +362,14 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		const res = await page.goto(base + p, { waitUntil: "load", timeout: 30000 });
 		if (!res) errors.push("no response");
 		await page.waitForTimeout(1500);
+		// layout-gate (2026-10-03): text flush against its own box, or anything painted
+		// above the page's title — see layout_edge_problems()'s own header above.
+		const layoutProblems = await layout_edge_problems(page).catch(() => []);
+		for (const prob of layoutProblems) {
+			errors.push(prob.aboveTitle
+				? `layout: element above the title — "${prob.selector}" ("${prob.text}")`
+				: `layout: text touching its box — "${prob.selector}" ${prob.distance}px from ${prob.side}`);
+		}
 		// core/App's App.error() shape exactly: div.page.active-page > h1("Page Load Error") + pre.error
 		const loadError = await page.evaluate(() => {
 			const h1 = document.querySelector(".pages > .page.active-page > h1");
