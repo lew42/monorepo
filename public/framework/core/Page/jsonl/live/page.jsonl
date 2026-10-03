@@ -4,3 +4,11 @@
 {"at":"content","add":{"title":"Five tool calls, no reload","id":"9fba5bf6-3ab4-4d1d-ad80-a5f5200d0a72","by":"task-mastermind-page-tools","ts":"2026-10-03T03:28:11.197Z"}}
 {"at":"content/7eab84ec-ea28-462f-b911-c8b52391dfb9","answer":"page_add, page_set, page_log, page_read — four Servex tools over Item.Store","by":"task-mastermind-page-tools","ts":"2026-10-03T03:28:12.381Z"}
 {"log":{"text":"done","by":"task-mastermind-page-tools","ts":"2026-10-03T03:28:12.748Z"}}
+{"content":{"add":{"id":"nest-test-1","title":"nested content.add via explicit path"}}}
+{"nest-test-1":{"title":"renamed via id-only nesting"}}
+{"at":"content","add":{"title":"probe: has Servex restarted yet","id":"594158e6-ba21-47ba-a466-b9986c561131","by":"task-mastermind-page-tools","ts":"2026-10-03T06:28:37.575Z"}}
+{"content":{"add":{"title":"nested wire format, verified post-restart","id":"1d39c1f4-d6ba-453c-9b99-c92084dfe2e7","by":"task-mastermind-page-tools","ts":"2026-10-03T06:29:04.688Z"}}}
+{"1d39c1f4-d6ba-453c-9b99-c92084dfe2e7":{"title":"nested wire format — confirmed via page_set too","by":"task-mastermind-page-tools","ts":"2026-10-03T06:29:06.784Z"}}
+{"content":{"remove":"nest-test-1"}}
+{"content":{"remove":"594158e6-ba21-47ba-a466-b9986c561131"}}
+{"1d39c1f4-d6ba-453c-9b99-c92084dfe2e7":{"title":"page_call / page_set: the nested wire format","by":"task-mastermind-page-tools","ts":"2026-10-03T06:29:17.319Z"}}

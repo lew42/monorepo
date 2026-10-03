@@ -6,7 +6,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
 const PUBLIC = path.join(ROOT, "public");
 
-/* FOUR TOOLS over `Item.Store` (core/Item/Store.js), so an agent writes a LIVE page the
+/* SIX TOOLS over `Item.Store` (core/Item/Store.js), so an agent writes a LIVE page the
  * same small way a browser tab would — one line at a time, through the SAME file every
  * tab already tails (ext/JSONL/live.js → Server/plugins/SocketServer/Tail.js). This runs
  * IN Servex (node), never in a browser, so there is no Store object to call: the line is
@@ -18,14 +18,23 @@ const PUBLIC = path.join(ROOT, "public");
  * The owner, 2026-10-02 (CLAUDE.md, "Pages are live"): "if an agent creates a page, we
  * want the agent to be able to update that page via the page.jsonl in real time… a
  * toolset… we don't want to bloat our toolset with thousands of cross-domain tools."
- * Four verbs, not one per page shape: `page_add` (a content item), `page_set` (a delta on
- * the page or one item), `page_log` (a "now doing X" line), `page_read` (the page's
- * CURRENT state, computed fresh — never a second copy on disk, deliverable 2). */
+ *
+ * WIRE FORMAT (2026-10-03, the owner via vscode-mastermind — "no `at`, no dots: the path
+ * is the NESTING"): a line nests one hop per level, each hop a property name or a child's
+ * id — `{"k2": {"answers": {"add": {...}}}}` means "k2 → its answers list → add". There is
+ * no wrapper key for a LIST'S OWN property name in the nesting (`Item.get()`, core/Item/
+ * Item.js, finds a child by scanning every list the current node owns) — so a top-level
+ * content item is addressed by `["content"]` (the page's own `content` property, found as
+ * a NAME before anything is ever tried as an id), and an EXISTING item is addressed by its
+ * bare id, `[id]`, found by `get()`'s cross-list id scan. Verified live against the real
+ * replay engine (not just read from the design doc) — see doc/jsonl.md, "Agent tools".
+ * `page_call`/`page_set` build this; `page_add` is sugar for the single most common call
+ * (`page_call` with target `["content"]`, method `"add"`). */
 
 // A dynamic import with a safe fallback — the same reasoning as Append.js: a broken
 // checker degrades validation, never the whole tool. check() also reads page.jsonl's
-// schema as `open: true` (.claude/hooks/jsonl-schema.mjs), so an "at"/"add"/"log" key
-// nobody has named a verb for there is simply data no verb claims, never a refusal.
+// schema as `open: true` (.claude/hooks/jsonl-schema.mjs), so a nesting key nobody has
+// named a verb for is simply data no verb claims, never a refusal.
 let check = () => null;
 try { ({ check } = await import("../../.claude/hooks/jsonl-schema.mjs")); } catch {}
 
@@ -37,6 +46,15 @@ function resolve_file(url){
 	const dir = path.resolve(PUBLIC, pathname);
 	if (dir !== PUBLIC && !dir.startsWith(PUBLIC + path.sep)) return null;
 	return path.join(dir, "page.jsonl");
+}
+
+// Nests `payload` one level per step in `target`, innermost (the payload itself) last —
+// `nest(["k2","answers"], {add: {...}})` → `{k2: {answers: {add: {...}}}}`. `nest([], x)`
+// is `x` itself, flat — the exact same helper Store.js's own `wrap()` is, kept separate
+// so this file never imports a browser module (core/Item/Store.js touches `location`).
+function nest(target, payload){
+	const path = [...(target ?? [])];
+	return path.length === 0 ? payload : { [path[0]]: nest(path.slice(1), payload) };
 }
 
 /* ONE line, validated then appended — the same two steps Append.js takes for a browser's
@@ -53,18 +71,23 @@ function write_line(file, line){
 }
 
 const now = () => new Date().toISOString();
+const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
 
 const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
 const PAGE_PATH = { type: "string", description: "The page's own url, e.g. \"/framework/ai/2026-10-02/page-tools/demo/\" — its page.jsonl is public<path>page.jsonl. The folder must already exist (create_page, or a task's own dir)." };
+const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a string with slashes or dots. [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------
  * No second copy of the page is ever stored: every call re-reads page.jsonl from disk and
  * replays it fresh, the same rule Item.Store.read() follows in the browser. This is a small,
- * deliberately partial replay — just enough of Log.js's own vocabulary (title/icon/description,
- * `content`'s add/set/remove/move/order, `log`) to answer "what does this page say right now",
- * never the whole rendering engine (core never needs the DOM to answer this). */
+ * deliberately partial replay — just enough to answer "what does this page say right now"
+ * (title, content items one level deep, the log line), never the whole rendering engine
+ * (core never needs the DOM to answer this). It understands both wire shapes: the current
+ * nested one, and the old `{"at": "content", ...}` one (one release of compat, matching
+ * core/Item/Item.js's own `apply()`), so a page that has lines from before 2026-10-03 still
+ * reads correctly. */
 function parse_lines(file){
 	let text;
 	try { text = fs.readFileSync(file, "utf8"); } catch { return []; }
@@ -75,18 +98,18 @@ function parse_lines(file){
 
 function replay(lines){
 	const page = { title: undefined, icon: undefined, description: undefined, log: undefined };
-	const items = new Map();   // id -> item data
+	const items = new Map();   // id -> item data (one level deep — a nested sub-list is kept as raw data)
 	let order = [];            // ids, in order
 
 	const insert_after = (id, after) => {
 		order = order.filter(x => x !== id);
-		if (after === null || after === undefined && !order.length) return void order.unshift(id);
+		if (after === null || (after === undefined && !order.length)) return void order.unshift(id);
 		if (after === undefined) return void order.push(id);
 		const at = order.indexOf(after);
 		order.splice(at === -1 ? order.length : at + 1, 0, id);
 	};
 
-	const content_delta = rest => {
+	const content_verbs = rest => {
 		if (rest.add){
 			const { after, ...data } = rest.add;
 			items.set(data.id, { ...items.get(data.id), ...data });
@@ -100,20 +123,39 @@ function replay(lines){
 		}
 	};
 
-	for (const line of lines){
-		if (!line || typeof line !== "object") continue;
-		const { at, ...rest } = line;
+	// One line is "a key naming a method" (add/remove/move/order on `content`, or the special
+	// `log`/`note` data fields) OR "a child's id" (merge into that item) OR plain page data —
+	// Item.get()'s own order, replayed here without a live object to call `.get()` on.
+	const apply_top = obj => {
+		for (const key in obj){
+			if (key === "constructor" || key === "__proto__" || key.startsWith("_")) continue;
+			const value = obj[key];
 
-		if (at === "content"){ content_delta(rest); continue; }
-		if (typeof at === "string" && at.startsWith("content/")){
-			const id = at.slice("content/".length);
-			if (items.has(id)) items.set(id, { ...items.get(id), ...rest });
-			continue;
+			if (key === "content" && is_plain(value)){ content_verbs(value); continue; }
+			if (items.has(key) && is_plain(value)){ items.set(key, { ...items.get(key), ...value }); continue; }
+			page[key] = value;
 		}
-		if (at) continue;   // a path this small replay doesn't follow — kept on disk, skipped here
+	};
 
-		if ("content" in rest){ content_delta(rest.content); const { content, ...top } = rest; Object.assign(page, top); continue; }
-		Object.assign(page, rest);
+	for (const raw of lines){
+		const line = Array.isArray(raw) ? raw : [raw];
+		for (const entry of line){
+			if (!entry || typeof entry !== "object") continue;
+
+			// ⚠ compat only, one release (2026-10-03) — an old line routed its REST to
+			// whatever `at` named; never written any more, only read.
+			if ("at" in entry){
+				const { at, ...rest } = entry;
+				if (at === "content") content_verbs(rest);
+				else if (typeof at === "string" && at.startsWith("content/")){
+					const id = at.slice("content/".length);
+					if (items.has(id)) items.set(id, { ...items.get(id), ...rest });
+				}
+				continue;
+			}
+
+			apply_top(entry);
+		}
 	}
 
 	return { page, items: order.map(id => items.get(id)).filter(Boolean) };
@@ -168,46 +210,70 @@ function render_html({ page, items }){
 	return lines.join("\n");
 }
 
-/* ---------- the four tools ---------- */
+/* ---------- the six tools ---------- */
 
 export function page_tools(){
+	const not_a_page = url => JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+
 	return [
 
+		tool("page_call",
+			"The general tool: ONE verb call at ONE target, written as the canonical nested line"
+			+ " (2026-10-03, \"no at, no dots: the path is the nesting\") — `page_call(path, [\"k2\",\"answers\"],"
+			+ " \"add\", {...})` writes `{\"k2\":{\"answers\":{\"add\":{...}}}}`, meaning \"k2 → its answers list →"
+			+ " add\". `target` is an array of hops (property names or ids), never a slash- or dot-path. Reach"
+			+ " for `page_add`/`page_set` for the two common cases; reach for this one for anything else — a"
+			+ " deeper list, `remove`/`move`/`order`, or a method on a specific item.",
+			{ path: PAGE_PATH, target: TARGET,
+				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
+				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
+			["path", "method"],
+			({ path: url, target, method, args }, ctx = {}) => {
+				const file = resolve_file(url);
+				if (!file) return not_a_page(url);
+
+				const stamped = is_plain(args) ? { ...args, by: ctx.caller ?? "agent", ts: now() } : args;
+				const line = nest(target ?? [], { [method]: stamped });
+
+				write_line(file, line);
+				return JSON.stringify({ ok: true, line });
+			}),
+
 		tool("page_add",
-			"Add ONE item to a live page's own content list — one line appended to its page.jsonl,"
-			+ " picked up by every open tab with no reload (the dev server tails the file the same way"
-			+ " for any writer). Stamps a fresh id (unless `item.id` is given), the calling agent as"
-			+ " `by`, and the time as `ts`.",
+			"Add ONE item to a live page's own content list — sugar for `page_call(path, [\"content\"], \"add\","
+			+ " item)`. One line appended to page.jsonl, picked up by every open tab with no reload. Stamps a"
+			+ " fresh id (unless `item.id` is given), the calling agent as `by`, and the time as `ts`.",
 			{ path: PAGE_PATH,
 				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
 			["path", "item"],
 			({ path: url, item, after }, ctx = {}) => {
 				const file = resolve_file(url);
-				if (!file) return JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+				if (!file) return not_a_page(url);
 
 				const id = item?.id ?? crypto.randomUUID();
 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
-				const line = { at: "content", add };
+				const line = nest(["content"], { add });
 
 				write_line(file, line);
 				return JSON.stringify({ ok: true, id, line });
 			}),
 
 		tool("page_set",
-			"Change one item's data (by id) or the page's own fields (no id) — one line appended to"
-			+ " page.jsonl. `delta` is applied the same way a live edit would be: a key that names a"
-			+ " method is CALLED, anything else is set as data. Stamps `by` and `ts` onto the same line.",
-			{ path: PAGE_PATH,
-				id: { type: "string", description: "A content item's id, from page_add's answer or page_read's listing. Omit to set a field on the PAGE itself (e.g. {\"title\":\"New title\"})." },
+			"Change data at one target — sugar for `page_call` with no verb: the delta is handed straight to"
+			+ " the target's own `set()` (core/Item/Item.js's rule — a plain nested delta IS a set, no `\"set\"`"
+			+ " key needed in the line). `page_set(path, [], {\"title\":\"New\"})` changes the PAGE's own title;"
+			+ " `page_set(path, [\"k2\"], {\"answer\":\"42\"})` changes item k2's data, wherever it lives. Stamps"
+			+ " `by` and `ts` onto the same line.",
+			{ path: PAGE_PATH, target: TARGET,
 				delta: { type: "object", description: "The fields to change, e.g. {\"answer\": \"42\"} or {\"title\": \"Renamed\"}." } },
 			["path", "delta"],
-			({ path: url, id, delta }, ctx = {}) => {
+			({ path: url, target, delta }, ctx = {}) => {
 				const file = resolve_file(url);
-				if (!file) return JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+				if (!file) return not_a_page(url);
 
 				const stamped = { ...delta, by: ctx.caller ?? "agent", ts: now() };
-				const line = id ? { at: `content/${id}`, ...stamped } : stamped;
+				const line = nest(target ?? [], stamped);
 
 				write_line(file, line);
 				return JSON.stringify({ ok: true, line });
@@ -223,7 +289,7 @@ export function page_tools(){
 			["path", "text"],
 			({ path: url, text }, ctx = {}) => {
 				const file = resolve_file(url);
-				if (!file) return JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+				if (!file) return not_a_page(url);
 
 				const line = { log: { text, by: ctx.caller ?? "agent", ts: now() } };
 				write_line(file, line);
@@ -242,7 +308,7 @@ export function page_tools(){
 			["path"],
 			({ path: url, format }) => {
 				const file = resolve_file(url);
-				if (!file) return JSON.stringify({ ok: false, why: `"${url}" is not a page under public/` });
+				if (!file) return not_a_page(url);
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
 				const state = replay(parse_lines(file));
