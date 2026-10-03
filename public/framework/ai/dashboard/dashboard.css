@@ -1,0 +1,42 @@
+/* The Dashboard tab — five small tiles in one responsive grid.
+   `dash-` is a brand new prefix (confirmed free, 2026-10-02 — see
+   doc/decisions.md). The grid itself is `.panel2-grid` (ext/panel2) with a
+   wider floor than its 22rem default: a task row with a title, an agent name
+   and a progress bar wants more room than a bare card. */
+@layer theme {
+
+	.dashboard-tiles { --column: 26rem; align-items: start; }
+
+	.dash-empty { padding: var(--gap-50) 0; }
+
+	.dash-task-row, .dash-need-row {
+		display: flex; flex-direction: column; gap: var(--gap-35);
+		padding-block: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+		text-decoration: none; color: inherit;
+	}
+	.dash-task-row:last-child, .dash-need-row:last-child { border-block-end: none; }
+
+	.dash-task-title { font-weight: 600; }
+	.dash-task-why { white-space: normal; }
+
+	.dash-bar {
+		height: 0.4em; border-radius: 999px;
+		background: var(--line);
+		overflow: hidden;
+	}
+	.dash-bar-fill { height: 100%; background: var(--prim); }
+	/* No budget set — a thin moving stripe says "working," not "0% done". */
+	.dash-bar-indeterminate {
+		background: repeating-linear-gradient(135deg, var(--prim) 0 0.5em, transparent 0.5em 1em);
+		background-size: 200% 100%;
+		opacity: 0.5;
+		animation: dash-stripe 1.2s linear infinite;
+	}
+	@keyframes dash-stripe { to { background-position: -1em 0; } }
+
+	/* A capped preview of the real Log page (dashboard/page.js's own note) —
+	   the max-height is the whole trick, everything inside is log_board()'s
+	   own markup, unedited. */
+	.dash-log-tile { max-height: 22em; }
+}

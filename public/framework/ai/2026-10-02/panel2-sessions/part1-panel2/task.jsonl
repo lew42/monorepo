@@ -33,3 +33,14 @@
 {"review":{"answer":{"n":7,"reply":"noted: already recorded in doc/decisions.md ('Open: css-scopes.txt reservation') — public/framework/styles/css-scopes.txt is outside this task's write fence, so the line itself can't be added from here."}}}
 {"review":{"answer":{"n":8,"reply":"noted: review.mjs computed its diff against this shared branch's history, which also carries the concurrent sibling task's (part1b-inbox-restructure) own commits — a shared-branch artifact of running two minions' reviews on one branch, not something this task's own fence can fix."}}}
 {"assign":{"step":7,"title":"ext/panel2: header/main/footer chrome, drawer sides, split, dashboard grid","landed_at":"2026-10-02T18:52:37-05:00","outcome":"**Panel2 shipped: header/main/footer, a grip split, a drawer side, a dashboard grid.**\n- [x] new module, reuses only `ext/grip`\n- [x] header/main/footer; a side becomes a drawer under 34em\n- [x] header is a real toolbar (`panel.header.append()`), verified live\n- [x] `Panel2.split(a, b, { axis })` — one grip, two panels; drag tested 731px → 879px\n- [x] `.panel2-grid` reuses framework.css's own grid-auto formula\n- [x] demo page: plain panel, live split, live grid, a genuinely live phone-drawer (iframe, not a screenshot)\n- [x] readme + decisions.md: 4 open items (fixed/fluid switch, multi-grip, Sprawl, adaptive height)\n\nReview: pass, 8 notes, all answered. Zero console errors 400–3440.","links":[{"url":"/framework/ext/panel2/","label":"Panel2 — demo page"},{"url":"/framework/ext/panel2/readme.md","label":"readme (open questions)"},{"url":"/framework/ext/panel2/doc/decisions.md","label":"doc/decisions.md"}],"window":{"before":0,"after":0.18},"tokens":null}}
+{"log":{"at":"2026-10-02T19:03:01-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:05:42-05:00","msg":"skill: page"}}
+{"log":{"at":"2026-10-02T19:23:51-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:23:51-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:30:30-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:30:30-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:45:46-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-02T19:58:53-05:00","msg":"text-check: review.md: a 125-word paragraph (\"3. [note] Judged from the actual files on disk (no…\"); review.md: 313 words and no picture"}}
+{"log":{"at":"2026-10-02T19:58:53-05:00","msg":"doc-check: 1 module — clean"}}
+{"log":{"at":"2026-10-02T19:58:54-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-02T19:58:54-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

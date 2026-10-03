@@ -6,3 +6,6 @@
 {"log":{"at":"2026-10-02T18:52:46-05:00","task":"panel2-sessions/part1-panel2","msg":"landed — ext/panel2 built: header/main/footer chrome, drawer sides, a grip split, a dashboard grid, and a demo page"}}
 {"log":{"at":"2026-10-02T19:29:47-05:00","task":"stalled-and-budgets","msg":"landed — tasks.json: stalled check, budget vs actual, snooze/kill/re-prioritise tools"}}
 {"log":{"at":"2026-10-02T19:38:29-05:00","task":"task-audit","msg":"task opened — pilot: cheap models audit 5 landed tasks, consensus computed by audit.mjs"}}
+{"log":{"at":"2026-10-02T20:01:57-05:00","task":"card-pipeline","msg":"landed — every major ask gets a readable card, by node; 3 of today's 4 named asks carded live, pipeline tested 55/55 + all-green"}}
+{"log":{"at":"2026-10-02T19:10:51-05:00","task":"panel2-sessions/part2-sessions-dashboard","msg":"task opened — the AI dashboard's Dashboard + Sessions tabs, built on ext/panel2"}}
+{"log":{"at":"2026-10-02T19:48:40-05:00","task":"panel2-sessions/part2-sessions-dashboard","msg":"landed — the AI Dashboard (5 live tiles) and Sessions tab, built on ext/panel2"}}

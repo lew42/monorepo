@@ -1,107 +1,126 @@
-# Minion brief: the AI dashboard's Sessions tab + Overview grid — Part 2 of panel2-sessions
+# Minion brief: the AI dashboard's Dashboard + Sessions tabs — Part 2 of panel2-sessions
 
-DRAFT — do not start until `task-mastermind-panel2-sessions` tells you Part 1 (`ext/panel2`) has
-merged into `michael/dev` and points you at its readme. Load the `minion` skill first, then
-`page` (you are building a view) and `code`.
+Part 1 is merged into `michael/dev` (ext/panel2, and core/Page/ext/Inbox restructured into
+`Inbox.Rail` / `Inbox.Compact`). Your worktree branch has been synced with `michael/dev` — pull
+if you resumed from an older state. Load the `minion` skill first, then `page` (you're building a
+view) and `code`.
 
 Task directory (read the parent's task.jsonl and the full brief before you start):
 `public/framework/ai/2026-10-02/panel2-sessions/` — `requirements.md` there is the owner's
-original words for the whole task; this file covers Part 2 only.
+original words for the whole task.
 
-Fence: `public/framework/ai/` only — specifically a new `public/framework/ai/sessions/` folder
-(the new tab) and edits to `public/framework/ai/overview.js` / `public/framework/ai/page.js`
-(the Overview tab's `content()`, and nothing else in that file — read it whole first, it is
-already dense). Do not touch `ext/panel2` itself (done), `ai2/` (a sibling system, read-only
-reference), or `core/Page/ext/Inbox` (read-only reference — reuse `InboxRail`, never copy it).
+Fence: `public/framework/ai/` only — a new `public/framework/ai/sessions/` folder and a new
+`public/framework/ai/dashboard/` folder (the two new tabs), plus edits to `public/framework/ai/
+overview.js` and `public/framework/ai/page.js` (read both whole first — dense, hot files other
+agents may also touch; check `git log michael/dev -1` hasn't moved under you before editing
+either). Do not touch `ext/panel2` (done — read its readme, don't edit it), `ai2/` (reference
+only), or `core/Page/ext/Inbox` (done — use `Inbox.Compact`, never fork it).
 
-## The owner's own words (verbatim, the relevant slice)
+## The owner's plan — TWO messages, read both; the second REPLACES "Overview = grid"
 
-> on the AI dashboard, we should have a prompt log and/or a session log. Prompts are part of a
-> session. A time-based list, like the inbox view sorts itself, a preview card for each session,
-> and that would be for agent spawn sessions too. Any time an agent has an ID… for this VS Code
-> tab I should be able to see that with a tab or a tag that says VS Code on it, so I know that's
-> this one… Maybe it should be its own tab… useful all over the site, like this left sidebar on
-> the dashboard; that could be called a real-time inbox. Maybe the inbox can be rendered in a
-> compact view on the default view. /framework/ai's default tab could show a grid-like dashboard
-> that includes the inbox, but also the log next to it, in a responsive way.
+**First (original brief, still the "why"):** a time-based Sessions list, one preview card per
+session (VS Code tab, Servex agent, or CLI), newest first, click opens its prompts in order. "For
+this VS Code tab I should be able to see that with a tag that says VS Code on it." A compact Inbox
+and the Log "next to it, in a responsive way... the flex-wrap way... or automatic grid."
 
-## What to build
+**Second (mid-task correction — build THIS tab shape, not a plain "Overview grid"):**
+- **Overview** (existing tab, keep its name): quick links — every AI page and its main sub-pages,
+  laid out hierarchically with icons. This is a navigation index, not a data dashboard — closer
+  to what `overview.js`'s System tab already looks like than to a grid of live tiles.
+- **Dashboard** (a NEW tab, separate from Overview): a grid of preview tiles, each titled with
+  what it is:
+  - **Inbox** tile — top 5 items only.
+  - **Log** tile — top 5, with anything already shown in the Inbox tile removed (no duplicates).
+  - **Sessions** tile — see below.
+  - **In flight + queued** tile — tasks currently building or queued, each with a progress bar.
+  - **Stalled** tasks tile — shown FIRST among the tiles (stalled is top priority). A sibling
+    task, `stalled-and-budgets` (owned by another mastermind), computes this: it writes
+    `public/framework/ai/tasks.json` with one row per task from the last 7 days — `{dir, title,
+    agent, card, brief, budget, spent, started_at, last_line_at, landed, state}` where `state` is
+    `landed | building | stalled | snoozed | killed`, plus a score/`why` for ordering (stalled
+    highest). **Check this task's own `task.jsonl` / card for a message from that mastermind
+    naming the final field list before you build against it** — it said it would send one. If
+    `tasks.json` doesn't exist yet when you get here, build the tile to read it defensively (empty
+    state: "no data yet") rather than inventing your own stalled-detection logic — law 6, don't
+    build a second version of what that task already owns. The same file gives you "in flight +
+    queued" (`state: building`, show the ones with no `landed_at`) and lets Stalled and In-
+    flight/queued be two thin views over one JSON file, not two separate computations.
+  - Each tile links to its own full view (Inbox → the Inbox tab, Sessions → the Sessions tab,
+    etc). On 3440 tiles may grow larger — **do not** put two full-screen views side by side; this
+    is a grid of compact previews, not a split-screen.
+- **Inbox** stays its own tab, unchanged (full list, not just top 5 — that's the Dashboard tile's
+  job).
 
-1. **A Sessions tab** on `/framework/ai/` (a real folder, `public/framework/ai/sessions/`, with
-   `page.jsonl` containing `{"settings":{"tab":true,"weight":<pick one after the existing
-   ones>}}` so `detect_tabs()` in `overview.js` picks it up automatically — do not hand-edit the
-   tab list). One preview card per **session that has an id**, newest activity first, live
-   (poll, same pattern as `ai2/agents.js`'s `all_agents()` — fetch, cache ~10-30s, redraw only on
-   change). Covers THREE kinds, each with a visible **source tag**: `VS Code`, `Servex`, `CLI`.
+Build **Dashboard** as described above. Do not build a grid version of **Overview** — leave
+Overview as a quick-links index (if it isn't already close to that, a light pass to add
+hierarchy + icons is in scope, but don't turn it into live tiles — that's Dashboard's job now).
+
+## What to build, in order
+
+1. **The Sessions tab**: a real folder, `public/framework/ai/sessions/`, with `page.jsonl`
+   containing `{"settings":{"tab":true,"weight":<after the existing ones>}}` so `detect_tabs()`
+   in `overview.js` picks it up automatically (don't hand-edit the tab list). One preview card per
+   **session that has an id**, newest activity first, live (poll — model `ai2/agents.js`'s
+   `all_agents()`: fetch, cache ~10-30s, redraw only on change, stop polling when `document.
+   hidden`). Covers THREE kinds, each with a visible **source tag**: `VS Code`, `Servex`, `CLI`.
    Each card: source tag, agent id or VS Code tab title, model, state (working/idle/dormant/
-   stopped), the last prompt's first line, the time, cost if known. Click → that session's own
-   url (e.g. `/framework/ai/sessions/<id>/`) showing its prompts in order, like a transcript —
-   **prompts live inside their session, never as a separate log page.**
-2. **Data**: check `task-mastermind-panel2-sessions`'s log / this task's `task.jsonl` for whether
-   `mastermind-servex-9` added a `GET /api/sessions` route. If yes, fetch it (model this file's
-   own `ai2/agents.js` — `servex_base()` + `servex_fetch()`, cached, polled, stops when hidden).
-   If no route exists, do NOT invent Servex internals yourself: write a small standalone node
-   script instead (`public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs`) that:
-   - calls Servex's existing `GET /api/agents` for the Servex rows (session_id, role, model,
-     state, cost already there — tag `source: "servex"`, split `role` to distinguish CLI minions
-     from VS Code if `cwd` says so);
-   - scans `%USERPROFILE%\.claude\projects\c--Code-lew42-monorepo\*.jsonl` for session ids NOT
-     already covered, reading each file's last few lines for the latest timestamp and the most
-     recent `"role":"user"` message's text (first line only) — this is a flat read of JSONL you
-     already have working examples of in this repo (`ext/JSONL`), don't add a dependency;
-     tag `source: "vscode"` when the transcript looks like an interactive session, `"cli"`
-     otherwise (a `claude -p` one-shot has no later turns — heuristic is fine, document it).
-   - writes one JSON file the page fetches as a static snapshot, and re-run the script on a
-     short interval via Servex's existing health-supervisor style pattern, OR (simpler, and
-     matches law 7 — "a node script... reads them, never written by hand") just run it from
-     inside the page's own small dev-only fetch by asking `Server/` to expose it at one route if
-     the dev server already has a slot for ad hoc JSON endpoints (`grep -n "res.json" Server/*.js`
-     first). Pick whichever is less code; note the choice and why in the readme.
-   - **Verify it end to end** on this VS Code mastermind's own session,
-     `361c4d18-e878-4c04-9537-444e847e13d5`: it must show up tagged `VS Code`, with a real last
-     prompt line. If it doesn't, the script is wrong — fix it before moving on.
-3. **The Overview tab becomes a grid dashboard**, using Part 1's Panel2 responsive grid rule
-   (`.panel2-grid` / `auto-fit, minmax(min(100%, 22rem), 1fr)` — read `ext/panel2/readme.md` for
-   the exact class/helper name Part 1 shipped). Three Panel2 panels side by side (one per row on
-   a phone, per the grid rule — no manual breakpoint):
-   - a **compact Inbox**: the existing `InboxRail` from `core/Page/ext/Inbox` (`Rail.js`), in a
-     new `compact` variant/option you add to that class (a prop like `new InboxRail({ page: this,
-     compact: true })` — read its constructor first; add the minimal switch, don't fork the
-     class). Never copy `InboxRail` — if `compact` doesn't fit as a constructor option, ask
-     `task-mastermind-inbox-ext` (it owns `/framework/ai/`'s tabs and inbox wiring) via
-     `drop("/framework/ai/", "...")` before forking anything.
-   - the **Log** (the existing Log tab's content, reused — read how `tab_page()` in
-     `overview.js` builds the `log` entry today and call the same thing inside a Panel2, don't
-     reimplement it).
-   - the new **Sessions** panel: the same preview-card list as the Sessions tab, just mounted
-     inside a Panel2 instead of full-page (reuse one render function for both).
-   Put this behind the full-width toolbar from deliverable 4, as one Panel2 whose `header` is
-   that toolbar and whose `main` is the three-panel grid.
-4. **A full-width slim toolbar** across the top of the dashboard — one Panel2's `header`, used as
-   the page's own band (replacing or wrapping the existing `.inbox-head` strip in `ai/page.js`'s
-   `content()` — read it whole before touching it; keep the title-left / tabs-right shape it
-   already has, just drawn as a Panel2 header so the rest of the site can reuse the same chrome
-   later). Each of the three panels inside Overview keeps its OWN small toolbar too (Part 1's
-   per-panel header) — e.g. Sessions' toolbar could hold a source-tag filter, Inbox's its own
-   existing controls if any.
+   stopped), the last prompt's first line, the time, cost if known. Click → that session's own url
+   (e.g. `/framework/ai/sessions/<id>/`) showing its prompts in order — **prompts live inside
+   their session, never as a separate log page.**
+2. **Data for Sessions**: check this task's `task.jsonl` / card for whether `mastermind-servex-9`
+   built the `GET /api/sessions` route this mastermind asked for (Servex/agents inbox note,
+   2026-10-02). If yes, fetch it (model `ai2/agents.js`'s pattern: `servex_base()` +
+   `servex_fetch()`, cached, polled). If no route exists yet, write a small standalone script
+   instead (`public/framework/ai/2026-10-02/panel2-sessions/sessions.mjs`):
+   - Servex rows from the existing `GET /api/agents` (session_id, role, model, state, cost — tag
+     `source: "servex"`);
+   - scan `%USERPROFILE%\.claude\projects\c--Code-lew42-monorepo\*.jsonl` for session ids not
+     already covered — read each file's last few lines for the latest timestamp and the most
+     recent `"role":"user"` message's first line; tag `source: "vscode"` for an interactive
+     session, `"cli"` for a one-shot (document the heuristic);
+   - write one JSON snapshot; run it from wherever is less code (a dev-only `Server/` route, or
+     the page refetching a file the script regenerates on an interval) — say which, and why, in
+     the Sessions tab's own short note or the task readme.
+   - **Verify end to end** on this VS Code mastermind's own session,
+     `361c4d18-e878-4c04-9537-444e847e13d5` — it must show up tagged `VS Code` with a real last
+     prompt line. If it doesn't, the script is wrong; fix before moving on.
+3. **The Dashboard tab**: a real folder, `public/framework/ai/dashboard/`, tab-detected the same
+   way, weighted to sit near the front (after Inbox, before or after Log — your call, say why).
+   Built as ONE Panel2: `header` is a full-width slim toolbar (title left, controls right — this
+   can be the page's existing `.inbox-head` strip redrawn as a Panel2 header, or a new one; keep
+   whatever title/tabs shape `ai/page.js`'s `content()` already has), `main` is a `.panel2-grid`
+   (Part 1's responsive grid — read `ext/panel2/readme.md`) holding five tiles: Stalled, In-
+   flight+queued, Inbox (top 5), Log (top 5, inbox items removed), Sessions. Each tile can be its
+   own small Panel2 (so it gets its own mini toolbar) or a plain `.surface` card — pick the
+   simplest that satisfies "each titled with what it is."
+   - **Inbox tile**: `new Inbox({ page: this }).compact` (Part 1b's new API), sliced to 5 items —
+     check `Inbox`'s data shape first; if it doesn't expose "top 5 by score," that's a reasonable
+     small addition to `Inbox` (lives in `core/Page/ext/Inbox`, which is outside your fence — ask
+     `task-mastermind-inbox-ext` via `drop("/framework/ai/", "...")` before editing it yourself,
+     or filter/slice the compact view's own list from your side if that's enough).
+   - **Log tile**: reuse the existing Log tab's render (read `tab_page()` in `overview.js`), top 5,
+     with inbox items filtered out by id.
+   - **Sessions tile**: the same card list/render as the Sessions tab (one function, two mounts).
+   - **Stalled / In-flight+queued tiles**: read `public/framework/ai/tasks.json` if present (see
+     above); each row a tiny card with a progress bar for in-flight/queued (`spent`/`budget` or a
+     generic indeterminate bar if no budget), and the `why` string for stalled ones. Empty/missing
+     file → one quiet "nothing yet" line, not an error.
+4. Keep Overview's own content as a quick-links index (light touch only, see above).
 
 ## Rules
 
-- Reuse, never duplicate (CLAUDE.md law 6): `InboxRail`, the Log tab's existing render, `ext/grip`,
-  `ext/panel2` — every one of these already exists; your job is wiring, not rebuilding.
+- Reuse, never duplicate (law 6): `Inbox.Compact`/`Inbox.Rail`, the Log tab's existing render,
+  `ext/grip`, `ext/panel2`, `tasks.json` (once it exists) — wiring, not rebuilding.
 - No build step, resolve urls against `import.meta`, every CSS rule in a layer.
-- Work in the worktree `task-mastermind-panel2-sessions` gives you the path for.
-- Before you start: `claim_topic` nothing new — this mastermind already holds `/framework/ai/`'s
-  awareness via its inbox note; just build.
-- When done: `node Server/layout-check.mjs <ai dashboard urls: Overview + Sessions tab + one
-  session's transcript url> --widths 400,1200,1920,3440` and read every shot yourself, band by
-  band, before reporting — a title wrapping to two lines or a tab bar breaking to two rows is a
-  fail you fix now, not a caveat you note.
-- Check `michael/dev` hasn't moved under you (`git log michael/dev -1` vs your branch base)
-  before you touch `ai/page.js` — it is a hot file other agents may have changed today.
+- This mastermind is at its 2-minion cap for this task (you and the Inbox-restructure minion
+  already ran) — you're being resumed/revived for this, not a fresh 3rd minion. Pull the worktree
+  branch (now synced with `michael/dev`) before you start.
+- When done: `node Server/layout-check.mjs <Dashboard tab + Sessions tab + one session's
+  transcript url + Overview tab> --widths 400,1200,1920,3440`, read every shot yourself band by
+  band — a tile row that wraps badly or a title on two lines is a fail to fix now.
 
 ## Report back
 
-To `task-mastermind-panel2-sessions`: the Sessions tab url, the Overview grid url, a screenshot
-or the layout-check output at all four widths, and which data path you used (Servex route or
-standalone script) and why.
+To `task-mastermind-panel2-sessions`: the Dashboard tab url, the Sessions tab url, which data path
+you used for Sessions and why, whether `tasks.json` existed yet (and what the Stalled/In-flight
+tiles show if not), and the layout-check results at all four widths.

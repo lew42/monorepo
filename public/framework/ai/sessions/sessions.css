@@ -1,0 +1,68 @@
+/* The Sessions tab — one row per Claude session, newest activity first.
+   `sessions-` is a brand new prefix (confirmed free, 2026-10-02 — see
+   doc/decisions.md for the census and the css-scopes.txt reservation note). */
+@layer theme {
+
+	/* No padding here (review finding, 2026-10-02): `.panel2-main` already
+	   pads every panel's content — a second `var(--pad)` here doubled it. */
+	.sessions-list { }
+
+	.sessions-row {
+		display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50);
+		padding-block: var(--gap-50);
+		border-block-end: 1px solid var(--line);
+		text-decoration: none; color: inherit;
+	}
+	.sessions-row:last-child { border-block-end: none; }
+
+	.sessions-row-main { display: flex; flex-direction: column; gap: var(--gap-35); flex: 1 1 14em; min-width: 0; }
+	.sessions-row-title { font-weight: 600; }
+	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	/* The title/model/state cluster wraps on its own line rather than being
+	   squeezed to a few px each — a row at 400px (`ext/panel2`'s own
+	   container-query floor) measured the title alone wrapping to 4 lines
+	   before this (review finding, 2026-10-02). */
+	.sessions-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); row-gap: 0; }
+
+	.sessions-row-end { display: flex; flex-direction: column; flex: 0 0 auto; align-items: flex-end; text-align: end; margin-inline-start: auto; }
+
+	/* `.panel2` is already a container (ext/panel2's own `container-type:
+	   inline-size`) — this answers the PANEL's own width, same as the drawer
+	   rule it's modelled on, not the browser window. Below it, the time/cost
+	   column moves under the row instead of fighting it for the same line. */
+	@container (width < 30em) {
+		.sessions-row-end { flex-basis: 100%; flex-direction: row; gap: var(--gap-50); align-items: center; text-align: start; margin-inline-start: 0; }
+	}
+
+	/* One colour per source, so "what kind of session is this" reads before the
+	   words do — the owner's own ask ("a tag that says VS Code on it").
+	   Bordered outline on `--surface`, not a tinted wash: a 20% wash of a hue
+	   under that SAME hue's own text measured under 3:1 (review finding,
+	   2026-10-02 — `--prim` on its own wash is 2.25:1 against white, the exact
+	   trap framework.css's own button rule already names and works around
+	   with a shadow this tag has no room for). Checked against WCAG's formula:
+	   `--prim-ink` (the token framework.css ships FOR TEXT, not `--prim`
+	   itself) is 5.19:1 on white; the vscode blue is 5.19:1; `--ink` is
+	   always highest-contrast by definition. */
+	.sessions-tag {
+		flex: none; font-size: 0.75em; font-weight: 600; text-transform: uppercase;
+		padding-inline: 0.5em; padding-block: 0.2em; border-radius: var(--radius);
+		letter-spacing: 0.02em;
+		background: var(--surface);
+		border: 1px solid var(--sessions-tag-color, var(--ink));
+		color: var(--sessions-tag-color, var(--ink));
+	}
+	.sessions-tag-servex { --sessions-tag-color: var(--prim-ink); }
+	/* ⚠ Open: this blue has no dark-mode variant (doc/decisions.md) — unlike
+	   `--prim-ink`, which is `light-dark()`-aware, a static hex stays exactly
+	   this blue on a dark surface too; not re-measured there yet. */
+	.sessions-tag-vscode { --sessions-tag-color: #0072B2; }
+	.sessions-tag-cli    { --sessions-tag-color: var(--ink); }
+
+	.sessions-state { text-transform: lowercase; }
+	.sessions-state-working, .sessions-state-active { color: var(--prim); }
+
+	.sessions-prompt { padding: var(--gap-50); }
+
+	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
+}
