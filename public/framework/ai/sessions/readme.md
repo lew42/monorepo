@@ -9,11 +9,50 @@ opens as a side peek beside the grid instead of replacing it.
 
 ## Use
 
-Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Six columns, newest activity first:
-Start, Source (a coloured tag), Name, Model, State, Cost. Drag a column header's own right edge to
-resize just that column — each one is a single `--col-<name>` CSS custom property, with its own
-minimum width so a column never collapses to nothing. It's a CSS grid, not a `<table>`: `doc/decisions.md`
-says why, and what that bought (one token per column) that a table couldn't.
+Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Eight columns, newest activity first:
+Start, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column header's own
+right edge to resize just that column — each one is a single `--col-<name>` CSS custom property,
+with its own minimum width so a column never collapses to nothing. It's a CSS grid, not a
+`<table>`: `doc/decisions.md` says why, and what that bought (one token per column) that a table
+couldn't.
+
+**What's new (session-costs minion-build, 2026-10-02) — real per-session dollars, not just the one
+older `cost` figure:**
+- **Click the Cost header to sort** by it (missing/null always sorts last); click again to reverse,
+  a third click returns to the default (newest activity first).
+- **The State column is an icon now**, not a word: a blinking green ▶ for a working/active row, a
+  quiet dot for everything else. A ✓ for "done" only ever shows on a session's own detail page.
+- **A Role column** — real for a Servex row (straight from the agent registry), a best-effort guess
+  for a VS Code/CLI row (`doc/decisions.md` says exactly how, and why it's a guess there).
+- **A RAM column** — blank until Servex's own agent feed carries a real-time sample; never a stale
+  number.
+- **Claude $ next to OpenRouter $** when a row carries the split (an "OR" tag marks the real-money
+  one) — falls back to the one older `cost` figure for a row that doesn't carry it yet.
+- **A role filter and a 30-day date filter** above the grid, with a summary line (sessions shown,
+  total Claude $, total OpenRouter $) and a "cost by role" list, largest first — all computed from
+  the rows already on screen, no new fetch.
+- **A "this week" line** (Claude $, OpenRouter $, the $200 plan's own % used) — from `week.json`,
+  a snapshot `Server/week-cost.mjs` writes by hand (see below).
+- **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
+  its prompts, when `Server/session-cost.mjs` has logged one.
+
+## Where the real dollars come from
+
+Two SEPARATE scripts, neither live — both are run by hand and read by the page, same shape as
+`sessions.mjs` above:
+- [`Server/session-cost.mjs`](/code/) reads one Claude Code session's own transcript (the only
+  place per-prompt token counts exist) and sums it into a total + a per-prompt breakdown, priced
+  by model. A Stop hook (`.claude/settings.json`) runs it after every turn, appending one
+  `{"cost":{...}}` line to that session's own `page.jsonl` — the file
+  [`task-mastermind-prompt-refine`](/framework/ai/) owns creating, this task only ever appends to.
+  `node Server/session-cost.mjs <session-id>` prints the JSON on its own, for testing.
+- [`Server/week-cost.mjs`](/code/) is a run-by-hand snapshot of this week's Claude $ and
+  OpenRouter $ against the $200 Max plan, written to `week.json` beside this readme. Re-run it to
+  refresh the "this week" line: `node Server/week-cost.mjs`.
+
+This is a DIFFERENT system from `Server/task-cost.mjs` (a Servex agent's own running total, no
+per-prompt detail) — see that script's own doc, `Server/doc/task-cost.md`, for why the two don't
+merge.
 
 ## Where the data comes from
 
