@@ -23,31 +23,41 @@ also piling up).
 minutes) found **steady, unbounded growth while nothing else was happening** — no owner
 interaction, just the page's own streams (sockets, tails) running:
 
-| sample | JS heap used | DOM nodes | `.page` elements |
-|---|---|---|---|
-| 0 min | 10 MB | 229 | 0 |
-| 5 min | 33 MB | 1,791 | 5 |
-| 10 min | *(see task.jsonl for the final number — soak was still running when this brief was written; the trend across 0→5min already makes the direction clear)* | | |
+| sample | JS heap used | JS heap reserved | DOM nodes | `.page` elements |
+|---|---|---|---|---|
+| 0 min | 10 MB | 19 MB | 229 | 0 |
+| 5 min | 33 MB | 38 MB | 1,791 | 5 |
+| 10 min | 46 MB | 135 MB | 1,857 | 5 |
 
-**DOM nodes grew ~8× in 5 minutes with zero user interaction.** That is not a leak in the
-usual sense (nothing is being abandoned) — it's pages/rows that were legitimately added and
-never removed. `.page` elements (whole Page instances, each a subtree) went from 0 to 5 in the
-same 5 minutes: /framework/ai/live/ is a rail of live cards, each row's card expanding into a
-small Page of its own as updates stream in, and nothing takes an old one back out. Scaled to 3
-days of a desk left open, this is exactly the shape of bug that reaches 2.5 GB: thousands of
-rows and their Page subtrees, never released, each still holding its own listeners and socket
-subscriptions.
+- **Not a classic leak.** Nothing is abandoned — rows are legitimately added and never removed.
+- **Most of the growth is an initial catch-up, not a steady climb.** DOM nodes jumped ~8× in
+  the first 5 minutes (229 → 1,791: the page's own backlog loading in) then nearly flattened
+  (1,791 → 1,857 in the next 5). `.page` elements (whole Page instances, each a subtree) went
+  from 0 to 5 and stayed at 5. A 10-minute window is too short to show the SLOW, per-event climb
+  that reaches 2.5 GB over 3 days — it mostly shows the one-time backlog fill.
+- **The reserved heap (135 MB) ran well ahead of the used heap (46 MB)** by the 10-minute mark,
+  despite nothing being asked to render — that gap (reserved-but-unused memory the GC hasn't
+  reclaimed yet) is plausibly part of why Windows' own Task Manager number (2.5 GB) read so much
+  higher than Chrome's own tab tooltip (under 500 MB): the tab's real DOM/JS footprint may still
+  be modest while the OS-level process size (V8's reserved heap, GPU/compositor layers for an
+  ever-growing DOM) keeps climbing and is slow to give memory back.
+- **Scaled to 3 days** of continuous socket/tail events — each one a potential new row/Page that
+  nothing ever removes — this initial-backlog pattern plus a slow per-event trickle is exactly
+  the shape of bug that reaches 2.5 GB: thousands of rows and their Page subtrees, never
+  released, each still holding its own listeners and socket subscriptions.
 
 ## Do, in this order
 
-1. **Bounded memory — the real fix, not a workaround.** Every live list/tail on the site (the
-   AI rail, the AI2 dashboard's news feed, `/framework/ai/live/`'s own card stream, any other
-   `Item.Store`-backed tail) keeps at most **N** items in memory and in the DOM at once (N is a
-   judgment call — start around 100–200 rows, tune from how the rail actually scrolls). Rows
-   older than N are dropped from memory and DOM, not just hidden; scrolling back up to them
-   re-reads that slice from the file (the jsonl it tails, or `page.jsonl`/`files.jsonl`) instead
-   of keeping it all resident. This is the one change that actually caps the 2.5 GB case — (2)
-   and (3) below reduce HOW OFTEN it's needed, they don't replace it.
+1. **Bounded memory — the real fix, not a workaround.**
+   - **What caps.** Every live list/tail (the AI rail, the AI2 dashboard's news feed,
+     `/framework/ai/live/`'s own card stream, any `Item.Store`-backed tail) keeps at most **N**
+     items in memory and DOM at once — N is a judgment call, start around 100–200 rows, tune
+     from how the rail actually scrolls.
+   - **How old rows behave.** Dropped from memory and DOM, not just hidden; scrolling back up
+     re-reads that slice from the file it tails (`page.jsonl`/`files.jsonl`) instead of keeping
+     it all resident.
+   - **Why this one matters most.** This is the one change that actually caps the 2.5 GB case
+     — (2) and (3) below reduce HOW OFTEN it's needed, they don't replace it.
    - Read `core/Item/Store.js` and `core/List/List.js` first: `Store` already tails a `.jsonl`
      file and replays it into a `List`; the natural seam is wherever `List` appends a new
      member (`add()`), capping length there and letting a scroll-driven re-fetch pull an older
@@ -57,12 +67,12 @@ subscriptions.
    - A page that is not a tail (a normal static page) is not this task's problem — only
      anything that KEEPS GROWING while a tab sits open.
 
-2. **A hidden tab pauses its tails.** On `document.visibilitychange` going to `"hidden"`, every
-   open socket subscription / tail this page owns closes (not just stops rendering — actually
-   unsubscribes, so the server stops pushing and the growth in (1) stops accumulating even
-   before the cap is hit). On `"visible"` again, catch up from the last line it had (not a full
-   reload) — `Item.Store` already knows its own last-read position; reuse that, don't track a
-   second "last seen" number.
+2. **A hidden tab pauses its tails.**
+   - **On hidden.** `document.visibilitychange` → `"hidden"` closes every open socket
+     subscription / tail this page owns — a real unsubscribe, not just stopped rendering, so
+     the server stops pushing before the cap in (1) is even hit.
+   - **On visible again.** Catch up from the last line it had, not a full reload — `Item.Store`
+     already tracks its own last-read position; reuse it, don't add a second counter.
 
 3. **A safety net, in one shared module** (new, or added to an existing site-wide one — check
    `core/App` and `dev/DevBar` first for where "runs once per tab, site-wide" code already
