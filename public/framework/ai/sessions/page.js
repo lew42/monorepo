@@ -510,13 +510,268 @@ async function find_session_page_dir(id){
 
 // This session's own logged cost lines, oldest first — `null` when there is no
 // `page.jsonl` for it yet, or it has no `cost` line (either is normal: most
-// sessions predate this task, or haven't had a Stop hook fire yet).
-async function load_cost_log(id){
-	const dir = await find_session_page_dir(id);
+// sessions predate this task, or haven't had a Stop hook fire yet). Takes the
+// already-resolved `dir` (from `find_session_page_dir()`), not the id — the
+// caller resolves that glob ONCE and passes the same dir in here and to
+// `load_trace()` below, rather than every loader re-walking directory.json
+// for itself.
+async function load_cost_log(dir){
 	if (!dir) return null;
 	const lines = await get_jsonl(dir + "page.jsonl");
 	const costs = (lines ?? []).filter(l => l.cost).map(l => l.cost);
 	return costs.length ? costs : null;
+}
+
+// `<session-dir>/trace.json` — the per-tool-call detail behind the
+// cost-over-time chart and the "what was it doing" table below. Written by
+// hand today, `node Server/session-cost.mjs --trace-file <id> <out-path>`
+// (2026-10-03 brief, public/framework/ai/2026-10-03/session-trace/) — NOT
+// wired into the Stop hook (a trace file can run to several MB for a long
+// session; doc/decisions.md says why this is an open, honest gap rather than
+// a hidden limitation, same shape week.json's own note already uses). Missing
+// (no dir, or a 404) just means the chart/table don't render — nothing warns,
+// same silent-degrade rule week.json already follows.
+async function load_trace(dir){
+	if (!dir) return null;
+	const trace = await get_json(dir + "trace.json");
+	return trace?.calls && trace?.turns ? trace : null;
+}
+
+// ---- the "what was it doing" table: one row per tool, sorted by $ (largest
+// first — dataviz: the thing that matters most comes first). `usd` sums each
+// DISTINCT turn that tool's own calls touched (a turn's $ exists once, for
+// the whole turn, however many tool calls it made — `turn_at` is the de-dupe
+// key `trace_of_transcript()` stamped on every call for exactly this). ----
+export function trace_table_rows(trace){
+	if (!trace?.calls?.length) return [];
+	const turn_usd = new Map((trace.turns || []).map(t => [t.at, t.usd]));
+	const total = [...turn_usd.values()].reduce((n, usd) => n + usd, 0);
+	const by_tool = new Map();
+	for (const c of trace.calls){
+		const row = by_tool.get(c.tool) || { tool: c.tool, count: 0, turn_ats: new Set() };
+		row.count++;
+		row.turn_ats.add(c.turn_at);
+		by_tool.set(c.tool, row);
+	}
+	const rows = [...by_tool.values()].map(r => {
+		const usd = [...r.turn_ats].reduce((n, at) => n + (turn_usd.get(at) || 0), 0);
+		return { tool: r.tool, count: r.count, usd, share: total > 0 ? usd / total : 0 };
+	});
+	rows.sort((a, b) => b.usd - a.usd);
+	return rows;
+}
+
+// A tool whose own `input` can really write something — used by two of the
+// four waste checks below ("nothing written in between"). `Edit`/`Write`/
+// `NotebookEdit` always write; a `Bash` call MIGHT (this is a pattern match on
+// the command text, not a certainty — noted as a tunable in doc/decisions.md,
+// since there is no reliable way to know what an arbitrary shell command did
+// without actually running it).
+const WRITE_TOOLS = new Set(["Edit", "Write", "NotebookEdit"]);
+const READ_TOOLS = new Set(["Read", "Grep", "Glob", "ToolSearch"]);
+function bash_looks_like_a_write(cmd){
+	return /(>|>>|\brm \b|\bmv \b|\bcp \b|mkdir|touch |git (add|commit|checkout|reset)|npm i|writeFileSync|Set-Content|Out-File)/i.test(cmd || "");
+}
+function call_writes(c){ return WRITE_TOOLS.has(c.tool) || (c.tool === "Bash" && bash_looks_like_a_write(c.input?.command)); }
+
+// A short, readable name for a flag line — a file path shows its last ~57
+// characters (the part that actually tells two files apart; a shared parent
+// folder doesn't), a Bash command is already clipped to 60 chars by
+// `target_of()` server-side.
+function short(s){ s = String(s ?? ""); return s.length > 60 ? "…" + s.slice(-57) : s; }
+
+// Four waste checks, all COMPUTED from `trace.calls` (CLAUDE.md law 7 — never
+// guessed), each producing one plain sentence a reader can skim without
+// reading code first (CLAUDE.md law 2). Thresholds are this task's own best
+// first guess, not laws — doc/decisions.md names each one as tunable.
+export function waste_flags(trace){
+	const calls = trace?.calls || [];
+	const flags = [];
+	if (!calls.length) return flags;
+
+	// 1. The same file read 3+ times — a wider single read would likely do.
+	const read_counts = new Map();
+	for (const c of calls) if (c.tool === "Read") read_counts.set(c.target, (read_counts.get(c.target) || 0) + 1);
+	for (const [file, n] of read_counts) if (n >= 3) flags.push(`${short(file)} was read ${n} times — maybe one read with a wider range would have done.`);
+
+	// 2. Chunked reads of one file — 2+ reads of the SAME file with a
+	// different `offset`/`limit` each time (the raw `input` kept on every
+	// call is what makes this possible — `target` alone can't tell "the same
+	// file, a different slice" apart from "the same file, the same slice").
+	const by_file_reads = new Map();
+	for (const c of calls) if (c.tool === "Read"){
+		if (!by_file_reads.has(c.target)) by_file_reads.set(c.target, []);
+		by_file_reads.get(c.target).push(c);
+	}
+	for (const [file, reads] of by_file_reads){
+		if (reads.length < 2) continue;
+		const any_offset = reads.some(r => r.input?.offset != null || r.input?.limit != null);
+		const shapes = new Set(reads.map(r => `${r.input?.offset ?? ""}:${r.input?.limit ?? ""}`));
+		if (any_offset && shapes.size >= 2) flags.push(`${short(file)} was read in ${reads.length} separate chunks of the same file (a different offset/limit each time).`);
+	}
+
+	// 3. Polling — the same file (or the exact same Bash command) called 2+
+	// times with under 15 seconds between calls and nothing written in
+	// between: "waiting for a background thing to finish", not "re-reading
+	// because it actually changed". Bash groups by the FULL command, never
+	// the 60-char `target` string — two different commands that happen to
+	// start the same way (`cd some/long/path && …`) are not "the same call".
+	for (const tool of ["Read", "Bash"]){
+		const key_of = c => tool === "Bash" ? (c.input?.command || c.target) : c.target;
+		const by_key = new Map();
+		calls.forEach((c, i) => { if (c.tool !== tool) return; const k = key_of(c); if (!by_key.has(k)) by_key.set(k, []); by_key.get(k).push(i); });
+		for (const [key, idxs] of by_key){
+			let cluster = [idxs[0]];
+			const flush = () => {
+				if (cluster.length >= 2) flags.push(`${short(key)} was ${tool === "Bash" ? "run" : "read"} ${cluster.length} times within 15 seconds of each other, nothing written in between — looks like polling/waiting, not a real change.`);
+				cluster = [];
+			};
+			for (let k = 1; k < idxs.length; k++){
+				const gap = (Date.parse(calls[idxs[k]].at) - Date.parse(calls[idxs[k - 1]].at)) / 1000;
+				const wrote = Array.from({ length: idxs[k] - idxs[k - 1] - 1 }, (_, j) => calls[idxs[k - 1] + 1 + j]).some(call_writes);
+				if (gap >= 0 && gap <= 15 && !wrote) cluster.push(idxs[k]);
+				else { flush(); cluster = [idxs[k]]; }
+			}
+			flush();
+		}
+	}
+
+	// 4. Long read-no-write runs — 5+ consecutive read-shaped calls
+	// (Read/Grep/Glob/ToolSearch) with no write in between. 5 is a starting
+	// guess (doc/decisions.md), not a law.
+	const RUN_THRESHOLD = 5;
+	let run = 0, run_start = null;
+	const runs = [];
+	for (let i = 0; i < calls.length; i++){
+		const c = calls[i];
+		if (READ_TOOLS.has(c.tool) && !call_writes(c)){
+			if (run === 0) run_start = i;
+			run++;
+		} else {
+			if (run >= RUN_THRESHOLD) runs.push({ start: run_start, len: run });
+			run = 0;
+		}
+	}
+	if (run >= RUN_THRESHOLD) runs.push({ start: run_start, len: run });
+	for (const r of runs) flags.push(`${r.len} read-only tool calls in a row with no write in between, starting at call #${r.start + 1}.`);
+
+	return flags;
+}
+
+// A nice round step (1, 2, 5 × 10ⁿ) for about `count` gridlines — the exact
+// helper `ux/Content/Spend.js` already uses for its own $-over-time bars
+// (same shape of chart, a different aggregation); copied rather than
+// imported since that class is a `ContentModule` built around its OWN fetch,
+// not a plain function this page could call standalone.
+function nice_step(max, count){
+	const raw = max / count, mag = 10 ** Math.floor(Math.log10(raw || 1)), r = raw / mag;
+	return (r <= 1 ? 1 : r <= 2 ? 2 : r <= 5 ? 5 : 10) * mag;
+}
+
+function esc_attr(s){ return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+// The cost-over-time chart: plain inline SVG, no charting library (CLAUDE.md:
+// no new npm dependency) — same house style as `ux/Content/Spend.js`'s own
+// bar chart, just a cumulative STEP line instead of bins, plus a tick per
+// tool call. ONE chart (dataviz skill: never two y-axes) — x = elapsed time
+// since the session's own first turn, y = cumulative $, unit picked from the
+// session's OWN real span (seconds / minutes / hours), never hardcoded.
+// Honest axes: y starts at 0, x starts at 0 and runs to the real last call —
+// neither is truncated.
+export function trace_chart_svg(trace, w){
+	w = w || 720;
+	const H = 220, L = 56, R = 16, T = 20, B = 34, iw = w - L - R, ih = H - T - B;
+	const turns = trace.turns || [], calls = trace.calls || [];
+	if (!turns.length) return "";
+
+	const t0 = Date.parse(turns[0].at);
+	const elapsed = at => (Date.parse(at) - t0) / 1000;   // seconds, always — unit is a DISPLAY choice below, not stored
+
+	let cum = 0;
+	const steps = [[0, 0]];
+	for (const t of turns){
+		const x = elapsed(t.at);
+		steps.push([x, cum]);
+		cum += t.usd;
+		steps.push([x, cum]);
+	}
+	const calls_max_x = calls.length ? Math.max(...calls.map(c => elapsed(c.at))) : 0;
+	const max_x = Math.max(steps.at(-1)[0], calls_max_x, 1);
+	steps.push([max_x, cum]);
+
+	const total_usd = cum;
+	const y_step = nice_step(total_usd || 1, 4);
+	const y_max = Math.ceil((total_usd || 1) / y_step) * y_step || 1;
+
+	let unit = "s", unit_div = 1;
+	if (max_x > 3 * 3600) { unit = "h"; unit_div = 3600; }
+	else if (max_x > 180) { unit = "min"; unit_div = 60; }
+
+	const X = secs => L + (secs / max_x) * iw;
+	const Y = usd => T + ih - (usd / y_max) * ih;
+
+	let s = `<svg viewBox="0 0 ${w} ${H}" width="${w}" height="${H}" role="img" aria-label="Cumulative cost over time — total $${total_usd.toFixed(2)}, ${calls.length} tool calls">`;
+
+	for (let v = 0; v <= y_max + 1e-9; v += y_step){
+		s += `<line class="g" x1="${L}" x2="${w - R}" y1="${Y(v)}" y2="${Y(v)}"/>`;
+		s += `<text class="t" x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">$${v.toFixed(2)}</text>`;
+	}
+
+	// a tick per tool_use block — short, on the x-axis baseline, so a flat $
+	// stretch with many ticks (cheap tool-calling) reads differently from a
+	// jump with none (one expensive turn) — the owner's own ask.
+	const baseline = T + ih;
+	for (const c of calls){
+		const x = X(elapsed(c.at)).toFixed(1);
+		s += `<line class="tick" x1="${x}" x2="${x}" y1="${baseline - 6}" y2="${baseline}"><title>${esc_attr(c.tool)}: ${esc_attr(c.target)}</title></line>`;
+	}
+
+	const path = steps.map(([x, y], i) => `${i === 0 ? "M" : "L"}${X(x).toFixed(1)},${Y(y).toFixed(1)}`).join(" ");
+	s += `<path class="line" d="${path}" fill="none"/>`;
+
+	const nt = Math.max(2, Math.min(6, Math.floor(iw / 90)));
+	for (let i = 0; i <= nt; i++){
+		const secs = max_x * i / nt, x = X(secs);
+		const label = (secs / unit_div).toFixed(secs / unit_div < 10 ? 1 : 0);
+		s += `<text class="t" x="${x.toFixed(1)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === nt ? "end" : "middle"}">${label}${unit}</text>`;
+	}
+
+	s += `<text class="total" x="${L}" y="14">$${total_usd.toFixed(2)} total — Claude $ (no real per-turn OpenRouter split in this session's own data; doc/decisions.md)</text>`;
+	s += `</svg>`;
+	return s;
+}
+
+// Builds the chart + the "what was it doing" table + the waste flags into
+// `$el` — one function, called once the trace has loaded (or not at all, if
+// it 404'd: `session_page()` below never calls this without a real trace).
+function render_trace_section($el, trace){
+	small.c("muted", "What it was doing (Server/session-cost.mjs --trace-file — a manual, on-demand file; doc/decisions.md)");
+	div.c("sessions-trace-chart").html_unsafe(trace_chart_svg(trace, 720));
+
+	const rows = trace_table_rows(trace);
+	if (rows.length){
+		div.c("sessions-trace-table", () => {
+			div.c("sessions-trace-row sessions-trace-head", () => {
+				small.c("muted", "Tool"); small.c("muted", "Calls"); small.c("muted", "$"); small.c("muted", "Share");
+			});
+			rows.forEach(r => div.c("sessions-trace-row", () => {
+				span(r.tool);
+				small.c("muted", String(r.count));
+				small.c("muted", "$" + r.usd.toFixed(2));
+				small.c("muted", Math.round(r.share * 100) + "%");
+			}));
+		});
+	}
+
+	const flags = waste_flags(trace);
+	div.c("flow", () => {
+		small.c("muted", "Waste check (computed — same file read 3+ times, chunked reads, polling, long read-no-write runs)");
+		if (!flags.length){
+			p.c("muted", "Nothing flagged.");
+		} else {
+			flags.forEach(f => p.c("sessions-trace-flag", f));
+		}
+	});
 }
 
 function session_page(root, id){
@@ -534,8 +789,15 @@ function session_page(root, id){
 
 			const $box = div.c("flow");
 			const $costs = div.c("flow");
+			const $trace = div.c("flow");   // the cost-over-time chart + "what was it doing" table, BELOW $costs (2026-10-03 brief)
 
-			Promise.all([load_transcript(root.url, id), load_cost_log(id)]).then(([{ row, prompts }, costs]) => {
+			Promise.all([load_transcript(root.url, id), find_session_page_dir(id)]).then(async ([{ row, prompts }, dir]) => {
+				// `dir` is resolved ONCE here and handed to both loaders below —
+				// `find_session_page_dir()` walks the whole directory.json tree, so
+				// calling it twice (once per loader) would be the same glob done
+				// twice for nothing.
+				const [costs, trace] = await Promise.all([load_cost_log(dir), load_trace(dir)]);
+
 				$costs.empty(() => {
 					if (!costs) return;
 					small.c("muted", "Logged cost (Server/session-cost.mjs, after each turn)");
@@ -570,10 +832,16 @@ function session_page(root, id){
 							+ "hasn't scanned yet needs that script re-run.");
 					}
 				});
+
+				$trace.empty(() => {
+					if (!trace) return;   // no trace.json for this session yet — silent degrade, same rule week.json already uses
+					render_trace_section($trace, trace);
+				});
 			});
 
 			$costs;
 			$box;
+			$trace;
 		},
 	});
 }

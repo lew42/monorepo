@@ -161,4 +161,37 @@
 	.sessions-role-filter label { cursor: pointer; }
 	.sessions-by-role-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
 	.sessions-by-role-name { font-weight: 600; min-width: 8em; }
+
+	/* The cost-over-time chart (2026-10-03, session-trace) — plain inline SVG,
+	   same house style as `ux/Content/Spend.js`'s own $-over-time bars: a
+	   gridline/label class ("g"/"t"), a total-$ label class, plus two new ones
+	   this chart alone needs — "line" (the cumulative $ step line) and "tick"
+	   (one short mark per tool call, dataviz skill: thin marks, 2px lines).
+	   Text stays in a neutral ink token even though the line itself carries a
+	   hue (dataviz rule: text never wears the series colour) — `--prim-ink` is
+	   `light-dark()`-aware, unlike `Spend.js`'s own static hex fallback, so
+	   this chart's line doesn't need a separate dark-mode fix later. */
+	.sessions-trace-chart { display: block; width: 100%; min-width: 0; margin-block: var(--gap-50); }
+	.sessions-trace-chart svg { display: block; width: 100%; height: auto; }
+	.sessions-trace-chart .g { stroke: var(--line); }
+	.sessions-trace-chart .t { fill: var(--subtle); font-size: 11px; }
+	.sessions-trace-chart .total { fill: var(--ink); font-size: 13px; font-weight: 600; }
+	.sessions-trace-chart .line { stroke: var(--prim-ink); stroke-width: 2px; }
+	.sessions-trace-chart .tick { stroke: var(--subtle); stroke-width: 1px; }
+
+	/* The "what was it doing" table — one row per tool, four columns (name,
+	   count, $, share). A plain CSS grid, same reasoning as `.sessions-grid`
+	   itself (one token per column would be overkill here — nothing resizes
+	   this one, it's four fixed-width tracks), not an HTML `<table>`. */
+	.sessions-trace-table { display: grid; grid-template-columns: 1fr 4em 5em 4em; gap: var(--gap-35) var(--gap-50); margin-block-end: var(--gap-50); }
+	.sessions-trace-row { display: grid; grid-column: 1 / -1; grid-template-columns: 1fr 4em 5em 4em; gap: var(--gap-50); padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-trace-head { font-weight: 600; border-block-end-width: 2px; }
+	.sessions-trace-row small { text-align: end; }
+	.sessions-trace-head small { text-align: end; }
+
+	/* A waste flag — one plain sentence, not a scary red banner (the owner's
+	   own words: "a reader skims it"). A left rule in the same subtle grey as
+	   everything else on this page, not a warning colour — a flag is a fact,
+	   not an alarm. */
+	.sessions-trace-flag { padding-inline-start: var(--gap-50); border-inline-start: 2px solid var(--line); }
 }
