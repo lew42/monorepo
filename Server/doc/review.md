@@ -67,27 +67,45 @@ question, covered next, because it depends on whether a page was touched, not on
 The task mastermind may lower the size only with `--why "self-evident: <one line>"` (logged as a
 `{"decision":...}` line so the reason survives); raising it needs no reason.
 
-## Screenshots and the review skill (also turn 1)
+## Which widths (also turn 1)
 
 Any review — `light` or `full` — whose diff changes at least one `page.js`/`page.jsonl` gets
-screenshots FIRST, at four widths — 400, 1200, 1920 and 3440 (a phone size, a size just past
-mobile, a common desktop size, and the widest common screen) — via:
+screenshots FIRST, at whichever widths the change actually needs — not always all four. The
+owner, on taking a screenshot at every width for every change: "it doesn't make sense to take
+three extra screenshots when one would do … depends on the width of the content." `widthsFor`
+(`Server/review.mjs`, exported) decides, in this order — first match wins:
+
+| The change | Widths | Why |
+|---|---|---|
+| only `.md`, or text in a `page.js`, no css | **1200** alone | words, not layout — one look is enough |
+| a layout word (`grid`, `columns`, `sidebar`, `flex`, `width`, `@container`, `@media`, a `styles/layouts/` class) in a changed css/js file, any file under `core/Page`, `core/Sidebar`, `styles/`, or more than one page touched | **400, 1200, 1920, 3440** | this can reshape the page at any width |
+| one css file, scoped to one component, capped with `max-width` | **400** alone | if it works at 400 it works wider — same words |
+| anything else | **400, 1920** | a phone check and a common desktop check |
+
+`--widths 1200,1920` overrides the pick by hand, same flag on both `review.mjs` and
+`merge.mjs --quick` below. Taken via:
 
 ```
-node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/
+node Server/layout-check.mjs <urls> --widths <picked> --bands --out <taskdir>/shots/
 ```
 
 `--bands` (`Server/layout-check.mjs`'s own header) adds, for every width: `tab_rows` (did a tab
 bar wrap into more than one row), `left_stack` (the padding stacked at the page's own left edge,
 layer by layer), `bands` (every top-level section's share of the screen, and how much of that
 share actually has content on it), and `wraps` (anything that wrapped to a second line when it
-looks like it shouldn't have). This is skipped if every page already has all four widths' pngs
-under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is appended
-to `task.jsonl`:
+looks like it shouldn't have). This is skipped if every page already has a png at every width
+picked, under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is
+appended to `task.jsonl`, naming the widths actually used:
 
 ```json
-{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"]}}
+{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
 ```
+
+**`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
+skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
+then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
+`writeNoReviewPass` the `none` row above uses) so the merge gate and the dashboard see a real
+record with no agent cost. Detail and the exit codes: `merge.mjs`'s own header comment.
 
 The reviewer is then told to load the `review` skill (`.claude/skills/review/SKILL.md`) and
 follow it: read the brief, the owner's own words, the diff, the shots and each page's

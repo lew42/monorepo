@@ -1,4 +1,4 @@
-/* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]` — the one serialized way to land a worktree.
+/* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree.
  * It takes a lock (.merge.lock at the main repo root) so two merges never run at once, refuses
  * uncommitted work in the worktree, smoke-tests it (Server/smoke.mjs), then lands its branch on
  * michael/dev with the live-reload hold on. It NEVER runs `git merge` over uncommitted edits in the
@@ -37,13 +37,27 @@
  * prints every file's result and writes nothing (no lock, no hold).
  * A page path Git Bash mangled ("C:/Program Files/Git/framework/…", from a /path given without
  * MSYS_NO_PATHCONV=1) is refused before the lock, naming the fix (2026-09-30, node-reliability).
- * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 3 lock wait timed out, 4 would conflict (nothing touched). */
+ *
+ * `--quick` (2026-10-01, quick-merge): the fast path for a one-line voice fix. Skips the reviewer
+ * agent entirely — allowed only when the diff is `sizeOf` none/light, 20 changed lines or fewer,
+ * and every file sits under one `public/<a>/<b>/<c>/` module (or it's a single `Server/` file);
+ * otherwise refuses with exit 2 (never 1 — the fixer tells "too big for quick" apart from a real
+ * failure by this code alone) naming the line count, module count and size, and says to run the
+ * normal path. When it IS small enough: the same smoke test every branch gets, then ONE
+ * screenshot (`Server/review.mjs`'s `widthsFor` picks the width — normally one, not all four) of
+ * the worktree's own version of the page, then a `review.md` line ("size quick — one shot at <w>
+ * — pass", `writeNoReviewPass`, the same code `review.mjs --size none` uses) so the dashboard
+ * still sees a real record even with no agent — then the ordinary merge below, unchanged.
+ * `--asked <iso>` is the moment the fix was asked for (voice → smart assistant), so the final
+ * line's `ms` is the owner-felt latency, not just this script's own run time. The LAST line of
+ * stdout, only on a landed `--quick`, is one JSON object: `{"merged","shot","width","ms","asked_at"}`.
+ * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched). */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { sizeOf, status as reviewStatus, diffStat, pageUrlFor } from "./review.mjs";
+import { sizeOf, status as reviewStatus, diffStat, pageUrlFor, widthsFor, splitPatch, writeNoReviewPass } from "./review.mjs";
 import { keepLive } from "./jsonl-keep.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 
@@ -55,8 +69,11 @@ const skipSmoke = bool("--skip-smoke");
 const dryRun = bool("--dry-run");
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
+const quick = bool("--quick");
+const asked = flag("--asked");
+const mergeStart = Date.now();
 const [dirArg, ...paths] = argv;
-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run]"); process.exit(1); }
+if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
 // Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
 // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
 const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
@@ -83,6 +100,47 @@ function worktreeBase(dir){
 	const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
 	const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
 	return entry ? `http://127.0.0.1:${entry.port}` : null;
+}
+
+// A branch named "worktree/<slug>" usually has a same-slug task dir, if one was ever opened:
+// public/framework/ai/<one of the last 4 days>/<slug>/ — the most recent day that actually has
+// it. null if the branch isn't shaped that way, or no such day dir exists (most quick fixes:
+// they skip new-task entirely, so this is the common case, not the exception). Shared by
+// reviewGate (prints it as the runnable command) and the --quick path (where the shot and the
+// quick review record land, when there IS a task for them to live beside).
+function guessTaskDir(aiDir, branch){
+	const slug = /^worktree\/(.+)$/.exec(branch)?.[1];
+	if (!slug || !fs.existsSync(aiDir)) return null;   // a scratch/proof repo has no ai/ dir at all yet
+	const daysAgo = d => Math.floor((Date.now() - Date.parse(d)) / 86400000);
+	for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
+		const p = path.join(aiDir, day, slug);
+		if (fs.existsSync(p)) return p;
+	}
+	return null;
+}
+
+// public/<a>/<b>/<c>/ — the "one module directory" --quick's own gate asks for. null if `f`
+// doesn't even reach three segments under public/ (nothing under Server/ does; that path is
+// handled separately, by file count, in quickEligible below).
+function moduleDirOf(f){
+	const m = /^public\/([^/]+)\/([^/]+)\/([^/]+)\//.exec(f);
+	return m ? m[0] : null;
+}
+
+/* --quick's own gate (requirements.md point 2): allowed only when `sizeOf` is none/light AND the
+ * diff is 20 changed lines or fewer AND every file lives under the SAME public/<a>/<b>/<c>/
+ * module — or the whole diff is exactly one file under Server/. Never throws; the caller prints
+ * `why` and exits 2 on a no. */
+function quickEligible(nameStatus, numstat){
+	const size = sizeOf(nameStatus, numstat);
+	const totalLines = numstat.reduce((n, r) => n + (Number(r.added) || 0) + (Number(r.deleted) || 0), 0);
+	const files = nameStatus.map(x => x.f);
+	const oneServerFile = files.length === 1 && files[0].startsWith("Server/");
+	const dirs = new Set(files.map(f => moduleDirOf(f) ?? f));
+	const oneModule = oneServerFile || (dirs.size === 1 && files.every(f => moduleDirOf(f)));
+	const ok = (size === "none" || size === "light") && totalLines <= 20 && oneModule;
+	return { ok, size, totalLines, dirCount: oneModule ? 1 : dirs.size,
+		why: `refused: --quick needs ≤20 lines in one module (this is ${totalLines} lines in ${oneModule ? 1 : dirs.size} dir(s), size ${size}); run the normal path` };
 }
 
 /* The review gate. null = ok to merge (nothing needed, or --main/--no-review skipped it).
@@ -117,15 +175,8 @@ function reviewGate(branch, head){
 				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || e.review.at > best.e.review.at)) best = { td, e };
 			}
 		}
-	// no review yet: guess the task dir from the branch name (worktree/<slug> -> the most recent
-	// public/framework/ai/<date>/<slug> that actually exists) so the printed command is runnable as-is
-	let guessedTd = null;
-	const wtSlug = /^worktree\/(.+)$/.exec(branch)?.[1];
-	if (!best && wtSlug)
-		for (const day of fs.readdirSync(aiDir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && daysAgo(d) <= 3 && daysAgo(d) >= 0).sort().reverse()) {
-			const p = path.join(aiDir, day, wtSlug);
-			if (fs.existsSync(p)) { guessedTd = p; break; }
-		}
+	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
+	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
 	const cmd = `node Server/review.mjs ${best ? path.relative(MAIN, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
 	if (!best) return `refused: ${branch} is size ${sizeOf(nameStatus, numstat)} and has no review; run: ${cmd}`;
 	const current = best.e.review.head === head || git(MAIN, "merge-base", "--is-ancestor", best.e.review.head, head).status === 0;
@@ -318,7 +369,8 @@ const printPlan = plan => console.log(plan.map(p => `  ${p.action.toUpperCase().
 if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!\n");
 if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
 if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }
-let code = 0, held = false;
+let code = 0, held = false, quickShot = null, mergedHead = null;
+const slugOf = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
 const holdScript = path.join(MAIN, "Server", "hold.mjs");   // the main repo's own hold; a scratch repo has none
 const hold = (state, why, files = []) => {
 	if (!fs.existsSync(holdScript)) return false;
@@ -328,13 +380,24 @@ const hold = (state, why, files = []) => {
 try {
 	const branch = git(dir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
 	const head = git(dir, "rev-parse", "HEAD").stdout.trim();
+	mergedHead = head;   // the branch's own head — what --quick's final JSON line calls "merged"
 	// .jsonl streams are appended to by the running site itself, so they never count as your changes
 	if (git(dir, "status", "--porcelain", "--untracked-files=no").stdout.split(/\r?\n/).some(l => l.trim() && !l.trim().endsWith(".jsonl"))) { console.error("refused: the worktree has uncommitted changes"); code = 1; }
 	else if (git(MAIN, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim() !== BASE) { console.error(`refused: the main repo is not on ${BASE}`); code = 1; }
 	else {
-		const gateWhy = reviewGate(branch, head);
-		if (gateWhy) { console.error(gateWhy); code = 1; }
-		else {
+		// --quick skips the reviewer agent entirely — its own gate below, checked once here, stands
+		// in for reviewGate(). Everything after this is the SAME merge every other branch gets.
+		let proceed = true, quickInfo = null;
+		if (quick) {
+			const { nameStatus, numstat } = diffStat(MAIN, `${BASE}...${branch}`);
+			const elig = quickEligible(nameStatus, numstat);
+			if (!elig.ok) { console.error(elig.why); code = 2; proceed = false; }
+			else { console.log(`--quick: ${elig.size}, ${elig.totalLines} line(s), one module — skipping the reviewer agent`); quickInfo = { nameStatus, numstat }; }
+		} else {
+			const gateWhy = reviewGate(branch, head);
+			if (gateWhy) { console.error(gateWhy); code = 1; proceed = false; }
+		}
+		if (proceed) {
 		// --no-renames: a renamed file must list its old path too, or the old one would never be deleted
 		const changed = lines(git(MAIN, "diff", "--name-only", "--no-renames", `${BASE}...${branch}`).stdout);
 		const status = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
@@ -381,6 +444,40 @@ try {
 				console.log(lc.stdout + lc.stderr);
 			}
 		}
+		// --quick's own evidence: one screenshot, at whichever width(s) widthsFor picks for THIS
+		// change (normally one), from the worktree's own server — before the merge touches
+		// anything, same timing as the new-page screenshot above. Then a review.md line the way
+		// `review.mjs --size none` writes one, so the dashboard and --status see a real record
+		// even though no reviewer agent ran. The record is written whenever smoke really passed
+		// (or --skip-smoke stood in for it, on a scratch-repo proof); only the ACTUAL screenshot
+		// needs a real worktree server, so --skip-smoke skips just that part, not the record.
+		if (quick && smoke.status === 0) {
+			const aiDir = path.join(MAIN, "public/framework/ai");
+			const taskDir = guessTaskDir(aiDir, branch) ?? path.join(aiDir, "quick-fix");
+			const pages = [...new Set(status.map(s => pageUrlFor(s.f)).filter(Boolean))];
+			const diffText = git(MAIN, "diff", "--no-renames", `${BASE}...${branch}`).stdout;
+			const patches = splitPatch(diffText);
+			const withPatch = quickInfo.nameStatus.map(x => ({ ...x, patch: patches.get(x.f) || "" }));
+			const widths = widthsFor(withPatch, quickInfo.numstat, pages);
+			// widthsFor normally answers with one width for a quick-eligible change, but on the
+			// rare one that still matches a layout word (rule 2: all four), take evidence at every
+			// width it named, not just the first — only the JSON line's own `width` field (the
+			// fixer's hot-path summary) stays singular, per requirements.md point 2's own schema.
+			const width = widths[0];
+			const wtBase = !skipSmoke && pages.length ? worktreeBase(dir) : null;
+			if (skipSmoke) console.log("--quick: --skip-smoke — no real server, so no screenshot (a scratch-repo proof only)");
+			else if (!pages.length) console.log("--quick: no page in this change — nothing to screenshot");
+			else if (!wtBase) console.log(`--quick: no worktree server found for ${dir} — skipping the screenshot`);
+			else {
+				const shotDir = path.join(taskDir, "shots", head);
+				fs.mkdirSync(shotDir, { recursive: true });
+				const url = wtBase + pages[0];
+				const lc = run("node", [path.join(MAIN, "Server", "layout-check.mjs"), url, "--widths", widths.join(","), "--out", shotDir], MAIN);
+				console.log(lc.stdout + lc.stderr);
+				quickShot = { path: path.join(shotDir, slugOf(url), `${width}.png`), width, shots: widths.map(w => path.join(shotDir, slugOf(url), `${w}.png`)) };
+			}
+			await writeNoReviewPass(MAIN, taskDir, { size: "quick", branch, head, note: `size quick — ${widths.length === 1 ? `one shot at ${width}` : `shots at ${widths.join(", ")}`} — pass` });
+		}
 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
 		else if (!overlap.length && !staged.length) {
@@ -418,5 +515,10 @@ try {
 } finally {
 	if (held) hold("off", "merge");
 	if (!dryRun) try { fs.unlinkSync(lockFile); } catch {}
+}
+// --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
+// (or anything else driving this) can read it without parsing the human log above it.
+if (quick && code === 0) {
+	console.log(JSON.stringify({ merged: mergedHead, shot: quickShot?.path ?? null, width: quickShot?.width ?? null, ms: asked ? Date.now() - Date.parse(asked) : Date.now() - mergeStart, asked_at: asked ?? new Date(mergeStart).toISOString() }));
 }
 process.exit(code);

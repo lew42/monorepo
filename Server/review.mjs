@@ -1,21 +1,24 @@
-/* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]`
+/* `node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]`
  * Fresh eyes on a finished task: an agent that never saw the author's conversation reads only the
  * brief, the diff and (for a page it touched) screenshots, then says pass or fix. Why fresh: an
  * agent that reviews its own code agrees with itself.
  *
  * SIZE (`sizeOf`, exported): `none` — only .css/.md changed, 20 changed lines or fewer, no added
- * file: no agent runs, review.md just says so. `light` — code changed, but no new page/module/
- * Servex file: a fresh Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs
- * module, or anything under Servex/: a fresh Opus. `--size` may only RAISE the computed size;
- * lowering it needs `--why`, logged as a `{"decision":…}` line so the reason survives.
+ * file: no agent runs, review.md just says so (`writeNoReviewPass`, exported, also used by
+ * `merge.mjs --quick`). `light` — code changed, but no new page/module/Servex file: a fresh
+ * Sonnet reads the brief and the diff. `full` — a new page.js, a new .js/.mjs module, or anything
+ * under Servex/: a fresh Opus. `--size` may only RAISE the computed size; lowering it needs
+ * `--why`, logged as a `{"decision":…}` line so the reason survives.
  *
  * SHOTS: any review — `light` or `full` — whose diff touches a page (`pageUrlFor` finds one) gets
- * screenshots first, at `WIDTHS` (400, 1200, 1920, 3440) via `Server/layout-check.mjs --bands`,
- * saved to `<taskdir>/shots/<page-slug>/` (`400.png` … `sheet.png` … `layout.json`, the last
- * carrying `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page
- * already has all four pngs there — the task mastermind may have shot them first. One
+ * screenshots first, at whichever widths `widthsFor` (exported) picks for THIS change — not
+ * always all four; see its own comment for the rule, and the owner's sentence it quotes. `--widths
+ * 1200,1920` overrides that pick by hand. Taken via `Server/layout-check.mjs --bands`, saved to
+ * `<taskdir>/shots/<page-slug>/` (`<width>.png` … `sheet.png` … `layout.json`, the last carrying
+ * `--bands`' `tab_rows`/`left_stack`/`bands`/`wraps` numbers). Skipped if every page already has a
+ * png at every width picked, there — the task mastermind may have shot them first. One
  * `{"shots":{...}}` line is appended to task.jsonl naming every page, the shots dir, the first
- * page's sheet, every page's sheet, and every `layout.json` that exists.
+ * page's sheet, every page's sheet, every `layout.json` that exists, and the widths used.
  *
  * REVIEWER: when shots were taken, the prompt tells the reviewer to load the `review` skill — its
  * own absolute path, resolved from the tree THIS file lives in (`new URL("../.claude/skills/
@@ -158,6 +161,51 @@ export function sizeOf(files, numstat) {
 	const full = files.some(x => x.f.startsWith("Servex/")
 		|| (x.status === "A" && (/(^|\/)page\.js$/.test(x.f) || /\.(mjs|js)$/i.test(x.f))));
 	return full ? "full" : "light";
+}
+
+/* A full `git diff`'s stdout, split into one patch per file — {"a/x b/x\n...": text} keyed by
+ * the file's NEW path (`b/...`), so a rename's new name is what callers look up. Exported so
+ * merge.mjs's `--quick` path can reuse it instead of parsing the diff a second way. */
+export function splitPatch(diffText) {
+	const out = new Map();
+	let file = null, buf = [];
+	for (const line of (diffText || "").split(/\r?\n/)) {
+		const m = /^diff --git a\/(.+) b\/(.+)$/.exec(line);
+		if (m) { if (file) out.set(file, buf.join("\n")); file = m[2]; buf = []; continue; }
+		if (file) buf.push(line);
+	}
+	if (file) out.set(file, buf.join("\n"));
+	return out;
+}
+
+/* Which widths a change needs — not always all four. The owner, on taking a screenshot at every
+ * width for every change: "it doesn't make sense to take three extra screenshots when one would
+ * do … depends on the width of the content." One rule, checked in this order (first match wins):
+ *   1. only .md, or a page.js with no css touched  -> 1200 alone (words, not layout)
+ *   2. a layout word in a changed css/js file's own patch (grid, columns, sidebar, flex, width,
+ *      @container, @media, a styles/layouts/ class), or any file under core/Page, core/Sidebar,
+ *      styles/ -> all four (this can reshape the page at any width)
+ *   3. one css file, scoped to one component, whose patch has a max-width -> 400 alone (if it
+ *      works at 400 it works wider, same words)
+ *   4. otherwise -> 400 and 1920 (a phone check and a common desktop check)
+ * `files`: [{status, f, patch?}] — `patch` is that file's own diff text (splitPatch's value),
+ * used only for the layout-word/max-width checks; missing it just skips to the next rule.
+ * `pages`: the page urls this diff touches (pageUrlFor), so a change with no page at all still
+ * gets a sane answer. Kept to plain `if`s on purpose — see the comment above. */
+const LAYOUT_DIRS = ["core/Page/", "core/Sidebar/", "styles/"];
+// (?<!-)\bwidth\b: a bare "width" counts, but not the "width" inside "max-width"/"min-width" —
+// that one is rule 3's own signal (a component capped so it looks the same at every width).
+const LAYOUT_WORD = /\bgrid\b|\bcolumns\b|\bsidebar\b|\bflex\b|(?<!-)\bwidth\b|@container|@media|styles\/layouts\//i;
+export function widthsFor(files, numstat, pages = []) {
+	const paths = files.map(f => f.f);
+	const isCss = f => /\.css$/i.test(f), isPageJs = f => /(^|\/)page\.js$/.test(f), isMd = f => /\.md$/i.test(f);
+	if (!paths.some(isCss) && paths.every(f => isMd(f) || isPageJs(f))) return [1200];
+	const underLayoutDir = paths.some(f => LAYOUT_DIRS.some(d => f.includes(d)));
+	const wordInChange = files.some(f => (isCss(f.f) || /\.m?js$/i.test(f.f)) && LAYOUT_WORD.test(f.patch || ""));
+	// more than one page touched is a broader change by itself, whatever the words say
+	if (underLayoutDir || wordInChange || pages.length > 1) return [400, 1200, 1920, 3440];
+	if (files.length === 1 && isCss(paths[0]) && /max-width/i.test(files[0].patch || "")) return [400];
+	return [400, 1920];
 }
 
 /* review.md -> {verdict, findings:[{n, kind, text}]}. Exported for testing / --status. */
@@ -531,6 +579,21 @@ async function postReviewToCard(root, taskDir, review) {
 	}
 }
 
+/* A review with no reviewer agent, logged the same shape a real one is — so the gate, --status,
+ * --score and the dashboard card all see one consistent record either way. Used by main()'s own
+ * `size === "none"` path below, and by `merge.mjs --quick` (one copy of this, reused, per the
+ * quick-merge brief). `taskDir` is created if it doesn't exist yet — a quick fix with no dated
+ * task folder still gets somewhere to write (merge.mjs picks the fallback directory). */
+export async function writeNoReviewPass(root, taskDir, { size, note, branch, head }) {
+	fs.mkdirSync(taskDir, { recursive: true });
+	fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\n${note}\n`);
+	const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
+	appendJSON(path.join(taskDir, "task.jsonl"), { review });
+	writePhase1(taskDir, review);
+	await postReviewToCard(root, taskDir, review);
+	return review;
+}
+
 async function mcp(name, args, ms = 30000) {
 	const r = await fetch(MCP, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(ms) });
 	const j = await r.json();
@@ -579,9 +642,9 @@ async function main() {
 		return;
 	}
 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
-	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model");
+	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model"), widthsArg = flag("--widths");
 	const [taskDirArg, worktreeArg] = argv;
-	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>]'); process.exit(1); }
+	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
 	const taskDir = path.resolve(taskDirArg);
 	const worktreeDir = range ? null : path.resolve(worktreeArg || process.cwd());
 	// The main repo this worktree belongs to (the same trick merge.mjs uses): never assume it is
@@ -612,42 +675,43 @@ async function main() {
 
 	const taskJsonl = path.join(taskDir, "task.jsonl");
 	if (size === "none") {
-		fs.writeFileSync(path.join(taskDir, "review.md"), `verdict: pass\n\nNo review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.\n`);
-		const review = { at: now(), size, verdict: "pass", findings: [], branch, head, model: null, cost: 0, file: "review.md" };
-		appendJSON(taskJsonl, { review });
-		writePhase1(taskDir, review);
-		await postReviewToCard(root, taskDir, review);
+		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
+		await writeNoReviewPass(root, taskDir, { size, note, branch, head });
 		console.log(`review.mjs: size none — ${branch} — pass, no agent`);
 		return;
 	}
 
 	fs.mkdirSync(path.join(taskDir, "review"), { recursive: true });
 	const diffPath = path.join(taskDir, "review", "diff.patch");
-	fs.writeFileSync(diffPath, git(cwd, "diff", "--no-renames", spec).stdout);
+	const diffText = git(cwd, "diff", "--no-renames", spec).stdout;
+	fs.writeFileSync(diffPath, diffText);
 
 	// A page review: the diff touches at least one page.js/page.jsonl (pageUrlFor finds a URL for
-	// it). Every page review — `light` or `full` — gets screenshots at the four widths and uses
-	// the review skill; anything else keeps the plain brief-and-diff prompt, same as always.
+	// it). Every page review — `light` or `full` — gets screenshots at the widths the change
+	// actually needs (widthsFor, above) and uses the review skill; anything else keeps the plain
+	// brief-and-diff prompt, same as always. `--widths` overrides widthsFor's own pick.
 	const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
 	const pageReview = pages.length > 0;
 	const shotsDir = path.join(taskDir, "shots");
+	const patches = splitPatch(diffText);
+	const widths = widthsArg ? widthsArg.split(",").map(Number) : (pageReview ? widthsFor(status_.map(x => ({ ...x, patch: patches.get(x.f) || "" })), numstat, pages) : WIDTHS);
 	if (pageReview) {
 		const HOST = "http://monorepo.localhost";
 		const found = worktreeBase(root, worktreeDir);
 		const base = found ?? HOST;
-		const already = pages.every(p => WIDTHS.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
+		const already = pages.every(p => widths.every(w => fs.existsSync(path.join(shotsDir, slug(base + p), `${w}.png`))));
 		if (already) console.log(`review.mjs: shots already present for every page under ${path.relative(root, shotsDir)} — skipping layout-check`);
 		else {
 			// Falling back to the MAIN site's URL when this worktree has no .worktrees.json entry
 			// would screenshot the wrong tree with no sign of it — say so instead of staying silent.
 			if (!found) console.log(`review.mjs: no worktree entry for ${worktreeDir} in .worktrees.json — screenshotting the MAIN site instead, not this worktree's own copy`);
 			fs.mkdirSync(shotsDir, { recursive: true });
-			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", WIDTHS.join(","), "--bands", "--out", shotsDir]);
+			const lc = run("node", [path.join(root, "Server", "layout-check.mjs"), ...pages.map(p => base + p), "--widths", widths.join(","), "--bands", "--out", shotsDir]);
 			console.log(lc.stdout + lc.stderr);
 		}
 		const sheets = pages.map(p => `shots/${slug(base + p)}/sheet.png`);
 		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
-		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands } });
+		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands, widths } });
 	}
 
 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
