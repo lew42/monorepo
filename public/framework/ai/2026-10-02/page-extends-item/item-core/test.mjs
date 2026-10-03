@@ -1,9 +1,8 @@
-// Node test for the Events / List / LiveList / Item / Store chain — no DOM, no
+// Node test for the Events / List / List / Item / Store chain — no DOM, no
 // server. Run: `node test.mjs`. Prints one pass/fail line per claim and exits 1 if
 // anything failed.
 import Events from "../../../../core/Events/Events.js";
 import List from "../../../../core/List/List.js";
-import LiveList from "../../../../core/List/LiveList.js";
 import Item from "../../../../core/Item/Item.js";
 import Store from "../../../../core/Item/Store.js";
 
@@ -60,7 +59,11 @@ check("bubbles() false stops the climb at that object", () => {
 	return heardWall === 1 && heardTop === 0;
 });
 
-// ════ List: plain data, no events ══════════════════════════════════════════════
+// ════ List: the plain array-shaped methods (append/insert_before/etc.) ═══════════
+// List has Events built in now — there is no separate event-less variant — but
+// these low-level methods (append, insert_before, find by id, index_of, toJSON)
+// never announce anything; they're what the four verbs (add/remove/move/order)
+// below are built from.
 
 check("List: append/insert_before/remove, length, iteration, find, index_of, toJSON", () => {
 	const list = new List();
@@ -69,7 +72,7 @@ check("List: append/insert_before/remove, length, iteration, find, index_of, toJ
 	const order = [...list].map(x => x.id).join(",");
 	if (order !== "a,b,c") return false;
 	if (list.length !== 3) return false;
-	if (list.find(x => x.id === "b") !== b) return false;
+	if (list.find("b") !== b) return false;
 	if (list.index_of(c) !== 2) return false;
 	list.remove(b);
 	if ([...list].map(x => x.id).join(",") !== "a,c") return false;
@@ -101,14 +104,14 @@ check("List.adopt sets parent to the owner, or the list itself with none", () =>
 	return kid2.parent === bare;
 });
 
-// ════ LiveList: the live verbs ═════════════════════════════════════════════════
+// ════ List: the live verbs ═════════════════════════════════════════════════
 
 function fresh_list(){
 	// A minimal stand-in for the Item that would really own this list — just
-	// enough surface (`lists`, `emit`, `bubbles`) for LiveList's own bubbling and
+	// enough surface (`lists`, `emit`, `bubbles`) for List's own bubbling and
 	// `Item.remove()`-style lookups to work without constructing a whole Item.
 	const owner = { id: "owner", lists(){ return { items: list }; }, emit(){ return owner; }, bubbles(){ return true; } };
-	const list = new LiveList({ owner, name: "items" });
+	const list = new List({ owner, name: "items" });
 	return list;
 }
 
@@ -240,16 +243,16 @@ check("a key naming a method calls it with the value", () => {
 	return t.pinged === 7;
 });
 
-check("a nested delta reaches a named LiveList property's own set()", () => {
+check("a nested delta reaches a named List property's own set()", () => {
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	host.set({ content: { add: { id: "a", text: "hi" } } });
 	return host.content.length === 1 && host.content.at(0).get("text") === "hi";
 });
 
 check('"at" locates a path and sets the rest there', () => {
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	host.content.add({ id: "a", text: "hi" });
 	host.set({ at: "content/a", set: { text: "bye" } });
 	return host.content.at(0).get("text") === "bye";
@@ -281,7 +284,7 @@ check("a plain data change on the host records with no `at`", () => {
 
 check("a change on a named list records with `at` = the list's own name", () => {
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	const store = stub_store();
 	store.attach(host);
 	host.content.add({ id: "a", text: "hi" });
@@ -291,9 +294,9 @@ check("a change on a named list records with `at` = the list's own name", () => 
 
 check("one line per live change at any depth (a grandchild's own change)", () => {
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	const a = host.content.add({ id: "a", text: "hi" });
-	a.replies = new LiveList({ owner: a, name: "replies" });
+	a.replies = new List({ owner: a, name: "replies" });
 	const b = a.replies.add({ id: "b", text: "yo" });
 
 	const store = stub_store();
@@ -306,8 +309,8 @@ check("one line per live change at any depth (a grandchild's own change)", () =>
 
 check("a cross-list move records `from` as a path, not a live object", () => {
 	const host = new Item({ id: "root", data: {} });
-	host.a_list = new LiveList({ owner: host, name: "a_list" });
-	host.b_list = new LiveList({ owner: host, name: "b_list" });
+	host.a_list = new List({ owner: host, name: "a_list" });
+	host.b_list = new List({ owner: host, name: "b_list" });
 	const kid = host.a_list.add({ id: "k" });
 
 	const store = stub_store();
@@ -319,7 +322,7 @@ check("a cross-list move records `from` as a path, not a live object", () => {
 
 check("nothing is recorded while a store is replaying", () => {
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	const store = stub_store();
 	store.attach(host);
 
@@ -332,13 +335,13 @@ check("nothing is recorded while a store is replaying", () => {
 // back automatically on replay: `Item.hydrate()` calls `new Thread(...)`, which runs
 // this constructor exactly the way the live `new Thread(...)` did.
 class Thread extends Item {
-	constructor(...args){ super(...args); this.replies = new LiveList({ owner: this, name: "replies" }); }
+	constructor(...args){ super(...args); this.replies = new List({ owner: this, name: "replies" }); }
 }
 Item.register(Thread, "Thread");
 
 function build_doc(){
 	const host = new Item({ id: "root", data: {} });
-	host.content = new LiveList({ owner: host, name: "content" });
+	host.content = new List({ owner: host, name: "content" });
 	return host;
 }
 
@@ -361,12 +364,12 @@ check("replaying the recorded lines into a fresh host gives the same toJSON()", 
 });
 
 // A cross-list move replays: the line's `from` path is resolved back to the live
-// list (the line form of LiveList.move, 2026-10-02).
+// list (the line form of List.move, 2026-10-02).
 check("a cross-list move replays into a fresh host", () => {
 	const build = () => {
 		const host = new Item({ id: "root", data: {} });
-		host.a_list = new LiveList({ owner: host, name: "a_list" });
-		host.b_list = new LiveList({ owner: host, name: "b_list" });
+		host.a_list = new List({ owner: host, name: "a_list" });
+		host.b_list = new List({ owner: host, name: "b_list" });
 		return host;
 	};
 	const live = build();
@@ -382,9 +385,9 @@ check("a cross-list move replays into a fresh host", () => {
 	return JSON.stringify(fresh) === JSON.stringify(live) && fresh.a_list.length === 0 && fresh.b_list.at(1).id === "k";
 });
 
-// The LiveList teaching examples (core/List/LiveList.examples.js): the same array
+// The List teaching examples (core/List/List.examples.js): the same array
 // the List page shows, run here as tests.
-const { default: examples } = await import("../../../../core/List/LiveList.examples.js");
+const { default: examples } = await import("../../../../core/List/List.examples.js");
 for (const example of examples) check("example: " + example.title, () => { example.run(); return true; });
 
 // ════ Report ════════════════════════════════════════════════════════════════

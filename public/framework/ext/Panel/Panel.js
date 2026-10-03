@@ -1,5 +1,5 @@
 import Item from "/framework/core/Item/Item.js";
-import LiveList from "/framework/core/List/LiveList.js";
+import List from "/framework/core/List/List.js";
 
 /* One class. A panel holding items is a split (`dir`); a panel holding none is a leaf
    that renders `template`. Structure changes only through these verbs.
@@ -19,14 +19,14 @@ export class Panel extends Item {
 
 	constructor(...args){
 		super(...args);
-		this.items = new LiveList({ owner: this, name: "items" });
+		this.items = new List({ owner: this, name: "items" });
 	}
 
 	/* Two convenience methods matching the OLD Item-level API, kept here (not on
 	   Item) because the rest of ext/Panel/ — workspace.js, PanelDrag.js, random.js,
 	   insert.js, generate.js, none of them in this task's fence — calls
 	   `panel.add(...)` and `panel.move(parent, before)` directly on a Panel. Moving
-	   the real verbs onto `items` (core/List/LiveList.js) stays entirely inside this
+	   the real verbs onto `items` (core/List/List.js) stays entirely inside this
 	   one file instead of touching every caller across the directory. */
 	add(...kids){ kids.forEach(kid => this.items.add(kid)); return this; }
 	move(parent, before = null){ parent.items.move(this, { before, from: this.parent?.items }); return this; }

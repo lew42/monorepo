@@ -1,6 +1,6 @@
 import { Doc, md, code, div, span, h4, input, icon, View } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
-import LiveList from "/framework/core/List/LiveList.js";
+import List from "/framework/core/List/List.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
 import LocalStorageSaver from "/framework/ext/Saver/LocalStorageSaver.js";
@@ -323,9 +323,9 @@ workspace({ saver: panels, templates: REGIONS, seed });`);
 			if (!doc.get("words")) doc.set("words", "flex v gap pad");
 
 			// A saved doc with blocks already hydrated its own `items` (any array-valued
-			// key becomes a LiveList — core/Item/Item.js's `hydrate()`); a brand new one
+			// key becomes a List — core/Item/Item.js's `hydrate()`); a brand new one
 			// never had the key at all, so it still needs one.
-			doc.items ??= new LiveList({ owner: doc, name: "items" });
+			doc.items ??= new List({ owner: doc, name: "items" });
 
 			if (!doc.items.length){
 				const section = new Section();

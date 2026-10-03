@@ -1,10 +1,10 @@
-import LiveList from "../List/LiveList.js";
+import List from "../List/List.js";
 
 /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
    through `host.set(line)`, appends new ones as they happen, and — on localhost —
    streams live lines in both directions. Recording lives in exactly ONE place: here.
    `store.attach(host)` listens for `host`'s own "delta" event (which bubbles up from
-   anything below it — a nested Item, a LiveList three levels down), works out the
+   anything below it — a nested Item, a List three levels down), works out the
    `at` path from the host down to wherever the change actually happened, and
    appends ONE line. Replaying those lines through `host.set(line)` rebuilds the
    same tree.
@@ -172,7 +172,7 @@ export class Store {
 function address(node, host){
 	if (!node || node === host) return undefined;
 
-	if (node instanceof LiveList){
+	if (node instanceof List){
 		const base = address(node.owner, host);
 		return base ? `${base}/${node.name}` : node.name;
 	}

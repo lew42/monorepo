@@ -1,6 +1,6 @@
 import { Page, div, p, button, pre, span } from "/app.js";
 
-/* THE DEMO: a page's own `content` — a real `LiveList` of `Item`s, saved to a real
+/* THE DEMO: a page's own `content` — a real `List` of `Item`s, saved to a real
    file, drawn with the one reusable view (`Page.render_content_list()`, Page.class.js).
    `/framework/core/Item/` is the data model; this is the SAME thing, live, on a page
    you can click around on. doc: core/Item/page.js "See it saved".
@@ -26,7 +26,7 @@ const SEEDS = [
 export default new Page({
 	meta: import.meta,
 	title: "Live list",
-	description: "A page's own content, as a LiveList of Items, saved to a real file — drag, add or sort, then reload: the list comes back.",
+	description: "A page's own content, as a List of Items, saved to a real file — drag, add or sort, then reload: the list comes back.",
 	icon: "reorder",
 	width: "large",
 
@@ -34,7 +34,7 @@ export default new Page({
 	//   returns a Promise<FsFile> (Log.js, deliverable 4/11) — core never statically
 	//   imports ext/filesystem, so the file class arrives by dynamic import either way.
 	//   `ensure_content()` runs FIRST, synchronously, before the first `await` — so
-	//   `page.content` is already a (still empty) LiveList by the time `render()`
+	//   `page.content` is already a (still empty) List by the time `render()`
 	//   runs, moments later; the four seed rows pop in when the file finishes
 	//   loading, through the same "add" events the UI already listens for.
 	async initialize(){
@@ -43,7 +43,7 @@ export default new Page({
 		const file = await this.file("demo.jsonl");
 		this.file_store = file.store;             // Item.Store.for(url) — one per file
 		await this.file_store.open();              // actually fetches/streams demo.jsonl's lines into it
-		this.file_store.attach(this.content);      // a LiveList IS Events + has set() — a valid Store host
+		this.file_store.attach(this.content);      // a List IS Events + has set() — a valid Store host
 
 		// The raw text, read once at load, seeds the "last lines" panel below with
 		// everything that was already in the file. `content`'s own "delta" event

@@ -1,7 +1,7 @@
 import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import { page_settings } from "./settings/settings.js";
 import Item from "../Item/Item.js";
-import LiveList from "../List/LiveList.js";
+import List from "../List/List.js";
 
 /* A PAGE AS A LOG — `page.jsonl`, the page format that needs no page.js.
 
@@ -43,7 +43,7 @@ export class PageLog extends Item {
 	// (fully replaced) by the second settings line instead of merged with the first.
 	settings = { set(obj){ Object.assign(this, obj); } };
 
-	// A page is a BOUNDARY: its own events (and a content/pages LiveList's, which
+	// A page is a BOUNDARY: its own events (and a content/pages List's, which
 	// bubble to the page first) never climb past it to a PARENT page. Each page's
 	// Store only ever hears changes inside its own subtree.
 	bubbles(){ return false; }
@@ -76,14 +76,14 @@ export class PageLog extends Item {
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
 
-		if ("content" in obj && !(this.content instanceof LiveList)){
+		if ("content" in obj && !(this.content instanceof List)){
 			const { content, ...rest } = obj;
 			this.ensure_content().set(content);
 			return super.set(rest);
 		}
 
 		// The Store writes a live content change as `{"at": "content/…", …}`; on replay
-		// `locate()` needs `page.content` to be a LiveList already, so make it here too.
+		// `locate()` needs `page.content` to be a List already, so make it here too.
 		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
 
 		return super.set(obj);
@@ -94,19 +94,19 @@ export class PageLog extends Item {
 	// blocks of its own pays nothing. Once it exists, Item's own `set_one()` routes
 	// straight to its `.set()` without this method running again (deliverable 6).
 	ensure_content(){
-		return this.content instanceof LiveList ? this.content
-			: (this.content = new LiveList({ owner: this, name: "content" }));
+		return this.content instanceof List ? this.content
+			: (this.content = new List({ owner: this, name: "content" }));
 	}
 
 	// My sub-pages — the real storage `page.pages`. `of: null` keeps a plain stub
-	// object (`{id, name, stub: true}`) plain: LiveList.make() hydrates a plain value
+	// object (`{id, name, stub: true}`) plain: List.make() hydrates a plain value
 	// through `of` only when `of` is truthy, so a stub is never turned into an Item.
 	// A REAL loaded page is a `Page` instance already (never plain), so it is
 	// inserted/replaced UNCHANGED either way — see `add()`, Page.class.js.
-	get pages(){ return this._pages ??= new LiveList({ owner: this, name: "pages", of: null }); }
+	get pages(){ return this._pages ??= new List({ owner: this, name: "pages", of: null }); }
 
 	// A Map-SHAPED VIEW over `pages`, so the ~215 existing `.children` callers across
-	// ~94 files keep working unchanged while the real storage is the LiveList above.
+	// ~94 files keep working unchanged while the real storage is the List above.
 	// New code and docs say `page.pages`. `PageChildren extends Map` so
 	// `instanceof Map` stays true and a page.jsonl line can never REPLACE it (see the
 	// setter below) — only `declare()` (Page.class.js) ever builds the real tree.
@@ -522,7 +522,7 @@ export class PageLog extends Item {
 	}
 }
 
-/* THE SHIM — a Map-shaped VIEW over `page.pages` (the real LiveList storage), so
+/* THE SHIM — a Map-shaped VIEW over `page.pages` (the real List storage), so
    every existing `.children` caller keeps working unchanged. `instanceof Map` is
    real (this class extends it), but the base Map's own storage is never touched —
    every method here reads or writes `page.pages` instead. */
@@ -543,7 +543,7 @@ class PageChildren extends Map {
 
 	// `null` adds a stub (quietly — declaring a child is not a live edit); a real
 	// page quietly inserts, or quietly REPLACES the stub that already held this name
-	// (`LiveList.replace`, which never announces: loading is not a change).
+	// (`List.replace`, which never announces: loading is not a change).
 	set(name, value){
 		const had = this.pages.find(name);
 
@@ -556,8 +556,8 @@ class PageChildren extends Map {
 		return this;
 	}
 
-	// Quiet — a Map never announced either. `release()` is LiveList's quiet remove
-	// (core/List/LiveList.js), the counterpart to `remove()`'s announcing one.
+	// Quiet — a Map never announced either. `release()` is List's quiet remove
+	// (core/List/List.js), the counterpart to `remove()`'s announcing one.
 	delete(name){
 		const had = this.pages.find(name);
 		if (!had) return false;

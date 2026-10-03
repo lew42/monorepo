@@ -1,12 +1,12 @@
 import Item from "/framework/core/Item/Item.js";
-import LiveList from "/framework/core/List/LiveList.js";
+import List from "/framework/core/List/List.js";
 
 /* The palette. A block is an `Item` that knows what it looks like: `words` is the
    class string it wears — on this site a design IS a class string — and a leaf also
    carries `text`. Both live in `data`, so both serialize, undo and reload with
    everything else in the document.
 
-   ⚠ `items` is a LiveList this class gives itself, in its own constructor — Item
+   ⚠ `items` is a List this class gives itself, in its own constructor — Item
    holds no children of its own (core/Item/readme.md). A Text block never actually
    gets any (it's a leaf), but giving every Block the same shape keeps `insert()`
    and `cut()` in page.js from needing a special case for which kind of block
@@ -15,7 +15,7 @@ export class Block extends Item {
 
 	constructor(...args){
 		super(...args);
-		this.items = new LiveList({ owner: this, name: "items" });
+		this.items = new List({ owner: this, name: "items" });
 		this.data.words ??= this.words;
 		if (this.text !== undefined) this.data.text ??= this.text;
 	}

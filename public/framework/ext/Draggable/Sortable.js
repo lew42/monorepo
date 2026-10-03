@@ -35,9 +35,9 @@ export default class Sortable extends Draggable {
 	}
 
 	// Sortable commits a POSITION, so it does not use Draggable's single-target drop.
-	// ⚠ Calls the TARGET LIST's own `move` (core/List/LiveList.js) — never the Item
+	// ⚠ Calls the TARGET LIST's own `move` (core/List/List.js) — never the Item
 	// — because Item itself holds no list methods any more. Every caller of
-	// Sortable gives its row Items an `items` LiveList (Panel, the editor's blocks,
+	// Sortable gives its row Items an `items` List (Panel, the editor's blocks,
 	// the Draggable demo all do), so `where.list.item.items` is always that list;
 	// `from` is wherever the dragged item is parented RIGHT NOW, read fresh at
 	// drop time rather than cached, so a drop still works after the item itself

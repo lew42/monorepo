@@ -1,6 +1,6 @@
 # Item — an arbitrary persistent thing: an id, a data bag, one `set(delta)`, a place to save, a place to be seen. No children of its own.
 
-**When to reach for which:** a **List** for plain ordered data; a **LiveList** when something must watch it change; an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
+**When to reach for which:** a **List** when something is ordered and needs watching (events are built in — there's no event-less variant any more); an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
 
 ## Architecture
 
@@ -15,17 +15,17 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
 }
  └─ PageLog (core/Page/Log.js)        // ✅ adds the page.jsonl bits: keeps every line, emits "line"
      └─ Page (core/Page)              // ✅ Page extends PageLog extends Item — the owner approved it 2026-10-02
-     pages: LiveList                  // its sub-pages
-     content: LiveList                // its visible blocks, made lazily
+     pages: List                      // its sub-pages
+     content: List                    // its visible blocks, made lazily
 ```
 
 **Item itself has no list of its own — no `items`, no `add`/`move`/`order`.** Those collided
-with Page's own `add(name, child)`/`move(url)` (about 70 methods already in use), so the fourth
-pass (the design doc's own name for this) made lists a PROPERTY instead of an inheritance:
-something that needs children gives ITSELF a named `LiveList` (`core/Item/page.js`'s own
-`DemoCard` does this in its constructor; `page.pages` and `page.content` are Page's). Supersedes
-the "Item IS a list" shape this readme described before 2026-10-02 — `core/List/readme.md`
-has the same correction for `List`/`LiveList`.
+with Page's own `add(name, child)`/`move(url)` (about 70 methods already in use), so lists are
+a PROPERTY instead of an inheritance: something that needs children gives ITSELF a named
+`List` (`core/Item/page.js`'s own `DemoCard` does this in its constructor; `page.pages` and
+`page.content` are Page's). There is one `List` class, not two — `LiveList` was merged into it
+2026-10-02 (the owner: "scrap LiveList everywhere… List itself gets Events built in"); see
+`core/List/readme.md`.
 
 ## Use
 
@@ -33,7 +33,7 @@ has the same correction for `List`/`LiveList`.
 
 ```js
 const doc = await Item.open("/framework/core/Item/live/demo.jsonl");   // replay every line, then tail
-doc.content ??= new LiveList({ owner: doc, name: "content" });         // a class gives ITSELF a list
+doc.content ??= new List({ owner: doc, name: "content" });             // a class gives ITSELF a list
 doc.content.add({ id: "hello", data: { text: "Hello" } });           // appends {"add":…} through FsFile.append
 ```
 
@@ -44,7 +44,7 @@ const doc = await Item.open(new FileSaver({ path: "/data/doc.json" }));
 doc.save();
 ```
 
-Wire format is `{ type, id, data, <listname>: [...] }` — each LiveList property an Item gave
+Wire format is `{ type, id, data, <listname>: [...] }` — each List property an Item gave
 itself, written under its own name, omitted when it never made one. All user state lives under
 `data`. Headless, runs in node.
 
@@ -56,14 +56,14 @@ itself, written under its own name, omitted when it never made one. All user sta
 - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).
 - A child's `save()` delegates up and persists the whole document, never its subtree: [doc/method/save.md](./doc/method/save.md).
 - `item.view` is `undefined` until a `static View` is actually wired in (nobody has built the
-  generic one yet) — a reader of a content LiveList with no view of its own falls back to its
+  generic one yet) — a reader of a content List with no view of its own falls back to its
   own title/text; see `Page.render_content_list()`, core/Page.
 
 ## More
 
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
-- [Live list](/framework/core/Item/live/) — the same LiveList, on a real page, saved to a real file: drag, add, sort, reload.
+- [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
-- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/LiveList.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).

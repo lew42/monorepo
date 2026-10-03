@@ -1,6 +1,6 @@
 import { Doc, md, code, demo, div, span, icon } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
-import LiveList from "/framework/core/List/LiveList.js";
+import List from "/framework/core/List/List.js";
 import Draggable from "./Draggable.js";
 import Sortable from "./Sortable.js";
 
@@ -34,7 +34,7 @@ function board(root){
 	const draw = () => $board.empty(() => { root.items.forEach(column => node(column, false)); });
 
 	// One listener, at the root: Item events bubble, so a move anywhere lands here.
-	// `move`/`order` are new names (core/List/LiveList.js) — a drag used to show up
+	// `move`/`order` are new names (core/List/List.js) — a drag used to show up
 	// as a `remove` plus an `add`; now it is its own single event, so it is listed here too.
 	["add", "remove", "move", "order"].forEach(event => root.on(event, draw));
 
@@ -46,7 +46,7 @@ function board(root){
 // ITSELF an `items` list, same as Panel and the editor's blocks do.
 function node_item(data){
 	const it = new Item({ data });
-	it.items = new LiveList({ owner: it, name: "items" });
+	it.items = new List({ owner: it, name: "items" });
 	return it;
 }
 
@@ -115,7 +115,7 @@ export default new Doc({
 		demo(() => board(root),
 			"Drag by the grip. Reorder inside a column, cross the gap, or drop into **Box** to nest. Press **Escape** mid-drag and nothing commits.");
 
-		md(`\`root.items instanceof LiveList\` → **${root.items instanceof LiveList}**. The rows are real \`Item\`s, and \`Draggable\`/\`Sortable\` import neither class — the whole coupling is a drop target's \`list.move(kid, {before, from})\` (its own \`items\`, [core/List/LiveList.js](/framework/core/List/)) plus your own \`drop_check\`.`);
+		md(`\`root.items instanceof List\` → **${root.items instanceof List}**. The rows are real \`Item\`s, and \`Draggable\`/\`Sortable\` import neither class — the whole coupling is a drop target's \`list.move(kid, {before, from})\` (its own \`items\`, [core/List/List.js](/framework/core/List/)) plus your own \`drop_check\`.`);
 
 		md("**One `Sortable` per node.** A node with `$items` is also a drop site; one with `handle: false` is *only* a drop site. Reorder, reparent and nest are not three features — they are one list `move()` with a different target list.");
 

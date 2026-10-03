@@ -1,10 +1,10 @@
 # Events — `on` / `off` / `emit`, a mixin everything else builds on
 
-A mixin, not a base class: `Events(Object)` is a plain emitter, `Events(List)`
-(`core/List/LiveList.js`) is a List that announces every change, and `Item`
-(`core/Item/`) is `Events(Object)` plus an id, a data bag and `set(delta)`. Nothing
-here is specific to any of them — it is `on`, `off`, `emit`, and one more method,
-`bubbles()`, that says whether an event keeps climbing.
+A mixin, not a base class: `Events(Object)` is a plain emitter. `Item` (`core/Item/`) is
+`Events(Object)` plus an id, a data bag and `set(delta)`; `List` (`core/List/`) is
+`Events(Object)` plus the array and the four verbs. Nothing here is specific to either —
+it is `on`, `off`, `emit`, and one more method, `bubbles()`, that says whether an event
+keeps climbing.
 
 ## Architecture
 
@@ -14,11 +14,11 @@ const Events = Base => class extends Base {   // ✅ the ONLY mixin in core — 
   emit(event, ...args)                        // my listeners, then this.parent?.emit(...) while bubbles(event)
   bubbles(event)                              // true by default; a class overrides it to be a boundary
 }
-Item     = Events(Object)                     // core/Item/Item.js
-LiveList = Events(List)                       // core/List/LiveList.js — its parent is its owner Item
+Item = Events(Object)                         // core/Item/Item.js
+List = Events(Object)                         // core/List/List.js — its parent is its owner Item
 ```
 
-Because a LiveList's `parent` is the Item that owns it, one listener on a root Item hears
+Because a List's `parent` is the Item that owns it, one listener on a root Item hears
 every change anywhere below it. That is how `Item.Store` records a whole tree with one
 `"delta"` listener.
 
@@ -51,7 +51,8 @@ a boundary (`core/Page` will, so a page's own events never leak into its parent'
 
 ## More
 
-- [`core/List/LiveList.js`](../List/LiveList.js) — the list that uses this to
+- [`core/List/List.js`](../List/List.js) — the list that uses this to
   announce `add`/`remove`/`move`/`order`, plus one uniform `"delta"` event
-  `Item.Store` listens for.
+  `Item.Store` listens for. One class — the event-less `List` and the announcing
+  `LiveList` were merged into it 2026-10-02.
 - [`core/Item/Item.js`](../Item/Item.js) — `Item = Events(Object)`.

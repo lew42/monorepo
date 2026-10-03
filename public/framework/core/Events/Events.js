@@ -1,8 +1,8 @@
 // A small mixin — `on` / `off` / `emit`, nothing else — so ANY class can announce
 // its own changes without inheriting a bigger base class. `Events(Object)` is a
-// plain emitter; `Events(List)` (core/List/LiveList.js) is a List that announces
-// every change. Listeners live in `this._on`, made lazily, so an object that never
-// listens never allocates one.
+// plain emitter; `List` (core/List/List.js) extends `Events(Object)` directly, so
+// every List announces its own changes. Listeners live in `this._on`, made lazily,
+// so an object that never listens never allocates one.
 export const Events = (Base = Object) => class extends Base {
 
 	on(event, fn){

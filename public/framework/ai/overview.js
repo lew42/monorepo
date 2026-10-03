@@ -485,7 +485,7 @@ function render_writers(base){
 }
 
 /* "How a page saves" — ai/system/saving/ (deliverable 3: page.jsonl lines, set(delta), Store,
-   LiveList, the dev socket's append and tail). This is a converging design, not a finished one —
+   List, the dev socket's append and tail). This is a converging design, not a finished one —
    the page says so and points at the one proposal instead of re-explaining it three times. */
 function render_saving(base){
 	md("**A page's data is lines in its own `page.jsonl`.** Change something on a page, and one line is appended — never a whole-file rewrite. Every other open tab on that same page hears the new line within milliseconds, no reload.");

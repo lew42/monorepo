@@ -31,7 +31,7 @@ export class Flow {
 
 	/* The five events `mount()` already binds, and not the six verbs: `divide`,
 	   `split`, `close`, `absorb`, `sow` and a drag all mutate through `move`/`add`/
-	   `remove` on a panel's own `items` list (core/List/LiveList.js), which is what
+	   `remove` on a panel's own `items` list (core/List/List.js), which is what
 	   this hears — a single `move()` no longer shows up as a `remove` plus an `add`,
 	   so `"move"` and `"order"` are listed here alongside the three original events. */
 	listen(){

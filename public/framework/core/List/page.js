@@ -1,21 +1,15 @@
 import { Doc, md, h2, code, div, span, button, icon } from "/app.js";
 import Item from "../Item/Item.js";
 import List from "./List.js";
-import LiveList from "./LiveList.js";
-import examples from "./LiveList.examples.js";
+import examples from "./List.examples.js";
 
-// A plain List holds plain objects — nothing with its own `.set` or `.emit` required.
-function build_list(){
-	const list = new List();
-	["Alpha", "Beta", "Gamma"].forEach(label => list.append({ label }));
-	return list;
-}
-
-// The same shape, but LIVE: a real root Item, composing a named LiveList — the
-// pattern [Item](/framework/core/Item/) itself uses (`item.content`, `panel.items`).
+// A real root Item, composing a named List — the pattern [Item](/framework/core/Item/)
+// itself uses (`item.content`, `panel.items`). Every List announces every change;
+// there is no plain, event-less variant any more (2026-10-02: "scrap LiveList
+// everywhere… List itself gets Events built in").
 function build_live(){
 	const root = new Item({ id: "root", data: {} });
-	root.items = new LiveList({ owner: root, name: "items" });
+	root.items = new List({ owner: root, name: "items" });
 	["Alpha", "Beta", "Gamma"].forEach(label => root.items.add({ id: label, label }));
 	return root;
 }
@@ -46,37 +40,30 @@ function example({ title, run }){
 export default new Doc({
 	meta: import.meta,
 	title: "List",
-	description: "The plain ordered array — data only, no events. LiveList, right beside it, is this PLUS announcing every change.",
+	description: "The ordered collection that announces every change — add/remove/move/order by id, never an index.",
 	icon: "reorder",
 
 	subject: List,
 	properties: "items owner length",
-	methods: "assign forEach map at adopt append insert_before remove find index_of toJSON",
+	methods: "assign forEach map at adopt append insert_before take index_of key find add remove move order set toJSON",
 	notes: "decisions",
-	files: "List.js LiveList.js LiveList.examples.js readme.md page.js",
+	files: "List.js List.examples.js readme.md page.js",
 
 	content(){
 
-		code.js(`list.items  list.length  [Symbol.iterator]
-list.forEach(fn)  list.map(fn)  list.at(i)
-list.append(child)  list.insert_before(child, ref = null)  list.remove(child)
-list.find(fn)  list.index_of(child)
+		code.js(`list.add(x, {after})  list.remove(id)  list.move(id, {after})  list.order([ids])
+list.find(id)  list.forEach(fn)  list.map(fn)  list.at(i)  list.length
 list.adopt(child)   //  child.parent = owner ?? this
 list.toJSON()       //  a bare array`);
 
-		md("**List is the plain ordered array wrapper — data only, no events.** About fifty lines. It is what an ordered collection looks like with nothing watching it; reach for one when nothing needs to react to a change (a sort key, a render order, anything you'd otherwise reach for a bare array for).");
+		md("**List is the ordered collection — Events built in, so every change announces itself.** About two hundred lines, composed onto an Item as a named property (`item.content`, `panel.items`) — never inherited. `Item` holds no list of its own; something that needs children gives ITSELF one (`item.content = new List({ owner: item, name: \"content\" })`). There is no separate event-less variant: every List is live.");
 
-		const list = build_list();
-		div.c("flex gap pad surface", () => list.forEach(x => span(x.label))).style({ "--gap": "0.5em", "--pad": "0.8em" });
+		h2("Four verbs, by id, never an index");
 
-		md("`owner` is what makes adoption safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is whatever Item composed this list, never the list itself. [doc/adoption](./doc/adoption.md).");
-
-		h2("LiveList — the same array, announcing every change");
-
-		md("[`LiveList`](./LiveList.js) is `Events(List)` (core/Events): the same plain array, plus `add` / `remove` / `move` / `order` **by id, never an index** — and each one emits the exact line it would save, plus one uniform `\"delta\"` event [`Item.Store`](/framework/core/Item/) listens for. [`Item`](/framework/core/Item/) **composes** one as a named property instead of inheriting it — a bare Item holds no list of its own; something that needs children gives ITSELF one (`item.content = new LiveList({ owner: item, name: \"content\" })`).");
+		md("`add` / `remove` / `move` / `order` each emit the exact line they would save, plus one uniform `\"delta\"` event [`Item.Store`](/framework/core/Item/) listens for. A line survives the list changing shape around it, because every verb names a MEMBER, never a position.");
 
 		code.js(`const root = new Item({ id: "root", data: {} });
-root.items = new LiveList({ owner: root, name: "items" });
+root.items = new List({ owner: root, name: "items" });
 root.items.add({ id: "a", label: "Alpha" });   // announces "add" + "delta", bubbled to root`);
 
 		const root = build_live();
@@ -97,9 +84,9 @@ root.items.add({ id: "a", label: "Alpha" });   // announces "add" + "delta", bub
 
 		md("Reorder and rename are each **one call**, on the list — nothing here subscribes to a row; `draw` is bound once, to the root, and hears everything under it because events bubble.");
 
-		h2("LiveList by example");
+		h2("List by example");
 
-		md("Six examples, each a few plain lines that prove one behaviour. They are also LiveList's tests: they run right here as the page loads, and the node test runs the same file ([LiveList.examples.js](./LiveList.examples.js)).");
+		md("Six examples, each a few plain lines that prove one behaviour. They are also List's tests: they run right here as the page loads, and the node test runs the same file ([List.examples.js](./List.examples.js)).");
 
 		const passed = [];
 		div.c("flex v gap pad surface", () => examples.forEach(e => passed.push(example(e))))

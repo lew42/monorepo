@@ -1,6 +1,6 @@
 import { Doc, md, h2, code, div, span, icon } from "/app.js";
 import Item from "./Item.js";
-import LiveList from "../List/LiveList.js";
+import List from "../List/List.js";
 
 // A class that gives ITSELF a child list, in its own constructor — Item holds none
 // built in (see "Composing a list" below). This is the real pattern: Page, Panel
@@ -8,7 +8,7 @@ import LiveList from "../List/LiveList.js";
 class DemoCard extends Item {
 	constructor(...args){
 		super(...args);
-		this.items = new LiveList({ owner: this, name: "items" });
+		this.items = new List({ owner: this, name: "items" });
 	}
 }
 Item.register(DemoCard, "demo-card");
@@ -165,17 +165,17 @@ card.save();`);
 		code.js(`class DemoCard extends Item {
 	constructor(...args){
 		super(...args);
-		this.items = new LiveList({ owner: this, name: "items" });   // a NAMED property, not inherited
+		this.items = new List({ owner: this, name: "items" });   // a NAMED property, not inherited
 	}
 }`);
 
-		md("Something that needs children gives **itself** a [LiveList](/framework/core/List/) property, in its own constructor, named for what it holds (`items` here; `page.pages` and `page.content` will be [Page](/framework/core/Page/)'s own, next). The list's own verbs — `add`, `remove`, `move`, `order` — live on THAT property: `card.items.add(kid)`, never `card.add(kid)`. This is composition on purpose: a class with its own `add`/`move` already in use (Page has about 70 methods) would collide if Item inherited the list API instead of merely offering it.");
+		md("Something that needs children gives **itself** a [List](/framework/core/List/) property, in its own constructor, named for what it holds (`items` here; `page.pages` and `page.content` will be [Page](/framework/core/Page/)'s own, next). The list's own verbs — `add`, `remove`, `move`, `order` — live on THAT property: `card.items.add(kid)`, never `card.add(kid)`. This is composition on purpose: a class with its own `add`/`move` already in use (Page has about 70 methods) would collide if Item inherited the list API instead of merely offering it.");
 
 		h2("The envelope");
 
 		code.json(`{ "type": "Item", "id": "…", "data": { }, "items": [ ] }`);
 
-		md("Those are the whole wire format for a plain Item: `type`/`id`/`data`, plus any LiveList property it gave itself, each written as a plain array under its own name (`items` here) — omitted entirely when that Item never made one. **All user state lives under `data`**, so a key of your own never collides with a list name. `parent`, `store` and `view` are instance properties, never serialized — which makes a backref impossible by construction; hydrate restores `parent` by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/doc/envelope/).");
+		md("Those are the whole wire format for a plain Item: `type`/`id`/`data`, plus any List property it gave itself, each written as a plain array under its own name (`items` here) — omitted entirely when that Item never made one. **All user state lives under `data`**, so a key of your own never collides with a list name. `parent`, `store` and `view` are instance properties, never serialized — which makes a backref impossible by construction; hydrate restores `parent` by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/doc/envelope/).");
 
 		h2("The verbs Item DOES have");
 
@@ -202,9 +202,9 @@ item.save()  item.delete()         // delegate up to the document's saver`);
 
 		h2("See it saved");
 
-		md("[**Live list**](/framework/core/Item/live/) — the same `LiveList`, but on a real page, saved to a real file: drag a row, add one, sort them, then reload. The list comes back.");
+		md("[**Live list**](/framework/core/Item/live/) — the same `List`, but on a real page, saved to a real file: drag a row, add one, sort them, then reload. The list comes back.");
 
-		md("Next: [List](/framework/core/List/) — the plain collection `LiveList` builds on, and why a bare `Item` never has one of its own.");
+		md("Next: [List](/framework/core/List/) — the ordered collection itself, and why a bare `Item` never has one of its own.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	}

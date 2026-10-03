@@ -1,4 +1,4 @@
-import LiveList from "../List/LiveList.js";
+import List from "../List/List.js";
 import Store from "./Store.js";
 import { Events } from "../Events/Events.js";
 
@@ -9,14 +9,14 @@ const skipped = key => key === "constructor" || key === "__proto__" || key.start
 /* An arbitrary THING: an id, an icon, a title, a data bag, one `set(delta)`, a
    place to save (`store`) and a place to be seen (`view`). No list methods at all —
    `Item` itself holds no children. Something that needs them gives ITSELF a named
-   `LiveList` property (`item.content = new LiveList({ owner: this, name: "content" })`),
+   `List` property (`item.content = new List({ owner: this, name: "content" })`),
    the same way `page.pages` and `page.content` will (core/Page, next). This is
    composition, not inheritance, on purpose: Page already has about 70 methods of
    its own, several of which — `add`, `move`, `get`/`set` — would collide with the
    list API if Item inherited it instead of merely offering it as a property.
 
    `Item = Events(Object)`: `on` / `off` / `emit` come from the mixin (core/Events),
-   not from here, so the exact same three methods work on a `LiveList` too. */
+   not from here, so the exact same three methods work on a `List` too. */
 export class Item extends Events(Object) {
 
 	constructor(...args){
@@ -79,16 +79,16 @@ export class Item extends Events(Object) {
 	}
 
 	/* Walks `/`-separated segments of `path`, starting from ME: a segment matches a
-	   property holding an Item or a LiveList (`"content"`), or — when the CURRENT
-	   node is already a LiveList — a member of it by id (`"abc"`). So
+	   property holding an Item or a List (`"content"`), or — when the CURRENT
+	   node is already a List — a member of it by id (`"abc"`). So
 	   `"content/abc"` reads as "my `content` list, the member whose id is abc". An
 	   unknown segment warns once and returns `undefined` — the caller (`apply()`
 	   above) ignores the whole line rather than throwing. */
 	locate(path){
 		let node = this;
 		for (const seg of String(path).split("/").filter(Boolean)){
-			if (node instanceof LiveList) node = node.find(seg);
-			else if (node?.[seg] instanceof Item || node?.[seg] instanceof LiveList) node = node[seg];
+			if (node instanceof List) node = node.find(seg);
+			else if (node?.[seg] instanceof Item || node?.[seg] instanceof List) node = node[seg];
 			else node = undefined;
 
 			if (node === undefined){ warn(`locate(): unknown path segment "${seg}" in "${path}"`, path); return undefined; }
@@ -108,16 +108,16 @@ export class Item extends Events(Object) {
 
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
 
-	// Every LiveList property I own, by name — the one seam `find`, `walk` and
+	// Every List property I own, by name — the one seam `find`, `walk` and
 	// `toJSON` all read, and the one Page will override (its sub-pages also live in
 	// a plain name→page Map, for lookup by path segment, kept in step by `adopted`/
 	// `released`).
 	// ⚠ Only lists I OWN. A member of an ownerless list has that list as its
 	// `parent`; counting it here made toJSON() loop forever (found by the
-	// LiveList replay example, 2026-10-02).
+	// List replay example, 2026-10-02).
 	lists(){
 		const found = {};
-		for (const key in this) if (this[key] instanceof LiveList && this[key].owner === this) found[key] = this[key];
+		for (const key in this) if (this[key] instanceof List && this[key].owner === this) found[key] = this[key];
 		return found;
 	}
 
@@ -152,7 +152,7 @@ export class Item extends Events(Object) {
 	delete(){ return this.saver ? this.saver.delete(this) : this.parent ? this.parent.delete() : Promise.resolve(false); }
 
 	// Instance properties (`parent`, `saver`, `store`, `_view`, `_on`) are never
-	// emitted — only `data` and each named LiveList, which is what makes a backref
+	// emitted — only `data` and each named List, which is what makes a backref
 	// impossible by construction; hydrate restores `parent` by adoption.
 	toJSON(){
 		const json = { type: this.wire(), id: this.id, data: this.data };
@@ -169,11 +169,11 @@ export class Item extends Events(Object) {
 	     - the whole-document envelope `{type, id, data, <listname>: [...]}` (what
 	       `toJSON()` writes, nested `data`);
 	     - a flat list-verb delta `{id, type?, after?, ...data}` (what an `"add"`
-	       line carries, and what `LiveList.make()` calls this with — plain fields
+	       line carries, and what `List.make()` calls this with — plain fields
 	       ARE the data, no nested `data` key at all).
 	   `after` is positional metadata for the LIST, never data, and is dropped here
 	   either way. Any OTHER key whose value is an array is a child list — hydrated
-	   into a `LiveList` of that same name (`"items"`, `"content"`, `"replies"`, …),
+	   into a `List` of that same name (`"items"`, `"content"`, `"replies"`, …),
 	   quietly (`list.insert`, never `list.add`): loading a document is not a change. */
 	static hydrate(json, seen = new Set()){
 		const raw = json && typeof json === "object" ? json : {};
@@ -198,7 +198,7 @@ export class Item extends Events(Object) {
 		const item = new (Class ?? Item)({ id, data, type: Class ? undefined : raw.type });
 
 		for (const key in lists){
-			const list = item[key] = new LiveList({ owner: item, name: key });
+			const list = item[key] = new List({ owner: item, name: key });
 			lists[key].forEach(kid => list.insert(Item.hydrate(kid, seen)));
 		}
 
@@ -247,7 +247,7 @@ export default Item;
 
 Item.register(Item);
 
-// The default `of` for a bare `new LiveList()` with no `of` of its own — set HERE,
-// not inside LiveList.js, so LiveList never has to import Item back (which would be
+// The default `of` for a bare `new List()` with no `of` of its own — set HERE,
+// not inside List.js, so List never has to import Item back (which would be
 // the exact import cycle this file avoids by never importing core/View/View.js).
-LiveList.prototype.of = Item;
+List.prototype.of = Item;

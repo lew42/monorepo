@@ -16,3 +16,5 @@
 {"log":{"at":"2026-10-02T21:32:00-05:00","task":"framework-home/weight-badges","msg":"landed — /framework/ cards size by weight (live architecture excerpt for heavy modules), unread badges scaffolded 0/hidden pending mastermind-servex-10's data; sidebar rollup queued as a follow-up card"}}
 {"log":{"at":"2026-10-02T21:58:23-05:00","task":"sessions-grid-v2","msg":"landed — Sessions tab is a real CSS-grid data grid with resizable --col- tokens and a columns()-based side peek; Panel2 gained the three-preview-levels house rule"}}
 {"log":{"at":"2026-10-02T21:38:39-05:00","task":"prompt-refine/minion-core","msg":"landed — the shared refine() clean()/structure() engine and the 3-model litmus test (haiku wins on cost, 3/3 passed)"}}
+{"log":{"at":"2026-10-02T23:52:41-05:00","task":"list-events","msg":"task opened — merge List+LiveList, owner's fifth-pass design"}}
+{"log":{"at":"2026-10-02T23:58:25-05:00","task":"list-events","msg":"landed — List gets events, LiveList is gone; 39/39 tests, 5 pages smoke-tested clean"}}

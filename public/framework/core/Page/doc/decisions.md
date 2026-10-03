@@ -695,9 +695,9 @@ not crawled at four widths — recorded as unverified-at-width, not skipped.
 `page-item-design.md`'s "fourth pass" shipped: `Page extends PageLog extends Item`
 (`page instanceof Item` is true), `on`/`off`/`emit` are the Events mixin's, `set()` is Item's
 `apply()`-based delta routing with a thin PageLog wrapper (jsonl_lines, the `line` event, lazy
-`content`). Composition kept the list API off Page itself — `page.pages: LiveList` is the real
+`content`). Composition kept the list API off Page itself — `page.pages: List` is the real
 sub-page storage, `page.children` a Map-shaped view over it (`PageChildren`, Log.js) so the
-~215 existing callers across ~94 files never changed. `page.content: LiveList` is made lazily,
+~215 existing callers across ~94 files never changed. `page.content: List` is made lazily,
 drawn by the one reusable `render_content_list()` (sortable rows, redrawn from the list's own
 events) — see it live at [`/framework/core/Item/live/`](/framework/core/Item/live/).
 `Page.Store` (the localStorage helper) is renamed `Page.Prefs`/`page.prefs()`, freeing

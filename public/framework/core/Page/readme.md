@@ -20,18 +20,18 @@ export default new Page({
 
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
-**When to reach for which:** a **List** for plain ordered data; a **LiveList** when something
-must watch it change; an **Item** when it is a thing (an icon, a title, saved); a **Page** when
-it has a URL.
+**When to reach for which:** a **List** when something is ordered and needs watching
+(events are built in); an **Item** when it is a thing (an icon, a title, saved); a
+**Page** when it has a URL.
 
 ## Architecture
 
 ```js
 Page extends PageLog extends Item     // ✅ landed 2026-10-02 — page instanceof Item is true; PageLog (Log.js) adds the page.jsonl bits
   url, title, parent: Page
-  pages: LiveList                     // ✅ the real storage — sub-pages, keyed by id (= folder name)
+  pages: List                         // ✅ the real storage — sub-pages, keyed by id (= folder name)
   children                            // ✅ a Map-SHAPED VIEW over `pages` — ~215 existing callers unchanged (not List's old `children` field, now `items`)
-  content: LiveList                   // ✅ made lazily, the page's own visible blocks — render_content_list() draws it
+  content: List                       // ✅ made lazily, the page's own visible blocks — render_content_list() draws it
   store: Item.Store                   // ✅ attached by Page.jsonl() — one per page.jsonl, append + tail, written through FsFile.append
   prefs()                             // ✅ localStorage (was `store()` — renamed, `page.store` is the jsonl Store now)
   view: View

@@ -1,7 +1,7 @@
 import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import PageLog from "./Log.js";
-import LiveList from "../List/LiveList.js";
+import List from "../List/List.js";
 import { track } from "../track/track.js";
 
 View.stylesheet(import.meta, "Page.css");
@@ -174,7 +174,7 @@ export class Page extends PageLog {
 
 		// Quietly — declaring a child is not a live edit. A stub already holding this
 		// name (an earlier `file`/`tab` line, or `declare()`'s own string form) is
-		// REPLACED in place (`LiveList.replace`, never announces); otherwise this is
+		// REPLACED in place (`List.replace`, never announces); otherwise this is
 		// a fresh insert. `page.pages` (Log.js) is the real storage; `this.children`
 		// above is only the Map-shaped view over it.
 		const stub = this.pages.find(name);
@@ -700,7 +700,7 @@ export class Page extends PageLog {
 	     produces, in the reading track, and reads backticks as code the way every other
 	     paragraph on the site does. */
 	render_content(){
-		if (this.content instanceof LiveList) return this.render_content_list();
+		if (this.content instanceof List) return this.render_content_list();
 		if (is_address(this.content)) return this.content_at(this.content);
 		if (is.str(this.content)) return p(this.content);
 		return is.fn(this.content) ? this.content() : this.content;

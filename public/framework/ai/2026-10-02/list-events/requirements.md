@@ -1,3 +1,30 @@
+# List gets events; remove LiveList
+
+Owner's design (`public/framework/ai/2026-09-30/proposal-flow/page-item-design.md`, "LATEST
+… fifth pass"): **scrap `LiveList` everywhere.** `List` itself gets events built in — no
+separate class. "A list" now means "an evented list."
+
+Today `core/List/List.js` is a plain array (no events) and `core/List/LiveList.js` is
+`class LiveList extends Events(List)` with the four verbs (`add remove move order`) plus
+the quiet primitives (`insert replace release`). This task merges them into ONE class,
+`List`, in `List.js`, and deletes `LiveList.js`. Every caller that imported `LiveList`
+imports `List` instead.
+
+**Why this is safe:** `audit/overview/priorities/page.js:59` already flagged
+`List.find(fn)` (predicate, one-level) as having "no real callers — free to rename
+today." The plain, event-less `List` has no production callers either (`Item` composes
+a named `LiveList` property per instance; it never builds a bare `List`). So the merge
+loses nothing — it only deletes a distinction nothing uses.
+
+## Step 1 — the merge itself (minion A)
+
+**Read only:** `core/List/List.js`, `core/List/LiveList.js`, `core/Events/Events.js`.
+
+Replace the full contents of `core/List/List.js` with the file below, then **delete**
+`core/List/LiveList.js` (the content is now folded into `List.js`; nothing else should
+still import the old path after step 2).
+
+```js
 // The ordered collection — EVERY List announces its own changes (Events built in;
 // there is no separate "LiveList" any more, per the owner 2026-10-02: "scrap LiveList
 // everywhere… List itself gets Events built in. 'A list' now means an evented list").
@@ -241,3 +268,73 @@ export class List extends Events(Object) {
 }
 
 export default List;
+```
+
+**Check:** `core/List/LiveList.js` no longer exists; `core/List/List.js` exports the class
+above verbatim (don't paraphrase it — paste it exactly). Do not touch any other file in
+this step.
+
+## Step 2 — rename the examples file (minion A, same turn)
+
+**Read only:** `core/List/LiveList.examples.js`.
+
+1. Create `core/List/List.examples.js` with the SAME content as the current
+   `core/List/LiveList.examples.js`, except:
+   - line 2: `import LiveList from "./LiveList.js";` → `import List from "./List.js";`
+   - every other occurrence of the word `LiveList` in the file → `List` (identifier
+     uses only — e.g. `new LiveList(` → `new List(`). Leave English prose like
+     "LiveList, taught by six examples" → change to "List, taught by six examples" too
+     (it's describing the class, which is now named List).
+2. Delete `core/List/LiveList.examples.js`.
+
+**Check:** `core/List/List.examples.js` exists, `core/List/LiveList.examples.js` does
+not, and the file has no remaining occurrence of the string `LiveList`.
+
+## Step 3 — the core callers (minion B, separate step, after A's check passes)
+
+**Read only:** `core/Item/Item.js`, `core/Item/Store.js`, `core/Page/Page.class.js`,
+`core/Page/Log.js`, `core/List/page.js`.
+
+In EACH of these 5 files, do a plain find-and-replace:
+- `"../List/LiveList.js"` → `"../List/List.js"` (keep the same relative-path style the
+  line already uses — `core/List/page.js` imports from `"./LiveList.js"`, so there it
+  becomes `"./List.js"`)
+- the bare word `LiveList` → `List` EVERYWHERE it appears as a JS identifier (import
+  name, `new LiveList(`, `instanceof LiveList`, `LiveList.prototype`, comments). Do
+  this for every occurrence in all 5 files — don't skip comments, they explain the
+  code to the next reader.
+
+One exception: `core/Item/Item.js` already has no import named `List` (plain), so there
+is no name collision — `import LiveList from "../List/LiveList.js";` simply becomes
+`import List from "../List/List.js";` and the file reads on from there.
+
+**Check:** `grep -rn "LiveList" core/Item/Item.js core/Item/Store.js core/Page/Page.class.js core/Page/Log.js core/List/page.js` (from `public/framework/`) returns nothing.
+
+## Step 4 — the ext/ callers + one AI doc line (minion C, separate step)
+
+**Read only:** `ext/editor/page.js`, `ext/editor/blocks.js`, `ext/Panel/Panel.js`,
+`ext/Panel/flow.js`, `ext/Draggable/page.js`, `ext/Draggable/Sortable.js`,
+`ai/overview.js`.
+
+Same mechanical rule as step 3: every `LiveList` → `List` (import path
+`/framework/core/List/LiveList.js` → `/framework/core/List/List.js`, `new LiveList(` →
+`new List(`, comments too). `ai/overview.js` line 488 just has the word `LiveList` in a
+sentence — change it to `List` there too.
+
+**Check:** `grep -rln "LiveList" ext/editor ext/Panel ext/Draggable ai/overview.js`
+(from `public/framework/`) returns nothing.
+
+## Step 5 — docs (done by the mastermind, not a minion)
+
+`core/List/readme.md`, `core/Item/readme.md`, `core/Page/readme.md`,
+`core/Events/readme.md`, `core/Page/doc/decisions.md` all describe the old
+List-vs-LiveList split and need a rewrite, not a mechanical rename (law 2: clear beats
+brief — these explain a concept, a find-replace would read wrong). The mastermind does
+this pass itself after steps 1–4 land.
+
+## Landing
+
+Smoke test after step 4: load `/framework/core/List/`, `/framework/core/Item/`,
+`/framework/core/Item/live/`, `/framework/core/Page/overview/page/` in the site and
+confirm no console error (`mcp__site__shot` or `mcp__site__eval`, headless only — never
+the owner's own tab). Then one small merge for this whole task.

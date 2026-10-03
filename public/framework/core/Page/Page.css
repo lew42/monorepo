@@ -770,7 +770,7 @@
 	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
 
 	/* ── `page.content`, drawn — `render_content_list()`, the one reusable view a
-	   content LiveList gets (page-extends-item, 2026-10-02). One row per item, a
+	   content List gets (page-extends-item, 2026-10-02). One row per item, a
 	   thin rule between, a grab cursor because every row is a Sortable handle. */
 	.page-content-rows { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2); }
 	.page-content-row { padding: calc(var(--pad) * 0.4) calc(var(--pad) * 0.6); border: 1px solid var(--line); border-radius: var(--radius); cursor: grab; background: var(--surface); }
