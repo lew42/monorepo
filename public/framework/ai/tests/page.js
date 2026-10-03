@@ -1,6 +1,6 @@
 import { Page, div, small } from "/app.js";
 
-const SLUGS = ["h1-page", "fix-label", "broken-import", "broken-overflow", "plan-views"];
+const SLUGS = ["h1-page", "fix-label", "broken-import", "broken-overflow", "plan-views", "rung0-html-to-view", "rung0-html-to-view-primer"];
 const OTHER_CHILDREN = ["keys-to-success"]; // a real page.js folder, not a page.jsonl — core's own child() handles it
 
 /* The test library's index — every AITest (AITest.js), a wall of previews.
@@ -18,7 +18,7 @@ export default new Page({
 	meta: import.meta,
 	title: "Test library",
 	description: "Small tasks with a known-good outcome, run across models to see which is cheapest and good enough.",
-	children: "h1-page fix-label broken-import broken-overflow plan-views keys-to-success",
+	children: "h1-page fix-label broken-import broken-overflow plan-views rung0-html-to-view rung0-html-to-view-primer keys-to-success",
 
 	/* ⚠ THE ONE OVERRIDE A page.jsonl CHILD NEEDS. Core's own `child(name, levels)`
 	 * (Page.class.js) only probes a DECLARED name's `page.js` (`Page.load()`); it never

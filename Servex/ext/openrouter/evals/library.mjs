@@ -84,6 +84,19 @@ const SITE_BASE = (() => {
 	const i = process.argv.indexOf("--site");
 	return (i >= 0 && process.argv[i + 1]) || process.env.LIBRARY_SITE_BASE || "http://monorepo.localhost";
 })();
+// `--role task-mastermind` (model-weights/harness-findings.md, finding 3): every run here has
+// always spawned role:"minion" in the main tree, which `Agents.js`'s 2026-10-01 pool-security gate
+// now routes through the quick-fix pool and REFUSES outright if none is `ready` that instant (no
+// wait, no retry). When the pool itself can't make one ready (`take_worktree()` answering "No
+// worktree could be made ready" — a real, separate fault, not just timing), every run here fails
+// before a single model request goes out. `role:"minion"` is still the default (Agents.js prefers a
+// minion never touch the main tree); this flag is Servex's OWN suggested escape hatch ("...or spawn
+// a task-mastermind instead") for exactly the moment the pool is down, not a security bypass to lean
+// on by default.
+const SPAWN_ROLE = (() => {
+	const i = process.argv.indexOf("--role");
+	return (i >= 0 && process.argv[i + 1]) || "minion";
+})();
 // requirements.md's Cost rule: an OpenRouter turn's real price settles into this ledger a few
 // seconds after the turn ends (provider.js's own real_turn_cost() polls the same way); a Claude
 // agent's cost is real the moment wait_for_agent returns, because it is billed on the subscription.
@@ -340,6 +353,69 @@ export async function checksH1(childUrl, expectedText){
 	}
 }
 
+/* Rung 0 (requirements.md, "The framework-literacy ladder"): did the model turn source.html into
+ * the SAME element tree using View helpers? Loads both the run's own page (for the model's
+ * `.rung0-output` box) and the raw source.html (set as a page's content via page.setContent — never
+ * fetched as a URL, so no second page on the live site is needed) in the SAME headless browser, and
+ * reduces each to a canonical tree (tag, sorted classes, sorted non-class attributes, direct text,
+ * children) that ignores whitespace, attribute order and class order — the only things nobody
+ * should be marked wrong for. Returns a node-by-node diff, by code, never a judge's opinion. */
+export async function checksTreeMatch(runUrl, sourceHtml, containerSelector){
+	const { browser } = await import(pathToFileURL(path.join(ROOT, "Server/browser.mjs")).href);
+	const b = await browser();
+	const canon = `(el) => {
+		const walk = node => ({
+			tag: node.tagName.toLowerCase(),
+			classes: [...node.classList].sort(),
+			attrs: [...node.attributes].filter(a => a.name !== "class").map(a => [a.name, a.value]).sort((a, c) => a[0].localeCompare(c[0])),
+			text: [...node.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent.trim()).filter(Boolean).join(" "),
+			children: [...node.children].map(walk),
+		});
+		return el ? walk(el) : null;
+	}`;
+	// the model's own run, live on the site
+	const page = await (await b.newContext()).newPage();
+	const errors = [];
+	page.on("pageerror", e => errors.push(e.message));
+	let actual = null, found = false;
+	try {
+		await page.goto(runUrl, { waitUntil: "load", timeout: 20000 });
+		await page.waitForTimeout(800);
+		found = await page.evaluate(sel => !!document.querySelector(sel), containerSelector);
+		if (found) actual = await (await page.$(containerSelector)).evaluate(new Function("return " + canon)());
+		await page.close();
+	} catch (e) {
+		try { await page.close(); } catch {}
+		return { ok: false, why: `the run's page did not load: ${String(e?.message || e)}`, errors, actual: null, expected: null, diff: null };
+	}
+	if (!found) return { ok: false, why: `no element matched "${containerSelector}" on the run's page`, errors, actual: null, expected: null, diff: null };
+
+	// The ORIGINAL html, rendered the same way, in a throwaway page (never written to disk as a url),
+	// wrapped in a holder of its own so a source with more than one top-level tag still works. Both
+	// `actual` and `expected` keep their own holder's tag/classes/attrs out of the comparison below —
+	// only CHILDREN are compared, never the container the test harness itself wraps things in.
+	const refPage = await (await b.newContext()).newPage();
+	await refPage.setContent(`<div id="rung0-ref">${sourceHtml}</div>`);
+	const expected = await (await refPage.$("#rung0-ref")).evaluate(new Function("return " + canon)());
+	await refPage.close();
+
+	const diff = [];
+	function compare(a, e, at){
+		if (!a || !e){ if (a !== e) diff.push(`${at}: ${a ? "an extra element" : "missing an element"}`); return; }
+		if (a.tag !== e.tag) diff.push(`${at}: tag <${a.tag}> should be <${e.tag}>`);
+		if (JSON.stringify(a.classes) !== JSON.stringify(e.classes)) diff.push(`${at}: classes [${a.classes}] should be [${e.classes}]`);
+		if (JSON.stringify(a.attrs) !== JSON.stringify(e.attrs)) diff.push(`${at}: attributes ${JSON.stringify(a.attrs)} should be ${JSON.stringify(e.attrs)}`);
+		if (a.text !== e.text) diff.push(`${at}: text "${a.text}" should be "${e.text}"`);
+		const n = Math.max(a.children.length, e.children.length);
+		for (let i = 0; i < n; i++) compare(a.children[i], e.children[i], `${at} > child ${i}`);
+	}
+	const an = actual?.children ?? [], en = expected?.children ?? [];
+	const n = Math.max(an.length, en.length);
+	for (let i = 0; i < n; i++) compare(an[i], en[i], `top-level ${i}`);
+
+	return { ok: diff.length === 0, why: diff.length ? `${diff.length} mismatch(es)` : "exact match", errors, actual, expected, diff };
+}
+
 /* requirements.md's Cost rule: never read `wait_for_agent`'s own `cost` for an OpenRouter model —
  * it is 0 until billing settles a few seconds after the turn ends (provider.js, real_turn_cost()).
  * The honest number is the ledger `Agents.js` writes once it DOES settle: one line per turn, keyed
@@ -398,7 +474,7 @@ async function runOne(test, model, effort){
 			// under the WRONG run's id, well after that run had already given up and been scored.
 			// A name unique per run (model + timestamp, same shape runName already has) means every
 			// run gets its own agent, every time — no two runs can ever collide under one id again.
-			role: "minion", name: `lib-${test.id}-${slug(model)}-${Date.now()}`, prompt, model, effort, cwd: ROOT,
+			role: SPAWN_ROLE, name: `lib-${test.id}-${slug(model)}-${Date.now()}`, prompt, model, effort, cwd: ROOT,
 			permission_mode: "bypassPermissions",
 			task: { dir: path.relative(ROOT, runDir).replaceAll("\\", "/") }
 		});
@@ -456,10 +532,14 @@ async function runOne(test, model, effort){
 	const linked = test.kind === "new-page" ? checksLinked(runDir, test.new_child) : null;
 	const h1 = (test.kind === "new-page" && test.new_child && test.h1_text)
 		? await checksH1(`${SITE_BASE}${runUrlPath}${test.new_child}/`, test.h1_text) : null;
+	const tree = test.kind === "html-to-view"
+		? await checksTreeMatch(`${SITE_BASE}${runUrlPath}`, fs.readFileSync(path.join(test.dir, test.source_html), "utf8"), test.container)
+		: null;
 
 	const mechanicalOk = parse.ok && load.ok
 		&& (test.kind !== "planning" || decision.ok)
-		&& (test.kind !== "new-page" || (linked.ok && (!h1 || h1.ok)));
+		&& (test.kind !== "new-page" || (linked.ok && (!h1 || h1.ok)))
+		&& (test.kind !== "html-to-view" || tree.ok);
 	const pass = mechanicalOk ? 1 : 0;
 	if (!note) note = mechanicalOk ? "mechanical checks passed; awaiting judge" : [
 		!parse.ok && `parse failed: ${parse.bad.join("; ")}`,
@@ -467,15 +547,28 @@ async function runOne(test, model, effort){
 		test.kind === "planning" && !decision.ok && "no valid decision found (need >=2 options and a recommendation)",
 		test.kind === "new-page" && linked && !linked.ok && linked.why,
 		test.kind === "new-page" && h1 && !h1.ok && h1.why,
+		test.kind === "html-to-view" && tree && !tree.ok && `${tree.why}: ${(tree.diff || []).slice(0, 4).join("; ")}`,
 	].filter(Boolean).join(" | ");
 
 	const row = {
 		at: nowLocal(), run: runName, probe: test.id, test: test.id, kind: test.kind, rung: test.rung ?? null,
 		model, effort, dir: path.relative(ROOT, runDir).replaceAll("\\", "/"),
 		pass, label: {}, score: null, reasoning: null, cost_usd, turns: waited?.turns ?? null, ms,
-		mechanical: { parse: parse.ok, load_clean: load.ok, diff, decision, linked, h1 },
+		mechanical: { parse: parse.ok, load_clean: load.ok, diff, decision, linked, h1, tree },
 		rate, note
 	};
+	// Mark this ephemeral run folder LANDED the moment its row is computed — not for finish-task's
+	// sake (a throwaway test run is not a real task), but so Agents.js's task_landed() check stops
+	// Heartbeat reviving it if THIS SCRIPT itself dies before reaching stop_agent() in `finally` below.
+	// Confirmed cause, 2026-10-01 (section 5 of the model-weights brief): a Bash tool call running this
+	// script hit its own 120s timeout mid-run and was killed, orphaning the h1-page Nemotron agent with
+	// no landing line. Heartbeat revived it 9 more times over the next ~7 hours (agent-minion-lib-h1-page.jsonl),
+	// each one a real, if free, turn — and on a paid model each one would have billed again. (A separate,
+	// now-fixed provider.js bug briefly misattributed another agent's $2.84 to this one via the shared-key
+	// cost diff; that was reconciled and is not what this fixes.) Writing the landing line here closes the
+	// revive door the instant a run's own result is known, independent of whether anything downstream is
+	// still alive to call stop_agent.
+	try { fs.appendFileSync(path.join(runDir, "task.jsonl"), JSON.stringify({ landed_at: nowLocal(), outcome: `library.mjs run: ${pass ? "mechanical pass" : "mechanical fail"} (${note})` }) + "\n"); } catch {}
 	// Amendment 5: a run lands on the TEST's own page.jsonl now, not the shared results.jsonl —
 	// results.jsonl keeps only the rule tests and the probes (a different harness, rules.mjs's own
 	// fence). `run` doubles as the merge key AITest.js's browser-side run() uses, so a later
