@@ -75,8 +75,12 @@ function raw_name(raw){
 const norm = url => String(url).toLowerCase().replace(/[?#].*$/, "").replace(/\/?$/, "/");
 function by_path(m, raw){
 	const want = norm("/" + raw_name(raw));
+	// `path: false` (refs.js) — this entry BORROWS another page's url (it has none of its
+	// own), so a literal path must never resolve to it: typing "/framework/" means the
+	// Framework page, never "CLAUDE.md" just because CLAUDE.md's own mention happens to
+	// point there too (bug, 2026-10-03).
 	for (const map of [m["#"], m["@"]]) for (const key in map ?? {})
-		if (map[key].url && norm(map[key].url) === want) return { key, ...map[key] };
+		if (map[key].url && map[key].path !== false && norm(map[key].url) === want) return { key, ...map[key] };
 	return null;
 }
 

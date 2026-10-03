@@ -25,6 +25,11 @@
  */
 export default {
 
+	// THE ROOT ITSELF — added 2026-10-03 so a literal "/framework/" in text (owner, bug
+	// report: "a path must link to its own page") resolves HERE, never to one of the
+	// `path: false` stand-ins below that happen to borrow this same url.
+	Framework: { url: "/framework/", icon: "widgets" },
+
 	// The core seven — one class, one real element (or, for Router/Item/List,
 	// one real idea) — public/framework/core/page.js's own `children:`.
 	Page:    { url: "/framework/core/Page/", icon: "description", class_card: true },
@@ -60,11 +65,15 @@ export default {
 	Layout:     { url: "/framework/ext/layout/", icon: "tune" },
 	Session:    { url: "/framework/ext/Session/", icon: "record_voice_over" },
 
-	// The owner's own first-targets list (2026-09-30) that isn't a module page.
-	"CLAUDE.md": { url: "/framework/",                                icon: "policy" },
-	skills:      { url: "/framework/servex/",                         icon: "extension" },
-	MCP:         { url: "/framework/servex/",                         icon: "cable" },
-	"dev-server": { url: "/framework/servex/fs/?file=Server",         icon: "terminal" },
+	// The owner's own first-targets list (2026-09-30) that isn't a module page. `path: false`
+	// — each BORROWS another page's url just to have somewhere to click (this comment, above),
+	// so typing that url as a literal PATH must still reach the real page it is (bug, 2026-10-03:
+	// the owner typed "/framework/" and got a "CLAUDE.md" icon link instead of the Framework
+	// page itself) — `by_path()` (Mention.js) skips any entry marked `path: false`.
+	"CLAUDE.md": { url: "/framework/",                                icon: "policy", path: false },
+	skills:      { url: "/framework/servex/",                         icon: "extension", path: false },
+	MCP:         { url: "/framework/servex/",                         icon: "cable", path: false },
+	"dev-server": { url: "/framework/servex/fs/?file=Server",         icon: "terminal", path: false },
 	// Roles as THINGS to read about (the owner's #-list names them); `@` is the agent itself.
 	mastermind:        { url: "/framework/servex/md/doc/roles/", icon: "psychology" },
 	"fast-assistant":  { url: "/framework/servex/md/doc/roles/", icon: "bolt" },
