@@ -42,8 +42,14 @@ export const schemas = {
 			bands:      { fields: [], eg: { at: "NOW", page: "/x/", bands: 3 } },
 			// `{"group": "slug"}` puts the task in a group — read by ai2/groups.js's Member.apply(), not a verb method.
 			group:      { type: "string", extra: "public/framework/ai2/groups.js", eg: "system-design" },
+			// The Dashboard's three task buttons (stalled-and-budgets, 2026-10-02): a verb line, never
+			// a hand edit. `tasks.js` honours them; TaskJSONL (ext/JSONL/JSONL.js) does not replay
+			// them yet, so they stay `pending` below until that reader catches up.
+			snooze:     { fields: ["at", "until", "by"], eg: { at: "NOW", until: "2026-10-03T09:00:00-05:00", by: "owner" } },
+			kill:       { fields: ["at", "why", "by"], eg: { at: "NOW", why: "duplicate of another task", by: "owner" } },
+			priority:   { fields: ["at", "score", "why", "by"], eg: { at: "NOW", score: 95, why: "owner asked for this first", by: "owner" } },
 		},
-		pending: [],
+		pending: ["snooze", "kill", "priority"],
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/<date>/day.jsonl)",

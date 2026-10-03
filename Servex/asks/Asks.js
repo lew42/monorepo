@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { stamp } from "../home.js";
 import { fold_asks } from "../../public/framework/ai/asks/fold.js";
 import { stalled } from "./stalled.js";
+import { build_tasks, write_tasks_json } from "./tasks.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
@@ -104,9 +105,20 @@ export default class Asks {
 			const folded = await this.read();
 			const registry = this.servex?.agents?.registry_list?.() ?? [];
 			for (const ask of Object.values(folded)) await this.check_one(ask, registry);
+			this.tick_tasks(registry);
 		} catch (e){
 			try { await this.servex?.log?.append("servex", { type: "asks-tick-error", error: String(e?.message || e) }); } catch {}
 		}
+	}
+
+	/* The TASK check (stalled-and-budgets, 2026-10-02, roadmap items 1-2): same tick, same
+	 * registry read, a second derived file — public/framework/ai/tasks.json — for the Dashboard.
+	 * Sync and cheap (a handful of small file reads per task, last 7 days only), so it rides the
+	 * same 60s tick rather than getting one of its own. Never throws into the caller: a bad read
+	 * here must not stop the ask check above it from running. */
+	tick_tasks(registry){
+		try { write_tasks_json(build_tasks({ registry, live: this.servex?.agents?.live })); }
+		catch (e){ this.servex?.log?.append?.("servex", { type: "tasks-tick-error", error: String(e?.message || e) }); }
 	}
 
 	/* One ask, one judgment. A task that landed wins over a stall check — an
