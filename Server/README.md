@@ -75,6 +75,26 @@ task once (not on every retry), so `landed_at` alone can never read as done.
 author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
 will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
 
+**`node Server/audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
+audit: given several `audit.jsonl` files (one line per model that graded a landed task on
+complete/obedience/utility, written through `.claude/hooks/append.mjs` against the schema in
+`jsonl-schema.mjs`), it COMPUTES the consensus — never an AI writing it from memory. Per task:
+real objective checks (do the files it touched exist, do they parse, do its URLs answer 200),
+the median and agreement of every score, the union of `missing` items 2+ auditors named, a
+`value = quality ÷ cost` number from the task's own real spend, a `FAILED` flag when the
+complete/obedience median hits -2 or worse, and each model's distance from the median (the
+model-ladder ranking). Writes one `consensus.json` per task. Dedupes a model to one vote per
+task — a dequeued minion can still land its turn moments later, producing a duplicate. Built
+for, and proven on, the first pilot: [`public/framework/ai/2026-10-02/task-audit/report.md`](/framework/ai/2026-10-02/task-audit/).
+
+**`Server/ask-each.mjs`'s `askOnce()`** now takes an optional `env` (and `disallowedTools`) —
+the same OpenRouter env swap `Agents.js` uses (`ext/openrouter/provider.js`'s `env_for`) — so a
+script can call a cheap OpenRouter model directly, one Q&A turn at a time, without spawning a
+minion or waiting on a pool worktree slot. ⚠ The SDK's own `result.total_cost_usd` prices an
+OpenRouter turn against ANTHROPIC's table under the wrong model name — wildly wrong for a cheap
+model (off by 30-50x, confirmed during the audit pilot) — so never trust `askOnce()`'s
+`cost_usd` for a non-Claude model; read OpenRouter's own `key_status()` total instead.
+
 ## The supervisor
 
 `server.js` at the repo root is a small supervisor: it forks the real server —

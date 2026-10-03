@@ -9,8 +9,12 @@ checked before anything is written (the owner, 2026-09-30).
   as a JSON array written by the Write tool. `"NOW"` becomes the clock. A line that does not fit is
   refused (exit 3, nothing written) and the right shape is printed.
 - **`jsonl-schema.mjs`** — the one list of what a line may look like, per file: `task.jsonl`,
-  `day.jsonl`, `board.jsonl`, `asks.jsonl`, `page.jsonl`. Add a new verb here AND in its reader
-  (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
+  `day.jsonl`, `board.jsonl`, `asks.jsonl`, `page.jsonl`, `audit.jsonl`. Add a new verb here AND
+  in its reader (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
+  ⚠ `audit.jsonl` (2026-10-02, the task-audit pilot — one line per model that graded a landed
+  task) is checked here but has no `ext/JSONL/JSONL.js` reader yet: nothing renders it live, only
+  `Server/audit.mjs` reads it, so the test still passes without one. Add a reader before any page
+  needs to show these lines directly.
 - **Servex's `append_log`** — for Servex's own event logs only (an object with a string `type`);
   it is checked against the same module.
 - **`jsonl-guard.mjs`** — wired on Bash and PowerShell: a shell `>>`, `>`, `tee`,

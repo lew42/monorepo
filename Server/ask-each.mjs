@@ -59,7 +59,7 @@ function parseQuestions(text){
  * session on every later call via `resume`), wait for its result, and return
  * the model's answer text plus what it cost. This is the one function a
  * different provider's harness would replace. */
-async function askOnce(text, { model, cwd, sessionId }){
+async function askOnce(text, { model, cwd, sessionId, env, disallowedTools }){
 	const q = query({
 		prompt: text,
 		options: {
@@ -67,6 +67,12 @@ async function askOnce(text, { model, cwd, sessionId }){
 			cwd,
 			permissionMode: "bypassPermissions",
 			allowedTools: [], // Q&A only — this tool never touches the repo
+			...(env ? { env: { ...process.env, ...env } } : {}), // OpenRouter provider swap (ext/openrouter/provider.js env_for) — same pattern Agents.js uses
+			// GEMINI TOOL-SCHEMA GAP (ext/openrouter/provider.js disallowed_tools_for): allowedTools:[]
+			// above does not stop the SDK's own built-in tools (e.g. ArtifactData) from being OFFERED to
+			// the model, only from being callable — Gemini's strict validator 400s on that tool's schema
+			// before any call happens, so it must be excluded via disallowedTools instead.
+			...(disallowedTools?.length ? { disallowedTools } : {}),
 			...(sessionId ? { resume: sessionId } : {})
 		}
 	});

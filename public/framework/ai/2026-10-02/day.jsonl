@@ -10,3 +10,4 @@
 {"log":{"at":"2026-10-02T19:10:51-05:00","task":"panel2-sessions/part2-sessions-dashboard","msg":"task opened — the AI dashboard's Dashboard + Sessions tabs, built on ext/panel2"}}
 {"log":{"at":"2026-10-02T19:48:40-05:00","task":"panel2-sessions/part2-sessions-dashboard","msg":"landed — the AI Dashboard (5 live tiles) and Sessions tab, built on ext/panel2"}}
 {"log":{"at":"2026-10-02T20:18:00-05:00","task":"framework-home","msg":"landed — /framework/ rebuilt as a wall of sections from the sidebar's own tree, dark class cards, balanced sprawl columns; old page kept at /framework/old/"}}
+{"log":{"at":"2026-10-02T21:05:09-05:00","task":"page-extends-item","msg":"landed: Page extends Item, Item.Store append/tail, LiveList verbs by id, live demo at /framework/core/Item/live/, ONE file API (e44930ad)"}}

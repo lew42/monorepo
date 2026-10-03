@@ -33,6 +33,28 @@ if (!taskdirs.length) { console.error("usage: node Server/audit.mjs <taskdir...>
 
 const read_jsonl = p => existsSync(p) ? readFileSync(p, "utf8").split(/\r?\n/).filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : [];
 
+/* ONE VOTE PER MODEL (2026-10-02 pilot): a minion that was dequeued after sitting at the
+ * spawn gate could still land its own real turn moments later (minion-auditor-deepseek did,
+ * for every one of the 5 pilot tasks) — leaving BOTH its genuine `append.mjs` line (proper
+ * tool access, real per-generation OpenRouter cost) and a fallback line from a direct
+ * `askOnce()` call made assuming it was stuck (an approximated, evenly-split cost). Counting
+ * the same model's judgment twice would double-weight it in every median and in the model
+ * ladder. Prefer the real minion entry (`by` not starting "cheap-auditor-") when both exist
+ * for the same model on the same task; otherwise keep whichever line is last (append-only
+ * log — last write wins, same convention as task_cost() below). */
+function dedupe_by_model(lines){
+	const groups = new Map();
+	for (const a of lines){
+		const key = a.model ?? a.by;
+		if (!groups.has(key)) groups.set(key, []);
+		groups.get(key).push(a);
+	}
+	return [...groups.values()].map(group => {
+		const real = group.filter(a => !String(a.by ?? "").startsWith("cheap-auditor-"));
+		return real.length ? real[real.length - 1] : group[group.length - 1];
+	});
+}
+
 function median(nums){
 	const s = [...nums].sort((a, b) => a - b);
 	const n = s.length;
@@ -86,7 +108,7 @@ const results = [];
 for (const dir of taskdirs){
 	const abs_dir = join(ROOT, dir);
 	const task_lines = read_jsonl(join(abs_dir, "task.jsonl"));
-	const audit_lines = read_jsonl(join(abs_dir, "audit.jsonl")).map(l => l.audit).filter(Boolean);
+	const audit_lines = dedupe_by_model(read_jsonl(join(abs_dir, "audit.jsonl")).map(l => l.audit).filter(Boolean));
 	const req_md = existsSync(join(abs_dir, "requirements.md")) ? readFileSync(join(abs_dir, "requirements.md"), "utf8") : "";
 
 	// 1. objective checks
