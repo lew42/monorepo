@@ -27,7 +27,7 @@ new this.constructor.View({ list: this })      // use the part through the const
 class MyList extends List { static View = class extends List.View { } }   // …so a subclass swaps it
 ```
 
-**A class lives in a file named after it** (the owner, 2026-10-02): `Task` is in `Task.js`, capitalised, one main class per file, so whoever looks for a class finds it by its name. A lowercase file (`objects.js`, `nested.js`) holds helpers or a view, never a class someone will search for. Known breaks to fix: `Task`/`Ask`/`Skill`/`AIObject` in ai/objects.js, `TaskJSONL` inside ext/JSONL/JSONL.js, `TaskTree` in ext/AITask/nested.js.
+**Folder, file and class share one name** (the owner, 2026-10-02): `ext/JSONL/JSONL.js` exports `class JSONL`; `core/Task/Task.js` exports `class Task`. The same capitalisation everywhere, and the capital letter says "this is a class". Allowed: a subclass defined inside the main file (`TaskJSONL` in JSONL.js), or a part in its own capitalised file in the same folder (`Inbox/Rail.js` → `Inbox.Rail`). A lowercase file or folder (`objects.js`, `rail.js`, `ext/drawer/`) holds functions, helpers or views, never a class someone will search for. **Census:** `node public/framework/code/patterns/class-census.mjs` lists every mismatch (81 on 2026-10-02: ai/objects.js, ai2/*.js, ext/drawer/rail.js, ext/AITask/nested.js, core/Page/Page.class.js…). Fix a module's mismatches whenever you work in it.
 
 **Naming a part's instance:** the property is the class name, lowercased: `inbox.rail` holds an `Inbox.Rail`, `item.store` a `Store`, `x.view` a `View`. Never `inbox_rail`. (the owner, 2026-10-02)
 

@@ -57,6 +57,7 @@ The owner works on the running site while agents write to it. Before a batch of 
 
 ## Traps that never throw
 
+- A class's folder, file and name match, capitalised: `ext/JSONL/JSONL.js` exports `class JSONL`. A lowercase file never holds a class someone will look for. `code/patterns` has the rule and a census script.
 - No DOM after an `await`: capture the box synchronously, fill it in a callback.
 - Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first.
 - Resolve URLs against `import.meta`, never the document.
