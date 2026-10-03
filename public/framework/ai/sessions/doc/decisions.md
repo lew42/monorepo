@@ -250,6 +250,15 @@ as a ROW in this grid until `sessions.mjs` gets the same fix.
 left as a known gap rather than guessed at, since nobody has asked for worktree sessions to show
 here yet.
 
+**Same gap, found again in `/ai-logs/`, 2026-10-03.** `Server/plugins/AILogs.js` computes its own
+project directory from `process.cwd()` at the moment the dev server boots — so a worktree's own
+preview server (`worktree-up.mjs`) looks for session files under ITS OWN cwd's project folder, not
+the main checkout's. Verified live building this task: a real session id's transcript answered
+correctly via `curl` against the main site, but 404'd (as "no transcript") through a worktree
+preview of this very task's own branch. Not a regression this task caused or fixed — the same
+one-project limitation above, just hit from a second angle; noted rather than patched for the same
+reason: nobody has asked for it.
+
 ## 2026-10-03 (session-trace) — the cost-over-time chart + "what was it doing" table
 
 The owner's own words, said while looking at the vscode-mastermind session: "The data is already
