@@ -1,6 +1,9 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "bypassPermissions",
+    "deny": [
+      "mcp__playwright"
+    ]
   },
   "env": {
     "MAX_MCP_OUTPUT_TOKENS": "150000"
