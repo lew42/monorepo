@@ -2,6 +2,7 @@ import { div, span, small } from "/app.js";
 import { when } from "./faces.js";
 import { plain, headline } from "./inbox.js";
 import { parse_lines } from "./fold.js";
+import { about_line } from "./outline.js";
 
 /**
  * WHAT HAPPENED, AND HAVE YOU SEEN IT (the owner, 2026-09-25: card
@@ -102,7 +103,11 @@ function fold_events(fold, sub){
 		...fold.messages.map(m => line_event({ message: m })),
 		...fold.prompts.map(p => line_event({ prompt: p })),
 	];
-	if (fold.created) out.push({ at: fold.created, who: who_word(fold.by), what: (sub ? "New request: " : "Made this card: ") + plain(fold.title ?? "") });
+	// `made: true` — a creation line, never shown as the preview's "what happened" bar on its
+	// own (`news_of()`, below): the owner, 2026-10-03, on seeing "the mastermind: Made this
+	// card: Now" as a card's ENTIRE preview — a row's bar should say what happened, not echo
+	// that the row exists.
+	if (fold.created) out.push({ at: fold.created, who: who_word(fold.by), what: (sub ? "New request: " : "Made this card: ") + plain(fold.title ?? ""), made: true });
 	return out.filter(e => e?.at && e.what);
 }
 
@@ -117,12 +122,23 @@ export function news_of(it, folds){
 	for (const [id, rec] of folds ?? []){
 		if (id === it.id || id.startsWith(it.id + "/")) evs.push(...fold_events(rec.fold, id !== it.id));
 	}
-	const top = evs.sort((a, b) => ms(b.at) - ms(a.at))[0];
+	// Never the creation line alone (`made`, above) — "Made this card: Now" is true of every
+	// card forever, so it is never news on its own; a card with nothing ELSE new falls
+	// through to its own summary below, same as a card with no log at all.
+	const top = evs.filter(e => !e.made).sort((a, b) => ms(b.at) - ms(a.at))[0];
 	// A task landing bumps a row too, and no card line says so.
 	if (it.landed && (!top || ms(it.at) - ms(top.at) > 60 * 1000)) return { who: "task landed", what: headline(it.landed) };
 	if (top) return { who: top.who, what: top.what };
 	if (it.kind === "prompt") return { who: "you", what: plain((it.said ?? []).join(" ")) || plain(it.title) };
-	return { who: null, what: plain(it.text) || "Something changed here." };
+	// NO REAL ACTIVITY SINCE CREATION, and no row text of its own (`folder_item()`,
+	// inbox.js, always sets `text: ""` for a real card) — vscode-mastermind, live at
+	// 3440, 2026-10-03: "Something changed here" is no better than "Made this card".
+	// Try the card's own summary line (the SAME `about_line()` its Overview tab leads
+	// with), then its current "doing" status line, then its newest content item's
+	// title — never a made-up placeholder. Nothing meaningful means no bar at all.
+	const fold = folds?.get(it.id)?.fold;
+	const meaningful = (fold && about_line(fold, null)) || fold?.log?.text || fold?.content?.add?.title || null;
+	return meaningful ? { who: null, what: plain(meaningful) } : null;
 }
 
 /** A group row's bar, from its newest member (groups.js `latest()`), or null. */

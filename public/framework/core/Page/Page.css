@@ -792,7 +792,12 @@
 	   resolves against the rows' own width, a % padding against the list's; they differ by
 	   the two paddings, a pixel or two. */
 	.page-content-title { margin: 0; }
-	.page-content-text { margin-block-start: calc(var(--pad) * 0.3); }
+	/* `md(text)`'s own multi-block wrapper wears `.flow` (ext/markdown/md.js) — PAGE rhythm,
+	   ~2-2.5em between blocks, meant for a whole reading column. A card's own row is denser:
+	   redeclaring the TOKEN `.flow`'s rule reads (never the rule itself) keeps a bold line
+	   and the list under it card-tight here, while `.flow` still means page rhythm everywhere
+	   else (the owner, live at 1920 on the Now card, 2026-10-03: "~60px above its list"). */
+	.page-content-text { margin-block-start: calc(var(--pad) * 0.3); --flow: var(--gap); }
 
 	/* ── the live-list demo's own layout — task-mastermind review, 2026-10-02 ──
 	   Four fixes together: `.wide` (JS) opts this whole block out of the 40em

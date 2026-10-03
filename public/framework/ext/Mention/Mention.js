@@ -16,6 +16,16 @@ import people from "./maps/people.js";
 // actually written, however many rules need to paint it.
 css(`@layer theme {
 	.item.page-surface-dark { background: var(--dark-bg); color: var(--dark-ink); }
+
+	/* INLINE, IN A SENTENCE, A DARK ONE MUST SIT AT THE LINE'S OWN HEIGHT (the owner, live
+	   on the Now card, 2026-10-03: "#Page" taller than the line it's in"). \`.item\`'s own
+	   padding and its 1.3em icon frame (ui/item/item.js) are sized for a tappable row, and
+	   a PLAIN inline mention is already that tall — it just has no visible edge, so nobody
+	   notices. \`.page-surface-dark\`'s fill paints that same box solid, and a solid box
+	   taller than its line reads as a mistake. Tightened here, for mentions only — a tree
+	   row or any other \`.item\` keeps its own tappable room. */
+	.mention.inline.page-surface-dark { padding-block: 0; }
+	.mention.inline.page-surface-dark .item-icon { width: 1em; font-size: 0.85em; }
 }`);
 
 /**
@@ -89,6 +99,19 @@ function find(map, name){
 	return key ? { key, ...map[key] } : null;
 }
 
+// A LIVE AGENT'S OWN ID is never in `people.js` — Servex mints one per task
+// (`task-mastermind-inbox-cards-work`, `minion-card`, …), unbounded, so there is no
+// roster to keep in sync the way `refs.js`'s fixed pages are (bug, 2026-10-03: a card's
+// own text named `@task-mastermind-…` and it stayed plain words). No page of its own to
+// link to from here, but it still reads as a small icon mention, by its own shape, the
+// same four kinds `activity.js`'s `who_word()` already names in plain sentences.
+const AGENT_KIND = [[/^task-mastermind-/, "psychology"], [/^mastermind-/, "psychology"],
+	[/^minion-/, "smart_toy"], [/^manager-/, "support_agent"], [/^assistant/, "bolt"]];
+function agent_entry(name){
+	const icon = AGENT_KIND.find(([re]) => re.test(name))?.[1];
+	return icon ? { key: name, icon } : null;
+}
+
 // A PATH walks down from a known page (the owner, 2026-09-30: "@parent/child",
 // "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
 // its url as child slugs. `@` falls back to the `#` map when the first segment
@@ -96,7 +119,7 @@ function find(map, name){
 function lookup_cached(m, sigil, raw){
 	if (sigil === "/"){ const hit = by_path(m, raw); return hit && { name: hit.key, ...hit }; }
 	const [head, ...rest] = raw_name(raw).split("/");
-	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
+	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) ?? agent_entry(head) : null);
 	if (!hit) return null;
 	if (!rest.length) return { name: hit.key, ...hit };
 	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
