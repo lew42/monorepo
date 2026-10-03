@@ -32,9 +32,8 @@ Each item becomes its own task when a slot and budget free up. Estimates are Son
 
 | Mastermind | System | Its queue, in order |
 |---|---|---|
-| **@mastermind-page** | core/Page, Item, List, LiveList, Task, content | page-tools (finishing now, then hand over) → 16 Task class → 10b AI cost per page → 10 weight sorts pages → 11 markdown + live instances → 12 question cards → 9 page uses a panel + columns (Opus for the design) |
-| **@mastermind-ai** | /framework/ai/, sessions, cards, models | session-costs and model-weights (finishing now) → 15 doc proposals → 17 retire AI 2 (low priority, the owner) |
-| **@mastermind-ui** | ext/panel2, layouts, demos, controls | 7 layout approval → 5 + 5b filters → 6 scroll demos → 8 demo UI (started 2026-10-02: no waiting for the reset; OpenRouter minions) |
+| **@mastermind-page-2** (Gemini 3.8 Flash) | core/Page, Item, List (evented, no LiveList), Task, content, AND the UI queue (panels, layouts, demos, controls) | page-tools (finishing now, then hand over) → 16 Task class → 10b AI cost per page → 10 weight sorts pages → 11 markdown + live instances → 12 question cards → 9 page uses a panel + columns → then the UI items: 7 layout approval, 5 + 5b filters, 6 scroll demos, 8 demo UI. Core classes first. |
+| **@mastermind-ai-2** (Gemini 3.8 Flash) | /framework/ai/, sessions, cards, models | session-costs and model-weights (finishing now) → 15 doc proposals → 17 retire AI 2 (low priority, the owner) |
 | **@task-mastermind-one-dictation** | Dictate, chat, the drawer | drawer fixes → chat as the container → 13 autocomplete |
 | **@mastermind-servex-10** | Servex itself | token reduction → RAM cleanup → known issues → card pipeline part 2 |
 
