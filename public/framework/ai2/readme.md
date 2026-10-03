@@ -189,8 +189,10 @@ column; only its text keeps the reading width ([`doc/decisions.md`](./doc/decisi
 
 **The Now card's topics are real sub-cards now, not a bulleted wall of text** (topic-cards,
 2026-10-03 — the owner: "these bulleted list items need to be more structured, in their own
-cards that we can click through and dig into"). A "Topics" section sits at the top of the Now
-card's Overview, above its own free-text notes: titles only, newest first, each a click into its
+cards that we can click through and dig into"). A "Topics" section sits below the card's own
+dashboard rows (the dark reference cards, "How this card was made", …) on the Now card's
+Overview — dashboard first, Topics under it (restored 2026-10-03, now-card-blank, after an
+intervening commit briefly put Topics on top): titles only, newest first, each a click into its
 own page — the same sub-card mechanism `your-prompts-refined-live` already used (`create_card`
 with `parent` set to the Now card's id), not a second one. A topic you haven't opened since it
 last changed carries a small "NEW" word, no animation, cleared the moment you open it — the same
@@ -200,7 +202,10 @@ open: the owner's own statements aren't linked in with sentence ids yet — that
 the same day: the Now card used to vanish from the rail entirely, because it is rewritten under a
 NEW dated folder every day (`ai/2026/10/03/now/`, never a fixed `ai/now/`) and the pinned row's
 old lookup only knew the literal id "now" — `resolve_card()` (`inbox.js`) now finds the latest
-real one first. [Task](/framework/ai/2026-10-03/topic-cards/).
+real one first; **its own preview line** falls back to the newest dashboard section's text (then
+the card's one-line `chat` summary) when there are no chat messages or prompts to read, so the
+Now card's rail row never reads as empty while it has sections ([`now-card-blank`](/framework/ai/2026-10-03/now-card-blank/)).
+[Task](/framework/ai/2026-10-03/topic-cards/).
 
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
