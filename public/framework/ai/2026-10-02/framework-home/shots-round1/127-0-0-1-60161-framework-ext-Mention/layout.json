@@ -1,0 +1,338 @@
+{
+ "url": "http://127.0.0.1:60161/framework/ext/Mention/",
+ "widths": {
+  "400": {
+   "empty": 0.407,
+   "widest_text": 340,
+   "widest_text_sample": "Every #reference — ext/Mention/maps/refs",
+   "overflow_x": false,
+   "items": 79,
+   "narrow_share": 0.165,
+   "layout": "doc",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 51,
+     "h": 67,
+     "share": 0.067,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 118,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.438,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 145,
+     "h": 5082,
+     "share": 5.082,
+     "ink": 0.432,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every #reference — ext/Mention",
+     "lines": 3
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every @person — ext/Mention/ma",
+     "lines": 3
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.622,
+   "widest_text": 1099,
+   "widest_text_sample": "\"Ask #Page how routing works, or open #S",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.179,
+   "layout": "doc",
+   "tabs_gap": 32,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 72,
+     "share": 0.072,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 72,
+     "share": 0.072,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 72,
+     "h": 3446,
+     "share": 3.446,
+     "ink": 0.36,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every #reference — ext/Mention",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every @person — ext/Mention/ma",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.705,
+   "widest_text": 1179,
+   "widest_text_sample": "\"Ask #Page how routing works, or open #S",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.59,
+   "layout": "doc",
+   "tabs_gap": 60,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.313,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 77,
+     "h": 3935,
+     "share": 3.935,
+     "ink": 0.266,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every #reference — ext/Mention",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every @person — ext/Mention/ma",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.806,
+   "widest_text": 674,
+   "widest_text_sample": "34 names today, each a real page: the se",
+   "overflow_x": false,
+   "items": 134,
+   "narrow_share": 0.91,
+   "layout": "doc",
+   "tabs_gap": 83,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 87,
+     "h": 4710,
+     "share": 4.71,
+     "ink": 0.154,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every #reference — ext/Mention",
+     "lines": 2
+    },
+    {
+     "tag": "h2",
+     "cls": "h2",
+     "text": "Every @person — ext/Mention/ma",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}
