@@ -111,11 +111,14 @@ merge.
   `ai/<Y>/<M>/<D>/<slug>-<uuid8>/page.jsonl` per session (page-item-design.md); checked live,
   2026-10-03, and no such folder exists on this machine yet. `session_page_dir_index()` (`page.js`)
   walks for one on every grid load regardless — the moment a session has one, its row's own link
-  points there instead of this tab's `/sessions/<id>/` view, with no further code change. Its own
-  plan has changed three times already while this task was being built, so don't trust any more
-  specifics than that here — check `task-mastermind-prompt-refine`'s current state instead.
-  `load_transcript()` (`page.js`) is still the one function whose body changes once a real prompt
-  source lands; today it reads a session's transcript live (see above), not a copy.
+  points there instead of this tab's `/sessions/<id>/` view, with no further code change.
+  `with_date_path_rows()` goes one step further: a session whose ONLY record is a date-path folder
+  (no `sessions.json`/Servex entry at all) still appears as a row, tagged "Page" — the grid lists
+  from those pages, not only links to them, the moment any exist. Its own plan has changed three
+  times already while this task was being built, so don't trust any more specifics than that here —
+  check `task-mastermind-prompt-refine`'s current state instead. `load_transcript()` (`page.js`) is
+  still the one function whose body changes once a real prompt source lands; today it reads a
+  session's transcript live (see above), not a copy.
 
 ## More
 
