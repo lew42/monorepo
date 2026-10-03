@@ -19,7 +19,7 @@ import { author_word, role_word, type_icon, create_card, append_card, cards_read
 import { watch_needs, needs_for, needs_soon } from "./needs.js";
 import "/framework/ext/tabs/tabs.js";   // for its stylesheet: a card's tab strip wears .tabs / .tab-bar / .tab
 import { seen, mark_seen, card_events, activity_list } from "./activity.js";
-import { mark_read } from "./rules.js";
+import { mark_read, is_read } from "./rules.js";
 import floating from "./floating.js";
 import workspace from "./workspace.js";
 
@@ -831,11 +831,15 @@ export default class Card extends Page {
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
 		this.refinements();
+		// TOPICS FIRST (topic-cards, 2026-10-03 — the owner: "the top section becomes a short
+		// list of those topic cards"). Was after `dashboard_list()`; a request-backed card's
+		// Topics section is the most important thing on a card like Now, so it draws before the
+		// card's own free-text dashboard, not buried under it. Only moves ORDER, nothing new.
+		if (this.by_request()) this.request_outline(items);
+		else outline(this, items);
 		this.dashboard_list();
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
-		if (this.by_request()) this.request_outline(items);
-		else outline(this, items);
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
 		if (!line && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
 			p.c("ai2-ol-about muted").text("Nothing has been asked here yet. Talk into this " + (this.parent instanceof Card ? "request" : "card") + " and your words land here.");
@@ -950,10 +954,18 @@ export default class Card extends Page {
 	}
 
 	request_row(r){
+		// NOTICEABLE, NOT FLASHY (topic-cards, deliverable 4): a topic row the owner hasn't
+		// opened since it last changed gets one small word, no animation — the SAME per-browser
+		// flag every other row's bold title already uses (`mark_read`/`is_read`, rules.js), not
+		// a second tracker. It clears itself the moment the topic's own card page opens
+		// (`activated()`, below, already calls `mark_read(this.id)` on every card) — no new code
+		// needed to clear it, only to show it.
+		const fresh = r.topic && !is_read(r.id);
 		div.c("ai2-ol-row" + (r.topic ? " topic" : r.done ? " done" : " open") + (r.live ? " live" : ""), () => {
 			span.c("ai2-ol-mark").text(r.topic ? "•" : r.done ? "✓" : "☐");
 			if (r.proof) a.c("ai2-ol-title page-link").href(r.proof).text(r.title);
 			else span.c("ai2-ol-title").text(r.title);
+			if (fresh) small.c("ai2-ol-new").text("new");
 			small.c("ai2-ol-time muted").text(r.asked_at ? when(r.asked_at) : "");
 		});
 	}

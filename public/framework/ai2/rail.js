@@ -189,7 +189,7 @@ export default class AIRail extends Inbox.Rail {
 	   highest open need. */
 	decorate(list){
 		list.forEach(it => {
-			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === "your-prompts") ? false : !is_read(it.id);
+			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === this.now_real_id || it.id === "your-prompts") ? false : !is_read(it.id);
 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
 			if (it.kind !== "stalled") it.score = score_for(it.id) ?? it.score;
 			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
@@ -247,7 +247,11 @@ export default class AIRail extends Inbox.Rail {
 	pool(list){
 		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
 		const group_cards = new Set((this.groups.list ?? []).map(g => g.card));
-		return list.filter(it => it.id !== "now" && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
+		// `this.now_real_id` (set once `build_now_item()` resolves) is the Now card's TRUE,
+		// dated id — the plain literal "now" never matches a real card row, which always
+		// carries its own folder id (bug, 2026-10-03: fixing the pinned row's own lookup made
+		// this the live card list's id too, and it doubled up under its own pinned row).
+		return list.filter(it => it.id !== "now" && it.id !== this.now_real_id && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
 	}
 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
 	resolved(it){ return is_resolved(it); }
@@ -396,6 +400,13 @@ export default class AIRail extends Inbox.Rail {
 		const said = [...(fold.messages ?? []).map(m => ({ at: m.at, text: m.text ?? m.raw })),
 			...(fold.prompts ?? []).map(p => ({ at: p.at, text: p.text ?? p.raw }))]
 			.filter(x => x.text).sort((x, y) => Date.parse(x.at ?? 0) - Date.parse(y.at ?? 0)).at(-1);
+		// `fold.id` is the REAL dated folder (`2026/10/03/now`) `resolve_card()` found — keep it so
+		// `pool()`/`decorate()` can also exclude the card's TRUE id, not only the literal alias
+		// "now" below. Without this the Now card doubled (bug, 2026-10-03): fixing the pinned
+		// row's invisibility made `resolve_card` find the real id, and the plain card list (which
+		// never knew the alias) started showing that same card a second time, scored like any
+		// other fresh card, right under its own pinned row.
+		this.now_real_id = fold.id;
 		this.now_item = { id: "now", kind: "card", icon: "push_pin", title: plain(fold.title || "Now"),
 			at: fold.last ?? fold.created, text: said?.text ?? "", links: [], flag: null, author: fold.by,
 			unread: false, status: "open" };
