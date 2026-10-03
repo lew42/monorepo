@@ -27,7 +27,14 @@ export function replay(session_id, label = "session"){
 	});
 }
 
-async function load(id){
+// Exported (2026-10-03, sessions-date-homes): the Sessions tab's own detail
+// page reuses this exact fetch-and-parse — it reads a session's real
+// transcript IN PLACE the same way `replay()` above does, through the same
+// `/ai-logs/<id>` route, rather than keeping its own second copy of a
+// session's prompts on disk (the owner's own "no duplicate data" decision;
+// see `ai/sessions/doc/decisions.md`). One network/parse function, two
+// different renderings of the same raw lines (law 6).
+export async function load(id){
 	const res = await fetch("/ai-logs/" + id).catch(() => null);
 	// The SPA fallback answers unknown paths with index.html and a 200 — a miss, not a hit.
 	if (!res?.ok || (res.headers.get("content-type") ?? "").includes("html")) return null;

@@ -26,13 +26,18 @@
 	   smaller value, so "no column collapses into tall, empty rows" (the
 	   owner's own words) holds even if the JS clamp in page.js is skipped.
 	   Role and RAM (session-costs minion-build, 2026-10-02) added between
-	   Source/Name and State/Cost — same mechanism, two more tokens. */
+	   Source/Name and State/Cost; Stop and Duration (sessions-date-homes,
+	   2026-10-03 — "show the start time, stop time, duration and cost on
+	   every row") added right after Start — same mechanism, more tokens. */
 	.sessions-grid {
-		--col-time: 8rem; --col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
+		--col-time: 8rem; --col-stop: 8rem; --col-duration: 6rem;
+		--col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
 		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 5rem;
 		display: grid;
 		grid-template-columns:
 			minmax(7rem, var(--col-time))
+			minmax(7rem, var(--col-stop))
+			minmax(5.25rem, var(--col-duration))
 			minmax(5.5rem, var(--col-source))
 			minmax(6rem, var(--col-role))
 			minmax(10rem, var(--col-name))
