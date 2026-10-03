@@ -161,6 +161,65 @@ export default class Cards {
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}
 
+	/* ---------- ask → card, the iceberg tip (card-pipeline, 2026-10-02) ---------- */
+
+	/* ONE SECTION, COMPUTED, NEVER TYPED BY AN AGENT (law 7): asked (the ask's own title),
+	 * status (from the task's own task.jsonl — "landed" once it carries a landed line, else
+	 * "building"), next step (the task's latest `log` line, or "landed"), and three links —
+	 * the brief, the task dir, and the page it built when the landing line named one
+	 * (the first entry of a `landed_at` line's own `links` array — review, 2026-10-02: checked
+	 * against 33 recent task logs, every one uses `links`, none use a `highlight.url` field; this
+	 * comment used to name that field instead, which never matched anything real). Returns a
+	 * markdown string, or
+	 * `null` when there is truly nothing to build one from (no task dir AND no ask title) — the
+	 * caller (`create_for_ask`) refuses rather than make an empty card. Reads the task's
+	 * `task.jsonl` straight off disk: this never needs a live Servex, so `mark.mjs`-style CLI
+	 * scripts (and the audit scripts this task also ships) can call it cold. */
+	async ask_tip(ask, task_dir){
+		if (!task_dir && !ask?.title) return null;
+		let status = "proposed", next_step = "not started yet", page_url = null;
+		if (task_dir){
+			let text = null;
+			try { text = await fs.promises.readFile(path.join(this.root, task_dir, "task.jsonl"), "utf8"); } catch {}
+			if (text){
+				let landed = false, last_log = null;
+				for (const raw of text.split("\n")){
+					if (!raw.trim()) continue;
+					let obj; try { obj = JSON.parse(raw); } catch { continue; }
+					if (obj.assign?.landed_at) landed = true;
+					if (obj.assign?.links?.length) page_url = obj.assign.links[0].url ?? page_url;
+					if (obj.log?.msg) last_log = obj.log.msg;
+				}
+				status = landed ? "landed" : "building";
+				next_step = landed ? "landed" : (last_log ?? "working — no log line yet");
+			} else { status = "proposed"; next_step = "not started yet — no task.jsonl found"; }
+		}
+		const brief_url = ask?.words && !String(ask.words).startsWith(".claude/") ? "/framework/" + String(ask.words).replace(/^\/+/, "") : null;
+		const task_url = task_dir ? this.base + task_dir + "/" : null;
+		const links = [brief_url && `[brief](${brief_url})`, task_url && `[task dir](${task_url})`, page_url && `[page](${page_url})`].filter(Boolean).join(" · ");
+		return [`**Asked:** ${ask?.title ?? "—"}`, `**Status:** ${status}`, `**Next step:** ${next_step}`, links].filter(Boolean).join("\n\n");
+	}
+
+	/* THE ONLY WAY AN ASK BECOMES A CARD (item 1–2): makes the card, THEN writes its first
+	 * section (the tip above) as a `{"chat": {"level": "summary", ...}}` line — the exact shape
+	 * `ai2/card.js`'s existing `chat()` method already understands and `refinements()` already
+	 * draws FIRST on the card's own page (one-dictation, 2026-09-30) — so no change to that file
+	 * was needed to put this section at the top; it reuses a mechanism the card page already had
+	 * (law 6: one of everything). Refuses an empty card: with no task dir and no ask title,
+	 * `ask_tip()` returns null and nothing is created. Kept SEPARATE from `create()` (never
+	 * required there) — `create()` is called all over the app for a deliberately blank card
+	 * ("+ New card"), and a dozen-plus existing callers rely on a title alone being enough,
+	 * which CLAUDE.md's "ask before: major surgery… anything with a dozen callers" rules out
+	 * changing just for this one pipeline. */
+	async create_for_ask({ ask, task_dir } = {}){
+		const tip = await this.ask_tip(ask, task_dir);
+		if (!tip) return { ok: false, why: "no task dir and no ask title to build a card from — refusing an empty card" };
+		const out = await this.create({ parent: "today", title: ask?.title, type: "request", by: "servex-asks", tags: ["ask"] });
+		if (!out.ok) return out;
+		await this.append(out.id, { chat: { level: "summary", text: tip, at: stamp(), from: { kind: "system", id: "servex-asks" } } });
+		return out;
+	}
+
 	/* Any one-object line: `{type}`, `{tags}`, `{status}`, `{message}`,
 	 * `{prompt}`, `{cites}`, `{attach}`, `{detach}`, `{legacy}` (readme.md
 	 * defines them). A message without `at` gets one; a NEW prompt gets its id,
@@ -203,7 +262,7 @@ export default class Cards {
 	 * (`ux/Content/Question`) when it is not. No new verb, no new datastore: the owner answers
 	 * with the exact control already on the card, and `append()` below wakes the asker.
 	 * Returns `{ok, id: <card>, ask: <the place line's own id>}`, or `{ok:false, why}`. */
-	async ask({ card, question, options, title, from } = {}){
+	async ask({ card, question, options, title, from, kind } = {}){
 		if (!question || !String(question).trim()) return { ok: false, why: "a card_ask needs a question" };
 		const decision = Array.isArray(options) && options.length > 0;
 		const id = this.ask_id(decision ? "d" : "q");
@@ -212,6 +271,7 @@ export default class Cards {
 			: { module: "/framework/ux/Content/Question/Question.js", id, ask: question, at: stamp() };
 		if (title) place.title = title;
 		if (from) place.from = from;
+		if (kind) place.kind = kind;   // e.g. "spend-gate": wake() acts on the answer itself instead of just texting it over
 		const out = await this.append(card, { place });
 		if (!out.ok) return out;
 		return { ok: true, id: out.id, ask: id };
@@ -228,12 +288,24 @@ export default class Cards {
 
 		let found = null;
 		for (const l of await this.read(card)){
-			if (l.place?.id === ask_id) found = { ask: l.place.ask, from: l.place.from };
-			else if (l.ask?.id === ask_id) found = { ask: l.ask.question ?? l.ask.title, from: l.ask.from };
+			if (l.place?.id === ask_id) found = { ask: l.place.ask, from: l.place.from, kind: l.place.kind };
+			else if (l.ask?.id === ask_id) found = { ask: l.ask.question ?? l.ask.title, from: l.ask.from, kind: l.ask.kind };
 		}
 		if (!found) return [];
 
 		const answer = line.chose?.option ?? line.answer?.text;
+
+		/* A spend-gate card (Agents.js's gate_check()) is answered by ACTING, not by texting
+		 * the gated agent a generic "owner answered" line that no tool ever reads: Stop really
+		 * stops it, Continue really raises its allowance by $5, with no extra model turn spent.
+		 * This is the ONE special case — every other card_ask still falls through to the
+		 * generic send below. */
+		if (found.kind === "spend-gate" && found.from){
+			if (/stop/i.test(String(answer))) this.agents.stop(found.from, { by: "owner" });
+			else this.agents.grant(found.from, 5);
+			return [found.from];
+		}
+
 		const text = `The owner answered your question on card ${card} ("${found.ask}"): ${answer}`;
 		const note = { from: OWNER, reply_to: `card ${card}`, revive: true };   // the owner answering IS the reason to wake it (never one whose cwd is gone)
 		const targets = found.from ? [found.from]
@@ -408,17 +480,33 @@ export default class Cards {
 		return [
 			this.tool("create_card",
 				"The ONLY way to make a card. Never build a card folder or its page.jsonl by hand — this tool picks the"
-				+ " folder, the slug and the day, writes the card's first line and lists it in its parent. Returns"
-				+ " `{ok, id, url, path}`, or `{ok:false, why}`.",
+				+ " folder, the slug and the day, writes the card's first line and lists it in its parent. A blank"
+				+ " `question`/`note`/`card` is fine (that is what the owner's own \"+ New card\" makes, to talk into) —"
+				+ " but a `request` or `task` card is work you are telling the owner about, so pass `summary` (what it is,"
+				+ " in a sentence or two) or `task` (a task dir under `ai/`, whose own task.jsonl becomes the summary) and"
+				+ " it becomes the card's first section; with neither, a `request`/`task` card is refused rather than"
+				+ " left empty (item 4, card-pipeline 2026-10-02: an empty request card nobody ever filled in was the"
+				+ " exact cause the audit found). Returns `{ok, id, url, path}`, or `{ok:false, why}`.",
 				{
 					parent: { type: "string", description: "Where it goes: omit (or `today`) for today's folder; a card id to make a sub-card inside that card, at any depth." },
 					title: { type: "string", description: "What the card is, in a few plain words. The folder name is made from it." },
 					type: { type: "string", description: "`question`, `request`, `task`, `note`, … Change it later with one `{\"type\": …}` line; the latest wins." },
 					by: { type: "string", description: "Your own agent id." },
-					tags: { type: "array", items: { type: "string" }, description: "Projects this card belongs to. A project is a tag, not a folder." }
+					tags: { type: "array", items: { type: "string" }, description: "Projects this card belongs to. A project is a tag, not a folder." },
+					summary: { type: "string", description: "Required for `request`/`task` (optional otherwise): a sentence or two of what this card is about, written as its first section." },
+					task: { type: "string", description: "An alternative to `summary` for `request`/`task`: a task dir under `ai/` (e.g. `2026-10-02/my-task`) — its own task.jsonl computes the first section (status, next step, links) instead of you writing one." }
 				},
 				["title"],
-				async a => say(await this.create(a))),
+				async a => {
+					if (["request", "task"].includes(a.type) && !a.summary && !a.task)
+						return say({ ok: false, why: "a request or task card needs `summary` or `task` — never an empty one; omit `type` (or use `note`/`question`) for a blank card to talk into, like \"+ New card\" makes" });
+					const out = await this.create(a);
+					if (out.ok && (a.summary || a.task)){
+						const tip = a.summary ?? await this.ask_tip({ title: a.title }, a.task);
+						if (tip) await this.append(out.id, { chat: { level: "summary", text: tip, at: stamp(), from: { kind: "system", id: a.by ?? "agent" } } });
+					}
+					return say(out);
+				}),
 
 			this.tool("read_card",
 				"A card's whole log, oldest line first — read it when you start work on a card, so you know everything said on it.",

@@ -489,8 +489,8 @@ export class Agents {
 	 * session ran and its model come from the session file when the row does
 	 * not say. Shared by `wake()` and `revive()`. */
 	reopen(row){
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
-			"permission_mode", "allowed_tools", "setting_sources"];
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources", "budget_usd"];
 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
 		const cwd = base.cwd ?? facts.cwd;
@@ -499,8 +499,32 @@ export class Agents {
 			id: row.id, started_at: row.started_at, resume: row.session_id }));
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
-	/* Continue (+$5) on a spend-gate card: raise that agent's allowance (Agent.grant). */
-	grant(id, usd = 5){ return this.get(id).grant(usd); }
+	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
+	 * way. The agent was interrupted to be gated, so raising the allowance alone leaves it
+	 * sitting idle with more money and nothing telling it to go on — one line does that.
+	 * It may also have left `live` by the time the owner answers (idle-swept, or a Servex
+	 * restart): revive it first, the same door `send()` uses (review.md finding 2), so a
+	 * late Continue is never lost to "No agent …". */
+	grant(id, usd = 5){
+		id = this.holder(id);
+		let agent = this.live.get(id);
+		if (!agent || agent.state === "stopped"){
+			const row = this.reg().read()[id] ?? (agent ? { id, cwd: agent.cwd, stopped_by: agent.stopped_by, stopped_at: agent.stopped_at, task_dir: agent.task_dir } : null);
+			const no = this.blocked(row, { force: true });   // the owner answering IS the reason to wake it
+			if (no){
+				this.store().append("servex", { type: "spend-gate", event: "grant-refused", agent: id, why: no.why }).catch(() => {});
+				return null;
+			}
+			try { agent = this.wake(id); }
+			catch (e){
+				this.store().append("servex", { type: "spend-gate", event: "grant-failed", agent: id, why: String(e.message || e) }).catch(() => {});
+				return null;
+			}
+		}
+		agent.grant(usd);
+		try { agent.send(`Servex: the owner gave you $${usd} more — continue.`, { from: "servex", revive: true }); } catch {}
+		return agent;
+	}
 	/* `by` (the stop_agent tool: who called it) marks a stop ON PURPOSE: it goes
 	 * into the registry row, and the revive guard honours it across restarts.
 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
@@ -1327,6 +1351,7 @@ Agents.Agent = class Agent {
 	}
 
 	tool_started(block){
+		if (!this.gated_role()) return;   // the read-loop warning is for gated work agents only, never the front desk
 		const g = this.gate(), input = block.input ?? {};
 		g.open.set(block.id, null);
 		const kind = this.constructor.RESULT.find(([, test]) => { try { return test(block.name, input); } catch { return false; } })?.[0];
@@ -1394,7 +1419,10 @@ Agents.Agent = class Agent {
 		const read = g.read_log.slice(-10).join(", ") || "nothing";
 		const text = `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
 		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
-		Promise.resolve(card && ask ? ask({ card, question: text, options: ["Continue (+$5)", "Stop"] }, { caller: "servex" }) : null)
+		/* `from: this.id` lets Cards.js's wake() find exactly this agent when the owner answers,
+		 * instead of falling back to every attached non-minion agent. `kind: "spend-gate"` tells
+		 * wake() to act on the answer directly (grant/stop) instead of just texting it over. */
+		Promise.resolve(card && ask ? ask({ card, question: text, options: ["Continue (+$5)", "Stop"], from: this.id, kind: "spend-gate" }, { caller: "servex" }) : null)
 			.catch(() => null)
 			.then(out => { if (!out) sx?.inbox?.drop({ path: this.task?.dir ?? "public/framework/servex", text, from: "servex" }); })
 			.catch(() => {});
