@@ -1040,6 +1040,14 @@
 			flex: 1 1 auto;
 			min-height: 0;
 		}
+		/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is now the flex
+		   parent of the feed card AND the composer below it — same un-cap this file always
+		   gave the card alone, one level further in: `ux/Dictate/Widget.css`'s own doc. */
+		.ai2-foot-chat-slot .ux-dictate-widget-shell {
+			flex: 1 1 auto;
+			min-height: 0;
+			max-block-size: none;
+		}
 		.ai2-foot-chat-slot .ux-dictate-widget-card {
 			flex: 1 1 auto;
 			min-height: 0;
@@ -1063,6 +1071,19 @@
 			border-radius: 0;
 			background: none;
 			padding: 0;
+		}
+		/* THE COMPOSER'S OWN EXTRA BORDERS DON'T BELONG HERE EITHER (drawer-chat round 2,
+		   2026-10-02) — `Widget.css`'s side/bottom border and bottom rounding on the new
+		   composer exist only to CONTINUE the feed card's own border where the two meet;
+		   this column's feed card has no border at all (right above, "one frame, not
+		   two" — `.ai2-foot`'s own left border is the column's one frame). Stripped the
+		   same way, for the same reason: the composer keeps its background and its top
+		   border (still the one line that separates it from the feed, same as everywhere
+		   else), nothing more. */
+		.ai2-foot-chat-slot .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+			border-inline: 0;
+			border-block-end: 0;
+			border-radius: 0;
 		}
 
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */

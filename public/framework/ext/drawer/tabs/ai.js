@@ -322,26 +322,32 @@ function session_header({ card }){
 			$chips = div.c("drawer-ai-chips flex wrap");
 			draw_chips(session);
 
+			// Only worth a switcher when there is somewhere else to switch TO.
+			const elsewhere = rows.some(row => row.session !== session);
+			let $list;
 			div.c("drawer-ai-switcher flex v-center wrap", () => {
 				chat.new_session_button(() => live_chat, { label: "+ New session" });
-				// Only worth a switcher when there is somewhere else to switch TO.
-				if (rows.some(row => row.session !== session)){
-					const $list = div.c("drawer-ai-switch-list flex v");
-					$list.el.hidden = true;
-					button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
-						.click(() => { $list.el.hidden = !$list.el.hidden; });
-					$list.append(() => {
-						rows.forEach(row => {
-							const is_live = row.session === session;
-							button.c("drawer-row").attr("type", "button").ac(is_live && "on")
-								.click(() => chat.resume(row.session)).append(() => {
-									span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
-									small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
-								});
-						});
-					});
-				}
+				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
+					.click(() => { $list.el.hidden = !$list.el.hidden; });
 			});
+			// A SIBLING of the button row, not a child of it (round 2, 2026-10-02 — found in
+			// the proof shots: nested inside `.drawer-ai-switcher`'s own ROW, the list sat
+			// wedged between the two buttons instead of dropping below them). A plain block
+			// in this column, so it stacks under the row at any width.
+			if (elsewhere){
+				$list = div.c("drawer-ai-switch-list flex v");
+				$list.el.hidden = true;
+				$list.append(() => {
+					rows.forEach(row => {
+						const is_live = row.session === session;
+						button.c("drawer-row").attr("type", "button").ac(is_live && "on")
+							.click(() => chat.resume(row.session)).append(() => {
+								span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
+								small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
+							});
+					});
+				});
+			}
 		});
 	}
 

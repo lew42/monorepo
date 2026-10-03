@@ -219,6 +219,15 @@
 	.drawer-ai-panel > .ux-dictate-widget {
 		flex: 1 1 auto; min-block-size: 0;
 	}
+	/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is the new flex parent
+	 * of both the feed card and the composer panel — the shell is what needs to grow and
+	 * drop its own 60vh/32em ceiling now, same reasoning as before, just one level further
+	 * in than when the card carried this alone. The card inside it still gets its own
+	 * `min-block-size: 0` so IT is the one that actually shrinks/scrolls, never the
+	 * composer sitting below it. */
+	.drawer-ai-panel .ux-dictate-widget-shell {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
 	.drawer-ai-panel .ux-dictate-widget-card {
 		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
 	}
