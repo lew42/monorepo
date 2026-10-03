@@ -673,9 +673,11 @@ export class DrawerRailSheet extends DrawerRailSheetV1 {
 	}
 
 	links(){
+		// "Sessions" used to be its own link here, to its own tab — gone (one-dictation
+		// drawer-chat, 2026-10-02): the Sessions tab folded into AI (tabs.js), so it would
+		// have opened the exact same place "Open full AI" already does.
 		return div.c("drawer-rail-sheet-links flex wrap", () => {
 			this.new_session_button();
-			this.link("Sessions", "sessions");
 			this.link("Dictation", "dictation");
 			this.link("Settings", "settings");
 			this.link("Open full AI", "ai");

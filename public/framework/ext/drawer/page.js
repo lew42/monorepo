@@ -18,7 +18,7 @@ export default new Doc({
 
 		h2("The ☰ and its tabs");
 
-		md("Every page has a **☰** in its top right. It opens this drawer on five tabs (a sixth, Element, appears while something is selected), and the open tab is in the url (`?drawer=sessions`), so a reload lands on it. Try them:");
+		md("Every page has a **☰** in its top right. It opens this drawer on three tabs (a fourth, Element, appears while something is selected), and the open tab is in the url (`?drawer=ai`), so a reload lands on it. Try them:");
 
 		div.c("flex gap wrap", () => {
 			tabs.shown().filter(t => t.name !== "element").forEach(t => button.c("btn", t.label).click(() => tabs.open(t.name)));

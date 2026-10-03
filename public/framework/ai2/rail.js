@@ -121,6 +121,14 @@ export default class AIRail extends Inbox.Rail {
 				this.page.opening = id;
 				this.router?.go(workspace.url(this.url + id + "/"));
 			});
+		// "+ New session" BESIDE "+ New card" (one-dictation drawer-chat, 2026-10-02 — the
+		// owner: "creating a new session definitely should be a button on the main AI page
+		// here"). The exact shared button every surface's chat uses (`ux/Dictate/chat.js`'s
+		// `new_session_button`, CLAUDE.md law 6) — no chat is mounted on this bare dashboard
+		// to pass it, so it is handed a tiny stand-in whose only job is `reset()`, which this
+		// button only ever calls: a plain object works exactly as well as a real mount here.
+		mount_chat.new_session_button({ reset: mount_chat.reset }, { label: "+ New session", title: "Start a fresh global conversation" })
+			.ac("inbox-newcard ai2-newsession");
 	}
 
 	toggles(){

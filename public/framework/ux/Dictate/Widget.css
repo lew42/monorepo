@@ -14,9 +14,36 @@
 
 	.ux-dictate-widget-empty:empty { display: none; }
 
-	/* The card: bubbles above, the composer pinned under it — never taller than a phone
-	 * screen, so a long conversation scrolls inside the thread, not the whole page. */
-	.ux-dictate-widget-card { max-block-size: min(60vh, 32em); }
+	/* THE SHELL (drawer-chat round 2, 2026-10-02) — the feed card and the composer panel
+	 * below it, as one visual block: never taller than a phone screen (the SAME ceiling
+	 * `.ux-dictate-widget-card` used to carry alone, moved up here now that the composer
+	 * is its own sibling box below the card instead of a child padded inside it), no gap
+	 * between the two (`gap` is the default on every OTHER `flex v` in this file — this is
+	 * the one place two boxes must look like one). */
+	.ux-dictate-widget-shell { display: flex; flex-direction: column; gap: 0; max-block-size: min(60vh, 32em); }
+	/* The card's own bottom edge is squared off and its bottom border dropped — the
+	 * composer's own TOP border (Chat.css's `.chatbox-compose`) is the one line between
+	 * them now, never two borders meeting. `v1: true` never reaches this selector (its
+	 * composer stays a child of the card, Widget.js's own doc on the shell above). */
+	.ux-dictate-widget-shell > .ux-dictate-widget-card {
+		border-end-start-radius: 0; border-end-end-radius: 0;
+		border-block-end: 0;
+	}
+	/* THE COMPOSER, FLUSH TO THE CARD'S OWN OUTER EDGES — `Chat.css`'s `.chatbox-compose`
+	 * is the shared background/top-border every surface gets (CLAUDE.md law 6: one
+	 * composer look, not a second one here); these extra rules are what make THIS widget's
+	 * own feed card and composer read as one continuous shape instead of a box floating
+	 * inside a box (the parent review's own bug: "the feed's bordered card holds an inset
+	 * grey panel") — the composer's side and bottom borders continue the card's own
+	 * `--line` border down and around, and its bottom corners pick up the card's own
+	 * rounding where the card's own bottom corners were just squared off, above. */
+	.ux-dictate-widget-shell > .ux-dictate-widget-composer { flex: none; }
+	.ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		border-inline: 1px solid var(--line);
+		border-block-end: 1px solid var(--line);
+		border-end-start-radius: var(--radius); border-end-end-radius: var(--radius);
+	}
+
 	.ux-dictate-widget-thread {
 		flex: 1 1 auto; min-block-size: 3em; max-block-size: 22em; overflow-y: auto;
 		position: relative;   /* the containing block for `.chatbox-jump`, ext/Chat/Chat.css */
@@ -84,8 +111,14 @@
 	/* `Widget.ComposerV1` ONLY (`v1: true`) — the typed box, then the mic/Send/extras row
 	 * below it. The default composer (`Widget.Composer`) gets this same column shape from
 	 * `Chat.css` now instead. Nothing here is `position: absolute`: every child, the
-	 * live-guess caption included, sits in normal flow, so the card grows to fit it. */
-	.ux-dictate-widget-composer { padding-block-end: 0.3em; }
+	 * live-guess caption included, sits in normal flow, so the card grows to fit it.
+	 * ⚠ Both composers build the SAME wrapper class (`this.ac("ux-dictate-widget-composer
+	 * flex v gap")`, `Widget.js`), so a bare `.ux-dictate-widget-composer` selector reaches
+	 * both — `:has(.ux-dictate-widget-input)` is what actually scopes this to v1's own
+	 * markup. Without it, this padding left a gap between the NEW composer's own bottom
+	 * edge and the shell's (drawer-chat round 2, 2026-10-02 — found while measuring the
+	 * parent review's "flush at the bottom" fix: the composer sat 5px short). */
+	.ux-dictate-widget-composer:has(.ux-dictate-widget-input) { padding-block-end: 0.3em; }
 
 	/* THE TYPED BUFFER — full width (the card's own `.pad` already gives it the "a
 	 * little side padding on mobile" the brief asks for; no separate rule needed here),

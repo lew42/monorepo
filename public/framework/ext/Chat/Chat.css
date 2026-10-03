@@ -45,12 +45,22 @@
 	   (this one, `ux/Dictate`'s own, AI 2's card composer) reads the same way.
 	   `padding-inline` is the "a little side padding on a phone" the owner asked
 	   for — small enough that a wide screen never notices it. */
+	/* THE COMPOSER IS ITS OWN PANEL (drawer-chat, one-dictation, 2026-10-02 — the owner:
+	   "the bottom bar still has this text area that probably needs a different background
+	   color to separate it from the chat area, the whole panel area where the controls
+	   are"). `--fill-a08` reads over any background it sits on (it is a translucent tint,
+	   not a flat colour — `color` skill), so this panel reads as its own region whether the
+	   chat feed above it is the page's own background, a `.card`'s `--surface`, or anything
+	   else a host wraps this in — no host-specific colour to keep in sync. The top border is
+	   the one extra cue a tint alone might miss on a low-contrast screen. */
 	.chatbox-compose {
 		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: 0.35em;
-		padding-inline: 0.3em;
+		padding: 0.5em 0.3em;
+		background: var(--fill-a08);
+		border-block-start: 1px solid var(--line);
 	}
 	.chatbox-compose-row {
 		flex: none;
@@ -100,6 +110,11 @@
 		flex: none;
 		white-space: nowrap;
 	}
+	/* Send sits at the row's own far end — mic, then the gear (and "raw" when it shows),
+	   land at the start; Send is the one thing pushed to the end (drawer-chat,
+	   one-dictation, 2026-10-02 — the owner: "the microphone and send and settings buttons
+	   are kind of just floating awkwardly down there"). */
+	.chatbox-compose-send { margin-inline-start: auto; }
 
 	.chatbox-compose-more {
 		padding: 0 0.45em;

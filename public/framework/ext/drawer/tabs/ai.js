@@ -1,7 +1,7 @@
-import { div, span, label, select, option, small, button } from "/framework/core/View/View.js";
+import { div, span, label, select, option, small, button, a } from "/framework/core/View/View.js";
 import md from "/framework/ext/markdown/md.js";
 import Widget, { model, MODELS } from "/framework/ux/Dictate/Widget.js";
-import chat from "/framework/ux/Dictate/chat.js";
+import chat, { ago } from "/framework/ux/Dictate/chat.js";
 import { composer } from "/framework/ext/Chat/Composer.js";
 import { post_prompt } from "/framework/ux/Dictate/Dictate.js";
 import { servex_base, is_folder_id, card_prompt, cards_ready } from "/framework/ai2/inbox.js";
@@ -222,18 +222,164 @@ function chips_row(tabs){
 	return { view: $chips, context: () => tabs.chips.length ? tabs.chips.map(c => ({ ...c })) : undefined };
 }
 
+/* THE HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — the owner: "The UI needs to
+ * be very clear what's actually happening structurally in the data. Which session we're
+ * on should be abundantly clear. Which agents are listening should be abundantly clear.").
+ * This is what used to be the whole separate Sessions tab (ask 1: "AI and Sessions become
+ * one tab") — now three short lines above the chat, always telling the truth about the
+ * one thing every surface actually shares: ONE global conversation per browser tab
+ * (`ux/Dictate/chat.js`'s own `GLOBAL` controller, `ux/Dictate/readme.md`'s "the session
+ * is global"). `card` is never a second, scoped session — just a hint for the session's
+ * very first sentence — so this strip always says "global", truthfully, instead of
+ * guessing at a scope that does not exist today.
+ *
+ *   1. the session's name (its `session_summary` title, once the smart assistant has
+ *      given it one) and a link to its raw log file;
+ *   2. the fast and smart assistants, as chips reading their LIVE state — working, idle,
+ *      or asleep (Servex stops an idle pair after 5 minutes; "asleep" covers "stopped" and
+ *      "never started yet" the same way, since a reader cannot tell those apart by looking
+ *      and does not need to) — read from `GET /api/agents`, the one route every agent-state
+ *      reader on the site already polls (`ai2/agents.js`, `core/Page/ai/live.js`); no new
+ *      endpoint;
+ *   3. a short list of the project's other recent voice sessions (one click resumes one,
+ *      `chat.resume()`) and the shared "+ New session" button (`chat.new_session_button`,
+ *      `ux/Dictate/chat.js` — CLAUDE.md law 6: one button, not a second one built here).
+ *
+ * NOT folded in: the dev bar Ask's own older text threads and a card's sub-cards, which
+ * `tabs/sessions.js` used to also list below the voice sessions. Those are a separate,
+ * older kind of conversation (`aiV2`'s own `thread` handling, kept reachable below) — the
+ * dev bar itself (Ctrl+\\) is still the live, maintained place to reach an Ask thread, and
+ * stacking a second, rarely-used list under the one the owner actually asked to see clearer
+ * would be the opposite of this task's own ask. `tabs/sessions.js` keeps existing, unchanged,
+ * for its `threads()`/`load()` exports (`dev/DevBar/ask.js` still imports them) and as a
+ * fallback module nothing routes to any more. */
+const AGENT_ROLES = ["fast", "smart"];
+
+function agent_state_label(raw){
+	if (raw === "working") return "working";
+	if (raw === "idle") return "idle";
+	return "asleep";   // "dormant", "stopped", "gone", or not found at all — Servex only keeps
+	                   // a live row for an agent that is actually awake; everything else reads
+	                   // the same to a reader deciding whether to expect a quick reply.
+}
+
+/** The fast/smart assistants' live state, `[{role, state}]` — reusing the one route every
+ *  other agent-state reader already polls (see the class doc above), never a new one. The
+ *  agent ids are derivable straight from the session id (`doc/sessions.md`'s own file
+ *  format: `"fast": "session-fast-<id>", "smart": "session-smart-<id>"`), so this needs no
+ *  extra fetch of the session record itself. Fails soft to "asleep" for both, same as every
+ *  other Servex read in this file. */
+async function fetch_agent_states(session){
+	let rows = [];
+	try {
+		const res = await fetch(servex_url("/api/agents"), { cache: "no-store", signal: AbortSignal.timeout(4000) });
+		rows = res.ok ? await res.json() : [];
+	} catch {}
+	return AGENT_ROLES.map(role => ({ role, state: agent_state_label(rows.find?.(r => r.id === `session-${role}-${session}`)?.state) }));
+}
+
+/** The header strip itself — see the class doc above. Returns `{view, stop}`; `stop()`
+ *  drops its own poller and its `chat.on_change` subscription, called by `dispose_chat()`
+ *  below the same way it already disposes the chat mount, so reopening this tab ten times
+ *  never leaves nine stale timers running (review finding 3's own bug, for the mount —
+ *  this strip is new code, so it is built with that fix already in it, not after). */
+function session_header({ card }){
+	const $box = div.c("drawer-ai-session flex v");
+	let $chips = null, chip_timer = null;
+
+	function draw_chips(session){
+		if (!$chips) return;
+		if (!session){ $chips.empty(() => AGENT_ROLES.forEach(role => span.c("drawer-ai-chip drawer-ai-chip-asleep", `${role} · asleep`))); return; }
+		fetch_agent_states(session).then(list => {
+			if (!$chips?.el.isConnected) return;
+			// `info`, not `a` — `a` is this file's own import, the anchor-tag factory (code skill).
+			$chips.empty(() => list.forEach(info => span.c(`drawer-ai-chip drawer-ai-chip-${info.state}`, `${info.role} · ${info.state}`)));
+		});
+	}
+
+	async function paint(){
+		const session = chat.current();
+		let rows = [];
+		try { rows = await Session.recent_project({ limit: 12 }); } catch {}
+		if (!$box.el.isConnected) return;
+		const live_row = rows.find(r => r.session === session);
+
+		$box.empty(() => {
+			div.c("drawer-ai-session-head flex v-center split wrap", () => {
+				span.c("drawer-ai-session-name", live_row?.title || "a new conversation");
+				if (live_row?.home) a.c("drawer-ai-session-log muted", "log")
+					.attr("href", live_row.home.replace(/\/?$/, "/") + "ai/" + live_row.session + ".jsonl")
+					.attr("target", "_blank").attr("title", "This conversation's raw file");
+			});
+			// THE ONE QUESTION THE OWNER ASKED FIRST ("is this a global session?") — answered
+			// flatly, every time, because it is always true: every surface shares this ONE
+			// conversation (chat.js's `GLOBAL` controller). `card` never makes a second,
+			// scoped one — only a hint for its first line — so this never says "scoped".
+			small.c("drawer-ai-session-scope muted", card
+				? "global conversation — this card is only a hint for its first line; it follows you everywhere"
+				: "global conversation — the same one on every page, until “+ New session”");
+
+			$chips = div.c("drawer-ai-chips flex wrap");
+			draw_chips(session);
+
+			// Only worth a switcher when there is somewhere else to switch TO.
+			const elsewhere = rows.some(row => row.session !== session);
+			let $list;
+			div.c("drawer-ai-switcher flex v-center wrap", () => {
+				chat.new_session_button(() => live_chat, { label: "+ New session" });
+				if (elsewhere) button.c("drawer-ai-switch-btn", "Switch session ▾").attr("type", "button")
+					.click(() => { $list.el.hidden = !$list.el.hidden; });
+			});
+			// A SIBLING of the button row, not a child of it (round 2, 2026-10-02 — found in
+			// the proof shots: nested inside `.drawer-ai-switcher`'s own ROW, the list sat
+			// wedged between the two buttons instead of dropping below them). A plain block
+			// in this column, so it stacks under the row at any width.
+			if (elsewhere){
+				$list = div.c("drawer-ai-switch-list flex v");
+				$list.el.hidden = true;
+				$list.append(() => {
+					rows.forEach(row => {
+						const is_live = row.session === session;
+						button.c("drawer-row").attr("type", "button").ac(is_live && "on")
+							.click(() => chat.resume(row.session)).append(() => {
+								span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Voice session"));
+								small.c("drawer-row-meta muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
+							});
+					});
+				});
+			}
+		});
+	}
+
+	paint();
+	const unsubscribe = chat.on_change(paint);
+	// The chips' own state can change (an agent falls asleep after 5 idle minutes) with no
+	// session change at all to trigger `paint()` — a light poll, same 10s rhythm
+	// `ai2/agents.js`'s own card-agents row already uses, stopped the instant the box leaves
+	// the page (checked inside `draw_chips`/`fetch_agent_states` doing nothing useful once
+	// `$box` is disconnected — `stop()` below clears the timer itself regardless).
+	chip_timer = setInterval(() => draw_chips(chat.current()), 10000);
+
+	return { view: $box, stop(){ unsubscribe(); clearInterval(chip_timer); } };
+}
+
 /* THE ONE LIVE MOUNT. `ai()` below builds a `chat.js` mount every time the drawer
  * refills this tab — this module-level slot (singleton, like `live_card` above)
  * remembers it so the OLD one gets `remove()`d first, instead of leaking a
  * poller and an `EventSource` on every reopen. A `MutationObserver` plus the
  * `drawer-close` event catch the two ways the mount can leave the page without
  * `ai()` running again: a different tab replacing this one's content, or the
- * whole drawer shutting. Full reasoning: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/). */
+ * whole drawer shutting. Full reasoning: [`doc/chat.md`](/framework/ux/Dictate/doc/chat/).
+ * `live_header` (`session_header()`'s own return) is disposed the same way, same moments —
+ * see that function's own doc for why it needs disposing at all. */
 let live_chat = null;
+let live_header = null;
 function dispose_chat(){
 	const handle = live_chat;
 	live_chat = null;
 	handle?.remove();
+	live_header?.stop();
+	live_header = null;
 }
 window.addEventListener("drawer-close", dispose_chat);
 
@@ -253,6 +399,7 @@ export default function ai({ page, card, tabs }){
 	const inbox = new Inbox.Compact({ page });
 	div.c("drawer-ai flex v", () => {
 		inbox.view();
+		live_header = session_header({ card });
 		const $slot = div.c("drawer-ai-panel");
 		const handle = live_chat = chat($slot.el, {
 			path: page,
@@ -268,6 +415,8 @@ export default function ai({ page, card, tabs }){
 				mo.disconnect();
 				handle.remove();
 				if (live_chat === handle) live_chat = null;
+				live_header?.stop();
+				live_header = null;
 			});
 			mo.observe(host, { childList: true });
 		}

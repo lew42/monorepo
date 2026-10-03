@@ -105,18 +105,32 @@ export default class Widget extends View {
 		this.join = preset.join !== false;
 		const Thread = this.v1 ? this.constructor.ThreadV1 : this.constructor.Thread;
 		const Composer = this.v1 ? this.constructor.ComposerV1 : this.constructor.Composer;
-		div.c("ux-dictate-widget-card card pad flex v gap", () => {
-			if (this.models) new this.constructor.Models({ widget: this });
-			// `pulse: true` (the pulsing-dot mic indicator, 2026-10-01) wraps the thread in
-			// one extra box so the lock overlay and the dot can sit ON TOP of the feed
-			// without scrolling away with it — see `Widget.Pulse`'s own class doc, right
-			// below `Widget.Debug`, for why a plain child of the scrolling thread wouldn't work.
-			if (this.pulse) div.c("ux-dictate-widget-feed-wrap", () => {
-				new Thread({ widget: this });
-				new this.constructor.Pulse({ widget: this });
+		// THE SHELL (drawer-chat round 2, 2026-10-02 — the parent review: "the feed's
+		// bordered card holds an inset grey panel... make the composer panel run the full
+		// width of the chat column, flush at the bottom, with its own background and a top
+		// border, so the feed sits above it and the feed card's border doesn't wrap around
+		// it"). The NEW composer is now a SIBLING of the feed card, not a child padded
+		// inside it — `Widget.css`'s own `.ux-dictate-widget-shell` rules square off the
+		// card's bottom and the composer's top where they meet, so the border between them
+		// is the composer's own ONE top border, never a second nested box. `v1: true` keeps
+		// the OLD composer exactly where it always was, inside the card — this is a change
+		// to the new composer's own look, not a structural rule for every composer ever
+		// built here.
+		div.c("ux-dictate-widget-shell flex v", () => {
+			div.c("ux-dictate-widget-card card pad flex v gap", () => {
+				if (this.models) new this.constructor.Models({ widget: this });
+				// `pulse: true` (the pulsing-dot mic indicator, 2026-10-01) wraps the thread in
+				// one extra box so the lock overlay and the dot can sit ON TOP of the feed
+				// without scrolling away with it — see `Widget.Pulse`'s own class doc, right
+				// below `Widget.Debug`, for why a plain child of the scrolling thread wouldn't work.
+				if (this.pulse) div.c("ux-dictate-widget-feed-wrap", () => {
+					new Thread({ widget: this });
+					new this.constructor.Pulse({ widget: this });
+				});
+				else new Thread({ widget: this });
+				if (this.v1) new Composer({ widget: this });
 			});
-			else new Thread({ widget: this });
-			new Composer({ widget: this });
+			if (!this.v1) new Composer({ widget: this });
 		});
 		if (this.debug) new this.constructor.Debug({ widget: this });
 
