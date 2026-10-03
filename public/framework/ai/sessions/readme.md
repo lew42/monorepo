@@ -9,12 +9,17 @@ opens as a side peek beside the grid instead of replacing it.
 
 ## Use
 
-Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Eight columns, newest activity first:
-Start, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column header's own
-right edge to resize just that column — each one is a single `--col-<name>` CSS custom property,
-with its own minimum width so a column never collapses to nothing. It's a CSS grid, not a
-`<table>`: `doc/decisions.md` says why, and what that bought (one token per column) that a table
-couldn't.
+Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Ten columns, newest activity first:
+Start, Stop, Duration, Source (a coloured tag), Role, Name, Model, State, RAM, Cost. Drag a column
+header's own right edge to resize just that column — each one is a single `--col-<name>` CSS
+custom property, with its own minimum width so a column never collapses to nothing. It's a CSS
+grid, not a `<table>`: `doc/decisions.md` says why, and what that bought (one token per column)
+that a table couldn't.
+
+**Start / Stop / Duration (2026-10-03):** Start and Stop are both real timestamps where known;
+Stop reads "ongoing" while a session is still active rather than guessing when it ended — a plain
+transcript file has no formal "stopped" event. Duration is Stop minus Start (or "now" minus Start
+while ongoing).
 
 **What's new (session-costs minion-build, 2026-10-02) — real per-session dollars, not just the one
 older `cost` figure:**
@@ -81,11 +86,14 @@ merge.
   built; this task's own fence is `public/framework/ai/` only, so it cannot add a route under
   `Server/` itself. The full reasoning, and what a real route would fix, is in
   [`doc/decisions.md`](./doc/decisions.md).
-- **`sessions.json` and every file under `transcripts/` are gitignored**, the same way
-  `ai/usage.json` already is — machine state written by a script, not a record to keep, and in
-  this case also the owner's own dictated prompt text, which has no business in `public/`, the
-  folder this site deploys statically. Running `sessions.mjs` regenerates both locally; neither is
-  ever committed.
+- **`sessions.json` is gitignored**, the same way `ai/usage.json` already is — machine state
+  written by a script, a COMPUTED CACHE never the record itself (the owner's own words). Running
+  `sessions.mjs` regenerates it locally; it is never committed.
+- **No duplicate data (2026-10-03):** a session's own prompts are never copied anywhere — the old
+  `transcripts/<id>.json` snapshot (110 files, 2.5 MB) is gone. The detail page reads a session's
+  real prompts LIVE, through `/ai-logs/<id>` (`Server/plugins/AILogs.js`, dev-server only, the same
+  route [`ext/AITask/replay.js`](/framework/ext/AITask/) already used) — the owner's own dictated
+  text never sits in `public/`, the folder this site deploys statically, even transiently.
 
 ## Watch out
 
@@ -98,15 +106,19 @@ merge.
   the data this reads.
 - A Servex-sourced session's own page has no transcript yet (`GET /api/agents` carries no prompt
   text) — its detail page says so, with a link to why.
-- **The detail route is a known future seam, and the real shape is still moving.**
-  `task-mastermind-prompt-refine` is building the eventual real source for this page's transcript;
-  its own plan changed twice while this tab was being built (first "filter the daily prompt log",
-  then "one `page.jsonl` per session", then "filed under the day it started:
-  `ai/<date>/sessions/<slug>-<uuid8>/page.jsonl`", read with `page_read`) — so don't trust this
-  bullet's own specifics, check `task-mastermind-prompt-refine`'s current state instead.
-  `load_transcript()` (`page.js`) is the one function that reads today's stand-in
-  (`sessions.json` + `transcripts/<id>.json`); swapping sources, whatever they turn out to be, is a
-  one-function change, not a rewrite. See [`/framework/ai/2026-10-02/sessions-grid-v2/`](/framework/ai/2026-10-02/sessions-grid-v2/).
+- **A session's home is its date path, once one exists — and none do yet.**
+  `task-mastermind-prompt-refine`'s hooks are meant to write a real
+  `ai/<Y>/<M>/<D>/<slug>-<uuid8>/page.jsonl` per session (page-item-design.md); checked live,
+  2026-10-03, and no such folder exists on this machine yet. `session_page_dir_index()` (`page.js`)
+  walks for one on every grid load regardless — the moment a session has one, its row's own link
+  points there instead of this tab's `/sessions/<id>/` view, with no further code change.
+  `with_date_path_rows()` goes one step further: a session whose ONLY record is a date-path folder
+  (no `sessions.json`/Servex entry at all) still appears as a row, tagged "Page" — the grid lists
+  from those pages, not only links to them, the moment any exist. Its own plan has changed three
+  times already while this task was being built, so don't trust any more specifics than that here —
+  check `task-mastermind-prompt-refine`'s current state instead. `load_transcript()` (`page.js`) is
+  still the one function whose body changes once a real prompt source lands; today it reads a
+  session's transcript live (see above), not a copy.
 
 ## More
 

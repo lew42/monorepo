@@ -53,9 +53,25 @@ function call_span(src, openParen){
 	}
 	return src.slice(openParen, Math.min(src.length, openParen + 400));
 }
+// Blanks out every block (`/* */`) and line (`//`) comment's own TEXT while
+// keeping every character position — including newlines — identical to the
+// original, so a line number computed from the blanked copy still matches
+// the real file exactly. Needed because this codebase's own house style is
+// heavy prose comments that constantly spell out real call syntax to explain
+// it ("A FRESH spawn (never a resume...)", `` `spawn({task: {...}})` ``) —
+// without this, that PROSE reads as an unguarded child_process call (found
+// live, 2026-10-03: Agents.js's own doc comments about its `spawn`/`fork`
+// class methods were flagged this way).
+function blank_comments(src){
+	return src
+		.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, " "))
+		.replace(/\/\/[^\n]*/g, m => " ".repeat(m.length));
+}
+
 function hidden_guard(file){
-	const src = fs.readFileSync(file, "utf8");
-	if (!/child_process/.test(src)) return;
+	const raw = fs.readFileSync(file, "utf8");
+	if (!/child_process/.test(raw)) return;
+	const src = blank_comments(raw);
 	const CALL = /([.\w$])?\b(spawn|spawnSync|execFile|execFileSync|fork)\s*(\(|Sync\()|(^|[^.\w$])exec\s*\(/g;
 	const bad = [];
 	let m;
@@ -65,6 +81,17 @@ function hidden_guard(file){
 		const call = call_span(src, openParen);
 		if (m[1] === ".") continue;                        // this.spawn(...) — a method call, not child_process's export
 		if (!call.slice(1, -1).trim()) continue;            // spawn(){ — a method DEFINITION, never a real call
+		// spawn(spec){ / async fork({ a, b }){ — a method DEFINITION whose own
+		// parameter LIST happens to be non-empty (a class with a method literally
+		// named spawn/fork/exec, unrelated to child_process). The empty-parens
+		// check above only catches `spawn(){`; this catches every other shape of
+		// definition by looking at what follows the call's own closing paren — a
+		// real call is followed by `;`, `,`, `)`, a newline, etc.; a definition's
+		// closing paren is followed directly by its body's `{` (found live,
+		// 2026-10-03 — Agents.js's own `spawn(spec){`/`async fork({...}){`
+		// methods were flagged as unguarded child_process calls).
+		const after = src.slice(openParen + call.length).match(/^\s*(\S)/)?.[1];
+		if (after === "{") continue;
 		const name = m[2] || "exec";
 		const line = src.slice(0, m.index).split("\n").length;
 		const hidden = /windowsHide\s*:\s*true/.test(call);
