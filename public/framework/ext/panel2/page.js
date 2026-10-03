@@ -14,7 +14,7 @@ export default new Doc({
 	icon: "view_column",
 
 	files: "Panel2.js panel2.css page.js readme.md",
-	notes: "decisions",
+	notes: "decisions preview-levels",
 
 	content(){
 

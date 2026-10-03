@@ -1,5 +1,51 @@
 # Sessions — decisions
 
+## 2026-10-02 (sessions-grid-v2) — a CSS grid, `columns()`, and `ext/grip`, not three new things
+
+The owner's follow-up ask added three requirements on top of the shipped preview-card list:
+a data grid with Start/Source/Name/Model/State/Cost, no HTML `<table>`, one `--col-<name>` token
+per column with a resize that touches only that token, and a Notion-style side peek on a wide
+screen. Full brief: [`/framework/ai/2026-10-02/sessions-grid-v2/requirements.md`](/framework/ai/2026-10-02/sessions-grid-v2/requirements.md).
+
+**The grid, without a `<table>`.** `.sessions-grid` is one real CSS grid; the header and every
+data row are `display: contents`, so their cells become the grid's own flat items and line up in
+its `grid-template-columns` tracks — the exact nested-`display:contents` idiom `core/Page`'s own
+`columns()` already uses to let a tree of pages read as a row (`doc/columns.md`, "Peers on screen,
+a tree in the DOM"). Each track is `minmax(<floor>, var(--col-<name>))`, so the grid itself refuses
+to go under the floor even if JS never clamped it.
+
+**The resize, reusing `ext/grip`.** Not a new drag handler: `grip({ from: "start", write(px){…} })`
+on each header cell, the same factory `ext/files`, `Panel2.split`, `core/Sidebar` and `core/Page`'s
+own column system already call. `from: "start"` measures the cell's own left edge — which IS the
+column's start — so the pointer position it hands `write()` is already the column's width, no
+extra arithmetic. `write()` touches exactly one token (`$grid.style("--col-" + key, …)`), satisfying
+"resizing a column changes the one token" with no bespoke code. The handle you actually see and
+drag sits on the cell's **right** edge, not its left: `grip`'s own `mirror` option defaults to
+`from === "start"`, which draws the strip at the opposite edge from the one it measures — so
+"measured from the left" and "dragged on the right" are the same grip, not a contradiction (the
+readme's "drag a column header's own right edge" and this doc's "measures the cell's own left
+edge" are both true, of two different things: where you grab it, and what it computes).
+
+**The side peek, reusing `columns()`.** The alternative considered was a bespoke `:has()` master-
+detail layout (the shape `core/new/1/site/compound/master-detail/page.js` hand-rolls) or putting
+the detail on `Panel2.Side`. Rejected: `Panel2.Side` is navigation chrome that slides OVER the
+page (a drawer), not a second reading pane beside it, and a hand-rolled `:has()` layout would be a
+second master-detail mechanism next to the one `core/Page` already ships and three other pages
+already use this exact way (`core/Page/overview/columns/uses/inbox/`). Sessions calls
+`this.columns()` and sets `width: "fill"`; the grid claims the whole row alone, and the existing
+"`fill` yields to an open child" rule (`doc/columns.md`) drops it to the default reading width the
+moment a row's detail opens, leaving the rest of the row to the detail page — the whole peek, for
+free, from a rule already shipped for other pages. The `< 32em` phone regime `core` already has
+folds it to one screen at a time; nothing extra was written for narrow screens either.
+
+**Found live, fixed same day:** a cell callback written as `cond && small.c(…)` rendered the
+literal text "false" in the Cost column, because a live agent's `cost` field really was the
+boolean `false` (not a number, not null) — the arrow function's own return value (`false`) was
+the thing that ended up as a stray text node. Rewritten as plain `if` statements. The Dashboard
+tab's own Sessions tile (`ai/dashboard/page.js`) reuses `row_view()`/`merge()` (law 6, one row
+renderer) and needed the same `sessions-grid` class added to its own container, since a cell's
+grid position depends on the parent actually being that grid.
+
 ## Why a script, not a live route
 
 The owner wants a live sessions list, and the obvious way to build one is a real Servex route,

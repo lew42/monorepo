@@ -1,17 +1,19 @@
-# Sessions — every Claude session with an id, newest activity first
+# Sessions — a data grid of every Claude session, newest activity first
 
-The owner's own words: "A time-based list, like the inbox view sorts itself, a preview card for
-each session... for this VS Code tab I should be able to see that with a tag that says VS Code
-on it." This tab is that list, covering all three kinds of session on this machine: a **VS Code**
-tab (you, typing), a **Servex** agent (a mastermind or minion, spawned), or a standalone **CLI**
-run. Click a card to see that session's own prompts, in order, at its own url — prompts live
-inside their session, never a separate log page.
+The owner's own words: "the start time, the source tag, the agent or tab name, the model, the
+state and the cost." This tab is that grid, covering all three kinds of session on this machine:
+a **VS Code** tab (you, typing), a **Servex** agent (a mastermind or minion, spawned), or a
+standalone **CLI** run. Click a row to see that session's own prompts, in order, at its own url —
+prompts live inside their session, never a separate log page, and on a wide screen the detail
+opens as a side peek beside the grid instead of replacing it.
 
 ## Use
 
-Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Each row shows: a coloured source tag
-(Servex / VS Code / CLI), the agent id or a VS Code tab's folder name, its model, its state, the
-last thing said into it, how long ago, and its cost when known.
+Visit [`/framework/ai/sessions/`](/framework/ai/sessions/). Six columns, newest activity first:
+Start, Source (a coloured tag), Name, Model, State, Cost. Drag a column header's own right edge to
+resize just that column — each one is a single `--col-<name>` CSS custom property, with its own
+minimum width so a column never collapses to nothing. It's a CSS grid, not a `<table>`: `doc/decisions.md`
+says why, and what that bought (one token per column) that a table couldn't.
 
 ## Where the data comes from
 
@@ -46,6 +48,15 @@ last thing said into it, how long ago, and its cost when known.
   the data this reads.
 - A Servex-sourced session's own page has no transcript yet (`GET /api/agents` carries no prompt
   text) — its detail page says so, with a link to why.
+- **The detail route is a known future seam, and the real shape is still moving.**
+  `task-mastermind-prompt-refine` is building the eventual real source for this page's transcript;
+  its own plan changed twice while this tab was being built (first "filter the daily prompt log",
+  then "one `page.jsonl` per session", then "filed under the day it started:
+  `ai/<date>/sessions/<slug>-<uuid8>/page.jsonl`", read with `page_read`) — so don't trust this
+  bullet's own specifics, check `task-mastermind-prompt-refine`'s current state instead.
+  `load_transcript()` (`page.js`) is the one function that reads today's stand-in
+  (`sessions.json` + `transcripts/<id>.json`); swapping sources, whatever they turn out to be, is a
+  one-function change, not a rewrite. See [`/framework/ai/2026-10-02/sessions-grid-v2/`](/framework/ai/2026-10-02/sessions-grid-v2/).
 
 ## More
 

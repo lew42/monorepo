@@ -1,37 +1,88 @@
-/* The Sessions tab — one row per Claude session, newest activity first.
-   `sessions-` is a brand new prefix (confirmed free, 2026-10-02 — see
-   doc/decisions.md for the census and the css-scopes.txt reservation note). */
+/* The Sessions tab — a CSS-GRID data grid, one row per Claude session, newest
+   activity first. `sessions-` is a brand new prefix (confirmed free,
+   2026-10-02 — see doc/decisions.md for the census and the css-scopes.txt
+   reservation note).
+
+   WHY A GRID, NOT A `<table>` (sessions-grid-v2, 2026-10-02, the owner's own
+   words): "each column's width is one token (`--col-<name>`)... resizing a
+   column changes the one token." A `<table>`'s columns are a product of every
+   cell's content; there is no single number to point a resize at. A CSS grid
+   with one `grid-template-columns` track per `--col-*` token gives exactly
+   one knob per column — `ext/grip` (the same drag the Page columns system and
+   Panel2.split already use, law 6: one resize mechanism, not a third) writes
+   it.
+
+   THE MECHANISM: `.sessions-grid` is the one real grid container. Every row
+   — the header and each data row — is `display: contents`: it disappears
+   from layout, so its own cells become direct items of `.sessions-grid`
+   itself and line up in its columns. This nested-`display:contents` idiom is
+   not new here either — it is the exact trick `core/Page`'s own `columns()`
+   uses to let a tree of pages read as a row (doc/columns.md, "Peers on
+   screen, a tree in the DOM"). */
 @layer theme {
 
-	/* No padding here (review finding, 2026-10-02): `.panel2-main` already
-	   pads every panel's content — a second `var(--pad)` here doubled it. */
-	.sessions-list { }
+	/* One token per column, each with its own floor via `minmax()` — the grid
+	   itself refuses to go under the minimum even if a bug ever wrote a
+	   smaller value, so "no column collapses into tall, empty rows" (the
+	   owner's own words) holds even if the JS clamp in page.js is skipped. */
+	.sessions-grid {
+		--col-time: 8rem; --col-source: 6rem; --col-name: 16rem;
+		--col-model: 8rem; --col-state: 5.5rem; --col-cost: 5rem;
+		display: grid;
+		grid-template-columns:
+			minmax(7rem, var(--col-time))
+			minmax(5.5rem, var(--col-source))
+			minmax(10rem, var(--col-name))
+			minmax(5.5rem, var(--col-model))
+			minmax(5rem, var(--col-state))
+			minmax(4rem, var(--col-cost));
+		column-gap: var(--gap-50);
+	}
 
-	.sessions-row {
-		display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50);
+	.sessions-head, .sessions-rows, .sessions-row { display: contents; }
+
+	.sessions-cell {
+		display: flex; align-items: center; min-width: 0;
 		padding-block: var(--gap-50);
 		border-block-end: 1px solid var(--line);
-		text-decoration: none; color: inherit;
 	}
-	.sessions-row:last-child { border-block-end: none; }
+	/* The LAST row's cells still get a rule-off against the next sibling
+	   below them in DOM order (there usually isn't one) — harmless; a border
+	   nobody sees costs nothing, and `:last-child` can't target "the whole
+	   bottom row" once every row is unwrapped into flat grid items. */
 
-	.sessions-row-main { display: flex; flex-direction: column; gap: var(--gap-35); flex: 1 1 14em; min-width: 0; }
+	.sessions-head-cell { font-weight: 600; position: relative; border-block-end-width: 2px; }
+
+	/* A row is one `<a>`, `display: contents`, so it paints nothing of its
+	   own — the hover/focus wash has to land on each of ITS cells instead.
+	   `:hover`/`:focus-within` still track correctly on a boxless element
+	   (contents removes the box, not the element), so this is the ordinary
+	   row-hover rule, just aimed one level down. */
+	.sessions-row:hover > .sessions-cell,
+	.sessions-row:focus-within > .sessions-cell { background: var(--tint); }
+	.sessions-row { text-decoration: none; color: inherit; }
+
+	/* The name cell's two lines (title, then the last-prompt preview) stack
+	   vertically — `.sessions-cell` itself is a ROW flex container (it has
+	   five other, single-line cells to vertically centre), so a cell with two
+	   lines needs its own column flex box, one level in, or the title and the
+	   preview sat side by side on one line instead of stacking (found live,
+	   sessions-grid-v2 2026-10-02 — a session's own tab_title ran straight
+	   into its prompt preview with no break: "monorepoSo how would you…"). */
+	.sessions-name-stack { display: flex; flex-direction: column; gap: var(--gap-35); min-width: 0; }
 	.sessions-row-title { font-weight: 600; }
 	.sessions-row-prompt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	/* The title/model/state cluster wraps on its own line rather than being
-	   squeezed to a few px each — a row at 400px (`ext/panel2`'s own
-	   container-query floor) measured the title alone wrapping to 4 lines
-	   before this (review finding, 2026-10-02). */
-	.sessions-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); row-gap: 0; }
 
-	.sessions-row-end { display: flex; flex-direction: column; flex: 0 0 auto; align-items: flex-end; text-align: end; margin-inline-start: auto; }
-
-	/* `.panel2` is already a container (ext/panel2's own `container-type:
-	   inline-size`) — this answers the PANEL's own width, same as the drawer
-	   rule it's modelled on, not the browser window. Below it, the time/cost
-	   column moves under the row instead of fighting it for the same line. */
+	/* Below `ext/panel2`'s own 30em container floor, a 6-column grid has
+	   nowhere left to shrink to — the owner's narrow-screen answer elsewhere
+	   on the site is always "one column at a time" (`core/Page`'s own < 32em
+	   phone regime), so the grid becomes a plain stacked card per row instead
+	   of fighting for six columns in no room. */
 	@container (width < 30em) {
-		.sessions-row-end { flex-basis: 100%; flex-direction: row; gap: var(--gap-50); align-items: center; text-align: start; margin-inline-start: 0; }
+		.sessions-grid { display: flex; flex-direction: column; }
+		.sessions-head { display: none; }
+		.sessions-row { display: flex; flex-wrap: wrap; gap: var(--gap-50); padding-block: var(--gap-50); border-block-end: 1px solid var(--line); }
+		.sessions-cell { padding-block: 0; border-block-end: none; }
 	}
 
 	/* One colour per source, so "what kind of session is this" reads before the

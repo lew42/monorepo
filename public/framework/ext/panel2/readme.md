@@ -84,6 +84,14 @@ a panel in row 2 isn't necessarily as wide as the one above it. A grid keeps eve
 column tracks, which a dashboard of panels wants more than a toolbar row does (`panel.header`'s
 controls still use flex-wrap — just not this).
 
+## House rule: three preview levels for any class view
+
+Any kind of thing shown on a Panel2 screen — a session, a task, a file — comes in exactly three
+sizes, the owner's own words (2026-10-02): **inline** (an icon and the name), **card** (icon,
+title, a ⋯ menu of quick actions, most of the card is a link, plus a corner arrow on touch
+screens), **detail** (the full page). The full rule, the two watch-outs on `card`, and where it's
+used today: [`doc/preview-levels.md`](./doc/preview-levels.md).
+
 ## Open questions (deliberately deferred — `requirements.md` steps 4 and 5)
 
 1. **A fixed-width ↔ fluid-width switch.** The owner mentioned wanting to flip a split panel
@@ -131,6 +139,7 @@ controls still use flex-wrap — just not this).
 
 - [Overview](/framework/ext/panel2/) — the demo page: a plain panel, a resizable split with real
   toolbar buttons, and the phone-width drawer
+- [`doc/preview-levels.md`](./doc/preview-levels.md) — the three-preview-levels house rule
 - [`doc/decisions.md`](./doc/decisions.md) — the `css-scopes.txt` reservation note, and why the
   split helper is a function instead of a third static part
 - Files: `Panel2.js` (the class and its parts), `panel2.css` (the layout), `page.js` (the demo)

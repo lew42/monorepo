@@ -152,7 +152,12 @@ function log_tile(get_excluded){
 function sessions_tile(){
 	const panel = new Panel2({ title: "Sessions" });
 	panel.header.append(() => a.c("page-link", "See all").href(SESSIONS_URL));
-	const $list = div.c("dash-sessions-tile");
+	// `sessions-grid`, same class the Sessions tab's own grid uses (sessions.css)
+	// — `row_view()`'s cells are grid items positioned by DOM order, so this
+	// tile needs the SAME grid container or its six cells per row render with
+	// no column tracks to land in (found live, sessions-grid-v2, 2026-10-02 —
+	// one row renderer really does mean one container shape too, law 6).
+	const $list = div.c("dash-sessions-tile sessions-grid");
 	panel.main.append($list);
 
 	let snapshot_rows = [], live = true;
