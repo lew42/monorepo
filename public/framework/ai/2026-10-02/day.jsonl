@@ -18,3 +18,5 @@
 {"log":{"at":"2026-10-02T21:38:39-05:00","task":"prompt-refine/minion-core","msg":"landed — the shared refine() clean()/structure() engine and the 3-model litmus test (haiku wins on cost, 3/3 passed)"}}
 {"log":{"at":"2026-10-02T23:52:41-05:00","task":"list-events","msg":"task opened — merge List+LiveList, owner's fifth-pass design"}}
 {"log":{"at":"2026-10-02T23:58:25-05:00","task":"list-events","msg":"landed — List gets events, LiveList is gone; 39/39 tests, 5 pages smoke-tested clean"}}
+{"log":{"at":"2026-10-03T00:00:48-05:00","task":"prompt-review","msg":"task opened — build the data pipeline for today's 47-entry session transcript (361c4d18), reusing ext/Refine's clean()+structure()"}}
+{"log":{"at":"2026-10-03T00:03:40-05:00","task":"task-class","msg":"landed — core/Task, the base state-machine class; 11/11 tests, 2 pages smoke-tested clean"}}

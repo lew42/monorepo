@@ -1,4 +1,4 @@
-# Core — the seven classes under every page (listed under More): four are elements, one owns the url, two are the DOM-free data tier
+# Core — the eight classes under every page (listed under More): four are elements, one owns the url, three are the DOM-free data tier
 
 ## Index
 
@@ -12,6 +12,7 @@
 - [Section](./Section/) — a page you put inside a page
 - [Shell](./Shell/) — five optional regions around a CSS grid (header, left, right, footer, main); a Shell's main can hold another Shell
 - [Sidebar](./Sidebar/) — brand over a tree of links, resizable, for site nav
+- [Task](./Task/) — a DOM-free unit of work: state machine, computed duration and progress, subtasks
 - [View](./View/) — chainable wrapper over one DOM element; every HTML tag is a function
 - [new](./new/) — one kept sketch; never import from it
 - [doc](./doc/decisions.md) — what belongs in core and the cross-tier traps (no readme; docs only)
@@ -43,3 +44,4 @@ export default new Page({ meta: import.meta, title: "Hello", children: "about", 
 - [Sidebar](/framework/core/Sidebar/) — brand over links
 - [Item](/framework/core/Item/) — persistent node, DOM-free
 - [List](/framework/core/List/) — ordered items, zero imports
+- [Task](/framework/core/Task/) — a unit of work, DOM-free
