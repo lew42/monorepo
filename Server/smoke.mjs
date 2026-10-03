@@ -37,6 +37,37 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
+/* THE CONSOLE-NOISE GATE (2026-10-03, console-clean). Owner: "we want to use these warnings
+ * and errors as feedback so that when something happens, we can fix it" — so a page's
+ * console is now part of the smoke test, not ignored:
+ *   - a 404 (or other 4xx/5xx) on a SAME-ORIGIN request is always an error, whatever kind of
+ *     request it was (script, fetch, document, …) — the old check only looked at script/
+ *     stylesheet/document and missed every plain `fetch()` 404 (weight.jsonl, page.jsonl —
+ *     the ~100-line storm this task found on one load of /framework/ai/live/).
+ *   - every console.warn/console.log line is counted; more than CONSOLE_BUDGET on one page
+ *     is a FAIL, UNLESS it matches a live entry in console-allow.jsonl (beside this file) —
+ *     "some warnings are okay if it's a temporary problem that's going to be fixed by
+ *     something else" (the owner). An allow-list entry that has passed its `until` date no
+ *     longer covers anything, so a fix nobody finished starts failing merges again on its own. */
+const CONSOLE_BUDGET = 5;
+const ALLOWLIST_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "console-allow.jsonl");
+
+function load_allowlist(){
+	if (!fs.existsSync(ALLOWLIST_PATH)) return [];
+	const today = new Date().toISOString().slice(0, 10);
+	return fs.readFileSync(ALLOWLIST_PATH, "utf8").split("\n").map(l => l.trim()).filter(Boolean)
+		.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)
+		.filter(entry => entry.pattern && entry.until)
+		.map(entry => ({ ...entry, expired: entry.until < today }))
+		.filter(entry => { if (entry.expired) console.log(`  (console-allow.jsonl: "${entry.pattern}" expired ${entry.until} — no longer covered)`); return true; });
+}
+const ALLOWLIST = load_allowlist();
+
+// Does any LIVE (not expired) allow-list entry cover this console line?
+function allowed(text){
+	return ALLOWLIST.some(entry => !entry.expired && new RegExp(entry.pattern).test(text));
+}
+
 const argv = process.argv.slice(2);
 const opt = name => { const i = argv.indexOf("--" + name); if (i < 0) return; const v = argv[i + 1]; argv.splice(i, 2); return v; };
 const portOpt = opt("port"), baseOpt = opt("base"), mainOpt = opt("main");
@@ -134,10 +165,14 @@ let loadedCount = 0;
 for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	const { url: p, follow, foundOn } = queue[qi];
 	loadedCount++;
-	const errors = [], warns = [];
+	const errors = [], warns = [], noise = [];
 	const page = await context.newPage();
 	let closing = false;
-	page.on("console", m => { const t = m.text(); if (m.type() === "error") (/Failed to load resource|blocked by CORS/.test(t) ? warns : errors).push(`console: ${m.text()}  (${m.location().url || p})`); });
+	page.on("console", m => {
+		const t = m.text(), type = m.type();
+		if (type === "error") return void (/Failed to load resource|blocked by CORS/.test(t) ? warns : errors).push(`console: ${t}  (${m.location().url || p})`);
+		if (type === "warning" || type === "log") noise.push(t);
+	});
 	page.on("pageerror", e => errors.push(`pageerror: ${e.message}`));
 	page.on("requestfailed", r => {
 		const u = r.url();
@@ -146,7 +181,11 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	});
 	page.on("response", r => {
 		const u = r.url();
-		if (r.status() >= 400 && asset.has(r.request().resourceType()) && !u.endsWith("/favicon.ico")) errors.push(`HTTP ${r.status()}: ${u}`);
+		if (u.endsWith("/favicon.ico") || r.status() < 400) return;
+		// Same-origin (this worktree's own server) is always an error, any request kind —
+		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
+		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
+		(u.startsWith(base) ? errors : warns).push(`HTTP ${r.status()}: ${u}`);
 	});
 	let links = [];
 	try {
@@ -166,12 +205,23 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	}
 	closing = true;
 	await page.close();
+
+	// Every warn/log line, deduped, split into what the allow-list already covers and what
+	// it doesn't. Over budget on the uncovered ones fails the page, same as a real error.
+	const uniq_noise = [...new Set(noise)];
+	const covered = uniq_noise.filter(allowed);
+	const uncovered = uniq_noise.filter(t => !allowed(t));
 	let uniq = [...new Set(errors)];
+	if (uncovered.length > CONSOLE_BUDGET)
+		uniq.push(`console warn/log budget exceeded: ${uncovered.length} > ${CONSOLE_BUDGET} (not in console-allow.jsonl)`);
+
 	const from = foundOn ? `  (link found on ${foundOn})` : "";
 	if (uniq.length && uncommitted_in_main(p)) { console.log(`skip ${p}${from}  (skipped: exists uncommitted in the main tree)`); uniq = []; links = []; continue; }
 	console.log(uniq.length ? `FAIL ${p}${from}  ${uniq.length} error${uniq.length > 1 ? "s" : ""}` : `ok   ${p}${from}`);
 	for (const e of uniq) console.log("       " + e);
 	for (const w of new Set(warns)) console.log("  warn " + w.split(String.fromCharCode(10))[0]);
+	for (const n of uncovered) console.log("  noise " + n.split(String.fromCharCode(10))[0]);
+	if (covered.length) console.log(`  (${covered.length} warn/log line${covered.length > 1 ? "s" : ""} allow-listed — console-allow.jsonl)`);
 	bad += uniq.length;
 
 	for (const link of links) {

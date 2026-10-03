@@ -14,6 +14,12 @@
 // Fails soft: no log at all, a network error, or the SPA's index.html-as-404 all answer `null` —
 // "nothing costed yet," not zero (a page that's never been touched by a task isn't "$0 of work,"
 // it's simply not measured).
+//
+// ⚠ 2026-10-03 console-clean: same blind-probe fix as weight.js — `has_file()` checks the dev
+// server's `/directory.json` first so a page with neither file costs zero requests instead of
+// two 404s. `ai_cost()` runs for EVERY page's title block (Page.class.js), so this was half of
+// the console-clean 404 storm. Duplicated rather than imported — same reasoning as weight.js
+// and settings.js's own copies: a shared import here is not worth a cycle risk for ~15 lines.
 
 async function fetch_lines(url){
 	const res = await fetch(url).catch(() => null);
@@ -21,9 +27,33 @@ async function fetch_lines(url){
 	return (await res.text()).split("\n");
 }
 
+let tree;
+function directory_tree(){
+	return tree ??= fetch("/directory.json").then(res => res.ok ? res.json() : null).catch(() => null);
+}
+
+async function has_file(page_url, name){
+	const data = await directory_tree();
+	if (!data) return undefined;
+
+	let node = { children: data.files };
+	for (const part of page_url.split("/").filter(Boolean)){
+		node = node.children?.find(child => child.name === part);
+		if (!node) return false;
+	}
+	return !!node.children?.some(child => child.type === "file" && child.name === name);
+}
+
 export async function ai_cost(page_url){
-	const lines = (await fetch_lines(new URL("weight.jsonl", location.origin + page_url).href))
-		?? (await fetch_lines(new URL("page.jsonl", location.origin + page_url).href));
+	const weight_here = await has_file(page_url, "weight.jsonl");
+	let lines = weight_here !== false
+		? await fetch_lines(new URL("weight.jsonl", location.origin + page_url).href)
+		: null;
+
+	if (!lines){
+		const page_here = await has_file(page_url, "page.jsonl");
+		if (page_here !== false) lines = await fetch_lines(new URL("page.jsonl", location.origin + page_url).href);
+	}
 	if (!lines) return null;
 
 	let out = null;

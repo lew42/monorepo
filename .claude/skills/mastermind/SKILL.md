@@ -23,6 +23,7 @@ autonomy: make the call, log the assumption, never block on a question.
 2. **Only if something is in doubt,** or it's a page or layout change, do you add a fresh reviewer (`Server/review.mjs`).
 3. **Who makes a fix:** whoever is best placed. That's usually the reviewer, who is the freshest. The builder answers a finding when it knows why a fix won't work.
 4. **You decide:** you are the executive, and you rule once (review turn 4).
+5. **The console is part of the review** (the owner, 2026-10-03, console-clean task): `Server/smoke.mjs`'s output must show no FAIL before you merge. A same-origin 404 is always a FAIL. A warning or log line stays only when a live entry in `Server/console-allow.jsonl` (pattern, why, until date, owner) names who's fixing it — an expired entry starts failing merges again on its own, so "temporary" has to actually be temporary.
 
 Every agent in a review seeks agreement and the simplest working fix (the MVP), as fast as possible. Raising a concern is good. Arguing is not: collaboration must never become analysis paralysis.
 
