@@ -8,6 +8,15 @@
  * from calling `browser()` here, so there is exactly one place to change it
  * if that ever needs to move again.
  *
+ * RECOGNISABLE AS OURS (2026-10-03): a `--user-data-dir` tag was tried here and dropped —
+ * Playwright's `chromium.launch()` refuses that flag outright ("Pass userDataDir parameter to
+ * launchPersistentContext instead"), and switching every caller to a persistent context is a
+ * bigger change than this needed. Instead, the reaper (`Servex/Lifecycle.js`) tells a chrome.exe
+ * launched this way apart from the owner's own Chrome by its EXECUTABLE PATH: Playwright's
+ * `channel: "chromium"` build always lives under `%LOCALAPPDATA%/ms-playwright/...`, never under
+ * the owner's own Chrome install — that path is already in the process's command line, with
+ * nothing to add. See doc/browser.md.
+ *
  * ONE BROWSER PER PROCESS (lifecycle, 2026-09-29): `browser()` launches
  * Chromium once and hands the SAME instance to every caller in this process —
  * a module-level promise is the cache. A caller that calls `.close()` on the
@@ -55,6 +64,7 @@ function get_chromium(){
 
 let browser_promise = null;   // the one shared Browser for this process, or null once it's closed
 let current = null;           // the resolved Browser, for the synchronous `exit` fallback
+let current_pid = null;       // its real chrome.exe pid (from CDP — see real_pid()), for the same fallback
 let hooked = false;
 
 /** Launch Chromium the one way that opens no window, reusing the one already
@@ -72,6 +82,12 @@ export async function browser(opts = {}){
 		if (!b.isConnected()) { browser_promise = null; return browser(opts); }   // closed from under us — relaunch
 		return b;
 	} catch (e) { browser_promise = null; throw e; }
+}
+
+/* The tag a launch is filed under: the agent id if one is running us, else the script's own
+ * basename — what `log_browser()` below records as `script`. */
+function launch_tag(){
+	return process.env.LEW_AGENT || path.basename(process.argv[1] || "script");
 }
 
 async function launch(opts){
@@ -106,7 +122,27 @@ function hook_exit(){
 	if (hooked) return;
 	hooked = true;
 	process.once("beforeExit", () => { close(); });
-	process.once("exit", () => { try { current?.process?.()?.kill(); } catch {} });
+	// `current?.process?.()?.kill()` does nothing on this Playwright version (no `.process()` —
+	// see real_pid() below), so a hard kill by pid is the only synchronous option left here.
+	process.once("exit", () => { try { if (current_pid) execSync(`taskkill /PID ${current_pid} /T /F`, { windowsHide: true, stdio: "ignore" }); } catch {} });
+	// Ctrl+C sends SIGINT, which skips `beforeExit` — without this a script killed that way
+	// leaves Chromium running until the lifecycle sweep notices.
+	process.once("SIGINT", () => { close().finally(() => process.exit(130)); });
+}
+
+/* `b.process()` doesn't exist on this Playwright version's Browser (checked live, 2026-10-03:
+ * it's `undefined`) — the real chrome.exe pid instead comes from Chrome DevTools Protocol's own
+ * process list, which always has one entry `type: "browser"`. */
+async function real_pid(b){
+	try {
+		if (typeof b.process === "function"){ const p = b.process(); if (p?.pid) return p.pid; }
+	} catch {}
+	try {
+		const session = await b.newBrowserCDPSession();
+		const { processInfo } = await session.send("SystemInfo.getProcessInfo");
+		session.detach().catch(() => {});
+		return processInfo.find(p => p.type === "browser")?.id ?? null;
+	} catch { return null; }
 }
 
 /* The creation log (lifecycle, 2026-09-29): a start line with the browser's pid and owner task,
@@ -115,8 +151,9 @@ function hook_exit(){
 async function log_browser(b){
 	try {
 		const m = await import("../Servex/Lifecycle.js");
-		const pid = b.process?.()?.pid ?? null;
-		const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: path.basename(process.argv[1] || "") };
+		const pid = await real_pid(b);
+		if (current === b) current_pid = pid;
+		const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: launch_tag() };
 		m.record({ ...base, event: "start" });
 		b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
 	} catch {}
