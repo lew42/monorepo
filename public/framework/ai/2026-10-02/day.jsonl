@@ -4,3 +4,5 @@
 {"log":{"at":"2026-10-02T18:36:53-05:00","task":"part1b-inbox-restructure","msg":"landed — core/Page/ext/Inbox restructured into one class Inbox with lazy static views inbox.rail/inbox.compact; InboxRail/DrawerInbox kept as one-release re-exports"}}
 {"log":{"at":"2026-10-02T18:40:38-05:00","task":"panel2-sessions/part1-panel2","msg":"task opened — build ext/panel2 (header/main/footer chrome, drawer sides, split, dashboard grid, demo page)"}}
 {"log":{"at":"2026-10-02T18:52:46-05:00","task":"panel2-sessions/part1-panel2","msg":"landed — ext/panel2 built: header/main/footer chrome, drawer sides, a grip split, a dashboard grid, and a demo page"}}
+{"log":{"at":"2026-10-02T19:29:47-05:00","task":"stalled-and-budgets","msg":"landed — tasks.json: stalled check, budget vs actual, snooze/kill/re-prioritise tools"}}
+{"log":{"at":"2026-10-02T19:38:29-05:00","task":"task-audit","msg":"task opened — pilot: cheap models audit 5 landed tasks, consensus computed by audit.mjs"}}

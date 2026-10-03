@@ -93,6 +93,20 @@ export const schemas = {
 		enums: { verdict: ["queued", "spawned", "clear", "rewrote", "ui", "sent", "not run", "skipped"] },
 		eg: { at: "NOW", target: "task dir, url, or look:<page>", verdict: "clear", what: "one line on what was found", to: "agent or file" },
 	},
+	"audit.jsonl": {
+		what: "one task's audit log (public/framework/ai/<date>/<slug>/audit.jsonl) — one line per auditor; audit.mjs reads every one and computes the consensus (never hand-write it)",
+		verbs: {
+			audit: {
+				fields: ["at", "by", "model", "cost_usd", "complete", "obedience", "utility", "review_done", "name_ok", "icon_ok"],
+				eg: {
+					at: "NOW", by: "agent-id", model: "deepseek/deepseek-v4.1-flash", cost_usd: 0.01,
+					complete: 0, obedience: 0, utility: 0, review_done: true, review_accurate: "yes",
+					best: ["…"], worst: ["…"], name_ok: true, icon_ok: true, missing: ["…"],
+					evidence: ["path or url checked"], depends_on: ["task-slug"], notes: "one line",
+				},
+			},
+		},
+	},
 	/* A card's (or any page's) page.jsonl is OPEN on purpose: line 1 is the constructor, every later
 	 * line sets fields, and a key the vocabulary does not know is plain data (ai2/fold.js absorb()).
 	 * So only the line's shape is judged, plus the keys whose value the fold reads as an object. */
