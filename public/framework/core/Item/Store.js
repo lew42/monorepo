@@ -114,8 +114,11 @@ export class Store {
 
 	// The wire line: NESTED one hop per level from `host` down to wherever the
 	// change happened (`{"k2": {"answers": {"add": {...}}}}` — `get()`'s own
-	// "a property, then a child's id" rule, walked backwards) — flat, with no
-	// wrapping at all, when the change happened ON the host itself. A cross-list
+	// "a property, then a child's id" rule, walked backwards), INCLUDING one hop
+	// for the list's own name when the change is a list verb on the host's own
+	// list (`{"content": {"move": {...}}}`, `{"pages": {"move": {...}}}`) — flat,
+	// with no wrapping at all, only when the change is a plain field set directly
+	// on the host itself (`origin === host`). A cross-list
 	// move still carries its `from` as the OLD `/`-separated path string (that one
 	// is DATA inside the `move` verb, not routing, so it never needed the `at` key
 	// and is untouched by this fold-away).
@@ -207,7 +210,16 @@ function address(node, host){
    wire line skips straight to the id. `[]` means `node` IS `host`. */
 function hops(node, host){
 	if (!node || node === host) return [];
-	if (is_list(node)) return hops(node.owner, host);
+
+	// A List IS the origin when the change is one of ITS OWN verbs (add/remove/
+	// move/order) — `List.announce()` emits "delta" with `this` (the list) as the
+	// origin, never one of its members. Its own NAME is the hop a reader needs:
+	// `set()` (Page.class.js) only routes a line into `page.content` when it finds
+	// `"content" in obj` — a flat `{"move": {...}}` line with no name at all
+	// landed on the PAGE itself instead and silently misreplayed (2026-10-03, the
+	// owner: drags onto the Now card wrote top-level `{"move": {...}}` lines).
+	// Mirrors `address()`'s own list branch just above, which already did this.
+	if (is_list(node)) return [...hops(node.owner, host), node.name];
 
 	const parent = node.parent;
 	if (!parent) return [];   // detached from host — best effort, should not happen
