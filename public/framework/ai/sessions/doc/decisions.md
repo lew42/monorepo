@@ -1,5 +1,65 @@
 # Sessions — decisions
 
+## 2026-10-03 (sessions-date-homes) — reconciling with decisions made after the grid shipped
+
+The owner (via vscode-mastermind) sent three follow-up corrections against the landed grid:
+no duplicate transcript data, a session's home is its date path (not this tab's own route), and
+Start/Stop/Duration alongside Cost on every row. Full brief:
+[`/framework/ai/2026-10-03/sessions-date-homes/requirements.md`](/framework/ai/2026-10-03/sessions-date-homes/requirements.md).
+
+**No duplicate data — reused, not rebuilt.** `ai/sessions/transcripts/<id>.json` (110 files,
+2.5 MB) is gone; `sessions.mjs` no longer writes it, and `ext/AITask/replay.js`'s own `load()`
+(exported, reused as-is — law 6) already fetched a session's transcript LIVE through
+`/ai-logs/<id>`, a loopback-guarded dev-server route (`Server/plugins/AILogs.js`) that reads
+straight from `~/.claude/projects/...`. `load_transcript()` (`page.js`) now calls that instead of
+reading a copy, and filters for real prompts the same way `sessions.mjs` already does server-side
+— a second, small implementation of that filter was accepted rather than threading one shared
+function across the node/browser boundary (the same tradeoff `session_page_dir_index()`'s own
+directory.json walk already made, noted below it).
+
+**A session's home is its date path — built as a seam, because nothing to list exists yet.**
+Checked live, 2026-10-03: no `ai/<Y>/<M>/<D>/<slug>-<uuid8>/` folder exists anywhere on this
+machine — `task-mastermind-prompt-refine`'s hooks that would write one haven't landed, and its own
+plan for the exact path shape changed three times while this task alone was open (see the FYIs
+logged in `task.jsonl`, 2026-10-02/03). Chasing a moving, not-yet-real target would be guessing,
+not computing (CLAUDE.md law 7) — so this task built the LOOKUP instead of the DATA:
+`session_page_dir_index()` walks `/framework/directory.json` once per grid load for any
+`<slug>-<id8>` folder, keyed by id8, and every row's own `href` prefers that date path when found,
+falling back to this tab's own `/sessions/<id>/` view otherwise. Today every row falls back — the
+index is always empty — and the day a real page appears, the very same code links to it, with
+nothing here to change. The detail page's existing `find_session_page_dir(id)` (built by the
+session-costs minion-build, 2026-10-02, for cost/trace lookups) was folded into this same index
+function rather than kept as a second directory.json walk.
+
+**Found and fixed in passing: a Servex row's `id` is not its `session_id`.** The detail page's
+dir/transcript lookups used the url's own `id` directly — correct for a VS Code/CLI row (where the
+two are the same string) but wrong for a Servex row, whose url `id` is the AGENT's id (e.g.
+`"clarity-weight-badges"`), a different string from its real Claude `session_id`. Latent since the
+Role/Cost build added Servex rows to this page; fixed here since this task was already rewiring the
+same lookups for the date-path reconciliation — `load_row()` now resolves first, and
+`row.session_id ?? id` is what every lookup after it uses.
+
+**Start / Stop / Duration.** `sessions.mjs` now tracks a VS Code/CLI row's own `started_at` (the
+file's first timestamp — it already tracked `last_activity`, the last one) and a best-available
+`stopped_at`: null while the row reads "active" (the same 5-minute idle floor `state` already
+used), its last activity once idle — a plain transcript has no formal "stopped" event, so this is
+a computed stand-in, not a fabricated one, and is openly described that way in the row itself
+("ongoing" in the Stop column, never a guessed clock time). A Servex row's `stopped_at` needed one
+small addition: `GET /api/agents` (`Agents.js` `card()`) didn't expose it, though the live Agent
+object already carried it once stopped (`Agents.js:542`) — a one-line additive fix (no rename, no
+moved responsibility, every existing caller unaffected), not the "major surgery" CLAUDE.md asks
+first about. Duration reuses `dur(elapsed(...))` from `ext/AITask/stats.js` (already used by
+`replay.js`'s own header) rather than writing a third time-formatter.
+
+**Also fixed while here:** `.claude/hooks/syntax-guard.mjs`'s `hidden_guard()` false-flagged
+`Agents.js`'s own `spawn(spec){`/`async fork({...}){` class methods, and two doc comments that
+spell out real call syntax in prose, as unguarded `child_process` calls. Fixed at the hook (a
+method definition's closing paren is followed by `{`, never what a real call's is; comment text is
+blanked before scanning, keeping every line number correct) rather than renaming either method —
+`spawn`/`fork` are called in a dozen places across Servex as `agent.spawn(...)`. Unrelated to
+Sessions, found only because touching `Agents.js` tripped it; worth fixing immediately since it
+would otherwise block every future edit to that file.
+
 ## 2026-10-02 (sessions-grid-v2) — a CSS grid, `columns()`, and `ext/grip`, not three new things
 
 The owner's follow-up ask added three requirements on top of the shipped preview-card list:
@@ -189,6 +249,15 @@ worktree session's own cost IS found and logged correctly today, even though it 
 as a ROW in this grid until `sessions.mjs` gets the same fix.
 left as a known gap rather than guessed at, since nobody has asked for worktree sessions to show
 here yet.
+
+**Same gap, found again in `/ai-logs/`, 2026-10-03.** `Server/plugins/AILogs.js` computes its own
+project directory from `process.cwd()` at the moment the dev server boots — so a worktree's own
+preview server (`worktree-up.mjs`) looks for session files under ITS OWN cwd's project folder, not
+the main checkout's. Verified live building this task: a real session id's transcript answered
+correctly via `curl` against the main site, but 404'd (as "no transcript") through a worktree
+preview of this very task's own branch. Not a regression this task caused or fixed — the same
+one-project limitation above, just hit from a second angle; noted rather than patched for the same
+reason: nobody has asked for it.
 
 ## 2026-10-03 (session-trace) — the cost-over-time chart + "what was it doing" table
 

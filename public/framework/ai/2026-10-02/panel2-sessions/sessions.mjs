@@ -16,11 +16,21 @@
 // doc/decisions.md (sessions/) for the fuller record and what a real route
 // would fix.
 //
+// NO DUPLICATE DATA (2026-10-03, sessions-date-homes — the owner's own
+// decision): this script used to ALSO write a full copy of every VS Code/CLI
+// session's prompts to `transcripts/<id>.json` (110 files, 2.5 MB). It no
+// longer does — the Sessions tab's detail page now reads a session's own
+// prompts LIVE, through `/ai-logs/<id>` (`Server/plugins/AILogs.js`, a
+// loopback-guarded dev-server route that streams the real file straight from
+// `~/.claude/projects/...`, already built and already used by
+// `ext/AITask/replay.js`). This script still READS every session file in
+// place, same as before — it has to, to compute `started_at`/`last_activity`/
+// `model`/the one-line preview below — it just never COPIES the prompt text
+// anywhere else now.
+//
 // WHAT IT WRITES:
-//   public/framework/ai/sessions/sessions.json          — one row per session (the list)
-//   public/framework/ai/sessions/transcripts/<id>.json  — one VS Code/CLI session's
-//     own prompts, in order (Servex rows get no transcript file yet — see above;
-//     the route this asked for would carry it instead of a second file).
+//   public/framework/ai/sessions/sessions.json — one row per session (the list),
+//     a COMPUTED CACHE only — the owner's own words — never the record itself.
 //
 // THE VS CODE VS CLI HEURISTIC: every session's own user-type lines carry a
 // `turnOrigin` field — "human" when a person typed it (a real interactive
@@ -32,7 +42,7 @@
 // before writing this (a known interactive VS Code tab vs. a known
 // Servex-spawned agent's own session file) — see doc/decisions.md.
 
-import { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -77,18 +87,22 @@ function user_text(message){
 	return null;
 }
 
-// One session file, read once, kept to what this page needs: every real
-// (non-sidechain) user prompt, the last model identity seen, and the cwd —
-// never the sub-agent/tool-result noise, which is most of a big file.
+// One session file, read once, kept to what this page needs: when it
+// started (the FIRST timestamp seen — requirement 3, 2026-10-03: "show the
+// start time... on every row"), the last activity, every real (non-sidechain)
+// user prompt's own one-line preview, the last model identity seen, and the
+// cwd — never the sub-agent/tool-result noise, which is most of a big file,
+// and never kept beyond this one pass (no copy written — see the header
+// comment, "NO DUPLICATE DATA").
 function scan_session_file(path){
 	const text = readFileSync(path, "utf8");
 	const prompts = [];
-	let last_activity = null, model = null, cwd = null;
+	let started_at = null, last_activity = null, model = null, cwd = null;
 	for (const line of text.split("\n")){
 		if (!line) continue;
 		let obj;
 		try { obj = JSON.parse(line); } catch { continue; }
-		if (obj.timestamp) last_activity = obj.timestamp;
+		if (obj.timestamp){ started_at ??= obj.timestamp; last_activity = obj.timestamp; }
 		if (obj.cwd) cwd = obj.cwd;
 		// ⚠ `turnOrigin: "task_notification"` is the harness telling ITSELF a
 		// background task finished — it carries real text (so `user_text()`
@@ -105,14 +119,13 @@ function scan_session_file(path){
 			model = obj.attachment.identity?.modelId ?? model;
 		}
 	}
-	return { last_activity, model, cwd, prompts: prompts.slice(-MAX_PROMPTS) };
+	return { started_at, last_activity, model, cwd, prompts: prompts.slice(-MAX_PROMPTS) };
 }
 
 function vscode_or_cli_rows(known_ids, cutoff){
 	let names;
 	try { names = readdirSync(PROJECT_DIR); } catch { return []; }
 	const rows = [];
-	mkdirSync(TRANSCRIPTS_DIR, { recursive: true });
 
 	for (const name of names){
 		if (!name.endsWith(".jsonl")) continue;
@@ -128,6 +141,12 @@ function vscode_or_cli_rows(known_ids, cutoff){
 		if (!info.last_activity || !info.prompts.length) continue;   // nothing a reader could open
 
 		const last = info.prompts.at(-1);
+		// A plain transcript file has no formal "the session stopped" event (a
+		// VS Code tab can always resume) — the honest, computed stand-in is
+		// "its last known activity, once it has gone quiet for a while" (same
+		// 5-minute idle floor `state` already uses); still going shows `null`,
+		// never a guessed timestamp.
+		const idle = (Date.now() - Date.parse(info.last_activity)) >= 5 * 60 * 1000;
 		rows.push({
 			id,
 			source: last.turn_origin === "human" ? "vscode" : "cli",
@@ -136,14 +155,13 @@ function vscode_or_cli_rows(known_ids, cutoff){
 			// name is the closest real stand-in (readme.md names this limitation).
 			tab_title: info.cwd ? info.cwd.split(/[\\/]/).filter(Boolean).pop() : null,
 			model: info.model,
-			state: (Date.now() - Date.parse(info.last_activity)) < 5 * 60 * 1000 ? "active" : "idle",
+			state: idle ? "idle" : "active",
 			last_prompt_first_line: first_line(last.text),
+			started_at: info.started_at,
+			stopped_at: idle ? info.last_activity : null,
 			last_activity: info.last_activity,
 			cost: null,   // not in a plain transcript file — Servex rows carry it instead
 		});
-
-		writeFileSync(join(TRANSCRIPTS_DIR, id + ".json"),
-			JSON.stringify({ session_id: id, cwd: info.cwd, prompts: info.prompts.map(p => ({ at: p.at, text: p.text })) }, null, 2));
 	}
 	return rows;
 }
@@ -161,6 +179,10 @@ const servex_rows = agents.filter(a => a.session_id).map(a => ({
 	// `GET /api/agents` carries no transcript — this is the field the Servex
 	// route this task asked for (doc/decisions.md) would fill in.
 	last_prompt_first_line: null,
+	started_at: a.started_at ?? null,
+	// `stopped_at` (2026-10-03, sessions-date-homes): now exposed by
+	// `Agents.js`'s `card()` — null while the agent is still live/working.
+	stopped_at: a.stopped_at ?? null,
 	last_activity: a.started_at ?? null,
 	cost: typeof a.cost === "number" ? a.cost : null,
 }));
@@ -171,5 +193,11 @@ const rows = [...servex_rows, ...vscode_or_cli_rows(known_ids, cutoff)]
 
 mkdirSync(SESSIONS_DIR, { recursive: true });
 writeFileSync(OUT_FILE, JSON.stringify({ generated_at: new Date().toISOString(), hours: HOURS, rows }, null, 2));
+
+// The old transcripts/ copy folder (pre-2026-10-03): delete it once it's
+// found, so a machine that last ran the old version of this script doesn't
+// keep 110 stale copied files around forever just because nothing removes
+// them on its own.
+try { rmSync(TRANSCRIPTS_DIR, { recursive: true, force: true }); } catch {}
 
 console.log(`wrote ${rows.length} rows (${servex_rows.length} servex, ${rows.length - servex_rows.length} vscode/cli) to ${OUT_FILE}`);
