@@ -12,6 +12,14 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
+**Review before merge, and settle fast (the owner, 2026-10-02).**
+1. **You read everything a minion did first:** the diff, the brief and the result.
+2. **Only if something is in doubt,** or it's a page or layout change, do you add a fresh reviewer (`Server/review.mjs`).
+3. **Who makes a fix:** whoever is best placed. That's usually the reviewer, who is the freshest. The builder answers a finding when it knows why a fix won't work.
+4. **You decide:** you are the executive, and you rule once (review turn 4).
+
+Every agent in a review seeks agreement and the simplest working fix (the MVP), as fast as possible. Raising a concern is good. Arguing is not: collaboration must never become analysis paralysis.
+
 **When the owner says how the system should work, write it into this skill (or the skill it
 belongs to) right away, without being asked** (the owner, 2026-09-24). Write it as
 **instruction, not restriction**: say it with the certainty the owner said it with. Most things
