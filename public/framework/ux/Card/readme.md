@@ -1,4 +1,4 @@
-# Card — the look of an AI card's own page: a head, an outline, a chat column
+# Card — the look of an AI card's own page: a head, an outline, a properties sidebar
 
 See it: **[the demo](/framework/ux/Card/)** — a card's head (icon, title, the "Reviewed ✓"
 control), its outline (a checklist of what was asked and delivered), and one "Live"-style
@@ -38,6 +38,25 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
 - **A card is a grid of exactly three named rows** (`.ai2-back`, `.ai2-full`, `.ai2-foot`) —
   a region hidden at some width must still name its row, or the others shift up and the
   footer inherits the wrong track (`ai2/doc/decisions.md` has the measured regression).
+- **The right column is properties, not a second chat** (one-card-props, 2026-10-03): type,
+  status, tags, who worked on it, its files, then Actions — `card.js` `properties_sidebar()`.
+  Nothing here is talked into; talking happens in the ONE global drawer (`ext/drawer/`), the
+  same on every page (CLAUDE.md law 6). `--ai2-chat` is still the one token both the old chat
+  column and this one size by, so the drag-to-resize seam still works unchanged.
+- **A sub-card opening a real second column needs a working `content()`.** The two detail
+  columns (`ux/Inbox/Inbox.css`'s `.inbox-detail` + `.inbox-sub`, made equal width here,
+  2026-10-03) only fill in when a card's own `Card.content()` actually runs and sets
+  `this.$pages = shell.$sub` — and that method is SKIPPED WHOLE, not partway, the moment a
+  card's `page.jsonl` carries a top-level `{"content": …}` line (core's own generic
+  content-List feature, `page_add()`/`render_content_list()`): `content` ends up a plain data
+  List on the instance, shadowing the `content()` method outright, the same trap class
+  CLAUDE.md's `render` example warns about. The Now card (`ai/now/`) hits this today — its
+  sub-card still opens as a full-width takeover, not a second column — because its own
+  dashboard is built entirely from `content.add` lines. Fixing it means teaching `Card.assign()`
+  to protect `content` the way `VERBS` already protects `type`/`tags`/`status`, without
+  breaking Now's own list; not done here (out of fence, a core/Card.js change wider than this
+  task's $10 budget) — verified instead on an ordinary task card, where both columns show
+  correctly at equal width.
 
 ## More
 

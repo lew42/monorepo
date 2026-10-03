@@ -305,17 +305,13 @@
 		border-block-start: 1px solid var(--line);
 	}
 
-	/* THE CARD'S OWN SIDEBAR MOUNT (one-dictation, 2026-09-30) — desktop only. Hidden here
-	   (below 40em); the `width >= 40em` block further down (`.ai2-foot-chat` un-capped
-	   rules) turns it back on with a selector that outranks this one, same trick the Live
-	   card's own rules already use elsewhere in this file. Below 40em the phone's own ✦
-	   sheet already shows this exact conversation — a second copy here would be the "two
-	   chats" shape this task removes. */
+	/* THE CARD'S OWN SIDEBAR — desktop only (one-dictation, 2026-09-30; now the quiet
+	   properties column, one-card-props, 2026-10-03). Hidden here (below 40em); the
+	   `width >= 40em` block further down (`.ai2-foot` grid rule) turns it back on with a
+	   selector that outranks this one, same trick the Live card's own rules already use
+	   elsewhere in this file. Below 40em there is no room for a sidebar — a card's own
+	   properties are read on the card itself, or not at all on a phone. */
 	.ai2-foot-chat { display: none; }
-	.ai2-foot-head {
-		font-weight: 600;
-		margin-block-end: 0.3em;
-	}
 
 	/* `title:` is the card's ID, for the tab and the framework, not the reader —
 	   the card's real title is the line below it. */
@@ -465,9 +461,13 @@
 	   "done with this sub-card, back to the detail" — closing it is a real
 	   navigation, not a hover state. Two classes on the one link, so this
 	   beats the bare `.ai2-back` rule regardless of source order. */
+	/* PADDED AGAINST THE COLUMN'S OWN BORDER (the owner, 2026-10-03: "zero padding
+	   against the rail border" — this link sat flush on the sub column's left edge
+	   because only the phone rule below ever gave `.ai2-back` padding; this one
+	   shows at every width, so it needs its own). */
 	.ai2-back.ai2-sub-back {
 		display: inline-block;
-		margin-block-end: var(--gap-50);
+		margin: var(--gap-50) 0 var(--gap-50) var(--pad);
 	}
 
 	.ai2-said-head {
@@ -1007,7 +1007,10 @@
 	.page.ai2-sub-page > .grip { display: none; }
 
 	@media (width >= 40em) {
-		/* A top-level card has the whole room: a third of it is the chat.
+		/* THE SIDEBAR IS SMALL AND QUIET (the owner, 2026-10-03 follow-up: "small and
+		   quiet" card properties, not a second chat taking a third or half the card).
+		   `--ai2-chat` is the one token both the old chat column and this properties
+		   column size by — same seam, same drag, a narrower rest default.
 		   ⚠ card-measure-gap, 2026-09-30 — `:has(> .ai2-foot)` added. Card.V1 (the
 		   old bottom composer/chat split, doc/one-ai.md) is off by default now, so
 		   most cards draw no `.ai2-foot` at all — but this rule used to fire
@@ -1016,17 +1019,15 @@
 		   nothing there to explain it: a growing, empty gap beside the Actions
 		   dropdown as the drawer widened and took the rest (the owner: "a five
 		   hundred pixel void… between the right sidebar and this card's actions
-		   dropdown"). Reserve the column only when there is a chat to put in it;
+		   dropdown"). Reserve the column only when there is something to put in it;
 		   the single-column rule above (line 760) already covers every other card. */
 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) {
-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 20%));
 			grid-template-rows: auto minmax(0, 1fr);
 		}
 
-		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
-		   so half of it is the same third. */
 		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live):has(> .ai2-foot) {
-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 22%));
 		}
 
 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
@@ -1119,6 +1120,38 @@
 			border-block-end: 0;
 			border-radius: 0;
 		}
+
+		/* ── card properties (one-card-props, 2026-10-03) ──
+		   What used to be the per-card chat column is now a quiet read-only sidebar:
+		   type, status, tags, who worked on it, its files, then Actions. Plain rows,
+		   not a form — nothing here is talked into; that is the global drawer's job. */
+		.ai2-props {
+			gap: var(--gap);
+			overflow-y: auto;
+		}
+		.ai2-props-row {
+			display: flex;
+			align-items: baseline;
+			gap: 0.5em;
+		}
+		.ai2-props-row > .muted {
+			flex: none;
+			width: 5em;
+		}
+		.ai2-props-head {
+			margin-block-end: 0.3em;
+			font-size: 0.85em;
+		}
+		.ai2-props-section + .ai2-props-section {
+			margin-block-start: var(--gap);
+			padding-block-start: var(--gap);
+			border-block-start: 1px solid var(--line);
+		}
+		/* The files tree wants a real height to lay out in — it got none inside the
+		   old `<details>` fold (the owner: "a fixed-height file explorer that doesn't
+		   lay out"). A plain section, not a disclosure, gives it one. */
+		.ai2-props-section .page-log-files { min-height: 12em; }
+		.ai2-props-actions .ai2-actions { margin-inline-start: 0; }
 
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
 		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page {

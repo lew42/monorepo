@@ -6,8 +6,12 @@
 
 	/* card.js writes the sub-card column's width as `--ai2-subw` on the `.ai2` shell
 	   (`Card.seam()`); the shell's grid reads `--inbox-subw`. Unset passes through as
-	   unset, so the grid's own default still applies. */
-	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw); }
+	   unset, so this file's own fallback applies instead of Inbox.css's (2fr, a rail's
+	   own default for a reader-beside-a-list shape, not a card-beside-a-card one).
+	   TWO EQUAL DETAIL COLUMNS (the owner, 2026-10-03 follow-up: "the DETAIL side
+	   splits into two equal columns"): a card and its open sub-card are two cards of
+	   the same kind, so they get the same width, dragged or not. */
+	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw, minmax(0, 1fr)); }
 
 	/* The workspace word sits at the rail name's far end (workspace.js). */
 	.inbox-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }

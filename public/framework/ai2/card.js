@@ -12,11 +12,6 @@ import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
 import chat, { md_into } from "./chat.js";
 import composer from "./compose.js";
-// THE ONE GLOBAL CHAT (one-dictation, 2026-09-30) — the SAME mount function the mobile
-// ✦ sheet and the desktop ☰ drawer's AI tab already call (`ux/Dictate/chat.js`'s own
-// class doc). Named `mount_chat` here, not `chat`, because this file already has a
-// `chat` — the OLD per-card chat above, still used by `chat_v1()` below.
-import mount_chat from "/framework/ux/Dictate/chat.js";
 import agents_panel, { agent_cost } from "./agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
@@ -243,10 +238,11 @@ export default class Card extends Page {
 
 	/* ── drawing ─────────────────────────────────────────────────────────────── */
 
-	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its chat — the
-	   right-hand column on a screen 40em and wider, the footer on a phone. A
-	   top-level card's sub-cards open in AI 2's third column, beside it, and the
-	   deepest open card's chat is the one on screen (ux/Card/Card.css, the last block). */
+	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its properties — a quiet
+	   sidebar on a screen 40em and wider (`properties_sidebar()`), nowhere on a phone, where
+	   there is no room for it. A top-level card's sub-cards open in AI 2's third column,
+	   beside it, and the deepest open card's sidebar is the one on screen (ux/Card/Card.css,
+	   the last block). */
 	content(){
 		const shell = this.shell;
 		const sub = this.parent instanceof Card;
@@ -288,37 +284,17 @@ export default class Card extends Page {
 				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
 			});
 		} else {
-			/* THE CARD'S OWN SIDEBAR, DESKTOP ONLY (one-dictation, 2026-09-30 — the owner,
-			 * testing this task's own build: "a card-specific right sidebar with a 'talk
-			 * into this card' text area… you can't tell it belongs to the card"). This is
-			 * NOT a third, separate chat: `mount_chat` is the exact same `ux/Dictate/chat.js`
-			 * call the ✦ sheet and the ☰ drawer's AI tab already make, on the one global
-			 * session (CLAUDE.md law 6 — "one of everything"). `ai2-foot-head` is what makes
-			 * it read as THIS card's own — a plain line naming the card, above the mount.
-			 * `ux/Card/Card.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
-			 * conversation in the ✦ sheet, and a second copy pinned to the bottom of every
-			 * card on a phone is the very "two chats" shape this task removes. */
-			div.c("ai2-foot ai2-foot-chat", () => {
-				div.c("ai2-foot-head muted").text((sub ? "Talking into this request — " : "Talking into this card — ") + (this.title ?? this.name ?? this.id));
-				this.chat_mount = mount_chat(div.c("ai2-foot-chat-slot").el, {
-					path: this.url,
-					card: this.id,
-					placeholder: sub ? "talk into this request" : "talk into this card",
-				});
-				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
-			});
-			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge): on
-			// the phone, where `.ai2-foot-chat` above isn't shown, through the ✦ sheet, same
-			// call this branch always made; on the desktop, right inside this card's own
-			// mount, since there is now a real mic here to start.
+			this.properties_sidebar(sub);
+			// A FRESH CARD STILL STARTS LISTENING (item 10's rule) — but into the ONE global
+			// drawer agent now, never a card of its own (one-card-props, 2026-10-03 follow-up:
+			// "a brand new context isn't necessarily better, it might be worse"). On the phone
+			// that is the ✦ sheet; on the desktop there is no mic in this sidebar any more to
+			// start — the owner opens the ☰ drawer when they want to talk. Named here, not
+			// silently dropped: a later task can wire the desktop drawer open the same way.
 			if (fresh){
 				shell.opening = null;
-				if (shell.auto_transcribe?.()){
-					if (matchMedia?.("(max-width: 52em)")?.matches)
-						import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
-					else
-						this.chat_mount.panel?.start_mic?.();
-				}
+				if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
+					import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
 			}
 		}
 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
@@ -326,6 +302,33 @@ export default class Card extends Page {
 		// drag — the seam then moves only the card and the sub-card, the two beside it.
 		if (sub) Card.seam("--ai2-subw", "ai2-sub-w", 320, () => innerWidth - 700, () => this.hold_chat());
 		this.talk?.sync();
+	}
+
+	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
+	 *  Replaces the per-card chat column: nothing here is talked into, it is read. Type,
+	 *  status, tags, who worked on it, its files, then Actions — the same `type_picker()`,
+	 *  `agents_panel()`, `draw_folder()` and `actions()` the card already had, moved out
+	 *  of the header and the "More…" fold into their own column. */
+	properties_sidebar(sub){
+		const f = this.facts();
+		div.c("ai2-foot ai2-foot-chat ai2-props", () => {
+			div.c("ai2-props-row", () => { span.c("muted").text("Type"); this.type_picker(); });
+			div.c("ai2-props-row", () => { span.c("muted").text("Status"); span(f.status ?? "open"); });
+			if (f.tags.length) div.c("ai2-props-row", () => {
+				span.c("muted").text("Tags");
+				div.c("flex wrap gap-25", () => { f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); }); });
+			});
+			div.c("ai2-props-section", () => {
+				div.c("ai2-props-head muted").text("Who worked on it");
+				agents_panel(this.id);
+			});
+			div.c("ai2-props-section", () => {
+				div.c("ai2-props-head muted").text("Files in this " + (sub ? "request's" : "card's") + " folder");
+				this.draw_folder();
+			});
+			div.c("ai2-props-section ai2-props-actions", () => { this.actions(); });
+			Card.seam("--ai2-chat", "ai2-chat-w", 200, () => innerWidth * 0.3);
+		});
 	}
 
 	/** Pin the chat column at the width it has now, if nothing has set it yet. For this
@@ -670,6 +673,10 @@ export default class Card extends Page {
 			.text(TABS[name] + (n ? " · " + n : ""));
 	}
 
+	/* ONE LINE, QUIET UNLESS SOMETHING IS RUNNING (the owner, 2026-10-03 follow-up: the
+	   header read "nothing running · cost not tracked" and an Actions dropdown nobody
+	   pressed — both on every card, whether or not either was true). `state_span()`
+	   now draws nothing idle; Actions lives in the properties sidebar instead. */
 	head(f, g, items){
 		div.c("ai2-full-head flex v-center gap-25", () => {
 			icon(this.icon ?? g?.icon ?? type_icon(f.type));
@@ -679,9 +686,6 @@ export default class Card extends Page {
 				state_span(items, usd, open);
 			});
 			this.reviewed_control();
-			// The picker, "clear" and "+ sub-card" write through Servex's card
-			// routes; a Servex without them (not restarted yet) shows none of the three.
-			this.actions();
 		});
 	}
 
@@ -877,8 +881,11 @@ export default class Card extends Page {
 		});
 	}
 
-	/** One fold for what the outline leaves out: the tidied dictation, the full words, links, the card's folder. */
+	/** One fold for what the outline leaves out: the tidied dictation, the full words, links.
+	 *  Who worked on it and the card's files moved to the properties sidebar (2026-10-03
+	 *  follow-up) — this fold is only ever the words now, never state a sidebar already shows. */
 	more(f, g){
+		if (!this.refined?.text && !this.text && !this.description && !this.links?.length) return;
 		details.c("ai2-more", () => {
 			summary.c("ai2-more-head muted").text(this.more_label());
 			if (this.refined?.text) div.c("ai2-text md", $t => { md_into($t.el, this.refined.text); });
@@ -888,8 +895,6 @@ export default class Card extends Page {
 				this.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
 			});
 			small.c("muted").text([!g && role_word(this.by), when(this.created), ...f.tags.map(t => "#" + t)].filter(Boolean).join(" · "));
-			if (!this.has_tasks()){ this.cost_block(g); agents_panel(this.id); }
-			this.draw_folder();
 		});
 	}
 
@@ -899,8 +904,7 @@ export default class Card extends Page {
 	more_label(){
 		const words = [this.refined?.text, this.text, this.description].filter(Boolean).join(" ").split(/s+/).filter(Boolean).length;
 		const n = this.links?.length ?? 0;
-		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links"),
-			!this.has_tasks() && "who worked on it", "the files in this card's folder"].filter(Boolean).join(", ");
+		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links")].filter(Boolean).join(", ");
 	}
 
 	/* WHAT THIS CARD COST (the owner, 2026-09-24: "What took so many tokens?").
