@@ -2,6 +2,11 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## Tasks are pages too (the owner, 2026-10-02; design, after Page extends Item lands)
+- A task folder (`ai/<date>/<slug>/`) is a Page, and its `task.jsonl` is that page's log: the same Store, the same `set(delta)`, the same verbs (`assign`, `log`, `action`, `agent`…) as methods on a `Task extends Page` class. Today ext/JSONL + ext/AITask read it separately; that's the duplication to remove.
+- A Claude session transcript stays outside the repo and read-only. A task REFERENCES its sessions by id (`session_id`), so the session is never copied.
+- The Dashboard, the Log, the Inbox and the per-page AI cost all read Task pages through one LiveList, so their filters apply to one data set.
+
 ## Authoring: markdown with live instances spliced in (the owner, 2026-10-02; queued, not built)
 - **Markdown is the default way an AI writes content.** It's plain strings: `@agent`, `#Page` and `/path` are already references (ext/Mention), so no helper functions are needed.
 - **A registered class goes inside markdown as a fence:** ```` ```Question {"text": "…", "tags": ["core/Page"]} ```` renders a live `Question` instance from the ONE type registry (`Item.register`). `ext/markdown/md.js` already overrides the fence renderer (for file labels), so that's the hook.
