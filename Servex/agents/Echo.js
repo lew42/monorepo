@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
@@ -87,7 +88,50 @@ export default class Echo {
 			page_of: new Map(),    // session_id -> its page url, kept even after `pending` clears on "done"
 			by_id: new Map(),      // echo agent id -> session_id, so a tool call (ctx.caller) finds its session
 			parent_of: new Map(),  // session_id -> a Servex agent id to wake on every turn (optional, see start())
+			machine: new Set(),    // session ids of this file's OWN model calls (clean/structure): never the owner
+			inflight: new Set(),   // those calls while they run (their prompt hook fires before they return)
+			max_live: 4,           // more live echo agents than this is a loop, not owners typing
 		};
+	}
+
+	/* THE ECHO LOOP (2026-10-02 22:17, 16 claude processes in four minutes, RAM down to 1.4 GB).
+	 * clean() and structure() each start an SDK session from inside Servex. Its UserPromptSubmit
+	 * hook saw no SERVEX_MCP, took it for the owner, and posted it here; a new session id meant a
+	 * new echo agent and another clean(), which started two more sessions. Only the OWNER's
+	 * prompts are refined (the owner: VS Code tabs and the Dictate/chat widget), so every model
+	 * call this file makes goes through `call()`, which records its session id, and `heard()`
+	 * waits for the calls in flight, then drops any prompt that came from one of them. This
+	 * holds even before the hooks learn the same rule (LEW42_NO_RELAY, CLAUDE_CODE_ENTRYPOINT). */
+	async call(prompt, opts){
+		// The same 4 GB floor every spawn waits for (Global.admit, SERVEX_MIN_FREE_MB): this call starts
+		// a claude process too, but never passes through agents.spawn, so it checks the floor itself.
+		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 4096, free = os.freemem() / 1048576;
+		if (free < floor) throw new Error(`only ${Math.round(free)} MB free, under the ${floor} MB floor: this prompt is not refined`);
+		this.ask ??= (await import("../../Server/ask-each.mjs")).askOnce;
+		const run = this.ask(prompt, opts).then(r => { if (r?.sessionId) this.machine.add(r.sessionId); return r; });
+		this.inflight.add(run);
+		run.finally(() => this.inflight.delete(run)).catch(() => {});
+		return run;
+	}
+
+	/* THE OPENROUTER LIVE TRIAL (the owner, 2026-10-02: take load off the Claude windows). The
+	 * refiner is the first job moved: google/gemini-3.8-flash was closest to the consensus in the
+	 * audit pilot (distance 0.2; Sonnet 0.6). A model id with a slash picks the openrouter provider
+	 * by itself (Agents.js, the slash rule), with its spend guard and real cost. Every echo spawns
+	 * on it (vscode-mastermind, 2026-10-02: the Sonnet echo-361c4d18 cost $3.50 at 132k context).
+	 * SERVEX_ECHO_OR narrows it to a comma-separated list of session-id prefixes; "none" puts every
+	 * echo back on Claude. Token-reduction item 13 rotates a share to the other cheap models. */
+	model_for(session_id){
+		const list = String(process.env.SERVEX_ECHO_OR ?? "all").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+		const sid = String(session_id).toLowerCase();
+		if (!list.includes("all") && !list.some(p => sid.startsWith(p))) return {};
+		this.servex.log?.append?.("servex", { type: "route", job: "echo", id: this.id_for(session_id), model: "google/gemini-3.8-flash", why: "OpenRouter live trial (the owner, 2026-10-02)" })?.catch?.(() => {});
+		return { model: "google/gemini-3.8-flash" };
+	}
+
+	async is_machine(session_id){
+		while (this.inflight.size) await Promise.allSettled([...this.inflight]);
+		return this.machine.has(session_id);
 	}
 
 	/* `echo.md`, read once — a plain-text system prompt that REPLACES the CLI's own, exactly
@@ -127,6 +171,7 @@ export default class Echo {
 		if (parent) this.parent_of.set(session_id, parent);
 		return this.servex.agents.spawn({
 			id, role: this.role, name: session_id.slice(0, 8),
+			...this.model_for(session_id),
 			system: this.brief(),
 			parent: parent ?? this.parent_of.get(session_id),
 			// Same reasoning as Assistant.js's own identical line: an MCP tool call needs an
@@ -146,7 +191,7 @@ export default class Echo {
 		this.servex.log.on("append", (name, entry) => {
 			if (name !== this.log) return;
 			if (String(entry.via ?? "").startsWith("worktree:")) return;
-			if (entry.type === "prompt") this.heard(entry);
+			if (entry.type === "prompt") this.heard(entry).catch(e => this.servex.say(`echo: ${e.message || e}`));
 			else if (entry.type === "reply") this.heard_reply(entry);
 		});
 	}
@@ -172,18 +217,35 @@ export default class Echo {
 	 * item Echo enriches and an item a person edited by hand are indistinguishable on disk. */
 	async page_set(page, id, delta, as){
 		try {
-			const raw = await this.servex.mcp.call("page_set", { path: page, id, delta }, { caller: as });
+			// `page_tools.js`'s `page_set` takes a `target` PATH (an array of hops), never a bare
+			// `id` (2026-10-03, the nested wire format) — this call used to send `id` straight
+			// through, which that tool simply ignores: `target` stayed `undefined`, so the delta
+			// landed on the PAGE itself instead of this item (vscode-mastermind, bug 2: a step's
+			// `delta` wiped the page's own `title` to null). `target: [id]` is the one-hop path to
+			// an existing item, exactly `page_tools.js`'s own doc comment for `page_set(path, ["k2"], …)`.
+			const raw = await this.servex.mcp.call("page_set", { path: page, target: [id], delta }, { caller: as });
 			const text = raw?.content?.[0]?.text;
 			return text ? JSON.parse(text) : { ok: false, why: "no answer" };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}
 
-	heard(evt){
+	async heard(evt){
 		if (!evt?.session_id || !evt?.page || !evt.item_id) return;
+		if (await this.is_machine(evt.session_id)) return;   // our own clean()/structure() call, never the owner
+		if (!this.live(evt.session_id) && this.live_count() >= this.max_live){
+			this.servex.say(`echo: refused a new session ${String(evt.session_id).slice(0, 8)}, ${this.live_count()} echo agents already live (a loop guard)`);
+			return;
+		}
 		const item = this.read_item(evt.page, evt.item_id);
 		if (!item?.text) return;
 		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text)
 			.catch(e => this.servex.say(`echo could not process a prompt: ${e.message || e}`));
+	}
+
+	live_count(){
+		let n = 0;
+		for (const [id, a] of this.servex.agents.live) if (id.startsWith("echo-") && a.state !== "stopped") n++;
+		return n;
 	}
 
 	/* Context only (this file's own top comment) — a live reply never gets its own echo agent
@@ -204,13 +266,22 @@ export default class Echo {
 	 * failure (a down model provider, mostly) is logged and the prompt is simply not refined
 	 * this time, same "best-effort, never blocks" posture every hook in this task follows. */
 	async process(session_id, page, item_id, at, text){
-		// minion-core's own litmus test picked haiku as "cheapest," but timed it at 123s/call
-		// against deepseek/deepseek-v4.1-flash's 8s (both passed the mechanical check) --
-		// task-mastermind-prompt-refine's call, 2026-10-02: on a live, watched path, a 15x
-		// latency win is worth far more than the ~22-cent/call cost gap, so this is pinned
-		// explicitly rather than left to clean()'s own default.
-		const { sentences, strikes, misheard, flags } = await clean(text, { model: "deepseek/deepseek-v4.1-flash" });
-		const built = await structure(sentences);
+		// HOTFIX, 2026-10-02 (live, right after the real merge+restart): task-mastermind-prompt-refine
+		// had asked for `deepseek/deepseek-v4.1-flash` pinned here (minion-core's own litmus
+		// timed it at 8s/call against haiku's 123s), and it DID pass minion-core's litmus run --
+		// but that run called askOnce from a plain Node script in this worktree, which has this
+		// shell's own OpenRouter key in its env. Echo.js calls clean() IN-PROCESS inside Servex
+		// itself (no spawned child, no per-agent env injection — Agents.js only sets
+		// OPENROUTER env on a process IT spawns), so it runs under SERVEX'S OWN bare
+		// process.env, which doesn't have it: every real prompt tonight failed with "There's an
+		// issue with the selected model" (Servex's own say-log, ~100 distinct real sessions, all
+		// failing, confirmed live after this task's merge went in). Falling back to clean()'s own
+		// default (Anthropic, same provider Servex already calls to run every agent) until
+		// Servex's own process env carries an OpenRouter key too — logged as an open item in
+		// this task's task.jsonl rather than re-guessing a model string blind.
+		const call = (p, o) => this.call(p, o);   // records each call's session id: see call() above
+		const { sentences, strikes, misheard, flags } = await clean(text, { call });
+		const built = await structure(sentences, { call });
 		const sections = this.sections_with_ids(this.parse_sections(built.md));
 		const cited = [...new Set(sections.flatMap(s => s.items.flatMap(i => i.cites)))].sort((a, b) => a - b);
 		const coverage = { total: sentences.length, cited, missing: built.missing ?? [], duplicated: built.duplicated ?? [] };
