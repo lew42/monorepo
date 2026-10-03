@@ -321,3 +321,25 @@ export function importance(item, now = Date.now()){
 	// is the flat DEFAULT, lifted only while it is genuinely recent.
 	return Math.max(IMPORTANCE.DEFAULT, fresh_bonus(item?.at, now));
 }
+
+/** THE REASON NEXT TO THE NUMBER (item 3, card-pipeline 2026-10-02 — the owner: "the items
+ *  above 90 seem arbitrary") — which branch of `importance()`'s own rule actually produced a
+ *  row's score, in five words. `top` is the highest-scoring OPEN need for this row
+ *  (`card_needs()`'s own shape — `kind`, `ask`, `title`, `question`, `from_live`), or
+ *  null/undefined when nothing is open at all; `item` is the row itself, read only for its own
+ *  `kind`/`at` when `top` is empty (a plain card, a stalled ask, or just something recent).
+ *  THE ONE FUNCTION — `ai2/rail.js`'s per-row reason and the card-pipeline task's own
+ *  `audit-90.mjs` both call this (review, 2026-10-02: the first cut had two separate copies that
+ *  had already drifted in wording — law 6, one of everything). */
+export function reason_of(top, item, now = Date.now()){
+	if (top){
+		if (top.kind === "blocker" || is_blocker(top.title, top.question)) return "blocker word matched";
+		if (top.kind === "decision" || top.kind === "question") return top.from_live ? "open ask, agent waiting" : "open ask, waiting on you";
+		if (top.ask === "card") return "card typed \"question\", unanswered";
+		if (top.ask === "last") return "last message ends in \"?\"";
+	}
+	if (item?.kind === "stalled") return "owner agent gone quiet";
+	const hours = (now - Date.parse(item?.at ?? 0)) / 3600000;
+	if (Number.isFinite(hours) && hours < 24) return "recently active";
+	return "routine, resting score";
+}
