@@ -1,5 +1,11 @@
 # Weight — one number per page, 1 by default, that says how much it matters
 
+**A page's AI cost lives right beside weight, same file, same convention.** `ai-cost.js` reads
+it (`{ usd, tasks }` or `null`); `node Server/page-ai-cost.mjs` writes it, splitting every
+task's already-computed cost evenly across the page folders its edits touched. `core/Page`
+shows it under the title, when there's a figure, as "$N.NN of AI work · M tasks", linking to
+`/framework/ai/log/`.
+
 Live: [`/framework/core/Page/weight/`](/framework/core/Page/weight/) — the formula, then four
 live demos with real data: main navigation, quick links, the size upgrade past 10, and two ways
 to SHOW the number (A/B, not decided yet). The owner's own words: [`ai/2026-09-29/page-system/weight-brief.md`](/framework/ai/2026-09-29/page-system/weight-brief.md)
@@ -13,6 +19,11 @@ and the "Continued, 4:55 PM" half of [`ai/2026/09/29/familiar-structure-every-na
 - **`node Server/page-refs.mjs <from-url> <to-url>`** — the one way a `referenced_by` line gets
   written. Run twice for the same pair and only one line lands.
 - **`node Server/page-refs.mjs <to-url> --weight <N>`** — the manual number; can be negative.
+- **`ai_cost(page_url)`** (`ai-cost.js`) — `await ai_cost("/framework/core/Task/")` →
+  `{ usd, tasks }` or `null` ("not measured," never `$0`).
+- **`node Server/page-ai-cost.mjs`** — walks every task log, reuses `cost_usd` from
+  `Server/task-cost.mjs` (never recomputes it), and writes the figure above for every page a
+  task touched. Re-run any time; unchanged pages append nothing.
 
 ## Watch out
 
@@ -26,6 +37,13 @@ and the "Continued, 4:55 PM" half of [`ai/2026/09/29/familiar-structure-every-na
 - **`jsonl/` is missing from the live demo on purpose** — it's the other live example the brief
   named, but another minion was mid-edit on that folder while this task ran, so it was left out
   rather than risk a collision.
+- **The AI-cost link to `/framework/ai/log/` doesn't filter by page yet** — the `?page=` query
+  param is attached but that log page doesn't read it back out, so it lands on the whole log,
+  not a filtered view. A first-pass shortcut, named here rather than quietly shipped (2026-10-03).
+- **A `core/Page` Doc page (Overview/API/Docs/Files — most module docs) draws its OWN title
+  (`Doc.well()`'s `h1.doc-title`) and never calls `Page.render()`'s title block**, so the AI-cost
+  line only shows on a plain `Page` today (e.g. `core/Task/live/`), not on a Doc's Overview tab.
+  Wiring it into `Doc.well()` too is a small follow-up, not done here (2026-10-03).
 
 ## More
 

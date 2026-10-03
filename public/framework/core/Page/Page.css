@@ -207,6 +207,12 @@
 	   fix holds no matter which stylesheet happens to load second. */
 	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
 
+	/* "$N.NN of AI work · M tasks" — filled in async by Page.class.js's render() from
+	   core/Page/weight/ai-cost.js. Most pages have no figure yet, so this renders empty
+	   (no gap, no box) until it does; `font-size: small` only, no layout of its own. */
+	.page .page-ai-cost { display: block; font-size: small; }
+	.page .page-ai-cost:empty { display: none; }
+
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
 	   `doc/property/related.md`) draws one row per url — the target's own icon

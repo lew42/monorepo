@@ -3,6 +3,7 @@ import PageFrame from "./Frame.js";
 import PageLog from "./Log.js";
 import List from "../List/List.js";
 import { track } from "../track/track.js";
+import ai_cost from "./weight/ai-cost.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -642,6 +643,18 @@ export class Page extends PageLog {
 		// `standard` is the default page shape; a declared `classes` replaces it whole.
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
+
+			// "$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs onto this
+			// page's own log, never by this code (law 7: compute, don't recall). Fails soft:
+			// no figure yet (most pages) draws nothing at all, not a "$0.00".
+			if (this.title && this.url){
+				const $cost = span.c("page-ai-cost muted");
+				$cost.append(ai_cost(this.url).then(c => {
+					if (!c || !(c.usd > 0)) return undefined;
+					return a(`$${c.usd.toFixed(2)} of AI work · ${c.tasks} task${c.tasks === 1 ? "" : "s"}`)
+						.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
+				}));
+			}
 
 			// ⚠ NOT a floating "Folder" link here any more. One existed briefly
 			// (2026-09-28, "any path slash fs") and michael/dev re-added a refined
