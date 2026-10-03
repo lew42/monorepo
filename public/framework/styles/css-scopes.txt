@@ -108,6 +108,7 @@ hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
 panel-       ext/Panel
+panel2-      ext/panel2
 pg-          ext/Playground
 research-    ext/Research
 tab-         ext/tabs

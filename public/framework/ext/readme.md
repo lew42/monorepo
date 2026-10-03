@@ -12,6 +12,7 @@
 - [JSONL](./JSONL/) — append-only `.jsonl` logs replayed into object state — what the task and day logs use
 - [Omnibox](./Omnibox/) — moved into core on 2026-09-06; this directory is only a pointer
 - [Panel](./Panel/) — chrome for arranging a region: divide, drag, align, fill, persist — for wireframing pages
+- [panel2](./panel2/) — header/main/footer chrome you ship: an optional sidebar that becomes a drawer, a resizable split, a dashboard grid
 - [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
 - [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
 - [Timeline](./Timeline/) — horizontal or vertical timeline for dated items

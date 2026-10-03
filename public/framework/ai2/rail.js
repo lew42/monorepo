@@ -1,5 +1,5 @@
 import { Page, View, div, span, small, a, button, label, input, details, summary } from "/app.js";
-import InboxRail from "/framework/core/Page/ext/Inbox/Rail.js";
+import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 import { Groups } from "./groups.js";
 import { task_of, task_region } from "./tasks.js";
@@ -20,7 +20,7 @@ import { RealPage, page_events, real_title } from "./real.js";
 import { is_read, mark_read, archive_row, is_resolved } from "./rules.js";
 
 /* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
-   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by InboxRail. */
+   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
 View.stylesheet(import.meta, "rail.css");
 
 /* Servex down: the page is read-only — "+ New card" quietly goes away. */
@@ -28,15 +28,20 @@ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.cr
 
 const AUTO_KEY = "ai2-auto-transcribe";
 const LIVEVIEW_KEY = "ai2-live-default";
-const store = InboxRail.prototype;   // its try/catch storage, shared rather than copied
+// `Inbox.Rail.prototype` — its try/catch localStorage helpers (`store_get`/`store_set`),
+// shared rather than copied. Was named `store`, which read as "a data store"; it holds
+// no data at all, just the wrapper methods (restructure, 2026-10-02 — the owner: "a
+// misleading name").
+const storage = Inbox.Rail.prototype;
 
 /** On by default — a card you just opened starts listening unless you turned this off. */
-export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
+export const auto_transcribe = () => storage.store_get(AUTO_KEY) !== "off";
 
 /**
- * AI RAIL — the AI's inbox: the base rail (`core/Page/ext/Inbox/Rail.js`) plus what only
- * the AI system has (the owner, 2026-09-30: "we don't need the AI usage meters on the
- * inbox for every single page… override the rail… and you add the progress bars above it").
+ * AI RAIL — the AI's inbox: the base rail (`Inbox.Rail`, `core/Page/ext/Inbox/Inbox.js`)
+ * plus what only the AI system has (the owner, 2026-09-30: "we don't need the AI usage
+ * meters on the inbox for every single page… override the rail… and you add the progress
+ * bars above it").
  *
  * Adds, each as an override of one base method:
  *   - the usage meters above the filters (`head_extra`) — the ONLY place they exist;
@@ -53,7 +58,7 @@ export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
  * ⚠ The shell also wears `.ai2`: card.js finds it with `document.querySelector(".ai2")`
  *   to write its column widths (`--ai2-subw`, `--ai2-chat`) — rail.css passes those on.
  */
-export default class AIRail extends InboxRail {
+export default class AIRail extends Inbox.Rail {
 	title = "AI inbox";
 	key = "ai2";
 	now_item = null;

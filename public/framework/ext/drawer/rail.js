@@ -4,7 +4,7 @@ import grip from "/framework/ext/grip/grip.js";
 import floor from "/framework/ux/Dictate/floor.js";
 import Widget from "/framework/ux/Dictate/Widget.js";
 import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
-import DrawerInbox from "./inbox.js";
+import Inbox from "./inbox.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
 // seam below reads `Session.resume` only if it exists (`typeof ... ===
@@ -761,7 +761,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
 		// THE PAGE'S INBOX (page-inbox, 2026-09-30), just above the widget — the same
 		// notes the desktop drawer's AI tab shows (`ext/drawer/tabs/ai.js`), so a note
 		// left for this page is seen here too, not only on a desktop screen.
-		new DrawerInbox({ page: drawer.page() }).view();
+		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		// The links row is hidden until "More" in the head is tapped
 		// (sheet-regression, 2026-09-30): the conversation and the mic come first.
@@ -1090,7 +1090,7 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
 	render(){
 		this.head();
 		this.handle();
-		new DrawerInbox({ page: drawer.page() }).view();
+		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
 	}

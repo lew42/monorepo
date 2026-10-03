@@ -1,0 +1,112 @@
+/* Panel2 — header/main/footer chrome, with an optional sidebar on either side
+   of main that becomes a sliding drawer under 34em (the same floor ext/grip's
+   own grip.css uses for "a rail stops being a rail"). `.surface` (framework.css)
+   already gives the background, border and rounded corners — this file only
+   adds the layout: how the three chrome regions stack, and how a side sits
+   beside (or slides over) main. Design record: readme.md, doc/decisions.md. */
+@layer theme {
+
+	.panel2 {
+		display: flex; flex-direction: column;
+		position: relative;   /* a grip dropped inside a split's first panel (Panel2.split) anchors here */
+		min-width: 0; min-height: 0;
+		/* The drawer floor below answers THIS panel's own width, not the window's
+		   (review finding, 2026-10-02: a panel squeezed into a dashboard grid cell
+		   is narrow on a wide screen, and the window-wide @media rule never fires
+		   for it). container-type here is what makes @container below possible. */
+		container-type: inline-size;
+	}
+
+	/* Both chrome strips hug their own content and never grow — "minimal height"
+	   (requirements.md step 2) — and take the control row's own rung of spacing,
+	   never `.pad`: a toolbar is a row, not a page region (design/layout's own
+	   one-line rule). */
+	.panel2-header, .panel2-footer {
+		display: flex; align-items: center; gap: var(--gap-50);
+		padding-inline: var(--pad); padding-block: var(--gap-35);
+		flex: none;
+	}
+	.panel2-header { border-block-end: 1px solid var(--line); }
+	.panel2-footer { border-block-start: 1px solid var(--line); }
+
+	.panel2-title { font-weight: 600; }
+	/* Title on the left, everything `.append()`ed after it pushed to the right —
+	   one `margin-inline-start: auto` is the whole trick. `wrap` so a panel with
+	   many controls on a narrow header grows a second row instead of overflowing
+	   — the one place in this module flex-wrap IS the right tool (the readme's
+	   "alternative we didn't pick" is about the DASHBOARD grid, not this row). */
+	.panel2-controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--gap-50); margin-inline-start: auto; }
+
+	/* Only means anything once a side can become a drawer, below. */
+	.panel2-side-toggle { display: none; }
+
+	/* `overflow: hidden` clips a CLOSED drawer's own box-shadow, which otherwise
+	   hangs a faint sliver past the edge even after `translateX` moves the box
+	   itself fully out of view (the shadow isn't part of the width that offset
+	   measures against). Safe here — nothing in a normal header/main/side row
+	   is meant to paint outside it, unlike `.panel2` itself, which a split's
+	   grip deliberately straddles (panel2.css's own split rule, below). */
+	.panel2-body { display: flex; flex: 1 1 auto; min-height: 0; overflow: hidden; position: relative; }
+
+	.panel2-main {
+		flex: 1 1 auto; min-width: 0; min-height: 0;
+		overflow: auto; padding: var(--pad);
+	}
+
+	.panel2-side {
+		flex: 0 0 var(--panel2-side-w, 16rem);
+		min-width: 0; overflow: auto; padding: var(--pad);
+	}
+	.panel2-side-start { border-inline-end: 1px solid var(--line); }
+	.panel2-side-end   { border-inline-start: 1px solid var(--line); }
+
+	/* Below 34em of the PANEL'S OWN width a side stops sitting beside main —
+	   there's no room — and slides over it instead, opened by its own toggle
+	   button in the header. A container query, not @media: a Panel2 can be one
+	   tile in a dashboard grid, narrower than the window around it. */
+	@container (width < 34em) {
+		.panel2-side-toggle { display: inline-flex; }
+
+		.panel2-side {
+			position: absolute; inset-block: 0; z-index: 2;
+			width: min(85%, 20rem); flex-basis: auto;
+			background: var(--surface);
+			box-shadow: 0 0 1.5em rgba(0, 0, 0, 0.3);
+			transition: transform 0.18s ease;
+		}
+		.panel2-side-start { inset-inline-start: 0; transform: translateX(-100%); }
+		.panel2-side-end   { inset-inline-end: 0; transform: translateX(100%); }
+		.panel2-side.panel2-side-open { transform: translateX(0); }
+	}
+
+	/* Splitting two Panel2s (Panel2.split) — ext/grip sits inside the FIRST one
+	   and drags its own size; the second always takes the leftover, same deal
+	   as a sidebar beside a page. */
+	/* Its own container, not `.panel2`'s: the two children ARE `.panel2` elements,
+	   and a container query can't answer about the box it's styling, only an
+	   ancestor's — so the size check below has to happen one level up, here. */
+	.panel2-split { display: flex; align-items: stretch; container-type: inline-size; }
+	.panel2-split-y { flex-direction: column; }
+
+	.panel2-split > :first-child { flex: 0 0 var(--panel2-split-a, 50%); min-width: 0; min-height: 0; }
+	.panel2-split > :last-child  { flex: 1 1 auto; min-width: 0; min-height: 0; }
+
+	/* A side-by-side split has nothing left to drag under 34em (ext/grip hides
+	   a plain `.grip` there itself) — stack instead, same floor as the drawer
+	   rule above. A top/bottom split (`axis: "y"`) keeps its grip there on
+	   purpose (grip.css exempts `.grip-y` from that floor), so it needs no
+	   override here. Same container-query floor as the drawer rule above. */
+	@container (width < 34em) {
+		.panel2-split:not(.panel2-split-y) { flex-direction: column; }
+		.panel2-split:not(.panel2-split-y) > :first-child { flex-basis: auto; }
+	}
+
+	/* The dashboard arranger (readme.md, "Arranging several on one page") —
+	   reuses framework.css's own `.grid.auto` formula
+	   (`repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))`) rather than a
+	   second copy of it: put `class="grid auto gap panel2-grid"` on the
+	   wrapping element, and override `--column` inline for a wider or narrower
+	   floor than the 22rem default. */
+	.panel2-grid { --column: 22rem; }
+
+}

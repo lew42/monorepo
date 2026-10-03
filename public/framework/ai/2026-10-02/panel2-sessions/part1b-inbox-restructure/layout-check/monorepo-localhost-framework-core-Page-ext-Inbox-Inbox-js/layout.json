@@ -1,0 +1,40 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Page/ext/Inbox/Inbox.js",
+ "widths": {
+  "1280": {
+   "empty": 0.493,
+   "widest_text": 986,
+   "widest_text_sample": "import { div, span, button, input, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.659,
+   "widest_text": 986,
+   "widest_text_sample": "import { div, span, button, input, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.742,
+   "widest_text": 986,
+   "widest_text_sample": "import { div, span, button, input, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.805,
+   "widest_text": 986,
+   "widest_text_sample": "import { div, span, button, input, small",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": [
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

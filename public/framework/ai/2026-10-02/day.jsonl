@@ -1,0 +1,6 @@
+{"log":{"at":"2026-10-02T17:48:24-05:00","task":"page-extends-item","msg":"task opened: Page extends Item (Events, List, LiveList, Item, Page), one set, Store, live list demo"}}
+{"log":{"at":"2026-10-02T18:12:43-05:00","task":"ai-system-docs","msg":"task opened — fill the AI /framework/ai/ System tab: data writers, page saving, confirm map/skills/tasks already covered"}}
+{"log":{"at":"2026-10-02T18:27:34-05:00","task":"ai-system-docs","msg":"landed — System tab now explains the whole AI system: data writers + how a page saves added, CLAUDE.md resync fixed"}}
+{"log":{"at":"2026-10-02T18:36:53-05:00","task":"part1b-inbox-restructure","msg":"landed — core/Page/ext/Inbox restructured into one class Inbox with lazy static views inbox.rail/inbox.compact; InboxRail/DrawerInbox kept as one-release re-exports"}}
+{"log":{"at":"2026-10-02T18:40:38-05:00","task":"panel2-sessions/part1-panel2","msg":"task opened — build ext/panel2 (header/main/footer chrome, drawer sides, split, dashboard grid, demo page)"}}
+{"log":{"at":"2026-10-02T18:52:46-05:00","task":"panel2-sessions/part1-panel2","msg":"landed — ext/panel2 built: header/main/footer chrome, drawer sides, a grip split, a dashboard grid, and a demo page"}}

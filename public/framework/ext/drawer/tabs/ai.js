@@ -9,7 +9,7 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import drawer from "../drawer.js";
 import { DEV } from "../tabs.js";
-import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
 import * as Session from "/framework/ext/Session/Session.js";
 import floor from "/framework/ux/Dictate/floor.js";
 
@@ -250,7 +250,7 @@ window.addEventListener("drawer-close", dispose_chat);
  */
 export default function ai({ page, card, tabs }){
 	dispose_chat();   // this refill replaces whatever this tab built last time
-	const inbox = new DrawerInbox({ page });
+	const inbox = new Inbox.Compact({ page });
 	div.c("drawer-ai flex v", () => {
 		inbox.view();
 		const $slot = div.c("drawer-ai-panel");
@@ -283,7 +283,7 @@ export function aiV2({ page, card, tabs }){
 	const thread = card ? null : tabs.thread;
 	let panel, $hint;
 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
-	const inbox = new DrawerInbox({ page });
+	const inbox = new Inbox.Compact({ page });
 
 	div.c("drawer-ai flex v", () => {
 		div.c("drawer-ai-head flex v-center split wrap", () => {
