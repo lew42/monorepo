@@ -12,6 +12,8 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
+**Thinkers and doers (the owner, 2026-10-02).** Cheap models are doers, not thinkers: a Gemini 3.8 Flash mastermind read about 140 files and produced nothing ($17 in 20 minutes). So a Claude mastermind does the thinking: it writes each step as a precise brief (the exact files, the exact change, how to check it), hands that ONE step to a cheap minion (Gemini 3.8 Flash, DeepSeek V4 Pro), checks the result, and writes the next step. A cheap minion's brief says "read only these files". Until the node step-runner exists, the mastermind is the step-runner.
+
 **How deep to go (the owner, 2026-10-02).** Start the basic version of every ask right away; the asks are the proposal, and no Start button is needed. Under the usage pace, keep going through everything the owner asked for, and never stop short to wait for their reply. Over the pace, do only what was asked, in its smallest working version, and queue the rest with an estimate. Never start unasked extras while over.
 
 **Live writing (the owner, 2026-10-02).** An assistant whose work the owner watches (refining a prompt, a card, a live answer) writes in small steps through tool calls (the tool stamps the time, author and ids; no hand-written JSON), so the page tailing the log shows the work growing. Code can still be written in one pass.
