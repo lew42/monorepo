@@ -885,6 +885,12 @@
 	.page-preview.page-surface-dark .page-preview-title,
 	.page-preview.page-surface-dark .icon { color: var(--dark-ink); }
 
+	/* The architecture excerpt's own box (below) tints toward black by default — on a dark
+	   card that's invisible against `--dark-bg` (review finding 2, 2026-10-02), so it tints
+	   toward white here instead, the same "this card's own ground" idea as the `--dark-ink`
+	   override just above. */
+	.page-preview.page-surface-dark .page-preview-architecture { background: rgba(255, 255, 255, 0.08); color: var(--dark-ink); }
+
 	/* ── the type scale ──
 	   One declaration each, on the page — so a colour and a type size compose without
 	   either knowing the other exists.
@@ -1350,6 +1356,48 @@
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		overflow: hidden;
+	}
+
+	/* A heavy module's card (`.big`, set by `/framework/page.js`'s own `module_card()` once
+	   its weight — core/Page/weight/weight.js — comes back over the threshold): bigger
+	   ink, a touch more room, and the architecture excerpt reads as code, not prose. No
+	   grid-column span (that was tried and reverted above, 2026-08-17, same "empty
+	   interior" problem) — the extra height comes from the real content a heavy card has
+	   to show, never from claiming space it doesn't fill. */
+	.page-preview.big .page-preview-title { font-size: 1.1em; }
+	.page-preview.big .icon { font-size: 1.3em; }
+
+	/* The unread-Inbox-item count (owner, 2026-10-02) — absent today (no module ever has
+	   one yet, `/framework/page.js`'s own `unread_count_for()` stub), so this rule has
+	   nothing to prove until that data exists; kept here, ready, rather than added later
+	   alongside the real source. */
+	.page-preview-badge {
+		position: absolute;
+		top: 0.5em; right: 0.5em;
+		min-width: 1.4em; height: 1.4em; padding: 0 0.35em;
+		display: flex; align-items: center; justify-content: center;
+		border-radius: 999px;
+		background: var(--prim); color: var(--prim-ink);
+		font-size: 0.75em; font-weight: 700; line-height: 1;
+	}
+
+	/* ⚠ NOT `--wash` (review finding 2, 2026-10-02): `--wash` is a tint against the PAGE's own
+	   ground, and a `.page-surface-dark` card's ground is already close to black — the two
+	   landed one hex digit apart (`#171717` vs `#17161a`), so the "box" had no visible edge
+	   at all on exactly the cards most likely to be `.big`. A light-card box tints toward
+	   black, a dark-card one toward white — the same "always visible against this card's own
+	   ground" idea `.page-surface-dark`'s own override (above) already uses for ink. */
+	.page-preview-architecture {
+		margin: 0;
+		padding: 0.6em 0.7em;
+		background: rgba(0, 0, 0, 0.06);
+		border-radius: calc(var(--radius) * 0.6);
+		font-size: 0.8em;
+		line-height: 1.4;
+		color: var(--subtle);
+		overflow: hidden;
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 
 	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the
