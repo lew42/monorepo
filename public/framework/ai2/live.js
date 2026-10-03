@@ -517,8 +517,7 @@ export function usage_head(model){
 		$box.empty(() => {
 			if (!it.usage) return;
 			usage_rail(it.usage, LABELS);
-			// Which mark is which, said once (the owner, 2026-09-25: "make it obvious which is which").
-			small.c("ai2-usage-key muted").text("% = share used · ▼ = time passed · a bar short of its ▼ is on pace");
+			// The legend under the bars was removed 2026-10-03 (the owner: "I've figured that out by now").
 		});
 	};
 	model.on(paint); paint();
