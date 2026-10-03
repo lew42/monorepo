@@ -134,6 +134,10 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).
 
+## The Servex mastermind is always on
+
+There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`.
+
 ## Is the machine melting? — the monitor and the spawn queue
 
 `Monitor.js` checks the machine every 5 seconds: total CPU, free RAM, the five

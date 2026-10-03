@@ -405,6 +405,11 @@ export default class Global {
 	}
 
 	admit(spec = {}, free_mb = os.freemem() / 1048576){
+		/* ALWAYS ON (the owner, 2026-10-02): "the Servex mastermind should always stay
+		 * on… we can't afford to have it go down… just force it." The holder
+		 * (mastermind-servex or mastermind-servex-N) skips every gate: memory, the
+		 * working cap and the ceiling. It is one agent, so it can't run away. */
+		if (/^mastermind-servex(-\d+)?$/.test(spec.id ?? "")) return null;
 		if (free_mb < this.min_free_mb) return `only ${Math.round(free_mb)} MB of memory is free; waiting for ${this.min_free_mb} MB`;
 		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
 		 * message, and the front desk answers the owner: neither is held by it. */
