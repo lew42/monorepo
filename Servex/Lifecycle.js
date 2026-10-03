@@ -17,6 +17,14 @@
  *
  * Never touched: the main site (:3104, the main checkout's own server), Servex, the gate, whisper,
  * and every port in Servex/keep.json. A worktree keeps its files; only its processes stop.
+ *
+ * CHROME.EXE WITHOUT A LOG LINE (2026-10-03): most browser-kind resources come from
+ * `Server/browser.mjs`'s own start/end log lines (`logged: true`). A chrome.exe that was never
+ * logged at all — e.g. `@playwright/mcp`'s own internal Playwright, which doesn't go through
+ * `browser.mjs` — is found a different way: by its own executable path (`ms-playwright` or
+ * `chrome-for-testing`, never the owner's own Chrome), and closed only if its launching process
+ * is already gone or it's been running over 30 minutes. See `resources()` and `why()`.
+ *
  * Doc: Servex/doc/lifecycle.md. */
 import fs from "node:fs";
 import path from "node:path";
@@ -203,6 +211,18 @@ export default class Lifecycle {
 			add({ kind: "server", id: `wrapper:${p.pid}`, pid: p.pid, path: dir || null, port: p.ports[0] ?? (Number(sh.match(/PORT=(\d+)/)?.[1]) || undefined),
 				owner_task: dir ? task_for_worktree(dir, main)?.key ?? null : null, born: p.born });
 		}
+		// A chrome.exe Playwright launched (`Server/browser.mjs`'s own channel, or any future
+		// `@playwright/mcp` use) that never got a log line at all — the only way that happens is a
+		// browser that isn't ours to log, e.g. `@playwright/mcp`'s own internal Playwright install.
+		// Recognised ONLY by its own executable path (`ms-playwright`, or `chrome-for-testing` for
+		// a different Playwright channel) — never a catch-all for "any old chrome.exe": the owner's
+		// own Chrome has neither marker, so it is never touched here. Only the top browser process
+		// (no `--type=` flag — a renderer/gpu/utility/crashpad child always has one) becomes a row;
+		// `add()`'s `claim()` still closes the whole tree underneath it.
+		const PLAYWRIGHT_CHROME = /ms-playwright|chrome-for-testing/i;
+		for (const p of procs.values())
+			if (p.name === "chrome.exe" && !/--type=/i.test(p.cmd) && !seen.has(p.pid) && PLAYWRIGHT_CHROME.test(p.cmd))
+				add({ kind: "browser", id: `chrome:${p.pid}`, pid: p.pid, path: null, owner_task: null, owner_agent: null, born: p.born, logged: false });
 		const agents = this.all_agents = await this.agents();
 		for (const a of agents) if (a.state === "idle" || a.state === "dormant")   // a dormant agent of a landed task is closed too (dormant-idle, 09-30)
 			rows.push({ kind: "agent", id: a.id, role: a.role, parent: a.parent ?? null, turns: a.turns, path: a.cwd, owner_agent: a.parent ?? null });
@@ -227,6 +247,10 @@ export default class Lifecycle {
 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
 		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
+		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
+		// to judge by — it skips the "logged or under C:\Code\lew42" guard below entirely and goes
+		// straight to why()'s own orphan/30-minute rule instead.
+		if (r.kind === "browser" && r.logged === false) return null;
 		// Only reap what the creation log recorded, or what runs under C:\Code\lew42 (worktrees or the
 		// monorepo) — never a server from some other project or a path we couldn't determine at all.
 		// "the main checkout's own server" is NOT a blanket keep any more: :3104 is already on the keep
@@ -250,6 +274,14 @@ export default class Lifecycle {
 			if (ONE_PASS.test(r.role ?? "") && (r.turns ?? 1) > 0) return `one-pass ${r.role}, its result is written`;
 			if (task?.landed) return `idle, and its task ${task.key} has landed`;
 			if (owner && (owner.state === "stopped" || owner.state === "gone") && r.role === "minion") return `idle, and its parent ${owner.id} has stopped`;
+			return null;
+		}
+		if (r.kind === "browser" && r.logged === false){
+			if (only) return null;   // no owning task to match against — only the sweep ever closes one of these
+			const launcher = this.procs?.get(this.procs.get(r.pid)?.ppid);
+			if (!launcher) return "its launching process is gone";
+			const age = r.born ? Date.now() - r.born : 0;
+			if (age > 30 * 60 * 1000) return `running ${hours(age)} h, past the 30-minute limit for an unlogged browser`;
 			return null;
 		}
 		if (only) return r.owner_task === only ? `its task ${only} has landed` : null;
