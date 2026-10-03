@@ -489,7 +489,12 @@ export default class Cards {
 				+ " exact cause the audit found). Returns `{ok, id, url, path}`, or `{ok:false, why}`.",
 				{
 					parent: { type: "string", description: "Where it goes: omit (or `today`) for today's folder; a card id to make a sub-card inside that card, at any depth." },
-					title: { type: "string", description: "What the card is, in a few plain words. The folder name is made from it." },
+					// A TITLE SAYS WHAT HAPPENED AND WHY IT MATTERS, IN WORDS A NON-PROGRAMMER READS
+					// (the owner, 2026-10-03, on "Worktree pool stuck — 2 minions queued 40+ min":
+					// "what does this mean? Which worktree, which pool? I don't know what a worktree
+					// pool is."). Not a system's internal noun ("worktree pool", "the pool", a tool
+					// name) — the EFFECT on the work: what got stuck, what it cost, what changed.
+					title: { type: "string", description: "What happened and why it matters, in a few plain words a non-programmer reads — never a system's internal noun (\"worktree pool\", \"the inbox rail\"). The folder name is made from it." },
 					type: { type: "string", description: "`question`, `request`, `task`, `note`, … Change it later with one `{\"type\": …}` line; the latest wins." },
 					by: { type: "string", description: "Your own agent id." },
 					tags: { type: "array", items: { type: "string" }, description: "Projects this card belongs to. A project is a tag, not a folder." },
