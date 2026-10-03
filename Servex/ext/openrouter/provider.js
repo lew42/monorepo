@@ -232,7 +232,10 @@ function write_usage_snapshot(status){
 		const snapshot = { utilization: { limits: [{
 			kind: "openrouter_weekly", group: "weekly", percent: pct(status.usage_weekly, OR_WEEKLY_CAP_USD), resets_at: monday.toISOString(),
 			usage_weekly: status.usage_weekly, cap: OR_WEEKLY_CAP_USD, monthly: OR_MONTHLY_USD, usage_daily: status.usage_daily
-		}] } };
+		}] },
+		// The balance itself (owner, 2026-10-03: "a local file that's always up to date with the OpenRouter
+		// balance, so any minion can read it"). Real dollars, from /key, refreshed every 30 s.
+		balance: { used_total: status.usage, limit: status.limit, remaining: status.limit_remaining, at: new Date().toISOString() } };
 		fs.mkdirSync(path.dirname(USAGE_SNAPSHOT), { recursive: true });
 		fs.writeFileSync(USAGE_SNAPSHOT, JSON.stringify(snapshot, null, 2));
 	} catch {}   // the dashboard just keeps showing the last snapshot — never worth crashing over
