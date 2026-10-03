@@ -13,10 +13,10 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
   toJSON(), static hydrate(json), static register(Class, name), static open(src)
 }
- └─ PageLog (core/Page/Log.js)        // ✅ adds the page.jsonl bits: keeps every line, emits "line"
-     └─ Page (core/Page)              // ✅ Page extends PageLog extends Item — the owner approved it 2026-10-02
+ └─ Page (core/Page)                  // ✅ Page extends Item directly (2026-10-03 — PageLog, a middle class, folded in)
      pages: List                      // its sub-pages
      content: List                    // its visible blocks, made lazily
+     the page.jsonl bits: keeps every line, emits "line", set()/file()/tab()/place()
 ```
 
 **Item itself has no list of its own — no `items`, no `add`/`move`/`order`.** Those collided

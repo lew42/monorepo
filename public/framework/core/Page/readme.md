@@ -27,7 +27,7 @@ This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 ## Architecture
 
 ```js
-Page extends PageLog extends Item     // ✅ landed 2026-10-02 — page instanceof Item is true; PageLog (Log.js) adds the page.jsonl bits
+Page extends Item                     // ✅ page instanceof Item is true — no middle class (PageLog folded in, 2026-10-03)
   url, title, parent: Page
   pages: List                         // ✅ the real storage — sub-pages, keyed by id (= folder name)
   children                            // ✅ a Map-SHAPED VIEW over `pages` — ~215 existing callers unchanged (not List's old `children` field, now `items`)
@@ -35,7 +35,7 @@ Page extends PageLog extends Item     // ✅ landed 2026-10-02 — page instance
   store: Item.Store                   // ✅ attached by Page.jsonl() — one per page.jsonl, append + tail, written through FsFile.append
   prefs()                             // ✅ localStorage (was `store()` — renamed, `page.store` is the jsonl Store now)
   view: View
-  set(line)                           // ✅ PageLog's thin wrapper over Item's apply()-based routing
+  set(line)                           // ✅ a thin page.jsonl wrapper over Item's apply()-based routing
   add(name, child), move(url)         // Page's OWN methods — composition, not inheritance, avoided the clash
   route(name) → Page                  // dynamic children (cards, md/, fs/)
   static use(Ext)                     // ✅ page extensions (ext/: Inbox first)
