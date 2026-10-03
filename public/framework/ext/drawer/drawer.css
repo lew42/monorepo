@@ -26,7 +26,25 @@
 		inset-inline-end: var(--devbar, 0px);
 		inline-size: min(var(--drawer, 19rem), 100%);
 		gap: calc(var(--gap) * 0.8);   /* was gap 0.8em - 2026-09-05 ramps */
-		padding: 0.9em;
+		/* `--drawer-pad`, not a bare number: the AI tab's footer (below, "THE FOOTER, FLUSH
+		   TO THE DRAWER'S OWN EDGES") cancels the INLINE half of this with a negative
+		   margin, so the one number only ever lives here.
+		   ⚠ No `padding-block-end` (drawer-cleanup, 2026-10-03): a negative margin on the
+		   footer alone cannot reach the drawer's true BOTTOM edge without this — `.drawer-
+		   body` has `overflow: auto` (below), and ANY box that bleeds past its own parent's
+		   edge through a negative margin is clipped (counted as scrollable overflow) the
+		   moment it crosses an ancestor that actually clips, which `.drawer-body` is.
+		   Measured live: with a bottom padding here AND a matching negative margin on the
+		   footer, the footer bled 14px past `.drawer-body`'s own bottom edge, past
+		   nothing (there is no further clipping ancestor below `.drawer-body` until
+		   `.drawer` itself, which does not clip) — so it just added 14px of dead
+		   scrollable space at the bottom instead of reaching the true edge. Dropping the
+		   bottom padding instead means `.drawer-body` already reaches `.drawer`'s true
+		   bottom edge on its own — the footer, last in its own flex chain, is flush there
+		   for free, with no margin trick needed in that direction at all. */
+		--drawer-pad: 0.9em;
+		padding-block-start: var(--drawer-pad);
+		padding-inline: var(--drawer-pad);
 		font-size: 0.85em;
 		background: var(--surface);
 		color: var(--ink);
@@ -178,6 +196,23 @@
 	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
 	   win: the drawer already owns the whole edge), just a block that pushes the chat down
 	   while it is open, same as the inbox's own notes do above it. */
+	/* ⚠ `[hidden]` AND `!important` (drawer-cleanup, 2026-10-03 — the owner: "my drawer is
+	   broken... there's too much space... weird overlap"): this element carries the plain
+	   `.flex` utility class too (`tabs/ai.js`'s own `"drawer-ai-switch-list flex v"`), and
+	   `.flex { display: flex }` lives in `@layer util`, which always beats `@layer theme`
+	   regardless of selector specificity (`css` skill, rule 3) — a `[hidden]` selector
+	   alone is still `@layer theme` and still loses. `!important` is the one thing that
+	   jumps the layer order (`.drawer-inbox[hidden]`, below, carries the identical
+	   `.drawer-inbox flex v` combination and names this exact fight in its own comment,
+	   but was never actually measured with `!important` on — PROBED LIVE here and found
+	   still broken the same way, so its own `!important` is added alongside this one).
+	   Measured before either fix: the closed switcher list still rendered at ~940px tall
+	   (all 12 past sessions, every one of their rows, `display: flex` despite `hidden`
+	   true) — the whole bug in one object. It pushed the composer hundreds of pixels down,
+	   past the bottom of `.drawer-body`, which is why the composer read as "cut off...
+	   overlaps the list above it" and the body had to scroll everything, including the "a
+	   new conversation" heading, instead of just the thread. */
+	.drawer-ai-switch-list[hidden] { display: none !important; }
 	.drawer-ai-switch-list { flex: none; gap: 0.3em; padding-block-start: 0.3em; }
 
 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
@@ -243,6 +278,44 @@
 	   grows to fill whatever the card has left, and the composer (no flex rule, so
 	   its natural size) stays pinned at the bottom. */
 	.drawer-ai-panel .ux-dictate-widget-thread { max-block-size: none; }
+
+	/* THE FOOTER, FLUSH TO THE DRAWER'S OWN EDGES (drawer-cleanup, 2026-10-03 — the owner:
+	   "the footer goes full width with no white border round it, its light-gray background
+	   area gets the DEFAULT padding. We don't want a unique padding value for everything.
+	   Put default padding on everything unless otherwise asked"). `Widget.css`'s own
+	   `.ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose` rule borders
+	   it on three sides and rounds its bottom corners — right, for a STANDALONE widget
+	   where the composer reads as the bottom of one rounded card (its own class doc). In
+	   the drawer, that same border is a second box floating inside the first (the owner's
+	   own "it looks inset, with not enough padding, and it would be double padded") — this
+	   selector is one class more specific, so it wins over that rule regardless of which
+	   file loads first (`css` skill: same layer, specificity decides). No border, no
+	   radius, ONE padding (`--pad`, the page's own default — not a made-up number). The
+	   BOTTOM edge needs no margin trick at all: `.drawer` carries no bottom padding of its
+	   own any more (above, "⚠ No `padding-block-end`"), so `.drawer-body` already reaches
+	   `.drawer`'s true bottom edge, and this footer, last in its own flex chain, is flush
+	   there for free. The SIDES still sit inset by `.drawer`'s own inline padding, same as
+	   everything else in the column, so only `margin-inline` cancels it — a negative
+	   `margin-block-end` here was tried first and measured WRONG: `.drawer-body` has
+	   `overflow: auto` (below), and a box that bleeds past its own parent's edge through a
+	   negative margin is CLIPPED (counted as scrollable overflow, never actually reaching
+	   anywhere) the moment it crosses an ancestor that clips — which `.drawer-body` is, and
+	   there is no further clipping ancestor below it to bleed past into, so the bottom
+	   margin only added 14px of dead scrollable space instead of reaching the true edge.
+	   ⚠ `!important`: this box's own PARENT carries the plain `.flex` utility class
+	   (`Widget.js`'s `"ux-dictate-widget-composer flex v gap"`), and framework.css's own
+	   `.flex > * { margin: 0 }` (`@layer util`) always beats a `@layer theme` rule
+	   regardless of specificity (`css` skill, rule 3) — measured live: padding/background/
+	   border from this same rule all applied with no `!important` needed, only `margin`
+	   was silently zeroed back out by that utility reset. Same shape as `rail.css`'s own
+	   identical fight, named there for the same reason. */
+	.drawer-ai-panel .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+		margin-inline: calc(var(--drawer-pad, 0px) * -1) !important;
+		padding: var(--pad);
+		background: var(--wash);
+		border: 0;
+		border-radius: 0;
+	}
 	.drawer-turn { display: flex; flex-direction: column; gap: 0.15em; }
 	.drawer-turn-who { font-size: 0.85em; }
 	.drawer-turn-you .drawer-turn-text { padding: 0.4em 0.6em; background: var(--fill-a08); border-radius: calc(var(--radius) / 2); }
@@ -313,7 +386,14 @@
 
 	/* The page's inbox (inbox.js), at the top of the AI tab: one row per open note. */
 	.drawer-inbox { flex: none; gap: 0.35em; }
-	.drawer-inbox[hidden] { display: none; }   /* .flex would otherwise beat [hidden] */
+	/* `!important` (drawer-cleanup, 2026-10-03): `.drawer-inbox` carries `.flex` too
+	   (`Inbox.js`'s own `"drawer-inbox flex v"`), so the bare rule this comment used to
+	   describe never actually won against `@layer util`'s `.flex { display: flex }` —
+	   found by probing `.drawer-ai-switch-list`'s identical fight live, same file, same
+	   day (its own comment, above, has the measurement). Harmless the many times this box
+	   had no notes to show (an empty inbox reads the same either way), but a real one
+	   would have sat there taking up room with nothing in it. */
+	.drawer-inbox[hidden] { display: none !important; }
 	.drawer-inbox-row {
 		gap: 0.2em;
 		padding: 0.4em 0.4em 0.4em 0.6em;
