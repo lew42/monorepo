@@ -24,17 +24,21 @@
 	/* One token per column, each with its own floor via `minmax()` — the grid
 	   itself refuses to go under the minimum even if a bug ever wrote a
 	   smaller value, so "no column collapses into tall, empty rows" (the
-	   owner's own words) holds even if the JS clamp in page.js is skipped. */
+	   owner's own words) holds even if the JS clamp in page.js is skipped.
+	   Role and RAM (session-costs minion-build, 2026-10-02) added between
+	   Source/Name and State/Cost — same mechanism, two more tokens. */
 	.sessions-grid {
-		--col-time: 8rem; --col-source: 6rem; --col-name: 16rem;
-		--col-model: 8rem; --col-state: 5.5rem; --col-cost: 5rem;
+		--col-time: 8rem; --col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
+		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 5rem;
 		display: grid;
 		grid-template-columns:
 			minmax(7rem, var(--col-time))
 			minmax(5.5rem, var(--col-source))
+			minmax(6rem, var(--col-role))
 			minmax(10rem, var(--col-name))
 			minmax(5.5rem, var(--col-model))
 			minmax(5rem, var(--col-state))
+			minmax(4rem, var(--col-ram))
 			minmax(4rem, var(--col-cost));
 		column-gap: var(--gap-50);
 	}
@@ -110,10 +114,51 @@
 	.sessions-tag-vscode { --sessions-tag-color: #0072B2; }
 	.sessions-tag-cli    { --sessions-tag-color: var(--ink); }
 
-	.sessions-state { text-transform: lowercase; }
-	.sessions-state-working, .sessions-state-active { color: var(--prim); }
+	/* The state cell (session-costs minion-build, 2026-10-02): a ▶ that
+	   blinks while a row is in flight ("working"/"active"), a plain quiet dot
+	   otherwise. The owner's own words: a ✓ for "done" belongs only on the
+	   detail page, never this grid. `steps(2, start)` just flips visible/dim,
+	   no fade — a blink, not a pulse; `prefers-reduced-motion` turns the
+	   animation off and keeps the icon static, same way framework.css already
+	   silences motion everywhere else. */
+	.sessions-state-dot { font-size: 0.9em; line-height: 1; }
+	.sessions-state-dot-working { color: var(--prim); animation: sessions-blink 1.2s steps(2, start) infinite; }
+	.sessions-state-dot-idle { color: var(--subtle); }
+	@keyframes sessions-blink { 50% { opacity: 0.2; } }
+	@media (prefers-reduced-motion: reduce) {
+		.sessions-state-dot-working { animation: none; }
+	}
 
-	.sessions-prompt { padding: var(--gap-50); }
+	/* The Cost header doubles as a sort toggle (session-costs minion-build,
+	   2026-10-02) — a plain inline click target, not a button: it sits inside
+	   a header cell that also carries the column's resize grip, and a button's
+	   own focus ring/padding would fight that grip for space. */
+	.sessions-sort-label { cursor: pointer; }
+	.sessions-sort-label:hover { text-decoration: underline; }
+
+	/* The OpenRouter half of the Cost cell: real money, a different colour
+	   from Claude $ (which stays the plain `.muted` text every other cell
+	   uses) so the two currencies never blur into one number at a glance (the
+	   owner's own words: "differentiate Claude dollars from OpenRouter
+	   dollars"). `--subtle` is the only OTHER light-dark()-aware text token
+	   this theme ships besides `--ink`/`--prim-ink` (checked against
+	   lew42.css, 2026-10-02 — no `--warn-ink`/`--ok-ink` exist here yet), so
+	   it is the contrast-safe, non-invented choice: visually distinct from
+	   `--prim-ink` (used by the Servex tag) and >4.5:1 in both themes. */
+	.sessions-tag-or { --sessions-tag-color: var(--subtle); font-size: 0.7em; }
+
+	.sessions-prompt, .sessions-cost-row { padding: var(--gap-50); }
 
 	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
+
+	/* Filters, the summary line and "cost by role" (session-costs
+	   minion-build, 2026-10-02) — plain controls above the grid, reusing the
+	   same `.muted`/`.card` vocabulary as every row, not a second style
+	   system. A `<label><input type=checkbox>` row: nothing reusable for a
+	   bare multi-select turned up quickly (doc/decisions.md), and this is
+	   "fastest version that works" territory (CLAUDE.md law 1). */
+	.sessions-controls { margin-block-end: var(--gap); }
+	.sessions-role-filter label { cursor: pointer; }
+	.sessions-by-role-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-by-role-name { font-weight: 600; min-width: 8em; }
 }
