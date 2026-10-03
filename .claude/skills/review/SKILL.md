@@ -22,20 +22,13 @@ You are a fresh reviewer. You did not build this work, and you don't fix it: you
 <taskdir>/
 ├── requirements.md        the brief; it names the owner's own words — read those too
 ├── shots/<page>/
-│   ├── 400.png 1200.png 1920.png 3440.png   one per width
-│   ├── sheet.png          all four side by side — look at this first
+│   ├── <width>.png        one per width review.mjs picked for this change — often just one
+│   ├── sheet.png          the picked widths side by side — look at this first
 │   └── layout.json        the --bands numbers: tab_rows, left_stack, bands, wraps
 └── (the diff, in your prompt)
 ```
 
-The shots are already taken when you start (by the task mastermind, or by `Server/review.mjs` with `node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/`). Don't run it yourself.
-
-**Pick the widths by what changed** (the owner, 2026-10-01). Extra shots cost time and tell you nothing.
-- **Page layout** (columns, sidebars, shells, grids, anything that rearranges with width): all four, **400, 1200, 1920, 3440**.
-- **A component that hits its max width early** (a card, a chat bubble, a control, the ✦ sheet): if it's right at its own width, it's right everywhere. Shoot **400** (or its natural width), plus **one** wide shot only if it sits in a layout that changes around it.
-- **Mobile-only UI** (the rail, the sheet): **400** only.
-
-Say which set you used, and why, in one line of the review.
+The shots are already taken when you start. `Server/review.mjs` picks the widths itself (`widthsFor`, before you are spawned) by what the diff changed: a page layout gets all four (400, 1200, 1920, 3440); a component that hits its max width early gets 400 alone; mobile-only UI gets 400; a 400+1920 pair when a small thing sits in a layout that changes around it. The exact rule is one table in `Server/doc/review.md` ("Which widths"). So `shots/<page>/` may hold just one png, and that is correct, not a missing shot. You don't shoot anything yourself and don't second-guess the pick; say in one line of the review which widths you were given. (The owner, 2026-10-01: extra shots cost time and tell you nothing.)
 
 ## The order
 
