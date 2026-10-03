@@ -108,9 +108,10 @@ used to.
 A four-minute outage on 2026-09-19 (a `Server/` file that parsed but threw at
 boot) showed `node --check` proves a file *parses*, never that it *boots* — so
 now every real change first forks a CANDIDATE on a spare port with
-`BOOT_TEST=1` (a flag `Directory.js` and `LiveReload.js` honour with one line
-each, so a candidate never rebuilds `directory.json` or touches the
-reload-hold lock) and waits up to 8s for a real HTTP 200. Only then does it
+`BOOT_TEST=1` (a flag `Directory.js`, `LiveReload.js` and `MentionSync.js`
+honour with one line each, so a candidate never rebuilds `directory.json`,
+touches the reload-hold lock, or writes `ext/Mention/maps/refs.js`) and
+waits up to 8s for a real HTTP 200. Only then does it
 kill the old live child and start the new one — on any failure the live child
 is never touched, and `.server-boot-failed.json` at the repo root says why.
 Every kill is deadline-bounded, so the supervisor itself can never wedge, and
