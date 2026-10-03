@@ -1,13 +1,20 @@
-import List from "../List/List.js";
+// A duck-typed "is this a List?" — NOT `instanceof List`. This file is imported
+// BY Item.js (`Item.Store = Store`), and `List extends Item` now (2026-10-03),
+// so importing `../List/List.js` here would close the exact cycle Item.js
+// itself avoids (see List.js's own header comment): `class List extends Item`
+// needs Item fully defined, and Item.js's own import of Store.js runs before
+// Item's class body does, so List.js would hit the TDZ instead.
+const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
 /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
    through `host.set(line)`, appends new ones as they happen, and — on localhost —
    streams live lines in both directions. Recording lives in exactly ONE place: here.
    `store.attach(host)` listens for `host`'s own "delta" event (which bubbles up from
    anything below it — a nested Item, a List three levels down), works out the
-   `at` path from the host down to wherever the change actually happened, and
-   appends ONE line. Replaying those lines through `host.set(line)` rebuilds the
-   same tree.
+   NESTING from the host down to wherever the change actually happened — never a
+   path string (2026-10-03, the owner: "drop the special `at` key") — and appends
+   ONE line. Replaying those lines through `host.set(line)` rebuilds the same tree,
+   one `get()` hop per level (core/Item/Item.js).
 
    core/Page/Log.js's `PageLog.Reader` is the class this was modelled on, so a
    future `PageLog.Reader extends Item.Store` can keep every one of its own method
@@ -105,17 +112,20 @@ export class Store {
 		return this;
 	}
 
-	// The wire line: the path from `host` down to wherever the change happened,
-	// unless it happened ON the host (then there is no `at` at all), plus — for a
-	// cross-list move — the SAME kind of path standing in for the live `from` list.
+	// The wire line: NESTED one hop per level from `host` down to wherever the
+	// change happened (`{"k2": {"answers": {"add": {...}}}}` — `get()`'s own
+	// "a property, then a child's id" rule, walked backwards) — flat, with no
+	// wrapping at all, when the change happened ON the host itself. A cross-list
+	// move still carries its `from` as the OLD `/`-separated path string (that one
+	// is DATA inside the `move` verb, not routing, so it never needed the `at` key
+	// and is untouched by this fold-away).
 	line_for(line, origin, host){
-		const at = address(origin, host);
 		const from = line.move?.from;
 		const resolved = from && typeof from !== "string"
 			? { move: { ...line.move, from: address(from, host) ?? "" } }
 			: line;
 
-		return at === undefined ? resolved : { at, ...resolved };
+		return wrap(hops(origin, host), resolved);
 	}
 
 	// Queues; one microtask later the whole tick's lines go in ONE call, as an array
@@ -164,15 +174,15 @@ export class Store {
 	reset(){ this.count = 0; return this; }
 }
 
-/* The path from `host` down to `node` — property names and member ids, alternating
-   (`"content"`, `"content/abc"`, `"content/abc/replies/def"`). `undefined` means
-   `node` IS `host`: the plainest case, a line with no `at` at all. Used both for a
-   change's own origin and, inside `line_for()` above, to turn a cross-list move's
-   live `from` reference into the same kind of path. */
+/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated path, kept ONLY to spell a
+   cross-list move's live `from` reference as a string (that value rides inside
+   the `move` verb's own payload, never as top-level routing, so dropping the
+   `at` key never touched it). Property names and member ids, alternating
+   (`"content"`, `"content/abc"`). `undefined` means `node` IS `host`. */
 function address(node, host){
 	if (!node || node === host) return undefined;
 
-	if (node instanceof List){
+	if (is_list(node)){
 		const base = address(node.owner, host);
 		return base ? `${base}/${node.name}` : node.name;
 	}
@@ -189,6 +199,29 @@ function address(node, host){
 	}
 
 	return address(parent, host);
+}
+
+/* The chain of NAMES from `host` down to `node`, each one a child's id — never a
+   list's own property name, because `get()` (Item.js) never needs it either: a
+   member's id is looked up by scanning every list the current node owns, so the
+   wire line skips straight to the id. `[]` means `node` IS `host`. */
+function hops(node, host){
+	if (!node || node === host) return [];
+	if (is_list(node)) return hops(node.owner, host);
+
+	const parent = node.parent;
+	if (!parent) return [];   // detached from host — best effort, should not happen
+
+	for (const list of Object.values(parent.lists?.() ?? {}))
+		if ([...list].includes(node)) return [...hops(parent, host), list.key(node)];
+
+	return hops(parent, host);
+}
+
+// Nests `payload` one level per step in `path`, innermost (the payload itself)
+// last — `wrap(["k2", "q1"], {set: {...}})` → `{k2: {q1: {set: {...}}}}`.
+function wrap(path, payload){
+	return path.length === 0 ? payload : { [path[0]]: wrap(path.slice(1), payload) };
 }
 
 export default Store;

@@ -35,8 +35,11 @@ export class Panel extends Item {
 	   MIRROR reads its master for the keys it shares. ⚠ `?? this` is the guard for an id that
 	   no longer resolves, and nothing more: a copy holds none of the shared keys itself, so
 	   falling back reads BLANK, not "what it last had". Surviving a structural verb is
-	   `bequeath()`'s job — every verb that stops holding what a copy reads hands it on first. */
-	get(key){
+	   `bequeath()`'s job — every verb that stops holding what a copy reads hands it on first.
+	   Named `get_one` (not `get`) — Item's own `get(key)` (core/Item/Item.js) is the
+	   single-NAME resolver every caller uses; this is the one-segment seam under it,
+	   2026-10-03. */
+	get_one(key){
 		// A document is rows. One answer, so `.panel-items.v`, `divide()`'s sibling test and
 		// the inspector's own chip can never disagree about which way a document runs.
 		if (key === "dir" && this.document()) return "col";

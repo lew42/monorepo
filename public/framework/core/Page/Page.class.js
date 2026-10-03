@@ -88,26 +88,30 @@ export class Page extends Item {
 	// here can invent one before that.
 	static new_id(){ return undefined; }
 
-	// Data lives ON THE INSTANCE (`this.title`, `this.icon`, …), not in a nested
-	// `data` bag — that's what makes `page.title` real. `unknown` tracks a key
-	// nobody — no method, no own property — already knew, the same census
-	// `report_unknown()` reads below.
-	get(key){ return this[key]; }
-	put(key, value){
-		if (!(key in this)) (this.unknown ??= new Set()).add(key);
-		this[key] = value;
-	}
+	// (2026-10-03, the owner's data decision) `title`/`icon`/`description` live
+	// in `data`, like every other value — reading/writing `page.title` directly
+	// still works exactly as before, through the accessor `define_fields()`
+	// (Item.js) builds from this list. Page used to override `get_one`/`put` to
+	// write straight onto the instance instead; that override is GONE — one
+	// behaviour everywhere, Item's own. A key that names neither a method, a
+	// field above, nor a List/child id just lands in `data` too, read back by
+	// `report_unknown()` below.
+	static fields = ["title", "icon", "description"];
 
 	// `apply()` that calls methods instead of overwriting them — Item's `apply()`
 	// does the real routing (a method key calls it, a value with its own `set()`
 	// gets the nested delta, anything else is data via `get`/`put` above, emitting
-	// `change` + `delta`). This override's own job is three things on top: keep every
-	// line for a late `on("line", …)` listener to catch up on, emit `line` exactly
-	// ONCE per line the reader hands this page (never once per recursive nested
-	// `set()` call `apply()` makes along the way — those land on a DIFFERENT
-	// object, never back through this override), and make `page.content` lazily
-	// the moment a content delta arrives.
+	// `change` + `delta`). This override's own job is four things on top: handle
+	// an ARRAY of lines (Item.set() does this itself, but this override replaces
+	// that whole method, so it has to again), keep every line for a late
+	// `on("line", …)` listener to catch up on, emit `line` exactly ONCE per line
+	// the reader hands this page (never once per recursive nested `set()` call
+	// `apply()` makes along the way — those land on a DIFFERENT object, never
+	// back through this override), and make `page.content` lazily the moment a
+	// content delta arrives.
 	set(obj){
+		if (Array.isArray(obj)){ for (const one of obj) this.set(one); return this; }
+
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
 
@@ -117,8 +121,11 @@ export class Page extends Item {
 			return super.set(rest);
 		}
 
-		// The Store writes a live content change as `{"at": "content/…", …}`; on replay
-		// `locate()` needs `page.content` to be a List already, so make it here too.
+		// ⚠ compat only, one release (2026-10-03 — the owner: "drop the special `at`
+		// key"): an OLD line can still carry `{"at": "content/…", …}`; `locate()`
+		// (Item.js, compat-only itself) needs `page.content` to already be a List
+		// before it can find anything inside it. A FRESH nested line never needs
+		// this at all — `get()` finds a content child by id with no `at` in sight.
 		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
 
 		return super.set(obj);
@@ -406,14 +413,21 @@ export class Page extends Item {
 				})));
 			});
 
-			if (this.unknown?.size)
-				p.c("muted", "Kept as data, no method or property knew them: " + [...this.unknown].join(", ") + ".");
+			if (this.unknown.length)
+				p.c("muted", "Kept as data, no method or property knew them: " + this.unknown.join(", ") + ".");
 		});
 	}
 
+	// Every `data` key that isn't one of my own declared `fields` — the only
+	// kind of key that ever LANDS in `data` now (2026-10-03: everything else is
+	// a method call or a field/List/child-id accessor, none of which touch
+	// `data` at all). Was a separately-tracked Set `put()` built by hand; `data`
+	// itself already says the same thing, now that fields have their own home.
+	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
+
 	// One console.info per batch that taught the page a key nobody knew. Never a warn.
 	report_unknown(){
-		const fresh = [...this.unknown ?? []].filter(key => !this.reported?.has(key));
+		const fresh = this.unknown.filter(key => !this.reported?.has(key));
 		if (!dev || !fresh.length) return;
 
 		fresh.forEach(key => (this.reported ??= new Set()).add(key));
@@ -540,7 +554,13 @@ export class Page extends Item {
 		             : this.title ? "/" + Page.slug(this.title) + "/"
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
-		this.title ??= this.name;
+		// `put()`, not `this.title = …`: a construction-time DEFAULT is not a
+		// change (same "loading is not a change" rule `List.insert()` follows) —
+		// `title` is a real `data`-backed accessor now (2026-10-03), and the plain
+		// `=` form would fire a `change`/`delta` event, and even try to WRITE this
+		// default back out through the Store, on every single page that never set
+		// its own title.
+		if (this.title === undefined) this.put("title", this.name);
 
 		// A page's id is its folder name — `static new_id()` above deliberately
 		// returns undefined, so this is the ONLY place a page ever gets one. Without
@@ -1814,6 +1834,12 @@ export class Page extends Item {
 //   every constructor name in the chain, and `.stage` is a framework layout word that
 //   would shrink-wrap the frame with nothing thrown. Frame.js says it at length.
 Page.Frame = PageFrame;
+
+// Registered (2026-10-03) so `define_fields()` actually runs and builds the
+// `title`/`icon`/`description` accessors above — every other Item subclass
+// that wants fields already goes through `register()` for its wire name; Page
+// never had, until now, a reason to.
+Item.register(Page, "Page");
 
 /* THE SHIM — a Map-shaped VIEW over `page.pages` (the real List storage), so
    every existing `.children` caller keeps working unchanged. `instanceof Map` is

@@ -2,22 +2,60 @@
 // there is no separate "LiveList" any more, per the owner 2026-10-02: "scrap LiveList
 // everywhere… List itself gets Events built in. 'A list' now means an evented list").
 // Composed onto an Item as a named property (`item.content`, `page.pages`) — never
-// inherited. Every verb is by ID, never an index, so a line survives the list changing
-// shape around it.
-import { Events } from "../Events/Events.js";
+// inherited BY the Item that holds it (Item itself stays free of add/remove/move/
+// order/find). Every verb is by ID, never an index, so a line survives the list
+// changing shape around it.
+//
+// `List extends Item` (2026-10-03, the owner asked; vscode-mastermind decided): a
+// List IS a named, evented, saved collection in its own right — it gets an id, an
+// optional title/icon, a View, and saving through whichever Store its nearest
+// Item-with-a-store owns, all for free. `list.set({"add": {...}})` now works under
+// Item's own `apply()` rule with no special case AT ALL (a verb is just a method
+// name) — this file used to carry its own `set()` to do exactly that; it's gone.
+// `remove(id)` keeps ITS OWN meaning here — "remove a child" — distinct from
+// Item's zero-arg `remove()` ("remove ME from whoever holds me"); Lists don't use
+// that one.
+//
+// ⚠ The import below is one-way ON PURPOSE: List.js imports Item.js (needed for
+// `extends Item`), so Item.js must NEVER import List.js back — `class List extends
+// Item` needs the real Item class already fully defined, and a circular import
+// would hand it the TDZ instead ("Cannot access 'Item' before initialization",
+// the exact failure core/Page/settings/settings.js's own readme already names for
+// a different cycle, 2026-09-29). Item.js checks "is this a List?" by duck type
+// instead (`Array.isArray(node.items) && typeof node.find === "function"`), and
+// creates one through `Item.makeList`, a hook THIS file fills in below.
+import Item from "../Item/Item.js";
 
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
-const skipped = key => key === "constructor" || key === "__proto__" || key.startsWith("_");
 
-export class List extends Events(Object) {
+// Would `node.get(id)` answer something OTHER than a list-scan — i.e. would an
+// id of `id` be permanently unreachable by name? A real OWN property (a List
+// given directly, `data`, an already-set field like `page.background`) counts;
+// so does a real ACCESSOR anywhere up the prototype chain (`define_fields()`'s
+// `title`/`icon`/`description`, Page's own `pages`/`children`/`view`…). An
+// ordinary METHOD does not — `set_one()` (Item.js) already calls a method
+// before it ever asks `get()` anything, for ANY key, so a method-named id was
+// never going to be ambiguous in the first place. Without this distinction,
+// EVERY child id that happened to spell one of Page's ~70-odd method names
+// (`crumbs`, `words`, `root`, `on`, `save`…) got silently refused — found
+// crawling the real site, 2026-10-03.
+function shadows_name(node, id){
+	if (node == null) return false;
+	if (Object.prototype.hasOwnProperty.call(node, id)) return true;
+
+	for (let proto = Object.getPrototypeOf(node); proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)){
+		const desc = Object.getOwnPropertyDescriptor(proto, id);
+		if (desc && (desc.get || desc.set)) return true;
+	}
+	return false;
+}
+
+export class List extends Item {
 
 	constructor(...args){
-		super();
-		this.assign(...args);
+		super(...args);
 		this.items ??= [];
 	}
-
-	assign(...args){ return Object.assign(this, ...args); }
 
 	get length(){ return this.items.length; }
 	[Symbol.iterator](){ return this.items[Symbol.iterator](); }
@@ -74,8 +112,8 @@ export class List extends Events(Object) {
 	find(id){ return this.items.find(x => this.key(x) === id); }
 
 	// A plain object becomes a real member through `of` — the class this list holds.
-	// Nothing HERE imports Item (that would be a cycle): Item.js sets
-	// `List.prototype.of = Item` once it exists.
+	// Set on the prototype at the bottom of this file now that List can just say
+	// `Item` directly (it already imports it for `extends`).
 	make(x){ return is_plain(x) ? (this.of ? this.of.hydrate(x) : x) : x; }
 
 	// Every insertion and removal goes through these two hooks. No-ops here — Page
@@ -103,12 +141,24 @@ export class List extends Events(Object) {
 
 	// Quiet insert — loading a member is not a change. `add()` below is this plus the
 	// announcement. An id already present is a no-op.
+	//
+	// (2026-10-03, id rules) An id is unique only among its SIBLINGS in this one
+	// list, generated (`k2`, `a1`) and never changed — so two different lists can
+	// reuse the same id with no clash. It may NOT equal a real property name on
+	// this list or on whoever holds it (`title`, `pages`…): `get(name)` (Item.js)
+	// checks properties first, so an id that shadowed one would be unreachable by
+	// name forever. Refused, once per id, rather than silently inserted-but-dead.
 	insert(x, { after } = {}){
 		const made = this.make(x);
 		const id = this.key(made);
 		if (id != null){
 			const had = this.find(id);
 			if (had) return had;
+
+			if (shadows_name(this, id) || shadows_name(this.owner, id)){
+				warn(`insert(): "${id}" is already a property name on the list or its owner — refused`, `insert:${id}`);
+				return made;
+			}
 		}
 
 		this.insert_before(made, this.ref_for(after));
@@ -228,16 +278,27 @@ export class List extends Events(Object) {
 		return this;
 	}
 
-	// A line whose key names one of my own verbs routes here.
-	set(delta){
-		for (const verb in delta){
-			if (skipped(verb)) continue;
-			if (typeof this[verb] === "function") this[verb](delta[verb]);
-		}
-		return this;
-	}
+	// No own `set()` any more (2026-10-03) — `List extends Item` now, and Item's
+	// own `apply()` already does exactly this: a key naming a method (`add`,
+	// `remove`, `move`, `order`) calls it; an array of such deltas applies in
+	// order. One rule, not two.
 
 	toJSON(){ return [...this.items]; }
 }
 
+const warn = (message, key = message) => {
+	if (List.warned.has(key)) return;
+	List.warned.add(key);
+	console.warn(`List — ${message}`);
+};
+List.warned = new Set();
+
 export default List;
+
+// The default `of` for a bare `new List()` with no `of` of its own: a plain
+// member becomes a real `Item`. And the hook `Item.hydrate()` calls to build a
+// List for an array-valued key it finds in raw JSON — Item.js cannot reach this
+// class directly (see the header comment), so it reaches through this instead.
+List.prototype.of = Item;
+Item.makeList = opts => new List(opts);
+Item.register(List, "List");

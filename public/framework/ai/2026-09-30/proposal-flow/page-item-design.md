@@ -2,7 +2,30 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
-## LATEST (the owner, 2026-10-03, second pass): no `at`, no dots: the path is the NESTING
+## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, fourth pass): all data lives in `data`; `static fields` is the convenience
+- **ALL item values live in `this.data`**, a null-prototype plain object (not a Map, so it saves as JSON). The instance's own namespace is reserved for built-ins: `id`, `parent`, `store`, the named Lists, the methods — never a value.
+- **Convenience:** `static fields = ["title", "icon", "description", …]` gets an ACCESSOR per field, built by `Item.define_fields()` (called once per class, from `register()`). `item.title` reads `data.title`; `item.title = x` goes through `set({title: x})`, so the `change`/`delta` events fire.
+- **Undeclared keys use `get`/`put`** — the plain data seam, same as always.
+- **Page and Panel DROP the `get_one`/`put` override that used to write onto the instance** — Page's did (`get_one(key){ return this[key]; }`); Panel's never actually did (already data-based, just with its own master/mirror/default rules on top, left as is). One behaviour everywhere now.
+- **`get(name)` order:** a real own property (a List given directly) → fields and data (`get_one`) → named Lists → child ids. Unchanged from the id-rules pass below, restated here because `fields` is what makes "fields and data" one step.
+- Caller census: Page's own `naming()` used to default `this.title ??= this.name` as a raw property write; now that `title` is an accessor, that line uses `put()` instead, so a page that never sets its own title doesn't fire a change event — or try to write that default back out through its Store — on every single load. `Object.assign(SomeClass.prototype, {icon: …})` (Layout.js, Section.js: shared per-class DEFAULTS, not per-instance data) still works too: the field setter detects it's running on a bare prototype (no `data` yet) and falls back to a plain own-property write, same as a bare `=` always did there.
+- Build: `core/Item/Item.js`, `core/Page/Page.class.js`. Scope: only `title`/`icon`/`description` are declared fields so far — Page's other ~70-odd instance properties (`url`, `name`, caches like `_pages`/`tabs_state`) stay plain instance properties, unaffected, since nothing routes them through a generic jsonl delta today. A fuller census is for whoever adds the next field.
+
+## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, third pass): id rules
+- **An item's `id` is unique only among its siblings in its own list**, generated (`k2`, `a1`) and never changed — two different lists can reuse the same id with no clash.
+- **A List held as a property is reached by its property NAME** (`answers`), which serves as its id — `k2.answers` is just `k2`'s own `answers` property, found the same one step `get()` finds anything else.
+- **`get(name)` order:** own properties first, then child ids (see the data-decision pass above for the fuller breakdown once `fields` entered the picture).
+- **`add` refuses an id that equals an existing property name** on the list or its owner (`title`, `pages`…) — `List.insert()` checks this now (`shadows_name()`, `core/List/List.js`): a real OWN property or a real ACCESSOR anywhere up the prototype chain blocks the id; an ordinary METHOD does not (a method-named key is never ambiguous — `set_one()` already calls it before `get()` is ever asked anything). Found live, 2026-10-03: without that method/accessor distinction, every child id that happened to spell one of Page's ~70-odd method names (`crumbs`, `words`, `root`, `on`, `save`…) got silently refused crawling the real site.
+- **A permalink is the page URL + the path of names and ids.** Noted here as the design; not built as its own method yet — nothing asked for one, and the pieces (`Item.Store`'s `hops()`) already exist to build it from when something does.
+
+## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, second-and-a-half pass): `List extends Item`
+A List is a named, evented, SAVED collection, so it gets an id, an optional title/icon, a View, and saving through the nearest Store — all for free. Its verbs are methods, so `list.set({"add": {...}})` works under Item's own `apply()` rule with no special case at all (List's old hand-written `set()` is gone). The chain is `Events → Item → List`, and `Item → Page`.
+- **Item stays free of `add`/`remove`/`move`/`order`/`find`** — those are List's alone.
+- **`remove(id)` means "remove a child", on Lists only** — distinct from Item's own zero-arg `remove()` ("remove ME from whoever holds me"), which Lists don't use.
+- ⚠ **The import is one-way:** `List.js` imports `Item.js` (needed for `extends`), so `Item.js` (and `Item/Store.js`, which it also pulls in) must NEVER import `List.js` back — that would be the exact TDZ cycle `core/Page/settings/settings.js`'s own readme already names for a different pair of files. Both files now check "is this a List?" by DUCK TYPE (`Array.isArray(node.items) && typeof node.find === "function"`) instead of `instanceof List`, and `Item.hydrate()` creates one through `Item.makeList`, a hook `List.js` fills in once it loads.
+- Build: `core/List/List.js`, `core/Item/Item.js`, `core/Item/Store.js` (the wire line for a live change is now NESTED, `{"k2": {"answers": {"add": {...}}}}`, built the same "name, then child id" way `get()` reads it back — no list-name hop, no path string).
+
+## (the owner, 2026-10-03, second pass): no `at`, no dots: the path is the NESTING
 One rule, the owner's original `set(obj)`, applied to each key in order:
 1. a key that names a METHOD calls it with the value;
 2. otherwise `this.get(key)` looks up ONE name (a property, or a child's id). If what it finds has `set`, the value is handed to it, so nesting walks the path one level per key;
