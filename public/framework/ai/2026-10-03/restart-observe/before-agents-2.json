@@ -1,0 +1,50 @@
+[
+ {
+  "id": "dispatcher",
+  "state": "idle",
+  "session_id": null,
+  "parent": null
+ },
+ {
+  "id": "task-mastermind-system-class",
+  "state": "working",
+  "session_id": "3b619139-2508-4041-b3b6-16add6796e7f",
+  "parent": "mastermind-page-3"
+ },
+ {
+  "id": "task-mastermind-push-to-talk",
+  "state": "idle",
+  "session_id": "356ea827-5fa8-4297-a178-92bc44bcf279",
+  "parent": "task-mastermind-one-dictation"
+ },
+ {
+  "id": "minion-ptt-proof",
+  "state": "working",
+  "session_id": "7122088e-1cb6-4876-bac5-9bcee76b71ac",
+  "parent": "task-mastermind-push-to-talk"
+ },
+ {
+  "id": "task-mastermind-sessions-tab-polish",
+  "state": "idle",
+  "session_id": "8de620c5-08ca-471c-86ed-da851fc1d654",
+  "parent": null
+ },
+ {
+  "id": "minion-sessions-tab-polish-build",
+  "state": "working",
+  "session_id": "da8fec33-3b15-4d92-927a-314d20760957",
+  "parent": "task-mastermind-sessions-tab-polish"
+ },
+ {
+  "id": "task-mastermind-data-grid",
+  "state": "working",
+  "session_id": "016756ee-1cb3-4b42-b20f-3ef5f0659261",
+  "parent": null
+ },
+ {
+  "id": "clarity-build-2",
+  "state": "working",
+  "session_id": "4ef40d38-abe4-4e24-b3ee-e8d4015cb875",
+  "parent": null
+ }
+]
