@@ -6,6 +6,7 @@ import blocked from "/framework/dev/DevBar/blocked.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
 import select from "../select.js";
+import admin from "./admin.js";
 
 /* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
    (ext/Ask/edit.js, the one every editor control reads), the reader's reload block,
@@ -39,6 +40,15 @@ export default function settings({ app }){
 		section("inspect", () => check("inspect mode — click anything on the page to select it", "inspect-mode",
 			() => { select.hover(null); select.clear(); }));
 		this_page(app);
+		// ADMIN, FOLDED IN (one-dictation drawer-chat, 2026-10-02): the reload hold and the
+		// dev bar's route/server/structure/jump sections used to be their own top-level tab
+		// (`tabs/admin.js`). Moved here, as one more section, so the tab row fits one line at
+		// the drawer's 19rem default width (the owner's own screenshot showed six tabs
+		// wrapping onto two lines). `admin.js`'s own function is called unchanged, not copied
+		// — one set of code either way (CLAUDE.md law 6); it still draws its own heading-free
+		// "reload hold" + dev-bar sections inside its own `drawer-admin` box, now just one
+		// more child of this tab instead of a whole tab of its own.
+		section("admin", () => admin({ app }));
 	});
 }
 

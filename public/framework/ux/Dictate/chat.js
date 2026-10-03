@@ -309,6 +309,10 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		// (`ext/drawer/rail.js`'s sheet, which can show a different card without rebuilding)
 		// should pass the new one too, `nav(path, newCardId)`, so it is not lost.
 		nav(path, card){ target.path = path; if (card !== undefined) target.card = card; owner.report_nav(path, target.card); },
+		// The session's own raw log file url, or null before the first sentence — the
+		// drawer-chat header strip's "log" link (item 1, one-dictation drawer-chat,
+		// 2026-10-02: "which session we're on should be abundantly clear").
+		file: () => owner.ctl.file,
 		// Drop THIS mount's own conversation and start fresh on the next sentence — the
 		// shared button below (item 3) calls this. For `keep: true` this is exactly
 		// `chat.reset()`; for `keep: false` it only ever affected this one mount anyway.
@@ -347,10 +351,19 @@ export function new_session_button(mount, { label = "New session", title = "Clea
 }
 
 chat.current = () => GLOBAL.current();
+chat.file = () => GLOBAL.ctl.file;
 chat.resume = session => GLOBAL.resume_to(session);
 chat.reset = () => GLOBAL.reset();
 chat.ago = ago;
 chat.new_session_button = new_session_button;
+// Told the moment the GLOBAL session changes — a first start, a resume, or a reset from
+// ANY open mount or button (`new_session_button` above, `tabs/sessions.js`'s old resume
+// click, now the drawer-chat header strip too). Returns `stop()`. A `keep: false` mount's
+// own private controller never fires this — nothing outside that one mount could show it
+// anyway. Added for item 1, one-dictation drawer-chat (2026-10-02): the header strip's own
+// session name, log link and agent chips need to redraw themselves on a change they did not
+// necessarily cause (a switcher click resumes through `chat.resume`, not through the mount).
+chat.on_change = fn => GLOBAL.subscribe(fn);
 
 // `ago()` (review fix #9, 2026-09-30): `ext/drawer/rail.js` and `ext/drawer/tabs/sessions.js`
 // each carried their own copy of this exact function — this is now the one, imported by both.

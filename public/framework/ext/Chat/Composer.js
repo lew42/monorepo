@@ -60,9 +60,13 @@ export function composer({
 			$input = textarea().attr("rows", "2").ac("auto chatbox-compose-input").attr("placeholder", placeholder);
 		});
 
-		// ONE ROW, UNDER THE BOX: the mic, Send, and the one ⚙ menu button that opens
-		// everything else full screen — never beside the box any more, so the box can
-		// be the full width of the row above it (`Chat.css`'s `.chatbox-compose-row`).
+		// ONE ROW, UNDER THE BOX: mic on the left, the gear next to it, Send pinned to the
+		// right — same edges as the box above it (drawer-chat, one-dictation, 2026-10-02 —
+		// the owner: "the microphone and send and settings buttons are kind of just
+		// floating awkwardly down there"). The row used to read mic, Send, gear — Send sat
+		// in the middle, at neither edge. `Chat.css`'s own `.chatbox-compose-send`
+		// (`margin-inline-start: auto`) is what actually pushes it to the row's far end,
+		// past whatever else is in the row (the gear, and the "raw" toggle when it shows).
 		div.c("chatbox-compose-row", () => {
 			if (with_mic) mic = new ComposerMic({
 				re,
@@ -81,8 +85,6 @@ export function composer({
 				// "will send raw", not "sent raw".
 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
 			}).ac("chatbox-mic");
-
-			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
 
 			// ONE MENU BUTTON (chat-menu-merge, 2026-10-01) — used to be TWO buttons here,
 			// `⋯` (engine, microphone and status) and a separate gear (settings); see
@@ -113,6 +115,8 @@ export function composer({
 					if (!e.detail) $raw_btn.el.classList.remove("active");
 				});
 			}
+
+			button.c("chatbox-compose-send prim").attr("type", "button").text("Send").click(send);
 		});
 
 		$note = small.c("chatbox-compose-note muted").text(hint);

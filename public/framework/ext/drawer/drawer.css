@@ -138,6 +138,48 @@
 	.drawer-model { gap: 0.4em; }
 	.drawer-ai-list { gap: 0.6em; }
 
+	/* THE SESSION HEADER STRIP (one-dictation drawer-chat, 2026-10-02 — `tabs/ai.js`'s
+	   `session_header()`): what used to be the whole separate Sessions tab, now three short
+	   lines above the chat. `flex: none` — it never grows or shrinks; `.drawer-ai-panel`
+	   right below it (above) is the one thing in this column that does. */
+	.drawer-ai-session { flex: none; gap: 0.35em; padding-block-end: 0.5em; border-block-end: 1px solid var(--line); }
+	.drawer-ai-session-head { gap: 0.5em; }
+	.drawer-ai-session-name { font-weight: 600; }
+	.drawer-ai-session-log { font-size: 0.85em; }
+	.drawer-ai-session-scope { font-size: 0.85em; }
+
+	/* THE AGENT CHIPS — "which agents are listening should be abundantly clear" (the
+	   owner). Three plain states, three quiet colours: working is the site's one accent,
+	   idle is plain text, asleep is faded further still — no new palette, just how loud
+	   each one reads. */
+	.drawer-ai-chips { gap: 0.3em; }
+	.drawer-ai-chip {
+		padding: 0.1em 0.5em;
+		font-size: 0.8em;
+		border-radius: 1em;
+		background: var(--fill-a08);
+		border: 1px solid var(--line);
+	}
+	.drawer-ai-chip-working { color: var(--prim-ink); background: color-mix(in srgb, var(--prim) 20%, var(--fill-a08)); border-color: transparent; }
+	.drawer-ai-chip-asleep { opacity: 0.6; }
+
+	.drawer-ai-switcher { gap: 0.4em; position: relative; }
+	.drawer .drawer-ai-switch-btn {
+		min-block-size: 0;
+		padding: 0.25em 0.5em;
+		font: inherit; font-size: 0.85em;
+		color: var(--subtle);
+		background: none;
+		border: 1px solid var(--line);
+		border-radius: calc(var(--radius) / 2);
+		cursor: pointer;
+	}
+	.drawer .drawer-ai-switch-btn:hover { color: var(--ink); background: var(--fill-a08); }
+	/* Drops below the strip as its own small list — not a true popover (no z-index fight to
+	   win: the drawer already owns the whole edge), just a block that pushes the chat down
+	   while it is open, same as the inbox's own notes do above it. */
+	.drawer-ai-switch-list { flex: none; gap: 0.3em; padding-block-start: 0.3em; }
+
 	/* THE PANEL'S CEILING (`Widget`, `ux/Dictate/Widget.js` — was `ChatPanel`,
 	   `ai/2026-09-29/audio/c-chat/`): "the drawer's own full height" (its brief),
 	   so the composer never leaves the visible drawer as the thread grows.
