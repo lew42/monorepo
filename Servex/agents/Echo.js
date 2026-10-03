@@ -85,6 +85,7 @@ export default class Echo {
 			log: "echo",           // the Servex Log name hooks POST to: POST /log/echo
 			role: "echo",
 			pending: new Map(),    // session_id -> {page, item_id, sections, coverage, flags, misheard, strikes}
+			session_cost: new Map(),   // session_id -> running total $, real askOnce cost_usd only (law 7: never estimated)
 			page_of: new Map(),    // session_id -> its page url, kept even after `pending` clears on "done"
 			by_id: new Map(),      // echo agent id -> session_id, so a tool call (ctx.caller) finds its session
 			parent_of: new Map(),  // session_id -> a Servex agent id to wake on every turn (optional, see start())
@@ -207,7 +208,15 @@ export default class Echo {
 			if (!raw.trim()) continue;
 			let line;
 			try { line = JSON.parse(raw); } catch { continue; }
+			// THE BROKEN LINK (found 2026-10-03, this task): `page_tools.js`'s wire format moved
+			// to "no `at`, no dots: the path is the nesting" THE SAME DAY — every live prompt line
+			// is now `{"content":{"add":{...}}}`, never the old `{"at":"content","add":{...}}` this
+			// check alone looked for. Every prompt since has matched nothing here, so `heard()`
+			// read `item.text` as undefined and silently returned — no error, no log, nothing: the
+			// hook and the /log/echo route were both fine the whole time. Reads BOTH shapes, same
+			// one-release compat window `page_tools.js`'s own `replay()` already keeps.
 			if (line.at === "content" && line.add?.id === item_id) return line.add;
+			if (line.content?.add?.id === item_id) return line.content.add;
 		}
 		return null;
 	}
@@ -215,7 +224,10 @@ export default class Echo {
 	/* The in-process door onto `page_tools.js`'s own `page_set` (Servex/MCP.js's `call()`) —
 	 * the exact function a live tab's own edit, or any agent's tool call, writes through, so an
 	 * item Echo enriches and an item a person edited by hand are indistinguishable on disk. */
-	async page_set(page, id, delta, as){
+	// `target` defaults to the one-hop path to an existing item (`[id]`); pass `target: []`
+	// (with `id` still given, for `as`'s sake only) to write a field on the PAGE itself instead —
+	// used by `track_cost()` below for the page's own running `refine_cost_usd` total.
+	async page_set(page, id, delta, as, target){
 		try {
 			// `page_tools.js`'s `page_set` takes a `target` PATH (an array of hops), never a bare
 			// `id` (2026-10-03, the nested wire format) — this call used to send `id` straight
@@ -223,20 +235,25 @@ export default class Echo {
 			// landed on the PAGE itself instead of this item (vscode-mastermind, bug 2: a step's
 			// `delta` wiped the page's own `title` to null). `target: [id]` is the one-hop path to
 			// an existing item, exactly `page_tools.js`'s own doc comment for `page_set(path, ["k2"], …)`.
-			const raw = await this.servex.mcp.call("page_set", { path: page, target: [id], delta }, { caller: as });
+			const raw = await this.servex.mcp.call("page_set", { path: page, target: target ?? [id], delta }, { caller: as });
 			const text = raw?.content?.[0]?.text;
 			return text ? JSON.parse(text) : { ok: false, why: "no answer" };
 		} catch (e){ return { ok: false, why: String(e.message || e) }; }
 	}
 
 	async heard(evt){
+		// TEMP DIAGNOSTIC (task prompts-live, 2026-10-03) — remove once the pipeline is confirmed
+		// live again: proves whether this handler is even reached at all.
+		this.servex.say(`echo: heard() entered for session ${String(evt?.session_id).slice(0, 8)}, item ${String(evt?.item_id).slice(0, 8)}`);
 		if (!evt?.session_id || !evt?.page || !evt.item_id) return;
 		if (await this.is_machine(evt.session_id)) return;   // our own clean()/structure() call, never the owner
+		this.servex.say(`echo: past is_machine for ${String(evt.session_id).slice(0, 8)}`);
 		if (!this.live(evt.session_id) && this.live_count() >= this.max_live){
 			this.servex.say(`echo: refused a new session ${String(evt.session_id).slice(0, 8)}, ${this.live_count()} echo agents already live (a loop guard)`);
 			return;
 		}
 		const item = this.read_item(evt.page, evt.item_id);
+		this.servex.say(`echo: read_item -> ${item ? "found, text len " + (item.text?.length ?? 0) : "NULL"}`);
 		if (!item?.text) return;
 		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text)
 			.catch(e => this.servex.say(`echo could not process a prompt: ${e.message || e}`));
@@ -279,22 +296,32 @@ export default class Echo {
 		// default (Anthropic, same provider Servex already calls to run every agent) until
 		// Servex's own process env carries an OpenRouter key too — logged as an open item in
 		// this task's task.jsonl rather than re-guessing a model string blind.
-		const call = (p, o) => this.call(p, o);   // records each call's session id: see call() above
+		// THE PROMPT'S OWN COST (the owner, 2026-10-03: shown on every Prompt item, computed by
+		// code from real usage, never estimated by a model — law 7). `this.call()` already hands
+		// back each real model call's own `cost_usd` (askOnce's own figure); summed here, at the
+		// one seam every model call for this prompt passes through, so neither clean() nor
+		// structure() needs a cost field of its own. `this.run_cost` carries this prompt's total
+		// forward to step()'s own three model calls (references/asks_flags/done), which add their
+		// own cost on top before `done` writes the grand total.
+		let cost_usd = 0;
+		const call = (p, o) => this.call(p, o).then(r => { cost_usd += Number(r?.cost_usd) || 0; return r; });
 		const { sentences, strikes, misheard, flags } = await clean(text, { call });
 		const built = await structure(sentences, { call });
 		const sections = this.sections_with_ids(this.parse_sections(built.md));
 		const cited = [...new Set(sections.flatMap(s => s.items.flatMap(i => i.cites)))].sort((a, b) => a - b);
 		const coverage = { total: sentences.length, cited, missing: built.missing ?? [], duplicated: built.duplicated ?? [] };
 
+		this.run_cost = cost_usd;   // read and added to by step()'s own calls, below
+
 		// Written in the owner's own stated order (361c4d18, reply at 2026-10-03T02:21) --
 		// "clean -> names and references -> sections -> asks and flags -> done" -- so `sections`
 		// is held back and written by `step()` right after the model's `references` call lands,
 		// even though it's computed here, mechanically, well before the model is even sent
 		// anything. `sections`/`coverage` ride on `pending` until then.
-		await this.page_set(page, item_id, { sentences, strikes, misheard, flags }, this.id_for(session_id));
+		await this.page_set(page, item_id, { sentences, strikes, misheard, flags, cost: { usd: round4(cost_usd) } }, this.id_for(session_id));
 
 		this.page_of.set(session_id, page);
-		this.pending.set(session_id, { page, item_id, sections, coverage, flags, misheard, strikes });
+		this.pending.set(session_id, { page, item_id, sections, coverage, flags, misheard, strikes, cost_usd });
 		this.start(session_id).send(this.words({ sentences, sections, flags, misheard, at, session_id }),
 			{ from: "owner", reply_to: `log ${this.log}` });
 	}
@@ -428,8 +455,25 @@ export default class Echo {
 			if (args.step === "references" && !args.re && pending){
 				await this.page_set(page, target_id, { sections: pending.sections, coverage: pending.coverage }, ctx.caller);
 			}
+			// THE SESSION'S RUNNING TOTAL (the owner, 2026-10-03): on `done`, this prompt's own
+			// mechanical cost (`pending.cost_usd`, the real `cost_usd` `clean()`/`structure()`'s
+			// askOnce calls reported — never a guess) adds onto this session's running total, a
+			// PAGE-level field (`target: []`), computed from real numbers alone. What this does
+			// NOT include: the live echo agent's own per-turn cost for ITS three tool calls
+			// (references/asks_flags/done) — that is a Claude Code agent turn, already tracked by
+			// Servex's own agent cost ledger (`Server/task-cost.mjs`, `list_agents`), not a number
+			// this file can read mid-turn without guessing it; duplicating it here as an estimate
+			// would break law 7, so it stays out rather than being faked.
+			if (args.step === "done" && pending){
+				const total = (this.session_cost.get(session_id) ?? 0) + (pending.cost_usd ?? 0);
+				this.session_cost.set(session_id, total);
+				await this.page_set(page, null, { refine_cost_usd: round4(total) }, ctx.caller, []);
+			}
 			if (args.step === "done") this.pending.delete(session_id);
 			return JSON.stringify(out.ok ? { ok: true, id: out.id } : out);
 		} catch (e){ return fail(String(e.message || e)); }
 	}
 }
+
+// Four decimal places — a real `cost_usd` figure, never rounded away to a misleadingly round number.
+function round4(n){ return Math.round((Number(n) || 0) * 10000) / 10000; }
