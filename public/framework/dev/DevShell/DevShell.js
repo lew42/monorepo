@@ -8,7 +8,7 @@ import hold from "../DevBar/hold.js";
 import blocked from "../DevBar/blocked.js";
 import { tabs } from "../DevBar/tools.js";
 import devbar from "../DevBar/DevBar.js";
-import { use_v1, set_v1 } from "./pref.js";
+import { use_v1, set_v1, shell_open, set_shell_open } from "./pref.js";
 
 View.stylesheet(import.meta, "DevShell.css");
 
@@ -59,7 +59,8 @@ export default function devshell(a){
 	// this way: `ext/DesignTool`'s probe skips anything so marked.
 	shell.el.setAttribute("data-layout-ignore", "");
 
-	app.styles_loaded().then(() => shell.append_to(View.body()));
+	// Reopens if it was left open before the reload (pref.js `shell_open`); off by default.
+	app.styles_loaded().then(() => { shell.append_to(View.body()); if (shell_open() && !use_v1()) toggle(true, false); });
 
 	document.addEventListener("keydown", e => {
 		if (!(e.ctrlKey || e.metaKey) || (e.key !== "\\" && e.code !== "Backslash")) return;
@@ -185,8 +186,9 @@ const html = document.documentElement;
 
 const open = () => html.classList.contains("dev-shell-open");
 
-function toggle(on = !open()){
+function toggle(on = !open(), remember = true){
 	html.classList.toggle("dev-shell-open", on);
+	if (remember) set_shell_open(on);
 	if (on) devbar.toggle(false);
 	devshell.refresh();
 }

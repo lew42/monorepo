@@ -18,3 +18,18 @@ export function set_v1(on){
 	try { localStorage.setItem(KEY, on ? "1" : "0"); }
 	catch { /* private mode / full quota — the in-memory default just stops persisting */ }
 }
+
+/* Whether the shell was left OPEN (the owner, 2026-10-03: "once you turn it on, keep it on;
+   once you close it, keep it closed… if there is no state, default to off"). Per browser,
+   never a query string: it's a personal setting, not a public url. */
+const OPEN = "lew42-dev-shell-open";
+
+export function shell_open(){
+	try { return localStorage.getItem(OPEN) === "1"; }
+	catch { return false; }
+}
+
+export function set_shell_open(on){
+	try { localStorage.setItem(OPEN, on ? "1" : "0"); }
+	catch { /* private mode: the shell just starts closed next time */ }
+}
