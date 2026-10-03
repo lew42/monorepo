@@ -59,43 +59,22 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
-/* `structure()`'s `md` is "## Heading" / "- bullet [S1, S2]" markdown; this reads it into
- * `{heading, items: [{text, cites}]}` and stamps ids, the exact small parser Echo.js already
- * carries (its own `parse_sections`/`parse_cites`/`sections_with_ids`) — duplicated here on
- * purpose, not imported: `ext/Refine/refine.js`'s own version is a browser View module and
- * has no business loading inside Servex's Node process (Echo.js's own comment on this). */
-function parse_sections(md){
-	const sections = [];
-	let current = null;
-	const start_default = () => { current = { heading: "", items: [] }; sections.push(current); };
-	for (const line of String(md || "").split(/\r?\n/)){
-		const h = line.match(/^##\s+(.+)$/);
-		if (h){ current = { heading: h[1].trim(), items: [] }; sections.push(current); continue; }
-		const b = line.match(/^[-*]\s+(.+)$/);
-		if (b){
-			if (!current) start_default();
-			current.items.push(parse_cites(b[1]));
-		}
-	}
-	return sections;
-}
-function parse_cites(text){
-	const m = text.match(/\[(S\d+(?:\s*[-–]\s*S?\d+)?(?:\s*,\s*S?\d+(?:\s*[-–]\s*S?\d+)?)*)\]\s*$/);
-	if (!m) return { text: text.trim(), cites: [] };
-	const cites = [];
-	m[1].split(",").forEach(part => {
-		const range = part.trim().match(/^S?(\d+)\s*[-–]\s*S?(\d+)$/);
-		if (range){ const [lo, hi] = [Number(range[1]), Number(range[2])].sort((a, b) => a - b); for (let n = lo; n <= hi; n++) cites.push(n); return; }
-		const single = part.trim().match(/^S?(\d+)$/);
-		if (single) cites.push(Number(single[1]));
-	});
-	return { text: text.slice(0, m.index).trim(), cites };
-}
-function sections_with_ids(sections){
-	return sections.map((s, i) => ({
-		id: `sec${i + 1}`, heading: s.heading,
-		items: s.items.map((it, j) => ({ id: `sec${i + 1}-i${j + 1}`, text: it.text, cites: it.cites })),
-	}));
+/* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
+ * one owner line per sentence or two, not per paragraph -- the owner's own evidence file had
+ * 20 lines in 4 minutes, several of them just "Hello." or "Can you hear me?". Running `refine()`
+ * (below) on every one of those would be a `clean()` + `structure()` pair -- two real model
+ * calls -- for a fragment with nothing to structure. A line only earns a refine once it has at
+ * least two sentences or 15 words; `floor: "speaking"` (the owner is still mid-thought,
+ * `ext/Chat/doc/floor.md`) is skipped outright no matter its length, because a longer, finished
+ * line for the same thought is coming once the owner actually stops. Exported, and kept a pure
+ * function of the one line, so `refine.test.mjs` can check it directly -- no model, no session,
+ * nothing else running. */
+export function worth_refining(line){
+	const text = String(line?.text ?? "").trim();
+	if (!text || line?.floor === "speaking") return false;
+	const words = text.split(/\s+/).filter(Boolean).length;
+	const sentences_n = text.split(/(?<=[.!?])\s+/).filter(Boolean).length;
+	return sentences_n >= 2 || words >= 15;
 }
 
 /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
@@ -298,25 +277,29 @@ export default class Sessions {
 		this.push(s.id, { kind: "line", line });
 	}
 
-	/* THE FAST ASSISTANT'S REFINEMENT (one-dictation, minion-voice-refine, 2026-10-03): every
-	 * owner line the owner's own `say()` just wrote (above) runs through the SAME shared
-	 * Refine engine `Echo.js` already drives for VS Code prompts -- `clean()`
-	 * (`ext/Refine/engine.js`) then `structure()` (`ext/Refine/structure.js`) -- never a
-	 * second engine (law 6). This runs AFTER the line is written and the fast assistant is
-	 * already woken, and `say()` never awaits it: a slow or down model must never delay the
-	 * owner's own turn. Model calls go through `servex.echo.call()`, not a bare `askOnce` --
-	 * Echo.js already wraps that call with its own loop guard (`machine`/`inflight`, see
-	 * Echo.js's "THE ECHO LOOP" comment), so every session this spawns is one Echo itself
-	 * already knows is a machine call, never mistaken for a fresh owner prompt. One result
-	 * line lands once both calls finish: `{refined: {at, re, sentences, sections, flags,
-	 * cost_usd}}`, `re` = the owner line's own `at`. `cost_usd` sums `total_cost_usd` off
-	 * every model call this one utterance made (`ask-each.mjs`'s own `askOnce` return).
-	 * Returns the promise so a test can await it directly with a stubbed `servex.echo.call`;
-	 * `say()` itself only logs a failure (no model, Servex down) and otherwise lets go --
-	 * the raw bubble already stands on its own with nothing refined underneath it. */
+	/* THE FAST ASSISTANT'S REFINEMENT (one-dictation, minion-voice-refine, 2026-10-03): a
+	 * FINISHED owner line (see `worth_refining()` just below) that the owner's own `say()`
+	 * just wrote (above) runs through the SAME shared Refine engine `Echo.js` already drives
+	 * for VS Code prompts -- `clean()` (`ext/Refine/engine.js`) then `structure()`
+	 * (`ext/Refine/structure.js`) -- never a second engine (law 6). Its own markdown parser
+	 * (`parse_sections`/`sections_with_ids`) is reused too, straight off the live Echo
+	 * instance -- no copy of those three functions kept here any more (review finding 1:
+	 * Echo.js has them as plain methods, so there was never a reason to duplicate them). This
+	 * runs AFTER the line is written and the fast assistant is already woken, and `say()`
+	 * never awaits it: a slow or down model must never delay the owner's own turn. Model
+	 * calls go through `servex.echo.call()`, not a bare `askOnce` -- Echo.js already wraps
+	 * that call with its own loop guard (`machine`/`inflight`, see Echo.js's "THE ECHO LOOP"
+	 * comment), so every session this spawns is one Echo itself already knows is a machine
+	 * call, never mistaken for a fresh owner prompt. One result line lands once both calls
+	 * finish: `{refined: {at, re, sentences, sections, flags, cost_usd}}`, `re` = the owner
+	 * line's own `at`. `cost_usd` sums `total_cost_usd` off every model call this one
+	 * utterance made (`ask-each.mjs`'s own `askOnce` return). Returns the promise so a test
+	 * can await it directly with a stubbed `servex.echo.call`; `say()` itself only logs a
+	 * failure (no model, Servex down) and otherwise lets go -- the raw bubble already stands
+	 * on its own with nothing refined underneath it. */
 	refine(s, line){
 		const echo = this.servex?.echo;
-		if (!echo || !String(line?.text ?? "").trim()) return Promise.resolve();
+		if (!echo || !worth_refining(line)) return Promise.resolve();
 		let cost_usd = 0;
 		const call = async (prompt, opts) => {
 			const r = await echo.call(prompt, opts);
@@ -327,7 +310,7 @@ export default class Sessions {
 			const { sentences, flags } = await clean(line.text, { call });
 			if (!sentences.length) return;
 			const built = await structure(sentences, { call });
-			const sections = built.md ? sections_with_ids(parse_sections(built.md)) : [];
+			const sections = built.md ? echo.sections_with_ids(echo.parse_sections(built.md)) : [];
 			this.write(s, { refined: { at: now_ms(), re: line.at, sentences, sections, flags, cost_usd } });
 		})();
 	}
