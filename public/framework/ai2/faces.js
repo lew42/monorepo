@@ -58,7 +58,12 @@ export function row(it, on = {}){
 			.attr("title", it.unread ? "mark read" : "mark unread")
 			.click(e => { e.preventDefault(); e.stopPropagation(); on.toggle_read?.(); });
 		if (it.icon) icon(it.icon);
-		if (it.score != null) span.c("ai2-score" + (it.score >= 70 ? " ai2-score-hot" : "")).text(String(it.score));
+		// A NUMBER NEVER SITS ALONE (the owner, 2026-10-03: "unexplained 94/99 badges" — a
+		// badge either explains itself on hover or goes). `it.reason` is the same rule
+		// `needs-rule.js` already picked this score FROM (rail.js's `decorate()`), in five
+		// words — the title is never a second idea of why, just that rule read back.
+		if (it.score != null) span.c("ai2-score" + (it.score >= 70 ? " ai2-score-hot" : ""))
+			.attr("title", it.reason ? `${it.score} — ${it.reason}` : String(it.score)).text(String(it.score));
 		mentions(span.c("ai2-row-title").text(it.title).el);   // the Inbox row's title — ext/Mention
 		small.c("ai2-row-when muted").text(when(it.at));   // last updated, top-right, on every row
 		// ARCHIVE, RIGHT ON THE ROW (deliverable 3) — the exact same write the card's
