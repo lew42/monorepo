@@ -2,6 +2,21 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## LATEST (the owner, 2026-10-03): no `at`; a key is a path resolved by `get()`, the owner's original `set`
+One rule, the same `set(obj)` the owner first designed: for each key of the line,
+1. a key that names a METHOD calls it with the value (`add`, `move`, `order`, `remove`, `file`, `place`…);
+2. otherwise the key is a PATH: `this.get(key)` resolves it (a property, a child's id, or a dotted path like `k2.answers`, the same idea as `app.get("a.b.c")`). If what it finds has its own `set`, the value is handed to it (recursion);
+3. otherwise it's plain data: stored, and `change` is emitted.
+
+So the lines read like ordinary nested sets, and there is no special `at` key:
+```json
+{"title": "Notes"}                                   // data on the page itself
+{"k2": {"title": "New"}}                             // item k2 (found by id) sets its title
+{"k2.answers": {"add": {"id": "a1", "text": "Yes"}}} // k2's answers list adds an item
+{"pages": {"move": {"id": "intro", "after": null}}}  // the page's own pages list
+```
+`get(path)` is the one resolver (properties first, then child ids, split on "."), used by replay, by tools (`page_set(path, key, value)`) and by code. Supersedes `{"at": …}` everywhere above.
+
 ## LATEST (the owner, 2026-10-02, fifth pass): no LiveList; List has events. Logs that survive a bad line
 - **Scrap LiveList everywhere.** If you only need an array, use a plain array. `List` itself gets Events built in: `add(x,{after}) remove(id) move(id,{after}) order([ids]) find(id)`, each emitting the line it saves. "A list" now means "an evented list".
 - **The shape:** `Events` (mixin) → `List = Events(Base)` (items: [], the verbs) · `Item = Events(…)` (id, icon, title, data, `set(delta)`, `store`) → `Page extends Item` (`pages: List`, `content: List`) · `Task` (core/Task, its own class; `page.task`). An Item HAS lists, it isn't one.
