@@ -32,6 +32,7 @@ Content is what a page says, and in what order. The rule underneath all of it: *
 - A response that takes more than ten seconds to get is too long — cut it, don't shorten each sentence.
 - Nesting cards more than 3 deep: switch to a heading with content at the same indentation instead of a 4th border.
 - A background brings padding; don't box a plain list of related links that needs none.
+- **Default padding is none.** A box gets padding only by asking: `.pad`, or `.card` (which already includes padding, a little border radius and a background). Never a one-off padding value, and never `.pad` on a child already inside a padded parent — that's double-padding, wasted space on both edges. See the [widths lab](/framework/styles/widths/) for how this plays out with `--measure`.
 
 ## More
 

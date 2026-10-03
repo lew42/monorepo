@@ -1,5 +1,6 @@
 import { Page, View, h2, p, a, span, img, md } from "/app.js";
 import { ColorStudy } from "./study.js";
+import { AdaptiveStudy } from "./adaptive.js";
 
 View.stylesheet(import.meta, "color-study.css");
 const here = new URL(".", import.meta.url).pathname;
@@ -70,5 +71,22 @@ export default new Page({
 
 		md.details(import.meta, "decisions.md", "The record — why the six names are aliases, what the study measured, and what was refuted")
 			.ac("color-record");
-	},
+
+			h2("Backgrounds that adapt — bg-lighten, bg-darken");
+			md("> \"A `lighten` class — better: `bg-lighten`, `bg-darken` — whose amount varies with the container it's on: white, light, dark or primary each need a different amount. Stacking lighten on darken and vice versa was another test, and contrast ratios become moving targets.\" — the owner, 2026-10-03");
+			md("Two new classes in `framework.css`, one each — **not** `-1/-2/-3` variants. The ground they land on decides how far they move, through two variables (`--bg-lighten-amt`, `--bg-darken-amt`) the ground declares once; `.darken-1/2/3` and `.bg` already opt in. Five grounds below, four cells each: `bg-lighten`, `bg-darken`, and both nesting orders — every number is read off the real rendered pixels, same method as the wall above.");
+
+			{
+				const adaptive = new AdaptiveStudy();
+				const $wall = adaptive.wall();
+				adaptive.watch($wall);
+			}
+
+			md("**Reading the grid — this is the finding, not a bug.** Every cell's text is painted in plain `--ink` (the site's one fixed body-text colour), on purpose: no adaptive text token exists yet. On white and light gray that's fine — 8:1 and up. On primary, dark gray and black it **fails outright**, often down near 1:1 — `--ink` is a *dark* colour, sitting on a ground that's already dark or saturated. That failure is exactly the owner's \"contrast ratios become moving targets,\" made visible rather than argued: **no fixed text colour can work on every ground `bg-lighten`/`bg-darken` might land on.** It's the direct case for the `--color-text` proposal below — a token that tests itself and picks dark or light ink, instead of one colour used everywhere. The accent chip (`--prim`, unchanged) mostly holds up better since it's already a strong fill, but it isn't immune either — see the primary ground, where accent-on-accent nearly disappears.").ac("muted");
+
+			h2("Naming — a proposal, not a rename");
+			md("> \"A text colour token (`--color-text`?) that's dark on white/light, light on dark, and on primary either, chosen by testing the contrast ratio... An accent token. What worked before: calling the primary colour the ACCENT; `--prim` still exists and maps to the accent... Naming: `dark` is a theme's dynamic dark colour; `bg` is the ADAPTIVE token that maps to dark, primary, white, light, a lighten, whatever the usage needs.\" — the owner, 2026-10-03");
+			md("| proposed name | what it would mean |\n| --- | --- |\n| `--color-text` | the adaptive text colour: dark ink on white/light, light ink on dark, and on primary whichever of the two actually measures ≥4.5:1 |\n| `--accent` | the accent — what `--prim` already is on this site; a second name for the same colour, not a new one |\n| `--dark` | a theme's own dynamic dark colour (today's `--bg`, renamed in spirit only) |\n| `--bg` | the ADAPTIVE token: resolves to dark / primary / white / light / a lighten step, whichever the usage calls for |");
+			md("⚠ **The collision this would cause:** `framework.css` already defines `--bg` as one fixed colour (`#42404B`, the sidebar's dark surface — not adaptive at all). The owner's proposed `--bg` means the opposite of today's: a token that moves depending on where it's used. Landing this needs the existing `--bg` renamed first (it's read by the sidebar and a few other places) before the new adaptive meaning could take the name — real but bounded surgery, not done here. **Nothing on this page renames any existing token** — `--prim`, `--bg`, `--ink` and the rest are untouched; this section only proposes names for what a next pass could build.");
+		},
 });

@@ -780,7 +780,15 @@
 	/* ── `page.content`, drawn — `render_content_list()`, the one reusable view a
 	   content List gets (page-extends-item, 2026-10-02). One row per item, a
 	   thin rule between, a grab cursor because every row is a Sortable handle. */
-	.page-content-rows { display: flex; flex-direction: column; gap: var(--pad-well); }
+	/* Capped at the reading measure, start-aligned — not centred, not full width.
+	   Widths lab, 2026-10-03 (/framework/styles/widths/): at 3440 a full-width row
+	   ran past 2400px, unreadable; centring read as a modal floating mid-page,
+	   where every OTHER block on this site (headings, prose) starts from the left
+	   wall. This caps the ROW, not the page — a page under it can still be `full`;
+	   the owner's own caution ("I don't want to just restrain them, because then
+	   you can't easily have full-width pages") is about the page/bleed system,
+	   untouched here. */
+	.page-content-rows { display: flex; flex-direction: column; gap: var(--pad-well); max-width: min(var(--measure), 100%); }
 	/* A row IS a `.card` (framework.css): its padding is the standard `--pad-card`, a % of its
 	   own width, so a wide row gets a wide pad. The grab cursor only on a sortable list. */
 	.page-content-rows.sortable > .page-content-row { cursor: grab; }

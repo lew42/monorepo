@@ -9,7 +9,7 @@ export default new Page({
 	title: "Styles",
 	description: "Four layers, six type levels, and as little else as possible.",
 	icon: "palette",
-	children: "system rules layers elements stacks layouts sections",
+	children: "system rules layers elements stacks layouts sections widths",
 
 	content(){
 

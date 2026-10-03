@@ -9,6 +9,8 @@ app
 auto
 basis
 bg
+bg-darken
+bg-lighten
 btn
 capitalize
 card
@@ -155,6 +157,7 @@ space-       styles/layouts/space
 rules-       styles/rules
 stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)
 theme-       styles/layers/theme
+widths-      styles/widths (the card/flow measure lab, 2026-10-03)
 
 # imagine
 blogx-       /imagine/blogx
@@ -239,3 +242,8 @@ sources-
 # minion-prompt-card) — moved out of ai/v/3's own `v3-` prefix once ai2 needed it too, so
 # neither tier's own prefix had to leak into the other.
 refine-modes-
+
+# public/framework/ai/2026-10-02/prompt-review — the 42-prompt review page (List/Overview/
+# Detail), 2026-10-02. Reuses `refine-modes-` (above) for the Structured/Clean/Raw switch
+# itself; this prefix is only for the page's own List rows, tag chips and group headings.
+prompt-review-
