@@ -23,3 +23,4 @@
 {"log":{"at":"2026-10-03T14:25:34-05:00","task":"subcard-columns","msg":"landed — sub-card opens in an equal column beside its parent, N-deep breadcrumb, card template cleanup (quiet properties sidebar, status-only-when-running header)"}}
 {"log":{"at":"2026-10-03T14:28:33-05:00","task":"subcard-columns","msg":"landed — sub-cards drill down as two equal columns, any depth, breadcrumb for earlier levels; michael/dev dab3604b"}}
 {"log":{"at":"2026-10-03T14:34:10-05:00","task":"mention-auto-sync","msg":"landed — ext/Mention/maps/refs.js's icon now rebuilds itself on a page.js/page.jsonl change, no sync.mjs run needed"}}
+{"log":{"at":"2026-10-03T17:03:07-05:00","task":"now-card-blank","msg":"landed -- Now card dashboard rows back above Topics; rail preview falls back instead of reading empty"}}
