@@ -58,15 +58,34 @@ function test_states(){
 		extra_lines: [{ log: { at: TWO_H_AGO, msg: "old" } }, { kill: { at: RECENT, why: "duplicate of another task", by: "owner" } }],
 	});
 
+	// no agent on line 1 at all (an older task.jsonl shape, or one that wrote `tab` instead) but
+	// a FRESH log line — this must not be stalled just for lacking an agent field (review
+	// finding 1: real tasks like this were showing up top-scored "stalled" the moment they were
+	// written, because stalled() alone treats "no registry row" as stalled at once).
+	make_task(ai, "2026-10-01", "t-no-agent-fresh", { extra_lines: [{ log: { at: RECENT, msg: "just wrote this" } }] });
+
+	// no agent on line 1, and its last line really is old — THIS one should be stalled, judged
+	// purely on the task's own silence, same 2h window as everything else.
+	make_task(ai, "2026-10-01", "t-no-agent-stale", { extra_lines: [{ log: { at: TWO_H_AGO, msg: "old, no agent either" } }] });
+
+	// dormant with nothing queued: same branch stalled() already has for asks, reused unchanged
+	// here — a task is not "abandoned" just because its agent is asleep to save RAM.
+	make_task(ai, "2026-10-01", "t-dormant-queued", { agent: "agent-dormant", extra_lines: [{ log: { at: TWO_H_AGO, msg: "old" } }] });
+
 	const registry = [
 		{ id: "agent-live", state: "working", last_at: RECENT },
 		{ id: "agent-gone", state: "gone" },
+		{ id: "agent-dormant", state: "dormant", last_at: TWO_H_AGO },
 	];
+	const live = new Map([["agent-dormant", { queue: { items: [{ text: "wake up" }] } }]]);
 
-	const tasks = build_tasks({ now: NOW, registry, ai_dir: ai, root });
+	const tasks = build_tasks({ now: NOW, registry, live, ai_dir: ai, root });
 	const by = slug => tasks.find(t => t.dir.endsWith(slug));
 
-	check("every fixture task is read", tasks.length === 5);
+	check("every fixture task is read", tasks.length === 8);
+	check("no agent + a fresh line: not stalled", by("t-no-agent-fresh")?.state === "building");
+	check("no agent + an old line: stalled", by("t-no-agent-stale")?.state === "stalled");
+	check("dormant owner with something queued: not stalled", by("t-dormant-queued")?.state === "building");
 	check("landed: landed_at wins even over a gone agent", by("t-landed")?.state === "landed");
 	check("building: a recently-active agent is not stalled", by("t-building")?.state === "building");
 	check("stalled: no registry row + a 3h-old line", by("t-stalled")?.state === "stalled");
@@ -122,6 +141,16 @@ function test_write_atomic(){
 	// no leftover temp file after the rename
 	const leftovers = fs.readdirSync(root).filter(f => f.endsWith(".tmp"));
 	check("the temp file is gone after the atomic rename", leftovers.length === 0);
+
+	// review finding 2: a re-write with the SAME tasks must not touch the file at all (this file
+	// lives under public/ and a change reloads the live site — only a real change should write).
+	const before = fs.statSync(out).mtimeMs;
+	write_tasks_json([{ dir: "x", state: "building", score: 50 }], out);
+	check("an unchanged tasks array is not rewritten", fs.statSync(out).mtimeMs === before);
+
+	write_tasks_json([{ dir: "x", state: "stalled", score: 100 }], out);
+	const second = JSON.parse(fs.readFileSync(out, "utf8"));
+	check("a real change IS written", second.tasks[0].state === "stalled");
 }
 
 test_states();

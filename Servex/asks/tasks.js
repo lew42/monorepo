@@ -55,13 +55,15 @@ export function task_dirs(days = DAYS, now = new Date(), ai_dir = AI){
 	return out;
 }
 
-/* The brief's own line: `Budget: $N` on requirements.md's first line (or anywhere in it —
- * agents sometimes add a blank line first). `null` when the brief has none, or there is no
- * brief yet — shown as "no budget set", never guessed at. */
+/* The brief's own line: `Budget: $N` on requirements.md's FIRST non-blank line — anchored there
+ * (review finding 7), not matched anywhere in the file, so a brief that quotes another task's
+ * "Budget: $N" somewhere in its body is never misread as its own. `null` when the brief has no
+ * such line, or there is no brief yet — shown as "no budget set", never guessed at. */
 function budget_of(dir){
 	let text;
 	try { text = fs.readFileSync(path.join(dir, "requirements.md"), "utf8"); } catch { return null; }
-	const m = text.match(/Budget:\s*\$(\d+(?:\.\d+)?)/i);
+	const first_line = text.split(/\r?\n/).find(l => l.trim()) ?? "";
+	const m = first_line.match(/^Budget:\s*\$(\d+(?:\.\d+)?)/i);
 	return m ? Number(m[1]) : null;
 }
 
@@ -73,7 +75,14 @@ function spent_of(dir){
 
 /* Folds one task.jsonl into the facts the state check needs. Never throws: a dir mid-write just
  * reads what's on disk so far. `landed` is exactly the brief's own definition — "a landed_at
- * line exists" — nothing about outcome text is required here. */
+ * line exists" — nothing about outcome text is required here.
+ *
+ * Known duplication (review finding 4, left as-is by the brief's own fence): Asks.js's private
+ * `task_state()` walks the same task.jsonl the same way, for a narrower purpose (an ask's
+ * owner landing) and a stricter "landed" (it also requires a non-empty `outcome`). This file's
+ * fence is "Asks.js's tick wiring only" — not its reading logic — so the two walks stay
+ * separate for now rather than this file reaching into Asks.js to share one. If they drift
+ * further, that line in both files should move to one shared helper. */
 export function task_facts(dir, root = ROOT){
 	const lines = read_lines(path.join(dir, "task.jsonl"));
 	const first = lines[0]?.assign ?? {};
@@ -119,12 +128,30 @@ export function owner_row(facts, registry = [], live = null){
 
 /* The one state machine: killed and landed are closed (folded, like a dropped ask); snoozed
  * holds off the stall check until `until`; everything else asks stalled() — the exact rule
- * Servex/asks/stalled.js already uses for asks, fed this task's own owner_row(). */
+ * Servex/asks/stalled.js already uses for asks, fed this task's own owner_row().
+ *
+ * One case stalled() gets wrong for a TASK (review finding 1): an ask always has a routed
+ * owner, so stalled() treats "no registry row" as stalled at once. A task dir can have NO agent
+ * on its line 1 at all — older task.jsonl shapes wrote `tab` instead, and some still do — and
+ * that is not the same as "the owner vanished". The owner's own rule is three conditions
+ * together: no log line for 2h, AND not landed, AND no live agent. With no agent to check
+ * liveness of, the only fact left is the task's own last line, so that is judged directly here
+ * instead of asking stalled() to guess at a missing owner. */
 export function task_state(facts, row, now = Date.now()){
 	if (facts.kill) return { state: "killed", why: facts.kill.why };
 	if (facts.landed) return { state: "landed", why: "task.jsonl has a landed_at line" };
 	if (facts.snooze && Date.parse(facts.snooze.until) > now)
 		return { state: "snoozed", why: `snoozed until ${facts.snooze.until}` };
+
+	if (!facts.agent){
+		const last = facts.last_line_at ? Date.parse(facts.last_line_at) : NaN;
+		if (!Number.isFinite(last)) return { state: "stalled", why: "no agent on record and no log line at all" };
+		const silent_ms = now - last;
+		return silent_ms > stalled.SILENT_MS
+			? { state: "stalled", why: `no agent on record, silent ${Math.round(silent_ms / 60000)} min` }
+			: { state: "building", why: "no agent on record, but a recent log line" };
+	}
+
 	const verdict = stalled({ status: "building", owner: facts.agent }, row, now);
 	return { state: verdict.stalled ? "stalled" : "building", why: verdict.why };
 }
@@ -159,8 +186,21 @@ export function build_tasks({ days = DAYS, registry = [], live = null, now = Dat
 
 /* Whole-object write, atomic via temp + rename (item 1's own words) — a reader never sees a
  * half-written file. DERIVED DATA: regenerated every Servex tick; never hand-edit it — change
- * the task.jsonl lines (snooze/kill/priority) or this script instead. */
+ * the task.jsonl lines (snooze/kill/priority) or this script instead.
+ *
+ * Skips the write entirely when `tasks` itself hasn't changed (review finding 2): this file
+ * lives under `public/`, where the dev server's LiveReload watches every file the live site can
+ * load, and a `.json` change (unlike a `.jsonl` one) is broadcast as a page reload. Writing a
+ * fresh `generated_at` every tick — even when nothing about the tasks changed — would reload the
+ * owner's own open tab once a minute for no reason (directory.json did exactly this, 203 times
+ * in one day, before it learned the same lesson). Comparing just the `tasks` array, not the
+ * whole file, means a `generated_at`-only diff never counts as a change. */
 export function write_tasks_json(tasks, out = OUT_FILE){
+	const tasks_json = JSON.stringify(tasks);
+	try {
+		const existing = JSON.parse(fs.readFileSync(out, "utf8"));
+		if (JSON.stringify(existing.tasks) === tasks_json) return out;
+	} catch {}
 	const body = JSON.stringify({
 		generated_at: new Date().toISOString(),
 		note: "DERIVED — regenerated every minute by Servex/asks/tasks.js (wired from Asks.js's tick). Never hand-edit; change a task's task.jsonl (snooze/kill/priority lines) or re-run `node Servex/asks/tasks.js` instead.",
