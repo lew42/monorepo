@@ -138,6 +138,10 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`.
 
+## Limits we hit: RAM first (2026-10-02)
+
+**RAM is the limit right now.** 31.7 GB total, and about 4.7 GB is free with ~12 claude.exe processes (~0.25–0.8 GB each) plus Chrome. Servex holds new spawns until 4 GB is free (`SERVEX_MIN_FREE_MB`), so work queues behind memory, not tokens. What helps: close old VS Code conversations (each keeps a process), stop finished agents at once, and move self-contained code work to cloud sessions. Every limit like this is a known issue on the Known issues page, so nobody re-reports it.
+
 ## Big text moves by hook or by path, never through a tool call
 
 Every character an agent puts in a tool call is OUTPUT it pays to generate. So a long prompt, a file or a brief is never re-typed into `spawn_agent`, `send_to_agent` or a log write: a hook captures it where it already exists (the `UserPromptSubmit` hook logs every owner prompt as it arrives; the Stop hook can log the reply), and agents pass a PATH or an id instead (`task: {dir, brief}`). (the owner, 2026-10-02)
