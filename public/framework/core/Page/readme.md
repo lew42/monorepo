@@ -1,5 +1,23 @@
 # Page — a folder with a `page.js` or `page.jsonl` is a page: a url, some content, and children.
 
+## Make a page (the whole recipe)
+
+1. Create `<parent>/hello/page.js`:
+```js
+import { Page, h1, p } from "/app.js";
+
+export default new Page({
+	meta: import.meta,
+	title: "Hello",
+	content(){
+		h1("Hello");
+		p("Some text.");
+	}
+});
+```
+2. Add `"hello"` to the PARENT page's `children:` (for example `children: "hello"`). A page nobody declares is a 404: nothing crawls.
+3. Open `/<parent path>/hello/`.
+
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
 ## Architecture
