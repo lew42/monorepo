@@ -2,3 +2,6 @@
 {"add": {"id": "r2", "text": "Toast"}}
 {"add": {"id": "r3", "text": "Eggs"}}
 {"add": {"id": "r4", "text": "Juice"}}
+{"add":{"id":"08549117-d716-4ac5-af4e-29f0ec257862","after":"r4","text":"Row 5"}}
+{"add":{"id":"b43721fe-2db7-4ac2-9dc7-a2f97dcdb642","after":"08549117-d716-4ac5-af4e-29f0ec257862","text":"Row 6"}}
+{"add":{"id":"f4c3e1f3-9ef9-4164-b71f-051f39e84a84","after":"b43721fe-2db7-4ac2-9dc7-a2f97dcdb642","text":"Row 7"}}
