@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/2026/10/03/now/your-prompts-refined-live/",
+ "widths": {
+  "1200": {
+   "empty": 0.456,
+   "widest_text": 1896,
+   "widest_text_sample": "{\"class\":\"/framework/ai2/card.js\",\"title",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.427
+  },
+  "1920": {
+   "empty": 0.511,
+   "widest_text": 2035,
+   "widest_text_sample": "{\"class\":\"/framework/ai2/card.js\",\"title",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.695
+  },
+  "2560": {
+   "empty": 0.537,
+   "widest_text": 2288,
+   "widest_text_sample": "{\"class\":\"/framework/ai2/card.js\",\"title",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.695
+  },
+  "3440": {
+   "empty": 0.663,
+   "widest_text": 2288,
+   "widest_text_sample": "{\"class\":\"/framework/ai2/card.js\",\"title",
+   "overflow_x": false,
+   "items": 82,
+   "narrow_share": 0.695
+  }
+ },
+ "errors": [
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}
