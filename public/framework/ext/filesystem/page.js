@@ -1,5 +1,6 @@
 import { Doc, md, code, h2, p, a, files } from "/app.js";
 import { file_link } from "./file_link.js";
+import FsFile from "./FsFile.js";
 
 const EXAMPLE = "framework/ext/filesystem/FsFile.js";
 
@@ -8,6 +9,12 @@ export default new Doc({
 	title: "File system",
 	description: "The DATA behind every file on the site: FsFile and FsDir — a path, a name, a parent, and the operations to read, write, render and link one. ext/files, next door, is the browsing widget built on these.",
 	icon: "folder_open",
+	// This page documents two classes (FsFile and FsDir); `subject` names the one the
+	// brief calls out by hand for the dark class-card treatment (2026-10-02, framework
+	// home). Doc.is_class(subject) only sees a `subject` that's actually set — a page
+	// with no `subject:` at all renders as an ordinary light content page, which is what
+	// was happening here before this line existed.
+	subject: FsFile,
 
 	notes: "decisions",
 	files: "FsFile.js FsDir.js tree.js file_link.js menu.js filesystem.css",

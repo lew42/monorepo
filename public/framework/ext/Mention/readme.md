@@ -34,9 +34,24 @@ same ones `ui.item` takes.
 - **`#[Name with spaces]`** is the bracket form, for a name that isn't one word:
   [`doc/syntax.md`](doc/syntax.md) has the exact pattern and why a markdown heading (`# Title`)
   never matches it by accident.
-- **Both maps are hand-written today.** A name's `url`/`icon` could instead be read off the
-  page it already has (`page.js`'s own `title`/`icon` field) — [`doc/syntax.md`](doc/syntax.md)
-  has the one-paragraph note on where that would plug in.
+- **A mention reads the LIVE page first, the cache second.** If the page a `#name` points at has
+  already been built this session (you've visited it, or it's one `/framework/`'s own wall just
+  loaded — in practice this covers most of the site, since the sidebar's own tree walk builds
+  enough of it on every page load), the mention reads that live instance's own `icon` and
+  `nav().class_card` straight off it — editing a page's icon updates its mentions on your very next
+  reload, no extra step. Only a page truly nobody has built yet falls back to `refs.js`'s cached
+  `icon`/`class_card`, kept honest by [`sync.mjs`](sync.mjs) for that cold case (reads every
+  page-backed entry's own `page.js` text for its icon, and loads the page headless for its real
+  `nav().class_card`). `people.js` and the four concept-only `refs.js` entries that borrow another
+  page's url (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) are left out of both — `doc/syntax.md`
+  says why.
+- **A `#reference` to a class gets the same dark card a class's own module index uses** —
+  `Mention.js`'s `build_row()` and `page.js`'s demo wall both read `entry.class_card` and add
+  `page-surface-dark`, the framework's existing always-dark island (`core/Page/words.js`'s `dark`
+  SURFACE word), so `#Page` in a sentence and the `Page` card on `/framework/core/` read as the
+  one idea. ⚠ `ui/item`'s own `.item` rule resets `background: none` at the same CSS specificity,
+  in the same layer — `Mention.js` has to declare its own `.item.page-surface-dark` override
+  AFTER importing `item.js`, or the reset silently wins and the card never looks dark at all.
 - `mentions()` builds its icon rows OUTSIDE whatever `View` capture happens to be open when it
   runs, on purpose — see the comment beside `build_row()` in [`Mention.js`](Mention.js) if a
   future change to `View`'s capturing ever needs to know why.

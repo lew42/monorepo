@@ -1,7 +1,22 @@
 import { View } from "../../core/View/View.js";
+import { Page } from "../../core/Page/Page.class.js";
 import item from "../../ui/item/item.js";
+import { css } from "../../ui/parts.js";
 import refs from "./maps/refs.js";
 import people from "./maps/people.js";
+
+// `ui/item`'s own `.item` rule resets `background: none` (so a tree row isn't a stack
+// of buttons) at the SAME specificity `.page-surface-dark` uses (one class each), in the
+// SAME layer — a tie that `.item`'s rule was winning, because it loads first (Mention.js
+// imports it). This file importing AFTER it, and declaring its own rule after that, is
+// what lets a dark mention actually paint dark. `--dark-bg`/`--dark-ink` are Page.css's
+// own custom properties, SET on this exact element by its `.page-surface-dark` class
+// (core/Page/Page.css) — reading them back here, instead of repeating the hex a second
+// time, is what review finding 5 (2026-10-02) asked for: one colour, one place it's
+// actually written, however many rules need to paint it.
+css(`@layer theme {
+	.item.page-surface-dark { background: var(--dark-bg); color: var(--dark-ink); }
+}`);
 
 /**
  * Mention — `#Name` and `@name` become a small icon + the word, linking to
@@ -74,7 +89,7 @@ function find(map, name){
 // "@Servex/heartbeat"): the first segment is looked up, the rest is appended to
 // its url as child slugs. `@` falls back to the `#` map when the first segment
 // is a page rather than an agent, so `@Servex/lifecycle` still resolves.
-function lookup(m, sigil, raw){
+function lookup_cached(m, sigil, raw){
 	if (sigil === "/"){ const hit = by_path(m, raw); return hit && { name: hit.key, ...hit }; }
 	const [head, ...rest] = raw_name(raw).split("/");
 	const hit = find(m[sigil], head) ?? (sigil === "@" ? find(m["#"], head) : null);
@@ -82,6 +97,32 @@ function lookup(m, sigil, raw){
 	if (!rest.length) return { name: hit.key, ...hit };
 	const url = hit.url ? hit.url.replace(/\/?$/, "/") + rest.join("/") + "/" : undefined;
 	return { ...hit, name: [hit.key, ...rest].join("/"), url };
+}
+
+// THE LIVE HALF (review finding 2, 2026-10-02): `refs.js`'s `icon`/`class_card` are a
+// CACHE, only as fresh as the last `sync.mjs` run — editing a page's icon does not
+// update its mentions until someone remembers to re-run that script. `Page.instances()`
+// (`core/track/track.js`; every `Page` ever constructed this session, opted in once,
+// WeakRef'd so a throwaway build doesn't leak) answers the common case for real: a page
+// you've already visited this session, or one `/framework/`'s own wall just loaded, IS a
+// live object right now, holding its OWN current `icon` and (for a Doc) `nav()
+// .class_card` — read those instead of the cache. A page nobody has loaded yet has no
+// live instance to ask, so the cache is still the fallback for that cold case — fixing
+// THAT would mean eagerly loading every one of the ~30 mentioned pages just to answer
+// "what's its icon", a much bigger and slower change than this one lookup, not done here.
+function live(entry){
+	if (!entry?.url) return entry;
+
+	const want = norm(entry.url);
+	const instance = Page.instances().find(p => p.url && norm(p.url) === want);
+	if (!instance) return entry;   // cold case: never loaded this session, cache stands
+
+	const nav = instance.nav?.() ?? {};
+	return { ...entry, icon: nav.icon ?? entry.icon, class_card: nav.class_card ?? entry.class_card };
+}
+
+function lookup(m, sigil, raw){
+	return live(lookup_cached(m, sigil, raw));
 }
 
 function note_unknown(sigil, raw){
@@ -97,11 +138,18 @@ function note_unknown(sigil, raw){
 // View factory and would otherwise auto-append itself into that captor
 // before this file ever moves it into place. doc/decisions.md if this ever
 // needs to be true for a second reason.
+// `entry.class_card` (maps/refs.js, kept in sync by sync.mjs) is true when the page this
+// mention points at documents a real ES class — the SAME always-dark "this is a class"
+// look `Page.preview_card()` already gives a class's own card on its module index
+// (`page-surface-dark`, deliverable 3), so a reference to `#Page` in a sentence and the
+// `Page` card on `/framework/core/` read as the one idea rather than two different looks
+// for the same fact.
 function build_row(name, entry){
 	const saved = View.captor;
 	View.captor = null;
 	try {
-		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name }).ac("inline mention").el;
+		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
+			.ac("inline mention").ac(entry.class_card && "page-surface-dark").el;
 	} finally {
 		View.captor = saved;
 	}
@@ -159,7 +207,8 @@ export function mention_html(str, m = maps){
 
 		const tag = entry.url ? "a" : "span";
 		const href = entry.url ? ` href="${entry.url.replaceAll('"', "&quot;")}"` : "";
-		return `<${tag} class="item inline mention"${href}>`
+		const dark = entry.class_card ? " page-surface-dark" : "";
+		return `<${tag} class="item inline mention${dark}"${href}>`
 			+ `<span class="material-icons icon item-icon">${entry.icon}</span>`
 			+ `<span class="item-name">${entry.name}</span></${tag}>`;
 	});

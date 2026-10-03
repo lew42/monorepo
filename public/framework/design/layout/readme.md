@@ -21,6 +21,7 @@ Full version, with every warning and measured number: [doc/rules.md](./doc/rules
 
 ## Watch out
 
+- **Sprawl** — a wall of big sections that balances its own columns by real height, never mid-scroll. [`ext/sprawl`](/framework/ext/sprawl/), first used by [`/framework/`](/framework/) itself.
 - A wall's column count comes from `auto-fit`, not `auto-fill`, unless the count is fixed and written out as container-query divisors. [doc/rules.md](./doc/rules.md)
 - Text never sits at 0 from any edge — the viewport, a rail, a ToC column, or any box with its own ground. [doc/rules.md](./doc/rules.md)
 - A layout never jumps: a live list waits behind an "N new" pill; a selected item opens in its own column. [doc/rules.md](./doc/rules.md)

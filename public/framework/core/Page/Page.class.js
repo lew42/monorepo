@@ -1109,17 +1109,38 @@ export class Page extends PageLog {
 	// ⚠ `leaf` opts a child out whole: it presents ITSELF, not its children — and a
 	// child that overrode `previews()` into something else entirely (a rail, a
 	// timeline) would otherwise render that thing here, on someone else's index.
+	//
+	// Split into `wall_rungs()` (the array, built DETACHED from whatever capture is
+	// open — same reason `ext/Mention`'s `build_row()` does it, core/View/doc/
+	// capturing.md) and this thin wrapper (the one flex column every existing caller
+	// still gets) so a caller that wants to place the SAME rungs a different way —
+	// `ext/sprawl`'s balanced columns, `public/framework/page.js` — can ask for the
+	// array instead of this one fixed arrangement, with no second copy of the "which
+	// child counts as a section" judgment call above.
 	walls(){
-		return div.c("page-walls bleed flex v gap", () => this.children.forEach((page, name) => {
-			if (!page?.children.size || page.leaf) return;
+		return div.c("page-walls bleed flex v gap", $box => this.wall_rungs().forEach(rung => $box.append(rung)))
+			.style("--gap", "3em");
+	}
 
-			const nav = this.nav_for(name);
+	wall_rungs(){
+		const saved = View.captor;
+		View.captor = null;
+		try {
+			const rungs = [];
+			this.children.forEach((page, name) => {
+				if (!page?.children.size || page.leaf) return;
 
-			div.c("page-wall flex v gap", () => {
-				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
-				page.previews();
-			}).style("--gap", "1em");
-		})).style("--gap", "3em");
+				const nav = this.nav_for(name);
+
+				rungs.push(div.c("page-wall flex v gap", () => {
+					h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
+					page.previews();
+				}).style("--gap", "1em"));
+			});
+			return rungs;
+		} finally {
+			View.captor = saved;
+		}
 	}
 
 	// The one card shape. A page that wants a live render overrides this method:
@@ -1128,12 +1149,17 @@ export class Page extends PageLog {
 
 	// ⚠ The thumb is INERT (Page.css): the label below it is a link, so a live render
 	// in here would be an `<a>` inside an `<a>` — invalid, and the browser un-nests it.
+	// `nav.class_card` (set by `ext/Doc`'s own `nav()`, true when `Doc.is_class(this.subject)`
+	// says the page documents a real ES class) wears the SAME always-dark island every other
+	// "dark" surface on the site already uses (`page-surface-dark`, `core/Page/words.js`'s
+	// `dark` SURFACE word) — one card look for "this names a class", not a new one invented
+	// for this task (CLAUDE.md law 6).
 	preview_card(nav = this.nav(), thumb){
 		return div.c("page-preview", () => {
 			if (thumb) this.preview_thumb(thumb);
 			this.preview_link(nav);
 			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
-		}).ac(nav.card);
+		}).ac(nav.card).ac(nav.class_card && "page-surface-dark");
 	}
 
 	// THE THUMB, plus the one measurement Page.css can't make on its own: whether a

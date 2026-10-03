@@ -823,11 +823,33 @@
 		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
 	}
 
+	/* `--dark-bg`/`--dark-ink`: the SAME two colours, also as custom properties, so
+	   anything that needs to paint the identical dark island a second way (a
+	   different element, a different file — `ext/Mention`'s inline reference chip
+	   is the first) reads them back instead of re-typing the hex (review finding
+	   5, 2026-10-02: Mention.js had repeated `#17161a`/`#e8e8ea`, so retuning this
+	   colour would have meant remembering a second place it also lived). */
 	.page-surface-dark, .page-bg-dark {
+		--dark-bg: #17161a; --dark-ink: #e8e8ea;
 		color-scheme: dark;
-		background: #17161a; color: #e8e8ea;
+		background: var(--dark-bg); color: var(--dark-ink);
 		border-radius: var(--radius);
 	}
+
+	/* ⚠ `.page-preview { color: inherit }` (below) and `.page-preview .icon { color:
+	   var(--subtle) }` are BOTH later in this file at the SAME specificity as a bare
+	   `.page-surface-dark`, so they silently won the cascade and left a dark card's
+	   own title and icon painted in the PAGE's ink (near-black on a near-black
+	   ground — unreadable) instead of `--dark-ink` (review finding 1, 2026-10-02:
+	   caught on every class card, View/Page/Router/App/Sidebar/…). Compounding the
+	   selector with `.page-preview` — the element `.page-surface-dark` actually
+	   lands on — raises the specificity past both of those rules regardless of
+	   source order, the same fix `.page-preview:hover`/`:is(.active, …)` already
+	   use a few rules down for the identical "read the title and icon together"
+	   pairing. */
+	.page-preview.page-surface-dark,
+	.page-preview.page-surface-dark .page-preview-title,
+	.page-preview.page-surface-dark .icon { color: var(--dark-ink); }
 
 	/* ── the type scale ──
 	   One declaration each, on the page — so a colour and a type size compose without

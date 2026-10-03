@@ -111,6 +111,7 @@ panel-       ext/Panel
 panel2-      ext/panel2
 pg-          ext/Playground
 research-    ext/Research
+sprawl-      ext/sprawl
 tab-         ext/tabs
 tabs-        ext/tabs
              (bare compound modifiers on `.tabs`, same as `block`/`vertical`: `.tabs.underline`

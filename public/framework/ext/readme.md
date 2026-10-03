@@ -26,6 +26,7 @@
 - [highlight](./highlight/) — syntax highlighting on the `code` factory
 - [layout](./layout/) — a toolbar over anything, and a right-hand drawer that pushes the page
 - [markdown](./markdown/) — `md()` for prose and `md.file()` for a whole `.md`
+- [sprawl](./sprawl/) — a wall of big sections that balances its own columns by real height, first used by `/framework/`
 - [tabs](./tabs/) — a bar of links and the panel its children mount into
 - [toc](./toc/) — this page's own headings as a right-hand nav
 

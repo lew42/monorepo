@@ -43,6 +43,14 @@ export class Doc extends Page {
 		return this;
 	}
 
+	// One flag, read everywhere a preview card is drawn (Page.preview_card(), the sidebar
+	// tree, a future Mention chip): does this module's page document a real ES CLASS, or a
+	// plain function/namespace (`md`, `demo`) that merely has members? `Doc.is_class()`
+	// already answered this for the Overrides note below — this is the same fact, exposed
+	// through the one method every card-drawing caller already calls (`nav_for()` →
+	// `child.nav()`), so nothing has to ask `instanceof Doc` or re-derive it a second way.
+	nav(){ return { ...super.nav(), class_card: Doc.is_class(this.subject) }; }
+
 	// "docs/" is not a real page anywhere — the convention is `doc/`, everywhere (75
 	// modules use it) — but someone will type "docs" out of habit (it happened once
 	// already), so make it resolve instead of 404ing, with no Router change. Router.js

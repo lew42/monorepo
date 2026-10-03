@@ -39,17 +39,73 @@ falls out of the pattern itself.
 - `a#b` never reaches the name check at all — the lookbehind `(?<![\w\[])` rejects it immediately
   because `a` (a word character) sits right before the `#`.
 
-## Where a derived map would plug in
+## Live first, cache second (review finding 2, 2026-10-02)
 
-Both `maps/refs.js` and `maps/people.js` are today a hand-written `{ Name: { url, icon } }`
+The real fix for "a page's icon should just update its mentions" is `lookup()`'s own `live()` step,
+not `sync.mjs` — `sync.mjs` is the fallback's fallback. Every `Page` ever constructed this session
+is tracked (`core/track/track.js`'s `Page.instances()`, opted into once in `Page.class.js`'s own
+constructor, `WeakRef`'d so a throwaway build doesn't leak); `live()` looks for one whose `.url`
+matches the mention's target and, if it finds one, reads that LIVE instance's own `icon` and
+`nav().class_card` instead of whatever `refs.js` says. In practice this is the common case, not the
+rare one: the sidebar's own tree walk (`core/Sidebar/Sidebar.js`'s `nav()`) builds enough of the
+site on every single page load — not just the page you're actually looking at — that most mentioned
+pages already have a live instance before you ever read one. Proved by deliberately drifting
+`core/Page/page.js`'s icon WITHOUT running `sync.mjs`: a fresh, cold page load of
+`/framework/ext/Mention/` alone already showed the new icon (the sidebar's own walk had already
+built `core/Page`); a second check that visited `/framework/core/Page/` first, then navigated to
+Mention client-side (`Router.go()`, the same path a real link click takes), showed it too. Only a
+page genuinely unreachable from the current sidebar state — deep in a branch nothing has expanded —
+would actually fall back to the cache, and that's the trade-off this keeps rather than eliminates:
+eagerly loading every one of the ~30 mentioned pages just to answer "what's its icon" would be a
+much bigger, slower change than one map lookup, so that true cold case still reads `refs.js`.
+
+## Where the cache itself comes from (built 2026-10-02)
+
+Both `maps/refs.js` and `maps/people.js` started as a hand-written `{ Name: { url, icon } }`
 object — picked for "the fastest working version that works first" (this task's own budget was
-about $3). A later pass could build `refs.js`'s object instead of writing it by hand: walk
-`directory.json` (the same file `ext/toc`'s sibling, `ext/filesystem`, already reads), take each
-page's own `title` and `icon` field, and key the map by title. The one thing that pass would still
-need a human for: deciding WHICH of several hundred pages are worth a one-word mention — today's
-seed (the core seven, Servex, nineteen `ext/` modules, four one-off links) is a judgment call, not
-a mechanical one. `Mention.js` itself would not change at all; only where `refs.js`'s object comes
-from.
+about $3) — and `refs.js`'s icons were still hand-typed duplicates of each page's own `icon:`,
+with nothing to notice when the two drifted apart. [`sync.mjs`](../sync.mjs) is that later pass —
+the cache's OWN source of truth, for whenever `live()` above has no live instance to read from —
+in two parts:
+
+1. **Icon**, from text: for every `refs.js` entry whose `url` has a real `page.js` on disk, it
+   reads that file's own TEXT (never imports it — `page.js` files import `/app.js`, a browser-only
+   path Node can't resolve) and pulls the one-tab-indented `icon: "…"` literal, which this
+   codebase's page.js files always write as the page's own top-level config property.
+2. **`class_card`**, from the live page: whether `#Name` should wear the same dark, always-dark
+   "this is a class" look the module index pages give a class card (deliverable 3, 2026-10-02).
+   Text alone can't answer this reliably (chasing an import to find out whether it names a real ES
+   class is exactly the kind of guess that caught Sidebar's demo data below), so this half loads
+   each page headless (`Server/browser.mjs`) and reads `app.router.active.nav().class_card` — the
+   same fact `ext/Doc`'s `Doc.is_class(this.subject)` already computes every time the page renders,
+   not a second guess at it.
+
+A mismatch in either gets fixed in place; `refs.js`'s curated LIST of which ~30 names are worth a
+mention (still a human judgment call, not a mechanical one) never changes. Run it after changing a
+mentioned page's icon or its `subject`: `node public/framework/ext/Mention/sync.mjs`.
+
+Left alone, on purpose: `people.js` (agent ROLES, not pages — several share one url, so there is
+no single page icon or class to agree or disagree with), and four `refs.js` entries that borrow
+another page's url just to have somewhere to click (`CLAUDE.md`, `skills`, `MCP`, `dev-server` —
+their icon stands for their own concept, not for whatever page they happen to land on; syncing
+`skills` and `MCP` from the Servex page they share would have erased the one reason they look
+different from each other).
+
+## The dark card, and the one CSS trap in it
+
+`Mention.js`'s `build_row()` and `page.js`'s own demo wall both add `page-surface-dark` to a
+`class_card` entry's row — the exact class `core/Page/Page.class.js`'s `preview_card()` adds to a
+class's own card, so the two never drift apart in LOOK the way the old hand-typed icons drifted in
+VALUE. ⚠ `ui/item/item.js`'s own `.item` rule resets `background: none` (so a tree row isn't a
+stack of buttons) at the SAME specificity as `.page-surface-dark` (one class each), in the SAME
+`@layer theme` — a tie that the reset was winning, because `.item`'s stylesheet is inserted the
+first time anything on the site imports `item.js`, almost always before `Mention.js` ever runs.
+`Mention.js` declares its own `.item.page-surface-dark { background: var(--dark-bg); color:
+var(--dark-ink); }` AFTER importing `item.js`, which is what makes a later-inserted rule win the
+tie — skipping that one line left every dark mention rendering with no background at all, caught
+only by checking a
+fresh headless page's actual computed style, not a screenshot through a tool that turned out to be
+reusing a browser context with the old module graph cached.
 
 ## What "resolves" means here
 
