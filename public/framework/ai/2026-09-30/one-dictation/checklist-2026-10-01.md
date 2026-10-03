@@ -33,3 +33,4 @@ The voice session's minions edited main directly, and several had no shell, so n
 
 ## Queued after the drawer work (vscode-mastermind, 2026-10-02)
 17. [ ] **Reference suggestions while typing:** in the one chat composer, typing `@`, `#` or `/` shows a strip of chips from Mention's own map, just above the keyboard, and picking one inserts the reference. Low priority, minimal version. ([brief](minion-autocomplete/requirements.md))
+18. [ ] **Chat is the container; Dictate is its voice input** (the owner's direction, 2026-10-02): the chat widget is the one component that goes in the drawer, the dev bar, a card or the sheet, and Dictate plugs into its composer. The fast assistant refines with `prompt-refine`. Four small merges: [plan](chat-container/plan.md).
