@@ -4,6 +4,7 @@ import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
 import { fold_asks } from "../ai/asks/fold.js";
 import { importance, silent_hours } from "./needs-rule.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 export { fold };
 
@@ -402,7 +403,7 @@ export async function new_card(title = "New card"){
 	const id = "topic-" + Date.now().toString(36);
 	const line = { card: { id, title, at: stamp(), icon: "forum",
 		author: "owner", text: "" } };
-	await Socket.singleton().async_rpc("append", BOARD_URL, [JSON.stringify(line)]).catch(() => null);
+	await FsFile.append(BOARD_URL, line);
 	return id;
 }
 
@@ -413,7 +414,7 @@ export async function new_card(title = "New card"){
  *  ones the owner actually meant ("four new cards labelled you"). */
 export async function archive_card(id){
 	const line = { card: { id, status: "archived", by: "owner", at: stamp() } };
-	await Socket.singleton().async_rpc("append", BOARD_URL, [JSON.stringify(line)]).catch(() => null);
+	await FsFile.append(BOARD_URL, line);
 }
 
 /* ── card folders: one folder per card (Servex/cards) ─────────────────────

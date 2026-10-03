@@ -3,9 +3,9 @@ import { edit, set_edit } from "/framework/ext/Ask/edit.js";
 import { section, check } from "/framework/dev/DevBar/parts.js";
 import width from "/framework/dev/DevBar/width.js";
 import blocked from "/framework/dev/DevBar/blocked.js";
-import Socket from "/framework/dev/Socket/Socket.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
 import select from "../select.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import admin from "./admin.js";
 
 /* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
@@ -91,7 +91,7 @@ function this_page(app){
 				// actually fixes the strip and the rail with no reload at all).
 				$box.on("change", async function(){
 					const target = page.jsonl_url ?? page.url + "settings.jsonl";
-					await Socket.singleton().request({ method: "append", args: [target, { settings: { nav: this.el.checked } }] });
+					await FsFile.append(target, { settings: { nav: this.el.checked } });
 				});
 			});
 		});

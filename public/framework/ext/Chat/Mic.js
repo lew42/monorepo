@@ -1,5 +1,6 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
  * THE MICROPHONE of a composer: `ux/Dictate` with a few methods redirected, and
@@ -748,7 +749,7 @@ export class ComposerMic extends Dictate {
 		let ok;
 		try { ok = await this.deliver?.(entry); } finally { this.posting--; }
 		if (ok) return;
-		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e){ console.warn("chat: could not log this utterance", e); }
 	}
 }

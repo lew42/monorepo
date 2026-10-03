@@ -1,4 +1,5 @@
 import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 
 /* Scaffolds the NEXT version dir under `ai/v/` — dev server only. `edit()` is the
@@ -36,9 +37,14 @@ async function text(url){
 	return res.text();
 }
 
+// Through the one file API (ext/filesystem/FsFile.js). A log is never rewritten, so a
+// `.jsonl` is copied as appends onto the new, empty file.
 async function write(path, data){
-	const reply = await Socket.singleton().async_rpc("write", path, data);
-	if (reply?.response === "write failed") throw new Error(`new_version: the server refused to write ${path}.`);
+	const lines = /\.jsonl$/.test(path) && data.split("\n").filter(line => line.trim()).map(line => JSON.parse(line));
+	const ok = lines
+		? !lines.length || await FsFile.append(path, lines)   // an empty log needs no file yet
+		: await FsFile.write(path, data);
+	if (!ok) throw new Error(`new_version: the server refused to write ${path}.`);
 	return true;
 }
 

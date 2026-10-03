@@ -459,9 +459,7 @@ export default class Socket {
 		console.log("cmd response:", res);
 	}
 
-	write(filename, data) {
-		this.rpc("write", filename, data);
-	}
+	// No `write()` helper: files are written only through ext/filesystem/FsFile.js (the one file API).
 
 	log() {
 		console.log(...arguments);

@@ -1,6 +1,7 @@
 import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import PageLog from "./Log.js";
+import LiveList from "../List/LiveList.js";
 import { track } from "../track/track.js";
 
 View.stylesheet(import.meta, "Page.css");
@@ -57,6 +58,14 @@ export class Page extends PageLog {
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
 		this.title ??= this.name;
+
+		// A page's id is its folder name — `static new_id()` (PageLog) deliberately
+		// returns undefined, so this is the ONLY place a page ever gets one. Without
+		// it, `page.pages`'s `key(x) => x.id` never matches anything by name, and
+		// every `add()`-ed child becomes permanently unfindable by `children.get()`/
+		// `.has()` — found 2026-10-02 chasing a 404 in core/Page/generator/, whose
+		// own `grow()` adds children exactly this way.
+		this.id ??= this.name;
 		return this.words();
 	}
 
@@ -107,21 +116,22 @@ export class Page extends PageLog {
 	// and still needs the frame, because the frame draws the very box it paints.
 	words_said(){ return !!(this.surface || this.word_classes().length); }
 
-	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
-	// A POJO declares by title — the key is the title, Page.slug(key) the url segment.
-	// ⚠ `list` IS THE DECLARATION — the config's own `children` when the constructor
-	//   calls this, and whatever a data source answered with later, so a SECOND call
-	//   ADDS and the children declared by name keep their places. A FUNCTION is a data
-	//   SOURCE: it declares nothing now and is called on the first ask, by
-	//   source_children() below. doc/data-children.md.
-	declare(list = this.children ?? []){
+	// My sub-pages, in declaration order: undefined = not mine, null = declared, Page
+	// = here — the Map-shaped shim over `page.pages` (Log.js) that is the real
+	// storage now. A POJO declares by title — the key is the title, Page.slug(key)
+	// the url segment.
+	// ⚠ `list` IS THE DECLARATION — the config's own `children` (staged by Log.js's
+	//   `set children()` the moment the constructor's `assign()` sees one, read here
+	//   once `naming()` has given me a `url` to move them into) and whatever a data
+	//   source answered with later, so a SECOND call ADDS and the children declared
+	//   by name keep their places. A FUNCTION is a data SOURCE: it declares nothing
+	//   now and is called on the first ask, by source_children() below. doc/data-children.md.
+	declare(list = this._raw_children ?? []){
 		if (is.fn(list)) { this.child_source = list; list = []; }
 
 		const entries = is.str(list) ? list.trim().split(/\s+/)
 		              : is.arr(list) ? list
 		              : Object.entries(list);
-
-		if (!(this.children instanceof Map)) this.children = new Map();
 
 		entries.forEach(child => {
 			if (is.str(child)) return this.children.set(this.child_file(child), null);   // "kid/page.jsonl" → kid
@@ -161,16 +171,25 @@ export class Page extends PageLog {
 		if (this.url) page.move(this.url + name + "/");
 
 		page.naming();
-		this.children.set(name, page);
+
+		// Quietly — declaring a child is not a live edit. A stub already holding this
+		// name (an earlier `file`/`tab` line, or `declare()`'s own string form) is
+		// REPLACED in place (`LiveList.replace`, never announces); otherwise this is
+		// a fresh insert. `page.pages` (Log.js) is the real storage; `this.children`
+		// above is only the Map-shaped view over it.
+		const stub = this.pages.find(name);
+		stub ? this.pages.replace(stub, page) : this.pages.insert(page);
 		return page;
 	}
 
-	// Adoption hands a page a new address; the resolved subtree moves with it.
+	// Adoption hands a page a new address; the resolved subtree moves with it. Stubs
+	// (not yet loaded) have no `.move()` of their own and are skipped, same as the
+	// old `child?.move(...)` did when `child` was `null`.
 	move(url){
 		if (this.url === url) return this;
 
 		this.url = url;
-		this.children.forEach((child, name) => child?.move(url + name + "/"));
+		this.pages.forEach(child => { if (!child.stub) child.move(url + child.id + "/"); });
 		return this;
 	}
 
@@ -681,9 +700,61 @@ export class Page extends PageLog {
 	     produces, in the reading track, and reads backticks as code the way every other
 	     paragraph on the site does. */
 	render_content(){
+		if (this.content instanceof LiveList) return this.render_content_list();
 		if (is_address(this.content)) return this.content_at(this.content);
 		if (is.str(this.content)) return p(this.content);
 		return is.fn(this.content) ? this.content() : this.content;
+	}
+
+	/* ════ A CONTENT LIVELIST, DRAWN — the one reusable view (deliverable 6,
+	   page-item-design.md). One row per item, each item's own `.view`; drag to
+	   reorder with `ext/Draggable/Sortable` (dynamic import — core never imports
+	   ext); redrawn from the list's own events, never polled.
+	   ⚠ `item: { items: list, … }` on the CONTAINER's own Sortable, and `item: item`
+	     (the real content Item) on each ROW's — `Sortable.release()` (ext/Draggable)
+	     commits a drop through `where.list.item.items.move(dragged, { from:
+	     dragged.parent?.items })`, a name every OTHER caller of Sortable (Panel, the
+	     editor's blocks) happens to have chosen for its own list too. `content`'s
+	     real name everywhere else is `content`; `items` here is only that one seam,
+	     confined to this method. A page has no `.items` of its own, so `from`
+	     resolves to `undefined` and `move()` reorders within THIS list — exactly
+	     right for a flat list with no nesting. */
+	render_content_list(){
+		const list = this.content;
+		let $rows;
+
+		// ⚠ `item.view` is undefined until core/Item grows a real default view (the
+		//   `static View` wiring Item.js's own comment names, not yet built) — so a
+		//   plain, untyped item (no view of its own) falls back to its own title or
+		//   text, read straight off its data bag, rather than drawing an empty row.
+		const draw_row = item => {
+			const $row = div.c("page-content-row", () => {
+				if (item.view) $rows.append(() => item.view);
+				else p(item.get("title") ?? item.get("text") ?? String(item.id));
+			});
+			import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+				new Sortable({ view: $row, item });
+			});
+			return $row;
+		};
+
+		// ⚠ A BLOCK BODY, not `() => list.forEach(draw_row)` — `forEach()` returns the
+		//   list itself, and an arrow function's IMPLICIT return hands that back to
+		//   `div.c()` as one more thing to append, which stringifies it into a stray
+		//   "[object Object]" text node after the real rows (found taking this
+		//   method's own screenshot, 2026-10-02).
+		const box = div.c("page-content-list flow", () => {
+			$rows = div.c("page-content-rows drag-items", () => { list.forEach(draw_row); });
+		});
+
+		import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
+		});
+
+		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
+		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
+
+		return box;
 	}
 
 	/* A PAGE OR A FILE, AT AN ADDRESS, DRAWN IN THIS PAGE'S BOX. `content: "/notes/x.md"`
@@ -1223,16 +1294,19 @@ export class Page extends PageLog {
 		return this;
 	}
 
-	// ════ STORAGE — the page's own url IS the id ══════════════════════════════
+	// ════ PREFERENCES — the page's own url IS the id ═══════════════════════════
 	// A handle over localStorage: `get` / `set` / `patch` / `clear`. Production is
 	// static, so there is no server to hand out ids — and a page already has one
 	// thing that is unique, stable and human-readable: its address, derived by
 	// naming(), so it cannot drift out of step with the tree the way a hand-typed
-	// `id: "team-board"` would. doc/method/store.md.
+	// `id: "team-board"` would. doc/method/prefs.md.
 	// ⚠ Storage, not STATE — nothing here notifies. A page that wants a redraw
 	//   calls its own watcher after the write; a subscription API in core would
 	//   make ~160 pages pay for a pattern four of them want (doc/roles.md).
-	store(){ return new this.constructor.Store({ page: this }); }
+	// ⚠ Renamed from `store()` (was `Page.Store`) — `page.store` is now the LIVE
+	//   jsonl Store (Item.Store, core/Item/Store.js, attached by `Page.jsonl()`),
+	//   and the two must never share a name again.
+	prefs(){ return new this.constructor.Prefs({ page: this }); }
 
 	// ext/tabs patches `tabs()` onto this prototype and fills `regions`, which
 	// container() reads. Nothing here declares either.
@@ -1266,10 +1340,10 @@ let warned = false;
 function warn(key, error){
 	if (warned) return;
 	warned = true;
-	console.warn(`store(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
+	console.warn(`prefs(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
 }
 
-Page.Store = class PageStore {
+Page.Prefs = class PagePrefs {
 
 	// The app's own namespace: one origin serves /notes/, /imagine/ and every demo,
 	// so an unprefixed url is a collision waiting for the next site on this domain.
@@ -1280,7 +1354,7 @@ Page.Store = class PageStore {
 
 	// The whole idea, in one line. `id` is the seam for a caller that is not a
 	// page at all, one fixed key regardless of url — `core/Sidebar`'s rail
-	// (merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Store({ id:
+	// (merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Prefs({ id:
 	// "sidebar" })` is the same `lew42:sidebar` key that file always wrote).
 	// `store_key` is still the seam for a page that MOVED: move() re-addresses
 	// a whole subtree, so an adopted page would otherwise change key silently
@@ -1311,18 +1385,18 @@ Page.Store = class PageStore {
 	// null when nothing is saved OR the saved value is corrupt — `get()` decides
 	// what that means, because only the caller knows its defaults.
 	read(){
-		const value = PageStore.read_raw(this.key());
+		const value = PagePrefs.read_raw(this.key());
 		return value === undefined ? memory.get(this.key()) ?? null : value;
 	}
 
 	get(fallback = {}){ return { ...fallback, ...(this.read() ?? {}) }; }
 
 	// Always "succeeds" from the caller's own point of view — write_raw's own
-	// return is ignored here on purpose, the same silent-degrade Page.Store has
+	// return is ignored here on purpose, the same silent-degrade Page.Prefs has
 	// always promised (see the comment above `memory`).
 	set(data){
 		memory.set(this.key(), data);
-		PageStore.write_raw(this.key(), data);
+		PagePrefs.write_raw(this.key(), data);
 		return data;
 	}
 
@@ -1331,7 +1405,7 @@ Page.Store = class PageStore {
 
 	clear(){
 		memory.delete(this.key());
-		PageStore.clear_raw(this.key());
+		PagePrefs.clear_raw(this.key());
 	}
 };
 

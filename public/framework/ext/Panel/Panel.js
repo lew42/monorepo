@@ -1,12 +1,35 @@
 import Item from "/framework/core/Item/Item.js";
+import LiveList from "/framework/core/List/LiveList.js";
 
 /* One class. A panel holding items is a split (`dir`); a panel holding none is a leaf
    that renders `template`. Structure changes only through these verbs.
 
    ⚠ Nothing else in this directory may be named `panel.js` — Windows folds it into
    this file. The old widget file split into `workspace.js` + `PanelDrag.js` for
-   exactly this reason. Record: readme.md. */
+   exactly this reason. Record: readme.md.
+
+   ⚠ Item itself holds no children (core/Item/readme.md) — a Panel gives ITSELF the
+   `items` list, in its own constructor, so it still comes back the same way on
+   replay as it did live (`Item.hydrate()` just calls `new Panel(...)`, which runs
+   this constructor exactly the way `new Panel()` did the first time). Every old
+   `kid.move(parent, before)` below is now `parent.items.move(kid, { before, from })`
+   — `move()` is still the one node-relative verb (reorder AND reparent), it just
+   lives on the LIST now, not on the Item. */
 export class Panel extends Item {
+
+	constructor(...args){
+		super(...args);
+		this.items = new LiveList({ owner: this, name: "items" });
+	}
+
+	/* Two convenience methods matching the OLD Item-level API, kept here (not on
+	   Item) because the rest of ext/Panel/ — workspace.js, PanelDrag.js, random.js,
+	   insert.js, generate.js, none of them in this task's fence — calls
+	   `panel.add(...)` and `panel.move(parent, before)` directly on a Panel. Moving
+	   the real verbs onto `items` (core/List/LiveList.js) stays entirely inside this
+	   one file instead of touching every caller across the directory. */
+	add(...kids){ kids.forEach(kid => this.items.add(kid)); return this; }
+	move(parent, before = null){ parent.items.move(this, { before, from: this.parent?.items }); return this; }
 
 	/* Defaults live here, not in `data`, so only what somebody chose ever serializes — and a
 	   MIRROR reads its master for the keys it shares. ⚠ `?? this` is the guard for an id that
@@ -93,12 +116,14 @@ export class Panel extends Item {
 		const up = this.parent;
 
 		if (up && up.get("dir") === dir){
-			const kids = up.items.children;
+			const kids = [...up.items];
 			const ref = before ? this : kids[kids.indexOf(this) + 1] ?? null;
 
 			// ⚠ The arrival is already in that slot — `move()` detaches first, so
 			// `insert_before` would find no ref and push it to the row's far end.
-			return ref === made ? made : made.move(up, ref);
+			if (ref === made) return made;
+			up.items.move(made, { before: ref, from: made.parent?.items });
+			return made;
 		}
 
 		return this.split(dir, made, before);
@@ -111,7 +136,7 @@ export class Panel extends Item {
 	split(dir, made = new Panel(), before = false){
 		// ⚠ `draw` is an instance property (panel(fn)'s content), so it moves by hand.
 		const mine = new Panel({ data: { ...this.data, grow: 1 }, draw: this.draw });
-		[...this.items].forEach(kid => kid.move(mine));
+		[...this.items].forEach(kid => mine.items.move(kid, { before: null, from: kid.parent?.items }));
 
 		this.data = { dir, grow: this.get("grow") };
 
@@ -123,8 +148,8 @@ export class Panel extends Item {
 
 		delete this.draw;
 
-		this.add(mine);
-		made.move(this, before ? mine : null);
+		this.items.add(mine);
+		this.items.move(made, { before: before ? mine : null, from: made.parent?.items });
 
 		// ⚠ LAST, and after `made` is in the tree: the copy button on a root leaf splits the
 		// very panel it just mirrored, so the arrival must be there for the walk to find.
@@ -148,9 +173,9 @@ export class Panel extends Item {
 
 	// My only child takes my place: its content and its data, my share of the row.
 	absorb(){
-		const only = this.items.children[0];
+		const only = this.items.at(0);
 
-		[...only.items].forEach(kid => kid.move(this));
+		[...only.items].forEach(kid => this.items.move(kid, { before: null, from: kid.parent?.items }));
 		this.data = { ...only.data, grow: this.get("grow") };
 		this.draw = only.draw;
 

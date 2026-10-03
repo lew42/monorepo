@@ -1,8 +1,8 @@
 import { div, span, p, button, textarea } from "../../core/View/View.js";
-import Socket from "/framework/dev/Socket/Socket.js";
 import md from "../markdown/md.js";
 import { ask, available } from "./Ask.js";
 import Dictate from "../../ux/Dictate/Dictate.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
  * Reply to ONE thing, where it already is.
@@ -69,11 +69,11 @@ export function stamp(){
 /** Whole lines into a task's own log, through the dev socket. True when it took them. */
 export async function append(url, lines){
 	const answer = await Promise.race([
-		Socket.singleton().async_rpc("append", url, [lines].flat().map(l => JSON.stringify(l))),
+		FsFile.append(url, lines),
 		new Promise(done => setTimeout(done, WIRE, null)),
 	]);
 
-	if (answer?.response === "append successful") return true;
+	if (answer === true) return true;
 	console.error("Ask/reply: the dev server refused the append — restart it (rpc:append landed 2026-08-31)", answer);
 	return false;
 }

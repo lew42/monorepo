@@ -1,13 +1,13 @@
 import PageMarkdown from "../../core/Page/Markdown.js";
 import FsFile from "./FsFile.js";
-import FsDir from "./FsDir.js";
+import Dir from "./Dir.js";
 
 /**
- * root() — the whole site as one `FsDir` tree, built ONCE from `/directory.json` (the
+ * root() — the whole site as one `Dir` tree, built ONCE from `/directory.json` (the
  * dev server's file list; `core/Page/Markdown.js`'s `tree()` is the one fetch, reused
  * here rather than fetched a second time) and cached for the life of the page.
  *
- *   const site = await root();       // FsDir, or null off the dev server
+ *   const site = await root();       // Dir, or null off the dev server
  *   site.find("framework/ext/filesystem/FsFile.js")   // an FsFile
  *   site.walk().filter(node => node instanceof FsFile)   // every real file
  *
@@ -22,11 +22,11 @@ import FsDir from "./FsDir.js";
  * from that point on — no second, racing fetch.
  */
 export function root(){
-	return FsDir.rooted ??= build().then(site => { FsDir.resolved = site; return site; });
+	return Dir.rooted ??= build().then(site => { Dir.resolved = site; return site; });
 }
 
 export function resolved(){
-	return FsDir.resolved;
+	return Dir.resolved;
 }
 
 async function build(){
@@ -36,7 +36,7 @@ async function build(){
 }
 
 function grow(node, path, parent){
-	const dir = new FsDir({ name: node.name ?? "", path, parent, children: [] });
+	const dir = new Dir({ name: node.name ?? "", path, parent, children: [] });
 	dir.children = (node.children ?? []).map(child => {
 		const childPath = path ? path + "/" + child.name : child.name;
 		return child.type === "dir"

@@ -149,6 +149,13 @@ an answer meant for the second pass's finding 3 silently overwrites the first pa
 3's answer, by number — a real trap, not a theoretical one (`review-turns`, 2026-09-28, minion C's
 own mistake mid-task; caught and corrected the same way, an appended corrective answer line).
 
+## The one file API check
+
+Every review run first fails the branch if any file under `public/` (the dated task logs
+`ai/20*` excepted) calls the dev socket's `write` or `append` RPC outside
+`ext/filesystem/FsFile.js` and `dev/Socket/`, before any agent is paid for. Run it alone
+with `node Server/review.mjs --file-api <worktree>`. Why: [`ext/filesystem/readme.md`](../../public/framework/ext/filesystem/readme.md), "One file API".
+
 ## The merge gate
 
 `Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last

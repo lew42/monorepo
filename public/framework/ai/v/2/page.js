@@ -78,9 +78,9 @@ function first_sentence(text){
    three classes framework.css already ships (`.size-small` 0.75 / `.size-
    regular` 1 / `.size-large` 1.5, framework.css ~line 577). "Compact / cozy /
    roomy" are this board's own words for that same ladder, remembered in
-   Page.Store so the choice survives a reload. Default compact. */
+   Page.Prefs so the choice survives a reload. Default compact. */
 const DENSITY = { compact: "size-small", cozy: "size-regular", roomy: "size-large" };
-const store = new Page.Store({ id: "ai-v2" });
+const store = new Page.Prefs({ id: "ai-v2" });
 
 function density_get(){ return store.get({ density: "compact" }).density; }
 function density_set($board, name){
@@ -179,7 +179,7 @@ function links_of(item){
 }
 
 /* Newest first; five showing, the rest behind "earlier". A × on each row
-   dismisses it — remembered by id in Page.Store — but the line itself stays
+   dismisses it — remembered by id in Page.Prefs — but the line itself stays
    in the run's own log; dismissing hides it from THIS board, nothing more. */
 function notes(run, ctx){
 	const dismissed = new Set(store.get({ dismissed: [] }).dismissed);

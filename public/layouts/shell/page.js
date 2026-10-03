@@ -83,7 +83,7 @@ export default new Page({
 
 		/* The remembered width, applied before anything is on screen so the rail
 		   never renders at one size and jumps to another. */
-		const saved = this.store().get({ px: null }).px;
+		const saved = this.prefs().get({ px: null }).px;
 		if (saved) this.view.style("--std-shell-rail", saved + "px");
 
 		return this.view;
@@ -118,7 +118,7 @@ export default new Page({
 		const width = px ? Math.round(px) : null;
 
 		this.view?.style("--std-shell-rail", width ? width + "px" : "");
-		this.store().patch({ px: width });
+		this.prefs().patch({ px: width });
 
 		return width;
 	},

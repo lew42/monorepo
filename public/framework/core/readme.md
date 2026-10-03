@@ -1,4 +1,4 @@
-# Core — the seven classes under every page: four are elements, one owns the url, two are the DOM-free data tier
+# Core — the seven classes under every page (listed under More): four are elements, one owns the url, two are the DOM-free data tier
 
 ## Index
 

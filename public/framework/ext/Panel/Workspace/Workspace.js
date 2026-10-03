@@ -118,7 +118,7 @@ export default class Workspace {
 	   (`this.parent` is forever null, so its sibling branch can never fire) — fine for a
 	   LEAF root (the usual `split()` conversion, old content preserved as a sibling) but
 	   WRONG once the root already holds children: it would re-wrap every existing section
-	   into one nested child instead of adding a flat new one. `new Panel().move(root)` is
+	   into one nested child instead of adding a flat new one. `root.items.add(new Panel())` is
 	   `workspace.js`'s own `sown()` for this exact shape (design §5, "one roll = one
 	   section") — the same fix serves `fill` mode too, so there is no mode branch here.
 	   ⚠ The template picker does not auto-open — its trigger lives on `toolbar.js`'s own
@@ -129,7 +129,7 @@ export default class Workspace {
 		if (!root) return;
 
 		const target = focused(root) ?? root;
-		if (target === root) return void (root.leaf() ? root.divide(root.get("dir"), new Panel(), false) : new Panel().move(root));
+		if (target === root) return void (root.leaf() ? root.divide(root.get("dir"), new Panel(), false) : root.items.add(new Panel()));
 
 		target.divide(target.parent?.get("dir") ?? "row", new Panel(), false);
 	}

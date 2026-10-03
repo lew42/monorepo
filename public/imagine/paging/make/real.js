@@ -1,5 +1,6 @@
 import { Page, div, p, span, icon } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import Tree from "/framework/ux/Tree/Tree.js";
 import { press } from "../paging.js";
@@ -389,8 +390,8 @@ export async function commit(plan){
 	if (out_text === null && !same_parent) return fail(no_anchor(plan.out.url));
 
 	await Promise.all([
-		out_text !== null ? socket.async_rpc("write", plan.out.url + "page.js", out_text) : null,
-		socket.async_rpc("write", plan.into.url + "page.js", into_text),
+		out_text !== null ? FsFile.write(plan.out.url + "page.js", out_text) : null,
+		FsFile.write(plan.into.url + "page.js", into_text),
 	]);
 
 	// 4 — the same move, in memory.

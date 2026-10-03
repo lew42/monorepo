@@ -29,7 +29,7 @@
    THE OWNER IS THE ONLY WRITER. No agent writes a verdict; the file starts absent
    and a missing file is not an error — it simply means nothing has been judged yet. */
 
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
@@ -91,11 +91,11 @@ export class Verdicts {
 		const row = { at: stamp(), item, say: verdict, note };
 
 		const reply = await Promise.race([
-			Socket.singleton().async_rpc("append", FILE, JSON.stringify({ verdict: row })),
+			FsFile.append(FILE, { verdict: row }),
 			new Promise(done => setTimeout(done, WIRE, null)),
 		]);
 
-		if (reply?.response !== "append successful")
+		if (reply !== true)
 			throw new Error("the dev server refused the append — restart it (rpc:append landed 2026-08-31)");
 
 		return this.expect(row);

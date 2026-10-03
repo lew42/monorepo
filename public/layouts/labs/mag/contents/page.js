@@ -73,10 +73,10 @@ export default new Page({
 	// An article has no list of its own; it asks ME (`this.parent` from Article.js).
 	// One key (`lew42:/layouts/labs/mag/contents/`), one array of slugs — never nine.
 	initialize(){
-		this.read = new Set(this.store().get({ read: [] }).read);
+		this.read = new Set(this.prefs().get({ read: [] }).read);
 	},
 
-	// Storage is not state (doc/method/store.md) — a redraw is three lines this
+	// Storage is not state (doc/method/prefs.md) — a redraw is three lines this
 	// page already owns, the same shape `/imagine/game/` uses for its own store.
 	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
 	bump(){ this.watchers?.forEach(fn => fn()); },
@@ -84,7 +84,7 @@ export default new Page({
 	mark_read(slug){
 		if (this.read.has(slug)) return;
 		this.read.add(slug);
-		this.store().set({ read: [...this.read] });
+		this.prefs().set({ read: [...this.read] });
 		this.bump();
 	},
 
@@ -94,7 +94,7 @@ export default new Page({
 	// opened this browser holds nothing about the issue's read state at all.
 	reset_read(){
 		this.read.clear();
-		this.store().clear();
+		this.prefs().clear();
 		this.bump();
 	},
 });

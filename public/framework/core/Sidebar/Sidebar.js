@@ -381,11 +381,11 @@ export class Sidebar extends View {
 
 	// One key, shared by every Sidebar on the site: it is one piece of persistent
 	// chrome, not a per-page setting, so resizing it on one topic remembers for all
-	// of them. `Page.store()` is keyed on a PAGE's own url; `id: "sidebar"` is the
-	// seam `Page.Store` gained for exactly this (merged 2026-09-18, doc/decisions.md)
+	// of them. `Page.prefs()` is keyed on a PAGE's own url; `id: "sidebar"` is the
+	// seam `Page.Prefs` gained for exactly this (merged 2026-09-18, doc/decisions.md)
 	// — the same `lew42:sidebar` key this file always wrote, now with no second
 	// copy of the read/write/JSON-parse/catch it takes to get there.
-	store(){ return new Page.Store({ id: "sidebar" }); }
+	store(){ return new Page.Prefs({ id: "sidebar" }); }
 
 	// The document already declares the site's icon; don't hardcode an asset path.
 	static favicon(){

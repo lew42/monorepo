@@ -33,7 +33,7 @@ export class Omnibox extends View {
 		this.shown = PAGE;
 		this.matches = [];
 		this.search = new Search();
-		this.store = new Page.Store({ page: { store_key: "omnibox" } });
+		this.store = new Page.Prefs({ page: { store_key: "omnibox" } });
 
 		this.bar();
 		this.chips();

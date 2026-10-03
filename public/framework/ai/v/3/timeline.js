@@ -30,7 +30,7 @@ import { JSONL } from "../../../ext/JSONL/JSONL.js";
  * for the exact same reason — the owner, verbatim: "the data should not be
  * saved in the ai/v/3/ dir... the actual ai tasks and whatnot is template
  * (v3) agnostic, and should be stored like the rest." A verdict judges a
- * board CARD, not this version's own UI (that stays in `Page.Store`, per-
+ * board CARD, not this version's own UI (that stays in `Page.Prefs`, per-
  * browser) — a future v4 would need the exact same verdicts on the exact
  * same cards, so the file lives beside `board.jsonl`, not inside this
  * folder, and this is the one place that resolves it.

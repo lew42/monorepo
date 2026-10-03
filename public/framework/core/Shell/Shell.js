@@ -151,11 +151,11 @@ export class CoreShell extends View {
 		if (saved.right) this.style("--core-shell-right-w", saved.right + "px");
 	}
 
-	// One localStorage record per shell `name` — reusing `Page.Store`'s own
+	// One localStorage record per shell `name` — reusing `Page.Prefs`'s own
 	// guarded read/write (private mode, a full quota: it falls back to memory
 	// and warns once, never throws) instead of a second hand-rolled try/catch
 	// (doc/decisions.md).
-	store(){ return new Page.Store({ id: `shell:${this.name}` }); }
+	store(){ return new Page.Prefs({ id: `shell:${this.name}` }); }
 
 	// `dark: true` darkens the whole shell (color-scheme is inherited, so every
 	// `light-dark()` token under it flips at once); `dark: ["left","right"]`

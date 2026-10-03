@@ -21,17 +21,11 @@ export default class FileSaver extends Saver {
 	}
 
 	async write(item){
-		const socket = Socket.singleton();
 		if (!edit()) return this.read_only();
 
-		const reply = await socket.async_rpc("write", this.path, JSON.stringify(item, null, "\t"));
-
-		if (reply?.response === "write failed"){
-			console.warn(`FileSaver: the server refused to write ${this.path}.`);
-			return false;
-		}
-
-		return true;
+		// The one file API (ext/filesystem/FsFile.js) does the write and warns on a refusal.
+		const { default: FsFile } = await import("../filesystem/FsFile.js");
+		return new FsFile({ path: this.path }).write(JSON.stringify(item, null, "\t"));
 	}
 
 	// Fire and forget: `rm` has a reply nobody waits on, so `true` means sent.

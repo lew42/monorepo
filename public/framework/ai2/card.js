@@ -161,7 +161,7 @@ export default class Card extends Page {
 	/** One outline line, `{"item": {"id", "title", "asked_at", "done", "proof"}}`; the same id again updates it. */
 	item(it){
 		if (!it?.id) return;
-		const list = this.items ??= new Map();
+		const list = this.outline_items ??= new Map();
 		list.set(it.id, { ...list.get(it.id), ...it });
 		this.talk?.sync();
 	}
@@ -193,7 +193,7 @@ export default class Card extends Page {
 		this.info = null;
 		this.messages = [];
 		this.prompts = [];
-		this.items = new Map();
+		this.outline_items = new Map();
 		this.attached = [];
 		this.legacies = [];
 		this.citing = [];
@@ -376,7 +376,7 @@ export default class Card extends Page {
 			this.description, this.links, this.flag_note, this.attached?.length, this.md_names(), this.placed, [...this.listed?.values() ?? []], cards_ready.known,
 			this.group_info(), this.subs().map(s => cards?.card(this.id + "/" + s) ?? s), this.cost_model(this.group_info()),
 			agent_cost(this.id, () => this.redraw()), this.shell?.ai2?.groups?.task_member(task_of(this))?.landed_at,
-			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.items?.values() ?? [])], this.chats]);
+			!this.tiny() && this.shows_tabs() && this.open_tab(), [...(this.sub_group ?? [])], [...(this.sub_done ?? [])], [...(this.sub_meta ?? [])], this.refined?.text, this.prompts?.[0]?.text, [...(this.outline_items?.values() ?? [])], this.chats]);
 	}
 
 	redraw(){
@@ -774,7 +774,7 @@ export default class Card extends Page {
 	/* A CARD WITH REQUESTS IS SUMMED UP BY ITS REQUESTS (the owner, 2026-09-25: a day of landed
 	   work read "0 Delivered"). Old cards have no `item` lines, so the checklist is the
 	   requests themselves, each ticked by `load_groups()`'s delivered rule, under its group. */
-	by_request(){ return !this.items?.size && this.subs().length > 0; }
+	by_request(){ return !this.outline_items?.size && this.subs().length > 0; }
 
 	/* ⚠ A SUB-CARD IS NOT ALWAYS A REQUEST. System design's are topic stubs, `{"title", "icon"}`
 	   and nothing else: no id, no class, nothing asked. So a row's title is read from the

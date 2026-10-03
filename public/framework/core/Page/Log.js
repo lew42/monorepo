@@ -1,5 +1,7 @@
 import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import { page_settings } from "./settings/settings.js";
+import Item from "../Item/Item.js";
+import LiveList from "../List/LiveList.js";
 
 /* A PAGE AS A LOG — `page.jsonl`, the page format that needs no page.js.
 
@@ -11,7 +13,13 @@ import { page_settings } from "./settings/settings.js";
    Every line after the first is one `set()` call, and there is no table mapping JSON
    keys to what they do: a key that names a method calls it, anything else is data.
    `place` does what `place()` below does. Page `extends` this class, so a subclass
-   (a Card) adds a word by adding a method. doc/jsonl.md. */
+   (a Card) adds a word by adding a method. doc/jsonl.md.
+
+   PageLog extends Item (core/Item/Item.js): `page instanceof Item` is true, Page's
+   `on`/`off`/`emit` are Item's (the Events mixin), and Page's `set()` is Item's
+   `apply()`-based routing — PageLog only adds the thin jsonl-specific bits below.
+   core/Page/doc/decisions.md records the move; core/2026-09-30/proposal-flow/
+   page-item-design.md ("LATEST … fourth pass") is the design this follows. */
 
 // ⚠ Localhost only, the same gate Page.class.js keeps.
 const dev = ["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost");
@@ -23,30 +31,116 @@ const CHILD = /^([^/]+)\/page\.(jsonl|js)$/;
 // "kid/page.jsonl" are one entry, and the latest line for it wins. Keyed the same here.
 const key_of = name => name.split("/")[0];
 
-const skipped = key => key === "constructor" || key === "__proto__" || key.startsWith("_");
-
-// ⚠ A Map has a `set` too, but it takes TWO arguments — `children` is core's own
-//   bookkeeping, and a line may neither pass a value into it nor replace it.
-const settable = value => value && typeof value === "object" && is.fn(value.set) && !(value instanceof Map);
-
-export class PageLog {
+export class PageLog extends Item {
 
 	// ════ SETTINGS — `{"settings": {"nav": false}}` ═══════════════════════════════
 	// A page's own preferences. Today there is exactly one: `nav` — "does this page
 	// show up in its parent's navigation?" (core/Page/settings/, loading-study.md
 	// section 4). `this.settings` is never a PLAIN object: it starts life as this tiny
-	// object with its own `set()`, so `set()` below routes a `settings` line into
-	// `settable()`'s branch and MERGES — the same trap `file()` avoids by keeping its
-	// own state off `this.file`: a plain object here would get SHADOWED (fully
-	// replaced) by the second settings line instead of merged with the first.
+	// object with its own `set()`, so Item's `set_one()` routes a `settings` line into
+	// its "has its own `.set()`" branch and MERGES — the same trap `file()` avoids by
+	// keeping its own state off `this.file`: a plain object here would get SHADOWED
+	// (fully replaced) by the second settings line instead of merged with the first.
 	settings = { set(obj){ Object.assign(this, obj); } };
 
-	// ════ EVENTS — on(event, fn) / emit(event, …) ═════════════════════════════════
-	// The two hooks an extension's setup(page) gets: `line` (below, every line after
-	// the first) and `render` (Page.class.js's render(), after content is drawn).
-	// Modelled on Server/Events.js's on()/emit(), kept to what a page actually needs.
-	on(event, fn){ (this.listeners ??= {})[event] ??= []; this.listeners[event].push(fn); return this; }
-	emit(event, ...args){ this.listeners?.[event]?.forEach(fn => fn.call(this, ...args)); }
+	// A page is a BOUNDARY: its own events (and a content/pages LiveList's, which
+	// bubble to the page first) never climb past it to a PARENT page. Each page's
+	// Store only ever hears changes inside its own subtree.
+	bubbles(){ return false; }
+
+	// A page's id is its folder name, not a random one — `naming()` (Page.class.js)
+	// sets `this.id ??= this.name` once the url (and so the name) is known. Nothing
+	// here can invent one before that.
+	static new_id(){ return undefined; }
+
+	// Data lives ON THE INSTANCE (`this.title`, `this.icon`, …), not in a nested
+	// `data` bag — that's what makes `page.title` real. `unknown` tracks a key
+	// nobody — no method, no own property — already knew, the same census
+	// `report_unknown()` reads below.
+	get(key){ return this[key]; }
+	put(key, value){
+		if (!(key in this)) (this.unknown ??= new Set()).add(key);
+		this[key] = value;
+	}
+
+	// `assign()` that calls methods instead of overwriting them — Item's `apply()`
+	// does the real routing (a method key calls it, a value with its own `set()`
+	// gets the nested delta, anything else is data via `get`/`put` above, emitting
+	// `change` + `delta`). PageLog's own job is three things on top: keep every
+	// line for a late `on("line", …)` listener to catch up on, emit `line` exactly
+	// ONCE per line the reader hands this page (never once per recursive nested
+	// `set()` call `apply()` makes along the way — those land on a DIFFERENT
+	// object, never back through this override), and make `page.content` lazily
+	// the moment a content delta arrives (doc/method/set.md).
+	set(obj){
+		(this.jsonl_lines ??= []).push(obj);
+		this.emit("line", obj);
+
+		if ("content" in obj && !(this.content instanceof LiveList)){
+			const { content, ...rest } = obj;
+			this.ensure_content().set(content);
+			return super.set(rest);
+		}
+
+		// The Store writes a live content change as `{"at": "content/…", …}`; on replay
+		// `locate()` needs `page.content` to be a LiveList already, so make it here too.
+		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
+
+		return super.set(obj);
+	}
+
+	// Made the first time a content DELTA arrives (a `{"content": {...}}` line) or a
+	// code caller reaches for it directly — never up front, so a page with no visible
+	// blocks of its own pays nothing. Once it exists, Item's own `set_one()` routes
+	// straight to its `.set()` without this method running again (deliverable 6).
+	ensure_content(){
+		return this.content instanceof LiveList ? this.content
+			: (this.content = new LiveList({ owner: this, name: "content" }));
+	}
+
+	// My sub-pages — the real storage `page.pages`. `of: null` keeps a plain stub
+	// object (`{id, name, stub: true}`) plain: LiveList.make() hydrates a plain value
+	// through `of` only when `of` is truthy, so a stub is never turned into an Item.
+	// A REAL loaded page is a `Page` instance already (never plain), so it is
+	// inserted/replaced UNCHANGED either way — see `add()`, Page.class.js.
+	get pages(){ return this._pages ??= new LiveList({ owner: this, name: "pages", of: null }); }
+
+	// A Map-SHAPED VIEW over `pages`, so the ~215 existing `.children` callers across
+	// ~94 files keep working unchanged while the real storage is the LiveList above.
+	// New code and docs say `page.pages`. `PageChildren extends Map` so
+	// `instanceof Map` stays true and a page.jsonl line can never REPLACE it (see the
+	// setter below) — only `declare()` (Page.class.js) ever builds the real tree.
+	get children(){ return this._children ??= new PageChildren(this); }
+
+	// A config `children: […]` arrives here through ordinary `Object.assign` (the
+	// constructor's own `this.assign(...args)`, Page.class.js) — this only STAGES it;
+	// `declare()` is the one place that actually reads it (after `naming()` has set
+	// `this.url`, which children need to move into). That's what "routes through
+	// declare()" means: nothing can hand `this.children` a plain array/Map and have
+	// it stick — only `declare()`'s own building, quietly, into `pages`.
+	// ⚠ `this.children = new Map()` is also how a LIVE page throws its whole tree
+	//   away and starts over (core/Page/generator/page.js's `grow()`, a regrow on
+	//   every spec change) — nobody hand-builds a config as a real `Map`, so that
+	//   shape unambiguously means "forget everything now", not "stage this for
+	//   declare() later". Cleared quietly: a Map never announced either.
+	set children(list){
+		// A Map with entries (core/Page/page.js reorders its tabs this way) is copied
+		// back in, in its own order, after the clear.
+		if (list instanceof Map){
+			const entries = [...list];
+			[...this.pages].forEach(page => this.pages.release(page));
+			entries.forEach(([name, page]) => this.children.set(name, page));
+			return;
+		}
+		this._raw_children = list;
+	}
+
+	// ════ EVENTS — kept as data for ext/Inbox and ext/Page/demo.js's `page.on("line", …)` ═
+	// `on`/`off`/`emit` themselves are Item's now (the Events mixin) — deleted here on
+	// purpose. Grepped first: nothing outside this file ever read `page.listeners`
+	// directly, so there was nothing to carry over except the two event NAMES this
+	// class itself still emits, `"line"` (every jsonl line, above) and `"render"`
+	// (Page.class.js's `render()`, once, after content is drawn).
 
 	// ════ EXTENSIONS — a page.jsonl line names one on: `{"ext": "Inbox"}` ══════════
 	// The DATA path — one page at a time. `Page.use(Ext)` (Page.class.js) is the CODE
@@ -67,32 +161,25 @@ export class PageLog {
 		(this.ext_ready ??= []).push(ready);
 	}
 
-	// `assign()` that calls methods instead of overwriting them. One argument, always.
-	set(obj){
-		// Every line after the first, kept — so a `line` listener registered AFTER
-		// some lines already replayed (an ext's dynamic import never beats the
-		// synchronous replay below) can still catch up on what it missed.
-		(this.jsonl_lines ??= []).push(obj);
-		this.emit("line", obj);
-
-		for (const key in obj){
-			const here = this[key];
-
-			if (skipped(key) || here instanceof Map) continue;
-			if (is.fn(here)) { here.call(this, obj[key]); continue; }
-			if (settable(here)) { here.set(obj[key]); continue; }
-
-			if (!(key in this)) (this.unknown ??= new Set()).add(key);   // a typo, or new data
-			this[key] = obj[key];
-		}
-		return this;
-	}
-
 	// ════ STEP 1 — the file EXISTS ════════════════════════════════════════════
 	// Recorded, never rendered. A repeat changes nothing: the latest line per name wins.
+	// TWO CALLERS, split (deliverable 4/11): a REPLAYED `{"file": …}` line (this.store
+	// is mid-`read()`, `this.store.replaying` is true) registers the listing, same as
+	// always. A CODE call — `page.file("demo.jsonl")`, not a line — never touches the
+	// listing (that would double-count a file the code already knows about) and
+	// instead hands back the real file: ext/filesystem's `FsFile`, the one file
+	// class, dynamically imported because core never statically imports ext. Its own
+	// lazy `.store` getter is `Item.Store.for(url)` — one Store per file, the same
+	// one `page.store` is for page.jsonl itself.
 	file(name){
-		(this.listed ??= new Map()).set(this.last_file = key_of(name), name);
-		CHILD.test(name) ? this.link_child(name) : this.unlink_child(key_of(name));
+		if (this.store?.replaying){
+			(this.listed ??= new Map()).set(this.last_file = key_of(name), name);
+			CHILD.test(name) ? this.link_child(name) : this.unlink_child(key_of(name));
+			return undefined;
+		}
+
+		const path = (this.log_folder() + name).replace(/^\/+/, "");
+		return import("../../ext/filesystem/FsFile.js").then(({ default: FsFile }) => new FsFile({ path, name }));
 	}
 
 	// `{"file": "x", "gone": true}` — `set()` calls file("x") first, then this.
@@ -322,23 +409,48 @@ export class PageLog {
 	   `new this(line1)`, so `Card.jsonl(url)` makes a Card — unless it names a
 	   `"class": "<module url>"`, whose default export (a Page subclass) is built
 	   instead. Every later line is `set()`. Null when there is no log.
-	   ⚠ On localhost it STREAMS: a line appended later calls set() and redraws. */
+	   ⚠ On localhost it STREAMS: a line appended later calls set() and redraws.
+	   `Store.for(url)` — one Store per file (deliverable 4): a second visit to the
+	   same page.jsonl reaches the SAME live reader, never a second one racing it. */
+	// ⚠ TWO CALLERS CAN EASILY RACE for the exact same url: `load_all_children()`
+	//   crawls EVERY child of a page (including "jsonl") the moment its PARENT
+	//   loads, at the same time the Router's own sequential walk is reaching
+	//   "jsonl" as the NEXT path segment on that identical parent. Before
+	//   `Store.for()` (deliverable 4) each call built its OWN independent reader,
+	//   so a race just meant double work, never a wrong answer. Sharing one reader
+	//   means two concurrent calls would otherwise both call `reader.open()` and
+	//   read `reader.entries[0]` against the SAME array as it fills out from under
+	//   them — one twentieth of the time silently wrong, consistently wrong under
+	//   real app-boot load (measured: `Page.jsonl()` for a never-before-loaded url
+	//   racing `load_all_children()`'s own crawl of the same parent 404'd a real
+	//   page every single time in testing, 2026-10-02). `reader._building` is the
+	//   fix: the first call's whole build is ONE promise, and a second call made
+	//   before it resolves joins THAT SAME promise instead of starting its own.
 	static async jsonl(url){
-		const reader = new this.Reader({ url: url + "page.jsonl" });
-		await reader.open();
+		const reader = this.Reader.for(url + "page.jsonl");
 
-		// A log whose line 1 is a `file` line is a folder's listing, not a page.
-		const [first] = reader.entries;
-		if (!first || typeof first.file === "string") { reader.close(); return null; }
+		// A page already built for this reader — the common case on a SECOND visit,
+		// well after the first call settled. One page, built once, every later
+		// caller gets the SAME live object back.
+		if (reader.host) return reader.host;
+		if (reader._building) return reader._building;
 
-		const Class = first.class ? await this.log_class(first.class, url) : this;
-		const { class: _, ...line } = first;
-		const page = new Class(line, { url, jsonl_url: reader.url });
+		return reader._building = (async () => {
+			await reader.open();
 
-		page.content ??= page.log_view;
-		reader.attach(page);
-		(PageLog.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
-		return page;
+			// A log whose line 1 is a `file` line is a folder's listing, not a page.
+			const [first] = reader.entries;
+			if (!first || typeof first.file === "string") { reader.close(); return null; }
+
+			const Class = first.class ? await this.log_class(first.class, url) : this;
+			const { class: _, ...line } = first;
+			const page = new Class(line, { url, jsonl_url: reader.url });
+
+			page.content ??= page.log_view;
+			reader.attach(page);
+			(PageLog.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
+			return page;
+		})().finally(() => { reader._building = null; });
 	}
 
 	/* A FOLDER'S OWN FILE LIST — what used to cost the whole site's directory.json.
@@ -410,17 +522,73 @@ export class PageLog {
 	}
 }
 
-/* WHAT ext/JSONL's live.js DRIVES — `url`, `offset`, `parse()`, `read()`, `load()`,
-   `reset()`. Lines are held until line 1 has built the page, then every line is set(). */
-PageLog.Reader = class PageLogReader {
+/* THE SHIM — a Map-shaped VIEW over `page.pages` (the real LiveList storage), so
+   every existing `.children` caller keeps working unchanged. `instanceof Map` is
+   real (this class extends it), but the base Map's own storage is never touched —
+   every method here reads or writes `page.pages` instead. */
+class PageChildren extends Map {
 
-	entries = [];
-	count = 0;
+	constructor(page){ super(); this.page = page; }
 
-	constructor(...args){ this.assign(...args); }
-	assign(...args){ return Object.assign(this, ...args); }
+	get pages(){ return this.page.pages; }
+
+	// The page, `null` for a stub (declared but not yet loaded), `undefined` if the
+	// name is absent altogether.
+	get(name){
+		const found = this.pages.find(name);
+		return found === undefined ? undefined : found.stub ? null : found;
+	}
+
+	has(name){ return this.pages.find(name) !== undefined; }
+
+	// `null` adds a stub (quietly — declaring a child is not a live edit); a real
+	// page quietly inserts, or quietly REPLACES the stub that already held this name
+	// (`LiveList.replace`, which never announces: loading is not a change).
+	set(name, value){
+		const had = this.pages.find(name);
+
+		if (value === null){
+			if (!had) this.pages.insert({ id: name, name, stub: true });
+			return this;
+		}
+
+		had ? this.pages.replace(had, value) : this.pages.insert(value);
+		return this;
+	}
+
+	// Quiet — a Map never announced either. `release()` is LiveList's quiet remove
+	// (core/List/LiveList.js), the counterpart to `remove()`'s announcing one.
+	delete(name){
+		const had = this.pages.find(name);
+		if (!had) return false;
+		this.pages.release(had);
+		return true;
+	}
+
+	get size(){ return this.pages.length; }
+
+	// Returns undefined, like Map.forEach: a View capture `() => x.children.forEach(…)` renders its return value.
+	forEach(fn, thisArg){ this.pages.forEach(page => fn.call(thisArg, page.stub ? null : page, page.id, this)); }
+	keys(){ return this.pages.map(page => page.id)[Symbol.iterator](); }
+	values(){ return this.pages.map(page => page.stub ? null : page)[Symbol.iterator](); }
+	entries(){ return this.pages.map(page => [page.id, page.stub ? null : page])[Symbol.iterator](); }
+	[Symbol.iterator](){ return this.entries(); }
+
+	clear(){ [...this.pages].forEach(page => this.pages.release(page)); }
+}
+
+/* `Item.Store`, specialised for a page.jsonl file — one per URL (`Store.for`), so
+   `page.store` IS this once a jsonl page has loaded (deliverable 4). Keeps every
+   name this class had before the rename: `open`, `close`, `parse`, `read`, `attach`,
+   `changed`, `reset` — `page` is now an ALIAS for Item.Store's own `host`. */
+PageLog.Reader = class PageLogReader extends Item.Store {
+
+	get page(){ return this.host; }
+	set page(host){ this.host = host; }
 
 	// ⚠ core never statically imports ext; live.js is imported only on localhost.
+	// `this.live` (kept, not on the base Store) is what `close()` needs to drop the
+	// subscription — Item.Store itself never tails more than once and never closes.
 	open(){
 		if (!dev) return this.load();
 		return import("../../ext/JSONL/live.js")
@@ -429,63 +597,52 @@ PageLog.Reader = class PageLogReader {
 
 	close(){ this.live?.drop(this); }
 
-	// A torn line is lost, never the log.
-	parse(text){
-		return text.split("\n").filter(line => line.trim()).flatMap(line => {
-			try { return [JSON.parse(line)]; }
-			catch { console.warn(`page.jsonl: unparsed line in ${this.url} —`, line); return []; }
-		});
+	// Tracks which KEYS arrived in this batch — `changed()` below reads it to decide
+	// whether a live line is worth a nav redraw, same as before the rename.
+	read(entries){
+		for (const entry of entries) for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
+		return super.read(entries);
 	}
 
-	read(entries){
-		for (const entry of entries){
-			const { class: _, ...line } = entry;
-			this.page ? this.page.set(this.count ? entry : line) : this.entries.push(entry);
-			this.count++;
+	// Line 1 already built the page (PageLog.jsonl, above) — HOLD UNTIL LINE 1,
+	// never replay it a second time. Everything else is Item.Store's own `attach()`
+	// (the "delta" listener, the echo skip, the replaying flag).
+	attach(host){
+		this.host = host;
+		host.store = this;
+		host.on("delta", (line, origin) => {
+			if (this.replaying) return;
+			this.append(this.line_for(line, origin, host));
+		});
 
-			// What changed() (below) needs to know: did a `tab`, `file` or `settings`
-			// key arrive? Reset once the INITIAL read is done (attach(), below), so
-			// this only ever holds keys from lines that streamed in AFTER that —
-			// finding 5's whole point, live lines redrawing the nav with no reload.
-			for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
-		}
+		const held = this.entries.splice(0).slice(1);
+		this.read(held);
+		this._seen = null;   // the load's keys are not news; changed() redraws for live lines only
+
+		host.report_unknown();
 		return this;
 	}
 
-	// ⚠ The SPA fallback answers a miss with index.html at 200 — content-type is the 404.
-	async load(){
-		const res = await fetch(this.url).catch(() => null);
-		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return this;
-		this.loaded = true;
-		return this.read(this.parse(await res.text()));
-	}
-
-	attach(page){
-		this.page = page;
-		this.entries.splice(0).slice(1).forEach(entry => page.set(entry));
-		page.report_unknown();
-		this._seen = null;   // only track keys from lines that arrive FROM HERE ON
-	}
-
-	// ⚠ 2026-09-29 fix round, finding 5: a `tab` or `file` line describes MY OWN
+	// 2026-09-29 fix round, finding 5: a `tab` or `file` line describes MY OWN
 	// children's state, so I redraw MY OWN tab strip (nav_redraw(), ext/tabs/
 	// tabs.js). A `settings` line is a page's preference about ITSELF, read by
-	// its PARENT's tab strip — so that redraw is asked of `this.page.parent`
+	// its PARENT's tab strip — so that redraw is asked of `this.host.parent`
 	// instead. Either way this replaces the drawer's old `location.reload()` —
 	// the strip (and the rail, which nav_redraw() bubbles up to) now fixes
 	// itself with no reload at all.
 	changed(){
-		this.page?.report_unknown();
-		this.page?.log_redraw();
+		this.host?.report_unknown();
+		this.host?.log_redraw();
 
 		const seen = this._seen; this._seen = null;
-		if (seen?.has("tab") || seen?.has("file")) this.page?.nav_redraw?.();
-		if (seen?.has("settings")) this.page?.parent?.nav_redraw?.();
+		if (seen?.has("tab") || seen?.has("file")) this.host?.nav_redraw?.();
+		if (seen?.has("settings")) this.host?.parent?.nav_redraw?.();
 	}
 
+	// A REWRITTEN (not appended) file replays from line 1 onto a clean slate.
 	reset(){
 		this.count = 0;
-		this.page?.log_forget();
+		this.host?.log_forget();
 		delete this.loaded;
 		return this;
 	}

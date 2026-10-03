@@ -572,14 +572,14 @@ is stylesheet order — so `.page.columns` is restated on every body rule.
 **`finder` has no rule.** It is the shipped default, and the word exists only so the control can
 name it. A default that writes declarations is a second base to keep in step with the first.
 
-## `store()` — the url carries the tree, the store carries the dressing
+## `prefs()` — the url carries the tree, the store carries the dressing
 
 The address has always been the tree and only the tree: `#7` a seed, `#s=…` a typed spec, and
 `size`/`gap` deliberately left out because *how wide you like your columns is not the tree*. That
 decision stands. What was missing was the other half — a preference that resets every visit is a
 control nobody touches twice.
 
-So core's new `this.store()` (`doc/method/store.md`) holds `sized`, `gapped`, `looked` and the
+So core's new `this.prefs()` (`doc/method/prefs.md`) holds `sized`, `gapped`, `looked` and the
 last `hash()`, and `land()` reads it in the constructor beside `location.hash`.
 
 **The url wins.** A link someone sent has to open what it says, so the remembered tree is read
@@ -659,19 +659,19 @@ anywhere; verified by listening for the `dialog` event through the whole run and
 
 A save control in the gallery, next to the eight curated cards: a title field and a button that
 reads `host.spec` — the generator's OWN live tree, not anything about the gallery column itself
-— and pushes `{ id, title, spec }` into `store()`.
+— and pushes `{ id, title, spec }` into `prefs()`.
 
 **The store-key call.** `saved` rides in the SAME key `sized`/`gapped`/`looked`/`hash` already
 live in (`store_key: "/framework/core/Page/generator/"`), not a sibling one. A second
 `localStorage` key would be a second address to keep in step with `store_key`'s own warning
-(doc/method/store.md — a page that moves silently orphans what it saved); a saved spec is
+(doc/method/prefs.md — a page that moves silently orphans what it saved); a saved spec is
 exactly as dressing-adjacent as the three already there — a preference this reader built, never
 part of the curated list `specs.js` ships.
 
 **That choice broke something on the way in, and the fix is worth the line.** `remember()`
-(page.js) called `store().set(...)` — a REPLACE of the whole record — every time `size`, `gap`
+(page.js) called `prefs().set(...)` — a REPLACE of the whole record — every time `size`, `gap`
 or `look` changed. The moment `saved` lived in that same key, the very next dressing change
-would have silently erased every saved spec. Changed to `store().patch(...)`, which merges.
+would have silently erased every saved spec. Changed to `prefs().patch(...)`, which merges.
 **Measured**: saved a spec, switched `look` to `ink`, reloaded — the saved card and the ink look
 both survived. Without the fix this was checked for and would have failed silently (no error,
 no console line — a card just gone).

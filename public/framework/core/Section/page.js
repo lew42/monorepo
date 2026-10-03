@@ -48,7 +48,7 @@ export default new Page({
 
 		}, "A Section is a Page, so it reads a page.json the way any page does — plus one key, layout. Children, naming, storage and the six page words all arrive inherited rather than written.");
 
-		md(`**Demos do not persist.** The picker's choice lives on the instance, so a reload is this page again. Storage is inherited and works — \`section.store()\` is keyed on the section's own url — but writing is an editor's job, and an editor has to make saving visible.`);
+		md(`**Demos do not persist.** The picker's choice lives on the instance, so a reload is this page again. Storage is inherited and works — \`section.prefs()\` is keyed on the section's own url — but writing is an editor's job, and an editor has to make saving visible.`);
 
 		md("Behind it: [what a Section is, and is not](/framework/core/Section/doc/idea/) · [the picker, and the width rule it asks](/framework/core/Section/doc/picker/) · [slots, children and regions](/framework/core/Section/doc/slots/) · [core/Layout](/framework/core/Layout/), where the thirty layouts live.");
 

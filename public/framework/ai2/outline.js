@@ -36,7 +36,7 @@ export function short(text, max = 70){
 
 /** The checklist lines: the card's own `item` lines, else derived. */
 export function items_of(card, g){
-	const own = [...(card.items?.values() ?? [])];
+	const own = [...(card.outline_items?.values() ?? [])];
 	return (own.length ? own : derived(card, g)).sort((x, y) => Date.parse(x.asked_at ?? 0) - Date.parse(y.asked_at ?? 0));
 }
 

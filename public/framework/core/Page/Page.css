@@ -769,6 +769,40 @@
 	.page-crumbs a { text-decoration: none; }
 	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
 
+	/* ── `page.content`, drawn — `render_content_list()`, the one reusable view a
+	   content LiveList gets (page-extends-item, 2026-10-02). One row per item, a
+	   thin rule between, a grab cursor because every row is a Sortable handle. */
+	.page-content-rows { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2); }
+	.page-content-row { padding: calc(var(--pad) * 0.4) calc(var(--pad) * 0.6); border: 1px solid var(--line); border-radius: var(--radius); cursor: grab; background: var(--surface); }
+	.page-content-row.dragging { cursor: grabbing; }
+
+	/* ── the live-list demo's own layout — task-mastermind review, 2026-10-02 ──
+	   Four fixes together: `.wide` (JS) opts this whole block out of the 40em
+	   reading column, which is what was leaving 80% of a 1920 screen empty and
+	   squeezing the buttons; the two columns below then get a REAL budget to
+	   share — rows at a reading measure, the tail filling what's left up to a
+	   cap, so the block reads as one demo, not two islands. */
+	.page-content-live { align-items: flex-start; }
+	.page-content-rows-col { flex: 1 1 var(--measure); max-width: var(--measure); min-width: 18em; }
+	.page-content-tail-col { flex: 1 1 32em; max-width: 64em; min-width: 16em; }
+
+	/* One row of four, every width this page is actually tested at (1200 and up);
+	   only a real phone width groups them two-and-two on purpose (below). */
+	.page-content-buttons { flex-wrap: nowrap; }
+	.page-content-buttons button { flex: 0 0 auto; }
+	@media (max-width: 36em) {
+		.page-content-buttons { flex-wrap: wrap; }
+		.page-content-buttons button { flex: 1 1 calc(50% - var(--gap) / 2); }
+	}
+
+	/* The tail: one line per entry, truncated with an ellipsis — never broken
+	   mid-word — and the site's OWN code colours, explicitly, rather than
+	   `pre`'s default dark-block pair (`--code-bg`/`--code-ink`, framework.css):
+	   that pair assumes a dark background, and a light one here left `--code-ink`
+	   nearly invisible on it (the bug this replaces: light-grey-on-white). */
+	.page-content-tail { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--pad); display: flex; flex-direction: column; gap: 0; max-height: 20em; overflow-y: auto; overflow-x: hidden; }
+	.page-content-tail-line { background: none; color: var(--ink); font-size: 0.85em; margin: 0; padding: 0; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 	/* OUT OF ROOM, the other way: under two columns' worth the row pages one at a time
 	   and the snap does the rest — the same row, no second arrangement.
 	   ⚠ Only the BODY can be restyled here: a container query never matches its own

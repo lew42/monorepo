@@ -1,5 +1,6 @@
 import { Doc, md, code, div, span, h4, input, icon, View } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
+import LiveList from "/framework/core/List/LiveList.js";
 import Sortable from "/framework/ext/Draggable/Sortable.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
 import LocalStorageSaver from "/framework/ext/Saver/LocalStorageSaver.js";
@@ -91,8 +92,8 @@ function editor(root){
 	// lands here. ⚠ Only STRUCTURE redraws — a "change" must not, or a chip click
 	// would replace the very element the properties region is holding.
 	const listen = () => {
-		["change", "add", "remove"].forEach(event => doc.on(event, changed));
-		["add", "remove"].forEach(event => doc.on(event, draw));
+		["change", "add", "remove", "move", "order"].forEach(event => doc.on(event, changed));
+		["add", "remove", "move", "order"].forEach(event => doc.on(event, draw));
 	};
 
 	const history = new History({
@@ -149,7 +150,7 @@ function editor(root){
 
 			$body = div.c(item.get("words")).attr("style", item.get("css") ?? "");
 			if (item.leaf?.()) $body.append(item.get("text"));
-			else $body.append(() => { item.items.each(kid => node(kid)); });
+			else $body.append(() => { item.items.forEach(kid => node(kid)); });
 		}).click(function(e){ e.stopPropagation(); select(item.id); });
 
 		new Node({ view: $node, handle: grip && $bar, $items: item.leaf?.() ? undefined : $body, item, history, select });
@@ -198,7 +199,7 @@ function editor(root){
 		const picked = nodes.get(sel)?.item ?? doc;
 		const into = picked.leaf?.() ? picked.parent ?? doc : picked;
 		const made = new Class();
-		history.act(() => into.add(made));
+		history.act(() => into.items.add(made));
 		select(made.id);
 	};
 
@@ -320,7 +321,18 @@ workspace({ saver: panels, templates: REGIONS, seed });`);
 
 		return Item.open(saver).then(doc => {
 			if (!doc.get("words")) doc.set("words", "flex v gap pad");
-			if (!doc.items.length) doc.add(new Section().add(new Text()));
+
+			// A saved doc with blocks already hydrated its own `items` (any array-valued
+			// key becomes a LiveList — core/Item/Item.js's `hydrate()`); a brand new one
+			// never had the key at all, so it still needs one.
+			doc.items ??= new LiveList({ owner: doc, name: "items" });
+
+			if (!doc.items.length){
+				const section = new Section();
+				section.items.add(new Text());
+				doc.items.add(section);
+			}
+
 			$shell.empty(() => { editor(doc); });
 		});
 	},

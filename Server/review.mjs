@@ -628,8 +628,36 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 		+ `Make no code edits. One pass, then stop.`;
 }
 
+/* THE ONE FILE API CHECK (2026-10-02). Only ext/filesystem/FsFile.js may call the dev
+   socket's `write` or `append` RPC (and dev/Socket/ itself, which defines them). Any
+   other `async_rpc("append"|"write"` or `method: "append"|"write"` under public/ (the
+   dated task logs ai/20* excepted) is a second writer, and the review refuses it.
+   Returns the offending "file:line: text" strings; empty means pass. */
+const RAW_FILE_CALL = /async_rpc\(\s*["'](append|write)["']|method:\s*["'](append|write)["']/;
+export function rawFileCalls(dir) {
+	const pub = path.join(dir, "public"), hits = [];
+	const allowed = rel => rel === "framework/ext/filesystem/FsFile.js" || rel.startsWith("framework/dev/Socket/") || /^framework\/ai\/20/.test(rel);
+	(function walk(abs) {
+		for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+			if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
+			const full = path.join(abs, entry.name), rel = path.relative(pub, full).replaceAll("\\", "/");
+			if (entry.isDirectory()) { if (!/^framework\/ai\/20/.test(rel)) walk(full); continue; }
+			if (!/\.(m?js)$/.test(entry.name) || allowed(rel)) continue;
+			fs.readFileSync(full, "utf8").split("\n").forEach((line, i) => { if (RAW_FILE_CALL.test(line)) hits.push(`public/${rel}:${i + 1}: ${line.trim()}`); });
+		}
+	})(pub);
+	return hits;
+}
+function fileApiGate(dir) {
+	const hits = rawFileCalls(dir);
+	if (!hits.length) { console.log("review.mjs: one file API check — pass (only FsFile calls the socket's write/append)"); return true; }
+	console.error(`review.mjs: one file API check — FAIL: ${hits.length} raw write/append call(s) outside ext/filesystem/FsFile.js. Use new FsFile({path}).append(line) / .write(text) instead:\n  ` + hits.join("\n  "));
+	return false;
+}
+
 async function main() {
 	const argv = process.argv.slice(2);
+	if (argv[0] === "--file-api") { process.exit(fileApiGate(path.resolve(argv[1] || process.cwd())) ? 0 : 1); }
 	if (argv[0] === "--status") { console.log(status(path.resolve(argv[1]))); return; }
 	if (argv[0] === "--turns") { await turnsCmd(path.resolve(argv[1])); return; }
 	if (argv[0] === "--rule") { ruleCmd(argv[1], argv[2], argv[3], argv[4]); return; }
@@ -661,6 +689,9 @@ async function main() {
 	// So the questions page never goes stale, even for someone who never runs --questions by hand.
 	// Always this tree's own copy (selfRoot()), never `root` (the main tree, from --git-common-dir).
 	try { questionsCmd(selfRoot()); } catch (e) { console.log(`review.mjs: --questions failed to refresh questions.json — ${String(e?.message || e).slice(0, 150)}`); }
+
+	// The one file API check runs on every review, before any agent is paid for.
+	if (!fileApiGate(cwd)) process.exit(1);
 
 	const { nameStatus: status_, numstat } = diffStat(cwd, spec);
 	const files = status_.map(x => x.f);

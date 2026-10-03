@@ -20,21 +20,31 @@ export default new Page({
 
 This module has an expert: ask it with `ask_expert core/Page …` (Servex).
 
+**When to reach for which:** a **List** for plain ordered data; a **LiveList** when something
+must watch it change; an **Item** when it is a thing (an icon, a title, saved); a **Page** when
+it has a URL.
+
 ## Architecture
 
 ```js
-class Page extends PageLog {          // ✅ (💭 Page extends Item: needs the owner's OK)
+Page extends PageLog extends Item     // ✅ landed 2026-10-02 — page instanceof Item is true; PageLog (Log.js) adds the page.jsonl bits
   url, title, parent: Page
-  children: Map                       // ✅ name → Page (🔶 becomes items: Content)
+  pages: LiveList                     // ✅ the real storage — sub-pages, keyed by id (= folder name)
+  children                            // ✅ a Map-SHAPED VIEW over `pages` — ~215 existing callers unchanged (not List's old `children` field, now `items`)
+  content: LiveList                   // ✅ made lazily, the page's own visible blocks — render_content_list() draws it
+  store: Item.Store                   // ✅ attached by Page.jsonl() — one per page.jsonl, append + tail, written through FsFile.append
+  prefs()                             // ✅ localStorage (was `store()` — renamed, `page.store` is the jsonl Store now)
   view: View
-  set(line)                           // ✅ one page.jsonl line: a method key calls, a settable merges, else data
+  set(line)                           // ✅ PageLog's thin wrapper over Item's apply()-based routing
+  add(name, child), move(url)         // Page's OWN methods — composition, not inheritance, avoided the clash
   route(name) → Page                  // dynamic children (cards, md/, fs/)
   static use(Ext)                     // ✅ page extensions (ext/: Inbox first)
 }
-class Card extends Page { }           // ✅ a smaller page (card/, ai2/card.js)
-class System extends Page { }         // 🔶 design, code, ui, ux, ai: shared top tabs, readmes, an inbox
+class Card extends Page { }           // ✅ a smaller page (card/, ai2/card.js) — its own data stays a separate task
+// NOT BUILT YET: class System extends Page — design, code, ui, ux, ai sharing top tabs, readmes, an inbox
 // sub-modules: card/ (the card rules), weight/ (weight = 1 by default), ext/ (Inbox), audit/, layout/
-// design: ai/2026-09-30/proposal-flow/page-item-design.md
+// design: ai/2026-09-30/proposal-flow/page-item-design.md (the "fourth pass" section rules)
+// build log: ai/2026-10-02/page-extends-item/
 ```
 
 ## How a page loads
@@ -48,7 +58,7 @@ each step and the two traps that catch people, is [`doc/loading.md`](./doc/loadi
 [layout](./layout/) — the layout system: navigation and the parent, the page's own room, inside the page, including [switcher](./layout/switcher/) (one list-switches-content pattern, three skins)
 [navigation](./navigation/) — persistent vs switching, the levels that stack, the go-to pattern
 [make](./make/) — making a page, five ways; agents use the `create_page` tool (Servex)
-[storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md)
+[storage](./jsonl/) — `page.jsonl`, a page as a log of lines; who writes it and when: [doc/page-jsonl.md](./doc/page-jsonl.md). The live list at [`/framework/core/Item/live/`](/framework/core/Item/live/) shows the same thing on `page.content`: add, drag, sort, reload — the list comes back.
 [settings](./settings/) — tabs that manage themselves (a `tab` line on the parent) and a page's own nav switch (a `settings` line on the child)
 [ext](./ext/) — extensions: a page.jsonl line (`{"ext": "Inbox"}`) or `Page.use(Ext)` turns a small piece of behavior on, by name. The first one, `Inbox`, lets any agent leave a `{"inbox": …}` message on any page's own log. Its readme also has the **path extensions** census — `md/` and `fs/` (built into every page, step 3 above) plus the per-page AI chat pair and the AI/AI 2 task-folder patterns: [`ext/doc/path-extensions.md`](./ext/doc/path-extensions.md).
 [ai](./ai/) — the page-based AI system: dictation, the fast assistant, a manager per page, sessions and the SDK, plus `page_work()` — a page's own open tasks and agents, opt-in ([doc/work.md](./ai/doc/work.md))

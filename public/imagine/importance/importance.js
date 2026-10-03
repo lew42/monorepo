@@ -15,7 +15,7 @@
      a bad row is answered by a LATER row (`retracted`) or by dropping that judge's weight
      to 0. doc/storage.md says why that is the whole point. */
 
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import { Graph } from "./Graph.js";
 import { edit } from "/framework/ext/Ask/edit.js";
@@ -136,11 +136,11 @@ export class Store extends Graph {
 		this.feed(this.file(kind));
 
 		const reply = await Promise.race([
-			Socket.singleton().async_rpc("append", this.url(this.file(kind)), JSON.stringify(row)),
+			FsFile.append(this.url(this.file(kind)), row),
 			new Promise(done => setTimeout(done, WIRE, null)),
 		]);
 
-		if (reply?.response !== "append successful")
+		if (reply !== true)
 			throw new Error("the dev server refused the append (restart it — rpc:append landed 2026-08-31)");
 
 		return this.expect(kind, row);

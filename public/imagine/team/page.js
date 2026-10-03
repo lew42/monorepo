@@ -179,7 +179,7 @@ const board = () => ({
 				baseline(topic, {
 					what: "your lanes, density and sort",
 					restorable: true,
-					saved: () => topic.store().read()
+					saved: () => topic.prefs().read()
 						? "**Saved.** Your lane changes, row density and sort are kept in this browser — nobody else sees them."
 						: null,
 				});
@@ -310,10 +310,10 @@ export default new Page({
 	updates: 0,     // watcher runs
 
 	/* ⚠ `initialize()` runs inside the constructor, AFTER `naming()` — so `this.url`
-	     exists and `this.store()` already has its key. It runs after `declare()` too,
+	     exists and `this.prefs()` already has its key. It runs after `declare()` too,
 	     which is why nothing in a child may read this state before it renders. */
 	initialize(){
-		const saved = this.store().get({ lanes: {}, density: "comfy", sort: "name" });
+		const saved = this.prefs().get({ lanes: {}, density: "comfy", sort: "name" });
 
 		this.lanes = { ...Object.fromEntries(TASKS.map(task => [task.id, task.lane])), ...saved.lanes };
 		this.density = saved.density;
@@ -331,11 +331,11 @@ export default new Page({
 	assign_lane(id, lane){
 		this.lanes[id] = lane;
 		this.moves++;
-		this.store().patch({ lanes: this.lanes });
+		this.prefs().patch({ lanes: this.lanes });
 		this.bump();
 	},
 
-	remember(part){ this.store().patch(part); this.bump(); },
+	remember(part){ this.prefs().patch(part); this.bump(); },
 
 	tasks(who){ return who ? TASKS.filter(task => task.who === who) : TASKS; },
 	load(who){ return points(this.tasks(who).filter(task => this.lanes[task.id] !== "done")); },

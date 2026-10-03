@@ -1,5 +1,5 @@
 import { div, p, span, button, code, iframe } from "/app.js";
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 const QUEUE = "/framework/ext/DesignTool/audit/accepted.css";
 
@@ -87,15 +87,16 @@ const sheet = fixes => fixes
 	.map(f => `/* ${f.rule} — ${f.why} */\n${f.sel} { ${f.decl}; }`)
 	.join("\n\n");
 
-/* ⚠ The RPC WRITES, it does not append — so the queue is read back and re-sent
- * whole. Two audits accepted in the same second would still race; the file is a
- * human's review queue, not a datastore. */
+/* The queue is a CSS file, not a log, so it is read back and re-sent whole
+ * (FsFile.write). Two audits accepted in the same second would still race; the file
+ * is a human's review queue, not a datastore. The verdicts file IS a log, so it is
+ * appended to (FsFile.append), never rewritten. */
 async function accept(report, fixes, button, queue, verdicts, verdict){
 	const entry = `\n/* ${report.url} @ ${new Date().toISOString()} */\n${sheet(fixes)}\n`;
 
 	try {
 		const existing = await fetch(queue).then(r => (r.ok ? r.text() : "")).catch(() => "");
-		await Socket.singleton().async_rpc("write", queue, (existing || HEAD) + entry);
+		if (!await FsFile.write(queue, (existing || HEAD) + entry)) throw new Error("the server refused it");
 		button.textContent = "Queued in accepted.css";
 	} catch (error){
 		button.textContent = `Could not write — ${error.message}`;
@@ -108,10 +109,9 @@ async function accept(report, fixes, button, queue, verdicts, verdict){
 async function record_verdict(report, fixes, button, verdicts, verdict){
 	if (!verdicts) return;
 	const at = new Date().toISOString();
-	const lines = fixes.map(f => JSON.stringify({ at, url: report.url, sel: f.sel, decl: f.decl, what: f.rule, verdict }));
+	const lines = fixes.map(f => ({ at, url: report.url, sel: f.sel, decl: f.decl, what: f.rule, verdict }));
 	try {
-		const existing = await fetch(verdicts).then(r => (r.ok ? r.text() : "")).catch(() => "");
-		await Socket.singleton().async_rpc("write", verdicts, existing + lines.join("\n") + "\n");
+		if (!await FsFile.append(verdicts, lines)) throw new Error("the server refused it");
 		if (button) button.textContent = verdict === "rejected" ? "Rejected" : "Verdict logged";
 	} catch (error){
 		if (button) button.textContent = `Could not write — ${error.message}`;

@@ -1,79 +1,114 @@
-import { Doc, md, h2, code, div, span, button } from "/app.js";
+import { Doc, md, h2, code, div, span, button, icon } from "/app.js";
 import Item from "../Item/Item.js";
 import List from "./List.js";
+import LiveList from "./LiveList.js";
+import examples from "./LiveList.examples.js";
 
-const build = () => Item.hydrate({
-	type: "Item", id: "root", data: {},
-	items: ["Alpha", "Beta", "Gamma"].map(label => ({ type: "Item", id: label, data: { label } })),
-});
+// A plain List holds plain objects — nothing with its own `.set` or `.emit` required.
+function build_list(){
+	const list = new List();
+	["Alpha", "Beta", "Gamma"].forEach(label => list.append({ label }));
+	return list;
+}
 
-function outline(item, depth = 0){
-	div.c("flex gap v-center", () => span(item.get("label")))
-		.style("padding-inline-start", depth * 1.4 + "em");
-	item.items.each(kid => outline(kid, depth + 1));
+// The same shape, but LIVE: a real root Item, composing a named LiveList — the
+// pattern [Item](/framework/core/Item/) itself uses (`item.content`, `panel.items`).
+function build_live(){
+	const root = new Item({ id: "root", data: {} });
+	root.items = new LiveList({ owner: root, name: "items" });
+	["Alpha", "Beta", "Gamma"].forEach(label => root.items.add({ id: label, label }));
+	return root;
+}
+
+// An example's `run()` body, without its own indentation — the lines you'd copy.
+function body(fn){
+	const lines = fn.toString().split("\n").slice(1, -1);
+	const pad = Math.min(...lines.filter(line => line.trim()).map(line => line.match(/^\t*/)[0].length));
+	return lines.map(line => line.slice(pad)).join("\n");
+}
+
+// One example: run it now, then its title (green if it passed, red with the
+// error if not) above its source.
+function example({ title, run }){
+	let error;
+	try { run(); } catch (e){ error = e; }
+	div.c("flex v gap", () => {
+		div.c("flex gap v-center", () => {
+			icon(error ? "cancel" : "check_circle");
+			span(title).style("font-weight", "600");
+		}).style("color", error ? "var(--error)" : "var(--ok)");
+		if (error) code(error.message);
+		code.js(body(run));
+	}).style("--gap", "0.35em");
+	return !error;
 }
 
 export default new Doc({
 	meta: import.meta,
 	title: "List",
-	description: "The ordered collection behind `item.items` — and why userland never touches it.",
+	description: "The plain ordered array — data only, no events. LiveList, right beside it, is this PLUS announcing every change.",
 	icon: "reorder",
 
 	subject: List,
-	properties: "children owner length",
-	methods: "assign adopt append insert_before remove notify each find index_of toJSON",
-	notes: "adoption decisions",
-	files: "List.js readme.md page.js",
+	properties: "items owner length",
+	methods: "assign forEach map at adopt append insert_before remove find index_of toJSON",
+	notes: "decisions",
+	files: "List.js LiveList.js LiveList.examples.js readme.md page.js",
 
 	content(){
 
-		code.js(`list.children  list.length  [Symbol.iterator]
+		code.js(`list.items  list.length  [Symbol.iterator]
+list.forEach(fn)  list.map(fn)  list.at(i)
 list.append(child)  list.insert_before(child, ref = null)  list.remove(child)
-list.each(fn)  list.find(fn)  list.index_of(child)
+list.find(fn)  list.index_of(child)
 list.adopt(child)   //  child.parent = owner ?? this
 list.toJSON()       //  a bare array`);
 
-		md("That is the whole class — about fifty lines, zero imports. Every [Item](/framework/core/Item/) owns one as `item.items`, with itself as the `owner`. Every member above has its own page in **API**, with the source and the trap it carries.");
+		md("**List is the plain ordered array wrapper — data only, no events.** About fifty lines. It is what an ordered collection looks like with nothing watching it; reach for one when nothing needs to react to a change (a sort key, a render order, anything you'd otherwise reach for a bare array for).");
 
-		h2("Userland mutates through Item verbs");
+		const list = build_list();
+		div.c("flex gap pad surface", () => list.forEach(x => span(x.label))).style({ "--gap": "0.5em", "--pad": "0.8em" });
 
-		code.js(`item.add(kid)               // ✓
-item.move(parent, before)   // ✓
-item.items.append(kid)      // ✗ — works, and skips nothing, but says the wrong thing`);
+		md("`owner` is what makes adoption safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is whatever Item composed this list, never the list itself. [doc/adoption](./doc/adoption.md).");
 
-		md("**`List` is an implementation detail of `Item`, not a second API.** The rule is not a guard — `append()` adopts and notifies correctly either way — it is about there being *one* place a document changes. Reach past the Item and every future reader has two vocabularies to learn and two places to search.");
+		h2("LiveList — the same array, announcing every change");
 
-		md("`owner` is what makes that safe: `adopt()` sets `child.parent = this.owner ?? this`, so a child's parent is the **Item**, never the list. The backref stays one hop, and walking up for a saver or a root never has to step over a collection. Full argument, including the workaround it deleted: [doc/adoption](/framework/core/List/doc/adoption/).");
+		md("[`LiveList`](./LiveList.js) is `Events(List)` (core/Events): the same plain array, plus `add` / `remove` / `move` / `order` **by id, never an index** — and each one emits the exact line it would save, plus one uniform `\"delta\"` event [`Item.Store`](/framework/core/Item/) listens for. [`Item`](/framework/core/Item/) **composes** one as a named property instead of inheriting it — a bare Item holds no list of its own; something that needs children gives ITSELF one (`item.content = new LiveList({ owner: item, name: \"content\" })`).");
 
-		h2("A position, never an index");
+		code.js(`const root = new Item({ id: "root", data: {} });
+root.items = new LiveList({ owner: root, name: "items" });
+root.items.add({ id: "a", label: "Alpha" });   // announces "add" + "delta", bubbled to root`);
 
-		code.js(`list.insert_before(child, ref)   // ref null, or not in this list, appends`);
+		const root = build_live();
+		const $tree = div.c("flex gap pad surface").style({ "--gap": "0.5em", "--pad": "0.8em" });
+		const draw = () => $tree.empty(() => { root.items.forEach(x => span(x.get("label"))); });
 
-		md("`insert_before` takes the **node** to sit before, so `item.move()` above it is node-relative and index arithmetic off-by-ones cannot exist. `remove()` takes out the first occurrence only: duplicates in one list are normal, and each is its own node.");
-
-		md("Mutating notifies the owner — `owner?.emit(\"add\" | \"remove\", child)` — and [Item's](/framework/core/Item/) `emit` bubbles to the root. So a document autosaves, or a canvas redraws, from **one listener at the top**. There is no `views[]` registry, no `changed()`, and no render scheduler.");
-
-		h2("One listener, every change");
-
-		const root = build();
-		const $tree = div.c("flex v pad surface").style({ "--pad": "1em" });
-		const draw = () => $tree.empty(() => { root.items.each(kid => outline(kid)); });
-
-		root.on("add", draw).on("remove", draw).on("change", draw);
+		["add", "remove", "move", "order", "change"].forEach(event => root.on(event, draw));
 		draw();
 
 		div.c("flex gap wrap", () => {
-			button("Gamma to front").click(() => root.find("Gamma").move(root, root.find("Alpha")));
-			button("Nest Gamma under Alpha").click(() => root.find("Gamma").move(root.find("Alpha")));
-			button("Rename Beta").click(() => root.find("Beta").set("label", "Beta " + root.items.length));
-			button("Reset").click(() => { root.items.children.slice().forEach(kid => root.remove(kid)); build().items.children.slice().forEach(kid => root.add(kid)); });
+			button("Gamma to front").click(() => root.items.move("Gamma", { after: null }));
+			button("Rename Beta").click(() => root.items.find("Beta")?.set("label", "Beta " + root.items.length));
+			button("Reset").click(() => {
+				[...root.items].forEach(kid => root.items.remove(kid.id));
+				["Alpha", "Beta", "Gamma"].forEach(label => root.items.add({ id: label, label }));
+			});
 		}).style("--gap", "0.5em");
 
-		md("Reorder and reparent are the **same call**. Nothing above subscribes to a list, or to a node — `draw` is bound once, to the root, and hears everything under it.");
+		md("Reorder and rename are each **one call**, on the list — nothing here subscribes to a row; `draw` is bound once, to the root, and hears everything under it because events bubble.");
 
-		md("⚠ **No derived or reactive lists.** `filter_reactive`, `sort_reactive`, `group_by_reactive` were executed and cut: each subscribes to every item it sees and has no disposal path, so a long-lived document leaks a listener per row per view. Derive with `[...list].filter(…)` at the call site and redraw from the root event.");
+		h2("LiveList by example");
 
-		md("Back to [Item](/framework/core/Item/) — the node that owns one of these.");
+		md("Six examples, each a few plain lines that prove one behaviour. They are also LiveList's tests: they run right here as the page loads, and the node test runs the same file ([LiveList.examples.js](./LiveList.examples.js)).");
+
+		const passed = [];
+		div.c("flex v gap pad surface", () => examples.forEach(e => passed.push(example(e))))
+			.style({ "--gap": "1.2em", "--pad": "1em" });
+		div.c("h4 muted", `${passed.filter(Boolean).length} / ${passed.length} passing`);
+
+		md("⚠ **No derived or reactive lists.** A long-lived document leaking a listener per row per view is the exact failure a one-listener-at-the-root design avoids — derive with `[...list].filter(…)` at the call site and redraw from the root event.");
+
+		md("Back to [Item](/framework/core/Item/) — the class that composes one of these as a named property, and never a second one for the same name.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	}

@@ -5,7 +5,7 @@ page, a room is a page, an exit is a link to a **sibling** — so walking sidewa
 deepest column in place while the rails to its left hold still. Nothing here knows it is a
 game except the words.
 
-The run survives via core's [`page.store()`](/framework/core/Page/doc/method/store/) — one
+The run survives via core's [`page.prefs()`](/framework/core/Page/doc/method/prefs/) — one
 key, `lew42:/imagine/game/`, holding six arrays now that a journal and a goal list have
 joined `found`/`carried`/`traded`/`sights`. A cold load three columns deep finds a lit lamp
 and an open cistern. The mark by the title (`/imagine/paging/doc/persistence.md`) is always

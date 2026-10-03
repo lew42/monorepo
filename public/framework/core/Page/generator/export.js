@@ -262,12 +262,12 @@ const titled = name => name.replace(/-/g, " ").replace(/^./, c => c.toUpperCase(
    socket is disabled — which is exactly what a production page is — so an
    unreachable server is a falsy answer either way and never an exception. */
 async function ask(socket, method, ...args){
-	const reply = await Promise.race([
-		socket.async_rpc(method, ...args),
-		new Promise(done => setTimeout(done, PROBE, null)),
-	]);
+	return (await raced(socket.async_rpc(method, ...args))) ?? null;
+}
 
-	return reply ?? null;
+// Any promise, raced against the same clock.
+function raced(promise){
+	return Promise.race([promise, new Promise(done => setTimeout(done, PROBE, null))]);
 }
 
 /**
@@ -300,14 +300,16 @@ export async function run(host, name){
 
 	const list = files(host, name);
 
+	// Writes go through the one file API (ext/filesystem/FsFile.js), never a raw rpc.
+	const { default: FsFile } = await import("/framework/ext/filesystem/FsFile.js");
+	const write = (path, text) => raced(FsFile.write(path, text));
+
 	for (const [file, source] of list){
-		const reply = await ask(socket, "write", file, source);
-		if (reply?.response !== "write successful") return { ok: false, msg: `write failed at ${file}` };
+		if (await write(file, source) !== true) return { ok: false, msg: `write failed at ${file}` };
 	}
 
 	// The seam, last: the index names the directory only once the directory is there.
-	const written = await ask(socket, "write", DIR + "page.js", index([...dirs, name].sort()));
-	if (written?.response !== "write successful") return { ok: false, msg: "the tree was written, but the index was not — add it to " + DIR + "page.js by hand." };
+	if (await write(DIR + "page.js", index([...dirs, name].sort())) !== true) return { ok: false, msg: "the tree was written, but the index was not — add it to " + DIR + "page.js by hand." };
 
 	// Files, not pages — the list is the tree plus the root that holds it, and the
 	// root's own description already says how many pages the tree is.
@@ -322,7 +324,7 @@ export async function run(host, name){
    only a suggestion — the field is editable, and `Page.slug()` is what actually
    decides what a directory may be called. */
 export function suggest(host){
-	const saved = host.store().get({ saved: [] }).saved ?? [];
+	const saved = host.prefs().get({ saved: [] }).saved ?? [];
 	const match = saved.find(entry => entry.spec === host.spec);
 
 	return Page.slug(match?.title || (host.typed ? "tree" : "seed " + host.seed));

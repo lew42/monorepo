@@ -1,9 +1,9 @@
 import { span } from "../../core/View/View.js";
-import Socket from "../../dev/Socket/Socket.js";
 import { edit } from "../Ask/edit.js";
 import Draggable from "../Draggable/Draggable.js";
 import Sortable from "../Draggable/Sortable.js";
 import { ranked } from "../JSONL/JSONL.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
  * RANKING — the owner drags a list into the order they want, and the order is
@@ -58,11 +58,11 @@ export function stamp(){
 /** One line up the socket, into `m.url`. Answers true when the server took it. */
 export async function append(m, entry){
 	const reply = await Promise.race([
-		Socket.singleton().async_rpc("append", m.url, JSON.stringify(entry)),
+		FsFile.append(m.url, entry),
 		new Promise(done => setTimeout(done, WIRE, null)),
 	]);
 
-	if (reply?.response === "append successful") return true;
+	if (reply === true) return true;
 
 	console.error("rank: the dev server refused the append — restart it (rpc:append landed 2026-08-31)", reply);
 	return false;

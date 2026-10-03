@@ -1,5 +1,5 @@
 import { root, resolved } from "./tree.js";
-import FsDir from "./FsDir.js";
+import Dir from "./Dir.js";
 
 /**
  * file_link(path, line?) — a link to a file, opened inside `/fs/` with the tree already
@@ -64,7 +64,7 @@ function anchor_dir(clean){
 	root();   // starts the fetch if nobody has yet — a no-op once it has (memoized)
 
 	const site = resolved();
-	if (site instanceof FsDir)
+	if (site instanceof Dir)
 		for (let i = segments.length; i > 0; i--){
 			const dir = segments.slice(0, i).join("/");
 			const node = site.find(dir);

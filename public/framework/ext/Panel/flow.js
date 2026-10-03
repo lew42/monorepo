@@ -29,11 +29,13 @@ export class Flow {
 	   `toJSON()` and lands plain. */
 	capture(){ return { at: Date.now(), snapshot: JSON.parse(JSON.stringify(this.root)) }; }
 
-	/* The three Item events `mount()` already binds, and not the six verbs: `divide`,
-	   `split`, `close`, `absorb`, `sow` and a drag all mutate through these, and a drag
-	   through none of the others. */
+	/* The five events `mount()` already binds, and not the six verbs: `divide`,
+	   `split`, `close`, `absorb`, `sow` and a drag all mutate through `move`/`add`/
+	   `remove` on a panel's own `items` list (core/List/LiveList.js), which is what
+	   this hears — a single `move()` no longer shows up as a `remove` plus an `add`,
+	   so `"move"` and `"order"` are listed here alongside the three original events. */
 	listen(){
-		["change", "add", "remove"].forEach(event => this.root.on(event, () => this.touch()));
+		["change", "add", "remove", "move", "order"].forEach(event => this.root.on(event, () => this.touch()));
 		return this;
 	}
 
@@ -97,7 +99,7 @@ export class Flow {
 		const root = this.root;
 
 		[...root.items].forEach(kid => { delete kid.parent; });
-		root.items.children = [...fresh.items].map(kid => root.items.adopt(kid));
+		root.items.items = [...fresh.items].map(kid => root.items.adopt(kid));
 		root.data = fresh.data;
 		root.id = fresh.id;
 
