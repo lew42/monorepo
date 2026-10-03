@@ -394,6 +394,9 @@ export default new Page({
 
 	// Builds the role-filter checkboxes the first time real rows arrive (so
 	// the list is never a guess at what roles exist), then redraws the grid.
+	// This still only ever runs once `this.last_rows` holds real data — see
+	// the guard on `session_page_dir_index()`'s own call to `render_rows()`
+	// in `activated()`, which exists specifically to keep that true.
 	render_controls(){
 		if (this.role_filter === null){
 			this.role_filter = new Set(this.last_rows.map(r => r.role || "(unknown)"));
@@ -491,10 +494,20 @@ export default new Page({
 		// The date-path index (2026-10-03) — fetched ONCE per activation, not
 		// per row: every row's `href` wants the same answer to "does this
 		// session already have a page at its date path", so one directory.json
-		// walk serves the whole grid instead of one per row. Finds nothing
-		// today (no session has a date-path page yet) and re-renders once it
-		// resolves, so rows stay on their `/sessions/<id>/` fallback until then.
-		session_page_dir_index().then(index => { this.page_dirs = index; this.render_rows(); });
+		// walk serves the whole grid instead of one per row.
+		// ⚠ Only call `render_rows()` here if real rows are ALREADY on screen
+		// (found live: this fetch can resolve before `sessions.json`/`GET
+		// /api/agents` do, and `render_rows()` on an empty `last_rows` locks
+		// `render_controls()`'s role filter to an empty Set forever — it only
+		// ever runs once, the first time `$summary` gets set). When this
+		// resolves first, it just sets `this.page_dirs` quietly; the real
+		// `draw()` below reads it the moment actual rows arrive. When it
+		// resolves after, THIS re-render is what upgrades already-drawn rows
+		// to their date-path links.
+		session_page_dir_index().then(index => {
+			this.page_dirs = index;
+			if (this.last_rows.length) this.render_rows();
+		});
 
 		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot,
 		// not live; degrades silently (no line shown) on a 404, i.e. the script
