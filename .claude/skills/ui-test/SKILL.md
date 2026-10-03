@@ -126,8 +126,14 @@ or numbers that look like a finding and belong to the wrong element.
 
 ## A plain render check, no gesture
 
-Playwright is a GLOBAL npm install, not a repo dependency, and the ESM resolver ignores `NODE_PATH` — the one import that works from a scratch script is
-`import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";` (the `file:///` scheme is mandatory; a bare `C:/…` path and `import "playwright"` both fail). Three minions rediscovered this the slow way (2026-08-18, 2026-09-04). Run bash scripts with `MSYS_NO_PATHCONV=1` or Git Bash rewrites a `/imagine/x/` argument into a Windows path.
+**Never `chromium.launch(` directly, even in a scratch script — import `{ browser }` from
+[`Server/browser.mjs`](/Server/browser.mjs) instead** (2026-10-03): it's the one launcher every
+script in this repo shares, it opens no window, and every chrome.exe it starts is tagged so the
+reaper can tell it apart from the owner's own Chrome. `const b = await browser();` replaces
+`chromium.launch(...)` one for one. A probe script outside the repo (the session scratchpad) can
+still import it with a `file:///C:/Code/lew42/monorepo/Server/browser.mjs` URL. See
+[`Server/doc/browser.md`](/Server/doc/browser.md). Run bash scripts with `MSYS_NO_PATHCONV=1` or
+Git Bash rewrites a `/imagine/x/` argument into a Windows path.
 
 ## Drive, or force?
 
