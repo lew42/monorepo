@@ -138,6 +138,19 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/Server/session-cost.mjs",
+              "--append-stdin"
+            ],
+            "timeout": 15
+          }
+        ]
       }
     ],
     "SessionEnd": [
