@@ -20,3 +20,4 @@
 {"log":{"at":"2026-10-03T13:56:18-05:00","task":"drawer-cleanup","msg":"landed — the AI tab's closed session switcher was never actually hidden ([hidden] vs @layer util .flex); fixed, footer now flush/default-padded"}}
 {"log":{"at":"2026-10-03T14:18:10-05:00","task":"prompts-live","msg":"landed — found+fixed the real break (Echo.js read_item wire-shape mismatch, dead since this morning), added real per-prompt cost tracking, deeper wiring break routed to @mastermind-servex"}}
 {"log":{"at":"2026-10-03T14:20:00-05:00","task":"flash-fix","msg":"landed — found the flash of unstyled content's cause (Router.load() awaited styles before the chain's own imports registered them), one await swap fixed it"}}
+{"log":{"at":"2026-10-03T14:25:34-05:00","task":"subcard-columns","msg":"landed — sub-card opens in an equal column beside its parent, N-deep breadcrumb, card template cleanup (quiet properties sidebar, status-only-when-running header)"}}
