@@ -1347,6 +1347,9 @@
 
 	.ai2-ol-mark { color: var(--accent, currentColor); }
 	.ai2-ol-time { white-space: nowrap; }
+	/* NOTICEABLE, NOT FLASHY (topic-cards, 2026-10-03): one quiet word, no animation, no colour
+	   fight with `.ai2-ol-mark`'s accent dot — it earns attention by being text, not motion. */
+	.ai2-ol-new { white-space: nowrap; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.04em; color: var(--accent, currentColor); }
 	.ai2-ol-proof { white-space: nowrap; grid-column: 4; }
 
 	/* The count grid: three numbers you read at a glance, and they are the list's filter. */

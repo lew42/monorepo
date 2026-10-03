@@ -187,6 +187,21 @@ inside it says who spent it, agent by agent, with each model. The figures come f
 ([`ext/AITask/doc/cost.md`](/framework/ext/AITask/doc/cost.md)). A card's page fills the whole
 column; only its text keeps the reading width ([`doc/decisions.md`](./doc/decisions.md#cost-and-fill)).
 
+**The Now card's topics are real sub-cards now, not a bulleted wall of text** (topic-cards,
+2026-10-03 — the owner: "these bulleted list items need to be more structured, in their own
+cards that we can click through and dig into"). A "Topics" section sits at the top of the Now
+card's Overview, above its own free-text notes: titles only, newest first, each a click into its
+own page — the same sub-card mechanism `your-prompts-refined-live` already used (`create_card`
+with `parent` set to the Now card's id), not a second one. A topic you haven't opened since it
+last changed carries a small "NEW" word, no animation, cleared the moment you open it — the same
+per-browser read flag every other row's bold title already uses (`rules.js`'s `is_read`). Still
+open: the owner's own statements aren't linked in with sentence ids yet — that needs
+[`prompts-live`](/framework/ai/2026-10-03/prompts-live/)'s remaining per-prompt wiring. Also fixed
+the same day: the Now card used to vanish from the rail entirely, because it is rewritten under a
+NEW dated folder every day (`ai/2026/10/03/now/`, never a fixed `ai/now/`) and the pinned row's
+old lookup only knew the literal id "now" — `resolve_card()` (`inbox.js`) now finds the latest
+real one first. [Task](/framework/ai/2026-10-03/topic-cards/).
+
 **The Live card** ([`live/`](/framework/ai2/live/)) is the one card that is not on the board: the
 usage limits (5-hour, weekly Fable, weekly all, each with the first dashboard's on-pace ▼), every
 agent Servex is running, and today's open tasks, in one page that scrolls as one — split into columns on a wide screen ([`doc/columns.md`](./doc/columns.md)). It rises
