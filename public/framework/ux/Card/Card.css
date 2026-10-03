@@ -166,6 +166,13 @@
 		margin: 0;
 	}
 
+	/* A card whose body is a content list (core/Page render_content_list, drawn as a
+	   direct child, not inside .ai2-full) scrolls as one page: without this the list
+	   ran past the detail column's `overflow: hidden` with no scrollbar (2026-10-03). */
+	.page.ai2-card-page:has(> .page-content-list) {
+		overflow-y: auto;
+	}
+
 	.ai2-full {
 		min-height: 0;
 		overflow-y: auto;
