@@ -28,6 +28,7 @@ import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
+import Echo from "./agents/Echo.js";
 import Fixer from "./agents/Fixer.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
@@ -196,6 +197,15 @@ export default class Servex extends Events {
             try { this.assistant.start(); }
             catch (e){ this.say(`assistant did not start: ${e.message || e}`); }
         });
+
+        /* THE ECHO ASSISTANT (minion-echo, 2026-10-02) — a SIBLING of the fast assistant
+         * above, not a second copy of it: same one-door, one-system-prompt, one-log shape, but
+         * ONE session PER owner interactive session (never a minion or mastermind's), started
+         * lazily the moment `.claude/hooks/prompt-relay.mjs` tells it, over `POST /log/echo`,
+         * that a prompt landed. Nothing to `start()` eagerly here — there is no fixed single
+         * session to warm up, only `install()`'s tool and listener. `SERVEX_NO_ECHO=1` boots
+         * without it, same escape hatch as `SERVEX_NO_ASSISTANT`. */
+        this.echo = new this.constructor.Echo({ servex: this }).install();
 
         /* THE DISPATCHER — watches the same `prompts` log for a `task` line
          * the assistant appended (`state: "queued"`) and spawns a task
@@ -1375,6 +1385,7 @@ Servex.Log = class ServexLog extends Log {
 };
 
 Servex.Assistant = Assistant;
+Servex.Echo = Echo;
 Servex.Fixer = Fixer;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;

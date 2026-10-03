@@ -98,6 +98,10 @@ export default new Page({
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
 		if (id === LIVE || id === "view" || id === "framework" || /^\d{4}$/.test(id)) return AIRail.route(this, id);
 		if (id === "now") return this.now_page ??= card_page(this, "now");
+		// "Your prompts" (2026-10-02, prompt-refine): the second pinned row — a synthesized
+		// id `AIRail.build_prompts_pin_item()` puts in the list, never a real card folder,
+		// cached the same way "now" is for the same reason (not rebuilt on every visit).
+		if (id === "your-prompts") return this.your_prompts_page ??= card_page(this, "your-prompts");
 		return card_page(this, id);
 	},
 });

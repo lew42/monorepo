@@ -233,3 +233,9 @@ classify-
 
 # public/framework/sources — the source library's authority badge, .sources-badge(-high/-medium/-low) (2026-09-28)
 sources-
+
+# public/framework/ext/Refine/prompt-card.js — the Condensed/Structured/Clean/Raw mode
+# switch, shared by ai/v/3's live thread AND ai2's "Your prompts" pinned card (2026-10-02,
+# minion-prompt-card) — moved out of ai/v/3's own `v3-` prefix once ai2 needed it too, so
+# neither tier's own prefix had to leak into the other.
+refine-modes-

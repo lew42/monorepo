@@ -117,6 +117,48 @@ view](/framework/ai/v/3/?view=prompts) is where all three show up live, beside
 the owner's own words. It never edits a file and never builds; that posture is
 written out in full in `agents/assistant.md`, its whole system prompt.
 
+**Big text moves by hook, never through a tool call** (the owner, 2026-10-02).
+Every word an agent puts into a tool call is output it pays to generate — so
+passing a whole prompt, a whole reply or a whole file from one agent to
+another through a tool call argument means an LLM re-typing something that
+was already sitting on disk. A HOOK can read and write that same text for
+free, because it is plain code, not a model call. The rule this leads to: a
+hook captures the owner's own prompts and the coding assistant's own replies
+the instant they happen (`.claude/hooks/prompt-relay.mjs`, `reply-relay.mjs`),
+and whenever one process needs to tell another "something landed," it sends a
+POSITION — a session id, a file, a line number — never the text itself. The
+receiving side reads the real text off disk itself, once, when it is actually
+ready to use it. `agents/Echo.js` below is the first consumer built against
+this rule end to end.
+
+**Echo** — `agents/Echo.js`, a SIBLING of the Assistant above: one Sonnet
+session per owner session (not one shared session), started lazily the first
+time that session's own `prompt-relay.mjs` hook tells Servex, over
+`POST /log/echo`, that a prompt landed — never for a minion or a mastermind's
+own turns, only an interactive owner session. It is the "fast/smart pair"
+turned around: the owner's own coding session stays hands-free, and this
+cheap, always-up echo reads every prompt and reply IN ORDER, so it can say
+"as you said 15 minutes ago" the way a person who was listening the whole
+time could. It calls `clean()`/`structure()`
+(`public/framework/ext/Refine/engine.js` + `structure.js`) itself for the
+mechanical half — near-verbatim text, every sentence placed under a heading
+exactly once, both guaranteed by code, never by asking a model nicely — then
+asks its own one Claude session for the three things a machine check cannot
+decide: the prompt's `topic`, its `references` (names, pages, agents), and
+its `asks_flags` (what's being asked for, each sized, plus anything still
+unclear). Every one of the five steps — `clean`, `references`, `sections`,
+`asks_flags`, `done` — is its own line, appended to the SAME daily prompts log
+the hooks already write (`.claude/prompts/<date>.jsonl`), the instant it's
+known, through exactly one tool, `refine_step` — so a page watching that file
+can show the record growing within seconds, and `done` is the one line
+everything else (a parent mastermind Servex wakes automatically; the owner's
+own next prompt, told in one line by the hook) waits for. A past session is
+replayed the same way, cold: `agents/echo-replay.mjs` reads a session's real
+prompt+reply pairs straight off its own transcript file, in order, for a
+FRESH echo session to work through one at a time — see
+`public/framework/ai/2026-10-02/prompt-refine/minion-echo/` for the first
+test's results.
+
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
 

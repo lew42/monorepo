@@ -8,7 +8,8 @@ import { news_of, group_news, unseen } from "./activity.js";
 import { plain, first_sentence, Board, Says, BOARD_URL, VERDICTS_URL, prompt_stream, card_stream, day_log, items, sub_rows, sub_row, say, new_card, archive_card, refs, CardList, create_card, resolve_card, is_folder_id, servex_up } from "./inbox.js";
 import composer from "./compose.js";
 import Card, { card_link } from "./card.js";
-import { watch_needs, score_for } from "./needs.js";
+import { watch_needs, score_for, needs_for } from "./needs.js";
+import { importance, reason_of } from "./needs-rule.js";
 import chat from "./chat.js";
 import mount_chat from "/framework/ux/Dictate/chat.js";
 import { LIVE, live_model, live_full, usage_head } from "./live.js";
@@ -25,6 +26,18 @@ View.stylesheet(import.meta, "rail.css");
 
 /* Servex down: the page is read-only — "+ New card" quietly goes away. */
 servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.createElement("style"), { textContent: "@layer site { .ai2-newcard { display: none } }" })); });
+
+/* THE REASON NEXT TO THE NUMBER (card-pipeline, 2026-10-02, item 3: "the items above 90 seem
+ * arbitrary"). `importance()` (`needs-rule.js`) already picks a number with a written-down rule
+ * for every band; `reason_of()` (same file) names, in five words or fewer, WHICH branch of that
+ * rule actually fired — this just finds the row's own highest-scoring open need (the same ones
+ * `score_for()` already looked at, never a second idea of the score) and hands it over. The full
+ * band legend, in prose: this module's own readme. */
+function reason_for(it, now = Date.now()){
+	const open = it.kind === "stalled" ? null : needs_for(it.id);
+	const top = open?.length ? open.reduce((a, b) => (importance(b, now) > importance(a, now) ? b : a)) : null;
+	return reason_of(top, it, now);
+}
 
 const AUTO_KEY = "ai2-auto-transcribe";
 const LIVEVIEW_KEY = "ai2-live-default";
@@ -62,6 +75,7 @@ export default class AIRail extends Inbox.Rail {
 	title = "AI inbox";
 	key = "ai2";
 	now_item = null;
+	your_prompts_item = null;
 	followed = new Set();
 
 	shell_classes(){ return "inbox-shell ai2 bleed"; }
@@ -161,23 +175,59 @@ export default class AIRail extends Inbox.Rail {
 		// THE NOW CARD is in the list only so its own page finds it (`pool()` keeps it out of
 		// the rows; `render_pinned()` draws its one row).
 		if (this.now_item) list.push(this.now_item);
+		// A SECOND PINNED ROW, "Your prompts" (2026-10-02, prompt-refine) — built fresh every
+		// paint from the SAME `kind: "prompt"` rows `items()` just made (no second fetch, no
+		// new log): see `build_prompts_pin_item()`, below. Same "in the list only so its own
+		// page finds it" reason as the Now card right above.
+		this.build_prompts_pin_item(list);
+		if (this.your_prompts_item) list.push(this.your_prompts_item);
 		return list;
 	}
 
 	/* READ/UNREAD is this browser's own flag (rules.js); the Live card is always fresh and
-	   the pinned Now card never bold. Then each row's importance: its highest open need. */
+	   the pinned Now and Your-prompts cards never bold. Then each row's importance: its
+	   highest open need. */
 	decorate(list){
 		list.forEach(it => {
-			it.unread = it.kind === "live" ? true : it.id === "now" ? false : !is_read(it.id);
+			it.unread = it.kind === "live" ? true : (it.id === "now" || it.id === "your-prompts") ? false : !is_read(it.id);
 			// ⚠ `?? it.score`: `score_for()` only answers "needs you" and is null for most rows.
 			if (it.kind !== "stalled") it.score = score_for(it.id) ?? it.score;
+			// THE REASON NEXT TO THE NUMBER (item 3) — the rule that set this row's score,
+			// in five words, shown right beside it in `face_extra()` below.
+			it.reason = reason_for(it);
 		});
+	}
+
+	/* "YOUR PROMPTS" — the SECOND pinned row (deliverable 5's ai2 addition, 2026-10-02): one
+	   line showing the latest prompt's topic and time, same `inbox-row-pinned` look the Now
+	   card already has (`render_pinned()`), reusing that one pinning mechanism rather than
+	   building a second (the owner's own instruction). Its own page (`/framework/ai2/
+	   your-prompts/`) shows every prompt newest-first — `faces.js`'s `full()`, the
+	   `prompts-pin` branch.
+	   STAND-IN (noted in task.jsonl): `topic` is not written by anything yet — minion-echo's
+	   `refined` log line is adding it. Until then this falls back to the latest prompt's own
+	   headline, which is always there. */
+	build_prompts_pin_item(list){
+		const prompts = list.filter(it => it.kind === "prompt").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
+		if (!prompts.length){ this.your_prompts_item = null; return; }
+		const latest = prompts[0];
+		const headline = latest.topic || first_sentence(plain(latest.refined || latest.title || (latest.said ?? [])[0] || ""));
+		this.your_prompts_item = {
+			id: "your-prompts", kind: "prompts-pin", icon: "mic",
+			title: "Your prompts", text: headline, at: latest.at,
+			prompts,   // newest-first — the detail page's own timeline
+			links: [], flag: null, author: "owner", unread: false, status: "open",
+		};
 	}
 
 	prepare(rows){
 		rows.forEach(it => { it.cost = this.row_cost(it); });
 		// What bumped each row, while it is new to you (activity.js).
 		this.list.forEach(it => { it.news = news_of(it, this.groups.folds); });
+		// Every paint can change the Now card's data or the latest prompt, so the pinned
+		// row(s) above the list redraw here too, every time — not only the one time
+		// `resolve_card("now")` first settles (see that call site, below).
+		this.render_pinned();
 	}
 
 	/* A progress bar and one dollar figure, written onto the item so the row's signature
@@ -197,13 +247,14 @@ export default class AIRail extends Inbox.Rail {
 	pool(list){
 		const fresh = it => Date.now() - Date.parse(it.at ?? 0) < 30 * 60 * 1000;
 		const group_cards = new Set((this.groups.list ?? []).map(g => g.card));
-		return list.filter(it => it.id !== "now" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
+		return list.filter(it => it.id !== "now" && it.id !== "your-prompts" && !group_cards.has(it.id) && (!this.groups.filed(it) || fresh(it)));
 	}
 	pool_archived(list){ return list.filter(it => !this.groups.filed(it)); }
 	resolved(it){ return is_resolved(it); }
 	exempt(it){ return it.kind === "live"; }
-	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live never leaves.
-	archivable(it){ return it.kind !== "stalled" && it.kind !== "live"; }
+	// A stalled ask has no card to archive (it leaves when the ledger moves on); Live and the
+	// pinned Your-prompts summary never leave either — there is nothing to archive on either.
+	archivable(it){ return it.kind !== "stalled" && it.kind !== "live" && it.kind !== "prompts-pin"; }
 
 	is_read(id){ return is_read(id); }
 	mark_read(id, val){ mark_read(id, val); }
@@ -234,6 +285,9 @@ export default class AIRail extends Inbox.Rail {
 
 	face_extra(it){
 		meter(it.progress, it.usd, it.usd_open);
+		// The reason beside the score (item 3) — only worth a line once the row carries a
+		// score at all; a plain "0" row (nothing ranked it) says nothing extra.
+		if (it.score != null && it.reason) small.c("ai2-row-reason muted").attr("title", "the rule that set this row's score").text(it.reason);
 		if (it.news) news_bar(it.news);
 	}
 
@@ -322,14 +376,18 @@ export default class AIRail extends Inbox.Rail {
 		});
 	}
 
-	/* THE ONE PINNED ROW — the Now card, above everything, filled into `$pinned` so the
-	   ordering never touches it. Read once from its own folder (`ai/now/`). */
+	/* THE PINNED ROWS — above everything, filled into `$pinned` so the ordering never
+	   touches them. The Now card (read once from its own folder, `ai/now/`) was the only
+	   one until "Your prompts" joined it (2026-10-02) — ONE pinning mechanism for both,
+	   not a second one built for the new row (the owner's own instruction): same look,
+	   same place, same "never bold, never in the sortable list" rule, just a short list
+	   instead of a single hardcoded row. */
 	render_pinned(){
-		if (!this.now_item) return;
-		const it = this.now_item;
+		const pinned = [this.now_item, this.your_prompts_item].filter(Boolean);
+		if (!pinned.length) return;
 		this.$pinned.empty(() => {
-			a.c("inbox-row inbox-row-pinned").href(this.url + "now/")
-				.empty(() => { this.face({ ...it, sub: first_sentence(plain(it.text)) }, {}); });
+			pinned.forEach(it => a.c("inbox-row inbox-row-pinned").href(this.url + it.id + "/")
+				.empty(() => { this.face({ ...it, sub: first_sentence(plain(it.text)) }, {}); }));
 		});
 		this.router?.mark_links?.();
 	}

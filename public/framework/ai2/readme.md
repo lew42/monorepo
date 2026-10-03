@@ -103,6 +103,25 @@ is the SYSTEM's own question (the heartbeat revives or stops a stalled task, and
 mastermind decides), never the owner's, so it is filtered out (2026-09-30) — it still shows, and
 still answers, on the card's own page.
 
+**The priority score, band by band** (card-pipeline, 2026-10-02 — the owner: "the items above 90
+seem arbitrary"). Every row's 0-100 number comes from one function, `importance()`
+([`needs-rule.js`](./needs-rule.js)), read by the Inbox floor (90), the Needs you tab and the
+asks ledger's own page alike — so the bands below are the WHOLE rule, not a summary of it:
+
+- **97-100 · Blocker** — a key, money, or something destructive is waiting on you right now.
+- **90-96 · Blocked** — an open question or decision an agent is actually, currently waiting on.
+- **40-55 · Plain ask** — an open question or decision, but nobody is known to be waiting on it.
+- **15-35 · Stalled** — an agent went quiet; Servex is already reviving it, nothing for you to do.
+- **30 · Decided** — the system already chose something; this row is only telling you.
+- **10 · FYI / default** — a note, a routine update, or a landed task nobody is waiting on.
+
+On top of whichever band above applies, any row can be LIFTED into the low 90s for about a day
+after it last changed — "may show briefly," as the owner put it — fading back down to its own
+band by about 24 hours old. This is why a 92 doesn't always mean "blocked": the number alone
+can't say which rule fired, which is exactly why every row also shows its own written-out
+**reason** right beside it (`rail.js`'s `reason_for()`), never just the number. An audit of every card sitting at 90+ right now, with its reason, and which ones had gone
+stale (a landed task still reading "needs the owner today"): [`ai/2026-10-02/card-pipeline/`](/framework/ai/2026-10-02/card-pipeline/).
+
 **2026-09-30, latest: "Needs you" moved off the tab strip, onto the rail itself.** It is now the
 rail's own filter checkbox — relabelled "Needs you" (was "Needs review"), right beside "+ New
 card" — and carries a small count badge, hidden at zero, the same one the tab used to wear. The
@@ -179,6 +198,17 @@ agent** and its conversation opens in the agent column beside the list when the 
 (the column opens on `assistant-fast` by default), or takes over the card with "← Live" to go back
 when it is not — what it said, live — with a box that sends it a message
 (`POST /api/agents/<id>/message` on Servex).
+
+**"Your prompts"** ([`your-prompts/`](/framework/ai2/your-prompts/), 2026-10-02) is the second
+pinned row, above the rail's own sortable list, beside the Now card — one line showing your
+latest prompt's time (and, once [`minion-echo`](/framework/ai/2026-10-02/prompt-refine/)'s
+`refined` log line carries it, its topic). Click it for every prompt newest-first, each a
+Condensed-by-default mode-switch card (`ext/Refine/prompt-card.js`'s `prompt_modes()` — the same
+piece `ai/v/3/prompts.js`'s own thread uses) with the assistant's reading folded under "my reply".
+Consecutive prompts that DO share a topic (not yet — nothing writes one today) render inside one
+labelled wrapper; nothing here guesses a topic from the words. Built the same way the Now card is
+— `AIRail.build_prompts_pin_item()`, `render_pinned()`, `faces.js`'s `prompt_timeline()` — one
+pinning mechanism, not a second.
 
 **Processes** (2026-09-30): the Live card's own RAM/CPU graph, one row per task with its own
 sparkline, orphans and the worktree pool count — every `claude.exe` and what spawned it, from
@@ -319,10 +349,11 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - Per-card storage, sub-cards, the footer: [`ai/2026-09-22/ai2-nested/`](/framework/ai/2026-09-22/ai2-nested/)
 - [`doc/cards.md`](./doc/cards.md) — card folders: the addresses, `card.js`'s vocabulary, every write
 - Files that matter: `rail.js` (`AIRail`, the rail: the base class `InboxRail` in
-  [core/Page/ext/Inbox](/framework/core/Page/ext/Inbox/) plus the usage meters, "+ New card", Live, Now and the
-  groups, and the card pages; the AI page's Inbox and Log tabs build the same one), `rail.css` (its AI-only look; the
+  [core/Page/ext/Inbox](/framework/core/Page/ext/Inbox/) plus the usage meters, "+ New card", Live, Now,
+  **Your prompts** and the groups, and the card pages; the AI page's Inbox and Log tabs build the same one), `rail.css` (its AI-only look; the
   rest is [ux/Inbox](/framework/ux/Inbox/)), `page.js` (AI 2's own tabs and routes), `card.js` (a
-  card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents), `inbox.js` (what there is to
+  card folder's own page), `faces.js` (a board card, small and whole, plus the table of contents,
+  plus **Your prompts**' own timeline, `prompt_timeline()`), `inbox.js` (what there is to
   draw, and the per-card log), `groups.json` + `groups.js` (the groups and who is in them),
   `tasks.js` (a task's real page inside a card), `compose.js` (the box you talk into), `ai2.css` (what is
   left of the look: only AI 2's own v1 screens — the old Log tab's rows, Overview, Needs-you, Log — since

@@ -9,6 +9,18 @@ refine(import.meta, { run: "/framework/ai/2026-09-29/prompt-refine/runs/b/" });
 ```
 A `runs` list — `[{ id, label, dir }, …]` — draws a picker (`<select>`) above the ladder and makes this view **own** `?run=` in the url, the same one-owner rule [`ext/files`](/framework/ext/files/) uses for `?file=`: a reload lands back on the same run. The card at `2026/09/29/from-dictation-to-a-brief-with-nothing-l` (on the AI 2 dashboard) uses this for its sample/a/b/c picker.
 
+**A second, smaller piece lives here too: `prompt-card.js`.** It is the Condensed →
+Structured → Clean → Raw mode switch a single logged prompt gets on a card — not the
+four-column ladder above, just one prompt's own four readings, reused wherever a prompt
+needs a card: `ai/v/3/prompts.js`'s live thread, and `ai2`'s pinned "Your prompts" card
+(`ai2/faces.js`'s `prompt_timeline()`). It lives here, not inside either of those pages,
+because `ai2/inbox.js` deliberately never imports from `ai/v/3` (that board is being
+replaced) — this is the neutral ground both share, same reason `ext/Mention` is.
+```js
+import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
+prompt_modes({ raw, sentences, structured, fallback_text });   // see its own doc comment for the full shape
+```
+
 ## Watch out
 - **Three widths, not two.** 1600px+: four full columns. 640–1599px: three — Raw and Clean share one, with their own mini tab strip (four columns squeezed a real run's Raw and Clean down to a few words a line as low as 1280px). Under 640px: the original stacked four-way tabs.
 - **The "Dropped & flagged" strip, right under the one-line count**, is a shortcut into the full coverage table below — every dropped or "(thin)" sentence, one row per flagged ask (anchored on its first cited sentence, not one row per sentence in a big range). Click a row the same as an ask or a bullet.
@@ -22,3 +34,4 @@ A `runs` list — `[{ id, label, dir }, …]` — draws a picker (`<select>`) ab
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
 - `Server/doc/refine.md` — what `refine.mjs` writes, and why each file looks the way it does
+- `doc/refine-engine.md` — `engine.js`'s `clean()` and `structure.js`'s `structure()`: the shared, two-speed clean step Dictate and the prompt-log processor both call, its mechanical glossary/strike/diff-check rules, and the 3-model litmus test that picked the cheap model to run it on

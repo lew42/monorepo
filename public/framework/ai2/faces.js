@@ -4,6 +4,7 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
 import { author_word, plain } from "./inbox.js";
 import { md_into } from "./chat.js";
 import { meter } from "./meter.js";
+import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
 
 /**
  * THE TWO FACES OF A CARD — the preview in the rail, and the whole thing on the
@@ -144,6 +145,10 @@ export function full(it, on){
 		});
 	}
 
+	// THE PINNED "Your prompts" CARD'S OWN PAGE (deliverable 5's ai2 addition, 2026-10-02):
+	// every prompt, newest-first, each a mode-switch card (`prompt_timeline()`, below).
+	if (it.kind === "prompts-pin") prompt_timeline(it.prompts ?? []);
+
 	// ⚠ `page-link` is the site's class for a link that is NOT inside prose, and
 	// it is why these are no longer browser-blue: framework.css scopes link
 	// colour to prose, so an anchor in a bare div got no rule at all (measured:
@@ -154,6 +159,55 @@ export function full(it, on){
 
 	if (it.flag) small.c("ai2-flag-said muted")
 		.text("flagged" + (it.flag.quote ? " on “" + it.flag.quote + "”" : "") + " — " + (it.flag.note ?? ""));
+}
+
+/**
+ * THE "YOUR PROMPTS" TIMELINE — every prompt, newest-first (`prompts` is already sorted
+ * that way, `rail.js`'s `build_prompts_pin_item()`). Two rules straight from the brief:
+ *
+ *   1. TOPIC WRAPPERS COME FROM THE DATA, NEVER A GUESS: consecutive prompts sharing one
+ *      `p.topic` render inside ONE labelled wrapper; a prompt with no topic (every prompt,
+ *      today — minion-echo's `refined` line is adding this field, not landed yet) renders
+ *      on its own, with no wrapper and no label, exactly as it does now. Nothing here
+ *      invents a topic by looking at the words.
+ *   2. CONDENSED IS THE SUMMARY: each prompt is `prompt_modes()` (`ext/Refine/
+ *      prompt-card.js`), defaulting to Condensed — the SAME component and the SAME
+ *      "show it, don't guess at a shorter version" rule deliverable 5 already built for
+ *      the live thread, just mounted here with a different starting mode.
+ */
+function prompt_timeline(prompts){
+	if (!prompts.length){ small.c("muted").text("nothing said yet"); return; }
+	let i = 0;
+	while (i < prompts.length){
+		const topic = prompts[i].topic;
+		const group = [prompts[i]];
+		if (topic) while (i + 1 < prompts.length && prompts[i + 1].topic === topic) group.push(prompts[++i]);
+		i++;
+		if (topic) div.c("ai2-prompts-group", () => {
+			small.c("ai2-prompts-topic muted").text(topic);
+			group.forEach(prompt_timeline_row);
+		});
+		else group.forEach(prompt_timeline_row);
+	}
+}
+
+/** ONE PROMPT IN THE TIMELINE: when it was said, the mode-switch card (what was said), and
+ *  — "beside each prompt, collapsed by default" — the assistant's own reading, the best
+ *  stand-in today for "my reply" until a real one exists (`it.refined`, the exact text
+ *  `full()` already shows for a live `kind: "prompt"` row elsewhere on this page). */
+function prompt_timeline_row(row){
+	div.c("ai2-prompts-row", () => {
+		small.c("ai2-prompts-when muted").text(when(row.at));
+		prompt_modes({
+			raw: row.text ?? (row.said ?? []).join(" "),
+			sentences: null, structured: null,
+			fallback_text: row.refined || row.title || (row.said ?? [])[0] || "",
+		}, { mode: "condensed" });
+		if (row.refined) details.c("ai2-prompts-reply", () => {
+			summary.c("ai2-prompts-reply-head muted").text("my reply");
+			p.c("ai2-refined").md(row.refined);
+		});
+	});
 }
 
 /**

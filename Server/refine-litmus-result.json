@@ -1,0 +1,45 @@
+{
+  "at": "2026-10-03T02:34:42.724Z",
+  "input": "C:/Users/mike/AppData/Local/Temp/claude/C--Code-lew42-worktrees-prompt-refine/d3cddca5-36d3-46a3-9cae-d7fe536c0f43/scratchpad/litmus-sample.txt",
+  "source_file": "C:/Users/mike/AppData/Local/Temp/claude/C--Code-lew42-worktrees-prompt-refine/d3cddca5-36d3-46a3-9cae-d7fe536c0f43/scratchpad/litmus-sample.txt",
+  "raw_words": 79,
+  "models": [
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "label": "haiku (Anthropic)",
+      "pass": true,
+      "mechanical_flags": 0,
+      "model_flags": 3,
+      "misheard": 0,
+      "strikes": 0,
+      "cost_usd": 0.153375,
+      "duration_ms": 122716,
+      "sample": "Is the page `/ext/inbox` the end up InboxRail? Is that the only class in that directory? If the class name is InboxRail, then the property name should be like i"
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "label": "deepseek (OpenRouter)",
+      "pass": true,
+      "mechanical_flags": 0,
+      "model_flags": 1,
+      "misheard": 0,
+      "strikes": 0,
+      "cost_usd": 0.371332,
+      "duration_ms": 7585,
+      "sample": "Is the page /ext/inbox, the end up inbox rail? Is that the only class in that directory? If the class name is inbox rail, then the property name should be inbox"
+    },
+    {
+      "model": "openai/gpt-6-luna",
+      "label": "gpt-6-luna (OpenRouter)",
+      "pass": true,
+      "mechanical_flags": 0,
+      "model_flags": 2,
+      "misheard": 0,
+      "strikes": 0,
+      "cost_usd": 0.39963899999999997,
+      "duration_ms": 25782,
+      "sample": "Is the page /ext/Inbox the InboxRail? Is that the only class in that directory? Like, if the class name is InboxRail, then the property name should be like inbo"
+    }
+  ],
+  "verdict": "haiku (Anthropic) wins — passed, cheapest at $0.1534 (122716ms)"
+}

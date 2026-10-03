@@ -3,6 +3,7 @@ import { icon } from "/framework/core/View/View.js";
 import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { clock } from "./timeline.js";
 import composer from "./compose.js";
+import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
 
 /**
  * THE PROMPTS VIEW — what you said, and what was made of it, side by side.
@@ -177,9 +178,23 @@ export function prompts_view(base = servex_base()) {
 		});
 	}
 
+	/* STAND-IN DATA, on purpose (2026-10-02 scope note, folded in mid-task):
+	   the fast assistant's `refined` event is already a cleaned reading
+	   citing sentence numbers — close to "Clean" mode, but a single
+	   paragraph rather than numbered sentences, a heading outline, or the
+	   strikes/misheard/flags `ext/Refine/refine.js`'s `clean()` can find (no
+	   clean/structure step runs on a live prompt yet; that is a separate,
+	   Servex-side "echo assistant" a sibling task owns). `prompt_modes()`
+	   still shows all four modes: Condensed and Structured fall back to the
+	   reading's own text (see prompt-card.js's own doc comment for the exact
+	   fallback rules), so nothing here is ever blank. Once that richer data
+	   exists, swapping it in is changing what gets passed into this one
+	   call — nothing in `prompt_modes()` itself needs to change shape. */
 	function reading($made, r) {
 		const cited = (r.cites ?? []).flatMap(c => c.sentences ?? []);
-		const $r = div.c("v3-prompt-refined").text(r.text ?? "");
+		const $r = div.c("v3-prompt-refined", () => {
+			prompt_modes({ raw: r.text ?? "", sentences: null, structured: null, fallback_text: r.text ?? "" }, { mode: "clean" });
+		});
 		const glow = on => cited.forEach(i => $made.el.closest(".v3-prompt-row")
 			?.querySelector(`.v3-prompt-sentence[data-i="${i}"]`)?.classList.toggle("lit", on));
 		$r.on("mouseenter", () => glow(true)).on("mouseleave", () => glow(false));

@@ -126,6 +126,18 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/reply-relay.mjs"
+            ],
+            "timeout": 15
+          }
+        ]
       }
     ],
     "SessionEnd": [

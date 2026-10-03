@@ -9,3 +9,13 @@
 {"file":"doc/"}
 {"file":"fixture/"}
 {"file":"ai/"}
+{"file":"ai/","gone":true}
+{"file":"ai/","gone":true}
+{"file":"ai/","gone":true}
+{"file":"refine.js"}
+{"file":"structure.js"}
+{"file":"Refine.js.recovered"}
+{"file":"Refine.js.recovered","gone":true}
+{"file":"engine.js"}
+{"file":"prompt-card.js"}
+{"file":"prompt-card.css"}

@@ -21,7 +21,8 @@ The owner, 2026-10-02 (trimmed; the full words are in `.claude/prompts/2026-10-0
 
 ## Session records (decided by vscode-mastermind, 2026-10-02)
 - **Done:** Claude Code deleted transcripts after 30 days by default (the oldest kept one was from 09-04). `cleanupPeriodDays: 3650` is now set in the user settings, so transcripts are kept for years.
-- **Not in git, and no copy (the owner, 2026-10-02: no duplicate data):** transcripts hold secrets and would bloat the repo. The 10-year retention is enough, and compaction does NOT delete history: this session's transcript is 67 MB, has 8 compactions in it, and still starts at its first message on 09-24. Read transcripts in place when reprocessing; never copy them. (Supersedes the nightly-archive idea.)
+- **No nightly archive, no copy (the owner, 2026-10-02: no duplicate data):** an earlier draft of this brief proposed a nightly transcript archive job; the owner rejected it later the same session. Transcripts hold secrets and would bloat the repo. The 10-year retention is enough, and compaction does NOT delete history: this session's transcript was 67 MB, had 8 compactions in it, and still started at its first message on 09-24. Read transcripts in place when reprocessing; never copy them.
+- **Storage, final (vscode-mastermind, 2026-10-02): a session is a page.** `public/framework/ai/<YYYY>/<MM>/<DD>/<slug>-<first 8 of the session uuid>/page.jsonl`, a sibling of that day's task dirs, indexed by the day's own `file` line — not a `sessions/` subfolder, and not the old daily `.claude/prompts/<date>.jsonl` (retired). See "A session is a page" in `ai/2026-09-30/proposal-flow/page-item-design.md`.
 
 ## Rules
 A Sonnet task mastermind. Coordinate with @task-mastermind-one-dictation, which owns the Dictate widget (it adopts `refine()`; it doesn't build a second one). Never wait on the owner.

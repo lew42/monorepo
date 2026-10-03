@@ -12,11 +12,12 @@ import { fileURLToPath } from "node:url";
  *
  * Two jobs, for two different readers:
  *
- * 1. EVERY session — a private transcript. Append the prompt, verbatim, to
- *    .claude/prompts/<day>.jsonl (git-ignored, outside public/ so it never reaches the LAN
- *    and never touches a served page's cache). This is the owner's "my words should be
- *    transcribed in real time" — one greppable file per day, author always "owner" (that is
- *    who types into Claude Code; an agent's own turns are not prompts).
+ * 1. THE OWNER'S OWN interactive session only — never a minion or mastermind's (minion-echo,
+ *    2026-10-02, storage redirect: "a session is a page",
+ *    public/framework/ai/2026-09-30/proposal-flow/page-item-design.md). The prompt becomes one
+ *    `page_add` item on that session's own public/framework/ai/sessions/<session_id>/page.jsonl
+ *    — never a second, shared daily file (the old .claude/prompts/<date>.jsonl is retired: text
+ *    is never stored twice). This is the owner's "my words should be transcribed in real time."
  *
  * 2. ASSISTANT sessions only — the live relay. A session becomes "the assistant" the moment
  *    it loads the `assistant` skill (marked by ledger.mjs's Skill branch, one line) or types
@@ -50,7 +51,6 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(process.env.LEDGER_ROOT || path.join(fileURLToPath(import.meta.url), "../../.."));
 const AI = path.join(root, "public/framework/ai");
 const BOARD = path.join(AI, "v/3/board.jsonl");
-const PROMPTS_DIR = path.join(root, ".claude/prompts");
 
 const now = () => {
 	const d = new Date(), off = -d.getTimezoneOffset(), p = n => String(Math.abs(n)).padStart(2, "0");
@@ -65,10 +65,113 @@ const read = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => {
 // newline, so appending straight on top would glue two JSON objects onto one line.
 const append = (file, entry) => {
 	fs.mkdirSync(path.dirname(file), { recursive: true });
-	let lead = "";
-	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
+	let existing = "";
+	try { existing = fs.readFileSync(file, "utf8"); } catch {}
+	const lead = existing.length && existing.at(-1) !== "\n" ? "\n" : "";
 	fs.appendFileSync(file, lead + JSON.stringify(entry) + "\n");
 };
+
+// See the big comment above: the whole test is "did Servex start this process" — the owner's
+// own interactive session (typed in a terminal or VS Code, never through Servex) has no
+// SERVEX_MCP env var at all, which is exactly the session the echo assistant (minion-echo,
+// 2026-10-02) exists for. A minion or mastermind's own "reading its brief" is not a prompt to
+// refine — it's already-structured requirements, not something the owner typed out loud —
+// so this is the gate on both the page write below and the "refined: ..." context line.
+// Copied from `reply-relay.mjs`'s own same-named helper, not imported — see that file's doc
+// comment on why these two hooks hand-copy small pieces instead.
+const started_by_servex = () => Boolean(process.env.SERVEX_MCP);
+
+const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
+
+/* STORAGE REDIRECT (the owner via vscode-mastermind, 2026-10-02, "a session is a page" —
+ * public/framework/ai/2026-09-30/proposal-flow/page-item-design.md — THREE corrections landed
+ * on the exact path while this was being built; this is the final one, logged in full in this
+ * task's task.jsonl): every owner session gets ONE page, a sibling of that day's task dirs and
+ * cards, inside the EXISTING year/month/day tree (the same tree `public/framework/ai/2026/09/
+ * 25/<slug>/page.jsonl` already uses) — never its own "sessions/" folder (that's only a TAB
+ * VIEW, a listing across days, not a storage location) and never the old shared daily file
+ * (.claude/prompts/<date>.jsonl, retired: text is never stored twice). Writing a page line is
+ * still done BY THIS HOOK, by path, never by an agent generating a tool call with the text as
+ * an argument — it just reuses the exact tool `Servex/agents/page_tools.js` already validates
+ * and appends through (`page_add`), over Servex's own loopback-only `/mcp` door, which answers
+ * a plain JSON-RPC POST from any local process, agent or not (`Servex/MCP.js`'s `post()` — no
+ * `?as=` still works, it just means `ctx.caller` is null). `as=owner`/`as=assistant` below are
+ * who gets stamped as `by` on the item, not a Servex agent registration.
+ *
+ * `slug` is a human name for what this session IS ("vscode-mastermind", "minion-echo") — this
+ * hook has no way to know that from `session_id` alone, so it defaults to the generic "session"
+ * until something with more context (a mastermind, a card, `new-task`) renames the folder; see
+ * this task's task.jsonl, decision "generic-slug-default". The day and slug, once picked, are
+ * cached in a per-session marker so every later prompt in the SAME session (even across
+ * midnight) keeps landing in the SAME folder — the day is "when this session started", not
+ * "today". */
+const session_marker_file = sid => path.join(os.tmpdir(), `claude-session-page-${String(sid).replace(/[^\w-]/g, "_")}`);
+function session_page_url(session_id, { day } = {}){
+	const marker = session_marker_file(session_id);
+	let use_day, slug;
+	try {
+		const cached = JSON.parse(fs.readFileSync(marker, "utf8"));
+		if (cached?.day && cached?.slug){ use_day = cached.day; slug = cached.slug; }
+	} catch {}
+	if (!use_day){
+		use_day = day || now().slice(0, 10);
+		slug = "session";
+		try { fs.writeFileSync(marker, JSON.stringify({ day: use_day, slug })); } catch {}
+	}
+	return `/framework/ai/${use_day.replaceAll("-", "/")}/${slug}-${session_id.slice(0, 8)}/`;
+}
+
+async function mcp_call(name, args, as){
+	try {
+		const res = await fetch(`${SERVEX()}/mcp?as=${encodeURIComponent(as)}`, {
+			method: "POST", headers: { "content-type": "application/json" },
+			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }),
+			signal: AbortSignal.timeout(4000),
+		});
+		const body = await res.json();
+		const text = body?.result?.content?.[0]?.text;
+		return text ? JSON.parse(text) : null;
+	} catch { return null; }   // Servex down or restarting — this prompt just isn't stored this time
+}
+
+// Tell Servex a new item landed on this session's page — never the text itself, which is
+// already sitting on disk; Servex reads it back by `item_id` when it's ready.
+const notify_echo = async (type, session_id, page, item_id) => {
+	try {
+		await fetch(`${SERVEX()}/log/echo`, {
+			method: "POST", headers: { "content-type": "application/json" },
+			body: JSON.stringify({ type, session_id, page, item_id }),
+			signal: AbortSignal.timeout(1500),
+		});
+	} catch {}
+};
+
+// THE VS CODE / CLI PATH (point 2 of minion-echo's brief, the owner via vscode-mastermind,
+// 2026-10-02): a session that is NOT a Servex mastermind has no "wake the parent when a turn
+// ends" mechanism to lean on, so it has to be told some other way, and the one place every
+// session's own next turn already reads free text is THIS hook's own stdout. Before printing
+// the identity-refresh block below, check this session's OWN page.jsonl for a `content/<id>`
+// line carrying `done: true` that hasn't been shown yet, and say so in one line — no tool
+// call, no polling. A tiny marker file (one per session) remembers the last item id shown.
+const echo_marker = sid => path.join(os.tmpdir(), `claude-echo-seen-${String(sid).replace(/[^\w-]/g, "_")}`);
+function echo_context_line(session_id){
+	const page_url = session_page_url(session_id);   // reads the cached {day, slug} marker, writes nothing new
+	const file = path.join(root, "public", page_url.replace(/^\/+/, ""), "page.jsonl");
+	let lines;
+	try { lines = read(file); } catch { return null; }
+	let seen = null;
+	try { seen = fs.readFileSync(echo_marker(session_id), "utf8").trim() || null; } catch {}
+	for (let i = lines.length - 1; i >= 0; i--){
+		const at = lines[i].at;
+		if (typeof at !== "string" || !at.startsWith("content/") || !lines[i].done) continue;
+		const id = at.slice("content/".length);
+		if (id === seen) return null;   // already told them about this one
+		try { fs.writeFileSync(echo_marker(session_id), id); } catch {}
+		const asks = lines[i].asks?.length ?? 0, flags = lines[i].flags_count ?? 0;
+		return `refined: ${session_page_url(session_id)} #${id} — ${asks} ask${asks === 1 ? "" : "s"}, ${flags} flag${flags === 1 ? "" : "s"}.`;
+	}
+	return null;
+}
 
 // The newest unlanded ai/<date>/mastermind-*/task.jsonl — copied from say.mjs's run().
 function mastermind_inbox() {
@@ -135,14 +238,25 @@ const run = async () => {
 	const secret = trimmed && looks_like_secret(prompt);
 	const safe_text = secret ? WITHHELD : prompt;
 
-	// 1. Every session: the private transcript.
-	if (trimmed) {
-		try {
-			const day = now().slice(0, 10);
-			append(path.join(PROMPTS_DIR, `${day}.jsonl`), {
-				prompt: { at: now(), session_id, author: "owner", text: safe_text },
-			});
-		} catch {}
+	// 1. THE OWNER'S OWN interactive session only (never a minion or mastermind's — their
+	//    transcripts are archived a different way, the parent task's "Session records" note):
+	//    the prompt becomes one item on that session's own page, public/framework/ai/sessions/
+	//    <session_id>/page.jsonl, via the SAME validated tool a live tab would use (page_add,
+	//    Servex/agents/page_tools.js) — never a second file, per the storage redirect above.
+	const owner_interactive = trimmed && !started_by_servex();
+	let page_url = null, prompt_item_id = null;
+	if (owner_interactive) {
+		page_url = session_page_url(session_id);
+		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined } }, "owner");
+		prompt_item_id = out?.ok ? out.id : null;
+	}
+
+	// 1b. Tell Servex where this item landed, never the text itself, so the per-session echo
+	//     assistant (Servex/agents/Echo.js) can read it from the page in place when it's
+	//     ready. Skipped for a withheld secret (nothing worth refining survived the redaction)
+	//     and for a /slash command (how the tool was driven, not something the owner said).
+	if (owner_interactive && prompt_item_id && !secret && !is_slash(trimmed)) {
+		await notify_echo("prompt", session_id, page_url, prompt_item_id);
 	}
 
 	// 2. Assistant sessions only: relay to the mastermind + show on the owner's screen.
@@ -171,6 +285,18 @@ const run = async () => {
 			'Run this first, always: node .claude/skills/every-prompt/say.mjs say "<your answer, one sentence>" "<one to three more sentences>"',
 			"Your words were already relayed to the mastermind and shown on the owner's screen by this hook -- do not call heard or relay again, just answer with say.",
 		].join("\n"));
+	}
+
+	// 4. The owner's own interactive session, no polling: if the echo assistant finished
+	//    refining an EARLIER prompt since this session's last turn, say so in one line — the
+	//    "VS Code mastermind" path (minion-echo, 2026-10-02): a session Servex isn't hosting has
+	//    no "wake the parent" mechanism to lean on, so this hook's own stdout (added to this
+	//    turn's context on exit 0) is the cheapest way to tell it without a tool call.
+	if (owner_interactive) {
+		try {
+			const line = echo_context_line(session_id);
+			if (line) console.log(line);
+		} catch {}
 	}
 };
 

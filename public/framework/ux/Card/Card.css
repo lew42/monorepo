@@ -493,6 +493,33 @@
 		font-weight: 600;
 	}
 
+	/* THE "YOUR PROMPTS" TIMELINE (faces.js's `prompt_timeline()`, 2026-10-02) — a topic
+	   wrapper reads like a quiet section break; each prompt row gets room to breathe
+	   between it and the next, and "my reply" is a plain collapsed disclosure, same look
+	   `.ai2-said-head` above already gives one. */
+	.ai2-prompts-group {
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.7em;
+		margin-block-end: var(--gap-50);
+	}
+	.ai2-prompts-topic {
+		display: block;
+		font-weight: 600;
+		margin-block-end: 0.3em;
+	}
+	.ai2-prompts-row {
+		padding-block: 0.5em;
+		border-block-end: 1px solid var(--line);
+	}
+	.ai2-prompts-when {
+		display: block;
+		margin-block-end: 0.3em;
+	}
+	.ai2-prompts-reply-head {
+		font-size: 0.85em;
+		cursor: pointer;
+	}
+
 	.ai2-flag-said,
 	.ai2-flag-input {
 		display: block;
