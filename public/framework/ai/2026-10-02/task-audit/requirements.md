@@ -1,4 +1,4 @@
-# Task audit: cheap models review finished tasks; consensus finds the failures and ranks the models: requirements
+# Task audit: cheap models grade finished tasks and rank themselves: requirements
 
 Budget: $8 for the pilot (Sonnet mastermind about $4, OpenRouter minions about $3, one Sonnet reference audit about $1).
 
@@ -6,9 +6,9 @@ The owner, 2026-10-02 (trimmed): "ask any number of minions to do a very structu
 
 ## Storage: `audit.jsonl` in each task dir
 - Append-only, one line per auditor, written ONLY through `.claude/hooks/append.mjs` (add an `audit` schema to `jsonl-schema.mjs`):
-  `{"audit": {"at", "by": "<agent id>", "model": "<model id>", "cost_usd", "complete": 0-4, "matches_ask": 0-4, "utility": 0-4, "review": "none|accurate|missed-failures|wrong", "name_ok": bool, "icon_ok": bool, "missing": ["<a requested item not delivered>", …], "evidence": ["<path or url checked>", …], "depends_on": ["<task slug>"], "notes": "<one line>"}}`
-- Scores are fixed rubrics, written at the TOP of the brief each minion gets (0 = nothing delivered … 4 = everything asked, working, verified). Notes are one line. No essays.
-- **Consensus is computed by node (law 7):** `audit.mjs` reads every audit.jsonl and writes the consensus per task: the median of each score, the agreement (the share of auditors within ±1 of the median), and the union of `missing` items that 2+ auditors named. **value = (complete × utility / 16) ÷ max(cost, $1)**: a 0–1 quality factor divided by the dollars, so a big number can't run away.
+  `{"audit": {"at", "by": "<agent id>", "model": "<model id>", "cost_usd", "complete": -3..3, "matches_ask": -3..3, "utility": -3..3, "review": "none|accurate|missed-failures|wrong", "name_ok": bool, "icon_ok": bool, "missing": ["<a requested item not delivered>", …], "evidence": ["<path or url checked>", …], "depends_on": ["<task slug>"], "notes": "<one line>"}}`
+- **Scores are whole numbers from -3 to +3** (the owner, 2026-10-02: the standard-deviation scale). **0 = what you'd expect**: the ask was met, nothing more. ±1 = normal variation (a small gap, or a little extra). ±2 = a strong outlier. ±3 = extreme (−3: nothing usable was delivered; +3: far beyond the ask, verified). Auditors pick an integer, never a decimal. The anchors for each field are written at the TOP of every minion's brief. Notes are one line. No essays.
+- **Consensus is computed by node (law 7):** `audit.mjs` reads every audit.jsonl and writes the consensus per task: the median of each score, the agreement (the share of auditors within ±1 of the median), and the union of `missing` items that 2+ auditors named. **value = q ÷ max(cost, $1)**, where q = ((complete+3)/6) × ((utility+3)/6) is a 0–1 quality factor, so a big number can't run away. A consensus score of −2 or below on `complete` or `matches_ask` flags the task as FAILED.
 - **The models are judged by the same data:** each model's distance from the consensus (and from the Sonnet reference audit) across the pilot tasks is its score. This feeds the existing model ladder at /framework/ai/system/models/.
 
 ## The pilot (start small)
