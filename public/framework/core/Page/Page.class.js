@@ -1242,7 +1242,7 @@ export class Page extends Item {
 		//   plain, untyped item (no view of its own) falls back to its own title or
 		//   text, read straight off its data bag, rather than drawing an empty row.
 		const draw_row = item => {
-			const $row = div.c("page-content-row", () => {
+			const $row = div.c("page-content-row card", () => {
 				if (item.view) return void $rows.append(() => item.view);
 				const title = item.get("title"), text = item.get("text");
 				if (title || !text) h4.c("page-content-title", title ?? String(item.id));
