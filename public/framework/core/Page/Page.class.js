@@ -1247,6 +1247,23 @@ export class Page extends Item {
 		//   text, read straight off its data bag, rather than drawing an empty row.
 		const draw_row = item => {
 			const $row = div.c("page-content-row card", () => {
+				// A REFERENCE ROW (the owner, 2026-10-03): `{"ref": "/framework/core/Page/"}` on
+				// a content item makes the row BE that page — drawn as its own dark class card
+				// (ext/Mention's "#Page"-in-text look, reused rather than invented a second time,
+				// CLAUDE.md law 6), the row's own `title`/`text` reading as the caption UNDER that
+				// card. `ref_entry`/`build_row` are dynamically imported (core never imports ext
+				// statically) into a box captured synchronously here and filled in the callback —
+				// this framework's own no-DOM-after-an-await rule, same pattern `text` below already
+				// uses for `md()`. A `ref` refs.js doesn't know yet still renders — a bare icon +
+				// the raw url — rather than a blank gap (refs.js's own index is a sibling task).
+				const ref = item.get("ref");
+				if (ref){
+					const $card = div.c("page-content-ref");
+					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
+						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
+						$card.append(() => build_row(entry.name, entry, "mention"));
+					});
+				}
 				if (item.view) return void $rows.append(() => item.view);
 				const title = item.get("title"), text = item.get("text");
 				if (title || !text) h4.c("page-content-title", title ?? String(item.id));

@@ -171,15 +171,30 @@ function note_unknown(sigil, raw){
 // (`page-surface-dark`, deliverable 3), so a reference to `#Page` in a sentence and the
 // `Page` card on `/framework/core/` read as the one idea rather than two different looks
 // for the same fact.
-function build_row(name, entry){
+// `extra` is the inline-text sizing ("inline mention", Mention.css's tightened padding, so a
+// dark card sits at its line's own height) — the ONE caller outside this file that needs the
+// same dark card at ordinary row height (a content-list "ref" row, core/Page/Page.class.js,
+// 2026-10-03: "a content row can BE a page reference … the #Mention class-card look") passes
+// just "mention", keeping the identifying class but skipping the tighten-for-text rule.
+export function build_row(name, entry, extra = "inline mention"){
 	const saved = View.captor;
 	View.captor = null;
 	try {
 		return item(entry.url ? { icon: entry.icon, name, href: entry.url } : { icon: entry.icon, name })
-			.ac("inline mention").ac(entry.class_card && "page-surface-dark").el;
+			.ac(extra).ac(entry.class_card && "page-surface-dark").el;
 	} finally {
 		View.captor = saved;
 	}
+}
+
+// THE SAME `/` LOOKUP `mentions()` uses on inline text, exposed for a caller that already HAS
+// a url (not a sentence to scan) and wants the page it names — icon, title, class_card — without
+// re-reading `refs.js` or `Page.instances()` by hand. `url` may or may not start with "/"; either
+// way it is read the same way a literal "/path" mention in prose is. Returns `null` for a url
+// this site's `#`/`@` maps don't know (refs.js doesn't have every page yet — a caller falls
+// back to the raw url rather than treating that as an error).
+export function ref_entry(url){
+	return url ? lookup(maps, "/", String(url).replace(/^\//, "")) : null;
 }
 
 function skip(node){

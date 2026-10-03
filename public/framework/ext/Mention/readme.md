@@ -55,6 +55,11 @@ same ones `ui.item` takes.
 - `mentions()` builds its icon rows OUTSIDE whatever `View` capture happens to be open when it
   runs, on purpose — see the comment beside `build_row()` in [`Mention.js`](Mention.js) if a
   future change to `View`'s capturing ever needs to know why.
+- **The class-card look is exported for reuse** — `ref_entry(url)` (the same `/path` lookup a
+  literal `/framework/core/Page/` in text already does) and `build_row(name, entry, extra)` (the
+  card itself; pass `"mention"` instead of the default `"inline mention"` to drop the
+  tightened-for-text sizing). `core/Page/Page.class.js`'s content-list `ref` row is the first
+  caller (2026-10-03: [`doc/jsonl.md`](/framework/core/Page/doc/jsonl.md#a-content-row-that-is-a-page-reference-2026-10-03)) — one card, not a second one built to match it.
 
 ## More
 

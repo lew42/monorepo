@@ -792,6 +792,11 @@
 	   resolves against the rows' own width, a % padding against the list's; they differ by
 	   the two paddings, a pixel or two. */
 	.page-content-title { margin: 0; }
+	/* A ref row's card sits where a title would — the same breathing room above the text/
+	   sub-items under it (the owner, 2026-10-03: a content row that IS a page reference,
+	   its own text reading as the caption under the card). The card itself is `.item` from
+	   ext/Mention — full-width by default (ui/item's own rule), nothing to size here. */
+	.page-content-ref { margin-block-end: calc(var(--pad) * 0.3); }
 	/* `md(text)`'s own multi-block wrapper wears `.flow` (ext/markdown/md.js) — PAGE rhythm,
 	   ~2-2.5em between blocks, meant for a whole reading column. A card's own row is denser:
 	   redeclaring the TOKEN `.flow`'s rule reads (never the rule itself) keeps a bold line

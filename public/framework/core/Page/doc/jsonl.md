@@ -178,3 +178,13 @@ owns, never a slash- or dot-path. `page_add`/`page_set` are sugar for the two co
 child)` (its OWN two-argument method for a CHILD PAGE): `page.add` resolves as a METHOD name
 before it ever reaches the content list, so it fires with the wrong arguments. Always target
 `["content"]` for a content item; `page_add` already does this for you.
+
+### A content row that IS a page reference (2026-10-03)
+
+`page_add(path, { id: "page", ref: "/framework/core/Page/", text: "…" })` — a `ref` field makes
+the row draw as THAT page's own dark class card (the same look `#Page` gets inline, ext/Mention's
+`build_row()`, reused rather than rebuilt — `render_content_list()`'s `draw_row`,
+`core/Page/Page.class.js`), with the row's own `title`/`text` reading as the caption under it, and
+the whole card linking to `ref`'s url. The card is only dark when `ext/Mention/maps/refs.js` marks
+that page `class_card: true` (same rule an inline `#Mention` follows); a `ref` not yet in `refs.js`
+still renders — a plain icon + the raw url — rather than a blank gap.
