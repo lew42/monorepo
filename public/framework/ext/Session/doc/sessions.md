@@ -18,6 +18,7 @@ One session is one append-only file, `public<home>ai/<session>.jsonl`. The brows
 {"quiet": {"at": "…", "ms": 2500, "path": "/framework/"}}
 {"skip": {"at": "…", "role": "fast", "text": "(listening)", "re": "<the owner line's at>"}}
 {"react": {"at": "…", "session": "v-1xrmuro", "re": "<a line's at>", "emoji": "✅", "from": {"kind": "assistant", "id": "smart", "agent": "…"}}}
+{"refined": {"at": "…", "re": "<the owner line's at>", "sentences": [{"n": 1, "text": "…"}], "sections": [{"id": "sec1", "heading": "…", "items": [{"id": "sec1-i1", "text": "…", "cites": [1]}]}], "flags": [], "cost_usd": 0.0033}}
 ```
 
 A spoken owner line also carries `floor` (`speaking`/`done`) and, when the clean-up changed it, `raw` (what Whisper heard). `quiet` (the owner went quiet for `ms`) and `skip` (a fast reply that said nothing) are never drawn.
@@ -52,6 +53,8 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 | `summary` | the gist, in a line or two |
 
 `level` is required on every refinement: without it, ext/Chat draws the line as an ordinary reply. The smart assistant writes these with the `session_line` tool. It hears every owner line as `[on /page/ at <at>]`, so it knows the `re` to give; a refinement with no `re` is refused, never guessed.
+
+**Not the same thing as a `{refined}` LINE** (its own top-level kind, in the code block above, minion-voice-refine) — that one is not a `chat` line at all, needs no model judgment call from either assistant, and is written automatically, in the background, for EVERY owner line, by `Servex/agents/Sessions.js`'s own `refine()`. It is the fast assistant's structured read of the sentence (grouped under headings, with each sentence's id, and what the model calls cost), never drawn as a bubble — see `doc/markers.md`'s own row for it.
 
 ## The Servex tools
 

@@ -1,4 +1,4 @@
-import { View, div, span, button, select, option, label, textarea } from "../../core/View/View.js";
+import { View, div, span, button, select, option, label, textarea, details, summary, strong } from "../../core/View/View.js";
 import Dictate, { remember_device, remembered_device } from "./Dictate.js";
 import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
@@ -432,6 +432,7 @@ Widget.Thread = class WidgetThread extends View {
 	 *  `split_paragraph()` below. */
 	draw(entry){
 		if (entry?.type === "ask") return this.follow(() => this.draw_ask(entry));
+		if (entry?.type === "refined") return this.draw_refined(entry);
 		const para = entry?.para ?? (entry?.type === "para" ? entry : null);
 		if (para?.re) return this.split_paragraph(para.re);
 		const chat = entry?.chat;
@@ -505,6 +506,33 @@ Widget.Thread = class WidgetThread extends View {
 				});
 			});
 		});
+		this.scroll.pin();
+	}
+
+	/** THE REFINED BLOCK (one-dictation, minion-voice-refine) -- `Session.js`'s own `entry()`
+	 *  turns a `{refined}` line into `{type: "refined", re, sentences, sections, flags,
+	 *  cost_usd}`; `re` is the owner bubble's own `at`, already drawn (`this.lines`, above).
+	 *  Drawn as a small collapsed `<details>` right after that bubble, closed by default --
+	 *  the raw bubble is the thing the owner actually said, and stays exactly as it is; this
+	 *  is the structured second look, one click away. Nothing is drawn if the owner bubble
+	 *  has not been seen yet (an out-of-order replay) -- it is background info, not essential,
+	 *  so a quiet skip beats a bubble with nothing to attach to. */
+	draw_refined(entry){
+		const line = this.lines.get(entry.re);
+		if (!line?.bubble) return;
+		let node;
+		this.$bubbles.append(() => {
+			node = details.c("ux-dictate-widget-refined muted", () => {
+				summary(`refined · $${Number(entry.cost_usd ?? 0).toFixed(4)}`);
+				const sections = entry.sections?.length ? entry.sections
+					: [{ heading: "", items: (entry.sentences ?? []).map(s => ({ text: s.text, cites: [s.n] })) }];
+				sections.forEach(sec => div(() => {
+					if (sec.heading) strong(sec.heading);
+					(sec.items ?? []).forEach(it => div(`${it.cites?.length ? it.cites.map(c => "S" + c).join(", ") + " — " : ""}${it.text}`));
+				}));
+			}).el;
+		});
+		line.bubble.insertAdjacentElement("afterend", node);
 		this.scroll.pin();
 	}
 
