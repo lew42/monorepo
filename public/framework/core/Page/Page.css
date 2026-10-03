@@ -885,6 +885,12 @@
 	.page-preview.page-surface-dark .page-preview-title,
 	.page-preview.page-surface-dark .icon { color: var(--dark-ink); }
 
+	/* The architecture excerpt's own box (below) tints toward black by default — on a dark
+	   card that's invisible against `--dark-bg` (review finding 2, 2026-10-02), so it tints
+	   toward white here instead, the same "this card's own ground" idea as the `--dark-ink`
+	   override just above. */
+	.page-preview.page-surface-dark .page-preview-architecture { background: rgba(255, 255, 255, 0.08); color: var(--dark-ink); }
+
 	/* ── the type scale ──
 	   One declaration each, on the page — so a colour and a type size compose without
 	   either knowing the other exists.
@@ -1375,10 +1381,16 @@
 		font-size: 0.75em; font-weight: 700; line-height: 1;
 	}
 
+	/* ⚠ NOT `--wash` (review finding 2, 2026-10-02): `--wash` is a tint against the PAGE's own
+	   ground, and a `.page-surface-dark` card's ground is already close to black — the two
+	   landed one hex digit apart (`#171717` vs `#17161a`), so the "box" had no visible edge
+	   at all on exactly the cards most likely to be `.big`. A light-card box tints toward
+	   black, a dark-card one toward white — the same "always visible against this card's own
+	   ground" idea `.page-surface-dark`'s own override (above) already uses for ink. */
 	.page-preview-architecture {
 		margin: 0;
 		padding: 0.6em 0.7em;
-		background: var(--wash);
+		background: rgba(0, 0, 0, 0.06);
 		border-radius: calc(var(--radius) * 0.6);
 		font-size: 0.8em;
 		line-height: 1.4;
