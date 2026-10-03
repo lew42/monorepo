@@ -150,9 +150,17 @@ export function append_cost(session_id, root = ROOT){
 	const by_model = {};
 	for (const p of result.by_prompt) by_model[p.model] = r4((by_model[p.model] || 0) + p.usd);
 
+	// `last_prompt_input`/`last_prompt_output` are extra, additive fields beyond the brief's own
+	// minimum shape — the Sessions detail page (ai/sessions/page.js) shows a compact per-prompt
+	// row with token counts, which needs them; harmless to any reader that only looks at
+	// `total_usd`/`last_prompt_usd`/`by_model`.
 	const tmpdir_path = mkdtempSync(join(tmpdir(), "session-cost-"));
 	const tmp = join(tmpdir_path, "line.json");
-	writeFileSync(tmp, JSON.stringify([{ cost: { total_usd: result.total_usd, last_prompt_usd: last ? last.usd : 0, by_model, source: "claude", at: "NOW" } }]));
+	writeFileSync(tmp, JSON.stringify([{ cost: {
+		total_usd: result.total_usd, last_prompt_usd: last ? last.usd : 0,
+		last_prompt_input: last ? last.input : 0, last_prompt_output: last ? last.output : 0,
+		by_model, source: "claude", at: "NOW",
+	} }]));
 	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), page, tmp], { stdio: "pipe", windowsHide: true });
 	return result;
 }
