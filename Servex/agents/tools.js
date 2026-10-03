@@ -1,10 +1,18 @@
 import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { agents as singleton } from "./Agents.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { job_tools } from "./jobs.js";
 import { expert_tools } from "./experts.js";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "..", "..");
 
 /* The seven verbs, as MCP tools. This is the whole point of the host: a normal
  * Claude session — sidebar, terminal, or another agent — cannot hold a child
@@ -52,7 +60,89 @@ const card = agent => JSON.stringify(agent.card(), null, 2);
  * Servex.js, `for (const tool of tools(servex.agents)) servex.mcp.tool(tool)`,
  * wires them all, and `server(host)` hands all of them to an in-process agent. */
 export function tools(agents = singleton){
-	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents)];
+	return [...own(agents), ...ops_tools(agents), ...job_tools(agents).map(caller_is_from), ...expert_tools(agents), ...session_tools(agents), ...task_tools(agents)];
+}
+
+/* ---------- the Dashboard's three task buttons (stalled-and-budgets, 2026-10-02) ---------- */
+
+/* Appends ONE verb line to a task's own task.jsonl through append.mjs — the one writer every
+ * task log goes through, so a bad shape is refused (exit 3, nothing written) rather than ever
+ * hand-rolled here. `dir` is the task's directory, repo-relative (as `tasks.json` gives it) or
+ * absolute; "NOW" fields are stamped by append.mjs itself, never read from this process's clock
+ * twice. Throws with append.mjs's own stderr on a refusal, so the tool's handler can report it. */
+function append_task_line(dir, obj){
+	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+	const target = path.join(abs, "task.jsonl");
+	if (!fs.existsSync(target)) throw new Error(`no task.jsonl at ${target}`);
+	const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "task-verb-")), "line.json");
+	fs.writeFileSync(tmp, JSON.stringify([obj]));
+	execFileSync(process.execPath, [path.join(ROOT, ".claude", "hooks", "append.mjs"), target, tmp], { stdio: "pipe", windowsHide: true });
+	return target;
+}
+
+/* The agent id on a task's own task.jsonl line 1 (same field tasks.js and Asks.js both read as
+ * the task's "owner") — `null` for a dir with no task.jsonl yet or an old one with no agent field. */
+function task_owner(dir){
+	const abs = path.isAbsolute(dir) ? dir : path.join(ROOT, dir);
+	let text;
+	try { text = fs.readFileSync(path.join(abs, "task.jsonl"), "utf8"); } catch { return null; }
+	for (const raw of text.replace(/^﻿/, "").split(/\r?\n/)){
+		if (!raw.trim()) continue;
+		let obj; try { obj = JSON.parse(raw); } catch { continue; }
+		if (obj.assign?.agent) return obj.assign.agent;
+	}
+	return null;
+}
+
+const TASK_DIR = { type: "string", description: "The task's directory, as tasks.json's own `dir` field gives it (e.g. `public/framework/ai/2026-10-02/stalled-and-budgets`)." };
+
+function task_tools(agents){
+	return [
+		tool("snooze_task",
+			"Hide a task from the Dashboard's stalled list until a given time, without touching its files. Appends a"
+			+ " `{\"snooze\":{at,until,by}}` line to the task's own task.jsonl (public/framework/ai/tasks.json is"
+			+ " regenerated on the next tick and honours it) — never an edit to an existing line.",
+			{ dir: TASK_DIR,
+				until: { type: "string", description: "ISO timestamp — the task is not shown as stalled again before this time." },
+				by: { type: "string", description: "Who asked for the snooze — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "until"],
+			({ dir, until, by }, ctx = {}) => {
+				append_task_line(dir, { snooze: { at: "NOW", until, by: by ?? ctx.caller ?? "owner" } });
+				return JSON.stringify({ ok: true, dir, until });
+			}),
+
+		tool("kill_task",
+			"Close a task for good — folded on the Dashboard like a landed one, never shown as stalled again. Appends"
+			+ " a `{\"kill\":{at,why,by}}` line (never deletes anything) and, if the task's owner agent is still"
+			+ " live, stops it the same way `stop_agent` does, so nothing keeps working on a killed task.",
+			{ dir: TASK_DIR,
+				why: { type: "string", description: "One line: why this task is being killed (shown on the Dashboard)." },
+				by: { type: "string", description: "Who killed it — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "why"],
+			({ dir, why, by }, ctx = {}) => {
+				const who = by ?? ctx.caller ?? "owner";
+				append_task_line(dir, { kill: { at: "NOW", why, by: who } });
+				const owner = task_owner(dir);
+				let stopped = null;
+				if (owner && agents.registry_list?.().some(r => r.id === owner && !["stopped", "gone"].includes(r.state)))
+					try { stopped = agents.stop(owner, { by: who }).card?.() ?? null; } catch (e){ stopped = { error: String(e.message || e) }; }
+				return JSON.stringify({ ok: true, dir, why, owner, stopped });
+			}),
+
+		tool("reprioritise_task",
+			"Move a task up or down the Dashboard's order by hand. Appends a `{\"priority\":{at,score,why,by}}` line;"
+			+ " that `score` then OVERRIDES the computed band (stalled=100, over-budget=90, building=50, snoozed=10,"
+			+ " closed=0 — Servex/asks/readme.md) for this task, until a later priority line changes it again.",
+			{ dir: TASK_DIR,
+				score: { type: "number", description: "Higher sorts closer to the top of the Dashboard." },
+				why: { type: "string", description: "One line: why this task should move." },
+				by: { type: "string", description: "Who asked — your agent id, or \"owner\" when relaying the owner's own click." } },
+			["dir", "score", "why"],
+			({ dir, score, why, by }, ctx = {}) => {
+				append_task_line(dir, { priority: { at: "NOW", score, why, by: by ?? ctx.caller ?? "owner" } });
+				return JSON.stringify({ ok: true, dir, score });
+			}),
+	];
 }
 
 /* A voice session's smart assistant writes through these (Sessions.js, ext/Session/doc/sessions.md). */

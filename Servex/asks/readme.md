@@ -16,6 +16,36 @@ whose task lands (or is closed with `close_task`) marks it `landed`. A stalled a
 the owner as a row near the top of the AI 2 Inbox (`/framework/ai2/inbox/`), and on
 [`/framework/ai/asks/`](/framework/ai/asks/).
 
+## Tasks, not just asks (2026-10-02)
+
+The same idea, for every task dir, not just the ones the owner was asked about. The owner
+(2026-10-02): "stalled tasks are top priority" and "every brief carries a budget, the card shows
+estimate vs actual." [`tasks.js`](tasks.js) walks every `public/framework/ai/<date>/<slug>/
+task.jsonl` from the last 7 days and writes the ONE file the Dashboard reads:
+[`public/framework/ai/tasks.json`](/framework/ai/tasks.json) — regenerated every tick, never
+hand-edited (law 7: a computer computes it, nobody types it). Run it yourself any time: `node
+Servex/asks/tasks.js --print` lists today's stalled tasks with reasons, same as this ticks every
+minute.
+
+A task's owner is the agent on its `task.jsonl`'s own first line — stalled is the exact same
+`stalled()` rule above, fed that agent's registry row. A task is also `landed` (a `landed_at`
+line exists), `snoozed` (a `{"snooze":{until}}` line whose time hasn't passed yet — held off the
+stalled check on purpose) or `killed` (a `{"kill":{why}}` line — closed for good, like landed,
+and a kill also stops the task's owner agent if it's still live). These three are VERB LINES
+appended through `append.mjs`, never a hand edit to an existing line — the three Servex tools
+`snooze_task`, `kill_task`, `reprioritise_task` (`Servex/agents/tools.js`) write them, so the
+Dashboard's buttons and any agent call the exact same code.
+
+**The Dashboard's order — one line per band:**
+- **100 — stalled.** No agent owes it a turn; shown at the very top.
+- **90 — over budget.** Still being worked, but `spent / budget > 1` — the owner's other ask.
+- **50 — building.** Normal, in-progress work; ordered by its own last log line, newest first.
+- **10 — snoozed.** Held off on purpose; still listed, just not urgent.
+- **0 — landed or killed.** Closed. Folded out of the way.
+
+An owner's own `{"priority":{score}}` line always overrides the computed band for that task —
+that is the whole point of "re-prioritise."
+
 ## What
 
 - [`fold.js`](/framework/ai/asks/fold.js) (pure, node + browser) — turns the ledger's lines into
@@ -30,6 +60,10 @@ the owner as a row near the top of the AI 2 Inbox (`/framework/ai2/inbox/`), and
   "<why>" [--by <agent>]`, or `--list` to see every ask's id, status and owner.
 - [`asks.test.mjs`](asks.test.mjs) — `node Servex/asks/asks.test.mjs`. No framework; prints
   pass/fail and exits non-zero on a failure.
+- [`tasks.js`](tasks.js) — the task check above: `build_tasks()` and `write_tasks_json()`, wired
+  into `Asks.js`'s own tick. `node Servex/asks/tasks.js --print` to run it by hand.
+- [`tasks.test.mjs`](tasks.test.mjs) — `node Servex/asks/tasks.test.mjs`, a fixture tree (never
+  the real `ai/`): landed, building, stalled and snoozed tasks, plus budget vs. actual.
 
 ## Use
 
@@ -61,3 +95,9 @@ fold, it will disagree with this one the moment the ledger grows an update line.
   appends to the live copy, so a worktree's copy goes stale. Mark asks from the main tree.
 - **Not `ai/council/asks.jsonl`.** That older file is the council's verdict log; same name,
   unrelated.
+- **`tasks.json` is derived, like a build artifact.** `tasks.js` overwrites the whole file every
+  tick (temp file + rename, so a reader never sees a half-write); a hand edit is gone within a
+  minute. Change a task's state with `snooze_task` / `kill_task` / `reprioritise_task` instead —
+  those write the one line `tasks.js` reads back.
+- **Servex writes to the main tree's `tasks.json` too**, same as `asks.jsonl` above — a
+  worktree's own copy goes stale the moment Servex ticks in the main tree instead.
