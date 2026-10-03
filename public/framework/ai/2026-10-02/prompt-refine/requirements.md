@@ -1,4 +1,4 @@
-# Prompt refinement: ONE process for dictation and for every typed prompt, with zero detail lost: requirements
+# Prompt refine: one pipeline for Dictate and the prompt log
 
 Budget: $15 (step 1 is about $1; the past-prompt batch waits for its own go/no-go).
 
@@ -21,7 +21,7 @@ The owner, 2026-10-02 (trimmed; the full words are in `.claude/prompts/2026-10-0
 
 ## Session records (decided by vscode-mastermind, 2026-10-02)
 - **Done:** Claude Code deleted transcripts after 30 days by default (the oldest kept one was from 09-04). `cleanupPeriodDays: 3650` is now set in the user settings, so transcripts are kept for years.
-- **Not in git:** transcripts hold secrets (an API key was pasted into a session) and would bloat the repo. Instead, a nightly node job copies new transcripts to `%LOCALAPPDATA%/lew42/transcripts/` (a local archive). The refined prompt log, which is derived and screened, is what gets committed.
+- **Not in git, and no copy (the owner, 2026-10-02: no duplicate data):** transcripts hold secrets and would bloat the repo. The 10-year retention is enough, and compaction does NOT delete history: this session's transcript is 67 MB, has 8 compactions in it, and still starts at its first message on 09-24. Read transcripts in place when reprocessing; never copy them. (Supersedes the nightly-archive idea.)
 
 ## Rules
 A Sonnet task mastermind. Coordinate with @task-mastermind-one-dictation, which owns the Dictate widget (it adopts `refine()`; it doesn't build a second one). Never wait on the owner.
