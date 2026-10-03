@@ -512,7 +512,14 @@ export default class AIRail extends Inbox.Rail {
 
 	/* ════ THE ADDRESSES A RAIL OPENS — the same on every page that has the rail ════
 	   A static, because the Router asks a page's `route()` before its `content()` (and so
-	   before this rail exists) on a cold deep link. `shell` is the page the rail lives on. */
+	   before this rail exists) on a cold deep link. `shell` is the page the rail lives on.
+	   `handles()` is the SAME list, so a page that mounts a rail never hand-lists these ids a
+	   second time (bug 4, 2026-10-03: `ai/page.js` only passed `live|view|framework|year` here,
+	   so a rail link to "your-prompts" fell through to a 404 — one list now, read by both the
+	   rail's own rows and whatever page routes to it). */
+	static handles(id){
+		return id === LIVE || id === "view" || id === "framework" || id === "your-prompts" || /^\d{4}$/.test(id);
+	}
 	static route(shell, id){
 		if (id === LIVE) return card_page(shell, LIVE);
 		// A CARD FOLDER'S ADDRESS starts with its year — `2026/09/24/<slug>/`, sub-cards one
@@ -521,6 +528,7 @@ export default class AIRail extends Inbox.Rail {
 		if (id === "view") return views_page(shell);
 		// A REAL SITE PAGE, shown here as itself — a changed page's row links here (real.js).
 		if (id === "framework") return new RealPage({ path: "/framework/", title: "framework", shell });
+		if (id === "your-prompts") return your_prompts_page(shell);
 	}
 }
 
@@ -721,6 +729,34 @@ function view_words(root, word){
 		});
 		draw();
 		root.ai2.cards.on(draw);
+	});
+}
+
+/* "YOUR PROMPTS" — the pin's own page (bug 4, the owner's 404: `/framework/ai/your-prompts/`).
+   The pin itself is computed fresh every paint (`build_prompts_pin_item()`, above) from the
+   SAME rows `source()` just built — never a second fetch — so this page asks the rail that is
+   already mounted beside it (`root.ai2`, guaranteed by the time a routed child's `content()`
+   runs: `card.js`'s Folder reads `shell.ai2` the same way) to recompute, then draws whatever it
+   found with the SAME `full()` face the "prompts-pin" row already uses. */
+function your_prompts_page(root){
+	return new Page({
+		title: "Your prompts",
+		url: root.url + "your-prompts/",
+		classes: "ai2-card-page",
+		content(){
+			a.c("ai2-back page-link").href(root.url).text("← all cards");
+			div.c("ai2-full", () => {
+				const $box = div.c("ai2-full-card");
+				const paint = () => $box.empty(() => {
+					root.ai2.source();   // refreshes root.ai2.your_prompts_item from the live rows
+					const it = root.ai2.your_prompts_item;
+					if (it) full(it, {});
+					else small.c("muted").text("No prompts yet — say something, and it shows up here.");
+				});
+				paint();
+				root.ai2.prompts.on(paint);
+			});
+		},
 	});
 }
 

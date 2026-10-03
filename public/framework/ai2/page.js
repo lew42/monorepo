@@ -96,7 +96,10 @@ export default new Page({
 		// or a bookmark made during that window still opens the same rail-and-card view the
 		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
-		if (id === LIVE || id === "view" || id === "framework" || /^\d{4}$/.test(id)) return AIRail.route(this, id);
+		// `AIRail.handles()` is the ONE list this and `ai/page.js` both read (bug 4, 2026-10-03:
+		// each page used to hand-list its own shorter copy, so a rail link ahead of this list —
+		// "your-prompts" — 404'd on whichever page's copy forgot it).
+		if (AIRail.handles(id)) return AIRail.route(this, id);
 		if (id === "now") return this.now_page ??= card_page(this, "now");
 		// "Your prompts" (2026-10-02, prompt-refine): the second pinned row — a synthesized
 		// id `AIRail.build_prompts_pin_item()` puts in the list, never a real card folder,

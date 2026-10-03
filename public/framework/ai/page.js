@@ -131,9 +131,11 @@ export default new Page({
 		if (name === "now") return now_page(this);
 
 		// THE RAIL'S OWN ADDRESSES — Live, a card at its real folder (`2026/09/30/<card>/`, the
-		// year, month and day are pages too), the card views, a changed site page. The same
-		// `AIRail.route()` AI 2 uses, so a card opens the same way on both.
-		if (!v1() && (name === "live" || name === "view" || name === "framework" || /^\d{4}$/.test(name))) return AIRail.route(this, name);
+		// year, month and day are pages too), the card views, a changed site page, Your prompts.
+		// `AIRail.handles()` is the ONE list (bug 4, 2026-10-03: this page used to hand-list a
+		// shorter set than the rail itself routes, so a rail link to "your-prompts" 404'd) — the
+		// same `AIRail.route()` AI 2 uses, so a card opens the same way on both.
+		if (!v1() && AIRail.handles(name)) return AIRail.route(this, name);
 		// A row that is not a card folder opens the same card page AI 2 gives it.
 		if (!v1() && CARD_ID.test(name)) return card_page(this, name);
 
