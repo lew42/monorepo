@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, real_turn_cost, generation_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
@@ -499,6 +499,8 @@ export class Agents {
 			id: row.id, started_at: row.started_at, resume: row.session_id }));
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
+	/* Continue (+$5) on a spend-gate card: raise that agent's allowance (Agent.grant). */
+	grant(id, usd = 5){ return this.get(id).grant(usd); }
 	/* `by` (the stop_agent tool: who called it) marks a stop ON PURPOSE: it goes
 	 * into the registry row, and the revive guard honours it across restarts.
 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
@@ -1210,6 +1212,7 @@ Agents.Agent = class Agent {
 		if (message.type === "stream_event") return this.delta(message);
 		if (message.type === "assistant") return this.assistant(message);
 		if (message.type === "result") return this.result(message);
+		if (message.type === "user") return this.tool_results(message);   // the spend gate: did a result-kind call succeed
 	}
 
 	/* The CLI re-announces itself at the top of EVERY turn, not just the first.
@@ -1243,13 +1246,169 @@ Agents.Agent = class Agent {
 		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
 		// which OpenRouter's /generation endpoint can look up directly and exactly.
 		if (!nested && message.message?.id){ this.last_assistant_message_id = message.message.id; (this.turn_message_ids ??= new Set()).add(message.message.id); }
+		if (!nested && message.message?.id && this.provider === "openrouter") this.meter(message.message.id);
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
-			if (block.type === "tool_use")
+			if (block.type === "tool_use"){
 				this.emit({ type: "tool", name: block.name, input: this.summary(block.input), nested });
+				if (!nested) this.tool_started(block);
+			}
 		}
 		if (message.error) this.emit({ type: "error", where: "assistant", text: String(message.error.message || message.error) });
+	}
+
+	/* SPEND FOLLOWS RESULTS (the owner, 2026-10-02: "Spending $10 or $20 to find out if
+	 * something works is fine if it's promising; blowing $20 with no results is not
+	 * acceptable"). It came after two Gemini masterminds spent about $17 in 20 minutes reading
+	 * and never acting. Every agent starts with $2 (SERVEX_GATE_FIRST_USD) to produce its FIRST
+	 * result. Each verified result unlocks $3 more (SERVEX_GATE_STEP_USD), up to the task
+	 * brief's `Budget: $N` line, or $20 without one. A result is a commit, a step marked done,
+	 * a page line or a spawned minion with a brief, and it counts only once its tool call
+	 * comes back without an error. When spend reaches the allowance with no new result,
+	 * Servex interrupts the agent (never mid-tool-call: it waits for the open call to return)
+	 * and posts one Inbox card: the spend, what it read, what it produced, and Continue (+$5)
+	 * or Stop. Every gate event is one `spend-gate` line in Servex's log.
+	 * Spend: an OpenRouter agent's model calls, each priced by OpenRouter's /generation as it
+	 * settles, so the gate works during the turn. A Claude agent's SDK total, which arrives
+	 * only at the turn's end. Pricing each Claude call during the turn is token-reduction item 4. */
+	static RESULT = [
+		["commit", (n, i) => n === "Bash" && /\bgit\b[^|;&]*\bcommit\b/.test(i.command ?? "")],
+		["step done", (n, i) => /close_task$/.test(n) || ((n === "Bash" || /append_log$/.test(n)) && /task\.jsonl/.test(JSON.stringify(i)) && /"?done"?\s*[:=]|"status"\s*:\s*"done"|landed_at/.test(JSON.stringify(i)))],
+		["page line", n => /mcp__servex__page_(add|set|log)$/.test(n)],
+		["spawned a minion", (n, i) => /spawn_agent$/.test(n) && Boolean(i.task?.brief || /requirements\.md/.test(i.prompt ?? ""))],
+	];
+
+	/* Who is gated: work agents. Anything with a task, or an OpenRouter mastermind or minion.
+	 * The front desk (assistants, the echo, the voice pair) answers rather than produces, so it isn't. */
+	gated_role(){
+		return Boolean(this.task?.dir) || (this.provider === "openrouter" && /mastermind|minion/.test(String(this.role ?? this.id)));
+	}
+
+	gate(){
+		return this.spend_gate ??= { results: [], granted: 0, spent_at_result: 0, open: new Map(), reads: 0, read_log: [], gated: false, due: false };
+	}
+
+	spent_usd(){
+		return this.provider === "openrouter" ? (this.metered_usd ?? 0) : (Number(this.cost) || 0);
+	}
+
+	ceiling_usd(){
+		return this.ceiling_cache ??= this.read_ceiling();   // read the brief once, not on every registry write
+	}
+
+	read_ceiling(){
+		if (Number(this.budget_usd) > 0) return Number(this.budget_usd);
+		try {
+			const brief = this.task?.brief && fs.readFileSync(path.resolve(this.task.brief), "utf8");
+			const m = brief && /Budget:\s*\$\s*(\d+(?:\.\d+)?)/.exec(brief);
+			if (m) return Number(m[1]);
+		} catch {}
+		return Number(process.env.SERVEX_GATE_CEILING_USD) || 20;
+	}
+
+	allowance_usd(){
+		const g = this.gate(), first = Number(process.env.SERVEX_GATE_FIRST_USD) || 2, step = Number(process.env.SERVEX_GATE_STEP_USD) || 3;
+		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted;
+	}
+
+	/* For the registry row and the Sessions grid. */
+	gate_row(){
+		const g = this.spend_gate;
+		if (!g) return null;
+		const spent = this.spent_usd();
+		return { spent_usd: +spent.toFixed(4), since_result_usd: +(spent - g.spent_at_result).toFixed(4), allowance_usd: this.allowance_usd(),
+			results: g.results.length, last_result: g.results.at(-1) ?? null, gated: g.gated };
+	}
+
+	gate_log(event, extra = {}){
+		this.host?.store?.().append("servex", { type: "spend-gate", event, agent: this.id, model: this.model,
+			spent_usd: +this.spent_usd().toFixed(4), allowance_usd: this.allowance_usd(), results: this.gate().results.length, ...extra }).catch(() => {});
+	}
+
+	tool_started(block){
+		const g = this.gate(), input = block.input ?? {};
+		g.open.set(block.id, null);
+		const kind = this.constructor.RESULT.find(([, test]) => { try { return test(block.name, input); } catch { return false; } })?.[0];
+		if (kind) g.open.set(block.id, { kind, what: this.summary(input, 120) });
+		if (/^(Read|Grep|Glob)$|page_read|read_page|read_card/.test(block.name)){
+			g.reads += 1;
+			g.read_log.push(input.file_path ?? input.path ?? input.pattern ?? input.card ?? block.name);
+			if (g.read_log.length > 30) g.read_log.shift();
+			/* THE READ-LOOP GUARD, a warning only: 40 reads with no result since the last one. */
+			const warn = Number(process.env.SERVEX_READ_WARN) || 40;
+			if (g.reads === warn){
+				this.gate_log("read-warn", { reads: g.reads });
+				try { this.host?.send?.(this.id, `Servex: ${g.reads} reads since your last result. Produce one now (a commit, a step done, a page line, or a minion with a brief): your spend is gated on results.`, { from: "servex" }); } catch {}
+			}
+		}
+	}
+
+	/* Tool results come back in "user" messages; a result-kind call counts only if it succeeded. */
+	tool_results(message){
+		if (message.parent_tool_use_id) return;
+		const content = message.message?.content;
+		if (!Array.isArray(content)) return;
+		const g = this.gate();
+		for (const b of content){
+			if (b?.type !== "tool_result" || !g.open.has(b.tool_use_id)) continue;
+			const candidate = g.open.get(b.tool_use_id);
+			g.open.delete(b.tool_use_id);
+			if (candidate && !b.is_error){
+				g.results.push({ ...candidate, at: stamp(), spent_usd: +this.spent_usd().toFixed(4) });
+				g.spent_at_result = this.spent_usd();
+				g.reads = 0;
+				g.gated = false;
+				this.gate_log("result", candidate);
+			}
+		}
+		if (g.due && !g.open.size) this.gate_check();
+	}
+
+	async meter(id){
+		this.metered ??= new Map();
+		if (this.metered.has(id)) return;
+		this.metered.set(id, 0);
+		let key; try { key = read_key(); } catch { return; }
+		for (let i = 0; i < 6; i++){
+			const c = await generation_cost(key, id).catch(() => null);
+			if (c != null){ this.metered.set(id, c); break; }
+			await new Promise(r => setTimeout(r, 2500));
+		}
+		this.metered_usd = [...this.metered.values()].reduce((a, b) => a + b, 0);
+		this.gate_check();
+	}
+
+	/* The gate itself: run when a call is priced, when a tool call returns, and at a turn's end. */
+	gate_check(){
+		if (!this.gated_role()) return;
+		const g = this.gate(), spent = this.spent_usd(), allowance = this.allowance_usd();
+		if (spent < allowance){ g.due = false; return; }
+		if (g.open.size && this.state === "working"){ g.due = true; return; }   // never mid-tool-call
+		g.due = false;
+		if (this.state === "working") this.interrupt().catch?.(() => {});
+		if (g.gated) return;   // one card per gate, however often the agent is woken past it
+		g.gated = true;
+		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
+		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
+		const read = g.read_log.slice(-10).join(", ") || "nothing";
+		const text = `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
+		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
+		Promise.resolve(card && ask ? ask({ card, question: text, options: ["Continue (+$5)", "Stop"] }, { caller: "servex" }) : null)
+			.catch(() => null)
+			.then(out => { if (!out) sx?.inbox?.drop({ path: this.task?.dir ?? "public/framework/servex", text, from: "servex" }); })
+			.catch(() => {});
+		try { sx?.say?.(text, { event: "spend-gate" }); } catch {}
+	}
+
+	/* Continue (+$5): the Inbox answer, or anyone with the authority, raises the allowance. */
+	grant(usd = 5){
+		const g = this.gate();
+		g.granted += Number(usd) || 0;
+		g.gated = false;
+		this.gate_log("grant", { granted_usd: Number(usd) || 0 });
+		this.host?.register?.(this);
+		return this;
 	}
 
 	/* A tool call's input can be a whole file; the log wants a glance at it. */
@@ -1321,6 +1480,8 @@ Agents.Agent = class Agent {
 		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
+		this.spend_gate?.open.clear();   // a turn's end closes every tool call it opened
+		try { this.gate_check(); } catch {}   // a Claude agent's spend is known only now
 		/* `words` = everything said this turn, which is what a fork's wake and
 		 * `wait_for_agent` hand back; `last_text` is only its final block. */
 		this.words = (this.said ?? []).join("\n\n") || null;
