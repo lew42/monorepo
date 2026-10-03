@@ -15,3 +15,5 @@
 {"log":{"at":"2026-10-03T13:31:16-05:00","task":"ref-content-rows","msg":"landed — a content row with ref draws as that page's own dark class card (#Mention's look, reused), card links to the page, text renders under it; Now card's AI/Page/Servex added as ref rows"}}
 {"log":{"at":"2026-10-03T13:36:14-05:00","task":"layout-gate","msg":"landed — links style everywhere, smoke.mjs now fails on text touching its edge or anything above the title"}}
 {"log":{"at":"2026-10-03T13:39:02-05:00","task":"move-nesting-fix","msg":"landed — a dragged move now nests under its list's own name instead of writing a flat line that silently never replayed"}}
+{"log":{"at":"2026-10-03T13:43:04-05:00","task":"inbox-cards-work","msg":"landed — page_set data corruption, the your-prompts 404, Activity-tab nav break, jargon previews, and three more caught live, all fixed on michael/dev"}}
+{"log":{"at":"2026-10-03T13:45:20-05:00","task":"card-measure-colors","msg":"landed — widths lab found and fixed the real full-width bug (.page-content-rows uncapped outside a .page grid); adaptive backgrounds lab (bg-lighten/bg-darken, naming proposal); padding rule documented"}}
