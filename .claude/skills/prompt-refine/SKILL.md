@@ -9,7 +9,7 @@ description: Refine one of the OWNER's prompts (a VS Code tab message or a Dicta
 
 ## The method (the owner, 2026-10-02)
 1. **Split the raw prompt into sentences** (by code: `ext/Refine/engine.js`). Each sentence gets an id: s1, s2, …
-2. **Clean** each sentence near-verbatim with `clean()`: capitalisation, punctuation and filler only. The code rejects any changed content word, except an explicit self-correction (shown struck through) or a known name fix (`misheard → Name`).
+2. **Clean** each sentence near-verbatim with `clean()`: capitalisation, punctuation, filler and redundant words only, the essence kept. The code rejects any changed content word, except an explicit self-correction (shown struck through), a known name fix (`misheard → Name`), or a passage you're confident is garbled: it's OMITTED and replaced by a yellow `?` marker whose hover shows the omitted raw words.
 3. **Structure** with `structure()`: group sentence ids under headings, in any order and nested as deep as it needs. Every sentence id must appear exactly once (or be marked `context`), and the code fails the run otherwise. A chunk cites its ids (`s3–s9`, `s7`); it never copies text.
 4. **The raw prompt is never stored twice:** `prompt.raw` is the sentences joined in id order, so it can always be rebuilt and checked against the original.
 5. **Asks and flags:** each ask cites its sentence ids and a confidence. An unclear passage gets a red flag and a question answerable later. Propose where each ask should live (`place: {path, form}`, by weight).
