@@ -178,11 +178,39 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 ## The Servex mastermind is always on
 
-There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`.
+There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`. If its process dies (VS Code crashed and took it down, 2026-10-02), a one-minute watchdog (`Global.keep_on()`) reopens it and tells it to resume from its task log, at most 3 times in 30 minutes.
+
+It also never sits on a queue: every 15 minutes (`Global.queue_check()`), if [`ai/servex-queue.json`](../public/framework/ai/servex-queue.json) has an item whose `task.jsonl` has no `landed_at`, and neither it nor a child of it is working, Servex wakes it with "queue check: <top item>". With an empty queue it stays asleep.
+
+**Long-running checks belong to Servex, not to a session** (the owner, 2026-10-03). A VS Code background job times out and dies with its tab. A check that must keep running (a poll, a watch, a budget or spend check) is a step in Servex's one-minute sweep (`Global.sweep()`), with its own interval, like `keep_on()` and `queue_check()`. It wakes an agent only when there is something to do.
+
+## The voice pair: one standing pair, recycled (the owner, 2026-10-02)
+
+The fast and smart assistants answer the owner on every page. Being built: [`ai/2026-10-02/standing-voice-pair`](../public/framework/ai/2026-10-02/standing-voice-pair/requirements.md). Today each ✦ press still starts its own pair.
+- **When it starts:** once, when Servex boots, like `fixer-1`. It's held open with no prompt, so it costs nothing until the first line. A ✦ press makes a session record (its chat file), not a new pair. A crashed pair comes back within a minute.
+- **When it recycles:** when one assistant's context passes its threshold (fast 40k tokens, smart 120k, to start). At the next quiet moment, the old session writes a short handover, and a fresh session with the same id starts from it. Never mid-turn, and never while the owner is speaking.
+- **What it costs:**
+  - **Memory:** two claude processes, always on (about 0.25–0.8 GB each).
+  - **Every turn:** each turn re-reads the whole context from the cache, so turns get dearer as the context grows. That is why it recycles.
+  - **Each recycle:** one handover turn plus one fresh start. The smart assistant starts heavier, because it loads Claude Code's preset and CLAUDE.md; the fast one is lean.
+  - **Per role:** every session is tagged with its role (`voice-fast`, `voice-smart`), so the Sessions page totals the cost per role. The build replaces these estimates with measured start sizes.
+- **Awareness:** the smart assistant reads the page each line came from with `page_read`. It can also read the owner's VS Code session page, but it stays a separate agent from the VS Code mastermind.
 
 ## Limits we hit: RAM first (2026-10-02)
 
 **RAM is the limit right now.** 31.7 GB total, and about 4.7 GB is free with ~12 claude.exe processes (~0.25–0.8 GB each) plus Chrome. Servex holds new spawns until 4 GB is free (`SERVEX_MIN_FREE_MB`), so work queues behind memory, not tokens. What helps: close old VS Code conversations (each keeps a process), stop finished agents at once, and move self-contained code work to cloud sessions. Every limit like this is a known issue on the Known issues page, so nobody re-reports it.
+
+**The biggest leak was node, not claude** (vscode-mastermind, 2026-10-02): 59 node.exe processes held 3.9 GB. 22 were worktree dev servers (2.1 GB), most for worktrees nobody was using, plus three copies in main. Each dev server is a pair, `node server.js` supervising `node Server/run.js`, and most of the 26 `server.js` processes were those supervisors, started from agents' shells and never stopped. One-off cleanup: [`node-reap.mjs`](../public/framework/ai/2026-10-02/node-reap/node-reap.mjs). The rule below keeps it from coming back.
+
+## Dev servers: Servex starts them, a lease keeps them (the owner, 2026-10-02)
+
+1. **Servex starts every dev server; nobody else does.** Agents never run `node server.js` or `Server/run.js`. Load the worktree's URL and the proxy starts it, or call `start_server`. A PreToolUse guard refuses the command and says so.
+2. **A server is leased to the agents using its worktree.** It stops by itself once no working or idle agent holds that worktree AND it has had no request for 10 minutes. A sleeping or dormant agent holds no lease.
+3. **Waking needs nothing special.** The proxy starts a project on its first request, so an agent that wakes and loads its URL gets a fresh server in a second or two.
+4. **No zombies.** The reconcile pass kills any node server whose worktree has no lease, and any process tree whose launching shell is gone, and logs each kill.
+5. **Main keeps exactly one dev server, always on.**
+
+Build: [`ai/2026-10-02/node-reap`](../public/framework/ai/2026-10-02/node-reap/requirements.md).
 
 ## Big text moves by hook or by path, never through a tool call
 
@@ -287,6 +315,8 @@ shortcut — if it works for them it works for yours. Six are the servers'
 `agents/tools.js` as one array, and one is the monitor's (`system_health`).
 `agents/tools.js` now also hands in the jobs, ops and module-expert tools
 (`ask_expert`, `list_experts`, `load_module`, `readme_modules`), so the count above is a floor.
+`check_page` sits beside `start_server` (2026-10-03): navigate the one warm shared Chromium to a
+URL and read back its console, network errors and load time — `Server/doc/browser.md`.
 
 ## Watch out
 
