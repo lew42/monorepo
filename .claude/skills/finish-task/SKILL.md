@@ -34,6 +34,10 @@ Nothing crawls: a page exists only once its parent's `children:` names it or the
 is about links it. `links` in the log is the record, not navigation. If you cannot say
 where a page is linked from, link it now.
 
+## 1b. Plug it in where it belongs (the owner, 2026-10-03)
+
+Before landing, ask: is there an existing surface that clearly does the same job and should use this (for a prompt refiner: the VS Code hook path, the Whisper dictation's fast assistant)? Only where it plainly makes sense — don't install a new thing everywhere. Do each integration as its **own commit**, so it reverts cleanly. The costlier the integration (architecture, token spend), the more it becomes a question card for the owner ("integrate X into Y? ~$Z/day") instead of a commit; land without waiting for the answer. A fresh agent is fine when the readmes are good; reuse a recent session only while it's still small.
+
 ## 2. The report is the `outcome`
 
 The board card shows its first line; the task page renders the whole thing as markdown.

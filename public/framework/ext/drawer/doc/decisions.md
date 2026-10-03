@@ -235,3 +235,53 @@ Alternative rejected: scoping `OWN_CLICK` to catch every custom control instead 
 `role=button`, a future picker). That treats the symptom one selector at a time and a new control
 would reopen the same bug; a mode the owner explicitly turns on is the fix the owner asked for by
 name.
+
+# The AI tab's own header/body/footer, and the bug that broke it (2026-10-03, drawer-cleanup)
+
+The owner, dictated at 3440 with the drawer open: *"My drawer is broken... that scroll area must
+have a broken height, because it's offset and there's a bunch of weird overlap... the composer is
+cut off at the bottom and overlaps the list above it."* Before/after:
+[`ai/2026-10-03/drawer-cleanup/`](/framework/ai/2026-10-03/drawer-cleanup/).
+
+**The real bug: a closed dropdown that never actually closed.** `tabs/ai.js`'s session-header
+switcher (`$list.el.hidden = true`) sits next to a `drawer-ai-switch-list flex v` class — and
+`.flex { display: flex }` lives in `@layer util`, which always beats `@layer theme` regardless of
+selector specificity (`css` skill, rule 3). A theme-layer `[hidden]{display:none}` selector loses
+that fight too unless it carries `!important` — measured live, the "closed" list of 12 past
+sessions was rendering at **~940px tall** the whole time, pushing the composer hundreds of pixels
+down past `.drawer-body`'s own bottom edge. That one object was the entire bug: the "broken
+height," the "weird overlap," the composer reading as "cut off... overlaps the list above it," and
+`.drawer-body` having to scroll everything (including the session name) under the pinned tab strip
+instead of just the thread. `.drawer-inbox[hidden]` next to it had the exact same `.flex` sibling
+and the exact same missing `!important` — named in its own comment as the fix ("`.flex` would
+otherwise beat `[hidden]`") but never actually measured with one on. Both now carry `!important`.
+
+**Once that was fixed, the three-part shape (header hugs / body is the only scroll box / footer
+pinned by flex-grow) the owner asked for was already there** — `drawer.css`'s own long-standing
+comment on `.drawer-ai-panel`/`.ux-dictate-widget-*` already built exactly this chain (flex:1,
+min-block-size:0, no max-block-size, all the way down to the thread). The phantom 940px block was
+the only thing defeating it. Proved live: with a 4000px-tall real thread scrolled to its own
+bottom or top, `.drawer-head`'s bottom, the session header's top and the composer's top/bottom
+never move — `.drawer-body` itself never scrolls (`scrollHeight === clientHeight`) — only
+`.ux-dictate-widget-thread` does.
+
+**The footer's own look — no border, no second padding, flush to the drawer's true edges
+(the owner: "the footer goes full width with no white border round it, its light-gray background
+area gets the DEFAULT padding... don't want a unique padding value for everything").**
+`Widget.css`'s `.ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose` rule borders
+the composer on three sides and rounds its bottom corners — right for a STANDALONE widget (the
+Dictate page, the mobile sheet) where the composer reads as the bottom of one rounded card, wrong
+in the drawer where it read as a second box floating inset inside the first. `drawer.css` now
+overrides it, one class more specific: no border, no radius, `padding: var(--pad)` (the page's own
+default, not a made-up number), `background: var(--wash)`.
+
+- **Only `margin-inline` cancels `.drawer`'s own side padding, never `margin-block-end`.**
+  `.drawer-body` has `overflow: auto`; a negative margin that bleeds a descendant past an ancestor
+  that actually clips is counted as scrollable overflow, not visible content — tried first with a
+  bottom margin too, and measured 14px of dead scrollable space at the bottom instead of a flush
+  edge. Fixed instead by giving `.drawer` itself **no bottom padding** (`padding-block-start` +
+  `padding-inline` only) — `.drawer-body` then already reaches `.drawer`'s true bottom edge on its
+  own, and the composer, last in its own flex chain, is flush there for free. The side margin still
+  needs `!important` for the same `.flex > * { margin: 0 }` (`@layer util`) reason as the `[hidden]`
+  fix above — padding/background/border on the same selector all applied with no `!important`
+  needed; only `margin` was being silently zeroed back out.

@@ -1,5 +1,6 @@
 import { Page, View, div, p, span, small, a, button, input, select, option, details, summary } from "/app.js";
 import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
+import List from "/framework/core/List/List.js";
 import { clock, flag_box, when } from "./faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
 import { task_of, task_region, face_row, group_faces } from "./tasks.js";
@@ -12,11 +13,6 @@ import grip from "/framework/ext/grip/grip.js";
 import Menu from "/framework/ux/Menu/Menu.js";
 import chat, { md_into } from "./chat.js";
 import composer from "./compose.js";
-// THE ONE GLOBAL CHAT (one-dictation, 2026-09-30) — the SAME mount function the mobile
-// ✦ sheet and the desktop ☰ drawer's AI tab already call (`ux/Dictate/chat.js`'s own
-// class doc). Named `mount_chat` here, not `chat`, because this file already has a
-// `chat` — the OLD per-card chat above, still used by `chat_v1()` below.
-import mount_chat from "/framework/ux/Dictate/chat.js";
 import agents_panel, { agent_cost } from "./agents.js";
 import { items_of, about_line, outline, state_span, short } from "./outline.js";
 import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
@@ -130,9 +126,49 @@ export default class Card extends Page {
 	   `{"type": "refined", "text", "by", "at", …}` to a card; through core's `set()`
 	   its `type` would turn the card into a "refined" and its `text` and `by` would
 	   overwrite the card's own. It is kept whole instead, the latest wins. */
+	/* ⚠ "CONTENT" NAMES TWO DIFFERENT THINGS (found 2026-10-03, building the properties
+	   sidebar): core's `Page.set()` treats any `{"content": …}` line as a DATA delta —
+	   the moment one arrives it makes `page.content` a `List` and keeps adding to it
+	   (`ensure_content()`) — but every Card ALSO defines `content()` as its own RENDER
+	   METHOD (how its outline, tabs and sidebar draw). A card whose log uses
+	   `page_add()`'s content list (the Now card's whole dashboard: "Working on now",
+	   "Fixed today" …) would have that first line silently REPLACE the render method
+	   with a plain List — content() never runs again, so `$pages` never gets handed to
+	   its sub-card, which is why the Now card's one sub-card opens as a takeover
+	   instead of a second column (ux/Card/readme.md has the fuller story). The exact
+	   "a POJO key collides with a Page method" trap CLAUDE.md already names for
+	   `render` — here for `content`. Redirected to `this.dashboard` instead, a List of
+	   its own; `dashboard_list()` below draws it, reusing core's own row look. */
 	set(obj){
 		if (obj?.type === "refined"){ this.refined = obj; return this; }
+		// ⚠ EVERY line with a `content` key, not only the first — `page_add()` appends one
+		// such line per item, and core's own matching guard (`!(this.content instanceof
+		// List)`, Page.class.js) only protects the FIRST because every later one is meant
+		// to reach the SAME list through `this.content` by ordinary property lookup. Since
+		// this card keeps its list under `this.dashboard` instead, that lookup would never
+		// find it — so this redirect has to catch every line, not just the one that makes it.
+		if ("content" in obj){
+			const { content, ...rest } = obj;
+			if (!(this.dashboard instanceof List)){
+				this.dashboard = new List({ owner: this, name: "dashboard" });
+				["add", "remove", "move", "order"].forEach(verb => this.dashboard.on(verb, () => this.redraw()));
+			}
+			this.dashboard.set(content);
+			return super.set(rest);
+		}
 		return super.set(obj);
+	}
+
+	/** The Now card's own dashboard — a plain List of titled notes (`page_add()`'s
+	 *  `content.add`), drawn with core's own content-list row look (`render_content_list()`),
+	 *  borrowed rather than redrawn a second time (CLAUDE.md law 6): a card has no `content`
+	 *  List of its own to swap onto (that name is taken, see `set()` above), so this swaps
+	 *  `this.content` onto `this.dashboard` only for the one call that reads it. */
+	dashboard_list(){
+		if (!(this.dashboard instanceof List)) return;
+		const real = this.content;
+		this.content = this.dashboard;
+		try { return this.render_content_list(); } finally { this.content = real; }
 	}
 
 	/* ── the vocabulary: one method per kind of line ─────────────────────── */
@@ -243,10 +279,11 @@ export default class Card extends Page {
 
 	/* ── drawing ─────────────────────────────────────────────────────────────── */
 
-	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its chat — the
-	   right-hand column on a screen 40em and wider, the footer on a phone. A
-	   top-level card's sub-cards open in AI 2's third column, beside it, and the
-	   deepest open card's chat is the one on screen (ux/Card/Card.css, the last block). */
+	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its properties — a quiet
+	   sidebar on a screen 40em and wider (`properties_sidebar()`), nowhere on a phone, where
+	   there is no room for it. A top-level card's sub-cards open in AI 2's third column,
+	   beside it, and the deepest open card's sidebar is the one on screen (ux/Card/Card.css,
+	   the last block). */
 	content(){
 		const shell = this.shell;
 		const sub = this.parent instanceof Card;
@@ -295,37 +332,17 @@ export default class Card extends Page {
 				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
 			});
 		} else {
-			/* THE CARD'S OWN SIDEBAR, DESKTOP ONLY (one-dictation, 2026-09-30 — the owner,
-			 * testing this task's own build: "a card-specific right sidebar with a 'talk
-			 * into this card' text area… you can't tell it belongs to the card"). This is
-			 * NOT a third, separate chat: `mount_chat` is the exact same `ux/Dictate/chat.js`
-			 * call the ✦ sheet and the ☰ drawer's AI tab already make, on the one global
-			 * session (CLAUDE.md law 6 — "one of everything"). `ai2-foot-head` is what makes
-			 * it read as THIS card's own — a plain line naming the card, above the mount.
-			 * `ux/Card/Card.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
-			 * conversation in the ✦ sheet, and a second copy pinned to the bottom of every
-			 * card on a phone is the very "two chats" shape this task removes. */
-			div.c("ai2-foot ai2-foot-chat", () => {
-				div.c("ai2-foot-head muted").text((sub ? "Talking into this request — " : "Talking into this card — ") + (this.title ?? this.name ?? this.id));
-				this.chat_mount = mount_chat(div.c("ai2-foot-chat-slot").el, {
-					path: this.url,
-					card: this.id,
-					placeholder: sub ? "talk into this request" : "talk into this card",
-				});
-				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
-			});
-			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge): on
-			// the phone, where `.ai2-foot-chat` above isn't shown, through the ✦ sheet, same
-			// call this branch always made; on the desktop, right inside this card's own
-			// mount, since there is now a real mic here to start.
+			this.properties_sidebar(sub);
+			// A FRESH CARD STILL STARTS LISTENING (item 10's rule) — but into the ONE global
+			// drawer agent now, never a card of its own (one-card-props, 2026-10-03 follow-up:
+			// "a brand new context isn't necessarily better, it might be worse"). On the phone
+			// that is the ✦ sheet; on the desktop there is no mic in this sidebar any more to
+			// start — the owner opens the ☰ drawer when they want to talk. Named here, not
+			// silently dropped: a later task can wire the desktop drawer open the same way.
 			if (fresh){
 				shell.opening = null;
-				if (shell.auto_transcribe?.()){
-					if (matchMedia?.("(max-width: 52em)")?.matches)
-						import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
-					else
-						this.chat_mount.panel?.start_mic?.();
-				}
+				if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
+					import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
 			}
 		}
 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
@@ -355,6 +372,38 @@ export default class Card extends Page {
 		for (let p = this.parent; p instanceof Card; p = p.parent) chain.unshift(p);
 		div.c("ai2-crumbs", () => {
 			chain.forEach(p => { a.c("ai2-back ai2-sub-back page-link").href(p.url).text("← " + (p.title ?? p.name)); });
+		});
+	}
+
+	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
+	 *  Replaces the per-card chat column: nothing here is talked into, it is read. Type,
+	 *  status, tags, who worked on it, its files, then Actions — the same `type_picker()`,
+	 *  `agents_panel()`, `draw_folder()` and `actions()` the card already had, moved out
+	 *  of the header and the "More…" fold into their own column. */
+	properties_sidebar(sub){
+		const f = this.facts();
+		// WHAT IT COST LIVES HERE NOW, ALWAYS (the owner, 2026-09-25: "nowhere in here does it
+		// say what it cost") — `state_span()` in the header only speaks up while something is
+		// running, so an idle, taskless card needs this line or its cost shows nowhere at all.
+		const { usd, open } = this.cost_now(this.group_info());
+		div.c("ai2-foot ai2-foot-chat ai2-props", () => {
+			div.c("ai2-props-row", () => { span.c("muted").text("Type"); this.type_picker(); });
+			div.c("ai2-props-row", () => { span.c("muted").text("Status"); span(f.status ?? "open"); });
+			div.c("ai2-props-row", () => { span.c("muted").text("Cost"); span(usd != null ? money(usd) + (open ? "+" : "") : "not tracked"); });
+			if (f.tags.length) div.c("ai2-props-row", () => {
+				span.c("muted").text("Tags");
+				div.c("flex wrap gap-25", () => { f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); }); });
+			});
+			div.c("ai2-props-section", () => {
+				div.c("ai2-props-head muted").text("Who worked on it");
+				agents_panel(this.id);
+			});
+			div.c("ai2-props-section", () => {
+				div.c("ai2-props-head muted").text("Files in this " + (sub ? "request's" : "card's") + " folder");
+				this.draw_folder();
+			});
+			div.c("ai2-props-section ai2-props-actions", () => { this.actions(); });
+			Card.seam("--ai2-chat", "ai2-chat-w", 200, () => innerWidth * 0.3);
 		});
 	}
 
@@ -700,6 +749,10 @@ export default class Card extends Page {
 			.text(TABS[name] + (n ? " · " + n : ""));
 	}
 
+	/* ONE LINE, QUIET UNLESS SOMETHING IS RUNNING (the owner, 2026-10-03 follow-up: the
+	   header read "nothing running · cost not tracked" and an Actions dropdown nobody
+	   pressed — both on every card, whether or not either was true). `state_span()`
+	   now draws nothing idle; Actions lives in the properties sidebar instead. */
 	head(f, g, items){
 		div.c("ai2-full-head flex v-center gap-25", () => {
 			icon(this.icon ?? g?.icon ?? type_icon(f.type));
@@ -709,9 +762,6 @@ export default class Card extends Page {
 				state_span(items, usd, open);
 			});
 			this.reviewed_control();
-			// The picker, "clear" and "+ sub-card" write through Servex's card
-			// routes; a Servex without them (not restarted yet) shows none of the three.
-			this.actions();
 		});
 	}
 
@@ -781,6 +831,7 @@ export default class Card extends Page {
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
 		this.refinements();
+		this.dashboard_list();
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 		if (this.by_request()) this.request_outline(items);
@@ -907,8 +958,11 @@ export default class Card extends Page {
 		});
 	}
 
-	/** One fold for what the outline leaves out: the tidied dictation, the full words, links, the card's folder. */
+	/** One fold for what the outline leaves out: the tidied dictation, the full words, links.
+	 *  Who worked on it and the card's files moved to the properties sidebar (2026-10-03
+	 *  follow-up) — this fold is only ever the words now, never state a sidebar already shows. */
 	more(f, g){
+		if (!this.refined?.text && !this.text && !this.description && !this.links?.length) return;
 		details.c("ai2-more", () => {
 			summary.c("ai2-more-head muted").text(this.more_label());
 			if (this.refined?.text) div.c("ai2-text md", $t => { md_into($t.el, this.refined.text); });
@@ -918,8 +972,6 @@ export default class Card extends Page {
 				this.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
 			});
 			small.c("muted").text([!g && role_word(this.by), when(this.created), ...f.tags.map(t => "#" + t)].filter(Boolean).join(" · "));
-			if (!this.has_tasks()){ this.cost_block(g); agents_panel(this.id); }
-			this.draw_folder();
 		});
 	}
 
@@ -929,8 +981,7 @@ export default class Card extends Page {
 	more_label(){
 		const words = [this.refined?.text, this.text, this.description].filter(Boolean).join(" ").split(/s+/).filter(Boolean).length;
 		const n = this.links?.length ?? 0;
-		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links"),
-			!this.has_tasks() && "who worked on it", "the files in this card's folder"].filter(Boolean).join(", ");
+		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links")].filter(Boolean).join(", ");
 	}
 
 	/* WHAT THIS CARD COST (the owner, 2026-09-24: "What took so many tokens?").
@@ -1180,9 +1231,6 @@ export default class Card extends Page {
 		this.stop_needs?.();
 		const mic = this.$composer?.mic;
 		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
-		// The new sidebar mount's own mic (chat_v1() off, the default) — same reasoning:
-		// a card left behind must not keep listening into a conversation nobody is looking at.
-		try { this.chat_mount?.panel?.stop_mic?.(); } catch {}
 	}
 }
 

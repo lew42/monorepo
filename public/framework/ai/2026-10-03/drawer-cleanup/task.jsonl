@@ -1,0 +1,30 @@
+{"assign":{"session_id":"f5df03b9-e98c-45a5-9fb2-5b593b8bdefd","agent":"task-mastermind-drawer-cleanup","card":"Drawer: tight header, one scroll area, footer at the bottom","brief":"public/framework/ai/2026-10-03/drawer-cleanup/requirements.md","model":"claude-sonnet-5","requested_at":"2026-10-03T13:16:10-05:00","now":"starting","steps":[],"step":1}}
+{"log":{"at":"2026-10-03T13:16:23-05:00","msg":"skill: sub-mastermind"}}
+{"log":{"at":"2026-10-03T13:16:23-05:00","msg":"skill: page"}}
+{"action":{"at":"2026-10-03T13:22:12-05:00","did":"edit","files":["public/framework/ext/drawer/drawer.css"]}}
+{"assign":{"cost_usd":2.7461,"cost":{"root":"task-mastermind-drawer-cleanup","agents":[{"id":"task-mastermind-drawer-cleanup","model":"claude-sonnet-5","role":"task-mastermind","usd":2.7461}],"own_usd":2.75,"minions_usd":0,"parent_task":null,"open":1,"window":{"from":"2026-10-03T13:16:10-05:00","to":null},"at":"2026-10-03T13:23:42-05:00"}}}
+{"log":{"at":"2026-10-03T13:29:31-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-drawer-cleanup"}}
+{"log":{"at":"2026-10-03T13:29:32-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:33:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:33:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:33:15-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-03T13:39:09-05:00","heartbeat":"revive-queued","msg":"task-mastermind-drawer-cleanup its agent is not running; a revive is queued"}}
+{"log":{"at":"2026-10-03T13:49:10-05:00","heartbeat":"revive","msg":"revived task-mastermind-drawer-cleanup from session f5df03b9-e98c-45a5-9fb2-5b593b8bdefd"}}
+{"log":{"at":"2026-10-03T13:49:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:49:12-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:49:12-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-03T13:51:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:51:19-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:51:21-05:00","msg":"session ended (other) without landing"}}
+{"action":{"at":"2026-10-03T13:53:13-05:00","did":"edit","files":["public/framework/ext/drawer/doc/decisions.md"]}}
+{"action":{"at":"2026-10-03T13:53:22-05:00","did":"edit","files":["public/framework/ext/drawer/readme.md"]}}
+{"decision":{"at":"2026-10-03T13:55:02-05:00","question":"why was the drawer's scroll/footer broken — a missing height cap, or something else?","options":["keep tuning max-block-size caps on the thread/card flex chain","find the actual overflowing element"],"chose":"found the actual overflowing element: the AI tab's closed session-switcher list was rendering at ~940px despite `hidden`","why":"its `.flex` utility class (@layer util) silently beat the `[hidden]` rule (@layer theme, css skill rule 3) — the exact same unfixed trap already sat, unnoticed, on `.drawer-inbox[hidden]`. Fixed both with `!important`; the flex chain underneath was already correct once this one object stopped lying about its own size."}}
+{"decision":{"at":"2026-10-03T13:55:02-05:00","question":"how should the composer footer reach the drawer's true bottom edge?","options":["negative margin-block-end on the composer, matching .drawer's own padding","remove .drawer's own padding-block-end entirely"],"chose":"remove .drawer's own padding-block-end entirely","why":"negative margin-block-end was tried first and measured wrong: `.drawer-body` is `overflow: auto`, and a descendant's negative margin that bleeds past a clipping ancestor just becomes dead scrollable space (measured 14px of it), never a visually flush edge."}}
+{"experiment":{"try":"probe computed styles/rects live via Server/browser.mjs (headless, no popup) after each CSS change, instead of reasoning from source alone","measure":".drawer-body scrollHeight vs clientHeight; header/session/composer rects before and after scrolling a real ~4000px thread to its top and bottom","result":"scrollHeight === clientHeight (no stray overflow); header/session/composer rects identical before and after scrolling either direction"}}
+{"log":{"at":"2026-10-03T13:55:03-05:00","msg":"skill: finish-task"}}
+{"log":{"at":"2026-10-03T13:55:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:55:10-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-03T13:55:16-05:00","msg":"session ended (other) without landing"}}
+{"review":{"at":"2026-10-03T13:55:27-05:00","size":"none","verdict":"pass","findings":[],"branch":"michael/dev","head":"5595190b46e7128627b18bf0df8f5f81a838320b","model":null,"cost":0,"file":"review.md"}}
+{"log":{"at":"2026-10-03T13:55:39-05:00","msg":"skill: check-claude-usage"}}
+{"assign":{"step":1,"landed_at":"2026-10-03T13:56:10-05:00","title":"Drawer: a [hidden] bug, not a missing cap — scroll and footer fixed","outcome":"**Fixed.** Root cause: the closed session-switcher list rendered at ~940px because its `.flex` class beat `[hidden]` — it pushed the composer off-screen and forced the whole body to scroll.\n\n- [x] header hugs, body is the ONLY scroll box, footer stays put via flex-grow: proved live — scrolling a real 4000px thread leaves header/footer rects unchanged (after-1920-thread-top.png, after-1920-thread-bottom.png)\n- [x] footer full width, flush, `--wash`, one `var(--pad)`, no border: after-1920-drawer.png vs before-3440-drawer.png\n- [x] unknown space killed: the switcher's phantom 940px block is gone (`.drawer-ai-switch-list[hidden]` now `!important`)\n- [x] screenshots at 400/1200/1920/3440: after-400/1200/1920/3440-drawer.png — nothing overlaps\n\nreviewed: pass (size none — single-file root-cause fix, proven by probe). Doc: [decisions.md](/framework/ext/drawer/doc/decisions/).","links":[{"url":"/framework/ext/drawer/","label":"ext/drawer"},{"url":"/framework/ext/drawer/doc/decisions/","label":"the two traps, written up"},{"url":"/framework/ai/2026/10/03/now/?drawer=ai","label":"see it live"}],"window":{"before":null,"after":0.18},"tokens":null,"usage":{"input":null,"cache_write":null,"cache_read":null,"output":null,"calls":null}}}

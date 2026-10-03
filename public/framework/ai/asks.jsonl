@@ -183,3 +183,64 @@
 {"ask":{"id":"page-extends-item-build","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T20:17:28-05:00"}}
 {"ask":{"id":"panel2-sessions","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T20:17:28-05:00"}}
 {"ask":{"id":"framework-home","status":"landed","why":"Sections per sidebar group, dark class cards, icons single-sourced, balanced sprawl layout - /framework/","by":null,"at":"2026-10-02T20:17:46-05:00"}}
+{"ask":{"id":"page-extends-item-build","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T20:19:28-05:00"}}
+{"ask":{"id":"panel2-sessions","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T20:22:29-05:00"}}
+{"ask":{"id":"panel2-sessions","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T20:24:28-05:00"}}
+{"ask":{"id":"panel2-sessions","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T20:34:30-05:00"}}
+{"ask":{"id":"panel2-sessions","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-02T20:35:29-05:00"}}
+{"ask":{"id":"page-extends-item-build","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T20:38:30-05:00"}}
+{"ask":{"id":"page-extends-item-build","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T20:44:29-05:00"}}
+{"ask":{"id":"page-extends-item-build","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T20:49:30-05:00"}}
+{"ask":{"id":"page-extends-item-build","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-02T21:15:55-05:00"}}
+{"ask":{"id":"shell-header-sidebars-footer-the-dark-dev-shell","card":"2026/10/02/shell-header-sidebars-footer-the-dark-de","by":"servex-asks-card","at":"2026-10-02T21:15:55-05:00"}}
+{"ask":{"id":"grip-show-zone-50px-grab-zone-1px-toward-the-scr","card":"2026/10/02/grip-show-zone-50px-grab-zone-1px-toward","by":"servex-asks-card","at":"2026-10-02T21:15:55-05:00"}}
+{"ask":{"id":"inbox-priority-50-only-log-everything-a-priority","card":"2026/10/02/inbox-priority-50-only-log-everything-a","by":"servex-asks-card","at":"2026-10-02T21:15:55-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","card":"2026/10/02/hamburger-drawer-closing-it-sometimes-do","by":"servex-asks-card","at":"2026-10-02T21:15:55-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T21:33:55-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T21:35:55-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-02T21:40:55-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-02T21:42:55-05:00"}}
+{"ask":{"at":"2026-10-03T12:33:36-05:00","title":"Console: clean on /ai/live; smoke fails on console noise and 404s","words":"ai/2026-10-03/console-clean/requirements.md","owner":"task-mastermind-console-clean","card":"2026/10/03/console-clean","status":"building"}}
+{"ask":{"at":"2026-10-03T12:33:36-05:00","title":"Servex: Playwright Chrome logged + reaped; one warm shared browser with check_page","words":"ai/2026-10-03/playwright-reap/requirements.md","owner":"task-mastermind-playwright-reap","card":"2026/10/03/playwright-reap","status":"building"}}
+{"ask":{"at":"2026-10-03T12:49:12-05:00","title":"Framework home: grids without voids, explicit layout classes, layout labels, DevTools inline-style source","words":"ai/2026-10-03/framework-home-grids/requirements.md","owner":"task-mastermind-framework-home-grids","card":"2026/10/03/framework-home-grids","status":"building"}}
+{"ask":{"at":"2026-10-03T12:53:07-05:00","title":"Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; merge gate fails on text touching its edge","words":"ai/2026-10-03/layout-gate/requirements.md","owner":"task-mastermind-layout-gate","card":"2026/10/03/layout-gate","status":"building"}}
+{"ask":{"at":"2026-10-03T12:53:07-05:00","title":"AI 2: finish the retirement now (nav entry + ai2/ dir, Git keeps history)","owner":"mastermind-ai-3","card":"","status":"building"}}
+{"ask":{"at":"2026-10-03T12:53:07-05:00","title":"Servex: worktree pool stuck (qf-6, qf-9 held 17h by finished agents)","owner":"mastermind-servex-10","card":"","status":"building"}}
+{"ask":{"id":"ai-2-finish-the-retirement-now-nav-entry-ai2-dir","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-03T12:53:18-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T12:55:17-05:00"}}
+{"ask":{"id":"page-ai-cost-line-broke-framework-ai-title-fixed","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T12:56:17-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T12:57:17-05:00"}}
+{"ask":{"id":"console-clean-on-ai-live-smoke-fails-on-console","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-03T12:59:18-05:00"}}
+{"ask":{"id":"servex-playwright-chrome-logged-reaped-one-warm","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-03T12:59:18-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T12:59:18-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:00:17-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:10:31-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:10:31-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:16:34-05:00"}}
+{"ask":{"at":"2026-10-03T13:17:14-05:00","title":"Drawer: tight header, one scroll area, composer footer flush with default padding","words":"ai/2026-10-03/drawer-cleanup/requirements.md","owner":"task-mastermind-drawer-cleanup","card":"2026/10/03/drawer-cleanup","status":"building"}}
+{"ask":{"at":"2026-10-03T13:17:14-05:00","title":"Styles: cards + prose on one measure/margin (lab); default padding rule; adaptive bg-lighten/darken + text/accent tokens (lab)","words":"ai/2026-10-03/card-measure-colors/requirements.md","owner":"task-mastermind-card-measure-colors","card":"2026/10/03/card-measure-colors","status":"building"}}
+{"ask":{"at":"2026-10-03T13:17:14-05:00","title":"Now card: grouped by system (AI, Page, Servex), landed + working, with references","owner":"vscode-mastermind","card":"2026/10/03/now","status":"done"}}
+{"ask":{"id":"now-card-grouped-by-system-ai-page-servex-landed","status":"stalled","why":"no registry row for owner \"vscode-mastermind\"","by":"servex-asks-tick","at":"2026-10-03T13:17:31-05:00"}}
+{"ask":{"id":"page-ai-cost-line-broke-framework-ai-title-fixed","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:20:32-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:21:33-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:22:32-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:24:31-05:00"}}
+{"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:24:31-05:00"}}
+{"ask":{"id":"styles-cards-prose-on-one-measure-margin-lab-def","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:24:31-05:00"}}
+{"ask":{"id":"framework-home-grids-without-voids-explicit-layo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:26:35-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:29:31-05:00"}}
+{"ask":{"id":"styles-cards-prose-on-one-measure-margin-lab-def","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:29:32-05:00"}}
+{"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:30:32-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:32:33-05:00"}}
+{"ask":{"id":"page-ai-cost-line-broke-framework-ai-title-fixed","status":"landed","why":"global link style fixed (:where(a)); smoke.mjs gains a layout-edge check (text touching its box, anything above the title) so this class of bug fails the merge gate next time","by":null,"at":"2026-10-03T13:35:34-05:00"}}
+{"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:44:11-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:45:12-05:00"}}
+{"ask":{"id":"styles-cards-prose-on-one-measure-margin-lab-def","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-03T13:46:10-05:00"}}
+{"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:49:11-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:50:12-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-03T13:50:12-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-03T13:51:10-05:00"}}
+{"ask":{"at":"2026-10-03T13:55:02-05:00","title":"Now card: topics as nested sub-cards from refined prompts (raw → clean → structured), subtle 'updated' marks, Now card in the inbox list","words":"ai/2026-10-03/topic-cards/requirements.md","owner":"vscode-mastermind","card":"","status":"queued","after":["prompts-live","subcard-columns"]}}
+{"ask":{"at":"2026-10-03T13:55:02-05:00","title":"AI systems: git, context, cost pages collecting how we work","words":"ai/2026-10-03/ai-git-context-cost/requirements.md","owner":"vscode-mastermind","card":"","status":"queued","after":["system-class"]}}
+{"ask":{"at":"2026-10-03T13:55:02-05:00","title":"finish-task: integrations only where they make sense, each its own commit; costly ones become question cards","owner":"vscode-mastermind","card":"","status":"done"}}
+{"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"landed","why":"fixed: a [hidden] vs @layer util specificity bug, not a missing height cap; footer now flush/default-padded","by":null,"at":"2026-10-03T13:56:21-05:00"}}
