@@ -2,6 +2,11 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## A session is a page; one shared class on server and client (the owner, 2026-10-02; vscode-mastermind decided)
+- **One file per owner session:** `public/framework/ai/sessions/<session-id>/page.jsonl`. The prompt hook writes each owner prompt there (the daily `.claude/prompts/` file is retired, so the text is never kept twice), the Stop hook adds each reply, and the refiner adds its structure as nested `add`/`set` lines. It's a live page: tailed, replayable, committed (the hook already withholds secrets), and readable by a cloud session too.
+- **No stored mirror.md:** the AI-friendly markdown is computed on demand from the replay (`page_read`, plus `node Server/page-read.mjs <path>` for anything without Servex tools). One source, so nothing to sync. Alternative recorded: write mirror.md beside the page on each change, only if grep-ability ever matters more than the duplicate.
+- **Isomorphic core:** data classes (Events, List, LiveList, Item, Store's parse and replay) live once in `public/framework/core/`, touch no DOM at import time, and Servex imports them by path (Servex already imports a few public/ modules: directory.js, inbox.js, pages.js). The View is a static part loaded only in the browser. The Node-only part (file writes) is a swappable Store backend, not a second class. Today Servex uses Node's EventEmitter (Process.js) and the client its own `on/off/emit`; new server code uses core's Events.
+
 ## Sessions, prompts, asks, tasks: the AI record (vscode-mastermind's proposal, 2026-10-02)
 ```
 Session                 a Claude conversation. Its transcript stays in ~/.claude (kept 10 years now), read-only; we read it only to recover or audit
