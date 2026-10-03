@@ -800,10 +800,16 @@
 	   resolves against the rows' own width, a % padding against the list's; they differ by
 	   the two paddings, a pixel or two. */
 	.page-content-title { margin: 0; }
-	/* A ref row's card sits where a title would — the same breathing room above the text/
-	   sub-items under it (the owner, 2026-10-03: a content row that IS a page reference,
-	   its own text reading as the caption under the card). The card itself is `.item` from
-	   ext/Mention — full-width by default (ui/item's own rule), nothing to size here. */
+	/* The "context card" (the owner, 2026-10-03, refining the first build the same day):
+	   a ref row is the inline "#Page" chip upgraded to a full-width card. The row is
+	   ALWAYS dark — `.page-surface-dark`, the class-card look — never conditional on
+	   `entry.class_card` the way an inline mention is, because here the card IS the row.
+	   `.card` (framework.css) gives it the standard `--pad-card` padding, same token every
+	   other card on the site uses; `.page-surface-dark` (loaded after framework.css, same
+	   `@layer theme`, so it wins the tie) repaints that card's fill/ink dark. Inside: the
+	   HEADER (icon + name chip, `ext/Mention`'s `build_row`, same look as an inline
+	   mention) links to the page; the BODY under it — this item's own title/text,
+	   `draw_body()` above — sits in the same dark card but does NOT link through. */
 	.page-content-ref { margin-block-end: calc(var(--pad) * 0.3); }
 	/* `md(text)`'s own multi-block wrapper wears `.flow` (ext/markdown/md.js) — PAGE rhythm,
 	   ~2-2.5em between blocks, meant for a whole reading column. A card's own row is denser:

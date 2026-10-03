@@ -1257,24 +1257,43 @@ export class Page extends Item {
 				// uses for `md()`. A `ref` refs.js doesn't know yet still renders — a bare icon +
 				// the raw url — rather than a blank gap (refs.js's own index is a sibling task).
 				const ref = item.get("ref");
-				if (ref){
-					const $card = div.c("page-content-ref");
-					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
-						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
-						$card.append(() => build_row(entry.name, entry, "mention"));
-					});
-				}
-				if (item.view) return void $rows.append(() => item.view);
 				const title = item.get("title"), text = item.get("text");
-				if (title || !text) h4.c("page-content-title", title ?? String(item.id));
 				// The text under the title, as markdown. ext/markdown is dynamically imported
 				// (core never imports ext statically); the box is captured now and filled in the
 				// callback, never DOM after an await. Before 2026-10-03 a titled item dropped its
 				// text entirely (the owner's "Now" card showed three bare titles).
-				if (text){
-					const $text = div.c("page-content-text");
-					import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
+				const draw_body = () => {
+					if (title || !text) h4.c("page-content-title", title ?? String(item.id));
+					if (text){
+						const $text = div.c("page-content-text");
+						import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
+					}
+				};
+				if (ref){
+					// A ref row is the inline "#Page" chip UPGRADED to a full-width card (the
+					// owner, 2026-10-03, the "context card"): the row is ALWAYS dark — the
+					// class-card look — never conditional on `entry.class_card` the way an
+					// inline mention is, because here the card IS the row, not a word in a
+					// sentence. Only the HEADER (the icon + name chip, `build_row`, same as the
+					// inline mention) links to the page; the card BODY — this item's own
+					// title/text — sits under it, inside the same dark card, and does NOT link
+					// through. That split is why `draw_body()` runs inside `$card`, not at the
+					// row level the way a plain (non-ref) item's title/text does below.
+					const $card = div.c("page-content-ref card page-surface-dark");
+					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
+						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
+						// `build_row` deliberately builds its chip with `View.captor` nulled (it is
+						// also used inline, mid-sentence, where auto-appending would land it in the
+						// wrong place) and hands back the raw element — appended here by hand, not by
+						// an implicit arrow return, because this callback also needs to run
+						// `draw_body()` after it without that second call's return value (`undefined`,
+						// a block body) overwriting the chip as what gets appended.
+						$card.append(() => { $card.append(build_row(entry.name, entry, "mention")); draw_body(); });
+					});
+					return;
 				}
+				if (item.view) return void $rows.append(() => item.view);
+				draw_body();
 			});
 			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
 				new Sortable({ view: $row, item });
