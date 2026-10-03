@@ -163,7 +163,7 @@ export default new Page({
 	// Inert: /styles.css decides what the class means, and Router.mark() unsets it.
 	classes: "hides-nav",
 
-	children: "start ai ai2 research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox old",
+	children: "start ai research faq versus core styles ui ux audio ext util dev servex audit sources design code sandbox old",
 
 	/* A LAYOUT, not a content page. Three things an override owes, all silent when
 	 * missed (core/Page/readme.md): set `this.view`, carry `.page`, never nest a

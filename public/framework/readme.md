@@ -14,8 +14,7 @@
 - [util](./util/) — small plain helper functions (no readme yet)
 - [dev](./dev/) — local-only live reload and the dev bar
 - [research](./research/) — research programs shown live (no readme yet)
-- [ai](./ai/) — the daily working log and task board
-- [ai2](./ai2/) — the dictation timeline: cards left, one card right
+- [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
 - [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes (docs only)
