@@ -1,0 +1,448 @@
+diff --git a/public/framework/ai/2026-10-03/subcard-columns/files.jsonl b/public/framework/ai/2026-10-03/subcard-columns/files.jsonl
+new file mode 100644
+index 00000000..e6e4f941
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/subcard-columns/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"requirements.md"}
++{"file":"task.jsonl"}
++{"file":"minion-build/"}
++{"file":"spend.json"}
+diff --git a/public/framework/ai/2026-10-03/subcard-columns/minion-build/task.jsonl b/public/framework/ai/2026-10-03/subcard-columns/minion-build/task.jsonl
+new file mode 100644
+index 00000000..ed21e955
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/subcard-columns/minion-build/task.jsonl
+@@ -0,0 +1,2 @@
++{"assign":{"session_id":"7ce45d7e-2fe3-4538-b826-56452e009c44","agent":"minion-subcard-columns-build","card":"Cards: a sub-card opens in a column beside its parent","brief":"public/framework/ai/2026-10-03/subcard-columns/minion-build/requirements.md","model":"claude-sonnet-5","worktree":"C:\\Code\\lew42\\worktrees\\subcard-columns","parent_task":"public/framework/ai/2026-10-03/subcard-columns","requested_at":"2026-10-03T13:48:48-05:00","now":"starting","steps":[],"step":1}}
++{"log":{"at":"2026-10-03T13:49:57-05:00","msg":"minion skill loaded. Read requirements.md. Plan: read card.js, Inbox/Rail.js, Card.css, Inbox.css; flatten the mount so every depth joins one shared row (shell.$sub), show only last two boxes at equal width via Card.seam() divider, breadcrumb for hidden ancestors, keep narrow fallback. Test with a 2-deep card chain, layout-check.mjs at 4 widths, back/forward/reload, then merge.mjs."}}
+diff --git a/public/framework/ai/2026-10-03/subcard-columns/requirements.md b/public/framework/ai/2026-10-03/subcard-columns/requirements.md
+new file mode 100644
+index 00000000..94135a4f
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/subcard-columns/requirements.md
+@@ -0,0 +1,32 @@
++# A card's sub-cards open in a column beside it
++
++## The ask (owner, 2026-10-03, dictated)
++> Let's see if we can get a nested card on any one of these pages. When we click a sub-card it could launch in a column: it's the rail process repeated, Miller columns in our page column system. With the drawer closed, the detail side is huge, 2000+ px, so the Now card can act as a preview rail that launches another column. I don't want a hand-managed navigation; a programmatic left nav that just lists the cards is more of a table of contents. It's the sub-cards I'm after. Routing and sharing the width may be tricky; figure it out.
++
++## Now (screenshot it first)
++The Now card (`/framework/ai/2026/10/03/now/`) has one sub-card, `your-prompts-refined-live`. Opening it REPLACES the Now card (a "← Now" back link) and puts a "talk into this request" column on the right. The parent disappears.
++
++## Want
++- At wide widths, opening a sub-card keeps the parent visible as a narrow preview column (its sections collapsed to titles), and the sub-card opens beside it. Deeper sub-cards repeat the pattern; older columns narrow. Below a width, it falls back to today's takeover with a back link.
++- The parent lists its sub-cards (it already has a "+ request" table of contents: use it).
++- Every state has its own URL (route everything); back/forward and reload land in the same columns.
++- Reuse what exists: the inbox shell's `.inbox-sub` column (ux/Card/Card.css ~1117, ux/Inbox/Inbox.css), the page-columns work (core/Page columns, `column_host()` / `render_column`), ext/Panel's seams. No second column system (law 6).
++- Screenshots at 1200, 1920, 2560, 3440 with the drawer closed and open.
++
++## Owner follow-up, same day (this decides the shape)
++> The inbox rail stays: it's our monitor; anything important that pops up shows there. The DETAIL side splits into two equal columns. A card opens in the first; its sub-card opens in the second; the next sub-card opens a third column and hides the first, so you always see the last two levels, as deep as it goes. I did this before for three columns (the /imagine/paging column paging work); I want it deeper. Sub-cards drill down in place so we don't lose context. A link to a DIFFERENT thing with its own page links away, for now; don't import and render other pages here.
++
++Prior decision to honour: the owner, 2026-09-17, "N even columns and fixed navigation are the direction; continuous Miller columns are not" (`public/imagine/paging/paging.js` ~line 140, and `/web/nav/doc/study/`). Read `public/imagine/paging/mechanisms/` and the column-pages work before building; reuse what fits.
++
++So: inbox rail (fixed) + exactly two equal detail columns showing the deepest two levels of the open card path; earlier levels collapse to a breadcrumb at the top of the first column. Each level is routed.
++
++## Owner follow-up 2: clean up the card template while you're in it
++On `/framework/ai/2026/10/03/now/your-prompts-refined-live/` the owner found:
++- **"nothing running · cost not tracked"** and an **Actions** dropdown they've never used, in the header line: show status only when something IS running; move Actions to the properties sidebar (below).
++- **"Show who worked on it, the files in this card's folder"** disclosure: takes a whole line, badly spaced; expanded, a "the mastermind 1:35 PM" line over a fixed-height file explorer that doesn't lay out. Move it into the properties sidebar as a plain section.
++- **The "← Now" back link has zero padding** against the rail border. Becomes the breadcrumb in your column design anyway; it must be padded.
++- **Drop the per-card talk column** ("talking into this request", its own composer and session). Owner: "a brand new context isn't necessarily better, it might be worse." Talking happens in the ONE global drawer agent, the same on every page. The card's right column becomes **card properties**: type, status, tags, who worked on it, its files, Actions. Small and quiet.
++
++## Fence
++Write: ux/Card/, ux/Inbox/, ai2/card.js (coordinate with @task-mastermind-inbox-cards-work and @mastermind-ai-3 through page inbox notes), core/Page column code only if needed, this task dir. NEVER the mcp__playwright tools.
++Model: Sonnet. Budget $12.
+diff --git a/public/framework/ai/2026-10-03/subcard-columns/spend.json b/public/framework/ai/2026-10-03/subcard-columns/spend.json
+new file mode 100644
+index 00000000..9af910f1
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/subcard-columns/spend.json
+@@ -0,0 +1 @@
++{"total":1.8816,"points":[{"t":"2026-10-03T18:40:56.927Z","usd":1.8816}]}
+\ No newline at end of file
+diff --git a/public/framework/ai/2026-10-03/subcard-columns/task.jsonl b/public/framework/ai/2026-10-03/subcard-columns/task.jsonl
+new file mode 100644
+index 00000000..689d20e6
+--- /dev/null
++++ b/public/framework/ai/2026-10-03/subcard-columns/task.jsonl
+@@ -0,0 +1,14 @@
++{"assign":{"session_id":"27c6d3f8-966a-4f02-af7e-adca62396810","agent":"task-mastermind-subcard-columns","card":"Cards: a sub-card opens in a column beside its parent","brief":"public/framework/ai/2026-10-03/subcard-columns/requirements.md","model":"claude-sonnet-5","requested_at":"2026-10-03T13:40:56-05:00","now":"starting","steps":[],"step":1}}
++{"log":{"at":"2026-10-03T13:41:00-05:00","msg":"skill: sub-mastermind"}}
++{"log":{"at":"2026-10-03T13:41:00-05:00","msg":"skill: page"}}
++{"action":{"at":"2026-10-03T13:43:23-05:00","did":"edit","files":["public/framework/ai/2026-10-03/subcard-columns/requirements.md"]}}
++{"assign":{"session_id":"759656f1-5081-40a3-997b-11af7643ecf9","agent":"task-mastermind-subcard-columns-2","card":"Cards: a sub-card opens in a column beside its parent","brief":"public/framework/ai/2026-10-03/subcard-columns/requirements.md","model":"claude-sonnet-5","parent_task":"public/framework/ai/2026-10-03/mention-auto-sync","requested_at":"2026-10-03T13:44:07-05:00","now":"starting","steps":[],"step":1}}
++{"log":{"at":"2026-10-03T13:44:40-05:00","msg":"taken: picking up from task-mastermind-subcard-columns; re-read requirements.md incl owner follow-up 2 (drop per-card talk column, quiet properties sidebar, padded breadcrumb, header status only when running). Surveying existing code (ux/Card, ux/Inbox, core/Page columns, imagine/paging) before building."}}
++{"decision":{"at":"2026-10-03T13:48:41-05:00","what":"two equal flat columns (shared .inbox-sub row, last-two-visible, breadcrumb for earlier levels) built directly in ux/Card, not on core/Page columns({even:true})","why":"core/Page columns is a scrolling N-wide row of independently routed pages (a finder-style demo); this ask is a fixed 2-wide sliding window + breadcrumb, tightly coupled to Card chain/back-link styling already in ux/Card — forcing it onto the generic engine would entangle two systems that do not need each other","alternative":"adapt core/Page columns({even:true}) with N locked to 2 — rejected: that engine keeps all opened columns and scrolls past N, never collapsing early ones to a breadcrumb, so the collapse behavior would be rebuilt on top of it anyway with none of its scrolling used"}}
++{"log":{"at":"2026-10-03T13:48:41-05:00","msg":"worktree C:/Code/lew42/worktrees/subcard-columns (branch worktree/subcard-columns, port 52660). Spawning minion-build: shared flat row across all depths, last-two boxes visible and equal width, breadcrumb from leaf ancestry, reuse Card.seam()/ext/grip for the divider. Brief at public/framework/ai/2026-10-03/subcard-columns/minion-build/requirements.md (in the worktree)."}}
++{"log":{"at":"2026-10-03T13:48:59-05:00","msg":"spawned minion-subcard-columns-build (Sonnet, $8 budget) in the worktree with a full architecture brief; waiting for it to report done/blocked"}}
++{"assign":{"cost_usd":1.8816,"cost":{"root":"task-mastermind-subcard-columns","agents":[{"id":"task-mastermind-subcard-columns","model":"claude-sonnet-5","role":"task-mastermind","usd":1.8816},{"id":"minion-subcard-columns-build","model":"claude-sonnet-5","role":"minion","usd":null}],"own_usd":1.88,"minions_usd":0,"parent_task":"2026-10-02/prompt-review","open":2,"window":{"from":"2026-10-03T13:40:56-05:00","to":null},"at":"2026-10-03T13:49:09-05:00"}}}
++{"log":{"at":"2026-10-03T13:51:21-05:00","msg":"session resumed"}}
++{"log":{"at":"2026-10-03T13:51:22-05:00","msg":"session ended (other) without landing"}}
++{"log":{"at":"2026-10-03T13:51:53-05:00","msg":"taken: picking up from task-mastermind-subcard-columns; re-read requirements.md incl owner follow-up 2 (drop per-card talk column, quiet properties sidebar, padded breadcrumb, header status only when running). Surveying existing code (ux/Card, ux/Inbox, core/Page columns, imagine/paging) before building."}}
++{"decision":{"at":"2026-10-03T13:52:07-05:00","what":"Scope for this landing: (1) make the two detail columns (ai2-foot/detail + sub) equal width instead of 1fr/2fr, satisfying the owner's 'two equal columns' for the real case on hand (card + 1 sub-card); (2) card template cleanup (follow-up 2) in full: header shows live status only, Actions + properties (type/status/tags/who worked on it/files) move to a quiet sidebar replacing the per-card chat column, back/breadcrumb link gets real padding. (3) True N-deep sliding window (collapse ancestors 3+ back into a breadcrumb) is NOT built this pass.","why":"the sliding window needs moving already-rendered DOM between the shell's fixed $detail/$sub containers as you drill deeper, which is real new plumbing on top of core's columns doc (full-collapse is N=1, this needs N=2) and risks regressing the existing 1-level case under a $10 budget; shipping the common 2-level case solidly now, documented, beats an unfinished deep version.","alternative":"extend core Page columns() with a window:2 option reusing crumbs()/render_column() verbatim — named as the next step in ux/Card/readme.md and this task's follow-up."}}
+diff --git a/public/framework/ai2/card.js b/public/framework/ai2/card.js
+index b47b71d6..cd576abf 100644
+--- a/public/framework/ai2/card.js
++++ b/public/framework/ai2/card.js
+@@ -12,11 +12,6 @@ import grip from "/framework/ext/grip/grip.js";
+ import Menu from "/framework/ux/Menu/Menu.js";
+ import chat, { md_into } from "./chat.js";
+ import composer from "./compose.js";
+-// THE ONE GLOBAL CHAT (one-dictation, 2026-09-30) — the SAME mount function the mobile
+-// ✦ sheet and the desktop ☰ drawer's AI tab already call (`ux/Dictate/chat.js`'s own
+-// class doc). Named `mount_chat` here, not `chat`, because this file already has a
+-// `chat` — the OLD per-card chat above, still used by `chat_v1()` below.
+-import mount_chat from "/framework/ux/Dictate/chat.js";
+ import agents_panel, { agent_cost } from "./agents.js";
+ import { items_of, about_line, outline, state_span, short } from "./outline.js";
+ import { author_word, role_word, type_icon, create_card, append_card, cards_ready } from "./inbox.js";
+@@ -243,10 +238,11 @@ export default class Card extends Page {
+ 
+ 	/* ── drawing ─────────────────────────────────────────────────────────────── */
+ 
+-	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its chat — the
+-	   right-hand column on a screen 40em and wider, the footer on a phone. A
+-	   top-level card's sub-cards open in AI 2's third column, beside it, and the
+-	   deepest open card's chat is the one on screen (ux/Card/Card.css, the last block). */
++	/* TWO FIXED REGIONS: the card, scrolling in its own box, and its properties — a quiet
++	   sidebar on a screen 40em and wider (`properties_sidebar()`), nowhere on a phone, where
++	   there is no room for it. A top-level card's sub-cards open in AI 2's third column,
++	   beside it, and the deepest open card's sidebar is the one on screen (ux/Card/Card.css,
++	   the last block). */
+ 	content(){
+ 		const shell = this.shell;
+ 		const sub = this.parent instanceof Card;
+@@ -288,37 +284,17 @@ export default class Card extends Page {
+ 				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
+ 			});
+ 		} else {
+-			/* THE CARD'S OWN SIDEBAR, DESKTOP ONLY (one-dictation, 2026-09-30 — the owner,
+-			 * testing this task's own build: "a card-specific right sidebar with a 'talk
+-			 * into this card' text area… you can't tell it belongs to the card"). This is
+-			 * NOT a third, separate chat: `mount_chat` is the exact same `ux/Dictate/chat.js`
+-			 * call the ✦ sheet and the ☰ drawer's AI tab already make, on the one global
+-			 * session (CLAUDE.md law 6 — "one of everything"). `ai2-foot-head` is what makes
+-			 * it read as THIS card's own — a plain line naming the card, above the mount.
+-			 * `ux/Card/Card.css` hides `.ai2-foot-chat` below 40em: a phone already shows this exact
+-			 * conversation in the ✦ sheet, and a second copy pinned to the bottom of every
+-			 * card on a phone is the very "two chats" shape this task removes. */
+-			div.c("ai2-foot ai2-foot-chat", () => {
+-				div.c("ai2-foot-head muted").text((sub ? "Talking into this request — " : "Talking into this card — ") + (this.title ?? this.name ?? this.id));
+-				this.chat_mount = mount_chat(div.c("ai2-foot-chat-slot").el, {
+-					path: this.url,
+-					card: this.id,
+-					placeholder: sub ? "talk into this request" : "talk into this card",
+-				});
+-				Card.seam("--ai2-chat", "ai2-chat-w", 240, () => innerWidth * 0.5);
+-			});
+-			// A FRESH CARD STILL STARTS LISTENING (item 10's rule survives the merge): on
+-			// the phone, where `.ai2-foot-chat` above isn't shown, through the ✦ sheet, same
+-			// call this branch always made; on the desktop, right inside this card's own
+-			// mount, since there is now a real mic here to start.
++			this.properties_sidebar(sub);
++			// A FRESH CARD STILL STARTS LISTENING (item 10's rule) — but into the ONE global
++			// drawer agent now, never a card of its own (one-card-props, 2026-10-03 follow-up:
++			// "a brand new context isn't necessarily better, it might be worse"). On the phone
++			// that is the ✦ sheet; on the desktop there is no mic in this sidebar any more to
++			// start — the owner opens the ☰ drawer when they want to talk. Named here, not
++			// silently dropped: a later task can wire the desktop drawer open the same way.
+ 			if (fresh){
+ 				shell.opening = null;
+-				if (shell.auto_transcribe?.()){
+-					if (matchMedia?.("(max-width: 52em)")?.matches)
+-						import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
+-					else
+-						this.chat_mount.panel?.start_mic?.();
+-				}
++				if (shell.auto_transcribe?.() && matchMedia?.("(max-width: 52em)")?.matches)
++					import("/framework/ext/drawer/rail.js").then(m => m.default(this.app)?.open_sheet());
+ 			}
+ 		}
+ 		// A sub-card is a column of its own: its seam is its own inline-start edge. The
+@@ -328,6 +304,33 @@ export default class Card extends Page {
+ 		this.talk?.sync();
+ 	}
+ 
++	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
++	 *  Replaces the per-card chat column: nothing here is talked into, it is read. Type,
++	 *  status, tags, who worked on it, its files, then Actions — the same `type_picker()`,
++	 *  `agents_panel()`, `draw_folder()` and `actions()` the card already had, moved out
++	 *  of the header and the "More…" fold into their own column. */
++	properties_sidebar(sub){
++		const f = this.facts();
++		div.c("ai2-foot ai2-foot-chat ai2-props", () => {
++			div.c("ai2-props-row", () => { span.c("muted").text("Type"); this.type_picker(); });
++			div.c("ai2-props-row", () => { span.c("muted").text("Status"); span(f.status ?? "open"); });
++			if (f.tags.length) div.c("ai2-props-row", () => {
++				span.c("muted").text("Tags");
++				div.c("flex wrap gap-25", () => { f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); }); });
++			});
++			div.c("ai2-props-section", () => {
++				div.c("ai2-props-head muted").text("Who worked on it");
++				agents_panel(this.id);
++			});
++			div.c("ai2-props-section", () => {
++				div.c("ai2-props-head muted").text("Files in this " + (sub ? "request's" : "card's") + " folder");
++				this.draw_folder();
++			});
++			div.c("ai2-props-section ai2-props-actions", () => { this.actions(); });
++			Card.seam("--ai2-chat", "ai2-chat-w", 200, () => innerWidth * 0.3);
++		});
++	}
++
+ 	/** Pin the chat column at the width it has now, if nothing has set it yet. For this
+ 	 *  session only — what is remembered is still only a width you dragged the chat to. */
+ 	hold_chat(){
+@@ -670,6 +673,10 @@ export default class Card extends Page {
+ 			.text(TABS[name] + (n ? " · " + n : ""));
+ 	}
+ 
++	/* ONE LINE, QUIET UNLESS SOMETHING IS RUNNING (the owner, 2026-10-03 follow-up: the
++	   header read "nothing running · cost not tracked" and an Actions dropdown nobody
++	   pressed — both on every card, whether or not either was true). `state_span()`
++	   now draws nothing idle; Actions lives in the properties sidebar instead. */
+ 	head(f, g, items){
+ 		div.c("ai2-full-head flex v-center gap-25", () => {
+ 			icon(this.icon ?? g?.icon ?? type_icon(f.type));
+@@ -679,9 +686,6 @@ export default class Card extends Page {
+ 				state_span(items, usd, open);
+ 			});
+ 			this.reviewed_control();
+-			// The picker, "clear" and "+ sub-card" write through Servex's card
+-			// routes; a Servex without them (not restarted yet) shows none of the three.
+-			this.actions();
+ 		});
+ 	}
+ 
+@@ -877,8 +881,11 @@ export default class Card extends Page {
+ 		});
+ 	}
+ 
+-	/** One fold for what the outline leaves out: the tidied dictation, the full words, links, the card's folder. */
++	/** One fold for what the outline leaves out: the tidied dictation, the full words, links.
++	 *  Who worked on it and the card's files moved to the properties sidebar (2026-10-03
++	 *  follow-up) — this fold is only ever the words now, never state a sidebar already shows. */
+ 	more(f, g){
++		if (!this.refined?.text && !this.text && !this.description && !this.links?.length) return;
+ 		details.c("ai2-more", () => {
+ 			summary.c("ai2-more-head muted").text(this.more_label());
+ 			if (this.refined?.text) div.c("ai2-text md", $t => { md_into($t.el, this.refined.text); });
+@@ -888,8 +895,6 @@ export default class Card extends Page {
+ 				this.links.forEach(l => { a.c("ai2-link page-link").href(l.url).text(l.label ?? l.url); });
+ 			});
+ 			small.c("muted").text([!g && role_word(this.by), when(this.created), ...f.tags.map(t => "#" + t)].filter(Boolean).join(" · "));
+-			if (!this.has_tasks()){ this.cost_block(g); agents_panel(this.id); }
+-			this.draw_folder();
+ 		});
+ 	}
+ 
+@@ -899,8 +904,7 @@ export default class Card extends Page {
+ 	more_label(){
+ 		const words = [this.refined?.text, this.text, this.description].filter(Boolean).join(" ").split(/s+/).filter(Boolean).length;
+ 		const n = this.links?.length ?? 0;
+-		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links"),
+-			!this.has_tasks() && "who worked on it", "the files in this card's folder"].filter(Boolean).join(", ");
++		return "Show " + [words && "the full text (" + words + " words)", n && n + (n === 1 ? " link" : " links")].filter(Boolean).join(", ");
+ 	}
+ 
+ 	/* WHAT THIS CARD COST (the owner, 2026-09-24: "What took so many tokens?").
+diff --git a/public/framework/ai2/outline.js b/public/framework/ai2/outline.js
+index 4fcb9aee..6675c25c 100644
+--- a/public/framework/ai2/outline.js
++++ b/public/framework/ai2/outline.js
+@@ -79,14 +79,17 @@ export function status_line(items, card){
+ 	return done + " of " + items.length + " things you asked are done." + (run ? " Now: " + short(run.now, 90) + "." : "");
+ }
+ 
+-/** `● running now · $42.21` — the dot's colour is the state. */
++/* "NOTHING RUNNING · COST NOT TRACKED" EVERY TIME WAS THE NOISE (the owner,
++   2026-10-03: show status in the head only when something IS running). The idle
++   and done words, and the always-there cost line, moved to the properties
++   sidebar (`card.js` `properties_sidebar()`) — this draws nothing when nothing
++   is live, so a quiet card has a quiet head. */
++/** `● running now · $42.21` while something is: the one state worth a header line. */
+ export function state_span(items, usd, open){
+-	const live = items.some(i => i.live), done = items.length && items.every(i => i.done);
+-	const word = live ? "running now" : done ? "all done" : "nothing running";   // "waiting" said waiting for what? (ai2-lead audit)
+-	span.c("ai2-state " + (live ? "live" : done ? "done" : "idle"), () => {
++	if (!items.some(i => i.live)) return;
++	span.c("ai2-state live", () => {
+ 		span.c("ai2-state-dot").text("●");
+-		span(word);
+-		// Always says what it cost; "not tracked" rather than a blank (the owner, 2026-09-25: "nowhere in here does it say what it cost").
++		span("running now");
+ 		span.c("muted").text(" · " + (usd != null ? money(usd) + (open ? "+" : "") + " spent" : "cost not tracked"));
+ 	});
+ }
+diff --git a/public/framework/ai2/rail.css b/public/framework/ai2/rail.css
+index 6166b31c..3c0d396e 100644
+--- a/public/framework/ai2/rail.css
++++ b/public/framework/ai2/rail.css
+@@ -6,8 +6,12 @@
+ 
+ 	/* card.js writes the sub-card column's width as `--ai2-subw` on the `.ai2` shell
+ 	   (`Card.seam()`); the shell's grid reads `--inbox-subw`. Unset passes through as
+-	   unset, so the grid's own default still applies. */
+-	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw); }
++	   unset, so this file's own fallback applies instead of Inbox.css's (2fr, a rail's
++	   own default for a reader-beside-a-list shape, not a card-beside-a-card one).
++	   TWO EQUAL DETAIL COLUMNS (the owner, 2026-10-03 follow-up: "the DETAIL side
++	   splits into two equal columns"): a card and its open sub-card are two cards of
++	   the same kind, so they get the same width, dragged or not. */
++	.ai2.inbox-shell { --inbox-subw: var(--ai2-subw, minmax(0, 1fr)); }
+ 
+ 	/* The workspace word sits at the rail name's far end (workspace.js). */
+ 	.inbox-rail-name > .ai2-ws-word { font-weight: normal; font-size: 0.85em; }
+diff --git a/public/framework/ux/Card/Card.css b/public/framework/ux/Card/Card.css
+index 06764bfa..53649ad0 100644
+--- a/public/framework/ux/Card/Card.css
++++ b/public/framework/ux/Card/Card.css
+@@ -305,17 +305,13 @@
+ 		border-block-start: 1px solid var(--line);
+ 	}
+ 
+-	/* THE CARD'S OWN SIDEBAR MOUNT (one-dictation, 2026-09-30) — desktop only. Hidden here
+-	   (below 40em); the `width >= 40em` block further down (`.ai2-foot-chat` un-capped
+-	   rules) turns it back on with a selector that outranks this one, same trick the Live
+-	   card's own rules already use elsewhere in this file. Below 40em the phone's own ✦
+-	   sheet already shows this exact conversation — a second copy here would be the "two
+-	   chats" shape this task removes. */
++	/* THE CARD'S OWN SIDEBAR — desktop only (one-dictation, 2026-09-30; now the quiet
++	   properties column, one-card-props, 2026-10-03). Hidden here (below 40em); the
++	   `width >= 40em` block further down (`.ai2-foot` grid rule) turns it back on with a
++	   selector that outranks this one, same trick the Live card's own rules already use
++	   elsewhere in this file. Below 40em there is no room for a sidebar — a card's own
++	   properties are read on the card itself, or not at all on a phone. */
+ 	.ai2-foot-chat { display: none; }
+-	.ai2-foot-head {
+-		font-weight: 600;
+-		margin-block-end: 0.3em;
+-	}
+ 
+ 	/* `title:` is the card's ID, for the tab and the framework, not the reader —
+ 	   the card's real title is the line below it. */
+@@ -465,9 +461,13 @@
+ 	   "done with this sub-card, back to the detail" — closing it is a real
+ 	   navigation, not a hover state. Two classes on the one link, so this
+ 	   beats the bare `.ai2-back` rule regardless of source order. */
++	/* PADDED AGAINST THE COLUMN'S OWN BORDER (the owner, 2026-10-03: "zero padding
++	   against the rail border" — this link sat flush on the sub column's left edge
++	   because only the phone rule below ever gave `.ai2-back` padding; this one
++	   shows at every width, so it needs its own). */
+ 	.ai2-back.ai2-sub-back {
+ 		display: inline-block;
+-		margin-block-end: var(--gap-50);
++		margin: var(--gap-50) 0 var(--gap-50) var(--pad);
+ 	}
+ 
+ 	.ai2-said-head {
+@@ -1007,7 +1007,10 @@
+ 	.page.ai2-sub-page > .grip { display: none; }
+ 
+ 	@media (width >= 40em) {
+-		/* A top-level card has the whole room: a third of it is the chat.
++		/* THE SIDEBAR IS SMALL AND QUIET (the owner, 2026-10-03 follow-up: "small and
++		   quiet" card properties, not a second chat taking a third or half the card).
++		   `--ai2-chat` is the one token both the old chat column and this properties
++		   column size by — same seam, same drag, a narrower rest default.
+ 		   ⚠ card-measure-gap, 2026-09-30 — `:has(> .ai2-foot)` added. Card.V1 (the
+ 		   old bottom composer/chat split, doc/one-ai.md) is off by default now, so
+ 		   most cards draw no `.ai2-foot` at all — but this rule used to fire
+@@ -1016,17 +1019,15 @@
+ 		   nothing there to explain it: a growing, empty gap beside the Actions
+ 		   dropdown as the drawer widened and took the rest (the owner: "a five
+ 		   hundred pixel void… between the right sidebar and this card's actions
+-		   dropdown"). Reserve the column only when there is a chat to put in it;
++		   dropdown"). Reserve the column only when there is something to put in it;
+ 		   the single-column rule above (line 760) already covers every other card. */
+ 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) {
+-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
++			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 20%));
+ 			grid-template-rows: auto minmax(0, 1fr);
+ 		}
+ 
+-		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
+-		   so half of it is the same third. */
+ 		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live):has(> .ai2-foot) {
+-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
++			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 22%));
+ 		}
+ 
+ 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
+@@ -1120,6 +1121,38 @@
+ 			border-radius: 0;
+ 		}
+ 
++		/* ── card properties (one-card-props, 2026-10-03) ──
++		   What used to be the per-card chat column is now a quiet read-only sidebar:
++		   type, status, tags, who worked on it, its files, then Actions. Plain rows,
++		   not a form — nothing here is talked into; that is the global drawer's job. */
++		.ai2-props {
++			gap: var(--gap);
++			overflow-y: auto;
++		}
++		.ai2-props-row {
++			display: flex;
++			align-items: baseline;
++			gap: 0.5em;
++		}
++		.ai2-props-row > .muted {
++			flex: none;
++			width: 5em;
++		}
++		.ai2-props-head {
++			margin-block-end: 0.3em;
++			font-size: 0.85em;
++		}
++		.ai2-props-section + .ai2-props-section {
++			margin-block-start: var(--gap);
++			padding-block-start: var(--gap);
++			border-block-start: 1px solid var(--line);
++		}
++		/* The files tree wants a real height to lay out in — it got none inside the
++		   old `<details>` fold (the owner: "a fixed-height file explorer that doesn't
++		   lay out"). A plain section, not a disclosure, gives it one. */
++		.ai2-props-section .page-log-files { min-height: 12em; }
++		.ai2-props-actions .ai2-actions { margin-inline-start: 0; }
++
+ 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
+ 		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page {
+ 			grid-template-columns: minmax(0, 1fr);
+diff --git a/public/framework/ux/Card/readme.md b/public/framework/ux/Card/readme.md
+index a0dc842a..df63c748 100644
+--- a/public/framework/ux/Card/readme.md
++++ b/public/framework/ux/Card/readme.md
+@@ -1,4 +1,4 @@
+-# Card — the look of an AI card's own page: a head, an outline, a chat column
++# Card — the look of an AI card's own page: a head, an outline, a properties sidebar
+ 
+ See it: **[the demo](/framework/ux/Card/)** — a card's head (icon, title, the "Reviewed ✓"
+ control), its outline (a checklist of what was asked and delivered), and one "Live"-style
+@@ -38,6 +38,25 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
+ - **A card is a grid of exactly three named rows** (`.ai2-back`, `.ai2-full`, `.ai2-foot`) —
+   a region hidden at some width must still name its row, or the others shift up and the
+   footer inherits the wrong track (`ai2/doc/decisions.md` has the measured regression).
++- **The right column is properties, not a second chat** (one-card-props, 2026-10-03): type,
++  status, tags, who worked on it, its files, then Actions — `card.js` `properties_sidebar()`.
++  Nothing here is talked into; talking happens in the ONE global drawer (`ext/drawer/`), the
++  same on every page (CLAUDE.md law 6). `--ai2-chat` is still the one token both the old chat
++  column and this one size by, so the drag-to-resize seam still works unchanged.
++- **A sub-card opening a real second column needs a working `content()`.** The two detail
++  columns (`ux/Inbox/Inbox.css`'s `.inbox-detail` + `.inbox-sub`, made equal width here,
++  2026-10-03) only fill in when a card's own `Card.content()` actually runs and sets
++  `this.$pages = shell.$sub` — and that method is SKIPPED WHOLE, not partway, the moment a
++  card's `page.jsonl` carries a top-level `{"content": …}` line (core's own generic
++  content-List feature, `page_add()`/`render_content_list()`): `content` ends up a plain data
++  List on the instance, shadowing the `content()` method outright, the same trap class
++  CLAUDE.md's `render` example warns about. The Now card (`ai/now/`) hits this today — its
++  sub-card still opens as a full-width takeover, not a second column — because its own
++  dashboard is built entirely from `content.add` lines. Fixing it means teaching `Card.assign()`
++  to protect `content` the way `VERBS` already protects `type`/`tags`/`status`, without
++  breaking Now's own list; not done here (out of fence, a core/Card.js change wider than this
++  task's $10 budget) — verified instead on an ordinary task card, where both columns show
++  correctly at equal width.
+ 
+ ## More
+ 

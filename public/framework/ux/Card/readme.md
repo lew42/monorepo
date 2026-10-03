@@ -50,13 +50,16 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
   card's `page.jsonl` carries a top-level `{"content": …}` line (core's own generic
   content-List feature, `page_add()`/`render_content_list()`): `content` ends up a plain data
   List on the instance, shadowing the `content()` method outright, the same trap class
-  CLAUDE.md's `render` example warns about. The Now card (`ai/now/`) hits this today — its
-  sub-card still opens as a full-width takeover, not a second column — because its own
-  dashboard is built entirely from `content.add` lines. Fixing it means teaching `Card.assign()`
-  to protect `content` the way `VERBS` already protects `type`/`tags`/`status`, without
-  breaking Now's own list; not done here (out of fence, a core/Card.js change wider than this
-  task's $10 budget) — verified instead on an ordinary task card, where both columns show
-  correctly at equal width.
+  CLAUDE.md's `render` example warns about. The Now card (`ai/now/`) hit this until 2026-10-03:
+  `Card.set()` now redirects any `content` line into `this.dashboard` instead (a List of its
+  own), and `dashboard_list()` draws it by reusing core's own `render_content_list()` — a
+  swap-call-restore on `this.content` for the one call, not a second renderer. Now's sub-card
+  opens as a real second column now, same as any other card.
+- **A card's own data List is `this.dashboard`, never `this.content`.** `content` is reserved —
+  it is both Card's render method AND core's own field name for the generic content-List
+  feature, and the two can never coexist on one instance (the point above). A page without a
+  `content()` method of its own (a plain `page.jsonl` page, not a `Card`) has no such collision
+  and can use `this.content` directly, the ordinary way.
 
 ## More
 

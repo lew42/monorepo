@@ -1,5 +1,6 @@
 import { Page, View, div, p, span, small, a, button, input, select, option, details, summary } from "/app.js";
 import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
+import List from "/framework/core/List/List.js";
 import { clock, flag_box, when } from "./faces.js";
 import { money, cost_of, summary_line as cost_line } from "/framework/ext/AITask/cost.js";
 import { task_of, task_region, face_row, group_faces } from "./tasks.js";
@@ -125,9 +126,49 @@ export default class Card extends Page {
 	   `{"type": "refined", "text", "by", "at", …}` to a card; through core's `set()`
 	   its `type` would turn the card into a "refined" and its `text` and `by` would
 	   overwrite the card's own. It is kept whole instead, the latest wins. */
+	/* ⚠ "CONTENT" NAMES TWO DIFFERENT THINGS (found 2026-10-03, building the properties
+	   sidebar): core's `Page.set()` treats any `{"content": …}` line as a DATA delta —
+	   the moment one arrives it makes `page.content` a `List` and keeps adding to it
+	   (`ensure_content()`) — but every Card ALSO defines `content()` as its own RENDER
+	   METHOD (how its outline, tabs and sidebar draw). A card whose log uses
+	   `page_add()`'s content list (the Now card's whole dashboard: "Working on now",
+	   "Fixed today" …) would have that first line silently REPLACE the render method
+	   with a plain List — content() never runs again, so `$pages` never gets handed to
+	   its sub-card, which is why the Now card's one sub-card opens as a takeover
+	   instead of a second column (ux/Card/readme.md has the fuller story). The exact
+	   "a POJO key collides with a Page method" trap CLAUDE.md already names for
+	   `render` — here for `content`. Redirected to `this.dashboard` instead, a List of
+	   its own; `dashboard_list()` below draws it, reusing core's own row look. */
 	set(obj){
 		if (obj?.type === "refined"){ this.refined = obj; return this; }
+		// ⚠ EVERY line with a `content` key, not only the first — `page_add()` appends one
+		// such line per item, and core's own matching guard (`!(this.content instanceof
+		// List)`, Page.class.js) only protects the FIRST because every later one is meant
+		// to reach the SAME list through `this.content` by ordinary property lookup. Since
+		// this card keeps its list under `this.dashboard` instead, that lookup would never
+		// find it — so this redirect has to catch every line, not just the one that makes it.
+		if ("content" in obj){
+			const { content, ...rest } = obj;
+			if (!(this.dashboard instanceof List)){
+				this.dashboard = new List({ owner: this, name: "dashboard" });
+				["add", "remove", "move", "order"].forEach(verb => this.dashboard.on(verb, () => this.redraw()));
+			}
+			this.dashboard.set(content);
+			return super.set(rest);
+		}
 		return super.set(obj);
+	}
+
+	/** The Now card's own dashboard — a plain List of titled notes (`page_add()`'s
+	 *  `content.add`), drawn with core's own content-list row look (`render_content_list()`),
+	 *  borrowed rather than redrawn a second time (CLAUDE.md law 6): a card has no `content`
+	 *  List of its own to swap onto (that name is taken, see `set()` above), so this swaps
+	 *  `this.content` onto `this.dashboard` only for the one call that reads it. */
+	dashboard_list(){
+		if (!(this.dashboard instanceof List)) return;
+		const real = this.content;
+		this.content = this.dashboard;
+		try { return this.render_content_list(); } finally { this.content = real; }
 	}
 
 	/* ── the vocabulary: one method per kind of line ─────────────────────── */
@@ -311,9 +352,14 @@ export default class Card extends Page {
 	 *  of the header and the "More…" fold into their own column. */
 	properties_sidebar(sub){
 		const f = this.facts();
+		// WHAT IT COST LIVES HERE NOW, ALWAYS (the owner, 2026-09-25: "nowhere in here does it
+		// say what it cost") — `state_span()` in the header only speaks up while something is
+		// running, so an idle, taskless card needs this line or its cost shows nowhere at all.
+		const { usd, open } = this.cost_now(this.group_info());
 		div.c("ai2-foot ai2-foot-chat ai2-props", () => {
 			div.c("ai2-props-row", () => { span.c("muted").text("Type"); this.type_picker(); });
 			div.c("ai2-props-row", () => { span.c("muted").text("Status"); span(f.status ?? "open"); });
+			div.c("ai2-props-row", () => { span.c("muted").text("Cost"); span(usd != null ? money(usd) + (open ? "+" : "") : "not tracked"); });
 			if (f.tags.length) div.c("ai2-props-row", () => {
 				span.c("muted").text("Tags");
 				div.c("flex wrap gap-25", () => { f.tags.forEach(t => { span.c("ai2-chip").text("#" + t); }); });
@@ -755,6 +801,7 @@ export default class Card extends Page {
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
 		this.refinements();
+		this.dashboard_list();
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
 		if (this.by_request()) this.request_outline(items);
@@ -1154,9 +1201,6 @@ export default class Card extends Page {
 		this.stop_needs?.();
 		const mic = this.$composer?.mic;
 		try { if (mic && !["idle", "error"].includes(mic.state)) mic.stop(); } catch {}
-		// The new sidebar mount's own mic (chat_v1() off, the default) — same reasoning:
-		// a card left behind must not keep listening into a conversation nobody is looking at.
-		try { this.chat_mount?.panel?.stop_mic?.(); } catch {}
 	}
 }
 
