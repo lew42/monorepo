@@ -189,3 +189,72 @@ worktree session's own cost IS found and logged correctly today, even though it 
 as a ROW in this grid until `sessions.mjs` gets the same fix.
 left as a known gap rather than guessed at, since nobody has asked for worktree sessions to show
 here yet.
+
+## 2026-10-03 (session-trace) — the cost-over-time chart + "what was it doing" table
+
+The owner's own words, said while looking at the vscode-mastermind session: "The data is already
+there: every transcript line has a timestamp and the usage of each call." "This is the tool that
+tells us whether an agent did anything unnecessary." Full brief:
+[`/framework/ai/2026-10-03/session-trace/requirements.md`](/framework/ai/2026-10-03/session-trace/requirements.md).
+
+**`trace.json` is a manual, on-demand file today, same honesty `week.json`'s own note already
+uses.** `Server/session-cost.mjs`'s new `trace_of_transcript(path)` walks a session's raw
+transcript a second time (alongside `cost_of_transcript()`, untouched) and returns one row per
+`tool_use` block plus the per-turn `$` groups the chart's y-axis steps on. `node
+Server/session-cost.mjs --trace-file <id> <out-path>` writes it to disk — run by hand, same as
+`sessions.mjs`/`week-cost.mjs` already are. It is **not** wired into the Stop hook: a long session
+can have thousands of tool calls (the real test case below has 4,225), so a trace file can run into
+several megabytes — appending one after every turn, for every session, forever, was judged not
+worth it until something actually needs it live. This is an open gap, named here on purpose, not a
+hidden limitation.
+
+**The thresholds the four waste checks use are this task's own best first guess, not laws** —
+tune them in `page.js` (`waste_flags()`) the moment real use shows they're wrong:
+- Same file read **3+ times** → flagged.
+- Chunked reads of the same file: **2+** reads with a different `offset`/`limit` each time.
+- Polling: the same file (or the exact same full Bash command, never the 60-char `target` string,
+  which would false-match unrelated commands that just start the same way) called **2+** times
+  with **under 15 seconds** between calls and nothing written in between.
+- Long read-no-write run: **5+** consecutive Read/Grep/Glob/ToolSearch calls with no
+  Edit/Write/NotebookEdit/write-shaped-Bash in between.
+
+A Bash call counts as "a write" by a plain regex over its own command text (`>`, `rm`, `mv`, `cp`,
+`mkdir`, `touch`, a mutating `git`, `npm i`, …) — an approximation, not a certainty (there is no
+reliable way to know what an arbitrary shell command did without running it), named as a tunable
+rather than hidden as a false precision.
+
+**No real per-turn OpenRouter split exists in the data yet — the chart is Claude-$-only, an honest
+MVP, not two series invented from nothing.** `page.jsonl`'s own `cost` lines only ever carry
+`source: "claude"` and a `by_model` breakdown of Claude models; nothing in this task's own test
+data recorded a real per-turn OpenRouter `$` figure. The brief named this exact fallback as
+acceptable ("a single Claude-$ line is an honest MVP") rather than drawing a fabricated second
+line — the moment real per-turn OpenRouter data exists somewhere, the chart's own one-series-only
+code path is the thing to change, not the chart's shape.
+
+**Proof, against real data, not a hand-built fixture:** `node Server/session-cost.mjs --trace
+355eb7ba-ed23-46bb-ab6f-77c073a23571` (this task's own mastermind session) returned 84 calls / 87
+turns. For a session that actually has repeated reads, `361c4d18-e878-4c04-9537-444e847e13d5` — the
+SAME transcript this brief's own "what a transcript line actually looks like" section was verified
+against — was used: 4,225 calls, 4,708 turns, $1,492.40 total. All four waste checks fired for
+real: `CLAUDE.md` read 5 times (5 separate chunks), `.claude/skills/mastermind/SKILL.md` read 8
+times (8 chunks), `.claude/skills/sub-mastermind/SKILL.md` read 4 times (4 chunks), plus three more
+same-file / chunked-read flags — 15 flags total, confirmed by eye in the live page (headless
+Playwright, 1920 wide) before this task landed. No polling flags fired for this particular session
+(every repeat it has either has a write between the calls, or is more than 15 seconds apart) — not
+a dead code path, just a true finding about this one session; the logic itself was separately
+confirmed against a small synthetic trace (6 reads, 2 seconds apart, no writes → one run-flag,
+correctly).
+
+**The chart is plain inline SVG, no charting library** (CLAUDE.md: no new npm dependency) — same
+house style `ux/Content/Spend.js`'s own $-over-time bar chart already uses (`el.innerHTML =` a
+built-up SVG string; this page uses `View.html_unsafe()` instead, the same mechanism under a
+different name). `trace_chart_svg()`'s own `nice_step()` helper is a direct copy of `Spend.js`'s
+identical function, not an import — `Spend` is a `ContentModule` built around its own fetch
+lifecycle, not a plain function this page could call standalone, and the function itself is four
+lines.
+
+**The per-tool-call tick's only interactivity is a native `<title>` tooltip** (tool name + target,
+shown on hover by the browser itself) — not a custom crosshair/tooltip layer. The dataviz skill's
+own "ship a hover layer by default" rule is satisfied at the cheapest level that actually works;
+a richer synced crosshair across the whole chart is a fair next step if this page gets real use,
+not built pre-emptively here (CLAUDE.md law 1: fastest working version first).

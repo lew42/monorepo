@@ -35,6 +35,13 @@ older `cost` figure:**
   a snapshot `Server/week-cost.mjs` writes by hand (see below).
 - **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
   its prompts, when `Server/session-cost.mjs` has logged one.
+- **Below that (session-trace, 2026-10-03): a cost-over-time chart and a "what was it doing"
+  table**, when a `trace.json` exists for that session (a manual, run-by-hand file today — see
+  below). The chart is cumulative $ over elapsed time, with a tick per tool call; the table groups
+  every tool call by tool (Read/Edit/Bash/spawn…) with its count, $ and share, and flags waste it
+  can actually compute — the same file read 3+ times, chunked reads, polling, and long runs of
+  reads with no write. `doc/decisions.md` has the full case, the real test, and the thresholds
+  used.
 
 ## Where the real dollars come from
 
@@ -46,6 +53,10 @@ Two SEPARATE scripts, neither live — both are run by hand and read by the page
   `{"cost":{...}}` line to that session's own `page.jsonl` — the file
   [`task-mastermind-prompt-refine`](/framework/ai/) owns creating, this task only ever appends to.
   `node Server/session-cost.mjs <session-id>` prints the JSON on its own, for testing.
+  The same script's `trace_of_transcript()` answers a DIFFERENT question — not the $ total, but
+  every individual tool call and its own timestamp, behind the chart + table above: `node
+  Server/session-cost.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
+  the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/decisions.md).
 - [`Server/week-cost.mjs`](/code/) is a run-by-hand snapshot of this week's Claude $ and
   OpenRouter $ against the $200 Max plan, written to `week.json` beside this readme. Re-run it to
   refresh the "this week" line: `node Server/week-cost.mjs`.
