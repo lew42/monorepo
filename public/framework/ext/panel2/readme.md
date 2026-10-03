@@ -100,8 +100,13 @@ controls still use flex-wrap — just not this).
    version on purpose (CLAUDE.md law 1: the fastest working version first).
 3. **"Sprawl" — a layout verb, not built here.** Added mid-task by the owner: big, similar
    sections that stack on a narrow screen and sit side by side on a wide one (three rows at
-   1000px becoming three columns at 3000px). `framework-home` uses a plain grid for this today;
-   Panel2 may own it later. Noted, not built — more in [`doc/decisions.md`](./doc/decisions.md).
+   1000px becoming three columns at 3000px). Update: `framework-home` built a real module for
+   this, [`ext/sprawl`](/framework/ext/sprawl/) — a JS pass that balances sections into columns by
+   measured height (the owner asked for greedy shortest-column placement, not equal-height grid
+   stretching, which left dead space). If Panel2 ever needs this layout verb, reuse `ext/sprawl`
+   rather than building a second version (law 6) — it's a separate, whole-section placement
+   concern from Panel2's own split/grid, not something this module owns. Noted, not built — more
+   in [`doc/decisions.md`](./doc/decisions.md).
 4. **Adaptive panel height in a split.** Added mid-task by the owner: could the shorter side of
    `Panel2.split` grow to match the taller one, instead of always hugging its own content? Noted,
    not built — more in [`doc/decisions.md`](./doc/decisions.md).
