@@ -1,1 +1,2 @@
 {"log":{"at":"2026-10-03T00:15:15-05:00","task":"page-ai-cost","msg":"task opened — AI cost per page (roadmap 10b): redistribute each task's cost onto the pages it touched"}}
+{"log":{"at":"2026-10-03T00:16:38-05:00","task":"page-ai-cost","msg":"landed — Server/page-ai-cost.mjs: each task's cost split across the pages it touched; page header shows it; 49 real pages proven live"}}
