@@ -13,3 +13,5 @@ owner get this in ten seconds; link every mention of a concept that has its own 
 Helpful headings (the owner, 2026-10-02), in chat replies too: a heading per topic that names it
 (a statement or a question, carrying the parent's name when the sub-name wouldn't stand alone);
 under it, bullets that start with a **bold title**, then a sentence or two. Minimal and highly structured.
+At most 3 main headings (one is fine), 1–5 subheadings or bullets under each; one sentence when one sentence
+carries the idea. An overview is limited detail, only the important things: the owner asks to dig in.
