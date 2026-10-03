@@ -782,8 +782,8 @@
 	   thin rule between, a grab cursor because every row is a Sortable handle. */
 	.page-content-rows { display: flex; flex-direction: column; gap: var(--pad-well); }
 	/* A row IS a `.card` (framework.css): its padding is the standard `--pad-card`, a % of its
-	   own width, so a wide row gets a wide pad. Only the grab cursor is the row's own. */
-	.page-content-row { cursor: grab; }
+	   own width, so a wide row gets a wide pad. The grab cursor only on a sortable list. */
+	.page-content-rows.sortable > .page-content-row { cursor: grab; }
 	.page-content-row.dragging { cursor: grabbing; }
 	/* The list is a light-gray well with white cards on it (the owner, 2026-10-03). Its padding is a %
 	   of the column it sits in, so a wide detail area gets a wide margin round its cards. */

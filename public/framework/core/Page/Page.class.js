@@ -1236,6 +1236,10 @@ export class Page extends Item {
 	render_content_list(){
 		const list = this.content;
 		let $rows;
+		// Drag-to-reorder is OPT-IN (the owner, 2026-10-03): only a list that is a ranking
+		// the reader may override says `{"sortable": true}` on its page. A plain card body
+		// is read, not rearranged, so it gets no grab cursor and no drag.
+		const sortable = !!this.get?.("sortable");
 
 		// ⚠ `item.view` is undefined until core/Item grows a real default view (the
 		//   `static View` wiring Item.js's own comment names, not yet built) — so a
@@ -1255,7 +1259,7 @@ export class Page extends Item {
 					import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
 				}
 			});
-			import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
 				new Sortable({ view: $row, item });
 			});
 			return $row;
@@ -1267,10 +1271,10 @@ export class Page extends Item {
 		//   "[object Object]" text node after the real rows (found taking this
 		//   method's own screenshot, 2026-10-02).
 		const box = div.c("page-content-list flow", () => {
-			$rows = div.c("page-content-rows drag-items", () => { list.forEach(draw_row); });
+			$rows = div.c("page-content-rows", () => { list.forEach(draw_row); }).ac(sortable && "drag-items sortable");
 		});
 
-		import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+		if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
 			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
 		});
 
