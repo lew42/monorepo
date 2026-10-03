@@ -29,8 +29,8 @@ import Rail from "./Rail.js";
  * at the bottom of this file, unedited, so nothing that already imports them breaks today.
  * New code should write `Inbox.Rail` / `Inbox.Compact` instead.
  *
- * Docs: doc/inbox.md · Servex/doc/inbox.md (the coordination half) · this folder's own
- * readme.md, "Architecture", has the fuller before/after. */
+ * Docs: ext/drawer/doc/inbox.md (the drawer half) · Servex/doc/inbox.md (the coordination
+ * half) · this folder's own readme.md, "Architecture", has the fuller before/after. */
 
 // A page's folder path: the url without its query or hash, ending in "/".
 export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");

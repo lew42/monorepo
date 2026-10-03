@@ -29,7 +29,11 @@ is effectively the second thing a reader can reach.
 ## Where Stalled and In flight get their rows
 
 Both read `/framework/ai/tasks.json` — a file a sibling task, `stalled-and-budgets`, owns and
-writes (one row per task from the last 7 days, `state: stalled | building | landed | ...`). That
+writes (one row per task from the last 7 days, `state: stalled | building | landed | ...`).
+"Queued" in the tile's own heading isn't a fourth state the file can hold — a task is "building"
+the moment it opens, and the tile just reads "queued" for one still waiting its turn (no
+`landed_at` yet) versus "in flight" for one actively being worked. The code only ever checks
+`state === "building"`; the queued/in-flight split is presentation, not data. That
 file doesn't exist yet as of this tab shipping, so both tiles show "No data yet" instead of
 guessing at a shape — they poll the same url every 20 seconds, so they start showing real rows the
 moment the file appears, with no reload and no code change needed here.
