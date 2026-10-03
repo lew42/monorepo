@@ -39,12 +39,14 @@ same ones `ui.item` takes.
   loaded — in practice this covers most of the site, since the sidebar's own tree walk builds
   enough of it on every page load), the mention reads that live instance's own `icon` and
   `nav().class_card` straight off it — editing a page's icon updates its mentions on your very next
-  reload, no extra step. Only a page truly nobody has built yet falls back to `refs.js`'s cached
-  `icon`/`class_card`, kept honest by [`sync.mjs`](sync.mjs) for that cold case (reads every
-  page-backed entry's own `page.js` text for its icon, and loads the page headless for its real
-  `nav().class_card`). `people.js` and the four concept-only `refs.js` entries that borrow another
-  page's url (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) are left out of both — `doc/syntax.md`
-  says why.
+  reload, no extra step. Only a page truly nobody has built yet falls back to `refs.js`'s cache —
+  and the dev server now keeps THAT fresh on its own (2026-10-03): the moment a watched `page.js`
+  or `page.jsonl` changes, [`Server/plugins/MentionSync.js`](/framework/servex/fs/?file=Server)
+  re-reads its icon text and rewrites `refs.js`, no script to remember. [`sync.mjs`](sync.mjs) is
+  now only needed for `class_card` (it loads each page headless for the real `nav().class_card` —
+  too expensive to do on every keystroke, and `live()` above already covers the common case).
+  `people.js` and the four concept-only `refs.js` entries that borrow another page's url
+  (`CLAUDE.md`, `skills`, `MCP`, `dev-server`) are left out of both — `doc/syntax.md` says why.
 - **A `#reference` to a class gets the same dark card a class's own module index uses** —
   `Mention.js`'s `build_row()` and `page.js`'s demo wall both read `entry.class_card` and add
   `page-surface-dark`, the framework's existing always-dark island (`core/Page/words.js`'s `dark`

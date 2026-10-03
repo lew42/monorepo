@@ -81,8 +81,39 @@ in two parts:
    not a second guess at it.
 
 A mismatch in either gets fixed in place; `refs.js`'s curated LIST of which ~30 names are worth a
-mention (still a human judgment call, not a mechanical one) never changes. Run it after changing a
-mentioned page's icon or its `subject`: `node public/framework/ext/Mention/sync.mjs`.
+mention (still a human judgment call, not a mechanical one) never changes.
+
+## Icon sync never needs a human anymore (2026-10-03)
+
+The dev server now does pass 1 itself, the moment it happens: [`sync-icon.mjs`](../sync-icon.mjs)
+is pass 1's computation (page.js/page.jsonl text, no browser — same icon-from-text rule as
+above), pulled out so [`Server/plugins/MentionSync.js`](/framework/servex/fs/?file=Server) can
+call it too. That plugin sits on the SAME one shared `fs.watch` handle `Directory.js` already
+uses for `directory.json` (`Server/watch.js` — one handle, not a second watcher): every real
+change to a watched `page.js` or `page.jsonl`, debounced the same way `Directory.js` debounces a
+rebuild, recomputes every curated entry's icon and rewrites `refs.js` only if something actually
+changed. Proved live (`ai/2026-10-03/mention-auto-sync/`): flipping Sidebar's `icon:` in its
+`page.js` updated `refs.js` within about two seconds, with no `sync.mjs` run; reverting it synced
+back the same way.
+
+**"page.jsonl pages included" (the owner's own words)** — `sync-icon.mjs`'s `resolve_icon()`
+checks for a `page.js` first, same as always, and when a url has none but a `page.jsonl` instead,
+reads that page's own first (`assign`) line for its `class` (the template it renders through,
+e.g. `/framework/ai2/card.js`) and borrows THAT page's icon. No current `refs.js` entry is
+backed by a page.jsonl page — the curated ~30 are all classic modules — but a future one the
+owner adds works the same way, through the one function, not a second code path.
+
+**Still a human's job: `class_card`.** It needs a real headless page load (pass 2, above) —
+too expensive to redo on every keystroke a page.js is saved with, and `live()` already answers
+it for any page already visited this session, which is the common case. Run
+`node public/framework/ext/Mention/sync.mjs` after changing which page a mentioned class's
+`subject` points at, if you want the cold-cache case fixed immediately rather than on its next
+live visit.
+
+**Decision, and the alternative the owner floated:** a computed-on-change index (this) beats a
+per-folder `meta.json` snapshot (one small file written beside every page) because a snapshot is
+a SECOND index shape next to `refs.js` — a reader has to know which of two places to check — where
+one computed file, one shape, is what "one index, computed, never typed" actually asks for.
 
 Left alone, on purpose: `people.js` (agent ROLES, not pages — several share one url, so there is
 no single page icon or class to agree or disagree with), and four `refs.js` entries that borrow

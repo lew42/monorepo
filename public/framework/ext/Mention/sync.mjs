@@ -34,14 +34,10 @@
 // whatever page they happen to land on, so both passes skip them. `maps/people.js` is
 // left alone too: those are agent ROLES, not pages, and several share one url on purpose.
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs";
 import { browser, close } from "../../../../Server/browser.mjs";
+import { REFS_PATH as refs_path, ENTRY, CONCEPT_ONLY, entry_name, resolve_icon, has_source } from "./sync-icon.mjs";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repo_public = resolve(here, "..", "..", "..");   // public/framework/ext/Mention -> public
-const refs_path = resolve(here, "maps", "refs.js");
 // Default to the real site — a worktree's own <slug>.localhost host stops existing the
 // moment that branch merges, so a script whose default only works mid-task would silently
 // find nothing ever after (review finding 1, 2026-10-02). Pass a worktree host explicitly
@@ -50,35 +46,11 @@ const base_url = process.argv[2] || "http://monorepo.localhost";
 
 const source = readFileSync(refs_path, "utf8");
 
-// One entry per line: `  Name: { url: "/framework/...", icon: "word" },`, optionally
-// already carrying `, class_card: true` from a previous run of this same script. Captured
-// as `head` (everything up to the opening brace, including the name) and `tail` (the
-// closing comma/whitespace) so the line can be fully rebuilt without disturbing anything
-// else in the file — comments, ordering and spacing on every OTHER line are untouched.
-const ENTRY = /^(?<head>\s*(?:"[^"]+"|[\w.-]+):\s*\{)\s*url:\s*"(?<url>[^"]+)",\s*icon:\s*"(?<icon>[^"]+)"(?:,\s*class_card:\s*(?:true|false))?\s*\}(?<tail>,?\s*)$/gm;
-
-const CONCEPT_ONLY = new Set(["CLAUDE.md", "skills", "MCP", "dev-server"]);
-
-function entry_name(head){
-	return head.match(/("[^"]+"|[\w.-]+):\s*\{$/)[1].replace(/^"|"$/g, "");
-}
-
-// ---- pass 1: icon, from each page.js's own text ----------------------------------
-function sync_icon(url, current_icon){
-	const page_path = resolve(repo_public, "." + url, "page.js");
-	if (!existsSync(page_path)) return { icon: current_icon, status: "no-page" };
-
-	const page_source = readFileSync(page_path, "utf8");
-	// Exactly one leading tab: every page.js in this codebase writes its config's
-	// top-level properties (title, description, icon, …) at that one indent, as
-	// `new Page({ ... })`'s direct properties. A naive "first icon: in the file" instead
-	// caught core/Sidebar/page.js's own DEMO data once (a sample array shown as a code
-	// example, nested two tabs deep) and nearly overwrote "view_sidebar" with "flag" —
-	// caught by hand-checking this script's first run before trusting it.
-	const m = /^\ticon:\s*"([^"]+)"/m.exec(page_source);
-	if (!m) return { icon: current_icon, status: "no-match" };
-	return { icon: m[1], status: m[1] === current_icon ? "same" : "changed" };
-}
+// Pass 1 (icon, cheap — every url's own page.js/page.jsonl text) now lives in sync-icon.mjs,
+// shared with the dev server's own auto-sync watcher (Server/plugins/MentionSync.js,
+// 2026-10-03) so the computation is written once, not twice (Law 6). This script still does
+// pass 1 itself (via `resolve_icon`, below) AND the expensive pass 2 the watcher can't afford
+// to do on every keystroke — class_card, next.
 
 // ---- pass 2: class_card, from the live, already-computed answer ------------------
 async function class_cards_for(urls){
@@ -105,7 +77,7 @@ const names = [], urls = new Set();
 for (const m of source.matchAll(ENTRY)){
 	const name = entry_name(m.groups.head);
 	if (CONCEPT_ONLY.has(name)) continue;
-	if (!existsSync(resolve(repo_public, "." + m.groups.url, "page.js"))) continue;
+	if (!has_source(m.groups.url)) continue;
 	names.push(name);
 	urls.add(m.groups.url);
 }
@@ -123,7 +95,7 @@ const next = source.replace(ENTRY, (line, ...args) => {
 
 	if (CONCEPT_ONLY.has(name)){ concept++; return line; }
 
-	const { icon, status } = sync_icon(url, current_icon);
+	const { icon, status } = resolve_icon(url, current_icon);
 	if (status === "no-page"){ no_page++; return line; }
 	if (status === "changed"){ changed_icon++; report.push(`  ~ icon  ${url} — "${current_icon}" -> "${icon}"`); }
 
