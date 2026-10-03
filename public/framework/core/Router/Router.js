@@ -74,8 +74,19 @@ export class Router {
 			// Awaited HERE, never in activate(), which must stay synchronous for
 			// document.startViewTransition(). allSettled: a broken child or a 404'd
 			// stylesheet must not block navigation. doc/styles-loaded.md.
-			await this.app.styles_loaded();
+			//
+			// ⚠ CHAIN LOADING FIRST, STYLES SECOND — not the other order. `page.chain()`'s
+			// own `.loading` is what IMPORTS every child module still pending (a day
+			// page's task cards, an ai2 RealPage's embedded page) — and importing a
+			// module is what runs its own `View.stylesheet(...)` call, pushing a new
+			// promise onto `View.stylesheets`. `styles_loaded()` only awaits whatever is
+			// in that array AT THE MOMENT IT'S CALLED — so awaiting it BEFORE the chain
+			// finishes loading missed every stylesheet a child registered only once ITS
+			// import landed, and `activate()` then painted that child's preview before
+			// its CSS link had loaded (flash of unstyled content, found 2026-10-03 —
+			// ai/2026-10-03/flash-fix/).
 			await Promise.allSettled(page.chain().map(p => p.loading));
+			await this.app.styles_loaded();
 
 			this.activate(page);
 			this.path = url;   // the path showing now — `popped()` compares against it
