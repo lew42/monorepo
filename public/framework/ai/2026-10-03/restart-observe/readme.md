@@ -9,7 +9,7 @@ Snapshots taken just before: [before-agents.json](./before-agents.json) (5 live 
 
 ## What didn't
 - **Working agents did not resume.** `task-mastermind-system-class` and `clarity-restart-keeps-agents` were working; after the boot they read `gone`. `mastermind-page-3` (idle) also `gone`; `mastermind-servex-10` came back `dormant`. Their sessions are on disk, so they can be resumed, but nothing does it automatically.
-- **This VS Code session's hourly check-in** (a session-only cron) was lost and had to be re-created by hand.
+- **This VS Code session's hourly check-in survived** (the VS Code session reattached), so re-creating it made a duplicate; check `CronList` before re-creating a cron after a restart.
 - **Two dev-server processes** run after boot: `server.js` and `Server/run.js`. Check whether that's intended or a double start.
 
 ## What to automate (lessons)

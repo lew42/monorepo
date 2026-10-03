@@ -5,7 +5,7 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 keep it one screen.
 
 ## After a PC restart: check this (2026-10-03, observed)
-- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Session-only crons (the hourly check-in) must be re-created. What came back and what didn't: [restart-observe](/framework/ai/2026-10-03/restart-observe/).
+- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Run CronList before re-creating a session cron: the VS Code session reattaches and its crons can survive. What came back and what didn't: [restart-observe](/framework/ai/2026-10-03/restart-observe/).
 
 ## 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
 - **Answer on the Now card** (/framework/ai/2026/10/03/now/, `talking` item, newest first; write nested lines `{"talking": {...}}` with .claude/hooks/append.mjs); the sidebar gets a line + link.
