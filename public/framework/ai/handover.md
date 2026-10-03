@@ -4,7 +4,13 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-02 night: for a fresh VS Code mastermind tab (vscode-mastermind)
+## LATEST, 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
+- **Answer on the Now card** (/framework/ai/2026/10/03/now/, `talking` item, newest first; write nested lines `{"talking": {...}}` with .claude/hooks/append.mjs); the sidebar gets a line + link.
+- **Cut off by the restart, revive after:** @task-mastermind-topic-cards (Now topics as sub-cards), @task-mastermind-system-class (nothing committed under core/System yet), @mastermind-servex-10 (the restart-kills-agents fix). Held: @task-mastermind-framework-home-grids, the git/context/cost pages (ai/2026-10-03/ai-git-context-cost/).
+- **Re-create the hourly check-in cron** (session-only, lost on restart). Usage far over pace (67% week at 38% elapsed): two agents at a time, Sonnet.
+- **Never** the mcp__playwright tools (denied in .claude/settings.json; they pop windows).
+
+## 2026-10-02 night: for a fresh VS Code mastermind tab (vscode-mastermind)
 - **Who owns what:** @mastermind-page-2 (Gemini 3.8 Flash: core/Page, Item, List, Task, content, and the UI queue), @mastermind-ai-2 (Gemini 3.8 Flash: /framework/ai/, sessions, cards, models), @task-mastermind-one-dictation (Dictate, chat, drawer), @mastermind-servex-10 (Opus: Servex, RAM, token reduction, known issues). Route new asks to the owner with send_to_agent; don't spawn new task masterminds.
 - **The queue:** `ai/2026-10-02/roadmap/requirements.md`, section "Owners". **The design:** `ai/2026-09-30/proposal-flow/page-item-design.md` (top sections are newest: List has events, no LiveList; sessions are pages in `ai/YYYY/MM/DD/`).
 - **Budget:** the Claude week was 56% used at ~30% elapsed. OpenRouter has a +$40 burst until Monday (`%LOCALAPPDATA%/lew42/servex/openrouter-burst.json`); push hands-on work there. RAM: leftover dev servers are the leak (node-reap with servex-10).
