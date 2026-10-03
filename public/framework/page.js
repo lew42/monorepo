@@ -74,9 +74,15 @@ function module_card(owner, nav){
 		// stringifies to the literal text "null" in every card (caught live, screenshot).
 		if (w.weight <= BIG_WEIGHT) return undefined;   // icon + name only — nothing else to add
 
-		$card.ac("big");   // reuses the existing "bigger card" word (Page.css), not a new one
+		// ⚠ `.big` only lands once there's a real excerpt to grow for (review round 1,
+		// note 1) — a heavy module with no `## Architecture` section (View, today) falls
+		// all the way back to the ordinary small card shape, same as a light module with a
+		// description: the dark/enlarged look means "there's more to show here," not just
+		// "this module scored high," so it never applies to an empty reason.
 		const code = await architecture_excerpt(nav.url);
 		if (!code) return nav.description ? card_body(() => p.c("page-preview-desc", nav.description)) : undefined;
+
+		$card.ac("big");   // reuses the existing "bigger card" word (Page.css), not a new one
 		return card_body(() => pre.c("page-preview-architecture", code));
 	}));
 
