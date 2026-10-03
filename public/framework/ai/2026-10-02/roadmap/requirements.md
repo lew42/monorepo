@@ -18,6 +18,7 @@ Each item becomes its own task when a slot and budget free up. Estimates are Son
 | 8 | **Demo UI rework:** demos become Panel 2s with a title bar and menu buttons; each demo has a width (default 1000px); hide the mobile→mega width buttons (keep the code). Syntax highlighting stays. | new task after Panel 2 | $10 |
 | 9 | **Page uses a panel; the panel system is a LiveList of panels; page columns** (a page's layout from its parent, and within itself). | after 1–8 | $20, Opus for the design |
 | 10 | **Page weight sorts pages:** `page.pages` sorts by weight by default (views, references, importance, a composite per view); ids stay stable so permalinks never break. /framework/core/Page/weight exists already. | after Page extends Item lands | $8 |
+| 10b | **An AI cost on every page:** a node script sums `cost_usd` from every task.jsonl whose `action` lines touched files under a page's folder (split evenly when a task touched several pages), and writes one `{"ai_cost": {"usd", "tasks", "at"}}` line to that page's page.jsonl. The page header shows "$12.40 of AI work · 6 tasks", linking to the Log filtered to that page. | after the card pipeline's `paths` field | $6 |
 | 11 | Markdown + live instances as fences (/framework/ai/2026-09-30/proposal-flow/page-item-design.md) | after Page extends Item | $8 |
 | 12 | Question cards: an answer added later, tags | after the card pipeline | $4 |
 | 13 | Reference autocomplete in the composer (queued with /framework/ai/2026-09-30/one-dictation) | one-dictation | $5 |
