@@ -783,6 +783,10 @@
 	.page-content-rows { display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2); }
 	.page-content-row { padding: calc(var(--pad) * 0.4) calc(var(--pad) * 0.6); border: 1px solid var(--line); border-radius: var(--radius); cursor: grab; background: var(--surface); }
 	.page-content-row.dragging { cursor: grabbing; }
+	/* The list keeps off its column's edge; a row is a title over its markdown text (2026-10-03). */
+	.page-content-list { padding: var(--pad); }
+	.page-content-title { margin: 0; }
+	.page-content-text { margin-block-start: calc(var(--pad) * 0.3); }
 
 	/* ── the live-list demo's own layout — task-mastermind review, 2026-10-02 ──
 	   Four fixes together: `.wide` (JS) opts this whole block out of the 40em

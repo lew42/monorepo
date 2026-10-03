@@ -1243,8 +1243,17 @@ export class Page extends Item {
 		//   text, read straight off its data bag, rather than drawing an empty row.
 		const draw_row = item => {
 			const $row = div.c("page-content-row", () => {
-				if (item.view) $rows.append(() => item.view);
-				else p(item.get("title") ?? item.get("text") ?? String(item.id));
+				if (item.view) return void $rows.append(() => item.view);
+				const title = item.get("title"), text = item.get("text");
+				if (title || !text) h4.c("page-content-title", title ?? String(item.id));
+				// The text under the title, as markdown. ext/markdown is dynamically imported
+				// (core never imports ext statically); the box is captured now and filled in the
+				// callback, never DOM after an await. Before 2026-10-03 a titled item dropped its
+				// text entirely (the owner's "Now" card showed three bare titles).
+				if (text){
+					const $text = div.c("page-content-text");
+					import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
+				}
 			});
 			import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
 				new Sortable({ view: $row, item });
