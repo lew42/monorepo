@@ -152,6 +152,7 @@ export function trace_of_transcript(path){
 				usd_of_turn: turn_usd.get(current_at) ?? 0,
 				model: turn_model.get(current_at) ?? null,
 				input: b.input ?? null,   // kept raw — the waste flags (chunked reads, polling) need offset/limit/command, not just `target`'s derived string
+				turn_at: current_at,      // the OWNING turn's own key — lets a reader dedupe "3 calls, same turn" without risking two different turns that happen to cost the same `usd_of_turn`
 			});
 		}
 	}
