@@ -13,3 +13,5 @@
 {"log":{"at":"2026-10-03T13:26:00-05:00","task":"mention-auto-sync","msg":"task opened — make ext/Mention's refs.js index rebuild itself on a page.js/page.jsonl change, no manual sync.mjs run"}}
 {"log":{"at":"2026-10-03T13:27:56-05:00","task":"layout-approve-join","msg":"landed — explorer's centre carries the verdict now; browse stays the wall; one approved-list reader for page reviews"}}
 {"log":{"at":"2026-10-03T13:31:16-05:00","task":"ref-content-rows","msg":"landed — a content row with ref draws as that page's own dark class card (#Mention's look, reused), card links to the page, text renders under it; Now card's AI/Page/Servex added as ref rows"}}
+{"log":{"at":"2026-10-03T13:36:14-05:00","task":"layout-gate","msg":"landed — links style everywhere, smoke.mjs now fails on text touching its edge or anything above the title"}}
+{"log":{"at":"2026-10-03T13:39:02-05:00","task":"move-nesting-fix","msg":"landed — a dragged move now nests under its list's own name instead of writing a flat line that silently never replayed"}}
