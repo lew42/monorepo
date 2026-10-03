@@ -35,9 +35,11 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
   the behaviour (reading a card's log, drawing its tabs) stays in `ai2/card.js` until that
   logic itself is pulled out of the AI 2 module, a separate task.
 - **`Card.css` stands alone.** Load it by itself and a card looks right, its live pulse included.
-- **A card is a grid of exactly three named rows** (`.ai2-back`, `.ai2-full`, `.ai2-foot`) —
-  a region hidden at some width must still name its row, or the others shift up and the
-  footer inherits the wrong track (`ai2/doc/decisions.md` has the measured regression).
+- **A card is a grid of named rows**: `.ai2-back` (a top-level card's "← all cards") OR
+  `.ai2-crumbs` (a sub-card's breadcrumb — never both on the same card), then `.ai2-full`,
+  then `.ai2-foot`. A region hidden at some width must still name its row, or the others
+  shift up and the footer inherits the wrong track (`ai2/doc/decisions.md` has the measured
+  regression).
 - **The right column is properties, not a second chat** (one-card-props, 2026-10-03): type,
   status, tags, who worked on it, its files, then Actions — `card.js` `properties_sidebar()`.
   Nothing here is talked into; talking happens in the ONE global drawer (`ext/drawer/`), the

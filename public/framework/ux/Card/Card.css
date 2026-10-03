@@ -155,6 +155,7 @@
 	}
 
 	.ai2-back { grid-row: 1; }
+	.ai2-crumbs { grid-row: 1; }
 	.ai2-full { grid-row: 2; }
 	.ai2-foot { grid-row: 3; }
 
@@ -468,6 +469,34 @@
 	.ai2-back.ai2-sub-back {
 		display: inline-block;
 		margin: var(--gap-50) 0 var(--gap-50) var(--pad);
+	}
+
+	/* THE BREADCRUMB ROW (subcard-columns, 2026-10-03) — one `.ai2-back.ai2-sub-back`
+	   link per hidden ancestor (card.js `breadcrumb()`), wrapping instead of scrolling
+	   sideways: a chain four deep on a narrow sub-column is still more likely than a
+	   wide one. */
+	.ai2-crumbs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3em 0.7em;
+		margin-block-end: var(--gap-50);
+	}
+
+	/* WIDE SCREEN: the breadcrumb is the EARLIER of the two visible columns' own
+	   marker (an `.active-ancestor` sub-card showing beside the deepest one) — the
+	   deepest (`.active-page`) draws its full content in the second column instead,
+	   so its own breadcrumb (built the same way, for when IT is the earlier one some
+	   other time) stays unused here. */
+	@media (width >= 40em) {
+		.page.ai2-sub-page.active-page > .ai2-crumbs { display: none; }
+	}
+
+	/* NARROW SCREEN: one card is ever on screen, and it is always the deepest
+	   (`.active-page` — Inbox.css's own one-screen-at-a-time rule). ITS breadcrumb is
+	   the only way back now, so the wide-screen rule above is turned off here instead
+	   of carried over. */
+	@media (width < 40em) {
+		.page.ai2-sub-page:not(.active-page) > .ai2-crumbs { display: none; }
 	}
 
 	.ai2-said-head {
@@ -1161,8 +1190,76 @@
 		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page > .ai2-foot {
 			display: none;
 		}
-	}
 
+		/* TWO EQUAL COLUMNS (subcard-columns, 2026-10-03 — "the DETAIL side splits into
+		   two equal columns"). ux/Inbox/Inbox.css's own default gives the sub column
+		   2fr (room for a quick peek beside a full page); a card's sub-card is a full
+		   page of its own, so this more specific, Card-only rule (`.ai2-card-page` in
+		   the selector) makes the two equal instead — a plain Inbox consumer with no
+		   Card inside keeps the original 2fr untouched. `--ai2-subw` is the EXISTING
+		   divider (`Card.seam()` below), reused verbatim: unset, it is this 1fr
+		   default; dragged, it is a fixed px and the OTHER column takes what is left. */
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-page):not(:has(> .inbox-sub > .page.ai2-card-page.active-ancestor)) {
+			grid-template-columns: var(--inbox-rail) minmax(0, 1fr) var(--ai2-subw, minmax(0, 1fr));
+		}
+
+		/* TWO DEEP OR MORE: the chain's last two levels are both sub-cards (an
+		   `.active-ancestor` sits inside the sub row too, not just the leaf), so the
+		   top-level card is itself one of the hidden ancestors now — the owner's own
+		   example ("its sub-card opens a third column and HIDES the first"). It steps
+		   aside, and the sub row takes the whole room past the rail, split the same
+		   equal way between its own last two (below). */
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) {
+			grid-template-columns: var(--inbox-rail) minmax(0, 1fr);
+		}
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) > .inbox-detail {
+			display: none;
+		}
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) > .inbox-sub {
+			grid-column: 2;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) var(--ai2-subw, minmax(0, 1fr));
+		}
+
+		/* Only the DEEPEST sub-card's own left edge is ever a real seam. An
+		   `.active-ancestor` that is still on screen (the earlier of the two visible
+		   columns, above) sits at the ROW's own outer edge instead — against the rail,
+		   or against nothing — where dragging would move nothing real. */
+		.page.ai2-sub-page.active-ancestor > .grip {
+			display: none;
+		}
+	}
+}
+
+/* THE LAST TWO LEVELS SHOW, ANY DEPTH (subcard-columns, 2026-10-03) — the generic
+   arrangement contract (core/Page/Page.css, `@layer util`) already shows exactly
+   the deepest `.active-page` among these flat siblings; this ALSO shows the one
+   right before it, so opening a third level slides the window forward by one
+   instead of the third replacing the second inside a single column.
+   `:nth-last-child(An+B of S)` counts only among the siblings matching `S` — never
+   a stale card left over from a branch you backed out of — which is exactly the
+   selector this follows: `core/new/1/site/versus/css/page.js`'s own research into
+   "only the last N of the chain", proven live there against this same engine.
+   Scoped to `(width >= 40em)`: below it, Inbox.css's own one-screen-at-a-time rule
+   must keep showing exactly one card, so this must not also turn a second one on.
+   ⚠ In `@layer util`, like the contract it extends — a sibling layer block, not
+   nested inside `theme` above, which would silently create a DIFFERENT, wrongly
+   ordered `theme.util` layer instead of joining the real one framework.css orders.
+   ⚠ Restates `display: grid` — Card.css's own value for `.page.ai2-card-page` a
+   few hundred lines up — because `util` always outranks `theme` regardless of
+   specificity, so leaving `display` out here would leave the shown element with
+   no display of its own at all. */
+@layer util {
+	@media (width >= 40em) {
+		.inbox-sub > .page.ai2-card-page:is(.active-page, .active-ancestor):nth-last-child(-n+2 of .page.ai2-card-page:is(.active-page, .active-ancestor)) {
+			display: grid;
+			min-width: 0;
+			height: 100%;
+		}
+	}
+}
+
+@layer theme {
 	/* ── a top-level card's two tabs (card.js `draw()`) ──
 	   The strip and the mark are ext/tabs' own. The tabs are links with no href
 	   (an href would be routed), so the pointer is stated here; the panel's 3em

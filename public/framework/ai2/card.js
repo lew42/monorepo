@@ -287,9 +287,16 @@ export default class Card extends Page {
 	content(){
 		const shell = this.shell;
 		const sub = this.parent instanceof Card;
-		if (shell && !sub) this.$pages = shell.$sub;
+		/* EVERY DEPTH JOINS THE SAME FLAT ROW (subcard-columns, 2026-10-03) — was
+		   `if (shell && !sub)`, so only a TOP-LEVEL card redirected its own child
+		   into the shell's shared column; a sub-card's child fell through
+		   `container()`'s own walk-up-the-parent-chain to the same place anyway
+		   (the nearest ancestor with `$pages` set), so this was already the real
+		   behaviour — stating it here too, for every card, makes that explicit
+		   instead of relying on an implicit walk two files away. */
+		if (shell) this.$pages = shell.$sub;
 
-		if (sub) a.c("ai2-back ai2-sub-back page-link").href(this.parent.url).text("← " + (this.parent.title ?? this.parent.name));
+		if (sub) this.breadcrumb();
 		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
 
 		// The scrolling region holds two boxes: the card, redrawn on every line,
@@ -343,6 +350,29 @@ export default class Card extends Page {
 		// drag — the seam then moves only the card and the sub-card, the two beside it.
 		if (sub) Card.seam("--ai2-subw", "ai2-sub-w", 320, () => innerWidth - 700, () => this.hold_chat());
 		this.talk?.sync();
+	}
+
+	/* THE BREADCRUMB (subcard-columns, 2026-10-03 — "the DETAIL side splits into two
+	 * equal columns… as deep as it goes"): only the last two open levels are ever on
+	 * screen (Card.css's own `:nth-last-child(… of …)` rule, right beside the generic
+	 * arrangement contract it extends). Everything opened before those two is named
+	 * here, oldest first, so going three levels deep never loses the way back to the
+	 * top. Built for every sub-card — cheap, a handful of parent pointers — but CSS
+	 * decides whether it actually shows: on a wide screen only the card that is
+	 * currently the EARLIER of the two visible columns draws it, never the deepest
+	 * one (whose own content fills the second column instead); on a narrow screen,
+	 * where only one card is ever on screen, that one card draws it instead, so the
+	 * way back is never lost there either (Card.css, `.ai2-crumbs`).
+	 * Oldest ancestor first, left to right — a familiar folder path (CLAUDE.md:
+	 * "clarity is familiar structure") — over newest-first, because "top card → its
+	 * sub → its sub" reads toward you the same way drilling down was described,
+	 * not away from you. */
+	breadcrumb(){
+		const chain = [];
+		for (let p = this.parent; p instanceof Card; p = p.parent) chain.unshift(p);
+		div.c("ai2-crumbs", () => {
+			chain.forEach(p => { a.c("ai2-back ai2-sub-back page-link").href(p.url).text("← " + (p.title ?? p.name)); });
+		});
 	}
 
 	/** THE CARD'S OWN PROPERTIES — small and quiet (one-card-props, 2026-10-03 follow-up).
