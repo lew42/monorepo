@@ -74,6 +74,11 @@ export const SOURCE = {
 	servex: { label: "Servex", icon: "hub" },
 	vscode: { label: "VS Code", icon: "laptop_windows" },
 	cli: { label: "CLI", icon: "terminal" },
+	// A row synthesized purely from a date-path folder's own NAME (2026-10-03,
+	// sessions-date-homes) — `with_date_path_rows()` below, for a session that
+	// has a real `ai/<Y>/<M>/<D>/<slug>-<id8>/` page but no `sessions.json`/
+	// `GET /api/agents` entry of its own (yet).
+	page: { label: "Page", icon: "description" },
 };
 
 const POLL_MS = 20000;
@@ -184,6 +189,34 @@ export function cost_value(r){
 	return typeof r.cost === "number" ? r.cost : null;
 }
 
+// Requirement 2, "the Sessions tab lists from those pages (the day indexes)
+// as they appear" — not just links (review finding, 2026-10-03): a date-path
+// session folder that exists but isn't ALREADY one of `rows` (checked by its
+// own id8) gets a row of its own, synthesized from nothing but its folder's
+// own NAME (`<slug>-<id8>`) — no fetch into that page's `page.jsonl`, whose
+// own line-1 shape has changed three times already while this task alone was
+// open (doc/decisions.md); the folder's mere existence is the one fact this
+// can show without guessing at a schema still moving under it. Always a
+// no-op today — `page_dirs` is always empty, since no such folder exists yet
+// (checked live) — and becomes real the moment one does, with no further
+// code change, the same seam `session_page_dir_index()` itself already is.
+export function with_date_path_rows(rows, page_dirs){
+	if (!page_dirs?.size) return rows;
+	const known = new Set(rows.map(r => (r.session_id || r.id || "").slice(0, 8)));
+	const extra = [];
+	for (const [id8, dir] of page_dirs){
+		if (known.has(id8)) continue;
+		const folder = dir.split("/").filter(Boolean).pop() ?? id8;
+		extra.push({
+			id: id8, session_id: null, source: "page", tab_title: folder.replace(new RegExp("-" + id8 + "$"), ""),
+			role: null, model: null, state: null, started_at: null, stopped_at: null, last_activity: null,
+			cost: null, cost_claude_usd: null, cost_openrouter_usd: null, ram_mb: null, ram_sample_age_ms: null,
+			last_prompt_first_line: null,
+		});
+	}
+	return extra.length ? [...rows, ...extra] : rows;
+}
+
 // The snapshot's VS Code/CLI rows, plus Servex's own live list laid on top —
 // a Servex row always wins its own session_id, since it is the live truth.
 export function merge(snapshot_rows, agents){
@@ -256,14 +289,21 @@ export function row_view(r, url, page_dirs){
 	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
 	const href = dated ?? (url + r.id + "/");
 	return a.c("sessions-row").href(href).append(() => {
-		// Start / Stop / Duration (the owner's own ask, requirement 3): a plain
-		// transcript has no formal "stopped" event, so `stopped_at` is null —
-		// not guessed — while a session is still active; Duration then runs
-		// start→now instead of start→stop, same `dur(elapsed(...))` helper
-		// `ext/AITask/replay.js`'s own header already uses (law 6).
+		// Start / Stop / Duration (the owner's own ask, requirement 3).
+		// ⚠ Three honest states, not two (review finding, 2026-10-03): still
+		// WORKING (→ "ongoing", Duration keeps counting to now — the only case
+		// where that's true, not a guess); STOPPED with a real `stopped_at`
+		// (→ the real time, Duration is real too); or neither — a Servex row
+		// that finished WITHOUT an explicit stop (`Agents.js` only stamps
+		// `stopped_at` on that one path, never a normal settle) — here Stop
+		// and Duration both read "—", because nothing computed actually knows
+		// either number; showing a ever-growing Duration for an agent that
+		// finished minutes ago would be worse than admitting it's unknown.
+		const working = WORKING_STATES.has(r.state);
+		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
 		div.c("sessions-cell", () => small.c("muted").text(r.started_at ? age(r.started_at) : "—").attr("title", r.started_at ?? ""));
-		div.c("sessions-cell", () => small.c("muted").text(r.stopped_at ? age(r.stopped_at) : (WORKING_STATES.has(r.state) ? "ongoing" : "—")).attr("title", r.stopped_at ?? ""));
-		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, r.stopped_at ?? new Date().toISOString()))));
+		div.c("sessions-cell", () => small.c("muted").text(r.stopped_at ? age(r.stopped_at) : (working ? "ongoing" : "—")).attr("title", r.stopped_at ?? ""));
+		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
 		div.c("sessions-cell", () => { if (r.role) small.c("muted", r.role); });
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
@@ -474,15 +514,20 @@ export default new Page({
 	// `deactivated()` fire every time the reader leaves and comes back.
 	activated(){
 		this.polling = true;
+		this.last_agents = [];
 
-		const draw = agents => {
-			this.last_rows = merge(this.snapshot_rows, agents);
+		// One shared recompute, called from every trigger below (a fresh
+		// `GET /api/agents` poll, or the date-path index resolving/changing) —
+		// `with_date_path_rows()` also needs the latest `this.page_dirs`, so
+		// this can't just be the old `draw(agents)` closure anymore.
+		const draw = () => {
+			this.last_rows = with_date_path_rows(merge(this.snapshot_rows, this.last_agents), this.page_dirs);
 			this.render_rows();
 		};
 
 		const poll = async () => {
 			if (!this.polling) return;
-			if (!document.hidden) draw((await get_json("/api/agents")) ?? []);
+			if (!document.hidden){ this.last_agents = (await get_json("/api/agents")) ?? []; draw(); }
 			if (this.polling) setTimeout(poll, POLL_MS);
 		};
 
@@ -495,18 +540,18 @@ export default new Page({
 		// per row: every row's `href` wants the same answer to "does this
 		// session already have a page at its date path", so one directory.json
 		// walk serves the whole grid instead of one per row.
-		// ⚠ Only call `render_rows()` here if real rows are ALREADY on screen
-		// (found live: this fetch can resolve before `sessions.json`/`GET
-		// /api/agents` do, and `render_rows()` on an empty `last_rows` locks
-		// `render_controls()`'s role filter to an empty Set forever — it only
-		// ever runs once, the first time `$summary` gets set). When this
-		// resolves first, it just sets `this.page_dirs` quietly; the real
-		// `draw()` below reads it the moment actual rows arrive. When it
-		// resolves after, THIS re-render is what upgrades already-drawn rows
-		// to their date-path links.
+		// ⚠ Only redraw here if real rows are ALREADY on screen (found live:
+		// this fetch can resolve before `sessions.json`/`GET /api/agents` do,
+		// and redrawing on an empty `last_rows` locks `render_controls()`'s
+		// role filter to an empty Set forever — it only ever runs once, the
+		// first time `$summary` gets set). When this resolves first, it just
+		// sets `this.page_dirs` quietly; the real `draw()` above reads it the
+		// moment actual rows arrive. When it resolves after, THIS redraw is
+		// what both upgrades already-drawn rows to their date-path links AND
+		// adds any page-only row `with_date_path_rows()` found.
 		session_page_dir_index().then(index => {
 			this.page_dirs = index;
-			if (this.last_rows.length) this.render_rows();
+			if (this.last_rows.length) draw();
 		});
 
 		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot,

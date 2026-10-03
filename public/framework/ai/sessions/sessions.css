@@ -46,6 +46,22 @@
 			minmax(4rem, var(--col-ram))
 			minmax(4rem, var(--col-cost));
 		column-gap: var(--gap-50);
+		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
+		   without this, a block-level grid defaults to the width of its own
+		   CONTAINER (`width: auto` still resolves to "fill the parent" for a
+		   block box) even when its ten `minmax()` floors need more room than
+		   that — so columns were silently compressing/wrapping text BELOW
+		   their own floor (Model wrapping to two lines, Cost missing
+		   entirely at 1200) instead of the grid actually growing past its
+		   container and letting `.panel2-main`'s own `overflow: auto` turn
+		   that into a real, scrollable row — the behavior this grid was
+		   already supposed to have (doc/decisions.md, "the grid itself
+		   refuses to go under the minimum"). `max-content` lets it grow to
+		   its true minimum-floor width when that is wider than the
+		   container; `min-width: 100%` keeps it filling the full row on a
+		   screen that already has room to spare, same as before. */
+		width: max-content;
+		min-width: 100%;
 	}
 
 	.sessions-head, .sessions-rows, .sessions-row { display: contents; }
@@ -118,6 +134,12 @@
 	   this blue on a dark surface too; not re-measured there yet. */
 	.sessions-tag-vscode { --sessions-tag-color: #0072B2; }
 	.sessions-tag-cli    { --sessions-tag-color: var(--ink); }
+	/* A row synthesized purely from a date-path folder's name (2026-10-03,
+	   sessions-date-homes, with_date_path_rows()) — `--subtle`, the same
+	   contrast-safe non-prim token the OpenRouter tag already uses, since this
+	   is explicitly a THIN row (no model/state/cost known yet), not a fourth
+	   full-weight source. */
+	.sessions-tag-page   { --sessions-tag-color: var(--subtle); }
 
 	/* The state cell (session-costs minion-build, 2026-10-02): a ▶ that
 	   blinks while a row is in flight ("working"/"active"), a plain quiet dot
