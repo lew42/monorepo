@@ -2,6 +2,12 @@
 
 The owner's ask (2026-10-01): "show me a simple example, top down, of how the system should work… could Page extend Item… harmonize page.set and item.set". Proposed by vscode-mastermind. **Approved by the owner (2026-10-02). The build is at [2026-10-02/page-extends-item](../../2026-10-02/page-extends-item/requirements.md).**
 
+## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, fifth pass): fields are code-only; a collision throws
+- **`static fields` is declared in CODE ONLY** — nothing at runtime (a UI, a jsonl line, an agent) may add an accessor. Any other key, any name, lives only in `data`, reached through `get`/`set`, and never becomes an instance property.
+- **A collision now THROWS, not skips.** `define_fields()` (called once per class, from `register()`) checks every field name against the WHOLE prototype chain — methods, getters, built-ins — and throws a clear error naming the class and what it collided with: `field "move" on Bad collides with method Bad.move`. The old behaviour (quietly leaving a colliding name alone) hid a real bug: that's exactly how List's ~70 methods could have silently out-ranked a field with the same name with no warning. Re-registering the same class twice is still safe — it recognizes its own prior accessor and skips past it, never treats its own earlier work as a collision.
+- One test: `core/Item/Item.test.mjs` — a clean field, a method collision (throws), an inherited-method collision (throws), and idempotent re-registration (doesn't throw). `node public/framework/core/Item/Item.test.mjs`.
+- Build: `core/Item/Item.js` only (`define_fields()`, plus a small `find_descriptor()` chain-walker).
+
 ## LATEST (the owner asked; vscode-mastermind decided, 2026-10-03, fourth pass): all data lives in `data`; `static fields` is the convenience
 - **ALL item values live in `this.data`**, a null-prototype plain object (not a Map, so it saves as JSON). The instance's own namespace is reserved for built-ins: `id`, `parent`, `store`, the named Lists, the methods — never a value.
 - **Convenience:** `static fields = ["title", "icon", "description", …]` gets an ACCESSOR per field, built by `Item.define_fields()` (called once per class, from `register()`). `item.title` reads `data.title`; `item.title = x` goes through `set({title: x})`, so the `change`/`delta` events fire.

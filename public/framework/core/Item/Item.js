@@ -3,6 +3,18 @@ import { Events } from "../Events/Events.js";
 
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
+
+// Walks a prototype chain (stopping at Object.prototype) looking for an OWN
+// descriptor named `name` — used by `define_fields()` to find a real collision
+// (a method, accessor or plain property already sitting on some class in the
+// chain) versus its own prior accessor from an earlier `register()` call.
+const find_descriptor = (proto, name) => {
+	for (; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)){
+		const descriptor = Object.getOwnPropertyDescriptor(proto, name);
+		if (descriptor) return { proto, descriptor };
+	}
+	return null;
+};
 const skipped = key => key === "constructor" || key === "__proto__" || key.startsWith("_");
 
 // A duck-typed "is this a List?" — NOT `instanceof List`, because this file must
@@ -53,15 +65,38 @@ export class Item extends Events(Object) {
 	   exactly like any other key. Each name just gets a REAL accessor on the
 	   prototype, so `item.title` keeps reading/writing exactly as before, but now
 	   through `get_one`/`set` underneath, so `item.title = x` fires the same
-	   `change`/`delta` events a jsonl `{"title": x}` line would. A name already
-	   claimed by a real method or getter is left alone — the field list can be
-	   generous without ever clobbering one. Called once per class, from
-	   `register()` below (every registered class already goes through there). */
+	   `change`/`delta` events a jsonl `{"title": x}` line would. Called once per
+	   class, from `register()` below (every registered class already goes
+	   through there).
+
+	   REFINEMENT (2026-10-03, the owner, second pass): `fields` is declared in
+	   CODE ONLY — nothing at runtime (a page tool, a line, an agent) may add an
+	   accessor; this method is the one and only place one is ever created. A
+	   name that collides with a real method, getter or property ANYWHERE up the
+	   prototype chain is no longer silently skipped — that hid a real bug (a
+	   field quietly losing to an existing method, found live as List's ~70
+	   methods colliding with folder names). It now THROWS a clear error naming
+	   the class and the kind of thing it collided with, at `register()` time —
+	   load-time, not first-use — so a bad field list breaks loudly, once, in
+	   the one place that can see the whole prototype chain. Re-registering the
+	   same class twice is still safe: the guard below recognizes ITS OWN prior
+	   accessor (tagged via `.is_field_accessor`) and skips past it rather than
+	   treating it as a collision. */
 	static define_fields(){
 		for (const name of this.fields ?? []){
-			if (Object.getOwnPropertyDescriptor(this.prototype, name)) continue;
+			const prior = find_descriptor(this.prototype, name);
+			if (prior?.descriptor.get?.is_field_accessor) continue; // our own, from an earlier register() — idempotent
+			if (prior){
+				const owner = prior.proto.constructor?.name ?? "?";
+				const kind = typeof prior.descriptor.value === "function" ? "method"
+					: (prior.descriptor.get || prior.descriptor.set) ? "accessor"
+					: "property";
+				throw new Error(`Item.define_fields(): field "${name}" on ${this.name} collides with ${kind} ${owner}.${name} — a field may not shadow anything already on the prototype chain`);
+			}
+			const get = function(){ return this.get_one(name); };
+			get.is_field_accessor = true;
 			Object.defineProperty(this.prototype, name, {
-				get(){ return this.get_one(name); },
+				get,
 				// A plain DELTA OBJECT, never the two-arg `set(a, b)` sugar — Page
 				// overrides `set(obj)` with a single-argument signature (every page
 				// keeps its own jsonl housekeeping there), so `this.set(name, value)`
