@@ -603,12 +603,24 @@ export class ComposerMic extends Dictate {
 	 * never torn down on navigation). `auto_check()` already guards the exact same way
 	 * (`this.state !== "listening" && this.state !== "transcribing"`); this arms every
 	 * other autosend path (`log_prompt()`'s own segment-finished call, and the safety
-	 * chunk cut) the same way, so a stale mic's late words still land in ITS OWN thread
-	 * (nothing is lost — `log_prompt()` above this call still drew them) but never
-	 * leave as a second, wrongly-attributed `say()` no reader asked for. */
+	 * chunk cut) the same way.
+	 *
+	 * DISCARD, DON'T STRAND (re-review finding 4, 2026-10-02): leaving the late words
+	 * sitting in `held` used to mean the box kept showing them, unsent, until this
+	 * mount's mic started again — and then they would go out attached to whatever page
+	 * was current THEN, the very wrongly-attributed send this guard exists to stop.
+	 * Nothing is lost by discarding: `log_prompt()` above this call already drew them
+	 * in this mount's own thread (its chat log has them); only the still-live box and
+	 * the unsent `held` queue are stale. Mark every held item `gone` (`owner_edit()`'s
+	 * own pattern, above) and redraw the box so it empties instead of holding words
+	 * that will never be theirs to send. */
 	arm(){
 		if (this.mode_now() === "manual") return;
-		if (this.state !== "listening" && this.state !== "transcribing") return;
+		if (this.state !== "listening" && this.state !== "transcribing"){
+			for (const h of this.held ?? []) h.gone = true;
+			this.draw_caption();
+			return;
+		}
 		this.chunk_start ??= performance.now();
 		if (SETTINGS.sentences_per_send | 0) this.send_sentences(SETTINGS.sentences_per_send | 0); else this.check_chunk();
 	}
