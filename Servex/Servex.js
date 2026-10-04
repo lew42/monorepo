@@ -370,7 +370,10 @@ export default class Servex extends Events {
         const runner = new Process({
             name, log: this.log, port: project.port, cwd: project.dir,
             command: start.command, args: start.args, shell: start.shell,
-            env: { NO_WHISPER: "1", HOST: "127.0.0.1" },
+            // The main site answers the home Wi-Fi too, so the desktop and the phone reach ONE
+            // server (http://10.0.0.135:3104/); the owner approved this 2026-10-04. Worktree
+            // servers stay loopback. Exec/write routes keep their own loopback guards.
+            env: { NO_WHISPER: "1", HOST: name === "monorepo" ? "0.0.0.0" : "127.0.0.1" },
             detach: true                  // outlives Servex; the next Servex adopts it — Process.js
         });
         this.processes.set(name, runner);

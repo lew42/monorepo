@@ -284,7 +284,7 @@ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idl
 // this tab's own `/sessions/<id>/` view, same as before this task. Omitted
 // entirely (the Dashboard tile's own call) just means every row falls back,
 // which is harmless and correct — no session has a date-path page yet.
-export function row_view(r, url, page_dirs){
+export function row_view(r, url, page_dirs, spend){
 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
 	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
 	const href = dated ?? (url + r.id + "/");
@@ -341,6 +341,18 @@ export function row_view(r, url, page_dirs){
 			} else if (typeof r.cost === "number") {
 				small.c("muted", "$" + r.cost.toFixed(2));
 			}
+			// Nested cost (spend-tree): this row's OWN $ is what's above; if it ever
+			// spawned anything, a second line shows the whole subtree's $ too — the
+			// owner's own ask ("the agent that spawns a bunch of sub agents probably
+			// has a bunch of token consumption of its own ... we want to nest the
+			// costs"). Only drawn when there's a real tree below it, and it adds up to
+			// more than the row's own $ already shown just above.
+			const node = spend?.by_id.get(r.id);
+			if (node?.children_count > 0){
+				const subtree = node.subtree_claude_usd + node.subtree_or_usd;
+				const own = (node.own_claude_usd ?? 0) + (node.own_or_usd ?? 0);
+				if (subtree > own + 0.004) small.c("muted sessions-subtree-note", `$${subtree.toFixed(2)} w/ ${node.descendant_count}`);
+			}
 		});
 	});
 }
@@ -362,6 +374,46 @@ function by_role_totals(rows){
 	for (const r of rows){
 		const key = r.role || "(unknown)";
 		const prev = totals.get(key) ?? { role: key, claude_usd: 0, openrouter_usd: 0, count: 0 };
+		prev.claude_usd += claude_usd_of(r);
+		prev.openrouter_usd += openrouter_usd_of(r);
+		prev.count += 1;
+		totals.set(key, prev);
+	}
+	return [...totals.values()].sort((a, b) => (b.claude_usd + b.openrouter_usd) - (a.claude_usd + a.openrouter_usd));
+}
+
+// ---- the spend tree (2026-10-03, spend-tree): who spawned whom, why, and what it cost,
+// nested — `Server/spend-tree.mjs` computes this ONCE from the Servex registry + every
+// agent's own log (doc/spend-tree.md); this page only ever reads its output, never
+// recomputes a dollar (CLAUDE.md law 7). A Servex-sourced row's own `id` IS the same id
+// the tree uses (`merge()` above sets `tab_title`/href off `a.id`, not `session_id`), so
+// no id-mapping is needed to join the two — a VS Code/CLI row just won't be in the tree
+// (it isn't a Servex agent) and every lookup below degrades to "nothing shown", same
+// silent-degrade rule week.json already uses.
+export async function load_spend_tree(root_url){
+	const data = await get_json(root_url + "spend-tree.json");
+	if (!data?.agents) return null;
+	const by_id = new Map(data.agents.map(a => [a.id, a]));
+	const children = new Map();
+	for (const a of data.agents) {
+		if (!a.parent || !by_id.has(a.parent)) continue;
+		(children.get(a.parent) ?? children.set(a.parent, []).get(a.parent)).push(a.id);
+	}
+	return { by_id, children, totals: data.totals, generated_at: data.generated_at };
+}
+
+// A row's trigger tag, straight from the spend tree — `null` (never guessed) when the row
+// isn't a Servex agent, or the tree hasn't loaded yet.
+export function trigger_of(r, spend){
+	return spend?.by_id.get(r.id)?.trigger ?? null;
+}
+
+export function by_trigger_totals(rows, spend){
+	if (!spend) return [];
+	const totals = new Map();
+	for (const r of rows){
+		const key = trigger_of(r, spend) || "(n/a)";
+		const prev = totals.get(key) ?? { trigger: key, claude_usd: 0, openrouter_usd: 0, count: 0 };
 		prev.claude_usd += claude_usd_of(r);
 		prev.openrouter_usd += openrouter_usd_of(r);
 		prev.count += 1;
@@ -404,6 +456,7 @@ export default new Page({
 
 		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
+		this.trigger_filter = null; // Set<string> | null — same shape, for the spend tree's trigger tag (2026-10-03, spend-tree)
 		const today = new Date();
 		this.date_to = today.toISOString().slice(0, 10);
 		this.date_from = new Date(today.getTime() - 30 * 864e5).toISOString().slice(0, 10);
@@ -441,7 +494,13 @@ export default new Page({
 		if (this.role_filter === null){
 			this.role_filter = new Set(this.last_rows.map(r => r.role || "(unknown)"));
 		}
+		if (this.trigger_filter === null){
+			this.trigger_filter = new Set(this.last_rows.map(r => trigger_of(r, this.spend) || "(n/a)"));
+		}
 		const roles = [...new Set(this.last_rows.map(r => r.role || "(unknown)"))].sort();
+		// Only offered once the spend tree has real trigger data to show — before that,
+		// every row would show "(n/a)" and the filter would be one useless checkbox.
+		const triggers = [...new Set(this.last_rows.map(r => trigger_of(r, this.spend) || "(n/a)"))].sort();
 		this.$controls.empty(() => {
 			if (roles.length){
 				div.c("sessions-role-filter flex wrap gap-50", () => {
@@ -458,6 +517,22 @@ export default new Page({
 					});
 				});
 			}
+			if (this.spend && triggers.length > 1){
+				div.c("sessions-role-filter flex wrap gap-50", () => {
+					small.c("muted", "trigger:");
+					triggers.forEach(tag => {
+						label.c("flex gap-35 v-center h4", () => {
+							const $box = input().attr("type", "checkbox");
+							$box.el.checked = this.trigger_filter.has(tag);
+							$box.on("change", () => {
+								if ($box.el.checked) this.trigger_filter.add(tag); else this.trigger_filter.delete(tag);
+								this.render_rows();
+							});
+							span(tag);
+						});
+					});
+				});
+			}
 			div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date");
@@ -470,6 +545,7 @@ export default new Page({
 			});
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
 			this.$by_role = div.c("sessions-by-role flow");
+			this.$by_trigger = div.c("sessions-by-role flow");
 		});
 	},
 
@@ -482,12 +558,30 @@ export default new Page({
 
 		const from = Date.parse(this.date_from + "T00:00:00");
 		const to = Date.parse(this.date_to + "T23:59:59.999");
-		const filtered = this.last_rows.filter(r => this.role_filter.has(r.role || "(unknown)") && in_date_range(r, from, to));
+		const filtered = this.last_rows.filter(r => this.role_filter.has(r.role || "(unknown)")
+			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to));
 		const sorted = sort_by_cost(filtered, this.cost_sort);
 
+		// Paging, not windowing: rows are variable-height (a title line plus an
+		// optional wrapped prompt-preview line), so there's no fixed row height
+		// to compute a scroll-visible slice from the way ext/DataGrid's windowing
+		// does. The owner's own fallback for that case ("if windowing is hard,
+		// page it... we definitely don't want that many items rendered at once")
+		// -- only the first PAGE_SIZE of the filtered/sorted rows render; a
+		// "show more" line grows it page by page instead of all ~1,800 at once.
+		const PAGE_SIZE = 200;
+		this.shown ??= PAGE_SIZE;
+		const visible = sorted.slice(0, this.shown);
 		this.$rows.empty(() => {
 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
-			sorted.forEach(r => row_view(r, this.url, this.page_dirs));
+			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend));
+			if (sorted.length > visible.length){
+				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
+					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
+					a.c("sessions-show-more-link").href("#").text(`show ${Math.min(PAGE_SIZE, sorted.length - visible.length)} more`)
+						.on("click", e => { e.preventDefault(); this.shown += PAGE_SIZE; this.render_rows(); });
+				});
+			}
 		});
 
 		const claude_total = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
@@ -502,6 +596,20 @@ export default new Page({
 			small.c("muted", "Cost by role (largest first)");
 			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
 				small.c("sessions-by-role-name", t.role);
+				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
+			}));
+		});
+
+		// "Cost by trigger" (spend-tree, 2026-10-03) — the owner's own ask: "tag sessions
+		// based on their purpose... figure out the breakdown." These are each row's OWN $,
+		// same as "by role" above — never the subtree, which would double-count a parent
+		// and its children under two different totals.
+		this.$by_trigger?.empty(() => {
+			const totals = by_trigger_totals(filtered, this.spend).filter(t => t.claude_usd || t.openrouter_usd);
+			if (!totals.length) return;
+			small.c("muted", "Cost by trigger — why it was spawned (largest first)");
+			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
+				small.c("sessions-by-role-name", t.trigger);
 				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
 			}));
 		});
@@ -534,6 +642,22 @@ export default new Page({
 		get_json(this.url + "sessions.json").then(snap => {
 			this.snapshot_rows = snap?.rows ?? [];
 			if (this.polling) poll();
+		});
+
+		// The spend tree (2026-10-03, spend-tree) — a snapshot too (Server/spend-tree.mjs,
+		// run by hand; same "not live, re-run to refresh" rule week.json already follows).
+		// Fetched once per activation; redraw ONLY if real rows are already on screen, same
+		// guard the date-path index below already needs for the identical reason (it would
+		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
+		load_spend_tree(this.url).then(spend => {
+			this.spend = spend;
+			if (!this.last_rows.length) return;
+			// The trigger filter is only ever built from REAL data (same rule the role
+			// filter already follows) — before this resolves, every row reads "(n/a)",
+			// so rebuild it now that the real tags exist, not just re-render the rows.
+			this.trigger_filter = null;
+			this.render_controls();
+			this.render_rows();
 		});
 
 		// The date-path index (2026-10-03) — fetched ONCE per activation, not
@@ -917,6 +1041,47 @@ function render_trace_section($el, trace){
 	});
 }
 
+// Who spawned this agent, why, and what IT spawned in turn — the owner's own ask ("nest
+// the costs... if we can click through and see where our tokens are going"). One small
+// link up to the parent (when known), then every direct child, each a routed link to the
+// SAME page shape one level down — clicking a child re-enters this exact function on its
+// own id, so the tree is just normal navigation, never a special drill-down view.
+function render_spawn_section($el, node, spend, root_url){
+	small.c("muted", "Spawned (Server/spend-tree.mjs — see doc/spend-tree.md)");
+
+	div.c("sessions-cost-row card flex gap-50 v-center wrap", () => {
+		small.c("sessions-row-title", "Trigger: " + node.trigger);
+		if (node.parent){
+			a.c("sessions-tag sessions-tag-servex").href(root_url + node.parent + "/").text("↑ " + node.parent);
+			if (node.parent_source !== "registry") small.c("muted").attr("title", "Servex didn't record this spawn's parent — this script worked it out from task.jsonl.").text("(" + node.parent_source.replace("reconstructed: ", "guessed from ") + ")");
+		} else {
+			small.c("muted", "no known spawner — " + (node.parent_source === "unknown" ? "none of task.jsonl, the registry or a name match found one" : node.parent_source));
+		}
+	});
+
+	const own = (node.own_claude_usd ?? 0) + (node.own_or_usd ?? 0);
+	const subtree = node.subtree_claude_usd + node.subtree_or_usd;
+	div.c("sessions-cost-row card flex gap-50 v-center", () => {
+		small(`Own: $${own.toFixed(2)}`);
+		if (node.children_count) small.c("muted", `Whole subtree: $${subtree.toFixed(2)} across ${node.descendant_count} descendant${node.descendant_count === 1 ? "" : "s"}`);
+	});
+
+	const kids = [...spend.by_id.values()].filter(n => n.parent === node.id)
+		.sort((a, b) => (b.subtree_claude_usd + b.subtree_or_usd) - (a.subtree_claude_usd + a.subtree_or_usd));
+	if (!kids.length) return;
+	small.c("muted", `Spawned ${kids.length} agent${kids.length === 1 ? "" : "s"} directly`);
+	div.c("flow", () => kids.forEach(k => {
+		const k_own = (k.own_claude_usd ?? 0) + (k.own_or_usd ?? 0);
+		const k_subtree = k.subtree_claude_usd + k.subtree_or_usd;
+		a.c("sessions-cost-row card flex gap-50 v-center").href(root_url + k.id + "/").append(() => {
+			small.c("sessions-row-title", k.id);
+			small.c("muted", k.trigger);
+			small(`$${k_own.toFixed(2)}`);
+			if (k.children_count) small.c("muted", `+ $${(k_subtree - k_own).toFixed(2)} under it (${k.descendant_count})`);
+		});
+	}));
+}
+
 function session_page(root, id){
 	return new Page({
 		// A session id is a raw uuid or an agent name — fine as a url, too long and
@@ -932,6 +1097,7 @@ function session_page(root, id){
 
 			const $box = div.c("flow");
 			const $costs = div.c("flow");
+			const $spawn = div.c("flow");   // who spawned this, why, and what it spawned in turn (2026-10-03, spend-tree)
 			const $trace = div.c("flow");   // the cost-over-time chart + "what was it doing" table, BELOW $costs (2026-10-03 brief)
 
 			// `row` first, on its own — everything else needs its `session_id`.
@@ -988,10 +1154,22 @@ function session_page(root, id){
 					if (!trace) return;   // no trace.json for this session yet — silent degrade, same rule week.json already uses
 					render_trace_section($trace, trace);
 				});
+
+				// Only a Servex agent is IN the spend tree at all (it isn't a thing a VS
+				// Code tab or a plain CLI run has — doc/spend-tree.md); a non-Servex row's
+				// $spawn section just silently stays empty, same degrade rule as above.
+				load_spend_tree(root.url).then(spend => {
+					$spawn.empty(() => {
+						const node = spend?.by_id.get(id);
+						if (!node) return;
+						render_spawn_section($spawn, node, spend, root.url);
+					});
+				});
 			});
 
 			$costs;
 			$box;
+			$spawn;
 			$trace;
 		},
 	});

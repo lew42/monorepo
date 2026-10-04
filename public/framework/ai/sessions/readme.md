@@ -47,6 +47,16 @@ older `cost` figure:**
   can actually compute — the same file read 3+ times, chunked reads, polling, and long runs of
   reads with no write. `doc/decisions.md` has the full case, the real test, and the thresholds
   used.
+- **The spend tree (2026-10-03):** every row's Cost cell gets a second, quieter line —
+  "$X w/ N" — when that agent ever spawned anything, showing the whole subtree's $ (own +
+  every descendant) alongside its own $ above it. A **trigger filter** (why it was spawned:
+  task, owner prompt, review gate, clarity, heartbeat/revive, assistant, echo) sits next to
+  the role filter, and a session's own detail page shows who spawned IT and what it spawned
+  in turn, each a link one level down. All from `Server/spend-tree.mjs` →
+  `spend-tree.json` — [`doc/spend-tree.md`](doc/spend-tree.md) says exactly how a parent and
+  a trigger get worked out, and where that guessing is honestly weakest. The one-screen
+  reading of what it's for — does a review pay for itself, where the dollars go — is
+  [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
 
 ## Where the real dollars come from
 
