@@ -178,6 +178,37 @@
 
 	.sessions-full-id { display: block; font-family: monospace; margin-block: var(--gap-35) var(--gap); }
 
+	/* The two empty gray bands above the white card (the owner's own words,
+	   2026-10-03, sessions-tab-polish: "two faint gray lines between the top
+	   tabs and the white card could just disappear" — measured live, headless,
+	   at 3440: a 51px `.page-column-head` with nothing in it (this page's own
+	   title is blank on purpose — the AI icon heading above the tabs already
+	   says where you are) plus a 25px `padding-block-start` on
+	   `.page-column-prose`, the generic "a column's content is a note" inset
+	   `core/Page/Page.css` gives EVERY column (right for a short reading page,
+	   wrong for a page whose own content IS a full-width card). Both belong to
+	   `core/Page`, outside this task's fence, so the fix lives here instead,
+	   scoped tight enough to touch only THIS page and only the column that can
+	   never be closed (the root grid — `:not(:has(.page-column-close))`, since
+	   only an OPENED detail column ever gets a close button): an opened
+	   session's own detail column keeps its real head/title, its close button
+	   and its normal inset, untouched. `doc/decisions.md` has the measurements. */
+	.page--sessions .page-column-head:not(:has(.page-column-close)) { display: none; }
+	.page--sessions .page-column-body:has(> .page-column-head:not(:has(.page-column-close))) > .page-column-prose {
+		padding-block-start: 0;
+	}
+
+	/* The stat-card row (sessions-tab-polish, 2026-10-03) — the `ui/stats`
+	   tile pattern (`grid gap auto` + `surface pad flex v gap` + `h4 muted` /
+	   `h2`), reused with no new class of its own; `.sessions-stats` only sets
+	   the gap before the controls below it, same job `.sessions-controls`
+	   already does. `.sessions-stat-cents` is the one truly new rule: the
+	   owner's own words, "maybe the cents smaller than the dollars" — a plain
+	   size/weight/colour step down from the `h2` it sits inside, not a new
+	   type-scale step (the type scale itself is untouched). */
+	.sessions-stats { margin-block-end: var(--gap); }
+	.sessions-stat-cents { font-size: 0.55em; font-weight: 400; color: var(--subtle); }
+
 	/* Filters, the summary line and "cost by role" (session-costs
 	   minion-build, 2026-10-02) — plain controls above the grid, reusing the
 	   same `.muted`/`.card` vocabulary as every row, not a second style
@@ -188,6 +219,18 @@
 	.sessions-role-filter label { cursor: pointer; }
 	.sessions-by-role-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
 	.sessions-by-role-name { font-weight: 600; min-width: 8em; }
+
+	/* Date inputs, shrunk to their own content (the owner's own words,
+	   2026-10-03: "the date pickers are so wide and don't need to be").
+	   `framework.css`'s base-layer rule gives every text-shaped input
+	   `width: 100%` by default (a `date` input isn't in that rule's own
+	   exclusion list) — inside this row's `flex` container that meant both
+	   boxes fought each other for the whole row's width, one winning far more
+	   of it than the other (the "lopsided" look, measured: the CARD's own
+	   padding is equal on both sides already, doc/decisions.md — this row was
+	   the real asymmetry). `width: auto` lets the input fall back to its own
+	   natural size; `flex: none` stops it from being stretched by the row. */
+	.sessions-daterange input[type="date"] { width: auto; flex: none; }
 
 	/* The cost-over-time chart (2026-10-03, session-trace) — plain inline SVG,
 	   same house style as `ux/Content/Spend.js`'s own $-over-time bars: a

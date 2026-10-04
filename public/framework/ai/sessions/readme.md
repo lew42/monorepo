@@ -34,10 +34,15 @@ older `cost` figure:**
 - **Claude $ next to OpenRouter $** when a row carries the split (an "OR" tag marks the real-money
   one) — falls back to the one older `cost` figure for a row that doesn't carry it yet.
 - **A role filter and a 30-day date filter** above the grid, with a summary line (sessions shown,
-  total Claude $, total OpenRouter $) and a "cost by role" list, largest first — all computed from
-  the rows already on screen, no new fetch.
-- **A "this week" line** (Claude $, OpenRouter $, the $200 plan's own % used) — from `week.json`,
-  a snapshot `Server/week-cost.mjs` writes by hand (see below).
+  Claude $ logged in range) and a "Claude $ logged by role" list, largest first — all computed from
+  the rows already on screen, no new fetch. Both are honestly partial, not a full range total — see
+  "Where the real dollars come from" below.
+- **Five stat cards across the top** (sessions-tab-polish, 2026-10-03): Claude $ this week,
+  OpenRouter $ this week, plan used % this week, the plan's own $-per-1% (spelled out as a label,
+  not crammed into the number), and the current filtered session count — the real `week.json`
+  figures, big bold dollars with smaller cents, not a line of plain text. `doc/decisions.md` has the
+  full reasoning for why these cards are the trustworthy number and the range summary below the
+  grid is not.
 - **A session's own detail page** shows a compact row per logged cost line (time, tokens, $) above
   its prompts, when `Server/session-cost.mjs` has logged one.
 - **Below that (session-trace, 2026-10-03): a cost-over-time chart and a "what was it doing"
@@ -72,9 +77,17 @@ Two SEPARATE scripts, neither live — both are run by hand and read by the page
   every individual tool call and its own timestamp, behind the chart + table above: `node
   Server/session-cost.mjs --trace-file <session-id> <out-path>` writes it as `<out-path>`, read by
   the detail page as `<session-dir>/trace.json`. Manual/on-demand only (doc/decisions.md).
-- [`Server/week-cost.mjs`](/code/) is a run-by-hand snapshot of this week's Claude $ and
-  OpenRouter $ against the $200 Max plan, written to `week.json` beside this readme. Re-run it to
-  refresh the "this week" line: `node Server/week-cost.mjs`.
+- [`Server/week-cost.mjs`](/code/) writes this week's Claude $ and OpenRouter $ against the $200
+  Max plan to `week.json` beside this readme — the stat cards' own source. Two ways to run it:
+  a plain `node Server/week-cost.mjs` writes a one-time snapshot (re-run it by hand to refresh);
+  `node Server/week-cost.mjs --watch [minutes]` keeps running and rewrites `week.json` on that
+  interval (default 10) until stopped — no HTTP route or dev-server watcher needed (both are
+  outside this fence, `doc/decisions.md`), just a plain process somebody starts. `week.json`'s own
+  `note` field always says which mode actually wrote it. Its windowed computation
+  (`compute_window(from, to)`) is reusable for ANY date range, not just "this week" — `node
+  Server/week-cost.mjs --from <iso> --to <iso>` prints one straight to the terminal, no file
+  written — so a future live range feature has one real function to call instead of a second,
+  possibly-disagreeing one (`doc/decisions.md`, "Why OpenRouter read $0.00 in range").
 
 This is a DIFFERENT system from `Server/task-cost.mjs` (a Servex agent's own running total, no
 per-prompt detail) — see that script's own doc, `Server/doc/task-cost.md`, for why the two don't

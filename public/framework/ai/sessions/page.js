@@ -177,6 +177,38 @@ export function role_of(r){
 	return null;
 }
 
+// "$X.YZ" split into a big whole-dollar part and a smaller cents part — the
+// stat cards' own "big bold dollars, smaller cents" (the owner's own words,
+// 2026-10-03). No existing "$ big, ¢ small" convention turned up on the site
+// (`ux/Content/Spend.js` renders a plain "$12.34" string — checked first,
+// CLAUDE.md law 6) so this splits the STRING in markup, two `span`s, rather
+// than inventing a new CSS class for the whole amount.
+export function money_parts(usd){
+	const n = typeof usd === "number" && isFinite(usd) ? usd : 0;
+	const s = n.toFixed(2);
+	const dot = s.indexOf(".");
+	return { whole: "$" + s.slice(0, dot), cents: s.slice(dot) };
+}
+
+// Plain words for the role filter (the owner's own follow-up, 2026-10-03:
+// "'(unknown)' and 'CLI' mean nothing to me"). Only the two words he named,
+// plus the other two short/guessy ones `role_of()` already produces, get a
+// friendlier label here — a real Servex role (e.g. "minion-sessions-tab-
+// polish-build") is already a real, meaningful name and passes through
+// unchanged. Every entry also gets a `title=` spelling out exactly what it
+// contains, since a short label can't carry the whole explanation
+// (`role_of()`'s own doc comment has the full, honest gap this reads from).
+export const ROLE_LABELS = {
+	"(unknown)": { label: "(unknown)", title: "A VS Code or CLI session this page can't name a role for — nothing in the data it reads (sessions.json, GET /api/agents) says who was driving it." },
+	"cli": { label: "Terminal sessions", title: "A standalone `claude` run from a terminal — not a VS Code tab, not a Servex-spawned agent." },
+	"vscode mastermind": { label: "VS Code tabs", title: "An interactive VS Code tab — a human typing, not a spawned agent." },
+	"echo/refiner": { label: "Echo / refiner", title: "A session whose id starts \"echo-\" — the one naming convention this page can see." },
+};
+export function role_label(role){
+	const key = role || "(unknown)";
+	return ROLE_LABELS[key] ?? { label: key, title: "A Servex agent's own role, straight from the agent registry." };
+}
+
 // The "amount sorted by" and "amount totalled" for a row's cost: the real
 // split (Claude $ + OpenRouter $) when either is known, else the one older
 // `r.cost` figure every currently-live row still carries. Returns `null`,
@@ -305,7 +337,10 @@ export function row_view(r, url, page_dirs, spend){
 		div.c("sessions-cell", () => small.c("muted").text(r.stopped_at ? age(r.stopped_at) : (working ? "ongoing" : "—")).attr("title", r.stopped_at ?? ""));
 		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
 		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
-		div.c("sessions-cell", () => { if (r.role) small.c("muted", r.role); });
+		// Plain words here too (review finding 2, 2026-10-03) — the role filter
+		// row and the "cost by role" list already call role_label(); this grid
+		// cell is "any place these words show" too, per the owner's own ask.
+		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } });
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
 			span.c("sessions-row-title", r.tab_title || r.id);
 			if (r.last_prompt_first_line) small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
@@ -452,7 +487,6 @@ export default new Page({
 		// (see dashboard/page.js's own note for the measured number).
 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
 		panel.header.append(() => small.c("muted", "live — polls every 20s"));
-		this.$week_line = panel.header.append(() => small.c("muted sessions-week-line"));
 
 		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
@@ -461,6 +495,19 @@ export default new Page({
 		this.date_to = today.toISOString().slice(0, 10);
 		this.date_from = new Date(today.getTime() - 30 * 864e5).toISOString().slice(0, 10);
 		this.last_rows = [];        // the latest merged rows, UNFILTERED — filters/sort redraw from this
+		this.week = null;           // the real week.json figures (Server/week-cost.mjs) — the one source of truth for "this week"
+		this.filtered_count = 0;    // the current filtered row count — the "sessions shown" stat card
+
+		// The stat-card row (the owner's own words, 2026-10-03: "put them on
+		// their own little dashboard cards, a horizontal preview rail across
+		// the top" — not one line of plain text he couldn't parse). The
+		// `ui/stats` tile TEMPLATE, reused as-is (CLAUDE.md law 6: `grid gap
+		// auto` + `surface pad flex v gap` + `h4 muted` / `h2`, no new CSS) —
+		// `render_stats()` below fills it in once real data (week.json, or a
+		// filter change) arrives.
+		this.$stats = div.c("sessions-stats grid gap auto").style("--column", "11em");
+		panel.main.append(this.$stats);
+		this.render_stats();
 
 		this.$controls = div.c("sessions-controls flow");
 		panel.main.append(this.$controls);
@@ -471,6 +518,45 @@ export default new Page({
 		});
 		panel.main.append(this.$grid);
 		this.snapshot_rows = [];
+	},
+
+	// Five small cards: Claude $ this week, OpenRouter $ this week, plan used
+	// %, the plan's own $-per-1% (spelled OUT as a label, not crammed into
+	// the number — the owner's own words: "I'm not sure what '$26.65/1%'
+	// means"), and the current filtered row count. The first four come from
+	// `this.week` (the real `week.json` snapshot, `Server/week-cost.mjs`);
+	// the fifth from `this.filtered_count`, set by `render_rows()` every time
+	// a filter changes — called from both places so either one redraws all
+	// five together, same "one function redraws everything" rule
+	// `render_rows()` already uses for the grid/summary/by-role list.
+	render_stats(){
+		if (!this.$stats) return;
+		const week = this.week;
+		const claude = money_parts(week?.claude_usd);
+		const or = money_parts(week?.openrouter_usd);
+		const per_pct = money_parts(week?.usd_per_pct);
+		const pct_text = typeof week?.plan_pct_used === "number" ? week.plan_pct_used + "%" : "—";
+		const money_body = parts => () => { span(parts.whole); span.c("sessions-stat-cents", parts.cents); };
+
+		const tile = (label_text, body, title) => {
+			const $tile = div.c("surface pad flex v gap", () => {
+				div.c("h4 muted", label_text);
+				div.c("h2", body);
+			}).style("--gap", "calc(var(--gap) * 0.1)");
+			if (title) $tile.attr("title", title);
+			return $tile;
+		};
+
+		this.$stats.empty(() => {
+			tile("Claude this week", week ? money_body(claude) : "—");
+			tile("OpenRouter this week", week ? money_body(or) : "—");
+			tile("Plan used this week", pct_text);
+			tile("Per 1% of your weekly plan", week?.usd_per_pct ? money_body(per_pct) : "—",
+				week?.usd_per_pct
+					? "How far $1 of Claude spend moves the plan's own weekly meter — the plan's week total divided by its own percent used."
+					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).");
+			tile("Sessions shown", String(this.filtered_count));
+		});
 	},
 
 	render_cost_label(){
@@ -505,14 +591,15 @@ export default new Page({
 			if (roles.length){
 				div.c("sessions-role-filter flex wrap gap-50", () => {
 					roles.forEach(role => {
-						label.c("flex gap-35 v-center h4", () => {
+						const { label: text, title } = role_label(role);
+						label.c("flex gap-35 v-center h4").attr("title", title).append(() => {
 							const $box = input().attr("type", "checkbox");
 							$box.el.checked = this.role_filter.has(role);
 							$box.on("change", () => {
 								if ($box.el.checked) this.role_filter.add(role); else this.role_filter.delete(role);
 								this.render_rows();
 							});
-							span(role);
+							span(text);
 						});
 					});
 				});
@@ -584,19 +671,39 @@ export default new Page({
 			}
 		});
 
+		// ⚠ Honest, not a reconciliation (2026-10-03, sessions-tab-polish — the
+		// owner's own words: "the two Claude figures don't reconcile on
+		// screen... OpenRouter shows $0.00 in range"). This total is summed
+		// client-side from whatever `cost`/`cost_claude_usd` ALREADY SITS on
+		// the rows this page has loaded — and almost none of them carry one:
+		// `sessions.mjs` writes `cost: null` for every VS Code/CLI row (it has
+		// no per-session $ to put there), so in practice this only ever totals
+		// the live Servex rows' own running cost. No row anywhere carries a
+		// real per-session OpenRouter $ at all (checked: `sessions.json` never
+		// writes `cost_openrouter_usd`, `GET /api/agents` doesn't either) — so
+		// an "OpenRouter in range" figure here would always read $0.00, not
+		// because OpenRouter spend is zero (the ledger has real entries,
+		// doc/decisions.md) but because this filtered list structurally can't
+		// see it. Rather than show a confident, wrong zero next to the REAL
+		// OpenRouter figure one scroll up (the stat card, from
+		// `Server/week-cost.mjs`'s own ledger sum), this line only claims what
+		// it can actually compute, and says so — CLAUDE.md law 7.
 		const claude_total = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
-		const or_total = filtered.reduce((n, r) => n + openrouter_usd_of(r), 0);
+		this.filtered_count = filtered.length;
+		this.render_stats();
 		this.$summary?.empty(() => {
-			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude · $${or_total.toFixed(2)} OpenRouter`);
+			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude logged in range`)
+				.attr("title", "Only rows that already carry a logged cost (mostly live Servex agents) are counted here — most VS Code/CLI sessions don't have one yet. OpenRouter $ isn't tracked per session at all, so it can't be summed for an arbitrary date range; the real Claude $ and OpenRouter $ for THIS WEEK are the cards above, computed straight from the transcripts and the OpenRouter ledger. ai/sessions/doc/decisions.md has the full reasoning.");
 		});
 
 		this.$by_role?.empty(() => {
-			const totals = by_role_totals(filtered).filter(t => t.claude_usd || t.openrouter_usd);
+			const totals = by_role_totals(filtered).filter(t => t.claude_usd);
 			if (!totals.length) return;
-			small.c("muted", "Cost by role (largest first)");
+			small.c("muted", "Claude $ logged by role (largest first, same caveat as above)");
 			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
-				small.c("sessions-by-role-name", t.role);
-				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
+				const { label: text, title } = role_label(t.role);
+				small.c("sessions-by-role-name").attr("title", title).text(text);
+				small.c("muted", `$${t.claude_usd.toFixed(2)} · ${t.count} session${t.count === 1 ? "" : "s"}`);
 			}));
 		});
 
@@ -678,14 +785,16 @@ export default new Page({
 			if (this.last_rows.length) draw();
 		});
 
-		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot,
-		// not live; degrades silently (no line shown) on a 404, i.e. the script
-		// hasn't been run yet on this machine.
+		// `week.json` (Server/week-cost.mjs) — a manual, point-in-time snapshot
+		// of the REAL week numbers (summed straight from the transcripts and
+		// the OpenRouter ledger — the one trustworthy source this page has),
+		// not live yet (doc/decisions.md); degrades silently (the stat cards
+		// just show "—") on a 404, i.e. the script hasn't been run yet on this
+		// machine. Feeds the stat-card row, not a line of text — `render_stats()`.
 		get_json(this.url + "week.json").then(week => {
-			if (!week || !this.$week_line) return;
-			const pct = typeof week.plan_pct_used === "number" ? `, plan ${week.plan_pct_used}% used` : "";
-			const per_pct = typeof week.usd_per_pct === "number" && week.usd_per_pct > 0 ? ` — ~$${week.usd_per_pct.toFixed(2)}/1%` : "";
-			this.$week_line.text(`$${week.claude_usd.toFixed(2)} Claude · $${week.openrouter_usd.toFixed(2)} OpenRouter this week${pct}${per_pct}`);
+			if (!week) return;
+			this.week = week;
+			this.render_stats();
 		});
 	},
 

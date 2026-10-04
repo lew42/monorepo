@@ -1,5 +1,117 @@
 # Sessions — decisions
 
+## 2026-10-03 (sessions-tab-polish) — empty bands, stat cards, and why OpenRouter read $0.00 in range
+
+The owner, looking at this page at 3440 (full brief:
+[`/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md`](/framework/ai/2026-10-03/sessions-tab-polish/build/requirements.md)):
+two empty gray bands above the white card, the week line as plain text instead of dashboard cards,
+wide date pickers, "lopsided" padding, and stale-looking numbers — "shouldn't this be computed in
+real time by node?" A follow-up narrowed the scope mid-build: skip filling in role/Start/Stop/
+Duration (a separate `@task-mastermind-data-grid` task is replacing this grid's own chrome soon),
+don't touch `.sessions-grid`'s column widths, and add plain words for the role-filter's
+"(unknown)"/"CLI" labels.
+
+**The two empty bands — measured, not guessed.** Headless, 3440, against the live page with real
+rows: `.panel2` (the white card) sits inside `.page-column-prose`, inside `.page-column-body`,
+inside `core/Page`'s own column chrome. Two things sat above the card with nothing in them:
+`.page-column-head` (51px tall — a title bar that's blank, because this page's own `title: ""` is
+deliberate, the AI icon heading already says where you are) and `.page-column-prose`'s own
+`padding-block-start` (25px — the generic "a column's content is a short reading note" inset
+`core/Page/Page.css` gives every column). Both belong to `core/Page`, outside this task's fence
+(`Server/doc/review.md`'s fence rules — only `ai/sessions/` and two `Server/` scripts are editable
+here), so the fix is a scoped override in THIS page's own `sessions.css`, not an edit to
+`core/Page/Page.css`: `.page-column-head:not(:has(.page-column-close))` (the column that can never
+be closed — the root grid, never an opened session-detail column, which always HAS a close button)
+is hidden outright, and its sibling `.page-column-prose`'s top padding is zeroed the same way,
+scoped under `.page--sessions` so no other page is touched. An opened session's own detail column
+keeps its real title, its close button, and its normal inset — unaffected, since it always has a
+`.page-column-close` the selector excludes.
+
+A third thing was checked and ruled out: does the WHOLE PAGE scroll (tabs included), or just the
+card? Measured: `.page-column-body` already has its own `overflow-y: auto`, and the tab strip sits
+outside it in the DOM — so "the tabs stay put while the card scrolls" was already true before this
+task; the owner's complaint was really just the two empty bands making it LOOK like the scroll area
+started in the wrong place. No new sticky/fixed positioning was needed.
+
+**The "lopsided" padding — measured, found NOT asymmetric; the real culprit was the date inputs.**
+`.panel2-main`'s own `padding` (the `--pad` token every panel uses) measured as a single equal
+value on all four sides at both 1920 (26px) and 3440 (62px) — no stacked-padding bug, checked by
+comparing the card's content-box rect to the grid's own rect on both sides. The actual asymmetry:
+`framework.css`'s base-layer rule (`input:not([type=checkbox], [type=radio], [type=submit], …) {
+width: 100% }`) doesn't exclude `type=date`, so inside the `.sessions-daterange` flex row BOTH date
+boxes fought for the row's full width, unevenly — one grew much wider than the other. That read as
+"lopsided padding" even though the card's own padding was never the problem. Fixed with
+`width: auto; flex: none` on `.sessions-daterange input[type=date]` — the brief's own suggested fix
+(don't add a fixed px width), confirmed as the actual cause rather than assumed.
+
+**The stat cards.** Five tiles, the `ui/stats` TEMPLATE reused exactly as documented there (CLAUDE.md
+law 6 — no new component, no new CSS beyond the cents-smaller-than-dollars split): Claude $ this
+week, OpenRouter $ this week, plan used % this week, the plan's own $-per-1% (as a LABEL — "Per 1%
+of your weekly plan" above a big `$26.65` — rather than crammed into the number as `$26.65/1%`,
+which is the exact string the owner said he didn't understand), and the current filtered session
+count (updates live as filters change, via `render_rows()` calling `render_stats()`).
+`ux/Content/Spend.js` was checked first for an existing "$ big, ¢ small" convention (law 6) — it
+renders a plain `"$12.34"` string, nothing to reuse — so `money_parts()` (`page.js`) splits the
+STRING in markup, two `span`s, rather than inventing a new CSS class for the whole amount; the only
+new rule is `.sessions-stat-cents` (size/weight/colour step down, not a new type-scale step).
+
+**Why OpenRouter read $0.00 in range, and why the Claude figure in range didn't reconcile with the
+week line either.** Checked directly, not assumed: `Servex/ext/openrouter/reconcile.mjs`'s
+`OR_LOG_PATH` (`%LOCALAPPDATA%/lew42/servex/logs/openrouter.jsonl`) has 105 real entries, dated
+2026-09-30 through 2026-10-02 on this machine — OpenRouter spend is NOT zero. The $0.00 came from
+where the RANGE summary computed its number: entirely client-side, from `cost_openrouter_usd` on
+whatever rows the page already had loaded (`openrouter_usd_of()`, `page.js`) — and **no row this
+page has ever carries that field with a real number.** `merge()` defaults it to `null` and nothing
+ever sets it: `GET /api/agents` has no OpenRouter field, and `sessions.json`'s snapshot script never
+writes one either. The same is true, less obviously, for the Claude figure: `sessions.mjs`'s own
+`vscode_or_cli_rows()` writes `cost: null` for EVERY VS Code/CLI row (a plain transcript file has no
+per-session $ rolled up in it at scan time) — so the old "range" summary's Claude total was, in
+practice, only ever summing the live Servex rows' own running cost, not a real total either.
+
+**The fix picked, and why.** The brief named three options and said to pick whichever is actually
+true (CLAUDE.md law 7 over a fake "it's live" label). Building a true live per-range query was
+ruled out first: it would need either a new HTTP route (`GET /api/sessions`-shaped, explicitly out
+of this fence — `Server/run.js`/`Server/Server.js` are untouchable here) or a watcher hooked into
+the already-running dev server process (same problem — `Server/watch.js` is one shared `fs.watch`
+handle with no per-script hook point reachable without editing `run.js`). Neither is available
+inside this task's fence, so a fully live range figure is not buildable here — named as an open
+gap below, not hidden. What WAS buildable and is now built: `Server/week-cost.mjs`'s own windowed
+computation (`claude_spend(from,to)`, `openrouter_spend(from,to)`) is now `compute_window(from,to)`,
+exported with no import-time side effect (the compute/write/log path only runs when the script is
+executed directly — the same `is_main` pattern `Server/session-cost.mjs` already used) — so the
+week figure (the stat cards) and ANY future arbitrary-range figure go through the exact same real
+computation and can never disagree with each other, only with whatever a client-side row sum
+guesses. The RANGE summary line below the grid now only claims what it can actually compute (Claude
+$ from rows that already carry a logged cost, honestly labeled as partial with a `title=`
+explaining why), and points up at the real week cards for the true total — rather than showing a
+confident, wrong $0.00 OpenRouter figure next to a real non-zero one a few lines above it. The
+"cost by role" list got the same fix (OpenRouter column dropped — it was always $0.00 there too,
+for the identical reason).
+
+**What a real live range figure would still need** (open, same shape as the existing "why a script,
+not a live route" gap below): a `GET /api/sessions`-style route this task's fence has never allowed
+touching, OR `Server/week-cost.mjs`'s `compute_window()` wired into the dev server's own process so
+it can answer on demand instead of only when run by hand. The script itself is already reusable for
+this (`node Server/week-cost.mjs --from <iso> --to <iso>` prints any window's real numbers right
+now) — only the wiring from a browser request to that script, without a new route, remains
+unsolved, and stayed that way on purpose rather than growing this task past its fence.
+
+**Role-filter labels.** The owner's own follow-up: "(unknown)" and "CLI" mean nothing to him. Added
+`ROLE_LABELS` (`page.js`) — "(unknown)" → "(unknown)" (kept, since that word IS the honest fact, but
+now with a `title=` saying exactly what it means: a VS Code/CLI session with nothing in the data
+that says who was driving it), "cli" → "Terminal sessions", "vscode mastermind" → "VS Code tabs",
+"echo/refiner" → "Echo / refiner". A real Servex role (e.g. `minion-sessions-tab-polish-build`) is
+already a real, meaningful name and passes through unchanged — only the four short/guessy words
+`role_of()` can actually produce got a plainer label. Every filter checkbox and every "cost by role"
+row now carries the matching `title=`.
+
+**Item 4 (fill the role/Start/Stop/Duration blanks) — deliberately left, per the owner's own
+follow-up scope narrowing, not a miss.** The brief originally asked for this; a mid-build message
+from the owner (relayed by `task-mastermind-sessions-tab-polish`) marked it low priority and asked
+for it to be logged as a back-burner item instead, since `@task-mastermind-data-grid` is building a
+replacement grid that will own this chrome soon — duplicating that work here would just be rebuilt
+over. Not touched.
+
 ## 2026-10-03 (sessions-date-homes) — reconciling with decisions made after the grid shipped
 
 The owner (via vscode-mastermind) sent three follow-up corrections against the landed grid:
@@ -258,6 +370,16 @@ correctly via `curl` against the main site, but 404'd (as "no transcript") throu
 preview of this very task's own branch. Not a regression this task caused or fixed — the same
 one-project limitation above, just hit from a second angle; noted rather than patched for the same
 reason: nobody has asked for it.
+
+**Same gap, a third time, in `week-cost.mjs`'s stat cards (clarity check, 2026-10-03).** `claude_spend()`
+walks `public/framework/ai/<Y>/<M>/<D>/*/page.jsonl` under its `root` argument — a worktree's own
+checkout of that tree, not the main checkout's live, mostly-uncommitted session dirs. Verified: the
+same `node Server/week-cost.mjs` run reports `claude_usd: 0` from the worktree and `claude_usd:
+1482.68` from the main checkout, same code, same window. `compute_window()`/`claude_spend()` are
+correct — this is the worktree-isolation gap above, not a computation bug. The sessions-tab-polish
+task's own "after" proof screenshot was taken against the worktree preview, so its $0.00 is that
+same artifact, not a regression of the bug it was built to fix; real figures show once merged (or
+when read against the main checkout directly).
 
 ## 2026-10-03 (session-trace) — the cost-over-time chart + "what was it doing" table
 
