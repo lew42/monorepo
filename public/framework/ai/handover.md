@@ -5,6 +5,7 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 keep it one screen.
 
 ## LATEST, 2026-10-03 10:50 pm: a fresh VS Code mastermind tab starts here (vscode-mastermind)
+- **Start from the day audit:** [ai/2026-10-03/day-audit/](/framework/ai/2026-10-03/day-audit/) lists every task from today: landed, open with its next step, queued, and done directly.
 - **How to answer the owner:** substance on the day's Now card as a topic sub-card (`create_card` with `parent: "2026/10/03/now"`, then `page_add`); the sidebar gets 1–3 lines + a link. Replies: at most 3 headings, bold-titled bullets, plain words.
 - **Finishing (capped, nothing new tonight):** @task-mastermind-sessions-tab-polish (mid-merge, $3 cap), @task-mastermind-data-grid (land only the windowed Sessions rows, $4 cap), @task-mastermind-push-to-talk (code landed c25c5a39, writing its landing line). Then revive @task-mastermind-system-class (nothing landed under core/System; land the class + module page first).
 - **Queued, briefs written (start when usage allows; week 74% at ~45% elapsed):** dev-shell-polish, point-at-it (Ctrl+Shift+click selection), launch-icons, machine-page, ai-git-context-cost, readme trim (readme-weight.json), sessions blank fields (low). All in `ai/2026-10-03/<slug>/requirements.md` and `ai/asks.jsonl`.
