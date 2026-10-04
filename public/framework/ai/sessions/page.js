@@ -633,6 +633,7 @@ export default new Page({
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
 			this.$by_role = div.c("sessions-by-role flow");
 			this.$by_trigger = div.c("sessions-by-role flow");
+			this.$cache_breakdown = div.c("sessions-by-role flow");
 		});
 	},
 
@@ -718,6 +719,24 @@ export default new Page({
 			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
 				small.c("sessions-by-role-name", t.trigger);
 				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
+			}));
+		});
+
+		// The cache $ breakdown, by role and by trigger (token-accounting, 2026-10-04) — the
+		// owner's own ask: "a breakdown... grouped by role, by trigger". Straight from
+		// `Server/spend-tree.mjs`'s own `by_role`/`by_trigger` (computed once there, never
+		// recomputed here — CLAUDE.md law 7). ALL-TIME, not date-filtered, unlike the two lists
+		// above it — spend-tree.json is a whole-history snapshot, same as the subtree note each
+		// row already shows — labelled plainly so it doesn't read as the same figure.
+		this.$cache_breakdown?.empty(() => {
+			const groups = [...(this.spend?.by_role ?? []), ...(this.spend?.by_trigger ?? [])].filter(g => g.claude_usd);
+			if (!groups.length) return;
+			small.c("muted", "Cache $ breakdown, all-time (role, then trigger) — share of each group's $ spent re-reading cached context")
+				.attr("title", "From Server/spend-tree.mjs's own by_role/by_trigger, every agent ever registered — not the date-filtered lists above.");
+			groups.forEach(g => div.c("sessions-by-role-row flex gap-50 v-center", () => {
+				small.c("sessions-by-role-name", g.key);
+				small.c("muted", `$${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
+					+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
 			}));
 		});
 	},
@@ -1234,6 +1253,19 @@ function session_page(root, id){
 						small.c("sessions-row-title", "$" + (c.last_prompt_usd ?? 0).toFixed(4));
 						small.c("muted", "running total $" + (c.total_usd ?? 0).toFixed(2));
 					}));
+					// The cache $ breakdown (token-accounting, 2026-10-04): the LATEST logged
+					// line's `usd_breakdown` is already the whole session's own total, split by
+					// token kind — the owner's own ask, "keeping track of these tokens very
+					// precisely in terms of their cache costs". `cache_read_pct` is the one
+					// figure named explicitly: what share of the $ is cache reads.
+					const last = costs.at(-1);
+					if (last?.usd_breakdown) div.c("sessions-cost-breakdown card flex gap-50 v-center muted", () => {
+						const b = last.usd_breakdown;
+						small(`input $${b.in.toFixed(4)}`);
+						small(`cache write $${b.cache_write.toFixed(4)}`);
+						small(`cache read $${b.cache_read.toFixed(4)} (${last.cache_read_pct ?? 0}% of $)`);
+						small(`output $${b.out.toFixed(4)}`);
+					});
 				});
 
 				$box.empty(() => {
