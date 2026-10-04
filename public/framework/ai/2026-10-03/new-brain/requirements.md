@@ -20,6 +20,13 @@
 3. **One screen:** a table of model × level, and a verdict: which model can take which job (prompt refine, doc questions, simple edits) today.
 4. **Then the prompt review itself,** with the winning cheap model: yesterday's and today's owner prompts refined, each ask listed, open vs done. Only if step 3 finds a model that passes level (c).
 
+## Added 2026-10-04 00:15 (owner: Claude hits 100% before Wednesday 10 pm; "try and get something working by 100%")
+5. **Goal: a working backup by then:** an OpenRouter (or local) mastermind that can run a small task end to end, and a local or cheap fast assistant for Dictate's clean step. Include Groq-hosted open models and other best-per-$ models on OpenRouter.
+6. **Batch reads:** the Gemini mastermind read files one at a time and re-paid for its whole context each step. Measure tokens per task with all needed files read in ONE prompt vs one at a time; use the cheaper way in the harness.
+7. **A failure isn't final:** when a model's code errors, give it the error line once and score whether it fixes it.
+8. Skip step 4 (the full prompt review) unless the budget is untouched.
+Cap: $10/day real, this task $4.
+
 ## Rules
 - Spend real $ (OpenRouter) and local, not Claude $: this task runs on an OpenRouter model. Hard cap $4 real.
 - No minions. Never the mcp__playwright tools.
