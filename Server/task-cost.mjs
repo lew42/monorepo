@@ -15,6 +15,7 @@ import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { execFileSync } from "node:child_process";
+import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -80,16 +81,16 @@ function ancestors(id){
 	return out;
 }
 
-// An agent's spend, as the steps its result lines record: `[{ t, usd }]`. A result line's
-// `cost` is the RUNNING total of one process, so each step is the rise since the line before —
-// unless a value drops, which means the process restarted and began again at 0, so the whole
-// new value is the step (the old "banking").
+// An agent's spend, as the steps its OWN agent log's result lines record: `[{ t, usd }]`. A
+// result line's `cost` is the RUNNING total of one process, so each step is the rise since the
+// line before — unless a value drops, which means the process restarted and began again at 0,
+// so the whole new value is the step (the old "banking").
 // A result line seen twice (same time, same cost — a replay) counts once; a resumed session
 // whose total CONTINUES just keeps growing, so it is never counted twice.
 // No billed result line (none, or only a $0 stop marker) = nothing billed yet: null (NOT MEASURED), never 0.
-const stepsCache = new Map();
-function agentSteps(id){
-	if (stepsCache.has(id)) return stepsCache.get(id);
+const logStepsCache = new Map();
+function agentLogSteps(id){
+	if (logStepsCache.has(id)) return logStepsCache.get(id);
 	let last = 0, any = false;
 	const seen = new Set(), steps = [];
 	for (const o of lines(join(SERVEX, "logs", `agent-${id}.jsonl`))) {
@@ -106,10 +107,84 @@ function agentSteps(id){
 		if (usd > 0) steps.push({ t: Date.parse(o.at) - (o.duration_ms || 0), usd });
 	}
 	const out = any ? steps : null;
+	logStepsCache.set(id, out);
+	return out;
+}
+
+const isOpenRouterModel = m => typeof m === "string" && m.includes("/");
+
+// An agent's spend straight from ITS OWN Claude Code transcript, priced by
+// `Server/session-cost.mjs`'s one PRICES table (token-accounting, 2026-10-04).
+// WHY: the CLI writes every turn to the transcript directly, independent of Servex's own
+// result-event pipeline — `agentLogSteps()` above can go quiet mid-session (a Servex restart,
+// or a revive, can drop one `result` hook event without Servex ever noticing), and when it
+// does, the agent's own log UNDER-reports forever after, with nothing to say so.
+// PROVED REAL, not theoretical: `task-mastermind-models-page` (2026-10-04) — its agent log's
+// own cumulative `cost` topped out at $7.0872, but its session transcript (the same
+// session_id, found by `find_transcript`) priced out to $17.2216 — a 59% undercount the task
+// card was showing as its whole cost. No OpenRouter agent has a Claude transcript at all (a
+// different provider, a different, already-real $ from `refresh_or_cost()`), so this is
+// skipped for them — `agentLogSteps()` (really `refresh_or_cost`'s own number via that path)
+// stays their only source, untouched.
+const transcriptStepsCache = new Map();
+function transcriptSteps(id){
+	if (transcriptStepsCache.has(id)) return transcriptStepsCache.get(id);
+	const row = byId.get(id);
+	let out = null;
+	if (row?.session_id && !isOpenRouterModel(row.model)) {
+		const path = find_transcript(row.session_id);
+		if (path) {
+			const { by_prompt } = cost_of_transcript(path);
+			const steps = by_prompt.filter(g => g.usd > 0).map(g => ({ t: Date.parse(g.at), usd: g.usd }));
+			if (steps.length) out = steps;
+		}
+	}
+	transcriptStepsCache.set(id, out);
+	return out;
+}
+
+// THE one function every reader of "what did this agent cost" calls. Prefers the transcript
+// (complete, gap-free) over the agent log (can go quiet after a drop) whenever the transcript
+// exists AND its total is at least as large — it should always be a superset of the agent
+// log's own view, so a LOWER transcript total means something else is wrong (an aged-off or
+// rotated transcript file, a reused session_id) and the agent log is the safer number to trust
+// instead of silently shrinking a figure a task card, the AI board or a budget check already
+// relies on. Never both: one wins, cleanly, so nothing downstream ever sums them twice.
+const stepsCache = new Map();
+function agentSteps(id){
+	if (stepsCache.has(id)) return stepsCache.get(id);
+	const t = transcriptSteps(id), l = agentLogSteps(id);
+	const tTotal = t ? t.reduce((n, x) => n + x.usd, 0) : null;
+	const lTotal = l ? l.reduce((n, x) => n + x.usd, 0) : null;
+	const out = (t && (lTotal == null || tTotal >= lTotal - 0.0005)) ? t : l;
 	stepsCache.set(id, out);
 	return out;
 }
 const agentCost = id => { const s = agentSteps(id); return s ? s.reduce((n, x) => n + x.usd, 0) : null; };
+
+// An agent's own $, split by token kind (input/output/cache read/cache write), plus the one
+// figure the owner asked for by name — what share of its $ is cache reads. Always the agent's
+// WHOLE transcript, never time-sliced to one task's share (same simplification `branch`'s own
+// "a minion goes whole to the task that spawned it" already makes, just above) — exact for a
+// minion (it only ever works one task), an honest approximation for a root that has run more
+// than one task back to back (its breakdown blends every task it ever ran, not just this one).
+// `null` when there's no transcript to read (an OpenRouter agent, or one whose transcript has
+// aged off disk) — never a fabricated split.
+const breakdownCache = new Map();
+function agentBreakdown(id){
+	if (breakdownCache.has(id)) return breakdownCache.get(id);
+	const row = byId.get(id);
+	let out = null;
+	if (row?.session_id && !isOpenRouterModel(row.model)) {
+		const path = find_transcript(row.session_id);
+		if (path) {
+			const { total_usd, usd_breakdown, cache_read_pct } = cost_of_transcript(path);
+			if (total_usd > 0) out = { usd_breakdown, cache_read_pct };
+		}
+	}
+	breakdownCache.set(id, out);
+	return out;
+}
 
 // ---- which task owns a moment of a root's time ----
 // Every task that shares a root splits that root's time, so each dollar lands in exactly one
@@ -173,9 +248,10 @@ function cost(dir){
 	].sort((a, b) => a.t - b.t).map(x => ({ t: new Date(x.t).toISOString(), usd: r4(x.usd) }));
 
 	const row = id => byId.get(id) ?? {};
+	const withBreakdown = entry => Object.assign(entry, agentBreakdown(entry.id) ?? {});
 	const agents = [
-		{ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) },
-		...branch.map(id => { const u = agentCost(id); return { id, model: row(id).model ?? null, role: row(id).role ?? null, usd: u == null ? null : r4(u) }; })
+		withBreakdown({ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) }),
+		...branch.map(id => { const u = agentCost(id); return withBreakdown({ id, model: row(id).model ?? null, role: row(id).role ?? null, usd: u == null ? null : r4(u) }); })
 			.sort((a, b) => (b.usd ?? -1) - (a.usd ?? -1)),
 	];
 	// A tree with no result line anywhere has billed nothing yet: not measured, never $0.
