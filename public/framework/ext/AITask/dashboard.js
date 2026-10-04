@@ -10,6 +10,7 @@ import { when } from "./card.js";
 import { highlights, more } from "./highlights.js";
 import { needs_all, needs_strip } from "./needs.js";
 import { day_costs, total_line } from "./cost.js";
+import { spend_summary, module_list } from "./module-spend.js";
 
 /* The day dashboard and the ai index rail, over the same rows. A task directory
    speaks through its files: requirements.md alone is PROPOSED, a manifest with
@@ -211,6 +212,12 @@ export function dashboard(page){
 
 	// The same day, drawn as a tree of tasks (nested.js) — a link only.
 	p.c("muted", () => a("See this day as a tree: what ran together, what waited →").attr("href", `/framework/ext/AITask/tree/?date=${date}`));
+
+	// Two dollars, by task and by model (Server/day-spend.mjs), then what got touched — the
+	// owner's own ask, 2026-10-03. Beside `day_costs()` below, not replacing it: that one is
+	// "today's effort tags", this one is "today's modules and the two currencies".
+	spend_summary(date);
+	module_list(date);
 
 	// ⚠ `wide`, not `bleed` — `bleed` spends the page's two gutter tracks, and the
 	//   rule in ai.css that handed them back went with it (layout-primitives).

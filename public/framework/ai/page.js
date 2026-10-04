@@ -9,6 +9,7 @@ import AIRail, { card_page } from "/framework/ai2/rail.js";   // the Inbox and L
 const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
+import { module_list, module_detail } from "/framework/ext/AITask/module-spend.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
 import { CONCEPTS } from "./concepts.js";   // the AI system, one entry per concept: the tiles and their pages
@@ -157,6 +158,16 @@ export default new Page({
 				// it. `has_page_js` is undefined until the day's own dashboard() has
 				// warmed the listing; undefined reads as "don't know", same as false.
 				route(task){
+					// "By module" — the day's spend/module breakdown's own click-through url
+					// (Server/day-spend.mjs writes the data; module-spend.js draws both ends).
+					if (task === "module") return new Page({
+						title: "By module", icon: "folder", url: this.url + "module/",
+						content(){ module_list(name); },
+						route(mod){ return new Page({
+							title: mod, icon: "folder", url: this.url + "module/" + mod + "/",
+							content(){ module_detail(name, mod); },
+						}); },
+					});
 					if (task.includes(".") || has_page_js(name, task)) return;
 					return new AITask({
 						title: task, icon: "receipt_long",
