@@ -8,8 +8,8 @@ they always had.
 | # | Gap | Models | Workaround | Status |
 |---|---|---|---|---|
 | 1 | Gemini refuses one built-in tool's schema | `google/*` | that tool is turned off for Gemini only | worked around |
-| 2 | The SDK's own cost figure is wrong | all | we ask OpenRouter for the real cost | worked around |
-| 3 | The real cost arrives 5–20 s after a turn ends | all | read it from the ledger, not at turn end | worked around |
+| 2 | The SDK's own cost figure is wrong | all | read `usage.cost` off the response itself | worked around (fixed 2026-10-04) |
+| 3 | `/generation` and the key-total diff can both go unresolved indefinitely | all | no longer needed for the live price — `usage.cost` is instant; they stay only as a rare fallback, and now log instead of going silent | fixed 2026-10-04 |
 | 4 | Gemini 3.8 Flash stalled on the append test | — | it was our test's bug, now fixed | not a gap |
 | 5 | Long sessions: compaction through the proxy | all | none | untested |
 | 6 | Does `effort` reach a non-Claude model? | all | none | untested |
@@ -27,21 +27,28 @@ they always had.
 - **Evidence:** the spike: 0 tools before the fix, 3 tools plus edit plus resume after
   ([`spike.jsonl`](../../../public/framework/ai/2026-09-30/openrouter-harness/spike.jsonl)).
 
-## 2. The SDK's `total_cost_usd` is wrong for proxied turns
+## 2 and 3. The SDK's `total_cost_usd` is wrong, and the old fallback could go blind forever
 
-- **What fails:** the SDK prices every token at Anthropic's rates, whatever model actually ran.
-- **Workaround:** `real_turn_cost()` adds up OpenRouter's `GET /api/v1/generation?id=` for every
-  model call in the turn. If any call is missing, it falls back to the difference in the key's
-  total spend. A turn often makes many calls: one review turn made 45. Costs recorded before
-  2026-10-01 05:00Z counted only the last call, so they are too low.
-
-## 3. The real cost settles a few seconds after the turn
-
-- **What fails:** anything that reads an agent's `cost` the moment its turn ends gets 0 or the
-  previous turn's figure. The first rule-test reruns recorded `cost_usd: 0` this way.
-- **Workaround:** the settled figure is written one line per turn to Servex's `openrouter` log
-  (`%LOCALAPPDATA%\lew42\servex\logs\openrouter.jsonl`, keyed by agent id). Eval scripts read it
-  from there.
+- **What fails:** the SDK prices every token at Anthropic's rates, whatever model actually ran —
+  so `message.total_cost_usd` is simply wrong for a proxied turn.
+- **The OLD workaround, and how it actually failed (openrouter-cost-blind, 2026-10-04):**
+  `Agents.js`'s `meter()` polled `GET /api/v1/generation?id=` up to 6 times, 2.5s apart, and every
+  failed try was silently swallowed (`.catch(() => null)`) — a call that never resolved was priced
+  at exactly $0, forever, with no trace. This is not hypothetical: a Gemini mastermind ran 14
+  minutes this way, Servex logged $0 cost, and OpenRouter's own bill rose $4.74 in the same window.
+  Live-tested the same day: a fresh call's `/generation` id 404'd outright, and the fallback
+  (diffing the key's own running total before/after) still read $0 twenty-eight seconds later —
+  both paths can go unresolved far longer than 15 seconds.
+- **The fix:** OpenRouter's own response — the SAME message the SDK already receives — carries
+  the real price on its own `usage.cost` field, confirmed live against `POST /v1/messages`, no
+  extra request, no settling delay. `Agents.js`'s `price()` reads it the instant the message
+  arrives. `/generation` and the key-total diff stay only as a fallback for a response with no
+  `usage.cost` (not observed yet), and that fallback now logs an `unpriced` spend-gate line instead
+  of going silent — 3 unpriced calls in one agent gates it, the same as going over budget.
+- **Evidence:** `Servex/agents/openrouter-cost-blind-proof.mjs` (no network, proves the code);
+  the live cross-check (3 real calls, `usage.cost` present and correct every time; one `/generation`
+  404; one key-diff stuck at $0 after 28s) is logged in
+  [`2026-10-04/openrouter-cost-blind/task.jsonl`](../../../public/framework/ai/2026-10-04/openrouter-cost-blind/task.jsonl).
 
 ## 4. Not a gap: the Gemini 3.8 Flash stall
 
