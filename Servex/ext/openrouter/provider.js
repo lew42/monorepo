@@ -127,6 +127,22 @@ export async function generation_cost(key, id){
 	return cost;
 }
 
+/* THE REAL FIX (openrouter-cost-blind, 2026-10-04): OpenRouter's own Anthropic-
+ * compatible endpoint already puts the real per-call price on EVERY response's
+ * own `usage.cost` field — confirmed live, 2026-10-04, both with and without
+ * the OpenAI-route's `usage: {include: true}` flag (that flag is a no-op here;
+ * this endpoint always includes it). The Claude Agent SDK hands that same
+ * `usage` object to `Agents.js`'s `assistant()` on every message, so a call
+ * can be priced the INSTANT it arrives — no `/generation` lookup, no polling,
+ * no 15s wait, nothing to rate-limit. `generation_cost()`/`real_turn_cost()`
+ * below are kept only as the fallback for the rare response with no usable
+ * `usage.cost` (never observed yet, but not provably impossible across every
+ * model). Pure: no network, no clock. */
+export function message_cost(usage){
+	const cost = usage?.cost;
+	return typeof cost === "number" ? cost : null;
+}
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* THE ONE FUNCTION Agents.js and spike.mjs both call for "what did this turn

@@ -9,7 +9,7 @@ import { stamp, place } from "../home.js";
 import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, real_turn_cost, generation_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
@@ -151,6 +151,13 @@ export class Agents {
 		 * call on this hot path, and fails closed — "can't check" refuses, same as
 		 * "over the cap" does. */
 		if (provider === "openrouter"){
+			/* THE SPAWN PAUSE (openrouter-cost-blind, 2026-10-04): refused until
+			 * meter() can actually price a call (below) — the same flag Echo.js's
+			 * model_for() already checks for echoes, now also covering real spawns.
+			 * Unset (the default on every fresh boot) means PAUSED; it only turns on
+			 * once set to the literal string "0". */
+			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0")
+				throw new Error(`OpenRouter spawns are paused: their cost isn't being measured (2026-10-04/openrouter-cost-blind)`);
 			const guard = spend_guard();
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
 		}
@@ -1270,7 +1277,7 @@ Agents.Agent = class Agent {
 		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
 		// which OpenRouter's /generation endpoint can look up directly and exactly.
 		if (!nested && message.message?.id){ this.last_assistant_message_id = message.message.id; (this.turn_message_ids ??= new Set()).add(message.message.id); }
-		if (!nested && message.message?.id && this.provider === "openrouter") this.meter(message.message.id);
+		if (!nested && message.message?.id && this.provider === "openrouter") this.price(message.message.id, message.message.usage);
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
@@ -1336,13 +1343,15 @@ Agents.Agent = class Agent {
 		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted;
 	}
 
-	/* For the registry row and the Sessions grid. */
+	/* For the registry row and the Sessions grid. `unpriced_calls` (openrouter-cost-blind,
+	 * 2026-10-04): a nonzero count means some of `spent_usd` is already known to be an
+	 * undercount, before the 3-call gate even fires. */
 	gate_row(){
 		const g = this.spend_gate;
 		if (!g) return null;
 		const spent = this.spent_usd();
 		return { spent_usd: +spent.toFixed(4), since_result_usd: +(spent - g.spent_at_result).toFixed(4), allowance_usd: this.allowance_usd(),
-			results: g.results.length, last_result: g.results.at(-1) ?? null, gated: g.gated };
+			results: g.results.length, last_result: g.results.at(-1) ?? null, gated: g.gated, unpriced_calls: this.unpriced_calls ?? 0 };
 	}
 
 	gate_log(event, extra = {}){
@@ -1390,34 +1399,78 @@ Agents.Agent = class Agent {
 		if (g.due && !g.open.size) this.gate_check();
 	}
 
-	async meter(id){
+	/* THE REAL-TIME PRICE (openrouter-cost-blind, 2026-10-04): OpenRouter's
+	 * Anthropic-compatible responses carry the real per-call dollar figure on
+	 * their own `usage.cost` (provider.js's `message_cost()`, confirmed live
+	 * 2026-10-04) — so the common case needs no network call at all, and prices
+	 * the call the instant its message arrives. Only a response with no usable
+	 * `usage.cost` falls back to `meter()`'s `/generation` poll below. */
+	price(id, usage){
 		this.metered ??= new Map();
 		if (this.metered.has(id)) return;
-		this.metered.set(id, 0);
-		let key; try { key = read_key(); } catch { return; }
-		for (let i = 0; i < 6; i++){
-			const c = await generation_cost(key, id).catch(() => null);
-			if (c != null){ this.metered.set(id, c); break; }
-			await new Promise(r => setTimeout(r, 2500));
-		}
+		const cost = message_cost(usage);
+		if (cost == null){ this.meter(id); return; }
+		this.metered.set(id, cost);
 		this.metered_usd = [...this.metered.values()].reduce((a, b) => a + b, 0);
 		this.gate_check();
 	}
 
-	/* The gate itself: run when a call is priced, when a tool call returns, and at a turn's end. */
+	/* THE FALLBACK (rare: no `usage.cost` on the response at all). Was the ONLY
+	 * path before this task, and its one real defect: `generation_cost()`
+	 * failing every one of 6 tries (a bad id, a slow settle, a dead network)
+	 * left the call priced at exactly $0 forever, with no trace anywhere — so
+	 * `spent_usd()` looked perfectly fine while the real charge kept landing on
+	 * OpenRouter's bill unseen. Now every exhausted call is logged and counted
+	 * (`unpriced()`), never just silently zero. */
+	async meter(id){
+		this.metered ??= new Map();
+		if (this.metered.has(id)) return;
+		this.metered.set(id, 0);
+		let key; try { key = read_key(); } catch { this.unpriced(id, "no OpenRouter key"); return; }
+		for (let i = 0; i < 6; i++){
+			const c = await generation_cost(key, id).catch(() => null);
+			if (c != null){
+				this.metered.set(id, c);
+				this.metered_usd = [...this.metered.values()].reduce((a, b) => a + b, 0);
+				this.gate_check();
+				return;
+			}
+			await new Promise(r => setTimeout(r, 2500));
+		}
+		this.unpriced(id, "/generation never resolved after 6 tries");
+	}
+
+	/* NEVER SILENT (openrouter-cost-blind, 2026-10-04): one call Servex could not
+	 * price, logged the moment it's known, plus a running count `gate_row()`
+	 * shows on the dashboard. 3 or more and the agent's real spend is simply
+	 * unknown, so `gate_check()` treats it exactly like an over-budget agent —
+	 * interrupted, with the same card. */
+	unpriced(id, reason){
+		this.unpriced_calls = (this.unpriced_calls ?? 0) + 1;
+		this.host?.store?.().append("servex", { type: "spend-gate", event: "unpriced", agent: this.id, model: this.model,
+			id, reason, unpriced_calls: this.unpriced_calls }).catch(() => {});
+		this.gate_check();
+	}
+
+	/* The gate itself: run when a call is priced, when a tool call returns, and at a turn's end.
+	 * `unpriced_calls >= 3` (openrouter-cost-blind, 2026-10-04) gates exactly like an over-budget
+	 * agent — this agent's real spend is simply unknown, which is worse than knowing it's high. */
 	gate_check(){
 		if (!this.gated_role()) return;
 		const g = this.gate(), spent = this.spent_usd(), allowance = this.allowance_usd();
-		if (spent < allowance){ g.due = false; return; }
+		const unpriced = (this.unpriced_calls ?? 0) >= 3;
+		if (spent < allowance && !unpriced){ g.due = false; return; }
 		if (g.open.size && this.state === "working"){ g.due = true; return; }   // never mid-tool-call
 		g.due = false;
 		if (this.state === "working") this.interrupt().catch?.(() => {});
 		if (g.gated) return;   // one card per gate, however often the agent is woken past it
 		g.gated = true;
-		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
+		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4), unpriced_calls: this.unpriced_calls ?? 0 });
 		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
 		const read = g.read_log.slice(-10).join(", ") || "nothing";
-		const text = `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
+		const text = unpriced
+			? `${this.id} (${this.model}) has made ${this.unpriced_calls} model calls Servex could not price (its real spend is unknown, not necessarily high), so Servex paused it as a safety gate (openrouter-cost-blind, 2026-10-04). Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`
+			: `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
 		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
 		/* `from: this.id` lets Cards.js's wake() find exactly this agent when the owner answers,
 		 * instead of falling back to every attached non-minion agent. `kind: "spend-gate"` tells

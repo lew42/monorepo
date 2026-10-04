@@ -16,8 +16,19 @@ function test(name, fn){ fn(); n++; console.log(`ok - ${name}`); }
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "openrouter-test-"));
 process.env.LOCALAPPDATA = scratch;
 
-const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for, evaluate_guard, OR_DAILY_CAP_USD, warm_guard, spend_guard }
+const { env_for, provider_for, KEY_PATH, read_key, has_key, disallowed_tools_for, evaluate_guard, OR_DAILY_CAP_USD, warm_guard, spend_guard, message_cost }
 	= await import("./provider.js?t=" + Date.now());
+
+test("message_cost: reads the real price straight off a response's own usage.cost", () => {
+	// shape confirmed live, 2026-10-04, against https://openrouter.ai/api/v1/messages
+	assert.equal(message_cost({ input_tokens: 3, output_tokens: 13, cost: 0.000051 }), 0.000051);
+});
+
+test("message_cost: no usable cost field (no usage at all, or a non-numeric one) is null, never 0", () => {
+	assert.equal(message_cost(undefined), null);
+	assert.equal(message_cost({}), null);
+	assert.equal(message_cost({ cost: "not a number" }), null);
+});
 
 test("provider_for: a model id with a / is openrouter", () => {
 	assert.equal(provider_for("openai/gpt-6-luna"), "openrouter");
