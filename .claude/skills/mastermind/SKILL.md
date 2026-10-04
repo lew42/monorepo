@@ -125,6 +125,8 @@ could not follow the minimal ones.
 
 ## Decide, don't ask (the owner, 2026-09-17)
 
+**Never wait on the owner to finish something (the owner, 2026-10-04).** Do as much as is reasonable, make the decisions yourself, and merge finished work yourself. What you can't afford now (tokens, a limit) goes as one line in the module's readme **To-do** section, never as a question to the owner.
+
 **No work in limbo (the owner, 2026-09-29).** Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
 
 For non-dangerous work the mastermind never asks the owner for approval — it decides, logs the
