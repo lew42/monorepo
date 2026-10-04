@@ -23,5 +23,7 @@ Full raw prompt: /framework/ai/2026/10/03/session-60d9def6/.
 4. Complexity estimate: record per task what was built (files, classes, UI parts) next to its tokens, so estimates improve; name what actually drives token cost.
 5. A new session never loses the old one's words: a fresh tab reads the previous tab's refined asks (open/landed) so the owner never has to repeat anything.
 
+6. **A demo page** (owner, 2026-10-03: "is there a page that demos like a live voice session with the prompt refinement kind of built into it?"): one page where you talk and watch raw → clean → structured → cards appear live. Today the pieces are split: /framework/ux/Dictate/ (live voice, a collapsed "refined" block per sentence group, from minion-voice-refine, merged 8ce2c9ef with no landing line) and /framework/ext/Refine/ (the four-column ladder, but from a saved run, not live).
+
 Owner: @task-mastermind-one-dictation (Echo, Refine). Servex pieces (event wiring, dispatch) with @mastermind-servex-10.
 Budget: $15
