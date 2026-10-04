@@ -230,6 +230,12 @@ field yet; it's documented here for whoever builds that next, not built now.
 - [`evals/library.mjs`](./evals/library.mjs) — the test library runner, above. The tests
   themselves live as pages at [`/framework/ai/tests/`](/framework/ai/tests/), not under `evals/`
   anymore (Amendment 5); routing table at [`evals/routing.json`](./evals/routing.json).
+- [`evals/models.mjs`](./evals/models.mjs) and [`evals/catalog.mjs`](./evals/catalog.mjs) — both
+  write [`/framework/ai/system/models/models.json`](/framework/ai/system/models/models.json), the
+  Models tab's one data file (law 6: one file, two generators). `models.mjs` is "which model is
+  best value, for which kind of task" (the `kinds`/`ladder` keys); `catalog.mjs` is "one row per
+  model we use or tested" (the `catalog` key: provider, context, price incl. a cached read, our own
+  test scores) — each only ever touches its own keys. Re-run either after its own source changes.
 - [`evals/websearch.mjs`](./evals/websearch.mjs) — does WebSearch/WebFetch on a proxied minion
   ever reach Anthropic, and who pays for WebFetch's own summary call. [`gaps.md`](./gaps.md)
   has the answer.
