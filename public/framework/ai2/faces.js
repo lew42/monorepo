@@ -204,7 +204,7 @@ function prompt_timeline_row(row){
 	div.c("ai2-prompts-row", () => {
 		small.c("ai2-prompts-when muted").text(when(row.at));
 		prompt_modes({
-			raw: row.text ?? (row.said ?? []).join(" "),
+			raw: row.text || (row.said ?? []).join(" "),   // `||`: an empty text ("") fell through to the "You said…" placeholder
 			sentences: null, structured: null,
 			fallback_text: row.refined || row.title || (row.said ?? [])[0] || "",
 		}, { mode: "condensed" });

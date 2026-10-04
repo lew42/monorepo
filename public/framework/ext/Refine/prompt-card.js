@@ -143,7 +143,7 @@ function condensed_view(source, jump) {
 				.on("click", () => jump(i))));
 		return;
 	}
-	const text = source.sentences?.[0]?.text ?? first_sentence(source.fallback_text ?? source.raw ?? "");
+	const text = source.sentences?.[0]?.text ?? first_sentence(source.raw || source.fallback_text || "");   // the words said beat a placeholder title
 	// `fallback_text` can already end in its OWN "…" (a placeholder title such as
 	// "You said…", `ai2/inbox.js`'s own default before anything is known) — never
 	// double it up into "You said……".
