@@ -117,6 +117,35 @@ sends it) into a live fix in roughly 10-30 seconds, no spawn and no new worktree
 
 One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one: it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).
 
+### Dictate keeps working if Claude cuts off
+
+Both session agents can run on a non-Claude model, and switch there BY THEMSELVES the moment
+Claude refuses one of them for usage limits — the owner, 2026-10-04: "I have to rely entirely
+100% on the website and whether the voice dictation system works."
+
+- **One setting, `SERVEX_SESSION_BACKEND`** (unset = `"claude"`, today's behaviour):
+  `"openrouter"` moves both session-fast and session-smart to `FALLBACK_MODEL`;
+  `"local"` moves only session-fast (it already runs with no tools) to the local GPU model,
+  since the smart one needs real tool calls (`spawn_agent`, `quick_fix`, `dir_log`) a small
+  local model is weak at.
+- **Automatic fallback, no setting needed:** a Claude usage-limit refusal on either agent
+  flips just that one role, for just that one session, to `FALLBACK_MODEL` — `Sessions.js`'s
+  `hire()` registers a fake "sessions" parent the same way `Dispatcher.js` does, so every
+  session agent's turn-end or error reaches `woken()` with no polling; a match on
+  `USAGE_LIMIT_RE` stops and respawns that one role fresh (never resumed: an OpenRouter model
+  can't continue a Claude session id).
+- **The default pair, by cost and quality** (requirements.md item 3, from the new-brain eval,
+  [`ai/2026-10-03/new-brain/eval-results.json`](/framework/ai/2026-10-03/new-brain/eval-results.json)):
+  `openai/gpt-6-luna`. On the same 18-question set (5 doc facts, 3 reasoning traces, 10 real
+  prompt-refine jobs), it tied the BEST score on the real job (10/10, level c, same as
+  deepseek-v4.1-flash) while costing **5x less than Claude Haiku** ($0.0022 vs $0.044 for the
+  whole run) and running **3x faster than deepseek** (45s vs 140s) — the fastest paid model
+  tested. `claude-haiku-4-5` itself (8/10, $0.044) and `deepseek/deepseek-v4.1-flash` (10/10,
+  $0.010, slow) were the only other real contenders; everything free (`nvidia/nemotron-3-*`,
+  `local/*`) scored lower on the real job.
+- **Proof it actually talks:** [`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/) spawns a real session on `openai/gpt-6-luna`, sends it 3 real
+  sentences and shows each reply with its real OpenRouter dollar cost.
+
 ## Ids are words, never uuids
 
 `<role>-<name>` — `minion-servex-port`, `mastermind-servex` — with `-2` for a collision. That
