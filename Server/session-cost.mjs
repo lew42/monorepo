@@ -126,7 +126,14 @@ export function cost_of_transcript(path){
 	}), { in: 0, out: 0, cache_read: 0, cache_write: 0 });
 	for (const k of Object.keys(usd_breakdown)) usd_breakdown[k] = r4(usd_breakdown[k]);
 	const cache_read_pct = total_usd ? r4(usd_breakdown.cache_read / total_usd * 100) : 0;
-	return { total_usd, usd_breakdown, cache_read_pct, by_prompt, unknown_models: [...unknown_models] };
+	// The raw token counts behind `usd_breakdown` — review finding, 2026-10-04: the brief asked
+	// for "input / cache write / cache read / output tokens AND $ for each", and the $ split
+	// alone left the token counts out.
+	const token_totals = by_prompt.reduce((n, g) => ({
+		input: n.input + g.input, output: n.output + g.output,
+		cache_read: n.cache_read + g.cache_read, cache_write: n.cache_write + g.cache_write,
+	}), { input: 0, output: 0, cache_read: 0, cache_write: 0 });
+	return { total_usd, usd_breakdown, cache_read_pct, token_totals, by_prompt, unknown_models: [...unknown_models] };
 }
 
 // The one most useful string for a tool_use block's own `input` — ai/sessions'
@@ -256,7 +263,7 @@ export function append_cost(session_id, root = ROOT){
 	writeFileSync(tmp, JSON.stringify([{ cost: {
 		total_usd: result.total_usd, last_prompt_usd: last ? last.usd : 0,
 		last_prompt_input: last ? last.input : 0, last_prompt_output: last ? last.output : 0,
-		usd_breakdown: result.usd_breakdown, cache_read_pct: result.cache_read_pct,
+		usd_breakdown: result.usd_breakdown, cache_read_pct: result.cache_read_pct, token_totals: result.token_totals,
 		last_prompt_usd_breakdown: last ? last.usd_breakdown : null,
 		by_model, source: "claude", at: "NOW",
 	} }]));

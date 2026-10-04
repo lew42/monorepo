@@ -64,13 +64,11 @@ older `cost` figure:**
   [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
 
 **Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a session's
-own detail page now shows input/cache-write/cache-read/output $ under "Logged cost", and the
-`cost by role`/`cost by trigger` lists have a sibling, all-time "Cache $ breakdown" list — the
-same split, grouped. This task also fixed two real accounting bugs: the cache-write price was
-25% too low for a 5-minute cache when every agent here actually runs the 1-hour rate, and a
-task's own `cost_usd` could badly undercount an agent whose Servex log went quiet after a restart
-(one real example found $7.09 shown, $17.22 actually billed). `doc/decisions.md`'s 2026-10-04
-entry has the full map, the proof, and what's still open.
+own detail page now shows input/cache-write/cache-read/output $ under "Logged cost". The `cost by
+role`/`cost by trigger` lists have a sibling, all-time "Cache $ breakdown" list, same split,
+grouped. Two real accounting bugs were found and fixed along the way (a wrong cache-write price,
+and a task's own `cost_usd` undercounting a revived agent by up to 59%) — `doc/decisions.md`'s
+2026-10-04 entry has the full story.
 
 ## Where the real dollars come from
 
