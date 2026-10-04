@@ -243,7 +243,10 @@ const run = async () => {
 	//    the prompt becomes one item on that session's own page, public/framework/ai/sessions/
 	//    <session_id>/page.jsonl, via the SAME validated tool a live tab would use (page_add,
 	//    Servex/agents/page_tools.js) — never a second file, per the storage redirect above.
-	const owner_interactive = trimmed && !started_by_servex();
+	// A subagent's hand-back or a background notice arrives as a user turn too; it is not the
+	// owner's words, so it is never logged as a Prompt or refined (prompt-relay-skip-agents).
+	const harness_turn = /^<(agent-message|task-notification|system-reminder)\b/.test(trimmed);
+	const owner_interactive = trimmed && !harness_turn && !started_by_servex();
 	let page_url = null, prompt_item_id = null;
 	if (owner_interactive) {
 		page_url = session_page_url(session_id);
@@ -262,7 +265,7 @@ const run = async () => {
 	// 2. Assistant sessions only: relay to the mastermind + show on the owner's screen.
 	//    Skip empty prompts and /slash commands (the /assistant trigger itself included) —
 	//    those are not something the owner said, they are how the tool was driven.
-	if (assistant && trimmed && !is_slash(trimmed)) {
+	if (assistant && trimmed && !harness_turn && !is_slash(trimmed)) {
 		try {
 			const inbox = mastermind_inbox();
 			if (inbox) append(inbox, { chat: { at: now(), from: "owner", via: "assistant-hook", session_id, msg: safe_text } });

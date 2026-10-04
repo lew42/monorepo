@@ -1,0 +1,2 @@
+{"assign":{"session_id":"60d9def6-907a-4f71-adf9-110075b719eb","tab":"vscode-mastermind","group":"prompt-refine","request":"do we have a VS Code mastermind skill? ... the fast assistant's supposed to do the prompt refinement ... I'm not sure where it's at.","requested_at":"2026-10-03T22:51:37-05:00","model":"claude-opus-5-5","window":{"before":0.02},"now":"scoping","steps":["skip harness turns in prompt-relay","prove with a fake hand-back payload","land"],"step":1}}
+{"action":{"at":"2026-10-03T22:51:37-05:00","did":"edit","files":[".claude/hooks/prompt-relay.mjs"]}}
