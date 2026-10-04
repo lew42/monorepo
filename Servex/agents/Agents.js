@@ -903,7 +903,6 @@ Agents.Agent = class Agent {
 	 * UI its token stream; `forwardSubagentText` gives it the nested transcript of
 	 * anything this agent itself spawns. Both names verified against 0.3.280. */
 	options(){
-		const door = this.door();
 		return {
 			model: this.model,
 			effort: this.effort,
@@ -912,7 +911,7 @@ Agents.Agent = class Agent {
 			includePartialMessages: true,
 			forwardSubagentText: true,
 			permissionMode: this.permission_mode,
-			...door,
+			...this.door(),
 			...(this.permission_mode === "bypassPermissions" ? { allowDangerouslySkipPermissions: true } : {}),
 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
@@ -921,19 +920,13 @@ Agents.Agent = class Agent {
 			...(this.resume && this.fork ? { forkSession: true } : {}),
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
+			/* ⚠ `sdk.env` NAMES THE SAME KEY `door()` JUST SET, two lines up — `...this.sdk` here
+			 * REPLACES `door()`'s whole `env` (the provider's OpenRouter/local credentials, plus
+			 * `process.env`), it does not add to it (found live, dictate-without-claude,
+			 * 2026-10-04). A spec that needs one more env var belongs on the spec's own
+			 * TOP-LEVEL `env` field instead (`this.env`, via `door()`'s own
+			 * `{...process.env, ...or_env, ...this.env}`), never inside `sdk.env`. */
 			...this.sdk,
-			/* `env` NAMES THE SAME KEY `door()` JUST SET (dictate-without-claude, 2026-10-04):
-			 * a caller's `sdk.env` is meant to ADD a flag or two on top of what `door()` built
-			 * (the provider's OpenRouter/local credentials, `process.env`) — but a plain
-			 * `...this.sdk` spread, two lines up, REPLACES `door.env` outright, because
-			 * `sdk.env` and the options key `env` are the same property name. A session-fast
-			 * spec that spread its own `...process.env` into `sdk.env` (to add two flags) was
-			 * silently wiping `env_for("openrouter")`'s ANTHROPIC_BASE_URL/ANTHROPIC_AUTH_TOKEN
-			 * this way, so the SDK called real Anthropic with an OpenRouter model id and failed
-			 * "may not exist or you may not have access to it" — found live spawning
-			 * openai/gpt-6-luna through Sessions.js. Re-merged here, additively, door's env
-			 * first so a caller's own flag still wins a real conflict. */
-			...(door.env || this.sdk?.env ? { env: { ...door.env, ...this.sdk?.env } } : {}),
 			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
 			 * `...this.sdk` so it always applies even when a spec sets its own
 			 * disallowedTools for an unrelated reason. */

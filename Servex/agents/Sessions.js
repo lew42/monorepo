@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place } from "../home.js";
@@ -122,8 +123,7 @@ export const now_ms = () => {
  * `sessions.json` in Servex's home, so a restart still finds a session's file. */
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
- * system works"). ONE setting, the env var SERVEX_SESSION_BACKEND, decides what BOTH session
- * agents spawn on:
+ * system works"). ONE setting decides what BOTH session agents spawn on:
  *   - "claude" (default, unchanged): fast on Sonnet, smart on Usage.pick("smart", repo).
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/2026-10-03/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
@@ -135,14 +135,31 @@ export const now_ms = () => {
  *     GPU model instead — free, no network. The smart one needs real tool calls
  *     (spawn_agent, quick_fix, dir_log, session_summary), and the new-brain facts say the
  *     local model is weak at those, so it stays on FALLBACK_MODEL even under "local".
- * This is a PACE, not a wall — same pattern as `spend_guard()` next door in provider.js — and
- * a caller never has to touch it directly: AUTOMATIC FALLBACK (`woken()` below) flips one
- * session's one role to FALLBACK_MODEL the moment Claude itself refuses it for usage limits,
- * no setting change needed. That refusal is the whole point of this switch: Dictate keeps
- * answering even once Claude is the one agent that's cut off. */
+ *
+ * READ FROM A FILE FIRST, THEN THE ENV (review finding 8): an env var needs a Servex
+ * RESTART to change — exactly the thing the owner says they may not be able to do once
+ * Claude cuts off ("I have to rely entirely on the website"). `SESSION_BACKEND_PATH` is a
+ * plain text file the SMART assistant can flip with its own Bash tool, from the website,
+ * no restart: `echo openrouter > "<path>"` (Windows) takes effect on that session's very
+ * next wake. The env var stays as the boot-time default (and for a `SERVEX_NO_ASSISTANT`
+ * box with no agent to ask), same two-tier pattern `openrouter-burst.json` already uses
+ * next door in provider.js.
+ *
+ * This is a PACE, not a wall, and a caller never has to touch it directly: AUTOMATIC
+ * FALLBACK (`woken()` below) flips one session's one role to FALLBACK_MODEL the moment
+ * Claude itself refuses it for usage limits, no setting change needed. That refusal is the
+ * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
 export const SESSION_BACKENDS = ["claude", "openrouter", "local"];
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
+export const SESSION_BACKEND_PATH = path.join(
+	process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
+	"lew42", "servex", "session-backend.txt"
+);
 export function session_backend(){
+	try {
+		const file = fs.readFileSync(SESSION_BACKEND_PATH, "utf8").trim().toLowerCase();
+		if (SESSION_BACKENDS.includes(file)) return file;
+	} catch {}   // no file yet, or an unreadable one: fall through to the env var
 	const b = String(process.env.SERVEX_SESSION_BACKEND ?? "claude").trim().toLowerCase();
 	return SESSION_BACKENDS.includes(b) ? b : "claude";
 }
@@ -150,8 +167,11 @@ export function session_backend(){
  * reached…", a 429, a rate- or quota-refusal) — matched loosely on purpose: a false POSITIVE
  * here only means a session that was going to need the fallback anyway gets it a turn early;
  * a false NEGATIVE means the owner is stuck with a silent session, the exact failure this
- * whole task exists to avoid. */
-export const USAGE_LIMIT_RE = /usage limit|rate.?limit|quota|\b429\b|exceeded/i;
+ * whole task exists to avoid. Checked ONLY against an `error:`-kind wake (review finding 3):
+ * `wake_parent`'s `done:` text is the agent's own last WORDS, which can legitimately mention
+ * "usage limit" while just answering a question about one — only `error:` is Claude itself
+ * refusing the call. */
+export const USAGE_LIMIT_RE = /^error:.*(usage limit|rate.?limit|quota|\b429\b|exceeded)/i;
 
 export default class Sessions {
 
@@ -226,7 +246,28 @@ export default class Sessions {
 		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
 			text: `Claude refused the ${from.role} assistant for usage limits; switched it to ${FALLBACK_MODEL} (OpenRouter).` } });
 		try { this.servex.agents.stop(s[from.role]); } catch {}
-		try { this.wake(s, from.role); } catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
+		/* The owner's last line was the one Claude refused to answer — `wake()` (below) gives the
+		 * fresh agent the session's tail as CONTEXT, but context alone starts no new turn, so
+		 * without this the owner hears nothing until they speak again, to an agent that never
+		 * actually answered them (review finding 4). Re-send it, to this one role only. */
+		const last_owner = this.last_owner_text(s);
+		try { this.wake(s, from.role); if (last_owner) this.send(s, from.role, last_owner); }
+		catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
+	}
+
+	/* The text of the most recent owner chat line in this session's file — what a freshly
+	 * respawned agent (`woken()` above) needs re-sent, since its own context tail is history,
+	 * not a live turn. */
+	last_owner_text(s){
+		try {
+			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
+			for (let i = lines.length - 1; i >= 0; i--){
+				if (!lines[i].trim()) continue;
+				let j; try { j = JSON.parse(lines[i]); } catch { continue; }
+				if (j.chat?.from?.kind === "owner") return j.chat.text;
+			}
+		} catch {}
+		return null;
 	}
 
 	// ── state ────────────────────────────────────────────────────────────────
@@ -897,16 +938,20 @@ export default class Sessions {
 			role: "session-fast", name: s.id, model: this.session_model(s, "fast"), effort: "low", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo, mcp_url: "", setting_sources: [],
 			system: this.brief("fast") + where,
-			/* Just these two flags — NEVER `...process.env` here (dictate-without-claude, 2026-10-04):
-			 * `Agents.js`'s `door()` already builds the real env as
-			 * `{...process.env, ...or_env, ...this.env}`, with THIS spec's `sdk.env` as `this.env`,
-			 * merged LAST. A `...process.env` spread here re-adds the HOST process's own
-			 * (Claude-only) env on top of `or_env` and wipes the OpenRouter credentials
-			 * `env_for("openrouter")` just set — the SDK then calls real Anthropic with an
-			 * OpenRouter model id and fails "may not exist or you may not have access to it".
-			 * Found live: a bare `sdk.env: {tools:[]}` spawn of openai/gpt-6-luna answered fine;
-			 * adding back `...process.env` broke the exact same spawn. */
-			sdk: { tools: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" } },
+			/* TOP-LEVEL `env`, NEVER `sdk.env` (review finding 1/2, dictate-without-claude,
+			 * 2026-10-04): `Agents.js`'s `door()` builds the real child env as
+			 * `{...process.env, ...or_env, ...this.env}` — `this.env` is THIS field, `spec.env`,
+			 * merged last on purpose so a caller's own flag can win a real conflict, while still
+			 * keeping `process.env` and the provider's own OpenRouter/local credentials
+			 * underneath. Putting these two flags in `sdk.env` instead (the old shape, which also
+			 * spread `...process.env` for no reason) lands them under the DIFFERENT key
+			 * `options().sdk.env`, which `options()`'s later `...this.sdk` spread used to let
+			 * silently REPLACE `door()`'s whole `env` — wiping the OpenRouter credentials the
+			 * moment the switch below picked an OpenRouter model, so the SDK called real
+			 * Anthropic with an OpenRouter model id and failed "may not exist or you may not
+			 * have access to it". Found live spawning openai/gpt-6-luna this way. */
+			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+			sdk: { tools: [] },
 			parent: "sessions"
 		} : {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
@@ -926,21 +971,28 @@ export default class Sessions {
 	}
 
 	/* Spawn one agent of the pair if it is not live: RESUME its Claude session when that
-	 * session's file still exists; else start fresh, given the session file's last 40
-	 * lines when it had a session before. A new pair first makes room (max_pairs).
-	 * Each spawn writes a `backing` line (the latest one wins). */
+	 * session's file still exists AND it's still on the SAME model (review finding 6 —
+	 * flipping the backend for a session that already has a Claude `backing` id must not
+	 * resume that Claude session under an OpenRouter model); else start fresh, with the
+	 * session file's last 40 lines as context whenever there IS a history to give it
+	 * (review finding 3/4 — this used to skip the tail whenever `old` was falsy, which is
+	 * exactly the case right after a fallback deliberately clears it). A new pair first
+	 * makes room (max_pairs). Each spawn writes a `backing` line (the latest one wins). */
 	wake(s, role){
 		if (this.awake(s, role)) return false;
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
+		const target_model = this.session_model(s, role);
 		const old = s.backing?.[role];
-		const can = !!(old && session_facts(old).cwd);
+		const model_changed = s.backing_model?.[role] && s.backing_model[role] !== target_model;
+		const can = !!(old && !model_changed && session_facts(old).cwd);
 		const how = can ? "resume" : old ? "fresh" : "new";
 		let agent;
-		try { agent = this.spawn(s, role, can ? { resume: old } : { context: old ? this.tail(s, 40) : "" }); }
+		try { agent = this.spawn(s, role, can ? { resume: old } : { context: this.tail(s, 40) }); }
 		catch (e){ this.sleep(s, "failed revive"); throw e; }
 		s[role] = agent.id;
 		this.by_agent.set(agent.id, { id: s.id, role });
 		(s.backing ??= {})[role] = agent.session_id ?? null;
+		(s.backing_model ??= {})[role] = target_model;
 		delete s.asleep_at;
 		if (s.ended){ delete s.ended; this.presence(s, s.home, "started"); }
 		this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, how: { [role]: how } } });

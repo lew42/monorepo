@@ -69,14 +69,34 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const usage_before_run = await key_usage(KEY);
 const replies = [];   // {role, model, text} — priced after the fact from the key-level diff, below
 
+/* `agents.wait(id)` resolves AT ONCE if the agent is already idle (Agents.js: "Already idle:
+ * at once") — which it still is right after `say()` returns, since both roles have real
+ * gather/hold delays (the smart one's `quiet_ms`, the fast one's `fast_wait_ms`) before the
+ * NEW turn is even dispatched. Calling `wait()` immediately risks reading the PREVIOUS turn's
+ * stale `words` instead of this one's (review finding 5, caught in an earlier run of this
+ * script: sentence 3's "smart" reply was word-for-word sentence 2's). So this waits for
+ * `agent.turns` to actually increase past what it was before `say()`, THEN reads the answer —
+ * a real new turn, not a cached one. */
+async function wait_for_reply(id, turns_before, timeout_s = 120){
+	const deadline = Date.now() + timeout_s * 1000;
+	while (Date.now() < deadline){
+		const agent = agents.live.get(id);
+		if (agent && agent.turns > turns_before && agent.idle) break;
+		await sleep(200);
+	}
+	return agents.wait(id, Math.max(1, (deadline - Date.now()) / 1000));
+}
+
 for (const [i, text] of SENTENCES.entries()){
+	const turns_before = { fast: agents.live.get(sessions.map[created.session]?.fast)?.turns ?? 0,
+		smart: agents.live.get(sessions.map[created.session]?.smart)?.turns ?? 0 };
 	sessions.say({ session: created.session, path: "/framework/", text, via: "text" });
 	say(`\n[${T()}] owner said (${i + 1}/3): "${text}"`);
-	// Both agents were just spawned (or resumed) by say() -> wake(); wait for each to answer.
+	// Both agents were just spawned (or resumed) by say() -> wake(); wait for each to actually answer THIS turn.
 	for (const role of ["fast", "smart"]){
 		const id = sessions.map[created.session][role];
 		if (!id) continue;
-		const r = await agents.wait(id, 120).catch(e => ({ words: `(no answer: ${e.message})` }));
+		const r = await wait_for_reply(id, turns_before[role]).catch(e => ({ words: `(no answer: ${e.message})` }));
 		const agent = agents.live.get(id);
 		replies.push({ role, model: agent?.model ?? "?", text: String(r.words ?? "").slice(0, 300) });
 		say(`  ${role} (${agent?.model ?? "?"}): ${String(r.words ?? "").slice(0, 300)}`);
