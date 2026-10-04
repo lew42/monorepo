@@ -7,6 +7,8 @@ import { page_settings } from "/framework/core/Page/settings/settings.js";
 import select from "../select.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import admin from "./admin.js";
+import { hotkeys_section } from "/framework/ux/Hotkeys/row.js";
+import push_to_talk from "/framework/ux/Dictate/push-to-talk.js";
 
 /* THE SETTINGS TAB — the dev bar's own settings, reused, nothing new: the edit switch
    (ext/Ask/edit.js, the one every editor control reads), the reader's reload block,
@@ -39,6 +41,23 @@ export default function settings({ app }){
 		// longer clears anything once `active()` is false).
 		section("inspect", () => check("inspect mode — click anything on the page to select it", "inspect-mode",
 			() => { select.hover(null); select.clear(); }));
+		// Every hotkey in the app, one row each, rebindable -- `ux/Hotkeys`'s own
+		// settings row (push-to-talk, item 4). The one place settings live on the
+		// site (this drawer's Settings tab), not duplicated into the dev bar's own
+		// `settings.js` (that file is persisted STATE, not a settings UI).
+		// Off by default (2026-10-03 reversal — see push-to-talk.js's own class doc):
+		// this is the one checkbox that turns it on, worded so turning it on is a
+		// deliberate choice, not a surprise — two real dictation mics open on the
+		// same page both hear the owner and both send.
+		section("push-to-talk", () => {
+			label.c("dev-knob", () => {
+				const $box = input().attr("type", "checkbox")
+					.on("change", function(){ push_to_talk.mic_pref.set(this.el.checked); });
+				if (push_to_talk.mic_pref.enabled) $box.attr("checked", true);
+				span("Push-to-talk floating mic (off by default — can send your words twice if another dictation mic is open on the page)");
+			});
+		});
+		section("hotkeys", () => hotkeys_section());
 		this_page(app);
 		// ADMIN, FOLDED IN (one-dictation drawer-chat, 2026-10-02): the reload hold and the
 		// dev bar's route/server/structure/jump sections used to be their own top-level tab

@@ -195,4 +195,12 @@ function toggle(on = !open(), remember = true){
 
 devshell.toggle = toggle;
 
+// Open the shell straight to a named tab — the floating push-to-talk mic's own
+// click handler (`ux/Dictate/push-to-talk.js`) wants the chat tab ("ai", see
+// `tools.js`'s own `tabs` array) without the caller having to know `tab()` is
+// module-private. `toggle(true)` first so a closed shell actually shows the tab
+// it is about to be told to switch to, then the same `tab()` every tab button
+// here already calls.
+devshell.open_tab = function(name){ toggle(true); tab(name); };
+
 export { devshell };

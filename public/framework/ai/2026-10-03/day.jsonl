@@ -24,3 +24,6 @@
 {"log":{"at":"2026-10-03T14:28:33-05:00","task":"subcard-columns","msg":"landed — sub-cards drill down as two equal columns, any depth, breadcrumb for earlier levels; michael/dev dab3604b"}}
 {"log":{"at":"2026-10-03T14:34:10-05:00","task":"mention-auto-sync","msg":"landed — ext/Mention/maps/refs.js's icon now rebuilds itself on a page.js/page.jsonl change, no sync.mjs run needed"}}
 {"log":{"at":"2026-10-03T17:03:07-05:00","task":"now-card-blank","msg":"landed -- Now card dashboard rows back above Topics; rail preview falls back instead of reading empty"}}
+{"log":{"at":"2026-10-03T16:51:40-05:00","task":"hotkeys-module","msg":"task opened — ux/Hotkeys, a tiny site-wide hotkey manager (register/bind/on, key-or-mouse-button, saved per browser) plus a filterable settings row and a live demo page"}}
+{"log":{"at":"2026-10-03T16:54:55-05:00","task":"hotkeys-module","msg":"landed — ux/Hotkeys: a flat, filterable, rebindable hotkey manager, key or mouse button, saved per browser"}}
+{"log":{"at":"2026-10-03T16:57:41-05:00","task":"hotkeys-module","msg":"follow-up landed — key bindings now carry Ctrl/Shift/Alt/Meta modifiers (Ctrl+Shift+M), for the owner's open-mic toggle hotkey"}}
