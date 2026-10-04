@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-10-04T06:58:00.419Z",
+  "in_progress": false,
+  "summary": {
+    "qwen2.5-coder": {
+      "level1": {
+        "total": 140,
+        "correct": 99,
+        "errors": 0,
+        "wrong": 41,
+        "error_rate_pct": 29.3,
+        "avg_ms": 657
+      },
+      "level2": {
+        "total": 120,
+        "correct": 106,
+        "errors": 0,
+        "wrong": 14,
+        "error_rate_pct": 11.7,
+        "avg_ms": 850
+      },
+      "level3": {
+        "total": 130,
+        "correct": 60,
+        "errors": 0,
+        "wrong": 70,
+        "error_rate_pct": 53.8,
+        "avg_ms": 1374
+      },
+      "level4": {
+        "total": 110,
+        "correct": 31,
+        "errors": 0,
+        "wrong": 79,
+        "error_rate_pct": 71.8,
+        "avg_ms": 1964
+      },
+      "level5": {
+        "total": 119,
+        "correct": 106,
+        "errors": 0,
+        "wrong": 13,
+        "error_rate_pct": 10.9,
+        "avg_ms": 1116
+      }
+    },
+    "gemma-4-e4b": {
+      "level1": {
+        "total": 140,
+        "correct": 46,
+        "errors": 18,
+        "wrong": 76,
+        "error_rate_pct": 54.3,
+        "avg_ms": 1686
+      },
+      "level2": {
+        "total": 120,
+        "correct": 9,
+        "errors": 0,
+        "wrong": 111,
+        "error_rate_pct": 92.5,
+        "avg_ms": 1173
+      },
+      "level3": {
+        "total": 130,
+        "correct": 0,
+        "errors": 0,
+        "wrong": 130,
+        "error_rate_pct": 100,
+        "avg_ms": 1476
+      },
+      "level4": {
+        "total": 110,
+        "correct": 0,
+        "errors": 0,
+        "wrong": 110,
+        "error_rate_pct": 100,
+        "avg_ms": 1791
+      },
+      "level5": {
+        "total": 119,
+        "correct": 0,
+        "errors": 0,
+        "wrong": 119,
+        "error_rate_pct": 100,
+        "avg_ms": 1392
+      }
+    },
+    "gemma-3-4b": {
+      "level1": {
+        "total": 140,
+        "correct": 91,
+        "errors": 0,
+        "wrong": 49,
+        "error_rate_pct": 35,
+        "avg_ms": 614
+      },
+      "level2": {
+        "total": 120,
+        "correct": 78,
+        "errors": 0,
+        "wrong": 42,
+        "error_rate_pct": 35,
+        "avg_ms": 695
+      },
+      "level3": {
+        "total": 130,
+        "correct": 57,
+        "errors": 0,
+        "wrong": 73,
+        "error_rate_pct": 56.2,
+        "avg_ms": 1075
+      },
+      "level4": {
+        "total": 110,
+        "correct": 28,
+        "errors": 0,
+        "wrong": 82,
+        "error_rate_pct": 74.5,
+        "avg_ms": 1482
+      },
+      "level5": {
+        "total": 119,
+        "correct": 76,
+        "errors": 0,
+        "wrong": 43,
+        "error_rate_pct": 36.1,
+        "avg_ms": 826
+      }
+    }
+  }
+}

@@ -4,9 +4,25 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { clean } from "../../public/framework/ext/Refine/engine.js";
 import { structure } from "../../public/framework/ext/Refine/structure.js";
+import { env_for } from "../ext/local/provider.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
+
+/* LOCAL FIRST (local-brain, 2026-10-04): a node-generated question ladder (five levels, built
+ * from this repo's OWN class files, never hand-written — public/framework/ai/2026-10-04/
+ * local-brain/generate-questions.mjs) found qwen2.5-coder solid on single-file facts but
+ * breaking down fast on anything combining two or more files — see that task's report.md for
+ * the per-level numbers. The one job this file actually needs, though, is prompt refinement —
+ * one real file (the owner's own raw words) in, cleaned sentences out — and new-brain's own
+ * run already measured qwen2.5-coder at 8/10 on that exact job (eval-results.json,
+ * ai/2026-10-03/new-brain), the same bar Haiku cleared. So clean()/structure() below try the
+ * local model FIRST, at $0, and fall back to the normal (Anthropic) call the instant the local
+ * server errors — a GPU that only holds one model, not yet warmed up, or simply not running.
+ * SERVEX_ECHO_LOCAL=0 turns this off and puts every echo back on its old model, same escape
+ * hatch `model_for()` already gives the OpenRouter trial below. */
+const LOCAL_REFINE_MODEL = "local/qwen2.5-coder";
+const local_refine_enabled = () => process.env.SERVEX_ECHO_LOCAL !== "0";
 
 /* THE ECHO ASSISTANT, one per owner session (minion-echo, 2026-10-02 — see that task's
  * requirements.md, which REPLACES the original plan for this piece; the owner's own words are
@@ -123,6 +139,7 @@ export default class Echo {
 	 * SERVEX_ECHO_OR narrows it to a comma-separated list of session-id prefixes; "none" puts every
 	 * echo back on Claude. Token-reduction item 13 rotates a share to the other cheap models. */
 	model_for(session_id){
+		if (process.env.SERVEX_OPENROUTER_PAUSED !== "0") return {};   // OpenRouter is paused (Agents.spawn): echoes stay on Claude
 		const list = String(process.env.SERVEX_ECHO_OR ?? "all").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
 		const sid = String(session_id).toLowerCase();
 		if (!list.includes("all") && !list.some(p => sid.startsWith(p))) return {};
@@ -304,7 +321,14 @@ export default class Echo {
 		// forward to step()'s own three model calls (references/asks_flags/done), which add their
 		// own cost on top before `done` writes the grand total.
 		let cost_usd = 0;
-		const call = (p, o) => this.call(p, o).then(r => { cost_usd += Number(r?.cost_usd) || 0; return r; });
+		const base_call = (p, o) => this.call(p, o).then(r => { cost_usd += Number(r?.cost_usd) || 0; return r; });
+		// Local-first, Anthropic-fallback (see LOCAL_REFINE_MODEL above): engine.js/structure.js
+		// each pass `{model, cwd}` straight through to `call`, so swapping the model here is the
+		// one seam that needs touching — neither clean() nor structure() changes.
+		const call = local_refine_enabled()
+			? (p, o) => base_call(p, { ...o, model: LOCAL_REFINE_MODEL, env: env_for("local") })
+				.catch(e => { this.servex.say?.(`echo: local model unavailable (${e.message || e}), falling back`); return base_call(p, o); })
+			: base_call;
 		const { sentences, strikes, misheard, flags } = await clean(text, { call });
 		const built = await structure(sentences, { call });
 		const sections = this.sections_with_ids(this.parse_sections(built.md));

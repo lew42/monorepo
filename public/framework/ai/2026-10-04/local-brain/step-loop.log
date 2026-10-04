@@ -1,0 +1,23 @@
+batch run 1/10: PASS (40285ms)
+batch run 2/10: PASS (33496ms)
+batch run 3/10: PASS (32196ms)
+batch run 4/10: PASS (38371ms)
+batch run 5/10: PASS (22989ms)
+batch run 6/10: PASS (29767ms)
+batch run 7/10: PASS (28917ms)
+batch run 8/10: PASS (35664ms)
+batch run 9/10: PASS (52766ms)
+batch run 10/10: PASS (36513ms)
+loop  run 1/10: fail (55227ms)
+loop  run 2/10: fail (59920ms)
+loop  run 3/10: fail (42561ms)
+loop  run 4/10: fail (26053ms)
+loop  run 5/10: fail (24016ms)
+loop  run 6/10: fail (19645ms)
+loop  run 7/10: fail (25870ms)
+loop  run 8/10: fail (19732ms)
+loop  run 9/10: fail (25336ms)
+loop  run 10/10: fail (20157ms)
+
+BATCH: { pass_rate: '10/10', avg_seconds: 35.1 }
+LOOP:  { pass_rate: '0/10', avg_seconds: 31.9 }

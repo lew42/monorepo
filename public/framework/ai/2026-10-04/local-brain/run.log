@@ -1,0 +1,23 @@
+
+=== model: qwen2.5-coder ===
+  level1: 99/140 correct, 0 api errors (29.3% wrong), avg 657ms
+  level2: 106/120 correct, 0 api errors (11.7% wrong), avg 850ms
+  level3: 60/130 correct, 0 api errors (53.8% wrong), avg 1374ms
+  level4: 31/110 correct, 0 api errors (71.8% wrong), avg 1964ms
+  level5: 106/119 correct, 0 api errors (10.9% wrong), avg 1116ms
+
+=== model: gemma-4-e4b ===
+  level1: 46/140 correct, 18 api errors (54.3% wrong), avg 1686ms
+  level2: 9/120 correct, 0 api errors (92.5% wrong), avg 1173ms
+  level3: 0/130 correct, 0 api errors (100% wrong), avg 1476ms
+  level4: 0/110 correct, 0 api errors (100% wrong), avg 1791ms
+  level5: 0/119 correct, 0 api errors (100% wrong), avg 1392ms
+
+=== model: gemma-3-4b ===
+  level1: 91/140 correct, 0 api errors (35% wrong), avg 614ms
+  level2: 78/120 correct, 0 api errors (35% wrong), avg 695ms
+  level3: 57/130 correct, 0 api errors (56.2% wrong), avg 1075ms
+  level4: 28/110 correct, 0 api errors (74.5% wrong), avg 1482ms
+  level5: 76/119 correct, 0 api errors (36.1% wrong), avg 826ms
+
+Done. Wrote C:\Code\lew42\worktrees\local-brain\public\framework\ai\2026-10-04\local-brain\report.json
