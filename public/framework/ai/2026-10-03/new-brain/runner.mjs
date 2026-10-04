@@ -91,7 +91,7 @@ async function runEvaluation() {
 				res.level_a.details.push({ id: q.id, pass: false, error: r.error });
 				continue;
 			}
-			res.total_cost_usd += r.cost_usd || 0;
+			res.total_cost_usd += r.cost_usd || 0; res.tokens_in = (res.tokens_in || 0) + (r.usage?.prompt_tokens || 0); res.tokens_out = (res.tokens_out || 0) + (r.usage?.completion_tokens || 0);
 			res.total_ms += r.ms || 0;
 			const passed = q.verify(r.text);
 			if (passed) res.level_a.correct++;
@@ -111,7 +111,7 @@ async function runEvaluation() {
 				res.level_b.details.push({ id: q.id, pass: false, error: r.error });
 				continue;
 			}
-			res.total_cost_usd += r.cost_usd || 0;
+			res.total_cost_usd += r.cost_usd || 0; res.tokens_in = (res.tokens_in || 0) + (r.usage?.prompt_tokens || 0); res.tokens_out = (res.tokens_out || 0) + (r.usage?.completion_tokens || 0);
 			res.total_ms += r.ms || 0;
 			const passed = q.verify(r.text);
 			if (passed) res.level_b.correct++;
@@ -140,7 +140,7 @@ Numbered Refined Sentences:`;
 				res.level_c.details.push({ id: p.id, pass: false, error: r.error });
 				continue;
 			}
-			res.total_cost_usd += r.cost_usd || 0;
+			res.total_cost_usd += r.cost_usd || 0; res.tokens_in = (res.tokens_in || 0) + (r.usage?.prompt_tokens || 0); res.tokens_out = (res.tokens_out || 0) + (r.usage?.completion_tokens || 0);
 			res.total_ms += r.ms || 0;
 			const evalRes = evaluateRefinement(p.raw, r.text);
 			totalScoreC += evalRes.score;
