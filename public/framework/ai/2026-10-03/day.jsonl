@@ -27,3 +27,6 @@
 {"log":{"at":"2026-10-03T16:51:40-05:00","task":"hotkeys-module","msg":"task opened — ux/Hotkeys, a tiny site-wide hotkey manager (register/bind/on, key-or-mouse-button, saved per browser) plus a filterable settings row and a live demo page"}}
 {"log":{"at":"2026-10-03T16:54:55-05:00","task":"hotkeys-module","msg":"landed — ux/Hotkeys: a flat, filterable, rebindable hotkey manager, key or mouse button, saved per browser"}}
 {"log":{"at":"2026-10-03T16:57:41-05:00","task":"hotkeys-module","msg":"follow-up landed — key bindings now carry Ctrl/Shift/Alt/Meta modifiers (Ctrl+Shift+M), for the owner's open-mic toggle hotkey"}}
+{"log":{"at":"2026-10-03T22:52:18-05:00","task":"prompt-relay-skip-agents","msg":"landed — the prompt hook no longer logs subagent hand-backs as the owner's prompts"}}
+{"log":{"at":"2026-10-03T22:56:02-05:00","task":"sessions-tab-polish","msg":"landed on worktree/sessions-tab-polish, reviewed (3 fixed) -- merge blocked by an unrelated merge.mjs 404-noise gap, logged as a follow-up"}}
+{"log":{"at":"2026-10-03T23:37:07-05:00","task":"day-overview","msg":"landed — day page now shows Claude $/real $ totals, by-module breakdown, click-through to a module's day work"}}
