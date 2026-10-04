@@ -15,13 +15,17 @@ decided, what's still open, and where every claim comes from.
    and by `Agents.spawn()` (the slash rule on a bare `model` covers the rest), so moving a tier to
    `provider: "openrouter"` is the one-line switch that turns the proxy on for every role on it.
    → [`snapshot.md`](./snapshot.md) (node `cx5h6`), `Servex/agents/tiers.js:4`
-3. **Proxied cost takes a few seconds, not free** — the SDK's own cost guess is wrong (it prices a
-   proxied turn off Anthropic's price table), and OpenRouter's own real dollar figure does not
-   arrive instantly either: billing settles a few seconds after a turn ends, and the per-generation
-   lookup can be exact when the SDK's message id matches (confirmed on gemini-3.8-flash) or needs a
-   before/after key-total diff when it doesn't. `real_turn_cost()` in `provider.js` tries both,
-   polling for it rather than reading once.
-   → [`snapshot.md`](./snapshot.md)
+3. **The real cost is already on the response — no second request needed** (fixed 2026-10-04,
+   openrouter-cost-blind). The SDK's own cost guess is wrong (it prices a proxied turn off
+   Anthropic's price table), but OpenRouter's `usage.cost` field is RIGHT, and arrives on the SAME
+   response as the message itself — confirmed live against `POST /v1/messages`, with and without
+   `usage: {include: true}` (a no-op here; this endpoint always includes it). `Agents.js`'s
+   `price()` reads it the instant a message arrives. The OLDER plan — poll `/generation` by id, or
+   diff the key's running total — is what actually went blind: live-tested the same day, a fresh
+   id 404'd on `/generation` and the key-total diff still read $0 after 28 seconds. Both stay as a
+   fallback (`meter()`/`real_turn_cost()` in `provider.js`) for the rare response with no `usage.cost`,
+   and now log an `unpriced` line instead of going silent.
+   → [`gaps.md`](./gaps.md) gap 2, `Servex/agents/openrouter-cost-blind-proof.mjs`
 4. **Subscription boundary** — Claude itself stays on the subscription; paying per token for
    Claude through any gateway could cost far more for the same work.
    → [`snapshot.md`](./snapshot.md) (node `ca7gw`)
@@ -87,6 +91,17 @@ tool at all: Gemini's own function-calling validator demands every nested array 
 `disallowed_tools_for(model)` — `["ArtifactData"]` for any `google/*` model, `[]` otherwise — and
 both `spike.mjs` and `Agents.js` pass it as `disallowedTools`. Confirmed fixed by rerunning the
 spike on both Gemini models.
+
+### The spawn pause, and why a spawn can be "paused" with no owner action
+
+`Agents.spawn()` refuses every OpenRouter spawn unless `SERVEX_OPENROUTER_PAUSED` is set to the
+literal string `"0"` — unset (the default on every fresh boot) means paused. This exists because
+of exactly the incident `openrouter-cost-blind` fixed (2026-10-04): a model ran 14 minutes with
+Servex seeing $0 cost while OpenRouter's own bill rose $4.74. The pause is the fail-closed answer
+to "can we trust what we'd charge this agent" — Echo.js's `model_for()` already kept echo replies
+on Claude while paused; `Agents.spawn()` now refuses a real spawn too, with one clear line. Lifted
+by setting `SERVEX_OPENROUTER_PAUSED=0` in the environment Servex boots with, once the pricing fix
+below is proven (`Servex/agents/openrouter-cost-blind-proof.mjs`).
 
 ### The spend guard (the owner's $50 credit, Phase 2)
 
