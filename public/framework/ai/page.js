@@ -17,7 +17,7 @@ import { VIRTUAL_TABS, SYSTEM_PARTS, tab_page, readme_chain, heading, detect_tab
 
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-import { fold_card, parse_lines } from "/framework/ai2/fold.js";   // the Now card's own small reader (followup.md item 2)
+import { resolve_card } from "/framework/ai2/inbox.js";   // finds the newest dated Now card, the same one the inbox preview reads
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -211,13 +211,16 @@ export default new Page({
 function now_page(root){
 	return new Page({
 		title: "Now", icon: "push_pin", url: root.url + "now/", classes: "inbox-page",
+		// The real Now card lives in a dated folder (`2026/10/03/now/`), one per day; this
+		// alias used to read a root `ai/now/page.jsonl` that doesn't exist and always said
+		// "Nothing written yet" (2026-10-04). It now opens the newest dated Now card, the
+		// same one the inbox preview reads, so the sections show.
 		content(){
 			const $box = div.c("ai-now");
-			fetch(this.url + "page.jsonl").then(r => r.ok ? r.text() : "").then(text => {
-				const fold = fold_card("now", parse_lines(text));
-				const said = [...fold.messages, ...fold.prompts].filter(m => m.text ?? m.raw)
-					.sort((a, b) => Date.parse(a.at ?? 0) - Date.parse(b.at ?? 0)).at(-1);
-				$box.empty(() => md((said?.text ?? said?.raw) || "Nothing written yet."));
+			$box.empty(() => md("Opening the newest Now card…"));
+			resolve_card("now").then(fold => {
+				if (fold?.id) location.replace(root.url + fold.id + "/");
+				else $box.empty(() => md("No Now card yet."));
 			});
 		},
 	});

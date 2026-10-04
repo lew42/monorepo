@@ -207,7 +207,8 @@ export default class AIRail extends Inbox.Rail {
 		const prompts = list.filter(it => it.kind === "prompt").sort((a, b) => Date.parse(b.at ?? 0) - Date.parse(a.at ?? 0));
 		if (!prompts.length){ this.your_prompts_item = null; return; }
 		const latest = prompts[0];
-		const headline = latest.topic || first_sentence(plain(latest.refined || latest.title || (latest.said ?? [])[0] || ""));
+		const said0 = (latest.said ?? [])[0];   // the words said beat the "You said…" placeholder title
+		const headline = latest.topic || first_sentence(plain(latest.refined || (typeof said0 === "string" ? said0 : said0?.text) || latest.title || ""));
 		this.your_prompts_item = {
 			id: "your-prompts", kind: "prompts-pin", icon: "mic",
 			title: "Your prompts", text: headline, at: latest.at,
