@@ -48,15 +48,25 @@ const EVAL_FILES = [
 	{ file: "eval-results-gemini.json", provider_hint: "Google AI Studio" }, // run with OR_PROVIDER=Google AI Studio
 ];
 
+// Review finding 1 (2026-10-04): an eval row like "anthropic/claude-haiku-4.5" is a model id
+// OpenRouter actually served the call for — it is NOT the same as the hand-added "claude-" control
+// rows below (those use Anthropic's own direct pricing). Only a BARE "claude-..." id (no slash,
+// the control rows' own ids) is "Claude (direct)"; anything routed through OpenRouter, including
+// an anthropic/* id, is labelled OpenRouter — that's who actually billed the call.
 function providerOf(model, hint){
 	if (hint) return hint;
 	if (model.startsWith("local/")) return "local";
-	if (model.startsWith("anthropic/") || model.startsWith("claude-")) return "Claude (direct)";
+	if (model.startsWith("claude-")) return "Claude (direct)";
 	return "OpenRouter";
 }
 
-// One eval-results.json model entry -> the handful of numbers the catalog table shows.
+// One eval-results.json model entry -> the handful of numbers the catalog table shows. Review
+// finding 2: a model whose every call failed (an endpoint mismatch, a bad id) left total_ms and
+// total_cost_usd at 0 with nothing ever answered — that is "didn't run", not "scored 0%", so it
+// gets null scores (the table shows "—") plus a `failed: true` flag instead of a misleading 0%.
 function summarize(model, res){
+	const ran = (res.total_ms ?? 0) > 0 || (res.total_cost_usd ?? 0) > 0;
+	if (!ran) return { docs: null, reasoning: null, refine: null, seconds: null, tokens_in: null, tokens_out: null, eval_cost_usd: null, failed: true };
 	const docs = res.level_a ? res.level_a.correct / res.level_a.total : null;
 	const reasoning = res.level_b ? res.level_b.correct / res.level_b.total : null;
 	const refine = res.level_c ? res.level_c.avg_score / 100 : null;
@@ -66,22 +76,25 @@ function summarize(model, res){
 		tokens_in: res.tokens_in ?? null,
 		tokens_out: res.tokens_out ?? null,
 		eval_cost_usd: res.total_cost_usd ?? null,
+		failed: false,
 	};
 }
 
 // --- OpenRouter's live catalog: pricing (prompt/completion/cache-read) and context window, for
-// every model this page needs. One fetch; a snapshot is kept beside this file so a later run with
-// no network still has pricing (never typed by hand — Phase 8's rule holds: the page computes,
-// never recalls). ---
+// every model this page needs. One fetch; a snapshot of only the ids THIS page actually uses is
+// kept beside this file so a later run with no network still has pricing (never typed by hand —
+// Phase 8's rule holds: the page computes, never recalls). Review finding 10: the first version of
+// this snapshot kept OpenRouter's whole ~2,800-model catalog — needlessly, since only a dozen ids
+// ever get read — so `wantedIds` trims it to just those before it's ever written to disk. ---
 const SNAPSHOT_FILE = path.join(HERE, "catalog-price-snapshot.json");
-async function fetchCatalog(){
+async function fetchCatalog(wantedIds){
 	try {
 		const res = await fetch("https://openrouter.ai/api/v1/models");
 		if (!res.ok) throw new Error("HTTP " + res.status);
 		const body = await res.json();
 		const out = {};
 		for (const m of body.data ?? []){
-			if (!m.pricing) continue;
+			if (!m.pricing || !wantedIds.has(m.id)) continue;
 			out[m.id] = {
 				prompt: Number(m.pricing.prompt) || 0,
 				completion: Number(m.pricing.completion) || 0,
@@ -114,12 +127,15 @@ function minionCost(price){
 	return { usd: +usd.toFixed(4), cache_priced: price.cache_read != null };
 }
 
-const orCatalog = await fetchCatalog();
+// Every model id this page will ever look up a price for — read once, ahead of the fetch, so the
+// snapshot written to disk only ever holds the ids actually used (review finding 10).
+const evalData = EVAL_FILES.map(({ file, provider_hint }) => ({ provider_hint, data: readJson(path.join(NEW_BRAIN, file)) }));
+const wantedIds = new Set(evalData.flatMap(({ data }) => Object.keys(data?.results ?? {})));
+const orCatalog = await fetchCatalog(wantedIds);
 
 // --- Build one row per (model, source file) pair actually run. ---
 const rows = [];
-for (const { file, provider_hint } of EVAL_FILES){
-	const data = readJson(path.join(NEW_BRAIN, file));
+for (const { provider_hint, data } of evalData){
 	if (!data?.results) continue;
 	for (const [model, res] of Object.entries(data.results)){
 		const price = orCatalog[model] ?? null;
@@ -157,6 +173,6 @@ fs.writeFileSync(OUT, JSON.stringify({
 	...prior,
 	catalog: rows,
 	catalog_generated_at: new Date().toISOString(),
-	catalog_note: "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude rows use Anthropic's own list prices. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/). typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price.",
+	catalog_note: "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass.",
 }, null, "\t"));
 console.log("wrote", OUT, "— catalog:", rows.length, "rows");

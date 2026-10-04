@@ -352,6 +352,12 @@ function bar_facet_svg(rows){
 }
 
 function render_models(data){
+	// Review finding 3 (2026-10-04): the owner's own ask — one row per model, everything about IT —
+	// is the main thing this tab is FOR, so it comes first, above the fold. The value-per-task-kind
+	// analysis below it (which model to use for which JOB) is detail, one scroll down.
+	if (data.catalog?.length) render_catalog(data.catalog, data.catalog_note);
+
+	heading("Value per task kind", "Which model to pick for which kind of work — rule tests, probes, and the test library's rungs, not a per-model catalog (that's above).");
 			// --- The cheap ladder: which models pass the four simple rungs, cheapest first? ---
 		if (data.ladder && data.ladder.rows.length){
 			heading("The cheap ladder", "Which models pass four simple tests? Cheapest first — free models at the top.");
@@ -411,12 +417,6 @@ function render_models(data){
 		md(line);
 	});
 	md("*Rows with no cost or no real run are left out of the chart and the best-value line, not shown as zero.*");
-
-	// --- The catalog: one row per model we use or tested, everything about IT (not about a
-	// task) — provider, context window, price including a cache read, our own docs/reasoning/
-	// refine test scores, tokens, and what a typical minion's own token mix would cost here.
-	// Written by Servex/ext/openrouter/evals/catalog.mjs; this just draws data.catalog. ---
-	if (data.catalog?.length) render_catalog(data.catalog, data.catalog_note);
 }
 
 const fmt_ctx = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" : String(n);
@@ -432,23 +432,26 @@ function render_catalog(rows, note){
 		columns: [
 			{ key: "label", label: "Model", min: 160, width: 200 },
 			{ key: "provider", label: "Provider", min: 100 },
+			// Review finding 6: a `type: "number"` column gets its own min/max filter box, automatically —
+			// fine for one or two, noise for eleven stacked above a 17-row grid. Only Context keeps one;
+			// the rest opt out with `filter: false` (sort still works on every column).
 			{ key: "context", label: "Context", type: "number", min: 90, format: fmt_ctx },
-			{ key: "price_in_per_m", label: "$/M in", type: "number", min: 80, format: fmt_price },
-			{ key: "price_out_per_m", label: "$/M out", type: "number", min: 80, format: fmt_price },
-			{ key: "price_cache_in_per_m", label: "$/M cached in", type: "number", min: 90, format: fmt_price },
-			{ key: "docs", label: "Docs", type: "number", min: 70, format: fmt_pct },
-			{ key: "reasoning", label: "Reasoning", type: "number", min: 80, format: fmt_pct },
-			{ key: "refine", label: "Refine", type: "number", min: 70, format: fmt_pct },
-			{ key: "seconds", label: "Seconds", type: "number", min: 70, format: fmt_ms },
-			{ key: "tokens_in", label: "Tokens in", type: "number", min: 80, format: fmt_tok },
-			{ key: "tokens_out", label: "Tokens out", type: "number", min: 85, format: fmt_tok },
-			{ key: "typical_minion_usd", label: "Typical minion $", type: "number", min: 110, format: fmt_price },
+			{ key: "price_in_per_m", label: "$/M in", type: "number", min: 80, format: fmt_price, filter: false },
+			{ key: "price_out_per_m", label: "$/M out", type: "number", min: 80, format: fmt_price, filter: false },
+			{ key: "price_cache_in_per_m", label: "$/M cached in", type: "number", min: 90, format: fmt_price, filter: false },
+			{ key: "docs", label: "Docs", type: "number", min: 70, format: fmt_pct, filter: false },
+			{ key: "reasoning", label: "Reasoning", type: "number", min: 80, format: fmt_pct, filter: false },
+			{ key: "refine", label: "Refine", type: "number", min: 70, format: fmt_pct, filter: false },
+			{ key: "seconds", label: "Seconds", type: "number", min: 70, format: fmt_ms, filter: false },
+			{ key: "tokens_in", label: "Tokens in", type: "number", min: 80, format: fmt_tok, filter: false },
+			{ key: "tokens_out", label: "Tokens out", type: "number", min: 85, format: fmt_tok, filter: false },
+			{ key: "typical_minion_usd", label: "Typical minion $", type: "number", min: 110, format: fmt_price, filter: false },
 		],
 		rows,
 	}).ac("wide").style("--datagrid-height", "none");
 	if (note) small.c("muted", note);
 
-	heading("Why the numbers look the way they do", "Four things worth knowing before you compare models by price.");
+	heading("Why the numbers look the way they do", "Five things worth knowing before you compare models by price.");
 	md([
 		"- **A \"read\" is huge because every turn re-sends the whole conversation.** An agent's context doesn't shrink between turns — turn 10 re-reads everything turns 1 through 9 already said. So the total tokens read grows roughly as *(number of turns) × (context size)*, which is why a long task's read count can be 10–100× its write count. Measured across real minions this week, 93–99% of that reread is served from the prompt cache, not billed at full price.",
 		"- **Cache prices differ by provider.** Anthropic charges a cache *read* at about 10% of its normal input price (and a cache *write*, the first time a prefix is seen, at about 125% of it). OpenRouter publishes each model's own `input_cache_read` price in its catalog — some models have none at all, and this table charges those rows the full input price for their \"cached\" share rather than inventing a discount.",
