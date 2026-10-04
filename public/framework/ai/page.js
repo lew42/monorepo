@@ -17,7 +17,6 @@ import { VIRTUAL_TABS, SYSTEM_PARTS, tab_page, readme_chain, heading, detect_tab
 
 // "tests" → "Tests" — the label a detected tab wears when nobody says otherwise.
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-import { resolve_card } from "/framework/ai2/inbox.js";   // finds the newest dated Now card, the same one the inbox preview reads
 
 /* `?v1` — the original board, kept addressable at this same url. Read fresh on
    every call rather than captured once: a picker click is a real navigation, but
@@ -129,7 +128,7 @@ export default new Page({
 		// with `fold.js`'s own small parser (no `ai2/card.js` `Card` class or its `shell`
 		// needed for a one-note read), same content AI 2's own `/framework/ai2/now/`
 		// shows (`ai2/page.js`, `card_page(this, "now")`).
-		if (name === "now") return now_page(this);
+		if (name === "now") return card_page(this, "now");   // the same in-place card page the Inbox opens (no reload, 2026-10-04)
 
 		// THE RAIL'S OWN ADDRESSES — Live, a card at its real folder (`2026/09/30/<card>/`, the
 		// year, month and day are pages too), the card views, a changed site page, Your prompts.
@@ -203,28 +202,6 @@ export default new Page({
 		});
 	},
 });
-
-/* THE NOW CARD, read straight from its own folder (followup.md item 2, 2026-09-30) — the
-   same content `/framework/ai2/now/` shows, without needing AI 2's own `Card` class or its
-   `shell`. `$box` is captured HERE, synchronously, and filled in the `.then()` callback
-   (the site's own no-DOM-after-an-await rule) so a slow fetch never leaves half a page. */
-function now_page(root){
-	return new Page({
-		title: "Now", icon: "push_pin", url: root.url + "now/", classes: "inbox-page",
-		// The real Now card lives in a dated folder (`2026/10/03/now/`), one per day; this
-		// alias used to read a root `ai/now/page.jsonl` that doesn't exist and always said
-		// "Nothing written yet" (2026-10-04). It now opens the newest dated Now card, the
-		// same one the inbox preview reads, so the sections show.
-		content(){
-			const $box = div.c("ai-now");
-			$box.empty(() => md("Opening the newest Now card…"));
-			resolve_card("now").then(fold => {
-				if (fold?.id) location.replace(root.url + fold.id + "/");
-				else $box.empty(() => md("No Now card yet."));
-			});
-		},
-	});
-}
 
 /* One concept's page: the gist first, then a few items, then the code that owns it,
    then the Servex page where Servex implements it (linked, never repeated). */
