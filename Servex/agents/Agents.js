@@ -154,9 +154,9 @@ export class Agents {
 			/* THE SPAWN PAUSE (openrouter-cost-blind, 2026-10-04): refused until
 			 * meter() can actually price a call (below) — the same flag Echo.js's
 			 * model_for() already checks for echoes, now also covering real spawns.
-			 * Unset (the default on every fresh boot) means PAUSED; it only turns on
-			 * once set to the literal string "0". */
-			if (process.env.SERVEX_OPENROUTER_PAUSED !== "0")
+			 * The cost fix landed 2026-10-04 (meter() reads usage.cost), so the pause is
+			 * now opt-in: set SERVEX_OPENROUTER_PAUSED=1 to stop OpenRouter spawns. */
+			if (process.env.SERVEX_OPENROUTER_PAUSED === "1")
 				throw new Error(`OpenRouter spawns are paused: their cost isn't being measured (2026-10-04/openrouter-cost-blind)`);
 			const guard = spend_guard();
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
