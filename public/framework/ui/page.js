@@ -40,7 +40,10 @@ export default new Doc({
 	// task, 2026-09-29. `icon` too, the same reason: a real, band-worthy component
 	// (three classes around the site's existing icon()) appended rather than
 	// inserted into Marks, which is already five — icon-system task, 2026-09-30.
-	children: names.join(" ") + " background scale section item icon",
+	// `datagrid` too, same reason again: it would make Data seven — data-grid
+	// task, 2026-10-03. The full behaviour (resize, sort, filter, windowing) built
+	// on top of this markup is `ext/DataGrid`, which has its own page.
+	children: names.join(" ") + " background scale section item icon datagrid",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right
@@ -65,10 +68,10 @@ export default new Doc({
 	},
 
 	subject: ui,
-	methods: "table timeline keys item",
+	methods: "table timeline keys item datagrid",
 	notes: "record decisions",
 	files: "ui.js parts.js page.js readme.md "
-		+ "table/table.js table/page.js field/page.js crumbs/crumbs.js crumbs/page.js "
+		+ "table/table.js table/page.js datagrid/datagrid.js datagrid/page.js field/page.js crumbs/crumbs.js crumbs/page.js "
 		+ "pagination/page.js card/page.js stats/page.js badge/badge.js badge/page.js "
 		+ "alert/alert.js alert/page.js toolbar/page.js tags/page.js panel/panel.js panel/page.js "
 		+ "tooltip/tooltip.js tooltip/page.js avatar/avatar.js avatar/page.js dialog/dialog.js dialog/page.js "

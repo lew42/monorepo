@@ -12,6 +12,7 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
 - [card](./card/) — a padded surface with a heading and text (no readme yet).
 - [controls](./controls/) — buttons, selects, fields and tabs drawn as one matching box.
 - [crumbs](./crumbs/) — the trail of links above a page.
+- [datagrid](./datagrid/) — the markup for a data-grid table: a CSS-grid box, a header and a body, no JavaScript needed to render; the resize/sort/filter/windowing behaviour is [`ext/DataGrid`](/framework/ext/DataGrid/).
 - [decision](./decision/) — a question, its options as cards, and the chosen one marked.
 - [dialog](./dialog/) — a modal popup using the browser's own `<dialog>`.
 - [field](./field/) — a label, an input and a hint (no readme yet).
@@ -32,6 +33,13 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
 
 No listeners, no state, no lifecycle — that is [`ux/`](/framework/ux/). A component here is
 markup you copy, plus a small stylesheet where a rule was about a relationship or a state.
+
+**The rule, in one line (the owner, 2026-10-03):** if it's pure HTML and CSS — even when a
+function renders that markup, like `table` or `datagrid` here — it's UI, and it doesn't need a
+class to exist. The moment something needs JavaScript (a listener, state, a lifecycle), it's
+`ux/`. An [`ext/`](/framework/ext/) may bundle several UI and UX pieces into one package —
+[`ext/DataGrid`](/framework/ext/DataGrid/) is `datagrid()`'s markup plus the resize/sort/filter
+behaviour on top of it, in exactly that shape.
 
 ## Use
 

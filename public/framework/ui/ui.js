@@ -2,6 +2,7 @@ import { table } from "./table/table.js";
 import { timeline } from "./timeline/timeline.js";
 import { keys } from "./kbd/kbd.js";
 import { item } from "./item/item.js";
+import { datagrid } from "./datagrid/datagrid.js";
 
 /* The css-only components: no export, a `<style>` tag, and a page that hands you
  * the markup with a copy button. Imported here so the classes exist site-wide.
@@ -22,12 +23,13 @@ import "./decision/decision.js";
 import "./words/words.js";   // the config words — not a component; the same trap applies
 import "./scale/scale.js";
 
-// Four functions now, because each carries a loop a user shouldn't have to write
-// by hand — `item()`'s is the recursion down a tree of children. The rest are
-// copy-paste templates and deliberately have nothing to import — readme.md.
-export const ui = { table, timeline, keys, item };
+// Five functions now, because each carries a loop a user shouldn't have to write
+// by hand — `item()`'s is the recursion down a tree of children, `datagrid()`'s
+// is the loop over columns AND rows. The rest are copy-paste templates and
+// deliberately have nothing to import — readme.md.
+export const ui = { table, timeline, keys, item, datagrid };
 
-export { table, timeline, keys, item };
+export { table, timeline, keys, item, datagrid };
 
 export { css, component } from "./parts.js";
 

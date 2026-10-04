@@ -1,0 +1,54 @@
+/* ext/DataGrid — the behaviour layer's own small additions on top of
+   ui/datagrid/datagrid.js's base grid rules (header, cell, grip). Everything
+   here is the filter bar, the sort arrow and the row count — nothing about
+   the grid itself, which stays owned by the markup-only module so a plain
+   `ui.datagrid()` caller never loads this file. */
+@layer theme {
+	.datagrid-ext { display: flex; flex-direction: column; gap: var(--gap-50); }
+
+	/* No empty strip when a data set has no filterable column at all. */
+	.datagrid-filters:empty { display: none; }
+
+	/* Every filter row wraps instead of overflowing — the chip row already did
+	   (it needs `wrap` for a long list of checkboxes), but the date and number
+	   rows didn't, and a date range's two inputs + labels run off the right
+	   edge at 400px (caught by review.mjs, not by eye: it clips, it doesn't
+	   reflow, so nothing LOOKS broken until you measure at a real narrow width). */
+	.datagrid-filter { flex-wrap: wrap; }
+
+	.datagrid-filter label { cursor: pointer; }
+
+	/* The site's own input default is full-width, meant for a form field alone
+	   on its own line — inside a date/number filter's inline "from … to …" row
+	   that stretches each one to fill whatever's left, so two inputs plus their
+	   labels wrap onto several tall lines (review.mjs, second pass: five rows
+	   of the actual grid were all that fit above the fold at 400px because of
+	   it). A filter input is short by nature (a date, a number), so it only
+	   needs to be as wide as its own content calls for. */
+	.datagrid-filter input { inline-size: auto; max-inline-size: 9em; }
+
+	.datagrid-sort-arrow { font-size: 0.85em; color: var(--subtle); }
+
+	.datagrid-count { display: block; }
+
+	/* A windowed grid is a box that does NOT grow with its content — the whole
+	   point is that its content (hundreds of rows worth of height) never all
+	   exists at once. `block-size` here, not `max-height`: before any row has
+	   rendered yet, the grid would otherwise hug just its header's height, the
+	   first "how many rows fit the viewport" measurement would read that tiny
+	   number, and the grid would look collapsed until something else forced a
+	   re-layout. Fixing the actual height (not capping it) is what the layout
+	   skill calls a "deliberate scroll area" — the one case where a set height
+	   instead of a max-height is correct, because this box is exactly an
+	   inner-scroll rail, never a box that grows with what's inside it. */
+	.datagrid.datagrid-windowed { block-size: var(--datagrid-height, 28rem); }
+
+	/* ⚠ Must match `ROW_H` in DataGrid.js exactly. Windowing works out which
+	   rows are on screen from `scrollTop / ROW_H`, and sizes the two spacer
+	   boxes the same way — if a real row rendered taller or shorter than this,
+	   the scrollbar's length and the rows actually shown would drift apart the
+	   further down the grid you scroll. Only applied once windowing turns on
+	   (`.datagrid-windowed`, past 300 rows); a short, unwindowed grid keeps its
+	   natural, auto-height rows. */
+	.datagrid.datagrid-windowed .datagrid-cell { block-size: 36px; overflow: hidden; }
+}
