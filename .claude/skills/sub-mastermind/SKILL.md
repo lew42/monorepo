@@ -125,6 +125,8 @@ Work on one module is coordinated by ONE mastermind: the one holding its worktre
 
 ## Split the task, fence the minions
 
+**Default: do the task yourself (the owner, 2026-10-04).** Two agents on one task doubles the reading. Spawn a minion only for work that runs in parallel or needs a different model. **A budget is a guide, not a wall:** finishing it right beats stopping at the line; if you need a bit more, log why in one line and finish. **Read in one batch:** several Read calls in ONE turn come back together in one model pass; one file per turn re-reads your whole context each time.
+
 A minion is for work that fills a turn. An edit of a few lines (a rule added to a skill, a link, a caption, a fix a reviewer named by line) you make yourself, now: a minion spawned for it waits in the memory queue for longer than the edit takes and holds the slot a real minion needs (2026-09-30, a two-line edit queued at position 9). The same holds when memory is short: a minion that has waited at the spawn gate for about 5 minutes on a piece you could build in one turn, you dequeue (stop_agent works on a queued id) and build yourself, with one log line saying so.
 
 A minion's brief dir counts as a live child from the moment its `requirements.md` exists, so write the brief before `spawn_agent` (a queued spawn has no task.jsonl yet, and the ledger hook would otherwise nag you to land).
