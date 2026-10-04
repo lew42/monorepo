@@ -434,7 +434,11 @@ export async function load_spend_tree(root_url){
 		if (!a.parent || !by_id.has(a.parent)) continue;
 		(children.get(a.parent) ?? children.set(a.parent, []).get(a.parent)).push(a.id);
 	}
-	return { by_id, children, totals: data.totals, generated_at: data.generated_at };
+	// `by_role`/`by_trigger` (token-accounting, 2026-10-04): passed straight through, not
+	// rebuilt — `Server/spend-tree.mjs` already computed them once (CLAUDE.md law 7). Found
+	// missing here by review.mjs, 2026-10-04: this destructure dropped them and the new "Cache
+	// $ breakdown" list silently never rendered.
+	return { by_id, children, totals: data.totals, generated_at: data.generated_at, by_role: data.by_role ?? [], by_trigger: data.by_trigger ?? [] };
 }
 
 // A row's trigger tag, straight from the spend tree — `null` (never guessed) when the row
@@ -633,6 +637,7 @@ export default new Page({
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
 			this.$by_role = div.c("sessions-by-role flow");
 			this.$by_trigger = div.c("sessions-by-role flow");
+			this.$cache_breakdown = div.c("sessions-by-role flow");
 		});
 	},
 
@@ -719,6 +724,31 @@ export default new Page({
 				small.c("sessions-by-role-name", t.trigger);
 				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
 			}));
+		});
+
+		// The cache $ breakdown, by role and by trigger (token-accounting, 2026-10-04) — the
+		// owner's own ask: "a breakdown... grouped by role, by trigger". Straight from
+		// `Server/spend-tree.mjs`'s own `by_role`/`by_trigger` (computed once there, never
+		// recomputed here — CLAUDE.md law 7). ALL-TIME, not date-filtered, unlike the two lists
+		// above it — spend-tree.json is a whole-history snapshot, same as the subtree note each
+		// row already shows — labelled plainly so it doesn't read as the same figure.
+		this.$cache_breakdown?.empty(() => {
+			const by_role = (this.spend?.by_role ?? []).filter(g => g.claude_usd);
+			const by_trigger = (this.spend?.by_trigger ?? []).filter(g => g.claude_usd);
+			if (!by_role.length && !by_trigger.length) return;
+			// Each caption is its own block-level `div` (review finding, 2026-10-04: two
+			// adjacent inline `small`s with no element between them ran their text together
+			// with no space — "...cached contextby role" — since `small` has no block
+			// display of its own; a `div` always starts a new line regardless).
+			div.c("muted").text("Cache $ breakdown, all-time — share of each group's $ spent re-reading cached context")
+				.attr("title", "From Server/spend-tree.mjs's own by_role/by_trigger, every agent ever registered — not the date-filtered lists above.");
+			const row = g => div.c("sessions-by-role-row flex gap-50 v-center", () => {
+				small.c("sessions-by-role-name", g.key);
+				small.c("muted", `$${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
+					+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
+			});
+			if (by_role.length){ div.c("muted", "by role"); by_role.forEach(row); }
+			if (by_trigger.length){ div.c("muted", "by trigger"); by_trigger.forEach(row); }
 		});
 	},
 
@@ -1234,6 +1264,19 @@ function session_page(root, id){
 						small.c("sessions-row-title", "$" + (c.last_prompt_usd ?? 0).toFixed(4));
 						small.c("muted", "running total $" + (c.total_usd ?? 0).toFixed(2));
 					}));
+					// The cache $ + token breakdown (token-accounting, 2026-10-04): the LATEST
+					// logged line's `usd_breakdown`/`token_totals` are already the whole
+					// session's own totals, split by token kind — the owner's own ask, "input /
+					// cache write / cache read / output tokens AND $ for each", plus the one
+					// figure named explicitly: what share of the $ is cache reads.
+					const last = costs.at(-1);
+					if (last?.usd_breakdown) div.c("sessions-cost-breakdown card flex gap-50 v-center muted", () => {
+						const b = last.usd_breakdown, t = last.token_totals ?? {};
+						small(`input ${t.input ?? "?"} tok $${b.in.toFixed(4)}`);
+						small(`cache write ${t.cache_write ?? "?"} tok $${b.cache_write.toFixed(4)}`);
+						small(`cache read ${t.cache_read ?? "?"} tok $${b.cache_read.toFixed(4)} (${last.cache_read_pct ?? 0}% of $)`);
+						small(`output ${t.output ?? "?"} tok $${b.out.toFixed(4)}`);
+					});
 				});
 
 				$box.empty(() => {

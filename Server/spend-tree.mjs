@@ -25,6 +25,7 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
 import { join, resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
@@ -137,10 +138,45 @@ function readAgentLog(id){
 	logCache.set(id, out);
 	return out;
 }
-const ownUsd = id => readAgentLog(id).usd;
 const wasHeartbeatChecked = id => readAgentLog(id).heartbeat;
 
 const isOpenRouter = model => typeof model === "string" && model.includes("/");
+
+// ---- the cache $ breakdown, straight from the agent's own transcript (token-accounting,
+// 2026-10-04) — the owner's own ask: "keeping track of these tokens very precisely in terms of
+// their cache costs... a breakdown on a session or an agent or however we're grouping these".
+// Priced through `Server/session-cost.mjs`'s one PRICES table (never a second copy — fixing the
+// cache-write price there fixes every reader, this one included). `null` for an OpenRouter agent
+// (no Claude transcript to read; its own $ is already real money, not a derived estimate) or one
+// whose transcript has aged off disk — never a fabricated split.
+const breakdownCache = new Map();
+function readUsdBreakdown(row){
+	if (!row?.session_id || isOpenRouter(row.model)) return null;
+	if (breakdownCache.has(row.session_id)) return breakdownCache.get(row.session_id);
+	let out = null;
+	const path = find_transcript(row.session_id);
+	if (path) {
+		const { total_usd, usd_breakdown, cache_read_pct } = cost_of_transcript(path);
+		if (total_usd > 0) out = { total_usd, usd_breakdown, cache_read_pct };
+	}
+	breakdownCache.set(row.session_id, out);
+	return out;
+}
+
+// The agent's own $, same "prefer the transcript" rule `Server/task-cost.mjs` uses
+// (token-accounting, 2026-10-04): the agent's own log can go quiet after a Servex restart or a
+// revive drops one `result` event, while the transcript the CLI itself writes stays complete —
+// so a LOWER agent-log total than the transcript's own usually means the log missed turns, not
+// that the transcript over-counted. Keeps `n.own_claude_usd` and `n.usd_breakdown`'s own
+// `cache_read_pct` on the SAME number (the earlier version divided a transcript-sourced
+// cache-$ by an agent-log-sourced total and printed pct over 100%, 2026-10-04 found live).
+function ownUsdFixed(row){
+	const log = readAgentLog(row.id).usd;
+	if (isOpenRouter(row.model)) return log;
+	const b = readUsdBreakdown(row);
+	if (!b) return log;
+	return log == null || b.total_usd >= log - 0.0005 ? b.total_usd : log;
+}
 
 // ---- reconstruct a spawner for a null-parent row ----
 // Priority: 1) registry's own `parent` (now written going forward by mastermind-servex-10);
@@ -188,13 +224,15 @@ function triggerOf(row, parentInfo){
 const nodes = new Map();
 for (const row of rows) {
 	const { parent, source } = reconstructParent(row);
-	const own = ownUsd(row.id);
+	const own = ownUsdFixed(row);
+	const breakdown = readUsdBreakdown(row);
 	nodes.set(row.id, {
 		id: row.id, role: row.role || null, model: row.model || null, name: row.name || null,
 		started_at: row.started_at || null, state: row.state || null,
 		parent, parent_source: source,
 		own_claude_usd: own === null ? null : (isOpenRouter(row.model) ? 0 : own),
 		own_or_usd: own === null ? null : (isOpenRouter(row.model) ? own : 0),
+		usd_breakdown: breakdown?.usd_breakdown ?? null, cache_read_pct: breakdown?.cache_read_pct ?? null,
 	});
 }
 for (const n of nodes.values()) n.trigger = triggerOf(byId.get(n.id), { source: n.parent_source });
@@ -251,6 +289,32 @@ const out = {
 const totalClaude = [...nodes.values()].reduce((s, n) => s + (n.own_claude_usd ?? 0), 0);
 const totalOr = [...nodes.values()].reduce((s, n) => s + (n.own_or_usd ?? 0), 0);
 out.totals = { claude_usd: Math.round(totalClaude * 100) / 100, openrouter_usd: Math.round(totalOr * 100) / 100 };
+
+// ---- by role, by trigger (token-accounting, 2026-10-04) — the owner's own ask: "a breakdown...
+// grouped by role, by trigger (prompt type)". Every agent's OWN $ (never the subtree — the same
+// double-counting rule the by-trigger --dry printout above already used), summed per group, plus
+// the SAME cache-read-$ sum so a reader can see "which role/trigger burns the most on re-reading
+// its own context" — not just dollars. All-time, computed once here; ai/sessions' page.js reads
+// this straight, never recomputing it (CLAUDE.md law 7).
+function groupBy(keyOf){
+	const totals = new Map();
+	for (const n of nodes.values()){
+		const key = keyOf(n) || "(unknown)";
+		const row = totals.get(key) ?? { key, claude_usd: 0, openrouter_usd: 0, cache_read_usd: 0, count: 0 };
+		row.claude_usd += n.own_claude_usd ?? 0;
+		row.openrouter_usd += n.own_or_usd ?? 0;
+		row.cache_read_usd += n.usd_breakdown?.cache_read ?? 0;
+		row.count += 1;
+		totals.set(key, row);
+	}
+	return [...totals.values()].map(r => ({
+		...r, claude_usd: Math.round(r.claude_usd * 100) / 100, openrouter_usd: Math.round(r.openrouter_usd * 100) / 100,
+		cache_read_usd: Math.round(r.cache_read_usd * 10000) / 10000,
+		cache_read_pct: r.claude_usd ? Math.round(r.cache_read_usd / r.claude_usd * 1000) / 10 : null,
+	})).sort((a, b) => (b.claude_usd + b.openrouter_usd) - (a.claude_usd + a.openrouter_usd));
+}
+out.by_role = groupBy(n => n.role);
+out.by_trigger = groupBy(n => n.trigger);
 
 if (dry) {
 	console.log(`${nodes.size} agents · $${out.totals.claude_usd} Claude · $${out.totals.openrouter_usd} OpenRouter`);

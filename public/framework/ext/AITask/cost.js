@@ -128,13 +128,18 @@ export function breakdown(m){
 			].filter(Boolean).join(" · "));
 		});
 		if (!list.length) return;
+		// `cache_read_pct` (token-accounting, 2026-10-04): `task-cost.mjs` attaches it, and
+		// `usd_breakdown`, to every agent that has a real transcript to read — blank for one
+		// that doesn't (an OpenRouter agent, or a transcript aged off disk), never a guess.
+		const has_cache_col = list.some(x => x.cache_read_pct != null);
 		table(() => {
-			thead(() => tr(() => { th("who"); th("agent"); th("model"); th("cost"); }));
+			thead(() => tr(() => { th("who"); th("agent"); th("model"); th("cost"); if (has_cache_col) th("cache reads"); }));
 			tbody(() => list.forEach((x, i) => tr(() => {
 				td(i === 0 ? "mastermind" : "minion");
 				td(x.id);
 				td(model_name(x.model));
 				td(x.usd == null ? "not measured" : money(x.usd));
+				if (has_cache_col) td(x.cache_read_pct != null ? x.cache_read_pct + "% of $" : "—");
 			})));
 		});
 		// The root is shared by every task it ran; this one's share is its time.

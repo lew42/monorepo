@@ -1,5 +1,99 @@
 # Sessions — decisions
 
+## 2026-10-04 (token-accounting) — two real accounting mistakes, found and fixed; a cache $ breakdown added
+
+The owner's own words (dictated): "make sure we're not making an accounting mistake... update in
+real time to wherever the source of truth is... everything else reads one source of truth... keep
+track of these tokens very precisely in terms of their cache costs... a breakdown on a session or
+an agent... grouped by role, maybe even per prompt type." Full brief:
+[`/framework/ai/2026-10-04/token-accounting/requirements.md`](/framework/ai/2026-10-04/token-accounting/requirements.md).
+
+**The map (item 1).** Every place a cost or token count is written or read, in one table:
+
+| writer | reads from | what |
+|---|---|---|
+| `Agents.js` (Servex) | the Anthropic/OpenRouter SDK response | `agent-<id>.jsonl`'s own `result` lines: a RUNNING `cost` total + that turn's `usage` |
+| `Server/session-cost.mjs` | a session's own `~/.claude/projects/.../*.jsonl` transcript | per-prompt $, token counts, now a $-by-token-kind split — appended to that session's `page.jsonl` as `{"cost":{...}}` after every turn (a Stop hook) |
+| `Server/task-cost.mjs` | the registry + every agent's own log, **now also the transcript** | a task's `cost_usd` on its own `task.jsonl`, the figure the AI board shows |
+| `Server/spend-tree.mjs` | the registry + every agent's own log, **now also the transcript** | `spend-tree.json`: every agent ever registered, its own $, its subtree $, by role, by trigger — now with a cache $ split too |
+| `Server/day-spend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
+| `Server/week-cost.mjs` | `session-cost.mjs`'s own `page.jsonl` cost lines | this week's real $ against the plan, the Sessions tab's stat cards |
+| `ai/sessions/page.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
+| `core/Page/weight/ai-cost.js` | `task-cost.mjs`'s own `cost_usd`/`cost.agents` (never recomputes) | the task-card breakdown table |
+| VS Code tabs | nothing writes a $ for them at all until a Stop hook runs `session-cost.mjs --append-stdin` | — |
+
+**Mistake 1 (item 2/3): the cache-write price was wrong, in the one place every reader prices a
+token.** `Server/session-cost.mjs`'s `PRICES` table (the ONLY price table in this repo — every
+other script above imports it rather than keeping its own copy) multiplied a cache-write token by
+`in × 1.25`, the rate for a 5-minute cache. Every Claude Code agent on this machine actually runs
+the 1-hour-cache rate, `in × 2`. Checked against 3 real agents, not assumed — every `result` line
+in `agent-task-mastermind-models-page.jsonl`, `agent-clarity-models-page.jsonl` and
+`agent-reviewer-models-page.jsonl` (two Sonnet, one Opus), comparing the SDK's own billed `cost`
+(ground truth — read straight from the Anthropic API response, `Agents.js:1561`) against
+`(input×in + output×out + cache_read×in×0.1 + cache_write×in×2)/1e6`: **exact to the last decimal,
+every turn**, e.g. one turn billed `$0.1862686` for `{input:8, output:1200, cache_read:739663,
+cache_write:6580}` — the `×2` formula gives exactly that; the old `×1.25` gives `$0.1763986`, 5.3%
+low. Fixed: one line in `PRICES`, which fixes every reader at once (CLAUDE.md law 6).
+
+**Mistake 2 (item 2/3, the bigger one): a task's own `cost_usd` could badly undercount, because
+the agent log it read from can go quiet.** `task-cost.mjs` and `spend-tree.mjs` both compute an
+agent's own $ by reading its `agent-<id>.jsonl` and diffing the SDK's running `cost` field —
+correct only as long as Servex captures every `result` event. A Servex restart or a mid-turn
+revive can drop one without Servex ever noticing, and the total then silently stops short forever
+(nothing says so — it just reads as a plausible, too-small number). **Found real while checking
+the 3 agents above:** `task-mastermind-models-page`'s agent log topped out at **$7.0872**; its own
+Claude Code transcript (the file the CLI writes directly, independent of Servex's own event
+pipeline) priced out to **$17.2216** for the exact same work — a 59% undercount the task's own
+card was showing as its whole cost. Spot-checking a handful more of today's tasks the same way
+(`--dry`, before vs after): `land-two-branches` $4.89 → $9.20, `local-brain` $5.36 → $28.36 (a
+long-running mastermind whose agent log had only 5 `result` lines for a session that ran for
+hours — most of its real turns were never captured at all). Across every agent Servex has ever
+registered, `spend-tree.mjs`'s own total moved from $4749 to $9622 Claude $ once both scripts
+preferred the transcript.
+
+**The fix: pick the one source (item 2).** Both scripts now call `Server/session-cost.mjs`'s
+`find_transcript(session_id)` + `cost_of_transcript(path)` — the same function `session-cost.mjs`
+itself already used for the Sessions tab's per-prompt view — and use ITS total for a non-OpenRouter
+agent whenever it reads at least as large as the agent log's own total (never smaller: a transcript
+should always be a superset of what the agent log saw; a lower reading means something else is
+wrong — an aged-off transcript, a reused session id — and the agent log stays the safer number
+rather than silently shrinking a figure the board already shows). An OpenRouter agent is untouched:
+it has no Claude transcript at all, and its own $ is already real billed money from the provider,
+not a derived estimate. `Server/doc/task-cost.md` has the same story from that script's own side.
+
+**The breakdown view (item 4).** `cost_of_transcript()` now returns a $-by-token-kind split
+(`usd_breakdown: {in, out, cache_read, cache_write}`) and `cache_read_pct` alongside its existing
+totals — computed once, carried everywhere: `session-cost.mjs`'s `page.jsonl` cost lines (shown on
+a session's own detail page, under "Logged cost"), `task-cost.mjs`'s `cost.agents` entries (one
+per agent, for whoever renders a task's own breakdown), and `spend-tree.mjs`'s per-agent nodes PLUS
+two new top-level arrays, `by_role` and `by_trigger` — the owner's own two groupings, each agent's
+own $ (never its subtree, same double-counting rule the existing by-trigger printout already used)
+summed per role/trigger alongside its cache-read $ and what % of that group's $ went to cache
+reads. The Sessions tab reads `by_role`/`by_trigger` straight (`load_spend_tree()`, already
+fetched for the subtree notes) and shows them as a new "Cache $ breakdown, all-time" list next to
+the existing date-filtered role/trigger lists — labelled "all-time" because `spend-tree.json` is a
+whole-history snapshot, not date-ranged like the lists above it, so it reads as a different figure
+rather than a silent disagreement with them.
+
+⚠ **One bug found and fixed while building the breakdown, not before landing:** the first version
+divided a transcript-sourced cache-read $ by an agent-log-sourced own-$ (two different, sometimes
+disagreeing sources — exactly Mistake 2 above), which printed `cache_read_pct` values over 100%
+for several roles. Fixed by making `spend-tree.mjs`'s own `own_claude_usd`/`own_or_usd` use the
+SAME transcript-preferring number the breakdown is computed from, so a group's cache $ is always a
+fraction of the SAME total it's a fraction of.
+
+**Left open, named rather than guessed at:** a minion with no recorded `parent` in the registry
+(`reviewer-models-page`, `clarity-models-page` — both `parent: null`) is invisible to
+`task-cost.mjs`'s own tree walk, so its $ is missing from that task's own card total even after
+this fix (`models-page`'s true total, including its reviewer and clarity passes, is closer to
+$19.50 than the $17.22 the card now shows). `spend-tree.mjs` already has a working reconstruction
+heuristic for exactly this gap (`reconstructParent()`, matching a reviewer/clarity's own `name` to
+a task slug) and its own role/trigger totals DO include these agents correctly — only
+`task-cost.mjs`'s per-task card total still misses them. Not touched here: grafting that
+reconstruction into `task-cost.mjs` is a bigger, riskier change (CLAUDE.md's "ask before major
+surgery") than this task's remaining budget covers, and the alternative — read the correct,
+already-complete total from `spend-tree.json`'s own by-role/by-trigger figures — is live today.
+
 ## 2026-10-03 (sessions-tab-polish) — empty bands, stat cards, and why OpenRouter read $0.00 in range
 
 The owner, looking at this page at 3440 (full brief:

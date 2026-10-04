@@ -76,6 +76,34 @@ restarted and began counting from zero again. The tool banks the earlier total a
 - Agents are keyed by their id. An agent that comes back under the same id after a restart
   keeps adding to the same figure.
 
+### The agent log can go quiet — the transcript is preferred when it can be (2026-10-04, token-accounting)
+
+The agent log above only grows when Servex actually captures a `result` event. A Servex restart,
+or a revive mid-turn, can drop one of those events — the real API calls still happened and were
+still billed, but nothing ever wrote them into `agent-<id>.jsonl`, so the running total silently
+stops short and never catches up. **Found real, not theoretical:** `task-mastermind-models-page`'s
+own agent log topped out at $7.09; its own Claude Code transcript (the file the CLI itself writes,
+with no dependency on Servex's own event pipeline) priced out to $17.22 for the exact same work —
+a 59% undercount the task's own card was showing as its whole cost.
+
+So for any agent that isn't OpenRouter (an OpenRouter agent's own `cost` is already real billed
+money, not a derived estimate — untouched), `task-cost.mjs` now prefers the transcript: it finds
+the agent's own session transcript by its registry `session_id`
+(`Server/session-cost.mjs`'s `find_transcript`), prices every turn through that same script's one
+`PRICES` table (`cost_of_transcript`), and uses THAT total instead of the agent log's — but only
+when it reads at least as large as the agent log's own total (the transcript should always be a
+superset; a *lower* reading means something else is wrong — an aged-off transcript, a reused
+session id — and the agent log is the safer number to fall back to rather than silently shrinking
+a figure the board already shows). `Server/spend-tree.mjs` makes the identical substitution for
+the same reason, so the two scripts' own-$ numbers for one agent never disagree.
+
+**This is also why the PRICES table's own correctness matters here, not just for `session-cost.mjs`**
+— it was wrong until this same task fixed it: cache **writes** were priced at `in × 1.25` (the
+5-minute-cache rate) when every agent on this machine actually runs the 1-hour-cache rate, `in ×
+2`. Proved against three real agents' own billed `cost` field, turn by turn, exact to the last
+decimal once the multiplier was `× 2`. See `public/framework/ai/sessions/doc/decisions.md`'s
+2026-10-04 entry for the full math and the per-agent before/after numbers.
+
 ## One agent, several tasks: split by time
 
 A mastermind that lands one task is often handed the next one, so four or five task dirs can

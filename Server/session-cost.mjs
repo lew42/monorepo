@@ -30,9 +30,23 @@ const ROOT = join(here, "..");
 // $ per 1,000,000 tokens, in/out. From the owner's own brief (2026-10-02,
 // public/framework/ai/2026-10-02/session-costs/minion-build/requirements.md) — no
 // pricing table existed in this repo before this file.
-// Cache reads run about 0.1x the input price, cache writes about 1.25x — these two
-// multipliers are ESTIMATES (the real ratio varies slightly by model); the closest
-// documented numbers are good enough for a figure the readme already calls an estimate.
+//
+// ⚠ FIXED 2026-10-04 (token-accounting): cache_write was `in * 1.25` (the 5-minute-cache
+// multiplier) — WRONG for this machine, and the real accounting mistake the owner asked
+// this task to find. Claude Code agents here run with the 1-HOUR prompt-cache TTL (see
+// this session's own environment note), whose write price is `in * 2`, not `in * 1.25`.
+// Proved against 3 real Servex agent logs, not assumed: for every `result` line in
+// `agent-task-mastermind-models-page.jsonl`, `agent-clarity-models-page.jsonl` and
+// `agent-reviewer-models-page.jsonl`, the SDK's own billed `cost` (the ground truth
+// Anthropic actually charged, read straight off the API response — see Agents.js:1561)
+// matches `(input*in + output*out + cache_read*in*0.1 + cache_write*in*2) / 1e6` to the
+// LAST DECIMAL, every single turn — e.g. one turn: cost=0.1862686, usage
+// {input:8, output:1200, cache_read:739663, cache_write:6580} → with *2 the formula gives
+// exactly 0.1862686; with the old *1.25 it gives 0.1763986, 5.3% low. The *0.1 cache-read
+// multiplier was already correct (same exact-match test) — only cache_write was wrong.
+// This table is the ONE place any script in this repo prices a token (session-cost.mjs,
+// week-cost.mjs, spend-tree.mjs all import it) — fixing it here fixes every reader at once,
+// per CLAUDE.md law 6: no second copy of a price table to go stale separately.
 export const DEFAULT_MODEL = "claude-sonnet-5";
 export const PRICES = {
 	"claude-sonnet-5":  { in: 2,  out: 10 },
@@ -42,15 +56,17 @@ export const PRICES = {
 	"claude-fable-5":   { in: 10, out: 50 },
 	"claude-fable-5-1": { in: 10, out: 50 },
 };
-for (const p of Object.values(PRICES)) { p.cache_read = p.in * 0.1; p.cache_write = p.in * 1.25; }
+for (const p of Object.values(PRICES)) { p.cache_read = p.in * 0.1; p.cache_write = p.in * 2; }
 
 const r4 = n => Math.round(n * 10000) / 10000;
 
 // An unknown model name falls back to the default's price and is listed in the
 // result's `unknown_models` — never thrown, this is an estimate, not a hard failure.
-function price_for(model, unknown_models){
+// Exported: the one function every other script should call to price a call, instead of
+// reading PRICES directly and re-deriving the same fallback-and-report logic a second time.
+export function price_for(model, unknown_models){
 	if (PRICES[model]) return PRICES[model];
-	unknown_models.add(model);
+	unknown_models?.add(model);
 	return PRICES[DEFAULT_MODEL];
 }
 
@@ -67,10 +83,13 @@ const lines_of = file => existsSync(file)
 // real prompt boundary and is skipped when looking for "the nearest earlier user line".
 export function cost_of_transcript(path){
 	const unknown_models = new Set();
-	const groups = [];                 // in file order: { at, usd, input, output, cache_read, cache_write, model }
+	// `usd_in`/`usd_out`/`usd_cache_read`/`usd_cache_write` are the SAME `usd` total, split by
+	// which kind of token earned it — the per-call breakdown the token-accounting task asked
+	// for ("precisely... their cache costs"), computed once here (never re-derived elsewhere).
+	const groups = [];                 // in file order: { at, usd, usd_in, usd_out, usd_cache_read, usd_cache_write, input, output, cache_read, cache_write, model }
 	let current = null;
 	const group_for = at => {
-		if (!current || current.at !== at) { current = { at, usd: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, model: null }; groups.push(current); }
+		if (!current || current.at !== at) { current = { at, usd: 0, usd_in: 0, usd_out: 0, usd_cache_read: 0, usd_cache_write: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, model: null }; groups.push(current); }
 		return current;
 	};
 
@@ -87,15 +106,34 @@ export function cost_of_transcript(path){
 		const price = price_for(model, unknown_models);
 		const input = usage.input_tokens || 0, output = usage.output_tokens || 0;
 		const cache_read = usage.cache_read_input_tokens || 0, cache_write = usage.cache_creation_input_tokens || 0;
-		g.usd += (input * price.in + output * price.out + cache_read * price.cache_read + cache_write * price.cache_write) / 1e6;
+		const usd_in = input * price.in / 1e6, usd_out = output * price.out / 1e6;
+		const usd_cache_read = cache_read * price.cache_read / 1e6, usd_cache_write = cache_write * price.cache_write / 1e6;
+		g.usd += usd_in + usd_out + usd_cache_read + usd_cache_write;
+		g.usd_in += usd_in; g.usd_out += usd_out; g.usd_cache_read += usd_cache_read; g.usd_cache_write += usd_cache_write;
 		g.input += input; g.output += output; g.cache_read += cache_read; g.cache_write += cache_write;
 		g.model = model;
 	}
 
 	const by_prompt = groups.filter(g => g.input || g.output || g.cache_read || g.cache_write)
-		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model }));
+		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model,
+			usd_breakdown: { in: r4(g.usd_in), out: r4(g.usd_out), cache_read: r4(g.usd_cache_read), cache_write: r4(g.usd_cache_write) } }));
 	const total_usd = r4(by_prompt.reduce((n, g) => n + g.usd, 0));
-	return { total_usd, by_prompt, unknown_models: [...unknown_models] };
+	// The SAME four numbers, summed across every prompt — the session's own total breakdown,
+	// plus the one figure the brief named explicitly: what share of the $ came from cache reads.
+	const usd_breakdown = by_prompt.reduce((n, g) => ({
+		in: n.in + g.usd_breakdown.in, out: n.out + g.usd_breakdown.out,
+		cache_read: n.cache_read + g.usd_breakdown.cache_read, cache_write: n.cache_write + g.usd_breakdown.cache_write,
+	}), { in: 0, out: 0, cache_read: 0, cache_write: 0 });
+	for (const k of Object.keys(usd_breakdown)) usd_breakdown[k] = r4(usd_breakdown[k]);
+	const cache_read_pct = total_usd ? r4(usd_breakdown.cache_read / total_usd * 100) : 0;
+	// The raw token counts behind `usd_breakdown` — review finding, 2026-10-04: the brief asked
+	// for "input / cache write / cache read / output tokens AND $ for each", and the $ split
+	// alone left the token counts out.
+	const token_totals = by_prompt.reduce((n, g) => ({
+		input: n.input + g.input, output: n.output + g.output,
+		cache_read: n.cache_read + g.cache_read, cache_write: n.cache_write + g.cache_write,
+	}), { input: 0, output: 0, cache_read: 0, cache_write: 0 });
+	return { total_usd, usd_breakdown, cache_read_pct, token_totals, by_prompt, unknown_models: [...unknown_models] };
 }
 
 // The one most useful string for a tool_use block's own `input` — ai/sessions'
@@ -216,11 +254,17 @@ export function append_cost(session_id, root = ROOT){
 	// minimum shape — the Sessions detail page (ai/sessions/page.js) shows a compact per-prompt
 	// row with token counts, which needs them; harmless to any reader that only looks at
 	// `total_usd`/`last_prompt_usd`/`by_model`.
+	// `usd_breakdown`/`cache_read_pct` (token-accounting, 2026-10-04) are the same, additive:
+	// the session's whole-run $ split by token kind, and the one figure the owner asked for by
+	// name — what share of the $ is cache reads. `last_prompt_usd_breakdown` is the same split
+	// for just the newest prompt, matching `last_prompt_usd`'s own "just this turn" grain.
 	const tmpdir_path = mkdtempSync(join(tmpdir(), "session-cost-"));
 	const tmp = join(tmpdir_path, "line.json");
 	writeFileSync(tmp, JSON.stringify([{ cost: {
 		total_usd: result.total_usd, last_prompt_usd: last ? last.usd : 0,
 		last_prompt_input: last ? last.input : 0, last_prompt_output: last ? last.output : 0,
+		usd_breakdown: result.usd_breakdown, cache_read_pct: result.cache_read_pct, token_totals: result.token_totals,
+		last_prompt_usd_breakdown: last ? last.usd_breakdown : null,
 		by_model, source: "claude", at: "NOW",
 	} }]));
 	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), page, tmp], { stdio: "pipe", windowsHide: true });

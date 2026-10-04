@@ -63,6 +63,13 @@ older `cost` figure:**
   reading of what it's for — does a review pay for itself, where the dollars go — is
   [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
 
+**Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a session's
+own detail page now shows input/cache-write/cache-read/output $ under "Logged cost". The `cost by
+role`/`cost by trigger` lists have a sibling, all-time "Cache $ breakdown" list, same split,
+grouped. Two real accounting bugs were found and fixed along the way (a wrong cache-write price,
+and a task's own `cost_usd` undercounting a revived agent by up to 59%) — `doc/decisions.md`'s
+2026-10-04 entry has the full story.
+
 ## Where the real dollars come from
 
 Two SEPARATE scripts, neither live — both are run by hand and read by the page, same shape as
