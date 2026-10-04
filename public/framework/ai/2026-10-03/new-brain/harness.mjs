@@ -42,7 +42,8 @@ export async function callModel({ model, messages, temperature = 0.1, max_tokens
 				temperature,
 				max_tokens,
 				usage: { include: true },          // OpenRouter returns the real charge in usage.cost
-				reasoning: { effort: "low" }       // reasoning models spent the whole budget thinking and answered ""
+				reasoning: { effort: "low" },      // reasoning models spent the whole budget thinking and answered ""
+				...(process.env.OR_PROVIDER ? { provider: { order: [process.env.OR_PROVIDER], allow_fallbacks: false } } : {})   // e.g. OR_PROVIDER=Groq
 			})
 		});
 		if (!res.ok) {

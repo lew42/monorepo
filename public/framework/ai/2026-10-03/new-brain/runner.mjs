@@ -214,7 +214,7 @@ Note: In Lew42, Item extends Events(Object). Why did this error occur and how do
 		recoveryResults
 	};
 
-	fs.writeFileSync("public/framework/ai/2026-10-03/new-brain/eval-results.json", JSON.stringify(finalReport, null, 2));
+	fs.writeFileSync(process.env.OUT || "public/framework/ai/2026-10-03/new-brain/eval-results.json", JSON.stringify(finalReport, null, 2));
 	console.log("\nWrote results to public/framework/ai/2026-10-03/new-brain/eval-results.json");
 }
 
