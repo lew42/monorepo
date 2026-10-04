@@ -6,6 +6,7 @@ import { Skill, Ask, Task } from "./objects.js";
 import { cards, card, flow } from "/framework/ux/Content/structure/Structure.js";
 import { table } from "/framework/ui/table/table.js";
 import { page_settings } from "/framework/core/Page/settings/settings.js";
+import DataGrid from "/framework/ext/DataGrid/DataGrid.js";
 
 /* THE TOP TABS of /framework/ai/: Inbox (the default), Log and System (the owner, 2026-09-30:
    "log is everything. And inbox is only… priority… and above"). Inbox and Log are the SAME
@@ -351,6 +352,12 @@ function bar_facet_svg(rows){
 }
 
 function render_models(data){
+	// Review finding 3 (2026-10-04): the owner's own ask — one row per model, everything about IT —
+	// is the main thing this tab is FOR, so it comes first, above the fold. The value-per-task-kind
+	// analysis below it (which model to use for which JOB) is detail, one scroll down.
+	if (data.catalog?.length) render_catalog(data.catalog, data.catalog_note);
+
+	heading("Value per task kind", "Which model to pick for which kind of work — rule tests, probes, and the test library's rungs, not a per-model catalog (that's above).");
 			// --- The cheap ladder: which models pass the four simple rungs, cheapest first? ---
 		if (data.ladder && data.ladder.rows.length){
 			heading("The cheap ladder", "Which models pass four simple tests? Cheapest first — free models at the top.");
@@ -410,6 +417,48 @@ function render_models(data){
 		md(line);
 	});
 	md("*Rows with no cost or no real run are left out of the chart and the best-value line, not shown as zero.*");
+}
+
+const fmt_ctx = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" : String(n);
+const fmt_ms = s => s == null ? "—" : s + "s";
+const fmt_tok = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" : String(n);
+// Catalog prices can be a real, published $0 (a local model, self-hosted) — fmt_usd's own
+// "<$0.001" reads as "almost nothing" for those, so this one says "free" instead.
+const fmt_price = n => n === 0 ? "free" : fmt_usd(n);
+
+function render_catalog(rows, note){
+	heading("Every model, one row each", "Provider, context window, price (including a cached read), and our own test scores on the same prompt. Click a header to sort; the controls above the grid filter it.");
+	new DataGrid({
+		columns: [
+			{ key: "label", label: "Model", min: 160, width: 200 },
+			{ key: "provider", label: "Provider", min: 100 },
+			// Review finding 6: a `type: "number"` column gets its own min/max filter box, automatically —
+			// fine for one or two, noise for eleven stacked above a 17-row grid. Only Context keeps one;
+			// the rest opt out with `filter: false` (sort still works on every column).
+			{ key: "context", label: "Context", type: "number", min: 90, format: fmt_ctx },
+			{ key: "price_in_per_m", label: "$/M in", type: "number", min: 80, format: fmt_price, filter: false },
+			{ key: "price_out_per_m", label: "$/M out", type: "number", min: 80, format: fmt_price, filter: false },
+			{ key: "price_cache_in_per_m", label: "$/M cached in", type: "number", min: 90, format: fmt_price, filter: false },
+			{ key: "docs", label: "Docs", type: "number", min: 70, format: fmt_pct, filter: false },
+			{ key: "reasoning", label: "Reasoning", type: "number", min: 80, format: fmt_pct, filter: false },
+			{ key: "refine", label: "Refine", type: "number", min: 70, format: fmt_pct, filter: false },
+			{ key: "seconds", label: "Seconds", type: "number", min: 70, format: fmt_ms, filter: false },
+			{ key: "tokens_in", label: "Tokens in", type: "number", min: 80, format: fmt_tok, filter: false },
+			{ key: "tokens_out", label: "Tokens out", type: "number", min: 85, format: fmt_tok, filter: false },
+			{ key: "typical_minion_usd", label: "Typical minion $", type: "number", min: 110, format: fmt_price, filter: false },
+		],
+		rows,
+	}).ac("wide").style("--datagrid-height", "none");
+	if (note) small.c("muted", note);
+
+	heading("Why the numbers look the way they do", "Five things worth knowing before you compare models by price.");
+	md([
+		"- **A \"read\" is huge because every turn re-sends the whole conversation.** An agent's context doesn't shrink between turns — turn 10 re-reads everything turns 1 through 9 already said. So the total tokens read grows roughly as *(number of turns) × (context size)*, which is why a long task's read count can be 10–100× its write count. Measured across real minions this week, 93–99% of that reread is served from the prompt cache, not billed at full price.",
+		"- **Cache prices differ by provider.** Anthropic charges a cache *read* at about 10% of its normal input price (and a cache *write*, the first time a prefix is seen, at about 125% of it). OpenRouter publishes each model's own `input_cache_read` price in its catalog — some models have none at all, and this table charges those rows the full input price for their \"cached\" share rather than inventing a discount.",
+		"- **Forking a session only reuses the cache on the SAME model.** The cache key is tied to the exact model (and provider) that wrote it, so a fork that switches models pays full price for the whole context again, even though the words are identical.",
+		"- **A local model's file size is roughly its VRAM need.** The weights have to fit in VRAM, plus about 1–2 GB more for the context window itself — a 7B model's ~5 GB file needs about 6–7 GB of VRAM to run with room for a real conversation.",
+		"- **`qwen2.5-coder` struggles with tool calls** — fine for a one-shot \"write this file\" job, weak as a multi-step agent that has to call tools correctly in a loop.",
+	].join("\n"));
 }
 
 /* "How thinking works" — ai/system/thinking/ (Phase 9 + 10). One screen, one picture: what runs on
