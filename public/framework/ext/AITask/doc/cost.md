@@ -68,3 +68,23 @@ another day, or under another effort), the child is counted, or its money would
 be missing from that total altogether.
 
 The code is `cost.js`; its demo is the Task cost section of this module's page.
+
+## Two currencies, and what got touched — the day page
+
+`cost.js`'s own totals above are all **Claude $**: subscription usage, priced at Anthropic's
+table, the only currency a task run on a plain Claude model spends. A task run through
+OpenRouter or another API key spends **real $** instead — actual money billed
+(`Servex/ext/openrouter/provider.js`'s `provider_for()`: a model id with a `/` in it,
+`openai/gpt-6-luna`, is the OpenRouter rule; its agent's own cost figure is already the real
+dollar amount, not Anthropic's priced guess).
+
+`Server/day-spend.mjs <date>` reads a day's own tasks (their already-written `cost.agents`, never
+recomputing a cost itself) plus every task's `action` log lines, and writes
+`public/framework/ai/<date>/spend.json`: the day's Claude $ and real $ totals, a by-model
+breakdown, and which **module** (`core/Page`, `ux/Dictate`, `Servex`, …) each file touched
+belongs to. `module-spend.js` draws it on the day page — two totals, then a list of modules
+touched, each a page-icon-item (`ext/Mention`'s `build_row`) linking to
+`/framework/ai/<date>/module/<slug>/`, that module's own tasks and outcomes for the day
+(`ai/page.js`'s day route). A module's own dollar total is deliberately not shown: a task that
+spans several modules would be counted under each of them, which would no longer sum to the
+day's real total above it.

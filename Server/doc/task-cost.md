@@ -15,6 +15,10 @@ node Server/task-cost.mjs --agent minion-card-view                   every task 
   --root <repo>  whose public/framework/ai/ to read (default: the repo the script is in)
 ```
 
+A day's own total, split into Claude $ and real $, and which module each task touched, is a
+separate sibling script that reads what this one already wrote: `Server/day-spend.mjs <date>` —
+`public/framework/ext/AITask/doc/cost.md`'s "Two currencies, and what got touched" section.
+
 ## When to run it
 
 Run it when a task lands, and again any time after. Running it twice does no harm. It adds a
