@@ -4,6 +4,22 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
+## After a PC restart: check this (2026-10-03, observed)
+- Servex, the port-80 gate, the dev server and whisper start by themselves. Working agents do NOT resume: revive each one with an unlanded task (send_to_agent revive:true). Run CronList before re-creating a session cron: the VS Code session reattaches and its crons can survive. What came back and what didn't: [restart-observe](/framework/ai/2026-10-03/restart-observe/).
+
+## 2026-10-03 2:45 pm: before the owner's PC restart (vscode-mastermind)
+- **Answer on the Now card** (/framework/ai/2026/10/03/now/, `talking` item, newest first; write nested lines `{"talking": {...}}` with .claude/hooks/append.mjs); the sidebar gets a line + link.
+- **Cut off by the restart, revive after:** @task-mastermind-topic-cards (Now topics as sub-cards), @task-mastermind-system-class (nothing committed under core/System yet), @mastermind-servex-10 (the restart-kills-agents fix). Held: @task-mastermind-framework-home-grids, the git/context/cost pages (ai/2026-10-03/ai-git-context-cost/).
+- **Re-create the hourly check-in cron** (session-only, lost on restart). Usage far over pace (67% week at 38% elapsed): two agents at a time, Sonnet.
+- **Never** the mcp__playwright tools (denied in .claude/settings.json; they pop windows).
+
+## 2026-10-02 night: for a fresh VS Code mastermind tab (vscode-mastermind)
+- **Who owns what:** @mastermind-page-2 (Gemini 3.8 Flash: core/Page, Item, List, Task, content, and the UI queue), @mastermind-ai-2 (Gemini 3.8 Flash: /framework/ai/, sessions, cards, models), @task-mastermind-one-dictation (Dictate, chat, drawer), @mastermind-servex-10 (Opus: Servex, RAM, token reduction, known issues). Route new asks to the owner with send_to_agent; don't spawn new task masterminds.
+- **The queue:** `ai/2026-10-02/roadmap/requirements.md`, section "Owners". **The design:** `ai/2026-09-30/proposal-flow/page-item-design.md` (top sections are newest: List has events, no LiveList; sessions are pages in `ai/YYYY/MM/DD/`).
+- **Budget:** the Claude week was 56% used at ~30% elapsed. OpenRouter has a +$40 burst until Monday (`%LOCALAPPDATA%/lew42/servex/openrouter-burst.json`); push hands-on work there. RAM: leftover dev servers are the leak (node-reap with servex-10).
+- **The owner's standing rules this session:** replies get at most 3 headings, bold-titled bullets, short; decide and don't park; one source of truth; class folder = file = class name; pages are live (page tools); refine only the owner's prompts.
+- **Why a fresh tab:** the old one (361c4d18) cost about $168 at API prices since the weekly reset, 83% of it re-reading its own huge context on every step.
+
 ## The state, in one paragraph
 
 **Servex is running, and it is the always-on process now.** `Servex/` in this repo (ported today

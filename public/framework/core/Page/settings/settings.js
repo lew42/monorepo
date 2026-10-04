@@ -31,11 +31,11 @@
 // falls back to fetching blind, exactly as it always did; that half never changed.
 //
 // ⚠ Reads `/directory.json` itself, the same shape `core/Page/Markdown.js`'s own
-// `tree()`/`node()` walk — NOT by importing that file. This module is reachable from
-// `core/Page/Log.js` (`tab_visible()`/`nav_ready()`, below Log.js's own import), and
-// `Page.class.js extends PageLog` (Log.js): importing `Markdown.js`, which imports
-// `Page.class.js`, would close a cycle back through the very class still being defined
-// — `Page.class.js → Log.js → settings.js → Markdown.js → Page.class.js` — and threw
+// `tree()`/`node()` walk — NOT by importing that file. This module is imported
+// directly by `Page.class.js` (`tab_visible()`/`nav_ready()`, folded in from the
+// deleted PageLog class, 2026-10-03): importing `Markdown.js`, which imports
+// `Page.class.js`, would close a cycle back through the very class still being
+// defined — `Page.class.js → settings.js → Markdown.js → Page.class.js` — and threw
 // "Cannot access 'Page' before initialization" on every single page, sitewide, the one
 // time this was tried (2026-09-29). A dozen lines duplicated here is cheaper than that.
 

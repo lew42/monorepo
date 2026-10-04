@@ -1,17 +1,32 @@
-# review — a fresh agent checks the work, in four turns
+# review — the mastermind reads first, a fresh agent checks when it's needed
 
-An agent that reviews its own code agrees with itself. So before a branch merges, a **fresh**
-agent — one that never saw the author's conversation — reads the brief and the diff and says
+## Who reviews (the owner, 2026-10-02)
+
+1. **The mastermind reads every minion's diff itself first:** the brief, the diff and the result. It has the files in its context already, so this read costs almost nothing.
+2. **A fresh reviewer is added only when something is in doubt, or when the change touches a page or a layout.** That reviewer is `review.mjs`, below. A page or layout change always gets one, with screenshots.
+3. **The fix goes to whoever is best placed.** That is usually the fresh reviewer: it knows the problem best, and it can be revived to make the fix (`send_to_agent` to its `reviewer-<task>` id, with `revive: true`). The builder answers instead when it knows why the fix won't work.
+4. **The mastermind rules once** (turn 4). Its ruling is the last word.
+
+Every agent in a review seeks agreement and the simplest fix that works (the MVP), as fast as possible. Raising a concern is good; arguing is not. A review must never turn into analysis paralysis.
+
+**When the mastermind's own read is enough** (no doubt, no page), it records that read so the merge gate sees one: `node Server/review.mjs <taskdir> <worktree> --size none --why "mastermind read: <what it checked, one line>"`. The `--why` is logged as a `decision` line. Token reduction item 5 (`ai/2026-10-02/token-reduction/`) will give this read its own record. Until then, `--size none` is the route.
+
+## Why a fresh agent
+
+An agent that reviews its own code agrees with itself. So when a review is needed, a **fresh**
+agent (one that never saw the author's conversation) reads the brief and the diff and says
 pass or fix. Nothing is said out of turn or goes unheard: every finding is answered, every
-decline is heard back, and anything still stuck goes to a person. Everything below is logged,
+decline is heard back, and anything still stuck goes to the mastermind. Everything below is logged,
 one small line per step, to a new file beside the task: `<taskdir>/review.jsonl`.
+
+⚠ **Answers live in `task.jsonl`; `review.jsonl` holds a copy only after `--turns` runs.** Count answers from `task.jsonl`. On 2026-10-02, 30 of 57 `review.jsonl` files held findings but no answers, although many of those tasks had answered every finding in their `task.jsonl` (stalled-and-budgets: 7 findings, 7 answers, none copied).
 
 ## The four turns
 
 | # | Turn | Who writes it | Command |
 |---|---|---|---|
 | 1 | **Finding** — the reviewer reads the diff and says what's wrong | a fresh reviewer agent | `node Server/review.mjs <taskdir> [<worktree>]` |
-| 2 | **Answer** — the author fixes it or explains why not | the author, by hand, in `task.jsonl` | `node Server/review.mjs --turns <taskdir>` (mirrors it in) |
+| 2 | **Answer** — whoever is best placed fixes it (usually the reviewer, revived), or the builder explains why it won't work | that agent, in `task.jsonl` | `node Server/review.mjs --turns <taskdir>` (mirrors it in) |
 | 3 | **Reply** — for a decline only: does the reviewer accept the reason, or still hold it needs fixing | a second fresh reviewer agent | (also `--turns`, automatic) |
 | 4 | **Ruling** — for a hold only: the mastermind settles it, once | the task mastermind, by hand | `node Server/review.mjs --rule <taskdir> <n> <fix\|stands> "<why>"` |
 
@@ -67,27 +82,45 @@ question, covered next, because it depends on whether a page was touched, not on
 The task mastermind may lower the size only with `--why "self-evident: <one line>"` (logged as a
 `{"decision":...}` line so the reason survives); raising it needs no reason.
 
-## Screenshots and the review skill (also turn 1)
+## Which widths (also turn 1)
 
 Any review — `light` or `full` — whose diff changes at least one `page.js`/`page.jsonl` gets
-screenshots FIRST, at four widths — 400, 1200, 1920 and 3440 (a phone size, a size just past
-mobile, a common desktop size, and the widest common screen) — via:
+screenshots FIRST, at whichever widths the change actually needs — not always all four. The
+owner, on taking a screenshot at every width for every change: "it doesn't make sense to take
+three extra screenshots when one would do … depends on the width of the content." `widthsFor`
+(`Server/review.mjs`, exported) decides, in this order — first match wins:
+
+| The change | Widths | Why |
+|---|---|---|
+| only `.md`, or text in a `page.js`, no css | **1200** alone | words, not layout — one look is enough |
+| a layout word (`grid`, `columns`, `sidebar`, `flex`, `width`, `@container`, `@media`, a `styles/layouts/` class) in a changed css/js file, any file under `core/Page`, `core/Sidebar`, `styles/`, or more than one page touched | **400, 1200, 1920, 3440** | this can reshape the page at any width |
+| one css file, scoped to one component, capped with `max-width` | **400** alone | if it works at 400 it works wider — same words |
+| anything else | **400, 1920** | a phone check and a common desktop check |
+
+`--widths 1200,1920` overrides the pick by hand, same flag on both `review.mjs` and
+`merge.mjs --quick` below. Taken via:
 
 ```
-node Server/layout-check.mjs <urls> --widths 400,1200,1920,3440 --bands --out <taskdir>/shots/
+node Server/layout-check.mjs <urls> --widths <picked> --bands --out <taskdir>/shots/
 ```
 
 `--bands` (`Server/layout-check.mjs`'s own header) adds, for every width: `tab_rows` (did a tab
 bar wrap into more than one row), `left_stack` (the padding stacked at the page's own left edge,
 layer by layer), `bands` (every top-level section's share of the screen, and how much of that
 share actually has content on it), and `wraps` (anything that wrapped to a second line when it
-looks like it shouldn't have). This is skipped if every page already has all four widths' pngs
-under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is appended
-to `task.jsonl`:
+looks like it shouldn't have). This is skipped if every page already has a png at every width
+picked, under `shots/<page-slug>/` — the task mastermind may have shot them first. One line is
+appended to `task.jsonl`, naming the widths actually used:
 
 ```json
-{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"]}}
+{"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
 ```
+
+**`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
+skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
+then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
+`writeNoReviewPass` the `none` row above uses) so the merge gate and the dashboard see a real
+record with no agent cost. Detail and the exit codes: `merge.mjs`'s own header comment.
 
 The reviewer is then told to load the `review` skill (`.claude/skills/review/SKILL.md`) and
 follow it: read the brief, the owner's own words, the diff, the shots and each page's
@@ -131,6 +164,13 @@ an answer meant for the second pass's finding 3 silently overwrites the first pa
 3's answer, by number — a real trap, not a theoretical one (`review-turns`, 2026-09-28, minion C's
 own mistake mid-task; caught and corrected the same way, an appended corrective answer line).
 
+## The one file API check
+
+Every review run first fails the branch if any file under `public/` (the dated task logs
+`ai/20*` excepted) calls the dev socket's `write` or `append` RPC outside
+`ext/filesystem/FsFile.js` and `dev/Socket/`, before any agent is paid for. Run it alone
+with `node Server/review.mjs --file-api <worktree>`. Why: [`ext/filesystem/readme.md`](../../public/framework/ext/filesystem/readme.md), "One file API".
+
 ## The merge gate
 
 `Server/merge.mjs` refuses a `light` or `full` branch that has no review newer than its last
@@ -139,6 +179,12 @@ run. This is unchanged by the turns above — the gate only ever reads `task.jso
 also touches a page is refused unless that review has its own page report (`review/report.md`,
 with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
 gets is not enough for a page.
+
+Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
+layout problems, same as a console error: text sitting within 2px of its box's own edge with no
+real padding between them (the "$1,128 of AI work" line that sat flush against a page's top
+edge, 2026-10-03), and anything painted above a page's own `h1.page-title`/`h1.doc-title`. Detail
+and the exact rule is in `layout_edge_problems()`'s own header comment in `smoke.mjs`.
 
 `node Server/review.mjs --status <taskdir>` prints the phrase the task's card shows on the
 board: `reviewed: pass`, `reviewed: 2 fixed, 1 declined`, `reviewed: 2 unanswered: #3, #7`, or

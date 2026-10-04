@@ -45,7 +45,7 @@ function verbs_of(file, name){
 
 console.log("— 1. the schema agrees with each reader —");
 for (const [kind, s] of Object.entries(schemas)){
-	if (s.reader.class){
+	if (s.reader?.class){
 		const reader = new Set(verbs_of(s.reader.file, s.reader.class));
 		const mine = Object.entries(s.verbs).filter(([, v]) => !v.extra).map(([k]) => k);
 		const pending = new Set(s.pending ?? []);
@@ -77,6 +77,12 @@ ok(/takes an object/.test(check(T, { log: "a string" }) ?? ""), "task.jsonl: a s
 ok(check(T, { experiment: { try: "a", measure: "b", result: "c" } }) === null, "task.jsonl: experiment is accepted");
 ok(check(T, { review: { found: 3, real: 2, fixed: 2 } }) === null, "task.jsonl: review is accepted");
 ok(check(T, { group: "system-design" }) === null, "task.jsonl: {group:\"slug\"} is accepted");
+ok(check(T, { snooze: { at: "t", until: "2026-10-03T09:00:00-05:00", by: "owner" } }) === null, "task.jsonl: snooze is accepted");
+ok(/missing "until"/.test(check(T, { snooze: { at: "t", by: "owner" } }) ?? ""), "task.jsonl: a snooze with no until is refused");
+ok(check(T, { kill: { at: "t", why: "duplicate", by: "owner" } }) === null, "task.jsonl: kill is accepted");
+ok(/missing "why"/.test(check(T, { kill: { at: "t", by: "owner" } }) ?? ""), "task.jsonl: a kill with no why is refused");
+ok(check(T, { priority: { at: "t", score: 95, why: "owner asked", by: "owner" } }) === null, "task.jsonl: priority is accepted");
+ok(/missing "score"/.test(check(T, { priority: { at: "t", why: "owner asked", by: "owner" } }) ?? ""), "task.jsonl: a priority with no score is refused");
 ok(/flat line/.test(check("ai/2026-09-30/day.jsonl", { at: "t", task: "x", msg: "m" }) ?? ""), "day.jsonl: a flat line is refused");
 ok(/missing "task"/.test(check("ai/2026-09-30/day.jsonl", { log: { at: "t", msg: "m" } }) ?? ""), "day.jsonl: a log with no task is refused");
 ok(check("a/b/page.jsonl", { status: "done", anything: 1 }) === null, "page.jsonl: open — any key is plain data");
@@ -86,6 +92,18 @@ ok(/one JSON object/.test(check("x/usage.jsonl", [1]) ?? ""), "an array line is 
 ok(check_event("cards/live", { type: "focus", ref: "x" }) === null, "append_log: a typed event is accepted");
 ok(/task.jsonl-style/.test(check_event("servex", { log: { msg: "x" } }) ?? ""), "append_log: a verb-shaped task line is refused with the pointer");
 ok(/never a repo file/.test(check_event("task", { type: "x" }) ?? ""), "append_log: a name that means a repo task log is refused");
+
+console.log("— 2b. flags.jsonl: a FLAT schema (no verb key) —");
+ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear" }) === null, "flags.jsonl: the three required fields are accepted");
+ok(check("flags.jsonl", { at: "t", target: "x", verdict: "clear", what: "…", to: "…", kind: "landing" }) === null, "flags.jsonl: the optional fields ride along fine");
+ok(/missing "verdict"/.test(check("flags.jsonl", { at: "t", target: "x" }) ?? ""), "flags.jsonl: a line with no verdict is refused");
+ok(/must be one of/.test(check("flags.jsonl", { at: "t", target: "x", verdict: "not-a-real-verdict" }) ?? ""), "flags.jsonl: an unlisted verdict is refused");
+{
+	const fs_mod = await import("node:fs");
+	const lines = fs_mod.readFileSync(join(ROOT, ".claude/skills/clarity/flags.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+	const bad = lines.map((l, i) => [i + 1, check("flags.jsonl", l)]).filter(([, why]) => why);
+	ok(bad.length === 0, `flags.jsonl: every existing line passes the schema${bad.length ? " — first bad: line " + bad[0][0] + ": " + bad[0][1] : ""}`);
+}
 
 console.log("— 3. append.mjs end to end —");
 {

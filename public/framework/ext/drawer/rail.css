@@ -204,6 +204,13 @@
 	.drawer-rail-sheet .drawer-rail-sheet-panel > .ux-dictate-widget {
 		flex: 1 1 auto; min-block-size: 0;
 	}
+	/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is the new flex parent of
+	 * the feed card AND the composer panel below it — same reasoning as the override right
+	 * below it had for the card alone, just one level further in now that the composer is
+	 * the card's own sibling instead of a child: `ux/Dictate/Widget.css`'s own doc comment. */
+	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-shell {
+		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
+	}
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-card {
 		flex: 1 1 auto; min-block-size: 0; max-block-size: none;
 	}

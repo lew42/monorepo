@@ -17,7 +17,7 @@
  * `ux/Dictate/Dictate.js`, and never reaches this snapshot. */
 import { View, div, span, button, label, input } from "/framework/core/View/View.js";
 import Capture from "/framework/ux/Dictate/capture.js";
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -479,7 +479,7 @@ export default class Dictate extends View {
 			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
 				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
 			const loud = this.capture.loudness(samples, this.speech_floor);
-			return Socket.singleton().async_rpc("append", file, { dump: {
+			return FsFile.append(file, { dump: {
 				at: new Date().toISOString(), rate: this.capture.rate(), seconds: +loud.seconds.toFixed(3),
 				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
 				wav_base64: btoa(binary),
@@ -572,7 +572,7 @@ export default class Dictate extends View {
 		// fallback below has no clock of its own, so that path still stamps one itself.
 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
 		if (await post_prompt(entry, this.log_url)) return;
-		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
 	}
 

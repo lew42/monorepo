@@ -254,6 +254,9 @@
 
 	.v3-prompt-refined { font-size: 1.05em; line-height: 1.45; cursor: default; }
 	.v3-prompt-cites { display: block; margin-block-start: 0.2em; font-size: 0.75rem; }
+	/* The mode switch itself (`ext/Refine/prompt-card.js`, `.refine-modes-*`) carries its
+	   own stylesheet now — moved there 2026-10-02 once `ai2` needed the same component,
+	   so this page's CSS and `ai2/rail.css` don't each need a copy. */
 
 	/* A chip is a CONTROL, so its padding stays in its own em — never a
 	   spacing clamp (`layout`: a clamp is space between content, never the

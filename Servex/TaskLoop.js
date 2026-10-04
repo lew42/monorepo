@@ -184,6 +184,18 @@ export default class TaskLoop {
                 ? await ask({ card, question, options: ["close it", "keep chasing"], from: info.state.agent }, { caller: "servex-task-loop" })
                 : await this.servex.assistant.card_reply({ card, from: "servex-task-loop", text: question });
         } catch (e){ said = `not delivered: ${e.message || e}`; }
+        /* NEVER-LOSE-A-WAKE, item 4 (2026-10-01): `card` defaults to "live" when a task names
+         * none, but "live" (or whatever it names) can still answer `{ok:false, why:'no card
+         * "…"'}` — a card_ask/card_reply never throws for a missing card, it just says so — and
+         * that used to be the end of it: logged here, never shown anywhere a person would look.
+         * The same Inbox fallback Heartbeat.post() uses now catches it here too. */
+        let parsed; try { parsed = typeof said === "string" ? JSON.parse(said) : said; } catch {}
+        if (parsed && parsed.ok === false){
+            try {
+                const out = this.servex.inbox?.drop({ path: path.dirname(file), text: question, from: "servex-task-loop" });
+                this.servex.say?.(`task-loop: no card to post to (${parsed.why}) — left a note on ${out?.file ?? path.dirname(file)}`);
+            } catch (e){ this.servex.say?.(`task-loop: could not reach the inbox either: ${e.message || e}`); }
+        }
         await this.write_line(file, { log: { at: stamp(), msg: `task-loop escalated: ${String(said).slice(0, 200)}`, chase: "escalated" } });
         this.totals.escalated++;
     }

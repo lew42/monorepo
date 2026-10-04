@@ -1,0 +1,14 @@
+/* ux/Hotkeys/row — the settings rows `hotkeys_section()` draws.
+ *
+ * `dev/DevBar/parts.js`'s `row()` is the one shared key/value line every dev-bar
+ * section uses (CLAUDE.md law 6 — reused here whole, not rebuilt). Its own
+ * `.dev-row` grid (`devbar.css`) fixes the label column at 3.6em, tuned for that
+ * rail's own short labels ("ok", "warn"). A hotkey's own label is a sentence
+ * ("Toggle dictation (open mic)"), which wrapped mid-word in that same 3.6em
+ * ("dictati/on") — found live by @ptt-proof's own fresh-eyes review. Rather than
+ * widen `.dev-row` itself (every OTHER dev-bar section still wants it narrow),
+ * this widens it only inside the one list `hotkeys_section()` draws. */
+@layer theme {
+
+	.ux-hotkeys-rows .dev-row { grid-template-columns: max-content 1fr; }
+}

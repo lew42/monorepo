@@ -1,0 +1,1878 @@
+diff --git a/public/framework/ai/2026-10-02/day.jsonl b/public/framework/ai/2026-10-02/day.jsonl
+new file mode 100644
+index 00000000..221b4662
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/day.jsonl
+@@ -0,0 +1,2 @@
++{"log":{"at":"2026-10-02T18:36:53-05:00","task":"part1b-inbox-restructure","msg":"landed — core/Page/ext/Inbox restructured into one class Inbox with lazy static views inbox.rail/inbox.compact; InboxRail/DrawerInbox kept as one-release re-exports"}}
++{"log":{"at":"2026-10-02T18:40:38-05:00","task":"panel2-sessions/part1-panel2","msg":"task opened — build ext/panel2 (header/main/footer chrome, drawer sides, split, dashboard grid, demo page)"}}
+diff --git a/public/framework/ai/2026-10-02/files.jsonl b/public/framework/ai/2026-10-02/files.jsonl
+new file mode 100644
+index 00000000..d57ddcd3
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"ai-system-docs/"}
++{"file":"drawer-close/"}
++{"file":"jsonl-writers/"}
++{"file":"page-extends-item/"}
++{"file":"panel2-sessions/"}
++{"file":"day.jsonl"}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/files.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/files.jsonl
+new file mode 100644
+index 00000000..5c4e7494
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"part1-panel2/"}
++{"file":"part1b-inbox-restructure/"}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/requirements.md b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/requirements.md
+new file mode 100644
+index 00000000..7f3b32b4
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/requirements.md
+@@ -0,0 +1,110 @@
++# Minion brief: `ext/panel2` — Part 1 of the panel2-sessions task
++
++You are a minion. Load the `minion` skill first, then `code`, `css`, `new-css-class` and `layout`
++(this is a layout module with a demo page). Work only inside `public/framework/ext/panel2/`
++(new directory — create it) plus its own demo page. Do not touch `public/framework/ext/Panel/`
++(the old one — it has callers; leave it alone) or `public/framework/ai/` (that's Part 2, a
++different minion, later).
++
++Task directory (read the parent task's log and the full brief before you start):
++`public/framework/ai/2026-10-02/panel2-sessions/` — `requirements.md` there is the owner's
++original words for the whole task. This file covers only Part 1.
++
++## The owner's own words (verbatim, the relevant slice)
++
++> I'd like to use it as our standard UI area. It should have chrome: a header, a main content
++> area, and a footer. In the main content area, maybe each one should be able to have a drawer
++> or a sidebar on either side… mobile-friendly views. The heading should be a little toolbar
++> where we can put controls that pertain to that area. Then we'll build up the logic for
++> splitting them and resizing the dimensions between them, and maybe layout switches, like
++> fixed width to fluid width… I've always thought the flex-wrap way, where it just works and
++> you don't specify sizes. There are automatic grid ones where you can specify sizes, but I
++> forget how that works.
++
++## What to build — numbered, each one is checked against the words above at review
++
++1. **A new, small module**, `ext/panel2/Panel2.js` (+ `panel2.css`). Copy nothing from
++   `ext/Panel` — reuse only `ext/grip` (`/framework/ext/grip/grip.js`) for the resize drag.
++   Read `ext/grip/readme.md` first; it is a small, well-documented API (`write`/`done`/`reset`/
++   `from`/`axis`).
++2. **The shape**: `header` (a slim toolbar — a title on the left, controls on the right,
++   minimal height), `main`, and an optional `footer`. `main` can have an optional `start`
++   and/or `end` side (a sidebar). On a narrow screen (pick the same breakpoint `grip.css` uses,
++   34em, unless you find a better reason) a side becomes a **drawer** that slides over the main
++   content instead of sitting beside it — reuse `ext/drawer` if it fits in one import, otherwise
++   a small CSS transform is fine; don't build a second drawer system.
++3. **The API: a class with parts as statics** (the `code` skill's pattern —
++   `this.constructor.Thing`, parts are static subclasses, never config objects):
++   ```js
++   class Panel2 {
++     static Header; static Side; // etc — your actual names, picked with the `naming` skill in mind
++   }
++   ```
++   A toolbar control is just a View placed in `panel.header` — i.e. the header is a real
++   container you `.append()`/mount things into, not a slot that takes a config array.
++4. **Nesting and splitting.** A Panel2 can hold Panel2s side by side, each keeping its own
++   header toolbar, with a `grip` between them that resizes the two. Build the simple two-way
++   split now (vertical OR horizontal, picking at construction). Do NOT build layout switches
++   (fixed-width ↔ fluid-width panels) — write that down as an open question in the readme
++   instead, one paragraph, so the next person knows it was deliberately deferred and why.
++5. **The responsive grid rule**, for arranging several Panel2s on a dashboard (this answers the
++   owner's "I forget how that works" question — put the answer in the readme in plain,
++   five-year-old-explains-it words): a CSS grid using
++   `grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr))`. Each panel only
++   says its own smallest comfortable width (the `22rem` number, overridable); the grid then fits
++   as many per row as there's room, and stacks to one column on a phone automatically — no
++   media queries, no manual breakpoints. Ship this as one small exported helper or CSS class
++   (e.g. a `.panel2-grid` class you document), not a new layout framework. Record flex-wrap
++   in the readme as "the alternative we didn't pick for this" with one sentence on the tradeoff
++   (flex-wrap items can end up different widths per row; grid's auto-fit keeps a column grid).
++6. **A demo page** at `/framework/ext/panel2/` (the module's own `page.js`) showing, as actual
++   live Panel2 instances on the page — not screenshots, not prose — in this order:
++   - one plain panel (header + main, no sides);
++   - two Panel2s split side by side with a grip between them, each with a couple of toolbar
++     buttons in its header so the "header is a real toolbar" point is visible;
++   - the phone-width stack: either a real narrow iframe/frame on the page, or clear instructions
++     plus a screenshot (take one with the `ui-test` skill's headless approach) showing a side
++     becoming a drawer. Prefer a live resizable demo if it's cheap; a screenshot is acceptable
++     for the phone case alone.
++   Use `create_page` (see the `new-page` skill) for the page mechanics, then write the body by
++   hand following `ext/grip`'s and `ext/Panel`'s demo pages as the house style for a module demo.
++7. **Docs**: `readme.md` (the reader's index — what it is, the shape, a short code sample like
++   `ext/grip`'s own readme, the two open items from steps 4 and 5 written as short notes with
++   links to more detail if you write a `doc/*.md`) and the demo `page.js` above *is* the "show,
++   don't tell" doc law 1 requires — don't also write a separate explainer page.
++
++## Rules
++
++- No build step: real `.js` ESM imports, resolve URLs against `import.meta`.
++- Every CSS rule goes in a layer (`base theme site util`) per `panel2.css`'s needs — read
++  `framework.css`'s layer order before writing a rule (the `css` skill covers this).
++- Check `public/framework/styles/css-scopes.txt` before inventing a `panel2-` prefix — it should
++  be free, but confirm (`new-css-class` skill, 30 seconds).
++- Keep it small. This is "the fastest working version, then improve" (CLAUDE.md law 1) — a
++  plain header/main/footer div structure with one grip between two panels and one CSS grid rule
++  beats anything clever.
++- Work in this worktree: `C:\Code\lew42\worktrees\panel2-sessions` (already has its own dev
++  server running — check `Server/worktree-up.mjs`'s output for the port, or ask your parent).
++  Commit your work there as you go (small commits); do not touch the main tree.
++- When done: run `node Server/layout-check.mjs http://panel2-sessions.localhost/framework/ext/panel2/ --widths 400,1200,1920,3440` (or the worktree's own `http://localhost:<port>/...` url) and look at all four shots yourself before reporting done — read them, don't just confirm they exist.
++- Report back to your parent (`task-mastermind-panel2-sessions`) when done: what you built, the
++  demo url, and the two readme open-items you wrote.
++
++## Two more open questions to record (design only — do NOT build either; added mid-task by the owner)
++
++Add these to the readme's open-questions area, beside the fixed↔fluid one from step 4, each as a
++short paragraph:
++
++- **"Sprawl"**: a layout verb for big, similar sections that stack on a narrow screen and sit
++  side by side on a wide one — e.g. three rows at 1000px, three ~1000px-wide columns at 3000px.
++  `task-mastermind-framework-home` uses a plain CSS grid for this today; Panel 2 may own it
++  later. Note it, don't build it.
++- **Adaptive panel height**: when panels sit side by side, could a panel's height grow or shrink
++  to fill the row, instead of always being auto-height (today's behavior)? Note it, don't build
++  it.
++
++## Out of scope (do not touch)
++
++- `ext/Panel` (the old module).
++- `public/framework/ai/` (Part 2 — a separate minion will build the Sessions tab and Overview
++  grid on top of what you build here, after this lands).
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.jsonl
+new file mode 100644
+index 00000000..fa8d3e3c
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.jsonl
+@@ -0,0 +1,7 @@
++{"phase":{"at":"2026-10-02T18:42:19-05:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-10-02T18:42:19-05:00","n":1,"kind":"fix","text":"`review/diff.patch` is the wrong diff — it contains the sibling task's changes (`part1b-inbox-restructure`: `core/Page/ext/Inbox/*`, `ai2/rail.js`, `ext/drawer/*`), not one line of `ext/panel2/`. Whoever generates this review artifact for part1-panel2 needs to re-run it against the actual Panel2 work; as it stands the review package doesn't let anyone check this task from the diff alone."}}
++{"finding":{"at":"2026-10-02T18:42:19-05:00","n":2,"kind":"fix","text":"The real Panel2 work (`public/framework/ext/panel2/Panel2.js`, `panel2.css`, `page.js`, `readme.md`, `doc/`) is untracked in the worktree (`git status` shows `??` on the whole directory and on `.../part1-panel2/`) — nothing was committed despite the brief's \"commit your work there as you go (small commits)\" rule. Nothing is lost yet, but a repo crash or `git clean` before the next step would destroy it."}}
++{"finding":{"at":"2026-10-02T18:42:19-05:00","n":3,"kind":"note","text":"Judged from the actual files on disk (not the diff, since it's unusable — see #1): the module does what requirements.md asked. `Panel2.js` has header/main/footer + start/end sides as parts-as-statics (`Panel2.Header/.Main/.Footer/.Side`), a real toolbar container (`header.append()` lands in `.controls`, not a config array), `Panel2.split(a, b, { axis })` reusing `ext/grip` untouched, and `.panel2-grid` reusing `framework.css`'s existing `grid auto` formula rather than inventing one. `page.js` shows a plain panel, a live resizable split with real header buttons, the grid, and — better than the brief's \"screenshot is acceptable for the phone case\" — a genuinely live phone demo via a same-page `?view=phone` iframe instead of a screenshot. The two deferred items (fixed/fluid split, multi-grip) plus the two owner-added ones (Sprawl, adaptive split height) are each a short readme paragraph with why, as asked."}}
++{"finding":{"at":"2026-10-02T18:42:19-05:00","n":4,"kind":"note","text":"`readme.md` says the `panel2-` CSS prefix was confirmed free in `css-scopes.txt` but wasn't written there because that file is outside this task's fence — true per the brief, but worth someone actually adding the line soon so a second module doesn't grab `panel2-` first."}}
++{"finding":{"at":"2026-10-02T18:42:19-05:00","n":5,"kind":"note","text":"No simpler way stood out — the module is already small (one file, four static parts, one split function, one grid class), consistent with CLAUDE.md law 1."}}
++{"phase":{"at":"2026-10-02T18:42:19-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.4541882,"model":"claude-sonnet-5"}}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.md b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.md
+new file mode 100644
+index 00000000..56865775
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review.md
+@@ -0,0 +1,7 @@
++verdict: fix
++
++1. [fix] `review/diff.patch` is the wrong diff — it contains the sibling task's changes (`part1b-inbox-restructure`: `core/Page/ext/Inbox/*`, `ai2/rail.js`, `ext/drawer/*`), not one line of `ext/panel2/`. Whoever generates this review artifact for part1-panel2 needs to re-run it against the actual Panel2 work; as it stands the review package doesn't let anyone check this task from the diff alone.
++2. [fix] The real Panel2 work (`public/framework/ext/panel2/Panel2.js`, `panel2.css`, `page.js`, `readme.md`, `doc/`) is untracked in the worktree (`git status` shows `??` on the whole directory and on `.../part1-panel2/`) — nothing was committed despite the brief's "commit your work there as you go (small commits)" rule. Nothing is lost yet, but a repo crash or `git clean` before the next step would destroy it.
++3. [note] Judged from the actual files on disk (not the diff, since it's unusable — see #1): the module does what requirements.md asked. `Panel2.js` has header/main/footer + start/end sides as parts-as-statics (`Panel2.Header/.Main/.Footer/.Side`), a real toolbar container (`header.append()` lands in `.controls`, not a config array), `Panel2.split(a, b, { axis })` reusing `ext/grip` untouched, and `.panel2-grid` reusing `framework.css`'s existing `grid auto` formula rather than inventing one. `page.js` shows a plain panel, a live resizable split with real header buttons, the grid, and — better than the brief's "screenshot is acceptable for the phone case" — a genuinely live phone demo via a same-page `?view=phone` iframe instead of a screenshot. The two deferred items (fixed/fluid split, multi-grip) plus the two owner-added ones (Sprawl, adaptive split height) are each a short readme paragraph with why, as asked.
++4. [note] `readme.md` says the `panel2-` CSS prefix was confirmed free in `css-scopes.txt` but wasn't written there because that file is outside this task's fence — true per the brief, but worth someone actually adding the line soon so a second module doesn't grab `panel2-` first.
++5. [note] No simpler way stood out — the module is already small (one file, four static parts, one split function, one grid class), consistent with CLAUDE.md law 1.
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review/diff.patch b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review/diff.patch
+new file mode 100644
+index 00000000..e9be81cc
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/review/diff.patch
+@@ -0,0 +1,534 @@
++diff --git a/public/framework/ai/2026-10-02/day.jsonl b/public/framework/ai/2026-10-02/day.jsonl
++new file mode 100644
++index 00000000..dbe23da8
++--- /dev/null
+++++ b/public/framework/ai/2026-10-02/day.jsonl
++@@ -0,0 +1 @@
+++{"log":{"at":"2026-10-02T18:36:53-05:00","task":"part1b-inbox-restructure","msg":"landed — core/Page/ext/Inbox restructured into one class Inbox with lazy static views inbox.rail/inbox.compact; InboxRail/DrawerInbox kept as one-release re-exports"}}
++diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
++new file mode 100644
++index 00000000..930bd078
++--- /dev/null
+++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
++@@ -0,0 +1,80 @@
+++# Minion brief: restructure `core/Page/ext/Inbox` into parts-as-statics
+++
+++You are a minion. Load the `minion` skill first, then `code` (the parts-as-statics pattern this
+++is fixing) and `documentation`. Fence: `public/framework/core/Page/ext/Inbox/` plus the handful
+++of files that import from it (`public/framework/ai2/rail.js`, `public/framework/ext/drawer/`
+++wherever it imports `DrawerInbox`/`Inbox` from here — grep first). Do not touch
+++`public/framework/ext/panel2/` (a sibling minion's work) or `public/framework/ai/page.js`/
+++`overview.js` (a later minion's work, once this lands).
+++
+++Task directory: `public/framework/ai/2026-10-02/panel2-sessions/` (parent task — read its
+++`task.jsonl` and `requirements.md` first).
+++
+++## The ask, verbatim (the owner, via the VS Code mastermind, mid-task 2026-10-02)
+++
+++> core/Page/ext/Inbox breaks the parts-as-statics pattern (code/patterns). Today it has TWO
+++> unrelated classes:
+++> - Inbox.js exports `DrawerInbox` (aliased `Inbox`): the drawer's page-notes inbox.
+++> - Rail.js has `InboxRail`, which ai2/rail.js extends as AIRail. Neither is reachable from the
+++>   other. ai2/rail.js also names `InboxRail.prototype` `store`, which is a misleading name.
+++>
+++> Restructure:
+++> 1. One `class Inbox` (the data: items, filters, the floor, read/archive), with its views as
+++>    statics: `static Rail` (today's InboxRail) and `static Compact` (the drawer's and
+++>    Overview's small view, merging DrawerInbox). AIRail extends `Inbox.Rail`.
+++> 2. Name properties after their class in lowercase. An instance draws through `inbox.rail` and
+++>    `inbox.compact`, made lazily. No `inbox_rail`-style names.
+++> 3. Keep `InboxRail` and `DrawerInbox` as re-exports for one release, and update the readme's
+++>    Architecture block.
+++> 4. Check the drawer's inbox, /framework/ai/ and /framework/ai2/ still work (screenshots at
+++>    400 and 1920).
+++
+++## Before you start
+++
+++- Read `Inbox.js`, `Rail.js`, `servex.js` and `readme.md` in `core/Page/ext/Inbox/` whole.
+++- Read `ai2/rail.js` whole — it's the one place `InboxRail` is subclassed (`AIRail`) and the
+++  `store` name lives; find every other caller of `InboxRail`/`DrawerInbox`/`Inbox` from this
+++  folder with a repo-wide grep before you start moving code, so nothing breaks silently.
+++- This module is claimed by `task-mastermind-panel2-sessions` for this change; a note is already
+++  on `/framework/core/Page/ext/`'s page inbox telling `@task-mastermind-inbox-ext` (who owns
+++  `/framework/ai/`'s tabs and wiring) what's coming, in case it's mid-edit on the same files —
+++  if you hit an unexpected conflict when you pull, stop and report rather than force through it.
+++
+++## What "done" looks like
+++
+++1. One `class Inbox` in `Inbox.js` (or wherever makes sense — you decide the file layout, but
+++   keep the folder small) holding the data: the items, the filters (e.g. the floor/min-score
+++   used today), read/archive state and methods.
+++2. `static Rail` on it is today's `InboxRail` class (moved from `Rail.js`, or `Rail.js` now just
+++   defines `Inbox.Rail = class extends ... {}` — your call, document the choice). `static Compact`
+++   is a NEW small class merging today's `DrawerInbox` (the page-notes drawer inbox) with what a
+++   tiny Overview-dashboard card needs: it should take a `{ page }` (same as `InboxRail`) and
+++   optionally render smaller/denser — the exact visual is a later minion's job (it builds the
+++   Overview grid on top of `Inbox.Compact`), your job is making the CLASS correct and reusable,
+++   with a sensible minimal render so it isn't inert.
+++3. An instance is `new Inbox({ page })` (match `InboxRail`'s existing constructor shape so
+++   callers barely change); `inbox.rail` and `inbox.compact` are the two views, each created
+++   lazily on first access (a getter that mounts/caches, not built in the constructor).
+++4. `AIRail` (`ai2/rail.js`) extends `Inbox.Rail`, not a standalone `InboxRail`. Rename its
+++   `store` property to something that names what it actually is (read the code to find the
+++   right word — likely something like `data` or `items`, matching step 2's "name properties
+++   after their class in lowercase" rule generally, i.e. no more misleading names).
+++5. `InboxRail` and `DrawerInbox` stay as one-release re-exports (`export const InboxRail =
+++   Inbox.Rail;` etc.) so every existing import keeps working without edits elsewhere — but also
+++   actually re-point the real callers (ai2/rail.js, the drawer) to the new names, since this is
+++   the task doing that migration, not leaving it for later.
+++6. Update `core/Page/ext/Inbox/readme.md`'s Architecture description (and any other readme that
+++   describes the two-class shape) to describe the one-class, two-statics shape, with the
+++   deprecation note about the re-exports.
+++7. Verify: the drawer's page-notes inbox, `/framework/ai/` and `/framework/ai2/` all still work.
+++   Take screenshots at 400 and 1920 of at least one page from each (the drawer open on any page,
+++   `/framework/ai/`'s Inbox tab, `/framework/ai2/`) and look at them yourself before reporting —
+++   `node Server/layout-check.mjs <urls> --widths 400,1920`.
+++
+++## Rules
+++
+++- No build step; resolve urls against `import.meta`; CSS rules stay in their layer if you touch
+++  any (you likely won't — this is a JS restructure).
+++- Work in the worktree `C:\Code\lew42\worktrees\panel2-sessions`. Commit as you go.
+++- Report back to `task-mastermind-panel2-sessions` when done: what changed, the screenshot
+++  results, and anything you found that the owner's four numbered points didn't anticipate.
++diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl
++new file mode 100644
++index 00000000..0af45103
++--- /dev/null
+++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl
++@@ -0,0 +1,16 @@
+++{"assign":{"session_id":"648b2f8d-afd7-4565-a461-7e9f85c6252c","agent":"minion-inbox-restructure","card":"public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/","brief":"public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/panel2-sessions","parent_task":"public/framework/ai/2026-10-02/panel2-sessions","requested_at":"2026-10-02T18:30:18-05:00","now":"reading Inbox.js, Rail.js, servex.js, readme.md and every caller (ai2/rail.js, ext/drawer/rail.js, ext/drawer/tabs/ai.js, ux/Inbox/page.js)","steps":["read Inbox.js, Rail.js, servex.js, readme.md whole, and every caller of InboxRail/DrawerInbox (grep first)","write class Inbox with lazy inbox.rail / inbox.compact getters in Inbox.js; Inbox.Rail = Rail (imported from Rail.js, no cycle); Inbox.Compact merges DrawerInbox","rename Rail.js's InboxRail class to Rail; keep InboxRail/DrawerInbox as one-release re-exports from Inbox.js","re-point the real callers: ai2/rail.js (AIRail extends Inbox.Rail, store -> storage), ext/drawer/rail.js and ext/drawer/tabs/ai.js (DrawerInbox -> Inbox.Compact)","node --check every edited file","update core/Page/ext/Inbox/readme.md's Architecture section","screenshot the drawer's page-notes inbox, /framework/ai/, /framework/ai2/ at 400 and 1920 and look at them","documentation pass, then finish-task; report to task-mastermind-panel2-sessions"],"step":1}}
+++{"log":{"at":"2026-10-02T18:30:18-05:00","msg":"This task's task.jsonl did not exist in this worktree even though the brief said it was already open (worktrees don't share uncommitted working-tree files from the mastermind's own tree, same gap logged in ai/2026-09-30/ai2-inbox-read/minion-ai2-inbox/task.jsonl). Creating it now with this line as the launch line, using CLAUDE_CODE_SESSION_ID as session_id. requirements.md itself did exist and was read whole before any edit."}}
+++{"action":{"at":"2026-10-02T18:30:47-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/Rail.js"]}}
+++{"action":{"at":"2026-10-02T18:31:21-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/Inbox.js"]}}
+++{"action":{"at":"2026-10-02T18:31:52-05:00","did":"edit","files":["public/framework/ai2/rail.js"]}}
+++{"action":{"at":"2026-10-02T18:32:18-05:00","did":"edit","files":["public/framework/ext/drawer/rail.js"]}}
+++{"action":{"at":"2026-10-02T18:32:27-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/ai.js"]}}
+++{"action":{"at":"2026-10-02T18:32:46-05:00","did":"edit","files":["public/framework/ext/drawer/inbox.js"]}}
+++{"action":{"at":"2026-10-02T18:32:57-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/readme.md"]}}
+++{"decision":{"at":"2026-10-02T19:05:00-05:00","what":"File layout: Rail.js keeps the class body (renamed InboxRail -> Rail, no self-reference to Inbox); Inbox.js imports Rail.js and assigns Inbox.Rail = Rail. Chose this direction over having Rail.js import Inbox.js, because the reverse would be an import cycle (Inbox.js -> Rail.js -> Inbox.js) -- Rail.js now imports nothing from Inbox.js. Inbox.Compact (the merged DrawerInbox) stays inside Inbox.js itself rather than a third file, per the brief's own 'keep the folder small' guidance.","alternative":"Could have moved Rail's whole body into Inbox.js and had Rail.js just do `Inbox.Rail = class extends ... {}` (the brief's other suggested option) -- rejected because Rail.js is the file every back-compat importer (ux/Inbox/page.js, its readme) already points at by file path, and leaving its real implementation there needed no edits to those files at all."}}
+++{"decision":{"at":"2026-10-02T19:05:00-05:00","what":"ai2/rail.js's InboxRail.prototype local var `store` renamed to `storage` (it holds the rail's try/catch localStorage helper methods, not a data store -- the brief guessed 'data' or 'items' but neither read as that correctly once I read what the methods actually do)."}}
+++{"log":{"at":"2026-10-02T19:05:00-05:00","msg":"Verification: a dev server for this worktree was already running externally on port 54772 (not started by me, not mine to stop -- confirmed by EADDRINUSE when I tried to boot my own). Used it directly for node --check (all 6 touched files pass) and Server/layout-check.mjs screenshots at 400+1920 of /framework/ext/drawer/?drawer=ai (the drawer's AI-tab inbox box), /framework/ai/ (Inbox tab), /framework/ai2/, and /framework/core/Page/ext/ (the {\"ext\":\"Inbox\"} extension demo, which exercises the new Inbox.setup -> Inbox.Compact.setup forwarding -- not one of the brief's 3 named pages, checked anyway since it's new code). All four render correctly, same look as before. Every page (including an untouched baseline, /framework/) shows one identical generic '404 Not Found' console line -- confirmed pre-existing and unrelated to this change, not a regression. Also curled /framework/ux/Inbox/ (200) to confirm the old default-import path from Rail.js still works unedited. Screenshots: public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/shots/."}}
+++{"log":{"at":"2026-10-02T19:05:00-05:00","msg":"Found, not asked for: core/Page/ext/Inbox/files.jsonl gained two lines (Rail.js, servex.js) I never wrote -- some background file-tree watcher synced it against the real directory contents while the already-running dev server was live during my work. Those two files genuinely exist in the folder and were missing from the list before, so this looks like a pre-existing drift being corrected, not damage from this task; left as is."}}
+++{"log":{"at":"2026-10-02T18:36:22-05:00","msg":"skill: finish-task"}}
+++{"log":{"at":"2026-10-02T18:36:28-05:00","msg":"skill: check-claude-usage"}}
+++{"assign":{"step":7,"landed_at":"2026-10-02T18:36:46-05:00","title":"core/Page/ext/Inbox: one class Inbox, two statics Rail + Compact","outcome":"**One `class Inbox`, two lazy views — `inbox.rail` and `inbox.compact`.**\n\n- [x] `Inbox.Rail` = today's `InboxRail` (moved, unedited, into `Rail.js`'s renamed `Rail` class, assigned as a static) — [Inbox.js](/framework/core/Page/ext/Inbox/Inbox.js)\n- [x] `Inbox.Compact` = new class merging `DrawerInbox` (the drawer's note box + the page.jsonl extension)\n- [x] `AIRail extends Inbox.Rail`; `ai2/rail.js`'s misleading `store` renamed `storage` — [rail.js](/framework/ai2/rail.js)\n- [x] `InboxRail`/`DrawerInbox` kept as one-release re-exports; real callers (`ai2/rail.js`, `ext/drawer/rail.js`, `ext/drawer/tabs/ai.js`) re-pointed to `Inbox.Rail`/`Inbox.Compact`\n- [x] readme's Architecture section rewritten (before/after + deprecation note)\n- [x] verified at 400/1920: drawer AI tab, [/framework/ai/](/framework/ai/), [/framework/ai2/](/framework/ai2/), and the `{\"ext\":\"Inbox\"}` demo — all render same as before, zero new console errors (one pre-existing site-wide 404 confirmed on an untouched baseline page too)\n\nCommit 76264400. Full notes, decisions and screenshot paths: this task's own `task.jsonl`.","links":[{"url":"/framework/core/Page/ext/Inbox/","label":"core/Page/ext/Inbox/"},{"url":"/framework/ai2/","label":"AI 2"},{"url":"/framework/ai/","label":"AI"},{"url":"/framework/ux/Inbox/","label":"Inbox.Rail demo (unchanged)"}],"window":{"before":0,"after":0.14},"tokens":null}}
++diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
++index 5964f428..558b48ba 100644
++--- a/public/framework/ai2/rail.js
+++++ b/public/framework/ai2/rail.js
++@@ -1,5 +1,5 @@
++ import { Page, View, div, span, small, a, button, label, input, details, summary } from "/app.js";
++-import InboxRail from "/framework/core/Page/ext/Inbox/Rail.js";
+++import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
++ import { mentions } from "/framework/ext/Mention/Mention.js";
++ import { Groups } from "./groups.js";
++ import { task_of, task_region } from "./tasks.js";
++@@ -20,7 +20,7 @@ import { RealPage, page_events, real_title } from "./real.js";
++ import { is_read, mark_read, archive_row, is_resolved } from "./rules.js";
++ 
++ /* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
++-   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by InboxRail. */
+++   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
++ View.stylesheet(import.meta, "rail.css");
++ 
++ /* Servex down: the page is read-only — "+ New card" quietly goes away. */
++@@ -28,15 +28,20 @@ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.cr
++ 
++ const AUTO_KEY = "ai2-auto-transcribe";
++ const LIVEVIEW_KEY = "ai2-live-default";
++-const store = InboxRail.prototype;   // its try/catch storage, shared rather than copied
+++// `Inbox.Rail.prototype` — its try/catch localStorage helpers (`store_get`/`store_set`),
+++// shared rather than copied. Was named `store`, which read as "a data store"; it holds
+++// no data at all, just the wrapper methods (restructure, 2026-10-02 — the owner: "a
+++// misleading name").
+++const storage = Inbox.Rail.prototype;
++ 
++ /** On by default — a card you just opened starts listening unless you turned this off. */
++-export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
+++export const auto_transcribe = () => storage.store_get(AUTO_KEY) !== "off";
++ 
++ /**
++- * AI RAIL — the AI's inbox: the base rail (`core/Page/ext/Inbox/Rail.js`) plus what only
++- * the AI system has (the owner, 2026-09-30: "we don't need the AI usage meters on the
++- * inbox for every single page… override the rail… and you add the progress bars above it").
+++ * AI RAIL — the AI's inbox: the base rail (`Inbox.Rail`, `core/Page/ext/Inbox/Inbox.js`)
+++ * plus what only the AI system has (the owner, 2026-09-30: "we don't need the AI usage
+++ * meters on the inbox for every single page… override the rail… and you add the progress
+++ * bars above it").
++  *
++  * Adds, each as an override of one base method:
++  *   - the usage meters above the filters (`head_extra`) — the ONLY place they exist;
++@@ -53,7 +58,7 @@ export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
++  * ⚠ The shell also wears `.ai2`: card.js finds it with `document.querySelector(".ai2")`
++  *   to write its column widths (`--ai2-subw`, `--ai2-chat`) — rail.css passes those on.
++  */
++-export default class AIRail extends InboxRail {
+++export default class AIRail extends Inbox.Rail {
++ 	title = "AI inbox";
++ 	key = "ai2";
++ 	now_item = null;
++diff --git a/public/framework/core/Page/ext/Inbox/Inbox.js b/public/framework/core/Page/ext/Inbox/Inbox.js
++index 4fa2a225..428302a8 100644
++--- a/public/framework/core/Page/ext/Inbox/Inbox.js
+++++ b/public/framework/core/Page/ext/Inbox/Inbox.js
++@@ -1,27 +1,36 @@
++ import { div, span, button, input, small } from "/framework/core/View/View.js";
++ import { servex_base, servex_fetch } from "./servex.js";
++-
++-/* THE PAGE'S INBOX — two different things share this one file, on purpose:
++- * they're both "a message, on a page", they're just read from two different
++- * places (2026-09-30, core/Page/ext/).
+++import Rail from "./Rail.js";
+++
+++/* THE PAGE'S INBOX — ONE CLASS, TWO VIEWS (restructured 2026-10-02, the owner's own ask —
+++ * see public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
+++ * for the exact wording). Before this change, two unrelated classes lived in this folder
+++ * with no connection to each other, even though they're both "a message, on a page," just
+++ * read from two different places: `InboxRail` (`Rail.js`, a page's persistent navigation
+++ * rail) and `DrawerInbox` (this file, the drawer's small "Leave a note" box). Now they are
+++ * the two VIEWS of one thing, `class Inbox` below:
+++ *
+++ *   const inbox = new Inbox({ page: this });
+++ *   inbox.rail.mount();     // the rail — was `new InboxRail({ page: this }).mount()`
+++ *   inbox.compact.view();   // the small box — was `new DrawerInbox({ page: this }).view()`
++  *
++- * 1. `DrawerInbox` (below) — the small "Leave a note" box at the top of the
++- *    drawer's AI tab. Servex is the only writer and answerer (`/api/inbox`);
++- *    off the dev machine the inbox simply isn't drawn. This half moved here
++- *    unchanged from `ext/drawer/inbox.js` (task ai/2026-09-30/page-inbox/),
++- *    which is now a one-line re-export so nothing importing it had to change.
+++ * `inbox.rail` and `inbox.compact` are getters: the first time either is READ, that one
+++ * view is built and cached — never both, so a page that only ever touches `.rail` never
+++ * pays to build `.compact`, and the other way round.
++  *
++- * 2. `DrawerInbox.setup(page)` (new) — the EXTENSION. A page.jsonl line,
++- *    `{"ext": "Inbox"}`, turns it on for that one page; `Page.use(DrawerInbox)`
++- *    (core/Page/Page.class.js) would turn it on for every page. Either way,
++- *    every `{"inbox": {type, author, text, at}}` line already in that page's
++- *    own page.jsonl — any agent, or the owner, just appending a message —
++- *    collects into `page.inbox`, oldest first. This is content, read straight
++- *    off the page's own log; part 1 above is coordination, read through
++- *    Servex. core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md have
++- *    the rest; see it run at /framework/core/Page/ext/.
+++ * `Inbox.Rail` is `Rail.js`'s class, imported above and assigned below (`Inbox.Rail =
+++ * Rail`) — moved in as a static rather than having its body copied into this file, so
+++ * `Rail.js` never has to import `Inbox.js` back (an import cycle: "a parent↔child import
+++ * cycle breaks only on deep reload," `code` skill). `Inbox.Compact` is new: today's
+++ * `DrawerInbox` class, renamed and kept right here (small enough that a second file for it
+++ * would be more ceremony than help) — see its own comment, below, for both of its jobs.
++  *
++- * Docs: doc/inbox.md · Servex/doc/inbox.md (part 1). */
+++ * `InboxRail` and `DrawerInbox`, as names, still work for one release: they are re-exported
+++ * at the bottom of this file, unedited, so nothing that already imports them breaks today.
+++ * New code should write `Inbox.Rail` / `Inbox.Compact` instead.
+++ *
+++ * Docs: doc/inbox.md · Servex/doc/inbox.md (the coordination half) · this folder's own
+++ * readme.md, "Architecture", has the fuller before/after. */
++ 
++ // A page's folder path: the url without its query or hash, ending in "/".
++ export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
++@@ -45,11 +54,46 @@ export function age(at){
++ 	return s < 60 ? "now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
++ }
++ 
++-export class DrawerInbox {
+++/** THE DATA — one inbox, for one page. Everything either view needs to exist (just
+++ *  `{ page }`, today) lives here; a view reads it back through `this.page`. `inbox.rail`
+++ *  and `inbox.compact` are the two ways to SHOW it, below — lazy, so building one never
+++ *  builds the other, and each is built only once (a getter that constructs-and-caches,
+++ *  not something built eagerly in the constructor). */
+++export class Inbox {
+++	constructor(...args){ this.assign({ page: location.pathname }, ...args); }
+++	assign(...args){ return Object.assign(this, ...args); }
+++
+++	get rail(){ return this._rail ??= new this.constructor.Rail({ page: this.page }); }
+++	get compact(){ return this._compact ??= new this.constructor.Compact({ page: this.page }); }
+++
+++	// `{"ext": "Inbox"}` and `Page.use(Inbox)` (core/Page/ext/readme.md) both end up
+++	// calling this — it forwards to Compact's own hook (today's `DrawerInbox.setup`,
+++	// unchanged below): collecting a page's `{"inbox": {…}}` jsonl lines into
+++	// `page.inbox` is Compact's job, not the rail's, so only Compact needs to answer it.
+++	static setup(page){ return Inbox.Compact.setup(page); }
+++}
+++
+++/** INBOX.COMPACT — the small, dense view. Merges what used to be `DrawerInbox`'s two jobs,
+++ *  both still true, unchanged:
+++ *
+++ *  1. THE DRAWER'S "LEAVE A NOTE" BOX (`view()`/`draw()`, below) — read and written
+++ *     through Servex's `/api/inbox`; off the dev machine the inbox simply isn't drawn.
+++ *     `ext/drawer/rail.js` and `ext/drawer/tabs/ai.js` build one:
+++ *     `new Inbox.Compact({ page }).view()`.
+++ *  2. THE EXTENSION (`static setup`, called by `Inbox.setup` above) — turned on by a
+++ *     `{"ext": "Inbox"}` page.jsonl line, or `Page.use(Inbox)` for every page. See
+++ *     core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md for the rest.
+++ *
+++ *  Takes `{ page }`, same as `Inbox.Rail` (deliverable 3, the restructure's own brief) — a
+++ *  LATER task builds the actual Overview-dashboard tile on top of this class (a denser
+++ *  render, not a different one); this class's own job is just being correct and reusable,
+++ *  which is why `view()` stays the same plain, working box rather than something tied to
+++ *  the drawer's own width. */
+++Inbox.Compact = class Compact {
++ 	constructor(...args){ this.assign({ page: location.pathname, open: [], coordinator: null, said: null }, ...args); }
++ 	assign(...args){ return Object.assign(this, ...args); }
++ 
++-	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(DrawerInbox) ═════════════
+++	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(Inbox) ═════════════
++ 	// `page.inbox` collects every `{"inbox": {…}}` line the page's own log has
++ 	// (or ever gets): a real line, read the same way a `place` or `tab` line is —
++ 	// nothing to do with the Servex-backed notes above.
++@@ -144,7 +188,13 @@ export class DrawerInbox {
++ 		});
++ 		$box.el.hidden = !this.writing && !this.open.length && !this.coordinator && !this.said;
++ 	}
++-}
+++};
+++
+++Inbox.Rail = Rail;
+++
+++// One release of back-compat: every existing import of the old names keeps working
+++// unedited. New code reaches for `Inbox.Rail` / `Inbox.Compact` directly instead.
+++export const InboxRail = Inbox.Rail;
+++export const DrawerInbox = Inbox.Compact;
++ 
++-export { DrawerInbox as Inbox };
++-export default DrawerInbox;
+++export default Inbox;
++diff --git a/public/framework/core/Page/ext/Inbox/Rail.js b/public/framework/core/Page/ext/Inbox/Rail.js
++index d7de5ce3..7c43dd35 100644
++--- a/public/framework/core/Page/ext/Inbox/Rail.js
+++++ b/public/framework/core/Page/ext/Inbox/Rail.js
++@@ -5,16 +5,22 @@ import grip from "/framework/ext/grip/grip.js";
++ View.stylesheet("/framework/ux/Inbox/Inbox.css");
++ 
++ /**
++- * INBOX RAIL — a list of previews on the left, the one you picked open on the right,
++- * and nothing in the list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a
++- * persistent navigation… it shouldn't jump when you click on an item").
+++ * THE BIG RAIL — `Inbox.Rail` (restructured 2026-10-02; this file still defines the class,
+++ * now named plain `Rail`, and `Inbox.js` imports it to assign `Inbox.Rail = Rail` — chosen
+++ * over moving this whole body into `Inbox.js` so this file never has to import that one back
+++ * (an import cycle). The old name, `InboxRail`, is a one-release re-export from `Inbox.js`;
+++ * see this folder's readme.md, "Architecture", for the full before/after).
+++ *
+++ * A list of previews on the left, the one you picked open on the right, and nothing in the
+++ * list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a persistent navigation… it
+++ * shouldn't jump when you click on an item").
++  *
++  * This is the base class. The AI page and AI 2 both draw `AIRail` (ai2/rail.js), which
++- * extends this with the usage meters, "+ New card" and the AI data. Any other page can
++- * extend it the same way: override `source()` to say what the rows are, and the rest
++- * comes with it.
+++ * extends this (`class AIRail extends Inbox.Rail`) with the usage meters, "+ New card" and
+++ * the AI data. Any other page can extend it the same way: override `source()` to say what
+++ * the rows are, and the rest comes with it.
++  *
++- *   const rail = new InboxRail({ page: this, items: [...] }).mount();   // inside content()
+++ *   const rail = new Rail({ page: this, items: [...] }).mount();   // inside content()
++  *
++  * WHAT YOU GET
++  *   - three columns: the rail, the detail (`page.$pages`, where a row's page opens) and
++@@ -34,11 +40,11 @@ View.stylesheet("/framework/ux/Inbox/Inbox.css");
++  * Every part is a method, so a subclass changes one part and keeps the rest. Docs:
++  * ux/Inbox/readme.md · see one running at /framework/ux/Inbox/.
++  */
++-export default class InboxRail {
+++export default class Rail {
++ 	/* ── settings a subclass or a caller may override ── */
++-	title = "Inbox";               // the rail's own name, above its filters
++-	key = "inbox";                 // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
++-	min_default = InboxRail.FLOOR; // the floor when the url has no `?min=`
+++	title = "Inbox";          // the rail's own name, above its filters
+++	key = "inbox";            // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
+++	min_default = Rail.FLOOR; // the floor when the url has no `?min=`
++ 	items = [];                    // the rows, for a rail that is just given them (the demo)
++ 
++ 	/* ── state ── */
++@@ -428,7 +434,7 @@ export default class InboxRail {
++ 
++ 	/** A row's address: its page under mine, carrying a floor that is not the Inbox's own. */
++ 	href(it){ return this.url + it.id + "/" + this.query(); }
++-	query(){ return this.min !== InboxRail.FLOOR ? "?min=" + this.min : ""; }
+++	query(){ return this.min !== Rail.FLOOR ? "?min=" + this.min : ""; }
++ 
++ 	/* A ROW IS AN ANCHOR — no click handler: the Router navigates it and marks it. */
++ 	make(it){
++@@ -604,5 +610,3 @@ export default class InboxRail {
++ 	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
++ 	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
++ }
++-
++-export { InboxRail };
++diff --git a/public/framework/core/Page/ext/Inbox/files.jsonl b/public/framework/core/Page/ext/Inbox/files.jsonl
++index bf7d5488..ce736f3f 100644
++--- a/public/framework/core/Page/ext/Inbox/files.jsonl
+++++ b/public/framework/core/Page/ext/Inbox/files.jsonl
++@@ -1,2 +1,4 @@
++ {"file":"Inbox.js"}
++ {"file":"readme.md"}
+++{"file":"Rail.js"}
+++{"file":"servex.js"}
++diff --git a/public/framework/core/Page/ext/Inbox/readme.md b/public/framework/core/Page/ext/Inbox/readme.md
++index d05b53ef..53cc2f8f 100644
++--- a/public/framework/core/Page/ext/Inbox/readme.md
+++++ b/public/framework/core/Page/ext/Inbox/readme.md
++@@ -1,4 +1,24 @@
++-# Inbox — a message, appended straight to a page's own log
+++# Inbox — one class, two views: a page's rail, and its small "leave a note" box
+++
+++`class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
+++each built lazily the first time you read it:
+++
+++```js
+++import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
+++
+++const inbox = new Inbox({ page: this });
+++inbox.rail.mount();     // the big rail — see it running at /framework/ux/Inbox/
+++inbox.compact.view();   // the small box — see it in the drawer's AI tab
+++```
+++
+++- **`inbox.rail`** (`Inbox.Rail`, was the standalone class `InboxRail`) — a rail of row
+++  previews beside the page you picked, persistent and never jumping. The AI page's Inbox
+++  and Log tabs, and AI 2, build its subclass `AIRail` (`ai2/rail.js`):
+++  `class AIRail extends Inbox.Rail`.
+++- **`inbox.compact`** (`Inbox.Compact`, was the standalone class `DrawerInbox`) — the small
+++  "Leave a note" box at the top of the drawer's AI tab, read and written through Servex's
+++  `/api/inbox`. Also the page.jsonl extension described below (its `static setup` is what
+++  `{"ext": "Inbox"}` and `Page.use(Inbox)` both call).
++ 
++ Any agent (or the owner) can leave a message on ANY page, just by appending one line
++ to that page's own `page.jsonl`:
++@@ -22,27 +42,43 @@ After that, every `{"inbox": …}` line on that page — before the `ext` line o
++ — collects into `page.inbox`, an array, oldest first. See it running at
++ [core/Page/ext/](/framework/core/Page/ext/) — the extension system's own demo page.
++ 
++-## Draw an inbox: `InboxRail`
+++## Architecture: before and after (restructured 2026-10-02)
++ 
++-`Rail.js` is the class that DRAWS an inbox: a rail of row previews beside the page you
++-picked, persistent and never jumping. Any page builds one with
++-`new InboxRail({ page: this }).mount()`; the AI page and AI 2 build its subclass `AIRail`.
++-Its look and demo are the ux block, [/framework/ux/Inbox/](/framework/ux/Inbox/) — start
++-there.
+++**Before:** two unrelated classes shared this folder, with no connection to each other —
+++`InboxRail` (`Rail.js`) and `DrawerInbox` (`Inbox.js`), even though both are "a message,
+++on a page," just read from two different places (Servex's `/api/inbox` vs. whatever rows
+++a page's own `source()` returns). Nothing pointed from one to the other, and `ai2/rail.js`
+++named `InboxRail.prototype` the misleading `store` — it holds no data, just the rail's
+++try/catch `localStorage` helper methods.
++ 
++-## The other Inbox in this file — the drawer's, unrelated
+++**After:** one class, `Inbox` (`Inbox.js`), holding `{ page }`. Its two views are reached
+++through two lazy getters, `inbox.rail` and `inbox.compact`, each built once and cached on
+++first read — building one never builds the other. `Inbox.Rail` is `Rail.js`'s class,
+++unchanged, imported into `Inbox.js` and assigned there (`Inbox.Rail = Rail`) — chosen over
+++moving the class body itself so `Rail.js` never has to import `Inbox.js` back (no import
+++cycle). `Inbox.Compact` is `DrawerInbox`, renamed and kept inside `Inbox.js` itself (small
+++enough that a second file would be more ceremony than help) — a later task builds the
+++actual Overview-dashboard tile on top of this same class. `ai2/rail.js`'s `store` is now
+++`storage`, and `AIRail` extends `Inbox.Rail` directly.
++ 
++-This same file, `Inbox.js` (moved here 2026-09-30 from `ext/drawer/inbox.js`, which is
++-now a one-line re-export so nothing that imported it had to change), also draws the
++-**AI tab's page inbox**: the small "Leave a note" box at the top of the drawer, read
++-and written through Servex's `/api/inbox` — a coordination inbox, for any agent
++-currently working on a page, not page.jsonl data. That part is untouched. See
++-`ext/drawer/` and `doc/inbox.md` for it.
+++**Deprecation, for one release:** `InboxRail` and `DrawerInbox` are both still exported
+++from `Inbox.js`, pointing at the new names (`export const InboxRail = Inbox.Rail;` etc.),
+++so any import written before this change keeps working with no edit — `ux/Inbox/page.js`'s
+++demo, for one, still imports `InboxRail` from `Rail.js` directly and needs no change. New
+++code should write `Inbox.Rail` / `Inbox.Compact` instead; these two old names go away once
+++nothing in the repo still uses them.
++ 
++ ## Files
++ 
++-`Inbox.js` — both halves: `DrawerInbox` (the drawer's Servex-backed reader/writer, as
++-before) and its new static `setup(page)` (the extension above, `page.inbox` from
++-page.jsonl). `Rail.js` — `InboxRail`, above. `servex.js` — Servex's address and whether
+++`Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
+++extension), and the deprecated re-exports. `Rail.js` — `Inbox.Rail`'s class body (plain
+++`class Rail`), the big navigation rail — see its look and demo at
+++[/framework/ux/Inbox/](/framework/ux/Inbox/). `servex.js` — Servex's address and whether
++ it is up (moved here from `ai2/inbox.js`, which re-exports it, so this folder imports
++ nothing from AI 2).
+++
+++## More
+++
+++- [`ai2/rail.js`](/framework/ai2/rail.js) — `AIRail`, the subclass with the usage meters
+++- [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
+++- `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`
++diff --git a/public/framework/ext/drawer/inbox.js b/public/framework/ext/drawer/inbox.js
++index b63b40ee..b65e95e8 100644
++--- a/public/framework/ext/drawer/inbox.js
+++++ b/public/framework/ext/drawer/inbox.js
++@@ -2,4 +2,7 @@
++ // EXTENSION, not drawer-only code — core/Page/ext/readme.md says why. This file stays
++ // so nothing that already imports "./inbox.js" (ext/drawer/tabs.js, ext/drawer/rail.js,
++ // ext/drawer/tabs/ai.js) had to change.
+++// ⚠ `default` is now the whole `Inbox` class (restructured 2026-10-02 — see that file's
+++//   own top comment), not the small drawer-box view: `rail.js` and `tabs/ai.js` both
+++//   import this as `Inbox` and build the box with `new Inbox.Compact({ page }).view()`.
++ export { default, notes, count, age, folder } from "../../core/Page/ext/Inbox/Inbox.js";
++diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
++index 803ee09c..eb62a6d2 100644
++--- a/public/framework/ext/drawer/rail.js
+++++ b/public/framework/ext/drawer/rail.js
++@@ -4,7 +4,7 @@ import grip from "/framework/ext/grip/grip.js";
++ import floor from "/framework/ux/Dictate/floor.js";
++ import Widget from "/framework/ux/Dictate/Widget.js";
++ import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
++-import DrawerInbox from "./inbox.js";
+++import Inbox from "./inbox.js";
++ import { servex_url } from "/framework/dev/servex_url.js";
++ // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
++ // seam below reads `Session.resume` only if it exists (`typeof ... ===
++@@ -761,7 +761,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
++ 		// THE PAGE'S INBOX (page-inbox, 2026-09-30), just above the widget — the same
++ 		// notes the desktop drawer's AI tab shows (`ext/drawer/tabs/ai.js`), so a note
++ 		// left for this page is seen here too, not only on a desktop screen.
++-		new DrawerInbox({ page: drawer.page() }).view();
+++		new Inbox.Compact({ page: drawer.page() }).view();
++ 		this.$slot = div.c("drawer-rail-sheet-panel");
++ 		// The links row is hidden until "More" in the head is tapped
++ 		// (sheet-regression, 2026-09-30): the conversation and the mic come first.
++@@ -1090,7 +1090,7 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
++ 	render(){
++ 		this.head();
++ 		this.handle();
++-		new DrawerInbox({ page: drawer.page() }).view();
+++		new Inbox.Compact({ page: drawer.page() }).view();
++ 		this.$slot = div.c("drawer-rail-sheet-panel");
++ 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
++ 	}
++diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
++index af97b35b..cba10476 100644
++--- a/public/framework/ext/drawer/tabs/ai.js
+++++ b/public/framework/ext/drawer/tabs/ai.js
++@@ -9,7 +9,7 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
++ import { servex_url } from "/framework/dev/servex_url.js";
++ import drawer from "../drawer.js";
++ import { DEV } from "../tabs.js";
++-import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+++import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
++ import * as Session from "/framework/ext/Session/Session.js";
++ import floor from "/framework/ux/Dictate/floor.js";
++ 
++@@ -250,7 +250,7 @@ window.addEventListener("drawer-close", dispose_chat);
++  */
++ export default function ai({ page, card, tabs }){
++ 	dispose_chat();   // this refill replaces whatever this tab built last time
++-	const inbox = new DrawerInbox({ page });
+++	const inbox = new Inbox.Compact({ page });
++ 	div.c("drawer-ai flex v", () => {
++ 		inbox.view();
++ 		const $slot = div.c("drawer-ai-panel");
++@@ -283,7 +283,7 @@ export function aiV2({ page, card, tabs }){
++ 	const thread = card ? null : tabs.thread;
++ 	let panel, $hint;
++ 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
++-	const inbox = new DrawerInbox({ page });
+++	const inbox = new Inbox.Compact({ page });
++ 
++ 	div.c("drawer-ai flex v", () => {
++ 		div.c("drawer-ai-head flex v-center split wrap", () => {
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/task.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/task.jsonl
+new file mode 100644
+index 00000000..8fa49181
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/task.jsonl
+@@ -0,0 +1,14 @@
++{"assign":{"session_id":"74fed3fc-5a8d-44e1-8ea3-9f514d157223","tab":"panel2-sessions minion-panel2","group":"panel2-sessions","request":"Build ext/panel2: header/main/footer chrome with optional start/end sidebar that becomes a drawer under 34em, a two-way split using ext/grip, a responsive dashboard grid, and a demo page — per public/framework/ai/2026-10-02/panel2-sessions/part1-panel2/requirements.md","requested_at":"2026-10-02T18:19:00-05:00","model":"claude-sonnet-5","window":{"before":0},"now":"reading the brief and the readme chain","steps":["read requirements.md + readme chain (code, css, layout, new-css-class, new-page)","read ext/grip, ext/drawer, ext/Panel for reuse and house style","write Panel2.js + panel2.css","write the demo page.js (plain panel, split, grid, phone drawer)","write readme.md + doc/decisions.md with the open questions","verify live (layout-check.mjs, headless Playwright probe of the grip drag and the drawer toggle)","commit and report to the parent"],"step":1}}
++{"log":{"at":"2026-10-02T18:40:23-05:00","msg":"skipped the usage.json/usage.jsonl refresh on purpose — this task's fence is ext/panel2/ plus its own demo page, not ai/usage.*, per new-task skill's own caveat."}}
++{"decision":{"at":"2026-10-02T18:40:23-05:00","question":"What is Panel2's drawer breakpoint, and how does a side become a drawer?","options":["reuse ext/drawer (the site's global right-rail singleton)","a small CSS transform at grip.css's own 34em floor"],"chose":"a small CSS transform at 34em","why":"ext/drawer is one global, app-wide rail wired to the site's own ☰ and url state (?drawer=ai) — it does not fit in one import for an arbitrary per-panel side, and the brief says build a second drawer system only if ext/drawer doesn't fit in one import. 34em is grip.css's own existing floor for \"a rail stops being a rail\", reused rather than invented."}}
++{"decision":{"at":"2026-10-02T18:40:23-05:00","question":"How does Panel2.split resize two panels?","options":["a third static part, Panel2.Split, holding both children","a plain static function returning a div, reusing ext/grip exactly as Sidebar/drawer already do"],"chose":"a plain static function (Panel2.split)","why":"the 'parts as statics' rule is for pieces of ONE panel's own chrome a caller might subclass (Header/Side); the split wrapper has no content or state of its own to subclass. Written up in doc/decisions.md in case a real need to promote it ever shows up."}}
++{"decision":{"at":"2026-10-02T18:40:23-05:00","question":"How should several Panel2s arrange themselves on a dashboard (the owner's 'I forget how that works' question)?","options":["a new grid formula in panel2.css","reuse framework.css's existing .grid.auto formula (repeat(auto-fit, minmax(min(var(--column),100%),1fr))) with panel2's own default --column"],"chose":"reuse .grid.auto via a one-line .panel2-grid modifier","why":"framework.css already ships the exact formula the brief describes; CLAUDE.md law 6 (one of everything) and the css skill (write as little new CSS as possible) both argue against a second copy of the same formula."}}
++{"decision":{"at":"2026-10-02T18:40:23-05:00","question":"How to prove the phone-width drawer live instead of only a screenshot?","options":["a static screenshot (explicitly allowed by the brief for the phone case)","a real narrow <iframe> reloading this same demo page, guarded by ?view=phone to avoid infinite recursion and to keep the embedded render small"],"chose":"the iframe","why":"an iframe gets its own real viewport, so the @media (width < 34em) rule fires for real — not a simulation the demo stage's zoom-based width presets can't trigger for a viewport media query. Verified live with a headless Playwright probe: the closed side's transform (translateX(-256.688px)) changes to none after clicking the toggle, zero console errors."}}
++{"log":{"at":"2026-10-02T18:40:23-05:00","msg":"css-scopes.txt census: grep -rhoE \"\\.panel2[a-z0-9-]*\" across public turned up only this module's own new classes — panel2- is free. The reservation line is noted in doc/decisions.md instead of css-scopes.txt itself, which is outside this task's write fence."}}
++{"log":{"at":"2026-10-02T18:40:23-05:00","msg":"owner added two more open-question items mid-task (Sprawl layout verb, adaptive split-panel height) — added to requirements.md by the parent, and written up as items 3 and 4 under readme.md's Open questions, design-only, not built."}}
++{"log":{"at":"2026-10-02T18:40:23-05:00","msg":"verification: node Server/layout-check.mjs http://panel2-sessions.localhost/framework/ext/panel2/ --widths 400,1200,1920,3440 — overflow false at all four; the 'empty' ratio (37-82%) matches the EXISTING baseline for an ext/Doc Overview page (ext/grip's own page measures the same shape, 67.5% empty / 637px widest at 1920) — not a regression, the shared Doc page template's own layout, out of this task's fence."}}
++{"log":{"at":"2026-10-02T18:40:23-05:00","msg":"verification: headless Playwright against the live demo page — dragging the grip between the two split panels moved the first panel from 731px to 879px and wrote the matching --panel2-split-a CSS var; loading ?view=phone at 360px and clicking the header's drawer toggle flipped the side's transform from translateX(-256.688px) to none. Zero console/page errors in either page."}}
++{"assign":{"step":7,"now":"committing and reporting to task-mastermind-panel2-sessions","links":[{"url":"/framework/ext/panel2/","label":"Panel2 — demo page"},{"url":"/framework/ext/panel2/readme.md","label":"ext/panel2 readme"}]}}
++{"log":{"at":"2026-10-02T18:40:41-05:00","msg":"skill: documentation"}}
++{"log":{"at":"2026-10-02T18:40:56-05:00","msg":"skill: finish-task"}}
++{"review":{"at":"2026-10-02T18:42:19-05:00","size":"light","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"`review/diff.patch` is the wrong diff — it contains the sibling task's changes (`part1b-inbox-restructure`: `core/Page/ext/Inbox/*`, `ai2/rail.js`, `ext/drawer/*`), not one line of `ext/panel2/`. Whoever generates this review artifact for part1-panel2 needs to re-run it against the actual Panel2 work; as it stands the review package doesn't let anyone check this task from the diff alone."},{"n":2,"kind":"fix","text":"The real Panel2 work (`public/framework/ext/panel2/Panel2.js`, `panel2.css`, `page.js`, `readme.md`, `doc/`) is untracked in the worktree (`git status` shows `??` on the whole directory and on `.../part1-panel2/`) — nothing was committed despite the brief's \"commit your work there as you go (small commits)\" rule. Nothing is lost yet, but a repo crash or `git clean` before the next step would destroy it."},{"n":3,"kind":"note","text":"Judged from the actual files on disk (not the diff, since it's unusable — see #1): the module does what requirements.md asked. `Panel2.js` has header/main/footer + start/end sides as parts-as-statics (`Panel2.Header/.Main/.Footer/.Side`), a real toolbar container (`header.append()` lands in `.controls`, not a config array), `Panel2.split(a, b, { axis })` reusing `ext/grip` untouched, and `.panel2-grid` reusing `framework.css`'s existing `grid auto` formula rather than inventing one. `page.js` shows a plain panel, a live resizable split with real header buttons, the grid, and — better than the brief's \"screenshot is acceptable for the phone case\" — a genuinely live phone demo via a same-page `?view=phone` iframe instead of a screenshot. The two deferred items (fixed/fluid split, multi-grip) plus the two owner-added ones (Sprawl, adaptive split height) are each a short readme paragraph with why, as asked."},{"n":4,"kind":"note","text":"`readme.md` says the `panel2-` CSS prefix was confirmed free in `css-scopes.txt` but wasn't written there because that file is outside this task's fence — true per the brief, but worth someone actually adding the line soon so a second module doesn't grab `panel2-` first."},{"n":5,"kind":"note","text":"No simpler way stood out — the module is already small (one file, four static parts, one split function, one grid class), consistent with CLAUDE.md law 1."}],"branch":"worktree/panel2-sessions","head":"a90bbdc871ab585e5b3ad4084b5d87cc55045e11","model":"claude-sonnet-5","cost":0.4541882,"file":"review.md","report":null,"shots":null}}
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
+new file mode 100644
+index 00000000..930bd078
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
+@@ -0,0 +1,80 @@
++# Minion brief: restructure `core/Page/ext/Inbox` into parts-as-statics
++
++You are a minion. Load the `minion` skill first, then `code` (the parts-as-statics pattern this
++is fixing) and `documentation`. Fence: `public/framework/core/Page/ext/Inbox/` plus the handful
++of files that import from it (`public/framework/ai2/rail.js`, `public/framework/ext/drawer/`
++wherever it imports `DrawerInbox`/`Inbox` from here — grep first). Do not touch
++`public/framework/ext/panel2/` (a sibling minion's work) or `public/framework/ai/page.js`/
++`overview.js` (a later minion's work, once this lands).
++
++Task directory: `public/framework/ai/2026-10-02/panel2-sessions/` (parent task — read its
++`task.jsonl` and `requirements.md` first).
++
++## The ask, verbatim (the owner, via the VS Code mastermind, mid-task 2026-10-02)
++
++> core/Page/ext/Inbox breaks the parts-as-statics pattern (code/patterns). Today it has TWO
++> unrelated classes:
++> - Inbox.js exports `DrawerInbox` (aliased `Inbox`): the drawer's page-notes inbox.
++> - Rail.js has `InboxRail`, which ai2/rail.js extends as AIRail. Neither is reachable from the
++>   other. ai2/rail.js also names `InboxRail.prototype` `store`, which is a misleading name.
++>
++> Restructure:
++> 1. One `class Inbox` (the data: items, filters, the floor, read/archive), with its views as
++>    statics: `static Rail` (today's InboxRail) and `static Compact` (the drawer's and
++>    Overview's small view, merging DrawerInbox). AIRail extends `Inbox.Rail`.
++> 2. Name properties after their class in lowercase. An instance draws through `inbox.rail` and
++>    `inbox.compact`, made lazily. No `inbox_rail`-style names.
++> 3. Keep `InboxRail` and `DrawerInbox` as re-exports for one release, and update the readme's
++>    Architecture block.
++> 4. Check the drawer's inbox, /framework/ai/ and /framework/ai2/ still work (screenshots at
++>    400 and 1920).
++
++## Before you start
++
++- Read `Inbox.js`, `Rail.js`, `servex.js` and `readme.md` in `core/Page/ext/Inbox/` whole.
++- Read `ai2/rail.js` whole — it's the one place `InboxRail` is subclassed (`AIRail`) and the
++  `store` name lives; find every other caller of `InboxRail`/`DrawerInbox`/`Inbox` from this
++  folder with a repo-wide grep before you start moving code, so nothing breaks silently.
++- This module is claimed by `task-mastermind-panel2-sessions` for this change; a note is already
++  on `/framework/core/Page/ext/`'s page inbox telling `@task-mastermind-inbox-ext` (who owns
++  `/framework/ai/`'s tabs and wiring) what's coming, in case it's mid-edit on the same files —
++  if you hit an unexpected conflict when you pull, stop and report rather than force through it.
++
++## What "done" looks like
++
++1. One `class Inbox` in `Inbox.js` (or wherever makes sense — you decide the file layout, but
++   keep the folder small) holding the data: the items, the filters (e.g. the floor/min-score
++   used today), read/archive state and methods.
++2. `static Rail` on it is today's `InboxRail` class (moved from `Rail.js`, or `Rail.js` now just
++   defines `Inbox.Rail = class extends ... {}` — your call, document the choice). `static Compact`
++   is a NEW small class merging today's `DrawerInbox` (the page-notes drawer inbox) with what a
++   tiny Overview-dashboard card needs: it should take a `{ page }` (same as `InboxRail`) and
++   optionally render smaller/denser — the exact visual is a later minion's job (it builds the
++   Overview grid on top of `Inbox.Compact`), your job is making the CLASS correct and reusable,
++   with a sensible minimal render so it isn't inert.
++3. An instance is `new Inbox({ page })` (match `InboxRail`'s existing constructor shape so
++   callers barely change); `inbox.rail` and `inbox.compact` are the two views, each created
++   lazily on first access (a getter that mounts/caches, not built in the constructor).
++4. `AIRail` (`ai2/rail.js`) extends `Inbox.Rail`, not a standalone `InboxRail`. Rename its
++   `store` property to something that names what it actually is (read the code to find the
++   right word — likely something like `data` or `items`, matching step 2's "name properties
++   after their class in lowercase" rule generally, i.e. no more misleading names).
++5. `InboxRail` and `DrawerInbox` stay as one-release re-exports (`export const InboxRail =
++   Inbox.Rail;` etc.) so every existing import keeps working without edits elsewhere — but also
++   actually re-point the real callers (ai2/rail.js, the drawer) to the new names, since this is
++   the task doing that migration, not leaving it for later.
++6. Update `core/Page/ext/Inbox/readme.md`'s Architecture description (and any other readme that
++   describes the two-class shape) to describe the one-class, two-statics shape, with the
++   deprecation note about the re-exports.
++7. Verify: the drawer's page-notes inbox, `/framework/ai/` and `/framework/ai2/` all still work.
++   Take screenshots at 400 and 1920 of at least one page from each (the drawer open on any page,
++   `/framework/ai/`'s Inbox tab, `/framework/ai2/`) and look at them yourself before reporting —
++   `node Server/layout-check.mjs <urls> --widths 400,1920`.
++
++## Rules
++
++- No build step; resolve urls against `import.meta`; CSS rules stay in their layer if you touch
++  any (you likely won't — this is a JS restructure).
++- Work in the worktree `C:\Code\lew42\worktrees\panel2-sessions`. Commit as you go.
++- Report back to `task-mastermind-panel2-sessions` when done: what changed, the screenshot
++  results, and anything you found that the owner's four numbered points didn't anticipate.
+diff --git a/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl
+new file mode 100644
+index 00000000..0af45103
+--- /dev/null
++++ b/public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/task.jsonl
+@@ -0,0 +1,16 @@
++{"assign":{"session_id":"648b2f8d-afd7-4565-a461-7e9f85c6252c","agent":"minion-inbox-restructure","card":"public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/","brief":"public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md","model":"claude-sonnet-5","worktree":"C:/Code/lew42/worktrees/panel2-sessions","parent_task":"public/framework/ai/2026-10-02/panel2-sessions","requested_at":"2026-10-02T18:30:18-05:00","now":"reading Inbox.js, Rail.js, servex.js, readme.md and every caller (ai2/rail.js, ext/drawer/rail.js, ext/drawer/tabs/ai.js, ux/Inbox/page.js)","steps":["read Inbox.js, Rail.js, servex.js, readme.md whole, and every caller of InboxRail/DrawerInbox (grep first)","write class Inbox with lazy inbox.rail / inbox.compact getters in Inbox.js; Inbox.Rail = Rail (imported from Rail.js, no cycle); Inbox.Compact merges DrawerInbox","rename Rail.js's InboxRail class to Rail; keep InboxRail/DrawerInbox as one-release re-exports from Inbox.js","re-point the real callers: ai2/rail.js (AIRail extends Inbox.Rail, store -> storage), ext/drawer/rail.js and ext/drawer/tabs/ai.js (DrawerInbox -> Inbox.Compact)","node --check every edited file","update core/Page/ext/Inbox/readme.md's Architecture section","screenshot the drawer's page-notes inbox, /framework/ai/, /framework/ai2/ at 400 and 1920 and look at them","documentation pass, then finish-task; report to task-mastermind-panel2-sessions"],"step":1}}
++{"log":{"at":"2026-10-02T18:30:18-05:00","msg":"This task's task.jsonl did not exist in this worktree even though the brief said it was already open (worktrees don't share uncommitted working-tree files from the mastermind's own tree, same gap logged in ai/2026-09-30/ai2-inbox-read/minion-ai2-inbox/task.jsonl). Creating it now with this line as the launch line, using CLAUDE_CODE_SESSION_ID as session_id. requirements.md itself did exist and was read whole before any edit."}}
++{"action":{"at":"2026-10-02T18:30:47-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/Rail.js"]}}
++{"action":{"at":"2026-10-02T18:31:21-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/Inbox.js"]}}
++{"action":{"at":"2026-10-02T18:31:52-05:00","did":"edit","files":["public/framework/ai2/rail.js"]}}
++{"action":{"at":"2026-10-02T18:32:18-05:00","did":"edit","files":["public/framework/ext/drawer/rail.js"]}}
++{"action":{"at":"2026-10-02T18:32:27-05:00","did":"edit","files":["public/framework/ext/drawer/tabs/ai.js"]}}
++{"action":{"at":"2026-10-02T18:32:46-05:00","did":"edit","files":["public/framework/ext/drawer/inbox.js"]}}
++{"action":{"at":"2026-10-02T18:32:57-05:00","did":"edit","files":["public/framework/core/Page/ext/Inbox/readme.md"]}}
++{"decision":{"at":"2026-10-02T19:05:00-05:00","what":"File layout: Rail.js keeps the class body (renamed InboxRail -> Rail, no self-reference to Inbox); Inbox.js imports Rail.js and assigns Inbox.Rail = Rail. Chose this direction over having Rail.js import Inbox.js, because the reverse would be an import cycle (Inbox.js -> Rail.js -> Inbox.js) -- Rail.js now imports nothing from Inbox.js. Inbox.Compact (the merged DrawerInbox) stays inside Inbox.js itself rather than a third file, per the brief's own 'keep the folder small' guidance.","alternative":"Could have moved Rail's whole body into Inbox.js and had Rail.js just do `Inbox.Rail = class extends ... {}` (the brief's other suggested option) -- rejected because Rail.js is the file every back-compat importer (ux/Inbox/page.js, its readme) already points at by file path, and leaving its real implementation there needed no edits to those files at all."}}
++{"decision":{"at":"2026-10-02T19:05:00-05:00","what":"ai2/rail.js's InboxRail.prototype local var `store` renamed to `storage` (it holds the rail's try/catch localStorage helper methods, not a data store -- the brief guessed 'data' or 'items' but neither read as that correctly once I read what the methods actually do)."}}
++{"log":{"at":"2026-10-02T19:05:00-05:00","msg":"Verification: a dev server for this worktree was already running externally on port 54772 (not started by me, not mine to stop -- confirmed by EADDRINUSE when I tried to boot my own). Used it directly for node --check (all 6 touched files pass) and Server/layout-check.mjs screenshots at 400+1920 of /framework/ext/drawer/?drawer=ai (the drawer's AI-tab inbox box), /framework/ai/ (Inbox tab), /framework/ai2/, and /framework/core/Page/ext/ (the {\"ext\":\"Inbox\"} extension demo, which exercises the new Inbox.setup -> Inbox.Compact.setup forwarding -- not one of the brief's 3 named pages, checked anyway since it's new code). All four render correctly, same look as before. Every page (including an untouched baseline, /framework/) shows one identical generic '404 Not Found' console line -- confirmed pre-existing and unrelated to this change, not a regression. Also curled /framework/ux/Inbox/ (200) to confirm the old default-import path from Rail.js still works unedited. Screenshots: public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/shots/."}}
++{"log":{"at":"2026-10-02T19:05:00-05:00","msg":"Found, not asked for: core/Page/ext/Inbox/files.jsonl gained two lines (Rail.js, servex.js) I never wrote -- some background file-tree watcher synced it against the real directory contents while the already-running dev server was live during my work. Those two files genuinely exist in the folder and were missing from the list before, so this looks like a pre-existing drift being corrected, not damage from this task; left as is."}}
++{"log":{"at":"2026-10-02T18:36:22-05:00","msg":"skill: finish-task"}}
++{"log":{"at":"2026-10-02T18:36:28-05:00","msg":"skill: check-claude-usage"}}
++{"assign":{"step":7,"landed_at":"2026-10-02T18:36:46-05:00","title":"core/Page/ext/Inbox: one class Inbox, two statics Rail + Compact","outcome":"**One `class Inbox`, two lazy views — `inbox.rail` and `inbox.compact`.**\n\n- [x] `Inbox.Rail` = today's `InboxRail` (moved, unedited, into `Rail.js`'s renamed `Rail` class, assigned as a static) — [Inbox.js](/framework/core/Page/ext/Inbox/Inbox.js)\n- [x] `Inbox.Compact` = new class merging `DrawerInbox` (the drawer's note box + the page.jsonl extension)\n- [x] `AIRail extends Inbox.Rail`; `ai2/rail.js`'s misleading `store` renamed `storage` — [rail.js](/framework/ai2/rail.js)\n- [x] `InboxRail`/`DrawerInbox` kept as one-release re-exports; real callers (`ai2/rail.js`, `ext/drawer/rail.js`, `ext/drawer/tabs/ai.js`) re-pointed to `Inbox.Rail`/`Inbox.Compact`\n- [x] readme's Architecture section rewritten (before/after + deprecation note)\n- [x] verified at 400/1920: drawer AI tab, [/framework/ai/](/framework/ai/), [/framework/ai2/](/framework/ai2/), and the `{\"ext\":\"Inbox\"}` demo — all render same as before, zero new console errors (one pre-existing site-wide 404 confirmed on an untouched baseline page too)\n\nCommit 76264400. Full notes, decisions and screenshot paths: this task's own `task.jsonl`.","links":[{"url":"/framework/core/Page/ext/Inbox/","label":"core/Page/ext/Inbox/"},{"url":"/framework/ai2/","label":"AI 2"},{"url":"/framework/ai/","label":"AI"},{"url":"/framework/ux/Inbox/","label":"Inbox.Rail demo (unchanged)"}],"window":{"before":0,"after":0.14},"tokens":null}}
+diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
+index 5964f428..558b48ba 100644
+--- a/public/framework/ai2/rail.js
++++ b/public/framework/ai2/rail.js
+@@ -1,5 +1,5 @@
+ import { Page, View, div, span, small, a, button, label, input, details, summary } from "/app.js";
+-import InboxRail from "/framework/core/Page/ext/Inbox/Rail.js";
++import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
+ import { mentions } from "/framework/ext/Mention/Mention.js";
+ import { Groups } from "./groups.js";
+ import { task_of, task_region } from "./tasks.js";
+@@ -20,7 +20,7 @@ import { RealPage, page_events, real_title } from "./real.js";
+ import { is_read, mark_read, archive_row, is_resolved } from "./rules.js";
+ 
+ /* The AI-only look: the usage meters, a row's progress meter, "what happened", groups.
+-   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by InboxRail. */
++   The rail itself is styled by the ux block (ux/Inbox/Inbox.css), loaded by Inbox.Rail. */
+ View.stylesheet(import.meta, "rail.css");
+ 
+ /* Servex down: the page is read-only — "+ New card" quietly goes away. */
+@@ -28,15 +28,20 @@ servex_up().then(ok => { if (!ok) document.head.append(Object.assign(document.cr
+ 
+ const AUTO_KEY = "ai2-auto-transcribe";
+ const LIVEVIEW_KEY = "ai2-live-default";
+-const store = InboxRail.prototype;   // its try/catch storage, shared rather than copied
++// `Inbox.Rail.prototype` — its try/catch localStorage helpers (`store_get`/`store_set`),
++// shared rather than copied. Was named `store`, which read as "a data store"; it holds
++// no data at all, just the wrapper methods (restructure, 2026-10-02 — the owner: "a
++// misleading name").
++const storage = Inbox.Rail.prototype;
+ 
+ /** On by default — a card you just opened starts listening unless you turned this off. */
+-export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
++export const auto_transcribe = () => storage.store_get(AUTO_KEY) !== "off";
+ 
+ /**
+- * AI RAIL — the AI's inbox: the base rail (`core/Page/ext/Inbox/Rail.js`) plus what only
+- * the AI system has (the owner, 2026-09-30: "we don't need the AI usage meters on the
+- * inbox for every single page… override the rail… and you add the progress bars above it").
++ * AI RAIL — the AI's inbox: the base rail (`Inbox.Rail`, `core/Page/ext/Inbox/Inbox.js`)
++ * plus what only the AI system has (the owner, 2026-09-30: "we don't need the AI usage
++ * meters on the inbox for every single page… override the rail… and you add the progress
++ * bars above it").
+  *
+  * Adds, each as an override of one base method:
+  *   - the usage meters above the filters (`head_extra`) — the ONLY place they exist;
+@@ -53,7 +58,7 @@ export const auto_transcribe = () => store.store_get(AUTO_KEY) !== "off";
+  * ⚠ The shell also wears `.ai2`: card.js finds it with `document.querySelector(".ai2")`
+  *   to write its column widths (`--ai2-subw`, `--ai2-chat`) — rail.css passes those on.
+  */
+-export default class AIRail extends InboxRail {
++export default class AIRail extends Inbox.Rail {
+ 	title = "AI inbox";
+ 	key = "ai2";
+ 	now_item = null;
+diff --git a/public/framework/core/Page/ext/Inbox/Inbox.js b/public/framework/core/Page/ext/Inbox/Inbox.js
+index 4fa2a225..428302a8 100644
+--- a/public/framework/core/Page/ext/Inbox/Inbox.js
++++ b/public/framework/core/Page/ext/Inbox/Inbox.js
+@@ -1,27 +1,36 @@
+ import { div, span, button, input, small } from "/framework/core/View/View.js";
+ import { servex_base, servex_fetch } from "./servex.js";
+-
+-/* THE PAGE'S INBOX — two different things share this one file, on purpose:
+- * they're both "a message, on a page", they're just read from two different
+- * places (2026-09-30, core/Page/ext/).
++import Rail from "./Rail.js";
++
++/* THE PAGE'S INBOX — ONE CLASS, TWO VIEWS (restructured 2026-10-02, the owner's own ask —
++ * see public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
++ * for the exact wording). Before this change, two unrelated classes lived in this folder
++ * with no connection to each other, even though they're both "a message, on a page," just
++ * read from two different places: `InboxRail` (`Rail.js`, a page's persistent navigation
++ * rail) and `DrawerInbox` (this file, the drawer's small "Leave a note" box). Now they are
++ * the two VIEWS of one thing, `class Inbox` below:
++ *
++ *   const inbox = new Inbox({ page: this });
++ *   inbox.rail.mount();     // the rail — was `new InboxRail({ page: this }).mount()`
++ *   inbox.compact.view();   // the small box — was `new DrawerInbox({ page: this }).view()`
+  *
+- * 1. `DrawerInbox` (below) — the small "Leave a note" box at the top of the
+- *    drawer's AI tab. Servex is the only writer and answerer (`/api/inbox`);
+- *    off the dev machine the inbox simply isn't drawn. This half moved here
+- *    unchanged from `ext/drawer/inbox.js` (task ai/2026-09-30/page-inbox/),
+- *    which is now a one-line re-export so nothing importing it had to change.
++ * `inbox.rail` and `inbox.compact` are getters: the first time either is READ, that one
++ * view is built and cached — never both, so a page that only ever touches `.rail` never
++ * pays to build `.compact`, and the other way round.
+  *
+- * 2. `DrawerInbox.setup(page)` (new) — the EXTENSION. A page.jsonl line,
+- *    `{"ext": "Inbox"}`, turns it on for that one page; `Page.use(DrawerInbox)`
+- *    (core/Page/Page.class.js) would turn it on for every page. Either way,
+- *    every `{"inbox": {type, author, text, at}}` line already in that page's
+- *    own page.jsonl — any agent, or the owner, just appending a message —
+- *    collects into `page.inbox`, oldest first. This is content, read straight
+- *    off the page's own log; part 1 above is coordination, read through
+- *    Servex. core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md have
+- *    the rest; see it run at /framework/core/Page/ext/.
++ * `Inbox.Rail` is `Rail.js`'s class, imported above and assigned below (`Inbox.Rail =
++ * Rail`) — moved in as a static rather than having its body copied into this file, so
++ * `Rail.js` never has to import `Inbox.js` back (an import cycle: "a parent↔child import
++ * cycle breaks only on deep reload," `code` skill). `Inbox.Compact` is new: today's
++ * `DrawerInbox` class, renamed and kept right here (small enough that a second file for it
++ * would be more ceremony than help) — see its own comment, below, for both of its jobs.
+  *
+- * Docs: doc/inbox.md · Servex/doc/inbox.md (part 1). */
++ * `InboxRail` and `DrawerInbox`, as names, still work for one release: they are re-exported
++ * at the bottom of this file, unedited, so nothing that already imports them breaks today.
++ * New code should write `Inbox.Rail` / `Inbox.Compact` instead.
++ *
++ * Docs: doc/inbox.md · Servex/doc/inbox.md (the coordination half) · this folder's own
++ * readme.md, "Architecture", has the fuller before/after. */
+ 
+ // A page's folder path: the url without its query or hash, ending in "/".
+ export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
+@@ -45,11 +54,46 @@ export function age(at){
+ 	return s < 60 ? "now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
+ }
+ 
+-export class DrawerInbox {
++/** THE DATA — one inbox, for one page. Everything either view needs to exist (just
++ *  `{ page }`, today) lives here; a view reads it back through `this.page`. `inbox.rail`
++ *  and `inbox.compact` are the two ways to SHOW it, below — lazy, so building one never
++ *  builds the other, and each is built only once (a getter that constructs-and-caches,
++ *  not something built eagerly in the constructor). */
++export class Inbox {
++	constructor(...args){ this.assign({ page: location.pathname }, ...args); }
++	assign(...args){ return Object.assign(this, ...args); }
++
++	get rail(){ return this._rail ??= new this.constructor.Rail({ page: this.page }); }
++	get compact(){ return this._compact ??= new this.constructor.Compact({ page: this.page }); }
++
++	// `{"ext": "Inbox"}` and `Page.use(Inbox)` (core/Page/ext/readme.md) both end up
++	// calling this — it forwards to Compact's own hook (today's `DrawerInbox.setup`,
++	// unchanged below): collecting a page's `{"inbox": {…}}` jsonl lines into
++	// `page.inbox` is Compact's job, not the rail's, so only Compact needs to answer it.
++	static setup(page){ return Inbox.Compact.setup(page); }
++}
++
++/** INBOX.COMPACT — the small, dense view. Merges what used to be `DrawerInbox`'s two jobs,
++ *  both still true, unchanged:
++ *
++ *  1. THE DRAWER'S "LEAVE A NOTE" BOX (`view()`/`draw()`, below) — read and written
++ *     through Servex's `/api/inbox`; off the dev machine the inbox simply isn't drawn.
++ *     `ext/drawer/rail.js` and `ext/drawer/tabs/ai.js` build one:
++ *     `new Inbox.Compact({ page }).view()`.
++ *  2. THE EXTENSION (`static setup`, called by `Inbox.setup` above) — turned on by a
++ *     `{"ext": "Inbox"}` page.jsonl line, or `Page.use(Inbox)` for every page. See
++ *     core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md for the rest.
++ *
++ *  Takes `{ page }`, same as `Inbox.Rail` (deliverable 3, the restructure's own brief) — a
++ *  LATER task builds the actual Overview-dashboard tile on top of this class (a denser
++ *  render, not a different one); this class's own job is just being correct and reusable,
++ *  which is why `view()` stays the same plain, working box rather than something tied to
++ *  the drawer's own width. */
++Inbox.Compact = class Compact {
+ 	constructor(...args){ this.assign({ page: location.pathname, open: [], coordinator: null, said: null }, ...args); }
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+-	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(DrawerInbox) ═════════════
++	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(Inbox) ═════════════
+ 	// `page.inbox` collects every `{"inbox": {…}}` line the page's own log has
+ 	// (or ever gets): a real line, read the same way a `place` or `tab` line is —
+ 	// nothing to do with the Servex-backed notes above.
+@@ -144,7 +188,13 @@ export class DrawerInbox {
+ 		});
+ 		$box.el.hidden = !this.writing && !this.open.length && !this.coordinator && !this.said;
+ 	}
+-}
++};
++
++Inbox.Rail = Rail;
++
++// One release of back-compat: every existing import of the old names keeps working
++// unedited. New code reaches for `Inbox.Rail` / `Inbox.Compact` directly instead.
++export const InboxRail = Inbox.Rail;
++export const DrawerInbox = Inbox.Compact;
+ 
+-export { DrawerInbox as Inbox };
+-export default DrawerInbox;
++export default Inbox;
+diff --git a/public/framework/core/Page/ext/Inbox/Rail.js b/public/framework/core/Page/ext/Inbox/Rail.js
+index d7de5ce3..7c43dd35 100644
+--- a/public/framework/core/Page/ext/Inbox/Rail.js
++++ b/public/framework/core/Page/ext/Inbox/Rail.js
+@@ -5,16 +5,22 @@ import grip from "/framework/ext/grip/grip.js";
+ View.stylesheet("/framework/ux/Inbox/Inbox.css");
+ 
+ /**
+- * INBOX RAIL — a list of previews on the left, the one you picked open on the right,
+- * and nothing in the list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a
+- * persistent navigation… it shouldn't jump when you click on an item").
++ * THE BIG RAIL — `Inbox.Rail` (restructured 2026-10-02; this file still defines the class,
++ * now named plain `Rail`, and `Inbox.js` imports it to assign `Inbox.Rail = Rail` — chosen
++ * over moving this whole body into `Inbox.js` so this file never has to import that one back
++ * (an import cycle). The old name, `InboxRail`, is a one-release re-export from `Inbox.js`;
++ * see this folder's readme.md, "Architecture", for the full before/after).
++ *
++ * A list of previews on the left, the one you picked open on the right, and nothing in the
++ * list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a persistent navigation… it
++ * shouldn't jump when you click on an item").
+  *
+  * This is the base class. The AI page and AI 2 both draw `AIRail` (ai2/rail.js), which
+- * extends this with the usage meters, "+ New card" and the AI data. Any other page can
+- * extend it the same way: override `source()` to say what the rows are, and the rest
+- * comes with it.
++ * extends this (`class AIRail extends Inbox.Rail`) with the usage meters, "+ New card" and
++ * the AI data. Any other page can extend it the same way: override `source()` to say what
++ * the rows are, and the rest comes with it.
+  *
+- *   const rail = new InboxRail({ page: this, items: [...] }).mount();   // inside content()
++ *   const rail = new Rail({ page: this, items: [...] }).mount();   // inside content()
+  *
+  * WHAT YOU GET
+  *   - three columns: the rail, the detail (`page.$pages`, where a row's page opens) and
+@@ -34,11 +40,11 @@ View.stylesheet("/framework/ux/Inbox/Inbox.css");
+  * Every part is a method, so a subclass changes one part and keeps the rest. Docs:
+  * ux/Inbox/readme.md · see one running at /framework/ux/Inbox/.
+  */
+-export default class InboxRail {
++export default class Rail {
+ 	/* ── settings a subclass or a caller may override ── */
+-	title = "Inbox";               // the rail's own name, above its filters
+-	key = "inbox";                 // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
+-	min_default = InboxRail.FLOOR; // the floor when the url has no `?min=`
++	title = "Inbox";          // the rail's own name, above its filters
++	key = "inbox";            // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
++	min_default = Rail.FLOOR; // the floor when the url has no `?min=`
+ 	items = [];                    // the rows, for a rail that is just given them (the demo)
+ 
+ 	/* ── state ── */
+@@ -428,7 +434,7 @@ export default class InboxRail {
+ 
+ 	/** A row's address: its page under mine, carrying a floor that is not the Inbox's own. */
+ 	href(it){ return this.url + it.id + "/" + this.query(); }
+-	query(){ return this.min !== InboxRail.FLOOR ? "?min=" + this.min : ""; }
++	query(){ return this.min !== Rail.FLOOR ? "?min=" + this.min : ""; }
+ 
+ 	/* A ROW IS AN ANCHOR — no click handler: the Router navigates it and marks it. */
+ 	make(it){
+@@ -604,5 +610,3 @@ export default class InboxRail {
+ 	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+ 	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
+ }
+-
+-export { InboxRail };
+diff --git a/public/framework/core/Page/ext/Inbox/files.jsonl b/public/framework/core/Page/ext/Inbox/files.jsonl
+index bf7d5488..ce736f3f 100644
+--- a/public/framework/core/Page/ext/Inbox/files.jsonl
++++ b/public/framework/core/Page/ext/Inbox/files.jsonl
+@@ -1,2 +1,4 @@
+ {"file":"Inbox.js"}
+ {"file":"readme.md"}
++{"file":"Rail.js"}
++{"file":"servex.js"}
+diff --git a/public/framework/core/Page/ext/Inbox/readme.md b/public/framework/core/Page/ext/Inbox/readme.md
+index d05b53ef..53cc2f8f 100644
+--- a/public/framework/core/Page/ext/Inbox/readme.md
++++ b/public/framework/core/Page/ext/Inbox/readme.md
+@@ -1,4 +1,24 @@
+-# Inbox — a message, appended straight to a page's own log
++# Inbox — one class, two views: a page's rail, and its small "leave a note" box
++
++`class Inbox` holds one page's inbox; `inbox.rail` and `inbox.compact` are its two views,
++each built lazily the first time you read it:
++
++```js
++import Inbox from "/framework/core/Page/ext/Inbox/Inbox.js";
++
++const inbox = new Inbox({ page: this });
++inbox.rail.mount();     // the big rail — see it running at /framework/ux/Inbox/
++inbox.compact.view();   // the small box — see it in the drawer's AI tab
++```
++
++- **`inbox.rail`** (`Inbox.Rail`, was the standalone class `InboxRail`) — a rail of row
++  previews beside the page you picked, persistent and never jumping. The AI page's Inbox
++  and Log tabs, and AI 2, build its subclass `AIRail` (`ai2/rail.js`):
++  `class AIRail extends Inbox.Rail`.
++- **`inbox.compact`** (`Inbox.Compact`, was the standalone class `DrawerInbox`) — the small
++  "Leave a note" box at the top of the drawer's AI tab, read and written through Servex's
++  `/api/inbox`. Also the page.jsonl extension described below (its `static setup` is what
++  `{"ext": "Inbox"}` and `Page.use(Inbox)` both call).
+ 
+ Any agent (or the owner) can leave a message on ANY page, just by appending one line
+ to that page's own `page.jsonl`:
+@@ -22,27 +42,43 @@ After that, every `{"inbox": …}` line on that page — before the `ext` line o
+ — collects into `page.inbox`, an array, oldest first. See it running at
+ [core/Page/ext/](/framework/core/Page/ext/) — the extension system's own demo page.
+ 
+-## Draw an inbox: `InboxRail`
++## Architecture: before and after (restructured 2026-10-02)
+ 
+-`Rail.js` is the class that DRAWS an inbox: a rail of row previews beside the page you
+-picked, persistent and never jumping. Any page builds one with
+-`new InboxRail({ page: this }).mount()`; the AI page and AI 2 build its subclass `AIRail`.
+-Its look and demo are the ux block, [/framework/ux/Inbox/](/framework/ux/Inbox/) — start
+-there.
++**Before:** two unrelated classes shared this folder, with no connection to each other —
++`InboxRail` (`Rail.js`) and `DrawerInbox` (`Inbox.js`), even though both are "a message,
++on a page," just read from two different places (Servex's `/api/inbox` vs. whatever rows
++a page's own `source()` returns). Nothing pointed from one to the other, and `ai2/rail.js`
++named `InboxRail.prototype` the misleading `store` — it holds no data, just the rail's
++try/catch `localStorage` helper methods.
+ 
+-## The other Inbox in this file — the drawer's, unrelated
++**After:** one class, `Inbox` (`Inbox.js`), holding `{ page }`. Its two views are reached
++through two lazy getters, `inbox.rail` and `inbox.compact`, each built once and cached on
++first read — building one never builds the other. `Inbox.Rail` is `Rail.js`'s class,
++unchanged, imported into `Inbox.js` and assigned there (`Inbox.Rail = Rail`) — chosen over
++moving the class body itself so `Rail.js` never has to import `Inbox.js` back (no import
++cycle). `Inbox.Compact` is `DrawerInbox`, renamed and kept inside `Inbox.js` itself (small
++enough that a second file would be more ceremony than help) — a later task builds the
++actual Overview-dashboard tile on top of this same class. `ai2/rail.js`'s `store` is now
++`storage`, and `AIRail` extends `Inbox.Rail` directly.
+ 
+-This same file, `Inbox.js` (moved here 2026-09-30 from `ext/drawer/inbox.js`, which is
+-now a one-line re-export so nothing that imported it had to change), also draws the
+-**AI tab's page inbox**: the small "Leave a note" box at the top of the drawer, read
+-and written through Servex's `/api/inbox` — a coordination inbox, for any agent
+-currently working on a page, not page.jsonl data. That part is untouched. See
+-`ext/drawer/` and `doc/inbox.md` for it.
++**Deprecation, for one release:** `InboxRail` and `DrawerInbox` are both still exported
++from `Inbox.js`, pointing at the new names (`export const InboxRail = Inbox.Rail;` etc.),
++so any import written before this change keeps working with no edit — `ux/Inbox/page.js`'s
++demo, for one, still imports `InboxRail` from `Rail.js` directly and needs no change. New
++code should write `Inbox.Rail` / `Inbox.Compact` instead; these two old names go away once
++nothing in the repo still uses them.
+ 
+ ## Files
+ 
+-`Inbox.js` — both halves: `DrawerInbox` (the drawer's Servex-backed reader/writer, as
+-before) and its new static `setup(page)` (the extension above, `page.inbox` from
+-page.jsonl). `Rail.js` — `InboxRail`, above. `servex.js` — Servex's address and whether
++`Inbox.js` — `class Inbox`, its `Inbox.Compact` static (the drawer's box + the page.jsonl
++extension), and the deprecated re-exports. `Rail.js` — `Inbox.Rail`'s class body (plain
++`class Rail`), the big navigation rail — see its look and demo at
++[/framework/ux/Inbox/](/framework/ux/Inbox/). `servex.js` — Servex's address and whether
+ it is up (moved here from `ai2/inbox.js`, which re-exports it, so this folder imports
+ nothing from AI 2).
++
++## More
++
++- [`ai2/rail.js`](/framework/ai2/rail.js) — `AIRail`, the subclass with the usage meters
++- [`/framework/ux/Inbox/`](/framework/ux/Inbox/) — `Inbox.Rail`'s own demo and look
++- `ext/drawer/` and `doc/inbox.md` — the drawer's "Leave a note" box, `Inbox.Compact`
+diff --git a/public/framework/ext/drawer/inbox.js b/public/framework/ext/drawer/inbox.js
+index b63b40ee..b65e95e8 100644
+--- a/public/framework/ext/drawer/inbox.js
++++ b/public/framework/ext/drawer/inbox.js
+@@ -2,4 +2,7 @@
+ // EXTENSION, not drawer-only code — core/Page/ext/readme.md says why. This file stays
+ // so nothing that already imports "./inbox.js" (ext/drawer/tabs.js, ext/drawer/rail.js,
+ // ext/drawer/tabs/ai.js) had to change.
++// ⚠ `default` is now the whole `Inbox` class (restructured 2026-10-02 — see that file's
++//   own top comment), not the small drawer-box view: `rail.js` and `tabs/ai.js` both
++//   import this as `Inbox` and build the box with `new Inbox.Compact({ page }).view()`.
+ export { default, notes, count, age, folder } from "../../core/Page/ext/Inbox/Inbox.js";
+diff --git a/public/framework/ext/drawer/rail.js b/public/framework/ext/drawer/rail.js
+index 803ee09c..eb62a6d2 100644
+--- a/public/framework/ext/drawer/rail.js
++++ b/public/framework/ext/drawer/rail.js
+@@ -4,7 +4,7 @@ import grip from "/framework/ext/grip/grip.js";
+ import floor from "/framework/ux/Dictate/floor.js";
+ import Widget from "/framework/ux/Dictate/Widget.js";
+ import chat, { ago, new_session_button as chat_new_session_button } from "/framework/ux/Dictate/chat.js";
+-import DrawerInbox from "./inbox.js";
++import Inbox from "./inbox.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ // A NAMESPACE import, not `{ start, say, nav, watch }` named ones — the resume
+ // seam below reads `Session.resume` only if it exists (`typeof ... ===
+@@ -761,7 +761,7 @@ export class DrawerRailSheetPanel extends DrawerRailSheet {
+ 		// THE PAGE'S INBOX (page-inbox, 2026-09-30), just above the widget — the same
+ 		// notes the desktop drawer's AI tab shows (`ext/drawer/tabs/ai.js`), so a note
+ 		// left for this page is seen here too, not only on a desktop screen.
+-		new DrawerInbox({ page: drawer.page() }).view();
++		new Inbox.Compact({ page: drawer.page() }).view();
+ 		this.$slot = div.c("drawer-rail-sheet-panel");
+ 		// The links row is hidden until "More" in the head is tapped
+ 		// (sheet-regression, 2026-09-30): the conversation and the mic come first.
+@@ -1090,7 +1090,7 @@ export class DrawerRailSheetChat extends DrawerRailSheetPanel {
+ 	render(){
+ 		this.head();
+ 		this.handle();
+-		new DrawerInbox({ page: drawer.page() }).view();
++		new Inbox.Compact({ page: drawer.page() }).view();
+ 		this.$slot = div.c("drawer-rail-sheet-panel");
+ 		this.$links = this.links().ac("drawer-rail-sheet-links-folded");
+ 	}
+diff --git a/public/framework/ext/drawer/tabs/ai.js b/public/framework/ext/drawer/tabs/ai.js
+index af97b35b..cba10476 100644
+--- a/public/framework/ext/drawer/tabs/ai.js
++++ b/public/framework/ext/drawer/tabs/ai.js
+@@ -9,7 +9,7 @@ import { ask, available } from "/framework/ext/Ask/Ask.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ import drawer from "../drawer.js";
+ import { DEV } from "../tabs.js";
+-import DrawerInbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
++import Inbox from "../inbox.js";   // the page's inbox, at the top of this tab (doc/inbox.md)
+ import * as Session from "/framework/ext/Session/Session.js";
+ import floor from "/framework/ux/Dictate/floor.js";
+ 
+@@ -250,7 +250,7 @@ window.addEventListener("drawer-close", dispose_chat);
+  */
+ export default function ai({ page, card, tabs }){
+ 	dispose_chat();   // this refill replaces whatever this tab built last time
+-	const inbox = new DrawerInbox({ page });
++	const inbox = new Inbox.Compact({ page });
+ 	div.c("drawer-ai flex v", () => {
+ 		inbox.view();
+ 		const $slot = div.c("drawer-ai-panel");
+@@ -283,7 +283,7 @@ export function aiV2({ page, card, tabs }){
+ 	const thread = card ? null : tabs.thread;
+ 	let panel, $hint;
+ 	live_card = card ? { id: card.id, sync: () => panel?.sync() } : null;
+-	const inbox = new DrawerInbox({ page });
++	const inbox = new Inbox.Compact({ page });
+ 
+ 	div.c("drawer-ai flex v", () => {
+ 		div.c("drawer-ai-head flex v-center split wrap", () => {
+diff --git a/public/framework/ext/page.js b/public/framework/ext/page.js
+index 35fa6802..f011ecf1 100644
+--- a/public/framework/ext/page.js
++++ b/public/framework/ext/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	label: "Extensions",
+ 	description: "Opt-in addons. They may extend core; core never depends on them.",
+ 	icon: "extension",
+-	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel Timeline AITask JSONL Research Ask Chat Collab Refine Session Mention",
++	children: "Classify markdown demo highlight filesystem files toc Doc tabs catalog layout drawer grip Dropdown Omnibox depth DesignTool Saver Draggable editor Panel panel2 Timeline AITask JSONL Research Ask Chat Collab Refine Session Mention",
+ 
+ 	content(){
+ 
+diff --git a/public/framework/ext/panel2/Panel2.js b/public/framework/ext/panel2/Panel2.js
+new file mode 100644
+index 00000000..168893a8
+--- /dev/null
++++ b/public/framework/ext/panel2/Panel2.js
+@@ -0,0 +1,166 @@
++import View, { div, span, button, icon, is } from "../../core/View/View.js";
++import grip from "../grip/grip.js";
++
++View.stylesheet(import.meta, "panel2.css");
++
++/**
++ * Panel2 — the owner's standard UI area: a header toolbar, a main content
++ * region, and an optional footer — with an optional sidebar on either side of
++ * main that becomes a sliding drawer on a narrow screen instead of squeezing
++ * beside it. Two Panel2s can sit side by side (or stacked) with a resize grip
++ * between them (`Panel2.split`), and several Panel2s can arrange themselves on
++ * a dashboard with one grid class (`.panel2-grid`, panel2.css).
++ *
++ * A fresh, small module — nothing here is copied from the older `ext/Panel`
++ * (that one is chrome for *wireframing* a page; this one is chrome you ship).
++ * The only thing borrowed is the resize gesture, `ext/grip`.
++ *
++ *   import Panel2 from "/framework/ext/panel2/Panel2.js";
++ *
++ *   const p = new Panel2({ title: "Files" });
++ *   p.header.append(button("Refresh"));   // the header IS a toolbar — mount straight into it
++ *   p.main.append(...);                   // the content goes here
++ *
++ *   new Panel2({ title: "Inbox", start: true });             // a sidebar before main
++ *   new Panel2({ title: "Inbox", end: { width: "20rem" } });  // …after main, its own width
++ *   new Panel2({ title: "Log", footer: true });               // a footer strip too
++ *
++ *   Panel2.split(panelA, panelB);                // side by side, a grip between them
++ *   Panel2.split(panelA, panelB, { axis: "y" });  // stacked, the grip drags the HEIGHT instead
++ *
++ * `start`/`end` take `true` (the 16rem default width) or `{ width: "20rem" }`.
++ * Below 34em (the same floor `ext/grip` already uses for "a rail stops being a
++ * rail") a side stops sitting beside main and slides over it instead — opened
++ * by its own toggle button, which `Panel2` adds to the header for you.
++ *
++ * Two things this deliberately does NOT do yet — read the readme's "Open
++ * questions" for why: a fixed-width/fluid-width switch, and more than one grip
++ * (nest `Panel2.split()` calls for a third pane).
++ */
++export default class Panel2 extends View {
++
++	render(){
++		this.ac("surface");
++
++		// Read these now: building the sides below OVERWRITES `this.start`/
++		// `this.end`/`this.footer` with the real View once each exists, same as
++		// `this.title` would be if a caller had passed a View instead of text.
++		const start_opts = this.start, end_opts = this.end, want_footer = this.footer;
++
++		this.header = new this.constructor.Header({ tag: "header", title: this.title });
++
++		this.body = div.c("panel2-body", () => {
++			if (start_opts)
++				this.start = this.side("start", start_opts);
++
++			this.main = new this.constructor.Main({ tag: "main" });
++
++			if (end_opts)
++				this.end = this.side("end", end_opts);
++		});
++
++		if (want_footer)
++			this.footer = new this.constructor.Footer({ tag: "footer" });
++	}
++
++	// One side of main, plus the header button that reveals it once it becomes a
++	// drawer (below 34em). `opts` is whatever the caller passed for this edge —
++	// `true`, or `{ width }`.
++	side(edge, opts){
++		const $side = new this.constructor.Side(Object.assign({ tag: "aside", edge }, is.obj(opts) ? opts : {}));
++
++		this.header.append(
++			button.c("panel2-side-toggle")
++				.attr("aria-label", "Open the " + edge + " panel")
++				.attr("title", "Open the " + edge + " panel")
++				.append(() => icon(edge === "start" ? "menu" : "menu_open"))
++				.click(() => $side.toggle())
++		);
++
++		return $side;
++	}
++}
++
++// The header — a slim toolbar: a title on the left, everything else lands in
++// the controls row on the right. `panel.header.append(view)` mounts a real
++// control there; it is a container, never a config array (the owner's own
++// words, requirements.md step 3).
++Panel2.Header = class Panel2Header extends View {
++	render(){
++		this.$title = span.c("panel2-title", this.title ?? "");
++		this.controls = div.c("panel2-controls");
++	}
++
++	// ⚠ The very FIRST call reaches here before render() has run — View's own
++	// initialize() is `this.append(this.render)`, and `this.controls` does not
++	// exist yet at that point. The check below falls through to the real
++	// append() for exactly that one call, then routes every later one.
++	append(...args){
++		if (this.controls){
++			this.controls.append(...args);
++			return this;
++		}
++		return super.append(...args);
++	}
++
++	// Change the title text after mount; the constructor's own `title` option
++	// only sets it once.
++	title_text(text){
++		this.$title.text(text);
++		return this;
++	}
++};
++
++// The main content region. A plain container — nothing of its own yet.
++Panel2.Main = class Panel2Main extends View {};
++
++// The footer — a slim strip, same shape as the header, with no title and no
++// controls row (append straight into it; it's a plain container).
++Panel2.Footer = class Panel2Footer extends View {};
++
++// One side of main: a sidebar on a wide screen, a drawer that slides over main
++// on a narrow one. `edge` is "start" or "end"; `width` overrides the 16rem
++// default (panel2.css's own `--panel2-side-w`).
++Panel2.Side = class Panel2Side extends View {
++	render(){
++		this.ac(this.edge === "start" ? "panel2-side-start" : "panel2-side-end");
++		if (this.width) this.style("--panel2-side-w", this.width);
++	}
++
++	open(on = true){ return this.tc("panel2-side-open", on); }
++	close(){ return this.open(false); }
++	toggle(){ return this.open(!this.hc("panel2-side-open")); }
++};
++
++// Two Panel2s, side by side (or stacked), with a grip between them that resizes
++// the FIRST one — the second always takes whatever is left, same deal as a
++// sidebar beside a page. `axis: "x"` (the default) drags a WIDTH; `axis: "y"`
++// drags a HEIGHT instead (ext/grip's own word, unchanged). This is the simple
++// two-way split requirements.md step 4 asks for — a THIRD pane is
++// `Panel2.split(Panel2.split(a, b), c)`, not a feature of this one call.
++Panel2.split = function split(a, b, { axis = "x" } = {}){
++	const $wrap = div.c("panel2-split" + (axis === "y" ? " panel2-split-y" : ""));
++
++	$wrap.append(a);
++
++	// Mounted INSIDE `a`, same as every other ext/grip caller (Sidebar, drawer):
++	// it reads `a`'s own box to know the pinned edge, and the width it writes
++	// is `a`'s own width. `from: "start"` because `a` is the panel docked at
++	// the split's start (or top, on the y axis) — the mirrored `.grip-start`
++	// shape, same as Sidebar's left rail.
++	a.append(grip({
++		axis,
++		from: "start",
++		write: px => {
++			const applied = Math.max(60, px);   // never collapse past a scrap
++			a.style("--panel2-split-a", applied + "px");
++			return applied;
++		},
++	}));
++
++	$wrap.append(b);
++
++	return $wrap;
++};
++
++export { Panel2 };
+diff --git a/public/framework/ext/panel2/doc/decisions.md b/public/framework/ext/panel2/doc/decisions.md
+new file mode 100644
+index 00000000..1ddb1156
+--- /dev/null
++++ b/public/framework/ext/panel2/doc/decisions.md
+@@ -0,0 +1,34 @@
++# Panel2 — decisions
++
++## Open: `css-scopes.txt` reservation
++
++`panel2-` is a free prefix (confirmed by grep against
++`public/framework/styles/css-scopes.txt` and a site-wide census, 2026-10-02 — no other module
++emits a `.panel2-*` class). This task's write fence is `ext/panel2/` plus its own demo page, which
++does not include `public/framework/styles/css-scopes.txt`, so the reservation line couldn't be
++added there directly (`new-css-class` skill, step 5's own fallback). Whoever next has write access
++to that file should add one line, alphabetically among the other `ext/` prefixes:
++
++```
++panel2-      ext/panel2
++```
++
++## Why `Panel2.split` is a function, not a third static part
++
++`requirements.md` step 3 asks for "parts as statics" — `Panel2.Header`, `Panel2.Side`, etc. — so a
++caller can subclass one part and have every Panel2 pick it up through
++`this.constructor.Header`/`.Side`. That pattern is for pieces of **one** panel's own chrome. The
++split helper builds a wrapper holding **two separate Panel2 instances** plus a grip — there's
++nothing on it a caller would plausibly want to subclass (it has no content, no header, no state of
++its own beyond which axis), so it's a plain static function returning a plain `div`, not a fourth
++View subclass. If a real need to subclass the split wrapper ever shows up (a themed divider, say),
++promoting it to `Panel2.Split` is a small change — the function's shape doesn't have to change,
++only where it lives.
++
++## Why the side's open/closed state has no `localStorage`
++
++`core/Sidebar` and `ext/drawer` both remember a reader's chosen width/open-state across reloads.
++Panel2's side starts closed on every narrow-screen load on purpose — this is version one, there is
++no real caller with an opinion yet about whether a drawer should reopen itself, and guessing wrong
++here is cheap to fix later (one `Page.Store` call, same shape Sidebar's `size()` already shows)
++once there's a real page to watch someone use it on.
+diff --git a/public/framework/ext/panel2/doc/files.jsonl b/public/framework/ext/panel2/doc/files.jsonl
+new file mode 100644
+index 00000000..9d219189
+--- /dev/null
++++ b/public/framework/ext/panel2/doc/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"decisions.md"}
++{"file":"decisions.md"}
++{"file":"files.jsonl"}
+diff --git a/public/framework/ext/panel2/files.jsonl b/public/framework/ext/panel2/files.jsonl
+new file mode 100644
+index 00000000..dd6a45ba
+--- /dev/null
++++ b/public/framework/ext/panel2/files.jsonl
+@@ -0,0 +1,10 @@
++{"file":"doc/"}
++{"file":"Panel2.js"}
++{"file":"panel2.css"}
++{"file":"readme.md"}
++{"file":"doc/"}
++{"file":"files.jsonl"}
++{"file":"Panel2.js"}
++{"file":"panel2.css"}
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ext/panel2/page.js b/public/framework/ext/panel2/page.js
+new file mode 100644
+index 00000000..86b6df33
+--- /dev/null
++++ b/public/framework/ext/panel2/page.js
+@@ -0,0 +1,103 @@
++import { Doc, md, code, demo, div, button, p, iframe } from "/app.js";
++import Panel2 from "./Panel2.js";
++
++// `?view=phone` is this exact page, asked to draw ONE small thing instead of
++// everything — see `phone_demo()` below for why: a real narrow viewport is the
++// only way to prove the drawer, and the cheapest real narrow viewport is this
++// same page loaded again inside its own iframe.
++const phone_only = new URLSearchParams(location.search).get("view") === "phone";
++
++export default new Doc({
++	meta: import.meta,
++	title: "Panel2",
++	description: "The standard UI area: a header toolbar, a main region, an optional footer, and a sidebar on either side that becomes a drawer on a narrow screen.",
++	icon: "view_column",
++
++	files: "Panel2.js panel2.css page.js readme.md",
++	notes: "decisions",
++
++	content(){
++
++		if (phone_only){
++			phone_demo();
++			return;
++		}
++
++		md("**Panel2 is the site's standard UI area.** It always has a header (a slim toolbar) and a main region; it can also have a footer, and a sidebar on either side of main that slides over it like a drawer once the screen gets narrow. Everything below is a real, live `Panel2` — not a picture of one.");
++
++		code.js(`import Panel2 from "/framework/ext/panel2/Panel2.js";
++
++const notes = new Panel2({ title: "Notes" });
++notes.header.append(button("＋"));   // the header IS a toolbar — mount straight into it
++notes.main.append(() => p("Whatever you want here."));`);
++
++		md("**The plainest shape: a header and a main region, nothing else.**");
++
++		demo(() => {
++			const notes = new Panel2({ title: "Notes" });
++			notes.main.append(() => p("No `start`, no `end`, no `footer` — just header + main."));
++		}, "No sides, no footer — `new Panel2({ title })` on its own.");
++
++		md("**Two Panel2s, a grip between them.** Drag the seam: it resizes the left panel, and the right one always takes whatever is left — the exact relationship a sidebar has with the page beside it (`ext/grip`, reused as-is). Each header is its own real toolbar: the buttons below are plain `button()` views, mounted with the same `panel.header.append()` call shown above.");
++
++		demo(() => {
++			const outline = new Panel2({ title: "Outline" });
++			outline.header.append(button("＋"), button("⋯"));
++			outline.main.append(() => p("Drag the seam to the right of this panel."));
++
++			const preview = new Panel2({ title: "Preview" });
++			preview.header.append(button("Refresh"));
++			preview.main.append(() => p("This panel takes whatever's left."));
++
++			Panel2.split(outline, preview);
++		}, "Two panels, one grip (`Panel2.split(a, b)`). `{ axis: \"y\" }` stacks them instead and drags the height.");
++
++		md("**Several panels, one grid class.** Drag the stage's own handle (or try `mobile`, bottom right) — the grid fits as many as comfortably sit in a row and drops to fewer as the room shrinks, down to one column, with zero breakpoints written anywhere. That's `.panel2-grid` (one line of CSS, reusing the framework's own `grid auto` formula — the readme explains the \"why\" in plain words, and why flex-wrap was the alternative *not* picked here).");
++
++		demo(() => {
++			div.c("grid auto gap panel2-grid", () => {
++				["A", "B", "C"].forEach(name => {
++					const panel = new Panel2({ title: "Panel " + name });
++					panel.main.append(() => p("Panel " + name + "'s own content."));
++				});
++			});
++		}, "`class=\"grid auto gap panel2-grid\"` on the wrapping box — nothing else.");
++
++		phone_section();
++
++		md("Four things this module deliberately does **not** build yet — a fixed-width ↔ fluid-width switch, a third independent grip, the owner's \"sprawl\" layout word, and letting a split panel's height fill instead of hug — are written up, with why, under **Open questions** in the Readme just below.");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++});
++
++// The phone-width proof. A `@media (width < 34em)` rule — panel2.css's side-
++// becomes-drawer rule included — answers the REAL browser window, never a
++// simulated width (the demo stage above only `zoom`s a box; it does not
++// actually shrink the viewport a media query reads). An iframe's content,
++// though, gets its own real, independent viewport — so loading this exact
++// page again inside one, at a genuinely narrow width, is a real phone-width
++// proof instead of a screenshot, for one line of guard code.
++function phone_section(){
++	md("**On an actual phone — or this site's own window under 34em — a side stops sitting beside main and becomes a drawer**, opened by the button Panel2 added to the header for you. The frame below is this exact page, loaded again at a genuinely narrow width (an iframe gets its own real viewport, so the `@media` rule that makes this happen fires for real, not a simulation). Tap its ☰ to open the drawer.");
++
++	iframe()
++		.attr("src", location.pathname + "?view=phone")
++		.attr("title", "Panel2 at phone width")
++		.attr("loading", "lazy")
++		.style({ width: "22em", height: "26em", border: "1px solid var(--line)", borderRadius: "var(--radius)" });
++}
++
++// What `?view=phone` draws instead of the whole page above: one panel with a
++// start side, small enough that 22em is already a real phone width for it.
++function phone_demo(){
++	const inbox = new Panel2({ title: "Inbox", start: true });
++
++	inbox.start.append(() => {
++		p("Nav");
++		p("Drafts");
++		p("Sent");
++	});
++
++	inbox.main.append(() => p("Tap ☰ above to open the drawer."));
++}
+diff --git a/public/framework/ext/panel2/panel2.css b/public/framework/ext/panel2/panel2.css
+new file mode 100644
+index 00000000..fd171949
+--- /dev/null
++++ b/public/framework/ext/panel2/panel2.css
+@@ -0,0 +1,93 @@
++/* Panel2 — header/main/footer chrome, with an optional sidebar on either side
++   of main that becomes a sliding drawer under 34em (the same floor ext/grip's
++   own grip.css uses for "a rail stops being a rail"). `.surface` (framework.css)
++   already gives the background, border and rounded corners — this file only
++   adds the layout: how the three chrome regions stack, and how a side sits
++   beside (or slides over) main. Design record: readme.md, doc/decisions.md. */
++@layer theme {
++
++	.panel2 {
++		display: flex; flex-direction: column;
++		position: relative;   /* a grip dropped inside a split's first panel (Panel2.split) anchors here */
++		min-width: 0; min-height: 0;
++	}
++
++	/* Both chrome strips hug their own content and never grow — "minimal height"
++	   (requirements.md step 2) — and take the control row's own rung of spacing,
++	   never `.pad`: a toolbar is a row, not a page region (design/layout's own
++	   one-line rule). */
++	.panel2-header, .panel2-footer {
++		display: flex; align-items: center; gap: var(--gap-50);
++		padding-inline: var(--pad); padding-block: var(--gap-35);
++		flex: none;
++	}
++	.panel2-header { border-block-end: 1px solid var(--line); }
++	.panel2-footer { border-block-start: 1px solid var(--line); }
++
++	.panel2-title { font-weight: 600; }
++	/* Title on the left, everything `.append()`ed after it pushed to the right —
++	   one `margin-inline-start: auto` is the whole trick. */
++	.panel2-controls { display: flex; align-items: center; gap: var(--gap-50); margin-inline-start: auto; }
++
++	/* Only means anything once a side can become a drawer, below. */
++	.panel2-side-toggle { display: none; }
++
++	.panel2-body { display: flex; flex: 1 1 auto; min-height: 0; position: relative; }
++
++	.panel2-main {
++		flex: 1 1 auto; min-width: 0; min-height: 0;
++		overflow: auto; padding: var(--pad);
++	}
++
++	.panel2-side {
++		flex: 0 0 var(--panel2-side-w, 16rem);
++		min-width: 0; overflow: auto; padding: var(--pad);
++	}
++	.panel2-side-start { border-inline-end: 1px solid var(--line); }
++	.panel2-side-end   { border-inline-start: 1px solid var(--line); }
++
++	/* Below 34em a side stops sitting beside main — there's no room — and slides
++	   over it instead, opened by its own toggle button in the header. */
++	@media (width < 34em) {
++		.panel2-side-toggle { display: inline-flex; }
++
++		.panel2-side {
++			position: absolute; inset-block: 0; z-index: 2;
++			width: min(85%, 20rem); flex-basis: auto;
++			background: var(--surface);
++			box-shadow: 0 0 1.5em rgba(0, 0, 0, 0.3);
++			transition: transform 0.18s ease;
++		}
++		.panel2-side-start { inset-inline-start: 0; transform: translateX(-100%); }
++		.panel2-side-end   { inset-inline-end: 0; transform: translateX(100%); }
++		.panel2-side.panel2-side-open { transform: translateX(0); }
++	}
++
++	/* Splitting two Panel2s (Panel2.split) — ext/grip sits inside the FIRST one
++	   and drags its own size; the second always takes the leftover, same deal
++	   as a sidebar beside a page. */
++	.panel2-split { display: flex; align-items: stretch; }
++	.panel2-split-y { flex-direction: column; }
++
++	.panel2-split > :first-child { flex: 0 0 var(--panel2-split-a, 50%); min-width: 0; min-height: 0; }
++	.panel2-split > :last-child  { flex: 1 1 auto; min-width: 0; min-height: 0; }
++
++	/* A side-by-side split has nothing left to drag under 34em (ext/grip hides
++	   a plain `.grip` there itself) — stack instead, same floor as the drawer
++	   rule above. A top/bottom split (`axis: "y"`) keeps its grip there on
++	   purpose (grip.css exempts `.grip-y` from that floor), so it needs no
++	   override here. */
++	@media (width < 34em) {
++		.panel2-split:not(.panel2-split-y) { flex-direction: column; }
++		.panel2-split:not(.panel2-split-y) > :first-child { flex-basis: auto; }
++	}
++
++	/* The dashboard arranger (readme.md, "Arranging several on one page") —
++	   reuses framework.css's own `.grid.auto` formula
++	   (`repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))`) rather than a
++	   second copy of it: put `class="grid auto gap panel2-grid"` on the
++	   wrapping element, and override `--column` inline for a wider or narrower
++	   floor than the 22rem default. */
++	.panel2-grid { --column: 22rem; }
++
++}
+diff --git a/public/framework/ext/panel2/readme.md b/public/framework/ext/panel2/readme.md
+new file mode 100644
+index 00000000..ed4b0b6c
+--- /dev/null
++++ b/public/framework/ext/panel2/readme.md
+@@ -0,0 +1,145 @@
++# Panel2 — the standard UI area: a header toolbar, a main region, an optional footer, and an optional sidebar on either side that becomes a drawer on a narrow screen
++
++A new, small module (2026-10-02) — the owner's own words for what it should be are at
++[the task's requirements.md](/framework/ai/2026-10-02/panel2-sessions/part1-panel2/requirements.md).
++Nothing here is copied from the older [`ext/Panel`](/framework/ext/Panel/) — that one is chrome
++for *wireframing* a page (split it up, drag things around, try a layout). This one is chrome you
++actually **ship**: a real header/main/footer box you put content in. The only thing borrowed from
++anywhere is the resize drag, [`ext/grip`](/framework/ext/grip/).
++
++## Architecture
++
++```
++Panel2                              a header, a main region, an optional footer and sides
++  header          Panel2.Header       the toolbar — title left, .append() lands in its controls
++  main            Panel2.Main         the content
++  footer          Panel2.Footer | —   only when { footer: true }
++  start, end      Panel2.Side | —     only when { start } / { end } was given
++
++  side(edge, opts)                  one Side + the header button that opens it as a drawer
++  static split(a, b, { axis })      two Panel2s with a grip between them
++  static grid / .panel2-grid        the CSS class that arranges several on one page
++
++  Panel2.Header / .Main / .Footer / .Side     the parts, as statics — subclass to swap one
++```
++
++## Use
++
++```js
++import Panel2 from "/framework/ext/panel2/Panel2.js";
++import { button } from "/app.js";
++
++const files = new Panel2({ title: "Files", start: true });
++files.header.append(button("Refresh"));   // the header IS a toolbar — mount straight into it
++files.main.append(() => { /* your content */ });
++files.start.append(() => { /* the sidebar's content */ });
++```
++
++- `title` — the text on the left of the header.
++- `start` / `end` — `true` for a sidebar at the framework default width (16rem), or
++  `{ width: "20rem" }` for your own. Omit either side entirely for a plain panel (header + main,
++  no sides — the first thing the [demo page](/framework/ext/panel2/) shows).
++- `footer` — `true` for a plain footer strip; append into `panel.footer` same as the header.
++
++**Below 34em** — the same width `ext/grip`'s own CSS already treats as "a rail stops being a
++rail" — a side stops sitting beside main and slides over it instead, like a drawer. Panel2 adds
++the button that opens it to the header for you; there's nothing extra to wire up.
++
++## Splitting two side by side
++
++```js
++Panel2.split(new Panel2({ title: "A" }), new Panel2({ title: "B" }));          // side by side
++Panel2.split(new Panel2({ title: "A" }), new Panel2({ title: "B" }), { axis: "y" }); // stacked
++```
++
++A grip sits inside the first panel and drags its own size; the second always takes whatever is
++left — the same relationship a sidebar has with the page beside it. This is one grip between two
++panels (`requirements.md` step 4's "simple two-way split"); nest the call for a third pane:
++`Panel2.split(Panel2.split(a, b), c)`.
++
++## Arranging several on a page
++
++Put `class="grid auto gap panel2-grid"` on the box that holds them:
++
++```js
++div.c("grid auto gap panel2-grid", () => {
++    new Panel2({ title: "A" });
++    new Panel2({ title: "B" });
++    new Panel2({ title: "C" });
++});
++```
++
++**In five-year-old words:** you tell the grid the *smallest* comfortable width for one panel
++(22rem by default here — override it with `.style("--column", "28rem")` on the box) and then stop
++thinking about it. The grid does the counting: it fits as many panels as will comfortably sit in
++a row, and when the screen gets too narrow for even one more, it drops to fewer columns —
++automatically, down to a single column on a phone. No breakpoints, no "if the screen is this wide,
++show 3 panels" code anywhere.
++
++This is `grid auto` (`framework.css`) — a formula the framework already has
++(`repeat(auto-fit, minmax(min(var(--column), 100%), 1fr))`) — with panel2's own default floor
++(`.panel2-grid { --column: 22rem }`). It is not a second grid system; it's one line reusing the
++one that exists.
++
++**The alternative we didn't pick: flex-wrap.** The owner asked about this too ("I've always
++thought the flex-wrap way, where it just works and you don't specify sizes"). Flex-wrap is simpler
++to reason about, but its rows don't line up into columns — two rows of differently-sized flex
++items can each wrap at a different point, so a panel in row 2 is not necessarily the same width as
++the one above it. A CSS grid keeps every row in the same column tracks, which is what "a dashboard
++of panels" wants more than "a row of buttons" does. Flex-wrap is still the right tool for a toolbar
++row (`panel.header`'s own controls use it) — just not for this.
++
++## Open questions (deliberately deferred — `requirements.md` steps 4 and 5)
++
++1. **A fixed-width ↔ fluid-width switch.** The owner mentioned wanting to flip a split panel
++   between a fixed pixel width and a fluid share of the row ("maybe layout switches, like fixed
++   width to fluid width"). This module only has one mode today — every split panel is fluid,
++   sized by the grip's drag (`--panel2-split-a`) — because building a second mode before anyone
++   has used the first one risks guessing at a shape nobody needed. The grip's own write callback
++   is the seam a fixed-width mode would hook: it would set a `px` value that stops scaling with
++   the row instead of a flex-basis that does.
++2. **More than one grip in a row.** `Panel2.split` is a straight two-way split; a dashboard with
++   three or more resizable columns needs `Panel2.split` nested (`split(split(a, b), c)`), which
++   works but gives the outer grip control over "A vs. (B+C)" rather than three independent grips.
++   A dedicated multi-pane splitter is real feature, not a quick addition — left out of this first
++   version on purpose (CLAUDE.md law 1: the fastest working version first).
++3. **"Sprawl" — a layout verb, not built here.** Added mid-task by the owner: a word for big,
++   similar sections that stack on a narrow screen and sit side by side on a wide one — e.g. three
++   rows at 1000px becoming three ~1000px-wide columns at 3000px. `framework-home` uses a plain CSS
++   grid for this today; Panel2 may grow into owning it later (its `.panel2-grid` already does
++   something close — fitting several panels into a row that stacks on a phone — but "sprawl" as
++   the owner describes it is specifically a FEW big, equally-important sections, not a wall of
++   many small ones, which is a different sizing question). Noted, not built.
++4. **Adaptive panel height in a split.** Added mid-task by the owner: today a side-by-side split
++   (`Panel2.split`) gives each panel exactly the height its own content needs — if `a` is taller
++   than `b`, `b` does not stretch to match. Could `b` grow or shrink to fill the row's height
++   instead? `.panel2-split { align-items: stretch }` already makes the CSS do most of this for a
++   panel with no fixed content height — the open part is whether a panel whose OWN content also
++   wants to scroll (its `.panel2-main { overflow: auto }`) should fill the row or keep hugging,
++   which needs a real second panel with real content to judge by, not a guess. Noted, not built.
++
++## Watch out
++
++- **`panel.header.append(x)` lands in the controls row, not the header's root box.** `Header`
++  overrides `append()` once it has rendered (its `title` span and `controls` row exist) so a
++  caller's own controls always land to the right of the title, never between the title and
++  whatever Panel2 itself already put there (the side-drawer toggle buttons).
++- **The 34em breakpoint is borrowed, not invented** — it is `ext/grip/grip.css`'s own floor for
++  "a rail stops being a rail." If that floor ever moves, this module's side-becomes-drawer rule
++  should move with it (panel2.css says so inline).
++- **`panel2-` is a brand new prefix.** It isn't reserved yet in
++  [`public/framework/styles/css-scopes.txt`](/framework/styles/css-scopes.txt) (confirmed free,
++  2026-10-02) but this task's fence doesn't include that file — the reservation is written down in
++  [`doc/decisions.md`](./doc/decisions.md) instead, for whoever can write it next.
++- A `Panel2.split()` wrapper is a plain `div.panel2-split`, not a `Panel2` itself — nesting one
++  inside `Panel2.split(outer, c)` works because `append()` only cares that the thing has an `.el`.
++
++## More
++
++- [Overview](/framework/ext/panel2/) — the demo page: a plain panel, a resizable split with real
++  toolbar buttons, and the phone-width drawer
++- [`doc/decisions.md`](./doc/decisions.md) — the `css-scopes.txt` reservation note, and why the
++  split helper is a function instead of a third static part
++- Files: `Panel2.js` (the class and its parts), `panel2.css` (the layout), `page.js` (the demo)
++- [`ext/grip`](/framework/ext/grip/) — the resize drag this module reuses
++- [`ext/Panel`](/framework/ext/Panel/) — the older, unrelated wireframing tool; not a dependency
+diff --git a/public/framework/ext/readme.md b/public/framework/ext/readme.md
+index dc25e3dd..b17e2ef2 100644
+--- a/public/framework/ext/readme.md
++++ b/public/framework/ext/readme.md
+@@ -12,6 +12,7 @@
+ - [JSONL](./JSONL/) — append-only `.jsonl` logs replayed into object state — what the task and day logs use
+ - [Omnibox](./Omnibox/) — moved into core on 2026-09-06; this directory is only a pointer
+ - [Panel](./Panel/) — chrome for arranging a region: divide, drag, align, fill, persist — for wireframing pages
++- [panel2](./panel2/) — header/main/footer chrome you ship: an optional sidebar that becomes a drawer, a resizable split, a dashboard grid
+ - [Research](./Research/) — a question dug by several minions into append-only files, rendered live with credence per claim
+ - [Saver](./Saver/) — `save` / `load` / `delete` over one write queue, for anything that persists JSON
+ - [Timeline](./Timeline/) — horizontal or vertical timeline for dated items

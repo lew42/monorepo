@@ -324,4 +324,6 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
   (the `AudioWorklet` that reads raw samples), `Dictate.css` (the level meter, the pulse),
   `Widget.js` + `Widget.css` (the one compact widget — mic, live line, bubbles — see "Widget"
   above), `chat.js` (the one mount + the global session controller — see "chat.js" above),
-  `v1/page.js` (the old Overview, frozen)
+  `push-to-talk.js` + `FloatingMic.css` (the floating mic, site-wide — a hold-or-toggle
+  hotkey, built on `ux/Hotkeys`, driving this SAME `chat.js` mount from anywhere, dev shell
+  open or closed), `v1/page.js` (the old Overview, frozen)

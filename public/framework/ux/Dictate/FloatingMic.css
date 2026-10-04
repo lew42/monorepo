@@ -1,0 +1,48 @@
+/* ux/Dictate/FloatingMic — the push-to-talk icon that floats over every page.
+ *
+ * Hidden the whole time EXCEPT while the owner is actually holding the push-to-talk
+ * button — `push-to-talk.js` adds `.showing`, never changes `display` from script,
+ * so this one rule is the only place "is it visible" is decided. `position: fixed`
+ * so it can never shift page layout (the brief's own words), `z-index: 61` so it
+ * floats above everything else on the site's own ladder (`core/App/mode.css`'s own
+ * comment: "z-index 60 is the top of the ladder" — the dev shell's frame sits AT
+ * 60 too, `dev/DevShell/DevShell.css`, so this needs one more to never be covered
+ * by either).
+ *
+ * The resting size is 1.5em, matching the owner's own "24px or so" at the page's
+ * base font size; `--mic-level` (0..1, set every audio frame from `Dictate`'s own
+ * `on_meter` — see `push-to-talk.js`) grows it toward 2em through a `scale()`
+ * transform only, so nothing here ever triggers layout — the exact move
+ * `Widget.Pulse` already makes for its own dot (`Widget.css`). */
+@layer theme {
+
+	.ux-dictate-ptt-mic {
+		position: fixed;
+		z-index: 61;
+		inset-block-end: 1em;
+		inset-inline-end: 1em;
+		display: none;
+		inline-size: 1.5em; block-size: 1.5em;
+		align-items: center; justify-content: center;
+		border-radius: 50%;
+		background: var(--prim);
+		color: #fff;
+		cursor: pointer;
+		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+		/* 1.5em at rest, up to 2em (×1.33) at a full level — the owner's own "1.5em to 2em". */
+		transform: scale(calc(1 + var(--mic-level, 0) * 0.33));
+		transition: transform 90ms linear;
+	}
+	.ux-dictate-ptt-mic.showing { display: flex; }
+	.ux-dictate-ptt-mic .icon { font-size: 0.9em; }
+
+	/* The hidden global chat mount this drives — off screen, never `display: none`
+	 * (a `Dictate` instance still needs to exist and run normally; only its own
+	 * card is never meant to be looked at). Parked above the viewport rather than
+	 * `display: none`'d so nothing inside it skips work some caller assumes a
+	 * mounted, laid-out box gets. */
+	.ux-dictate-ptt-hidden {
+		position: fixed; inset-block-start: -999em; inset-inline-start: -999em;
+		inline-size: 1px; block-size: 1px; overflow: hidden;
+	}
+}

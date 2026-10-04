@@ -32,8 +32,5 @@ const skills = readdirSync(dir).filter(n => existsSync(join(dir, n, "SKILL.md"))
 
 // CLAUDE.md is at the repo root, which the site does not serve: the CLAUDE.md tab reads this copy.
 writeFileSync(join(here, "CLAUDE.md"), readFileSync(join(root, "CLAUDE.md"), "utf8"));
-
-// CLAUDE.md is at the repo root, which the site does not serve: the CLAUDE.md tab reads this copy.
-writeFileSync(join(here, "CLAUDE.md"), readFileSync(join(root, "CLAUDE.md"), "utf8"));
 writeFileSync(join(here, "skills.json"), JSON.stringify(skills, null, "\t") + "\n");
 console.log(`skills.json: ${skills.length} skills`);

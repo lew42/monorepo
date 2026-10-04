@@ -13,6 +13,7 @@ import { agents_strip } from "./agents.js";
 import { prompts_view, prompt_board_cards } from "./prompts.js";
 import { usage_rail } from "/framework/ext/AITask/usage.js";
 import { current } from "/framework/ext/AITask/card.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 View.stylesheet(import.meta, "v3.css");
 
@@ -133,15 +134,15 @@ function today_str() {
 	return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 }
 
-/** One whole line into a .jsonl under public/, through the dev socket's own
+/** One whole line into a .jsonl under public/, through `FsFile.append` (the one file API, which reaches
     `rpc:append` (`Server/plugins/SocketServer/Append.js`) — true when the
     server actually took it. */
 async function append_line(url, line) {
 	const answer = await Promise.race([
-		Socket.singleton().async_rpc("append", url, [JSON.stringify(line)]),
+		FsFile.append(url, line),
 		new Promise(done => setTimeout(done, 4000, null)),
 	]);
-	return answer?.response === "append successful";
+	return answer === true;
 }
 
 /**
@@ -242,7 +243,7 @@ async function relay_to_mastermind(msg) {
  * Ordered and sized by IMPORTANCE (`weight()`) — needs-you first, then
  * however much a topic is actually being talked about, then how recent it
  * is; said in one line above the wall, with a "newest first" toggle
- * (`Page.Store`) for whoever wants the plain chronological read instead.
+ * (`Page.Prefs`) for whoever wants the plain chronological read instead.
  * The owner's own verbatim words never appear as a card of their own here
  * (that is prompt-log detail, the dev bar's job) — they only feed the weight.
  *
@@ -472,8 +473,8 @@ export function top_level(page, initial_id, url_view, root) {
 	const qs = new URLSearchParams(location.search);
 	const log = new Weighted({ url: qs.get("log") || LOG_URL });
 	const verdicts = new Verdicts({ url: qs.get("verdicts") || VERDICTS_URL });
-	const sort = new Page.Store({ id: "v3-sort" });
-	const prefs = new Page.Store({ id: "v3-view" });
+	const sort = new Page.Prefs({ id: "v3-sort" });
+	const prefs = new Page.Prefs({ id: "v3-view" });
 	let $board, $wall, $count, $footer, $live_btn, $head, $more_btn, $agents_host;
 	const view_btns = new Map();   // val -> the view word's own link, built once by views_row() — paint_view_tabs() reads it on every redraw
 	let show_approved = prefs.get({ show_approved: false }).show_approved ?? false;

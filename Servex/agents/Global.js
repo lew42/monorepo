@@ -371,6 +371,12 @@ export default class Global {
 		for (const agent of [...this.agents.live.values()]) this.maybe_sleep(agent, now);
 		for (const key of this.idle_seen.keys()) if (!this.agents.live.get(key.split(":")[0])) this.idle_seen.delete(key);
 		if (now - this.last_measure >= this.measure_every_ms){ this.last_measure = now; this.measure().catch(() => {}); }
+		/* NEVER-LOSE-A-WAKE, items 3 and 6 (2026-10-01): the reconcile reuses THIS same
+		 * one-minute tick rather than starting a second timer — `Servex.reconcile()` walks the
+		 * registry for a `starting` row stuck past 60 s and a live claude.exe its own row has
+		 * lost track of. Never on a host with no `reconcile` at all (a demo, a test, a bare
+		 * `new Agents()`), and never let a failure here stop the ordinary dormancy sweep above. */
+		this.servex?.reconcile?.().catch(e => this.say(`reconcile: ${e.message || e}`));
 	}
 
 	/* MEMORY PER AGENT: every claude.exe's working set, matched to an agent by the
@@ -399,6 +405,11 @@ export default class Global {
 	}
 
 	admit(spec = {}, free_mb = os.freemem() / 1048576){
+		/* ALWAYS ON (the owner, 2026-10-02): "the Servex mastermind should always stay
+		 * on… we can't afford to have it go down… just force it." The holder
+		 * (mastermind-servex or mastermind-servex-N) skips every gate: memory, the
+		 * working cap and the ceiling. It is one agent, so it can't run away. */
+		if (/^mastermind-servex(-\d+)?$/.test(spec.id ?? "")) return null;
 		if (free_mb < this.min_free_mb) return `only ${Math.round(free_mb)} MB of memory is free; waiting for ${this.min_free_mb} MB`;
 		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
 		 * message, and the front desk answers the owner: neither is held by it. */

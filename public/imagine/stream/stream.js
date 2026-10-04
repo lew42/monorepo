@@ -1,5 +1,5 @@
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
  * A PAGE'S STATE, STREAMED. Two files and no new server code:
@@ -163,27 +163,19 @@ export class Stream extends JSONL {
 	   and two windows writing at once interleave between lines instead of each sending
 	   its own copy of the file and losing the other's.
 
-	   The whole-file `rpc:write` stays as the FALLBACK, because a dev server started
-	   before that plugin landed still has to work — which is also why `confirmed` and
-	   `pending` are still here.
+	   It goes through `FsFile.append` (the one file API). The old whole-file `rpc:write`
+	   fallback for servers that predate Append.js is gone (2026-10-02): a log is never
+	   rewritten, and `pending` now never fills.
 
 	   ⚠ A missing responder never answers, and `async_rpc` waits forever for a reply that
-	     is not coming. So the append is raced against a timeout and the verdict is
-	     REMEMBERED: exactly one edit pays for the probe, and only on an old server. */
+	     is not coming. So the append is still raced against a timeout. */
 	async send(lines){
-		if (this.appendable !== false && await this.appended(lines)) return this;
-
-		this.pending += lines.join("\n") + "\n";
-		Socket.singleton().write(this.url, this.confirmed + this.pending);
-		return this;
-	}
-
-	async appended(lines){
-		const reply = await Promise.race([
-			Socket.singleton().async_rpc("append", this.url, lines),
+		const sent = await Promise.race([
+			FsFile.append(this.url, lines.map(line => JSON.parse(line))),
 			new Promise(done => setTimeout(done, this.constructor.PROBE, null)),
 		]);
-		return this.appendable = reply?.response === "append successful";
+		if (sent !== true) console.warn(`stream: ${this.url} did not take the edit (is the dev server running?)`);
+		return this;
 	}
 
 	set(path, value){ return this.push({ op: "set", path, value }); }
@@ -203,9 +195,7 @@ export class Stream extends JSONL {
 	async compact(){
 		const before = this.count();
 		const json = JSON.stringify(this.state, null, "\t") + "\n";
-		const reply = await Socket.singleton().async_rpc("write", this.snapshot, json);
-
-		if (reply?.response !== "write successful") return { ...before, ok: false };
+		if (!await FsFile.write(this.snapshot, json)) return { ...before, ok: false };
 
 		this.clear();
 		return { ...before, ok: true, snapshot: new Blob([json]).size };
@@ -215,7 +205,7 @@ export class Stream extends JSONL {
 	   back to whatever the snapshot says. `compact()` calls it AFTER moving the snapshot. */
 	clear(){
 		this.confirmed = this.pending = "";
-		Socket.singleton().write(this.url, "");
+		FsFile.clear(this.url);
 		return this;
 	}
 

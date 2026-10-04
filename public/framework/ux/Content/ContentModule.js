@@ -1,6 +1,6 @@
 import View from "../../core/View/View.js";
-import Socket from "/framework/dev/Socket/Socket.js";
 import { edit } from "/framework/ext/Ask/edit.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 View.stylesheet(import.meta, "content.css");
 
@@ -57,8 +57,7 @@ export default class ContentModule extends View {
 		const url = this.log_url();
 		if (!url) return false;
 
-		await Socket.singleton().request({ method: "append", args: [url, line] });
-		return true;
+		return FsFile.append(url, line);
 	}
 
 	now(){ return new Date().toISOString(); }

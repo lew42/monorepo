@@ -115,4 +115,30 @@
 		border: 1px solid var(--line); border-block-start: none;
 		border-radius: 0 0 var(--radius) var(--radius); overflow: hidden;
 	}
+
+	/* ---- the adaptive-backgrounds lab (2026-10-03) ----------------------------
+	   css: .adaptive-wall .adaptive-ground .adaptive-ground-cells .adaptive-cell
+	        .adaptive-box .adaptive-nest .adaptive-sample .adaptive-text
+	        .adaptive-accent .color-adaptive-num
+	   One tile per ground (five), each holding four small cells (bg-lighten,
+	   bg-darken, and the two nesting orders) — a tile inside a tile, same shape
+	   as the ground wall above it, one size down. */
+	.adaptive-wall { --column: 15rem; }
+	.adaptive-ground { margin: 0; padding: 0.8em; border: 1px solid var(--line); border-radius: var(--radius); }
+	.adaptive-ground > figcaption { font-weight: 700; margin-block-end: 0.5em; }
+	.adaptive-ground-cells { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; }
+	.adaptive-cell { margin: 0; }
+	.adaptive-box { border-radius: var(--radius); overflow: hidden; }
+	.adaptive-sample, .adaptive-nest {
+		display: flex; align-items: center; justify-content: space-between;
+		gap: 0.5em; padding: 0.5em; min-height: 2.6em;
+	}
+	.adaptive-nest .adaptive-sample { padding: 0.4em; border-radius: calc(var(--radius) * 0.7); }
+	.adaptive-text { color: var(--ink); font-size: 0.85em; }
+	.adaptive-accent {
+		background: var(--prim); color: #fff; font-size: 0.72em;
+		padding: 0.15em 0.5em; border-radius: 1em; white-space: nowrap;
+	}
+	.color-adaptive-num { font-family: var(--mono); font-size: 0.68em; color: var(--subtle); margin-block-start: 0.3em; }
+	.color-adaptive-num.color-fail { color: var(--error); font-weight: 700; }
 }

@@ -74,8 +74,19 @@ export class Router {
 			// Awaited HERE, never in activate(), which must stay synchronous for
 			// document.startViewTransition(). allSettled: a broken child or a 404'd
 			// stylesheet must not block navigation. doc/styles-loaded.md.
-			await this.app.styles_loaded();
+			//
+			// ⚠ CHAIN LOADING FIRST, STYLES SECOND — not the other order. `page.chain()`'s
+			// own `.loading` is what IMPORTS every child module still pending (a day
+			// page's task cards, an ai2 RealPage's embedded page) — and importing a
+			// module is what runs its own `View.stylesheet(...)` call, pushing a new
+			// promise onto `View.stylesheets`. `styles_loaded()` only awaits whatever is
+			// in that array AT THE MOMENT IT'S CALLED — so awaiting it BEFORE the chain
+			// finishes loading missed every stylesheet a child registered only once ITS
+			// import landed, and `activate()` then painted that child's preview before
+			// its CSS link had loaded (flash of unstyled content, found 2026-10-03 —
+			// ai/2026-10-03/flash-fix/).
 			await Promise.allSettled(page.chain().map(p => p.loading));
+			await this.app.styles_loaded();
 
 			this.activate(page);
 			this.path = url;   // the path showing now — `popped()` compares against it
@@ -138,8 +149,18 @@ export class Router {
 	mark(){
 		this.marked?.forEach(view => view.rc("active-page active-ancestor"));
 
+		// ⚠ `page.view?.`, never a bare `page.view.` (bug 5, 2026-10-03 — found live: the
+		// Activity tab's own `activated()` runs the card's `redraw()`, which captures new
+		// DOM synchronously OUTSIDE any render() of its own; it was throwing deep enough to
+		// leave one page in the chain with no `.view` yet). That bare read used to throw
+		// HERE, which is a bug in some page's own activate() — but it was corrupting EVERY
+		// later click, not just that one: the throw happened inside this `.map()`, so
+		// `this.marked` was never reassigned, and `this.path` (set by Router.load(), after
+		// activate() returns) was never updated either — the router was stuck mid-navigation
+		// until a hard reload reset both. One page's problem must never break navigation for
+		// every page after it; `.filter(Boolean)` drops the page that had nothing to mark.
 		this.marked = this.chain().map(page =>
-			page.view.ac(page === this.active ? "active-page" : "active-ancestor"));
+			page.view?.ac(page === this.active ? "active-page" : "active-ancestor")).filter(Boolean);
 
 		this.mark_links(this.active.url);
 	}

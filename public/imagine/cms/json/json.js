@@ -10,7 +10,7 @@
    entire translation from data to routable pages, and core does not know the difference. */
 
 import { md, div, p } from "/app.js";
-import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 
 // ════ BLOCKS — and the escape hatch ═══════════════════════════════════════
@@ -131,14 +131,14 @@ export class Source {
 	   `rpc:append` (`Server/plugins/SocketServer/Append.js`) opens the file with `"a"`, so
 	   the write is the size of the LINE and two browsers editing at once interleave between
 	   lines instead of each sending its own copy of the file and losing the other's.
-	   ⚠ The whole-file `rpc:write` stays as the fallback: a dev server started before that
-	     plugin landed answers nothing at all, and `async_rpc` waits forever for a reply that
-	     is not coming — so the first append races a timeout and the verdict is remembered. */
+	   It goes through `FsFile.append` (the one file API). The old whole-file fallback for
+	   servers that predate Append.js is gone (2026-10-02): a log is never rewritten.
+	   ⚠ A missing responder never answers, so the append still races a timeout. */
 	async append(delta){
 		const line = { at: new Date().toISOString(), ...delta };
 		const text = JSON.stringify(line);
 
-		if (!await this.appended(text)) await this.write(this.log_url(), this.joined(text));
+		if (!await this.appended(line)) throw new Error("the dev server refused the append");
 
 		this.text = this.joined(text);
 		this.deltas.push(line);
@@ -151,20 +151,20 @@ export class Source {
 	joined(line){ return (!this.text || this.text.endsWith("\n") ? this.text : this.text + "\n") + line + "\n"; }
 
 	async appended(line){
-		if (!this.writable() || this.appendable === false) return false;
+		if (!this.writable()) return false;
 
-		const reply = await Promise.race([
-			Socket.singleton().async_rpc("append", this.log_url(), line),
+		const sent = await Promise.race([
+			FsFile.append(this.log_url(), line),
 			new Promise(done => setTimeout(done, 2000, null)),
 		]);
-		return this.appendable = reply?.response === "append successful";
+		return sent === true;
 	}
 
 	// The whole point of the pair: the replayed state BECOMES the snapshot and the log
 	// starts again at zero bytes. Run it whenever the log outgrows the tree.
 	async compact(){
 		await this.write(this.snapshot_url(), JSON.stringify(this.state, null, "\t") + "\n");
-		await this.write(this.log_url(), "");
+		await FsFile.clear(this.log_url());
 
 		this.text = "";
 		this.deltas = [];
@@ -179,8 +179,7 @@ export class Source {
 	async write(url, data){
 		if (!this.writable()) throw new Error("read-only — there is no dev socket here");
 
-		const reply = await Socket.singleton().async_rpc("write", url, data);
-		if (reply?.response !== "write successful") throw new Error("the server refused the write");
+		if (!await FsFile.write(url, data)) throw new Error("the server refused the write");
 	}
 
 	bytes(){ return new Blob([this.text]).size; }

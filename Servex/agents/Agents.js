@@ -6,10 +6,10 @@ import os from "node:os";
 import path from "node:path";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
-import Registry from "./registry.js";
+import Registry, { alive } from "./registry.js";
 import { defaults as role_defaults, opening } from "./roles.js";
 import { first_prompt } from "./readme-chain.js";
-import { env_for, provider_for, real_turn_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+import { env_for, provider_for, real_turn_cost, generation_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 
 /* Raw Claude transcripts stay in the SDK's own session store, outside the repo.
@@ -165,6 +165,11 @@ export class Agents {
 			: base;
 		const agent = new this.constructor.Agent({
 			...role_defaults(spec.role), ...spec, id, prompt, provider,
+			/* NEVER-LOSE-A-WAKE, item 3: the caller's own, UNWRAPPED prompt — `prompt` above is
+			 * the skill-load preamble and readme chain already baked in, which a re-queued retry
+			 * (`Servex.requeue_stuck_start`) must never wrap a second time. Fresh spawns only — a
+			 * resume has no prompt of its own to remember this way. */
+			...(fresh && spec.prompt ? { raw_prompt: spec.prompt } : {}),
 			...(session_id ? { session_id } : {}),
 			...(again ? { [spec.fork ? "forked_from" : "resumed_from"]: again } : {})
 		});
@@ -484,8 +489,8 @@ export class Agents {
 	 * session ran and its model come from the session file when the row does
 	 * not say. Shared by `wake()` and `revive()`. */
 	reopen(row){
-		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "effort", "cwd",
-			"permission_mode", "allowed_tools", "setting_sources"];
+		const keys = ["role", "name", "topics", "page", "parent", "visibility", "model", "provider", "effort", "cwd",
+			"permission_mode", "allowed_tools", "setting_sources", "budget_usd"];
 		const base = strip(row.spec ?? Object.fromEntries(keys.map(k => [k, row[k]])));
 		const facts = base.cwd && base.model ? {} : session_facts(row.session_id);
 		const cwd = base.cwd ?? facts.cwd;
@@ -494,6 +499,32 @@ export class Agents {
 			id: row.id, started_at: row.started_at, resume: row.session_id }));
 	}
 	interrupt(id){ return this.get(id).interrupt(); }
+	/* Continue (+$5) on a spend-gate card: raise the allowance and send the agent on its
+	 * way. The agent was interrupted to be gated, so raising the allowance alone leaves it
+	 * sitting idle with more money and nothing telling it to go on — one line does that.
+	 * It may also have left `live` by the time the owner answers (idle-swept, or a Servex
+	 * restart): revive it first, the same door `send()` uses (review.md finding 2), so a
+	 * late Continue is never lost to "No agent …". */
+	grant(id, usd = 5){
+		id = this.holder(id);
+		let agent = this.live.get(id);
+		if (!agent || agent.state === "stopped"){
+			const row = this.reg().read()[id] ?? (agent ? { id, cwd: agent.cwd, stopped_by: agent.stopped_by, stopped_at: agent.stopped_at, task_dir: agent.task_dir } : null);
+			const no = this.blocked(row, { force: true });   // the owner answering IS the reason to wake it
+			if (no){
+				this.store().append("servex", { type: "spend-gate", event: "grant-refused", agent: id, why: no.why }).catch(() => {});
+				return null;
+			}
+			try { agent = this.wake(id); }
+			catch (e){
+				this.store().append("servex", { type: "spend-gate", event: "grant-failed", agent: id, why: String(e.message || e) }).catch(() => {});
+				return null;
+			}
+		}
+		agent.grant(usd);
+		try { agent.send(`Servex: the owner gave you $${usd} more — continue.`, { from: "servex", revive: true }); } catch {}
+		return agent;
+	}
 	/* `by` (the stop_agent tool: who called it) marks a stop ON PURPOSE: it goes
 	 * into the registry row, and the revive guard honours it across restarts.
 	 * Servex's own stops (reaper, one-pass roles) pass nothing. A row with no
@@ -523,10 +554,65 @@ export class Agents {
 	 * master-assistant, voice sessions, the Dispatcher stand-in) and an agent
 	 * blocked in wait_for_agent. Global.admit() queues a new spawn above it. */
 	get working_cap(){ return Number(process.env.SERVEX_WORKING_CAP) || 5; }
+
+	/* NEVER-LOSE-A-WAKE, item 2 (2026-10-01): a row counts toward the cap only while its
+	 * claude.exe is actually alive — `claude_pid` and a direct `process.kill(pid, 0)`, the same
+	 * test `registry.js`'s own sweep uses. Before this, the awaken race (item 1; `sleep()`'s
+	 * queue closing a moment before `send()`'s own push, item 5) could leave a row stuck
+	 * "working" with no process at all — a PHANTOM that held one of the 5 working slots
+	 * forever, with nothing to ever free it. A row just spawned (no pid YET, because
+	 * `spawn_claude` has not had its first tick — `pump()` only runs it once this synchronous
+	 * call returns) still counts, inside `STARTING_GRACE_MS`, so a burst of spawns in the same
+	 * tick cannot slip past the cap in that gap. Past the grace: a WORKING row with no live
+	 * process is the phantom (`mark_phantom`, logged once, set idle, never counted again); a
+	 * STARTING row that old never got a process at all, which is item 3's job (the one-minute
+	 * reconcile in Servex.js owns the actual re-queue — this method only excludes it from the
+	 * count, since re-queuing needs the spawn gate's own queue, which this class does not hold). */
 	working(){
-		return [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
+		const rows = [...this.live.values()].filter(a => (a.state === "working" || a.state === "starting")
 			&& !a.waiting_on && !STANDING.test(a.id ?? "") && a instanceof Agents.Agent);
+		const out = [];
+		for (const a of rows){
+			if (a.claude_pid && alive(a.claude_pid)){ out.push(a); continue; }
+			const age = Date.now() - (Date.parse(a.started_at) || Date.now());
+			if (age < STARTING_GRACE_MS){ out.push(a); continue; }   // just spawned: no pid yet, still counts
+			if (a.state === "working") this.mark_phantom(a);        // dead process, holding a slot: freed here
+			// a STARTING row this old never started at all: left for item 3's reconcile to re-queue
+		}
+		return out;
 	}
+
+	/* Logged once per phantom. `marked_phantom` is reset the moment this agent next actually
+	 * awakens (`awaken()`), so a second, later phantom episode on the SAME agent object is still
+	 * caught — it only guards against re-logging the one episode over and over on every
+	 * `working()` call.
+	 *
+	 * ⚠ Set `dormant`, not `idle` (fresh-eyes review finding 3 — the brief's own first sentence
+	 * said "idle", and this is the one place this task diverges from it, on purpose): an `idle`
+	 * agent's `send()` just pushes straight onto `this.queue` with no further check, so a real
+	 * message to this row would land in the SAME dead queue nothing is reading any more —
+	 * accepted, never delivered, and with `marked_phantom` already true this method would never
+	 * get a second chance to notice. `dormant` makes `send()` call `awaken()` first, which is the
+	 * path that actually starts a fresh process and replays anything still waiting — so whatever
+	 * was sitting in the dead queue, unconsumed, is carried over to `held_messages` here (the
+	 * same mechanism item 5 built for `sleep()`'s own queue.close()), never abandoned with it. */
+	mark_phantom(agent){
+		if (agent.marked_phantom) return;
+		agent.marked_phantom = true;
+		const pending = agent.queue?.items?.splice(0) ?? [];
+		if (pending.length) (agent.held_messages ??= []).push(...pending);
+		try { agent.queue?.close(); } catch {}
+		try { agent.query?.close?.(); } catch {}
+		try { agent.aborter?.abort?.(); } catch {}
+		agent.state = "dormant";
+		agent.dormant_at = stamp();
+		const msg = `${agent.id} was "working" with no live process (the awaken race) — set dormant, its cap slot freed`;
+		this.servex?.say?.(msg, { event: "phantom", id: agent.id });
+		this.store().append("servex", { type: "phantom", id: agent.id, role: agent.role ?? null, held: pending.length || undefined }).catch(() => {});
+		this.register(agent);
+		agent.settle?.();
+	}
+
 	counts(){
 		const all = [...this.live.values()].filter(a => a instanceof Agents.Agent);
 		const n = s => all.filter(a => a.state === s).length;
@@ -698,6 +784,12 @@ export const self_restarted = id => !process.env.SERVEX_NO_LAYERS && (
 
 /* The standing front desk: never counted against the working cap. */
 export const STANDING = /^(assistant-|manager-|master-assistant|session-|dispatcher$)/;
+
+/* Item 2's own grace window: a row this young with no `claude_pid` yet is just booting, not a
+ * phantom — `spawn_claude` only runs once the SDK's async pump gets its first tick, which is
+ * always AFTER the synchronous `spawn()` call that started it returns. */
+export const STARTING_GRACE_MS = Number(process.env.SERVEX_STARTING_GRACE_MS) || 5000;
+
 
 /* Drop the undefined and null fields, so a role's defaults can fill them. */
 const strip = spec => Object.fromEntries(Object.entries(spec).filter(([, v]) => v != null));
@@ -908,11 +1000,27 @@ Agents.Agent = class Agent {
 		return head ? `[${head}]\n${text}` : text;
 	}
 
+	/* NEVER-LOSE-A-WAKE, item 5 (2026-10-01): `awaken()`, called just above when this agent was
+	 * dormant, can — through `register()`'s own idle sweep, in the very same tick — decide to go
+	 * straight back to sleep before this method ever gets to push its own turn (the exact race
+	 * that started this task: the register() call INSIDE awaken() used to find a stale idle
+	 * clock and re-close the brand new queue before the line below could use it). Item 1's clock
+	 * reset and the belt in `sleep()` close that window; this is the second, independent net —
+	 * `queue.push()` now says whether the queue was actually open to take it, and a push that
+	 * missed is held on `held_messages`, never silently gone. The very next `awaken()` replays
+	 * it first, before anything else. */
 	send(text, { from, reply_to, priority } = {}){
 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
 		if (this.state === "dormant") this.awaken(from);
 		this.emit({ type: "agent_msg", from: from ?? null, reply_to: reply_to ?? null, priority: priority ?? null, text });
-		this.queue.push(this.turn(this.envelope(text, { from, reply_to }), priority));
+		const turn = this.turn(this.envelope(text, { from, reply_to }), priority);
+		if (!this.queue.push(turn)){
+			(this.held_messages ??= []).push(turn);
+			this.emit({ type: "held", why: "the queue closed before this message could be pushed; it will be replayed on the next awaken" });
+			this.state = "dormant";   // honest: nothing is running to receive it right now
+			this.host?.register?.(this);
+			return this;
+		}
 		this.state = "working";
 		this.host?.register?.(this);
 		return this;
@@ -947,12 +1055,21 @@ Agents.Agent = class Agent {
 		if (this.awoken_at && Date.now() - this.awoken_at < 60_000) return false;
 		if (this.bg_tasks > 0) return false;
 		this.gen = (this.gen ?? 0) + 1;   // the old pump's end is not news
+		/* NEVER-LOSE-A-WAKE, item 5 (fresh-eyes review finding 4): this only ever runs while
+		 * `state === "idle"`, which means nothing is queued behind the last turn — `result()`
+		 * sets `idle` only when `queued_turn_count` is 0 — so `this.queue.items` should always be
+		 * empty here already. Captured anyway, belt and braces: a push that managed to land
+		 * between that check above and this line (the same single-tick window item 1 closes) is
+		 * carried to `held_messages` instead of silently discarded by `close()`, exactly like
+		 * `mark_phantom()`'s own copy of this same guard. */
+		const pending = this.queue.items.splice(0);
+		if (pending.length) (this.held_messages ??= []).push(...pending);
 		this.queue.close();
 		try { this.query.close(); } catch {}
 		try { this.aborter.abort(); } catch {}
 		this.state = "dormant";
 		this.dormant_at = stamp();
-		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns });
+		this.emit({ type: "dormant", why, context: this.context ?? null, turns: this.turns, held: pending.length || undefined });
 		this.host?.register?.(this);
 		this.settle();
 		return true;
@@ -960,13 +1077,39 @@ Agents.Agent = class Agent {
 
 	/* A dormant agent's session, resumed in place: a new claude process on the
 	 * same session id, cwd, model, tools and options. Nothing is sent here; the
-	 * caller's `send()` pushes the turn that woke it. */
+	 * caller's `send()` pushes the turn that woke it.
+	 *
+	 * NEVER-LOSE-A-WAKE, item 1 (2026-10-01): the PHANTOM bug — `awaken()` registers, the
+	 * registration runs the idle sweep, and the sweep saw an idle clock from BEFORE the sleep,
+	 * so the agent went straight back to sleep in the same millisecond, before `send()` ever got
+	 * to push the message that woke it. `Global.last_active()` reads `agent.last_at` first,
+	 * ahead of the agent's own log file's mtime (which lags — the "awake" event below is written
+	 * through an async queue and has not reached disk yet when `register()`, right after, asks)
+	 * — but nothing had ever SET `last_at` on a live agent, so that read always fell through to
+	 * the stale mtime. Setting it to now, right here, BEFORE `register()` runs, is the actual
+	 * fix: the sweep then sees a correct "just woke up", not a stale one. The 60 s `awoken_at`
+	 * guard in `sleep()` (the first patch, committed on michael/dev) stays as the belt — right
+	 * for the exact incident it closes, but incomplete on its own: it is a wall-clock special
+	 * case on `sleep()`, not a fix to the clock `last_active()` reads, so any OTHER caller that
+	 * asks "how long has this agent been idle" during this same window still got a wrong answer. */
 	awaken(by){
 		if (this.state !== "dormant") return this;
 		const slept = this.dormant_at;
 		this.assign({ resume: this.session_id, fork: false, minted: false, prompt: null, dormant_at: null, bg_tasks: 0, awoken_at: Date.now() });
+		this.last_at = stamp();
+		/* item 2's `mark_phantom` sets `marked_phantom` once, so it does not re-log the same
+		 * episode on every `working()` call — but a genuinely NEW phantom episode later in this
+		 * same agent's life must still be caught, so the flag clears here, the moment it is
+		 * actually running again. */
+		this.marked_phantom = false;
 		this.start();
-		this.emit({ type: "awake", by: by ?? null, slept_since: slept });
+		/* NEVER-LOSE-A-WAKE, item 5: anything `send()` had to set aside while this agent was
+		 * closed off (see `send()`'s own comment) is replayed now, as this agent's first turns —
+		 * before the `register()` call below can do anything else with it. */
+		const held = this.held_messages?.splice(0) ?? [];
+		for (const item of held) this.queue.push(item);
+		if (held.length) this.state = "working";
+		this.emit({ type: "awake", by: by ?? null, slept_since: slept, replayed: held.length || undefined });
 		this.host?.register?.(this);
 		return this;
 	}
@@ -1022,9 +1165,9 @@ Agents.Agent = class Agent {
 	}
 
 	card(){
-		const { id, role, model, state, visibility, started_at, turns, session_id, cost, parent,
+		const { id, role, model, state, visibility, started_at, stopped_at, turns, session_id, cost, parent,
 			forked_from, resumed_from } = this;
-		return { id, role, model, state, visibility, started_at, turns, session_id, cost, parent: parent ?? null,
+		return { id, role, model, state, visibility, started_at, stopped_at: stopped_at ?? null, turns, session_id, cost, parent: parent ?? null,
 			revivable: this.revivable(), forked_from: forked_from ?? null, resumed_from: resumed_from ?? null,
 			context: this.context ?? null };
 	}
@@ -1093,6 +1236,7 @@ Agents.Agent = class Agent {
 		if (message.type === "stream_event") return this.delta(message);
 		if (message.type === "assistant") return this.assistant(message);
 		if (message.type === "result") return this.result(message);
+		if (message.type === "user") return this.tool_results(message);   // the spend gate: did a result-kind call succeed
 	}
 
 	/* The CLI re-announces itself at the top of EVERY turn, not just the first.
@@ -1126,13 +1270,173 @@ Agents.Agent = class Agent {
 		// openrouter/provider.js real_turn_cost(): the main thread's own message id,
 		// which OpenRouter's /generation endpoint can look up directly and exactly.
 		if (!nested && message.message?.id){ this.last_assistant_message_id = message.message.id; (this.turn_message_ids ??= new Set()).add(message.message.id); }
+		if (!nested && message.message?.id && this.provider === "openrouter") this.meter(message.message.id);
 		for (const block of message.message?.content ?? []){
 			if (block.type === "text" && block.text.trim())
 				this.emit({ type: nested ? "subagent" : "transcript", text: block.text });
-			if (block.type === "tool_use")
+			if (block.type === "tool_use"){
 				this.emit({ type: "tool", name: block.name, input: this.summary(block.input), nested });
+				if (!nested) this.tool_started(block);
+			}
 		}
 		if (message.error) this.emit({ type: "error", where: "assistant", text: String(message.error.message || message.error) });
+	}
+
+	/* SPEND FOLLOWS RESULTS (the owner, 2026-10-02: "Spending $10 or $20 to find out if
+	 * something works is fine if it's promising; blowing $20 with no results is not
+	 * acceptable"). It came after two Gemini masterminds spent about $17 in 20 minutes reading
+	 * and never acting. Every agent starts with $2 (SERVEX_GATE_FIRST_USD) to produce its FIRST
+	 * result. Each verified result unlocks $3 more (SERVEX_GATE_STEP_USD), up to the task
+	 * brief's `Budget: $N` line, or $20 without one. A result is a commit, a step marked done,
+	 * a page line or a spawned minion with a brief, and it counts only once its tool call
+	 * comes back without an error. When spend reaches the allowance with no new result,
+	 * Servex interrupts the agent (never mid-tool-call: it waits for the open call to return)
+	 * and posts one Inbox card: the spend, what it read, what it produced, and Continue (+$5)
+	 * or Stop. Every gate event is one `spend-gate` line in Servex's log.
+	 * Spend: an OpenRouter agent's model calls, each priced by OpenRouter's /generation as it
+	 * settles, so the gate works during the turn. A Claude agent's SDK total, which arrives
+	 * only at the turn's end. Pricing each Claude call during the turn is token-reduction item 4. */
+	static RESULT = [
+		["commit", (n, i) => n === "Bash" && /\bgit\b[^|;&]*\bcommit\b/.test(i.command ?? "")],
+		["step done", (n, i) => /close_task$/.test(n) || ((n === "Bash" || /append_log$/.test(n)) && /task\.jsonl/.test(JSON.stringify(i)) && /"?done"?\s*[:=]|"status"\s*:\s*"done"|landed_at/.test(JSON.stringify(i)))],
+		["page line", n => /mcp__servex__page_(add|set|log)$/.test(n)],
+		["spawned a minion", (n, i) => /spawn_agent$/.test(n) && Boolean(i.task?.brief || /requirements\.md/.test(i.prompt ?? ""))],
+	];
+
+	/* Who is gated: work agents. Anything with a task, or an OpenRouter mastermind or minion.
+	 * The front desk (assistants, the echo, the voice pair) answers rather than produces, so it isn't. */
+	gated_role(){
+		return Boolean(this.task?.dir) || (this.provider === "openrouter" && /mastermind|minion/.test(String(this.role ?? this.id)));
+	}
+
+	gate(){
+		return this.spend_gate ??= { results: [], granted: 0, spent_at_result: 0, open: new Map(), reads: 0, read_log: [], gated: false, due: false };
+	}
+
+	spent_usd(){
+		return this.provider === "openrouter" ? (this.metered_usd ?? 0) : (Number(this.cost) || 0);
+	}
+
+	ceiling_usd(){
+		return this.ceiling_cache ??= this.read_ceiling();   // read the brief once, not on every registry write
+	}
+
+	read_ceiling(){
+		if (Number(this.budget_usd) > 0) return Number(this.budget_usd);
+		try {
+			const brief = this.task?.brief && fs.readFileSync(path.resolve(this.task.brief), "utf8");
+			const m = brief && /Budget:\s*\$\s*(\d+(?:\.\d+)?)/.exec(brief);
+			if (m) return Number(m[1]);
+		} catch {}
+		return Number(process.env.SERVEX_GATE_CEILING_USD) || 20;
+	}
+
+	allowance_usd(){
+		const g = this.gate(), first = Number(process.env.SERVEX_GATE_FIRST_USD) || 2, step = Number(process.env.SERVEX_GATE_STEP_USD) || 3;
+		return Math.min(this.ceiling_usd(), first + step * g.results.length) + g.granted;
+	}
+
+	/* For the registry row and the Sessions grid. */
+	gate_row(){
+		const g = this.spend_gate;
+		if (!g) return null;
+		const spent = this.spent_usd();
+		return { spent_usd: +spent.toFixed(4), since_result_usd: +(spent - g.spent_at_result).toFixed(4), allowance_usd: this.allowance_usd(),
+			results: g.results.length, last_result: g.results.at(-1) ?? null, gated: g.gated };
+	}
+
+	gate_log(event, extra = {}){
+		this.host?.store?.().append("servex", { type: "spend-gate", event, agent: this.id, model: this.model,
+			spent_usd: +this.spent_usd().toFixed(4), allowance_usd: this.allowance_usd(), results: this.gate().results.length, ...extra }).catch(() => {});
+	}
+
+	tool_started(block){
+		if (!this.gated_role()) return;   // the read-loop warning is for gated work agents only, never the front desk
+		const g = this.gate(), input = block.input ?? {};
+		g.open.set(block.id, null);
+		const kind = this.constructor.RESULT.find(([, test]) => { try { return test(block.name, input); } catch { return false; } })?.[0];
+		if (kind) g.open.set(block.id, { kind, what: this.summary(input, 120) });
+		if (/^(Read|Grep|Glob)$|page_read|read_page|read_card/.test(block.name)){
+			g.reads += 1;
+			g.read_log.push(input.file_path ?? input.path ?? input.pattern ?? input.card ?? block.name);
+			if (g.read_log.length > 30) g.read_log.shift();
+			/* THE READ-LOOP GUARD, a warning only: 40 reads with no result since the last one. */
+			const warn = Number(process.env.SERVEX_READ_WARN) || 40;
+			if (g.reads === warn){
+				this.gate_log("read-warn", { reads: g.reads });
+				try { this.host?.send?.(this.id, `Servex: ${g.reads} reads since your last result. Produce one now (a commit, a step done, a page line, or a minion with a brief): your spend is gated on results.`, { from: "servex" }); } catch {}
+			}
+		}
+	}
+
+	/* Tool results come back in "user" messages; a result-kind call counts only if it succeeded. */
+	tool_results(message){
+		if (message.parent_tool_use_id) return;
+		const content = message.message?.content;
+		if (!Array.isArray(content)) return;
+		const g = this.gate();
+		for (const b of content){
+			if (b?.type !== "tool_result" || !g.open.has(b.tool_use_id)) continue;
+			const candidate = g.open.get(b.tool_use_id);
+			g.open.delete(b.tool_use_id);
+			if (candidate && !b.is_error){
+				g.results.push({ ...candidate, at: stamp(), spent_usd: +this.spent_usd().toFixed(4) });
+				g.spent_at_result = this.spent_usd();
+				g.reads = 0;
+				g.gated = false;
+				this.gate_log("result", candidate);
+			}
+		}
+		if (g.due && !g.open.size) this.gate_check();
+	}
+
+	async meter(id){
+		this.metered ??= new Map();
+		if (this.metered.has(id)) return;
+		this.metered.set(id, 0);
+		let key; try { key = read_key(); } catch { return; }
+		for (let i = 0; i < 6; i++){
+			const c = await generation_cost(key, id).catch(() => null);
+			if (c != null){ this.metered.set(id, c); break; }
+			await new Promise(r => setTimeout(r, 2500));
+		}
+		this.metered_usd = [...this.metered.values()].reduce((a, b) => a + b, 0);
+		this.gate_check();
+	}
+
+	/* The gate itself: run when a call is priced, when a tool call returns, and at a turn's end. */
+	gate_check(){
+		if (!this.gated_role()) return;
+		const g = this.gate(), spent = this.spent_usd(), allowance = this.allowance_usd();
+		if (spent < allowance){ g.due = false; return; }
+		if (g.open.size && this.state === "working"){ g.due = true; return; }   // never mid-tool-call
+		g.due = false;
+		if (this.state === "working") this.interrupt().catch?.(() => {});
+		if (g.gated) return;   // one card per gate, however often the agent is woken past it
+		g.gated = true;
+		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
+		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
+		const read = g.read_log.slice(-10).join(", ") || "nothing";
+		const text = `${this.id} (${this.model}) has spent $${spent.toFixed(2)}, $${(spent - g.spent_at_result).toFixed(2)} of it since its last result, and reached its $${allowance.toFixed(2)} allowance, so Servex paused it. Produced: ${made}. Last read: ${read}. Continue gives it $5 more; Stop ends it.`;
+		const sx = this.host?.servex, h = sx?.mcp?.handlers, ask = h?.get?.("card_ask"), card = this.task?.card;
+		/* `from: this.id` lets Cards.js's wake() find exactly this agent when the owner answers,
+		 * instead of falling back to every attached non-minion agent. `kind: "spend-gate"` tells
+		 * wake() to act on the answer directly (grant/stop) instead of just texting it over. */
+		Promise.resolve(card && ask ? ask({ card, question: text, options: ["Continue (+$5)", "Stop"], from: this.id, kind: "spend-gate" }, { caller: "servex" }) : null)
+			.catch(() => null)
+			.then(out => { if (!out) sx?.inbox?.drop({ path: this.task?.dir ?? "public/framework/servex", text, from: "servex" }); })
+			.catch(() => {});
+		try { sx?.say?.(text, { event: "spend-gate" }); } catch {}
+	}
+
+	/* Continue (+$5): the Inbox answer, or anyone with the authority, raises the allowance. */
+	grant(usd = 5){
+		const g = this.gate();
+		g.granted += Number(usd) || 0;
+		g.gated = false;
+		this.gate_log("grant", { granted_usd: Number(usd) || 0 });
+		this.host?.register?.(this);
+		return this;
 	}
 
 	/* A tool call's input can be a whole file; the log wants a glance at it. */
@@ -1204,6 +1508,8 @@ Agents.Agent = class Agent {
 		else this.cost = message.total_cost_usd ?? this.cost;
 		this.queued = message.queued_turn_count ?? 0;
 		this.state = this.queued > 0 ? "working" : "idle";
+		this.spend_gate?.open.clear();   // a turn's end closes every tool call it opened
+		try { this.gate_check(); } catch {}   // a Claude agent's spend is known only now
 		/* `words` = everything said this turn, which is what a fork's wake and
 		 * `wait_for_agent` hand back; `last_text` is only its final block. */
 		this.words = (this.said ?? []).join("\n\n") || null;
@@ -1275,12 +1581,15 @@ Agents.Agent.Queue = class AgentQueue {
 	constructor(...args){ this.assign({ items: [], waiting: [], done: false }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
+	/* NEVER-LOSE-A-WAKE, item 5: returns whether the item was actually taken — `false` once this
+	 * queue is `close()`d, instead of a silent, always-truthy `this` a caller could not tell
+	 * apart from a real success. `Agent.send()` is the one caller that acts on it. */
 	push(item){
-		if (this.done) return this;
+		if (this.done) return false;
 		const wake = this.waiting.shift();
 		if (wake) wake({ value: item, done: false });
 		else this.items.push(item);
-		return this;
+		return true;
 	}
 
 	close(){

@@ -37,14 +37,14 @@ runs on both: [JavaScript](/imagine/platform/topic/). The slice that spends them
 | **Cost** | Zero for a topic that declares none. A declared capability costs one module, at the depth its parent budgets. |
 | **Scalability** | Capability count is per-topic and nothing central enumerates it, so there is no list to grow. |
 | **Complexity** | The lowest available: the only new thing on the whole platform is a naming convention. |
-| **Migration/reversibility** | Renaming a capability moves a directory and breaks its inbound links; `store_key` keeps its saved state ([`store.md`](/framework/core/Page/doc/method/store/)). `can:` can be added later without touching a page that has none. |
-| **Deliberately NOT doing yet** | `can:` itself — nothing in the MVP needs it. No capability manifest, no per-capability permissions, and no capability whose data is not either the topic's own `store()` or, past the line, a D1 row. |
+| **Migration/reversibility** | Renaming a capability moves a directory and breaks its inbound links; `store_key` keeps its saved state ([`prefs.md`](/framework/core/Page/doc/method/prefs/)). `can:` can be added later without touching a page that has none. |
+| **Deliberately NOT doing yet** | `can:` itself — nothing in the MVP needs it. No capability manifest, no per-capability permissions, and no capability whose data is not either the topic's own `prefs()` or, past the line, a D1 row. |
 
 ## The four capability words
 
 | capability | how a topic says it | what a page that wants it pays | what it costs everyone else | who reads it |
 |---|---|---|---|---|
-| **intro** | a child page `intro/` | one module | nothing | the reader; §15's 10-minute experience, resumable out of `topic().store()` |
+| **intro** | a child page `intro/` | one module | nothing | the reader; §15's 10-minute experience, resumable out of `topic().prefs()` |
 | **space** | one child page per channel under `space/` | one module per channel | nothing | the channel's Durable Object — the object key is that page's url ([realtime](/imagine/platform/research/realtime/)) |
 | **levels** | a child page `levels/`, derived from an action log, never a stored number | one module | nothing | `topic().level()`, anywhere in the subtree |
 | **subtopics** | ordinary `children:` | nothing extra | nothing | core's column row — [`columns.md`](/framework/core/Page/doc/columns/) |
@@ -66,7 +66,7 @@ all reached by adding or omitting one word:
    above — so a room in a realm, or a lesson in a subtopic, reads and writes the *topic's*
    state, which is what makes a deep tree feel like one world.
 3. **A subtopic that graduates** adds `is: "topic"`. `findLast` means it now shadows the outer
-   topic for everything below it, and it gets its own `store()` for free because the store key
+   topic for everything below it, and it gets its own `prefs()` for free because the store key
    is its own url. That is the whole of "a topic may contain topics" — one word, no migration,
    and the demo's `async/` does exactly this in a separate file with no import either way.
 

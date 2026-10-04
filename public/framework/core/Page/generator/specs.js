@@ -18,9 +18,9 @@ import { sketch } from "./rolls.js";
  *
  * WAVE 7 — "yours". A save control keeps the tree you are LOOKING AT (`host.spec`)
  * under a title, in its own band below these eight. `saved` rides in the generator's
- * OWN `store()` — the SAME key `sized`/`gapped`/`looked` already live in, not a
+ * OWN `prefs()` — the SAME key `sized`/`gapped`/`looked` already live in, not a
  * sibling one: a second localStorage key would be a second thing to keep in step
- * with `store_key` (doc/method/store.md's own warning), and a saved spec is exactly
+ * with `store_key` (doc/method/prefs.md's own warning), and a saved spec is exactly
  * as dressing-adjacent as those three — a preference this reader built, not the
  * curated list. `remember()` (page.js) had to change from `set()` to `patch()` for
  * this to be safe: `set()` replaces the whole record, so switching `look` would have
@@ -190,7 +190,7 @@ export function gallery(host){
 				div.c("page-gen-rules", () => md("A seed is an address against one `MODEL`, and every model bump redraws every seed — so a tree worth keeping is kept as its **text**. These eight are that, written in the same five words the roller draws and the controls edit. Pick one and it becomes the tree; the address turns into `#s=<the text>`, which is a link you can send."));
 
 				/* "YOURS" — save the tree you are LOOKING AT (not this column; the
-				   generator's own live `spec`), under a title, into `store()`. */
+				   generator's own live `spec`), under a title, into `prefs()`. */
 				div.c("page-gen-save", () => {
 					this.$save_title = input.c("page-gen-save-title").attr("placeholder", "name this tree…");
 					button.c("page-gen-save-btn", "Save the current tree").click(() => this.save(host));
@@ -210,10 +210,10 @@ export function gallery(host){
 		   title still saves; an untitled tree is still a tree worth keeping back. */
 		save(host){
 			const title = this.$save_title.el.value.trim() || "untitled";
-			const saved = host.store().get({ saved: [] }).saved;
+			const saved = host.prefs().get({ saved: [] }).saved;
 
 			saved.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2, 6), title, spec: host.spec });
-			host.store().patch({ saved });
+			host.prefs().patch({ saved });
 
 			this.$save_title.el.value = "";
 			this.render_saved(host);
@@ -222,9 +222,9 @@ export function gallery(host){
 		// One card gone, the rest re-numbered by nothing (the id, not the index, is
 		// what a remove targets — removing #2 must not silently remove #3 next click).
 		remove(host, id){
-			const saved = host.store().get({ saved: [] }).saved.filter(entry => entry.id !== id);
+			const saved = host.prefs().get({ saved: [] }).saved.filter(entry => entry.id !== id);
 
-			host.store().patch({ saved });
+			host.prefs().patch({ saved });
 			this.render_saved(host);
 		},
 
@@ -232,7 +232,7 @@ export function gallery(host){
 		   a remove never regrows the generator's tree or moves the reader off this
 		   column, the way `host.show()` would. */
 		render_saved(host){
-			const saved = host.store().get({ saved: [] }).saved;
+			const saved = host.prefs().get({ saved: [] }).saved;
 
 			this.$saved.empty(() => {
 				if (!saved.length) return;

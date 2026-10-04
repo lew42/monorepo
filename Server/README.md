@@ -18,9 +18,11 @@ the editing agent at its very next write. `HEALTH_BASE` picks which server to lo
 pages against (default `http://localhost:8123`, the mastermind's). Full story:
 [`public/framework/ai/health/readme.md`](/framework/ai/health/).
 
-**`node Server/layout-check.mjs <url...>`** shoots pages at four widths and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
+**`node Server/layout-check.mjs <url...>`** shoots pages at four widths by default (`--widths` picks others) and flags wasted space; **`Server/on-landing.mjs`** runs it by itself on every task landing (the ledger hook spawns it) and logs the result to the task, and flagged pages to `servex-mastermind`.
 
 **`node Server/merge.mjs <worktree>`** now finds the pages a branch changed by itself (every `page.js`/`page.jsonl` in its diff, mapped to its site url) and hands them to `Server/smoke.mjs`, which follows every same-origin link it finds one level deep instead of only loading the pages it was told about — the gap that let 7 broken concept-tile links land unnoticed; a NEW page in the diff also gets a 1920 screenshot into `.merge-shots/`. [`public/framework/ai/2026-09-28/smoke-links/`](/framework/ai2/2026-09-28/smoke-links/).
+
+**`--quick`** is `merge.mjs`'s fast path for a one-line voice fix: no reviewer agent, allowed only for ≤20 changed lines in one module. It takes the one screenshot `review.mjs`'s `widthsFor` says the change needs (not always four), then merges exactly as above. Its last line of stdout is one JSON object: `merged`, `shot`, `width`, `ms`. Detail and the exit codes: the file's own header comment, and [`doc/review.md`](./doc/review.md#which-widths).
 
 **`node Server/window-lint.mjs`** answers one question about the whole repo: **which
 `spawn`/`exec`/`execFile`/`fork`/`Start-Process` call is missing `windowsHide: true` (or
@@ -73,6 +75,26 @@ task once (not on every retry), so `landed_at` alone can never read as done.
 author's conversation — to read the brief and the diff and say pass or fix, before `merge.mjs`
 will take a `light` or `full` branch. Full story: [`doc/review.md`](./doc/review.md).
 
+**`node Server/audit.mjs <taskdir...> [--out <path.json>]`** (2026-10-02) is law 7 for a task
+audit: given several `audit.jsonl` files (one line per model that graded a landed task on
+complete/obedience/utility, written through `.claude/hooks/append.mjs` against the schema in
+`jsonl-schema.mjs`), it COMPUTES the consensus — never an AI writing it from memory. Per task:
+real objective checks (do the files it touched exist, do they parse, do its URLs answer 200),
+the median and agreement of every score, the union of `missing` items 2+ auditors named, a
+`value = quality ÷ cost` number from the task's own real spend, a `FAILED` flag when the
+complete/obedience median hits -2 or worse, and each model's distance from the median (the
+model-ladder ranking). Writes one `consensus.json` per task. Dedupes a model to one vote per
+task — a dequeued minion can still land its turn moments later, producing a duplicate. Built
+for, and proven on, the first pilot: [`public/framework/ai/2026-10-02/task-audit/report.md`](/framework/ai/2026-10-02/task-audit/).
+
+**`Server/ask-each.mjs`'s `askOnce()`** now takes an optional `env` (and `disallowedTools`) —
+the same OpenRouter env swap `Agents.js` uses (`ext/openrouter/provider.js`'s `env_for`) — so a
+script can call a cheap OpenRouter model directly, one Q&A turn at a time, without spawning a
+minion or waiting on a pool worktree slot. ⚠ The SDK's own `result.total_cost_usd` prices an
+OpenRouter turn against ANTHROPIC's table under the wrong model name — wildly wrong for a cheap
+model (off by 30-50x, confirmed during the audit pilot) — so never trust `askOnce()`'s
+`cost_usd` for a non-Claude model; read OpenRouter's own `key_status()` total instead.
+
 ## The supervisor
 
 `server.js` at the repo root is a small supervisor: it forks the real server —
@@ -86,9 +108,10 @@ used to.
 A four-minute outage on 2026-09-19 (a `Server/` file that parsed but threw at
 boot) showed `node --check` proves a file *parses*, never that it *boots* — so
 now every real change first forks a CANDIDATE on a spare port with
-`BOOT_TEST=1` (a flag `Directory.js` and `LiveReload.js` honour with one line
-each, so a candidate never rebuilds `directory.json` or touches the
-reload-hold lock) and waits up to 8s for a real HTTP 200. Only then does it
+`BOOT_TEST=1` (a flag `Directory.js`, `LiveReload.js` and `MentionSync.js`
+honour with one line each, so a candidate never rebuilds `directory.json`,
+touches the reload-hold lock, or writes `ext/Mention/maps/refs.js`) and
+waits up to 8s for a real HTTP 200. Only then does it
 kill the old live child and start the new one — on any failure the live child
 is never touched, and `.server-boot-failed.json` at the repo root says why.
 Every kill is deadline-bounded, so the supervisor itself can never wedge, and

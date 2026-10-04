@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/",
+ "widths": {
+  "1280": {
+   "empty": 0.459,
+   "widest_text": 3735,
+   "widest_text_sample": "While returning worktree qf-9 to the poo",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.087
+  },
+  "1920": {
+   "empty": 0.471,
+   "widest_text": 3974,
+   "widest_text_sample": "While returning worktree qf-9 to the poo",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.5
+  },
+  "2560": {
+   "empty": 0.495,
+   "widest_text": 4471,
+   "widest_text_sample": "While returning worktree qf-9 to the poo",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.5
+  },
+  "3440": {
+   "empty": 0.602,
+   "widest_text": 4471,
+   "widest_text_sample": "While returning worktree qf-9 to the poo",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.587
+  }
+ },
+ "errors": [
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1280: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "2560: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}

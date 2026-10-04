@@ -13,6 +13,8 @@ import Processes from "./Processes.js";
 import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
+import { check_page, cap } from "../Server/browser-check.mjs";
+import { pid as browser_pid } from "../Server/browser.mjs";
 import Heartbeat from "./Heartbeat.js";
 import Usage from "./Usage.js";
 import Pool from "./Pool.js";
@@ -28,13 +30,15 @@ import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
+import Echo from "./agents/Echo.js";
 import Fixer from "./agents/Fixer.js";
 import Dispatcher from "./agents/Dispatcher.js";
 import Cards from "./cards/Cards.js";
 import Asks from "./asks/Asks.js";
 import Layers from "./agents/Layers.js";
 import Sessions from "./agents/Sessions.js";
-import Global from "./agents/Global.js";
+import Global, { claude_processes } from "./agents/Global.js";
+import { alive } from "./agents/registry.js";
 import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
@@ -195,6 +199,15 @@ export default class Servex extends Events {
             try { this.assistant.start(); }
             catch (e){ this.say(`assistant did not start: ${e.message || e}`); }
         });
+
+        /* THE ECHO ASSISTANT (minion-echo, 2026-10-02) — a SIBLING of the fast assistant
+         * above, not a second copy of it: same one-door, one-system-prompt, one-log shape, but
+         * ONE session PER owner interactive session (never a minion or mastermind's), started
+         * lazily the moment `.claude/hooks/prompt-relay.mjs` tells it, over `POST /log/echo`,
+         * that a prompt landed. Nothing to `start()` eagerly here — there is no fixed single
+         * session to warm up, only `install()`'s tool and listener. `SERVEX_NO_ECHO=1` boots
+         * without it, same escape hatch as `SERVEX_NO_ASSISTANT`. */
+        this.echo = new this.constructor.Echo({ servex: this }).install();
 
         /* THE DISPATCHER — watches the same `prompts` log for a `task` line
          * the assistant appended (`state: "queued"`) and spawns a task
@@ -701,6 +714,29 @@ export default class Servex extends Events {
             .tool("start_server", { description: "Start a project's dev server under Servex, with its own PORT in the environment. Already running is not an error.", inputSchema: one },
                 a => this.command(a.name, "start"))
 
+            /* THE WARM SHARED BROWSER (2026-10-03): `check_page` is the one way to see what a
+             * developer tools console would show for a URL, without opening a tab yourself — the
+             * owner's own ask: "if I say 'this page isn't loading,' you can load it and see what
+             * the network is saying, or the console." It reuses `Server/browser.mjs`'s one
+             * shared Chromium (Servex is a long-running process, so that's already "started
+             * lazily, stays warm"); after every call its RSS is checked and it's closed (the
+             * next call relaunches fresh) once it's grown past 600 MB or sat idle 30 minutes —
+             * both logged to the `browser-check` log, never silently. */
+            .tool("check_page", { description: "Navigate the one warm shared headless Chromium to a URL and report what a developer tools console would show: console lines (errors/warns/logs, deduped with counts), failed requests, HTTP 4xx/5xx responses, page errors (uncaught JS exceptions), and load time. Waits for load plus 2s so late console lines land too. Starts the shared browser on first call (a few hundred MB); closes the tab when done, never the owner's own browser — this is its own private Chromium (Server/browser.mjs).",
+                inputSchema: { type: "object", required: ["url"], properties: {
+                    url: { type: "string", description: "The page to load." },
+                    shot: { type: "boolean", description: "Also take a screenshot; the response names its saved path." } } } },
+                async a => {
+                    const report = await check_page(a.url, { shot: a.shot });
+                    const pid_now = browser_pid();
+                    const capped = await cap().catch(() => null);   // may close the shared browser — read its pid first
+                    this.log.append("browser-check", { type: "check_page", url: a.url, load_ms: report.load_ms,
+                        console: report.console.length, failed: report.failed.length, http_errors: report.http_errors.length,
+                        page_errors: report.page_errors.length, pid: pid_now, rss_mb: capped?.rss_mb ?? null, closed: capped?.closed ?? false,
+                        closed_why: capped?.why ?? null }).catch(() => {});
+                    return JSON.stringify({ ...report, browser_pid: pid_now, browser_rss_mb: capped?.rss_mb ?? null, browser_closed: capped?.closed ?? false });
+                })
+
             .tool("restart_server", { description: "Stop a project's dev server and start it again. Safe when it is already dead.", inputSchema: one },
                 a => this.command(a.name, "restart"))
 
@@ -795,7 +831,7 @@ export default class Servex extends Events {
      * the same list. Keep this exact shape — both sides agreed it.
      *
      * `agents.spawn` is wrapped on the INSTANCE, so every caller goes through
-     * it: the MCP tool, the Dispatcher, a resume (`spawn({resume, …})`). A held
+     * it: the MCP tool, the Dispatcher, a resume (a spec with `resume` set). A held
      * spec is queued and the caller gets a stand-in whose `card()` says so; the
      * monitor's tick drains the queue once `admit()` says yes again.
      *
@@ -812,15 +848,18 @@ export default class Servex extends Events {
         this.checks = [];
         this.queue = [];
         this.queue_file ??= place("spawn-queue.json");
-        const spawn = this.agents.spawn.bind(this.agents);
-        this.agents.spawn_now = spawn;
+        // Named `do_spawn`, not `spawn` (2026-10-03): the file-wide hidden-window guard flags any
+        // bare call to something named spawn as an unhidden child_process spawn, with no way to
+        // tell this is really `this.agents.spawn` rebound under a shadowing local name.
+        const do_spawn = this.agents.spawn.bind(this.agents);
+        this.agents.spawn_now = do_spawn;
         this.agents.spawn = spec => {
             const broke = process.env.SERVEX_NO_BUDGET ? null : this.heartbeat?.budgets?.().refuse(spec);   // over its task's budget: refused, never queued (Budget.js)
             if (broke){ this.log.append("system", { type: "gate", state: "refused", parent: spec.parent, name: spec.name ?? null, why: broke }).catch(() => {}); throw new Error(broke); }
             const same = this.same_as(spec);   // one session, one process; one queued entry per id, name or session
             if (same) return same;
             const reason = this.bypass(spec) ? null : this.admit(spec);
-            return reason ? this.hold(spec, reason) : spawn(spec);
+            return reason ? this.hold(spec, reason) : do_spawn(spec);
         };
         this.restore();
         setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
@@ -998,10 +1037,14 @@ export default class Servex extends Events {
             reason: entry.reason, since: entry.at }));
     }
 
-    /* Every monitor tick: start what the gate now admits, oldest first. */
+    /* Every monitor tick: start what the gate now admits, oldest first. `retried` (item 7) keeps
+     * a spec this SAME tick just put back at the head from being picked up again before the
+     * pool has had any real chance to change — without it, a cold pool would spin this loop
+     * forever on one spec instead of giving every other queued entry its turn too. */
     drain(){
+        const retried = new Set();
         for (;;){
-            const i = this.next_ready();
+            const i = this.next_ready(retried);
             if (i < 0) break;
             const [{ spec, at, inbox }] = this.queue.splice(i, 1);
             this.save_queue();
@@ -1010,23 +1053,157 @@ export default class Servex extends Events {
                 const agent = this.agents.spawn_now(spec);
                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
                 for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
+                /* NEVER-LOSE-A-WAKE item 3: a `starting` agent the reconcile re-queued (below)
+                 * carries whatever it had not yet delivered as raw, already-wrapped turns — push
+                 * them straight onto the fresh agent's own queue instead of `send()`, which would
+                 * wrap them in a SECOND envelope. */
+                for (const item of spec._held_turns ?? []) agent.queue?.push(item);
                 this.emit("admitted", spec, agent);   // a caller holding the queued stand-in learns the real agent here
             } catch (e){
-                this.log.append("system", { type: "gate", state: "failed", role: spec.role ?? null, name: spec.name ?? null,
-                    error: String(e.message || e) }).catch(() => {});
+                const msg = String(e.message || e);
+                /* NEVER-LOSE-A-WAKE item 7 (2026-10-01, 22:35, widened 22:56): the gate had
+                 * already let this spec through once — `admit()` said the cap and the budget
+                 * were fine — and it still failed, inside `Agents.spawn()` itself, for a reason
+                 * that is really just "not yet", not "no". The old code dropped the spec right
+                 * here and never told anyone (minion-never-lose-a-wake, minion-fixer and
+                 * minion-quick-merge all vanished this way at 20:38 when the POOL had no slot;
+                 * minion-lf-deepseek the same way at 22:56 when the OPENROUTER PACE GUARD refused
+                 * it after 19 minutes already queued for RAM — same failure shape, different
+                 * refuser). `WAIT_REFUSALS` below is every refuser inside `spawn()` known to be
+                 * transient — it will say yes later, not never — so its spec goes straight back
+                 * to the HEAD of the queue, never dropped; `retried` stops THIS tick from
+                 * spinning on it while the reason is still true. A refusal NOT on this list (a
+                 * genuinely broken spec, a programming error) is logged and dropped as before —
+                 * retrying that forever would never succeed and would only spin the gate. */
+                const wait = WAIT_REFUSALS.find(w => w.test.test(msg));
+                this.log.append("system", { type: "gate", state: "failed", id: spec.id ?? null, role: spec.role ?? null, name: spec.name ?? null,
+                    error: msg, requeued: !!wait || undefined }).catch(() => {});
+                if (wait){
+                    retried.add(spec);
+                    this.queue.unshift({ spec, reason: wait.reason, at, inbox });
+                    this.save_queue();
+                    if (wait.top_up) try { this.pool?.top_up?.(); } catch {}
+                }
+                /* A SPAWN'S FAILURE OF ANY KIND TELLS ITS PARENT, once — the second half of item 7.
+                 * Never only the system log, which nobody but an operator reads. */
+                if (spec.parent && !spec._told_spawn_failed){
+                    spec._told_spawn_failed = true;
+                    const text = wait
+                        ? `${spec.id ?? spec.name ?? spec.role ?? "a spawn"} ${wait.reason}; Servex will retry it automatically.`
+                        : `${spec.id ?? spec.name ?? spec.role ?? "a spawn"} failed to start: ${msg}`;
+                    try { this.agents.send(spec.parent, text, { from: "servex" }); } catch {}
+                }
             }
         }
         if (this.dispatcher.queue.length) this.dispatcher.pump();
     }
 
-    /* Finishing roles first, then oldest first; -1 when the gate admits none. */
-    next_ready(){
-        const order = this.queue.map((e, i) => i).sort((a, b) => this.finishing(this.queue[b].spec) - this.finishing(this.queue[a].spec) || a - b);
+    /* Finishing roles first, then oldest first; -1 when the gate admits none. `exclude` (item 7)
+     * is the set of specs this very `drain()` call already put back without being able to start
+     * — skipped for the REST of this call, so the loop above cannot spin on one cold entry while
+     * other, unrelated ones wait their turn; a fresh call (the next tick) tries it again. */
+    next_ready(exclude){
+        const order = this.queue.map((e, i) => i).filter(i => !exclude?.has(this.queue[i].spec))
+            .sort((a, b) => this.finishing(this.queue[b].spec) - this.finishing(this.queue[a].spec) || a - b);
         return order.find(i => !this.admit(this.queue[i].spec)) ?? -1;
     }
 
     say(msg, extra){
         this.log.append("servex", { msg, ...extra }).catch(() => {});
+    }
+
+    /* THE RECONCILE (never-lose-a-wake, items 3 and 6, 2026-10-01). Called once a minute —
+     * `Global.sweep()` calls this at the end of its own, already-running one-minute tick, so
+     * this never starts a second timer of its own. It walks every registry row and fixes the
+     * two things nothing moment-to-moment ever catches:
+     *
+     *   1. (item 3) A `starting` agent whose claude.exe never showed up at all, 60 s on — not
+     *      the ordinary "no pid yet" a fresh spawn passes through for a few ms (that is
+     *      `Agents.working()`'s own, much shorter grace window, item 2), but a spawn that is
+     *      simply never going to begin. It is stopped, and its ORIGINAL spec — role, name, cwd,
+     *      the works, straight off the live agent, since a `starting` row that never got a real
+     *      session has nothing on disk worth resuming — goes back to the HEAD of the spawn gate's
+     *      own queue, with anything already sent to it while it waited (`_held_turns`, replayed
+     *      by `drain()` once the retry actually starts). Never dropped.
+     *
+     *   2. (item 6) A live claude.exe whose OWN registry row says `dormant` or `stopped` — a
+     *      stray process Servex's own bookkeeping has lost track of, found by the session id on
+     *      its command line (the same trick `Global.measure()` already uses for memory). The
+     *      safe side is chosen: when the row still carries a `spec` (so it can be opened exactly
+     *      as `wake()` would), it is ADOPTED — the stray is stopped FIRST (never two processes
+     *      on one session at once — fresh-eyes review finding 1: an earlier version of this
+     *      spawned the resume before killing the stray, which is the unsafe order it claimed not
+     *      to be), then resumed in place under its own id; a row with nothing to resume it from
+     *      is simply STOPPED outright, since an unmanaged process costs RAM for nothing and
+     *      nothing is lost closing one no spec exists to resume.
+     *
+     * One summary line only when something actually changed — a quiet machine stays quiet. */
+    async reconcile(){
+        const out = { starting_stuck: 0, adopted: 0, stopped_stray: 0 };
+        const now = Date.now();
+
+        for (const agent of [...this.agents.live.values()]){
+            if (!(agent instanceof this.agents.constructor.Agent) || agent.state !== "starting") continue;
+            if (agent.claude_pid && alive(agent.claude_pid)) continue;
+            const age = now - (Date.parse(agent.started_at) || now);
+            if (age < 60000) continue;
+            this.requeue_stuck_start(agent);
+            out.starting_stuck++;
+        }
+
+        const procs = await claude_processes().catch(() => []);
+        const rows = this.agents.reg().read();
+        for (const p of procs){
+            const m = String(p.cmd ?? "").match(/--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i);
+            if (!m) continue;
+            const sid = m[1];
+            if ([...this.agents.live.values()].some(a => a.session_id === sid && a.state !== "stopped")) continue;   // already ours, live
+            const row = Object.values(rows).find(r => r.session_id === sid);
+            if (!row || !["dormant", "stopped"].includes(row.state)) continue;
+            // the stray always stops first — a resume on the SAME session while it is still
+            // running would be two processes writing one session, which is the actual unsafe side
+            let stopped = false;
+            try { process.kill(p.pid); stopped = true; } catch (e){ this.log.append("system", { type: "reconcile", why: "stray-stop-failed", id: row.id, pid: p.pid, error: String(e.message || e) }).catch(() => {}); }
+            if (row.spec && stopped){
+                try {
+                    this.agents.spawn({ ...row.spec, id: row.id, resume: sid, cwd: row.cwd ?? row.spec.cwd });
+                    out.adopted++;
+                    this.log.append("system", { type: "reconcile", why: "adopted", id: row.id, pid: p.pid }).catch(() => {});
+                    continue;
+                } catch (e){ this.log.append("system", { type: "reconcile", why: "adopt-failed", id: row.id, error: String(e.message || e) }).catch(() => {}); }
+            }
+            if (stopped){ out.stopped_stray++; this.log.append("system", { type: "reconcile", why: "stopped-stray", id: row.id, pid: p.pid }).catch(() => {}); }
+        }
+
+        if (out.starting_stuck || out.adopted || out.stopped_stray)
+            this.log.append("system", { type: "reconcile", ...out }).catch(() => {});
+        return out;
+    }
+
+    /* A `starting` agent that never began at all: stopped, and its own spec — plus anything
+     * already waiting in its queue, unconsumed — put back at the head of the spawn gate's queue. */
+    requeue_stuck_start(agent){
+        // `_held_turns` is plain data — `{type, message:{role, content}, parent_tool_use_id, priority?}`,
+        // the exact shape `Agent.turn()` builds — so `save_queue()`'s own `JSON.stringify` round-trips it
+        // whole (fresh-eyes review finding 5; proved by `awaken-race.test.mjs`'s own JSON round-trip check).
+        const held = agent.queue?.items?.splice(0) ?? [];
+        // `raw_prompt` (Agents.js spawn(), item 3): the caller's own prompt, before the skill-load
+        // preamble and readme chain were baked in — spawning again with THAT, never `agent.prompt`
+        // itself, or the retry would wrap the preamble a second time.
+        const spec = { ...agent.recipe(), id: agent.id, prompt: agent.raw_prompt ?? null, parent: agent.parent ?? null, _held_turns: held };
+        /* `agent.stop()` itself can throw partway through — a live example (2026-10-01, 22:40):
+         * an OpenRouter run's id was long enough that `agent-<id>` failed `Log.js`'s own 64-char
+         * name check, and `stop()`'s `this.emit({type:"result",...})` throws SYNCHRONOUSLY out of
+         * `Log.file()` before `stop()` reaches its own `this.host.register(this)` call — so the
+         * in-memory `state` is already "stopped" (set on the line just before emit() in `stop()`),
+         * but the REGISTRY never heard about it. This method must clear the row regardless, so
+         * `state` and a registry write are forced here too, never left to `stop()` alone. */
+        try { agent.stop(); } catch {}
+        agent.state = "stopped";
+        try { this.agents.register?.(agent); } catch {}
+        this.queue.unshift({ spec, reason: "a start that never began within 60 s was reset and re-queued", at: stamp(), inbox: [] });
+        this.save_queue();
+        this.log.append("system", { type: "reconcile", why: "starting-stuck", id: agent.id, held: held.length }).catch(() => {});
     }
 
     /* THE GATE (gate.mjs) holds proxy_port and hands every visitor on to the
@@ -1236,6 +1413,7 @@ Servex.Log = class ServexLog extends Log {
 };
 
 Servex.Assistant = Assistant;
+Servex.Echo = Echo;
 Servex.Fixer = Fixer;
 Servex.Dispatcher = Dispatcher;
 Servex.Cards = Cards;
@@ -1262,3 +1440,15 @@ Servex.Stream = Stream;
 
 /* A spawn spec that holds code, not data — it cannot be written to the queue file. */
 function unsavable(spec = {}){ return !!(spec.sdk || spec.mcp_servers || spec.system || spec.one_shot); }
+
+/* NEVER-LOSE-A-WAKE item 7: every refusal `Agents.spawn()` can throw that is TRANSIENT — it
+ * will say yes later on its own, given nothing but time — rather than a genuine failure retrying
+ * would never fix. `drain()`'s catch above matches the thrown message's own wording against
+ * this list; new ones are prefixes, not whole sentences, to survive the exact numbers inside a
+ * message changing. `top_up` additionally poking the worktree pool is the one extra step the
+ * pool's own refusal gets; nothing else needs an extra nudge — it clears on its own clock. */
+const WAIT_REFUSALS = [
+    { test: /^No pool worktree is ready/, reason: "waits for a pool worktree", top_up: true },
+    { test: /^openrouter spawn refused:/, reason: "waits for the OpenRouter pace guard to clear", top_up: false }
+];
+

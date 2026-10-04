@@ -139,11 +139,11 @@ export default new Page({
 
 	sync(){
 		this.marks.set(this.rows.map(row => ({ at: row.at, name: slug(row.title), title: row.title })));
-		this.$out.text(this.emit());
+		this.$out.text(this.emit_code());
 		return this;
 	},
 
-	emit(){
+	emit_code(){
 		if (!this.rows.length) return "[]";
 
 		const wide = Math.max(...this.rows.map(row => String(row.at).length));
@@ -158,7 +158,7 @@ export default new Page({
 	copy(){
 		const said = ok => { this.$copy.text(ok ? "Copied" : "Select it"); setTimeout(() => this.$copy.text("Copy"), 1400); };
 
-		Promise.resolve(navigator.clipboard?.writeText(this.emit())).then(() => said(true), () => said(false));
+		Promise.resolve(navigator.clipboard?.writeText(this.emit_code())).then(() => said(true), () => said(false));
 	},
 
 	// ════ the proof — the array below IS what is driving this line ════════════

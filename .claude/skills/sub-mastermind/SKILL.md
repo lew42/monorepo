@@ -228,7 +228,8 @@ checks a sentence cannot make:
 
 - the page loads with **zero failed requests** — parsing is not booting;
 - there is **one picture of the whole thing** at 1920, and you open it;
-- every page created is **linked from somewhere a reader already is** — nothing here crawls.
+- every page created is **linked from somewhere a reader already is** — nothing here crawls;
+- **every page the brief names gets an after-screenshot**, and a fix made AFTER the review gets its own proof (a re-review, or a shot of the exact page the finding named). "Fixed" without that proof isn't fixed (2026-10-03: a post-review fix blanked the owner's Now card; the brief's first example was never re-photographed).
 
 **Resolve, don't park.** A problem you find is yours to fix now, the best way you can, with its
 caveat written beside it. "Left open" needs a reason a reader would accept — a fence, or a fact

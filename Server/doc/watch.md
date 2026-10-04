@@ -105,8 +105,11 @@ A candidate must never do anything a normal boot does that only makes sense
 for the one real server — so `BOOT_TEST=1` is a second flag, alongside the
 spare `PORT`, that a few side-effecting plugins check for with **one line
 each**: [`Directory.js`](../plugins/Directory.js) skips rebuilding the two
-`directory.json` files, and [`LiveReload.js`](../plugins/SocketServer/LiveReload.js)
-skips ever polling or writing the shared reload-hold lock.
+`directory.json` files, [`LiveReload.js`](../plugins/SocketServer/LiveReload.js)
+skips ever polling or writing the shared reload-hold lock, and
+[`MentionSync.js`](../plugins/MentionSync.js) (2026-10-03 — keeps
+`ext/Mention/maps/refs.js`'s icon fresh on its own; `ext/Mention/doc/syntax.md`
+has the whole story) skips writing `refs.js`.
 [`Whisper.js`](../plugins/Whisper.js) needed no change — it already only
 starts for the owner-facing server (no `PORT`, or `PORT=80`), so a candidate
 on a spare port was already excluded.

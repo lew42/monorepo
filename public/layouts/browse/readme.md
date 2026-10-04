@@ -37,6 +37,14 @@ one is the mark. **The owner is the only writer** — no agent casts a verdict.
 [`doc/inventory.md`](./doc/inventory.md) has the shape, where each item came from, and the
 script that rebuilt the file.
 
+**The decision box is its own module now** (2026-10-03): [`decide.js`](./decide.js) — the
+verdict key, the live-redraw boxes, the mark, and the Approve/Improve box itself — so
+[`/layouts/explorer/`](/layouts/explorer/) can put the same box on its own single-item
+centre view, at its own reading width, without a second copy. One verdict store, written
+from either page. The approved list a page review checks against is
+[`approved.mjs`](./approved.mjs) — same `verdicts.jsonl`, read from Node, no browser
+needed.
+
 ## Watch out
 
 - **Approve/Improve follow the site's one edit switch, `ext/Ask/edit.js`'s `edit()`** — true

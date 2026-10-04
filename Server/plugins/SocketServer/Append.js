@@ -1,6 +1,14 @@
 import fs from "fs";
 import path from "path";
 
+// A dynamic import with a safe fallback, not a static one — a review (2026-10-02) pointed
+// out that a static import ties the WHOLE dev server's boot to jsonl-schema.mjs loading
+// cleanly. A static import fails loudly (the server won't start at all) rather than silently,
+// so it is less dangerous than the same mistake in ledger.mjs, but matching ledger.mjs's own
+// fallback here means a broken checker degrades this ONE plugin instead of the whole server.
+let check = () => null;
+try { ({ check } = await import("../../../.claude/hooks/jsonl-schema.mjs")); } catch {}
+
 const PUBLIC = path.resolve("public");
 
 /* ⚠ Browser input reaches fs.appendFile here — the same gate `Tail.resolve()` uses, and
@@ -43,20 +51,36 @@ export default class Append {
 		socket.on("rpc:append", (args = [], index) => this.append(...args, index));
 	}
 
-	/* One or many lines, always whole. ⚠ `appendFileSync` opens with "a", so two writers
-	   interleave BETWEEN lines and never inside one — which is the whole point: a torn
-	   half-line is unparseable to every reader of the file, not just to its writer. */
+	/* ONE shape: an array of plain objects, each written as one JSON line (2026-10-02,
+	   "ONE file API"). A string, a bare object, or an array holding anything else is
+	   refused: the only browser caller is ext/filesystem/FsFile.js, which always sends
+	   an array of objects. ⚠ `appendFileSync` opens with "a", so two writers interleave
+	   BETWEEN lines and never inside one: a torn half-line is unparseable to every
+	   reader of the file, not just to its writer.
+	   VALIDATED FIRST (2026-10-02): every line is judged against the target's schema
+	   (jsonl-schema.mjs's check(), the same rule append.mjs enforces) before anything is
+	   written. One bad line refuses the WHOLE batch, nothing partial — the browser gets
+	   the reason back instead of a half-written file. */
 	append(file, lines, index){
 		const full = resolve(file);
 		if (!full) return this.answer(index, "append refused");
 
-		const text = [lines].flat()
-			.map(line => (typeof line === "string" ? line : JSON.stringify(line)).replace(/[\r\n]+/g, " "))
-			.filter(Boolean)
-			.map(line => line + "\n")
-			.join("");
+		const plain = line => !!line && typeof line === "object" && !Array.isArray(line);
+		if (!Array.isArray(lines) || !lines.every(plain))
+			return this.answer(index, "append refused: lines must be an array of objects");
+		if (!lines.length) return this.answer(index, "append empty");
 
-		if (!text) return this.answer(index, "append empty");
+		for (const obj of lines){
+			// check() itself throwing (a bug in jsonl-schema.mjs, not in the line) must never stop
+			// the write — the owner's rule that outranks this whole feature. Treat it exactly like
+			// "nothing wrong found": a throw is a bug report, never a reason to lose the browser's line.
+			let why = null;
+			try { why = check(full, obj); } catch (e) { console.error("Append: check() threw, writing anyway:", e.message); }
+			if (why) return this.answer(index, `append refused: ${why}`);
+		}
+
+		// JSON.stringify never emits a raw newline, so each object is exactly one line.
+		const text = lines.map(line => JSON.stringify(line) + "\n").join("");
 
 		try {
 			fs.mkdirSync(path.dirname(full), { recursive: true });

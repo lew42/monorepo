@@ -3,6 +3,7 @@ import App, { View, div, a } from "./framework/core/App/App.js";
 import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
 import devshell from "./framework/dev/DevShell/DevShell.js";
+import push_to_talk from "./framework/ux/Dictate/push-to-talk.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
 import "./framework/ext/Classify/Classify.js";
@@ -75,6 +76,12 @@ const app = window.app = new App({
 		devbar(this);
 		devshell(this);
 
+		// The floating push-to-talk mic (ux/Dictate/push-to-talk.js) — hold the bound
+		// key or mouse button anywhere on the site, dev shell open or closed, and talk
+		// to the ONE global dictation session. Mounted here, once, the same "beside
+		// `.app`, not inside it" way as the two lines right above.
+		push_to_talk(this);
+
 		// $pages, not $app — a page's view is built by an element factory, which
 		// auto-appends to the captor, so the captor has to be where pages live.
 		View.set_captor(this.$pages);
@@ -90,6 +97,10 @@ const app = window.app = new App({
 		devbar.refresh();
 		devshell.refresh();
 		menu.navigated();
+		// The current page's url travels with the dictation as context — `chat.js`'s
+		// `nav(path)`, read by `ext/Session` (push-to-talk, item 2: "the session follows
+		// me, context-aware"). A no-op until the mic has been pressed at least once.
+		push_to_talk.nav(page.url);
 	},
 });
 

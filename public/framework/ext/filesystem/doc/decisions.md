@@ -71,6 +71,65 @@ same swap then.
 - `ext/files/fs.js`'s own file-walking loop (duplicated from `Markdown.js`, per the audit)
   is gone — it now calls `FsDir.find()` + `.walk()`.
 
+## `FsDir` → `Dir`, 2026-10-02
+
+Brief: `public/framework/ai/2026-10-02/page-extends-item/page-on-item/requirements.md`
+(deliverable 11, "the file classes in ext/filesystem become the file half of the design").
+
+`FsDir` became `Dir` — the owner's own plain word, same as the original naming pass
+(above) weighed and rejected for `FsFile` only because of the live `File` global.
+`Directory` has no such collision (checked again: no `instanceof Directory`, no
+`new Directory(` anywhere in `public/framework`), so there was nothing left to
+protect against by keeping the `Fs` prefix on this one. `FsFile` is UNCHANGED and
+stays prefixed — `File` is the browser's own built-in for a picked upload (drag-drop,
+`<input type=file>`), and renaming to the shorter `File` would shadow it silently in
+the first file that needs both.
+
+`FsDir.js` is now a one-line re-export (`export { default } from "./Dir.js";`) so any
+import still written against the old name keeps working — nobody has to chase down
+every caller before a page.js description or a doc link gets this file's name right.
+
+Every REAL usage (import, `instanceof`, `new`, JSDoc mention) was grepped across
+`ext/filesystem/**` and `ext/files/**` and moved to `Dir`: `tree.js`, `file_link.js`,
+`ext/files/files.js`, plus the JSDoc comments in `FsFile.js` that named the class it
+sits beside. Two files in the brief's own list of seven turned out to need no code
+change at all: `ext/files/explorer.js` never imports `FsDir` (it only reaches
+`file_link()`/`context_menu()`, never the class itself), and `FsFile.js` never
+imported it either — just mentioned it in prose, now updated. `page.js`'s own file
+list and description were updated too, so the Doc page shows `Dir.js` (where the real
+class now lives) rather than the thin shim.
+
+## `FsFile.append(line)` + a lazy `store` getter, 2026-10-02
+
+Same brief, same deliverable. `FsFile` gained two members so a `.jsonl` file can be
+appended to without a caller hand-rolling the socket RPC:
+
+- `get store()` — `Item.Store.for(this.url)` (`core/Item/Store.js`) for a `.jsonl`
+  path, `undefined` otherwise. `Item.Store.for()` already caches one instance per url,
+  so two `FsFile`s built for the same path (a fresh instance per tree row, same as
+  `Dir`) still share the one writer and its one echo-skip list — never a second
+  reader racing the first.
+- `append(line)` — validates `line` is a plain object (not an array, not a string;
+  the same shape check `core/Item/Item.js`'s own `is_plain` uses), validates the path
+  ends in `.jsonl`, checks the same `edit()` gate `write()` already does (no dev
+  socket → warn once, return `false`), then calls `this.store.append(line)` and
+  returns `true`. It does NOT call `Socket.singleton().async_rpc("append", ...)`
+  directly — `Item.Store.append()`/`flush()` (`core/Item/Store.js`) already does
+  exactly that, queued and batched one microtask later, and is the path `ext/JSONL`
+  itself writes through. Hand-rolling a second call here would give a `.jsonl` file
+  two writers that don't know about each other's `sent` echo-skip list — the bug
+  `Store.js`'s own top comment says it exists to prevent.
+- `store.append()`/`flush()` are fire-and-forget (no promise worth awaiting, no
+  return value) — so `append()` returns `true` right after queuing, once validation
+  and the `edit()` gate both pass, rather than awaiting a flush that resolves to
+  nothing.
+
+`Item` is imported statically at the top of `FsFile.js` (`import Item from
+"../../core/Item/Item.js"`) rather than lazily like `write()`'s own `edit()`/`Socket`
+— `ext/` importing `core/` is always fine, only the reverse never is, and
+`core/Item/Item.js` touches no DOM at module load (unlike `core/View/View.js`, which
+is why `write()` keeps its own imports lazy).
+
 ## Open
 
 - **`css-scopes.txt` is outside this task's fence** (fence: `ext/filesystem/**`, `ext/files/**`,

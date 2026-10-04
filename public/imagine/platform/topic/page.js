@@ -72,7 +72,7 @@ export default new Page({
 
 	// ⚠ A field added to the saved shape must default empty: the key is the url and there is
 	//   no migration step. `log`, and nothing else, because everything else is derived.
-	initialize(){ this.log = [...this.store().get({ log: [] }).log]; },
+	initialize(){ this.log = [...this.prefs().get({ log: [] }).log]; },
 
 	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
 	bump(){ this.watchers?.forEach(fn => fn()); },
@@ -82,11 +82,11 @@ export default new Page({
 	earn(id){
 		if (this.log.includes(id)) return;
 		this.log.push(id);
-		this.store().set({ log: this.log });
+		this.prefs().set({ log: this.log });
 		this.bump();
 	},
 
-	reset(){ this.log.length = 0; this.store().clear(); this.bump(); },
+	reset(){ this.log.length = 0; this.prefs().clear(); this.bump(); },
 
 	points(){ return this.log.reduce((n, id) => n + (ACTIONS[id]?.points ?? 0), 0); },
 	level(){ return LEVELS.findLast(([at]) => this.points() >= at); },
@@ -107,7 +107,7 @@ export default new Page({
 		})));
 
 		/* THE ONE THING ON THIS PAGE THAT IS NOT THIS BROWSER'S. Everything above is
-		   `store()` — your run, nobody else's, gone if you clear the browser. This button is
+		   `prefs()` — your run, nobody else's, gone if you clear the browser. This button is
 		   a row in a real database, written by a signed-in user through a real Worker: the
 		   whole slice, on one url. It is a dash until the harness is running, on purpose —
 		   `npm run dev`, then [the recipe](/framework/ai/2026-09-06/platform-slice/run.md). */
@@ -244,8 +244,8 @@ scale is an edit to one array and never a migration of anybody's history
 					if (run.log.length) button("Erase this run").click(() => run.reset());
 				})));
 
-				md("Saved against this topic's own url — `" + this.topic().store().key()
-					+ "` — by [`store()`](/framework/core/Page/doc/method/store/): one browser, and"
+				md("Saved against this topic's own url — `" + this.topic().prefs().key()
+					+ "` — by [`prefs()`](/framework/core/Page/doc/method/prefs/): one browser, and"
 					+ " nobody else's. Past [the line](/imagine/platform/mvp/) the same log is a D1"
 					+ " table and the same three methods read it.");
 			},

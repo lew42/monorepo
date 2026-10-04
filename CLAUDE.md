@@ -19,6 +19,8 @@ Level 1 is one page, mostly above the fold: what the thing is, **shown**; its ma
 
 **Show it with the widget, then use words.** (the owner, 2026-09-25: "I don't want to read things. I want to see.") Files → `ext/files` (the tree, and highlighted source on click). An object → its live instances. A layout → a screenshot. A task → its checklist. Words come after the picture, and only as many as it takes.
 
+**A name is a name plus its scope** (the owner, 2026-10-03). Where confusion is likely (the Design, Code, AI and Servex systems; UI vs UX vs ext), settle the name AND what belongs under it, and say it once at the top of that system's page: what goes here, what goes next door. Put what everyone must see at the top; keep the detail one click down.
+
 **Route everything.** Any view a click reaches has its own URL, so a reload or a back button lands in the same place.
 
 **Clarity is familiar structure.** (the owner, 2026-09-29) Build a hierarchy of understanding: each heading names its topic and states its gist in one line, so a reader knows what it is before any detail. Under it, only as many items as it takes, most important first. Each item sits beneath the right parent, with the right children. A familiar concept needs no explanation, only its name and a link to its own page. Detail is added only when it changes what the reader does. Pick names that can't be misread, and use the same name every time.
@@ -43,6 +45,8 @@ This file and every `readme.md` bring a topic to your attention; the detail is i
 
 ## Systems that shape every turn (the owner, 2026-09-30)
 
+- **Pages are live (the owner, 2026-10-02):** almost everything we build is a page that updates itself while you watch. An agent that creates or works on a page writes its `page.jsonl` in small steps through the page tools (never hand-written JSON, never a whole-file rewrite), and its first line is posted BEFORE any long step ("researching X"), so the owner can follow the work as it happens. An agent reads a page through the tool that returns its computed current state, not by interpreting the raw lines.
+- **Usage pace (the owner, 2026-10-02):** every mastermind reads the usage snapshot when it starts and before each spawn (`ai/usage.json`; Servex injects it). Pace = the share of the week used ÷ the share of the week gone. Over pace: Sonnet by default, no Opus without a stated reason, fewer agents, no redundant checks, and review the work yourself when the files are already in your context instead of spawning a reviewer. Minions just do their task.
 - **The readme chain:** read the readmes root to leaf before working in a directory, and again when you move to another one, or start a fresh session there (`/framework/ai/readmes/`).
 - **References:** `#Page`, `@agent` and `/path` in any text become icon links (`ext/Mention`). Use them instead of prose names.
 - **Cards:** every task reports on its card on the AI board. The card is what the owner reads; chat replies are not.
@@ -55,6 +59,7 @@ The owner works on the running site while agents write to it. Before a batch of 
 
 ## Traps that never throw
 
+- A class's folder, file and name match, capitalised: `ext/JSONL/JSONL.js` exports `class JSONL`. A lowercase file never holds a class someone will look for. `code/patterns` has the rule and a census script.
 - No DOM after an `await`: capture the box synchronously, fill it in a callback.
 - Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first.
 - Resolve URLs against `import.meta`, never the document.

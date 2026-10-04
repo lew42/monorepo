@@ -1,0 +1,21 @@
+@layer base, theme, site, util;
+
+/* css: .widths-uncapped .widths-centre
+ * `.wide` (the page grid's own opt-out) and `--measure` (the page's own cap)
+ * already did most of this lab. Two small things they didn't give: putting
+ * the cap back AFTER `.wide` removes it (arrangement 1's own un-capping), and
+ * centring at the PAGE's `--measure` (40em) rather than `.measure`'s own
+ * smaller default (34em) — the two are different tokens on purpose
+ * (`.measure` is a narrower, stand-alone reading column; this lab wants the
+ * SAME cap as arrangement 2, just centred, for a fair comparison). */
+@layer theme {
+	/* Arrangement 1 opts OUT of the default cap `core/Page/Page.css` now puts on
+	   `.page-content-rows` itself (this lab's own finding, applied 2026-10-03),
+	   so "no cap" stays demonstrable even after the fix it argues for. Paired
+	   with `.wide` on the same block (the page grid's own opt-out) — together
+	   they recreate the ai2 card panel's real, un-capped case, which has
+	   neither constraint. */
+	.widths-uncapped .page-content-rows { max-width: none; }
+
+	.widths-centre { margin-inline: auto; }
+}

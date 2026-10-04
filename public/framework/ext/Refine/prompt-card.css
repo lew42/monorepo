@@ -1,0 +1,36 @@
+/* THE MODE SWITCH (`prompt-card.js`'s `prompt_modes()`) — Condensed, Structured, Clean,
+   Raw. Loaded by `prompt-card.js` itself (`View.stylesheet`), so every page that imports
+   the component gets this for free, with nothing to add to its own stylesheet. Moved out
+   of `ai/v/3/v3.css` on 2026-10-02 once `ai2` needed the same component too. */
+@layer theme {
+
+	/* Same quiet toggle look as `ai2`'s and `ai/v/3`'s own view-switch tabs
+	   (law 6, reused rather than re-invented): a pressed-looking tab for the
+	   mode you're on, plain text for the rest. */
+	.refine-modes-tabs { display: flex; gap: 0.2em; padding: 0.15em; margin-block-end: 0.4em; background: var(--wash); border-radius: 0.4em; width: fit-content; }
+	.refine-modes-tab {
+		display: inline-block; padding: 0.15em 0.6em; font: inherit; font-size: 0.8125rem;
+		cursor: pointer; color: var(--subtle); background: none; border: 0; border-radius: 0.3em;
+	}
+	.refine-modes-tab.on { color: var(--ink); background: var(--surface); }
+
+	.refine-modes-condensed, .refine-modes-clean { margin: 0; padding-inline-start: 1.4em; }
+	.refine-modes-condensed-item { cursor: pointer; }
+	.refine-modes-condensed-item:hover, .refine-modes-condensed-item:focus-visible { text-decoration: underline; }
+	.refine-modes-section { margin-block-end: 0.5em; }
+	.refine-modes-heading { font-weight: 600; margin-block-end: 0.2em; }
+	.refine-modes-bullets { margin: 0; padding-inline-start: 1.4em; }
+	.refine-modes-raw, .refine-modes-clean-fallback { white-space: pre-wrap; }
+
+	/* Clean mode's three sentence-level call-outs (`clean()`'s own
+	   strikes/misheard/flags) — a struck self-correction reads literally
+	   struck through, right where it was said; "misheard" is a quiet aside;
+	   a flag uses `--error`, the one red this site already has, so it reads
+	   as "needs your eyes" without a second colour to learn. */
+	.refine-modes-clean-sentence { margin-block-end: 0.3em; }
+	.refine-modes-strike { color: var(--subtle); margin-inline-end: 0.4em; }
+	.refine-modes-misheard { display: block; }
+	.refine-modes-flag { display: block; color: var(--error); font-weight: 600; }
+	.refine-modes-flagged { border-inline-start: 2px solid var(--error); padding-inline-start: 0.5em; }
+	.refine-modes-empty { display: block; margin-block-end: 0.3em; }
+}

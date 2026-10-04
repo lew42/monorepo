@@ -117,12 +117,54 @@ view](/framework/ai/v/3/?view=prompts) is where all three show up live, beside
 the owner's own words. It never edits a file and never builds; that posture is
 written out in full in `agents/assistant.md`, its whole system prompt.
 
+**Big text moves by hook, never through a tool call** (the owner, 2026-10-02).
+Every word an agent puts into a tool call is output it pays to generate — so
+passing a whole prompt, a whole reply or a whole file from one agent to
+another through a tool call argument means an LLM re-typing something that
+was already sitting on disk. A HOOK can read and write that same text for
+free, because it is plain code, not a model call. The rule this leads to: a
+hook captures the owner's own prompts and the coding assistant's own replies
+the instant they happen (`.claude/hooks/prompt-relay.mjs`, `reply-relay.mjs`),
+and whenever one process needs to tell another "something landed," it sends a
+POSITION — a session id, a file, a line number — never the text itself. The
+receiving side reads the real text off disk itself, once, when it is actually
+ready to use it. `agents/Echo.js` below is the first consumer built against
+this rule end to end.
+
+**Echo** — `agents/Echo.js`, a SIBLING of the Assistant above: one Sonnet
+session per owner session (not one shared session), started lazily the first
+time that session's own `prompt-relay.mjs` hook tells Servex, over
+`POST /log/echo`, that a prompt landed — never for a minion or a mastermind's
+own turns, only an interactive owner session. It is the "fast/smart pair"
+turned around: the owner's own coding session stays hands-free, and this
+cheap, always-up echo reads every prompt and reply IN ORDER, so it can say
+"as you said 15 minutes ago" the way a person who was listening the whole
+time could. It calls `clean()`/`structure()`
+(`public/framework/ext/Refine/engine.js` + `structure.js`) itself for the
+mechanical half — near-verbatim text, every sentence placed under a heading
+exactly once, both guaranteed by code, never by asking a model nicely — then
+asks its own one Claude session for the three things a machine check cannot
+decide: the prompt's `topic`, its `references` (names, pages, agents), and
+its `asks_flags` (what's being asked for, each sized, plus anything still
+unclear). Every one of the five steps — `clean`, `references`, `sections`,
+`asks_flags`, `done` — is its own line, appended to the SAME daily prompts log
+the hooks already write (`.claude/prompts/<date>.jsonl`), the instant it's
+known, through exactly one tool, `refine_step` — so a page watching that file
+can show the record growing within seconds, and `done` is the one line
+everything else (a parent mastermind Servex wakes automatically; the owner's
+own next prompt, told in one line by the hook) waits for. A past session is
+replayed the same way, cold: `agents/echo-replay.mjs` reads a session's real
+prompt+reply pairs straight off its own transcript file, in order, for a
+FRESH echo session to work through one at a time — see
+`public/framework/ai/2026-10-02/prompt-refine/minion-echo/` for the first
+test's results.
+
 **Cards** — `cards/`, one folder per card, and the `create_card` tool that makes
 them. [`cards/readme.md`](./cards/readme.md) defines every line.
 
 **Task loop and heartbeat**: `TaskLoop.js` chases an open task whose log has gone quiet. `Heartbeat.js` sends a task mastermind that has been silent for 5 minutes a neutral status check, revives a dead one from its session (with a ration), and posts on the card only when that fails. A landed task's worktree server is taken down by `Server/worktree-sweep.mjs`. See [`doc/task-loop.md`](./doc/task-loop.md). `SERVEX_NO_TASKLOOP=1` and `SERVEX_NO_HEARTBEAT=1` turn them off.
 
-**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md).
+**Dormant agents and the working cap**: an agent idle for 3 minutes goes dormant (its claude process exits; a message resumes it by session), at most 5 agents work at once, and an agent past 200k tokens or 500 MB is compacted. See [`doc/dormant.md`](./doc/dormant.md). Waking a dormant agent used to be able to lose the very message that woke it (a phantom "working" row with no process behind it) — the seven fixes that close every way that was found to happen, and the reconcile that catches what nothing moment-to-moment does, are at [`doc/never-lose-a-wake.md`](./doc/never-lose-a-wake.md).
 
 **Budgets**: at 100% of a task's budget its mastermind and parent are told once and new spawns under it are refused; at 150% its minions stop. See [`doc/budget.md`](./doc/budget.md).
 
@@ -133,6 +175,46 @@ them. [`cards/readme.md`](./cards/readme.md) defines every line.
 **Inbox** — `agents/inbox.js`: coordination, never chat. `drop(path, text)` sends a note to the mastermind coordinating that page's module (its `claim_topic`), or else leaves it in the page's inbox, shown in the page's AI tab; `clear(path, id)` clears it. One line each, appended to the page's `page.jsonl`. Known rule: a folder that isn't a page (no page.js, no page.jsonl) never gets one; its notes go to the nearest page above it, or the loader would turn it into a jsonl page. See [`doc/inbox.md`](./doc/inbox.md).
 
 **Follow** — `Follow.js`: an agent can't watch a file itself, so `follow({path})` has Servex watch it and message you every change, one message per burst, through the same queue `send_to_agent` uses. `unfollow` and `list_follows` too. See [`doc/follow.md`](./doc/follow.md).
+
+## The Servex mastermind is always on
+
+There is always exactly one `mastermind-servex` (or `mastermind-servex-N`) running: it watches for system problems and owns Servex's own fixes. Global.js starts it at boot, and `admit()` lets it past every gate: memory, the working cap and the agent ceiling (the owner, 2026-10-02: "we can't afford to have it go down… just force it"). To replace it, write a checkpoint, stop the old one, and spawn the next `-N`. If its process dies (VS Code crashed and took it down, 2026-10-02), a one-minute watchdog (`Global.keep_on()`) reopens it and tells it to resume from its task log, at most 3 times in 30 minutes.
+
+It also never sits on a queue: every 15 minutes (`Global.queue_check()`), if [`ai/servex-queue.json`](../public/framework/ai/servex-queue.json) has an item whose `task.jsonl` has no `landed_at`, and neither it nor a child of it is working, Servex wakes it with "queue check: <top item>". With an empty queue it stays asleep.
+
+**Long-running checks belong to Servex, not to a session** (the owner, 2026-10-03). A VS Code background job times out and dies with its tab. A check that must keep running (a poll, a watch, a budget or spend check) is a step in Servex's one-minute sweep (`Global.sweep()`), with its own interval, like `keep_on()` and `queue_check()`. It wakes an agent only when there is something to do.
+
+## The voice pair: one standing pair, recycled (the owner, 2026-10-02)
+
+The fast and smart assistants answer the owner on every page. Being built: [`ai/2026-10-02/standing-voice-pair`](../public/framework/ai/2026-10-02/standing-voice-pair/requirements.md). Today each ✦ press still starts its own pair.
+- **When it starts:** once, when Servex boots, like `fixer-1`. It's held open with no prompt, so it costs nothing until the first line. A ✦ press makes a session record (its chat file), not a new pair. A crashed pair comes back within a minute.
+- **When it recycles:** when one assistant's context passes its threshold (fast 40k tokens, smart 120k, to start). At the next quiet moment, the old session writes a short handover, and a fresh session with the same id starts from it. Never mid-turn, and never while the owner is speaking.
+- **What it costs:**
+  - **Memory:** two claude processes, always on (about 0.25–0.8 GB each).
+  - **Every turn:** each turn re-reads the whole context from the cache, so turns get dearer as the context grows. That is why it recycles.
+  - **Each recycle:** one handover turn plus one fresh start. The smart assistant starts heavier, because it loads Claude Code's preset and CLAUDE.md; the fast one is lean.
+  - **Per role:** every session is tagged with its role (`voice-fast`, `voice-smart`), so the Sessions page totals the cost per role. The build replaces these estimates with measured start sizes.
+- **Awareness:** the smart assistant reads the page each line came from with `page_read`. It can also read the owner's VS Code session page, but it stays a separate agent from the VS Code mastermind.
+
+## Limits we hit: RAM first (2026-10-02)
+
+**RAM is the limit right now.** 31.7 GB total, and about 4.7 GB is free with ~12 claude.exe processes (~0.25–0.8 GB each) plus Chrome. Servex holds new spawns until 4 GB is free (`SERVEX_MIN_FREE_MB`), so work queues behind memory, not tokens. What helps: close old VS Code conversations (each keeps a process), stop finished agents at once, and move self-contained code work to cloud sessions. Every limit like this is a known issue on the Known issues page, so nobody re-reports it.
+
+**The biggest leak was node, not claude** (vscode-mastermind, 2026-10-02): 59 node.exe processes held 3.9 GB. 22 were worktree dev servers (2.1 GB), most for worktrees nobody was using, plus three copies in main. Each dev server is a pair, `node server.js` supervising `node Server/run.js`, and most of the 26 `server.js` processes were those supervisors, started from agents' shells and never stopped. One-off cleanup: [`node-reap.mjs`](../public/framework/ai/2026-10-02/node-reap/node-reap.mjs). The rule below keeps it from coming back.
+
+## Dev servers: Servex starts them, a lease keeps them (the owner, 2026-10-02)
+
+1. **Servex starts every dev server; nobody else does.** Agents never run `node server.js` or `Server/run.js`. Load the worktree's URL and the proxy starts it, or call `start_server`. A PreToolUse guard refuses the command and says so.
+2. **A server is leased to the agents using its worktree.** It stops by itself once no working or idle agent holds that worktree AND it has had no request for 10 minutes. A sleeping or dormant agent holds no lease.
+3. **Waking needs nothing special.** The proxy starts a project on its first request, so an agent that wakes and loads its URL gets a fresh server in a second or two.
+4. **No zombies.** The reconcile pass kills any node server whose worktree has no lease, and any process tree whose launching shell is gone, and logs each kill.
+5. **Main keeps exactly one dev server, always on.**
+
+Build: [`ai/2026-10-02/node-reap`](../public/framework/ai/2026-10-02/node-reap/requirements.md).
+
+## Big text moves by hook or by path, never through a tool call
+
+Every character an agent puts in a tool call is OUTPUT it pays to generate. So a long prompt, a file or a brief is never re-typed into `spawn_agent`, `send_to_agent` or a log write: a hook captures it where it already exists (the `UserPromptSubmit` hook logs every owner prompt as it arrives; the Stop hook can log the reply), and agents pass a PATH or an id instead (`task: {dir, brief}`). (the owner, 2026-10-02)
 
 ## Is the machine melting? — the monitor and the spawn queue
 
@@ -233,6 +315,8 @@ shortcut — if it works for them it works for yours. Six are the servers'
 `agents/tools.js` as one array, and one is the monitor's (`system_health`).
 `agents/tools.js` now also hands in the jobs, ops and module-expert tools
 (`ask_expert`, `list_experts`, `load_module`, `readme_modules`), so the count above is a floor.
+`check_page` sits beside `start_server` (2026-10-03): navigate the one warm shared Chromium to a
+URL and read back its console, network errors and load time — `Server/doc/browser.md`.
 
 ## Watch out
 

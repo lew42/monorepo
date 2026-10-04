@@ -4,6 +4,7 @@ import { fold } from "/framework/ai/2026-09-22/log-model/fold.js";
 import { fold_card, parse_lines, summary } from "./fold.js";
 import { fold_asks } from "../ai/asks/fold.js";
 import { importance, silent_hours } from "./needs-rule.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 export { fold };
 
@@ -402,7 +403,7 @@ export async function new_card(title = "New card"){
 	const id = "topic-" + Date.now().toString(36);
 	const line = { card: { id, title, at: stamp(), icon: "forum",
 		author: "owner", text: "" } };
-	await Socket.singleton().async_rpc("append", BOARD_URL, [JSON.stringify(line)]).catch(() => null);
+	await FsFile.append(BOARD_URL, line);
 	return id;
 }
 
@@ -413,7 +414,7 @@ export async function new_card(title = "New card"){
  *  ones the owner actually meant ("four new cards labelled you"). */
 export async function archive_card(id){
 	const line = { card: { id, status: "archived", by: "owner", at: stamp() } };
-	await Socket.singleton().async_rpc("append", BOARD_URL, [JSON.stringify(line)]).catch(() => null);
+	await FsFile.append(BOARD_URL, line);
 }
 
 /* ── card folders: one folder per card (Servex/cards) ─────────────────────
@@ -500,6 +501,20 @@ export async function static_cards(){
  *  what makes its own OLD-ID-SWAP logic redirect straight to the real card when it has one,
  *  exactly like a migrated board id already does — no page.js change needed for that hop. */
 export async function resolve_card(id){
+	// THE NOW CARD HAS NO FIXED FOLDER (bug, 2026-10-03: the owner couldn't find it in the
+	// rail at all). `page.js`'s own comment called `ai/now/` "a real card folder", but no such
+	// folder exists — the card is made fresh under a NEW dated folder (`ai/2026/10/03/now/`)
+	// each day it's rewritten, so the literal id "now" is never a folder id (`is_folder_id`
+	// needs a leading year) and fell through to Servex's OLD-BOARD-ID lookup below, which has
+	// no mapping for it either. Fixed the general way: find the latest real card whose id ends
+	// "/now" in the static index (`cards.jsonl`, the same file the rail's list is built from)
+	// and resolve THAT folder instead. No new mechanism — reuses `static_cards()`, `is_folder_id`.
+	if (id === "now" && !is_folder_id(id)){
+		const cards = await static_cards().catch(() => null);
+		const latest = (cards ?? []).filter(c => /(^|\/)now$/.test(c.id))
+			.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))[0];
+		if (latest) return resolve_card(latest.id);
+	}
 	if (is_folder_id(id)){
 		const text = await read_text(AI_ROOT + id + "/page.jsonl");
 		if (text) return fold_card(id, parse_lines(text));

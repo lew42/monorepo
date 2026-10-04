@@ -36,7 +36,7 @@ export function short(text, max = 70){
 
 /** The checklist lines: the card's own `item` lines, else derived. */
 export function items_of(card, g){
-	const own = [...(card.items?.values() ?? [])];
+	const own = [...(card.outline_items?.values() ?? [])];
 	return (own.length ? own : derived(card, g)).sort((x, y) => Date.parse(x.asked_at ?? 0) - Date.parse(y.asked_at ?? 0));
 }
 
@@ -79,14 +79,17 @@ export function status_line(items, card){
 	return done + " of " + items.length + " things you asked are done." + (run ? " Now: " + short(run.now, 90) + "." : "");
 }
 
-/** `● running now · $42.21` — the dot's colour is the state. */
+/* "NOTHING RUNNING · COST NOT TRACKED" EVERY TIME WAS THE NOISE (the owner,
+   2026-10-03: show status in the head only when something IS running). The idle
+   and done words, and the always-there cost line, moved to the properties
+   sidebar (`card.js` `properties_sidebar()`) — this draws nothing when nothing
+   is live, so a quiet card has a quiet head. */
+/** `● running now · $42.21` while something is: the one state worth a header line. */
 export function state_span(items, usd, open){
-	const live = items.some(i => i.live), done = items.length && items.every(i => i.done);
-	const word = live ? "running now" : done ? "all done" : "nothing running";   // "waiting" said waiting for what? (ai2-lead audit)
-	span.c("ai2-state " + (live ? "live" : done ? "done" : "idle"), () => {
+	if (!items.some(i => i.live)) return;
+	span.c("ai2-state live", () => {
 		span.c("ai2-state-dot").text("●");
-		span(word);
-		// Always says what it cost; "not tracked" rather than a blank (the owner, 2026-09-25: "nowhere in here does it say what it cost").
+		span("running now");
 		span.c("muted").text(" · " + (usd != null ? money(usd) + (open ? "+" : "") + " spent" : "cost not tracked"));
 	});
 }

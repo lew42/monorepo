@@ -9,6 +9,8 @@ app
 auto
 basis
 bg
+bg-darken
+bg-lighten
 btn
 capitalize
 card
@@ -108,8 +110,10 @@ hljs-        ext/highlight (vendored)
 layout-      ext/layout
 md-          ext/markdown
 panel-       ext/Panel
+panel2-      ext/panel2
 pg-          ext/Playground
 research-    ext/Research
+sprawl-      ext/sprawl
 tab-         ext/tabs
 tabs-        ext/tabs
              (bare compound modifiers on `.tabs`, same as `block`/`vertical`: `.tabs.underline`
@@ -121,6 +125,7 @@ toc-         ext/toc
 ux-auth-     ux/Auth
 ux-content-  ux/Content
 ux-dictate-  ux/Dictate
+ux-hotkeys-  ux/Hotkeys
 ux-index-    ux/page.js (the tier's own index — the module wall, its reject flag)
 ux-popover-  ux/Popover
 ux-tree-     ux/Tree
@@ -153,6 +158,7 @@ space-       styles/layouts/space
 rules-       styles/rules
 stacks-      styles/stacks   (not `stack-` — ext/demo owns the bare `.stack` modifier)
 theme-       styles/layers/theme
+widths-      styles/widths (the card/flow measure lab, 2026-10-03)
 
 # imagine
 blogx-       /imagine/blogx
@@ -231,3 +237,14 @@ classify-
 
 # public/framework/sources — the source library's authority badge, .sources-badge(-high/-medium/-low) (2026-09-28)
 sources-
+
+# public/framework/ext/Refine/prompt-card.js — the Condensed/Structured/Clean/Raw mode
+# switch, shared by ai/v/3's live thread AND ai2's "Your prompts" pinned card (2026-10-02,
+# minion-prompt-card) — moved out of ai/v/3's own `v3-` prefix once ai2 needed it too, so
+# neither tier's own prefix had to leak into the other.
+refine-modes-
+
+# public/framework/ai/2026-10-02/prompt-review — the 42-prompt review page (List/Overview/
+# Detail), 2026-10-02. Reuses `refine-modes-` (above) for the Structured/Clean/Raw switch
+# itself; this prefix is only for the page's own List rows, tag chips and group headings.
+prompt-review-

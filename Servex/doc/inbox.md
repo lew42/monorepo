@@ -21,6 +21,20 @@ A task mastermind that takes a module claims it with `claim_topic`, topic = the 
 | `drop(path, text)` | Leave a note. `from` is you, stamped by Servex. Answers the note's `id`, and `routed_to` when it went to the coordinator. |
 | `clear(path, id)` | Clear one open note. An id that isn't open is refused. |
 | `inbox(path)` | The open notes, newest first, and the module's `coordinator` (or null). |
+| `page_note(path, text, {to})` | Leave a note the NEWER way (below) — read with no Servex dependency. |
+
+## `page_note` — the same note, read with Servex down (2026-10-02)
+
+`drop`'s notes only show through `GET /api/inbox`, so they're invisible while Servex is down —
+even though the line is sitting right there in the file. `page_note(path, text, {to})` writes a
+`{"note": {id, from, to?, text, at}}` line instead (same file, new key), and
+`core/Page/ext/Inbox`'s `notes()` reads it by tailing the page's own `page.jsonl` directly — no
+Servex call at all, so it still shows with Servex down. `to` (an agent id), or the module's own
+coordinator when `to` is left out, still gets a short WAKE from Servex, same as `drop`'s routing
+— but the wake is just "a note on `<path>` — page_read it," never the text itself, which already
+lives in the file (no second copy). The two note shapes are merged into one list by `notes()`, so
+`drop`'s older notes keep showing too. `drop`/`clear`/`inbox` are unchanged and keep working, for
+one release; `clear` does not yet know about `note:` lines (there's no `clear`-the-new-way yet).
 
 `path` is a site path (`/framework/core/Page/`) or a repo folder (`Servex/agents`). It must exist.
 

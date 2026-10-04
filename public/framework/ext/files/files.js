@@ -1,7 +1,7 @@
 import View, { div, pre, code } from "../../core/View/View.js";
 import grip from "../grip/grip.js";
 import FsFile from "../filesystem/FsFile.js";
-import FsDir from "../filesystem/FsDir.js";
+import Dir from "../filesystem/Dir.js";
 import { context_menu } from "../filesystem/menu.js";
 
 View.stylesheet(import.meta, "files.css");
@@ -155,9 +155,9 @@ export const tree = (paths, cut, selected, open = Infinity) => {
 	return div.c("file-tree", () => rows(nest(paths, cut), selected, to, 0, open, ""));
 };
 
-// Each row's markup is drawn by `FsFile.render()` / `FsDir.render()` (ext/filesystem) — one
+// Each row's markup is drawn by `FsFile.render()` / `Dir.render()` (ext/filesystem) — one
 // place owns "what a file/directory row looks like". `FsFile.render()` already wears
-// `ui/item`'s row; `FsDir.render()` doesn't yet (see its own comment for why: `rows()`
+// `ui/item`'s row; `Dir.render()` doesn't yet (see its own comment for why: `rows()`
 // below owns lazy open/close, a behavior `ui/item`'s tree mode doesn't have a hook for).
 // `rows()` still owns the tree-widget part those classes don't know about either way:
 // which folders start open, and building a folder's children only on first click.
@@ -165,7 +165,7 @@ export const tree = (paths, cut, selected, open = Infinity) => {
 // ⚠ `nest()` below keeps its plain `{ "name": "path", dir: {…} }` shape ON PURPOSE —
 // `ext/Doc`'s own `note_tree()` (Doc.js) imports `nest()` too, for a tree of routed
 // note PAGES rather than files, and reads that exact shape with `Object.entries` +
-// `typeof child === "string"`. Rebuilding `nest()` itself into `FsDir`/`FsFile`
+// `typeof child === "string"`. Rebuilding `nest()` itself into `Dir`/`FsFile`
 // instances would silently break Doc's tree — so the new classes are built HERE,
 // per row, from the same plain node `nest()` already produces.
 function rows(node, selected, to, depth, open, prefix){
@@ -181,7 +181,7 @@ function rows(node, selected, to, depth, open, prefix){
 		let $body;
 
 		div.c("file-dir" + (opened ? " open" : ""), $dir => {
-			new FsDir({ name, path }).render()
+			new Dir({ name, path }).render()
 				.on("click", () => {
 					if ($dir.tc("open").hc("open") && !built){
 						built = true;

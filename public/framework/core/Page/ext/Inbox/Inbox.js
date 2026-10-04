@@ -1,39 +1,78 @@
 import { div, span, button, input, small } from "/framework/core/View/View.js";
 import { servex_base, servex_fetch } from "./servex.js";
+import Rail from "./Rail.js";
+import { PageLog } from "../../Log.js";
 
-/* THE PAGE'S INBOX — two different things share this one file, on purpose:
- * they're both "a message, on a page", they're just read from two different
- * places (2026-09-30, core/Page/ext/).
+/* THE PAGE'S INBOX — ONE CLASS, TWO VIEWS (restructured 2026-10-02, the owner's own ask —
+ * see public/framework/ai/2026-10-02/panel2-sessions/part1b-inbox-restructure/requirements.md
+ * for the exact wording). Before this change, two unrelated classes lived in this folder
+ * with no connection to each other, even though they're both "a message, on a page," just
+ * read from two different places: `InboxRail` (`Rail.js`, a page's persistent navigation
+ * rail) and `DrawerInbox` (this file, the drawer's small "Leave a note" box). Now they are
+ * the two VIEWS of one thing, `class Inbox` below:
  *
- * 1. `DrawerInbox` (below) — the small "Leave a note" box at the top of the
- *    drawer's AI tab. Servex is the only writer and answerer (`/api/inbox`);
- *    off the dev machine the inbox simply isn't drawn. This half moved here
- *    unchanged from `ext/drawer/inbox.js` (task ai/2026-09-30/page-inbox/),
- *    which is now a one-line re-export so nothing importing it had to change.
+ *   const inbox = new Inbox({ page: this });
+ *   inbox.rail.mount();     // the rail — was `new InboxRail({ page: this }).mount()`
+ *   inbox.compact.view();   // the small box — was `new DrawerInbox({ page: this }).view()`
  *
- * 2. `DrawerInbox.setup(page)` (new) — the EXTENSION. A page.jsonl line,
- *    `{"ext": "Inbox"}`, turns it on for that one page; `Page.use(DrawerInbox)`
- *    (core/Page/Page.class.js) would turn it on for every page. Either way,
- *    every `{"inbox": {type, author, text, at}}` line already in that page's
- *    own page.jsonl — any agent, or the owner, just appending a message —
- *    collects into `page.inbox`, oldest first. This is content, read straight
- *    off the page's own log; part 1 above is coordination, read through
- *    Servex. core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md have
- *    the rest; see it run at /framework/core/Page/ext/.
+ * `inbox.rail` and `inbox.compact` are getters: the first time either is READ, that one
+ * view is built and cached — never both, so a page that only ever touches `.rail` never
+ * pays to build `.compact`, and the other way round.
  *
- * Docs: doc/inbox.md · Servex/doc/inbox.md (part 1). */
+ * `Inbox.Rail` is `Rail.js`'s class, imported above and assigned below (`Inbox.Rail =
+ * Rail`) — moved in as a static rather than having its body copied into this file, so
+ * `Rail.js` never has to import `Inbox.js` back (an import cycle: "a parent↔child import
+ * cycle breaks only on deep reload," `code` skill). `Inbox.Compact` is new: today's
+ * `DrawerInbox` class, renamed and kept right here (small enough that a second file for it
+ * would be more ceremony than help) — see its own comment, below, for both of its jobs.
+ *
+ * `InboxRail` and `DrawerInbox`, as names, still work for one release: they are re-exported
+ * at the bottom of this file, unedited, so nothing that already imports them breaks today.
+ * New code should write `Inbox.Rail` / `Inbox.Compact` instead.
+ *
+ * Docs: ext/drawer/doc/inbox.md (the drawer half) · Servex/doc/inbox.md (the coordination
+ * half) · this folder's own readme.md, "Architecture", has the fuller before/after. */
 
 // A page's folder path: the url without its query or hash, ending in "/".
 export const folder = page => String(page ?? location.pathname).split(/[?#]/)[0].replace(/\/?$/, "/");
 
-// The page's inbox, {open, coordinator}: its open notes, newest first, and who coordinates
-// its module (or null). Empty when Servex is not running.
-export async function notes(page){
+/* The NEWER notes — `{"note": {id, from, to?, text, at}}` lines, written by Servex's
+ * `page_note` tool (Servex/doc/inbox.md) straight onto the page's own page.jsonl. Read with
+ * NO Servex at all: if the page is already the live one on screen, `PageLog.log_pages` has
+ * it and its `.notes` (collected below, live, by `Compact.setup()`) is already current; if
+ * not, one plain fetch of page.jsonl — the same file a static host serves with no server —
+ * picks up whatever is there today. Neither path ever asks Servex, which is the whole point:
+ * this is what still shows when Servex is down. */
+async function own_notes(path){
+	const live = PageLog.log_pages?.get(path);
+	if (live) return live.notes ?? [];
+
 	try {
-		const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(folder(page))}`);
-		const j = r.ok ? await r.json() : {};
-		return { open: j.open ?? [], coordinator: j.coordinator ?? null };
-	} catch { return { open: [], coordinator: null }; }
+		const res = await fetch(path + "page.jsonl");
+		if (!res.ok || res.headers.get("content-type")?.includes("html")) return [];
+		return (await res.text()).split("\n").filter(Boolean).flatMap(raw => {
+			try { const j = JSON.parse(raw); return j?.note ? [j.note] : []; } catch { return []; }
+		});
+	} catch { return []; }
+}
+
+// The page's inbox, {open, coordinator}: its open notes, newest first, and who coordinates
+// its module (or null). Merges the OLDER `inbox:`/`drop` notes (Servex's `/api/inbox` —
+// empty when Servex is not running) with the NEWER `note:` lines (`own_notes()`, above —
+// never empty just because Servex is down). Kept for one release; see this folder's doc.
+export async function notes(page){
+	const path = folder(page);
+	const servex = await (async () => {
+		try {
+			const r = await servex_fetch(`${servex_base()}/api/inbox?path=${encodeURIComponent(path)}`);
+			const j = r.ok ? await r.json() : {};
+			return { open: j.open ?? [], coordinator: j.coordinator ?? null };
+		} catch { return { open: [], coordinator: null }; }
+	})();
+
+	const seen = new Set(servex.open.map(n => n.id));
+	const fresh = (await own_notes(path)).filter(n => !seen.has(n.id));
+	return { open: [...servex.open, ...fresh], coordinator: servex.coordinator };
 }
 
 // How many are open — the count on the AI tab's label.
@@ -45,11 +84,46 @@ export function age(at){
 	return s < 60 ? "now" : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`;
 }
 
-export class DrawerInbox {
+/** THE DATA — one inbox, for one page. Everything either view needs to exist (just
+ *  `{ page }`, today) lives here; a view reads it back through `this.page`. `inbox.rail`
+ *  and `inbox.compact` are the two ways to SHOW it, below — lazy, so building one never
+ *  builds the other, and each is built only once (a getter that constructs-and-caches,
+ *  not something built eagerly in the constructor). */
+export class Inbox {
+	constructor(...args){ this.assign({ page: location.pathname }, ...args); }
+	assign(...args){ return Object.assign(this, ...args); }
+
+	get rail(){ return this._rail ??= new this.constructor.Rail({ page: this.page }); }
+	get compact(){ return this._compact ??= new this.constructor.Compact({ page: this.page }); }
+
+	// `{"ext": "Inbox"}` and `Page.use(Inbox)` (core/Page/ext/readme.md) both end up
+	// calling this — it forwards to Compact's own hook (today's `DrawerInbox.setup`,
+	// unchanged below): collecting a page's `{"inbox": {…}}` jsonl lines into
+	// `page.inbox` is Compact's job, not the rail's, so only Compact needs to answer it.
+	static setup(page){ return Inbox.Compact.setup(page); }
+}
+
+/** INBOX.COMPACT — the small, dense view. Merges what used to be `DrawerInbox`'s two jobs,
+ *  both still true, unchanged:
+ *
+ *  1. THE DRAWER'S "LEAVE A NOTE" BOX (`view()`/`draw()`, below) — read and written
+ *     through Servex's `/api/inbox`; off the dev machine the inbox simply isn't drawn.
+ *     `ext/drawer/rail.js` and `ext/drawer/tabs/ai.js` build one:
+ *     `new Inbox.Compact({ page }).view()`.
+ *  2. THE EXTENSION (`static setup`, called by `Inbox.setup` above) — turned on by a
+ *     `{"ext": "Inbox"}` page.jsonl line, or `Page.use(Inbox)` for every page. See
+ *     core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md for the rest.
+ *
+ *  Takes `{ page }`, same as `Inbox.Rail` (deliverable 3, the restructure's own brief) — a
+ *  LATER task builds the actual Overview-dashboard tile on top of this class (a denser
+ *  render, not a different one); this class's own job is just being correct and reusable,
+ *  which is why `view()` stays the same plain, working box rather than something tied to
+ *  the drawer's own width. */
+Inbox.Compact = class Compact {
 	constructor(...args){ this.assign({ page: location.pathname, open: [], coordinator: null, said: null }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
-	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(DrawerInbox) ═════════════
+	// ════ THE EXTENSION — {"ext": "Inbox"} or Page.use(Inbox) ═════════════
 	// `page.inbox` collects every `{"inbox": {…}}` line the page's own log has
 	// (or ever gets): a real line, read the same way a `place` or `tab` line is —
 	// nothing to do with the Servex-backed notes above.
@@ -59,12 +133,15 @@ export class DrawerInbox {
 	//   time. `page.on("line", …)` (also Log.js) covers anything after that.
 	static setup(page){
 		page.inbox = [];
+		page.notes = [];   // `note:` lines (page_note) — Servex-free: see own_notes(), above
 
 		const collect = line => {
-			if (!line?.inbox) return;
-			const { type = "message", text, at } = line.inbox;
-			const author = line.inbox.author ?? line.inbox.from;   // an older line said `from`
-			page.inbox.push({ type, author, text, at });
+			if (line?.inbox){
+				const { type = "message", text, at } = line.inbox;
+				const author = line.inbox.author ?? line.inbox.from;   // an older line said `from`
+				page.inbox.push({ type, author, text, at });
+			}
+			if (line?.note) page.notes.push({ ...line.note });
 		};
 
 		(page.jsonl_lines ?? []).forEach(collect);
@@ -144,7 +221,13 @@ export class DrawerInbox {
 		});
 		$box.el.hidden = !this.writing && !this.open.length && !this.coordinator && !this.said;
 	}
-}
+};
 
-export { DrawerInbox as Inbox };
-export default DrawerInbox;
+Inbox.Rail = Rail;
+
+// One release of back-compat: every existing import of the old names keeps working
+// unedited. New code reaches for `Inbox.Rail` / `Inbox.Compact` directly instead.
+export const InboxRail = Inbox.Rail;
+export const DrawerInbox = Inbox.Compact;
+
+export default Inbox;

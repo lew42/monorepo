@@ -9,14 +9,31 @@ checked before anything is written (the owner, 2026-09-30).
   as a JSON array written by the Write tool. `"NOW"` becomes the clock. A line that does not fit is
   refused (exit 3, nothing written) and the right shape is printed.
 - **`jsonl-schema.mjs`** — the one list of what a line may look like, per file: `task.jsonl`,
-  `day.jsonl`, `board.jsonl`, `asks.jsonl`, `page.jsonl`. Add a new verb here AND in its reader
-  (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
+  `day.jsonl`, `board.jsonl`, `asks.jsonl`, `page.jsonl`, `audit.jsonl`. Add a new verb here AND
+  in its reader (`ext/JSONL/JSONL.js`), or `node .claude/hooks/jsonl-schema.test.mjs` fails.
+  ⚠ `audit.jsonl` (2026-10-02, the task-audit pilot — one line per model that graded a landed
+  task) is checked here but has no `ext/JSONL/JSONL.js` reader yet: nothing renders it live, only
+  `Server/audit.mjs` reads it, so the test still passes without one. Add a reader before any page
+  needs to show these lines directly.
 - **Servex's `append_log`** — for Servex's own event logs only (an object with a string `type`);
   it is checked against the same module.
 - **`jsonl-guard.mjs`** — wired on Bash and PowerShell: a shell `>>`, `>`, `tee`,
   `Add-Content`, `Out-File` or `Set-Content` into a `.jsonl` is blocked with the pointer
   to `append.mjs`. It fails open on its own errors. Test: `node .claude/hooks/jsonl-guard.test.mjs`.
   ⚠ It reads the command text, so a commit message that quotes `>> x.jsonl` is blocked too: reword it.
+- **`git-guard.mjs`** — wired on Bash and PowerShell: in the main checkout, `git stash`,
+  `reset --hard`, `checkout --`, `restore` and `clean -f` are blocked; since 2026-10-02 so is any
+  recursive delete (`rm -r`, `Remove-Item -Recurse`, `del /s`) whose target is inside main, from
+  any cwd, and any delete fed by `git status`/`ls-files` output run in main (the 2026-10-01 loss of
+  601 untracked files). Worktrees, the scratchpad and the temp dirs stay open; so does deleting one
+  file by its exact path. Fails open. Test: `node .claude/hooks/git-guard.test.mjs`.
+- **`server-guard.mjs`** (2026-10-03) — wired on Bash and PowerShell, any cwd: refuses
+  `node server.js`, `node Server/run.js`, `npm start`, `npm run dev` and the PowerShell
+  `Start-Process ... server.js` form. Servex owns every dev server now (its proxy auto-starts a
+  project on first request); an agent that wants to see a page hits the worktree's URL or calls
+  `start_server`, never starts one by hand. Grew out of
+  [node-reap](/framework/ai/2026-10-02/node-reap/) finding 26 of these left running, ~1.2 GB.
+  Fails open. Test: `node .claude/hooks/server-guard.test.mjs`.
 
 Old lines are never judged; the logs are append-only. Design and proof:
 [validated-writes](/framework/ai/2026-09-30/proposal-flow/validated-writes/).

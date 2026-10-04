@@ -1,4 +1,4 @@
-# Card — the look of an AI card's own page: a head, an outline, a chat column
+# Card — the look of an AI card's own page: a head, an outline, a properties sidebar
 
 See it: **[the demo](/framework/ux/Card/)** — a card's head (icon, title, the "Reviewed ✓"
 control), its outline (a checklist of what was asked and delivered), and one "Live"-style
@@ -35,9 +35,33 @@ Log tab's rows) and this file's own `@keyframes ai2-pulse`, which two of its rul
   the behaviour (reading a card's log, drawing its tabs) stays in `ai2/card.js` until that
   logic itself is pulled out of the AI 2 module, a separate task.
 - **`Card.css` stands alone.** Load it by itself and a card looks right, its live pulse included.
-- **A card is a grid of exactly three named rows** (`.ai2-back`, `.ai2-full`, `.ai2-foot`) —
-  a region hidden at some width must still name its row, or the others shift up and the
-  footer inherits the wrong track (`ai2/doc/decisions.md` has the measured regression).
+- **A card is a grid of named rows**: `.ai2-back` (a top-level card's "← all cards") OR
+  `.ai2-crumbs` (a sub-card's breadcrumb — never both on the same card), then `.ai2-full`,
+  then `.ai2-foot`. A region hidden at some width must still name its row, or the others
+  shift up and the footer inherits the wrong track (`ai2/doc/decisions.md` has the measured
+  regression).
+- **The right column is properties, not a second chat** (one-card-props, 2026-10-03): type,
+  status, tags, who worked on it, its files, then Actions — `card.js` `properties_sidebar()`.
+  Nothing here is talked into; talking happens in the ONE global drawer (`ext/drawer/`), the
+  same on every page (CLAUDE.md law 6). `--ai2-chat` is still the one token both the old chat
+  column and this one size by, so the drag-to-resize seam still works unchanged.
+- **A sub-card opening a real second column needs a working `content()`.** The two detail
+  columns (`ux/Inbox/Inbox.css`'s `.inbox-detail` + `.inbox-sub`, made equal width here,
+  2026-10-03) only fill in when a card's own `Card.content()` actually runs and sets
+  `this.$pages = shell.$sub` — and that method is SKIPPED WHOLE, not partway, the moment a
+  card's `page.jsonl` carries a top-level `{"content": …}` line (core's own generic
+  content-List feature, `page_add()`/`render_content_list()`): `content` ends up a plain data
+  List on the instance, shadowing the `content()` method outright, the same trap class
+  CLAUDE.md's `render` example warns about. The Now card (`ai/now/`) hit this until 2026-10-03:
+  `Card.set()` now redirects any `content` line into `this.dashboard` instead (a List of its
+  own), and `dashboard_list()` draws it by reusing core's own `render_content_list()` — a
+  swap-call-restore on `this.content` for the one call, not a second renderer. Now's sub-card
+  opens as a real second column now, same as any other card.
+- **A card's own data List is `this.dashboard`, never `this.content`.** `content` is reserved —
+  it is both Card's render method AND core's own field name for the generic content-List
+  feature, and the two can never coexist on one instance (the point above). A page without a
+  `content()` method of its own (a plain `page.jsonl` page, not a `Card`) has no such collision
+  and can use `this.content` directly, the ordinary way.
 
 ## More
 

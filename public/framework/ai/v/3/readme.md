@@ -52,7 +52,11 @@ one — folded from its own log, merged straight into this page's data, never in
 The **Prompts** view (`prompt-lifecycle`, 2026-09-22) is the thread of what the owner said and
 what was made of it: newest prompt first, their sentences on the left never tidied, and on the
 right the fast assistant's reading of them (hover it and the sentences it cites light up), the
-names it minted as chips, the card, and a pre-proposal once a card is approved. A ✓ or ✗ on any
+names it minted as chips, the card, and a pre-proposal once a card is approved. **The reading now
+carries a mode switch** (Condensed → Structured → Clean → Raw, `prompt-refine`, 2026-10-02) —
+[`ext/Refine/prompt-card.js`](/framework/ext/Refine/)'s `prompt_modes()`, not a file here, because
+`ai2` needed the same piece for its own pinned "Your prompts" card and this board is being
+replaced. A ✓ or ✗ on any
 chip or card appends one more line through `POST /log/prompts` and is never required — the
 appender's naming checks are the authority, this only shows the 200 or the 409. `prompts.js`
 holds it and exports `prompt_stream()` (one shared `EventSource` for everything reading that

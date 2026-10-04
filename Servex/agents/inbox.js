@@ -142,6 +142,47 @@ ${text}`,
 		return { ok: true, file: `${at.name}page.jsonl`, ...line.inbox, ...(boss ? { coordinator: boss.agent } : {}) };
 	}
 
+	/* page_note (2026-10-02, the owner via vscode-mastermind): a note written straight onto
+	 * the page's own `note` line — `{"note": {id, from, to?, text, at}}` — instead of only
+	 * the `{"inbox": {...}}` shape `drop()` writes above. The difference is on the READING
+	 * side: `core/Page/ext/Inbox` collects `note` lines by tailing page.jsonl itself (the
+	 * same live replay every page already does), so a page's inbox still shows them with
+	 * Servex down — only the WAKE below needs Servex. `drop`/`clear`/`inbox` (the `inbox:`
+	 * shape, read through `/api/inbox`) are UNCHANGED and keep working for one release;
+	 * nothing here touches them. Dev-only, like the rest of this file (Servex and the dev
+	 * server are both local-machine-only today). */
+	note({ path: where, text, to, from = "owner" } = {}){
+		text = String(text ?? "").trim();
+		if (!text) throw bad("text is required");
+		if (text.length > 4000) throw bad(`text is ${text.length} characters; at most 4000`);
+		const at = this.folder(where);
+		const id = this.id();
+		from = String(from || "owner");
+		const line = { note: { id, from, ...(to ? { to } : {}), text, at: now_ms() } };
+		this.append(this.file(at), line);
+
+		const woke = this.wake(at, { to, from });
+		return { ok: true, file: `${at.name}page.jsonl`, ...line.note, ...(woke ? { woke } : {}) };
+	}
+
+	/* A short WAKE, never the note's own text — the text already sits in the file, so
+	 * duplicating it into the message would be the second copy CLAUDE.md law 7 forbids.
+	 * `to` wakes that agent directly, if Servex still has it registered; left out, it falls
+	 * back to the module's own coordinator (the same `coordinator_of()` `drop()` uses).
+	 * Nobody to wake (no `to`, no coordinator, Servex's agents not wired into this process)
+	 * is not an error: the note still landed, for whoever opens the page next. */
+	wake(at, { to, from }){
+		const agents = this.servex?.agents;
+		if (!agents) return null;
+		const target = to ?? this.coordinator_of(at)?.agent;
+		if (!target || target === from) return null;
+		if (agents.registry_list && !agents.registry_list().some(r => r.id === target)) return null;
+		try {
+			agents.send(target, `A note on ${at.name} from ${from} — page_read it.`, { from, reply_to: `message ${from}` });
+			return target;
+		} catch { return null; }
+	}
+
 	/* Clear a note: one `cleared` line, nothing rewritten. Clearing a note that is not
 	 * open (unknown, or already cleared) is refused, so a typo'd id says so. */
 	clear({ path: where, id, by = "owner" } = {}){
@@ -186,7 +227,16 @@ ${text}`,
 				handler: json((a, ctx) => this.clear({ path: a.path, id: a.id, by: who(ctx) })) },
 			{ name: "inbox", description: "The open notes in one page's inbox, newest first.",
 				inputSchema: schema({ path: PATH }, ["path"]),
-				handler: json(a => this.list({ path: a.path })) }
+				handler: json(a => this.list({ path: a.path })) },
+			{ name: "page_note", description: "Leave a note for whoever reads this page next — a `note` line appended straight to its"
+				+ " page.jsonl (id, from, to?, text, at). Unlike `drop`, this is read by the page's OWN Inbox"
+				+ " (core/Page/ext/Inbox, tailing page.jsonl), so it still shows with Servex down. If `to` names a"
+				+ " live agent, or the page's module has a coordinator (`claim_topic`), Servex also sends that agent"
+				+ " a short WAKE — never the text itself, which already lives in the file; the agent reads it with"
+				+ " `page_read`. The older `drop`/`inbox:` notes keep working too, for one release.",
+				inputSchema: schema({ path: PATH, text: { type: "string", description: "The note, in plain words." },
+					to: { type: "string", description: "An agent id to wake. Omit to wake the module's coordinator, if any — the note lands either way." } }, ["path", "text"]),
+				handler: json((a, ctx) => this.note({ path: a.path, text: a.text, to: a.to, from: who(ctx) })) },
 		];
 	}
 

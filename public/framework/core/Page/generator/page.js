@@ -34,9 +34,9 @@ export default new Page({
 	gapped: "snug",
 	looked: "finder",
 
-	/* ⚠ Declared, not derived. `store()` keys on the page's own url, and `store_key` is
+	/* ⚠ Declared, not derived. `prefs()` keys on the page's own url, and `store_key` is
 	     the seam for a page that could MOVE — this one is deep enough in the tree that a
-	     rename anywhere above it would silently orphan everything saved (doc/method/store.md). */
+	     rename anywhere above it would silently orphan everything saved (doc/method/prefs.md). */
 	store_key: "/framework/core/Page/generator/",
 
 	/* ⚠ Runs INSIDE the constructor, before load_all_children() — which is exactly
@@ -171,7 +171,7 @@ export default new Page({
 				// same column, and a link to something already on screen reads as a
 				// second, different thing.
 				md("**Export writes the tree to disk** — one directory per page, an ordinary `page.js` in each, under [`/imagine/generated/`](/imagine/generated/). Nothing there imports anything from here; it is a module you edit like any other. Dev only, and a name that already exists is refused rather than overwritten.");
-				md("**`size` `gap` `look` are not the tree.** They are how you like it dressed, so they stay out of the address and ride in `store()` instead — a reload, or a bare visit tomorrow, arrives back where you left. The three looks are [`/imagine/vary/colstyles/`](/imagine/vary/colstyles/)'s, worn by a tree that was never built.");
+				md("**`size` `gap` `look` are not the tree.** They are how you like it dressed, so they stay out of the address and ride in `prefs()` instead — a reload, or a bare visit tomorrow, arrives back where you left. The three looks are [`/imagine/vary/colstyles/`](/imagine/vary/colstyles/)'s, worn by a tree that was never built.");
 				// ⚠ The pretty url, not `readme.md`: `Page.file()` renders a `.md` beside a
 				// page AS a page, so the readme opens as one more column. Verified — the
 				// `doc/<name>/` form does NOT work here (that one is ext/Doc's).
@@ -398,13 +398,13 @@ export default new Page({
 	 * is: **the url carries the tree, the store carries the dressing** — `size`, `gap`,
 	 * `look` — plus the last tree, for an arrival with no address at all.
 	 *
-	 * `store()` is core's, keyed on this page's own url (`doc/method/store.md`), so there
+	 * `prefs()` is core's, keyed on this page's own url (`doc/method/prefs.md`), so there
 	 * is no key to invent and nothing to configure.
 	 * ⚠ `patch()`, not `set()` — a second writer landed in the same key (`specs.js`'s
 	 *   `saved` list, wave 7). `set()` REPLACES the whole record, so switching `look`
 	 *   would have silently erased every saved spec on the very next write. */
 	remember(){
-		return this.store().patch({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
+		return this.prefs().patch({ sized: this.sized, gapped: this.gapped, looked: this.looked, hash: this.hash() });
 	},
 
 	/**
@@ -431,7 +431,7 @@ export default new Page({
 	   ⚠ It sets the state and stops — NOT `open()` / `type()`: this runs inside the
 	     constructor, where there are no controls to repaint and no Router to move. */
 	land(){
-		const saved = this.store().get({ sized: this.sized, gapped: this.gapped, looked: this.looked });
+		const saved = this.prefs().get({ sized: this.sized, gapped: this.gapped, looked: this.looked });
 
 		Object.assign(this, { sized: saved.sized, gapped: saved.gapped, looked: saved.looked });
 

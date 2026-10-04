@@ -1,5 +1,6 @@
 import { Page, md, div, button, textarea, span } from "/app.js";
 import Socket from "/framework/dev/Socket/Socket.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { baseline } from "/imagine/paging/baseline.js";
 
 /* Container: /imagine/'s columns row. Size: `large` (28-64em) — source beside preview is
@@ -66,7 +67,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 	},
 
 	// Three seams now: where the text comes from, where it goes, and where an
-	// UNSAVED edit waits between them — `this.store()` (core, keyed on this page's
+	// UNSAVED edit waits between them — `this.prefs()` (core, keyed on this page's
 	// own url) patched on every pause in typing. Swap any one for a different
 	// backend and nothing above this line changes.
 	async load(){
@@ -75,7 +76,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 
 		// A draft only means something if it differs from what's already on disk —
 		// otherwise it's a stale patch from a session that never diverged.
-		const draft = this.store().get();
+		const draft = this.prefs().get();
 		if (draft.text !== undefined && draft.text !== text){
 			this.$source.el.value = draft.text;
 			this.$baseline.check();
@@ -99,7 +100,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 		this.draw();
 		clearTimeout(this.draft_timer);
 		this.draft_timer = setTimeout(() => {
-			this.store().patch({ text: this.$source.el.value });
+			this.prefs().patch({ text: this.$source.el.value });
 			this.$baseline.check();
 		}, DRAFT_DELAY);
 	},
@@ -110,13 +111,13 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 
 		this.say("saving…");
 		window.$BLOCKRELOAD = true;                       // don't reload myself over my own write
-		const reply = await socket.async_rpc("write", FILE, this.$source.el.value);
+		const written = await FsFile.write(FILE, this.$source.el.value);
 		setTimeout(() => { window.$BLOCKRELOAD = false; }, 1200);
 
-		if (reply?.response === "write successful"){
+		if (written){
 			this.original = this.$source.el.value;
 			clearTimeout(this.draft_timer);
-			this.store().clear();
+			this.prefs().clear();
 			this.$baseline.check();
 			this.say(`saved — public${FILE} changed on disk. Commit it to publish.`);
 		} else {
@@ -128,7 +129,7 @@ rule [\`FileSaver\`](/framework/ext/Saver/doc/backends/) has always followed.`);
 	// and returns to disk, in place, no reload.
 	discard(){
 		clearTimeout(this.draft_timer);
-		this.store().clear();
+		this.prefs().clear();
 		this.$source.el.value = this.original;
 		this.draw();
 		this.$baseline.check();

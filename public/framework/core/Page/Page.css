@@ -207,6 +207,14 @@
 	   fix holds no matter which stylesheet happens to load second. */
 	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
 
+	/* "$N.NN of AI work · M tasks" — filled in async by Page.class.js's render() from
+	   core/Page/weight/ai-cost.js. Most pages have no figure yet, so this renders empty
+	   (no gap, no box) until it does. It sits at the END of the page, padded like the content. */
+	.page .page-ai-cost { display: block; font-size: small; padding: var(--gap, 1rem) var(--gutter-x, 1rem); }
+	.page .page-ai-cost:empty { display: none; }
+	/* An app-shaped page (a Doc with tabs, a full-height board) has no reading end to sit at. */
+	.page:has(.doc-title) > .page-ai-cost { display: none; }
+
 	/* ════ RELATED — a pinned third region: links to other pages ═════════════
 	   `related: "/a/ /b/"` (Page.class.js's `related_aside()`,
 	   `doc/property/related.md`) draws one row per url — the target's own icon
@@ -769,6 +777,74 @@
 	.page-crumbs a { text-decoration: none; }
 	.page-crumbs .icon { font-size: 1em; color: var(--subtle); }
 
+	/* ── `page.content`, drawn — `render_content_list()`, the one reusable view a
+	   content List gets (page-extends-item, 2026-10-02). One row per item, a
+	   thin rule between, a grab cursor because every row is a Sortable handle. */
+	/* Capped at the reading measure, start-aligned — not centred, not full width.
+	   Widths lab, 2026-10-03 (/framework/styles/widths/): at 3440 a full-width row
+	   ran past 2400px, unreadable; centring read as a modal floating mid-page,
+	   where every OTHER block on this site (headings, prose) starts from the left
+	   wall. This caps the ROW, not the page — a page under it can still be `full`;
+	   the owner's own caution ("I don't want to just restrain them, because then
+	   you can't easily have full-width pages") is about the page/bleed system,
+	   untouched here. */
+	.page-content-rows { display: flex; flex-direction: column; gap: var(--pad-well); max-width: min(var(--measure), 100%); }
+	/* A row IS a `.card` (framework.css): its padding is the standard `--pad-card`, a % of its
+	   own width, so a wide row gets a wide pad. The grab cursor only on a sortable list. */
+	.page-content-rows.sortable > .page-content-row { cursor: grab; }
+	.page-content-row.dragging { cursor: grabbing; }
+	/* The list is a light-gray well with white cards on it (the owner, 2026-10-03). Its padding is a %
+	   of the column it sits in, so a wide detail area gets a wide margin round its cards. */
+	.page-content-list { --pad-well: clamp(1em, 3%, 3em); padding: var(--pad-well); background: var(--wash); }
+	/* The gap between cards is the SAME number as the well's padding: one token. A % gap
+	   resolves against the rows' own width, a % padding against the list's; they differ by
+	   the two paddings, a pixel or two. */
+	.page-content-title { margin: 0; }
+	/* The "context card" (the owner, 2026-10-03, refining the first build the same day):
+	   a ref row is the inline "#Page" chip upgraded to a full-width card. The row is
+	   ALWAYS dark — `.page-surface-dark`, the class-card look — never conditional on
+	   `entry.class_card` the way an inline mention is, because here the card IS the row.
+	   `.card` (framework.css) gives it the standard `--pad-card` padding, same token every
+	   other card on the site uses; `.page-surface-dark` (loaded after framework.css, same
+	   `@layer theme`, so it wins the tie) repaints that card's fill/ink dark. Inside: the
+	   HEADER (icon + name chip, `ext/Mention`'s `build_row`, same look as an inline
+	   mention) links to the page; the BODY under it — this item's own title/text,
+	   `draw_body()` above — sits in the same dark card but does NOT link through. */
+	.page-content-ref { margin-block-end: calc(var(--pad) * 0.3); }
+	/* `md(text)`'s own multi-block wrapper wears `.flow` (ext/markdown/md.js) — PAGE rhythm,
+	   ~2-2.5em between blocks, meant for a whole reading column. A card's own row is denser:
+	   redeclaring the TOKEN `.flow`'s rule reads (never the rule itself) keeps a bold line
+	   and the list under it card-tight here, while `.flow` still means page rhythm everywhere
+	   else (the owner, live at 1920 on the Now card, 2026-10-03: "~60px above its list"). */
+	.page-content-text { margin-block-start: calc(var(--pad) * 0.3); --flow: var(--gap); }
+
+	/* ── the live-list demo's own layout — task-mastermind review, 2026-10-02 ──
+	   Four fixes together: `.wide` (JS) opts this whole block out of the 40em
+	   reading column, which is what was leaving 80% of a 1920 screen empty and
+	   squeezing the buttons; the two columns below then get a REAL budget to
+	   share — rows at a reading measure, the tail filling what's left up to a
+	   cap, so the block reads as one demo, not two islands. */
+	.page-content-live { align-items: flex-start; }
+	.page-content-rows-col { flex: 1 1 var(--measure); max-width: var(--measure); min-width: 18em; }
+	.page-content-tail-col { flex: 1 1 32em; max-width: 64em; min-width: 16em; }
+
+	/* One row of four, every width this page is actually tested at (1200 and up);
+	   only a real phone width groups them two-and-two on purpose (below). */
+	.page-content-buttons { flex-wrap: nowrap; }
+	.page-content-buttons button { flex: 0 0 auto; }
+	@media (max-width: 36em) {
+		.page-content-buttons { flex-wrap: wrap; }
+		.page-content-buttons button { flex: 1 1 calc(50% - var(--gap) / 2); }
+	}
+
+	/* The tail: one line per entry, truncated with an ellipsis — never broken
+	   mid-word — and the site's OWN code colours, explicitly, rather than
+	   `pre`'s default dark-block pair (`--code-bg`/`--code-ink`, framework.css):
+	   that pair assumes a dark background, and a light one here left `--code-ink`
+	   nearly invisible on it (the bug this replaces: light-grey-on-white). */
+	.page-content-tail { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--pad); display: flex; flex-direction: column; gap: 0; max-height: 20em; overflow-y: auto; overflow-x: hidden; }
+	.page-content-tail-line { background: none; color: var(--ink); font-size: 0.85em; margin: 0; padding: 0; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 	/* OUT OF ROOM, the other way: under two columns' worth the row pages one at a time
 	   and the snap does the rest — the same row, no second arrangement.
 	   ⚠ Only the BODY can be restyled here: a container query never matches its own
@@ -823,11 +899,39 @@
 		box-shadow: 0 1px 3px var(--shade-a08, rgba(0,0,0,0.08));
 	}
 
+	/* `--dark-bg`/`--dark-ink`: the SAME two colours, also as custom properties, so
+	   anything that needs to paint the identical dark island a second way (a
+	   different element, a different file — `ext/Mention`'s inline reference chip
+	   is the first) reads them back instead of re-typing the hex (review finding
+	   5, 2026-10-02: Mention.js had repeated `#17161a`/`#e8e8ea`, so retuning this
+	   colour would have meant remembering a second place it also lived). */
 	.page-surface-dark, .page-bg-dark {
+		--dark-bg: #17161a; --dark-ink: #e8e8ea;
 		color-scheme: dark;
-		background: #17161a; color: #e8e8ea;
+		background: var(--dark-bg); color: var(--dark-ink);
 		border-radius: var(--radius);
 	}
+
+	/* ⚠ `.page-preview { color: inherit }` (below) and `.page-preview .icon { color:
+	   var(--subtle) }` are BOTH later in this file at the SAME specificity as a bare
+	   `.page-surface-dark`, so they silently won the cascade and left a dark card's
+	   own title and icon painted in the PAGE's ink (near-black on a near-black
+	   ground — unreadable) instead of `--dark-ink` (review finding 1, 2026-10-02:
+	   caught on every class card, View/Page/Router/App/Sidebar/…). Compounding the
+	   selector with `.page-preview` — the element `.page-surface-dark` actually
+	   lands on — raises the specificity past both of those rules regardless of
+	   source order, the same fix `.page-preview:hover`/`:is(.active, …)` already
+	   use a few rules down for the identical "read the title and icon together"
+	   pairing. */
+	.page-preview.page-surface-dark,
+	.page-preview.page-surface-dark .page-preview-title,
+	.page-preview.page-surface-dark .icon { color: var(--dark-ink); }
+
+	/* The architecture excerpt's own box (below) tints toward black by default — on a dark
+	   card that's invisible against `--dark-bg` (review finding 2, 2026-10-02), so it tints
+	   toward white here instead, the same "this card's own ground" idea as the `--dark-ink`
+	   override just above. */
+	.page-preview.page-surface-dark .page-preview-architecture { background: rgba(255, 255, 255, 0.08); color: var(--dark-ink); }
 
 	/* ── the type scale ──
 	   One declaration each, on the page — so a colour and a type size compose without
@@ -1294,6 +1398,48 @@
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
 		overflow: hidden;
+	}
+
+	/* A heavy module's card (`.big`, set by `/framework/page.js`'s own `module_card()` once
+	   its weight — core/Page/weight/weight.js — comes back over the threshold): bigger
+	   ink, a touch more room, and the architecture excerpt reads as code, not prose. No
+	   grid-column span (that was tried and reverted above, 2026-08-17, same "empty
+	   interior" problem) — the extra height comes from the real content a heavy card has
+	   to show, never from claiming space it doesn't fill. */
+	.page-preview.big .page-preview-title { font-size: 1.1em; }
+	.page-preview.big .icon { font-size: 1.3em; }
+
+	/* The unread-Inbox-item count (owner, 2026-10-02) — absent today (no module ever has
+	   one yet, `/framework/page.js`'s own `unread_count_for()` stub), so this rule has
+	   nothing to prove until that data exists; kept here, ready, rather than added later
+	   alongside the real source. */
+	.page-preview-badge {
+		position: absolute;
+		top: 0.5em; right: 0.5em;
+		min-width: 1.4em; height: 1.4em; padding: 0 0.35em;
+		display: flex; align-items: center; justify-content: center;
+		border-radius: 999px;
+		background: var(--prim); color: var(--prim-ink);
+		font-size: 0.75em; font-weight: 700; line-height: 1;
+	}
+
+	/* ⚠ NOT `--wash` (review finding 2, 2026-10-02): `--wash` is a tint against the PAGE's own
+	   ground, and a `.page-surface-dark` card's ground is already close to black — the two
+	   landed one hex digit apart (`#171717` vs `#17161a`), so the "box" had no visible edge
+	   at all on exactly the cards most likely to be `.big`. A light-card box tints toward
+	   black, a dark-card one toward white — the same "always visible against this card's own
+	   ground" idea `.page-surface-dark`'s own override (above) already uses for ink. */
+	.page-preview-architecture {
+		margin: 0;
+		padding: 0.6em 0.7em;
+		background: rgba(0, 0, 0, 0.06);
+		border-radius: calc(var(--radius) * 0.6);
+		font-size: 0.8em;
+		line-height: 1.4;
+		color: var(--subtle);
+		overflow: hidden;
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
 
 	/* ⚠ `mark_links()` only touches anchors, so `.active` / `.in-path` land on the

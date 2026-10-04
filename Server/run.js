@@ -6,6 +6,7 @@
  * in-process, exactly as `node server.js` always has. */
 import Server from "./Server.js";
 import Directory from "./plugins/Directory.js";
+import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/maps/refs.js's icon — Server/plugins/MentionSync.js
 import PageFiles from "./plugins/PageFiles.js";
 import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
@@ -33,6 +34,7 @@ DevSocket.Socket.use(Tail);
 DevSocket.Socket.use(Append);
 Server.use(DevSocket);
 Server.use(Directory);
+Server.use(MentionSync);
 Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
 Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
 Server.use(AILogs);

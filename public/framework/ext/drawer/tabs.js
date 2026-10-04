@@ -51,12 +51,20 @@ export let DEV = LOCAL_HOST;
 export class DrawerTabs {
 	static KEY = "drawer";
 
+	/* AI AND SESSIONS ARE ONE TAB, "AI" (one-dictation drawer-chat, 2026-10-02 — the owner:
+	   "I feel like the AI and the sessions should be kind of the same thing"). The old
+	   Sessions tab's own list (which voice session is live, which others exist) is now a
+	   header strip at the top of the AI tab itself (`tabs/ai.js`'s `session_header()`), so
+	   there is nothing left for a second tab to show — `?drawer=sessions` below still opens
+	   somewhere real instead of a tab that no longer exists.
+	   ADMIN IS A SECTION OF SETTINGS now, not its own tab (`tabs/settings.js` calls
+	   `admin.js`'s own function directly, unchanged) — purely to make the row fit one line
+	   at the drawer's 19rem default width (the owner's screenshot: "six tiny tabs wrap onto
+	   two lines"). `tabs/admin.js` still exists and is still the one copy of that code. */
 	list = [
 		{ name: "ai",        label: "AI",        load: () => import("./tabs/ai.js") },
-		{ name: "sessions",  label: "Sessions",  load: () => import("./tabs/sessions.js") },
 		{ name: "dictation", label: "Dictation", load: () => import("./tabs/dictation.js") },
 		{ name: "settings",  label: "Settings",  load: () => import("./tabs/settings.js"), when: () => DEV },
-		{ name: "admin",     label: "Admin",     load: () => import("./tabs/admin.js"),    when: () => DEV },
 		// Only while something on the page is selected (select.js sets `selected`).
 		{ name: "element",   label: "Element",   load: () => import("./tabs/element.js"),  when: () => !!this.selected },
 	];
@@ -114,8 +122,11 @@ export class DrawerTabs {
 		return path.includes("/fs/") ? path : path.replace(/\/?$/, "/") + "fs/";
 	}
 
-	/** Open the drawer on a tab — the named one, else the one already open, else AI. */
+	/** Open the drawer on a tab — the named one, else the one already open, else AI.
+	 *  "sessions" is remapped to "ai" — an old `?drawer=sessions` bookmark, or
+	 *  `rail.js`'s own link, still lands somewhere real now that the two are one tab. */
 	open(name){
+		if (name === "sessions") name = "ai";
 		// A real click on ☰ — the one moment this file is allowed to touch the
 		// network (see the comment on `DEV` above). Memoized in Ask.js: cheap to call every time.
 		if (!DEV) ask_probe().then(() => { if (http_ask_ready) DEV = true; });

@@ -6,6 +6,7 @@ const items = [
 	{ name: "Dos and don'ts", slug: "dos-and-donts", icon: "rule" },
 	{ name: "CSS", slug: "css", icon: "style" },
 	{ name: "Objects", slug: "objects", icon: "hub" },
+	{ name: "Performance", slug: "performance", icon: "speed" },
 ];
 
 export default new Page({
@@ -13,7 +14,7 @@ export default new Page({
 	title: "Code",
 	description: "The code in this framework — HTML, CSS, JS: how it's written, what to never do, and how a class shows its own state.",
 	icon: "code",
-	children: "patterns dos-and-donts css objects",
+	children: "patterns dos-and-donts css objects performance",
 
 	content(){
 		div.c("pad", () => new Concepts({ items }));

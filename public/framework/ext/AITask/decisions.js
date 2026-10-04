@@ -1,10 +1,10 @@
 import { div, span, p, button, input } from "../../core/View/View.js";
-import Socket from "../../dev/Socket/Socket.js";
 import { edit } from "../Ask/edit.js";
 import "../../ui/decision/decision.js";
 import Decision from "../../ux/Content/Decision/Decision.js";
 import { Ranking, stamp } from "./rank.js";
 import { reply } from "../Ask/reply.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
  * The Decisions tab — every choice this task made, with the alternatives it was
@@ -184,11 +184,11 @@ async function cast(d, m, state, say, said){
 	const verdict = { id: `v-${d.id}-${at}`, at, decision: d.id, say, note: said };
 
 	const reply = await Promise.race([
-		Socket.singleton().async_rpc("append", m.url, JSON.stringify({ verdict })),
+		FsFile.append(m.url, { verdict }),
 		new Promise(done => setTimeout(done, WIRE, null)),
 	]);
 
-	if (reply?.response !== "append successful"){
+	if (reply !== true){
 		console.error("decisions: the dev server refused the append — restart it (rpc:append landed 2026-08-31)", reply);
 		return;
 	}

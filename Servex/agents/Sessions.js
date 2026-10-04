@@ -5,6 +5,8 @@ import { place } from "../home.js";
 import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
 import { session_facts } from "./Agents.js";
+import { clean } from "../../public/framework/ext/Refine/engine.js";
+import { structure } from "../../public/framework/ext/Refine/structure.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -56,6 +58,24 @@ export function check_dir_line(line){
 export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]*(\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
 
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
+
+/* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
+ * one owner line per sentence or two, not per paragraph -- the owner's own evidence file had
+ * 20 lines in 4 minutes, several of them just "Hello." or "Can you hear me?". Running `refine()`
+ * (below) on every one of those would be a `clean()` + `structure()` pair -- two real model
+ * calls -- for a fragment with nothing to structure. A line only earns a refine once it has at
+ * least two sentences or 15 words; `floor: "speaking"` (the owner is still mid-thought,
+ * `ext/Chat/doc/floor.md`) is skipped outright no matter its length, because a longer, finished
+ * line for the same thought is coming once the owner actually stops. Exported, and kept a pure
+ * function of the one line, so `refine.test.mjs` can check it directly -- no model, no session,
+ * nothing else running. */
+export function worth_refining(line){
+	const text = String(line?.text ?? "").trim();
+	if (!text || line?.floor === "speaking") return false;
+	const words = text.split(/\s+/).filter(Boolean).length;
+	const sentences_n = text.split(/(?<=[.!?])\s+/).filter(Boolean).length;
+	return sentences_n >= 2 || words >= 15;
+}
 
 /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
  * The milliseconds matter: a reply's `re` names the owner line it answers by its
@@ -255,6 +275,44 @@ export default class Sessions {
 		s.last_at = now_ms();
 		this.save();
 		this.push(s.id, { kind: "line", line });
+	}
+
+	/* THE FAST ASSISTANT'S REFINEMENT (one-dictation, minion-voice-refine, 2026-10-03): a
+	 * FINISHED owner line (see `worth_refining()` just below) that the owner's own `say()`
+	 * just wrote (above) runs through the SAME shared Refine engine `Echo.js` already drives
+	 * for VS Code prompts -- `clean()` (`ext/Refine/engine.js`) then `structure()`
+	 * (`ext/Refine/structure.js`) -- never a second engine (law 6). Its own markdown parser
+	 * (`parse_sections`/`sections_with_ids`) is reused too, straight off the live Echo
+	 * instance -- no copy of those three functions kept here any more (review finding 1:
+	 * Echo.js has them as plain methods, so there was never a reason to duplicate them). This
+	 * runs AFTER the line is written and the fast assistant is already woken, and `say()`
+	 * never awaits it: a slow or down model must never delay the owner's own turn. Model
+	 * calls go through `servex.echo.call()`, not a bare `askOnce` -- Echo.js already wraps
+	 * that call with its own loop guard (`machine`/`inflight`, see Echo.js's "THE ECHO LOOP"
+	 * comment), so every session this spawns is one Echo itself already knows is a machine
+	 * call, never mistaken for a fresh owner prompt. One result line lands once both calls
+	 * finish: `{refined: {at, re, sentences, sections, flags, cost_usd}}`, `re` = the owner
+	 * line's own `at`. `cost_usd` sums `total_cost_usd` off every model call this one
+	 * utterance made (`ask-each.mjs`'s own `askOnce` return). Returns the promise so a test
+	 * can await it directly with a stubbed `servex.echo.call`; `say()` itself only logs a
+	 * failure (no model, Servex down) and otherwise lets go -- the raw bubble already stands
+	 * on its own with nothing refined underneath it. */
+	refine(s, line){
+		const echo = this.servex?.echo;
+		if (!echo || !worth_refining(line)) return Promise.resolve();
+		let cost_usd = 0;
+		const call = async (prompt, opts) => {
+			const r = await echo.call(prompt, opts);
+			cost_usd += Number(r?.cost_usd) || 0;
+			return r;
+		};
+		return (async () => {
+			const { sentences, flags } = await clean(line.text, { call });
+			if (!sentences.length) return;
+			const built = await structure(sentences, { call });
+			const sections = built.md ? echo.sections_with_ids(echo.parse_sections(built.md)) : [];
+			this.write(s, { refined: { at: now_ms(), re: line.at, sentences, sections, flags, cost_usd } });
+		})();
 	}
 
 	/* The last `n` lines of a session's file, as text: the context a FRESH agent gets
@@ -525,6 +583,7 @@ export default class Sessions {
 			...(thread && re ? { re: String(re), thread: true } : {}),
 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
+		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
 			if (s.threaded.length > 50) s.threaded.shift();

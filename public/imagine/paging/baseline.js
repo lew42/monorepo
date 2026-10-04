@@ -22,7 +22,7 @@ View.stylesheet(import.meta, "baseline.css");
        import { baseline } from "/imagine/paging/baseline.js";
        content(){ baseline(this); … }
 
-   `modified` defaults to "the page's store() has a record", which is true of every
+   `modified` defaults to "the page's prefs() has a record", which is true of every
    page audited: they all start from an empty store. Everything else is a seam a
    caller may pass in — `modified`, `restore`, `saved`, `what`.
 
@@ -37,7 +37,7 @@ View.stylesheet(import.meta, "baseline.css");
      mark must not also pull down the mode vocabulary, the samples and the blog's
      post manifest to draw a dot.                                                */
 
-// Core's own namespace — every page that uses `store()` writes under it, so this
+// Core's own namespace — every page that uses `prefs()` writes under it, so this
 // prefix is the whole site's saved state and nothing else on the origin.
 export const APP = "lew42:";
 
@@ -58,7 +58,7 @@ export function keys(prefix = APP){
 }
 
 // FORGET EVERY DEMO ON THE SITE — every `lew42:` key, which is every page that uses
-// core's store(). Returns how many it removed so the control can say so out loud.
+// core's prefs(). Returns how many it removed so the control can say so out loud.
 export function forget_all(){
 	const all = keys();
 	try { all.forEach(key => localStorage.removeItem(key)); } catch { /* nothing to clear */ }
@@ -77,7 +77,7 @@ export class BaselineMark extends View {
 	// ════ THE THREE SEAMS ═════════════════════════════════════════════════════
 
 	// Is this page off its baseline? Default: anything at all is saved for it.
-	modified(){ return this.page.store().read() !== null; }
+	modified(){ return this.page.prefs().read() !== null; }
 
 	// A STRING when this page is holding something on purpose — it names the store,
 	// and the mark turns green instead of amber. Null for an ordinary demo.
@@ -86,7 +86,7 @@ export class BaselineMark extends View {
 	// Put it back. Default: forget this page's record and reload — pages hold their
 	// state in memory too, so a clear alone would leave the screen looking unchanged.
 	restore(){
-		this.page.store().clear();
+		this.page.prefs().clear();
 		location.reload();
 	}
 

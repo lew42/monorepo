@@ -72,6 +72,7 @@ plain node over `agents.watch` and `agents.send`, so any harness can feed it. Th
 - **A minion stuck at the spawn gate** for 5 minutes, or dropped from its queue without starting, wakes its parent once, naming the minion, the wait and the gate's reason.
 - **A child's result is never lost:** `wake_parent` revives a stopped parent through the host's `send()`, and also appends the result to the parent task's `inbox.jsonl`.
 - Every check, answer, revive and escalation is one `{"log": {"heartbeat": …, "msg"}}` line in the task's own log. `heartbeat_status` lists who is being watched and how long each has been silent; `SERVEX_NO_HEARTBEAT=1` turns it off.
+- **A post with no card to reach falls back to the owner's Inbox** (2026-10-01): a task with no card named, or a named card that answers "no card", used to just go nowhere — logged, but never shown anywhere a person would look. `Heartbeat.post()` now drops the same note on the task's own page via `agents/inbox.js`: [`never-lose-a-wake.md`](./never-lose-a-wake.md).
 
 ## Worktree servers
 

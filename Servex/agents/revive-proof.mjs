@@ -24,6 +24,28 @@ const DIR = path.join(os.tmpdir(), "servex-revive-proof");
 const HAIKU = "claude-haiku-4-5-20251001";
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
+/* ── scene 0: a legacy row with no `spec` keeps its OpenRouter provider on
+ * reopen() — the 2026-10-02 bug where a revived free/cheap-model agent came
+ * back on Claude, unmetered, because `keys` (the fallback used when a row
+ * has no `spec`) was missing "provider". No real process: `spawn()` is
+ * stubbed to just capture the spec `reopen()` built, so this never starts a
+ * claude session — it runs even before the host1/host2 dance below. */
+if (process.argv[2] !== "host1"){
+	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "revive-proof-provider-"));
+	const host = new Agents({ registry_dir: tmp });
+	let captured = null;
+	host.spawn = spec => { captured = spec; return { id: spec.id, send(){ return this; }, card: () => ({ id: spec.id }) }; };
+	host.reopen({
+		id: "legacy-or", role: "minion", model: "deepseek/deepseek-v4-pro", provider: "openrouter",
+		cwd: tmp, session_id: "s-legacy", started_at: "2026-10-01T00:00:00-05:00"
+		// deliberately NO `spec` key — this is the shape an older/legacy registry row has
+	});
+	const ok = captured?.provider === "openrouter" && captured?.model === "deepseek/deepseek-v4-pro";
+	console.log(`${ok ? "PASS" : "FAIL"}  legacy row with no spec keeps its OpenRouter provider+model on reopen (got provider=${captured?.provider}, model=${captured?.model})`);
+	fs.rmSync(tmp, { recursive: true, force: true });
+	if (!ok) process.exit(1);
+}
+
 /* ── host 1: spawn, report the moment the slow tool starts, then just live ── */
 if (process.argv[2] === "host1"){
 	const host = new Agents({ registry_dir: DIR });

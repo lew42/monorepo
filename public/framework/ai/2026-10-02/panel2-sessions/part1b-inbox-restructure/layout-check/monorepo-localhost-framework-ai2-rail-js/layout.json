@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/rail.js",
+ "widths": {
+  "1280": {
+   "empty": 0.485,
+   "widest_text": 1244,
+   "widest_text_sample": "import { Page, View, div, span, small, a",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "1920": {
+   "empty": 0.631,
+   "widest_text": 1780,
+   "widest_text_sample": "import { Page, View, div, span, small, a",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "2560": {
+   "empty": 0.72,
+   "widest_text": 1780,
+   "widest_text_sample": "import { Page, View, div, span, small, a",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  },
+  "3440": {
+   "empty": 0.79,
+   "widest_text": 1780,
+   "widest_text_sample": "import { Page, View, div, span, small, a",
+   "overflow_x": false,
+   "items": 0,
+   "narrow_share": 0
+  }
+ },
+ "errors": []
+}

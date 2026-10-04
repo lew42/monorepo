@@ -225,8 +225,8 @@ export default new Paging({
 	     and `where()` below has said it, under the screen, all along. */
 
 	// ── loading ───────────────────────────────────────────────────────────────
-	/* ⚠ `made`, NOT `store` — `store()` is core's own method on every Page, and a FIELD
-	     of that name shadows it: `LocalStore` calls `this.page.store()` and would get an
+	/* ⚠ `made`, NOT `store` — `prefs()` is core's own method on every Page, and a FIELD
+	     of that name shadows it: `LocalStore` calls `this.page.prefs()` and would get an
 	     object instead of a function. */
 	initialize(){ this.made = store_for(this); },
 

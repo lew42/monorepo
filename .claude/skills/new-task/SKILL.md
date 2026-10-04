@@ -45,7 +45,7 @@ on any other task's log.
 
 **Keep state current as you go, so losing this session loses nothing.** When a step starts, append `{"assign": {"step": N, "now": "<what is happening inside it>"}}`. A fresh agent must be able to continue from the log plus the readme alone. Land with `step` at the last index.
 
-- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Append one line, creating the file if the day is new:
+- `../day.jsonl` — the DAY's log, `ai/<date>/day.jsonl`, beside your task dir (⚠ not the stale `ai/day.jsonl` one level up, which still looks current when tailed — a line went there 2026-08-29). Same route as your task log — `node .claude/hooks/append.mjs ai/<date>/day.jsonl <lines.json>` — which creates `day.jsonl` itself the first time a day opens; nothing to `mkdir` by hand (the day's own dir already exists, since your task dir sits inside it):
 
 ```json
 {"log": {"at": "<ISO>", "task": "<slug>", "msg": "task opened — <one line>"}}

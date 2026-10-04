@@ -547,6 +547,28 @@
     .darken-2 { background: var(--darken-2); }
     .darken-3 { background: var(--darken-3); }
 
+    /* ---- bg-lighten / bg-darken — one class each, the step picks itself --------
+       The owner, 2026-10-03: "a `lighten` class whose amount varies with the
+       container it's on: white, light, dark or primary each need a different
+       amount." So the class never names a step (no `-1/-2/-3`); the GROUND it
+       lands on declares how far `--bg-lighten`/`--bg-darken` should go, through
+       the two `--bg-*-amt` variables below, and the two classes just read them.
+       A ground that opts into nothing gets the quietest step (`--lighten-1` /
+       `--darken-1`) — the same default a plain white/light surface already has.
+
+       ⚠ Darker grounds need a BIGGER lighten step before it reads at all — a
+       white-at-8%-alpha lighten is barely visible once the floor under it is
+       already dark (doc/stacking.md rule 7: alpha compresses on a saturated or
+       dark floor). `.darken-1/2/3` and `.bg` (the sidebar's fixed dark surface)
+       both opt into the bigger lighten step for exactly that reason. A ground
+       this file doesn't know about yet (a primary band, a black one) sets the
+       same two variables itself — see the live lab at
+       /framework/styles/system/studies/color/ for the measured numbers. */
+    :root { --bg-lighten-amt: var(--lighten-1); --bg-darken-amt: var(--darken-1); }
+    .bg-lighten { background: var(--bg-lighten-amt); }
+    .bg-darken  { background: var(--bg-darken-amt); }
+    .darken-1, .darken-2, .darken-3, .bg { --bg-lighten-amt: var(--lighten-2); }
+
     /* De-emphasis derived from the band's own ink, never from a fixed grey:
        `--subtle` on a `prim` band measures 1.06:1.
        ⚠ 75%, was 65% (2026-08-17). Against the lew42 ink (#3f3f3f), 65% composites
@@ -616,7 +638,12 @@
        and it reads better by contrast too (#3f3f3f on #f2f2f2 = 9.41:1 against the
        pill's 8.44:1). `--code-bg` now means the block, which is what every theme
        that sets it was drawing. */
-    pre { padding: 0.75em 1em; }
+    /* `line-height` was never set here, so a `pre` just inherited body's 1.5 — loose
+       enough on a monospace block that the owner read it as double-spaced, 2026-10-03
+       ("each line has a blank line under it"). 1.4 is the usual code-block tightness
+       (close to what most editors and GitHub use); `white-space: pre` is already the
+       UA default for `pre` and was never the problem. */
+    pre { padding: 0.75em 1em; line-height: 1.4; }
     code { padding: 0.15em 0.4em; }
     pre  { background: var(--code-bg, var(--wash)); color: var(--code-ink, inherit); }
     /* A FILL, so a rung — not `--wash`, which is a floor and vanished on one (`.app`);
@@ -1156,24 +1183,30 @@
        inside a list item is a gap nobody asked for. */
     :where(.flow) :is(li, td, th) > p { margin-block: calc(var(--gap) * 0.35); }   /* was margin-block 0.35em - 2026-09-05 ramps */
 
-    /* ── a link in prose ──
-       Scoped to text, not to `a`, and that is the whole decision. Every piece
-       of navigation on this site is an anchor that has already opted out of
-       looking like a link — a sidebar entry, a tab, a TOC row, a preview card,
-       a crumb. A flat `a { font-weight: 600 }` bolds all of them, and it takes
-       the sidebar's ACTIVE state with it, which is 600 and has nothing left to
-       say. `a:visited` is the worse half: `(0,1,1)` out-ranks every one of
-       those component classes, so the nav would grey out behind you as you
-       read the site.
+    /* ── every link, everywhere ──
+       Was scoped to text containers (`p, li, td, th, dd, blockquote, .md`), on
+       the theory that a bare `a` would bold and discolour every piece of nav on
+       the site (a sidebar entry, a tab, a crumb, a TOC row, a preview card) —
+       those are anchors that already opted out of looking like a link. But that
+       scope has a hole: a link sitting in a plain `div`/`span` (not inside any
+       of those seven containers) matched NOTHING, so it fell through to the
+       browser default — blue, underlined — one of which was exactly the
+       owner's "why do we have blue links" bug.
 
-       `:where()` for the same reason as the flow rules above — `(0,0,1)`, so
-       any component that wants its own link back wins by having a class.
+       `:where(a)` closes the hole and stays just as safe. `:where()` always
+       contributes zero specificity, so `:where(a)` and the old
+       `:where(p, ...) a` have the identical specificity, `(0,0,1)` — this is a
+       SCOPE change, not a specificity change. Nav still wins: every component
+       that wants its own link look already uses a real class selector (e.g.
+       `.sidebar-rail a`), which is `(0,1,1)` and beats `:where(a)` regardless
+       of which elements `:where()` lists. So every anchor now gets a default
+       look, and nothing with its own class changes.
 
        The colour is the body's and the underline carries the whole affordance,
        which is why the underline is stated here rather than left to the UA:
        the same rule that takes the blue away has to be the one that keeps the
        line. */
-    :where(p, li, td, th, dd, blockquote, .md) a {
+    :where(a) {
         color: inherit;
         font-weight: 600;
         text-decoration-line: underline;
@@ -1187,12 +1220,12 @@
        thickness are not available here and the state has to be carried by hue
        alone. Every declaration degrades to the unvisited look if a browser
        declines it. */
-    :where(p, li, td, th, dd, blockquote, .md) a:visited {
+    :where(a):visited {
         color: var(--subtle);
         text-decoration-color: color-mix(in oklab, var(--prim) 80%, var(--subtle));
     }
 
     /* After `:visited`, not before — both are `(0,1,1)`, so hover only wins by
        being later, and a visited link has to be able to light up again. */
-    :where(p, li, td, th, dd, blockquote, .md) a:hover { color: var(--prim-ink); }
+    :where(a):hover { color: var(--prim-ink); }
 }

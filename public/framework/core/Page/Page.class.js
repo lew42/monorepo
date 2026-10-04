@@ -1,7 +1,10 @@
-import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, is } from "../View/View.js";
+import { View, div, p, h1, h2, h4, a, span, ul, li, button, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
-import PageLog from "./Log.js";
+import Item from "../Item/Item.js";
+import List from "../List/List.js";
+import { page_settings } from "./settings/settings.js";
 import { track } from "../track/track.js";
+import ai_cost from "./weight/ai-cost.js";
 
 View.stylesheet(import.meta, "Page.css");
 
@@ -19,11 +22,26 @@ const ALIAS = { surface: "card", wash: "tint" };
 const is_address = value => is.str(value) && value.startsWith("/");
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
-// `extends PageLog` — `set()`, the `page.jsonl` loader and its three steps. Log.js.
-export class Page extends PageLog {
+// `page.jsonl` plumbing, folded in from the deleted `PageLog` middle class (was
+// `core/Page/Log.js`; 2026-10-03, the owner: "fold PageLog away, so Page extends Item
+// directly"). "kid/page.jsonl" → ["kid", "jsonl"]; the server's watcher keys a file
+// line by its FIRST path segment, so "kid/" and "kid/page.jsonl" are one entry and the
+// latest line for it wins — key_of() below matches that.
+const CHILD = /^([^/]+)\/page\.(jsonl|js)$/;
+const key_of = name => name.split("/")[0];
+
+// `Page extends Item` (core/Item/Item.js) directly: `page instanceof Item` is true,
+// Page's `on`/`off`/`emit` are Item's (the Events mixin), and Page's `set()` below is
+// Item's `apply()`-based routing with the thin jsonl-specific bits added on top (kept
+// every line for a late `on("line", …)` listener, `page.content` lazily a List the
+// moment a content delta arrives). There used to be a `PageLog` class in between
+// (`core/Page/Log.js`) — folded in here 2026-10-03; `Log.js` is now a one-line
+// re-export for its four outside callers (ext/Inbox, ai2/tasks.js, ai2/groups.js,
+// ext/drawer/tabs/sessions.js — all read-only static callers, never a subclass).
+export class Page extends Item {
 
 	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) turns Ext.setup(page) on for
-	// EVERY page, the moment this runs. `ext(name)` (Log.js) is the DATA path — one
+	// EVERY page, the moment this runs. `ext(name)` below is the DATA path — one
 	// page.jsonl line turns one extension on for one page. Both call the same
 	// `Ext.setup(page)`. Model: `Server/Events.js`'s `static use(plugin)` /
 	// `setup(instance)`; `core/Page/ext/readme.md` has the rest.
@@ -50,13 +68,507 @@ export class Page extends PageLog {
 
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
+	// ════ PAGE.JSONL — folded in from the deleted PageLog class ══════════════════
+
+	// A page's own preferences. Today there is exactly one: `nav` — "does this page
+	// show up in its parent's navigation?" (core/Page/settings/, loading-study.md
+	// section 4). `this.settings` is never a PLAIN object: it starts life as this tiny
+	// object with its own `set()`, so Item's `set_one()` routes a `settings` line into
+	// its "has its own `.set()`" branch and MERGES — a plain object here would get
+	// SHADOWED (fully replaced) by the second settings line instead of merged with it.
+	settings = { set(obj){ Object.assign(this, obj); } };
+
+	// A page is a BOUNDARY: its own events (and a content/pages List's, which
+	// bubble to the page first) never climb past it to a PARENT page. Each page's
+	// Store only ever hears changes inside its own subtree.
+	bubbles(){ return false; }
+
+	// A page's id is its folder name, not a random one — `naming()` below sets
+	// `this.id ??= this.name` once the url (and so the name) is known. Nothing
+	// here can invent one before that.
+	static new_id(){ return undefined; }
+
+	// (2026-10-03, the owner's data decision) `title`/`icon`/`description` live
+	// in `data`, like every other value — reading/writing `page.title` directly
+	// still works exactly as before, through the accessor `define_fields()`
+	// (Item.js) builds from this list. Page used to override `get_one`/`put` to
+	// write straight onto the instance instead; that override is GONE — one
+	// behaviour everywhere, Item's own. A key that names neither a method, a
+	// field above, nor a List/child id just lands in `data` too, read back by
+	// `report_unknown()` below.
+	static fields = ["title", "icon", "description"];
+
+	// `apply()` that calls methods instead of overwriting them — Item's `apply()`
+	// does the real routing (a method key calls it, a value with its own `set()`
+	// gets the nested delta, anything else is data via `get`/`put` above, emitting
+	// `change` + `delta`). This override's own job is four things on top: handle
+	// an ARRAY of lines (Item.set() does this itself, but this override replaces
+	// that whole method, so it has to again), keep every line for a late
+	// `on("line", …)` listener to catch up on, emit `line` exactly ONCE per line
+	// the reader hands this page (never once per recursive nested `set()` call
+	// `apply()` makes along the way — those land on a DIFFERENT object, never
+	// back through this override), and make `page.content` lazily the moment a
+	// content delta arrives.
+	set(obj){
+		if (Array.isArray(obj)){ for (const one of obj) this.set(one); return this; }
+
+		(this.jsonl_lines ??= []).push(obj);
+		this.emit("line", obj);
+
+		if ("content" in obj && !(this.content instanceof List)){
+			const { content, ...rest } = obj;
+			this.ensure_content().set(content);
+			return super.set(rest);
+		}
+
+		// ⚠ compat only, one release (2026-10-03 — the owner: "drop the special `at`
+		// key"): an OLD line can still carry `{"at": "content/…", …}`; `locate()`
+		// (Item.js, compat-only itself) needs `page.content` to already be a List
+		// before it can find anything inside it. A FRESH nested line never needs
+		// this at all — `get()` finds a content child by id with no `at` in sight.
+		if (typeof obj.at === "string" && obj.at.split("/")[0] === "content") this.ensure_content();
+
+		return super.set(obj);
+	}
+
+	// Made the first time a content DELTA arrives (a `{"content": {...}}` line) or a
+	// code caller reaches for it directly — never up front, so a page with no visible
+	// blocks of its own pays nothing. Once it exists, Item's own `set_one()` routes
+	// straight to its `.set()` without this method running again.
+	ensure_content(){
+		return this.content instanceof List ? this.content
+			: (this.content = new List({ owner: this, name: "content" }));
+	}
+
+	// My sub-pages — the real storage `page.pages`. `of: null` keeps a plain stub
+	// object (`{id, name, stub: true}`) plain: List.make() hydrates a plain value
+	// through `of` only when `of` is truthy, so a stub is never turned into an Item.
+	// A REAL loaded page is a `Page` instance already (never plain), so it is
+	// inserted/replaced UNCHANGED either way — see `add()` above.
+	get pages(){ return this._pages ??= new List({ owner: this, name: "pages", of: null }); }
+
+	// A Map-SHAPED VIEW over `pages`, so the ~215 existing `.children` callers across
+	// ~94 files keep working unchanged while the real storage is the List above.
+	// New code and docs say `page.pages`. `PageChildren extends Map` so
+	// `instanceof Map` stays true and a page.jsonl line can never REPLACE it (see the
+	// setter below) — only `declare()` above ever builds the real tree.
+	get children(){ return this._children ??= new PageChildren(this); }
+
+	// A config `children: […]` arrives here through ordinary `Object.assign` (the
+	// constructor's own `this.assign(...args)` above) — this only STAGES it;
+	// `declare()` is the one place that actually reads it (after `naming()` has set
+	// `this.url`, which children need to move into).
+	// ⚠ `this.children = new Map()` is also how a LIVE page throws its whole tree
+	//   away and starts over (core/Page/generator/page.js's `grow()`, a regrow on
+	//   every spec change) — nobody hand-builds a config as a real `Map`, so that
+	//   shape unambiguously means "forget everything now", not "stage this for
+	//   declare() later". Cleared quietly: a Map never announced either.
+	set children(list){
+		// A Map with entries (core/Page/page.js reorders its tabs this way) is copied
+		// back in, in its own order, after the clear.
+		if (list instanceof Map){
+			const entries = [...list];
+			[...this.pages].forEach(page => this.pages.release(page));
+			entries.forEach(([name, page]) => this.children.set(name, page));
+			return;
+		}
+		this._raw_children = list;
+	}
+
+	// ════ EXTENSIONS — a page.jsonl line names one on: `{"ext": "Inbox"}` ══════════
+	// The DATA path — one page at a time. `Page.use(Ext)` above is the CODE
+	// path — every page, the moment the module that calls it is loaded. Both end up
+	// calling the same `Ext.setup(page)`.
+	// ⚠ core never statically imports ext code — resolved against THIS file's OWN url
+	//   (not the page's), so it always finds `core/Page/ext/<Name>/<Name>.js`.
+	// ⚠ This import is ASYNC; the replay of an already-fetched page.jsonl is NOT —
+	//   see `jsonl_lines` above, which is what lets a late setup() catch up.
+	// `ext_ready` — every extension's own import+setup promise, so anything that
+	// reads what an extension set up (a `place`-d module, say) can
+	// `await Promise.all(page.ext_ready ?? [])` first rather than race it.
+	ext(name){
+		const ready = import(new URL(`./ext/${name}/${name}.js`, import.meta.url).href)
+			.then(({ default: Ext }) => Ext.setup?.(this))
+			.catch(error => console.error(`${this.log_label()} — ext("${name}") failed to load:`, error));
+		(this.ext_ready ??= []).push(ready);
+	}
+
+	// ════ STEP 1 — the file EXISTS ════════════════════════════════════════════
+	// Recorded, never rendered. A repeat changes nothing: the latest line per name wins.
+	// TWO CALLERS, split: a REPLAYED `{"file": …}` line (this.store is mid-`read()`,
+	// `this.store.replaying` is true) registers the listing, same as always. A CODE
+	// call — `page.file("demo.jsonl")`, not a line — never touches the listing (that
+	// would double-count a file the code already knows about) and instead hands back
+	// the real file: ext/filesystem's `FsFile`, the one file class, dynamically
+	// imported because core never statically imports ext. Its own lazy `.store`
+	// getter is `Item.Store.for(url)` — one Store per file, the same one `page.store`
+	// is for page.jsonl itself.
+	file(name){
+		if (this.store?.replaying){
+			(this.listed ??= new Map()).set(this.last_file = key_of(name), name);
+			CHILD.test(name) ? this.link_child(name) : this.unlink_child(key_of(name));
+			return undefined;
+		}
+
+		const path = (this.log_folder() + name).replace(/^\/+/, "");
+		return import("../../ext/filesystem/FsFile.js").then(({ default: FsFile }) => new FsFile({ path, name }));
+	}
+
+	// `{"file": "x", "gone": true}` — `set()` calls file("x") first, then this.
+	gone(yes){
+		if (!yes || !this.last_file) return;
+		this.listed?.delete(this.last_file);
+		this.unlink_child(this.last_file);
+	}
+
+	// ════ STEP 2 — a child page is LINKED, automatically ══════════════════════
+	// "kid/page.jsonl" → the child "kid", remembered as a jsonl child so child()
+	// loads it from the right file without probing. Also what `declare()` calls for a
+	// page.js parent's `children: "kid/page.jsonl"`.
+	child_file(entry){
+		const [, dir, kind] = entry.match(CHILD) ?? [];
+		if (!kind) return entry;
+
+		(this.child_kinds ??= new Map()).set(dir, kind);
+		return dir;
+	}
+
+	link_child(name){
+		const dir = this.child_file(name);
+		if (!this.children.has(dir)) this.children.set(dir, null);
+	}
+
+	unlink_child(key){
+		if (!this.child_kinds?.delete(key)) return;
+		this.children.delete(key);
+	}
+
+	// ════ TAB STATE — `{"tab": {"name": "x", "disabled": true, "nav": false, "order": 3}}` ═══
+	// A child that already exists — a declared child, a `file` line, a `children:`
+	// entry on a page.js parent — is already a tab the moment Doc.bar() or tabs()
+	// (ext/tabs/tabs.js) sees it: this only adds STATE to it. `disabled` draws it
+	// greyed and unclickable; `nav: false` drops it from the tab STRIP entirely (it
+	// is still a real page at its own url); `order` breaks a tie when more than one
+	// tab wants a position. A name with none of the three still gets DECLARED as a
+	// child here (the same thing declare()'s own string form does), so a `tab` line
+	// can be how a tab comes to exist at all, with nothing yet to draw there.
+	// ⚠ Repeat lines for the same name MERGE (the new keys land on top of the old),
+	//   never replace — set() calling this again is just one more spread.
+	tab(obj){
+		const { name, ...state } = obj;
+		if (!name) return;
+
+		(this.tabs_state ??= new Map()).set(name, { ...this.tabs_state.get(name), ...state });
+		if (!this.children.has(name)) this.children.set(name, null);
+	}
+
+	// The state a `tab` line recorded for one name — `{}` when nobody ever set one, so
+	// every caller (Doc.bar(), tabs()) reads `.disabled` / `.nav` / `.order` with no guard.
+	tab_state(name){ return this.tabs_state?.get(name) ?? {}; }
+
+	// ════ NAV VISIBILITY — one rule, read in one place, for the rail, the tab strip
+	// and the drawer's own checkbox ═══════════════════════════════════════════════
+	// Shown unless: MY OWN `tab` line says `nav: false` for this child (explicit,
+	// always wins, and an explicit `nav: true` always wins the other way — see
+	// `section()` in ext/Doc/Doc.js, which pins its own OVERVIEW/API/DOCS/FILES
+	// chrome this way so those never depend on a real page's settings). Otherwise
+	// this asks the exact question the drawer's own checkbox asks —
+	// `page_settings()`, core/Page/settings/settings.js — which already unifies an
+	// explicit `{"settings": {"nav": false}}` line on the CHILD's own log with the
+	// weight fallback (below 1 is out of nav too).
+	//
+	// That real answer needs a fetch, so this stays SYNCHRONOUS the way every
+	// caller (Doc.bar(), tabs(), Sidebar's rail) needs at render time: the first
+	// ever ask answers optimistically `true` — a tab is never hidden before it's
+	// actually been checked — then checks for real in the background, and if the
+	// answer disagrees, corrects the cache and calls `nav_redraw()`
+	// (ext/tabs/tabs.js) so the strip (and the rail, which bubbles up to it) fixes
+	// itself with no reload. `nav_ready()` below is the same answer, awaited, with
+	// no flash — used the one place that can afford to await before its first
+	// paint (Sidebar.visible_nodes()).
+	tab_visible(name){
+		const set = this.tab_state(name).nav;
+		if (set === false) return false;
+		if (set === true) return true;
+
+		this._nav ??= new Map();
+		if (!this._nav.has(name)){
+			this._nav.set(name, true);
+			this.nav_ready(name).then(nav => {
+				if (this._nav.get(name) === nav) return;
+				this._nav.set(name, nav);
+				this.nav_redraw?.();
+			});
+		}
+		return this._nav.get(name);
+	}
+
+	// The real, awaited answer tab_visible() above is a synchronous, cached,
+	// eventually-consistent stand-in for.
+	async nav_ready(name){
+		const set = this.tab_state(name).nav;
+		if (typeof set === "boolean") return set;
+		return (await page_settings(this.url + name + "/")).nav;
+	}
+
+	// Sort key: an explicit `order` wins; everyone else ties at `Infinity`, and
+	// `Array.prototype.sort` is stable — a tie keeps the names in whatever order they
+	// already had, so a page that names no order at all is untouched.
+	tab_order(name){ return this.tab_state(name).order ?? Infinity; }
+
+	// ════ STEP 3 — PLACED in the content, deliberately ════════════════════════
+	// A name, an array of names, or `{"module": "x.js", …data}`. In order; once each.
+	place(value){
+		this.placed ??= [];
+
+		for (const entry of [value].flat()){
+			const id = JSON.stringify(entry);
+			if (!this.placed.some(had => JSON.stringify(had) === id)) this.placed.push(entry);
+		}
+	}
+
+	// What a page.jsonl page draws when it has no `content()` of its own: its placed
+	// files, in order. The box is kept so a line appended later can redraw it.
+	log_view(){
+		return div.c("flow", () => {
+			this.$log = div.c("page-log flow", () => { this.log_draw(); });
+			this.draw_folder();
+		});
+	}
+
+	// THE PAGE SHOWS ITS OWN FOLDER: page.jsonl and every file its lines name, as
+	// ext/files draws them — a tree, and the one you click as highlighted source. A
+	// reader sees where things are and reads the real thing. `file` lines that name
+	// a child (`kid/page.jsonl`) are pages, not files, and are left out.
+	// ⚠ core does not import ext: the import is dynamic, as in draw_md().
+	draw_folder(){
+		const url = location.origin + this.log_folder();
+		const names = new Set(["page.jsonl", ...[...this.listed?.values() ?? []].filter(name => !CHILD.test(name))]);
+
+		return div.c("page-log-files", $box => {
+			import("../../ext/files/files.js")
+				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
+		});
+	}
+
+	log_draw(){ (this.placed ?? []).forEach(entry => this.draw_placed(entry)); }
+
+	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at
+	// another address (AI 2) still keeps its files in its own folder.
+	log_folder(){ return String(this.jsonl_url ?? this.url).replace(/page\.jsonl$/, ""); }
+
+	log_redraw(){ this.$log?.empty(() => { this.log_draw(); }); }
+
+	// `.md` is prose. `.js` is a module, one rule: a default export with a `render`
+	// (a View) is constructed as `new Default({ page, …data })`; anything else is
+	// called as `fn(page, box, data)`. A child's name draws nothing — it is linked.
+	draw_placed(entry){
+		const { module, ...data } = is.str(entry) ? { module: entry } : entry;
+		const url = new URL(module, location.origin + this.log_folder()).href;
+
+		if (/\.md$/i.test(module)) return this.draw_md(url);
+		if (/\.m?js$/i.test(module)) return this.draw_module(url, data);
+	}
+
+	// ⚠ core does not import ext: the import is dynamic, as in file() above.
+	draw_md(url){
+		return div.c("page-log-md", $box => {
+			import("../../ext/markdown/md.js")
+				.then(({ default: md }) => $box.append(() => md.file({ url }, url, { h1: false })));
+		});
+	}
+
+	// ⚠ THE BOX IS CAPTURED NOW, before the import resolves — a dozen modules can
+	//   arrive in any order and each fills the box it was given.
+	draw_module(url, data){
+		return div.c("page-log-module", $box => {
+			import(url).then(({ default: Default }) => $box.append(() => {
+				if (!Default?.prototype?.render) return void Default?.(this, $box, data);
+
+				const made = new Default({ page: this, ...data });
+				if (!(made instanceof View)) made.render();   // a View drew itself already
+			})).catch(error => console.error(`${this.log_label()} — ${url} failed to load:`, error));
+		});
+	}
+
+	// ════ THE DEBUG VIEW — every file, and which of the three steps it reached ═══
+	listing(){
+		const rows = new Map();
+		this.listed?.forEach((name, key) => rows.set(key, { name, exists: true }));
+		(this.placed ?? []).forEach(entry => {
+			const name = is.str(entry) ? entry : entry.module;
+			rows.set(key_of(name), { name, exists: false, ...rows.get(key_of(name)), placed: true });
+		});
+
+		const mark = yes => td(yes ? "yes" : "—");
+
+		return div.c("page-log-listing", () => {
+			table(() => {
+				thead(() => { tr(() => { ["File", "Exists", "Linked", "Placed"].forEach(head => th(head)); }); });
+				tbody(() => rows.forEach((row, key) => tr(() => {
+					td(() => { code(row.name); });
+					mark(row.exists);
+					mark(this.child_kinds?.has(key));
+					mark(row.placed);
+				})));
+			});
+
+			if (this.unknown.length)
+				p.c("muted", "Kept as data, no method or property knew them: " + this.unknown.join(", ") + ".");
+		});
+	}
+
+	// Every `data` key that isn't one of my own declared `fields` — the only
+	// kind of key that ever LANDS in `data` now (2026-10-03: everything else is
+	// a method call or a field/List/child-id accessor, none of which touch
+	// `data` at all). Was a separately-tracked Set `put()` built by hand; `data`
+	// itself already says the same thing, now that fields have their own home.
+	get unknown(){ return Object.keys(this.data).filter(key => !this.constructor.fields.includes(key)); }
+
+	// One console.info per batch that taught the page a key nobody knew. Never a warn.
+	report_unknown(){
+		const fresh = this.unknown.filter(key => !this.reported?.has(key));
+		if (!dev || !fresh.length) return;
+
+		fresh.forEach(key => (this.reported ??= new Set()).add(key));
+		console.info(`${this.log_label()} — page.jsonl keys no method or property knew, kept as data:`, fresh);
+	}
+
+	// A rewritten (not appended) log replays from line 1 onto a clean slate.
+	log_forget(){
+		this.listed?.clear();
+		this.placed = [];
+	}
+
+	/* THE LOADER. `url` is the folder, ending in `/`. Line 1 is the constructor —
+	   `new this(line1)`, so `Card.jsonl(url)` makes a Card — unless it names a
+	   `"class": "<module url>"`, whose default export (a Page subclass) is built
+	   instead. Every later line is `set()`. Null when there is no log.
+	   ⚠ On localhost it STREAMS: a line appended later calls set() and redraws.
+	   `Store.for(url)` — one Store per file: a second visit to the same page.jsonl
+	   reaches the SAME live reader, never a second one racing it. */
+	// ⚠ TWO CALLERS CAN EASILY RACE for the exact same url: `load_all_children()`
+	//   crawls EVERY child of a page (including "jsonl") the moment its PARENT
+	//   loads, at the same time the Router's own sequential walk is reaching
+	//   "jsonl" as the NEXT path segment on that identical parent. `reader._building`
+	//   is the fix: the first call's whole build is ONE promise, and a second call
+	//   made before it resolves joins THAT SAME promise instead of starting its own.
+	static async jsonl(url){
+		const reader = this.Reader.for(url + "page.jsonl");
+
+		// A page already built for this reader — the common case on a SECOND visit,
+		// well after the first call settled. One page, built once, every later
+		// caller gets the SAME live object back.
+		if (reader.host) return reader.host;
+		if (reader._building) return reader._building;
+
+		return reader._building = (async () => {
+			await reader.open();
+
+			// A log whose line 1 is a `file` line is a folder's listing, not a page.
+			const [first] = reader.entries;
+			if (!first || typeof first.file === "string") { reader.close(); return null; }
+
+			const Class = first.class ? await this.log_class(first.class, url) : this;
+			const { class: _, ...line } = first;
+			const page = new Class(line, { url, jsonl_url: reader.url });
+
+			page.content ??= page.log_view;
+			reader.attach(page);
+			(Page.log_pages ??= new Map()).set(page.log_folder(), page);   // listing() reads it for free
+			return page;
+		})().finally(() => { reader._building = null; });
+	}
+
+	/* A FOLDER'S OWN FILE LIST — what used to cost the whole site's directory.json.
+	   `url` is the folder (a trailing `/` is added). Where the list lives
+	   (Server/plugins/PageFiles.js, doc/jsonl.md):
+	     - a jsonl page keeps it in its own page.jsonl — if that page is already loaded,
+	       its `listed` lines ARE the listing, with no fetch at all;
+	     - every other folder keeps it in files.jsonl.
+	   So: the loaded page, else files.jsonl, else page.jsonl (a jsonl page nobody has
+	   loaded, or a log from before files.jsonl), else null and the caller falls back to
+	   directory.json. When the parent's listing already says `kid/page.jsonl`, page.jsonl
+	   is asked first, so a card costs one request, not a 404 and then one.
+	   Memoised per folder (`fresh` refetches); no page is built.
+	   ⚠ Not live unless it came from a loaded page: a file added after the fetch is
+	   missing until `fresh`. */
+	static listing(url, fresh){
+		url = String(url).replace(/\/?$/, "/");
+		if (Page.UNLOGGED.test(url)) return Promise.resolve(null);
+
+		const own = Page.page_listing(url);
+		if (own) return Promise.resolve(own);
+
+		const memo = Page.listings ??= new Map();
+		if (fresh || !memo.has(url)) memo.set(url, Page.fetch_listing(url)
+			.then(listing => { (Page.loaded_listings ??= new Map()).set(url, listing); return listing; }));
+		return memo.get(url);
+	}
+
+	// The two files, in the order the parent's listing suggests; the first one there wins.
+	static async fetch_listing(url){
+		const [, parent, name] = url.match(/^(.*\/)([^/]+)\/$/) ?? [];
+		const jsonl_first = parent && Page.loaded_listing(parent)?.pages.get(name) === "jsonl";
+		const order = jsonl_first ? ["page.jsonl", "files.jsonl"] : ["files.jsonl", "page.jsonl"];
+
+		for (const file of order){
+			const reader = await new Page.Reader({ url: url + file }).load();
+			if (reader.loaded) return Page.Listing.from(reader.entries, file === "page.jsonl" ? undefined : false, file);
+		}
+		return null;
+	}
+
+	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+	static page_listing(url){
+		const page = Page.log_pages?.get(url);
+		if (!page) return null;
+		return Page.Listing.from([...page.listed?.values() ?? []].map(file => ({ file })), true, "page.jsonl");
+	}
+
+	// ⚠ Folders INSIDE a dated task folder get no log (Server/plugins/PageFiles.js
+	//   covers()), so asking would only log a 404: listing() answers null at once and
+	//   the caller falls back. The card style (ai/YYYY/MM/DD/) is left out on purpose:
+	//   a sub-card's folder can hold a real page.jsonl.
+	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
+
+	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+	// call that has come back; never fetches.
+	// undefined = not asked yet, null = asked, no file list.
+	static loaded_listing(url){
+		url = String(url).replace(/\/?$/, "/");
+		return Page.page_listing(url) ?? Page.loaded_listings?.get(url);
+	}
+
+	static async log_class(module, url){
+		const Class = (await import(new URL(module, location.origin + url).href)).default;
+		if (Class?.prototype instanceof Page) return Class;
+
+		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${this.name}.`);
+		return this;
+	}
+
 	naming(){
 		this.url   ??= this.meta ? new URL(".", this.meta.url).pathname
 		             : this.parent && this.name ? this.parent.url + this.name + "/"
 		             : this.title ? "/" + Page.slug(this.title) + "/"
 		             : undefined;
 		this.name  ??= this.url?.split("/").filter(Boolean).at(-1);
-		this.title ??= this.name;
+		// `put()`, not `this.title = …`: a construction-time DEFAULT is not a
+		// change (same "loading is not a change" rule `List.insert()` follows) —
+		// `title` is a real `data`-backed accessor now (2026-10-03), and the plain
+		// `=` form would fire a `change`/`delta` event, and even try to WRITE this
+		// default back out through the Store, on every single page that never set
+		// its own title.
+		if (this.title === undefined) this.put("title", this.name);
+
+		// A page's id is its folder name — `static new_id()` above deliberately
+		// returns undefined, so this is the ONLY place a page ever gets one. Without
+		// it, `page.pages`'s `key(x) => x.id` never matches anything by name, and
+		// every `add()`-ed child becomes permanently unfindable by `children.get()`/
+		// `.has()` — found 2026-10-02 chasing a 404 in core/Page/generator/, whose
+		// own `grow()` adds children exactly this way.
+		this.id ??= this.name;
 		return this.words();
 	}
 
@@ -107,21 +619,22 @@ export class Page extends PageLog {
 	// and still needs the frame, because the frame draws the very box it paints.
 	words_said(){ return !!(this.surface || this.word_classes().length); }
 
-	// One Map, in declaration order: undefined = not mine, null = declared, Page = here.
-	// A POJO declares by title — the key is the title, Page.slug(key) the url segment.
-	// ⚠ `list` IS THE DECLARATION — the config's own `children` when the constructor
-	//   calls this, and whatever a data source answered with later, so a SECOND call
-	//   ADDS and the children declared by name keep their places. A FUNCTION is a data
-	//   SOURCE: it declares nothing now and is called on the first ask, by
-	//   source_children() below. doc/data-children.md.
-	declare(list = this.children ?? []){
+	// My sub-pages, in declaration order: undefined = not mine, null = declared, Page
+	// = here — the Map-shaped shim over `page.pages` (above) that is the real
+	// storage now. A POJO declares by title — the key is the title, Page.slug(key)
+	// the url segment.
+	// ⚠ `list` IS THE DECLARATION — the config's own `children` (staged by the
+	//   `set children()` the moment the constructor's `assign()` sees one, read here
+	//   once `naming()` has given me a `url` to move them into) and whatever a data
+	//   source answered with later, so a SECOND call ADDS and the children declared
+	//   by name keep their places. A FUNCTION is a data SOURCE: it declares nothing
+	//   now and is called on the first ask, by source_children() below. doc/data-children.md.
+	declare(list = this._raw_children ?? []){
 		if (is.fn(list)) { this.child_source = list; list = []; }
 
 		const entries = is.str(list) ? list.trim().split(/\s+/)
 		              : is.arr(list) ? list
 		              : Object.entries(list);
-
-		if (!(this.children instanceof Map)) this.children = new Map();
 
 		entries.forEach(child => {
 			if (is.str(child)) return this.children.set(this.child_file(child), null);   // "kid/page.jsonl" → kid
@@ -161,16 +674,25 @@ export class Page extends PageLog {
 		if (this.url) page.move(this.url + name + "/");
 
 		page.naming();
-		this.children.set(name, page);
+
+		// Quietly — declaring a child is not a live edit. A stub already holding this
+		// name (an earlier `file`/`tab` line, or `declare()`'s own string form) is
+		// REPLACED in place (`List.replace`, never announces); otherwise this is
+		// a fresh insert. `page.pages` (above) is the real storage; `this.children`
+		// above is only the Map-shaped view over it.
+		const stub = this.pages.find(name);
+		stub ? this.pages.replace(stub, page) : this.pages.insert(page);
 		return page;
 	}
 
-	// Adoption hands a page a new address; the resolved subtree moves with it.
+	// Adoption hands a page a new address; the resolved subtree moves with it. Stubs
+	// (not yet loaded) have no `.move()` of their own and are skipped, same as the
+	// old `child?.move(...)` did when `child` was `null`.
 	move(url){
 		if (this.url === url) return this;
 
 		this.url = url;
-		this.children.forEach((child, name) => child?.move(url + name + "/"));
+		this.pages.forEach(child => { if (!child.stub) child.move(url + child.id + "/"); });
 		return this;
 	}
 
@@ -233,7 +755,7 @@ export class Page extends PageLog {
 		const claimed = known === undefined && is.fn(this.route) && this.route(name);
 		if (claimed) return this.add(name, claimed).load_all_children(levels);
 
-		// My folder's own page.jsonl (Log.js listing()), IF something already loaded it,
+		// My folder's own page.jsonl (listing() above), IF something already loaded it,
 		// says which file makes `name`, so the probe that would 404 is skipped. Not
 		// fetched here: every folder the Router walks would pay a fetch, and a folder
 		// with no log a 404. A name it does not list keeps the probe order below: a
@@ -663,6 +1185,17 @@ export class Page extends PageLog {
 		//   captor for exactly this one call, the same shape content_at() uses,
 		//   so nothing about the two branches above has to change.
 		if (this.related) this.view.append(() => { this.related_aside(); });
+		// "$N.NN of AI work · M tasks" — computed by Server/page-ai-cost.mjs onto this
+		// page's own log, never by this code (law 7). It goes at the END of the page: at
+		// the top it sat above a Doc page's tab title with no padding and pushed the whole
+		// page down (owner, 2026-10-03). Fails soft: no figure draws nothing.
+		if (this.title && this.url) this.view.append(() => {
+			span.c("page-ai-cost muted").append(ai_cost(this.url).then(c => {
+				if (!c || !(c.usd > 0)) return undefined;
+				return a(`$${c.usd.toFixed(2)} of AI work · ${c.tasks} task${c.tasks === 1 ? "" : "s"}`)
+					.href(`/framework/ai/log/?page=${encodeURIComponent(this.url)}`);
+			}));
+		});
 
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);   // once, here — the early return above skips a second draw
@@ -681,9 +1214,110 @@ export class Page extends PageLog {
 	     produces, in the reading track, and reads backticks as code the way every other
 	     paragraph on the site does. */
 	render_content(){
+		if (this.content instanceof List) return this.render_content_list();
 		if (is_address(this.content)) return this.content_at(this.content);
 		if (is.str(this.content)) return p(this.content);
 		return is.fn(this.content) ? this.content() : this.content;
+	}
+
+	/* ════ A CONTENT LIVELIST, DRAWN — the one reusable view (deliverable 6,
+	   page-item-design.md). One row per item, each item's own `.view`; drag to
+	   reorder with `ext/Draggable/Sortable` (dynamic import — core never imports
+	   ext); redrawn from the list's own events, never polled.
+	   ⚠ `item: { items: list, … }` on the CONTAINER's own Sortable, and `item: item`
+	     (the real content Item) on each ROW's — `Sortable.release()` (ext/Draggable)
+	     commits a drop through `where.list.item.items.move(dragged, { from:
+	     dragged.parent?.items })`, a name every OTHER caller of Sortable (Panel, the
+	     editor's blocks) happens to have chosen for its own list too. `content`'s
+	     real name everywhere else is `content`; `items` here is only that one seam,
+	     confined to this method. A page has no `.items` of its own, so `from`
+	     resolves to `undefined` and `move()` reorders within THIS list — exactly
+	     right for a flat list with no nesting. */
+	render_content_list(){
+		const list = this.content;
+		let $rows;
+		// Drag-to-reorder is OPT-IN (the owner, 2026-10-03): only a list that is a ranking
+		// the reader may override says `{"sortable": true}` on its page. A plain card body
+		// is read, not rearranged, so it gets no grab cursor and no drag.
+		const sortable = !!this.get?.("sortable");
+
+		// ⚠ `item.view` is undefined until core/Item grows a real default view (the
+		//   `static View` wiring Item.js's own comment names, not yet built) — so a
+		//   plain, untyped item (no view of its own) falls back to its own title or
+		//   text, read straight off its data bag, rather than drawing an empty row.
+		const draw_row = item => {
+			const $row = div.c("page-content-row card", () => {
+				// A REFERENCE ROW (the owner, 2026-10-03): `{"ref": "/framework/core/Page/"}` on
+				// a content item makes the row BE that page — drawn as its own dark class card
+				// (ext/Mention's "#Page"-in-text look, reused rather than invented a second time,
+				// CLAUDE.md law 6), the row's own `title`/`text` reading as the caption UNDER that
+				// card. `ref_entry`/`build_row` are dynamically imported (core never imports ext
+				// statically) into a box captured synchronously here and filled in the callback —
+				// this framework's own no-DOM-after-an-await rule, same pattern `text` below already
+				// uses for `md()`. A `ref` refs.js doesn't know yet still renders — a bare icon +
+				// the raw url — rather than a blank gap (refs.js's own index is a sibling task).
+				const ref = item.get("ref");
+				const title = item.get("title"), text = item.get("text");
+				// The text under the title, as markdown. ext/markdown is dynamically imported
+				// (core never imports ext statically); the box is captured now and filled in the
+				// callback, never DOM after an await. Before 2026-10-03 a titled item dropped its
+				// text entirely (the owner's "Now" card showed three bare titles).
+				const draw_body = () => {
+					if (title || !text) h4.c("page-content-title", title ?? String(item.id));
+					if (text){
+						const $text = div.c("page-content-text");
+						import("../../ext/markdown/md.js").then(({ default: md }) => $text.append(md(text)));
+					}
+				};
+				if (ref){
+					// A ref row is the inline "#Page" chip UPGRADED to a full-width card (the
+					// owner, 2026-10-03, the "context card"): the row is ALWAYS dark — the
+					// class-card look — never conditional on `entry.class_card` the way an
+					// inline mention is, because here the card IS the row, not a word in a
+					// sentence. Only the HEADER (the icon + name chip, `build_row`, same as the
+					// inline mention) links to the page; the card BODY — this item's own
+					// title/text — sits under it, inside the same dark card, and does NOT link
+					// through. That split is why `draw_body()` runs inside `$card`, not at the
+					// row level the way a plain (non-ref) item's title/text does below.
+					const $card = div.c("page-content-ref card page-surface-dark");
+					import("../../ext/Mention/Mention.js").then(({ ref_entry, build_row }) => {
+						const entry = ref_entry(ref) ?? { name: ref, icon: "link", url: ref };
+						// `build_row` deliberately builds its chip with `View.captor` nulled (it is
+						// also used inline, mid-sentence, where auto-appending would land it in the
+						// wrong place) and hands back the raw element — appended here by hand, not by
+						// an implicit arrow return, because this callback also needs to run
+						// `draw_body()` after it without that second call's return value (`undefined`,
+						// a block body) overwriting the chip as what gets appended.
+						$card.append(() => { $card.append(build_row(entry.name, entry, "mention")); draw_body(); });
+					});
+					return;
+				}
+				if (item.view) return void $rows.append(() => item.view);
+				draw_body();
+			});
+			if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+				new Sortable({ view: $row, item });
+			});
+			return $row;
+		};
+
+		// ⚠ A BLOCK BODY, not `() => list.forEach(draw_row)` — `forEach()` returns the
+		//   list itself, and an arrow function's IMPLICIT return hands that back to
+		//   `div.c()` as one more thing to append, which stringifies it into a stray
+		//   "[object Object]" text node after the real rows (found taking this
+		//   method's own screenshot, 2026-10-02).
+		const box = div.c("page-content-list flow", () => {
+			$rows = div.c("page-content-rows", () => { list.forEach(draw_row); }).ac(sortable && "drag-items sortable");
+		});
+
+		if (sortable) import("../../ext/Draggable/Sortable.js").then(({ default: Sortable }) => {
+			new Sortable({ view: $rows, handle: false, $items: $rows, item: { items: list, root(){ return this; } } });
+		});
+
+		const redraw = () => $rows.empty(() => { list.forEach(draw_row); });
+		["add", "remove", "move", "order"].forEach(verb => list.on(verb, redraw));
+
+		return box;
 	}
 
 	/* A PAGE OR A FILE, AT AN ADDRESS, DRAWN IN THIS PAGE'S BOX. `content: "/notes/x.md"`
@@ -1109,17 +1743,38 @@ export class Page extends PageLog {
 	// ⚠ `leaf` opts a child out whole: it presents ITSELF, not its children — and a
 	// child that overrode `previews()` into something else entirely (a rail, a
 	// timeline) would otherwise render that thing here, on someone else's index.
+	//
+	// Split into `wall_rungs()` (the array, built DETACHED from whatever capture is
+	// open — same reason `ext/Mention`'s `build_row()` does it, core/View/doc/
+	// capturing.md) and this thin wrapper (the one flex column every existing caller
+	// still gets) so a caller that wants to place the SAME rungs a different way —
+	// `ext/sprawl`'s balanced columns, `public/framework/page.js` — can ask for the
+	// array instead of this one fixed arrangement, with no second copy of the "which
+	// child counts as a section" judgment call above.
 	walls(){
-		return div.c("page-walls bleed flex v gap", () => this.children.forEach((page, name) => {
-			if (!page?.children.size || page.leaf) return;
+		return div.c("page-walls bleed flex v gap", $box => this.wall_rungs().forEach(rung => $box.append(rung)))
+			.style("--gap", "3em");
+	}
 
-			const nav = this.nav_for(name);
+	wall_rungs(){
+		const saved = View.captor;
+		View.captor = null;
+		try {
+			const rungs = [];
+			this.children.forEach((page, name) => {
+				if (!page?.children.size || page.leaf) return;
 
-			div.c("page-wall flex v gap", () => {
-				h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
-				page.previews();
-			}).style("--gap", "1em");
-		})).style("--gap", "3em");
+				const nav = this.nav_for(name);
+
+				rungs.push(div.c("page-wall flex v gap", () => {
+					h2.c("page-wall-title", () => a.c("page-link", nav.label).href(nav.url));
+					page.previews();
+				}).style("--gap", "1em"));
+			});
+			return rungs;
+		} finally {
+			View.captor = saved;
+		}
 	}
 
 	// The one card shape. A page that wants a live render overrides this method:
@@ -1128,12 +1783,17 @@ export class Page extends PageLog {
 
 	// ⚠ The thumb is INERT (Page.css): the label below it is a link, so a live render
 	// in here would be an `<a>` inside an `<a>` — invalid, and the browser un-nests it.
+	// `nav.class_card` (set by `ext/Doc`'s own `nav()`, true when `Doc.is_class(this.subject)`
+	// says the page documents a real ES class) wears the SAME always-dark island every other
+	// "dark" surface on the site already uses (`page-surface-dark`, `core/Page/words.js`'s
+	// `dark` SURFACE word) — one card look for "this names a class", not a new one invented
+	// for this task (CLAUDE.md law 6).
 	preview_card(nav = this.nav(), thumb){
 		return div.c("page-preview", () => {
 			if (thumb) this.preview_thumb(thumb);
 			this.preview_link(nav);
 			if (!thumb && nav.description) p.c("page-preview-desc", nav.description);
-		}).ac(nav.card);
+		}).ac(nav.card).ac(nav.class_card && "page-surface-dark");
 	}
 
 	// THE THUMB, plus the one measurement Page.css can't make on its own: whether a
@@ -1197,16 +1857,19 @@ export class Page extends PageLog {
 		return this;
 	}
 
-	// ════ STORAGE — the page's own url IS the id ══════════════════════════════
+	// ════ PREFERENCES — the page's own url IS the id ═══════════════════════════
 	// A handle over localStorage: `get` / `set` / `patch` / `clear`. Production is
 	// static, so there is no server to hand out ids — and a page already has one
 	// thing that is unique, stable and human-readable: its address, derived by
 	// naming(), so it cannot drift out of step with the tree the way a hand-typed
-	// `id: "team-board"` would. doc/method/store.md.
+	// `id: "team-board"` would. doc/method/prefs.md.
 	// ⚠ Storage, not STATE — nothing here notifies. A page that wants a redraw
 	//   calls its own watcher after the write; a subscription API in core would
 	//   make ~160 pages pay for a pattern four of them want (doc/roles.md).
-	store(){ return new this.constructor.Store({ page: this }); }
+	// ⚠ Renamed from `store()` (was `Page.Store`) — `page.store` is now the LIVE
+	//   jsonl Store (Item.Store, core/Item/Store.js, attached by `Page.jsonl()`),
+	//   and the two must never share a name again.
+	prefs(){ return new this.constructor.Prefs({ page: this }); }
 
 	// ext/tabs patches `tabs()` onto this prototype and fills `regions`, which
 	// container() reads. Nothing here declares either.
@@ -1219,6 +1882,176 @@ export class Page extends PageLog {
 //   every constructor name in the chain, and `.stage` is a framework layout word that
 //   would shrink-wrap the frame with nothing thrown. Frame.js says it at length.
 Page.Frame = PageFrame;
+
+// Registered (2026-10-03) so `define_fields()` actually runs and builds the
+// `title`/`icon`/`description` accessors above — every other Item subclass
+// that wants fields already goes through `register()` for its wire name; Page
+// never had, until now, a reason to.
+Item.register(Page, "Page");
+
+/* THE SHIM — a Map-shaped VIEW over `page.pages` (the real List storage), so
+   every existing `.children` caller keeps working unchanged. `instanceof Map` is
+   real (this class extends it), but the base Map's own storage is never touched —
+   every method here reads or writes `page.pages` instead. Folded in from the
+   deleted PageLog class, 2026-10-03. */
+class PageChildren extends Map {
+
+	constructor(page){ super(); this.page = page; }
+
+	get pages(){ return this.page.pages; }
+
+	// The page, `null` for a stub (declared but not yet loaded), `undefined` if the
+	// name is absent altogether.
+	get(name){
+		const found = this.pages.find(name);
+		return found === undefined ? undefined : found.stub ? null : found;
+	}
+
+	has(name){ return this.pages.find(name) !== undefined; }
+
+	// `null` adds a stub (quietly — declaring a child is not a live edit); a real
+	// page quietly inserts, or quietly REPLACES the stub that already held this name
+	// (`List.replace`, which never announces: loading is not a change).
+	set(name, value){
+		const had = this.pages.find(name);
+
+		if (value === null){
+			if (!had) this.pages.insert({ id: name, name, stub: true });
+			return this;
+		}
+
+		had ? this.pages.replace(had, value) : this.pages.insert(value);
+		return this;
+	}
+
+	// Quiet — a Map never announced either. `release()` is List's quiet remove
+	// (core/List/List.js), the counterpart to `remove()`'s announcing one.
+	delete(name){
+		const had = this.pages.find(name);
+		if (!had) return false;
+		this.pages.release(had);
+		return true;
+	}
+
+	get size(){ return this.pages.length; }
+
+	// Returns undefined, like Map.forEach: a View capture `() => x.children.forEach(…)` renders its return value.
+	forEach(fn, thisArg){ this.pages.forEach(page => fn.call(thisArg, page.stub ? null : page, page.id, this)); }
+	keys(){ return this.pages.map(page => page.id)[Symbol.iterator](); }
+	values(){ return this.pages.map(page => page.stub ? null : page)[Symbol.iterator](); }
+	entries(){ return this.pages.map(page => [page.id, page.stub ? null : page])[Symbol.iterator](); }
+	[Symbol.iterator](){ return this.entries(); }
+
+	clear(){ [...this.pages].forEach(page => this.pages.release(page)); }
+}
+
+/* `Item.Store`, specialised for a page.jsonl file — one per URL (`Reader.for`), so
+   `page.store` IS this once a jsonl page has loaded. Keeps every name this had
+   before the fold-in: `open`, `close`, `parse`, `read`, `attach`, `changed`, `reset`
+   — `page` is now an ALIAS for Item.Store's own `host`. */
+Page.Reader = class PageLogReader extends Item.Store {
+
+	get page(){ return this.host; }
+	set page(host){ this.host = host; }
+
+	// ⚠ core never statically imports ext; live.js is imported only on localhost.
+	// `this.live` (kept, not on the base Store) is what `close()` needs to drop the
+	// subscription — Item.Store itself never tails more than once and never closes.
+	open(){
+		if (!dev) return this.load();
+		return import("../../ext/JSONL/live.js")
+			.then(live => (this.live = live).stream(this, () => this.changed()));
+	}
+
+	close(){ this.live?.drop(this); }
+
+	// Tracks which KEYS arrived in this batch — `changed()` below reads it to decide
+	// whether a live line is worth a nav redraw, same as before the fold-in.
+	read(entries){
+		for (const entry of entries) for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
+		return super.read(entries);
+	}
+
+	// Line 1 already built the page (`Page.jsonl()` above) — HOLD UNTIL LINE 1,
+	// never replay it a second time. Everything else is Item.Store's own `attach()`
+	// (the "delta" listener, the echo skip, the replaying flag).
+	attach(host){
+		this.host = host;
+		host.store = this;
+		host.on("delta", (line, origin) => {
+			if (this.replaying) return;
+			this.append(this.line_for(line, origin, host));
+		});
+
+		const held = this.entries.splice(0).slice(1);
+		this.read(held);
+		this._seen = null;   // the load's keys are not news; changed() redraws for live lines only
+
+		host.report_unknown();
+		return this;
+	}
+
+	// A `tab` or `file` line describes MY OWN children's state, so I redraw MY OWN
+	// tab strip (nav_redraw(), ext/tabs/tabs.js). A `settings` line is a page's
+	// preference about ITSELF, read by its PARENT's tab strip — so that redraw is
+	// asked of `this.host.parent` instead. Either way this replaces what used to be
+	// a `location.reload()` — the strip (and the rail, which nav_redraw() bubbles up
+	// to) fixes itself with no reload at all.
+	changed(){
+		this.host?.report_unknown();
+		this.host?.log_redraw();
+
+		const seen = this._seen; this._seen = null;
+		if (seen?.has("tab") || seen?.has("file")) this.host?.nav_redraw?.();
+		if (seen?.has("settings")) this.host?.parent?.nav_redraw?.();
+	}
+
+	// A REWRITTEN (not appended) file replays from line 1 onto a clean slate.
+	reset(){
+		this.count = 0;
+		this.host?.log_forget();
+		delete this.loaded;
+		return this;
+	}
+};
+
+/* WHAT `listing()` ANSWERS — the entries directly inside one folder, replayed the way
+   file() replays them (keyed by first segment, latest line wins, `gone` removes):
+       files  ["readme.md", …]         plain files
+       dirs   ["doc", …]               plain folders (each may have its own page.jsonl)
+       pages  Map { "kid" → "js" }     child pages, and which file makes each one
+       page   true/false               is this log itself a page (line 1 is not a file line)?
+       log    "files.jsonl" | "page.jsonl"   the file the list was read from */
+Page.Listing = class PageListing {
+
+	files = [];
+	dirs = [];
+	pages = new Map();
+
+	// `page`: is this folder a jsonl page? Unknown (undefined) means "read line 1".
+	// `log`: the file the list came from ("files.jsonl" or "page.jsonl") — a real file there too.
+	static from(entries, page, log = "page.jsonl"){
+		const latest = new Map();
+		for (const { file, gone } of entries){
+			if (typeof file !== "string") continue;
+			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
+		}
+
+		const listing = new this();
+		listing.log = log;
+		listing.page = page ?? (!!entries[0] && typeof entries[0].file !== "string");   // line 1 builds a page; a listing-only log starts with a file line
+		latest.forEach((name, key) => {
+			const kind = name.match(CHILD)?.[2];
+			if (kind) listing.pages.set(key, kind);
+			else if (name.includes("/")) listing.dirs.push(key);
+			else listing.files.push(name);
+		});
+		return listing;
+	}
+
+	// Is `name` a folder here, page or not?
+	folder(name){ return this.dirs.includes(name) || this.pages.has(name); }
+};
 
 // `track()` installs `Page.track(instance)` / `Page.instances()` — opt-in instance
 // tracking, installed once here so every Page (and every subclass that doesn't
@@ -1240,10 +2073,10 @@ let warned = false;
 function warn(key, error){
 	if (warned) return;
 	warned = true;
-	console.warn(`store(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
+	console.warn(`prefs(${key}) — localStorage is unavailable (${error.name}); this session is kept in memory only.`);
 }
 
-Page.Store = class PageStore {
+Page.Prefs = class PagePrefs {
 
 	// The app's own namespace: one origin serves /notes/, /imagine/ and every demo,
 	// so an unprefixed url is a collision waiting for the next site on this domain.
@@ -1254,7 +2087,7 @@ Page.Store = class PageStore {
 
 	// The whole idea, in one line. `id` is the seam for a caller that is not a
 	// page at all, one fixed key regardless of url — `core/Sidebar`'s rail
-	// (merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Store({ id:
+	// (merged 2026-09-18, `Sidebar.Store` deleted: `new Page.Prefs({ id:
 	// "sidebar" })` is the same `lew42:sidebar` key that file always wrote).
 	// `store_key` is still the seam for a page that MOVED: move() re-addresses
 	// a whole subtree, so an adopted page would otherwise change key silently
@@ -1285,18 +2118,18 @@ Page.Store = class PageStore {
 	// null when nothing is saved OR the saved value is corrupt — `get()` decides
 	// what that means, because only the caller knows its defaults.
 	read(){
-		const value = PageStore.read_raw(this.key());
+		const value = PagePrefs.read_raw(this.key());
 		return value === undefined ? memory.get(this.key()) ?? null : value;
 	}
 
 	get(fallback = {}){ return { ...fallback, ...(this.read() ?? {}) }; }
 
 	// Always "succeeds" from the caller's own point of view — write_raw's own
-	// return is ignored here on purpose, the same silent-degrade Page.Store has
+	// return is ignored here on purpose, the same silent-degrade Page.Prefs has
 	// always promised (see the comment above `memory`).
 	set(data){
 		memory.set(this.key(), data);
-		PageStore.write_raw(this.key(), data);
+		PagePrefs.write_raw(this.key(), data);
 		return data;
 	}
 
@@ -1305,7 +2138,7 @@ Page.Store = class PageStore {
 
 	clear(){
 		memory.delete(this.key());
-		PageStore.clear_raw(this.key());
+		PagePrefs.clear_raw(this.key());
 	}
 };
 

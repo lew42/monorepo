@@ -1,0 +1,442 @@
+{
+ "url": "http://127.0.0.1:60161/framework/ext/",
+ "widths": {
+  "400": {
+   "empty": 0.431,
+   "widest_text": 314,
+   "widest_text_sample": "Chrome for arranging: divide, drag, alig",
+   "overflow_x": false,
+   "items": 50,
+   "narrow_share": 0.16,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    },
+    "p": {
+     "total": 28,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 28
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 72,
+     "h": 40,
+     "share": 0.04,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 154,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.583,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 229,
+     "h": 43,
+     "share": 0.043,
+     "ink": 0.35,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 286,
+     "h": 3815,
+     "share": 3.815,
+     "ink": 0.581,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "⋯More",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.388,
+   "widest_text": 491,
+   "widest_text_sample": "is loaded and plain code when it isn't, ",
+   "overflow_x": false,
+   "items": 102,
+   "narrow_share": 0.127,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 38,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.275,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 132,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 187,
+     "h": 46,
+     "share": 0.046,
+     "ink": 0.212,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 248,
+     "h": 1005,
+     "share": 1.005,
+     "ink": 0.721,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1298,
+     "h": 107,
+     "share": 0.107,
+     "ink": 0.65,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1435,
+     "h": 54,
+     "share": 0.054,
+     "ink": 0.517,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1519,
+     "h": 81,
+     "share": 0.081,
+     "ink": 0.517,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1629,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.55,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1708,
+     "h": 39,
+     "share": 0.039,
+     "ink": 0.037,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.415,
+   "widest_text": 527,
+   "widest_text_sample": "is loaded and plain code when it isn't, ",
+   "overflow_x": false,
+   "items": 102,
+   "narrow_share": 0.951,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    },
+    "p": {
+     "total": 67,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 67
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.212,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 160,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 224,
+     "h": 50,
+     "share": 0.05,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 298,
+     "h": 845,
+     "share": 0.845,
+     "ink": 0.709,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1206,
+     "h": 115,
+     "share": 0.115,
+     "ink": 0.338,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1361,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1458,
+     "h": 86,
+     "share": 0.086,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1584,
+     "h": 29,
+     "share": 0.029,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1682,
+     "h": 42,
+     "share": 0.042,
+     "ink": 0.1,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.452,
+   "widest_text": 592,
+   "widest_text_sample": "is loaded and plain code when it isn't, ",
+   "overflow_x": false,
+   "items": 102,
+   "narrow_share": 0.951,
+   "layout": "wall",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "page-title",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.163,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 181,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.237,
+     "big_empty": false
+    },
+    {
+     "cls": "code-block",
+     "y": 253,
+     "h": 56,
+     "share": 0.056,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "page-previews",
+     "y": 352,
+     "h": 673,
+     "share": 0.673,
+     "ink": 0.701,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1113,
+     "h": 130,
+     "share": 0.13,
+     "ink": 0.235,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1287,
+     "h": 65,
+     "share": 0.065,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1397,
+     "h": 97,
+     "share": 0.097,
+     "ink": 0.219,
+     "big_empty": false
+    },
+    {
+     "cls": "md",
+     "y": 1539,
+     "h": 32,
+     "share": 0.032,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "md-details",
+     "y": 1651,
+     "h": 47,
+     "share": 0.047,
+     "ink": 0.1,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "☰",
+     "lines": 1.8
+    }
+   ]
+  }
+ },
+ "errors": []
+}

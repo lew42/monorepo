@@ -70,3 +70,6 @@
 {"file":"page-holds/"}
 {"file":"quick-fix-path/"}
 {"file":"session-gate/"}
+{"file":"inspect/"}
+{"file":"line-filter/"}
+{"file":"recover-main-untracked/"}

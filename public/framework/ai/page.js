@@ -1,4 +1,4 @@
-import { Page, md, div, a, h1, AITask } from "/app.js";
+import { Page, md, div, a, h1, icon, span, AITask } from "/app.js";
 import AIRail, { card_page } from "/framework/ai2/rail.js";   // the Inbox and Log tabs: the same rail AI 2 draws
 
 /* WHAT A RAIL ROW CAN BE CALLED — the tabs beside it, Live, Now, the views, a changed site
@@ -46,7 +46,7 @@ export default new Page({
 			// url and wears `.tab-default` (ext/tabs' "not really a match" flag), so a card url,
 			// which matches no tab, lights Inbox by ext/tabs' first-child fallback.
 			div.c("inbox-head", () => {
-				div.c("doc-well", () => h1.c("doc-title h2", "AI"));
+				div.c("doc-well", () => h1.c("doc-title h2", () => { icon(this.icon); span(this.title ?? "AI"); }));   // the icon before the name, as on every Doc page
 				div.c("tabs block", () => {
 					// Inbox has no folder of its own — the band always draws it first.
 					const $bar = div.c("tab-bar", () => { a.c("tab tab-default").href(this.url).text("Inbox"); });
@@ -131,9 +131,11 @@ export default new Page({
 		if (name === "now") return now_page(this);
 
 		// THE RAIL'S OWN ADDRESSES — Live, a card at its real folder (`2026/09/30/<card>/`, the
-		// year, month and day are pages too), the card views, a changed site page. The same
-		// `AIRail.route()` AI 2 uses, so a card opens the same way on both.
-		if (!v1() && (name === "live" || name === "view" || name === "framework" || /^\d{4}$/.test(name))) return AIRail.route(this, name);
+		// year, month and day are pages too), the card views, a changed site page, Your prompts.
+		// `AIRail.handles()` is the ONE list (bug 4, 2026-10-03: this page used to hand-list a
+		// shorter set than the rail itself routes, so a rail link to "your-prompts" 404'd) — the
+		// same `AIRail.route()` AI 2 uses, so a card opens the same way on both.
+		if (!v1() && AIRail.handles(name)) return AIRail.route(this, name);
 		// A row that is not a card folder opens the same card page AI 2 gives it.
 		if (!v1() && CARD_ID.test(name)) return card_page(this, name);
 

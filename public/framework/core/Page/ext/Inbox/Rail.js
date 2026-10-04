@@ -5,16 +5,22 @@ import grip from "/framework/ext/grip/grip.js";
 View.stylesheet("/framework/ux/Inbox/Inbox.css");
 
 /**
- * INBOX RAIL — a list of previews on the left, the one you picked open on the right,
- * and nothing in the list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a
- * persistent navigation… it shouldn't jump when you click on an item").
+ * THE BIG RAIL — `Inbox.Rail` (restructured 2026-10-02; this file still defines the class,
+ * now named plain `Rail`, and `Inbox.js` imports it to assign `Inbox.Rail = Rail` — chosen
+ * over moving this whole body into `Inbox.js` so this file never has to import that one back
+ * (an import cycle). The old name, `InboxRail`, is a one-release re-export from `Inbox.js`;
+ * see this folder's readme.md, "Architecture", for the full before/after).
+ *
+ * A list of previews on the left, the one you picked open on the right, and nothing in the
+ * list ever jumps (the owner, 2026-09-22, 2026-09-30: "it is a persistent navigation… it
+ * shouldn't jump when you click on an item").
  *
  * This is the base class. The AI page and AI 2 both draw `AIRail` (ai2/rail.js), which
- * extends this with the usage meters, "+ New card" and the AI data. Any other page can
- * extend it the same way: override `source()` to say what the rows are, and the rest
- * comes with it.
+ * extends this (`class AIRail extends Inbox.Rail`) with the usage meters, "+ New card" and
+ * the AI data. Any other page can extend it the same way: override `source()` to say what
+ * the rows are, and the rest comes with it.
  *
- *   const rail = new InboxRail({ page: this, items: [...] }).mount();   // inside content()
+ *   const rail = new Rail({ page: this, items: [...] }).mount();   // inside content()
  *
  * WHAT YOU GET
  *   - three columns: the rail, the detail (`page.$pages`, where a row's page opens) and
@@ -34,11 +40,11 @@ View.stylesheet("/framework/ux/Inbox/Inbox.css");
  * Every part is a method, so a subclass changes one part and keeps the rest. Docs:
  * ux/Inbox/readme.md · see one running at /framework/ux/Inbox/.
  */
-export default class InboxRail {
+export default class Rail {
 	/* ── settings a subclass or a caller may override ── */
-	title = "Inbox";               // the rail's own name, above its filters
-	key = "inbox";                 // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
-	min_default = InboxRail.FLOOR; // the floor when the url has no `?min=`
+	title = "Inbox";          // the rail's own name, above its filters
+	key = "inbox";            // localStorage prefix: `<key>-rail-w`, `<key>-read-ids`
+	min_default = Rail.FLOOR; // the floor when the url has no `?min=`
 	items = [];                    // the rows, for a rail that is just given them (the demo)
 
 	/* ── state ── */
@@ -428,7 +434,7 @@ export default class InboxRail {
 
 	/** A row's address: its page under mine, carrying a floor that is not the Inbox's own. */
 	href(it){ return this.url + it.id + "/" + this.query(); }
-	query(){ return this.min !== InboxRail.FLOOR ? "?min=" + this.min : ""; }
+	query(){ return this.min !== Rail.FLOOR ? "?min=" + this.min : ""; }
 
 	/* A ROW IS AN ANCHOR — no click handler: the Router navigates it and marks it. */
 	make(it){
@@ -604,5 +610,3 @@ export default class InboxRail {
 	store_set(k, v){ try { localStorage.setItem(k, v); } catch {} }
 	store_drop(k){ try { localStorage.removeItem(k); } catch {} }
 }
-
-export { InboxRail };

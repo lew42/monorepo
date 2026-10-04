@@ -23,12 +23,12 @@ export default function menu(app){
 
 	const $menu = button.c("drawer-menu", "☰")
 		.attr("type", "button")
-		.attr("title", "Menu — AI, sessions, dictation, settings")
+		.attr("title", "Menu — AI, dictation, settings")
 		.attr("aria-label", "Open the page menu")
 		.click(() => tabs.toggle());
 
-	// A url that names a tab (`?drawer=sessions`) opens on it — once the styles are in,
-	// so the rail never paints unstyled and slides.
+	// A url that names a tab opens on it, once the styles are in (so the rail never paints
+	// unstyled and slides) — `tabs.open()` itself remaps an old `?drawer=sessions` to "ai".
 	const routed = tabs.routed();
 	if (routed) app.styles_loaded().then(() => tabs.open(routed));
 

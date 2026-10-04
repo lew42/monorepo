@@ -19,7 +19,7 @@ extending, or not built at all.`).ac("wide");
 
 		md(`| concern | what exists | verdict | note |
 |---|---|---|---|
-| **Topic model** | \`is: "topic"\` role + \`nearest()\` ([roles](/framework/core/Page/doc/roles/)) · \`children:\` composition ([children](/framework/core/Page/doc/property/children/)) · \`store()\` ([store](/framework/core/Page/doc/method/store/)) | **reuse** | \`roles.md\` already argued this exact question and rejected a subclass and a flag — see the recommendation below |
+| **Topic model** | \`is: "topic"\` role + \`nearest()\` ([roles](/framework/core/Page/doc/roles/)) · \`children:\` composition ([children](/framework/core/Page/doc/property/children/)) · \`prefs()\` ([prefs](/framework/core/Page/doc/method/prefs/)) | **reuse** | \`roles.md\` already argued this exact question and rejected a subclass and a flag — see the recommendation below |
 | **Subtopics / spaces** | \`columns()\` — six width words, a default column, drag-resize ([columns](/framework/core/Page/doc/columns/)) · a live world at [/imagine/](/imagine/) | **reuse** | subtopic-as-column already works; [\`ext/Panel\`](/framework/ext/Panel/) is chrome for wireframing arrangements, not a fit for user-created channels |
 | **Omnibox / search** | [\`ux/Filter\`](/framework/ux/Filter/) — segment + search → a predicate, the nearest primitive · [\`ux/Menu\`](/framework/ux/Menu/) · [\`ext/Dropdown\`](/framework/ext/Dropdown/) | **missing** | nothing keyboard-first or command-palette-shaped exists; \`keydown\` handling is ad hoc in five different modules with no shared layer |
 | **Community / chat / writes** | [\`/imagine/stream/\`](/imagine/stream/) — live multi-window JSONL sync, ~9ms · [\`/imagine/cms/\`](/imagine/cms/) — a working edit-and-publish pipeline | **extend** | both are proven, but write only over the loopback dev socket — nothing writes from a deployed static site yet |
@@ -28,7 +28,7 @@ extending, or not built at all.`).ac("wide");
 | **Real-time** | the full wire protocol — one MCP HTTP hop, one WebSocket, jsonl-tail streaming ([wire](/framework/dev/Socket/doc/wire/)) | **extend** | the *design* (append, tail, replay) is the model to imitate in production; it is loopback-gated today, on purpose — an RCE was once closed on that exact gate |
 | **Video** | [\`/imagine/youtube/\`](/imagine/youtube/) — a Player wrapper + a Cues timeline engine · [\`/imagine/feeds/video/\`](/imagine/feeds/video/) — lazy embed | **reuse** | playback/embedding is strong and already shared by the 3D pager's tour; upload, auth and transcripts are untouched |
 | **AI** | [\`ext/Ask\`](/framework/ext/Ask/) — browser-to-Claude bridge · [\`ext/Research\`](/framework/ext/Research/) — append-only, credence-graded, claim/vote/verdict | **extend** | Research's shape is directly reusable for AI-assisted topic/wiki creation; fal.ai has zero references anywhere in the framework |
-| **Levels / badges / progression** | none as a system — [\`/imagine/game/\`](/imagine/game/) and [\`/imagine/team/\`](/imagine/team/) both build progress from \`is: "topic"\` + \`store()\` | **missing** | that role + store combo is exactly the primitive a levels system would extend; no badge, XP or certification concept exists |
+| **Levels / badges / progression** | none as a system — [\`/imagine/game/\`](/imagine/game/) and [\`/imagine/team/\`](/imagine/team/) both build progress from \`is: "topic"\` + \`prefs()\` | **missing** | that role + store combo is exactly the primitive a levels system would extend; no badge, XP or certification concept exists |
 | **Publishing / deploy** | \`wrangler.jsonc\` — Cloudflare Workers assets + SPA fallback, already live · \`meta.mjs\` — manifest → committed static derivatives ([/blog/](/blog/)) | **extend** | the static half is done and proven; zero Worker, D1, Durable Object, KV or R2 code exists anywhere in the repo |`).ac("wide");
 
 		md(`## Topic abstraction: \`is: "topic"\`, not a subclass or plain config
@@ -39,7 +39,7 @@ exact question (2026-08-27), against the same two alternatives the brief names. 
 define — its own \`this.topic()\` would just be itself. A \`topic: true\` **flag** shadows
 \`this.topic()\` on the page that claims it. \`is: "topic"\` + \`nearest(role)\` finds the role
 at any depth, through columns or panels, with no registry and no import either way.
-**"Plain config" is not really a third option** — a topic's extra fields (\`store()\`, levels,
+**"Plain config" is not really a third option** — a topic's extra fields (\`prefs()\`, levels,
 subtopics) are already just fields on the page literal; \`is:\` is what turns that config into
 a relationship other pages can discover without importing it.
 

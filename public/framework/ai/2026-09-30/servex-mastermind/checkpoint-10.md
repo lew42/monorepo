@@ -1,0 +1,43 @@
+# mastermind-servex-9: checkpoint 10, 2026-10-02 19:20 CDT — handover to the Opus mastermind
+
+The owner is replacing the Fable mastermind with an Opus one to cut cost. Start as the new `mastermind-servex-*`: load `servex-mastermind`, read checkpoint-8.md's "Your standing roles", checkpoint-9.md's last section ("18:50 CDT (Oct 2)"), then this. Children of a stopped -N report to the live one by themselves (Agents.js:497). Owner asks arrive from the tab agent `vscode-mastermind`; answer on cards, never by message to it. Mastermind relays, never executes; verify every landing against git and tests, never against the minion's report (law 7).
+
+## Landed since 18:50 (all on michael/dev)
+
+- **Servex restarted** at 18:55, back as pid 80024 with: Fixer (`fixer-1`, `quick_fix` tools), minion role `bypassPermissions`, JSONL schema checks in `rpc:append`, the no-drop spawn queue (e74f4d8a). Since then queued spawns are **held**, not dropped — the heartbeat only reports the wait.
+- **Quick-merge** (Ask B's second half): `merge.mjs --quick` + `review.mjs widthsFor` — cb164b1a by exact path (verified byte-for-byte vs `worktree/quick-merge`, `review.test.mjs` 13 checks), then the branch merged for real. The `review` skill's stale "four pngs / pick widths yourself" section is replaced (widths are pre-picked by `widthsFor`; `Server/doc/review.md` "Which widths" is the table); the `minion` skill step 3 now says **run `review.mjs` against MAIN's task dir** (b895fd80) — two minions independently hit the worktree-copy bug. Task log 798c3965. The fast path is complete except the **measured time-to-first-fix** on a real voice "fix this" — the live page `/framework/ai/quick-fix/` records it; nobody has triggered one yet.
+- **Pool:** qf-8, qf-9 returned (qf-9's applied branch merged for real, 028110de); the pool then dropped qf-9 on a sync take ("would not fast-forward") and remade qf-6 and qf-8 by itself. Stray health-watch lines other agents' servers wrote into worktree copies of `task.jsonl`/`board.jsonl` are saved in `.worktree-logs/qf-{6,8,9}-2026-10-02-*.patch`.
+- `public/framework/ai/CLAUDE.md` is a tracked mirror of root `CLAUDE.md` kept by the ai-system-docs task (359f25a4) — not a stray; leave it.
+
+## In flight — the agents and worktrees you now own
+
+| agent | state | brief / card | what to do at landing |
+|---|---|---|---|
+| `minion-card-pipeline` (Sonnet, high) | **working** since 19:09 in a pool slot | `ai/2026-10-02/card-pipeline/requirements.md` ($20); card `2026/10/02/the-card-pipeline-every-major-ask-gets-a` | Verify vs branch; if "applied, not merged", commit by exact path then `git merge --no-edit worktree/<slot>` so the slot can return. `Servex/cards/Cards.js` and `External.js` changes need a **Servex restart** (yours; batch with stalled-and-budgets' Asks.js). Then check the four today's asks got real cards (page-extends-item, panel2-sessions, ai-system-docs, framework-home). |
+| `minion-stalled-and-budgets` (Sonnet, medium) | **queued** at the spawn gate (held; was the memory gate, now the working cap 7/5) | `ai/2026-10-02/stalled-and-budgets/requirements.md` ($13); card `2026/10/02/stalled-tasks-to-the-top-of-the-dashboar` | Same landing routine. Its `Servex/asks/tasks.js` runs on Asks.js's tick → restart. It must send `@task-mastermind-panel2-sessions` ONE message with the `tasks.json` shape — check that happened. |
+| `minion-quick-merge-2` | dormant, task closed | — | Nothing. Its worktree `quick-merge` is still on disk (server stopped, files.jsonl churn); return/clean it in the pool follow-up, never with a recursive delete from main. |
+| `minion-fixer-2`, `minion-jsonl-writers`, `minion-never-lose-a-wake` | stopped, landed | — | Nothing. |
+| `fixer-1` (standing quick-fix agent) | **absent from /agents** after the restart | Fixer.js | Unverified whether Fixer.js starts it lazily on the first `quick_fix` call. Check `Servex/agents/Fixer.js` before assuming the fast path works; if it must be started at boot, that is a one-line fix + restart. |
+
+Worktrees: pool slots qf-6 and qf-8 ready (K=3); `quick-merge` idle on disk; qf-2/4/5/7 dirs on disk outside the pool. Branches `worktree/qf-1` (2), `qf-3` (7), `qf-7` (33 commits), `qf-2`, `qf-5` (1 each) hold commits **not in michael/dev** — recycled names whose work never merged. `free_id()` rightly refuses them, so the pool has four usable names left. Look at qf-7's 33 commits before anyone deletes that branch.
+
+## Queue, in the owner's order
+
+1. **Card pipeline** (running) — the five items of the brief: (a) every major routed ask → a card automatically, by node (asks.jsonl → card → task); (b) an iceberg-tip first section, never an empty card; (c) priority bands written down, the reason beside the number, audit the 90+ cards; (d) audit the 20 most recent cards and fix the cause; (e) the `paths` field on each asks.jsonl line, computed from the task's `files.jsonl` at landing — asks.jsonl stays the ONE ledger, a module page shows its asks as a filtered view (alternative "summary file per module under `<module>/ai/`" is recorded in `Servex/asks/readme.md`).
+2. **Stalled tasks + budgets for the Dashboard** (queued) — node marks a task stalled (no log line 2 h, not landed, no live agent); Snooze/Kill/Re-prioritise as verb lines + three tools; `Budget: $X` parsed vs `spend.json`; all exposed as `public/framework/ai/tasks.json` for `task-mastermind-panel2-sessions`'s Dashboard. The owner: "stalled tasks top priority… Don't wait on the owner."
+3. **JSONL gaps 2–5** — gap 1 (Write/Edit guard on existing .jsonl) and the five brief items landed 57e703f2; what remains is the owner's follow-through list: confirm `Append.js` refuses a bad line from every writer path (servers' `rpc:append`, worktree servers included), `ledger.mjs` writes the line anyway with `"unchecked"`, `flags.jsonl` lines all pass the schema, and `new-task`/`finish-task` skills only ever name `append.mjs`. A guard must never stop logging itself — re-run `.claude/hooks/*.test.mjs` (jsonl-guard 24, jsonl-schema 38, ledger 5, git-guard 50) after any change.
+4. **Phantom hardening** — agents that read `working`/`queued` but whose host died, and wakes that never arrive: e74f4d8a covers the spawn queue and the awaken race (`Servex/agents/awaken-race.test.mjs`); still open: `minion-never-lose-a-wake` itself sat 19 h dormant on a review notification that had already fired — make a landed review always wake the waiting minion (check `Server/review.mjs` → `on-landing.mjs` → `send_to_agent` path), and a status check that wakes a dormant agent (checkpoint-9 "Loose ends").
+5. **Pool follow-up brief** (owed, not written) — `return_worktree` restores server-log files (`files.jsonl`, `page.jsonl`, `board.jsonl`, `task.jsonl` health lines) before `--ff-only`, since a worktree's server rewrites them within ms of a checkout; `Pool.remove` not calling worktree-down on a slot it already forgot; `Pool.js:444` reads `.worktrees.json` unsafely; give_back reboot after salvage; the five unmerged qf branches above; dirs qf-2/4/5/7 and `quick-merge` on disk.
+6. **Roadmap items 3–13** — `ai/2026-10-02/roadmap/requirements.md`: 3 is panel2-sessions', 4 page-extends-item's, 5–13 unassigned.
+7. Older owner-paced items, unchanged: proposal-flow wave B, item 8 anomaly check, core/Item → PageLog, Pool TEMP cleanup, Server/readme health link.
+
+## Half-done
+
+- **Checkpoint-9 has no section for 18:55–19:20** — this file is it.
+- **Working cap** is env-only (`Agents.js:525`, `SERVEX_WORKING_CAP`, default 5) and clarity/reviewer agents count against it, so two minions and a reviewer can hold the whole cap while masterminds wait. A follow-up: exclude short-lived clarity/reviewer rows, or raise to 6. Needs a restart.
+- **Time-to-first-fix** never measured (above).
+- The incident card `rm -rf` status is the owner's; it links `/framework/ai/2026-10-01/recover-main-untracked/`.
+
+## Constraints that bit this session (verbatim rules)
+
+Don't write the owner's name into anything. CLAUDE.md: do not edit it without asking. No agent claims or evals an owner browser tab; every look is headless. Never `git stash`, `checkout --` or `reset` in the main tree; **never delete anything in the main tree — untracked files there are other agents' work** (git-guard now refuses recursive deletes aimed at main and git-listing-fed deletes). Never stop a mastermind with children working. Every brief starts with `Budget: $N`. Servex restarts are yours; batch them; `restart_servex` ends your own session. jsonl-guard blocks shell writes into `.jsonl` — write a `.json` array and `node .claude/hooks/append.mjs <file> <lines.json>`. Sonnet by default, Opus only with a reason. Commit only landed paths and your own, by exact path.

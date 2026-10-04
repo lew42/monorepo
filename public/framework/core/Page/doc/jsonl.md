@@ -146,3 +146,45 @@ content-type is the 404, as in `Page.read_json()`.
 
 `page.js` folders are untouched: nothing here probes for a `page.jsonl`, and `child()` only
 reads one when a listing named it.
+
+## Agent tools — writing a live page without touching the file (2026-10-02)
+
+An agent writes a page the same small way a browser tab would: one line at a time, through
+six Servex in-process tools (`Servex/agents/page_tools.js`, `Servex/agents/inbox.js`) over
+`Item.Store`'s own append — never a hand-written line, never a whole-file rewrite. Live demo:
+[`/framework/core/Page/jsonl/live/`](/framework/core/Page/jsonl/live/), built with these tools
+while a headless tab watched it grow.
+
+Every write lands as the canonical **nested** line (2026-10-03: "no `at`, no dots — the path
+is the nesting"): `page_call(path, ["k2","answers"], "add", {...})` writes
+`{"k2":{"answers":{"add":{...}}}}`, read exactly as `get()` (`core/Item/Item.js`) resolves it —
+each hop is a property name (`"content"`) or a child's id, found by scanning the lists a node
+owns, never a slash- or dot-path. `page_add`/`page_set` are sugar for the two common calls.
+
+- **`page_call(path, target, method, args)`** — the general tool: one verb at one target.
+- **`page_add(path, item, {after})`** — sugar for `page_call(path, ["content"], "add", item)`.
+- **`page_set(path, target, delta)`** — sugar for a plain nested delta (no verb at all — a
+  delta IS a set, by `get()`'s own rule). `target: []` sets the page's own fields.
+- **`page_log(path, text)`** — a "now doing X" line, posted BEFORE a long step so the owner
+  can watch the work happen, not just read about it after.
+- **`page_read(path, {format})`** — the page's CURRENT state, computed fresh from the log
+  every call, never a second copy: `markdown` (default) or `html` (the content's own markup,
+  no nav chrome). Read this before deciding what to add or change next.
+- **`page_note(path, text, {to})`** — a note for whoever reads this page next, read by the
+  page's own Inbox with no Servex dependency; `to` (or the module's coordinator) also gets a
+  short wake. [`ext/Inbox`](../ext/Inbox/) · `Servex/doc/inbox.md` (repo file).
+
+⚠ A bare `page_call(path, [], "add", item)` — no target — collides with `Page.add(name,
+child)` (its OWN two-argument method for a CHILD PAGE): `page.add` resolves as a METHOD name
+before it ever reaches the content list, so it fires with the wrong arguments. Always target
+`["content"]` for a content item; `page_add` already does this for you.
+
+### A content row that IS a page reference (2026-10-03)
+
+`page_add(path, { id: "page", ref: "/framework/core/Page/", text: "…" })` — a `ref` field makes
+the row draw as THAT page's own dark class card (the same look `#Page` gets inline, ext/Mention's
+`build_row()`, reused rather than rebuilt — `render_content_list()`'s `draw_row`,
+`core/Page/Page.class.js`), with the row's own `title`/`text` reading as the caption under it, and
+the whole card linking to `ref`'s url. The card is only dark when `ext/Mention/maps/refs.js` marks
+that page `class_card: true` (same rule an inline `#Mention` follows); a `ref` not yet in `refs.js`
+still renders — a plain icon + the raw url — rather than a blank gap.

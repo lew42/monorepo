@@ -155,6 +155,7 @@
 	}
 
 	.ai2-back { grid-row: 1; }
+	.ai2-crumbs { grid-row: 1; }
 	.ai2-full { grid-row: 2; }
 	.ai2-foot { grid-row: 3; }
 
@@ -164,6 +165,13 @@
 	.page.ai2-card-page > * {
 		grid-column: 1 / -1;
 		margin: 0;
+	}
+
+	/* A card whose body is a content list (core/Page render_content_list, drawn as a
+	   direct child, not inside .ai2-full) scrolls as one page: without this the list
+	   ran past the detail column's `overflow: hidden` with no scrollbar (2026-10-03). */
+	.page.ai2-card-page:has(> .page-content-list) {
+		overflow-y: auto;
 	}
 
 	.ai2-full {
@@ -298,17 +306,13 @@
 		border-block-start: 1px solid var(--line);
 	}
 
-	/* THE CARD'S OWN SIDEBAR MOUNT (one-dictation, 2026-09-30) — desktop only. Hidden here
-	   (below 40em); the `width >= 40em` block further down (`.ai2-foot-chat` un-capped
-	   rules) turns it back on with a selector that outranks this one, same trick the Live
-	   card's own rules already use elsewhere in this file. Below 40em the phone's own ✦
-	   sheet already shows this exact conversation — a second copy here would be the "two
-	   chats" shape this task removes. */
+	/* THE CARD'S OWN SIDEBAR — desktop only (one-dictation, 2026-09-30; now the quiet
+	   properties column, one-card-props, 2026-10-03). Hidden here (below 40em); the
+	   `width >= 40em` block further down (`.ai2-foot` grid rule) turns it back on with a
+	   selector that outranks this one, same trick the Live card's own rules already use
+	   elsewhere in this file. Below 40em there is no room for a sidebar — a card's own
+	   properties are read on the card itself, or not at all on a phone. */
 	.ai2-foot-chat { display: none; }
-	.ai2-foot-head {
-		font-weight: 600;
-		margin-block-end: 0.3em;
-	}
 
 	/* `title:` is the card's ID, for the tab and the framework, not the reader —
 	   the card's real title is the line below it. */
@@ -458,9 +462,41 @@
 	   "done with this sub-card, back to the detail" — closing it is a real
 	   navigation, not a hover state. Two classes on the one link, so this
 	   beats the bare `.ai2-back` rule regardless of source order. */
+	/* PADDED AGAINST THE COLUMN'S OWN BORDER (the owner, 2026-10-03: "zero padding
+	   against the rail border" — this link sat flush on the sub column's left edge
+	   because only the phone rule below ever gave `.ai2-back` padding; this one
+	   shows at every width, so it needs its own). */
 	.ai2-back.ai2-sub-back {
 		display: inline-block;
+		margin: var(--gap-50) 0 var(--gap-50) var(--pad);
+	}
+
+	/* THE BREADCRUMB ROW (subcard-columns, 2026-10-03) — one `.ai2-back.ai2-sub-back`
+	   link per hidden ancestor (card.js `breadcrumb()`), wrapping instead of scrolling
+	   sideways: a chain four deep on a narrow sub-column is still more likely than a
+	   wide one. */
+	.ai2-crumbs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3em 0.7em;
 		margin-block-end: var(--gap-50);
+	}
+
+	/* WIDE SCREEN: the breadcrumb is the EARLIER of the two visible columns' own
+	   marker (an `.active-ancestor` sub-card showing beside the deepest one) — the
+	   deepest (`.active-page`) draws its full content in the second column instead,
+	   so its own breadcrumb (built the same way, for when IT is the earlier one some
+	   other time) stays unused here. */
+	@media (width >= 40em) {
+		.page.ai2-sub-page.active-page > .ai2-crumbs { display: none; }
+	}
+
+	/* NARROW SCREEN: one card is ever on screen, and it is always the deepest
+	   (`.active-page` — Inbox.css's own one-screen-at-a-time rule). ITS breadcrumb is
+	   the only way back now, so the wide-screen rule above is turned off here instead
+	   of carried over. */
+	@media (width < 40em) {
+		.page.ai2-sub-page:not(.active-page) > .ai2-crumbs { display: none; }
 	}
 
 	.ai2-said-head {
@@ -491,6 +527,33 @@
 	.ai2-proposal-title {
 		display: block;
 		font-weight: 600;
+	}
+
+	/* THE "YOUR PROMPTS" TIMELINE (faces.js's `prompt_timeline()`, 2026-10-02) — a topic
+	   wrapper reads like a quiet section break; each prompt row gets room to breathe
+	   between it and the next, and "my reply" is a plain collapsed disclosure, same look
+	   `.ai2-said-head` above already gives one. */
+	.ai2-prompts-group {
+		border-inline-start: 2px solid var(--line);
+		padding-inline-start: 0.7em;
+		margin-block-end: var(--gap-50);
+	}
+	.ai2-prompts-topic {
+		display: block;
+		font-weight: 600;
+		margin-block-end: 0.3em;
+	}
+	.ai2-prompts-row {
+		padding-block: 0.5em;
+		border-block-end: 1px solid var(--line);
+	}
+	.ai2-prompts-when {
+		display: block;
+		margin-block-end: 0.3em;
+	}
+	.ai2-prompts-reply-head {
+		font-size: 0.85em;
+		cursor: pointer;
 	}
 
 	.ai2-flag-said,
@@ -973,7 +1036,10 @@
 	.page.ai2-sub-page > .grip { display: none; }
 
 	@media (width >= 40em) {
-		/* A top-level card has the whole room: a third of it is the chat.
+		/* THE SIDEBAR IS SMALL AND QUIET (the owner, 2026-10-03 follow-up: "small and
+		   quiet" card properties, not a second chat taking a third or half the card).
+		   `--ai2-chat` is the one token both the old chat column and this properties
+		   column size by — same seam, same drag, a narrower rest default.
 		   ⚠ card-measure-gap, 2026-09-30 — `:has(> .ai2-foot)` added. Card.V1 (the
 		   old bottom composer/chat split, doc/one-ai.md) is off by default now, so
 		   most cards draw no `.ai2-foot` at all — but this rule used to fire
@@ -982,17 +1048,15 @@
 		   nothing there to explain it: a growing, empty gap beside the Actions
 		   dropdown as the drawer widened and took the rest (the owner: "a five
 		   hundred pixel void… between the right sidebar and this card's actions
-		   dropdown"). Reserve the column only when there is a chat to put in it;
+		   dropdown"). Reserve the column only when there is something to put in it;
 		   the single-column rule above (line 760) already covers every other card. */
 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) {
-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 33.333%));
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 20%));
 			grid-template-rows: auto minmax(0, 1fr);
 		}
 
-		/* A sub-card's page is two thirds of the room (`2fr` at the top of this file),
-		   so half of it is the same third. */
 		.page.ai2-card-page.ai2-sub-page:not(.ai2-card-live):has(> .ai2-foot) {
-			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(18rem, 50%));
+			grid-template-columns: minmax(0, 1fr) var(--ai2-chat, max(14rem, 22%));
 		}
 
 		.page.ai2-card-page:not(.ai2-card-live):has(> .ai2-foot) > :is(.ai2-back, .ai2-full) { grid-column: 1; }
@@ -1040,6 +1104,14 @@
 			flex: 1 1 auto;
 			min-height: 0;
 		}
+		/* `.ux-dictate-widget-shell` (drawer-chat round 2, 2026-10-02) is now the flex
+		   parent of the feed card AND the composer below it — same un-cap this file always
+		   gave the card alone, one level further in: `ux/Dictate/Widget.css`'s own doc. */
+		.ai2-foot-chat-slot .ux-dictate-widget-shell {
+			flex: 1 1 auto;
+			min-height: 0;
+			max-block-size: none;
+		}
 		.ai2-foot-chat-slot .ux-dictate-widget-card {
 			flex: 1 1 auto;
 			min-height: 0;
@@ -1064,6 +1136,51 @@
 			background: none;
 			padding: 0;
 		}
+		/* THE COMPOSER'S OWN EXTRA BORDERS DON'T BELONG HERE EITHER (drawer-chat round 2,
+		   2026-10-02) — `Widget.css`'s side/bottom border and bottom rounding on the new
+		   composer exist only to CONTINUE the feed card's own border where the two meet;
+		   this column's feed card has no border at all (right above, "one frame, not
+		   two" — `.ai2-foot`'s own left border is the column's one frame). Stripped the
+		   same way, for the same reason: the composer keeps its background and its top
+		   border (still the one line that separates it from the feed, same as everywhere
+		   else), nothing more. */
+		.ai2-foot-chat-slot .ux-dictate-widget-shell .ux-dictate-widget-composer .chatbox-compose {
+			border-inline: 0;
+			border-block-end: 0;
+			border-radius: 0;
+		}
+
+		/* ── card properties (one-card-props, 2026-10-03) ──
+		   What used to be the per-card chat column is now a quiet read-only sidebar:
+		   type, status, tags, who worked on it, its files, then Actions. Plain rows,
+		   not a form — nothing here is talked into; that is the global drawer's job. */
+		.ai2-props {
+			gap: var(--gap);
+			overflow-y: auto;
+		}
+		.ai2-props-row {
+			display: flex;
+			align-items: baseline;
+			gap: 0.5em;
+		}
+		.ai2-props-row > .muted {
+			flex: none;
+			width: 5em;
+		}
+		.ai2-props-head {
+			margin-block-end: 0.3em;
+			font-size: 0.85em;
+		}
+		.ai2-props-section + .ai2-props-section {
+			margin-block-start: var(--gap);
+			padding-block-start: var(--gap);
+			border-block-start: 1px solid var(--line);
+		}
+		/* The files tree wants a real height to lay out in — it got none inside the
+		   old `<details>` fold (the owner: "a fixed-height file explorer that doesn't
+		   lay out"). A plain section, not a disclosure, gives it one. */
+		.ai2-props-section .page-log-files { min-height: 12em; }
+		.ai2-props-actions .ai2-actions { margin-inline-start: 0; }
 
 		/* A sub-card is open: its chat is the one on screen, so the parent card is one column. */
 		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page {
@@ -1073,8 +1190,76 @@
 		.inbox-shell:has(> .inbox-sub > .page.active-page) > .inbox-detail > .page.ai2-card-page > .ai2-foot {
 			display: none;
 		}
-	}
 
+		/* TWO EQUAL COLUMNS (subcard-columns, 2026-10-03 — "the DETAIL side splits into
+		   two equal columns"). ux/Inbox/Inbox.css's own default gives the sub column
+		   2fr (room for a quick peek beside a full page); a card's sub-card is a full
+		   page of its own, so this more specific, Card-only rule (`.ai2-card-page` in
+		   the selector) makes the two equal instead — a plain Inbox consumer with no
+		   Card inside keeps the original 2fr untouched. `--ai2-subw` is the EXISTING
+		   divider (`Card.seam()` below), reused verbatim: unset, it is this 1fr
+		   default; dragged, it is a fixed px and the OTHER column takes what is left. */
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-page):not(:has(> .inbox-sub > .page.ai2-card-page.active-ancestor)) {
+			grid-template-columns: var(--inbox-rail) minmax(0, 1fr) var(--ai2-subw, minmax(0, 1fr));
+		}
+
+		/* TWO DEEP OR MORE: the chain's last two levels are both sub-cards (an
+		   `.active-ancestor` sits inside the sub row too, not just the leaf), so the
+		   top-level card is itself one of the hidden ancestors now — the owner's own
+		   example ("its sub-card opens a third column and HIDES the first"). It steps
+		   aside, and the sub row takes the whole room past the rail, split the same
+		   equal way between its own last two (below). */
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) {
+			grid-template-columns: var(--inbox-rail) minmax(0, 1fr);
+		}
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) > .inbox-detail {
+			display: none;
+		}
+		.inbox-shell:has(> .inbox-sub > .page.ai2-card-page.active-ancestor) > .inbox-sub {
+			grid-column: 2;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) var(--ai2-subw, minmax(0, 1fr));
+		}
+
+		/* Only the DEEPEST sub-card's own left edge is ever a real seam. An
+		   `.active-ancestor` that is still on screen (the earlier of the two visible
+		   columns, above) sits at the ROW's own outer edge instead — against the rail,
+		   or against nothing — where dragging would move nothing real. */
+		.page.ai2-sub-page.active-ancestor > .grip {
+			display: none;
+		}
+	}
+}
+
+/* THE LAST TWO LEVELS SHOW, ANY DEPTH (subcard-columns, 2026-10-03) — the generic
+   arrangement contract (core/Page/Page.css, `@layer util`) already shows exactly
+   the deepest `.active-page` among these flat siblings; this ALSO shows the one
+   right before it, so opening a third level slides the window forward by one
+   instead of the third replacing the second inside a single column.
+   `:nth-last-child(An+B of S)` counts only among the siblings matching `S` — never
+   a stale card left over from a branch you backed out of — which is exactly the
+   selector this follows: `core/new/1/site/versus/css/page.js`'s own research into
+   "only the last N of the chain", proven live there against this same engine.
+   Scoped to `(width >= 40em)`: below it, Inbox.css's own one-screen-at-a-time rule
+   must keep showing exactly one card, so this must not also turn a second one on.
+   ⚠ In `@layer util`, like the contract it extends — a sibling layer block, not
+   nested inside `theme` above, which would silently create a DIFFERENT, wrongly
+   ordered `theme.util` layer instead of joining the real one framework.css orders.
+   ⚠ Restates `display: grid` — Card.css's own value for `.page.ai2-card-page` a
+   few hundred lines up — because `util` always outranks `theme` regardless of
+   specificity, so leaving `display` out here would leave the shown element with
+   no display of its own at all. */
+@layer util {
+	@media (width >= 40em) {
+		.inbox-sub > .page.ai2-card-page:is(.active-page, .active-ancestor):nth-last-child(-n+2 of .page.ai2-card-page:is(.active-page, .active-ancestor)) {
+			display: grid;
+			min-width: 0;
+			height: 100%;
+		}
+	}
+}
+
+@layer theme {
 	/* ── a top-level card's two tabs (card.js `draw()`) ──
 	   The strip and the mark are ext/tabs' own. The tabs are links with no href
 	   (an href would be routed), so the pointer is stated here; the panel's 3em
@@ -1162,6 +1347,9 @@
 
 	.ai2-ol-mark { color: var(--accent, currentColor); }
 	.ai2-ol-time { white-space: nowrap; }
+	/* NOTICEABLE, NOT FLASHY (topic-cards, 2026-10-03): one quiet word, no animation, no colour
+	   fight with `.ai2-ol-mark`'s accent dot — it earns attention by being text, not motion. */
+	.ai2-ol-new { white-space: nowrap; text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.04em; color: var(--accent, currentColor); }
 	.ai2-ol-proof { white-space: nowrap; grid-column: 4; }
 
 	/* The count grid: three numbers you read at a glance, and they are the list's filter. */

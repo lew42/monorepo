@@ -14,7 +14,7 @@ import { baseline } from "/imagine/paging/baseline.js";
    opens one. Nothing here knows it is a game except the words.
 
    THE STATE IS THE URL'S. Where you have been, what you carry and what you gave away
-   live in this page's store, keyed on `/imagine/game/` (`this.store()`), so a cold load
+   live in this page's store, keyed on `/imagine/game/` (`this.prefs()`), so a cold load
    three columns deep after a reload finds a lit lamp and an unlocked cistern. The lock
    is what makes that visible: the Cistern needs the lamp, the Vault needs the key the
    Cistern holds, the gate shuts for the sigil the Vault holds — one chain, and it is
@@ -148,7 +148,7 @@ export default new Page({
 	//   `sights`/`log` before it: default empty, a save written before this pass
 	//   still loads with an empty list.
 	initialize(){
-		const saved = this.store().get({ found: [], carried: [], traded: [], sights: [], log: [], goals: [] });
+		const saved = this.prefs().get({ found: [], carried: [], traded: [], sights: [], log: [], goals: [] });
 
 		this.found = new Set(saved.found);
 		this.carried = new Set(saved.carried);
@@ -162,7 +162,7 @@ export default new Page({
 	bump(){ this.watchers?.forEach(fn => fn()); },
 
 	save(){
-		this.store().set({
+		this.prefs().set({
 			found: [...this.found], carried: [...this.carried], traded: [...this.traded],
 			sights: [...this.sights], log: this.log, goals: this.goals,
 		});
@@ -229,7 +229,7 @@ export default new Page({
 		this.sights.clear();
 		this.log.length = 0;
 		this.goals.length = 0;
-		this.store().clear();
+		this.prefs().clear();
 		this.bump();
 	},
 
@@ -339,7 +339,7 @@ export default new Page({
 				what: "this run",
 				restorable: true,
 				restore: () => this.reset(),
-				saved: () => this.store().read()
+				saved: () => this.prefs().read()
 					? "**Saved.** Where you have been, what you are carrying and your journal are kept in this browser — closing the tab loses nothing."
 					: null,
 			});

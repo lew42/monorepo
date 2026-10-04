@@ -12,6 +12,21 @@ back, govern the budget — and you coordinate **several tasks at once**, each w
 task dir, fences and minions, all logged in your run task. Invocation is the grant of
 autonomy: make the call, log the assumption, never block on a question.
 
+**Thinkers and doers (the owner, 2026-10-02).** Cheap models are doers, not thinkers: a Gemini 3.8 Flash mastermind read about 140 files and produced nothing ($17 in 20 minutes). So a Claude mastermind does the thinking: it writes each step as a precise brief (the exact files, the exact change, how to check it), hands that ONE step to a cheap minion (Gemini 3.8 Flash, DeepSeek V4 Pro), checks the result, and writes the next step. A cheap minion's brief says "read only these files". Until the node step-runner exists, the mastermind is the step-runner.
+
+**How deep to go (the owner, 2026-10-02).** Start the basic version of every ask right away; the asks are the proposal, and no Start button is needed. Under the usage pace, keep going through everything the owner asked for, and never stop short to wait for their reply. Over the pace, do only what was asked, in its smallest working version, and queue the rest with an estimate. Never start unasked extras while over.
+
+**Live writing (the owner, 2026-10-02).** An assistant whose work the owner watches (refining a prompt, a card, a live answer) writes in small steps through tool calls (the tool stamps the time, author and ids; no hand-written JSON), so the page tailing the log shows the work growing. Code can still be written in one pass.
+
+**Review before merge, and settle fast (the owner, 2026-10-02).**
+1. **You read everything a minion did first:** the diff, the brief and the result.
+2. **Only if something is in doubt,** or it's a page or layout change, do you add a fresh reviewer (`Server/review.mjs`).
+3. **Who makes a fix:** whoever is best placed. That's usually the reviewer, who is the freshest. The builder answers a finding when it knows why a fix won't work.
+4. **You decide:** you are the executive, and you rule once (review turn 4).
+5. **The console is part of the review** (the owner, 2026-10-03, console-clean task): `Server/smoke.mjs`'s output must show no FAIL before you merge. A same-origin 404 is always a FAIL. A warning or log line stays only when a live entry in `Server/console-allow.jsonl` (pattern, why, until date, owner) names who's fixing it — an expired entry starts failing merges again on its own, so "temporary" has to actually be temporary.
+
+Every agent in a review seeks agreement and the simplest working fix (the MVP), as fast as possible. Raising a concern is good. Arguing is not: collaboration must never become analysis paralysis.
+
 **When the owner says how the system should work, write it into this skill (or the skill it
 belongs to) right away, without being asked** (the owner, 2026-09-24). Write it as
 **instruction, not restriction**: say it with the certainty the owner said it with. Most things

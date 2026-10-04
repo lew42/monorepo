@@ -1,9 +1,9 @@
 import { View, div, span, button, label, input } from "../../core/View/View.js";
 import Capture from "./capture.js";
-import Socket from "/framework/dev/Socket/Socket.js";
 import Revise from "../Revise/Revise.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import floor from "./floor.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -651,7 +651,7 @@ export default class Dictate extends View {
 			for (let i = 0; i < bytes.length; i += 0x8000)   // ⚠ one spread of 500KB blows the call stack
 				binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
 			const loud = this.mic.loudness(samples, this.speech_floor);
-			return Socket.singleton().async_rpc("append", file, { dump: {
+			return FsFile.append(file, { dump: {
 				at: new Date().toISOString(), rate: this.mic.rate(), seconds: +loud.seconds.toFixed(3),
 				peak: +loud.peak.toFixed(5), rms: +loud.rms.toFixed(5), loud_ms: loud.loud_ms,
 				wav_base64: btoa(binary),
@@ -816,7 +816,7 @@ export default class Dictate extends View {
 		// points back at — never required by anything that reads this log today.
 		const entry = { type: "prompt", by: "owner", text, via: "whisper", id };
 		if (await post_prompt(entry, this.log_url)) return;
-		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e) { console.warn("ux/Dictate: could not log this utterance (Servex down, dev-server fallback also failed):", e); }
 	}
 
@@ -832,7 +832,7 @@ export default class Dictate extends View {
 	async log_revision(text, level, re){
 		const entry = { chat: { at: new Date().toISOString(), from: { kind: "assistant", id: "revise" }, via: "voice", text, re, level } };
 		if (await post_prompt(entry, this.log_url)) return;
-		try { await Socket.singleton().async_rpc("append", this.log_fallback_file, { at: new Date().toISOString(), ...entry }); }
+		try { if (!await FsFile.append(this.log_fallback_file, { at: new Date().toISOString(), ...entry })) throw new Error("append refused"); }
 		catch (e) { console.warn("ux/Dictate: could not log this revision (Servex down, dev-server fallback also failed):", e); }
 	}
 

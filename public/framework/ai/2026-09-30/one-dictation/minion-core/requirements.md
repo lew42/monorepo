@@ -34,3 +34,4 @@ Playwright: `import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm
 ## Rules
 - Commit by exact path; never commit `.jsonl` files. Don't merge to michael/dev; your parent reviews, smoke-tests and merges.
 - End your turn with the commit hash, the `say` counts, and the shot paths.
+

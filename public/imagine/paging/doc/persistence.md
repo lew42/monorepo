@@ -27,7 +27,7 @@ pure JSON can and cannot say**.
 >
 > **One namespace rule:** a realm keys everything it saves under **one prefix** —
 > `lew42:<realm>:<the page's url>` — so one control can forget exactly that realm and
-> nothing else. `lew42:` is core's (`Page.Store`); the middle word is the realm's.
+> nothing else. `lew42:` is core's (`Page.Prefs`); the middle word is the realm's.
 
 ### Applying it — two lines
 
@@ -43,14 +43,14 @@ content(){
 }
 ```
 
-By default **"modified" means `store()` has a record and "baseline" means it does not** —
+By default **"modified" means `prefs()` has a record and "baseline" means it does not** —
 which is true of every page audited below, because they all start from an empty store.
 A page whose baseline is not "empty" says so:
 
 ```js
 baseline(this, {
     modified: () => this.spec() !== BASELINE,        // when a saved record can still BE the baseline
-    restore:  () => { this.save(BASELINE); },        // default: store().clear() + reload
+    restore:  () => { this.save(BASELINE); },        // default: prefs().clear() + reload
     saved:    () => "Saved to disk — " + this.file,  // a string turns the mark green: kept on purpose
     what:     "the pages you made",                  // named in the confirm line
 });
@@ -71,7 +71,7 @@ lateness the rule exists to remove, so wire one of the two.
 
 ## The audit — every page under `/imagine/` that persists
 
-Nine writers, all through core's `store()` ([`store()`](/framework/core/Page/doc/method/store/));
+Nine writers, all through core's `prefs()` ([`prefs()`](/framework/core/Page/doc/method/prefs/));
 no page under `/imagine/` touches `localStorage` directly except the realm reset. Read on
 2026-09-05.
 
@@ -169,7 +169,7 @@ in `stage.js` is the one place that reads all three back.
 | | when | writer | where |
 |---|---|---|---|
 | **files — the default** | the dev socket is connected (localhost) | [`ext/Saver`](/framework/ext/Saver/)'s `FileSaver` → `rpc:write` / `rpc:rm` | `public/imagine/paging/made/` |
-| **this browser — the fallback** | no socket: production, or the dev server is down | core's `store()` | `lew42:paging:/imagine/paging/make/` |
+| **this browser — the fallback** | no socket: production, or the dev server is down | core's `prefs()` | `lew42:paging:/imagine/paging/make/` |
 
 Both are writers that already existed; this task added none. The page says which one it is on,
 in its own green **saved** mark.
@@ -327,7 +327,7 @@ inside the walk skips every other match.
 
 **Site-wide.** *"Forget every demo on the site"* is `forget_all()` in
 [`baseline.js`](/imagine/paging/baseline.js): every `lew42:` key, which is every page that uses
-core's `store()` — nine writers today, and any future one for free. It does **not** live on a
+core's `prefs()` — nine writers today, and any future one for free. It does **not** live on a
 page of its own. It lives **inside the mark**, so it is offered exactly where a reader has just
 discovered that something remembered them: arm the Reset and the second line is *"…or every
 demo on the site."* No new page, no new route, reachable from every realm that persists.

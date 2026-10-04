@@ -64,3 +64,8 @@
 {"file":"util/page.js"}
 {"file":"ux/page.js"}
 {"file":"versus/page.js"}
+{"file":"audio/page.js"}
+{"file":"code/page.js"}
+{"file":"design/page.js"}
+{"file":"old/page.js"}
+{"file":"sandbox/page.js"}

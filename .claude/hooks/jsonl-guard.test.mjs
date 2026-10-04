@@ -4,10 +4,13 @@
 import { spawnSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 const hook = join(dirname(fileURLToPath(import.meta.url)), "jsonl-guard.mjs");
 const run = stdin => spawnSync(process.execPath, [hook], { input: stdin, encoding: "utf8", windowsHide: true });
 const as = (tool_name, command) => JSON.stringify({ tool_name, tool_input: { command } });
+const asFile = (tool_name, file_path) => JSON.stringify({ tool_name, tool_input: { file_path } });
 let failed = 0, passed = 0;
 const ok = (cond, what) => { cond ? passed++ : failed++; console.log(`${cond ? "pass" : "FAIL"}  ${what}`); };
 
@@ -36,6 +39,23 @@ for (const [tool, cmd] of BLOCK){
 for (const [tool, cmd] of ALLOW) ok(run(as(tool, cmd)).status === 0, `allows  ${tool}: ${cmd}`);
 ok(run("not json at all").status === 0, "fails open on input it cannot parse");
 ok(run("{}").status === 0, "fails open on input with no command");
+
+console.log("\n— Write/Edit/MultiEdit/NotebookEdit guard —");
+const dir = mkdtempSync(join(tmpdir(), "jsonl-guard-test-"));
+const existingJsonl = join(dir, "existing.jsonl");
+writeFileSync(existingJsonl, "{}\n");
+const newJsonl = join(dir, "brand-new.jsonl"); // never written — a task opening its own log
+const existingJson = join(dir, "existing.json");
+writeFileSync(existingJson, "{}");
+
+for (const tool of ["Write", "Edit", "MultiEdit", "NotebookEdit"]){
+	const r = run(asFile(tool, existingJsonl));
+	ok(r.status === 2 && /append\.mjs/.test(r.stderr), `blocks  ${tool} on an existing .jsonl`);
+}
+ok(run(asFile("Write", newJsonl)).status === 0, "allows  Write on a brand-new .jsonl (a task opening its log)");
+ok(run(asFile("Edit", existingJson)).status === 0, "allows  Edit on a .json file");
+ok(run(asFile("Write", undefined)).status === 0, "allows  Write with no file_path (fails open)");
+ok(run("not json at all").status === 0, "fails open on malformed input to the Write/Edit matcher too");
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

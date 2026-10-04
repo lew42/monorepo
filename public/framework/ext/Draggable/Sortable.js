@@ -12,10 +12,17 @@ export default class Sortable extends Draggable {
 	start(){
 		const box = this.view.el.getBoundingClientRect();
 
+		// Stays INSIDE its own parent, never `document.body` — a ghost on body
+		// sits outside every themed/scoped ancestor (dark islands, a card's own
+		// font), so it rendered in the PAGE's font and colours instead of its
+		// row's (2026-10-03, the owner). `position: fixed` still measures from
+		// the viewport wherever it sits in the DOM, unless some ancestor between
+		// it and <html> sets `transform`/`filter`/`contain` — none of this
+		// framework's row containers do.
 		this.ghost = this.view.el.cloneNode(true);
 		this.ghost.classList.add("drag-ghost");
 		Object.assign(this.ghost.style, { left: box.left + "px", top: box.top + "px", width: box.width + "px" });
-		document.body.append(this.ghost);
+		this.view.el.after(this.ghost);
 
 		this.placeholder = document.createElement("div");
 		this.placeholder.className = "drag-placeholder";
@@ -35,10 +42,17 @@ export default class Sortable extends Draggable {
 	}
 
 	// Sortable commits a POSITION, so it does not use Draggable's single-target drop.
+	// ⚠ Calls the TARGET LIST's own `move` (core/List/List.js) — never the Item
+	// — because Item itself holds no list methods any more. Every caller of
+	// Sortable gives its row Items an `items` List (Panel, the editor's blocks,
+	// the Draggable demo all do), so `where.list.item.items` is always that list;
+	// `from` is wherever the dragged item is parented RIGHT NOW, read fresh at
+	// drop time rather than cached, so a drop still works after the item itself
+	// moved some other way mid-drag.
 	release(e){
 		const where = this.locate(e);
 		this.end();
-		if (where) this.item.move(where.list.item, where.before);
+		if (where) where.list.item.items.move(this.item, { before: where.before, from: this.item.parent?.items });
 	}
 
 	end(){

@@ -137,3 +137,9 @@ of RAM given back this way.
 
 [`/framework/ai/2026-09-30/dormant-idle/proof.txt`](/framework/ai/2026-09-30/dormant-idle/proof.txt),
 run by `proof.mjs` beside it on a private Servex (port 8190, a scratch `SERVEX_HOME`).
+
+**Watch out — waking a dormant agent could lose the message that woke it** (2026-10-01): `awaken()`
+calling `register()` before the caller's own `send()` could push its message used to find a stale
+idle clock and go straight back to sleep in the same tick, closing the brand-new queue first. Fixed
+(the idle clock now resets inside `awaken()`, plus a 60 s belt in `sleep()`, plus a `held_messages`
+fallback that makes losing it this way harmless even so): [`never-lose-a-wake.md`](./never-lose-a-wake.md).

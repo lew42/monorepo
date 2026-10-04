@@ -14,7 +14,7 @@ import grip from "/framework/ext/grip/grip.js";
       shell, and the shell is exactly as tall as the region — so switching designs,
       or scrolling one, cannot shift it by a pixel. Measured: `doc/pages.md`.
    2. Be any size. Drag its right edge; 12rem to half the room. The width is written
-      as one token on the page's own view, and remembered with `page.store()`.
+      as one token on the page's own view, and remembered with `page.prefs()`.
    3. Show a deep tree whole. Every row is a real link, so five levels are five
       links and the browser does the rest.                                        */
 

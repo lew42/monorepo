@@ -7,9 +7,13 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
  * tokens instead of about 800). `level` names one of LEVELS below (`clean`,
  * `edit` or `summary` — see ux/Revise, which shows all three on one page);
  * an explicit `system` (+ optional `model`) lets a caller run its own prompt
- * instead of a named level. With NEITHER given — every caller before this
- * task — this is byte-for-byte the ORIGINAL /api/tidy call: `LEVELS.clean`
- * is the exact prompt this file always used, `before` still means the same
+ * instead of a named level. With NEITHER given, this still runs the SAME
+ * `LEVELS.clean` prompt every caller before this task used — the fixing
+ * rules (typos, punctuation, filler) are byte-for-byte unchanged — but its
+ * OUTPUT shape changed 2026-10-02 (the refine-engine task): numbered
+ * sentences ("S1. ...", "S2. ...") instead of one plain paragraph, so
+ * `public/framework/ext/Refine/refine.js`'s `clean()` has something to
+ * cite. `edit` and `summary` are untouched. `before` still means the same
  * thing at every level: the already-cleaned text just before this chunk,
  * given only so the seam's capitalization/punctuation comes out right — it
  * is context, never rewritten. */
@@ -24,7 +28,9 @@ Fix ONLY:
 - punctuation: a question mark only at the end of an actual question; sentence-ending punctuation where a sentence clearly ends
 - filler words: remove "um", "uh", "ah", "er", "you know" and "like" used as filler (not as a real comparison), and stutters/repeated words like "the, the"
 
-Never rephrase, reorder, summarize, or change the intent or word choice otherwise. Return ONLY the cleaned text — no quotes, no commentary, nothing else.`;
+Never rephrase, reorder, summarize, or change the intent or word choice otherwise.
+
+Number every sentence of your output, in original order: "S1. ", "S2. ", etc., one sentence per line. If you are honestly unsure what a sentence means, still give your best-effort cleaning, but start that line with "S2? " (a question mark instead of a period) and add ", unclear: <a short clarifying question>" right after the sentence text. Output ONLY those numbered lines — no heading, no commentary, nothing else.`;
 
 const EDIT_SYSTEM = `You lightly edit dictated or rambling text into tighter sentences, in the SAME voice and the same level of informality — this is a light pass, not a rewrite.
 
@@ -53,6 +59,18 @@ export const LEVELS = {
 	summary: { label: "Summary", prompt: SUMMARY_SYSTEM, model: MODEL },
 };
 
+// The per-call framing (the actual "user turn" text) for ANY level, separate from the level's
+// own instructions (its `prompt`, sent as `systemPrompt` below). Exported so a caller that has no
+// `systemPrompt` slot of its own — `public/framework/ext/Refine/refine.js`'s Node path, which
+// sends everything through `Server/ask-each.mjs`'s `askOnce(prompt, opts)` as ONE plain string —
+// can build the exact same framing by hand: `` `${LEVELS.clean.prompt}\n\n${bodyFor({text, before})}` ``.
+// This is the one and only place that framing is written (2026-10-02, the refine-engine task).
+export function bodyFor({ text, before } = {}){
+	return before?.trim()
+		? `The text just before this chunk (already cleaned, for context only — do not repeat or edit it):\n${before.trim()}\n\nClean this chunk:\n${text}`
+		: `Clean this chunk:\n${text}`;
+}
+
 /* {text, before, level?, system?, model?} -> {ok:true, text, model, ms} or {ok:false, why}.
  * `run_query` is swappable so a proof (or a test) can fake the model call. */
 export async function tidy({ text, before, level, system, model } = {}, { run_query = query } = {}){
@@ -60,13 +78,14 @@ export async function tidy({ text, before, level, system, model } = {}, { run_qu
 	if (!text.trim()) return { ok: true, text: "" };
 
 	// No `level` and no `system`: this is exactly the original call — LEVELS.clean's
-	// prompt IS the original SYSTEM constant, and MODEL is the original model.
+	// prompt IS the original SYSTEM constant (now also asking for numbered, "S1. " sentences
+	// and a "S2? ...unclear: ..." marker on a low-confidence line — added 2026-10-02 for
+	// ext/Refine/refine.js's clean(), which needs sentence numbers to cite; everything ELSE
+	// about what counts as a fix is unchanged), and MODEL is the original model.
 	const chosen = system ? { prompt: system, model } : (LEVELS[level] ?? LEVELS.clean);
 	const use_model = model || chosen.model || MODEL;
 
-	const prompt = before?.trim()
-		? `The text just before this chunk (already cleaned, for context only — do not repeat or edit it):\n${before.trim()}\n\nClean this chunk:\n${text}`
-		: `Clean this chunk:\n${text}`;
+	const prompt = bodyFor({ text, before });
 
 	const t0 = Date.now();
 	let out = "";

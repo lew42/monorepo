@@ -82,7 +82,10 @@ export default new Page({
 	   in it is a real file, and claiming it would answer a 404 with a card page that can
 	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
 	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
-	   `now` (followup.md item 2, 2026-09-30) is a REAL card folder, `ai/now/`, routed the
+	   `now` (followup.md item 2, 2026-09-30) is a real card, but NOT at a fixed folder — it is
+	   rewritten fresh under a new dated folder each day (`ai/2026/10/03/now/`), so `resolve_card()`
+	   (inbox.js) looks up the latest one by id suffix before reading it (bug fix, 2026-10-03: the
+	   literal id "now" used to resolve nowhere and the card vanished from the rail). Routed the
 	   same plain way as any other card id below — the only thing special about it is that
 	   the rail also pins its preview at the top, imported by hand (`AIRail.render_pinned()`).
 	   `live`, `view` and a card folder's year (`2026/09/24/<slug>/`) are answered by
@@ -96,8 +99,15 @@ export default new Page({
 		// or a bookmark made during that window still opens the same rail-and-card view the
 		// bare url shows again now.
 		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
-		if (id === LIVE || id === "view" || id === "framework" || /^\d{4}$/.test(id)) return AIRail.route(this, id);
+		// `AIRail.handles()` is the ONE list this and `ai/page.js` both read (bug 4, 2026-10-03:
+		// each page used to hand-list its own shorter copy, so a rail link ahead of this list —
+		// "your-prompts" — 404'd on whichever page's copy forgot it).
+		if (AIRail.handles(id)) return AIRail.route(this, id);
 		if (id === "now") return this.now_page ??= card_page(this, "now");
+		// "Your prompts" (2026-10-02, prompt-refine): the second pinned row — a synthesized
+		// id `AIRail.build_prompts_pin_item()` puts in the list, never a real card folder,
+		// cached the same way "now" is for the same reason (not rebuilt on every visit).
+		if (id === "your-prompts") return this.your_prompts_page ??= card_page(this, "your-prompts");
 		return card_page(this, id);
 	},
 });

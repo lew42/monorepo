@@ -5,11 +5,14 @@ import refs from "./maps/refs.js";
 import people from "./maps/people.js";
 
 // One wall of real rows, straight off a map — this is the actual `item()` call
-// every `#Name` or `@name` on the site turns into, not a picture of one.
+// every `#Name` or `@name` on the site turns into, not a picture of one, down to the
+// same `page-surface-dark` look a `class_card` entry gets inline (`Mention.js`'s own
+// `build_row()` — the two never disagree because both read `entry.class_card`).
 function wall(map){
 	return div.c("grid gap auto", () => {
 		Object.entries(map).forEach(([name, entry]) => {
-			entry.url ? item({ icon: entry.icon, name, href: entry.url }) : item({ icon: entry.icon, name });
+			const row = entry.url ? item({ icon: entry.icon, name, href: entry.url }) : item({ icon: entry.icon, name });
+			row.ac(entry.class_card && "page-surface-dark");
 		});
 	});
 }
@@ -61,9 +64,9 @@ export default new Doc({
 			[...unknown].forEach(name => { span.c("item inline boxed").text(name); });
 		});
 
-		h2("How the map could grow itself");
+		h2("How the map keeps itself honest");
 
-		md("Today both maps are hand-written. A `#name` could instead be **derived** — read off every page's own `title`/`icon` at build or fetch time, or off the Concepts tiles and the systems map the familiar-structure pass built. `doc/syntax.md` has the one-paragraph note on where that plug would go; this task shipped the hand-written seed, not the deriver.");
+		md("The LIST of names is still hand-written — which few hundred pages are worth a one-word mention is a judgment call, not a mechanical one. But `refs.js`'s `icon` and `class_card` no longer have to be re-typed by hand when a page changes: [`sync.mjs`](sync.mjs) reads each page's own `icon:` property and its real, live `nav().class_card` and corrects any entry that disagrees. `doc/syntax.md` has the detail; run it with `node public/framework/ext/Mention/sync.mjs` after changing a mentioned page's icon or its `subject`.");
 
 		code.js(`import { mentions } from "/framework/ext/Mention/Mention.js";
 mentions(someElement);                 // walk it in place, using the site's own two maps

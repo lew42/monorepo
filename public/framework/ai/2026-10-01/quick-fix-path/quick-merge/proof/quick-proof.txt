@@ -1,0 +1,51 @@
+Proof: Server/merge.mjs --quick on scratch repos (2026-10-02T23:58:33.023Z)
+merge.mjs: C:\Code\lew42\worktrees\quick-merge\Server\merge.mjs
+case 1: --quick, 3 lines in one module -> lands, prints the JSON line
+  exit 0
+    | --quick: none, 3 line(s), one module — skipping the reviewer agent
+    | 
+    | --quick: --skip-smoke — no real server, so no screenshot (a scratch-repo proof only)
+    | Merge made by the 'ort' strategy.
+    |  public/framework/ux/Thing/Thing.css | 3 +++
+    |  1 file changed, 3 insertions(+)
+    | 
+    | {"merged":"61a6e9eb9ffae1b0ef3def6a7f1131d7fdab9f27","shot":null,"width":null,"ms":154712567,"asked_at":"2026-10-01T00:00:00-05:00"}
+    | 
+    | !!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+  PASS  exit 0 — got 0
+  PASS  last stdout line is JSON with merged/shot/width/ms/asked_at — {"merged":"61a6e9eb9ffae1b0ef3def6a7f1131d7fdab9f27","shot":null,"width":null,"ms":154712567,"asked_at":"2026-10-01T00:00:00-05:00"}
+  PASS  merged names the branch's own head commit — 61a6e9eb9ffae1b0ef3def6a7f1131d7fdab9f27 vs 61a6e9eb9ffae1b0ef3def6a7f1131d7fdab9f27
+  PASS  asked_at echoes --asked, ms measured from it
+  PASS  shot/width are null — --skip-smoke also skips --quick's own screenshot step, by design (see header)
+  PASS  the css file actually landed in main
+  PASS  a 'size quick' review.md record was written (no task dir existed, so the quick-fix/ fallback) — verdict: pass
+
+size quick — shots at 400, 1920 — pass
+
+
+case 2: --quick, 40 lines -> refused, exit 2, nothing merged
+  exit 2
+    | !!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+    | 
+    | refused: --quick needs ≤20 lines in one module (this is 40 lines in 1 dir(s), size light); run the normal path
+  PASS  exit 2 (too big for --quick, not the generic 1) — got 2
+  PASS  the refusal names the line count, dir count and size, and says to run the normal path — 
+!!! --skip-smoke: NO SMOKE TEST WILL RUN. This flag is for proofs on a scratch repo only. !!!
+
+refused: --quick needs ≤20 lines in one module (this is 40 lines in 1 dir(s), size light); run the normal path
+
+  PASS  nothing was touched: main's css file is byte-identical
+  PASS  no JSON line printed on a refusal — null
+
+SUMMARY
+  PASS  exit 0
+  PASS  last stdout line is JSON with merged/shot/width/ms/asked_at
+  PASS  merged names the branch's own head commit
+  PASS  asked_at echoes --asked, ms measured from it
+  PASS  shot/width are null — --skip-smoke also skips --quick's own screenshot step, by design (see header)
+  PASS  the css file actually landed in main
+  PASS  a 'size quick' review.md record was written (no task dir existed, so the quick-fix/ fallback)
+  PASS  exit 2 (too big for --quick, not the generic 1)
+  PASS  the refusal names the line count, dir count and size, and says to run the normal path
+  PASS  nothing was touched: main's css file is byte-identical
+  PASS  no JSON line printed on a refusal

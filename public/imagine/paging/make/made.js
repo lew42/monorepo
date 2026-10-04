@@ -1,6 +1,6 @@
-import Socket from "/framework/dev/Socket/Socket.js";
 import { edit } from "/framework/ext/Ask/edit.js";
 import FileSaver from "/framework/ext/Saver/FileSaver.js";
+import FsFile from "/framework/ext/filesystem/FsFile.js";
 import { DEFAULT } from "../blocks.js";
 
 /* ── WHERE THE PAGES YOU MAKE ARE KEPT ────────────────────────────────────────
@@ -19,7 +19,7 @@ import { DEFAULT } from "../blocks.js";
 
    ⚠ NO NEW WRITER. The fs half is `ext/Saver`'s `FileSaver` — the dev socket's
      `rpc:write` / `rpc:rm`, the same writer the CMS editor, the page generator's
-     Export and `ext/Panel` all use. The localStorage half is core's own `store()`,
+     Export and `ext/Panel` all use. The localStorage half is core's own `prefs()`,
      handed in by the page. This file only decides which one, and what to write.
 
    ── THE FILE FORMAT — a page, as pure JSON ───────────────────────────────────
@@ -248,17 +248,10 @@ const pages = count => count + " page" + (count === 1 ? "" : "s");
 class PageFile extends FileSaver {
 
 	async write(item){
-		const socket = Socket.singleton();
 		if (!edit()) return this.read_only();
 
-		const reply = await socket.async_rpc("write", this.path, JSON.stringify(item, null, "\t") + "\n");
-
-		if (reply?.response === "write failed"){
-			console.warn("PageFile: the server refused to write " + this.path + ".");
-			return false;
-		}
-
-		return true;
+		// The one file API (ext/filesystem/FsFile.js) does the write and warns on a refusal.
+		return FsFile.write(this.path, JSON.stringify(item, null, "\t") + "\n");
 	}
 }
 
@@ -348,17 +341,15 @@ export class FileStore extends Store {
 		const key = path.join("/");
 		this.logs.set(key, (this.logs.get(key) ?? "") + text);
 
-		return this.raced(this.append(this.log_url(path), text));
+		return this.raced(this.append(this.log_url(path), lines));
 	}
 
-	// ⚠ The whole-file write is the FALLBACK, not the path: a dev server started before
-		//   the Append plugin landed answers `rpc:append` with nothing at all, and
-		//   `async_rpc` would wait for a reply that is never coming. raced() bounds it.
-	async append(url, text){
+	// Through the one file API (ext/filesystem/FsFile.js). ⚠ A dev server without the
+	// Append plugin never answers `rpc:append`, and `async_rpc` would wait forever;
+	// raced() bounds it.
+	async append(url, lines){
 		if (!edit()) return false;
-
-		const reply = await Socket.singleton().async_rpc("append", url, text);
-		return reply?.response === "append successful";
+		return FsFile.append(url, lines);
 	}
 
 	/* THE CHECK THE PAIR EXISTS FOR: replay the log from nothing and see whether it
@@ -443,18 +434,18 @@ export class FileStore extends Store {
      their own edits live in the browser. */
 export class LocalStore extends FileStore {
 
-	async load(){ return this.page.store().get({ tree: null }).tree ?? super.load(); }
+	async load(){ return this.page.prefs().get({ tree: null }).tree ?? super.load(); }
 
 	// ⚠ `patch`, never `set`: this page's own mode record lives under the same key,
 	//   and a `set` would replace the whole record and drop it.
-	async save(tree){ this.page.store().patch({ tree }); return true; }
+	async save(tree){ this.page.prefs().patch({ tree }); return true; }
 
 	/* ⚠ TWO DIFFERENT TRUE SENTENCES, and saying the wrong one is a lie a reader can
 	     check. Before you change anything, these pages came out of the committed FILES
 	     and nothing is in your browser at all; after you change something, your version
 	     is the one in `localStorage`. The label asks which. */
 	label(count){
-		const mine = this.page.store().get({ tree: null }).tree;
+		const mine = this.page.prefs().get({ tree: null }).tree;
 
 		return mine
 			? "**Saved in this browser.** There is no dev server here, so nothing was written to disk — your "
@@ -465,7 +456,7 @@ export class LocalStore extends FileStore {
 	}
 
 	mark(count){
-		return (this.page.store().get({ tree: null }).tree ? "**In this browser** — " : "**Read from the files** — ")
+		return (this.page.prefs().get({ tree: null }).tree ? "**In this browser** — " : "**Read from the files** — ")
 			+ pages(count) + ".";
 	}
 }

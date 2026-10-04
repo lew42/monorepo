@@ -1,5 +1,6 @@
 import { Page, View, div, a, span, p, h2, h3, b, icon, iframe } from "/app.js";
 import Layout, { load as load_layouts, find as find_layout } from "/layouts/Layout.js";
+import { decide } from "/layouts/browse/decide.js";
 
 View.stylesheet(import.meta, "explorer.css");
 
@@ -219,6 +220,17 @@ function centre(node){
 
 	const eff = effective(node);
 	if (eff) picture(eff, true); else p.c("muted", "Nothing to draw here yet.");
+
+	// THE VERDICT + APPROVE/IMPROVE — the owner, 2026-10-03, roadmap item 7:
+	// "put the Approve/Improve buttons and the verdict on the explorer's centre,
+	// at the layout's own default width." `decide()` is the exact box
+	// `/layouts/browse/` already uses, imported whole (Law 6) — one verdict
+	// store, so a press here shows up on browse's wall and vice versa. It only
+	// makes sense on the thing actually pictured (`eff`), never a bare category
+	// with nothing of its own to judge. `std-explorer-decide-seat` is what caps
+	// it at a reading width instead of the picture's own full column width —
+	// see explorer.css for why 1000px.
+	if (eff) div.c("std-explorer-decide-seat", () => { decide(eff); }).style("--w", (eff.width ?? 1000) + "px");
 
 	properties(node);
 }

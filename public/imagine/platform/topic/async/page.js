@@ -12,7 +12,7 @@ import { baseline } from "/imagine/paging/baseline.js";
    and both of them work alone.
 
    `nearest()` is `findLast`, so the CLOSEST claim wins — everything below here now finds THIS
-   page as its topic, and gets its own `store()` for free because the store key is the url. */
+   page as its topic, and gets its own `prefs()` for free because the store key is the url. */
 
 const LESSONS = [
 	["promises", "Promises", "The object, the three states, and why `then` returns a new one."],
@@ -32,7 +32,7 @@ export default new Page({
 	// every lesson under it goes back to writing JavaScript's log.
 	is: "topic",
 
-	initialize(){ this.log = [...this.store().get({ log: [] }).log]; },
+	initialize(){ this.log = [...this.prefs().get({ log: [] }).log]; },
 
 	watch(fn){ (this.watchers ??= []).push(fn); fn(); },
 	bump(){ this.watchers?.forEach(fn => fn()); },
@@ -40,11 +40,11 @@ export default new Page({
 	earn(id){
 		if (this.log.includes(id)) return;
 		this.log.push(id);
-		this.store().set({ log: this.log });
+		this.prefs().set({ log: this.log });
 		this.bump();
 	},
 
-	reset(){ this.log.length = 0; this.store().clear(); this.bump(); },
+	reset(){ this.log.length = 0; this.prefs().clear(); this.bump(); },
 
 	content(){
 		// The same mark its parent topic wears, for the same reason: this run is
@@ -56,7 +56,7 @@ export default new Page({
 			if (this.log.length) button("Erase").click(() => this.reset());
 		})));
 
-		md("Its own store: `" + this.store().key() + "` — a different key from the topic above,"
+		md("Its own store: `" + this.prefs().key() + "` — a different key from the topic above,"
 			+ " because it is a different url. Nothing was configured to make that true.");
 	},
 
