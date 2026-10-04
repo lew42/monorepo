@@ -352,7 +352,22 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	page.on("response", r => {
 		const u = r.url();
 		if (u.endsWith("/favicon.ico") || r.status() < 400) return;
-		// Same-origin (this worktree's own server) is always an error, any request kind —
+		// Two expected-404 shapes, found 2026-10-04 landing sessions-tab-polish/data-grid,
+		// both benign in a worktree's own isolated server and neither about the branch being
+		// tested:
+		//   - core/Page/Page.class.js's own listing() always probes files.jsonl THEN
+		//     page.jsonl for ANY folder (its own comment: "the loaded page, else files.jsonl,
+		//     else page.jsonl ... else null and the caller falls back to directory.json") —
+		//     a 404 on either is the designed fallback path, not a broken link, and fires on
+		//     every folder that simply doesn't keep one of the two (most don't keep page.jsonl
+		//     at all; today's date dir is often uncommitted-only in the main tree so a worktree
+		//     never has it).
+		//   - /ai-logs/<session-id> streams a LIVE session's own transcript from the main
+		//     Servex-managed process; a worktree's own dev server has no such session running
+		//     in it, so any page that links to a currently-active session (e.g.
+		//     /framework/ai/sessions/) 404s here no matter what the branch changed.
+		if (/\/(files|page)\.jsonl$/.test(u) || /\/ai-logs\//.test(u)) { warns.push(`HTTP ${r.status()}: ${u}`); return; }
+		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
 		(u.startsWith(base) ? errors : warns).push(`HTTP ${r.status()}: ${u}`);
