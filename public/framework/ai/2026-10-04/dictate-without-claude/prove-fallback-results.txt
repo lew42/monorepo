@@ -1,0 +1,20 @@
+session v-a4hkkcr created
+
+1. a "done" wake that just MENTIONS usage limits:
+   fallback flag: undefined (must be undefined — it was a normal reply, not a refusal)
+
+2. the owner's line that's about to go unanswered, then the real refusal Claude sends:
+   owner: "what time is it"
+   (Agents.js's own wake_parent() sends exactly this shape: "error: <the agent's last words>")
+
+fallback flag: {"fast":true} (must be {fast:true})
+session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
+
+the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
+  "The session record shows about 6:55 p.m. Central."
+
+last lines of the session file (the switch itself IS recorded there, for the owner to see):
+{"session":{"id":"v-a4hkkcr","home":"/framework/","at":"2026-10-04T18:54:51.320-05:00","project":"prove","host":"prove.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-04T23:54:51.322Z","session":"v-a4hkkcr","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-04T18:54:51.323-05:00","session":"v-a4hkkcr","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
+{"backing":{"at":"2026-10-04T18:54:51.340-05:00","fast":"b2310fbb-5b53-4da2-b812-56fb213e4630","smart":null,"how":{"fast":"new"}}}

@@ -112,7 +112,7 @@ say(`[${T()}] key-level diff after 20s: $${real_total.toFixed(4)} (OpenRouter's 
 say(`[${T()}] the REAL per-call cost instead, confirmed by hand against OpenRouter directly (same model, same day):`
 	+ ` $0.0000038-$0.0000107 per short reply, and $0.0022 for the whole 18-question new-brain eval this`
 	+ ` FALLBACK_MODEL choice is based on (ai/2026-10-03/new-brain/eval-results.json) — about $0.0001/call,`
-	+ ` roughly 400x cheaper than Claude Haiku's $0.044 for the same 18 calls.`);
+	+ ` roughly 20x cheaper than Claude Haiku's $0.044 for the same 18 calls.`);
 say(`session file: ${sessions.disk(created.home)}... (kept in ${DIR}, not the repo — a throwaway proof session)`);
 
 const OUT = path.join(REPO, "public/framework/ai/2026-10-04/dictate-without-claude/prove-results.txt");

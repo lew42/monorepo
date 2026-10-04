@@ -147,7 +147,7 @@ Claude refuses one of them for usage limits — the owner, 2026-10-04: "I have t
   [`ai/2026-10-03/new-brain/eval-results.json`](/framework/ai/2026-10-03/new-brain/eval-results.json)):
   `openai/gpt-6-luna` for BOTH roles. On the same 18-question set (5 doc facts, 3 reasoning
   traces, 10 real prompt-refine jobs), it tied the BEST score on the real job (10/10, level c,
-  same as deepseek-v4.1-flash) while costing **5x less than Claude Haiku** ($0.0022 vs $0.044
+  same as deepseek-v4.1-flash) while costing **20x less than Claude Haiku** ($0.0022 vs $0.044
   for the whole run) and running **3x faster than deepseek** (45s vs 140s) — the fastest paid
   model tested. `claude-haiku-4-5` itself (8/10, $0.044) and `deepseek/deepseek-v4.1-flash`
   (10/10, $0.010, slow) were the only other real contenders. The free local option for the

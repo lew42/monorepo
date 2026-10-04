@@ -903,6 +903,7 @@ Agents.Agent = class Agent {
 	 * UI its token stream; `forwardSubagentText` gives it the nested transcript of
 	 * anything this agent itself spawns. Both names verified against 0.3.280. */
 	options(){
+		const door = this.door();
 		return {
 			model: this.model,
 			effort: this.effort,
@@ -911,7 +912,7 @@ Agents.Agent = class Agent {
 			includePartialMessages: true,
 			forwardSubagentText: true,
 			permissionMode: this.permission_mode,
-			...this.door(),
+			...door,
 			...(this.permission_mode === "bypassPermissions" ? { allowDangerouslySkipPermissions: true } : {}),
 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
@@ -920,13 +921,19 @@ Agents.Agent = class Agent {
 			...(this.resume && this.fork ? { forkSession: true } : {}),
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
-			/* ⚠ `sdk.env` NAMES THE SAME KEY `door()` JUST SET, two lines up — `...this.sdk` here
-			 * REPLACES `door()`'s whole `env` (the provider's OpenRouter/local credentials, plus
-			 * `process.env`), it does not add to it (found live, dictate-without-claude,
-			 * 2026-10-04). A spec that needs one more env var belongs on the spec's own
-			 * TOP-LEVEL `env` field instead (`this.env`, via `door()`'s own
-			 * `{...process.env, ...or_env, ...this.env}`), never inside `sdk.env`. */
 			...this.sdk,
+			/* `env` NAMES THE SAME KEY `door` JUST SET (review finding 7, dictate-without-claude,
+			 * 2026-10-04): a plain `...this.sdk` spread, one line up, REPLACES `door.env`
+			 * (the provider's OpenRouter/local credentials, plus `process.env`) rather than
+			 * adding to it, because `sdk.env` and this options key are the same property name.
+			 * Fixed at the ROOT here — not just in a comment telling the next caller to use
+			 * `spec.env` instead — so a future `sdk.env` can never repeat the exact bug this
+			 * task found live: a session spec's `sdk.env` silently wiping the OpenRouter
+			 * credentials `env_for("openrouter")` had just set, so the SDK called real
+			 * Anthropic with an OpenRouter model id and failed "may not exist or you may not
+			 * have access to it". `door.env` goes first so a caller's own `sdk.env` flag can
+			 * still win a real, intentional conflict. */
+			...(door.env || this.sdk?.env ? { env: { ...door.env, ...this.sdk?.env } } : {}),
 			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
 			 * `...this.sdk` so it always applies even when a spec sets its own
 			 * disallowedTools for an unrelated reason. */
@@ -986,8 +993,14 @@ Agents.Agent = class Agent {
 		const or_env = this.provider === "openrouter" ? env_for("openrouter")
 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
-		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
-		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });
+		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
+		 * servers, and still needs the provider env — AND a spec's own top-level `env` (review
+		 * finding 1, dictate-without-claude 2026-10-04): the old `or_env ? {...} : undefined`
+		 * check dropped `this.env` outright whenever there was no OpenRouter/local provider to
+		 * merge it with, which is exactly today's default Claude path — a spec with no
+		 * provider env but a real `this.env` (session-fast's two lean flags) got NO env options
+		 * at all, silently losing them. */
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env) ? { ...process.env, ...or_env, ...this.env } : undefined });
 
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
