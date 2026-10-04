@@ -4,7 +4,16 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-03 11:45 pm (vscode-mastermind, session 60d9def6)
+## LATEST, 2026-10-04 1:30 am (vscode-mastermind, session 60d9def6): the owner is on a break
+- **Mission until Claude's 100% (reset Wed Oct 7, 9:59 pm):** be independent of Claude Code. Claude week at 77%.
+- **In flight:** @task-mastermind-local-brain (generated question ladder for local models; then Echo cleans on local Qwen; one-shot vs step-loop test). @mastermind-servex-10 finishes two fixes (spend gate sees OpenRouter cost; spawns record parent) and stops: **the Servex mastermind role is retired**, architecture lives with the VS Code mastermind.
+- **Model results** (/framework/ai/2026-10-03/new-brain/, raw API, no SDK): local qwen2.5-coder (4.7 GB) passes at $0/22 s; gpt-oss-120b $0.001 (66 s) or on Groq $0.003 (11 s); DeepSeek v4.1 flash 10/10 refine. Haiku is no longer the bar.
+- **Rules saved tonight:** main site is production (worktree → check_page → merge); do a 5–10 s edit yourself, spawn for 30 s+; small task = one Sonnet agent, no Opus without a reason; replies short and anchored on names the owner knows; cheap jobs = one raw API call with only the files needed.
+- **Fixed tonight:** phone reaches the main server at http://10.0.0.135:3104/ (Servex binds the main site to the LAN); Now card opens in place; Your prompts shows the words said; prompt hook ignores subagent hand-backs.
+- **Open for the owner:** worktree/sessions-tab-polish and worktree/data-grid are unmerged (merge refused by the permission check); the worktree pool is broken (pool-unstick).
+- **Owner's next themes:** cheap OpenRouter models that work; system design for token use (readme chain cost, mastermind-does-it vs minions, fold layers to one agent per task, every spawn logged with cost and output). Spend study: /framework/ai/2026-10-03/spend-tree/ (reviews catch a real fix 87% of the time — keep them).
+
+## 2026-10-03 11:45 pm (vscode-mastermind, session 60d9def6)
 - **Running:** @task-mastermind-day-overview (spend by day, Claude $ vs real $, by module), @task-mastermind-message-cost (raw → clean → $ per message; voice refine has never written a `refined` line).
 - **Unmerged though "landed":** worktree/sessions-tab-polish and worktree/data-grid (12 commits each, both merge clean into dev, both touch ai/sessions/page.js). My merge.mjs --skip-smoke was refused by the permission classifier; the owner merges, or @mastermind-servex-10 finds why merge.mjs didn't.
 - **Spend:** week 75% at 44% elapsed. Breakdown + fixes: /framework/ai/2026/10/03/now/where-this-week-s-claude-spend-went/ (sent to @mastermind-servex-10: record parent on every spawn, clarity only on owner reports, small tasks = one agent).
