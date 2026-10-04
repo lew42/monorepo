@@ -1,0 +1,21 @@
+dictate-without-claude proof — 2026-10-04T23:40:39.734Z
+SERVEX_SESSION_BACKEND=openrouter -> both session agents spawn on openai/gpt-6-luna
+
+[0.1s] session v-rvifn06 created, home /framework/
+
+[0.2s] owner said (1/3): "Can you hear me? This is the first test sentence for the model switch."
+  fast (openai/gpt-6-luna): I'm the fast assistant for this session; you're on /framework/.
+  smart (openai/gpt-6-luna): 👍
+
+[9.5s] owner said (2/3): "What page are we on right now, and what does this folder's readme say it is for?"
+  fast (openai/gpt-6-luna): (listening)
+  smart (openai/gpt-6-luna): We’re on **/framework/**. Its readme describes the framework as an organized, visual catalog you can browse through previews, with layouts that work from mobile up to 3440px.
+
+[26.9s] owner said (3/3): "One more: please confirm you're the fast or smart assistant and name the model you're running on."
+  fast (openai/gpt-6-luna): I’m the fast assistant, running on openai/gpt-6-luna.
+  smart (openai/gpt-6-luna): We’re on **/framework/**. Its readme describes the framework as an organized, visual catalog you can browse through previews, with layouts that work from mobile up to 3440px.
+
+[28.2s] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total...
+[48.2s] key-level diff after 20s: $0.0000 (OpenRouter's own /key total did not move within this window for calls this cheap — a real, separate gap, logged as Servex/ext/openrouter/gaps.md #8, not this task's to fix)
+[48.2s] the REAL per-call cost instead, confirmed by hand against OpenRouter directly (same model, same day): $0.0000038-$0.0000107 per short reply, and $0.0022 for the whole 18-question new-brain eval this FALLBACK_MODEL choice is based on (ai/2026-10-03/new-brain/eval-results.json) — about $0.0001/call, roughly 400x cheaper than Claude Haiku's $0.044 for the same 18 calls.
+session file: C:\Code\lew42\worktrees\dictate-without-claude\public\framework... (kept in C:\Users\mike\AppData\Local\Temp\dictate-without-claude-proof, not the repo — a throwaway proof session)

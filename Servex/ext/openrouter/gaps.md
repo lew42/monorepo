@@ -14,6 +14,35 @@ they always had.
 | 5 | Long sessions: compaction through the proxy | all | none | untested |
 | 6 | Does `effort` reach a non-Claude model? | all | none | untested |
 | 7 | Web search on an OpenRouter model | tested: deepseek, gpt-6-luna | none needed | works; exact cost being checked |
+| 8 | A real agent's `usage.cost` is still blind on tiny calls | tested: gpt-6-luna | none yet; `/generation` and the key-diff fallback are both too slow for cent-fractions | open — see below |
+
+## 8. The 2026-10-04 cost fix doesn't reach a real agent's `usage.cost`, and `/generation`/key-diff are too slow for a tiny call
+
+- **What fails:** `dictate-without-claude` (2026-10-04) spawned real `session-fast`/`session-smart`
+  agents on `openai/gpt-6-luna` through `Agents.js` and never saw a nonzero `spent_usd()` — every
+  call landed in `Agent.metered` as a `0` placeholder, meaning `message_cost(usage)` found no
+  `usage.cost` on the message the Claude Agent SDK actually handed `assistant()`.
+- **Why, as far as checked:** a raw `fetch` straight to OpenRouter's own `/v1/messages` (the exact
+  endpoint `env_for("openrouter")` points the SDK at) DOES return `usage.cost` (confirmed live,
+  $0.0000038-$0.0000107 a call) — so the field is on the wire. The SDK's own typed message object
+  apparently drops it before `assistant()` ever sees it (the Anthropic API has no such field, so
+  the SDK's own `Usage` type likely doesn't carry an unknown one through). Not fully traced inside
+  the SDK's bundled `sdk.mjs`/`extractFromBunfs` — that's the next step, not done here.
+- **The fallback also failed, for a reason this gap didn't have before:** `/generation` never
+  resolved for any of 6 ids (same shape as gap #2-3), AND a before/after `key_usage()` diff, given
+  a full 15-20s, also read exactly 0 for a call independently confirmed to cost $0.0000107 — the
+  key's own `/key` total looks like it doesn't reflect a single cent-fraction call within the
+  window this codebase has tried so far (maybe longer, maybe batched; not measured past 20s).
+- **Impact:** real-time per-call pricing is unreliable for cheap small models specifically — the
+  exact ones this task's `FALLBACK_MODEL` choice depends on. The spend GUARD still works (it reads
+  the key's weekly/daily totals on its own 30s timer, which do catch up eventually), so nothing
+  overspends; only the live per-agent `$` figure a dashboard would show is wrong (reads as $0).
+- **Workaround used here:** `dictate-without-claude`'s own proof
+  ([`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/))
+  reports the already-measured real cost from the new-brain eval instead of a live reading.
+- **Not fixed here:** scoped to `dictate-without-claude`'s own task (a dollar figure for its proof),
+  not the live metering gap itself — that needs tracing the SDK's own message parsing, which is
+  this gap's own future task.
 
 ## 1. Gemini refuses the ArtifactData tool's schema
 

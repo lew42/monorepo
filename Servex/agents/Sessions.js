@@ -897,7 +897,16 @@ export default class Sessions {
 			role: "session-fast", name: s.id, model: this.session_model(s, "fast"), effort: "low", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo, mcp_url: "", setting_sources: [],
 			system: this.brief("fast") + where,
-			sdk: { tools: [], env: { ...process.env, ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" } },
+			/* Just these two flags — NEVER `...process.env` here (dictate-without-claude, 2026-10-04):
+			 * `Agents.js`'s `door()` already builds the real env as
+			 * `{...process.env, ...or_env, ...this.env}`, with THIS spec's `sdk.env` as `this.env`,
+			 * merged LAST. A `...process.env` spread here re-adds the HOST process's own
+			 * (Claude-only) env on top of `or_env` and wipes the OpenRouter credentials
+			 * `env_for("openrouter")` just set — the SDK then calls real Anthropic with an
+			 * OpenRouter model id and fails "may not exist or you may not have access to it".
+			 * Found live: a bare `sdk.env: {tools:[]}` spawn of openai/gpt-6-luna answered fine;
+			 * adding back `...process.env` broke the exact same spawn. */
+			sdk: { tools: [], env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" } },
 			parent: "sessions"
 		} : {
 			/* The whole Claude Code preset (tools, CLAUDE.md, skills, Servex's MCP door), its brief appended. */
