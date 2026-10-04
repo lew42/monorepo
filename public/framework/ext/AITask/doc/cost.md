@@ -85,6 +85,9 @@ breakdown, and which **module** (`core/Page`, `ux/Dictate`, `Servex`, …) each 
 belongs to. `module-spend.js` draws it on the day page — two totals, then a list of modules
 touched, each a page-icon-item (`ext/Mention`'s `build_row`) linking to
 `/framework/ai/<date>/module/<slug>/`, that module's own tasks and outcomes for the day
-(`ai/page.js`'s day route). A module's own dollar total is deliberately not shown: a task that
-spans several modules would be counted under each of them, which would no longer sum to the
-day's real total above it.
+(`ai/page.js`'s day route). The `<slug>` is the module name lowercased, with every run of
+non-letter/digit characters (`/`, spaces, `.`) turned into one `-`, outer dashes trimmed —
+`module-spend.js`'s own `slug()` — so `core/Page` is `/framework/ai/<date>/module/core-page/`
+and `ux/Dictate` is `.../module/ux-dictate/`. A module's own dollar total is deliberately not
+shown: a task that spans several modules would be counted under each of them, which would no
+longer sum to the day's real total above it.
