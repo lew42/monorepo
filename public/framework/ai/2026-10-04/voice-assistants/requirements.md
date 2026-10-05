@@ -10,6 +10,11 @@
 ## The design principle (owner, 2026-10-04: "write that down")
 **A voice session listens and answers in real time, as fast as possible without lag.** The fast assistant goes first: quick, automatic, a rough guess (clean, refine, ✓/?, a first card). The smart assistant takes its turn after: revises what the fast one did, in place. Neither manages work. Real work, and fixing anything that went wrong, goes to **one Opus mastermind** above all voice sessions, because the session pair isn't a reliable manager.
 
+## Added 2026-10-05 (owner)
+- **Split screen is the default:** the chat is a sidebar for what doesn't belong on the page; the page itself updates live beside it.
+- **The fast assistant may add cards to the page**, only through the page tools (`page_add` / `page_set`: they stamp time, author and format), never by hand-written JSON.
+- **The smart assistant stays hands-free:** a simple search ("find this pattern in these folders") goes to the cheapest model that passes that job (local Qwen, or a one-shot cheap OpenRouter call), not to itself; real work goes to the one mastermind.
+
 ## Roles (owner, 2026-10-04, second prompt)
 - **Fast assistant = the prompt interpreter.** Stays free; reacts in seconds; does only quick, simple things (✓ / ?, a name and an icon, first guesses at requirements on the card).
 - **Smart assistant = a mini mastermind, hands off.** Picks the model and spawns the minion or mastermind for real work; doesn't do the work itself, so it stays free to respond.
