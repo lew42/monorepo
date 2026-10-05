@@ -4,7 +4,17 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-05 1:00 am (vscode-mastermind, session 60d9def6, registered as `vscode-mastermind`)
+## LATEST, 2026-10-05 2:10 pm: for the NEW Sonnet VS Code tab (the old Opus tab 60d9def6 is winding down)
+**Claude is at 96% of the week (0.7%/h; ~5 h left; weekly reset Wed Oct 7, 9:59 pm). Minimise Claude tokens at all costs: you are the one Claude session that stays; everything else runs on OpenRouter or local.**
+- **Voice is on OpenRouter NOW:** `%LOCALAPPDATA%\lew42\servex\session-backend.txt` = `openrouter` (GPT-6 luna for the fast/smart pair; delete the file to go back to Claude). Prompt cleaning: local Qwen 2.5 coder ($0). OpenRouter budget: +$15 burst this week (`openrouter-burst.json`).
+- **In flight:** `task-mastermind-mobile-reload-speed` (Sonnet; told to land now and stop) and `task-mastermind-openrouter-agent-trial` (GPT-6 luna, $1: can a cheap model follow our process on a one-line task? Its outcome decides whether OpenRouter masterminds are usable). Both message `vscode-mastermind`; re-register under your own id (`register_session`) so they reach you, and update this section when they land.
+- **Landed today:** duplicate bubbles fixed (fe8e7ff4), timed mic status (9cf2bc75), dev-server crash fix (ServexProxy), one Dictate engine per tab, Refine "Try it" page, local models (qwen3-8b uses tools), Today/Yesterday cards, blog post /blog/framework/class-cards/. Smart voice assistant moved Opus → Sonnet in roles.js (only matters on the Claude backend; loads at next Servex restart).
+- **Stopped on purpose:** the Servex mastermind role (retired), master-assistant, all finished task agents.
+- **Open questions for the switch:** gpt-oss "died" = its SDK session ended ("other") without landing, no error: likely the model ended its turn early. The fix the owner described: a node step runner that re-prompts after silence and approves each step. Not built.
+- **Queued for after the reset (briefs written):** voice-assistants (global sessions, resume rule, + new session, templates e.g. "OpenRouter only" from a dropdown, cards not chat), voice-pipeline rest (Microphone/Whisper classes, pipeline view, resend log, compare screen), vscode-session-cost, inbox-zero, refine-to-plan, List redesign (proposal).
+- **Rules:** main site is production (worktree → check_page → merge.mjs; after every merge, commit files it left in the main tree); one agent per task, short sessions; never wait on the owner; write down what the owner says where it belongs.
+
+## 2026-10-05 1:00 am (vscode-mastermind, session 60d9def6, registered as `vscode-mastermind`)
 - **Claude week ~90%; the cutoff may come before Wed 9:59 pm.** Nothing is running. Keep spawns small: ONE Sonnet agent per task, short sessions; a long session is the leak (dictate-live-state reached $57 at 600k context and was stopped).
 - **Landed tonight:** Dictate works without Claude (OpenRouter fallback), Dictate fixes rounds 1–2, one engine per tab (six engines on one page was the mic-abort + 4× bubble cause), dev-server crash fix (ServexProxy: 84 crashes = the white screens), Today/Yesterday day cards, Models tab, token accounting (one source), Refine "Try it" page, local models (qwen3-8b uses tools; qwen2.5-coder best at cleaning; llama `--parallel 1` context fix), OpenRouter cost tracking + spend gate, phone reaches the main server at http://10.0.0.135:3104/.
 - **Merges leave files uncommitted** in the main tree when other edits are live: after every landing, `git status` and commit that task's files by path (happened 3× tonight).

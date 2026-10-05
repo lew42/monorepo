@@ -21,6 +21,9 @@
 - **Voice session:** `v-<id>`, one conversation in the chat; owns a fast and a smart agent (two SDK sessions).
 - **Tab session:** a VS Code / terminal conversation (a uuid), its prompts on `ai/<date>/session-<uuid8>/`.
 
+## Session templates (owner, 2026-10-05)
+A new session can be started from a template chosen in a dropdown, e.g. **"OpenRouter only"** (the best OpenRouter model per role, nothing on Claude) or **"Claude"**; the template sets each role's model and instructions. Today the switch is one file (`session-backend.txt`).
+
 ## Later ideas, written down (owner, 2026-10-05; not now)
 - **Configurable stacks:** pick the model and the instructions for each role (fast, smart, refiner) as one saved configuration; instructions can differ per model (more detail for strong models, a minimal version for local ones). Test results visible per configuration.
 - **Refinement level:** how much structure to add, from "just clean" to "full cards".
