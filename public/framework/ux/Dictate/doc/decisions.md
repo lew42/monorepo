@@ -504,7 +504,18 @@ worktree's own server, never the `mcp__playwright` tool): `ai/2026-10-04/dictate
   next real stage change overwrites whatever it said before, so a fixed problem clears
   itself the moment the stage actually recovers, never on a timer guessing that it has.
   Proven headless: `log_step("mic","refused: …")` shows in `$diag`; the next
-  `log_step("mic","ok")` replaces it completely.
+  `log_step("mic","ok")` replaces it completely. Review finding 1 (round 2's own
+  `review.mjs` pass): three `set_error()` call sites — the insecure-context check, a
+  mid-segment Whisper failure, and the browser-engine's 6s silence watchdog — did not
+  call `log_step()` first, so `$diag` never updated for them (the insecure-context one
+  is exactly the owner's own LAN/http setup). All three now do, same pattern as the
+  two sites that already did.
+
+⚠ `note()`'s own 4s revert (just above) is a TIMER, not a true "the stage recovered"
+check — review finding 3. Harmless today (nothing in this codebase's `deliver()` path
+takes anywhere near 4s), but a future caller with a slower `deliver()` could have its
+real "sending…"/failure note silently replaced by the idle hint a moment before the
+real result would have overwritten it anyway. Revisit if that ever shows up.
 
 Deliberately left as a known, documented limitation: Android's own OS-level restart
 beep when the browser's `SpeechRecognition` (not whisper) ends and restarts itself after
