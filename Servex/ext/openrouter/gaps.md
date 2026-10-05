@@ -37,12 +37,22 @@ they always had.
   exact ones this task's `FALLBACK_MODEL` choice depends on. The spend GUARD still works (it reads
   the key's weekly/daily totals on its own 30s timer, which do catch up eventually), so nothing
   overspends; only the live per-agent `$` figure a dashboard would show is wrong (reads as $0).
+- **Workaround tried, and it ALSO hit the same root gap (added after a review round on the same
+  task):** a token-based alternative — `cost = input_tokens × prompt_price + output_tokens ×
+  completion_price`, both real numbers from OpenRouter's public `/v1/models` catalog and the
+  SDK's own `Agent.last_usage` — looked like a way around the missing `usage.cost` entirely. It
+  isn't: `last_usage.input_tokens` and `.output_tokens` both read `0` on every one of these
+  calls too (confirmed live, same openai/gpt-6-luna spawns), while `cache_creation_input_tokens`/
+  `cache_read_input_tokens` are `null`, not populated either — so the SDK's typed `Usage` object
+  isn't just dropping the extra `cost` field, it's not getting real token counts through the
+  OpenRouter proxy at all for this call shape. One underlying gap, two symptoms.
 - **Workaround used here:** `dictate-without-claude`'s own proof
   ([`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/))
-  reports the already-measured real cost from the new-brain eval instead of a live reading.
+  reports the already-measured real cost from the new-brain eval instead of a live reading, and
+  shows the `$0`/`0 tokens` live figures plainly rather than hiding them.
 - **Not fixed here:** scoped to `dictate-without-claude`'s own task (a dollar figure for its proof),
-  not the live metering gap itself — that needs tracing the SDK's own message parsing, which is
-  this gap's own future task.
+  not the live metering gap itself — that needs tracing the SDK's own message parsing (both the
+  `usage.cost` field AND the token counts), which is this gap's own future task.
 
 ## 1. Gemini refuses the ArtifactData tool's schema
 

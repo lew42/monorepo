@@ -1,23 +1,30 @@
-dictate-without-claude proof — 2026-10-05T00:04:01.205Z
+dictate-without-claude proof — 2026-10-05T00:13:27.938Z
 SERVEX_SESSION_BACKEND=openrouter -> both session agents spawn on openai/gpt-6-luna
 
-[0.2s] session v-lwwakln created, home /framework/
+[0.2s] session v-y273luz created, home /framework/
 
 [0.2s] owner said (1/3): "Can you hear me? This is the first test sentence for the model switch."
-  fast (openai/gpt-6-luna): I'm the fast assistant for this session; you're on /framework/.
-  smart (openai/gpt-6-luna): Yes, I hear you clearly. This is the first test sentence for the model switch.
+  fast (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: I'm the fast assistant for this session; you're on /framework/.
+  smart (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: Yes, I can hear you: “This is the first test sentence for the model switch.”
 
-[11.2s] owner said (2/3): "What page are we on right now, and what does this folder's readme say it is for?"
-  fast (openai/gpt-6-luna): We’re on /framework/; I can’t see the folder’s README.
-  smart (openai/gpt-6-luna): We’re on `/framework/`. I’ll check that folder’s readme for its stated purpose.
+[10.0s] owner said (2/3): "What page are we on right now, and what does this folder's readme say it is for?"
+  fast (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: We’re on /framework/; I can’t tell what its README says without reading it.
+  smart (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: We’re on the Framework home page, `/framework/`. Its readme says the framework is organized and visual so you can browse features through previews, and that every layout works from mobile up to 3440px.
 
-We’re on [`/framework/`](/framework/). Its readme says the framework is organized as a visual, browsable index, with layouts that work from mobile through 3440px; it links to the core classes, opt-in add-ons, UI/UX, sty
+[34.6s] owner said (3/3): "One more: please confirm you're the fast or smart assistant and name the model you're running on."
+  fast (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: I’m the fast assistant, running on openai/gpt-6-luna.
+  smart (openai/gpt-6-luna) [0in/0out tok, $0.00000000]: I’m the smart assistant, running on `openai/gpt-6-luna`.
 
-[33.4s] owner said (3/3): "One more: please confirm you're the fast or smart assistant and name the model you're running on."
-  fast (openai/gpt-6-luna): I’m the fast assistant, running on openai/gpt-6-luna.
-  smart (openai/gpt-6-luna): I’m the smart assistant, running on `openai/gpt-6-luna`.
+[39.5s] real $/reply, computed from each reply's own token counts × OpenRouter's published price for openai/gpt-6-luna ($0.0000001/input token, $0.0000005/output token):
+  every reply's token usage read 0 in/0 out — the SDK doesn't surface real token counts for a call proxied this way either, the same root gap as its missing usage.cost (openrouter/gaps.md #8, this run added as a second symptom). $0.00000000 below is that $0 token count priced at a real rate, not a real $0 cost.
+  fast: $0.00000000 (0in/0out tok)
+  smart: $0.00000000 (0in/0out tok)
+  fast: $0.00000000 (0in/0out tok)
+  smart: $0.00000000 (0in/0out tok)
+  fast: $0.00000000 (0in/0out tok)
+  smart: $0.00000000 (0in/0out tok)
+  total, 6 replies: $0.00000000
 
-[40.1s] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total...
-[60.1s] key-level diff after 20s: $0.0000 (OpenRouter's own /key total did not move within this window for calls this cheap — a real, separate gap, logged as Servex/ext/openrouter/gaps.md #8, not this task's to fix)
-[60.1s] real $/reply for THIS run: unmeasured (gap #8). The evidence the FALLBACK_MODEL choice itself rests on is the new-brain eval's own real $0.0022 for a comparable 18-call task (doc questions, reasoning, prompt-refine) — 20x cheaper than Claude Haiku's $0.044 for the same 18 calls (ai/2026-10-03/new-brain/eval-results.json).
+[39.5s] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total (a cross-check, not the primary figure)...
+[59.5s] key-level diff after 20s: $0.0000 (OpenRouter's own /key total often does not move within 20s for a call this cheap — gaps.md #8 — so $0.0000 here does not contradict the computed total above)
 session file: C:\Code\lew42\worktrees\dictate-without-claude\public\framework... (kept in C:\Users\mike\AppData\Local\Temp\dictate-without-claude-proof, not the repo — a throwaway proof session)

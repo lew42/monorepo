@@ -129,7 +129,7 @@ export const now_ms = () => {
  *     (ai/2026-10-03/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
  *     as deepseek-v4.1-flash) while being the FASTEST paid model tested (45s/18 questions,
- *     3x faster than deepseek) and 5x cheaper than Claude Haiku ($0.0022 vs $0.044 for the
+ *     3x faster than deepseek) and 20x cheaper than Claude Haiku ($0.0022 vs $0.044 for the
  *     same 18-question run) — see Servex/agents/readme.md.
  *   - "local": the FAST assistant only (it already runs with `tools: []`) moves to the local
  *     GPU model instead — free, no network. The smart one needs real tool calls
@@ -173,7 +173,10 @@ export function session_backend(){
  * `wake_parent`'s `done:` text is the agent's own last WORDS, which can legitimately mention
  * "usage limit" while just answering a question about one — only `error:` is Claude itself
  * refusing the call. */
-export const USAGE_LIMIT_RE = /^error:.*(usage limit|rate.?limit|quota|\b429\b|exceeded|billing.?error)/i;
+/* No bare "exceeded" (review finding 4): it alone also matches an unrelated refusal like
+ * "context length exceeded", which would permanently move every future session off Claude
+ * for the wrong reason. Each word left requires its own usage/rate/quota/billing context. */
+export const USAGE_LIMIT_RE = /^error:.*(usage.?limit|rate.?limit|quota|\b429\b|billing.?error)/i;
 
 export default class Sessions {
 

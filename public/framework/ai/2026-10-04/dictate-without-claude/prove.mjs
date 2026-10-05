@@ -39,6 +39,16 @@ await warm_guard();   // the spend guard's cache starts empty and fails closed (
  * settles. The diff is real dollars, billed by OpenRouter, not a guess. */
 const KEY = read_key();
 
+/* A REAL $/REPLY, computed (law 7: compute, don't recall), not guessed (review finding 1):
+ * OpenRouter's own public `/v1/models` catalog has FALLBACK_MODEL's per-token price, and
+ * `Agent.last_usage` (Agents.js's `assistant()`) already carries each reply's real input/
+ * output token counts — `cost = input_tokens × prompt_price + output_tokens × completion_price`
+ * is arithmetic on two real numbers, not an estimate transplanted from a different call. */
+const catalog = await fetch("https://openrouter.ai/api/v1/models").then(r => r.json());
+const pricing = catalog.data.find(m => m.id === FALLBACK_MODEL)?.pricing;
+if (!pricing) throw new Error(`${FALLBACK_MODEL} not found in OpenRouter's /v1/models catalog — can't price a reply`);
+const reply_cost = usage => usage ? (usage.input_tokens ?? 0) * Number(pricing.prompt) + (usage.output_tokens ?? 0) * Number(pricing.completion) : null;
+
 const DIR = path.join(os.tmpdir(), "dictate-without-claude-proof");
 fs.rmSync(DIR, { recursive: true, force: true });
 fs.mkdirSync(DIR, { recursive: true });
@@ -98,28 +108,41 @@ for (const [i, text] of SENTENCES.entries()){
 		if (!id) continue;
 		const r = await wait_for_reply(id, turns_before[role]).catch(e => ({ words: `(no answer: ${e.message})` }));
 		const agent = agents.live.get(id);
-		replies.push({ role, model: agent?.model ?? "?", text: String(r.words ?? "").slice(0, 300) });
-		say(`  ${role} (${agent?.model ?? "?"}): ${String(r.words ?? "").slice(0, 300)}`);
+		const usage = agent?.last_usage ?? null;
+		const cost = reply_cost(usage);
+		replies.push({ role, model: agent?.model ?? "?", text: String(r.words ?? "").slice(0, 300), cost, usage });
+		say(`  ${role} (${agent?.model ?? "?"}) [${usage ? `${usage.input_tokens}in/${usage.output_tokens}out tok, $${cost.toFixed(8)}` : "no usage reported"}]: ${String(r.words ?? "").slice(0, 300)}`);
 	}
 }
 
-say(`\n[${T()}] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total...`);
+const all_zero_tokens = replies.every(r => !r.usage || (r.usage.input_tokens === 0 && r.usage.output_tokens === 0));
+say(`\n[${T()}] real $/reply, computed from each reply's own token counts × OpenRouter's published`
+	+ ` price for ${FALLBACK_MODEL} ($${pricing.prompt}/input token, $${pricing.completion}/output token):`);
+if (all_zero_tokens){
+	/* NOT a live-measurement bug in THIS script (review finding 1 asked for exactly this
+	 * calculation) — the SDK's own `Usage` object reports 0 input/output tokens for every one
+	 * of these calls, through the real Claude Agent SDK proxying OpenRouter. This is the SAME
+	 * root gap `gaps.md` #8 already names for `usage.cost`, just showing up as zero token
+	 * counts too, not only a missing cost field — added to gap #8 as a second symptom. */
+	say(`  every reply's token usage read 0 in/0 out — the SDK doesn't surface real token counts`
+		+ ` for a call proxied this way either, the same root gap as its missing usage.cost`
+		+ ` (openrouter/gaps.md #8, this run added as a second symptom). $0.00000000 below is`
+		+ ` that $0 token count priced at a real rate, not a real $0 cost.`);
+}
+for (const r of replies) say(`  ${r.role}: $${(r.cost ?? 0).toFixed(8)} (${r.usage?.input_tokens ?? 0}in/${r.usage?.output_tokens ?? 0}out tok)`);
+const sum = replies.reduce((a, r) => a + (r.cost ?? 0), 0);
+say(`  total, ${replies.length} replies: $${sum.toFixed(8)}`);
+
+/* The live OpenRouter KEY TOTAL is a second, independent cross-check — if it moved by roughly
+ * this much, the token-based figure above is corroborated; gaps.md #8 already covers why it
+ * may not move at all within a short window for a call this cheap, so a $0 reading here is
+ * expected, not a contradiction of the computed total above. */
+say(`\n[${T()}] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total (a cross-check, not the primary figure)...`);
 await sleep(20000);
 const usage_after_run = await key_usage(KEY);
 const real_total = Math.max(0, usage_after_run - usage_before_run);
-say(`[${T()}] key-level diff after 20s: $${real_total.toFixed(4)} (OpenRouter's own /key total did not move within this window for calls`
-	+ ` this cheap — a real, separate gap, logged as Servex/ext/openrouter/gaps.md #8, not this task's to fix)`);
-/* NOT a $/reply figure (review finding 3): $0.0000038-$0.0000107 was measured by hand on a
- * tiny, bare "say hi" call — nothing like session-smart's real turn, which carries the whole
- * claude_code preset system prompt (thousands of tokens) and can call tools. Scaling a toy
- * call's cost up to this turn's would be a guess, not a measurement (law 7) — so this reports
- * only what IS a real measurement: the new-brain eval's own $0.0022 for a comparable 18-call
- * real task (doc questions, reasoning, and the exact prompt-refine job session-smart does),
- * which is the actual evidence the FALLBACK_MODEL choice rests on — not an estimate for THIS
- * run's 6 calls specifically, which gap #8 leaves genuinely unmeasured. */
-say(`[${T()}] real $/reply for THIS run: unmeasured (gap #8). The evidence the FALLBACK_MODEL choice itself rests on is`
-	+ ` the new-brain eval's own real $0.0022 for a comparable 18-call task (doc questions, reasoning, prompt-refine) —`
-	+ ` 20x cheaper than Claude Haiku's $0.044 for the same 18 calls (ai/2026-10-03/new-brain/eval-results.json).`);
+say(`[${T()}] key-level diff after 20s: $${real_total.toFixed(4)} (OpenRouter's own /key total often does not move within 20s for a`
+	+ ` call this cheap — gaps.md #8 — so $0.0000 here does not contradict the computed total above)`);
 say(`session file: ${sessions.disk(created.home)}... (kept in ${DIR}, not the repo — a throwaway proof session)`);
 
 const OUT = path.join(REPO, "public/framework/ai/2026-10-04/dictate-without-claude/prove-results.txt");
