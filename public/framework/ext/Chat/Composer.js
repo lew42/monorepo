@@ -79,7 +79,15 @@ export function composer({
 				on_send_start,
 				on_meter, device_id,
 				field: $input,
-				on_error: e => note(String(e?.message ?? e)),
+				// ONE STATUS LINE REPLACES ERROR ROWS (round 2, 2026-10-04 — the owner: "an
+				// error happens and that error doesn't get cleared out… wasting three more
+				// lines of screen space"). An error is never ALSO pushed into `note()` (the
+				// line below the row): `ux/Dictate`'s own `log_step()` already wrote a short
+				// form of it into `$diag` (surfaced as `$status_line`, below) the moment it
+				// happened, and the very next real stage change overwrites that text — so an
+				// old error cannot outlive the thing that caused it. This is only a console
+				// trail for anyone reading devtools; nothing here draws a second row.
+				on_error: e => console.warn("[dictate] composer:", e),
 				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
 				// ComposerMic calls this at most ONCE per send (`notify_if_failed()` - review
 				// finding 5, a string of failed chunks used to repeat this line once each,
@@ -140,6 +148,14 @@ export function composer({
 	   shape `Drill.js`'s own `.chatbox-drill` uses for its own full-screen shell,
 	   so there is one way a chat surface goes full screen, not two. */
 	const $info = mic?.el.querySelector(".ux-dictate-info");
+	// ONE STATUS LINE (round 2, 2026-10-04 — see the long comment on `on_error` above): the
+	// short "mic: … · socket: … · whisper: …" line `ux/Dictate` already keeps live
+	// (`log_step()`/`draw_diag()`) used to sit buried inside the full-screen menu along with
+	// the rest of `$info`. Pulled out and shown here, right above the send-flow `note()` line,
+	// so the owner always sees current mic/connection/whisper health without opening the menu
+	// — and it is never stale, because the next real stage change overwrites its own text.
+	const $diag = mic?.el.querySelector(".ux-dictate-diag");
+	if ($diag){ $diag.classList.add("chatbox-compose-diag"); $note.el.before($diag); }
 	let $menu;
 	function build_menu(){
 		const box = document.createElement("div");
@@ -206,13 +222,24 @@ export function composer({
 	   (`$note`, a plain line now — chat-menu-merge, 2026-10-01 — it used to be
 	   folded out of sight behind the `⋯` button, which is gone), because a note
 	   nobody can see is not feedback. The placeholder is inside a fixed-height
-	   box, so saying something there cannot move anything. */
+	   box, so saying something there cannot move anything.
+	   ⚠ `$note`'s OWN TEXT NOW REVERTS TOO (round 2, 2026-10-04 — the owner: "an error
+	   happens and that error doesn't get cleared out… wasting three more lines of screen
+	   space for some old artifact error"). Only the placeholder used to be put back after
+	   4s; `$note.text(...)` itself was left exactly as the last call set it, forever, so
+	   a one-off "nothing to send" or a Send failure sat there until something else
+	   happened to call `note()` again — which, on a quiet composer, could be never. A
+	   later call (or the composer being torn down) cancels the pending revert so two
+	   overlapping notes never fight over which one gets to clear last. */
+	let note_timer;
 	function note(text){
 		$note.text(text);
 		$input.attr("placeholder", text);
-		setTimeout(() => {
+		clearTimeout(note_timer);
+		note_timer = setTimeout(() => {
 			if (!$input.el.isConnected) return;
 			$input.attr("placeholder", placeholder);
+			$note.text(hint);
 		}, 4000);
 	}
 

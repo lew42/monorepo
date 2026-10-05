@@ -1,5 +1,6 @@
 import Socket from "/framework/dev/Socket/Socket.js";
 import Dictate from "/framework/ux/Dictate/Dictate.js";
+import Capture from "/framework/ux/Dictate/capture.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 
 /**
@@ -40,7 +41,9 @@ export const SETTINGS = {
 	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
-	box_lines: 7,               // the box grows to this many lines, then scrolls
+	box_lines: 3,               // the box grows to this many lines, then scrolls (the owner, round 2, 2026-10-04:
+	                            // "as I hit transcribe, the text area grows… gets so big I can't read anything
+	                            // else" — was 7)
 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
 	clean: true,                // KILL SWITCH (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 4):
 	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
@@ -457,19 +460,47 @@ export class ComposerMic extends Dictate {
 	   for that, so the button kept saying "listening" while nothing was recorded.
 	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
 	   suspended audio engine is woken the same way. */
+	/* ⚠ NO STOP/START BEEP FOR AN AUTOMATIC REVIVAL (round 2, 2026-10-04 — the owner, on the
+	 * phone: "it's bleeping twice… it seems like it's maybe turning off and then turning
+	 * back on after every pause"). The old code answered a dead track by running a FULL
+	 * `this.stop()` then, 400ms later, a full `this.start()` — two real state transitions,
+	 * one chime each, so a single revival sounded like two beeps. On a phone, a quiet
+	 * stretch in speech (exactly "every pause") is also the moment mobile Chrome/Android is
+	 * most likely to recycle or briefly suspend the mic track to save power — so this fired
+	 * on ordinary pauses almost every time, not on a real disconnect.
+	 *
+	 * Fix: open a FRESH `Capture` directly and swap it in, with `this.state` left at
+	 * "listening" throughout. Nothing here is a state transition, so Dictate's own
+	 * beep-on-listen (`on_listening`) and beep-on-error never fire — from the owner's side
+	 * the mic never looked like it turned off at all, which is exactly "the mic stays on
+	 * until the owner stops it." A revival that genuinely fails (nothing left to reopen,
+	 * permission pulled) still calls `set_error()`, which DOES beep "stop" — that is a real,
+	 * owner-visible failure, not a false one. */
 	watch_capture(){
 		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
 		if (cap?.ctx) cap.ctx.onstatechange = () => {
 			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
 		};
 		track?.addEventListener("ended", async () => {
-			if (this.mic !== cap || this.state !== "listening") return;
-			await this.stop();
+			if (this.mic !== cap || this.state !== "listening" || this.reviving) return;
 			const now = performance.now();
-			if (now - (this.last_revive ?? -1e9) < 5000) return this.set_error("The microphone was disconnected.");
+			const repeat = now - (this.last_revive ?? -1e9) < 5000;
 			this.last_revive = now;
+			if (repeat) return this.set_error("The microphone was disconnected.");
 			this.reviving = true;
-			setTimeout(() => { this.reviving = false; this.start(); }, 400);
+			this.log_step?.("mic", "track ended — reopening silently, still listening");
+			try {
+				const { id, label } = this.device();
+				const fresh = new Capture({ device_id: id, device_label: label });
+				await fresh.start(level => this.on_level(level));
+				cap.stop();   // release the dead one, now that a live replacement is in
+				this.mic = fresh;
+				this.log_step?.("mic", "reopened");
+				this.watch_capture();   // re-arm on the NEW track
+			} catch (e){
+				this.log_step?.("mic", "could not reopen: " + (e?.name ?? e?.message ?? e));
+				this.set_error("The microphone was disconnected.");
+			} finally { this.reviving = false; }
 		});
 	}
 

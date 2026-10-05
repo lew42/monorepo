@@ -91,11 +91,14 @@
 	   filling the row, no matter how wide the row was. An explicit `width: 100%`
 	   gives the width axis a real value, so `field-sizing: content` is left to
 	   do only what the comment above says it is for — the HEIGHT. */
+	/* CAPPED AT 2-3 LINES (round 2, 2026-10-04 — the owner: "as I hit transcribe, the text
+	   area grows… gets so big I can't read anything else"). Was `7lh` (`Mic.js`'s own
+	   `SETTINGS.box_lines`, read live by `dress()`, kept in sync if the gear changes it). */
 	.chatbox-compose-input {
 		width: 100%;
 		min-width: 0;
 		min-height: 3.4em;
-		max-height: 7lh;
+		max-height: 3lh;
 		resize: none;
 		overflow-y: auto;
 		font: inherit;
@@ -137,6 +140,12 @@
 	   SAME words in the box's placeholder; now that there is no `⋯`/"open" state at all
 	   (merged into the one ⚙ menu below), the note is just always visible, in flow. */
 	.chatbox-compose-note { display: block; }
+
+	/* ONE STATUS LINE (round 2, 2026-10-04): the mic/connection/whisper health line
+	   (`ux/Dictate`'s own `$diag`, pulled out of its hidden full-screen menu by
+	   `Composer.js`) sits right above the send-flow note, always one line, muted so it
+	   reads as background information until it actually says something worth noticing. */
+	.chatbox-compose-diag { display: block; font-size: 0.85em; }
 
 	/* ONE FULL-SCREEN MENU (chat-menu-merge, 2026-10-01 — the owner, looking at the gear and
 	   the `⋯` button: "I think the gear and that more button should be merged together into
