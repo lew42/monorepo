@@ -78,8 +78,16 @@ does, and the freshly respawned agent answers the owner's re-sent line.
 
 ## Open, not fixed here
 
-- A refusal that only shows up as a failed `result` (never an `error:` wake) would be missed —
-  worth a check against a real refused transcript once one happens live.
+- **Fixed in review round 7:** a session agent is never `one_shot`, so a refused turn used to
+  wake as plain `done: <last_text>` — no `error:`, nothing `USAGE_LIMIT_RE` could ever match.
+  `woken()` now also checks the live agent's own `last_error` (where `Agents.js`'s `result()`
+  actually puts the refusal reason), which is the path a real cutoff takes almost every time;
+  `prove-fallback.mjs` case 3 proves it. The rare case Agents.js itself calls an `error:` wake
+  (a session-level crash, not a refused turn) is still handled too (case 2).
+- The match (`usage/rate/quota/billing` wording) also fires on a short, transient 429 that has
+  nothing to do with a real cutoff, and the flip is one-way — accepted on purpose (readme.md:
+  a false fallback costs cents, a missed one costs the owner a silent session), but there is
+  still no UI to flip it back besides editing or deleting `session-backend.txt` by hand.
 - A session saved before this feature shipped has no `backing_model`; flipping the setting by
   hand for one of those would still try to resume a Claude session id under a new model until
   that session's own next natural respawn sets `backing_model` for the first time.

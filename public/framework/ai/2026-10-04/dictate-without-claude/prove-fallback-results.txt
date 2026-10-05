@@ -1,20 +1,21 @@
-session v-lqu6gjg created
-
 1. a "done" wake that just MENTIONS usage limits:
    fallback flag: undefined (must be undefined — it was a normal reply, not a refusal)
 
-2. the owner's line that's about to go unanswered, then the real refusal Claude sends:
+2. the rare session-crash shape Agents.js DOES send as "error:" — the one that actually
+   respawns and re-sends the owner's line below:
    owner: "what time is it"
-   (Agents.js's own wake_parent() sends exactly this shape: "error: <the agent's last words>")
+   fallback flag: {"fast":true} (must be {fast:true})
+   session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
 
-fallback flag: {"fast":true} (must be {fast:true})
-session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
+   the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
+     "I can’t see your device’s current time."
 
-the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
-  "I’m not sure of the exact time."
+   last lines of this session's file (the switch itself IS recorded there, for the owner to see):
+{"session":{"id":"v-gj5qp41","home":"/framework/","at":"2026-10-04T19:27:49.886-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T00:27:49.896Z","session":"v-gj5qp41","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-04T19:27:49.897-05:00","session":"v-gj5qp41","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
+{"backing":{"at":"2026-10-04T19:27:49.911-05:00","fast":"3ab6c9a7-437c-458b-8306-9bb8c5ef1796","smart":null,"how":{"fast":"new"}}}
 
-last lines of the session file (the switch itself IS recorded there, for the owner to see):
-{"session":{"id":"v-lqu6gjg","home":"/framework/","at":"2026-10-04T19:03:53.502-05:00","project":"prove","host":"prove.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
-{"chat":{"at":"2026-10-05T00:03:53.505Z","session":"v-lqu6gjg","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
-{"chat":{"at":"2026-10-04T19:03:53.506-05:00","session":"v-lqu6gjg","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
-{"backing":{"at":"2026-10-04T19:03:53.522-05:00","fast":"1596b670-7f09-4ece-b876-6048a111c808","smart":null,"how":{"fast":"new"}}}
+3. THE REAL CASE — a refused turn wakes as "done:", with the actual reason only on the live
+   agent's own last_error (what Agents.js's result() actually does for a non-one_shot agent):
+   fallback flag: {"fast":true} (must be {fast:true} — this is the fix for review round 7, finding 1)

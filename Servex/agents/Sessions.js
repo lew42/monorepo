@@ -176,7 +176,17 @@ export function session_backend(){
 /* No bare "exceeded" (review finding 4): it alone also matches an unrelated refusal like
  * "context length exceeded", which would permanently move every future session off Claude
  * for the wrong reason. Each word left requires its own usage/rate/quota/billing context. */
-export const USAGE_LIMIT_RE = /^error:.*(usage.?limit|rate.?limit|quota|\b429\b|billing.?error)/i;
+export const USAGE_LIMIT_WORDS = /(usage.?limit|rate.?limit|quota|\b429\b|billing.?error)/i;
+/* THE WAKE TEXT ALONE MOSTLY MISSES A REAL REFUSAL (review round 7, finding 1): a session
+ * agent is never `one_shot`, so `Agents.js`'s `wake_parent()` only ever sends `error:` for a
+ * session-level crash (rare) — an ordinary refused TURN still wakes as `done: <last_text>`,
+ * where `last_text` is whatever the agent said BEFORE it got refused, not the refusal itself.
+ * The real reason lives on the live agent's own `last_error` (`Agents.js`'s `result()`,
+ * `message.is_error` → `this.last_error`), so `woken()` below checks BOTH: an actual `error:`
+ * wake (kept, for the rare session-crash case) matched against the FULL word list, or
+ * `last_error` (never spoken content, so no `^error:` anchor needed — it can't accidentally
+ * match the owner asking about usage limits) matched the same way. */
+export const USAGE_LIMIT_RE = new RegExp(`^error:.*${USAGE_LIMIT_WORDS.source}`, "i");
 
 export default class Sessions {
 
@@ -253,7 +263,12 @@ export default class Sessions {
 	 * call stack unwind first anyway, cheaply, rather than relying on it always being safe. */
 	woken(text, note){
 		const from = this.by_agent.get(note?.from);
-		if (!from || !USAGE_LIMIT_RE.test(String(text ?? ""))) return;
+		if (!from) return;
+		/* BOTH signals, not just the wake text (review round 7, finding 1) — see
+		 * USAGE_LIMIT_WORDS's own comment above for why `last_error` is the one that actually
+		 * fires on a real refusal. */
+		const last_error = this.servex.agents.live.get(note.from)?.last_error;
+		if (!USAGE_LIMIT_RE.test(String(text ?? "")) && !USAGE_LIMIT_WORDS.test(String(last_error ?? ""))) return;
 		const s = this.map[from.id];
 		/* Check THIS ROLE'S OWN current model, not the global setting (review finding 1): once
 		 * one session's refusal has already flipped `session-backend.txt` to "openrouter", a
@@ -998,7 +1013,14 @@ export default class Sessions {
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
 		const target_model = this.session_model(s, role);
 		const old = s.backing?.[role];
-		const model_changed = s.backing_model?.[role] && s.backing_model[role] !== target_model;
+		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
+		 * path already switches `smart` between Sonnet and Opus on its own (`Usage.pick()`,
+		 * weekly pace) — a Claude session id can resume under either, so that alone must not
+		 * restart the agent fresh and lose its 40-line tail. Only Claude <-> OpenRouter/local
+		 * (or OpenRouter <-> local) actually can't resume. */
+		const same_claude_family = m => String(m).startsWith("claude");
+		const model_changed = s.backing_model?.[role] && s.backing_model[role] !== target_model
+			&& !(same_claude_family(s.backing_model[role]) && same_claude_family(target_model));
 		const can = !!(old && !model_changed && session_facts(old).cwd);
 		const how = can ? "resume" : old ? "fresh" : "new";
 		/* A tail only when there's actual history to hand over — `old` (abandoning a real

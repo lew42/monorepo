@@ -121,9 +121,12 @@ One ✦ press is one voice session, answered by its own pair of agents. [`Sessio
 
 Both session agents can run on a non-Claude model, and switch there BY THEMSELVES the moment
 Claude refuses one of them for usage limits — the owner, 2026-10-04: "I have to rely entirely
-100% on the website and whether the voice dictation system works." One setting
-(`session_backend()`, a file so the smart assistant can flip it with no restart), one default
-pair (`openai/gpt-6-luna`, picked by cost and quality), one automatic fallback that needs no
+100% on the website and whether the voice dictation system works."
+
+**After a Claude cutoff, Dictate runs on: fast = `openai/gpt-6-luna`, smart = `openai/gpt-6-luna`.**
+
+One setting (`session_backend()`, a file so the smart assistant can flip it with no restart),
+that one default pair (picked by cost and quality), one automatic fallback that needs no
 setting change at all: [`doc/dictate-backend.md`](./doc/dictate-backend.md) has the mechanics,
 the eval the pair was picked from, and the live proof.
 
