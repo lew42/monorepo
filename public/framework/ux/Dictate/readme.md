@@ -356,3 +356,4 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 - **Audio tools:** use them in Dictate or remove them (the owner, 2026-10-04).
 - **Page load speed on the phone** (the owner, 2026-10-04): pages take 2–8 s; measure where (server, proxy, client) and fix the biggest.
 - **Live clean, sentence by sentence** (the owner, 2026-10-04): when Whisper's text has sentence-ending punctuation (. ? ! …) and that sentence is unchanged across two ticks, write it to the session log as its own line and, clean it at once on the fastest cheap model (Groq gpt-oss-20b or Mercury, ~0.5–1 s) so the box updates while the owner talks, instead of waiting for send. After the freeze.
+- **Controls in one row, like the Claude app** (the owner, 2026-10-04): [✕ cancel] [text box, 2–3 lines] [⏸ pause / ▶ resume] [➤ send]. Send works while listening and keeps listening (box clears); pause is a pause, not a stop. Opinion, not yet decided in code.
