@@ -25,3 +25,6 @@ Budget: $6
 
 ## Cards, not chat (owner, 2026-10-04, third prompt)
 Each prompt becomes one context block: what was asked (the essence), and nested inside it whatever came of it (a task launched, its state, its result). A ✓ when nothing more is needed. Decisions are made, not asked: record the options, the choice, why, and a confidence; when two options are close, test both.
+
+## Added (owner, 2026-10-04, fourth prompt)
+The fast assistant does the clean + first refinement (sentence ids, questions spotted); the smart assistant watches both raw and refined, verifies, curates or changes them in place, through the cards, not with a second chat reply. Both can reference existing pages (links, not explanations).

@@ -332,3 +332,4 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 
 - **Overview tab leads with the class architecture** (the owner, 2026-10-04): where Dictate fits (mic + Whisper + clean → chat → voice session assistants), what loads what (does chat.js load Dictate or the reverse), and whether Dictate is UX or an extension now that it has settings. The live demo moves one tab down.
 - **Audio tools:** use them in Dictate or remove them (the owner, 2026-10-04).
+- **Page load speed on the phone** (the owner, 2026-10-04): pages take 2–8 s; measure where (server, proxy, client) and fix the biggest.
