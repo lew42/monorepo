@@ -353,7 +353,7 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 ## To-do
 
 - **Overview tab leads with the class architecture** (the owner, 2026-10-04): where Dictate fits (mic + Whisper + clean → chat → voice session assistants), what loads what (does chat.js load Dictate or the reverse), and whether Dictate is UX or an extension now that it has settings. The live demo moves one tab down.
-- **Audio tools:** use them in Dictate or remove them (the owner, 2026-10-04).
+- **Audio tools: two mic systems today** (found 2026-10-04): Dictate opens the mic with its own `capture.js` (`Capture`) and calls Whisper itself, while `/framework/audio/` has `MicStream` (mic, level, device choice) and `Transcriber` (Whisper or Chrome). Dictate only links to them. Opinion: Dictate should be the assembly built ON `MicStream` + `Transcriber`, with its engine (one per tab) separate from its view (`Dictate extends View` mixes both today). After the one-engine fix.
 - **Page load speed on the phone** (the owner, 2026-10-04): pages take 2–8 s; measure where (server, proxy, client) and fix the biggest.
 - **Live clean, sentence by sentence** (the owner, 2026-10-04): when Whisper's text has sentence-ending punctuation (. ? ! …) and that sentence is unchanged across two ticks, write it to the session log as its own line and, clean it at once on the fastest cheap model (Groq gpt-oss-20b or Mercury, ~0.5–1 s) so the box updates while the owner talks, instead of waiting for send. After the freeze.
 - **Controls in one row, like the Claude app** (the owner, 2026-10-04): [✕ cancel] [text box, 2–3 lines] [⏸ pause / ▶ resume] [➤ send]. Send works while listening and keeps listening (box clears); pause is a pause, not a stop. Opinion, not yet decided in code.
