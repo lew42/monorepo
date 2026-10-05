@@ -1,0 +1,1 @@
+{"log":{"at":"2026-10-05T14:25:05-05:00","task":"mobile-reload-speed","msg":"landed — compress.js now sends ETag + 304 on a reload; 6-file curl check: 60,118B -> 0B, 5/6 304"}}
