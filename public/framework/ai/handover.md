@@ -4,7 +4,14 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-04 1:30 am (vscode-mastermind, session 60d9def6): the owner is on a break
+## LATEST, 2026-10-05 1:00 am (vscode-mastermind, session 60d9def6, registered as `vscode-mastermind`)
+- **Claude week ~90%; the cutoff may come before Wed 9:59 pm.** Nothing is running. Keep spawns small: ONE Sonnet agent per task, short sessions; a long session is the leak (dictate-live-state reached $57 at 600k context and was stopped).
+- **Landed tonight:** Dictate works without Claude (OpenRouter fallback), Dictate fixes rounds 1–2, one engine per tab (six engines on one page was the mic-abort + 4× bubble cause), dev-server crash fix (ServexProxy: 84 crashes = the white screens), Today/Yesterday day cards, Models tab, token accounting (one source), Refine "Try it" page, local models (qwen3-8b uses tools; qwen2.5-coder best at cleaning; llama `--parallel 1` context fix), OpenRouter cost tracking + spend gate, phone reaches the main server at http://10.0.0.135:3104/.
+- **Merges leave files uncommitted** in the main tree when other edits are live: after every landing, `git status` and commit that task's files by path (happened 3× tonight).
+- **Queued briefs (start in this order):** voice-pipeline (Microphone + Whisper classes, send every 300–500 ms, every resend logged), voice-assistants (global sessions in the day folder, resume rule, + new session, cards not chat), vscode-session-cost (VS Code tab costs are wrong: 361c4d18 shows $1,474), inbox-zero, refine-to-plan. Dictate To-dos in its readme (one-row controls, always listening, auto-send per sentence, build on /framework/audio/).
+- **Cheap models:** gpt-oss-120b on OpenRouter died 4× in a real agent session (fine for one-shot calls and web search at $0.007); Ling 3.0 flash and DeepSeek v4.1 flash scored 10/10 on refining.
+
+## 2026-10-04 1:30 am (vscode-mastermind, session 60d9def6): the owner is on a break
 - **Mission until Claude's 100% (reset Wed Oct 7, 9:59 pm):** be independent of Claude Code. Claude week at 77%.
 - **In flight:** @task-mastermind-local-brain (generated question ladder for local models; then Echo cleans on local Qwen; one-shot vs step-loop test). @mastermind-servex-10 finishes two fixes (spend gate sees OpenRouter cost; spawns record parent) and stops: **the Servex mastermind role is retired**, architecture lives with the VS Code mastermind.
 - **Model results** (/framework/ai/2026-10-03/new-brain/, raw API, no SDK): local qwen2.5-coder (4.7 GB) passes at $0/22 s; gpt-oss-120b $0.001 (66 s) or on Groq $0.003 (11 s); DeepSeek v4.1 flash 10/10 refine. Haiku is no longer the bar.
