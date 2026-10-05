@@ -7,6 +7,12 @@
 
 > when I see the smart assistant and the fast assistant both responding with very similar responses, that's broken ... most of the time, those assistants could or should respond with a green check mark ... versus a yellow question mark of like, transcript doesn't make sense ... if there's a task or a question ... converting those into those specific types of cards ... recognizing a question when it's been asked ... a one line preview of the answer ... If I click through, then that answer becomes more of a breakdown
 
+## Roles (owner, 2026-10-04, second prompt)
+- **Fast assistant = the prompt interpreter.** Stays free; reacts in seconds; does only quick, simple things (✓ / ?, a name and an icon, first guesses at requirements on the card).
+- **Smart assistant = a mini mastermind, hands off.** Picks the model and spawns the minion or mastermind for real work; doesn't do the work itself, so it stays free to respond.
+- **The first one to respond covers it.** The second speaks only with a strong, new reason; never repeats the other ("we're looking into it").
+- **Systematic feedback over chat text:** a ✓ when nothing more is needed; structured cards for questions and tasks, each **leading with the quoted question or idea it answers**, then the answer.
+
 ## Want
 1. **New session works:** a button starts a fresh voice session, the old one gets an automatic name, and a picker jumps between sessions.
 2. **The assistants don't echo each other:** the fast one reacts (✓ heard, ? unclear) and only the smart one writes, and only when there's something to say.
