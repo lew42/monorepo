@@ -315,14 +315,23 @@ export default class Dictate extends View {
 	 *  together take — see `set_state()`'s own "connecting" branch. */
 	log_step(stage, detail){
 		const ms = this.connect_started_at ? Math.round(performance.now() - this.connect_started_at) : null;
-		const timed = ms == null ? detail : `${detail} (${ms}ms)`;
 		this.steps[stage] = detail;
 		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
 		if (this.stage_log.length > 12) this.stage_log.shift();
 		console.log(`[dictate] ${stage}: ${detail}`);
 		this.draw_diag();
 		this.draw_stage_tray?.();
-		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(timed);
+		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));
+	}
+
+	/** The ONE place that turns a stamped stage into its on-screen words — `log_step()`'s
+	 *  own "connecting" branch and `set_state()`'s both read this, so the two can never
+	 *  drift into two slightly different ms formats. `null` if that stage has nothing yet. */
+	timed_text(stage){
+		const text = this.steps?.[stage];
+		if (!text) return null;
+		const ms = this.stage_log?.findLast?.(s => s.stage === stage)?.ms;
+		return ms == null ? text : `${text} (${ms}ms)`;
 	}
 
 	draw_diag(){
@@ -608,7 +617,7 @@ export default class Dictate extends View {
 		// "connecting" shows the live, timed stage text (`log_step()`'s own doc comment) —
 		// never the one static word for however long the engine check and the permission
 		// prompt together take (the owner, 2026-10-05: "'connecting…' stays too long").
-		const connect_text = this.steps?.mic ? (this.connect_started_at ? `${this.steps.mic} (${Math.round(performance.now() - this.connect_started_at)}ms)` : this.steps.mic) : "connecting…";
+		const connect_text = this.timed_text("mic") ?? "connecting…";
 		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: connect_text }[state] ?? "");
 		if (state === "listening" && this.resumed){ this.resumed = false; this.$status.text("resumed — listening…"); }
 		if (state === "listening" && !was_listening) this.on_listening?.();
