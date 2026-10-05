@@ -22,3 +22,6 @@
 
 QUEUED: start after /framework/ai/2026-10-04/dictate-without-claude lands (same files).
 Budget: $6
+
+## Cards, not chat (owner, 2026-10-04, third prompt)
+Each prompt becomes one context block: what was asked (the essence), and nested inside it whatever came of it (a task launched, its state, its result). A ✓ when nothing more is needed. Decisions are made, not asked: record the options, the choice, why, and a confidence; when two options are close, test both.
