@@ -11,6 +11,21 @@ import { highlights, more } from "./highlights.js";
 import { needs_all, needs_strip } from "./needs.js";
 import { day_costs, total_line } from "./cost.js";
 import { spend_summary, module_list } from "./module-spend.js";
+import { prompts_section } from "./day-prompts.js";
+
+// Mark a pinned row read — the SAME `localStorage` flag and key `ai2/rules.js`'s own
+// `mark_read()` writes (review, 2026-10-04: importing that function here instead
+// would pull a module under `ext/` from a PAGE folder, backwards — "imports flow
+// down"). Six lines, duplicated on purpose rather than imported, same choice
+// `engine.js`'s own top comment makes for the same reason.
+function mark_read(id){
+	try {
+		const key = "ai2-read-ids";
+		const set = new Set(JSON.parse(localStorage.getItem(key) ?? "[]"));
+		set.add(id);
+		localStorage.setItem(key, JSON.stringify([...set]));
+	} catch {}
+}
 
 /* The day dashboard and the ai index rail, over the same rows. A task directory
    speaks through its files: requirements.md alone is PROPOSED, a manifest with
@@ -202,6 +217,74 @@ function groups(rows_of){
 	});
 }
 
+// One day forward or back, pure UTC date-component arithmetic (never `new
+// Date("2026-10-04")` + `setDate()` — that parses as UTC midnight but mutates in
+// the BROWSER's own timezone, which is a day off for anyone west of it).
+function addDays(dateStr, delta){
+	const [y, m, d] = dateStr.split("-").map(Number);
+	const dt = new Date(Date.UTC(y, m - 1, d));
+	dt.setUTCDate(dt.getUTCDate() + delta);
+	return dt.toISOString().slice(0, 10);
+}
+// The browser's OWN local calendar day — every `date` string in this module means
+// "the owner's day", so this must read LOCAL components (review, 2026-10-04: the
+// previous version read `new Date().toISOString()`, the UTC day, which disagreed
+// with `addDays()`'s own meaning after 7pm Central and showed tomorrow's arrow a
+// day early).
+function todayStr(){
+	const d = new Date();
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Prev/next day arrows (deliverable 1: "a little navigation for focusing on a
+    specific day"). Never a link into the future — tomorrow has no page yet. */
+export function day_nav(date){
+	return div.c("flex gap v-center ai-day-nav", () => {
+		a("‹ " + addDays(date, -1)).href(`/framework/ai/${addDays(date, -1)}/`);
+		span.c("muted", date);
+		if (addDays(date, 1) <= todayStr()) a(addDays(date, 1) + " ›").href(`/framework/ai/${addDays(date, 1)}/`);
+	});
+}
+
+/** `/framework/ai/<YYYY-MM>/` — a STUB (deliverable 5: "a stub only — title + month
+    cost total"). Sums whichever days of the month already have a `spend.json`
+    (`Server/day-spend.mjs`, same two-currency numbers the day page itself reads —
+    never recomputed here, law 7); a day with no file yet is silently skipped, and
+    the total says so. Moving a multi-day task's own page under this path is a
+    To-do, not built here — see `public/framework/ai/readme.md`. */
+export function monthPage(page, month){
+	// The local 3-argument `Date(year, monthIndex, day)` constructor, never
+	// `new Date("2026-10-01")` (review, 2026-10-04: that string form parses as UTC
+	// midnight, so west of UTC this showed "September 2026" for October, and day 1
+	// along with it — the exact bug `addDays()`'s own doc comment already warns
+	// against, just hit a second time in this same file).
+	const [y, m] = month.split("-").map(Number);
+	const title = new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+	const daysInMonth = new Date(y, m, 0).getDate();   // day 0 of next month = this month's last day, both local
+	div.c("flex v gap", $m => {
+		p.c("doc-title h2", title);
+		$m.append(async () => {
+			const days = Array.from({ length: daysInMonth }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`);
+			const spends = (await Promise.all(days.map(d =>
+				fetch(`/framework/ai/${d}/spend.json`).then(r => r.ok ? r.json() : null).catch(() => null)))).filter(Boolean);
+			if (!spends.length) return void p.c("muted", "No day in this month has computed spend yet — node Server/day-spend.mjs <date> per day.");
+			const claude_usd = spends.reduce((s, d) => s + (d.claude_usd ?? 0), 0);
+			const real_usd = spends.reduce((s, d) => s + (d.real_usd ?? 0), 0);
+			div.c("flex gap wrap", () => {
+				span(() => { span.c("muted", "Claude $ "); span("$" + claude_usd.toFixed(2)); });
+				span(() => { span.c("muted", "real $ (OpenRouter etc.) "); span("$" + real_usd.toFixed(2)); });
+			}).style("--gap", "1.5em");
+			p.c("muted", `${spends.length} of ${days.length} day(s) this month computed so far.`);
+		});
+	});
+}
+
+export function daySystemPage(page){
+	const date = page.url.split("/").filter(Boolean).at(-2);
+	day_nav(date);
+	prompts_section(date, "system");
+}
+
 /* A day's own tasks. No usage meters here — the ai index is always this page's
    ancestor, so its rail is already showing them beside this. Every task.jsonl
    here streams: an append redraws the groups, so a task that lands moves out of
@@ -209,6 +292,12 @@ function groups(rows_of){
 export function dashboard(page){
 	const date = page.url.split("/").filter(Boolean).at(-1);
 	warm(date);   // route()'s has_page_js, warmed now so a click into a task already has the answer
+	// Opening the day marks its pinned "Today"/"Yesterday" row read (rail.js's own
+	// `is_read`/`mark_read`, the same per-browser flag every other row already uses) —
+	// harmless for a day with no pinned row at all.
+	mark_read("day-" + date);
+
+	day_nav(date);
 
 	// The same day, drawn as a tree of tasks (nested.js) — a link only.
 	p.c("muted", () => a("See this day as a tree: what ran together, what waited →").attr("href", `/framework/ext/AITask/tree/?date=${date}`));
@@ -218,6 +307,9 @@ export function dashboard(page){
 	// "today's effort tags", this one is "today's modules and the two currencies".
 	spend_summary(date);
 	module_list(date);
+
+	// The owner's own words, refined (deliverable 2/3) — by time, the default reading.
+	prompts_section(date, "time");
 
 	// ⚠ `wide`, not `bleed` — `bleed` spends the page's two gutter tracks, and the
 	//   rule in ai.css that handed them back went with it (layout-primitives).

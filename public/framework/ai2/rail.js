@@ -78,6 +78,8 @@ export default class AIRail extends Inbox.Rail {
 	key = "ai2";
 	now_item = null;
 	your_prompts_item = null;
+	today_item = null;
+	yesterday_item = null;
 	followed = new Set();
 
 	shell_classes(){ return "inbox-shell ai2 bleed"; }
@@ -177,7 +179,41 @@ export default class AIRail extends Inbox.Rail {
 		// page finds it" reason as the Now card right above.
 		this.build_prompts_pin_item(list);
 		if (this.your_prompts_item) list.push(this.your_prompts_item);
+		// TODAY AND YESTERDAY — two more pinned rows (day-cards, 2026-10-04), same one pinning
+		// mechanism as Now/Your-prompts (the owner's own instruction, never a second one). Each
+		// opens the REAL day page (`/framework/ai/<date>/`, `ext/AITask/dashboard.js`) directly —
+		// no routed alias to maintain, so `render_pinned()` just needs to honour an item's own
+		// `href` instead of always building one from `this.url + id`.
+		this.build_day_items();
 		return list;
+	}
+
+	/* `id` is date-stamped ("day-2026-10-04"), not the plain word "yesterday" — the owner's own
+	   ask ("making that yesterday card unread, if I haven't taken a look at it") means a FRESH
+	   unread flag every day, which a stable id could never give (open yesterday's card once and
+	   the word "yesterday" would read forever after). `is_read()`/`mark_read()` (rules.js) are
+	   the same per-browser localStorage flag every other row already uses; `dashboard()` marks
+	   the day read the moment its page actually renders (ext/AITask/dashboard.js). Today is
+	   never bold — same "pinned rows never bold" rule Now and Your-prompts already follow. */
+	build_day_items(){
+		const pad = n => String(n).padStart(2, "0");
+		const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+		const today = new Date();
+		const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+		const todayDate = iso(today), yesterdayDate = iso(yesterday);
+		const nice = d => d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+
+		// `at` is a full ISO INSTANT (`today.toISOString()`), never a bare "YYYY-MM-DD" (review,
+		// 2026-10-04: a bare date string parses as UTC MIDNIGHT, so `when()`'s own
+		// `new Date(at).toLocaleDateString()` showed "Oct 3" in the corner right above "Sunday,
+		// Oct 4" for anyone west of UTC). A real instant round-trips through `toLocaleDateString`
+		// correctly because the browser converts it back to the SAME local day it came from.
+		this.today_item = { id: "day-" + todayDate, kind: "day-pin", icon: "today",
+			title: "Today", text: nice(today), at: today.toISOString(), href: `/framework/ai/${todayDate}/`,
+			links: [], flag: null, author: "owner", unread: false, status: "open" };
+		this.yesterday_item = { id: "day-" + yesterdayDate, kind: "day-pin", icon: "history",
+			title: "Yesterday", text: nice(yesterday), at: yesterday.toISOString(), href: `/framework/ai/${yesterdayDate}/`,
+			links: [], flag: null, author: "owner", unread: !is_read("day-" + yesterdayDate), status: "open" };
 	}
 
 	/* READ/UNREAD is this browser's own flag (rules.js); the Live card is always fresh and
@@ -384,10 +420,11 @@ export default class AIRail extends Inbox.Rail {
 	   same place, same "never bold, never in the sortable list" rule, just a short list
 	   instead of a single hardcoded row. */
 	render_pinned(){
-		const pinned = [this.now_item, this.your_prompts_item].filter(Boolean);
+		const pinned = [this.now_item, this.today_item, this.yesterday_item, this.your_prompts_item].filter(Boolean);
 		if (!pinned.length) return;
 		this.$pinned.empty(() => {
-			pinned.forEach(it => a.c("inbox-row inbox-row-pinned").href(this.url + it.id + "/")
+			pinned.forEach(it => a.c("inbox-row inbox-row-pinned").ac(it.unread && "inbox-unread")
+				.href(it.href || (this.url + it.id + "/"))
 				.empty(() => { this.face({ ...it, sub: first_sentence(plain(it.text)) }, {}); }));
 		});
 		this.router?.mark_links?.();

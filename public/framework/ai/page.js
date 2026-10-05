@@ -8,7 +8,7 @@ import AIRail, { card_page } from "/framework/ai2/rail.js";   // the Inbox and L
    with its own page.js (`v/`, `talk/`, `collab/`…) is found by the probe AFTER route(). */
 const RAIL_ID = /^(inbox|log|live|now|view|framework|\d{4}|p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
 const CARD_ID = /^(p-\d+|ask:.+|topic-[\w-]+|[0-9a-f]{8}-[0-9a-f-]{27})$/;
-import { dashboard, rail, effort_board, log_board, has_page_js, warm } from "/framework/ext/AITask/dashboard.js";
+import { dashboard, rail, effort_board, log_board, has_page_js, warm, daySystemPage, monthPage } from "/framework/ext/AITask/dashboard.js";
 import { module_list, module_detail } from "/framework/ext/AITask/module-spend.js";
 import picker from "/framework/ai/v/versions.js";   // the versions, and the one picker every version wears
 import { board_route } from "/framework/ai/v/3/page.js";   // the board's five view urls (/framework/ai/grid/ …) still route here
@@ -157,6 +157,13 @@ export default new Page({
 				// it. `has_page_js` is undefined until the day's own dashboard() has
 				// warmed the listing; undefined reads as "don't know", same as false.
 				route(task){
+					// "By system" — the SAME day's prompts, regrouped (the owner's own follow-up,
+					// 2026-10-04: "if all of my prompts can fit within a different structure").
+					// Its own URL, never a query-string toggle (route everything, CLAUDE.md).
+					if (task === "by-system") return new Page({
+						title: name + " — by system", icon: "history", url: this.url + "by-system/",
+						content(){ daySystemPage(this); },
+					});
 					// "By module" — the day's spend/module breakdown's own click-through url
 					// (Server/day-spend.mjs writes the data; module-spend.js draws both ends).
 					if (task === "module") return new Page({
@@ -175,6 +182,13 @@ export default new Page({
 				},
 			});
 		}
+
+		// A MONTH, a stub (deliverable 5): checked after the day regex above (a day always
+		// wins — `\d{4}-\d{2}-\d{2}` never also matches `\d{4}-\d{2}`).
+		if (/^\d{4}-\d{2}$/.test(name)) return new Page({
+			title: name, icon: "calendar_month", url: this.url + name + "/",
+			content(){ monthPage(this, name); },
+		});
 
 		// `log/` is the archive this page used to BE: every task of every day,
 		// in-flight first, forty at a time. A route rather than a `log/` dir with

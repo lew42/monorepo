@@ -19,7 +19,10 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
 - [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
   what each one cost.
-- [Today](2026-09-24/): the latest day's tasks, with outcomes and costs.
+- **Today** and **Yesterday** are pinned rows above the rail (same mechanism as the Now card,
+  `ai2/rail.js`'s `build_day_items()`) — each opens that day's summary: cost (two currencies),
+  tasks started/landed/open, and the owner's own prompts, refined (`ext/AITask/day-prompts.js`).
+  Yesterday stays bold until opened. Prev/next day arrows sit on the day page itself.
 
 ## For a fresh session
 
@@ -36,3 +39,16 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's
   `Servex/asks/tasks.js` regenerates it every tick; never hand-edit it (`Servex/asks/readme.md`).
+- A day's prompts are only as refined as `node Server/day-prompts-refine.mjs <date>` (or Echo,
+  live) has gotten to — a day page says how many are still plain text. The local model
+  (`local/qwen2.5-coder`) is currently overflowing its own context on every call (tracked at
+  `2026-10-04/local-brain/`); until that's fixed, refining is a real-$ Sonnet call, so the
+  retroactive run was capped small on purpose rather than run over every old prompt.
+- **To-do:** a task that spans several days has nowhere to live yet — `/framework/ai/<YYYY-MM>/`
+  is a stub (title + month cost total only, `monthPage()`, `ext/AITask/dashboard.js`). Moving a
+  multi-day task's own page under its month, and linking it from both the day and month pages,
+  is still open.
+- **To-do:** "by system" (`/framework/ai/<date>/by-system/`) buckets by a plain keyword match
+  against `ext/Refine/engine.js`'s `GLOSSARY`, not a model's judgment — cheap and code-only (law
+  7), but a sentence naming no module lands in "General" even when a reader would call it
+  something else. A model-graded version is a fair upgrade once there's budget for it.

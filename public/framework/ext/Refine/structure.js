@@ -85,8 +85,21 @@ export async function structure(sentences, { call, cwd, model } = {}){
 	const missing = sentences.map(s => s.n).filter(n => !counts.has(n));
 	const duplicated = [...counts.entries()].filter(([, c]) => c > 1).map(([n]) => n);
 
-	if (missing.length || duplicated.length) return { ok: false, missing, duplicated, md };
-	return { ok: true, md, missing: [], duplicated: [] };
+	// CONFIDENCE, PER SENTENCE -> SECTION (day-cards, 2026-10-04 — the owner's own ask: "a
+	// weighting or a confidence interval... how confident is the model that this sentence
+	// properly is addressed by this content card"). Computed here, in code, from the same
+	// check this function already makes (law 7 — never a second model call, never a guessed
+	// number): a sentence cited exactly once is confidence 1 — the model placed it and the
+	// citation count agrees. Cited zero times (`missing`) means the model silently dropped
+	// it — confidence 0.2, the LOWEST band, because the reader has no section to find it
+	// under at all. Cited twice or more (`duplicated`) means it's filed under two headings at
+	// once — confidence 0.4: a real placement exists, just an ambiguous one. Both bands sit
+	// under the day page's own 0.6 "check these" line (day-prompts.js).
+	const confidence = Object.fromEntries(sentences.map(s =>
+		[s.n, missing.includes(s.n) ? 0.2 : duplicated.includes(s.n) ? 0.4 : 1]));
+
+	if (missing.length || duplicated.length) return { ok: false, missing, duplicated, md, confidence };
+	return { ok: true, md, missing: [], duplicated: [], confidence };
 }
 
 export default structure;
