@@ -922,17 +922,11 @@ Agents.Agent = class Agent {
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
 			...this.sdk,
-			/* `env` NAMES THE SAME KEY `door` JUST SET (review finding 7, dictate-without-claude,
-			 * 2026-10-04): a plain `...this.sdk` spread, one line up, REPLACES `door.env`
-			 * (the provider's OpenRouter/local credentials, plus `process.env`) rather than
-			 * adding to it, because `sdk.env` and this options key are the same property name.
-			 * Fixed at the ROOT here — not just in a comment telling the next caller to use
-			 * `spec.env` instead — so a future `sdk.env` can never repeat the exact bug this
-			 * task found live: a session spec's `sdk.env` silently wiping the OpenRouter
-			 * credentials `env_for("openrouter")` had just set, so the SDK called real
-			 * Anthropic with an OpenRouter model id and failed "may not exist or you may not
-			 * have access to it". `door.env` goes first so a caller's own `sdk.env` flag can
-			 * still win a real, intentional conflict. */
+			/* `sdk.env` names the same options key `door.env` just set, so `...this.sdk` above
+			 * would otherwise REPLACE it instead of adding to it (review finding 7,
+			 * dictate-without-claude 2026-10-04 — found live: a session spec's `sdk.env` wiped
+			 * the OpenRouter credentials `door()` had just built). `door.env` goes first so a
+			 * caller's own flag can still win a real conflict. */
 			...(door.env || this.sdk?.env ? { env: { ...door.env, ...this.sdk?.env } } : {}),
 			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
 			 * `...this.sdk` so it always applies even when a spec sets its own
@@ -994,12 +988,10 @@ Agents.Agent = class Agent {
 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
 		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
-		 * servers, and still needs the provider env — AND a spec's own top-level `env` (review
-		 * finding 1, dictate-without-claude 2026-10-04): the old `or_env ? {...} : undefined`
-		 * check dropped `this.env` outright whenever there was no OpenRouter/local provider to
-		 * merge it with, which is exactly today's default Claude path — a spec with no
-		 * provider env but a real `this.env` (session-fast's two lean flags) got NO env options
-		 * at all, silently losing them. */
+		 * servers, and still needs the env — `(or_env || this.env)`, not just `or_env` (review
+		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
+		 * `this.env` whenever there was no provider env to merge it with, silently losing it on
+		 * today's default Claude path. */
 		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env) ? { ...process.env, ...or_env, ...this.env } : undefined });
 
 		return {

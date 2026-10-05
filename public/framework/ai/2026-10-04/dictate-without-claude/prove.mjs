@@ -109,10 +109,17 @@ const usage_after_run = await key_usage(KEY);
 const real_total = Math.max(0, usage_after_run - usage_before_run);
 say(`[${T()}] key-level diff after 20s: $${real_total.toFixed(4)} (OpenRouter's own /key total did not move within this window for calls`
 	+ ` this cheap — a real, separate gap, logged as Servex/ext/openrouter/gaps.md #8, not this task's to fix)`);
-say(`[${T()}] the REAL per-call cost instead, confirmed by hand against OpenRouter directly (same model, same day):`
-	+ ` $0.0000038-$0.0000107 per short reply, and $0.0022 for the whole 18-question new-brain eval this`
-	+ ` FALLBACK_MODEL choice is based on (ai/2026-10-03/new-brain/eval-results.json) — about $0.0001/call,`
-	+ ` roughly 20x cheaper than Claude Haiku's $0.044 for the same 18 calls.`);
+/* NOT a $/reply figure (review finding 3): $0.0000038-$0.0000107 was measured by hand on a
+ * tiny, bare "say hi" call — nothing like session-smart's real turn, which carries the whole
+ * claude_code preset system prompt (thousands of tokens) and can call tools. Scaling a toy
+ * call's cost up to this turn's would be a guess, not a measurement (law 7) — so this reports
+ * only what IS a real measurement: the new-brain eval's own $0.0022 for a comparable 18-call
+ * real task (doc questions, reasoning, and the exact prompt-refine job session-smart does),
+ * which is the actual evidence the FALLBACK_MODEL choice rests on — not an estimate for THIS
+ * run's 6 calls specifically, which gap #8 leaves genuinely unmeasured. */
+say(`[${T()}] real $/reply for THIS run: unmeasured (gap #8). The evidence the FALLBACK_MODEL choice itself rests on is`
+	+ ` the new-brain eval's own real $0.0022 for a comparable 18-call task (doc questions, reasoning, prompt-refine) —`
+	+ ` 20x cheaper than Claude Haiku's $0.044 for the same 18 calls (ai/2026-10-03/new-brain/eval-results.json).`);
 say(`session file: ${sessions.disk(created.home)}... (kept in ${DIR}, not the repo — a throwaway proof session)`);
 
 const OUT = path.join(REPO, "public/framework/ai/2026-10-04/dictate-without-claude/prove-results.txt");

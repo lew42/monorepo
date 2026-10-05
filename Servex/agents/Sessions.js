@@ -151,7 +151,9 @@ export const now_ms = () => {
  * whole point of this switch: Dictate keeps answering even once Claude is cut off. */
 export const SESSION_BACKENDS = ["claude", "openrouter", "local"];
 export const FALLBACK_MODEL = "openai/gpt-6-luna";
-export const SESSION_BACKEND_PATH = path.join(
+/* Overridable (review finding 6) so a test can point this at a throwaway file instead of the
+ * real one every live Servex reads — `prove-fallback.mjs` sets this before importing. */
+export const SESSION_BACKEND_PATH = process.env.SERVEX_SESSION_BACKEND_PATH || path.join(
 	process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"),
 	"lew42", "servex", "session-backend.txt"
 );
@@ -171,7 +173,7 @@ export function session_backend(){
  * `wake_parent`'s `done:` text is the agent's own last WORDS, which can legitimately mention
  * "usage limit" while just answering a question about one — only `error:` is Claude itself
  * refusing the call. */
-export const USAGE_LIMIT_RE = /^error:.*(usage limit|rate.?limit|quota|\b429\b|exceeded)/i;
+export const USAGE_LIMIT_RE = /^error:.*(usage limit|rate.?limit|quota|\b429\b|exceeded|billing.?error)/i;
 
 export default class Sessions {
 
@@ -250,7 +252,13 @@ export default class Sessions {
 		const from = this.by_agent.get(note?.from);
 		if (!from || !USAGE_LIMIT_RE.test(String(text ?? ""))) return;
 		const s = this.map[from.id];
-		if (!s || session_backend() !== "claude" || s.fallback?.[from.role]) return;
+		/* Check THIS ROLE'S OWN current model, not the global setting (review finding 1): once
+		 * one session's refusal has already flipped `session-backend.txt` to "openrouter", a
+		 * SECOND session still live on an old Claude agent would otherwise hit an early return
+		 * here forever — `session_backend() !== "claude"` is true for it too, even though this
+		 * particular agent is the one that just got refused and needs replacing right now. */
+		const current_model = s?.backing_model?.[from.role] ?? this.session_model(s ?? {}, from.role);
+		if (!s || !String(current_model).startsWith("claude") || s.fallback?.[from.role]) return;
 		(s.fallback ??= {})[from.role] = true;
 		(s.backing ??= {})[from.role] = null;   // never resume a Claude session id under a different model
 		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",

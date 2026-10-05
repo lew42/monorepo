@@ -19,26 +19,21 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../../../../..");
 
+const DIR = path.join(os.tmpdir(), "dictate-without-claude-fallback-proof");
+fs.rmSync(DIR, { recursive: true, force: true });
+fs.mkdirSync(DIR, { recursive: true });
+
+/* The real refusal below is SUPPOSED to write `SESSION_BACKEND_PATH` (review finding 6: one
+ * refusal should flip every future session too) — real behaviour, worth proving, but a test
+ * must never touch the one file the OWNER's own live Servex reads. Point it at a throwaway
+ * file instead (review finding 6's fix: `SESSION_BACKEND_PATH` reads this env var first). */
+process.env.SERVEX_SESSION_BACKEND_PATH = path.join(DIR, "session-backend.txt");
+process.env.SERVEX_SESSION_BACKEND = "claude";   // the default — this session starts on Claude
+
 const { Agents } = await import(pathToFileURL(path.join(REPO, "Servex/agents/Agents.js")).href);
 const { default: Sessions, FALLBACK_MODEL, SESSION_BACKEND_PATH } = await import(pathToFileURL(path.join(REPO, "Servex/agents/Sessions.js")).href);
 const { warm_guard } = await import(pathToFileURL(path.join(REPO, "Servex/ext/openrouter/provider.js")).href);
 await warm_guard();
-
-process.env.SERVEX_SESSION_BACKEND = "claude";   // the default — this session starts on Claude
-
-/* This run's own refusal is SUPPOSED to write the real SESSION_BACKEND_PATH (review finding 6:
- * one refusal should flip every future session too) — real behaviour, worth proving, but not
- * something a test should leave lying around on the machine that runs it. Save whatever was
- * there before (nothing, on a fresh machine) and put it back when this script ends. */
-const prior_backend_file = (() => { try { return { existed: true, text: fs.readFileSync(SESSION_BACKEND_PATH, "utf8") }; } catch { return { existed: false }; } })();
-function restore_backend_file(){
-	try { prior_backend_file.existed ? fs.writeFileSync(SESSION_BACKEND_PATH, prior_backend_file.text) : fs.unlinkSync(SESSION_BACKEND_PATH); } catch {}
-}
-process.on("exit", restore_backend_file);
-
-const DIR = path.join(os.tmpdir(), "dictate-without-claude-fallback-proof");
-fs.rmSync(DIR, { recursive: true, force: true });
-fs.mkdirSync(DIR, { recursive: true });
 
 const lines = [];
 const say = (...a) => { const s = a.join(" "); lines.push(s); console.log(s); };

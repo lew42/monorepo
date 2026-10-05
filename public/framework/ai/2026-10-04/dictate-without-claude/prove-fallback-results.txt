@@ -1,4 +1,4 @@
-session v-gt41923 created
+session v-lqu6gjg created
 
 1. a "done" wake that just MENTIONS usage limits:
    fallback flag: undefined (must be undefined — it was a normal reply, not a refusal)
@@ -11,10 +11,10 @@ fallback flag: {"fast":true} (must be {fast:true})
 session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
 
 the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
-  "I'm the fast assistant for this session; you're on /framework/. I can’t see the current time."
+  "I’m not sure of the exact time."
 
 last lines of the session file (the switch itself IS recorded there, for the owner to see):
-{"session":{"id":"v-gt41923","home":"/framework/","at":"2026-10-04T19:00:03.169-05:00","project":"prove","host":"prove.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
-{"chat":{"at":"2026-10-05T00:00:03.172Z","session":"v-gt41923","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
-{"chat":{"at":"2026-10-04T19:00:03.172-05:00","session":"v-gt41923","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
-{"backing":{"at":"2026-10-04T19:00:03.187-05:00","fast":"16603c5a-bf9e-4436-9b2b-ce52b26628e6","smart":null,"how":{"fast":"new"}}}
+{"session":{"id":"v-lqu6gjg","home":"/framework/","at":"2026-10-04T19:03:53.502-05:00","project":"prove","host":"prove.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T00:03:53.505Z","session":"v-lqu6gjg","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-04T19:03:53.506-05:00","session":"v-lqu6gjg","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
+{"backing":{"at":"2026-10-04T19:03:53.522-05:00","fast":"1596b670-7f09-4ece-b876-6048a111c808","smart":null,"how":{"fast":"new"}}}
