@@ -286,7 +286,7 @@ export default class Dictate extends View {
 	async init(){
 		const { engine, steps } = await shared_detect_engine(this);
 		this.engine = engine;
-		Object.assign(this.steps, steps);
+		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
 		this.draw_diag();
 		if (this.engine === "whisper-down"){
 			this.$engine.text("");
@@ -416,7 +416,17 @@ export default class Dictate extends View {
 		this.on_start?.();
 
 		this.log_step("mic", "checking the engine…");
-		this.engine = await this.detect_engine();
+		// Shared, not `this.detect_engine()` raw (dictate-one-engine, 2026-10-04): a
+		// sheet whose mic starts the INSTANT it opens (`rail.js`'s own "the mic starts
+		// listening the instant the sheet opens") calls this within the same tick as
+		// `init()`'s own construction-time check above — without sharing, that is a
+		// second real health check and a second "[dictate]" trail for the one engine
+		// that just opened. Still "re-checked on every press": a LATER press, once the
+		// shared check has resolved and cleared itself, runs its own fresh one.
+		const { engine, steps } = await shared_detect_engine(this);
+		this.engine = engine;
+		this.steps.socket = steps.socket; this.steps.whisper = steps.whisper;
+		this.draw_diag();
 		if (this.engine === "whisper-down"){
 			// NEVER the browser's own recognizer here — that silent swap is the bug this
 			// freeze exists to kill. One clear line, nothing started, no beep.

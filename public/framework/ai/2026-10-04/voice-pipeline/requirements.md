@@ -18,7 +18,8 @@
 3. **Every resend is logged** (session file or its own log): `{at, segment_ms, sent_ms, reply_ms, text}`, so the playground can replay a real session with true timing.
 4. **Honest status words** (owner: "the socket connecting ... that was pretty misleading"): the site socket is not the audio path, so it is labelled "chat link", not shown as a transcription stage; each error names the stage, the browser's error name (`AbortError`, `NotAllowedError`…), what it means, and the one thing to try.
 5. **A compare screen:** the same mic feeding Whisper and Chrome's built-in recognition side by side, live, each line with its time, so the two can be compared on the owner's voice.
-6. Dictate's engine (one per tab, task dictate-one-engine) uses these classes.
+6. **Send more often:** Whisper answers a 10 s segment in ~90 ms, but the page only asks every ~1.5 s, so words appear in 1.5 s steps. Try 300–500 ms (a new request only after the previous answer is back) and measure send → visible.
+7. Dictate's engine (one per tab, task dictate-one-engine) uses these classes.
 5. Worktree → check_page → merge.mjs.
 
 QUEUED: start after dictate-one-engine lands. Budget: $6 (a guide). Sonnet, ONE agent.

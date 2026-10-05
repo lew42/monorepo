@@ -517,6 +517,26 @@ takes anywhere near 4s), but a future caller with a slower `deliver()` could hav
 real "sending…"/failure note silently replaced by the idle hint a moment before the
 real result would have overwritten it anyway. Revisit if that ever shows up.
 
+**One engine per tab, not one per mic button** (dictate-one-engine, 2026-10-04). A headless
+load of this page logged "[dictate] socket: connected" / "whisper: checking…" /
+"whisper: answering" SIX times: every `Dictate` built on a page (the page's own demo, the
+exhibit box, the ✦ sheet, the ☰ drawer's AI tab, push-to-talk's hidden mount, …) ran its OWN
+whisper health check at construction time, and ran it again every time ITS OWN mic started —
+never shared, so six engines meant six fetches and six console trails from one page view. Two
+fixes, both in `Dictate.js`, nothing else: `shared_detect_engine()` is a module-level
+singleton — the FIRST `Dictate` to ask (from `init()` at build time, or `start()` on a press)
+runs the real check and logs it; any other one asking while that is still in flight gets the
+SAME answer, quietly, and the singleton clears itself the instant it resolves, so a later,
+separate press still gets its own fresh check. Separately, "ONE MICROPHONE AT A TIME" — which
+used to live only in `ext/Chat/Mic.js`'s `ComposerMic.start()`, and so only stopped one
+ComposerMic for another — moved up into the base `Dictate.start()`, using the `LIVE` set
+(above) that already tracks every engine of every kind with its mic open: starting any one of
+them now stops every other, a bare demo box and the push-to-talk mount included. Proof:
+`check_page` on this page shows each of the three lines at `count: 1`; a headless click on the
+✦ rail's mic (`node Server/browser.mjs`, 390×844 viewport) shows the same, once, not twice.
+`Server/smoke.mjs` now fails any page whose raw console carries more than one `[dictate]
+socket: …` line, so a second engine can never reach `michael/dev` again unnoticed.
+
 Deliberately left as a known, documented limitation: Android's own OS-level restart
 beep when the browser's `SpeechRecognition` (not whisper) ends and restarts itself after
 every pause "can't be silenced from a page" (see "Why the phone repeated every sentence…"
