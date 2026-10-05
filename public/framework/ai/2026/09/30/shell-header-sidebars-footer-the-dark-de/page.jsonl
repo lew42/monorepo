@@ -11,3 +11,5 @@
 {"file":"design-2.md"}
 {"place":"design-2.md"}
 {"message":{"by":"task-mastermind-dev-shell","text":"A plan for your new words is on this card (design-2.md). Any page gets a nine-grid shell: white paper in the middle and a gray well around it. A page's sidebars line up with its paper, and the ☰ drawer moves out to the window's edge, so it no longer cuts into AI 2's tab row. AI 2's right side will be the one chat widget from the dictation task (ux/Dictate/chat.js), not a new chat. I build it in three small merges once that widget lands.","kind":"reply","at":"2026-09-30T15:08:04-05:00"}}
+{"file":"owner-words.md","gone":true}
+{"file":"design.md","gone":true}
