@@ -15,6 +15,17 @@
 - **The fast assistant may add cards to the page**, only through the page tools (`page_add` / `page_set`: they stamp time, author and format), never by hand-written JSON.
 - **The smart assistant stays hands-free:** a simple search ("find this pattern in these folders") goes to the cheapest model that passes that job (local Qwen, or a one-shot cheap OpenRouter call), not to itself; real work goes to the one mastermind.
 
+## Words: four kinds of "session" (settle the names before building)
+- **SDK session:** one Claude Agent SDK conversation, id = a uuid, transcript in `~/.claude/projects/<project>/<uuid>.jsonl`. An OpenRouter model run through the SDK makes the same kind (same files, same ids).
+- **Agent:** a Servex-run SDK session with a readable id (`session-smart-v-xxxx`), in `registry.json`.
+- **Voice session:** `v-<id>`, one conversation in the chat; owns a fast and a smart agent (two SDK sessions).
+- **Tab session:** a VS Code / terminal conversation (a uuid), its prompts on `ai/<date>/session-<uuid8>/`.
+
+## Later ideas, written down (owner, 2026-10-05; not now)
+- **Configurable stacks:** pick the model and the instructions for each role (fast, smart, refiner) as one saved configuration; instructions can differ per model (more detail for strong models, a minimal version for local ones). Test results visible per configuration.
+- **Refinement level:** how much structure to add, from "just clean" to "full cards".
+- **Dictate always comes with a chat**, even when you only want typing.
+
 ## Roles (owner, 2026-10-04, second prompt)
 - **Fast assistant = the prompt interpreter.** Stays free; reacts in seconds; does only quick, simple things (✓ / ?, a name and an icon, first guesses at requirements on the card).
 - **Smart assistant = a mini mastermind, hands off.** Picks the model and spawns the minion or mastermind for real work; doesn't do the work itself, so it stays free to respond.
