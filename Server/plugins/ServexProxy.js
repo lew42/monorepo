@@ -58,18 +58,32 @@ export default class ServexProxy {
 				delete headers.host;
 				delete headers["content-length"];
 
+				// The 30 s limit covers only the wait for Servex's HEADERS. It used to be
+				// AbortSignal.timeout(30000) on the whole request, so a long-lived stream
+				// (an event stream, a tail) was aborted mid-body at 30 s, the piped Readable
+				// emitted an unhandled 'error', and the whole dev server crashed: 84 crashes
+				// in the log, each a white screen for the owner during the ~11 s reboot
+				// (vscode-mastermind, 2026-10-05).
+				const ctl = new AbortController();
+				const wait = setTimeout(() => ctl.abort(), 30000);
 				const r = await fetch(target, {
 					method: req.method,
 					headers,
 					body: ["GET", "HEAD"].includes(req.method) || !req.body?.length ? undefined : req.body,
-					signal: AbortSignal.timeout(30000),
+					signal: ctl.signal,
 				});
+				clearTimeout(wait);
 
 				res.status(r.status);
 				for (const [k, v] of r.headers)
 					if (!["content-encoding", "transfer-encoding", "connection"].includes(k.toLowerCase())) res.set(k, v);
 
-				if (r.body) Readable.fromWeb(r.body).pipe(res);
+				if (r.body){
+					const body = Readable.fromWeb(r.body);
+					body.on("error", () => res.destroy());   // a dropped stream ends this response, never the server
+					req.on("close", () => body.destroy());   // the browser left: stop reading from Servex
+					body.pipe(res);
+				}
 				else res.end();
 			} catch (e) {
 				res.status(502).json({ error: "Servex unreachable: " + (e?.message || e) });
