@@ -24,17 +24,24 @@ echo openrouter > "%LOCALAPPDATA%\lew42\servex\session-backend.txt"
 
 ## Automatic fallback, no setting needed
 
-A Claude usage-limit refusal on either agent flips just that one role, for just that one
-session, to `FALLBACK_MODEL`:
+A Claude usage-limit refusal **or an auth failure** (an expired login, an invalid key, a 401 —
+[auth-fallback, 2026-10-05](/framework/ai/2026-10-05/auth-fallback/): the owner, "the smart
+mastermind kept saying failure to log in... we don't want roadblocks") on either agent flips
+just that one role, for just that one session, to `FALLBACK_MODEL`:
 
 - `Sessions.js`'s `hire()` registers a fake "sessions" parent the same way `Dispatcher.js`
   does, so every session agent's turn-end or error reaches `woken()` with no polling.
-- A match on the usage/rate/quota/billing wording — either a rare `error:`-kind wake, or (the
+- A match on the usage/rate/quota/billing wording (`USAGE_LIMIT_RE`/`USAGE_LIMIT_WORDS`) OR the
+  login/auth wording (`AUTH_FAIL_RE`/`AUTH_FAIL_WORDS`: invalid key, unauthorized, 401, oauth
+  token, "please run /login", "logged out") — either a rare `error:`-kind wake, or (the
   common case: a session agent is never `one_shot`, so a refused turn usually wakes as an
   ordinary `done:`) the live agent's own `last_error` — stops and respawns that one role fresh,
   with the session's own tail as context and the owner's last line re-sent, so the respawned
   agent actually answers instead of starting blank. A normal reply that just mentions "usage
-  limit" in conversation is not a refusal and never matches.
+  limit" or "logged out" in conversation is not a refusal and never matches.
+- An auth failure also posts ONE card to the AI inbox ("Claude logged out — answering on
+  OpenRouter", with the fix: re-run `claude /login`) — once per Servex run, not once per call,
+  since several sessions can fail in the same burst once Claude's login is actually down.
 - Never resumed: an OpenRouter model can't continue a Claude session id, and `wake()` also
   forces fresh whenever the model a session's `backing` id ran on no longer matches the
   current setting.
@@ -78,6 +85,8 @@ can legitimately land anywhere from $0 up, per gaps.md #8).
 [`prove-fallback.mjs`](/framework/ai/2026-10-04/dictate-without-claude/) proves the automatic
 fallback: a normal reply that mentions "usage limit" does not flip the switch, a real refusal
 does, and the freshly respawned agent answers the owner's re-sent line.
+[`prove-auth-fallback.mjs`](/framework/ai/2026-10-05/auth-fallback/) proves the same for a
+stubbed auth failure, plus that only ONE card gets posted across a run with two failures.
 
 ## Open, not fixed here
 

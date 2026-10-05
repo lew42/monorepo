@@ -6,8 +6,17 @@
 	<id>https://lew42.com/blog/</id>
 	<link rel="alternate" type="text/html" href="https://lew42.com/blog/"/>
 	<link rel="self" type="application/atom+xml" href="https://lew42.com/blog/feed.xml"/>
-	<updated>2026-10-01T00:00:00Z</updated>
+	<updated>2026-10-05T00:00:00Z</updated>
 	<author><name>lew42</name></author>
+	<entry>
+		<title>Class cards and a header you can steer by</title>
+		<id>https://lew42.com/blog/framework/class-cards/</id>
+		<link rel="alternate" type="text/html" href="https://lew42.com/blog/framework/class-cards/"/>
+		<published>2026-10-05T00:00:00Z</published>
+		<updated>2026-10-05T00:00:00Z</updated>
+		<category term="framework"/>
+		<summary type="text">A note from the owner: every class gets a card that shows its shape at a glance, and every page header becomes a compact, sticky way to move around the site.</summary>
+	</entry>
 	<entry>
 		<title>Idea: a fleet of drones that scans a home in minutes</title>
 		<id>https://lew42.com/blog/ai/drone-scans/</id>

@@ -190,6 +190,14 @@ export const posts = [
 		image: "/blog/ai/claude-tooling/board.png",
 		alt: "Seven models working the site at once on the task board, each one's task, step and progress written as it goes.",
 	},
+
+	{
+		section: "framework",
+		name: "class-cards",
+		title: "Class cards and a header you can steer by",
+		date: "2026-10-05",
+		description: "A note from the owner: every class gets a card that shows its shape at a glance, and every page header becomes a compact, sticky way to move around the site.",
+	},
 ];
 
 // ── addressing ───────────────────────────────────────────────────────────────
