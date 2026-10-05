@@ -417,13 +417,15 @@ export default class Dictate extends View {
 		// answered, or (should the up-front secure-context check above ever miss a case)
 		// a browser that fails this quietly. Never leaves the owner without a reason.
 		this.connect_watchdog = setTimeout(() => {
-			if (this.state === "connecting")
+			if (this.state === "connecting"){
+				this.log_step("mic", "timed out waiting for the device");
 				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
+			}
 		}, 8000);
 
 		this.log_step("mic", "requesting…");
 		try {
-			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
+			await this.open_engine();
 		} catch (e){
 			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
 			this.set_error(this.explain(e));
@@ -438,6 +440,29 @@ export default class Dictate extends View {
 		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
 		// own `.start()` call returns long before recognition is actually live.
 		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
+	}
+
+	/** ⚠ THE RELOAD RACE (round 2, 2026-10-04 — the owner: "when I reload that page… it says
+	 *  connecting for about four to five seconds, and then says microphone abort error").
+	 *  The PREVIOUS page's microphone is released by the browser the instant that page's JS
+	 *  context is torn down — but the OS-level hand-off of the physical device is not
+	 *  guaranteed to finish in that same instant. Asking `getUserMedia()` for a device that
+	 *  is still a few hundred ms into being let go answers, after several seconds of trying,
+	 *  with a slow `AbortError` — exactly the "connecting… then abort" shape, and a DIFFERENT
+	 *  bug from the one `detect_engine()`'s own one-retry already fixed (that one was about
+	 *  reaching *whisper-server*, never about the *microphone* itself). One retry, after a
+	 *  short pause, tells this one-time race apart from a real refusal (no mic, denied
+	 *  permission, in use by another app) without slowing the common case — most dictations
+	 *  are not right after a reload, and this path is never even tried for those. */
+	async open_engine(){
+		try { this.engine === "whisper" ? await this.start_whisper() : this.start_browser(); return; }
+		catch (e){
+			if (e?.name !== "AbortError" || this.cancel_connect) throw e;
+		}
+		this.log_step("mic", "abort right after reload — retrying once…");
+		await new Promise(res => setTimeout(res, 500));
+		if (this.cancel_connect) return;
+		this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
 	}
 
 	async stop(){
@@ -813,6 +838,7 @@ export default class Dictate extends View {
 	}
 
 	browser_error(error){
+		this.log_step("mic", "browser error: " + error);
 		if (error === "service-not-allowed" && this.insecure_context_message()) return this.set_error(this.insecure_context_message());
 		this.set_error({
 			"not-allowed": "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.",
