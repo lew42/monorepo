@@ -371,7 +371,17 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//     supervisor writes — a worktree's own isolated dev server never has them, whatever
 		//     the branch touches (ai2/live.js's own tasks()/usage poll already treats a fetch
 		//     failure as "leave the last-known set in place", exactly this case).
-		if (/\/(files|page)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage)\.json$/.test(u)) { warns.push(`HTTP ${r.status()}: ${u}`); return; }
+		//   - a dated ai/<date>/spend.json (same shape as tasks.json/usage.json — per-day,
+		//     Servex-regenerated) and a dated task's own shots/*.png (dictate-live-state,
+		//     2026-10-04, found landing it: `/framework/ux/Dictate/`'s own readme links two old
+		//     dated task pages — `ai/2026-09-22/dictate-silence/`, `ai/2026-09-30/one-dictation/
+		//     minion-workbench/` — whose spend.json and one shot each 404 unchanged on
+		//     `michael/dev` too; neither is about the branch being tested, and a reader-facing
+		//     fix for the rot itself belongs to whoever next touches those pages, not every
+		//     future merge that happens to link to one).
+		if (/\/(files|page)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage)\.json$/.test(u)
+			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/spend\.json$/.test(u)
+			|| /\/framework\/ai\/\d{4}-\d{2}-\d{2}\/.*\/shots\/[^/]+\.(png|jpg|jpeg|webp)$/.test(u)){ warns.push(`HTTP ${r.status()}: ${u}`); return; }
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
