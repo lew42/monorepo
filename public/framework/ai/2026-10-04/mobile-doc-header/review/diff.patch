@@ -1,0 +1,33 @@
+diff --git a/public/framework/ext/Doc/Doc.css b/public/framework/ext/Doc/Doc.css
+index 97a4b527..33ef487a 100644
+--- a/public/framework/ext/Doc/Doc.css
++++ b/public/framework/ext/Doc/Doc.css
+@@ -146,4 +146,28 @@
+ 	.doc-decision-btn:hover { opacity: 1; }
+ 	.doc-decision-pop { max-width: 32em; padding-block-start: 0.5em; }
+ 	.doc-decision-link { display: inline-block; }
++
++	/* The owner, 2026-10-04, on this page on a phone: "by the time we get to any
++	   content ... we're already like halfway down the page". Below ~600px the title
++	   already falls to its own line (the `.page.doc-page` flex-wrap above puts the
++	   tab-bar's `flex: 1 1 24em` basis out of reach of the remaining row width) — but
++	   `.tab-bar`'s own wrap (above) then grows a SECOND or THIRD row of tabs stacked
++	   under it, so a 6-tab module like Dictate still spends ~180px of a 568px screen
++	   before any content. The fix is the row that already exists, forced one line and
++	   let it scroll sideways instead of wrapping — same markup, same tabs, only how
++	   the strip overflows. `ext/tabs`' own default (nowrap + scroll) is exactly this;
++	   Doc.css's desktop rule above just opts out of it above this width. */
++	@media (width <= 600px) {
++		.doc-title { font-size: 0.85em; }
++		.doc-well { padding-block: 0.9em 0.4em; }
++
++		.page.doc-page > .tabs > .tab-bar {
++			flex-basis: 100%;
++			flex-wrap: nowrap;
++			overflow-x: auto;
++			/* No drawer button to dodge here: a scrolling row never sits under it the
++			   way a wrapped one could (the desktop rule's own reason for 3.5rem). */
++			padding-inline-end: 0.8em;
++		}
++	}
+ }
