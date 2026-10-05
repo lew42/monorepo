@@ -59,7 +59,12 @@
 	   never that big — Overview, the module's declared children, API, Docs, Files
 	   — so the trade is different, and only THIS selector (0,3,0, Doc's own) says
 	   so; the shared rule in ext/tabs is untouched and every other tab strip on
-	   the site still scrolls. */
+	   the site still scrolls.
+	   ⚠ Below 600px this reasoning flips back: the `@media` block near the end of
+	   this file (2026-10-04, mobile-doc-header) un-does exactly this wrap, because
+	   a wrapped strip there costs MORE chrome than a scrolling one does — the
+	   opposite trade, at a width small enough that it's the right one. Not an
+	   oversight; read that block for why. */
 	/* ⚠ `flex-wrap: wrap` — the strip has 7 labels (overview/api/doc/files/…) and
 	     `tabs.css` scrolls them sideways with nothing to say so below ~450px
 	     (measured: content 644px in a 400px bar). Wrapping to a second row shows
@@ -156,7 +161,11 @@
 	   before any content. The fix is the row that already exists, forced one line and
 	   let it scroll sideways instead of wrapping — same markup, same tabs, only how
 	   the strip overflows. `ext/tabs`' own default (nowrap + scroll) is exactly this;
-	   Doc.css's desktop rule above just opts out of it above this width. */
+	   Doc.css's desktop rule above just opts out of it above this width.
+	   Measured on /framework/ux/Dictate/ at 400px (pixel column scan, not a guess):
+	   well+tabs band was 122px tall before this rule (two tab rows), 85px after
+	   (one row) — 37px (30%) more of the page visible before any real content.
+	   Step 2 (the title itself opening a switcher) is still a To-do — readme.md. */
 	@media (width <= 600px) {
 		.doc-title { font-size: 0.85em; }
 		.doc-well { padding-block: 0.9em 0.4em; }
