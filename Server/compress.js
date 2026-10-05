@@ -29,7 +29,19 @@ import zlib from "node:zlib";
  *   3. Skips anything under 1KB — for a tiny file gzip's own header/footer can
  *      cost more than it saves, and it isn't worth a cache entry either.
  * Only text-ish types are worth compressing at all — images, video and fonts
- * are already compressed and gzipping them again just burns CPU for nothing. */
+ * are already compressed and gzipping them again just burns CPU for nothing.
+ *
+ * ⚠ VERSION 3 (2026-10-05, reload speed): this handler answers every compressible
+ * file over 1KB itself, BEFORE `express.static` ever sees the request — and
+ * `express.static` is where the framework's own ETag/If-None-Match 304 support
+ * lives (the `send` package, on by default). That meant every reload re-sent
+ * every module's FULL body, every time, even unchanged — on the owner's phone
+ * Wi-Fi, hundreds of round trips of real bytes instead of hundreds of empty
+ * 304s. This version gives this path the same conditional-GET contract: an
+ * ETag keyed on mtime+size (cheap — no hashing the file), `Cache-Control:
+ * no-cache` so the browser always asks instead of trusting a stale local copy,
+ * and a 304 with no body when the client's `If-None-Match` already matches.
+ * See public/framework/ai/2026-10-05/mobile-reload-speed/ for the measurement. */
 const PUBLIC = path.resolve("public");
 const COMPRESSIBLE = /\.(json|js|mjs|css|html?|md)$/i;
 const THRESHOLD = 1024;   // below this, skip compressing — let express.static send it plain
@@ -71,6 +83,17 @@ export default function compress(req, res, next){
 	try { stat = fs.statSync(filePath); } catch { return next(); }
 	if (!stat.isFile() || stat.size < THRESHOLD) return next();
 
+	// Cheap ETag — mtime + size, same two facts `send`/express.static already key
+	// their own ETag on — no reading or hashing the file just to name it.
+	const etag = `"${stat.mtimeMs.toString(16)}-${stat.size.toString(16)}"`;
+	res.setHeader("ETag", etag);
+	res.setHeader("Cache-Control", "no-cache");   // always revalidate — never serve a stale copy with no round trip at all
+	res.setHeader("Vary", "Accept-Encoding");
+	if (req.headers["if-none-match"] === etag) {
+		res.statusCode = 304;
+		return res.end();
+	}
+
 	let entry = cache.get(filePath);
 	if (!entry || entry.mtimeMs !== stat.mtimeMs) { entry = { mtimeMs: stat.mtimeMs }; cache.set(filePath, entry); }
 
@@ -84,6 +107,5 @@ export default function compress(req, res, next){
 	res.setHeader("Content-Type", MIME[path.extname(filePath).toLowerCase()] ?? "application/octet-stream");
 	res.setHeader("Content-Encoding", encoding);
 	res.setHeader("Content-Length", buf.length);
-	res.setHeader("Vary", "Accept-Encoding");
 	res.end(req.method === "HEAD" ? undefined : buf);
 }
