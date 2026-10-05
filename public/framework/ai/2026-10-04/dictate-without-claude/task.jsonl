@@ -42,3 +42,6 @@
 {"action":{"at":"2026-10-04T19:43:53-05:00","did":"edit","files":["public/framework/ai/2026-10-04/dictate-without-claude/prove-live-site-results.txt"]}}
 {"action":{"at":"2026-10-04T19:44:46-05:00","did":"edit","files":["Temp/dwc-final.json"]}}
 {"assign":{"now":"landed","landed_at":"2026-10-04T19:44:49-05:00"}}
+{"log":{"at":"2026-10-04T19:45:01-05:00","msg":"landing refused: landed_at has no outcome. Append {\"assign\": {\"outcome\": \"…\"}}."}}
+{"action":{"at":"2026-10-04T19:45:07-05:00","did":"edit","files":["Temp/dwc-outcome.json"]}}
+{"assign":{"outcome":"**Dictate's voice agents can now run on OpenRouter and switch there automatically on a Claude cutoff** — merged into michael/dev, Servex restarted, proved live on the real site: 3 real sentences through the actual /api/session/* routes got 3 real replies from openai/gpt-6-luna (prove-live-site-results.txt). Fixed along the way: an env-merge bug that silently wiped OpenRouter credentials, the local backend leaving smart on Claude with no fallback, a lost owner line after a fallback, and the fallback never matching a real refusal (it wakes as done, not error — fixed to read last_error). Left open: no UI to flip the fallback back after a reset; the no-network local option is untested."}}
