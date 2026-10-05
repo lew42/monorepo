@@ -102,6 +102,28 @@ export function live_model({ prompts, day }){
 		changed();
 	}
 
+	/* A FINISHED TASK NEVER STAYS PINNED (the owner, 2026-10-04: "a weird task
+	 * mastermind, something about the data grid, pinned... taking up a huge amount
+	 * of space"). `tasks()` below reads its `state` from the Dispatcher's own
+	 * `{type:"task"}` lines on the `prompts` log — but that log is NEVER scoped to
+	 * a day and a task-mastermind that lands WITHOUT also posting a final
+	 * `state:"landed"` line back to it (it can land purely through its own
+	 * `task.jsonl`'s `landed_at`, which this log never sees) stays "working" there
+	 * forever, so the Live card's task list only ever grows. `tasks.json` is the
+	 * one place that already computes "landed" the RIGHT way — `Servex/asks/
+	 * tasks.js`'s own `facts.landed`, straight from each task's `task.jsonl` — so
+	 * this reads it too and a task's OWN directory is the final word, no matter
+	 * what the Dispatcher's log still says. */
+	let landed_dirs = new Set();
+	async function poll_tasks_json(){
+		if (document.hidden) return;
+		try {
+			const rows = (await (await servex_fetch("/framework/ai/tasks.json", { cache: "no-store" })).json())?.tasks ?? [];
+			landed_dirs = new Set(rows.filter(r => r.landed).map(r => r.dir.split("/").pop()));
+		} catch { /* leave the last-known set in place — a fetch hiccup must never UN-hide a task that was already confirmed landed */ }
+		changed();
+	}
+
 	/** All three limits, in the owner's order — weekly Fable too, even at 0%. */
 	function limits(){
 		const all = usage?.utilization?.limits ?? [];
@@ -117,13 +139,14 @@ export function live_model({ prompts, day }){
 		changed();
 	});
 
-	poll_agents(); poll_usage(); poll_pool();
+	poll_agents(); poll_usage(); poll_pool(); poll_tasks_json();
 	setInterval(poll_agents, 30000);
 	setInterval(poll_usage, 60000);
 	setInterval(poll_pool, 30000);
+	setInterval(poll_tasks_json, 30000);
 	// Each poll above skips itself while hidden; catch up the moment the tab is
 	// looked at again instead of waiting for the next scheduled tick.
-	document.addEventListener("visibilitychange", () => { if (!document.hidden){ poll_agents(); poll_usage(); poll_pool(); } });
+	document.addEventListener("visibilitychange", () => { if (!document.hidden){ poll_agents(); poll_usage(); poll_pool(); poll_tasks_json(); } });
 	log.on(changed);
 	log.ready.then(changed);
 	prompts.on(changed);
@@ -150,7 +173,9 @@ export function live_model({ prompts, day }){
 		});
 		by_id.forEach(t => { if (t.paused && t.state !== "landed") Object.assign(t, { state: "not-started",
 			line: "never started — spoken while dispatch was paused; say it again to start it" }); });
-		return [...by_id.values()].filter(t => t.state !== "landed");
+		// `tasks.json`'s own `landed` fact wins over a stale "working" the Dispatcher's log
+		// never got updated out of — see `poll_tasks_json()`, above.
+		return [...by_id.values()].filter(t => t.state !== "landed" && !landed_dirs.has(t.id));
 	}
 
 	function running(){
