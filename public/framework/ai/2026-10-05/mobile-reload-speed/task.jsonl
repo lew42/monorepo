@@ -9,3 +9,7 @@
 {"action":{"at":"2026-10-05T14:00:04-05:00","did":"edit","files":["Server/.tmp-lines.json"]}}
 {"experiment":{"try":"curl before/after on 6 real framework files, with and without If-None-Match","measure":"total response bytes on a reload","result":"before: 60118B every reload (compress.js had no ETag at all); after: 0B on 5/6 files (304), the 6th is under the 1KB compress threshold and already got a 304 from express.static"}}
 {"log":{"at":"2026-10-05T14:00:07-05:00","msg":"review.mjs flagged the missing measurement file; wrote measurement.md with the curl before/after numbers, committing now"}}
+{"review":{"answer":{"n":1,"reply":"fixed: added measurement.md with the curl before/after (60118B/reload -> 0B, 5/6 files 304) and an experiment line in this log; the commit's claim now points at something real"}}}
+{"review":{"answer":{"n":2,"reply":"noted: confirmed — step 2 (modulepreload) was deliberately left out per the owner's own 'Not in scope' line in requirements.md, saying so explicitly in the landing report"}}}
+{"review":{"answer":{"n":3,"reply":"noted: true but rare in practice (every real browser sends Accept-Encoding on every request, and a dev-server byte-range request never carries a reload's If-None-Match); not fixing — would mean duplicating express.static's own ETag format inside compress.js for a path real traffic doesn't hit"}}}
+{"review":{"answer":{"n":4,"reply":"fixed: merging into michael/dev now via Server/merge.mjs; restart_server monorepo is the next step after"}}}
