@@ -7,6 +7,9 @@
 
 > when I see the smart assistant and the fast assistant both responding with very similar responses, that's broken ... most of the time, those assistants could or should respond with a green check mark ... versus a yellow question mark of like, transcript doesn't make sense ... if there's a task or a question ... converting those into those specific types of cards ... recognizing a question when it's been asked ... a one line preview of the answer ... If I click through, then that answer becomes more of a breakdown
 
+## The design principle (owner, 2026-10-04: "write that down")
+**A voice session listens and answers in real time, as fast as possible without lag.** The fast assistant goes first: quick, automatic, a rough guess (clean, refine, ✓/?, a first card). The smart assistant takes its turn after: revises what the fast one did, in place. Neither manages work. Real work, and fixing anything that went wrong, goes to **one Opus mastermind** above all voice sessions, because the session pair isn't a reliable manager.
+
 ## Roles (owner, 2026-10-04, second prompt)
 - **Fast assistant = the prompt interpreter.** Stays free; reacts in seconds; does only quick, simple things (✓ / ?, a name and an icon, first guesses at requirements on the card).
 - **Smart assistant = a mini mastermind, hands off.** Picks the model and spawns the minion or mastermind for real work; doesn't do the work itself, so it stays free to respond.
