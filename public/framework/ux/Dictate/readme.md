@@ -327,3 +327,8 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
   `push-to-talk.js` + `FloatingMic.css` (the floating mic, site-wide — a hold-or-toggle
   hotkey, built on `ux/Hotkeys`, driving this SAME `chat.js` mount from anywhere, dev shell
   open or closed), `v1/page.js` (the old Overview, frozen)
+
+## To-do
+
+- **Overview tab leads with the class architecture** (the owner, 2026-10-04): where Dictate fits (mic + Whisper + clean → chat → voice session assistants), what loads what (does chat.js load Dictate or the reverse), and whether Dictate is UX or an extension now that it has settings. The live demo moves one tab down.
+- **Audio tools:** use them in Dictate or remove them (the owner, 2026-10-04).
