@@ -232,10 +232,20 @@ export default class Sessions {
 	 * first 300 chars>` — most are "done: …" and ignored at once. One that matches
 	 * USAGE_LIMIT_RE is Claude refusing that one agent; `note.from` is its id, which `by_agent`
 	 * (kept current in `wake()`) maps back to `{id: session id, role}`. Flips just that ROLE of
-	 * just that SESSION to FALLBACK_MODEL, forces a FRESH spawn (an OpenRouter model can't
-	 * resume a Claude session id) and tells the owner in plain words, in the session itself —
-	 * the one place they're already looking. Does nothing when the backend is already off
-	 * "claude": nothing to fall back FROM. */
+	 * just that SESSION to FALLBACK_MODEL and tells the owner in plain words, in the session
+	 * itself — the one place they're already looking. Does nothing when the backend is already
+	 * off "claude" for this role: nothing to fall back FROM (`session_model()` covers "local",
+	 * which already keeps smart off Claude too).
+	 *
+	 * Once ANY session hits this, every FUTURE ✦ press writes `openrouter` to
+	 * `SESSION_BACKEND_PATH` too (review finding 6) — otherwise, after a real cutoff, each new
+	 * session would have to get refused once, fresh, before it also falls back; one refusal is
+	 * enough to know Claude is down for everyone, not just this one session.
+	 *
+	 * Runs SYNCHRONOUSLY inside the very `emit()` call that is still finishing the refused
+	 * agent's OWN "error" event (review finding 4) — `stop()` + a fresh `wake()` from inside
+	 * that stack worked in the live proof (`prove-fallback.mjs`), but `setImmediate` lets that
+	 * call stack unwind first anyway, cheaply, rather than relying on it always being safe. */
 	woken(text, note){
 		const from = this.by_agent.get(note?.from);
 		if (!from || !USAGE_LIMIT_RE.test(String(text ?? ""))) return;
@@ -245,14 +255,17 @@ export default class Sessions {
 		(s.backing ??= {})[from.role] = null;   // never resume a Claude session id under a different model
 		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
 			text: `Claude refused the ${from.role} assistant for usage limits; switched it to ${FALLBACK_MODEL} (OpenRouter).` } });
-		try { this.servex.agents.stop(s[from.role]); } catch {}
-		/* The owner's last line was the one Claude refused to answer — `wake()` (below) gives the
-		 * fresh agent the session's tail as CONTEXT, but context alone starts no new turn, so
-		 * without this the owner hears nothing until they speak again, to an agent that never
-		 * actually answered them (review finding 4). Re-send it, to this one role only. */
-		const last_owner = this.last_owner_text(s);
-		try { this.wake(s, from.role); if (last_owner) this.send(s, from.role, last_owner); }
-		catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
+		try { fs.mkdirSync(path.dirname(SESSION_BACKEND_PATH), { recursive: true }); fs.writeFileSync(SESSION_BACKEND_PATH, "openrouter"); } catch {}
+		const last_owner = this.last_owner_text(s);   // the line Claude refused to answer — read now, before anything respawns
+		setImmediate(() => {
+			try { this.servex.agents.stop(s[from.role]); } catch {}
+			/* `wake()` gives the fresh agent the session's tail as CONTEXT, but context alone
+			 * starts no new turn, so without this the owner hears nothing until they speak
+			 * again, to an agent that never actually answered them (review finding 4). Re-send
+			 * it, to this one role only. */
+			try { this.wake(s, from.role); if (last_owner) this.send(s, from.role, last_owner); }
+			catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
+		});
 	}
 
 	/* The text of the most recent owner chat line in this session's file — what a freshly
@@ -922,7 +935,7 @@ export default class Sessions {
 	session_model(s, role){
 		const backend = s.fallback?.[role] ? "openrouter" : session_backend();
 		if (backend === "openrouter") return FALLBACK_MODEL;
-		if (backend === "local" && role === "fast") return "local/qwen2.5-coder";
+		if (backend === "local") return role === "fast" ? "local/qwen2.5-coder" : FALLBACK_MODEL;
 		return role === "fast" ? "claude-sonnet-5" : Usage.pick("smart", this.repo);
 	}
 
@@ -938,18 +951,9 @@ export default class Sessions {
 			role: "session-fast", name: s.id, model: this.session_model(s, "fast"), effort: "low", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo, mcp_url: "", setting_sources: [],
 			system: this.brief("fast") + where,
-			/* TOP-LEVEL `env`, NEVER `sdk.env` (review finding 1/2, dictate-without-claude,
-			 * 2026-10-04): `Agents.js`'s `door()` builds the real child env as
-			 * `{...process.env, ...or_env, ...this.env}` — `this.env` is THIS field, `spec.env`,
-			 * merged last on purpose so a caller's own flag can win a real conflict, while still
-			 * keeping `process.env` and the provider's own OpenRouter/local credentials
-			 * underneath. Putting these two flags in `sdk.env` instead (the old shape, which also
-			 * spread `...process.env` for no reason) lands them under the DIFFERENT key
-			 * `options().sdk.env`, which `options()`'s later `...this.sdk` spread used to let
-			 * silently REPLACE `door()`'s whole `env` — wiping the OpenRouter credentials the
-			 * moment the switch below picked an OpenRouter model, so the SDK called real
-			 * Anthropic with an OpenRouter model id and failed "may not exist or you may not
-			 * have access to it". Found live spawning openai/gpt-6-luna this way. */
+			/* TOP-LEVEL `env`, NEVER `sdk.env` — see Agents.js's `options()`/`door()` for why
+			 * (review finding 1/2/8, dictate-without-claude, 2026-10-04: `sdk.env` used to let a
+			 * caller silently replace the provider's own credentials instead of adding to them). */
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
 			parent: "sessions"
@@ -986,8 +990,14 @@ export default class Sessions {
 		const model_changed = s.backing_model?.[role] && s.backing_model[role] !== target_model;
 		const can = !!(old && !model_changed && session_facts(old).cwd);
 		const how = can ? "resume" : old ? "fresh" : "new";
+		/* A tail only when there's actual history to hand over — `old` (abandoning a real
+		 * Claude session) or `fallback` (review finding 7: both get nulled by `woken()` before
+		 * this runs, so `old` alone would miss the fallback case). A true brand-new session has
+		 * no tail: the owner's first line is about to be sent as the real prompt by `say()`
+		 * right after this returns, and a tail that already quoted it would show it twice. */
+		const give_context = old || s.fallback?.[role];
 		let agent;
-		try { agent = this.spawn(s, role, can ? { resume: old } : { context: this.tail(s, 40) }); }
+		try { agent = this.spawn(s, role, can ? { resume: old } : { context: give_context ? this.tail(s, 40) : "" }); }
 		catch (e){ this.sleep(s, "failed revive"); throw e; }
 		s[role] = agent.id;
 		this.by_agent.set(agent.id, { id: s.id, role });

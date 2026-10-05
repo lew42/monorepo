@@ -20,11 +20,21 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../../../../..");
 
 const { Agents } = await import(pathToFileURL(path.join(REPO, "Servex/agents/Agents.js")).href);
-const { default: Sessions, FALLBACK_MODEL } = await import(pathToFileURL(path.join(REPO, "Servex/agents/Sessions.js")).href);
+const { default: Sessions, FALLBACK_MODEL, SESSION_BACKEND_PATH } = await import(pathToFileURL(path.join(REPO, "Servex/agents/Sessions.js")).href);
 const { warm_guard } = await import(pathToFileURL(path.join(REPO, "Servex/ext/openrouter/provider.js")).href);
 await warm_guard();
 
 process.env.SERVEX_SESSION_BACKEND = "claude";   // the default — this session starts on Claude
+
+/* This run's own refusal is SUPPOSED to write the real SESSION_BACKEND_PATH (review finding 6:
+ * one refusal should flip every future session too) — real behaviour, worth proving, but not
+ * something a test should leave lying around on the machine that runs it. Save whatever was
+ * there before (nothing, on a fresh machine) and put it back when this script ends. */
+const prior_backend_file = (() => { try { return { existed: true, text: fs.readFileSync(SESSION_BACKEND_PATH, "utf8") }; } catch { return { existed: false }; } })();
+function restore_backend_file(){
+	try { prior_backend_file.existed ? fs.writeFileSync(SESSION_BACKEND_PATH, prior_backend_file.text) : fs.unlinkSync(SESSION_BACKEND_PATH); } catch {}
+}
+process.on("exit", restore_backend_file);
 
 const DIR = path.join(os.tmpdir(), "dictate-without-claude-fallback-proof");
 fs.rmSync(DIR, { recursive: true, force: true });
@@ -57,6 +67,9 @@ sessions.write(s, { chat: { at: new Date().toISOString(), session: s.id, path: "
 say(`   owner: "what time is it"`);
 sessions.woken("error: Claude AI usage limit reached. Your limit will reset at 3pm.", { from: "fake-fast-agent" });
 say(`   (Agents.js's own wake_parent() sends exactly this shape: "error: <the agent's last words>")`);
+
+await new Promise(r => setImmediate(r));   // woken() defers its respawn one tick (review finding 4); let it run first
+await new Promise(r => setTimeout(r, 300));
 
 say(`\nfallback flag: ${JSON.stringify(s.fallback)} (must be {fast:true})`);
 say(`session_model(s, "fast") now picks: ${sessions.session_model(s, "fast")} (must be ${FALLBACK_MODEL})`);

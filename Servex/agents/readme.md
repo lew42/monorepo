@@ -142,7 +142,13 @@ Claude refuses one of them for usage limits — the owner, 2026-10-04: "I have t
   as context and the owner's last line re-sent, so the respawned agent actually answers it
   (never resumed: an OpenRouter model can't continue a Claude session id, and `wake()` also
   forces fresh whenever the model a session's `backing` id ran on no longer matches the
-  current setting).
+  current setting). The first refusal ALSO writes `session-backend.txt` itself, so every later
+  ✦ session starts on OpenRouter straight away instead of each one needing its own refusal
+  first. The flip is one-way on purpose, even past a reset: anything refused once for usage
+  limits can be refused again, and only the owner (or the smart assistant, by the same file)
+  knows when Claude is really back. A 429 from an unrelated overload matches the same way —
+  accepted, because a false fallback costs cents and a missed one costs the owner a silent
+  session.
 - **The default pair, by cost and quality** (requirements.md item 3, from the new-brain eval,
   [`ai/2026-10-03/new-brain/eval-results.json`](/framework/ai/2026-10-03/new-brain/eval-results.json)):
   `openai/gpt-6-luna` for BOTH roles. On the same 18-question set (5 doc facts, 3 reasoning
