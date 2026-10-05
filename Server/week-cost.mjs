@@ -71,9 +71,23 @@ export function this_week_window(root = DEFAULT_ROOT){
 // ---- Claude $: sum every session page.jsonl's LAST cost line, for a day inside the window ----
 // Dated folders: public/framework/ai/<Y>/<M>/<D>/*/page.jsonl (numeric date tree — NOT the
 // dashed task dirs like ai/2026-10-02/<slug>, which are a different, older convention).
+//
+// ⚠ DEDUPED BY SESSION (vscode-session-cost, 2026-10-04 — the owner's own ask: "the week total
+// counts each API call once"). A session that is still open past midnight has its ONE page
+// folder under an EARLIER day (the day it first wrote), but `session-cost.mjs`'s own
+// `find_page_jsonl()` used to only look under TODAY's folder — fixed there, same task — so this
+// walk would otherwise have been the only place still reading a session by its FOLDER rather
+// than its real id, with no protection if two folders ever existed for the same session (the
+// hook's own tmp marker file lost, a second folder created for the same id). Each folder's own
+// `total_usd` is already a cumulative, whole-transcript number (never a per-day slice), so two
+// folders for the same session would each report (most of) the SAME dollars — summing both
+// would double it. Grouped by the session's own id8 (the folder name's own `-<id8>` suffix,
+// the one stable fact every page folder carries) and only the folder with the LARGEST
+// `total_usd` is kept per id8 — the most complete read of that one transcript, never two reads
+// of it added together.
 export function claude_spend(from, to, root = DEFAULT_ROOT){
 	const ai = join(root, "public", "framework", "ai");
-	const top = [];
+	const by_id8 = new Map();   // id8 -> { session, usd, at }
 	let years;
 	try { years = readdirSync(ai, { withFileTypes: true }); } catch { return { total: 0, sessions: [] }; }
 	for (const y of years){
@@ -100,11 +114,14 @@ export function claude_spend(from, to, root = DEFAULT_ROOT){
 					if (!last || typeof last.total_usd !== "number") continue;
 					const at = last.at ? Date.parse(last.at) : day_ms;
 					if (at < from || at > to) continue;
-					top.push({ session: s.name, usd: last.total_usd });
+					const id8 = /-([0-9a-f]{8})$/.exec(s.name)?.[1] ?? s.name;   // the stable session key
+					const prev = by_id8.get(id8);
+					if (!prev || last.total_usd > prev.usd) by_id8.set(id8, { session: s.name, usd: last.total_usd, at });
 				}
 			}
 		}
 	}
+	const top = [...by_id8.values()];
 	const total = top.reduce((n, x) => n + x.usd, 0);
 	return { total, sessions: top };
 }

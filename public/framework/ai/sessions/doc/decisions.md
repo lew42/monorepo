@@ -1,5 +1,58 @@
 # Sessions — decisions
 
+## 2026-10-04 (vscode-session-cost) — a VS Code tab's own $ was silently stalling after midnight
+
+The owner's own words (dictated): "Is it possible to add the VS Code sidebar sessions... if
+we're not logging them to the same system... we should be... use hooks." Full brief:
+[`/framework/ai/2026-10-04/vscode-session-cost/requirements.md`](/framework/ai/2026-10-04/vscode-session-cost/requirements.md).
+
+**Item 1 (hooks, no timer) was already landed** by the same-day `token-accounting` task below —
+`.claude/settings.json`'s `Stop` hook already runs `node Server/session-cost.mjs --append-stdin`
+on every turn, for every session including a VS Code tab's. Checked, not assumed, before
+building anything new (CLAUDE.md law 6/7).
+
+**The real bug, found live:** `session-361c4d18` (the previous VS Code tab) really did cost
+$1,474.21 — a genuine 8,251-turn marathon session, not a rollup mistake; its own transcript
+scanned to the same number directly (no sidechain/subagent turns inflating it — checked). But
+`session-60d9def6` (the tab this very task's own mastermind was running in) showed **$5.32 /
+$29.12** in `week.json` while its real transcript, read directly, already priced out to
+**$110.07** — an $80+ undercount. Cause: `session-cost.mjs`'s `find_page_jsonl()` only ever
+looked under **today's** date folder for a session's `page.jsonl`. A session's page is created
+once, the day it first wrote (`prompt-relay.mjs`'s own cached `{day, slug}` marker) — so any
+session still open past midnight has its page under an **earlier** day's folder, and every Stop
+hook after midnight silently found nothing there and no-op'd (a quiet `console.error`, never a
+thrown error, so nothing ever surfaced this). The cost just stopped climbing, forever, the moment
+the clock rolled over.
+
+**The fix:** `find_page_jsonl()` now walks every `<Y>/<M>/<D>/` folder for the session's own
+`*-<id8>` directory — the identical rule `ai/sessions/page.js`'s own
+`session_page_dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
+is this session's page"). Verified against the real files: it now finds `60d9def6`'s page under
+`ai/2026/10/03/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
+snapshot it's always been) now shows it.
+
+**Item 2, "fix the roll-up":** two different things were checked, and only one was a bug.
+`spend-tree.json`'s own/subtree split is unaffected — it's a different population entirely (only
+Servex-registered agents; a VS Code tab is never a node in that tree, since it has no registry
+entry), so there was nothing to double-count there for a VS Code session specifically. What WAS
+a real double-count risk: if a session's page ever ended up with **two** folders (the hook's own
+tmp marker file lost mid-session), `week-cost.mjs`'s `claude_spend()` used to sum both folders'
+`total_usd` — each one a *cumulative, whole-transcript* number, so two folders for the same
+session would roughly double it. Fixed: `claude_spend()` now groups by the same `id8` and keeps
+only the larger total per session, never both added together.
+
+**Item 3, "show its inputs":** the "Per 1% of your weekly plan" tile (added 2026-10-03, see
+below) already had a `title=` explaining the number, but a title only shows on hover — the
+owner's own original complaint was exactly that a bare number "means nothing" to him. Added a
+small caption under the number itself: `$<claude $ this week> ÷ <plan % used>` — visible without
+hovering, no new computation (the same two numbers `usd_per_pct` was already divided from).
+
+**Left open:** `week.json`/`spend-tree.json` are still manual, run-by-hand snapshots (same
+"why a script, not a live route" gap the 2026-10-02 entry below names) — this task re-ran
+`week-cost.mjs` once, by hand, to prove the fix and refresh the live figure; it does not start
+a `--watch` loop (nothing in this fence manages a long-running process for the owner, and one
+already exists as a documented, named option for whoever wants it running continuously).
+
 ## 2026-10-04 (token-accounting) — two real accounting mistakes, found and fixed; a cache $ breakdown added
 
 The owner's own words (dictated): "make sure we're not making an accounting mistake... update in

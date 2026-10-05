@@ -63,12 +63,20 @@ older `cost` figure:**
   reading of what it's for — does a review pay for itself, where the dollars go — is
   [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
 
-**Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a session's
-own detail page now shows input/cache-write/cache-read/output $ under "Logged cost". The `cost by
-role`/`cost by trigger` lists have a sibling, all-time "Cache $ breakdown" list, same split,
-grouped. Two real accounting bugs were found and fixed along the way (a wrong cache-write price,
-and a task's own `cost_usd` undercounting a revived agent by up to 59%) — `doc/decisions.md`'s
-2026-10-04 entry has the full story.
+- **Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a
+  session's own detail page now shows input/cache-write/cache-read/output $ under "Logged
+  cost". The `cost by role`/`cost by trigger` lists have a sibling, all-time "Cache $
+  breakdown" list, same split, grouped.
+- **Two real accounting bugs**, found while building that breakdown: a wrong cache-write
+  price, and a task's own `cost_usd` undercounting a revived agent by up to 59%.
+  `doc/decisions.md`'s 2026-10-04 entry has the full story.
+
+**A VS Code tab's own $ stopped updating after midnight (vscode-session-cost, 2026-10-04) — fixed.**
+A session's cost is found by its own page folder, wherever it lives (not just today's), so a tab
+left open overnight keeps pricing correctly instead of silently stalling. The "Per 1% of your
+weekly plan" stat tile now also shows the two numbers it divides underneath the figure, not just
+in a hover title. `doc/decisions.md`'s own 2026-10-04 entry (above the token-accounting one) has
+the full story.
 
 ## Where the real dollars come from
 

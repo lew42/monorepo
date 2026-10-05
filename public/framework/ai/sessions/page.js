@@ -542,10 +542,11 @@ export default new Page({
 		const pct_text = typeof week?.plan_pct_used === "number" ? week.plan_pct_used + "%" : "—";
 		const money_body = parts => () => { span(parts.whole); span.c("sessions-stat-cents", parts.cents); };
 
-		const tile = (label_text, body, title) => {
+		const tile = (label_text, body, title, foot) => {
 			const $tile = div.c("surface pad flex v gap", () => {
 				div.c("h4 muted", label_text);
 				div.c("h2", body);
+				if (foot) small.c("muted", foot);
 			}).style("--gap", "calc(var(--gap) * 0.1)");
 			if (title) $tile.attr("title", title);
 			return $tile;
@@ -555,10 +556,16 @@ export default new Page({
 			tile("Claude this week", week ? money_body(claude) : "—");
 			tile("OpenRouter this week", week ? money_body(or) : "—");
 			tile("Plan used this week", pct_text);
+			// The owner's own words, 2026-10-03: "I'm not sure what '$26.65/1%' means" — the label
+			// plus a title= fixed that once, but a title only shows on hover. token-accounting
+			// (vscode-session-cost, 2026-10-04, item 3: "show its inputs") puts the two numbers this
+			// divides — the real Claude $ and the real percent-used — in plain sight underneath, so
+			// the figure never has to be taken on faith.
 			tile("Per 1% of your weekly plan", week?.usd_per_pct ? money_body(per_pct) : "—",
 				week?.usd_per_pct
 					? "How far $1 of Claude spend moves the plan's own weekly meter — the plan's week total divided by its own percent used."
-					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).");
+					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).",
+				week?.usd_per_pct ? `$${claude.whole.slice(1)}${claude.cents} ÷ ${pct_text}` : null);
 			tile("Sessions shown", String(this.filtered_count));
 		});
 	},

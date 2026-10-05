@@ -18,7 +18,7 @@
 //                                                          {"session_id": "..."} as JSON from stdin
 //                                                          (the Stop hook's own payload shape) —
 //                                                          never throws, always exits 0
-import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, mkdirSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, mkdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, tmpdir } from "node:os";
@@ -218,21 +218,55 @@ export function find_transcript(session_id){
 
 function pad2(n){ return String(n).padStart(2, "0"); }
 
-// TODAY's date folder only, as the brief names it:
-// public/framework/ai/<Y>/<M>/<D>/*-<first 8 hex of session-id>/page.jsonl
+// ⚠ FIXED 2026-10-04 (vscode-session-cost — the owner's own report: a VS Code tab he'd been
+// in "a very long conversation" with showed only $5.32). This used to look ONLY under TODAY's
+// date folder — correct the day a session's page is first created, but every VS Code tab that
+// is still open past midnight has its page under an EARLIER day's folder
+// (public/framework/ai/<Y>/<M>/<D>/..., the day prompt-relay.mjs first wrote it), and every
+// Stop hook after midnight silently found nothing there and no-op'd. Checked live: session
+// 60d9def6's page stalled at total_usd $29.12 while its real transcript (this same script's
+// own cost_of_transcript) already priced out to $110.07 — an $80+ undercount, growing every
+// day the tab stays open. Fixed by searching EVERY `<Y>/<M>/<D>/` folder for the session's own
+// `*-<id8>` dir, the identical pattern `ai/sessions/page.js`'s own `session_page_dir_index()`
+// already uses client-side (CLAUDE.md law 6: one rule for "which folder is this session's
+// page", not two). A session's page folder is created once and never renamed, so there is
+// normally exactly one match; if more than one somehow exists (the hook's own tmp marker file
+// got cleared mid-session and a second folder was created), the one with the MOST RECENT
+// modification time wins — it has to be the folder every later hook call has actually been
+// writing to.
 export function find_page_jsonl(session_id, root = ROOT){
 	const id8 = session_id.slice(0, 8);
-	const now = new Date();
-	const dir = join(root, "public", "framework", "ai", String(now.getFullYear()), pad2(now.getMonth() + 1), pad2(now.getDate()));
-	if (!existsSync(dir)) return null;
-	let entries;
-	try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return null; }
-	for (const e of entries){
-		if (!e.isDirectory() || !e.name.endsWith("-" + id8)) continue;
-		const f = join(dir, e.name, "page.jsonl");
-		if (existsSync(f)) return f;
+	const ai = join(root, "public", "framework", "ai");
+	let years;
+	try { years = readdirSync(ai, { withFileTypes: true }); } catch { return null; }
+	const matches = [];
+	for (const y of years){
+		if (!y.isDirectory() || !/^\d{4}$/.test(y.name)) continue;
+		const yDir = join(ai, y.name);
+		let months;
+		try { months = readdirSync(yDir, { withFileTypes: true }); } catch { continue; }
+		for (const m of months){
+			if (!m.isDirectory() || !/^\d{2}$/.test(m.name)) continue;
+			const mDir = join(yDir, m.name);
+			let days;
+			try { days = readdirSync(mDir, { withFileTypes: true }); } catch { continue; }
+			for (const d of days){
+				if (!d.isDirectory() || !/^\d{2}$/.test(d.name)) continue;
+				const dDir = join(mDir, d.name);
+				let entries;
+				try { entries = readdirSync(dDir, { withFileTypes: true }); } catch { continue; }
+				for (const e of entries){
+					if (!e.isDirectory() || !e.name.endsWith("-" + id8)) continue;
+					const f = join(dDir, e.name, "page.jsonl");
+					if (existsSync(f)) matches.push(f);
+				}
+			}
+		}
 	}
-	return null;
+	if (!matches.length) return null;
+	if (matches.length === 1) return matches[0];
+	matches.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
+	return matches[0];
 }
 
 // Compute + append one {"cost":{...}} line to the session's own page.jsonl, if one
