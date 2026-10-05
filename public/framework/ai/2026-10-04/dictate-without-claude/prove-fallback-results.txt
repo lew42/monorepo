@@ -1,0 +1,21 @@
+1. a "done" wake that just MENTIONS usage limits:
+   fallback flag: undefined (must be undefined — it was a normal reply, not a refusal)
+
+2. the rare session-crash shape Agents.js DOES send as "error:" — the one that actually
+   respawns and re-sends the owner's line below:
+   owner: "what time is it"
+   fallback flag: {"fast":true} (must be {fast:true})
+   session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
+
+   the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
+     "I’m not sure of the current time."
+
+   last lines of this session's file (the switch itself IS recorded there, for the owner to see):
+{"session":{"id":"v-kudp4rk","home":"/framework/","at":"2026-10-04T19:31:11.053-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T00:31:11.055Z","session":"v-kudp4rk","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-04T19:31:11.055-05:00","session":"v-kudp4rk","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
+{"backing":{"at":"2026-10-04T19:31:11.078-05:00","fast":"f8427cc4-1660-4c7e-ade4-8a625e95b566","smart":null,"how":{"fast":"new"}}}
+
+3. THE REAL CASE — a refused turn wakes as "done:", with the actual reason only on the live
+   agent's own last_error (what Agents.js's result() actually does for a non-one_shot agent):
+   fallback flag: {"fast":true} (must be {fast:true} — this is the fix for review round 7, finding 1)

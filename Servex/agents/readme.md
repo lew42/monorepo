@@ -117,6 +117,19 @@ sends it) into a live fix in roughly 10-30 seconds, no spawn and no new worktree
 
 One ✦ press is one voice session, answered by its own pair of agents. [`Sessions.js`](./Sessions.js) runs them and serves the routes `POST /api/session/new` (start, or continue this page's session from the last hour), `POST /api/session/say` (one owner line, sent to both agents) and `POST /api/session/nav` (the owner moved to another page), plus `resume`, `floor` and `GET /api/sessions`. **`session-fast`** is the fast assistant: one short line within seconds, no tools ([`session-fast.md`](./session-fast.md)). **`session-smart`** is the smart one: it thinks, routes the owner's words to work in flight, starts masterminds and asks `ask_directory` about a folder ([`session-smart.md`](./session-smart.md)). The browser half and the file format: [`ext/Session`](/framework/ext/Session/) and its [`doc/sessions.md`](/framework/ext/Session/doc/sessions.md); the folder questions: [`doc/directory.md`](./doc/directory.md).
 
+### Dictate keeps working if Claude cuts off
+
+Both session agents can run on a non-Claude model, and switch there BY THEMSELVES the moment
+Claude refuses one of them for usage limits — the owner, 2026-10-04: "I have to rely entirely
+100% on the website and whether the voice dictation system works."
+
+**After a Claude cutoff, Dictate runs on: fast = `openai/gpt-6-luna`, smart = `openai/gpt-6-luna`.**
+
+One setting (`session_backend()`, a file so the smart assistant can flip it with no restart),
+that one default pair (picked by cost and quality), one automatic fallback that needs no
+setting change at all: [`doc/dictate-backend.md`](./doc/dictate-backend.md) has the mechanics,
+the eval the pair was picked from, and the live proof.
+
 ## Ids are words, never uuids
 
 `<role>-<name>` — `minion-servex-port`, `mastermind-servex` — with `-2` for a collision. That

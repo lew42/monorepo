@@ -903,6 +903,7 @@ Agents.Agent = class Agent {
 	 * UI its token stream; `forwardSubagentText` gives it the nested transcript of
 	 * anything this agent itself spawns. Both names verified against 0.3.280. */
 	options(){
+		const door = this.door();
 		return {
 			model: this.model,
 			effort: this.effort,
@@ -911,7 +912,7 @@ Agents.Agent = class Agent {
 			includePartialMessages: true,
 			forwardSubagentText: true,
 			permissionMode: this.permission_mode,
-			...this.door(),
+			...door,
 			...(this.permission_mode === "bypassPermissions" ? { allowDangerouslySkipPermissions: true } : {}),
 			...(this.allowed_tools ? { allowedTools: this.allowed_tools } : {}),
 			...(this.setting_sources ? { settingSources: this.setting_sources } : {}),
@@ -921,6 +922,12 @@ Agents.Agent = class Agent {
 			...(this.minted ? { sessionId: this.session_id } : {}),
 			spawnClaudeCodeProcess: o => this.spawn_claude(o),
 			...this.sdk,
+			/* `sdk.env` names the same options key `door.env` just set, so `...this.sdk` above
+			 * would otherwise REPLACE it instead of adding to it (review finding 7,
+			 * dictate-without-claude 2026-10-04 — found live: a session spec's `sdk.env` wiped
+			 * the OpenRouter credentials `door()` had just built). `door.env` goes first so a
+			 * caller's own flag can still win a real conflict. */
+			...(door.env || this.sdk?.env ? { env: { ...door.env, ...this.sdk?.env } } : {}),
 			/* GEMINI TOOL-SCHEMA GAP (openrouter/provider.js): merged in AFTER
 			 * `...this.sdk` so it always applies even when a spec sets its own
 			 * disallowedTools for an unrelated reason. */
@@ -980,8 +987,12 @@ Agents.Agent = class Agent {
 		const or_env = this.provider === "openrouter" ? env_for("openrouter")
 			: this.provider === "local" ? local_env_for("local") : null;   // ext/local/provider.js: same trick, points at Servex's own proxy instead
 		const url = this.mcp_url ?? this.host?.mcp_url;
-		// a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process servers, and still needs the provider env
-		if (!url) return strip({ mcpServers: this.mcp_servers, env: or_env ? { ...process.env, ...or_env, ...this.env } : undefined });
+		/* a host with no HTTP door (fork-proof.mjs) still passes the spawn's own in-process
+		 * servers, and still needs the env — `(or_env || this.env)`, not just `or_env` (review
+		 * finding 1, dictate-without-claude 2026-10-04): the old check dropped a spec's own
+		 * `this.env` whenever there was no provider env to merge it with, silently losing it on
+		 * today's default Claude path. */
+		if (!url) return strip({ mcpServers: this.mcp_servers, env: (or_env || this.env) ? { ...process.env, ...or_env, ...this.env } : undefined });
 
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...this.mcp_servers },
@@ -1553,6 +1564,15 @@ Agents.Agent = class Agent {
 	result(message){
 		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
+		/* Real token counts, cumulative across this agent's whole life (review finding,
+		 * dictate-without-claude round 6, 2026-10-04): the streamed `assistant` message's own
+		 * `usage` reads 0/0 for a proxied OpenRouter call (SDK `message_start` artifact, not a
+		 * real count yet) — the RESULT event's `modelUsage[model]` is where the real
+		 * `inputTokens`/`outputTokens` actually land. `costUSD` in there is still the SDK's
+		 * wrong Anthropic-table guess (same reason `total_cost_usd` is, two lines down) — only
+		 * the token counts are trustworthy, and only as a cumulative total a caller must diff
+		 * against its own last reading to get one turn's share. */
+		if (message.modelUsage) this.model_usage = message.modelUsage;
 		/* total_cost_usd is the SDK's own guess, priced off Anthropic's table —
 		 * wrong for an openrouter agent under the wrong model name entirely
 		 * (openrouter/readme.md point 3), so it must never touch `this.cost`
@@ -1567,7 +1587,13 @@ Agents.Agent = class Agent {
 		 * `wait_for_agent` hand back; `last_text` is only its final block. */
 		this.words = (this.said ?? []).join("\n\n") || null;
 		this.said = [];
-		if (message.is_error) this.last_error = (message.errors ?? []).join("; ") || message.subtype || "turn failed";
+		/* `result` carries the error TEXT when `is_error` is set (sdk.d.ts on `SDKResultMessage`:
+		 * "with is_error true, the error text when the turn ended on an API error") — checked
+		 * first (review round 8, dictate-without-claude, 2026-10-04: `message.errors` is usually
+		 * absent on a real refusal, so `last_error` fell through to the uninformative
+		 * `message.subtype` or "turn failed", and USAGE_LIMIT_WORDS never matched a real cutoff). */
+		if (message.is_error) this.last_error = message.result || (message.errors ?? []).join("; ") || message.subtype || "turn failed";
+		else this.last_error = null;   // a turn that succeeds clears a stale error (review finding 2): a past 429 must not keep tripping every later "done"
 		const u = message.usage ?? {};
 		this.emit({
 			type: "result",
