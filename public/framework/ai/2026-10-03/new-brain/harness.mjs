@@ -28,7 +28,7 @@ export async function callModel({ model, messages, temperature = 0.1, max_tokens
 
 	const key = read_key();
 	try {
-		const res = await fetch(OPENROUTER_API_URL, {
+		const res = await fetch(OPENROUTER_API_URL, { signal: AbortSignal.timeout(60000),   // a model that takes over a minute per question fails it
 			method: "POST",
 			headers: {
 				"Authorization": `Bearer ${key}`,
