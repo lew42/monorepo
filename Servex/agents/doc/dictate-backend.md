@@ -67,13 +67,14 @@ gpt-6-luna's 10/10 at a cost so small ($0.0001/call) it isn't worth trading repl
 
 [`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/)
 spawns a real session (fast + smart) on `openai/gpt-6-luna` and sends it 3 real sentences,
-showing each real reply. It prices each one from its own token counts × OpenRouter's published
-rate — real arithmetic, not a guess — but the SDK reported `0` input/output tokens for every
-one of these calls, so the $ it shows is a real rate on a $0 token count, not a measured $0 cost
-(the same root gap as `usage.cost` going missing, [`openrouter/gaps.md`](../../ext/openrouter/gaps.md)
-#8, which this run adds as a second symptom). [`prove-fallback.mjs`](/framework/ai/2026-10-04/dictate-without-claude/)
-proves the automatic fallback: a normal reply that mentions "usage limit" does not flip the
-switch, a real refusal does, and the freshly respawned agent answers the owner's re-sent line.
+showing each real reply with its real $ — read from the turn's own `result.modelUsage` (the
+streamed message's `usage` is a `0`/`0` artifact, not the real count;
+[`openrouter/gaps.md`](../../ext/openrouter/gaps.md) #8), diffed per turn and priced against
+OpenRouter's published rate. Cross-checked in the same run against a live key-level balance
+diff, which landed in the same range ($0.0140 vs $0.0134 computed, 6 replies).
+[`prove-fallback.mjs`](/framework/ai/2026-10-04/dictate-without-claude/) proves the automatic
+fallback: a normal reply that mentions "usage limit" does not flip the switch, a real refusal
+does, and the freshly respawned agent answers the owner's re-sent line.
 
 ## Open, not fixed here
 

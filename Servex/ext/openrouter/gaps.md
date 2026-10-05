@@ -14,9 +14,9 @@ they always had.
 | 5 | Long sessions: compaction through the proxy | all | none | untested |
 | 6 | Does `effort` reach a non-Claude model? | all | none | untested |
 | 7 | Web search on an OpenRouter model | tested: deepseek, gpt-6-luna | none needed | works; exact cost being checked |
-| 8 | A real agent's `usage.cost` is still blind on tiny calls | tested: gpt-6-luna | none yet; `/generation` and the key-diff fallback are both too slow for cent-fractions | open — see below |
+| 8 | A real agent's `usage.cost` and streamed token count are both blind | tested: gpt-6-luna | real tokens ARE on the turn's `result.modelUsage`; a caller can diff that itself (done in dictate-without-claude's proof) — `spent_usd()` itself not yet wired to it | partly fixed — see below |
 
-## 8. The 2026-10-04 cost fix doesn't reach a real agent's `usage.cost`, and `/generation`/key-diff are too slow for a tiny call
+## 8. `usage.cost` is still blind on a real agent; the real token counts are on `modelUsage`, not the streamed message
 
 - **What fails:** `dictate-without-claude` (2026-10-04) spawned real `session-fast`/`session-smart`
   agents on `openai/gpt-6-luna` through `Agents.js` and never saw a nonzero `spent_usd()` — every
@@ -37,22 +37,27 @@ they always had.
   exact ones this task's `FALLBACK_MODEL` choice depends on. The spend GUARD still works (it reads
   the key's weekly/daily totals on its own 30s timer, which do catch up eventually), so nothing
   overspends; only the live per-agent `$` figure a dashboard would show is wrong (reads as $0).
-- **Workaround tried, and it ALSO hit the same root gap (added after a review round on the same
-  task):** a token-based alternative — `cost = input_tokens × prompt_price + output_tokens ×
-  completion_price`, both real numbers from OpenRouter's public `/v1/models` catalog and the
-  SDK's own `Agent.last_usage` — looked like a way around the missing `usage.cost` entirely. It
-  isn't: `last_usage.input_tokens` and `.output_tokens` both read `0` on every one of these
-  calls too (confirmed live, same openai/gpt-6-luna spawns), while `cache_creation_input_tokens`/
-  `cache_read_input_tokens` are `null`, not populated either — so the SDK's typed `Usage` object
-  isn't just dropping the extra `cost` field, it's not getting real token counts through the
-  OpenRouter proxy at all for this call shape. One underlying gap, two symptoms.
-- **Workaround used here:** `dictate-without-claude`'s own proof
+- **A real token count DOES exist, just not where the cost-blind fix looked:** the streamed
+  `assistant` message's own `usage` reads `0`/`0` for a proxied call every time (an SDK
+  `message_start` artifact, never the real count) — but the turn's `result` event's
+  `modelUsage[model]` carries the REAL `inputTokens`/`outputTokens`/`cacheReadInputTokens`/
+  `cacheCreationInputTokens`, confirmed live (801 input / 119 output on a real tool-calling
+  turn). `result.modelUsage[model].costUSD` is still the SDK's wrong Anthropic-table guess
+  (same reason `total_cost_usd` is) — only the TOKEN COUNTS are trustworthy, and only as a
+  running total across the whole agent's life, so one turn's share is this reading minus the
+  previous one.
+- **Fixed here:** `Agents.js`'s `result()` now keeps the latest `modelUsage` as
+  `agent.model_usage`. `dictate-without-claude`'s own proof
   ([`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/))
-  reports the already-measured real cost from the new-brain eval instead of a live reading, and
-  shows the `$0`/`0 tokens` live figures plainly rather than hiding them.
-- **Not fixed here:** scoped to `dictate-without-claude`'s own task (a dollar figure for its proof),
-  not the live metering gap itself — that needs tracing the SDK's own message parsing (both the
-  `usage.cost` field AND the token counts), which is this gap's own future task.
+  diffs it per turn and prices the real delta against OpenRouter's own published per-token
+  rate — cross-checked against a live key-level `/key` diff in the same run, which came back
+  within the same range ($0.0140 vs $0.0134 computed, 6 real replies).
+- **Not fixed here:** `spent_usd()`/`metered_usd` (the dashboard's own live `$` figure,
+  `price()`'s `message_cost(usage)` path) still reads `$0` for these calls — this task only
+  fixed ITS OWN proof's $ figure by reading `modelUsage` directly; wiring `price()` itself to
+  fall back to a `modelUsage` diff when `usage.cost` is absent is the natural next step, not
+  done here (it would change what every OpenRouter agent's dashboard row shows, not just this
+  one proof).
 
 ## 1. Gemini refuses the ArtifactData tool's schema
 

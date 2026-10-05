@@ -1564,6 +1564,15 @@ Agents.Agent = class Agent {
 	result(message){
 		if (this.compacting) return this.compact_done(message);
 		this.turns += 1;
+		/* Real token counts, cumulative across this agent's whole life (review finding,
+		 * dictate-without-claude round 6, 2026-10-04): the streamed `assistant` message's own
+		 * `usage` reads 0/0 for a proxied OpenRouter call (SDK `message_start` artifact, not a
+		 * real count yet) — the RESULT event's `modelUsage[model]` is where the real
+		 * `inputTokens`/`outputTokens` actually land. `costUSD` in there is still the SDK's
+		 * wrong Anthropic-table guess (same reason `total_cost_usd` is, two lines down) — only
+		 * the token counts are trustworthy, and only as a cumulative total a caller must diff
+		 * against its own last reading to get one turn's share. */
+		if (message.modelUsage) this.model_usage = message.modelUsage;
 		/* total_cost_usd is the SDK's own guess, priced off Anthropic's table —
 		 * wrong for an openrouter agent under the wrong model name entirely
 		 * (openrouter/readme.md point 3), so it must never touch `this.cost`
