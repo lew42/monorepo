@@ -543,3 +543,25 @@ every pause "can't be silenced from a page" (see "Why the phone repeated every s
 above) — out of scope here since whisper, once reachable, is never the engine that hits
 that path; round 2's fix is for whisper's own `Capture`/`AudioContext` revival, which is
 what this freeze's reports actually traced to.
+
+**Duplicate chat bubbles: a stale Whisper answer, not a text bug** (2026-10-05). The owner's
+phone turned one spoken sentence into TWO chat lines — the full sentence, then an OLDER, SHORTER
+guess of it landing about four seconds later (`ux/Dictate/ai/v-g2roikw.jsonl`, lines 16-17 and
+four more repeats of the same pair). The cause: `close_segment()` can run twice for the same
+dictation — once from the heartbeat's own pause detection, once from the owner pressing stop —
+and both calls, if a PRIOR partial resend was still in flight, `await` that SAME shared promise
+before sending their own request. Both then resume together, both set `this.inflight` to their
+own fresh `transcribe()` call (the second overwrites the first's reference), and both go on to
+`commit()` independently once their own answer lands — two real chat lines from one sentence,
+whichever request happens to answer slower landing SECOND, however stale its words by then.
+
+The fix is two tickets, not a lock: every request gets a strictly increasing `req_seq`, and its
+answer is only ever shown or committed if its segment has not since closed again
+(`epoch === this.segment_epoch`) and no newer answer has already been applied
+(`seq > this.applied_seq`) — `partial_tick()` and `close_segment()` both check both, and a
+request that fails the network check while already stale is dropped quietly rather than ending
+the whole dictation over an answer nobody needed anymore. Proved against the REAL recorded
+sentence (same two texts, same race shape) with a headless harness that calls the real
+`Dictate.prototype.close_segment` twice back-to-back, exactly as the pause/stop race does: the
+unfixed code commits twice (`"...for your country."` then the stale `"...can"`); the fixed code
+commits once. `ai/2026-10-04/voice-pipeline/` keeps the harness.

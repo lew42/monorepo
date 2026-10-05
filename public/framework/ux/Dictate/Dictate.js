@@ -411,6 +411,18 @@ export default class Dictate extends View {
 		this.partial_text = "";
 		this.segment_epoch = 0;
 		this.inflight = null;
+		// THE DUPLICATE-BUBBLE RACE (2026-10-05 — the owner's phone: one spoken sentence became
+		// TWO chat lines, the full sentence first, then a shorter, older guess landing ~4s
+		// later). Whisper requests can answer OUT OF ORDER — a request sent for a shorter,
+		// earlier slice of the segment can take longer than one sent after it, and resolve
+		// AFTER a newer, fuller answer already committed. Every request gets a ticket here
+		// (`req_seq`, strictly increasing); an answer is only ever applied — shown as the
+		// live guess, or committed as a real chat line — if its ticket is the newest one
+		// applied so far (`applied_seq`). An older ticket's answer, however correct it once
+		// was, is dropped the moment a newer one has already landed. See `partial_tick()` and
+		// `close_segment()` below, the only two places a transcribe answer is used.
+		this.req_seq = 0;
+		this.applied_seq = 0;
 		this.skipped_silent = false;
 		this.cancel_connect = false;
 		this.on_start?.();
@@ -668,12 +680,18 @@ export default class Dictate extends View {
 		const samples = this.mic.snapshot();
 		if (!this.worth_sending(samples)) return;
 
+		const seq = ++this.req_seq;
 		this.inflight = this.transcribe(samples);
 		let text;
 		try { text = await this.inflight; } catch { return; } finally { this.inflight = null; }
-		// The segment may have closed WHILE this was in flight — a stale partial
-		// must never paint over a segment that has already gone final.
-		if (epoch === this.segment_epoch){ this.partial_text = text; this.draw_caption(); this.on_guess?.(text); }
+		// The segment may have closed WHILE this was in flight — a stale partial must never
+		// paint over a segment that has already gone final. `seq <= this.applied_seq` is the
+		// OTHER half of the same guard (duplicate-bubble race, 2026-10-05): a request can
+		// answer out of order, so even within the SAME segment a slower, older request must
+		// never overwrite what a faster, newer one already applied.
+		if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
+		this.applied_seq = seq;
+		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
 	}
 
 	/** ⚠ THE GUESS IS NEVER CLEARED BEFORE THE FINAL TEXT IS READY TO REPLACE IT.
@@ -692,6 +710,7 @@ export default class Dictate extends View {
 		const samples = this.mic.snapshot();
 		this.mic.cut();
 		this.segment_epoch++;
+		const epoch = this.segment_epoch;
 		this.has_speech = false;
 		this.segment_started_at = this.last_loud_at = this.last_partial_at = performance.now();
 
@@ -705,10 +724,16 @@ export default class Dictate extends View {
 		// away anyway (the epoch check above already ignores it).
 		if (this.inflight) try { await this.inflight; } catch { /* ignored — see above */ }
 
+		const seq = ++this.req_seq;
 		this.inflight = this.transcribe(samples);
 		let text;
 		try { text = await this.inflight; }
 		catch (e){
+			// A stale request failing is not a real failure — a newer segment or resend
+			// already landed while this one was still on the wire, so what it would have
+			// said no longer matters; ending the whole dictation over it would be its own
+			// new bug (duplicate-bubble guard, 2026-10-05).
+			if (epoch !== this.segment_epoch || seq <= this.applied_seq) return;
 			// This is the "Whisper server unreachable" case, surfaced where it was only
 			// ever a console.error before — the owner's own words: "we don't want users
 			// to just have it not work and not know why". Ends the dictation rather than
@@ -720,6 +745,19 @@ export default class Dictate extends View {
 			return;
 		}
 		finally { this.inflight = null; }
+		// THE DUPLICATE-BUBBLE GUARD (2026-10-05): never commit an answer for a segment that
+		// has since closed again (`epoch !== this.segment_epoch` — a second close raced this
+		// one), or one that is simply OLDER than an answer already committed or shown
+		// (`seq <= this.applied_seq` — whisper answered out of order). Either way, the
+		// content behind this answer is already covered by something newer; posting it now
+		// would only resurrect a stale, shorter guess as a second, bogus chat line — exactly
+		// the bug the owner caught on the phone (the full sentence, then an older partial of
+		// it landing ~4s later as if it were new).
+		if (epoch !== this.segment_epoch || seq <= this.applied_seq){
+			this.clear_guess();
+			return;
+		}
+		this.applied_seq = seq;
 		// `commit()` itself clears `partial_text` and redraws WITH the new settled
 		// line already in place — see its own comment. No separate clear here.
 		this.commit(text, reason);
