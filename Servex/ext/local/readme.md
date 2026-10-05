@@ -25,11 +25,19 @@ not just model files) at `LLAMA_HOME` (default `C:\llama`) — `provider.js`
 only searches for model *files*; the exe has to already be there.
 
 `slug` is one of `MODELS`' keys in [`provider.js`](./provider.js) — today
-`qwen2.5-coder`, `gemma-3-4b`, `gemma-4-e4b` (whichever ones actually have a
-file on disk; `available_models()` is the live list). Only one loads at a
-time — this machine's GPU (an RTX 4070 Super, 12 GB VRAM) can't hold two —
-so picking a different model stops the one running and starts the new one,
-a few seconds' wait.
+`qwen2.5-coder`, `gemma-3-4b`, `gemma-4-e4b`, `qwen3-8b`, `hermes-3-llama-3.1-8b`
+(whichever ones actually have a file on disk; `available_models()` is the live
+list). Only one loads at a time — this machine's GPU (an RTX 4070 Super, 12 GB
+VRAM) can't hold two — so picking a different model stops the one running and
+starts the new one, a few seconds' wait.
+
+**`qwen3-8b` is the one to actually use for tool-calling tasks** (the
+2026-10-04 local-model-hunt, [report](/framework/ai/2026-10-04/local-model-hunt/report.md)):
+it's the only local model tested so far that reliably calls a tool through
+this proxy — `qwen2.5-coder` and `hermes-3-llama-3.1-8b` (despite being
+marketed as a function-calling fine-tune) both either skip the tool or never
+call it, and answer from a guess instead. `hermes-3-llama-3.1-8b` is still
+useful for no-tool jobs — it's the fastest of the three.
 
 The chat page at [`/framework/ai/local/`](/framework/ai/local/) is the
 easiest way to try this without writing any code.

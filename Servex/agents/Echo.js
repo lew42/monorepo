@@ -333,7 +333,9 @@ export default class Echo {
 		const built = await structure(sentences, { call });
 		const sections = this.sections_with_ids(this.parse_sections(built.md));
 		const cited = [...new Set(sections.flatMap(s => s.items.flatMap(i => i.cites)))].sort((a, b) => a - b);
-		const coverage = { total: sentences.length, cited, missing: built.missing ?? [], duplicated: built.duplicated ?? [] };
+		// `confidence`, per sentence -> section (day-cards, 2026-10-04): structure.js's own
+		// computed band, carried straight through — never re-derived here.
+		const coverage = { total: sentences.length, cited, missing: built.missing ?? [], duplicated: built.duplicated ?? [], confidence: built.confidence ?? {} };
 
 		this.run_cost = cost_usd;   // read and added to by step()'s own calls, below
 

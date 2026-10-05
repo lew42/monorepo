@@ -73,7 +73,16 @@ const home = os.homedir();
 export const MODELS = {
 	"qwen2.5-coder": path.join(LLAMA_HOME, "models", "qwen2.5-coder.gguf"),
 	"gemma-3-4b": find_gguf(path.join(home, ".lmstudio", "models"), /^gemma-3-4b.*\.gguf$/i),
-	"gemma-4-e4b": find_gguf(path.join(home, ".cache", "huggingface", "hub"), /^gemma-4-e4b.*\.gguf$/i)
+	"gemma-4-e4b": find_gguf(path.join(home, ".cache", "huggingface", "hub"), /^gemma-4-e4b.*\.gguf$/i),
+	// Added 2026-10-04 (ai/2026-10-04/local-model-hunt): Qwen3-8B, Q4_K_M, 5.0 GB — newer
+	// generation than qwen2.5-coder, built with agentic tool-use in mind. Downloaded straight
+	// into this folder (unsloth/Qwen3-8B-GGUF on Hugging Face) rather than found in another
+	// app's cache, since nothing else on this PC had it yet.
+	"qwen3-8b": path.join(LLAMA_HOME, "models", "Qwen3-8B-Q4_K_M.gguf"),
+	// Added 2026-10-04: Hermes-3-Llama-3.1-8B, Q4_K_M, 4.9 GB — a function-calling-specific
+	// fine-tune of Llama 3.1 (NousResearch), the second candidate in the local-model-hunt
+	// comparison.
+	"hermes-3-llama-3.1-8b": path.join(LLAMA_HOME, "models", "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"),
 };
 
 /* The dropdown's list: every slug whose file actually exists on disk right

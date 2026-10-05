@@ -19,7 +19,17 @@ Process.Llama = class Llama extends Process {
 		this.last_request_at = 0;        // bumped by LocalProxy on every real request
 	}
 
-	args_for(file){ return ["-m", file, "--port", String(this.port)]; }
+	/* ⚠ FOUND THE HARD WAY (day-cards, 2026-10-04): llama-server's `--parallel` (server
+	 * slots) defaults to -1 = "auto", which picked 4 on this machine — and `--ctx-size`
+	 * (default 0 = whatever the model was trained with, e.g. qwen2.5-coder's 32768) is
+	 * the TOTAL context, split evenly across all slots. So every real request only ever
+	 * got 32768/4 = 8192 tokens of actual context, not the model's real window — Echo's
+	 * refine calls (CONTEXT_DOCS + a long dictated prompt) overflowed that silently and
+	 * fell back to paid Sonnet every time. `--parallel 1` gives the one request this
+	 * proxy ever forwards at a time (Servex serves one agent through this port) the
+	 * WHOLE context window — same total KV-cache VRAM either way, since that's sized by
+	 * `--ctx-size` alone, not by how many slots it's divided into. */
+	args_for(file){ return ["-m", file, "--port", String(this.port), "--parallel", "1"]; }
 
 	/* Make sure `slug`'s model is the one actually running, and wait for it to
 	 * answer before returning — a caller forwarding a real chat turn needs the
