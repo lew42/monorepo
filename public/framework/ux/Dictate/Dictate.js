@@ -303,11 +303,35 @@ export default class Dictate extends View {
 
 	/** One stage changed — console-logged with a `[dictate]` prefix (the owner, 2026-10-04:
 	 *  "log each step... so a headless load can read the order of events") and folded into
-	 *  the always-visible `$diag` line. `stage` is `"mic" | "socket" | "whisper"`. */
+	 *  the always-visible `$diag` line. `stage` is `"mic" | "socket" | "whisper"`.
+	 *
+	 *  TIMED, LIVE (2026-10-05 — the owner: "'connecting…' stays too long, even once it
+	 *  actually connected"). Every call is stamped with how long it has been since THIS
+	 *  press (`connect_started_at`, set at the top of `start()`) — `requesting… (420ms)`,
+	 *  `ready (512ms)` — and kept on `this.stage_log` (last 12, newest last) for the status
+	 *  tray below. While the button still reads "connecting…", the BIG status line is
+	 *  swapped to show this same timed text the instant it changes, instead of sitting on
+	 *  the one static word for however long the engine check and the permission prompt
+	 *  together take — see `set_state()`'s own "connecting" branch. */
 	log_step(stage, detail){
+		const ms = this.connect_started_at ? Math.round(performance.now() - this.connect_started_at) : null;
 		this.steps[stage] = detail;
+		(this.stage_log ??= []).push({ stage, detail, ms, at: Date.now() });
+		if (this.stage_log.length > 12) this.stage_log.shift();
 		console.log(`[dictate] ${stage}: ${detail}`);
 		this.draw_diag();
+		this.draw_stage_tray?.();
+		if (this.state === "connecting" && stage === "mic") this.$status?.rc("error").text(this.timed_text("mic"));
+	}
+
+	/** The ONE place that turns a stamped stage into its on-screen words — `log_step()`'s
+	 *  own "connecting" branch and `set_state()`'s both read this, so the two can never
+	 *  drift into two slightly different ms formats. `null` if that stage has nothing yet. */
+	timed_text(stage){
+		const text = this.steps?.[stage];
+		if (!text) return null;
+		const ms = this.stage_log?.findLast?.(s => s.stage === stage)?.ms;
+		return ms == null ? text : `${text} (${ms}ms)`;
 	}
 
 	draw_diag(){
@@ -411,6 +435,11 @@ export default class Dictate extends View {
 		this.partial_text = "";
 		this.segment_epoch = 0;
 		this.inflight = null;
+		// Timed status (2026-10-05): every `log_step()` between now and the first real
+		// "listening" gets its own elapsed-ms stamp — see `log_step()`'s own doc comment.
+		this.connect_started_at = performance.now();
+		this.heard_first_sample = false;
+		this.heard_first_answer = false;
 		// THE DUPLICATE-BUBBLE RACE (2026-10-05 — the owner's phone: one spoken sentence became
 		// TWO chat lines, the full sentence first, then a shorter, older guess landing ~4s
 		// later). Whisper requests can answer OUT OF ORDER — a request sent for a shorter,
@@ -585,7 +614,11 @@ export default class Dictate extends View {
 		if (state === "listening" && !was_listening) floor.mic_on(this);   // the floor: `floor.js`
 		else if (state !== "listening" && was_listening) floor.mic_off(this);
 		this.$button.rc("listening transcribing connecting").ac(["listening", "transcribing", "connecting"].includes(state) ? state : "");
-		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: "connecting…" }[state] ?? "");
+		// "connecting" shows the live, timed stage text (`log_step()`'s own doc comment) —
+		// never the one static word for however long the engine check and the permission
+		// prompt together take (the owner, 2026-10-05: "'connecting…' stays too long").
+		const connect_text = this.timed_text("mic") ?? "connecting…";
+		this.$status.rc("error").text({ listening: "listening…", transcribing: "finishing…", connecting: connect_text }[state] ?? "");
 		if (state === "listening" && this.resumed){ this.resumed = false; this.$status.text("resumed — listening…"); }
 		if (state === "listening" && !was_listening) this.on_listening?.();
 	}
@@ -627,6 +660,11 @@ export default class Dictate extends View {
 	 * clock below. `silence_at` is a starting guess, not a measured threshold —
 	 * `doc/decisions.md`. */
 	on_level(level){
+		// FIRST SAMPLE, timed (2026-10-05) — the second of the three checkpoints the owner
+		// asked for (mic open, first samples, first Whisper answer): this is the first time
+		// `AudioWorklet` has actually handed back a real frame, proof the mic isn't just
+		// "open" but genuinely feeding audio.
+		if (!this.heard_first_sample){ this.heard_first_sample = true; this.log_step("mic", "hearing audio"); }
 		this.level = this.level * 0.6 + level * 0.4;
 		this.$button.style("--ux-dictate-level", Math.min(1, this.level * 6).toFixed(3));
 		this.on_meter?.(Math.min(1, this.level * 6));   // same smoothed number, for a caller's own bigger bar
@@ -808,6 +846,10 @@ export default class Dictate extends View {
 		const body = await r.json();
 		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
 		this.whisper_ms = this.t_result - t_sent;
+		// FIRST WHISPER ANSWER, timed (2026-10-05) — the third checkpoint: proof the whole
+		// pipeline (mic → samples → whisper-server → a real reply) works, not just that the
+		// mic opened.
+		if (!this.heard_first_answer){ this.heard_first_answer = true; this.log_step("whisper", "first answer"); }
 		// ⚠ Whisper puts "\n" between ITS OWN segments, mid-speech ("Testing, testing.\n My name is…") —
 		// left in, every one became a paragraph break in the box. Real breaks come from real pauses only.
 		return (body.text ?? "").replace(/\s+/g, " ").trim();
