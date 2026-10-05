@@ -569,3 +569,16 @@ Proved against the REAL recorded sentence (same two texts, same race shape) with
 harness that calls the real `Dictate.prototype.close_segment` twice back-to-back, exactly as the
 pause/stop race does: the unfixed code commits twice (`"...for your country."` then the stale
 `"...can"`); the fixed code commits once. `ai/2026-10-04/voice-pipeline/` keeps the harness.
+
+**"Connecting…" now shows its own timing** (2026-10-05). The owner: `'connecting…' stays too
+long when the AI button opens the mic, even if it actually connected`. The word itself never
+changed while the engine health check ran, then while the permission prompt and device open ran
+— several real steps, one frozen label.
+
+Three checkpoints, each stamped with milliseconds since the press (`connect_started_at`):
+mic open (`log_step("mic", "ok")`), first real audio (`on_level()`'s first call), first Whisper
+answer (`transcribe()`'s first successful reply). `log_step()` now also writes the BIG status
+line, not just the small diagnostic strip, while the button still reads "connecting" — so the
+owner sees `requesting… (420ms)` become `ready (512ms)` live, never a static word. The last 12
+stamped steps are kept on `this.stage_log` for a future status tray (queued, not built here —
+see this task's own log at `ai/2026-10-04/voice-pipeline/`).
