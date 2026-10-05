@@ -52,6 +52,8 @@ it is one click down.
 
 ## 2. `page.js` — show, don't tell
 
+**A system's top page leads with its class architecture** (the owner, 2026-10-04: "these class architectures I'm asking you for, I shouldn't have to. It should be a very familiar place in the documentation"). The parent class of a system (Page, Dictate, Item…) opens its Overview with the hierarchy in short pseudocode: base classes first, `Name extends Base { main properties }`, who makes each instance, how many, and where its data is stored. The demo comes after it, or one tab down.
+
 Code or a `demo()` first, never a paragraph. Prose is a caption. Variants of one thing go in
 the rail (`overview:`); a guided tour is a sequence. Label pasteable snippets with their file
 (`code.js(src, "/app.js")`; in markdown, <code>```js /app.js</code>). End by naming the next
