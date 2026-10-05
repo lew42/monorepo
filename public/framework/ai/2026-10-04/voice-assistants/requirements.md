@@ -28,3 +28,7 @@ Each prompt becomes one context block: what was asked (the essence), and nested 
 
 ## Added (owner, 2026-10-04, fourth prompt)
 The fast assistant does the clean + first refinement (sentence ids, questions spotted); the smart assistant watches both raw and refined, verifies, curates or changes them in place, through the cards, not with a second chat reply. Both can reference existing pages (links, not explanations).
+
+## Sessions are global (owner, 2026-10-04)
+- **One place for every voice session**, not the folder of the page it started on: the day folder, like VS Code sessions (`public/framework/ai/<yyyy>/<mm>/<dd>/voice-<id>/`); the page it started on is a field, not its home. Move the existing per-page `ai/v-<id>` files there and leave a link.
+- **The AI button resumes by time since the last line:** under 10 min, resume silently; 10–60 min, a one-tap "continue / new" with continue as the default after a few seconds; over 60 min, a new session (the old one named automatically).
