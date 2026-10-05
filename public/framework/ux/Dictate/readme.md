@@ -325,6 +325,7 @@ never quietly delete it. [The wall of them](/framework/ux/Dictate/variants/):
 
 ## More
 
+- **How Dictate talks to Whisper** (a request every ~1.5 s, not a stream; why words "heal"; what the socket is): [`doc/whisper.md`](/framework/ux/Dictate/doc/whisper/).
 - **Starting a new round? Read [`doc/handover.md`](/framework/ux/Dictate/doc/handover/) first** — where the pieces live (`ext/Chat/Mic.js`
   is Dictate's too), every setting, the rules learned the hard way, how to test, what is open
 - **Mic feedback and https on the LAN:** [`doc/https-lan.md`](/framework/ux/Dictate/doc/https-lan/) —
