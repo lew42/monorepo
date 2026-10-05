@@ -29,10 +29,12 @@ session, to `FALLBACK_MODEL`:
 
 - `Sessions.js`'s `hire()` registers a fake "sessions" parent the same way `Dispatcher.js`
   does, so every session agent's turn-end or error reaches `woken()` with no polling.
-- A match on `USAGE_LIMIT_RE` (an `error:`-kind wake only — a normal reply that happens to
-  mention "usage limit" is not a refusal) stops and respawns that one role fresh, with the
-  session's own tail as context and the owner's last line re-sent, so the respawned agent
-  actually answers instead of starting blank.
+- A match on the usage/rate/quota/billing wording — either a rare `error:`-kind wake, or (the
+  common case: a session agent is never `one_shot`, so a refused turn usually wakes as an
+  ordinary `done:`) the live agent's own `last_error` — stops and respawns that one role fresh,
+  with the session's own tail as context and the owner's last line re-sent, so the respawned
+  agent actually answers instead of starting blank. A normal reply that just mentions "usage
+  limit" in conversation is not a refusal and never matches.
 - Never resumed: an OpenRouter model can't continue a Claude session id, and `wake()` also
   forces fresh whenever the model a session's `backing` id ran on no longer matches the
   current setting.
@@ -79,16 +81,13 @@ does, and the freshly respawned agent answers the owner's re-sent line.
 
 ## Open, not fixed here
 
-- **Fixed in review round 7:** a session agent is never `one_shot`, so a refused turn used to
-  wake as plain `done: <last_text>` — no `error:`, nothing `USAGE_LIMIT_RE` could ever match.
-  `woken()` now also checks the live agent's own `last_error` (where `Agents.js`'s `result()`
-  actually puts the refusal reason), which is the path a real cutoff takes almost every time;
-  `prove-fallback.mjs` case 3 proves it. The rare case Agents.js itself calls an `error:` wake
-  (a session-level crash, not a refused turn) is still handled too (case 2).
 - The match (`usage/rate/quota/billing` wording) also fires on a short, transient 429 that has
   nothing to do with a real cutoff, and the flip is one-way — accepted on purpose (readme.md:
   a false fallback costs cents, a missed one costs the owner a silent session), but there is
-  still no UI to flip it back besides editing or deleting `session-backend.txt` by hand.
+  still no UI to flip it back besides editing or deleting `session-backend.txt` by hand, and
+  nothing clears it automatically once Claude's own weekly reset passes.
+- The `"local"` setting (fast on `local/qwen2.5-coder`) is untested by either proof — neither
+  spawns it, and nothing here checks that the local model server is actually running.
 - A session saved before this feature shipped has no `backing_model`; flipping the setting by
   hand for one of those would still try to resume a Claude session id under a new model until
   that session's own next natural respawn sets `backing_model` for the first time.
