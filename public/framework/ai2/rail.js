@@ -618,6 +618,14 @@ function card_page(root, id){
 					re: () => id,   // asked fresh on every send: this composer belongs to this card
 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
 					on_text: text => talk.echo(text),
+					// INSTANT FEEDBACK (deliverable 3, 2026-10-04): a bubble the instant a send
+					// starts, raw text, same fading "sent" bubble `Chat.js`'s own `live()` already
+					// draws for the open-mic stream — reused, not rebuilt. `live()` needs the draft
+					// bubble to exist before it can mark it "sent" (that is what the open-mic's own
+					// growing bubble already is, by the time it sends) — this composer has none, so
+					// one call draws it, the next immediately fades it; it is then replaced by the
+					// real line streaming back, or fades fully after 15s with nothing.
+					on_send_start: text => { talk.live({ text }); talk.live({ text: "", sent: true }); },
 					autostart: fresh && auto_transcribe(),
 				});
 			});

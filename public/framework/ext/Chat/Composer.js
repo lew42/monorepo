@@ -44,6 +44,7 @@ export function composer({
 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)
+	on_send_start,     // (raw_text) => … — a send just started, BEFORE the clean-up wait (deliverable 3: instant feedback); forwarded to ComposerMic
 	on_meter,          // (level) => … — forwarded straight to `ComposerMic`/`Dictate`'s own `on_meter`: a caller's own bigger level bar
 	                    // beside the mic button (`ux/Dictate/Widget.js`'s `level: true` option, one-dictation review finding 4).
 	device_id,         // forwarded straight to `Dictate`'s own `device_id` — a caller that already picked one mic by hand. Unset, every
@@ -75,6 +76,7 @@ export function composer({
 				revise,
 				on_clean: on_revised,   // NOT `on_revised:` — that name would shadow ComposerMic's own method (Mic.js, on_revised)
 				on_live,
+				on_send_start,
 				on_meter, device_id,
 				field: $input,
 				on_error: e => note(String(e?.message ?? e)),
@@ -193,6 +195,7 @@ export function composer({
 		const target = re();
 		if (target){ entry.re = target; entry.selected = target; }
 		on_text?.(msg);
+		on_send_start?.(msg);   // instant feedback, same seam as the mic's own auto-send
 		note("sending…");
 		let ok = false;
 		try { ok = await deliver?.(entry); } catch (e){ console.error("chat: Send failed", e); }

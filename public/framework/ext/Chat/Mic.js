@@ -704,6 +704,16 @@ export class ComposerMic extends Dictate {
 		if (this.sending_screen) return;
 		if (!this.box()?.value.trim()) return;
 		this.sending_screen = true;
+		// INSTANT FEEDBACK (the owner, 2026-10-04: "instead of putting it quickly into the
+		// UI, it takes a minute… we always want that instant feedback"). `await_clean()`
+		// below can wait up to 5s for the fast assistant's clean-up before the box even
+		// clears — the exact "minute" the owner saw, since nothing reached the chat log
+		// until AFTER that wait. `on_send_start(raw)` fires HERE, before any of that,
+		// with whatever is on screen right now: the caller (`Composer.js` → the rail/card's
+		// own chat) draws it at once via `Chat.js`'s own `live({text, sent:true})` — the
+		// same fading "sent" bubble already built for the open-mic live stream, reused
+		// rather than a second mechanism. Nothing about the clean-up wait itself changes.
+		this.on_send_start?.((this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim());
 		try {
 			await this.await_clean();
 			const text = this.box()?.value.trim();
@@ -744,6 +754,8 @@ export class ComposerMic extends Dictate {
 
 	async flush_held(){
 		clearTimeout(this.held_timer);
+		// INSTANT FEEDBACK, same seam as `send_screen()` above — fire before the clean-up wait, not after.
+		this.on_send_start?.((this.held ?? []).map(h => h.raw ?? h.text).join(" ").trim());
 		await this.await_clean();   // deliverable 2: wait ~5s for anything still cleaning, then send what's there
 		const held = (this.held ?? []);
 		this.notify_if_failed(held);
