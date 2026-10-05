@@ -767,8 +767,33 @@ export class ComposerMic extends Dictate {
 	   text to give — `raw` is only ever added to the entry when it differs from `text`,
 	   deliverable 2: "the message that is sent is the clean text, with the raw kept on
 	   the entry"). */
+	/* ⚠ NEVER SEND THE SAME SENTENCE TWICE IN A ROW (the owner, 2026-10-04: "I said
+	 * something and see it appear in the same chat bubble four times in a row"). Several
+	 * paths can hand a finished utterance to `post_held()` close together for the SAME
+	 * words — a pause-triggered `send_screen()` and a safety-chunk `check_chunk()` both
+	 * noticing the same held text within one 250ms tick, or a late Whisper final landing
+	 * right after its own guess was already sent — and each one is a genuinely separate,
+	 * correctly-built `entry`, so nothing upstream of this point is "wrong" to de-dupe.
+	 * This is the one seam every outgoing send already passes through, so it is the one
+	 * place that can catch all of them: the same text (case/space-insensitive), from the
+	 * SAME mic, within `DUP_WINDOW_MS`, is logged and dropped instead of posted again.
+	 * A real, separately-spoken repeat ("yes. yes.") is two SEGMENTS at least a pause
+	 * apart, almost always well outside this window — `pause_ms` (700ms) plus the time to
+	 * actually say the word. */
+	same_as_last_send(text){
+		// Same normalisation `strip_words()` already uses above (word-for-word, ignoring
+		// case and punctuation) — Whisper's own re-punctuation of an identical resend
+		// ("turn on the lights" vs "Turn on the lights.") must still count as the same words.
+		const norm = String(text ?? "").toLowerCase().split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean).join(" ");
+		const now = performance.now();
+		const dup = !!norm && norm === this.last_sent_norm && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
+		this.last_sent_norm = norm; this.last_sent_at = now;
+		return dup;
+	}
+
 	async post_held(item){
 		const { text, raw } = typeof item === "string" ? { text: item, raw: null } : item;
+		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
 		const re = this.re?.();
@@ -782,3 +807,4 @@ export class ComposerMic extends Dictate {
 	}
 }
 ComposerMic.prototype.mode = "open";   // the mic stays on; Dictate writes nothing itself — draw_caption() types into the box
+ComposerMic.DUP_WINDOW_MS = 4000;   // same words, this close together, from the same mic -> one send, not several (see post_held/same_as_last_send)
