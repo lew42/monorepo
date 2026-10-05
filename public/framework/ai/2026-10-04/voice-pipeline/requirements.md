@@ -16,7 +16,9 @@
 1. **One class per stage, each naming the web API it wraps** at the top of its doc: `Microphone` (one per input device: `navigator.mediaDevices.enumerateDevices()`, `getUserMedia`, level via `AnalyserNode`) and a picker; `Whisper` (the transport: `AudioWorklet` samples → WAV → `fetch` multipart to `/whisper/inference`; why each resend can rewrite earlier words: it re-transcribes the whole growing segment). Reuse/rename `audio/MicStream` + `audio/Transcriber`; Dictate's `capture.js` goes away in their favour.
 2. **A pipeline view** on the audio page: microphones (with live level), the Whisper stage (each resend as it lands, with ms), and the raw text as it settles, all live, minimal latency.
 3. **Every resend is logged** (session file or its own log): `{at, segment_ms, sent_ms, reply_ms, text}`, so the playground can replay a real session with true timing.
-4. Dictate's engine (one per tab, task dictate-one-engine) uses these classes.
+4. **Honest status words** (owner: "the socket connecting ... that was pretty misleading"): the site socket is not the audio path, so it is labelled "chat link", not shown as a transcription stage; each error names the stage, the browser's error name (`AbortError`, `NotAllowedError`…), what it means, and the one thing to try.
+5. **A compare screen:** the same mic feeding Whisper and Chrome's built-in recognition side by side, live, each line with its time, so the two can be compared on the owner's voice.
+6. Dictate's engine (one per tab, task dictate-one-engine) uses these classes.
 5. Worktree → check_page → merge.mjs.
 
 QUEUED: start after dictate-one-engine lands. Budget: $6 (a guide). Sonnet, ONE agent.

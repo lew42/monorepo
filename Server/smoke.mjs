@@ -420,6 +420,14 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	const covered = uniq_noise.filter(allowed);
 	const uncovered = uniq_noise.filter(t => !allowed(t));
 	let uniq = [...new Set(errors)];
+	// dictate-one-engine (2026-10-04): every real "[dictate] socket: …" line is
+	// byte-identical across engines, so `noise` (not the deduped `uniq_noise`) is
+	// the one that still shows a second engine — more than one on a single page
+	// load means a second real Dictate/ComposerMic was built when there should be
+	// only the one, shared, per tab (`Dictate.js`'s own `shared_detect_engine()`).
+	const dictate_socket_lines = noise.filter(t => /^\[dictate\] socket:/.test(t));
+	if (dictate_socket_lines.length > 1)
+		uniq.push(`dictate: ${dictate_socket_lines.length} Dictate engines ran their own whisper health check on one page load (expected 1)`);
 	if (uncovered.length > CONSOLE_BUDGET)
 		uniq.push(`console warn/log budget exceeded: ${uncovered.length} > ${CONSOLE_BUDGET} (not in console-allow.jsonl)`);
 

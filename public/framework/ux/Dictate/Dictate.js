@@ -106,6 +106,26 @@ async function fetch_timeout(url, opts, ms){
 	finally { clearTimeout(timer); }
 }
 
+/** ONE health check per tab, not one per `Dictate` on the page (dictate-one-engine,
+ *  2026-10-04 — the owner's phone: six mic buttons on one page load each ran their
+ *  own whisper health check and printed their own `[dictate]` trail, so a headless
+ *  load logged "socket: connected" / "whisper: checking…" / "whisper: answering" six
+ *  times). The FIRST `Dictate` built while a page is loading runs the real check (and
+ *  logs it, through its own `detect_engine()`); any other one built while that is
+ *  still in flight just waits for the SAME answer and copies it onto its own status
+ *  line, quietly — one truth, however many mic buttons are on the page. Cleared the
+ *  moment it resolves, so the next page load (or a reload) runs its own fresh check,
+ *  exactly once, same as today. */
+let shared_check = null;
+function shared_detect_engine(instance){
+	if (!shared_check){
+		shared_check = instance.detect_engine()
+			.then(engine => ({ engine, steps: { ...instance.steps } }))
+			.finally(() => { shared_check = null; });
+	}
+	return shared_check;
+}
+
 /** POST one entry to Servex's single-writer prompt log; `true` once it took,
  *  `false` on any failure — never throws, so a caller can fall back with no
  *  try/catch of its own. Shared by `Dictate`'s own `log_prompt()` (below) and
@@ -264,7 +284,10 @@ export default class Dictate extends View {
 	 * button FOR. No DOM is created after this `await`; only the button already
 	 * built above is shown, hidden, or labelled (`code` skill §1). */
 	async init(){
-		this.engine = await this.detect_engine();
+		const { engine, steps } = await shared_detect_engine(this);
+		this.engine = engine;
+		Object.assign(this.steps, steps);
+		this.draw_diag();
 		if (this.engine === "whisper-down"){
 			this.$engine.text("");
 			this.$status.rc("error").text("whisper has gone quiet — tap 🎤 to see why");
@@ -374,6 +397,15 @@ export default class Dictate extends View {
 	async start(){
 		const insecure = this.insecure_context_message();
 		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
+
+		// ONE MICROPHONE AT A TIME, whichever surface is pressed (dictate-one-engine,
+		// 2026-10-04 — base-class lock, so a card's mic, the push-to-talk mount and a
+		// bare demo box never hold the real microphone at once and double-post the
+		// same words). `LIVE` (above) already tracks every `Dictate` on the page with
+		// its mic open, of any kind — stop each of THOSE before taking it over.
+		// `ext/Chat/Mic.js`'s own `ComposerMic.start()` still does the same thing for
+		// itself too, between ComposerMics only; this covers every other engine class.
+		for (const other of [...LIVE]) if (other !== this) try { await other.stop(); } catch {}
 
 		this.settled = "";
 		this.partial_text = "";
