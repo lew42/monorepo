@@ -45,9 +45,9 @@ A sub-card that nobody asked anything in is a **topic**. It is listed on its par
 - **Cards already carry an icon.** `card.js` line 761 draws `this.icon`, falling back to the group's icon, and then to `type_icon(type)`. The `/cards` row (line 71) is already icon + title + what it is. Topic stubs are already just `{title, icon}`.
 - **`ext/Mention` already draws icon + word.** It turns `#Page` into a small icon followed by the page's name, as a link.
 
-**The proposal: a third face of a card, called the chip, built on Mention rather than as a new component** (law 6). `faces.js` already holds the card's two faces, the preview and the full page, so the chip goes there too. It shows the card's icon (from the same fallback chain) and its title, and links to the card's url. A card mentioned in chat, or a card the assistant sends back as its whole reply, draws as a chip.
+**The proposal: a third face of a card, the chip, built on Mention** (law 6). It goes in `faces.js` beside the preview and the full page. It shows the card's icon and title, and links to the card.
 
-Setting the icon is one line, `{"icon": "mic"}`, where the latest line wins. Per the voice-assistants brief, the fast assistant already does "a name and an icon".
+A card mentioned in chat, or sent back as an assistant's whole reply, draws as a chip. The icon is one line, `{"icon": "mic"}`, set by the fast assistant.
 
 ## 5. Every request visibly tracked, with a proposal before work starts
 
@@ -57,7 +57,7 @@ Setting the icon is one line, `{"icon": "mic"}`, where the latest line wins. Per
 
 1. **Heard.** The owner says something actionable. The fast assistant shows a ✓ and creates a sub-card of type `request` titled "<module>: <outcome>". It then adds the request's line to `asks.jsonl`, with status `proposed`.
 2. **Proposed.** The smart assistant writes the proposal on that sub-card as `add_item` lines: the plan's steps, which files, which model, and the cost estimate. It then sets the status to `proposed`. The rail shows the sub-card as a chip with a "proposed" badge.
-3. **Started, with no approval gate** (law 5). Work starts on its own after a short hold. **Default: 2 minutes, or immediately when the owner says go.** During the hold, the owner can see the proposal and change it by speaking (the same request id, merged in). The spawn's brief is the sub-card's path. The status becomes `building`, and the asks ledger takes over stall detection from here.
+3. **Started, with no approval gate** (law 5). Work starts after a 2-minute hold, or at once when the owner says go. During the hold, speaking changes the proposal. Then the sub-card's path becomes the brief, the status becomes `building`, and the asks ledger watches for stalls.
 4. **Landed.** `finish-task` ticks each item with its proof, and the chip turns to ✓.
 
 The alternative is no hold at all, with the proposal written but work starting at once. That is safer for law 5 but gives no window to change course. The 2-minute hold is cheap, and it can be set per session.
@@ -66,8 +66,8 @@ The alternative is no hold at all, with the proposal written but work starting a
 
 **The answer: very probably yes, for every Claude ↔ OpenRouter switch, but today the code deliberately refuses.**
 
-- **What happens today:** `Sessions.js` `wake()` resumes the old SDK session only while the provider stays the same. When the provider changes (Claude → OpenRouter, or a fallback after a usage refusal), it clears `backing`, then starts a **fresh** agent with only the **last 40 lines** of the voice-session file (`tail(s, 40)`). Every tool call, file read and decision before those 40 lines is lost.
-- **Why reuse looks possible:** OpenRouter agents run through the **same Claude Agent SDK**. Only `ANTHROPIC_BASE_URL` and the token change (`Servex/ext/openrouter/provider.js` `env_for()`). The voice-assistants brief says it directly: "an OpenRouter model run through the SDK makes the same kind [of session] (same files, same ids)." The same `cwd` (the repo) means the transcript `~/.claude/projects/<repo>/<uuid>.jsonl` is still findable. In other words, `resume: <uuid>` under the new model replays the full log.
+- **What happens today:** `Sessions.js` `wake()` resumes the old SDK session only while the provider stays the same. On a provider change, it starts a **fresh** agent with only the **last 40 lines** of the voice-session file (`tail(s, 40)`). Everything earlier is lost.
+- **Why reuse looks possible:** OpenRouter agents run through the **same Claude Agent SDK**; only `ANTHROPIC_BASE_URL` and the token change (`openrouter/provider.js` `env_for()`). The transcript file and its uuid stay the same, so `resume: <uuid>` under the new model should replay the full log.
 - **The risk is why the code refuses:** a Claude transcript contains **signed thinking blocks**, and a non-Anthropic model behind OpenRouter may reject them or mishandle them. A long Claude history may also exceed a smaller model's context window.
 
 **The proposal:**
