@@ -207,6 +207,19 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
 
 ## Watch out
 
+- **A page reload could still abort the microphone itself, even with whisper reachable** —
+  the previous page's mic is not always physically released by the time the new page asks
+  for it. Fixed: `Dictate.open_engine()` retries once on `AbortError`.
+  [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/)'s "Round 2."
+- **A mobile browser recycling the mic track mid-pause used to beep twice** — a full
+  stop-then-start cycle every time. Fixed: `ext/Chat/Mic.js`'s `watch_capture()` now
+  reopens the track silently, never leaving `"listening"`. Same doc section.
+- **The dictation box used to grow past readability** (7 lines) — capped at 3, scrolling
+  inside (`Mic.js`'s `SETTINGS.box_lines`, `Chat.css`). Same doc section.
+- **An old error used to sit on screen forever.** The mic's own mic/socket/whisper status
+  line now shows on the main composer screen (not hidden in the settings menu) and clears
+  itself the moment the stage recovers; `note()`'s own text now reverts after 4s too, where
+  before only the placeholder did. Same doc section.
 - **The browser's recognizer used to kick in by itself whenever whisper's health check
   failed, even just once right after a reload** — the "abort error, then beeping" the
   owner saw. Fixed: a `whisper_seen` flag means a browser that has used whisper before

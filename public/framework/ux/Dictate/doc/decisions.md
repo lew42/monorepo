@@ -454,3 +454,61 @@ proven headless: `ai/2026-10-04/dictate-fixes/task.jsonl`.
   "working" there forever. It now also checks `tasks.json`'s own `landed` fact (the one
   Servex already computes from each task's real `task.jsonl`) and hides anything that
   says landed, no matter what the Dispatcher's log still thinks.
+
+## Round 2: the reload race, the pause beeps, the growing box, the stale error (2026-10-04)
+
+The owner, on the phone again, right after round 1 landed: still beeping ("turning off
+and then turning back on after every pause"), the box growing to five or six lines while
+dictating, an old error never clearing, and — on a reload — "connecting" for 4-5 seconds
+then a fresh abort. All four, proven headless (a real Playwright browser against the
+worktree's own server, never the `mcp__playwright` tool): `ai/2026-10-04/dictate-fixes-2/task.jsonl`.
+
+- **The reload race is a MICROPHONE race, not a whisper-reachability race.** Round 1's
+  retry lived in `detect_engine()` — it answers "is whisper-server reachable", and never
+  touched the microphone itself. The owner's new report ("connecting… then abort") is
+  `getUserMedia()` itself failing: the PREVIOUS page's mic is released by the browser the
+  instant that page's JS is torn down, but the OS-level hand-off of the physical device
+  is not guaranteed to finish in that same instant, and Chrome's answer to asking for a
+  device still mid-release is a slow `AbortError`. `Dictate.open_engine()` (new) retries
+  once, after a short pause, specifically on `AbortError` — proven by forcing
+  `getUserMedia()` to throw `AbortError` exactly once, then succeed: `open_engine()`
+  reaches `"listening"` after exactly one retry.
+- **The beeps were a silent revival dressed as a real stop+start.** `ext/Chat/Mic.js`'s
+  `watch_capture()` answers a dead microphone TRACK (`ended`) by reopening it — but the
+  old code did that by running a FULL `this.stop()` then, 400ms later, a full
+  `this.start()`, each one playing its own chime. On a phone, a quiet stretch in speech is
+  also when mobile Chrome/Android is most likely to recycle the mic track to save power —
+  so this fired on ordinary PAUSES, almost never on a real disconnect, and "stop then
+  start" is exactly "turning off and then turning back on." Fixed: the revival now opens a
+  fresh `Capture` and swaps it in directly, with `this.state` left at `"listening"`
+  throughout — no state transition, so neither `on_listening()`'s start chime nor
+  `set_error()`'s stop chime ever fires. Proven headless: dispatching a synthetic `ended`
+  event on the real (fake-device) audio track, `mic.state` reads `"listening"` before and
+  after, and `AudioContext.createOscillator` (the chime) is never called. A revival that
+  genuinely fails still calls `set_error()`, which DOES beep — a real failure stays
+  audible.
+- **The box is capped at 2-3 lines, not 7.** `ext/Chat/Mic.js`'s `SETTINGS.box_lines`
+  (7 → 3) and `Chat.css`'s `.chatbox-compose-input` `max-height` (`7lh` → `3lh`) are the
+  one place this was set; `dress()` already kept them in sync live. Scrolling inside is
+  unchanged (`overflow-y: auto`).
+- **One status line replaces the error rows that never cleared.** `ux/Dictate`'s own
+  mic/connection/whisper line (`$diag` — `"mic: X · socket: Y · whisper: Z"`, already kept
+  live by every `log_step()` call) used to be buried inside the hidden full-screen
+  dictation-settings menu; the only thing visible on the main screen when something broke
+  was `Composer.js`'s separate `note()` row, which — bug — only ever reverted the input's
+  PLACEHOLDER after 4s, never its own text, so an error (or a stray "sending…") could sit
+  there forever. Fixed two ways: `$diag` is pulled out of the hidden menu and shown as the
+  one always-visible line (mic errors route through `log_step()`, which already feeds it,
+  and are no longer ALSO pushed into `note()`), and `note()` itself now reverts its own
+  text after 4s, not just the placeholder. `$diag` is self-clearing by construction — the
+  next real stage change overwrites whatever it said before, so a fixed problem clears
+  itself the moment the stage actually recovers, never on a timer guessing that it has.
+  Proven headless: `log_step("mic","refused: …")` shows in `$diag`; the next
+  `log_step("mic","ok")` replaces it completely.
+
+Deliberately left as a known, documented limitation: Android's own OS-level restart
+beep when the browser's `SpeechRecognition` (not whisper) ends and restarts itself after
+every pause "can't be silenced from a page" (see "Why the phone repeated every sentence…"
+above) — out of scope here since whisper, once reachable, is never the engine that hits
+that path; round 2's fix is for whisper's own `Capture`/`AudioContext` revival, which is
+what this freeze's reports actually traced to.
