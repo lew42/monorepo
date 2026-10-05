@@ -67,7 +67,7 @@ export const ROLES = {
 	 * judging-against-the-owner's-sentence or landing parts — it spawns a task mastermind to do
 	 * those instead of doing them itself. Detail: tiers-design/doc/roles.md. */
 	"session-fast":     { prefix: "session-fast",     tier: "fast",      model: model("fast"),       effort: "low",    permission_mode: "bypassPermissions" },
-	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("manager"),    effort: "medium", permission_mode: "bypassPermissions" },
+	"session-smart":    { prefix: "session-smart",    tier: "manager",   model: model("fast"),   /* Sonnet, not Opus: the owner, 2026-10-05, saving credits; the one mastermind above the sessions stays Opus */    effort: "medium", permission_mode: "bypassPermissions" },
 	/* A FRESH mastermind for one folder (Servex/agents/directory.js, `ask_directory`): the task
 	 * mastermind's posture, opened with the folder's plain files as its first message. Spawned by
 	 * code with `system` set, so this row's skills are inlined by directory.js, not by `opening()`
