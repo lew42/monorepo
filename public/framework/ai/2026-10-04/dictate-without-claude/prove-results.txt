@@ -1,29 +1,31 @@
-dictate-without-claude proof — 2026-10-05T00:21:18.179Z
+dictate-without-claude proof — 2026-10-05T00:31:19.453Z
 SERVEX_SESSION_BACKEND=openrouter -> both session agents spawn on openai/gpt-6-luna
 
-[0.2s] session v-85149mg created, home /framework/
+[0.2s] session v-l0z844n created, home /framework/
 
 [0.2s] owner said (1/3): "Can you hear me? This is the first test sentence for the model switch."
-  fast (openai/gpt-6-luna) [3in/31out tok, $0.00016268]: I'm the fast assistant for this session; you're on /framework/.
-  smart (openai/gpt-6-luna) [819in/270out tok, $0.00918087]: Yes, I can hear you. Your first test sentence came through clearly.
+  fast (openai/gpt-6-luna) [795in/114out tok, $0.00028350]: I'm the fast assistant for this session; you're on /framework/.
+  smart (openai/gpt-6-luna) [819in/304out tok, $0.00920350]: Yes, I can hear you. This is the first test sentence for the model switch.
 
-[9.6s] owner said (2/3): "What page are we on right now, and what does this folder's readme say it is for?"
-  fast (openai/gpt-6-luna) [795in/268out tok, $0.00036912]: We're on /framework/, but I can't see what its README says.
-  smart (openai/gpt-6-luna) [6in/682out tok, $0.00165534]: We’re on `/framework/`. I’ve asked a directory expert to summarize what its readme says the folder is for; I’ll share that when it replies.
+[10.6s] owner said (2/3): "What page are we on right now, and what does this folder's readme say it is for?"
+  fast (openai/gpt-6-luna) [3in/69out tok, $0.00019055]: (listening)
+  smart (openai/gpt-6-luna) [6in/649out tok, $0.00164220]: We’re on `/framework/`. I’ll check that folder’s readme for its stated purpose.
 
-[23.6s] owner said (3/3): "One more: please confirm you're the fast or smart assistant and name the model you're running on."
-  fast (openai/gpt-6-luna) [3in/55out tok, $0.00005083]: I'm the fast assistant, running on openai/gpt-6-luna.
-  smart (openai/gpt-6-luna) [3in/140out tok, $0.00072736]: I’m the smart assistant, running on `openai/gpt-6-luna`.
+We’re on `/framework/`. I’ve asked a directory reader to check what its readme says the folder is for.
 
-[29.1s] real $/reply, computed from each reply's own real token counts (from the turn's own result event, not the streamed assistant message — see the comment above) × OpenRouter's published price for openai/gpt-6-luna ($0.0000001/input tok, $0.0000005/output tok):
-  fast: $0.00016268 (3in/31out tok, 0cache-read/1175cache-write)
-  smart: $0.00918087 (819in/270out tok, 60860cache-read/66843cache-write)
-  fast: $0.00036912 (795in/268out tok, 0cache-read/1245cache-write)
-  smart: $0.00165534 (6in/682out tok, 127861cache-read/281cache-write)
-  fast: $0.00005083 (3in/55out tok, 1228cache-read/86cache-write)
-  smart: $0.00072736 (3in/140out tok, 64131cache-read/126cache-write)
-  total, 6 replies: $0.01214620 (about $0.00202437/reply average)
+[25.6s] owner said (3/3): "One more: please confirm you're the fast or smart assistant and name the model you're running on."
+  fast (openai/gpt-6-luna) [3in/76out tok, $0.00005996]: I’m the fast assistant, running on openai/gpt-6-luna.
+  smart (openai/gpt-6-luna) [3in/89out tok, $0.00070148]: I’m the smart assistant, running on `openai/gpt-6-luna`.
 
-[29.1s] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total (a cross-check, not the primary figure)...
-[49.1s] key-level diff after 20s: $0.0000, against $0.0121 computed above — read $0 this time, which gaps.md #8 already says can happen for a call this cheap within 20s — not a contradiction of the computed total
+[33.1s] real $/reply, computed from each reply's own real token counts (from the turn's own result event, not the streamed assistant message — see the comment above) × OpenRouter's published price for openai/gpt-6-luna ($0.0000001/input tok, $0.0000005/output tok):
+  fast: $0.00028350 (795in/114out tok, 0cache-read/1176cache-write)
+  smart: $0.00920350 (819in/304out tok, 60897cache-read/66885cache-write)
+  fast: $0.00019055 (3in/69out tok, 0cache-read/1246cache-write)
+  smart: $0.00164220 (6in/649out tok, 127948cache-read/301cache-write)
+  fast: $0.00005996 (3in/76out tok, 1229cache-read/75cache-write)
+  smart: $0.00070148 (3in/89out tok, 64193cache-read/118cache-write)
+  total, 6 replies: $0.01208119 (about $0.00201353/reply average)
+
+[33.1s] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total (a cross-check, not the primary figure)...
+[53.2s] key-level diff after 20s: $0.0000, against $0.0121 computed above — read $0 this time, which gaps.md #8 already says can happen for a call this cheap within 20s — not a contradiction of the computed total
 session file: C:\Code\lew42\worktrees\dictate-without-claude\public\framework... (kept in C:\Users\mike\AppData\Local\Temp\dictate-without-claude-proof, not the repo — a throwaway proof session)

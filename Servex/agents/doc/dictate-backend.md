@@ -71,7 +71,8 @@ showing each real reply with its real $ — read from the turn's own `result.mod
 streamed message's `usage` is a `0`/`0` artifact, not the real count;
 [`openrouter/gaps.md`](../../ext/openrouter/gaps.md) #8), diffed per turn and priced against
 OpenRouter's published rate. Cross-checked in the same run against a live key-level balance
-diff, which landed in the same range ($0.0140 vs $0.0134 computed, 6 replies).
+diff — see `prove-results.txt` for the committed run's exact numbers (the key-level reading
+can legitimately land anywhere from $0 up, per gaps.md #8).
 [`prove-fallback.mjs`](/framework/ai/2026-10-04/dictate-without-claude/) proves the automatic
 fallback: a normal reply that mentions "usage limit" does not flip the switch, a real refusal
 does, and the freshly respawned agent answers the owner's re-sent line.

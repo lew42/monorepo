@@ -143,8 +143,8 @@ say(`  total, ${replies.length} replies: $${sum.toFixed(8)} (about $${(sum / rep
 /* The live OpenRouter KEY TOTAL is a second, independent cross-check against the token-based
  * total above — same money, read a completely different way (the account's own running
  * balance, not a token count at all). gaps.md #8 says this reading can come back $0 within a
- * short window for a call this cheap; when it doesn't, as below, it corroborates the computed
- * figure instead. */
+ * short window for a call this cheap; whether it does or not this run, the message below says
+ * which happened, rather than assuming one way. */
 say(`\n[${T()}] waiting 20s for OpenRouter's own billing to settle, then reading the key's real running total (a cross-check, not the primary figure)...`);
 await sleep(20000);
 const usage_after_run = await key_usage(KEY);

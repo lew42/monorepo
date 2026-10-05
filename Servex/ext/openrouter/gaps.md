@@ -50,8 +50,9 @@ they always had.
   `agent.model_usage`. `dictate-without-claude`'s own proof
   ([`ai/2026-10-04/dictate-without-claude/prove.mjs`](/framework/ai/2026-10-04/dictate-without-claude/))
   diffs it per turn and prices the real delta against OpenRouter's own published per-token
-  rate — cross-checked against a live key-level `/key` diff in the same run, which came back
-  within the same range ($0.0140 vs $0.0134 computed, 6 real replies).
+  rate — cross-checked in the same run against a live key-level `/key` balance diff; see
+  `prove-results.txt` for the committed run's exact numbers (the key-level reading varies run
+  to run, sometimes landing at $0 — not a contradiction, see gap #8's own entry below).
 - **Not fixed here:** `spent_usd()`/`metered_usd` (the dashboard's own live `$` figure,
   `price()`'s `message_cost(usage)` path) still reads `$0` for these calls — this task only
   fixed ITS OWN proof's $ figure by reading `modelUsage` directly; wiring `price()` itself to

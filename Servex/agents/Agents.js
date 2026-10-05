@@ -1587,7 +1587,13 @@ Agents.Agent = class Agent {
 		 * `wait_for_agent` hand back; `last_text` is only its final block. */
 		this.words = (this.said ?? []).join("\n\n") || null;
 		this.said = [];
-		if (message.is_error) this.last_error = (message.errors ?? []).join("; ") || message.subtype || "turn failed";
+		/* `result` carries the error TEXT when `is_error` is set (sdk.d.ts on `SDKResultMessage`:
+		 * "with is_error true, the error text when the turn ended on an API error") — checked
+		 * first (review round 8, dictate-without-claude, 2026-10-04: `message.errors` is usually
+		 * absent on a real refusal, so `last_error` fell through to the uninformative
+		 * `message.subtype` or "turn failed", and USAGE_LIMIT_WORDS never matched a real cutoff). */
+		if (message.is_error) this.last_error = message.result || (message.errors ?? []).join("; ") || message.subtype || "turn failed";
+		else this.last_error = null;   // a turn that succeeds clears a stale error (review finding 2): a past 429 must not keep tripping every later "done"
 		const u = message.usage ?? {};
 		this.emit({
 			type: "result",

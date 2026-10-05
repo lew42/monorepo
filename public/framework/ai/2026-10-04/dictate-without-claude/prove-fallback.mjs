@@ -7,13 +7,16 @@
  *   1. a normal "done" wake that happens to MENTION "usage limit" must NOT flip the switch —
  *      a false positive here would move a session to OpenRouter every time the owner just
  *      asks a question about usage limits.
- *   2. THE REAL CASE: a session agent is never `one_shot`, so a refused turn still wakes as
+ *   2. the RARE case Agents.js does send a real `error:` wake for (a session-level crash, not
+ *      a refused turn) — kept working, and the one that respawns + resends for real below.
+ *   3. THE REAL CASE: a session agent is never `one_shot`, so a refused turn still wakes as
  *      `done: <whatever it said before the refusal>` — Agents.js never sends `error:` for this.
  *      The actual reason lives on the live agent's own `last_error`. `woken()` must check that
  *      too, or the whole fallback never fires on a real cutoff (review round 7, finding 1).
- *   3. the RARE case Agents.js does send a real `error:` wake for (a session-level crash, not
- *      a refused turn) — kept working, and the one that respawns + resends for real below.
- * Real spawns throughout (openai/gpt-6-luna, a few cents at most). */
+ * Real spawns throughout (openai/gpt-6-luna, a few cents at most). Case 3 runs AFTER case 2 in
+ * the code (see the comment just above case 2) so each case's own refusal doesn't leave the
+ * global `session-backend.txt` already flipped for the next one — matched to the actual run
+ * order below, not the numbering an earlier draft of this comment had reversed. */
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

@@ -8,13 +8,13 @@
    session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
 
    the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
-     "I can’t see your device’s current time."
+     "I’m not sure of the current time."
 
    last lines of this session's file (the switch itself IS recorded there, for the owner to see):
-{"session":{"id":"v-gj5qp41","home":"/framework/","at":"2026-10-04T19:27:49.886-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
-{"chat":{"at":"2026-10-05T00:27:49.896Z","session":"v-gj5qp41","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
-{"chat":{"at":"2026-10-04T19:27:49.897-05:00","session":"v-gj5qp41","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
-{"backing":{"at":"2026-10-04T19:27:49.911-05:00","fast":"3ab6c9a7-437c-458b-8306-9bb8c5ef1796","smart":null,"how":{"fast":"new"}}}
+{"session":{"id":"v-kudp4rk","home":"/framework/","at":"2026-10-04T19:31:11.053-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T00:31:11.055Z","session":"v-kudp4rk","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-04T19:31:11.055-05:00","session":"v-kudp4rk","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
+{"backing":{"at":"2026-10-04T19:31:11.078-05:00","fast":"f8427cc4-1660-4c7e-ade4-8a625e95b566","smart":null,"how":{"fast":"new"}}}
 
 3. THE REAL CASE — a refused turn wakes as "done:", with the actual reason only on the live
    agent's own last_error (what Agents.js's result() actually does for a non-one_shot agent):
