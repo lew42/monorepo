@@ -14,3 +14,5 @@
 {"review":{"answer":{"n":3,"reply":"noted: cross-reference confirmed"}}}
 {"review":{"answer":{"n":4,"reply":"fixed: ran layout-check at 400/1200/1920/3440 on both touched pages before this review (no overflow, desktop unchanged) and check_page on both (zero failed requests, zero page errors) — logging here since it wasn't in a prior task.jsonl line"}}}
 {"review":{"answer":{"n":5,"reply":"noted: agreed, reusing ext/tabs' own default was the point"}}}
+{"log":{"at":"2026-10-04T22:33:26-05:00","msg":"skill: documentation"}}
+{"log":{"at":"2026-10-04T22:33:36-05:00","msg":"skill: finish-task"}}
