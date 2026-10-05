@@ -188,6 +188,17 @@ export const USAGE_LIMIT_WORDS = /(usage.?limit|rate.?limit|quota|\b429\b|billin
  * match the owner asking about usage limits) matched the same way. */
 export const USAGE_LIMIT_RE = new RegExp(`^error:.*${USAGE_LIMIT_WORDS.source}`, "i");
 
+/* AUTH FAILURE fallback (auth-fallback, 2026-10-05 — the owner: "the smart mastermind kept
+ * saying failure to log in ... I'm not sure why Claude kicked us out ... we don't want
+ * roadblocks"). A login/token failure (an expired OAuth token, an invalid API key, a 401, the
+ * CLI's own "please run /login") is a different refusal than a usage limit, but the owner
+ * wants the exact same thing to happen: switch to OpenRouter at once instead of going silent.
+ * Matched the same loose way as USAGE_LIMIT_WORDS and for the same reason — a false positive
+ * only moves a session to OpenRouter a turn early; a false negative is the silent session this
+ * whole mechanism exists to avoid. */
+export const AUTH_FAIL_WORDS = /(invalid.?api.?key|not authenticated|unauthorized|\b401\b|oauth.?token|please run.{0,12}\/?login|failed to log.?in|logged out|authentication.?error|invalid.?x-api-key)/i;
+export const AUTH_FAIL_RE = new RegExp(`^error:.*${AUTH_FAIL_WORDS.source}`, "i");
+
 export default class Sessions {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
@@ -242,10 +253,12 @@ export default class Sessions {
 		this.servex.agents.register(agent);
 	}
 
-	/* AUTOMATIC FALLBACK (dictate-without-claude, 2026-10-04): every session-fast/session-smart
-	 * turn's end or error reaches here (see `hire()`), as `${kind}: <the agent's own last words,
-	 * first 300 chars>` — most are "done: …" and ignored at once. One that matches
-	 * USAGE_LIMIT_RE is Claude refusing that one agent; `note.from` is its id, which `by_agent`
+	/* AUTOMATIC FALLBACK (dictate-without-claude, 2026-10-04; extended to auth failures by
+	 * auth-fallback, 2026-10-05): every session-fast/session-smart turn's end or error reaches
+	 * here (see `hire()`), as `${kind}: <the agent's own last words, first 300 chars>` — most
+	 * are "done: …" and ignored at once. One that matches USAGE_LIMIT_RE or AUTH_FAIL_RE is
+	 * Claude refusing that one agent, either for usage or because its login failed; `note.from`
+	 * is its id, which `by_agent`
 	 * (kept current in `wake()`) maps back to `{id: session id, role}`. Flips just that ROLE of
 	 * just that SESSION to FALLBACK_MODEL and tells the owner in plain words, in the session
 	 * itself — the one place they're already looking. Does nothing when the backend is already
@@ -266,9 +279,12 @@ export default class Sessions {
 		if (!from) return;
 		/* BOTH signals, not just the wake text (review round 7, finding 1) — see
 		 * USAGE_LIMIT_WORDS's own comment above for why `last_error` is the one that actually
-		 * fires on a real refusal. */
+		 * fires on a real refusal. Auth failures are checked the same way, against the same
+		 * two signals, for the same reason. */
 		const last_error = this.servex.agents.live.get(note.from)?.last_error;
-		if (!USAGE_LIMIT_RE.test(String(text ?? "")) && !USAGE_LIMIT_WORDS.test(String(last_error ?? ""))) return;
+		const is_usage = USAGE_LIMIT_RE.test(String(text ?? "")) || USAGE_LIMIT_WORDS.test(String(last_error ?? ""));
+		const is_auth = AUTH_FAIL_RE.test(String(text ?? "")) || AUTH_FAIL_WORDS.test(String(last_error ?? ""));
+		if (!is_usage && !is_auth) return;
 		const s = this.map[from.id];
 		/* Check THIS ROLE'S OWN current model, not the global setting (review finding 1): once
 		 * one session's refusal has already flipped `session-backend.txt` to "openrouter", a
@@ -280,8 +296,22 @@ export default class Sessions {
 		(s.fallback ??= {})[from.role] = true;
 		(s.backing ??= {})[from.role] = null;   // never resume a Claude session id under a different model
 		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
-			text: `Claude refused the ${from.role} assistant for usage limits; switched it to ${FALLBACK_MODEL} (OpenRouter).` } });
+			text: is_auth
+				? `Claude logged out; switched the ${from.role} assistant to ${FALLBACK_MODEL} (OpenRouter).`
+				: `Claude refused the ${from.role} assistant for usage limits; switched it to ${FALLBACK_MODEL} (OpenRouter).` } });
 		try { fs.mkdirSync(path.dirname(SESSION_BACKEND_PATH), { recursive: true }); fs.writeFileSync(SESSION_BACKEND_PATH, "openrouter"); } catch {}
+		/* One card, the first time this process sees an auth failure — not one per call, and
+		 * not one per session (several sessions can fail in the same burst; the owner needs to
+		 * hear it once). `auth_card_posted` is a plain instance flag, not a file, because this is
+		 * a one-time NOTICE, not a persisted setting like `SESSION_BACKEND_PATH` above. */
+		if (is_auth && !this.auth_card_posted){
+			this.auth_card_posted = true;
+			this.servex.cards?.create({ title: "Claude logged out — answering on OpenRouter", type: "note", by: "sessions", tags: ["auth"] })
+				.then(card => card?.id && this.servex.cards.append(card.id,
+					{ message: { by: "sessions", kind: "update",
+						text: "Claude's login failed mid-session, so every voice session switched to OpenRouter automatically. Fix: log Claude back in (`claude /login`)." } }))
+				.catch(() => {});
+		}
 		const last_owner = this.last_owner_text(s);   // the line Claude refused to answer — read now, before anything respawns
 		setImmediate(() => {
 			try { this.servex.agents.stop(s[from.role]); } catch {}

@@ -1,0 +1,21 @@
+1. a "done" wake that just MENTIONS logging out:
+   fallback flag: undefined (must be undefined — it was a normal reply, not a refusal)
+
+2. THE REAL CASE — a refused turn wakes as "done:", the actual reason only on the live
+   agent's own last_error (an expired login / invalid key):
+   owner: "what time is it"
+   fallback flag: {"fast":true} (must be {fast:true})
+   session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
+
+   last lines of this session's file (the owner's own notice):
+{"session":{"id":"v-05vdrmk","home":"/framework/","at":"2026-10-05T13:26:51.193-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T18:26:51.195Z","session":"v-05vdrmk","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-05T13:26:51.196-05:00","session":"v-05vdrmk","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude logged out; switched the fast assistant to openai/gpt-6-luna (OpenRouter)."}}
+{"chat":{"at":"2026-10-05T13:26:51.199-05:00","session":"v-05vdrmk","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"The fast assistant could not be reached: agent.send is not a function"}}
+
+   cards after case 2: 1 (must be 1 — "Claude logged out — answering on OpenRouter")
+   card title: Claude logged out — answering on OpenRouter
+
+3. a SECOND session's auth failure, same run — must NOT post a second card ("once, not per call"):
+   fallback flag: {"fast":true} (must be {fast:true} — it still falls back)
+   cards after case 3: 1 (must still be 1 — no second card)
