@@ -373,7 +373,7 @@ export default class Dictate extends View {
 
 	async start(){
 		const insecure = this.insecure_context_message();
-		if (insecure){ this.set_error(insecure); return; }
+		if (insecure){ this.log_step("mic", "refused: insecure context"); this.set_error(insecure); return; }
 
 		this.settled = "";
 		this.partial_text = "";
@@ -673,6 +673,7 @@ export default class Dictate extends View {
 			// silently dropping every segment from here on.
 			console.error("ux/Dictate: whisper-server did not answer for a segment:", e);
 			this.clear_guess();
+			this.log_step("whisper", "stopped answering: " + (e?.message ?? e));
 			this.set_error(`Whisper stopped answering (${e.message}) — check whisper-server is still running, or stop and press 🎤 again to use the browser's recognizer instead.`);
 			return;
 		}
@@ -769,8 +770,10 @@ export default class Dictate extends View {
 		// NOTHING — `onstart` fires, `onend` fires, and no `onresult` ever comes.
 		// That silence was the bug the owner reported; this says so instead.
 		this.watchdog = setTimeout(() => {
-			if (this.state === "listening" && !this.settled && !this.partial_text)
+			if (this.state === "listening" && !this.settled && !this.partial_text){
+				this.log_step("mic", "browser engine heard nothing in 6s");
 				this.set_error("Chrome's speech recognition has been listening for 6 seconds with no words and no error — the silent failure this was built to catch. Try again, check chrome://settings/content/microphone for this site, or use whisper instead.");
+			}
 		}, 6000);
 
 		const rec = this.rec = new Recognition();
