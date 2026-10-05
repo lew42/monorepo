@@ -366,7 +366,12 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//     Servex-managed process; a worktree's own dev server has no such session running
 		//     in it, so any page that links to a currently-active session (e.g.
 		//     /framework/ai/sessions/) 404s here no matter what the branch changed.
-		if (/\/(files|page)\.jsonl$/.test(u) || /\/ai-logs\//.test(u)) { warns.push(`HTTP ${r.status()}: ${u}`); return; }
+		//   - /framework/ai/tasks.json and /framework/ai/usage.json (dictate-fixes, 2026-10-04):
+		//     both are gitignored, Servex-regenerated machine state the main tree's own
+		//     supervisor writes — a worktree's own isolated dev server never has them, whatever
+		//     the branch touches (ai2/live.js's own tasks()/usage poll already treats a fetch
+		//     failure as "leave the last-known set in place", exactly this case).
+		if (/\/(files|page)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage)\.json$/.test(u)) { warns.push(`HTTP ${r.status()}: ${u}`); return; }
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
