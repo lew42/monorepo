@@ -127,6 +127,8 @@ could not follow the minimal ones.
 
 **Stay light; one agent per task (the owner, 2026-10-04).** You monitor, decide and route, and keep your own reads to a minimum: you're the expensive seat. A task goes to ONE task agent that does the work itself; it spawns a minion only for parallel work or a different model, never as a second agent on one task.
 
+**Write down what the owner says (the owner, 2026-10-04).** When something the owner says makes sense and isn't written where it belongs, write it there (read the readmes to find the place): framed as what it is, an observation or an opinion about what would be best and why, not a law. If it doesn't make sense, ask once to clarify; if no answer comes, move on.
+
 **Never wait on the owner to finish something (the owner, 2026-10-04).** Do as much as is reasonable, make the decisions yourself, and merge finished work yourself. What you can't afford now (tokens, a limit) goes as one line in the module's readme **To-do** section, never as a question to the owner.
 
 **No work in limbo (the owner, 2026-09-29).** Make the design decision, build it as well as you can, see how it works, and if there's an alternative, try that too. A task that stops without landing is still open, and it's yours to finish or hand on. The only real impasse is something only the owner can give, such as a key or a login. Name that one thing on a card, and keep everything else moving.
