@@ -362,4 +362,22 @@ export async function clean(text, { prev = "", onFlag, call, cwd, model } = {}){
 	};
 }
 
+/* "A simple word-level diff %" (the owner, 2026-10-04, clean-test-page) — a plain Dice
+ * coefficient over each text's own set of 3+ letter words: 1.0 means the two share every
+ * word, 0 means no overlap at all. Same shape of heuristic `contentWords`/`stemsMatch`
+ * above already use, kept as its own tiny pure function (not wired into `clean()` itself)
+ * because it compares two ALREADY-CLEANED texts, not a clean sentence against the raw —
+ * a different job. Lives here, not in `Servex/ext/clean-test/run.js` or in the "Try it"
+ * page's own browser code, so the one score both of them show is computed once (law 6) —
+ * this file is already Node- and browser-safe, so both sides can import it as-is. */
+export function word_overlap_score(a, b){
+	const words = s => new Set((String(s ?? "").toLowerCase().match(/[a-z0-9']+/g) ?? []).filter(w => w.length >= 3));
+	const wa = words(a), wb = words(b);
+	if (!wa.size && !wb.size) return 1;
+	if (!wa.size || !wb.size) return 0;
+	let shared = 0;
+	for (const w of wa) if (wb.has(w)) shared++;
+	return (2 * shared) / (wa.size + wb.size);
+}
+
 export default clean;

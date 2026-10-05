@@ -43,6 +43,7 @@ import External from "./agents/External.js";
 import agent_tools from "./agents/tools.js";
 import { directory_tools } from "./agents/directory.js";
 import tidy from "./agents/tidy.js";
+import { run_clean, model_choices, list_examples, save_example } from "./ext/clean-test/run.js";
 import hitl from "./agents/hitl.js";
 import Inbox from "./agents/inbox.js";
 import { docs_list, docs_read_file } from "./pages.js";
@@ -634,6 +635,28 @@ export default class Servex extends Events {
             const body = req.body ?? {};
             if (typeof body.text !== "string") return res.status(400).json({ ok: false, why: "text must be a string" });
             res.json(await local_chat(body));
+        });
+
+        /* THE "TRY IT" TAB (public/framework/ext/Refine/try/, requirements.md
+         * 2026-10-04/clean-test-page) — run the SAME `clean()` Echo runs against
+         * whichever model the dropdown picked (a local gguf file, a cheap OpenRouter
+         * model, or Haiku — Servex/ext/clean-test/run.js). GET answers the dropdown's
+         * own list and the saved example set; the two POSTs run one clean and save
+         * one example. CORS, same as `/api/tidy`/`/api/local-chat`: a browser page
+         * posts here cross-origin from its own `<name>.localhost` origin. */
+        router.options("/api/clean-test", cors, (req, res) => res.status(204).end());
+        router.options("/api/clean-test/examples", cors, (req, res) => res.status(204).end());
+
+        router.get("/api/clean-test", cors, (req, res) => res.json({ models: model_choices() }));
+
+        router.post("/api/clean-test", cors, express.json({ limit: "64kb" }), async (req, res) => {
+            res.json(await run_clean(req.body ?? {}));
+        });
+
+        router.get("/api/clean-test/examples", cors, (req, res) => res.json({ examples: list_examples() }));
+
+        router.post("/api/clean-test/examples", cors, express.json({ limit: "64kb" }), (req, res) => {
+            res.json(save_example(req.body ?? {}));
         });
 
         router.get("/api/logs", (req, res) => res.json(this.log.names()));

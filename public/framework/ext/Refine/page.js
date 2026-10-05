@@ -1,14 +1,27 @@
-import { Page, p, md } from "/app.js";
+import { Page, p, a, md } from "/app.js";
 import refine from "./Refine.js";
 
+/* ⚠ NOT `navigation: "tabs"`. Tried first (review/report.md, 2026-10-04 finding 1
+ * wanted "try" reachable as a real tab) — but `ext/tabs`'s `tabs()` has no "my own
+ * content()" entry, only `this.children`, so with one child ("try") it auto-fills
+ * the WHOLE page with Try-it's content and the ladder below never renders at all
+ * (confirmed live: public/framework/ai/2026-10-04/clean-test-page/task.jsonl). Doc
+ * pages dodge this by making their own content an explicit "overview" child
+ * (`ext/Doc`'s `overview_section()`) — real surgery, not a few lines on a
+ * hand-written Page. A plain, visible link to Try it is the honest small fix:
+ * still a real page at its own url ("try" is still a declared child), just not
+ * drawn as a framework tab strip. */
 export default new Page({
 	meta: import.meta,
 	title: "Refine",
 	description: "One dictation, shown as a ladder: raw → clean → structured → brief, with a coverage table proving nothing was lost.",
 	icon: "fact_check",
+	children: "try",
 
 	content(){
 		p("`Server/refine.mjs` turns a long, rambling dictation into a numbered brief a mastermind can act on — and keeps every step, so you can always ask \"wait, what did I actually say?\" Click an ask below, or a bullet in Structured, and its source sentences light up in Clean and Raw.");
+
+		p(() => a("Try it — run this same clean-up step against any model →").href(new URL("try/", import.meta.url).pathname));
 
 		// Run C (the harness dictation) is the longest of the four and the only
 		// one with a dropped sentence AND a thin citation both present, so the

@@ -30,6 +30,16 @@ prompt_modes({ raw, sentences, structured, fallback_text });   // see its own do
 - **`refine-` is a new CSS class prefix**, not yet in `styles/css-scopes.txt` — that file was outside this module's fence, the same as `ask-`'s precedent (see the file's own comment there). The mastermind registers it.
 - **Dropped rows are warm (`--warn`), never `--error`/`--hot`.** A dropped sentence is worth a look, not a failure — the owner's rule for the whole view.
 
+## Try it
+[Try it](/framework/ext/Refine/try/) runs the real `clean()` step (same one Echo runs) against any
+model: every local gguf file this machine has, a few cheap OpenRouter models, and Haiku — paste
+rough text, pick a model, see the cleaned result, its time and its real $ cost. "Run all" compares
+every model on one piece of text at once. A small growing test set lives beside it
+(`fixture/clean-examples.jsonl`, 2026-10-04) — save a good (or bad) clean result and "Score all
+models" ranks every model by a plain word-overlap % against the saved answer. Not built yet:
+pulling a sample straight from a recent voice session — no index of raw dictation lines exists
+today, so paste is the stand-in; see the page's own doc comment (`try/page.js`) for why.
+
 ## More
 - [Overview](/framework/ext/Refine/) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
 - `doc/raw-match.md` — the word-overlap heuristic that lights up Raw, worked example
