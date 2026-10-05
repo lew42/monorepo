@@ -207,6 +207,15 @@ goes quiet for 2.5 s: a voice session's assistants answer on it. The contract fo
 
 ## Watch out
 
+- **The browser's recognizer used to kick in by itself whenever whisper's health check
+  failed, even just once right after a reload** — the "abort error, then beeping" the
+  owner saw. Fixed: a `whisper_seen` flag means a browser that has used whisper before
+  never auto-falls to Chrome's recognizer again; it shows one clear line and a
+  mic/socket/whisper status strip instead. [`doc/decisions.md`](/framework/ux/Dictate/doc/decisions/)'s
+  "Four owner-visible fixes."
+- **The same words could post more than once** (several legitimate send paths noticing
+  the same held text close together) — `ext/Chat/Mic.js`'s `post_held()` now drops a
+  repeat within 4s. Same doc section.
 - **Reopening the chat used to show an empty box.** A card switch, a tab reopen or a
   reload left the chat sitting empty until the owner said something new, even though
   the conversation was saved — fixed by re-reading the whole file from line 0 on

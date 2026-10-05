@@ -324,6 +324,9 @@ export default class Card extends Page {
 					re: () => this.id,
 					placeholder: sub ? "talk into this request" : "talk into this card",
 					on_text: text => this.talk.echo(text),
+					// INSTANT FEEDBACK (deliverable 3, 2026-10-04) — see `ai2/rail.js`'s own
+					// identical wiring for why two `live()` calls, not one.
+					on_send_start: text => { this.talk.live({ text }); this.talk.live({ text: "", sent: true }); },
 					autostart: fresh && shell.auto_transcribe?.(),
 				});
 				// The chat's own inline-start edge. ONE chat column on screen at a time (the

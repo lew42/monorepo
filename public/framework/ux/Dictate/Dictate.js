@@ -4,6 +4,7 @@ import Revise from "../Revise/Revise.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 import floor from "./floor.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
+import Socket from "/framework/dev/Socket/Socket.js";
 
 View.stylesheet(import.meta, "Dictate.css");
 
@@ -59,6 +60,18 @@ if (globalThis.document){
  *  moves the board's own mic too, with nothing to wire. A caller that needs a
  *  specific device passes `device_id` and that wins over the remembered one. */
 export const DEVICE_KEY = "lew42.dictate.device";
+
+/** **Did whisper ever answer on this browser?** Remembered so a LATER failure to
+ *  reach it reads as "whisper just went quiet", not "this machine has no whisper" —
+ *  the two need different endings. A machine that has never once seen whisper (no
+ *  install, Firefox, iOS Safari) keeps today's behaviour: the browser's own
+ *  recognizer, picked quietly, no error shown. A machine where whisper HAS worked
+ *  before gets a clear line instead, and the browser's recognizer is never engaged
+ *  automatically — the owner's own freeze, 2026-10-04: "Chrome's recognition is
+ *  never used automatically." See `detect_engine()`. */
+const WHISPER_SEEN_KEY = "lew42.dictate.whisper_seen";
+function whisper_seen(){ try { return localStorage.getItem(WHISPER_SEEN_KEY) === "1"; } catch { return false; } }
+function mark_whisper_seen(){ try { localStorage.setItem(WHISPER_SEEN_KEY, "1"); } catch {} }
 
 /** Remember (or, with no id, forget) the owner's microphone. Never throws —
  *  `localStorage` is unreadable in some privacy modes, and a dictation must not
@@ -190,6 +203,13 @@ export default class Dictate extends View {
 				this.$status = span.c("ux-dictate-status muted");
 				this.$countdown = span.c("ux-dictate-countdown muted");
 				this.$countdown.el.hidden = true;
+				// ALWAYS-VISIBLE STAGES (the owner, 2026-10-04, after a reload left the mic
+				// stuck at "connecting…" with no clue which part was stuck): mic / socket /
+				// whisper, one small muted line, so the next time this happens the reader —
+				// or a headless check reading this same text — can see exactly where it stopped
+				// instead of guessing. `log_step()` below is the one place that updates it.
+				this.$diag = span.c("ux-dictate-diag muted");
+				this.steps = { mic: "idle", socket: "", whisper: "" };
 
 				if (this.mode !== "open") label.c("ux-dictate-pause-opt flex v-center muted", () => {
 					this.$send_on_pause = input().attr("type", "checkbox")
@@ -245,12 +265,40 @@ export default class Dictate extends View {
 	 * built above is shown, hidden, or labelled (`code` skill §1). */
 	async init(){
 		this.engine = await this.detect_engine();
+		if (this.engine === "whisper-down"){
+			this.$engine.text("");
+			this.$status.rc("error").text("whisper has gone quiet — tap 🎤 to see why");
+			return;   // the button stays up: pressing it runs start(), which explains in full
+		}
 		if (!this.engine){
 			this.$button.el.hidden = true;
 			this.$engine.text("no dictation engine reachable — start whisper, or use Chrome");
 			return;
 		}
 		this.name_engine();
+	}
+
+	/** One stage changed — console-logged with a `[dictate]` prefix (the owner, 2026-10-04:
+	 *  "log each step... so a headless load can read the order of events") and folded into
+	 *  the always-visible `$diag` line. `stage` is `"mic" | "socket" | "whisper"`. */
+	log_step(stage, detail){
+		this.steps[stage] = detail;
+		console.log(`[dictate] ${stage}: ${detail}`);
+		this.draw_diag();
+	}
+
+	draw_diag(){
+		if (!this.$diag) return;
+		const s = this.steps;
+		this.$diag.text(`mic: ${s.mic || "idle"} · socket: ${s.socket || "—"} · whisper: ${s.whisper || "—"}`);
+	}
+
+	/* "connected" / "retrying" — read straight off the dev socket singleton (the one the
+	 * owner named: "a reconnect race"). A production build (no dev socket) reads "—": this
+	 * stage is diagnostic, never something dictation itself depends on. */
+	socket_status(){
+		try { const s = Socket.singleton?.(); return s ? (s.connected ? "connected" : "retrying") : "—"; }
+		catch { return "—"; }
 	}
 
 	/* Re-checked on every press, not just once — the owner may start
@@ -260,11 +308,28 @@ export default class Dictate extends View {
 	 * longer than 800 ms just to wake its Wi-Fi radio. Whisper then looked "unreachable", the
 	 * phone fell back to its own recognizer, and that recognizer repeats and beeps (see
 	 * `heard_browser()`). The cost of the longer wait is only paid when whisper really is down. */
+	/* ⚠ ONE RETRY, SHORT GAP (2026-10-04 — the owner, on a reload: "worked, then reload stuck
+	 * at connecting, then abort, then Chrome's recognizer"). A page reload fires this health
+	 * check again at once; if the PREVIOUS page's mic/socket were still a few hundred ms into
+	 * tearing down, the very first request after a reload can time out for reasons that have
+	 * nothing to do with whisper actually being down. One retry after a short pause (400 ms)
+	 * tells the two apart without materially slowing the common case (whisper answers in well
+	 * under a second once it is warm). */
 	async detect_engine(){
-		try {
-			const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
-			if (r.ok) return "whisper";
-		} catch { /* not reachable — fall through */ }
+		this.log_step("socket", this.socket_status());
+		for (let attempt = 1; attempt <= 2; attempt++){
+			this.log_step("whisper", attempt === 1 ? "checking…" : "checking again…");
+			try {
+				const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
+				if (r.ok){ this.log_step("whisper", "answering"); mark_whisper_seen(); return "whisper"; }
+			} catch { /* not reachable — retry once, then fall through */ }
+			if (attempt === 1) await new Promise(res => setTimeout(res, 400));
+		}
+		this.log_step("whisper", "not reachable");
+		// WHISPER WORKED BEFORE ON THIS BROWSER: never slide into the browser's own
+		// recognizer by itself — that silent swap is the exact "beeping" bug. Say so
+		// instead and stop; `start()` turns this into the clear line on screen.
+		if (whisper_seen()) return "whisper-down";
 		return Recognition ? "browser" : null;
 	}
 
@@ -318,8 +383,18 @@ export default class Dictate extends View {
 		this.cancel_connect = false;
 		this.on_start?.();
 
+		this.log_step("mic", "checking the engine…");
 		this.engine = await this.detect_engine();
+		if (this.engine === "whisper-down"){
+			// NEVER the browser's own recognizer here — that silent swap is the bug this
+			// freeze exists to kill. One clear line, nothing started, no beep.
+			this.log_step("mic", "refused: whisper not reachable");
+			this.set_state("idle");
+			this.set_error("Whisper has gone quiet — it answered before, but not just now. Check whisper-server is still running (doc/decisions.md), then press 🎤 again. The browser's own recognizer is not used automatically.");
+			return;
+		}
 		if (!this.engine){
+			this.log_step("mic", "refused: no engine reachable");
 			this.set_error("No microphone engine is reachable right now — start whisper-server, or use Chrome.");
 			return;
 		}
@@ -346,9 +421,11 @@ export default class Dictate extends View {
 				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
 		}, 8000);
 
+		this.log_step("mic", "requesting…");
 		try {
 			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
 		} catch (e){
+			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
 			this.set_error(this.explain(e));
 			return;
 		}
@@ -357,6 +434,7 @@ export default class Dictate extends View {
 			try { this.rec?.stop(); } catch {}
 			return;
 		}
+		this.log_step("mic", "ok");
 		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
 		// own `.start()` call returns long before recognition is actually live.
 		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }

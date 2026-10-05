@@ -417,3 +417,40 @@ line into the layout. Three fixes in `Dictate.js`:
 Android's own restart beep can't be silenced from a page. With whisper found, the
 recognizer isn't used, so the beeps go too.
 Proof: `ai/2026-09-30/one-dictation/fix-android/`.
+
+## Four owner-visible fixes, nothing else (2026-10-04)
+
+The owner, on the phone (the mobile AI rail button) and on this page: the same bubble
+repeated four times, "a microphone abort error, and then it went into the browser's
+default transcribe mode" with beeping, a dictated line taking "a minute" to show instead
+of instantly, and a landed task mastermind still pinned, huge, in the rail. All four,
+proven headless: `ai/2026-10-04/dictate-fixes/task.jsonl`.
+
+- **Never the browser's recognizer automatically, once whisper has worked.**
+  `detect_engine()` used to pick Chrome's recognizer the instant whisper's health check
+  failed, for ANY reason — including a one-off timing blip right after a reload. That
+  silent swap is this bug, not a new one: the error message, the beeping, all of it was
+  the recognizer the owner never asked for. Now: one retry (400ms) absorbs a reload race,
+  and a `whisper_seen` flag (localStorage) means a browser that has used whisper before
+  never drops to Chrome's own recognizer again — it shows one clear line instead
+  ("whisper has gone quiet…") and starts nothing. A machine that has NEVER seen whisper
+  (no install, Firefox) keeps the old quiet fallback, unchanged. An always-visible
+  mic/socket/whisper status line, and `console.log("[dictate] …")` on every stage, so a
+  stuck reload can be read instead of guessed.
+- **The same words, sent more than once.** Several legitimate, separately-triggered paths
+  (a pause send and the safety chunk-cut noticing the same held text a tick apart; a late
+  Whisper final landing right after its own guess already went out) could each post the
+  SAME utterance. `ComposerMic.post_held()` (`ext/Chat/Mic.js`) now drops a send whose
+  words match the last thing this mic sent within 4 seconds — a real repeat (said again
+  later, or a genuinely different sentence) still goes through.
+- **Instant feedback, not a wait for the clean-up.** `send_screen()`/`flush_held()` used to
+  await the fast assistant's clean-up (up to 5s) BEFORE the box cleared or anything
+  reached the chat log. `on_send_start(raw_text)` now fires first, reusing `Chat.js`'s own
+  fading "sent" bubble (the same one the open-mic stream already uses) — the clean-up wait
+  itself, and the real post, are untouched.
+- **A landed task never stays pinned.** `ai2/live.js`'s Live card read a task's state only
+  from the Dispatcher's own (never date-scoped) `prompts` log — a task that lands by
+  writing its own `task.jsonl` directly, without also telling the Dispatcher, stayed
+  "working" there forever. It now also checks `tasks.json`'s own `landed` fact (the one
+  Servex already computes from each task's real `task.jsonl`) and hides anything that
+  says landed, no matter what the Dispatcher's log still thinks.

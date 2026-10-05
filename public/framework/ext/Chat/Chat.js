@@ -912,6 +912,13 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 		lives.set(key, hit = { el: node, text });
 		return hit;
 	}
+	/** The small "cleaning…" / "sent, waiting" label beside a faded sent bubble
+	 *  (deliverable 3, the owner 2026-10-04: raw text at once, a mark while it
+	 *  cleans, "sent, waiting" if nothing real came back in ~2s). */
+	function set_mark(hit, label){
+		if (!hit.mark){ hit.mark = el("chatbox-live-mark muted"); hit.el.append(hit.mark); }
+		hit.mark.textContent = label;
+	}
 	function drop_live(key){
 		const hit = key && lives.get(key);
 		if (!hit) return;
@@ -958,8 +965,10 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 			return true;
 		},
 		/** YOUR WORDS WHILE YOU SPEAK — one bubble on your side that grows; `settled` in ink, the
-		 *  still-moving `guess` grey. Empty text removes it, unless `sent`: then it stays, faded, until
-		 *  your real line is drawn (or 15 s pass — a send that failed says so in the composer). */
+		 *  still-moving `guess` grey. Empty text removes it, unless `sent`: then it stays, faded,
+		 *  marked "cleaning…", until your real (cleaned) line is drawn in its place — or, after
+		 *  ~2s with nothing back, the mark flips to "sent, waiting" and the raw text stays put
+		 *  (the owner, 2026-10-04: instant feedback, never a silent minute-long wait). */
 		live({ text = "", settled = text, guess = "", sent = false } = {}){
 			if (!text){
 				const hit = lives.get("draft");
@@ -968,7 +977,8 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				lives.delete("draft");
 				const key = "sent:" + (++sent_n);
 				hit.el.classList.add("chatbox-live-sent");
-				hit.timer = setTimeout(() => drop_live(key), 15000);
+				set_mark(hit, "cleaning…");
+				hit.timer = setTimeout(() => set_mark(hit, "sent, waiting"), 2000);
 				lives.set(key, hit);
 				return;
 			}
