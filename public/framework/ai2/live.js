@@ -273,10 +273,22 @@ export function live_row(it){
 	// No usage bars here (ai2-lead audit, 2026-09-25): the same three already sit,
 	// labelled, at the top of the rail, and three unlabelled thin bars read as nothing.
 	div.c("ai2-row-foot flex v-center gap-25", () => {
-		const t = it.tasks.length, w = it.agents.filter(a => a.state === "working").length;
-		// One short line, built from state — never an agent's words.
-		const parts = [w ? `${w} working` : "none working", t ? `${t} ${t === 1 ? "task" : "tasks"} running` : ""].filter(Boolean);
-		small.c("ai2-row-line muted").text(parts.join(" · "));
+		const workingAgents = it.agents.filter(a => a.state === "working");
+		const runningTasks = it.tasks;
+		// Council finding: name what is running, rather than bare "8 working · 2 tasks running"
+		let desc;
+		if (runningTasks.length) {
+			const taskNames = runningTasks.slice(0, 2).map(t => t.title.replace(/-/g, " ")).join(", ");
+			const extra = runningTasks.length > 2 ? ` +${runningTasks.length - 2}` : "";
+			desc = `tasks: ${taskNames}${extra}`;
+		} else if (workingAgents.length) {
+			const agentNames = workingAgents.slice(0, 2).map(a => a.title).join(", ");
+			const extra = workingAgents.length > 2 ? ` +${workingAgents.length - 2}` : "";
+			desc = `${agentNames}${extra} working`;
+		} else {
+			desc = "idle · nothing running";
+		}
+		small.c("ai2-row-line muted").text(desc);
 	});
 }
 

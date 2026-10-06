@@ -125,7 +125,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - ~~Landed row preview prints `[object Object]`: stringify the outcome.~~ — **DONE.** `plain()` and `headline()` in `public/framework/ai2/inbox.js` now handle objects, summaries, and arrays cleanly without rendering `[object Object]`.
   - ~~Empty AI 2 state says "Pick something on the left": land on Live; Live grid should stretch at 3440.~~ — **DONE.** Overrode `AIRail.empty()` and `inbox_page()` in `ai2/page.js` to eliminate "Pick something on the left", defaulting to Live view overview and direct navigation link. Live grid at 3440 verified stretching with 3-col and 4-col responsive grid tracks in `Card.css`.
   - Rail rows are flush with no gap: round only the stack, or add a gap. Live's `.ai2-rows` and chat log still scroll on their own.
-  - Live preview says "8 working · 2 tasks running": name what is running. Group bars are solid, not N green segments.
+  - ~~Live preview says "8 working · 2 tasks running": name what is running. Group bars are solid, not N green segments.~~ — **DONE.** `live_row()` in `ai2/live.js` now specifies running tasks and agents by name with overflow counts. Group progress meters in `ai2/meter.js` render continuous bars (`.ai2-meter-fill`).
   - About page: padding and back-button icon still unchecked; the decisions URL the owner named is a 404.
   - Load AI 2 with Servex stopped and fix what breaks.
   - Skills: one line in `layout` (approved layouts, four widths); a console-error watcher line in `servex-mastermind`; soften non-law `must` lines.
