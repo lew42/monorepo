@@ -43,7 +43,7 @@ export class Course extends View {
 		this.$progress = div.c("flex v gap");
 
 		div.c("flex wrap gap", () => {
-			this.$rail = div.c("rail surface pad");
+			this.$rail = div.c("rail card");
 
 			// `flex-1`'s own basis is 0%, which shares a narrow row down to a
 			// sliver beside `.basis`'s non-shrinking 18em rather than wrapping —
@@ -61,7 +61,7 @@ export class Course extends View {
 
 			// `.basis` (framework.css): a fixed track beside a fluid one, `--column`
 			// by default — set inline because 18em is a runtime token, not a new class.
-			this.$side = div.c("basis surface pad flex v gap").style("--basis", "18em");
+			this.$side = div.c("basis card flex v gap").style("--basis", "18em");
 		});
 
 		this.update();

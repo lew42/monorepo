@@ -2,7 +2,7 @@ import { Page, md, demo, div, p, button, icon } from "/app.js";
 
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
-const alert = () => div.c("ui-alert surface pad flex gap accent", () => {
+const alert = () => div.c("ui-alert card flex gap accent", () => {
 	icon("info");
 
 	div.c("flex-1 flex v gap", () => {
@@ -14,13 +14,13 @@ const alert = () => div.c("ui-alert surface pad flex gap accent", () => {
 const tones = () => div.c("flex v gap", () => {
 	[["lightbulb_outline", "", "A stylesheet that 404s resolves and warns."],
 	 ["error_outline", "error", "That import path has no `.js`."]].forEach(([glyph, tone, words]) =>
-		div.c("ui-alert surface pad flex gap", () => {
+		div.c("ui-alert card flex gap", () => {
 			icon(glyph);
 			p(words).ac("flex-1");
 		}).ac(tone));
 });
 
-const action = () => div.c("ui-alert surface pad flex gap v-center accent", () => {
+const action = () => div.c("ui-alert card flex gap v-center accent", () => {
 	icon("cloud_off");
 	p("The dev socket is off — this is not localhost.").ac("flex-1");
 	button.c("prim", "Retry");
@@ -56,7 +56,7 @@ export default new Page({
 
 		md("The `> .icon` selector names a class this file does not emit — `icon()` from `View.js` does — so `alert.js` imports `View.js`. That is the rule: **if your CSS names a class you don't emit, import the module that emits it.**");
 
-		md("Note what is **not** here: no `alert-info`, no dismiss state, no `title` option. A callout is a padded surface with a coloured edge, and every part of that is a utility or a token.");
+		md("Note what is **not** here: no `alert-info`, no dismiss state, no `title` option. A callout is a card with a coloured edge, and every part of that is a utility or a token.");
 
 		md("Next: [Toolbar](/framework/ui/toolbar/) — the second template.");
 	},

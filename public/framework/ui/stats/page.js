@@ -6,7 +6,7 @@ const stats = () => {
 	const items = [["npm deps", "3"], ["build steps", "0"], ["core classes", "5"], ["tokens", "16"]];
 
 	return div.c("grid gap auto", () => items.forEach(([label, value]) =>
-		div.c("surface pad flex v gap", () => {
+		div.c("card flex v", () => {
 			div.c("h4 muted", label);
 			div.c("h2", value);
 		}).style("--gap", "calc(var(--gap) * 0.1)"))).style("--column", "9em");
@@ -15,7 +15,7 @@ const stats = () => {
 const with_icons = () => div.c("grid gap auto", () => [
 	["trending_up", "requests", "1.2M"],
 	["schedule", "p95", "84ms"],
-].forEach(([glyph, label, value]) => div.c("surface pad flex v gap", () => {
+].forEach(([glyph, label, value]) => div.c("card flex v", () => {
 	div.c("flex v-center gap", () => {
 		icon(glyph).style({ color: "var(--prim)", fontSize: "1em" });
 		div.c("h4 muted", label);

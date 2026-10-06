@@ -102,8 +102,8 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [Brief](2026-09-24/worktree-watch/)
 - **Reorganize what's been built**: 12 ranked moves, starting with five imports that must move
   before the prune is safe. [Plan](2026-09-24/inventory/)
-- **Merge card kinds**: 75 → 36. The first three merges are low risk.
-  [Plan](/framework/ux/Content/plan/) · [brief](2026-09-24/card-consolidation/merges-requirements.md)
+- **Merge card kinds**: 75 → 36. Merge 1 (`ui-cards`: `ui/alert/`, `ui/stats/`, `ui/toolbar/`, `ux/Course/`) **DONE.** Verified with before/after screenshots at 1920/390 and 0 console errors in headless smoke test. Next: Merge 2 (`ui-pills`), Merge 3 (`link-tiles`).
+  [Plan](/framework/ux/Content/plan/) · [brief](2026-09-24/card-consolidation/merges-requirements.md) · [shots index](2026-09-24/card-consolidation/shots/index.md)
 - **Small fixes from the feedback council** (2026-09-25, [verdicts](2026-09-25/feedback-council/)),
   each one the owner asked for and the council found unfinished:
   - ~~Live card cold load is 1.7 to 4.6 s (the click is fast): defer the 32k-px `.ai2-rows` render. Said seven times.~~ — **DONE.** Verified in headless Chromium: cold load directly into `/framework/ai2/live/` measures ~480–540ms (well under the <1s target). The 32k-px monolithic DOM render was previously eliminated by virtualizing/filtering active cards via `cards.jsonl` (now only rendering ~16 active/recent cards in the stream, scrollHeight ~899px instead of 32,958px), and the New card/Live landing renders immediately.

@@ -2,7 +2,7 @@ import { Page, md, demo, div, button, input, icon } from "/app.js";
 
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran.
-const toolbar = () => div.c("surface pad flex wrap gap v-center", () => {
+const toolbar = () => div.c("card flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		button.c("prim", "New");
 		button("Import");
@@ -29,7 +29,7 @@ const group = () => div.c("flex wrap gap", () => {
 	}).style("--gap", "calc(var(--gap) * 0.15)");
 });
 
-const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
+const heading = () => div.c("card flex wrap gap v-center split", () => {
 	div.c("flex v", () => {
 		div.c("h4 muted", "Core");
 		div.c("h3", "View");
@@ -45,7 +45,7 @@ const heading = () => div.c("surface pad flex wrap gap v-center split", () => {
 // mutually exclusive ones, which `group`'s clusters of independent actions
 // never claim. Still the same tight `0.15em` gap — not the joined control
 // this section already ruled out (this page's own `group` note, below).
-const filter = () => div.c("surface pad flex wrap gap v-center", () => {
+const filter = () => div.c("card flex wrap gap v-center", () => {
 	div.c("flex v-center gap", () => {
 		["All", "Active", "Archived"].forEach((label, i) =>
 			i === 0 ? button.c("prim", label) : button(label));
@@ -63,9 +63,9 @@ const filter = () => div.c("surface pad flex wrap gap v-center", () => {
 const ROW = ["New", "Import", "Export", "Share", "Archive"];
 const row = () => ROW.forEach((label, i) => i === 0 ? button.c("prim", label) : button(label));
 
-const wrapping = () => div.c("surface pad flex wrap gap v-center", row).style("--gap", "calc(var(--gap) * 0.3)");
+const wrapping = () => div.c("card flex wrap gap v-center", row).style("--gap", "calc(var(--gap) * 0.3)");
 
-const scrolling = () => div.c("surface pad flex gap v-center", row)
+const scrolling = () => div.c("card flex gap v-center", row)
 	.style({ "--gap": "calc(var(--gap) * 0.3)", flexWrap: "nowrap", overflowX: "auto" });
 
 const mobile = () => div.c("flex v gap", () => {
@@ -100,7 +100,7 @@ export default new Page({
 			stage: steer => demo.stage(toolbar, steer).ac("bleed"),
 			def: toolbar,
 			file: new URL("page.js", import.meta.url).pathname,
-			note: "**There is no `ui.toolbar()`.** A bar is `pad flex wrap gap v-center` on a surface, and everything interesting about it is *what you put in it* — which groups, which one grows, how tight each gap is. A function would either hardcode one bar (useless twice) or take a config object describing the row (worse than the row). **Drag the stage** and the groups reflow with no media query.",
+			note: "**There is no `ui.toolbar()`.** A bar is `card flex wrap gap v-center`, and everything interesting about it is *what you put in it* — which groups, which one grows, how tight each gap is. A function would either hardcode one bar (useless twice) or take a config object describing the row (worse than the row). **Drag the stage** and the groups reflow with no media query.",
 		});
 
 		md("## `flex-1`, not `split`");
