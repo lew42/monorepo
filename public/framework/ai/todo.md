@@ -5,6 +5,12 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 ## 1. Asked for, not finished yet
 
+- **Markdown Explorer, Command Characters & Class Card Views** (2026-10-06):
+  1. *Markdown Explorer (`md/` path & tab)*: Upgrade `core/Page/Markdown.js` so `<module>/md/` renders the main `readme.md` in the center and all sibling/doc markdown files in a clean sidebar for quick reference. Add `md` tab on modules with markdown docs.
+  2. *Command Characters (`ext/Mention`)*: `/` is strictly 1:1 with file system paths, `@` for actors, `#` for classes. Distinct framed icons, dark card surfaces, and color themes so classes stand out visually from plain links.
+  3. *Class Card View*: The class is represented by an icon item card (icon + title); properties/methods are unboxed icon items inside it (no nested card clutter); subclass methods first, base class methods below; core API weighted at the top.
+  [Brief](2026-10-06/markdown-explorer-and-class-cards/requirements.md)
+
 - **A layout system that sticks** (2026-09-25): pages use approved layouts most of the time,
   work at 3440 (several columns, or a navigation column beside a centred main column), and get
   checked at four widths before merging. Step 1 landed (`layout-check` and AI 2 overview redesign).
