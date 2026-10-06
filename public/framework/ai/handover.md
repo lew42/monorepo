@@ -25,8 +25,17 @@ keep it one screen.
 - **Local Model Viability & VRAM Stream Established:**
   - `local/doc/strategy.md`: Recorded Hermes 3 (fast summarizer), Gemma 4/3 (lightweight/safe multitasking), and Qwen 3 (agentic worker) viability lanes; context chunking rule (800–1,200 lines max); and usage limit comparison (Claude OAuth vs Antigravity Google quota).
   - `public/framework/ai/local/vram.jsonl`: Systematic telemetry data stream recording VRAM snapshots via `UniversalLogger`. Verified baseline 1,676 MB (14%) when idle vs ~11,713 MB (95%) when Qwen3 is loaded.
-- **Local Models Web UI Upgraded:**
-  - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
+- **Autonomous Heartbeat Daemon & Immutable JSONL Logging:**
+  - `task-1565`: Active recurring cron (`*/5 * * * *`) serving as the overnight autonomous supervisor.
+  - `public/framework/ai/heartbeat.jsonl`: Immutable log stream recording each wake cycle, agent verification, and commit hash via `UniversalLogger`.
+- **Refine Class & Hierarchy Upgrades Landed:**
+  - `public/framework/ext/Refine/Refine.js`: Structured column auto-clusters flat lists into logical subheadings (`Section N (S#-S#)`). Redesigned dropped/flagged strip into an ultra-wide banner card (`18033678`, `44f8aa13`). Exported `class Refine extends View` for formal framework class identity (`d0c3de8e`).
+- **UI Demo Enhancements (Card Properties Sidebar):**
+  - `public/framework/ux/Card/page.js`: Added properties sidebar preview (`.ai2-props`) surfacing card status, owner attribution, and touched files alongside outline and Live rows (`ba67f8ae`).
+- **Model Economy & The 82k Local Overflow Lesson:**
+  - `local/doc/strategy.md`: Recorded the 82k context overflow bug when spawning local models with full skill catalogs. Proved `Qwen3-8B` responds cleanly in 8.2s ($0.00) with a lean (<200 token) system prompt. Established the Law of Local Spawns: local models require zero-tool or single `UniversalLogTool` harnesses (<1,500 prompt tokens) (`1cc7a6ed`).
+- **Antigravity Internal Network Sniffer Active:**
+  - `task-1687`: Background CDP sniffer attached to port `53297`. Discovered Antigravity UI communicates via `gRPC-Web + JSON` over port `53301` (`exa.language_server_pb.LanguageServerService`). Listening to intercept model quota requests.
 - **The Pre-Shutdown Masterminds:**
   - Opus Mastermind: `60d9def6-907a-4f71-adf9-110075b719eb` (10 MB; ended 14:21).
   - Sonnet Mastermind: `e3ade6ce-fbb5-4674-922c-566ef86fabb3` (793 KB; ended 17:22, initiated OpenRouter emergency backend).
