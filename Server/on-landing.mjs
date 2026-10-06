@@ -12,6 +12,7 @@ import path from "node:path";
 import { spawnSync, spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { text_flags } from "./text-check.mjs";
+import { card_flags } from "./card-check.mjs";
 import { doc_check } from "./doc-check.mjs";
 import { can_stop, entry_for_task_dir } from "./worktree-sweep.mjs";
 
@@ -47,6 +48,17 @@ try {
 		append(task, tm);
 		const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
 		if (tf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${tm}`);
+	} catch {}
+	// The card check (cards-that-show-the-thing, 2026-09-25): checks the card against the card standard
+	try {
+		if (card) {
+			const cardDir = path.join(root, "public/framework/ai", card);
+			const cf = card_flags(cardDir);
+			const cm = `card-check: ${cf.length ? cf.join("; ") : "standard passed"}`;
+			append(task, cm);
+			const arch = path.join(root, "public/framework/ai", now().slice(0, 10), "servex-mastermind", "task.jsonl");
+			if (cf.length && fs.existsSync(arch)) append(arch, `${path.basename(dir)} — ${cm}`);
+		}
 	} catch {}
 	// The doc check (task-loop, 2026-09-28): every module this task touched needs a
 	// readme.md, a doc/ and readme links that resolve — CLAUDE.md's own module shape.

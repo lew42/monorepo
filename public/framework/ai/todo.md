@@ -49,10 +49,10 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   3. *Server objects (Servex, needs a restart):* `GET /api/objects` runs the same walk on the
      Servex instance, two levels deep, with names, counts and states only, never values. The
      widget reads it when a card says `{"objects": "/Servex/"}`. Prove it on a private Servex.
-  4. *The check (Server/card-check.mjs, no model; reuse text_flags() from Server/text-check.mjs, which already runs at landing):* a state line, a preview of 60 characters or
+  4. *[x] The check (Server/card-check.mjs, landed 2026-10-06):* a state line, a preview of 60 characters or
      less, a checklist, every item ticked on a done card, objects on group and module cards, no
-     paragraph over 60 words above the fold, and first mentions linked. It runs in on-landing
-     next to layout-check, and its failures go to the servex-mastermind day task. The four card-writing prompts already open with the standard (done 2026-09-25).
+     paragraph over 60 words above the fold, and first mentions linked. It runs in on-landing.mjs
+     next to layout-check and text-check, and its failures go to the servex-mastermind day task.
   5. *Pilot, then the rest:* write the Servex group card (2026/09/24/servex) to the standard with
      Servex's card tools, check it against the design picture, then do the other seven group
      cards. card-check must pass on all eight.
