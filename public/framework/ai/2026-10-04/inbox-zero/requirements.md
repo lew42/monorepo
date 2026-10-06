@@ -11,8 +11,8 @@
 1. Read/unread: bold until viewed 5 s; a toggle to mark unread.
 2. Acknowledge (✓): the row fades and leaves the inbox, kept under a "done" view one click away.
 3. Importance with time decay (e.g. half-life of 2 days), inbox threshold 50 instead of 90; the formula in one function, documented.
-4. Agents can post an inbox item to a module's page (the page inbox exists: CLAUDE.md "The page inbox").
+4. Agents can post an inbox item to a module's page (the page inbox exists: /framework/ai/CLAUDE.md "The page inbox").
 No rail refactor. Worktree → check_page → merge.mjs.
 
-QUEUED (2026-10-04): start after day-cards lands, or after the Claude reset.
+QUEUED (2026-10-04): start after /framework/ai/2026-10-04/day-cards lands, or after the Claude reset.
 Budget: $5

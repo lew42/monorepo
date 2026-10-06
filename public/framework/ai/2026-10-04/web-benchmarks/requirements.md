@@ -1,4 +1,4 @@
-# Can a cheap OpenRouter minion search the web? Then: published benchmarks and test sets
+# Web benchmarks: search check, published scores
 
 ## The ask (owner, 2026-10-04, dictated, excerpts)
 > spawn a cheap ... open router minion ... ask it if it can do web searches. Ask it to do a quick web search just to verify that it works ... I don't know if the Claude SDK allows open router models to use Claude's web search.
@@ -18,4 +18,4 @@ Budget: $2 real. ONE agent, no minions. Never the mcp__playwright tools.
 
 ## Status (vscode-mastermind, 2026-10-04 12:30)
 - Step 1c verified by hand: `openai/gpt-oss-120b:online` answered a live question with 5 cited sources for $0.007. OpenRouter web search works without the Claude SDK.
-- Spawn refused until the OpenRouter cost fix lands (task openrouter-cost-blind, running). Then spawn this on openai/gpt-oss-120b as a task-mastermind.
+- Spawn refused until the OpenRouter cost fix lands (/framework/ai/2026-10-04/openrouter-cost-blind/, running). Then spawn this on openai/gpt-oss-120b as a task-mastermind.

@@ -4,7 +4,7 @@
 > We're facing a Claude shutdown. Like once we hit 100%, we're done on Claude ... I don't think I can even use a VS Code sidebar session anymore. So I have to rely entirely 100% on the website and whether the voice dictation system works. And so that's kind of a top priority
 
 ## Facts
-- Dictate's voice sessions run a fast and a smart assistant (`Servex/agents/roles.js` `session-fast`/`session-smart`, `Servex/agents/Sessions.js`), today on Claude models. Whisper is local and free.
+- [Dictate](/framework/ux/Dictate/)'s voice sessions run a fast and a smart assistant (`Servex/agents/roles.js` `session-fast`/`session-smart`, `Servex/agents/Sessions.js`), today on Claude models. Whisper is local and free.
 - Cheap models that passed our test (`/framework/ai/2026-10-03/new-brain/`, Models tab): local qwen2.5-coder ($0, weak at tool calls), gpt-oss-20b/120b (fast on Groq), DeepSeek v4.1 flash, GPT-6 luna. OpenRouter spawns are live again with real cost tracking.
 
 ## Want

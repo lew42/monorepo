@@ -1,0 +1,165 @@
+{
+  "at": "2026-10-05T01:57:39.077Z",
+  "results": {
+    "local/qwen3-8b": {
+      "model": "local/qwen3-8b",
+      "level_a": {
+        "correct": 5,
+        "total": 5,
+        "details": [
+          {
+            "id": "a1",
+            "pass": true,
+            "answer": "The `Item.prototype.set_one()` emits the `\"change\"` event with the key, new value, and old value, and the `\"delta\"` event with a set object containing the key-value pair and the instance.",
+            "expected": "\"change\" and \"delta\""
+          },
+          {
+            "id": "a2",
+            "pass": true,
+            "answer": "If a field name collides with an existing property on the Item prototype, `define_fields()` throws an error to prevent overwriting existing prototype properties.",
+            "expected": "Throws an Error (`field \"${name}\" collides with Item.prototype`)"
+          },
+          {
+            "id": "a3",
+            "pass": true,
+            "answer": "The four cascade layers in `@layer` are ordered as **base**, **theme**, **site**, and **util**, with `framework.css` loading first to establish this hierarchy.",
+            "expected": "base theme site util"
+          },
+          {
+            "id": "a4",
+            "pass": true,
+            "answer": "The static method `Store.for(url)` returns the same Store instance for the same URL, ensuring a singleton pattern where each URL maps to a single Store instance.",
+            "expected": "The same cached Store instance (singleton via Store.instances Map)"
+          },
+          {
+            "id": "a5",
+            "pass": true,
+            "answer": "The HTML helper tags `p`, `h1`–`h6` read backticks. A backtick inside `css(`...`)` is dangerous because it breaks the template literal syntax, causing invalid CSS and potentially corrupting all page styling.",
+            "expected": "Only p()/h1–h6 read backticks; one backtick inside css(`...`) kills every page."
+          }
+        ]
+      },
+      "level_b": {
+        "correct": 2,
+        "total": 3,
+        "details": [
+          {
+            "id": "b1",
+            "pass": true,
+            "answer": "1. **Number of \"change\" events**:  \n   **2**  \n   - The first `item.set({ a: 1, b: 2 })` triggers a \"change\" event for `b` (from `undefined` to `2`).  \n   - The second `item.set({ b: 3 })` triggers a \"change\" event for `b` (from `2` to `3`).  \n\n2. **Chronological entries in `changes`**:  \n   **[  \n     { key: \"b\", val: 2, old: undefined },  \n     { key: \"b\", val: 3, old: 2 }  \n   ]**  \n\n3. **Final `item.data`**:  \n   **{ a: 1, b: 3 }**  \n\n---  \n**Explanation**:  \n- The initial `Item` is created with `{ a: 1 }`, so `item.data` starts as `{ a: 1 }`.  \n- The first `set` call updates `a` (no change) and `b` (from `undefined` to `2`, triggering a \"change\" event).  \n- The second `set` call updates `b` (from `2` to `3`, triggering another \"change\" event).  \n- Final `item.data` reflects the last values of `a` and `b`.",
+            "expected": "2 change events. First: key 'b', val 2, old undefined. Second: key 'b', val 3, old 2. 'a' does not fire because old === val. End data: { a: 1, b: 3 }."
+          },
+          {
+            "id": "b2",
+            "pass": false,
+            "error": "Local HTTP 502: read ECONNRESET"
+          },
+          {
+            "id": "b3",
+            "pass": true,
+            "answer": "1. The error will be thrown on the \"set\" field. The error message will be: `field \"set\" collides with Item.prototype`. This is because the \"set\" method is already defined on the `Item.prototype`, and when `Task.define_fields()` is called, it tries to define a getter and setter for the \"set\" field, which collides with the existing \"set\" method on `Item.prototype`.\n\n2. If \"set\" is removed from the `Task.fields` array, the \"items\" field will succeed in defining its getter and setter. This is because there is no existing method or property on `Item.prototype` named \"items\", so there is no collision when `Task.define_fields()` is called.",
+            "expected": "1. 'set' throws because Item.prototype.set is already a core method. 2. 'items' succeeds: Item has no items property or method of its own (lists are named properties a subclass gives itself)."
+          }
+        ]
+      },
+      "level_c": {
+        "pass": 4,
+        "total": 10,
+        "avg_score": 73,
+        "details": [
+          {
+            "id": "c1",
+            "pass": false,
+            "score": 64,
+            "refined": "1. Where do the task JSONL class and the task tree class reside?  \n2. If there is a task class in AI/slash/objects.js, it follows an object-oriented pattern.  \n3. I typically use a capital file name for classes, as searching for a task class in objects.js seems to break the convention of using uppercase for class files."
+          },
+          {
+            "id": "c2",
+            "pass": false,
+            "score": 55,
+            "refined": "1. The servers should be initiated as a managed process that can automatically shut down when the spawned agent enters a sleep state or becomes inactive.  \n2. Determine the optimal method to manage server reactivation if the agent later wakes up and requires server access.  \n3. Clarify whether the system should reawaken the existing server or spawn a new one when the agent becomes active again.  \n4. Ensure no zombie processes are created during this lifecycle management."
+          },
+          {
+            "id": "c3",
+            "pass": false,
+            "score": 67,
+            "refined": "1. Request an overview of the current status, including queued, in-flight, and finished items.  \n2. Inquire about the current usage trends.  \n3. Identify the major limitations.  \n4. Confirm if there are still RAM constraints."
+          },
+          {
+            "id": "c4",
+            "pass": false,
+            "score": 62,
+            "refined": "1. What is the current status of open router minions?  \n2. Can we leverage open router minions, if available with sufficient RAM, to alleviate the strain on Claude Anthropic tokens or usage windows?"
+          },
+          {
+            "id": "c5",
+            "pass": true,
+            "score": 100,
+            "refined": "1. This message is coming from the VS Code Sidebar.  \n2. The last message is also coming from the VS Code Sidebar."
+          },
+          {
+            "id": "c6",
+            "pass": true,
+            "score": 93,
+            "refined": "1. Hello?  \n2. This message is being transcribed on my mobile device using the remote control app.  \n3. Are you able to see the source of these messages?  \n4. Can you determine whether I am using a PC or mobile device?"
+          },
+          {
+            "id": "c7",
+            "pass": true,
+            "score": 100,
+            "refined": "1. You are our new VS Code mastermind.  \n2. Can you read the handoff?"
+          },
+          {
+            "id": "c8",
+            "pass": false,
+            "score": 36,
+            "refined": "1. Review each task to assess its completion status and identify any unclear aspects.  \n2. Conduct a thorough review by asking major questions to ensure all implications are addressed, check for missed elements, inconsistencies, and potential errors."
+          },
+          {
+            "id": "c9",
+            "pass": false,
+            "score": 61,
+            "refined": "1. Is there a VS Code Mastermind skill available?  \n2. The last VS Code Mastermind tab was being used to work on a prompt refinement system.  \n3. The system includes a fast assistant and a smart assistant, with the fast assistant tasked to handle prompt refinement.  \n4. The team is supposed to work on a bunch of prompt refinement tasks, but the current progress is unclear.  \n5. A link to relevant resources or documentation is mentioned.  \n6. Is there documentation in the system about using a VS Code sidebar?  \n7. The current VS Code tab operates as a separate session type and may work with the SDK, though there are reported limitations in its setup.  \n8. To enable prompt refinement, the system needs to be integrated with the current tab (previously referred to as another tab).  \n9. The user is unsure how the current tab system functions and requests clarification on whether documentation exists for it.  \n10. The user asks for details on the system’s operation and documentation to proceed."
+          },
+          {
+            "id": "c10",
+            "pass": true,
+            "score": 92,
+            "refined": "1. Is my dev server running?  \n2. I just tried to access it from my phone, but I'm unsure if I typed 'node server.js' correctly.  \n3. If the server is not running, please start it for me so I don't have to stand up and type the command myself."
+          }
+        ]
+      },
+      "total_cost_usd": 0,
+      "total_ms": 178604,
+      "tokens_in": 5586,
+      "tokens_out": 8607
+    }
+  },
+  "batchExperiment": {
+    "single_turn_tokens": 671,
+    "multi_turn_step_tokens": 1346,
+    "overhead_ratio": 2.01
+  },
+  "recoveryResults": {
+    "google/gemini-3.8-flash": {
+      "ok": true,
+      "fixed": true,
+      "reply": "### Cause of the Error\n\nIn Lew42's `@lew42/events` (and typical Lew42 event-handling patterns), the event emitter mixin `Events(Superclass)` provides private/symbol-based or differently named trigger "
+    },
+    "deepseek/deepseek-v4.1-flash": {
+      "ok": true,
+      "fixed": true,
+      "reply": "The error occurs because `item` is not an instance of `Item`. In Lew42, `Item` extends `Events(Object)`, so only `Item` instances inherit the `emit` method. The object passed to `updateItem` has a `se"
+    },
+    "openai/gpt-6-luna": {
+      "ok": true,
+      "fixed": true,
+      "reply": "`emit` is available on instances of `Item`, not on plain objects. The fact that `Item` extends `Events(Object)` only gives that method to objects created as `Item` instances. The value passed to `upda"
+    },
+    "qwen/qwen3.8-27b:free": {
+      "ok": true,
+      "fixed": true,
+      "reply": "## Why the Error Occurred\n\nIn Lew42, the `Events` class (which `Item` extends) does **not** expose an `emit()` method. Its event-dispatch method is called **`trigger()`**. Since `emit` doesn't exist o"
+    }
+  }
+}

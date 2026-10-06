@@ -1,0 +1,230 @@
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index a7219e7e..953f0118 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -91,11 +91,14 @@
+ 	   filling the row, no matter how wide the row was. An explicit `width: 100%`
+ 	   gives the width axis a real value, so `field-sizing: content` is left to
+ 	   do only what the comment above says it is for — the HEIGHT. */
++	/* CAPPED AT 2-3 LINES (round 2, 2026-10-04 — the owner: "as I hit transcribe, the text
++	   area grows… gets so big I can't read anything else"). Was `7lh` (`Mic.js`'s own
++	   `SETTINGS.box_lines`, read live by `dress()`, kept in sync if the gear changes it). */
+ 	.chatbox-compose-input {
+ 		width: 100%;
+ 		min-width: 0;
+ 		min-height: 3.4em;
+-		max-height: 7lh;
++		max-height: 3lh;
+ 		resize: none;
+ 		overflow-y: auto;
+ 		font: inherit;
+@@ -138,6 +141,12 @@
+ 	   (merged into the one ⚙ menu below), the note is just always visible, in flow. */
+ 	.chatbox-compose-note { display: block; }
+ 
++	/* ONE STATUS LINE (round 2, 2026-10-04): the mic/connection/whisper health line
++	   (`ux/Dictate`'s own `$diag`, pulled out of its hidden full-screen menu by
++	   `Composer.js`) sits right above the send-flow note, always one line, muted so it
++	   reads as background information until it actually says something worth noticing. */
++	.chatbox-compose-diag { display: block; font-size: 0.85em; }
++
+ 	/* ONE FULL-SCREEN MENU (chat-menu-merge, 2026-10-01 — the owner, looking at the gear and
+ 	   the `⋯` button: "I think the gear and that more button should be merged together into
+ 	   one menu... it maybe should swap out the entire UI, right? Like full screen"). ONE ⚙
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index 9f72b6df..2e8babd5 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -79,7 +79,15 @@ export function composer({
+ 				on_send_start,
+ 				on_meter, device_id,
+ 				field: $input,
+-				on_error: e => note(String(e?.message ?? e)),
++				// ONE STATUS LINE REPLACES ERROR ROWS (round 2, 2026-10-04 — the owner: "an
++				// error happens and that error doesn't get cleared out… wasting three more
++				// lines of screen space"). An error is never ALSO pushed into `note()` (the
++				// line below the row): `ux/Dictate`'s own `log_step()` already wrote a short
++				// form of it into `$diag` (surfaced as `$status_line`, below) the moment it
++				// happened, and the very next real stage change overwrites that text — so an
++				// old error cannot outlive the thing that caused it. This is only a console
++				// trail for anyone reading devtools; nothing here draws a second row.
++				on_error: e => console.warn("[dictate] composer:", e),
+ 				// Deliverable 2 - "if Servex/tidy fails, send raw and say so in the hint line":
+ 				// ComposerMic calls this at most ONCE per send (`notify_if_failed()` - review
+ 				// finding 5, a string of failed chunks used to repeat this line once each,
+@@ -140,6 +148,14 @@ export function composer({
+ 	   shape `Drill.js`'s own `.chatbox-drill` uses for its own full-screen shell,
+ 	   so there is one way a chat surface goes full screen, not two. */
+ 	const $info = mic?.el.querySelector(".ux-dictate-info");
++	// ONE STATUS LINE (round 2, 2026-10-04 — see the long comment on `on_error` above): the
++	// short "mic: … · socket: … · whisper: …" line `ux/Dictate` already keeps live
++	// (`log_step()`/`draw_diag()`) used to sit buried inside the full-screen menu along with
++	// the rest of `$info`. Pulled out and shown here, right above the send-flow `note()` line,
++	// so the owner always sees current mic/connection/whisper health without opening the menu
++	// — and it is never stale, because the next real stage change overwrites its own text.
++	const $diag = mic?.el.querySelector(".ux-dictate-diag");
++	if ($diag){ $diag.classList.add("chatbox-compose-diag"); $note.el.before($diag); }
+ 	let $menu;
+ 	function build_menu(){
+ 		const box = document.createElement("div");
+@@ -206,13 +222,24 @@ export function composer({
+ 	   (`$note`, a plain line now — chat-menu-merge, 2026-10-01 — it used to be
+ 	   folded out of sight behind the `⋯` button, which is gone), because a note
+ 	   nobody can see is not feedback. The placeholder is inside a fixed-height
+-	   box, so saying something there cannot move anything. */
++	   box, so saying something there cannot move anything.
++	   ⚠ `$note`'s OWN TEXT NOW REVERTS TOO (round 2, 2026-10-04 — the owner: "an error
++	   happens and that error doesn't get cleared out… wasting three more lines of screen
++	   space for some old artifact error"). Only the placeholder used to be put back after
++	   4s; `$note.text(...)` itself was left exactly as the last call set it, forever, so
++	   a one-off "nothing to send" or a Send failure sat there until something else
++	   happened to call `note()` again — which, on a quiet composer, could be never. A
++	   later call (or the composer being torn down) cancels the pending revert so two
++	   overlapping notes never fight over which one gets to clear last. */
++	let note_timer;
+ 	function note(text){
+ 		$note.text(text);
+ 		$input.attr("placeholder", text);
+-		setTimeout(() => {
++		clearTimeout(note_timer);
++		note_timer = setTimeout(() => {
+ 			if (!$input.el.isConnected) return;
+ 			$input.attr("placeholder", placeholder);
++			$note.text(hint);
+ 		}, 4000);
+ 	}
+ 
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index c52ac9e8..7e9475d8 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -1,5 +1,6 @@
+ import Socket from "/framework/dev/Socket/Socket.js";
+ import Dictate from "/framework/ux/Dictate/Dictate.js";
++import Capture from "/framework/ux/Dictate/capture.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ 
+ /**
+@@ -40,7 +41,9 @@ export const SETTINGS = {
+ 	pause_send_ms: 1500,        // quiet time before everything left on screen is sent (was 2500: the owner asked for a shorter delay, 2026-09-30; before that 4000, words without a closing full stop waited 4 s, the owner's "four or five seconds", 2026-09-29)
+ 	break_pause_ms: 1500,       // quiet before a segment may start a new paragraph in the box
+ 	guess_ms: 900,              // how often the growing sentence is re-sent to Whisper
+-	box_lines: 7,               // the box grows to this many lines, then scrolls
++	box_lines: 3,               // the box grows to this many lines, then scrolls (the owner, round 2, 2026-10-04:
++	                            // "as I hit transcribe, the text area grows… gets so big I can't read anything
++	                            // else" — was 7)
+ 	fillers: "ah uh um er erm hmm mm",   // words that never reach the box
+ 	clean: true,                // KILL SWITCH (ai/2026-09-29/audio/next-clean-transcription/a-clean-mode, deliverable 4):
+ 	                            // on, a composer built with `revise:` set (`ai2/compose.js` turns it on by default)
+@@ -457,19 +460,47 @@ export class ComposerMic extends Dictate {
+ 	   for that, so the button kept saying "listening" while nothing was recorded.
+ 	   Now a dead track stops the mic (with the stop sound) and reopens it once. A
+ 	   suspended audio engine is woken the same way. */
++	/* ⚠ NO STOP/START BEEP FOR AN AUTOMATIC REVIVAL (round 2, 2026-10-04 — the owner, on the
++	 * phone: "it's bleeping twice… it seems like it's maybe turning off and then turning
++	 * back on after every pause"). The old code answered a dead track by running a FULL
++	 * `this.stop()` then, 400ms later, a full `this.start()` — two real state transitions,
++	 * one chime each, so a single revival sounded like two beeps. On a phone, a quiet
++	 * stretch in speech (exactly "every pause") is also the moment mobile Chrome/Android is
++	 * most likely to recycle or briefly suspend the mic track to save power — so this fired
++	 * on ordinary pauses almost every time, not on a real disconnect.
++	 *
++	 * Fix: open a FRESH `Capture` directly and swap it in, with `this.state` left at
++	 * "listening" throughout. Nothing here is a state transition, so Dictate's own
++	 * beep-on-listen (`on_listening`) and beep-on-error never fire — from the owner's side
++	 * the mic never looked like it turned off at all, which is exactly "the mic stays on
++	 * until the owner stops it." A revival that genuinely fails (nothing left to reopen,
++	 * permission pulled) still calls `set_error()`, which DOES beep "stop" — that is a real,
++	 * owner-visible failure, not a false one. */
+ 	watch_capture(){
+ 		const cap = this.mic, track = cap?.stream?.getAudioTracks()[0];
+ 		if (cap?.ctx) cap.ctx.onstatechange = () => {
+ 			if (cap.ctx.state === "suspended" && this.state === "listening") cap.ctx.resume().catch(() => {});
+ 		};
+ 		track?.addEventListener("ended", async () => {
+-			if (this.mic !== cap || this.state !== "listening") return;
+-			await this.stop();
++			if (this.mic !== cap || this.state !== "listening" || this.reviving) return;
+ 			const now = performance.now();
+-			if (now - (this.last_revive ?? -1e9) < 5000) return this.set_error("The microphone was disconnected.");
++			const repeat = now - (this.last_revive ?? -1e9) < 5000;
+ 			this.last_revive = now;
++			if (repeat) return this.set_error("The microphone was disconnected.");
+ 			this.reviving = true;
+-			setTimeout(() => { this.reviving = false; this.start(); }, 400);
++			this.log_step?.("mic", "track ended — reopening silently, still listening");
++			try {
++				const { id, label } = this.device();
++				const fresh = new Capture({ device_id: id, device_label: label });
++				await fresh.start(level => this.on_level(level));
++				cap.stop();   // release the dead one, now that a live replacement is in
++				this.mic = fresh;
++				this.log_step?.("mic", "reopened");
++				this.watch_capture();   // re-arm on the NEW track
++			} catch (e){
++				this.log_step?.("mic", "could not reopen: " + (e?.name ?? e?.message ?? e));
++				this.set_error("The microphone was disconnected.");
++			} finally { this.reviving = false; }
+ 		});
+ 	}
+ 
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index b899c28e..2d134552 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -417,13 +417,15 @@ export default class Dictate extends View {
+ 		// answered, or (should the up-front secure-context check above ever miss a case)
+ 		// a browser that fails this quietly. Never leaves the owner without a reason.
+ 		this.connect_watchdog = setTimeout(() => {
+-			if (this.state === "connecting")
++			if (this.state === "connecting"){
++				this.log_step("mic", "timed out waiting for the device");
+ 				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
++			}
+ 		}, 8000);
+ 
+ 		this.log_step("mic", "requesting…");
+ 		try {
+-			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
++			await this.open_engine();
+ 		} catch (e){
+ 			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
+ 			this.set_error(this.explain(e));
+@@ -440,6 +442,29 @@ export default class Dictate extends View {
+ 		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }
+ 	}
+ 
++	/** ⚠ THE RELOAD RACE (round 2, 2026-10-04 — the owner: "when I reload that page… it says
++	 *  connecting for about four to five seconds, and then says microphone abort error").
++	 *  The PREVIOUS page's microphone is released by the browser the instant that page's JS
++	 *  context is torn down — but the OS-level hand-off of the physical device is not
++	 *  guaranteed to finish in that same instant. Asking `getUserMedia()` for a device that
++	 *  is still a few hundred ms into being let go answers, after several seconds of trying,
++	 *  with a slow `AbortError` — exactly the "connecting… then abort" shape, and a DIFFERENT
++	 *  bug from the one `detect_engine()`'s own one-retry already fixed (that one was about
++	 *  reaching *whisper-server*, never about the *microphone* itself). One retry, after a
++	 *  short pause, tells this one-time race apart from a real refusal (no mic, denied
++	 *  permission, in use by another app) without slowing the common case — most dictations
++	 *  are not right after a reload, and this path is never even tried for those. */
++	async open_engine(){
++		try { this.engine === "whisper" ? await this.start_whisper() : this.start_browser(); return; }
++		catch (e){
++			if (e?.name !== "AbortError" || this.cancel_connect) throw e;
++		}
++		this.log_step("mic", "abort right after reload — retrying once…");
++		await new Promise(res => setTimeout(res, 500));
++		if (this.cancel_connect) return;
++		this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
++	}
++
+ 	async stop(){
+ 		if (this.state === "connecting"){
+ 			// Cancel an attempt still in flight (a permission prompt the owner gave up
+@@ -813,6 +838,7 @@ export default class Dictate extends View {
+ 	}
+ 
+ 	browser_error(error){
++		this.log_step("mic", "browser error: " + error);
+ 		if (error === "service-not-allowed" && this.insecure_context_message()) return this.set_error(this.insecure_context_message());
+ 		this.set_error({
+ 			"not-allowed": "The browser is not allowed to use the microphone — allow it for this site and press 🎤 again.",

@@ -1,0 +1,242 @@
+diff --git a/Server/session-cost.mjs b/Server/session-cost.mjs
+index 1de92e52..c2a9df13 100644
+--- a/Server/session-cost.mjs
++++ b/Server/session-cost.mjs
+@@ -18,7 +18,7 @@
+ //                                                          {"session_id": "..."} as JSON from stdin
+ //                                                          (the Stop hook's own payload shape) —
+ //                                                          never throws, always exits 0
+-import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, mkdirSync } from "node:fs";
++import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, mkdirSync, statSync } from "node:fs";
+ import { join, dirname } from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { homedir, tmpdir } from "node:os";
+@@ -218,21 +218,55 @@ export function find_transcript(session_id){
+ 
+ function pad2(n){ return String(n).padStart(2, "0"); }
+ 
+-// TODAY's date folder only, as the brief names it:
+-// public/framework/ai/<Y>/<M>/<D>/*-<first 8 hex of session-id>/page.jsonl
++// ⚠ FIXED 2026-10-04 (vscode-session-cost — the owner's own report: a VS Code tab he'd been
++// in "a very long conversation" with showed only $5.32). This used to look ONLY under TODAY's
++// date folder — correct the day a session's page is first created, but every VS Code tab that
++// is still open past midnight has its page under an EARLIER day's folder
++// (public/framework/ai/<Y>/<M>/<D>/..., the day prompt-relay.mjs first wrote it), and every
++// Stop hook after midnight silently found nothing there and no-op'd. Checked live: session
++// 60d9def6's page stalled at total_usd $29.12 while its real transcript (this same script's
++// own cost_of_transcript) already priced out to $110.07 — an $80+ undercount, growing every
++// day the tab stays open. Fixed by searching EVERY `<Y>/<M>/<D>/` folder for the session's own
++// `*-<id8>` dir, the identical pattern `ai/sessions/page.js`'s own `session_page_dir_index()`
++// already uses client-side (CLAUDE.md law 6: one rule for "which folder is this session's
++// page", not two). A session's page folder is created once and never renamed, so there is
++// normally exactly one match; if more than one somehow exists (the hook's own tmp marker file
++// got cleared mid-session and a second folder was created), the one with the MOST RECENT
++// modification time wins — it has to be the folder every later hook call has actually been
++// writing to.
+ export function find_page_jsonl(session_id, root = ROOT){
+ 	const id8 = session_id.slice(0, 8);
+-	const now = new Date();
+-	const dir = join(root, "public", "framework", "ai", String(now.getFullYear()), pad2(now.getMonth() + 1), pad2(now.getDate()));
+-	if (!existsSync(dir)) return null;
+-	let entries;
+-	try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return null; }
+-	for (const e of entries){
+-		if (!e.isDirectory() || !e.name.endsWith("-" + id8)) continue;
+-		const f = join(dir, e.name, "page.jsonl");
+-		if (existsSync(f)) return f;
++	const ai = join(root, "public", "framework", "ai");
++	let years;
++	try { years = readdirSync(ai, { withFileTypes: true }); } catch { return null; }
++	const matches = [];
++	for (const y of years){
++		if (!y.isDirectory() || !/^\d{4}$/.test(y.name)) continue;
++		const yDir = join(ai, y.name);
++		let months;
++		try { months = readdirSync(yDir, { withFileTypes: true }); } catch { continue; }
++		for (const m of months){
++			if (!m.isDirectory() || !/^\d{2}$/.test(m.name)) continue;
++			const mDir = join(yDir, m.name);
++			let days;
++			try { days = readdirSync(mDir, { withFileTypes: true }); } catch { continue; }
++			for (const d of days){
++				if (!d.isDirectory() || !/^\d{2}$/.test(d.name)) continue;
++				const dDir = join(mDir, d.name);
++				let entries;
++				try { entries = readdirSync(dDir, { withFileTypes: true }); } catch { continue; }
++				for (const e of entries){
++					if (!e.isDirectory() || !e.name.endsWith("-" + id8)) continue;
++					const f = join(dDir, e.name, "page.jsonl");
++					if (existsSync(f)) matches.push(f);
++				}
++			}
++		}
+ 	}
+-	return null;
++	if (!matches.length) return null;
++	if (matches.length === 1) return matches[0];
++	matches.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
++	return matches[0];
+ }
+ 
+ // Compute + append one {"cost":{...}} line to the session's own page.jsonl, if one
+diff --git a/Server/week-cost.mjs b/Server/week-cost.mjs
+index c2a41f0f..24e3a6b5 100644
+--- a/Server/week-cost.mjs
++++ b/Server/week-cost.mjs
+@@ -71,9 +71,23 @@ export function this_week_window(root = DEFAULT_ROOT){
+ // ---- Claude $: sum every session page.jsonl's LAST cost line, for a day inside the window ----
+ // Dated folders: public/framework/ai/<Y>/<M>/<D>/*/page.jsonl (numeric date tree — NOT the
+ // dashed task dirs like ai/2026-10-02/<slug>, which are a different, older convention).
++//
++// ⚠ DEDUPED BY SESSION (vscode-session-cost, 2026-10-04 — the owner's own ask: "the week total
++// counts each API call once"). A session that is still open past midnight has its ONE page
++// folder under an EARLIER day (the day it first wrote), but `session-cost.mjs`'s own
++// `find_page_jsonl()` used to only look under TODAY's folder — fixed there, same task — so this
++// walk would otherwise have been the only place still reading a session by its FOLDER rather
++// than its real id, with no protection if two folders ever existed for the same session (the
++// hook's own tmp marker file lost, a second folder created for the same id). Each folder's own
++// `total_usd` is already a cumulative, whole-transcript number (never a per-day slice), so two
++// folders for the same session would each report (most of) the SAME dollars — summing both
++// would double it. Grouped by the session's own id8 (the folder name's own `-<id8>` suffix,
++// the one stable fact every page folder carries) and only the folder with the LARGEST
++// `total_usd` is kept per id8 — the most complete read of that one transcript, never two reads
++// of it added together.
+ export function claude_spend(from, to, root = DEFAULT_ROOT){
+ 	const ai = join(root, "public", "framework", "ai");
+-	const top = [];
++	const by_id8 = new Map();   // id8 -> { session, usd, at }
+ 	let years;
+ 	try { years = readdirSync(ai, { withFileTypes: true }); } catch { return { total: 0, sessions: [] }; }
+ 	for (const y of years){
+@@ -100,11 +114,14 @@ export function claude_spend(from, to, root = DEFAULT_ROOT){
+ 					if (!last || typeof last.total_usd !== "number") continue;
+ 					const at = last.at ? Date.parse(last.at) : day_ms;
+ 					if (at < from || at > to) continue;
+-					top.push({ session: s.name, usd: last.total_usd });
++					const id8 = /-([0-9a-f]{8})$/.exec(s.name)?.[1] ?? s.name;   // the stable session key
++					const prev = by_id8.get(id8);
++					if (!prev || last.total_usd > prev.usd) by_id8.set(id8, { session: s.name, usd: last.total_usd, at });
+ 				}
+ 			}
+ 		}
+ 	}
++	const top = [...by_id8.values()];
+ 	const total = top.reduce((n, x) => n + x.usd, 0);
+ 	return { total, sessions: top };
+ }
+diff --git a/public/framework/ai/sessions/doc/decisions.md b/public/framework/ai/sessions/doc/decisions.md
+index 3fbb36e9..aa57ed1b 100644
+--- a/public/framework/ai/sessions/doc/decisions.md
++++ b/public/framework/ai/sessions/doc/decisions.md
+@@ -1,5 +1,58 @@
+ # Sessions — decisions
+ 
++## 2026-10-04 (vscode-session-cost) — a VS Code tab's own $ was silently stalling after midnight
++
++The owner's own words (dictated): "Is it possible to add the VS Code sidebar sessions... if
++we're not logging them to the same system... we should be... use hooks." Full brief:
++[`/framework/ai/2026-10-04/vscode-session-cost/requirements.md`](/framework/ai/2026-10-04/vscode-session-cost/requirements.md).
++
++**Item 1 (hooks, no timer) was already landed** by the same-day `token-accounting` task below —
++`.claude/settings.json`'s `Stop` hook already runs `node Server/session-cost.mjs --append-stdin`
++on every turn, for every session including a VS Code tab's. Checked, not assumed, before
++building anything new (CLAUDE.md law 6/7).
++
++**The real bug, found live:** `session-361c4d18` (the previous VS Code tab) really did cost
++$1,474.21 — a genuine 8,251-turn marathon session, not a rollup mistake; its own transcript
++scanned to the same number directly (no sidechain/subagent turns inflating it — checked). But
++`session-60d9def6` (the tab this very task's own mastermind was running in) showed **$5.32 /
++$29.12** in `week.json` while its real transcript, read directly, already priced out to
++**$110.07** — an $80+ undercount. Cause: `session-cost.mjs`'s `find_page_jsonl()` only ever
++looked under **today's** date folder for a session's `page.jsonl`. A session's page is created
++once, the day it first wrote (`prompt-relay.mjs`'s own cached `{day, slug}` marker) — so any
++session still open past midnight has its page under an **earlier** day's folder, and every Stop
++hook after midnight silently found nothing there and no-op'd (a quiet `console.error`, never a
++thrown error, so nothing ever surfaced this). The cost just stopped climbing, forever, the moment
++the clock rolled over.
++
++**The fix:** `find_page_jsonl()` now walks every `<Y>/<M>/<D>/` folder for the session's own
++`*-<id8>` directory — the identical rule `ai/sessions/page.js`'s own
++`session_page_dir_index()` already uses client-side (CLAUDE.md law 6: one rule for "which folder
++is this session's page"). Verified against the real files: it now finds `60d9def6`'s page under
++`ai/2026/10/03/`, appends the correct $110.07, and `week.json` (re-run by hand, the same manual
++snapshot it's always been) now shows it.
++
++**Item 2, "fix the roll-up":** two different things were checked, and only one was a bug.
++`spend-tree.json`'s own/subtree split is unaffected — it's a different population entirely (only
++Servex-registered agents; a VS Code tab is never a node in that tree, since it has no registry
++entry), so there was nothing to double-count there for a VS Code session specifically. What WAS
++a real double-count risk: if a session's page ever ended up with **two** folders (the hook's own
++tmp marker file lost mid-session), `week-cost.mjs`'s `claude_spend()` used to sum both folders'
++`total_usd` — each one a *cumulative, whole-transcript* number, so two folders for the same
++session would roughly double it. Fixed: `claude_spend()` now groups by the same `id8` and keeps
++only the larger total per session, never both added together.
++
++**Item 3, "show its inputs":** the "Per 1% of your weekly plan" tile (added 2026-10-03, see
++below) already had a `title=` explaining the number, but a title only shows on hover — the
++owner's own original complaint was exactly that a bare number "means nothing" to him. Added a
++small caption under the number itself: `$<claude $ this week> ÷ <plan % used>` — visible without
++hovering, no new computation (the same two numbers `usd_per_pct` was already divided from).
++
++**Left open:** `week.json`/`spend-tree.json` are still manual, run-by-hand snapshots (same
++"why a script, not a live route" gap the 2026-10-02 entry below names) — this task re-ran
++`week-cost.mjs` once, by hand, to prove the fix and refresh the live figure; it does not start
++a `--watch` loop (nothing in this fence manages a long-running process for the owner, and one
++already exists as a documented, named option for whoever wants it running continuously).
++
+ ## 2026-10-04 (token-accounting) — two real accounting mistakes, found and fixed; a cache $ breakdown added
+ 
+ The owner's own words (dictated): "make sure we're not making an accounting mistake... update in
+diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
+index 1f1c1268..9a830678 100644
+--- a/public/framework/ai/sessions/page.js
++++ b/public/framework/ai/sessions/page.js
+@@ -542,10 +542,11 @@ export default new Page({
+ 		const pct_text = typeof week?.plan_pct_used === "number" ? week.plan_pct_used + "%" : "—";
+ 		const money_body = parts => () => { span(parts.whole); span.c("sessions-stat-cents", parts.cents); };
+ 
+-		const tile = (label_text, body, title) => {
++		const tile = (label_text, body, title, foot) => {
+ 			const $tile = div.c("surface pad flex v gap", () => {
+ 				div.c("h4 muted", label_text);
+ 				div.c("h2", body);
++				if (foot) small.c("muted", foot);
+ 			}).style("--gap", "calc(var(--gap) * 0.1)");
+ 			if (title) $tile.attr("title", title);
+ 			return $tile;
+@@ -555,10 +556,16 @@ export default new Page({
+ 			tile("Claude this week", week ? money_body(claude) : "—");
+ 			tile("OpenRouter this week", week ? money_body(or) : "—");
+ 			tile("Plan used this week", pct_text);
++			// The owner's own words, 2026-10-03: "I'm not sure what '$26.65/1%' means" — the label
++			// plus a title= fixed that once, but a title only shows on hover. token-accounting
++			// (vscode-session-cost, 2026-10-04, item 3: "show its inputs") puts the two numbers this
++			// divides — the real Claude $ and the real percent-used — in plain sight underneath, so
++			// the figure never has to be taken on faith.
+ 			tile("Per 1% of your weekly plan", week?.usd_per_pct ? money_body(per_pct) : "—",
+ 				week?.usd_per_pct
+ 					? "How far $1 of Claude spend moves the plan's own weekly meter — the plan's week total divided by its own percent used."
+-					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).");
++					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).",
++				week?.usd_per_pct ? `$${claude.whole.slice(1)}${claude.cents} ÷ ${pct_text}` : null);
+ 			tile("Sessions shown", String(this.filtered_count));
+ 		});
+ 	},
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index c443be23..acf20d8b 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -70,6 +70,13 @@ grouped. Two real accounting bugs were found and fixed along the way (a wrong ca
+ and a task's own `cost_usd` undercounting a revived agent by up to 59%) — `doc/decisions.md`'s
+ 2026-10-04 entry has the full story.
+ 
++**A VS Code tab's own $ stopped updating after midnight (vscode-session-cost, 2026-10-04) — fixed.**
++A session's cost is found by its own page folder, wherever it lives (not just today's), so a tab
++left open overnight keeps pricing correctly instead of silently stalling. The "Per 1% of your
++weekly plan" stat tile now also shows the two numbers it divides underneath the figure, not just
++in a hover title. `doc/decisions.md`'s own 2026-10-04 entry (above the token-accounting one) has
++the full story.
++
+ ## Where the real dollars come from
+ 
+ Two SEPARATE scripts, neither live — both are run by hand and read by the page, same shape as

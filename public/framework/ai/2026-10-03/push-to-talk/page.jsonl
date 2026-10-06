@@ -1,0 +1,22 @@
+{"inbox":{"id":"n-93rk8wc7","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-03T22:18:11.528-05:00"}}
+{"file":"hotkeys-module/page.jsonl"}
+{"file":"inbox.jsonl"}
+{"file":"ptt-proof/page.jsonl"}
+{"file":"ptt-wiring/page.jsonl"}
+{"file":"requirements.md"}
+{"file":"review/"}
+{"file":"review.jsonl"}
+{"file":"shots/"}
+{"file":"spend.json"}
+{"file":"task.jsonl"}
+{"inbox":{"id":"n-9bhd5y7t","from":"servex-heartbeat","text":"task-mastermind-push-to-talk it did not answer the status check; Servex revived it and asked where it is at.","at":"2026-10-03T22:24:11.561-05:00"}}
+{"file":"layout-check/"}
+{"inbox":{"id":"n-2j96mdcj","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-04T12:02:03.070-05:00"}}
+{"inbox":{"id":"n-40mabpzn","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T12:43:32.819-05:00"}}
+{"inbox":{"id":"n-6awngko9","from":"servex-task-loop","text":"push-to-talk has been quiet since 2026-10-04T13:12:32-05:00 and did not land after 2 chases. Close it, or keep chasing?","at":"2026-10-04T13:47:32.044-05:00"}}
+{"inbox":{"id":"n-8nvmmw55","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T14:53:36.478-05:00"}}
+{"inbox":{"id":"n-irnza80l","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T19:36:29.350-05:00"}}
+{"inbox":{"id":"n-li4xfb1k","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T20:53:03.603-05:00"}}
+{"inbox":{"id":"n-lptm2j2s","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T20:59:02.186-05:00"}}
+{"inbox":{"id":"n-ndpzejap","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T21:45:36.842-05:00"}}
+{"inbox":{"id":"n-qyebl5ju","from":"servex-heartbeat","text":"task-mastermind-push-to-talk its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-04T12:36:15-05:00; not revived.","at":"2026-10-04T23:25:40.353-05:00"}}

@@ -10,3 +10,4 @@
 {"log":{"at":"2026-10-04T21:43:08-05:00","task":"day-cards","msg":"landed — Today/Yesterday pins, by-time/by-system day views, confidence scoring, retroactive refine; merged with --skip-smoke after confirming remaining fails are pre-existing/gitignored-by-design"}}
 {"log":{"at":"2026-10-04T21:54:22-05:00","task":"dictate-fixes-2","msg":"landed — mic-abort reload race, no mid-pause beeps, capped box (2-3 lines), one self-clearing status line; all proven headless, reviewed (1 fixed, 2 noted), merged to michael/dev"}}
 {"log":{"at":"2026-10-04T22:34:23-05:00","task":"mobile-doc-header","msg":"landed — Doc page header on mobile: tab row scrolls instead of wrapping, ~30% shorter before 600px"}}
+{"log":{"at":"2026-10-04T23:32:51-05:00","task":"clean-test-page","msg":"landed — Refine's Try-it page tests clean() live against local/OpenRouter/Haiku models, with a growing scored test set"}}

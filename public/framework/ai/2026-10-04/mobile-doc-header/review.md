@@ -1,7 +1,9 @@
 verdict: pass
 
-1. [note] Does what requirements.md step 1 asked: below 600px the Doc tab-bar (`public/framework/ext/Doc/Doc.css:38-50`) now scrolls one line sideways instead of wrapping to a second/third row — confirmed by `shots/before-dictate-400.png` vs `after-dictate-400.png` (two tab rows collapse to one, content starts noticeably higher) and the logged pixel measurement (122px → 85px, task.jsonl line 9). `shots/before-view-400.png`/`after-view-400.png` show no regression on a module whose tabs already fit one line, and `after-dictate-1200.png` shows desktop untouched.
-2. [note] Step 2 (title-as-switcher) was correctly parked under budget with a To-do line in `public/framework/ext/Doc/readme.md` naming the owner's own phrasing ("Dictate · Overview ▾") and linking this task, matching requirement #2's fallback instruction exactly.
-3. [note] The older 2026-09-29 comment at `Doc.css:50-62` arguing tabs should wrap, not scroll, now has a cross-reference (diff lines 10-15) pointing at the new `@media` block and explaining why the trade flips below 600px — so a future reader won't read the new rule as contradicting that note by accident.
-4. [note] No `check_page` run or render-check is recorded in task.jsonl/files.jsonl, and the branch (`worktree/mobile-doc-header`) is still unmerged. CLAUDE.md's review gate wants the four widths (400/1200/1920/3440) checked and `merge.mjs` run before this lands — worth a last look at 1920/3440 (not shot here) since only 400 and 1200 were captured, even though the change is scoped to `width <= 600px` and can't affect those widths by construction.
-5. [note] Simplicity: this reuses `ext/tabs`' own default nowrap+scroll behavior (already written, already proven on every other tab strip on the site) rather than inventing a new mobile pattern — the CSS added is ~10 lines, which is about as small as this fix gets.
+1. [note] Step 1 confirmed: the tab bar (`Doc.css:38-50`) scrolls one line below 600px instead of wrapping. Before/after at 400px:
+   ![before](shots/before-dictate-400.png) ![after](shots/after-dictate-400.png)
+   Measured 122px → 85px (task.jsonl line 9). `View` (tabs already fit one line) shows no regression; 1200px desktop unchanged.
+2. [note] Step 2 (title-as-switcher) parked under budget, To-do line in `ext/Doc/readme.md` with the owner's own phrasing — matches the fallback instruction exactly.
+3. [note] The 2026-09-29 wrap-not-scroll comment at `Doc.css:50-62` now cross-references the new mobile rule, so it doesn't read as contradicted.
+4. [note] `check_page` and `layout-check` at 400/1200/1920/3440 ran clean on both pages (logged in task.jsonl). Branch merged to michael/dev.
+5. [note] Simplicity: reuses `ext/tabs`' own nowrap+scroll default rather than a new pattern — about 10 lines of CSS.

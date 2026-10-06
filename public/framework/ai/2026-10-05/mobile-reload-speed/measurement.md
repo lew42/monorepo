@@ -42,10 +42,12 @@ Content-Length: (none — no body sent)
 | reload, total bytes | 60,118 B (every file re-sent in full) | **0 B** (every eligible file → 304) |
 | reload request count that got a 304 | 0 / 6 | 5 / 6 (the 6th, `/framework/app.js`, is under the 1KB threshold and never went through `compress.js` — `express.static` already gave it a 304 on its own, both before and after) |
 
-On the owner's phone, a full page's module graph is hundreds of these files. Turning every one
-of them into an empty 304 on a reload is the actual fix for "every reload takes seconds" — it
-removes almost all of the response bytes on a reload, without removing a single request (that's
-step 2, modulepreload, explicitly left out — see requirements.md's "Not in scope").
+A full page's module graph on the phone is hundreds of files like these six. Turning each one
+into an empty 304 on a reload is the fix for "every reload takes seconds": it removes almost
+all the response bytes.
+
+It does not remove any requests — that's step 2, modulepreload, left out on purpose
+(see requirements.md's "Not in scope").
 
 ## How this was proven live
 Edited in a worktree (`worktree/mobile-reload-speed`, commit `eecf012a`), and separately verified

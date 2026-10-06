@@ -8,13 +8,12 @@
    session_model(s, "fast") now picks: openai/gpt-6-luna (must be openai/gpt-6-luna)
 
    the FRESH openai/gpt-6-luna agent's reply to the owner's re-sent line ("what time is it"):
-     "I’m not sure of the current time."
+     "(no answer: No agent "fake-case2", live or in the registry.)"
 
    last lines of this session's file (the switch itself IS recorded there, for the owner to see):
-{"session":{"id":"v-kudp4rk","home":"/framework/","at":"2026-10-04T19:31:11.053-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
-{"chat":{"at":"2026-10-05T00:31:11.055Z","session":"v-kudp4rk","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
-{"chat":{"at":"2026-10-04T19:31:11.055-05:00","session":"v-kudp4rk","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
-{"backing":{"at":"2026-10-04T19:31:11.078-05:00","fast":"f8427cc4-1660-4c7e-ade4-8a625e95b566","smart":null,"how":{"fast":"new"}}}
+{"session":{"id":"v-09rrbo1","home":"/framework/","at":"2026-10-05T13:26:56.247-05:00","project":"prove-case2","host":"prove-case2.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"chat":{"at":"2026-10-05T18:26:56.249Z","session":"v-09rrbo1","path":"/framework/","from":{"kind":"owner"},"via":"text","text":"what time is it"}}
+{"chat":{"at":"2026-10-05T13:26:56.250-05:00","session":"v-09rrbo1","path":"/framework/","from":{"kind":"system","id":"servex"},"via":"text","text":"Claude refused the fast assistant for usage limits; switched it to openai/gpt-6-luna (OpenRouter)."}}
 
 3. THE REAL CASE — a refused turn wakes as "done:", with the actual reason only on the live
    agent's own last_error (what Agents.js's result() actually does for a non-one_shot agent):

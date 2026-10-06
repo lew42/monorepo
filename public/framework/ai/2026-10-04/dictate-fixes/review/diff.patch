@@ -1,0 +1,350 @@
+diff --git a/public/framework/ai2/card.js b/public/framework/ai2/card.js
+index 331bb740..6cb49f04 100644
+--- a/public/framework/ai2/card.js
++++ b/public/framework/ai2/card.js
+@@ -324,6 +324,9 @@ export default class Card extends Page {
+ 					re: () => this.id,
+ 					placeholder: sub ? "talk into this request" : "talk into this card",
+ 					on_text: text => this.talk.echo(text),
++					// INSTANT FEEDBACK (deliverable 3, 2026-10-04) — see `ai2/rail.js`'s own
++					// identical wiring for why two `live()` calls, not one.
++					on_send_start: text => { this.talk.live({ text }); this.talk.live({ text: "", sent: true }); },
+ 					autostart: fresh && shell.auto_transcribe?.(),
+ 				});
+ 				// The chat's own inline-start edge. ONE chat column on screen at a time (the
+diff --git a/public/framework/ai2/live.js b/public/framework/ai2/live.js
+index 23830a4a..54788f4d 100644
+--- a/public/framework/ai2/live.js
++++ b/public/framework/ai2/live.js
+@@ -102,6 +102,28 @@ export function live_model({ prompts, day }){
+ 		changed();
+ 	}
+ 
++	/* A FINISHED TASK NEVER STAYS PINNED (the owner, 2026-10-04: "a weird task
++	 * mastermind, something about the data grid, pinned... taking up a huge amount
++	 * of space"). `tasks()` below reads its `state` from the Dispatcher's own
++	 * `{type:"task"}` lines on the `prompts` log — but that log is NEVER scoped to
++	 * a day and a task-mastermind that lands WITHOUT also posting a final
++	 * `state:"landed"` line back to it (it can land purely through its own
++	 * `task.jsonl`'s `landed_at`, which this log never sees) stays "working" there
++	 * forever, so the Live card's task list only ever grows. `tasks.json` is the
++	 * one place that already computes "landed" the RIGHT way — `Servex/asks/
++	 * tasks.js`'s own `facts.landed`, straight from each task's `task.jsonl` — so
++	 * this reads it too and a task's OWN directory is the final word, no matter
++	 * what the Dispatcher's log still says. */
++	let landed_dirs = new Set();
++	async function poll_tasks_json(){
++		if (document.hidden) return;
++		try {
++			const rows = (await (await servex_fetch("/framework/ai/tasks.json", { cache: "no-store" })).json())?.tasks ?? [];
++			landed_dirs = new Set(rows.filter(r => r.landed).map(r => r.dir.split("/").pop()));
++		} catch { /* leave the last-known set in place — a fetch hiccup must never UN-hide a task that was already confirmed landed */ }
++		changed();
++	}
++
+ 	/** All three limits, in the owner's order — weekly Fable too, even at 0%. */
+ 	function limits(){
+ 		const all = usage?.utilization?.limits ?? [];
+@@ -117,13 +139,14 @@ export function live_model({ prompts, day }){
+ 		changed();
+ 	});
+ 
+-	poll_agents(); poll_usage(); poll_pool();
++	poll_agents(); poll_usage(); poll_pool(); poll_tasks_json();
+ 	setInterval(poll_agents, 30000);
+ 	setInterval(poll_usage, 60000);
+ 	setInterval(poll_pool, 30000);
++	setInterval(poll_tasks_json, 30000);
+ 	// Each poll above skips itself while hidden; catch up the moment the tab is
+ 	// looked at again instead of waiting for the next scheduled tick.
+-	document.addEventListener("visibilitychange", () => { if (!document.hidden){ poll_agents(); poll_usage(); poll_pool(); } });
++	document.addEventListener("visibilitychange", () => { if (!document.hidden){ poll_agents(); poll_usage(); poll_pool(); poll_tasks_json(); } });
+ 	log.on(changed);
+ 	log.ready.then(changed);
+ 	prompts.on(changed);
+@@ -150,7 +173,9 @@ export function live_model({ prompts, day }){
+ 		});
+ 		by_id.forEach(t => { if (t.paused && t.state !== "landed") Object.assign(t, { state: "not-started",
+ 			line: "never started — spoken while dispatch was paused; say it again to start it" }); });
+-		return [...by_id.values()].filter(t => t.state !== "landed");
++		// `tasks.json`'s own `landed` fact wins over a stale "working" the Dispatcher's log
++		// never got updated out of — see `poll_tasks_json()`, above.
++		return [...by_id.values()].filter(t => t.state !== "landed" && !landed_dirs.has(t.id));
+ 	}
+ 
+ 	function running(){
+diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
+index 622f0f23..dea73bcb 100644
+--- a/public/framework/ai2/rail.js
++++ b/public/framework/ai2/rail.js
+@@ -618,6 +618,14 @@ function card_page(root, id){
+ 					re: () => id,   // asked fresh on every send: this composer belongs to this card
+ 					placeholder: id === LIVE ? "talk to the assistant about what is running" : "talk into this card",
+ 					on_text: text => talk.echo(text),
++					// INSTANT FEEDBACK (deliverable 3, 2026-10-04): a bubble the instant a send
++					// starts, raw text, same fading "sent" bubble `Chat.js`'s own `live()` already
++					// draws for the open-mic stream — reused, not rebuilt. `live()` needs the draft
++					// bubble to exist before it can mark it "sent" (that is what the open-mic's own
++					// growing bubble already is, by the time it sends) — this composer has none, so
++					// one call draws it, the next immediately fades it; it is then replaced by the
++					// real line streaming back, or fades fully after 15s with nothing.
++					on_send_start: text => { talk.live({ text }); talk.live({ text: "", sent: true }); },
+ 					autostart: fresh && auto_transcribe(),
+ 				});
+ 			});
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index 5a024a0a..9f72b6df 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -44,6 +44,7 @@ export function composer({
+ 	on_revised,        // (text, {raw, level}) => … — forwarded the same way, straight from `ux/Dictate`; does nothing unset
+ 	try_command,       // (text) => boolean — an HITL command ("rename this") the box swallows instead of sending; true = handled
+ 	on_live,           // ({text, settled, guess, sent}) => … — dictation goes into a growing chat bubble, not the box (Mic.js SETTINGS.into)
++	on_send_start,     // (raw_text) => … — a send just started, BEFORE the clean-up wait (deliverable 3: instant feedback); forwarded to ComposerMic
+ 	on_meter,          // (level) => … — forwarded straight to `ComposerMic`/`Dictate`'s own `on_meter`: a caller's own bigger level bar
+ 	                    // beside the mic button (`ux/Dictate/Widget.js`'s `level: true` option, one-dictation review finding 4).
+ 	device_id,         // forwarded straight to `Dictate`'s own `device_id` — a caller that already picked one mic by hand. Unset, every
+@@ -75,6 +76,7 @@ export function composer({
+ 				revise,
+ 				on_clean: on_revised,   // NOT `on_revised:` — that name would shadow ComposerMic's own method (Mic.js, on_revised)
+ 				on_live,
++				on_send_start,
+ 				on_meter, device_id,
+ 				field: $input,
+ 				on_error: e => note(String(e?.message ?? e)),
+@@ -193,6 +195,7 @@ export function composer({
+ 		const target = re();
+ 		if (target){ entry.re = target; entry.selected = target; }
+ 		on_text?.(msg);
++		on_send_start?.(msg);   // instant feedback, same seam as the mic's own auto-send
+ 		note("sending…");
+ 		let ok = false;
+ 		try { ok = await deliver?.(entry); } catch (e){ console.error("chat: Send failed", e); }
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 430a8176..c52ac9e8 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -704,6 +704,16 @@ export class ComposerMic extends Dictate {
+ 		if (this.sending_screen) return;
+ 		if (!this.box()?.value.trim()) return;
+ 		this.sending_screen = true;
++		// INSTANT FEEDBACK (the owner, 2026-10-04: "instead of putting it quickly into the
++		// UI, it takes a minute… we always want that instant feedback"). `await_clean()`
++		// below can wait up to 5s for the fast assistant's clean-up before the box even
++		// clears — the exact "minute" the owner saw, since nothing reached the chat log
++		// until AFTER that wait. `on_send_start(raw)` fires HERE, before any of that,
++		// with whatever is on screen right now: the caller (`Composer.js` → the rail/card's
++		// own chat) draws it at once via `Chat.js`'s own `live({text, sent:true})` — the
++		// same fading "sent" bubble already built for the open-mic live stream, reused
++		// rather than a second mechanism. Nothing about the clean-up wait itself changes.
++		this.on_send_start?.((this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim());
+ 		try {
+ 			await this.await_clean();
+ 			const text = this.box()?.value.trim();
+@@ -744,6 +754,8 @@ export class ComposerMic extends Dictate {
+ 
+ 	async flush_held(){
+ 		clearTimeout(this.held_timer);
++		// INSTANT FEEDBACK, same seam as `send_screen()` above — fire before the clean-up wait, not after.
++		this.on_send_start?.((this.held ?? []).map(h => h.raw ?? h.text).join(" ").trim());
+ 		await this.await_clean();   // deliverable 2: wait ~5s for anything still cleaning, then send what's there
+ 		const held = (this.held ?? []);
+ 		this.notify_if_failed(held);
+@@ -767,8 +779,33 @@ export class ComposerMic extends Dictate {
+ 	   text to give — `raw` is only ever added to the entry when it differs from `text`,
+ 	   deliverable 2: "the message that is sent is the clean text, with the raw kept on
+ 	   the entry"). */
++	/* ⚠ NEVER SEND THE SAME SENTENCE TWICE IN A ROW (the owner, 2026-10-04: "I said
++	 * something and see it appear in the same chat bubble four times in a row"). Several
++	 * paths can hand a finished utterance to `post_held()` close together for the SAME
++	 * words — a pause-triggered `send_screen()` and a safety-chunk `check_chunk()` both
++	 * noticing the same held text within one 250ms tick, or a late Whisper final landing
++	 * right after its own guess was already sent — and each one is a genuinely separate,
++	 * correctly-built `entry`, so nothing upstream of this point is "wrong" to de-dupe.
++	 * This is the one seam every outgoing send already passes through, so it is the one
++	 * place that can catch all of them: the same text (case/space-insensitive), from the
++	 * SAME mic, within `DUP_WINDOW_MS`, is logged and dropped instead of posted again.
++	 * A real, separately-spoken repeat ("yes. yes.") is two SEGMENTS at least a pause
++	 * apart, almost always well outside this window — `pause_ms` (700ms) plus the time to
++	 * actually say the word. */
++	same_as_last_send(text){
++		// Same normalisation `strip_words()` already uses above (word-for-word, ignoring
++		// case and punctuation) — Whisper's own re-punctuation of an identical resend
++		// ("turn on the lights" vs "Turn on the lights.") must still count as the same words.
++		const norm = String(text ?? "").toLowerCase().split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(Boolean).join(" ");
++		const now = performance.now();
++		const dup = !!norm && norm === this.last_sent_norm && now - (this.last_sent_at ?? -Infinity) < ComposerMic.DUP_WINDOW_MS;
++		this.last_sent_norm = norm; this.last_sent_at = now;
++		return dup;
++	}
++
+ 	async post_held(item){
+ 		const { text, raw } = typeof item === "string" ? { text: item, raw: null } : item;
++		if (this.same_as_last_send(text)){ console.warn("chat: dropped a duplicate send (same words, " + ComposerMic.DUP_WINDOW_MS + "ms window):", text); return; }
+ 		const entry = { type: "prompt", by: "owner", text, via: "whisper" };
+ 		if (raw && raw.trim() && raw.trim() !== text.trim()){ entry.raw = raw; entry.level = "clean"; }
+ 		const re = this.re?.();
+@@ -782,3 +819,4 @@ export class ComposerMic extends Dictate {
+ 	}
+ }
+ ComposerMic.prototype.mode = "open";   // the mic stays on; Dictate writes nothing itself — draw_caption() types into the box
++ComposerMic.DUP_WINDOW_MS = 4000;   // same words, this close together, from the same mic -> one send, not several (see post_held/same_as_last_send)
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index e516de29..b899c28e 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -4,6 +4,7 @@ import Revise from "../Revise/Revise.js";
+ import { servex_url } from "/framework/dev/servex_url.js";
+ import floor from "./floor.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
++import Socket from "/framework/dev/Socket/Socket.js";
+ 
+ View.stylesheet(import.meta, "Dictate.css");
+ 
+@@ -60,6 +61,18 @@ if (globalThis.document){
+  *  specific device passes `device_id` and that wins over the remembered one. */
+ export const DEVICE_KEY = "lew42.dictate.device";
+ 
++/** **Did whisper ever answer on this browser?** Remembered so a LATER failure to
++ *  reach it reads as "whisper just went quiet", not "this machine has no whisper" —
++ *  the two need different endings. A machine that has never once seen whisper (no
++ *  install, Firefox, iOS Safari) keeps today's behaviour: the browser's own
++ *  recognizer, picked quietly, no error shown. A machine where whisper HAS worked
++ *  before gets a clear line instead, and the browser's recognizer is never engaged
++ *  automatically — the owner's own freeze, 2026-10-04: "Chrome's recognition is
++ *  never used automatically." See `detect_engine()`. */
++const WHISPER_SEEN_KEY = "lew42.dictate.whisper_seen";
++function whisper_seen(){ try { return localStorage.getItem(WHISPER_SEEN_KEY) === "1"; } catch { return false; } }
++function mark_whisper_seen(){ try { localStorage.setItem(WHISPER_SEEN_KEY, "1"); } catch {} }
++
+ /** Remember (or, with no id, forget) the owner's microphone. Never throws —
+  *  `localStorage` is unreadable in some privacy modes, and a dictation must not
+  *  fail because a preference could not be saved.
+@@ -190,6 +203,13 @@ export default class Dictate extends View {
+ 				this.$status = span.c("ux-dictate-status muted");
+ 				this.$countdown = span.c("ux-dictate-countdown muted");
+ 				this.$countdown.el.hidden = true;
++				// ALWAYS-VISIBLE STAGES (the owner, 2026-10-04, after a reload left the mic
++				// stuck at "connecting…" with no clue which part was stuck): mic / socket /
++				// whisper, one small muted line, so the next time this happens the reader —
++				// or a headless check reading this same text — can see exactly where it stopped
++				// instead of guessing. `log_step()` below is the one place that updates it.
++				this.$diag = span.c("ux-dictate-diag muted");
++				this.steps = { mic: "idle", socket: "", whisper: "" };
+ 
+ 				if (this.mode !== "open") label.c("ux-dictate-pause-opt flex v-center muted", () => {
+ 					this.$send_on_pause = input().attr("type", "checkbox")
+@@ -245,6 +265,11 @@ export default class Dictate extends View {
+ 	 * built above is shown, hidden, or labelled (`code` skill §1). */
+ 	async init(){
+ 		this.engine = await this.detect_engine();
++		if (this.engine === "whisper-down"){
++			this.$engine.text("");
++			this.$status.rc("error").text("whisper has gone quiet — tap 🎤 to see why");
++			return;   // the button stays up: pressing it runs start(), which explains in full
++		}
+ 		if (!this.engine){
+ 			this.$button.el.hidden = true;
+ 			this.$engine.text("no dictation engine reachable — start whisper, or use Chrome");
+@@ -253,6 +278,29 @@ export default class Dictate extends View {
+ 		this.name_engine();
+ 	}
+ 
++	/** One stage changed — console-logged with a `[dictate]` prefix (the owner, 2026-10-04:
++	 *  "log each step... so a headless load can read the order of events") and folded into
++	 *  the always-visible `$diag` line. `stage` is `"mic" | "socket" | "whisper"`. */
++	log_step(stage, detail){
++		this.steps[stage] = detail;
++		console.log(`[dictate] ${stage}: ${detail}`);
++		this.draw_diag();
++	}
++
++	draw_diag(){
++		if (!this.$diag) return;
++		const s = this.steps;
++		this.$diag.text(`mic: ${s.mic || "idle"} · socket: ${s.socket || "—"} · whisper: ${s.whisper || "—"}`);
++	}
++
++	/* "connected" / "retrying" — read straight off the dev socket singleton (the one the
++	 * owner named: "a reconnect race"). A production build (no dev socket) reads "—": this
++	 * stage is diagnostic, never something dictation itself depends on. */
++	socket_status(){
++		try { const s = Socket.singleton?.(); return s ? (s.connected ? "connected" : "retrying") : "—"; }
++		catch { return "—"; }
++	}
++
+ 	/* Re-checked on every press, not just once — the owner may start
+ 	 * whisper-server, or it may have been stopped, between two presses of the
+ 	 * same button. */
+@@ -260,11 +308,28 @@ export default class Dictate extends View {
+ 	 * longer than 800 ms just to wake its Wi-Fi radio. Whisper then looked "unreachable", the
+ 	 * phone fell back to its own recognizer, and that recognizer repeats and beeps (see
+ 	 * `heard_browser()`). The cost of the longer wait is only paid when whisper really is down. */
++	/* ⚠ ONE RETRY, SHORT GAP (2026-10-04 — the owner, on a reload: "worked, then reload stuck
++	 * at connecting, then abort, then Chrome's recognizer"). A page reload fires this health
++	 * check again at once; if the PREVIOUS page's mic/socket were still a few hundred ms into
++	 * tearing down, the very first request after a reload can time out for reasons that have
++	 * nothing to do with whisper actually being down. One retry after a short pause (400 ms)
++	 * tells the two apart without materially slowing the common case (whisper answers in well
++	 * under a second once it is warm). */
+ 	async detect_engine(){
+-		try {
+-			const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
+-			if (r.ok) return "whisper";
+-		} catch { /* not reachable — fall through */ }
++		this.log_step("socket", this.socket_status());
++		for (let attempt = 1; attempt <= 2; attempt++){
++			this.log_step("whisper", attempt === 1 ? "checking…" : "checking again…");
++			try {
++				const r = await fetch_timeout(this.whisper_url + "/", {}, 2500);
++				if (r.ok){ this.log_step("whisper", "answering"); mark_whisper_seen(); return "whisper"; }
++			} catch { /* not reachable — retry once, then fall through */ }
++			if (attempt === 1) await new Promise(res => setTimeout(res, 400));
++		}
++		this.log_step("whisper", "not reachable");
++		// WHISPER WORKED BEFORE ON THIS BROWSER: never slide into the browser's own
++		// recognizer by itself — that silent swap is the exact "beeping" bug. Say so
++		// instead and stop; `start()` turns this into the clear line on screen.
++		if (whisper_seen()) return "whisper-down";
+ 		return Recognition ? "browser" : null;
+ 	}
+ 
+@@ -318,8 +383,18 @@ export default class Dictate extends View {
+ 		this.cancel_connect = false;
+ 		this.on_start?.();
+ 
++		this.log_step("mic", "checking the engine…");
+ 		this.engine = await this.detect_engine();
++		if (this.engine === "whisper-down"){
++			// NEVER the browser's own recognizer here — that silent swap is the bug this
++			// freeze exists to kill. One clear line, nothing started, no beep.
++			this.log_step("mic", "refused: whisper not reachable");
++			this.set_state("idle");
++			this.set_error("Whisper has gone quiet — it answered before, but not just now. Check whisper-server is still running (doc/decisions.md), then press 🎤 again. The browser's own recognizer is not used automatically.");
++			return;
++		}
+ 		if (!this.engine){
++			this.log_step("mic", "refused: no engine reachable");
+ 			this.set_error("No microphone engine is reachable right now — start whisper-server, or use Chrome.");
+ 			return;
+ 		}
+@@ -346,9 +421,11 @@ export default class Dictate extends View {
+ 				this.set_error("The microphone never actually started — allow microphone access for this site, or check nothing else is using it, and press 🎤 again.");
+ 		}, 8000);
+ 
++		this.log_step("mic", "requesting…");
+ 		try {
+ 			this.engine === "whisper" ? await this.start_whisper() : this.start_browser();
+ 		} catch (e){
++			this.log_step("mic", "refused: " + (e?.name ?? e?.message ?? e));
+ 			this.set_error(this.explain(e));
+ 			return;
+ 		}
+@@ -357,6 +434,7 @@ export default class Dictate extends View {
+ 			try { this.rec?.stop(); } catch {}
+ 			return;
+ 		}
++		this.log_step("mic", "ok");
+ 		// The browser engine sets "listening" itself, from `rec.onstart` (below) — its
+ 		// own `.start()` call returns long before recognition is actually live.
+ 		if (this.engine === "whisper"){ clearTimeout(this.connect_watchdog); this.set_state("listening"); }

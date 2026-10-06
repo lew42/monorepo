@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ai/sessions/",
+ "widths": {
+  "1280": {
+   "empty": 0.595,
+   "widest_text": 603,
+   "widest_text_sample": "Cache $ breakdown, all-time — share of e",
+   "overflow_x": false,
+   "items": 2079,
+   "narrow_share": 0.879
+  },
+  "1920": {
+   "empty": 0.721,
+   "widest_text": 642,
+   "widest_text_sample": "Cache $ breakdown, all-time — share of e",
+   "overflow_x": false,
+   "items": 2079,
+   "narrow_share": 0.983
+  },
+  "2560": {
+   "empty": 0.762,
+   "widest_text": 722,
+   "widest_text_sample": "Cache $ breakdown, all-time — share of e",
+   "overflow_x": false,
+   "items": 2079,
+   "narrow_share": 0.983
+  },
+  "3440": {
+   "empty": 0.832,
+   "widest_text": 722,
+   "widest_text_sample": "Cache $ breakdown, all-time — share of e",
+   "overflow_x": false,
+   "items": 2079,
+   "narrow_share": 0.983
+  }
+ },
+ "errors": []
+}

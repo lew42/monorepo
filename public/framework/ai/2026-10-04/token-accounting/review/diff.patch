@@ -1,0 +1,582 @@
+diff --git a/Server/doc/task-cost.md b/Server/doc/task-cost.md
+index 88bce5b6..43b569b5 100644
+--- a/Server/doc/task-cost.md
++++ b/Server/doc/task-cost.md
+@@ -76,6 +76,34 @@ restarted and began counting from zero again. The tool banks the earlier total a
+ - Agents are keyed by their id. An agent that comes back under the same id after a restart
+   keeps adding to the same figure.
+ 
++### The agent log can go quiet — the transcript is preferred when it can be (2026-10-04, token-accounting)
++
++The agent log above only grows when Servex actually captures a `result` event. A Servex restart,
++or a revive mid-turn, can drop one of those events — the real API calls still happened and were
++still billed, but nothing ever wrote them into `agent-<id>.jsonl`, so the running total silently
++stops short and never catches up. **Found real, not theoretical:** `task-mastermind-models-page`'s
++own agent log topped out at $7.09; its own Claude Code transcript (the file the CLI itself writes,
++with no dependency on Servex's own event pipeline) priced out to $17.22 for the exact same work —
++a 59% undercount the task's own card was showing as its whole cost.
++
++So for any agent that isn't OpenRouter (an OpenRouter agent's own `cost` is already real billed
++money, not a derived estimate — untouched), `task-cost.mjs` now prefers the transcript: it finds
++the agent's own session transcript by its registry `session_id`
++(`Server/session-cost.mjs`'s `find_transcript`), prices every turn through that same script's one
++`PRICES` table (`cost_of_transcript`), and uses THAT total instead of the agent log's — but only
++when it reads at least as large as the agent log's own total (the transcript should always be a
++superset; a *lower* reading means something else is wrong — an aged-off transcript, a reused
++session id — and the agent log is the safer number to fall back to rather than silently shrinking
++a figure the board already shows). `Server/spend-tree.mjs` makes the identical substitution for
++the same reason, so the two scripts' own-$ numbers for one agent never disagree.
++
++**This is also why the PRICES table's own correctness matters here, not just for `session-cost.mjs`**
++— it was wrong until this same task fixed it: cache **writes** were priced at `in × 1.25` (the
++5-minute-cache rate) when every agent on this machine actually runs the 1-hour-cache rate, `in ×
++2`. Proved against three real agents' own billed `cost` field, turn by turn, exact to the last
++decimal once the multiplier was `× 2`. See `public/framework/ai/sessions/doc/decisions.md`'s
++2026-10-04 entry for the full math and the per-agent before/after numbers.
++
+ ## One agent, several tasks: split by time
+ 
+ A mastermind that lands one task is often handed the next one, so four or five task dirs can
+diff --git a/Server/session-cost.mjs b/Server/session-cost.mjs
+index f63853a0..d27cea51 100644
+--- a/Server/session-cost.mjs
++++ b/Server/session-cost.mjs
+@@ -30,9 +30,23 @@ const ROOT = join(here, "..");
+ // $ per 1,000,000 tokens, in/out. From the owner's own brief (2026-10-02,
+ // public/framework/ai/2026-10-02/session-costs/minion-build/requirements.md) — no
+ // pricing table existed in this repo before this file.
+-// Cache reads run about 0.1x the input price, cache writes about 1.25x — these two
+-// multipliers are ESTIMATES (the real ratio varies slightly by model); the closest
+-// documented numbers are good enough for a figure the readme already calls an estimate.
++//
++// ⚠ FIXED 2026-10-04 (token-accounting): cache_write was `in * 1.25` (the 5-minute-cache
++// multiplier) — WRONG for this machine, and the real accounting mistake the owner asked
++// this task to find. Claude Code agents here run with the 1-HOUR prompt-cache TTL (see
++// this session's own environment note), whose write price is `in * 2`, not `in * 1.25`.
++// Proved against 3 real Servex agent logs, not assumed: for every `result` line in
++// `agent-task-mastermind-models-page.jsonl`, `agent-clarity-models-page.jsonl` and
++// `agent-reviewer-models-page.jsonl`, the SDK's own billed `cost` (the ground truth
++// Anthropic actually charged, read straight off the API response — see Agents.js:1561)
++// matches `(input*in + output*out + cache_read*in*0.1 + cache_write*in*2) / 1e6` to the
++// LAST DECIMAL, every single turn — e.g. one turn: cost=0.1862686, usage
++// {input:8, output:1200, cache_read:739663, cache_write:6580} → with *2 the formula gives
++// exactly 0.1862686; with the old *1.25 it gives 0.1763986, 5.3% low. The *0.1 cache-read
++// multiplier was already correct (same exact-match test) — only cache_write was wrong.
++// This table is the ONE place any script in this repo prices a token (session-cost.mjs,
++// week-cost.mjs, spend-tree.mjs all import it) — fixing it here fixes every reader at once,
++// per CLAUDE.md law 6: no second copy of a price table to go stale separately.
+ export const DEFAULT_MODEL = "claude-sonnet-5";
+ export const PRICES = {
+ 	"claude-sonnet-5":  { in: 2,  out: 10 },
+@@ -42,15 +56,17 @@ export const PRICES = {
+ 	"claude-fable-5":   { in: 10, out: 50 },
+ 	"claude-fable-5-1": { in: 10, out: 50 },
+ };
+-for (const p of Object.values(PRICES)) { p.cache_read = p.in * 0.1; p.cache_write = p.in * 1.25; }
++for (const p of Object.values(PRICES)) { p.cache_read = p.in * 0.1; p.cache_write = p.in * 2; }
+ 
+ const r4 = n => Math.round(n * 10000) / 10000;
+ 
+ // An unknown model name falls back to the default's price and is listed in the
+ // result's `unknown_models` — never thrown, this is an estimate, not a hard failure.
+-function price_for(model, unknown_models){
++// Exported: the one function every other script should call to price a call, instead of
++// reading PRICES directly and re-deriving the same fallback-and-report logic a second time.
++export function price_for(model, unknown_models){
+ 	if (PRICES[model]) return PRICES[model];
+-	unknown_models.add(model);
++	unknown_models?.add(model);
+ 	return PRICES[DEFAULT_MODEL];
+ }
+ 
+@@ -67,10 +83,13 @@ const lines_of = file => existsSync(file)
+ // real prompt boundary and is skipped when looking for "the nearest earlier user line".
+ export function cost_of_transcript(path){
+ 	const unknown_models = new Set();
+-	const groups = [];                 // in file order: { at, usd, input, output, cache_read, cache_write, model }
++	// `usd_in`/`usd_out`/`usd_cache_read`/`usd_cache_write` are the SAME `usd` total, split by
++	// which kind of token earned it — the per-call breakdown the token-accounting task asked
++	// for ("precisely... their cache costs"), computed once here (never re-derived elsewhere).
++	const groups = [];                 // in file order: { at, usd, usd_in, usd_out, usd_cache_read, usd_cache_write, input, output, cache_read, cache_write, model }
+ 	let current = null;
+ 	const group_for = at => {
+-		if (!current || current.at !== at) { current = { at, usd: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, model: null }; groups.push(current); }
++		if (!current || current.at !== at) { current = { at, usd: 0, usd_in: 0, usd_out: 0, usd_cache_read: 0, usd_cache_write: 0, input: 0, output: 0, cache_read: 0, cache_write: 0, model: null }; groups.push(current); }
+ 		return current;
+ 	};
+ 
+@@ -87,15 +106,27 @@ export function cost_of_transcript(path){
+ 		const price = price_for(model, unknown_models);
+ 		const input = usage.input_tokens || 0, output = usage.output_tokens || 0;
+ 		const cache_read = usage.cache_read_input_tokens || 0, cache_write = usage.cache_creation_input_tokens || 0;
+-		g.usd += (input * price.in + output * price.out + cache_read * price.cache_read + cache_write * price.cache_write) / 1e6;
++		const usd_in = input * price.in / 1e6, usd_out = output * price.out / 1e6;
++		const usd_cache_read = cache_read * price.cache_read / 1e6, usd_cache_write = cache_write * price.cache_write / 1e6;
++		g.usd += usd_in + usd_out + usd_cache_read + usd_cache_write;
++		g.usd_in += usd_in; g.usd_out += usd_out; g.usd_cache_read += usd_cache_read; g.usd_cache_write += usd_cache_write;
+ 		g.input += input; g.output += output; g.cache_read += cache_read; g.cache_write += cache_write;
+ 		g.model = model;
+ 	}
+ 
+ 	const by_prompt = groups.filter(g => g.input || g.output || g.cache_read || g.cache_write)
+-		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model }));
++		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model,
++			usd_breakdown: { in: r4(g.usd_in), out: r4(g.usd_out), cache_read: r4(g.usd_cache_read), cache_write: r4(g.usd_cache_write) } }));
+ 	const total_usd = r4(by_prompt.reduce((n, g) => n + g.usd, 0));
+-	return { total_usd, by_prompt, unknown_models: [...unknown_models] };
++	// The SAME four numbers, summed across every prompt — the session's own total breakdown,
++	// plus the one figure the brief named explicitly: what share of the $ came from cache reads.
++	const usd_breakdown = by_prompt.reduce((n, g) => ({
++		in: n.in + g.usd_breakdown.in, out: n.out + g.usd_breakdown.out,
++		cache_read: n.cache_read + g.usd_breakdown.cache_read, cache_write: n.cache_write + g.usd_breakdown.cache_write,
++	}), { in: 0, out: 0, cache_read: 0, cache_write: 0 });
++	for (const k of Object.keys(usd_breakdown)) usd_breakdown[k] = r4(usd_breakdown[k]);
++	const cache_read_pct = total_usd ? r4(usd_breakdown.cache_read / total_usd * 100) : 0;
++	return { total_usd, usd_breakdown, cache_read_pct, by_prompt, unknown_models: [...unknown_models] };
+ }
+ 
+ // The one most useful string for a tool_use block's own `input` — ai/sessions'
+@@ -216,11 +247,17 @@ export function append_cost(session_id, root = ROOT){
+ 	// minimum shape — the Sessions detail page (ai/sessions/page.js) shows a compact per-prompt
+ 	// row with token counts, which needs them; harmless to any reader that only looks at
+ 	// `total_usd`/`last_prompt_usd`/`by_model`.
++	// `usd_breakdown`/`cache_read_pct` (token-accounting, 2026-10-04) are the same, additive:
++	// the session's whole-run $ split by token kind, and the one figure the owner asked for by
++	// name — what share of the $ is cache reads. `last_prompt_usd_breakdown` is the same split
++	// for just the newest prompt, matching `last_prompt_usd`'s own "just this turn" grain.
+ 	const tmpdir_path = mkdtempSync(join(tmpdir(), "session-cost-"));
+ 	const tmp = join(tmpdir_path, "line.json");
+ 	writeFileSync(tmp, JSON.stringify([{ cost: {
+ 		total_usd: result.total_usd, last_prompt_usd: last ? last.usd : 0,
+ 		last_prompt_input: last ? last.input : 0, last_prompt_output: last ? last.output : 0,
++		usd_breakdown: result.usd_breakdown, cache_read_pct: result.cache_read_pct,
++		last_prompt_usd_breakdown: last ? last.usd_breakdown : null,
+ 		by_model, source: "claude", at: "NOW",
+ 	} }]));
+ 	execFileSync(process.execPath, [join(root, ".claude", "hooks", "append.mjs"), page, tmp], { stdio: "pipe", windowsHide: true });
+diff --git a/Server/spend-tree.mjs b/Server/spend-tree.mjs
+index e0bf4a8c..9a22b12b 100644
+--- a/Server/spend-tree.mjs
++++ b/Server/spend-tree.mjs
+@@ -25,6 +25,7 @@
+ import { readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs";
+ import { join, resolve, dirname, basename } from "node:path";
+ import { fileURLToPath } from "node:url";
++import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+ const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
+@@ -137,11 +138,46 @@ function readAgentLog(id){
+ 	logCache.set(id, out);
+ 	return out;
+ }
+-const ownUsd = id => readAgentLog(id).usd;
+ const wasHeartbeatChecked = id => readAgentLog(id).heartbeat;
+ 
+ const isOpenRouter = model => typeof model === "string" && model.includes("/");
+ 
++// ---- the cache $ breakdown, straight from the agent's own transcript (token-accounting,
++// 2026-10-04) — the owner's own ask: "keeping track of these tokens very precisely in terms of
++// their cache costs... a breakdown on a session or an agent or however we're grouping these".
++// Priced through `Server/session-cost.mjs`'s one PRICES table (never a second copy — fixing the
++// cache-write price there fixes every reader, this one included). `null` for an OpenRouter agent
++// (no Claude transcript to read; its own $ is already real money, not a derived estimate) or one
++// whose transcript has aged off disk — never a fabricated split.
++const breakdownCache = new Map();
++function readUsdBreakdown(row){
++	if (!row?.session_id || isOpenRouter(row.model)) return null;
++	if (breakdownCache.has(row.session_id)) return breakdownCache.get(row.session_id);
++	let out = null;
++	const path = find_transcript(row.session_id);
++	if (path) {
++		const { total_usd, usd_breakdown, cache_read_pct } = cost_of_transcript(path);
++		if (total_usd > 0) out = { total_usd, usd_breakdown, cache_read_pct };
++	}
++	breakdownCache.set(row.session_id, out);
++	return out;
++}
++
++// The agent's own $, same "prefer the transcript" rule `Server/task-cost.mjs` uses
++// (token-accounting, 2026-10-04): the agent's own log can go quiet after a Servex restart or a
++// revive drops one `result` event, while the transcript the CLI itself writes stays complete —
++// so a LOWER agent-log total than the transcript's own usually means the log missed turns, not
++// that the transcript over-counted. Keeps `n.own_claude_usd` and `n.usd_breakdown`'s own
++// `cache_read_pct` on the SAME number (the earlier version divided a transcript-sourced
++// cache-$ by an agent-log-sourced total and printed pct over 100%, 2026-10-04 found live).
++function ownUsdFixed(row){
++	const log = readAgentLog(row.id).usd;
++	if (isOpenRouter(row.model)) return log;
++	const b = readUsdBreakdown(row);
++	if (!b) return log;
++	return log == null || b.total_usd >= log - 0.0005 ? b.total_usd : log;
++}
++
+ // ---- reconstruct a spawner for a null-parent row ----
+ // Priority: 1) registry's own `parent` (now written going forward by mastermind-servex-10);
+ // 2) this agent's OWN task's `parent_task` → that parent task's root agent (a task-mastermind
+@@ -188,13 +224,15 @@ function triggerOf(row, parentInfo){
+ const nodes = new Map();
+ for (const row of rows) {
+ 	const { parent, source } = reconstructParent(row);
+-	const own = ownUsd(row.id);
++	const own = ownUsdFixed(row);
++	const breakdown = readUsdBreakdown(row);
+ 	nodes.set(row.id, {
+ 		id: row.id, role: row.role || null, model: row.model || null, name: row.name || null,
+ 		started_at: row.started_at || null, state: row.state || null,
+ 		parent, parent_source: source,
+ 		own_claude_usd: own === null ? null : (isOpenRouter(row.model) ? 0 : own),
+ 		own_or_usd: own === null ? null : (isOpenRouter(row.model) ? own : 0),
++		usd_breakdown: breakdown?.usd_breakdown ?? null, cache_read_pct: breakdown?.cache_read_pct ?? null,
+ 	});
+ }
+ for (const n of nodes.values()) n.trigger = triggerOf(byId.get(n.id), { source: n.parent_source });
+@@ -252,6 +290,32 @@ const totalClaude = [...nodes.values()].reduce((s, n) => s + (n.own_claude_usd ?
+ const totalOr = [...nodes.values()].reduce((s, n) => s + (n.own_or_usd ?? 0), 0);
+ out.totals = { claude_usd: Math.round(totalClaude * 100) / 100, openrouter_usd: Math.round(totalOr * 100) / 100 };
+ 
++// ---- by role, by trigger (token-accounting, 2026-10-04) — the owner's own ask: "a breakdown...
++// grouped by role, by trigger (prompt type)". Every agent's OWN $ (never the subtree — the same
++// double-counting rule the by-trigger --dry printout above already used), summed per group, plus
++// the SAME cache-read-$ sum so a reader can see "which role/trigger burns the most on re-reading
++// its own context" — not just dollars. All-time, computed once here; ai/sessions' page.js reads
++// this straight, never recomputing it (CLAUDE.md law 7).
++function groupBy(keyOf){
++	const totals = new Map();
++	for (const n of nodes.values()){
++		const key = keyOf(n) || "(unknown)";
++		const row = totals.get(key) ?? { key, claude_usd: 0, openrouter_usd: 0, cache_read_usd: 0, count: 0 };
++		row.claude_usd += n.own_claude_usd ?? 0;
++		row.openrouter_usd += n.own_or_usd ?? 0;
++		row.cache_read_usd += n.usd_breakdown?.cache_read ?? 0;
++		row.count += 1;
++		totals.set(key, row);
++	}
++	return [...totals.values()].map(r => ({
++		...r, claude_usd: Math.round(r.claude_usd * 100) / 100, openrouter_usd: Math.round(r.openrouter_usd * 100) / 100,
++		cache_read_usd: Math.round(r.cache_read_usd * 10000) / 10000,
++		cache_read_pct: r.claude_usd ? Math.round(r.cache_read_usd / r.claude_usd * 1000) / 10 : null,
++	})).sort((a, b) => (b.claude_usd + b.openrouter_usd) - (a.claude_usd + a.openrouter_usd));
++}
++out.by_role = groupBy(n => n.role);
++out.by_trigger = groupBy(n => n.trigger);
++
+ if (dry) {
+ 	console.log(`${nodes.size} agents · $${out.totals.claude_usd} Claude · $${out.totals.openrouter_usd} OpenRouter`);
+ 	console.log("Top 15 by subtree $ (own + every descendant):");
+diff --git a/Server/task-cost.mjs b/Server/task-cost.mjs
+index 3825a9ae..10259adb 100644
+--- a/Server/task-cost.mjs
++++ b/Server/task-cost.mjs
+@@ -15,6 +15,7 @@ import { join, resolve, dirname, basename } from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { tmpdir } from "node:os";
+ import { execFileSync } from "node:child_process";
++import { find_transcript, cost_of_transcript } from "./session-cost.mjs";
+ 
+ const here = dirname(fileURLToPath(import.meta.url));
+ const SERVEX = join(process.env.LOCALAPPDATA || "", "lew42", "servex");
+@@ -80,16 +81,16 @@ function ancestors(id){
+ 	return out;
+ }
+ 
+-// An agent's spend, as the steps its result lines record: `[{ t, usd }]`. A result line's
+-// `cost` is the RUNNING total of one process, so each step is the rise since the line before —
+-// unless a value drops, which means the process restarted and began again at 0, so the whole
+-// new value is the step (the old "banking").
++// An agent's spend, as the steps its OWN agent log's result lines record: `[{ t, usd }]`. A
++// result line's `cost` is the RUNNING total of one process, so each step is the rise since the
++// line before — unless a value drops, which means the process restarted and began again at 0,
++// so the whole new value is the step (the old "banking").
+ // A result line seen twice (same time, same cost — a replay) counts once; a resumed session
+ // whose total CONTINUES just keeps growing, so it is never counted twice.
+ // No billed result line (none, or only a $0 stop marker) = nothing billed yet: null (NOT MEASURED), never 0.
+-const stepsCache = new Map();
+-function agentSteps(id){
+-	if (stepsCache.has(id)) return stepsCache.get(id);
++const logStepsCache = new Map();
++function agentLogSteps(id){
++	if (logStepsCache.has(id)) return logStepsCache.get(id);
+ 	let last = 0, any = false;
+ 	const seen = new Set(), steps = [];
+ 	for (const o of lines(join(SERVEX, "logs", `agent-${id}.jsonl`))) {
+@@ -106,11 +107,85 @@ function agentSteps(id){
+ 		if (usd > 0) steps.push({ t: Date.parse(o.at) - (o.duration_ms || 0), usd });
+ 	}
+ 	const out = any ? steps : null;
++	logStepsCache.set(id, out);
++	return out;
++}
++
++const isOpenRouterModel = m => typeof m === "string" && m.includes("/");
++
++// An agent's spend straight from ITS OWN Claude Code transcript, priced by
++// `Server/session-cost.mjs`'s one PRICES table (token-accounting, 2026-10-04).
++// WHY: the CLI writes every turn to the transcript directly, independent of Servex's own
++// result-event pipeline — `agentLogSteps()` above can go quiet mid-session (a Servex restart,
++// or a revive, can drop one `result` hook event without Servex ever noticing), and when it
++// does, the agent's own log UNDER-reports forever after, with nothing to say so.
++// PROVED REAL, not theoretical: `task-mastermind-models-page` (2026-10-04) — its agent log's
++// own cumulative `cost` topped out at $7.0872, but its session transcript (the same
++// session_id, found by `find_transcript`) priced out to $17.2216 — a 59% undercount the task
++// card was showing as its whole cost. No OpenRouter agent has a Claude transcript at all (a
++// different provider, a different, already-real $ from `refresh_or_cost()`), so this is
++// skipped for them — `agentLogSteps()` (really `refresh_or_cost`'s own number via that path)
++// stays their only source, untouched.
++const transcriptStepsCache = new Map();
++function transcriptSteps(id){
++	if (transcriptStepsCache.has(id)) return transcriptStepsCache.get(id);
++	const row = byId.get(id);
++	let out = null;
++	if (row?.session_id && !isOpenRouterModel(row.model)) {
++		const path = find_transcript(row.session_id);
++		if (path) {
++			const { by_prompt } = cost_of_transcript(path);
++			const steps = by_prompt.filter(g => g.usd > 0).map(g => ({ t: Date.parse(g.at), usd: g.usd }));
++			if (steps.length) out = steps;
++		}
++	}
++	transcriptStepsCache.set(id, out);
++	return out;
++}
++
++// THE one function every reader of "what did this agent cost" calls. Prefers the transcript
++// (complete, gap-free) over the agent log (can go quiet after a drop) whenever the transcript
++// exists AND its total is at least as large — it should always be a superset of the agent
++// log's own view, so a LOWER transcript total means something else is wrong (an aged-off or
++// rotated transcript file, a reused session_id) and the agent log is the safer number to trust
++// instead of silently shrinking a figure a task card, the AI board or a budget check already
++// relies on. Never both: one wins, cleanly, so nothing downstream ever sums them twice.
++const stepsCache = new Map();
++function agentSteps(id){
++	if (stepsCache.has(id)) return stepsCache.get(id);
++	const t = transcriptSteps(id), l = agentLogSteps(id);
++	const tTotal = t ? t.reduce((n, x) => n + x.usd, 0) : null;
++	const lTotal = l ? l.reduce((n, x) => n + x.usd, 0) : null;
++	const out = (t && (lTotal == null || tTotal >= lTotal - 0.0005)) ? t : l;
+ 	stepsCache.set(id, out);
+ 	return out;
+ }
+ const agentCost = id => { const s = agentSteps(id); return s ? s.reduce((n, x) => n + x.usd, 0) : null; };
+ 
++// An agent's own $, split by token kind (input/output/cache read/cache write), plus the one
++// figure the owner asked for by name — what share of its $ is cache reads. Always the agent's
++// WHOLE transcript, never time-sliced to one task's share (same simplification `branch`'s own
++// "a minion goes whole to the task that spawned it" already makes, just above) — exact for a
++// minion (it only ever works one task), an honest approximation for a root that has run more
++// than one task back to back (its breakdown blends every task it ever ran, not just this one).
++// `null` when there's no transcript to read (an OpenRouter agent, or one whose transcript has
++// aged off disk) — never a fabricated split.
++const breakdownCache = new Map();
++function agentBreakdown(id){
++	if (breakdownCache.has(id)) return breakdownCache.get(id);
++	const row = byId.get(id);
++	let out = null;
++	if (row?.session_id && !isOpenRouterModel(row.model)) {
++		const path = find_transcript(row.session_id);
++		if (path) {
++			const { total_usd, usd_breakdown, cache_read_pct } = cost_of_transcript(path);
++			if (total_usd > 0) out = { usd_breakdown, cache_read_pct };
++		}
++	}
++	breakdownCache.set(id, out);
++	return out;
++}
++
+ // ---- which task owns a moment of a root's time ----
+ // Every task that shares a root splits that root's time, so each dollar lands in exactly one
+ // task (Server/doc/task-cost.md, "One agent, several tasks: split by time"). At moment t:
+@@ -173,9 +248,10 @@ function cost(dir){
+ 	].sort((a, b) => a.t - b.t).map(x => ({ t: new Date(x.t).toISOString(), usd: r4(x.usd) }));
+ 
+ 	const row = id => byId.get(id) ?? {};
++	const withBreakdown = entry => Object.assign(entry, agentBreakdown(entry.id) ?? {});
+ 	const agents = [
+-		{ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) },
+-		...branch.map(id => { const u = agentCost(id); return { id, model: row(id).model ?? null, role: row(id).role ?? null, usd: u == null ? null : r4(u) }; })
++		withBreakdown({ id: me.root, model: row(me.root).model ?? null, role: row(me.root).role ?? "root", usd: own == null ? null : r4(own) }),
++		...branch.map(id => { const u = agentCost(id); return withBreakdown({ id, model: row(id).model ?? null, role: row(id).role ?? null, usd: u == null ? null : r4(u) }); })
+ 			.sort((a, b) => (b.usd ?? -1) - (a.usd ?? -1)),
+ 	];
+ 	// A tree with no result line anywhere has billed nothing yet: not measured, never $0.
+diff --git a/public/framework/ai/sessions/doc/decisions.md b/public/framework/ai/sessions/doc/decisions.md
+index ec35c19a..3fbb36e9 100644
+--- a/public/framework/ai/sessions/doc/decisions.md
++++ b/public/framework/ai/sessions/doc/decisions.md
+@@ -1,5 +1,99 @@
+ # Sessions — decisions
+ 
++## 2026-10-04 (token-accounting) — two real accounting mistakes, found and fixed; a cache $ breakdown added
++
++The owner's own words (dictated): "make sure we're not making an accounting mistake... update in
++real time to wherever the source of truth is... everything else reads one source of truth... keep
++track of these tokens very precisely in terms of their cache costs... a breakdown on a session or
++an agent... grouped by role, maybe even per prompt type." Full brief:
++[`/framework/ai/2026-10-04/token-accounting/requirements.md`](/framework/ai/2026-10-04/token-accounting/requirements.md).
++
++**The map (item 1).** Every place a cost or token count is written or read, in one table:
++
++| writer | reads from | what |
++|---|---|---|
++| `Agents.js` (Servex) | the Anthropic/OpenRouter SDK response | `agent-<id>.jsonl`'s own `result` lines: a RUNNING `cost` total + that turn's `usage` |
++| `Server/session-cost.mjs` | a session's own `~/.claude/projects/.../*.jsonl` transcript | per-prompt $, token counts, now a $-by-token-kind split — appended to that session's `page.jsonl` as `{"cost":{...}}` after every turn (a Stop hook) |
++| `Server/task-cost.mjs` | the registry + every agent's own log, **now also the transcript** | a task's `cost_usd` on its own `task.jsonl`, the figure the AI board shows |
++| `Server/spend-tree.mjs` | the registry + every agent's own log, **now also the transcript** | `spend-tree.json`: every agent ever registered, its own $, its subtree $, by role, by trigger — now with a cache $ split too |
++| `Server/day-spend.mjs` | `task-cost.mjs`'s own `cost_usd` (never recomputes) | a day's Claude $ vs real $, by module |
++| `Server/week-cost.mjs` | `session-cost.mjs`'s own `page.jsonl` cost lines | this week's real $ against the plan, the Sessions tab's stat cards |
++| `ai/sessions/page.js` | `GET /api/agents`, `sessions.json`, `spend-tree.json`, a session's own `page.jsonl`/transcript | the whole Sessions tab |
++| `core/Page/weight/ai-cost.js` | `task-cost.mjs`'s own `cost_usd`/`cost.agents` (never recomputes) | the task-card breakdown table |
++| VS Code tabs | nothing writes a $ for them at all until a Stop hook runs `session-cost.mjs --append-stdin` | — |
++
++**Mistake 1 (item 2/3): the cache-write price was wrong, in the one place every reader prices a
++token.** `Server/session-cost.mjs`'s `PRICES` table (the ONLY price table in this repo — every
++other script above imports it rather than keeping its own copy) multiplied a cache-write token by
++`in × 1.25`, the rate for a 5-minute cache. Every Claude Code agent on this machine actually runs
++the 1-hour-cache rate, `in × 2`. Checked against 3 real agents, not assumed — every `result` line
++in `agent-task-mastermind-models-page.jsonl`, `agent-clarity-models-page.jsonl` and
++`agent-reviewer-models-page.jsonl` (two Sonnet, one Opus), comparing the SDK's own billed `cost`
++(ground truth — read straight from the Anthropic API response, `Agents.js:1561`) against
++`(input×in + output×out + cache_read×in×0.1 + cache_write×in×2)/1e6`: **exact to the last decimal,
++every turn**, e.g. one turn billed `$0.1862686` for `{input:8, output:1200, cache_read:739663,
++cache_write:6580}` — the `×2` formula gives exactly that; the old `×1.25` gives `$0.1763986`, 5.3%
++low. Fixed: one line in `PRICES`, which fixes every reader at once (CLAUDE.md law 6).
++
++**Mistake 2 (item 2/3, the bigger one): a task's own `cost_usd` could badly undercount, because
++the agent log it read from can go quiet.** `task-cost.mjs` and `spend-tree.mjs` both compute an
++agent's own $ by reading its `agent-<id>.jsonl` and diffing the SDK's running `cost` field —
++correct only as long as Servex captures every `result` event. A Servex restart or a mid-turn
++revive can drop one without Servex ever noticing, and the total then silently stops short forever
++(nothing says so — it just reads as a plausible, too-small number). **Found real while checking
++the 3 agents above:** `task-mastermind-models-page`'s agent log topped out at **$7.0872**; its own
++Claude Code transcript (the file the CLI writes directly, independent of Servex's own event
++pipeline) priced out to **$17.2216** for the exact same work — a 59% undercount the task's own
++card was showing as its whole cost. Spot-checking a handful more of today's tasks the same way
++(`--dry`, before vs after): `land-two-branches` $4.89 → $9.20, `local-brain` $5.36 → $28.36 (a
++long-running mastermind whose agent log had only 5 `result` lines for a session that ran for
++hours — most of its real turns were never captured at all). Across every agent Servex has ever
++registered, `spend-tree.mjs`'s own total moved from $4749 to $9622 Claude $ once both scripts
++preferred the transcript.
++
++**The fix: pick the one source (item 2).** Both scripts now call `Server/session-cost.mjs`'s
++`find_transcript(session_id)` + `cost_of_transcript(path)` — the same function `session-cost.mjs`
++itself already used for the Sessions tab's per-prompt view — and use ITS total for a non-OpenRouter
++agent whenever it reads at least as large as the agent log's own total (never smaller: a transcript
++should always be a superset of what the agent log saw; a lower reading means something else is
++wrong — an aged-off transcript, a reused session id — and the agent log stays the safer number
++rather than silently shrinking a figure the board already shows). An OpenRouter agent is untouched:
++it has no Claude transcript at all, and its own $ is already real billed money from the provider,
++not a derived estimate. `Server/doc/task-cost.md` has the same story from that script's own side.
++
++**The breakdown view (item 4).** `cost_of_transcript()` now returns a $-by-token-kind split
++(`usd_breakdown: {in, out, cache_read, cache_write}`) and `cache_read_pct` alongside its existing
++totals — computed once, carried everywhere: `session-cost.mjs`'s `page.jsonl` cost lines (shown on
++a session's own detail page, under "Logged cost"), `task-cost.mjs`'s `cost.agents` entries (one
++per agent, for whoever renders a task's own breakdown), and `spend-tree.mjs`'s per-agent nodes PLUS
++two new top-level arrays, `by_role` and `by_trigger` — the owner's own two groupings, each agent's
++own $ (never its subtree, same double-counting rule the existing by-trigger printout already used)
++summed per role/trigger alongside its cache-read $ and what % of that group's $ went to cache
++reads. The Sessions tab reads `by_role`/`by_trigger` straight (`load_spend_tree()`, already
++fetched for the subtree notes) and shows them as a new "Cache $ breakdown, all-time" list next to
++the existing date-filtered role/trigger lists — labelled "all-time" because `spend-tree.json` is a
++whole-history snapshot, not date-ranged like the lists above it, so it reads as a different figure
++rather than a silent disagreement with them.
++
++⚠ **One bug found and fixed while building the breakdown, not before landing:** the first version
++divided a transcript-sourced cache-read $ by an agent-log-sourced own-$ (two different, sometimes
++disagreeing sources — exactly Mistake 2 above), which printed `cache_read_pct` values over 100%
++for several roles. Fixed by making `spend-tree.mjs`'s own `own_claude_usd`/`own_or_usd` use the
++SAME transcript-preferring number the breakdown is computed from, so a group's cache $ is always a
++fraction of the SAME total it's a fraction of.
++
++**Left open, named rather than guessed at:** a minion with no recorded `parent` in the registry
++(`reviewer-models-page`, `clarity-models-page` — both `parent: null`) is invisible to
++`task-cost.mjs`'s own tree walk, so its $ is missing from that task's own card total even after
++this fix (`models-page`'s true total, including its reviewer and clarity passes, is closer to
++$19.50 than the $17.22 the card now shows). `spend-tree.mjs` already has a working reconstruction
++heuristic for exactly this gap (`reconstructParent()`, matching a reviewer/clarity's own `name` to
++a task slug) and its own role/trigger totals DO include these agents correctly — only
++`task-cost.mjs`'s per-task card total still misses them. Not touched here: grafting that
++reconstruction into `task-cost.mjs` is a bigger, riskier change (CLAUDE.md's "ask before major
++surgery") than this task's remaining budget covers, and the alternative — read the correct,
++already-complete total from `spend-tree.json`'s own by-role/by-trigger figures — is live today.
++
+ ## 2026-10-03 (sessions-tab-polish) — empty bands, stat cards, and why OpenRouter read $0.00 in range
+ 
+ The owner, looking at this page at 3440 (full brief:
+diff --git a/public/framework/ai/sessions/page.js b/public/framework/ai/sessions/page.js
+index 1b70a296..86019458 100644
+--- a/public/framework/ai/sessions/page.js
++++ b/public/framework/ai/sessions/page.js
+@@ -633,6 +633,7 @@ export default new Page({
+ 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
+ 			this.$by_role = div.c("sessions-by-role flow");
+ 			this.$by_trigger = div.c("sessions-by-role flow");
++			this.$cache_breakdown = div.c("sessions-by-role flow");
+ 		});
+ 	},
+ 
+@@ -720,6 +721,24 @@ export default new Page({
+ 				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
+ 			}));
+ 		});
++
++		// The cache $ breakdown, by role and by trigger (token-accounting, 2026-10-04) — the
++		// owner's own ask: "a breakdown... grouped by role, by trigger". Straight from
++		// `Server/spend-tree.mjs`'s own `by_role`/`by_trigger` (computed once there, never
++		// recomputed here — CLAUDE.md law 7). ALL-TIME, not date-filtered, unlike the two lists
++		// above it — spend-tree.json is a whole-history snapshot, same as the subtree note each
++		// row already shows — labelled plainly so it doesn't read as the same figure.
++		this.$cache_breakdown?.empty(() => {
++			const groups = [...(this.spend?.by_role ?? []), ...(this.spend?.by_trigger ?? [])].filter(g => g.claude_usd);
++			if (!groups.length) return;
++			small.c("muted", "Cache $ breakdown, all-time (role, then trigger) — share of each group's $ spent re-reading cached context")
++				.attr("title", "From Server/spend-tree.mjs's own by_role/by_trigger, every agent ever registered — not the date-filtered lists above.");
++			groups.forEach(g => div.c("sessions-by-role-row flex gap-50 v-center", () => {
++				small.c("sessions-by-role-name", g.key);
++				small.c("muted", `$${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
++					+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
++			}));
++		});
+ 	},
+ 
+ 	// ⚠ Lifecycle, not a one-shot in content(): content() runs once ever (this
+@@ -1234,6 +1253,19 @@ function session_page(root, id){
+ 						small.c("sessions-row-title", "$" + (c.last_prompt_usd ?? 0).toFixed(4));
+ 						small.c("muted", "running total $" + (c.total_usd ?? 0).toFixed(2));
+ 					}));
++					// The cache $ breakdown (token-accounting, 2026-10-04): the LATEST logged
++					// line's `usd_breakdown` is already the whole session's own total, split by
++					// token kind — the owner's own ask, "keeping track of these tokens very
++					// precisely in terms of their cache costs". `cache_read_pct` is the one
++					// figure named explicitly: what share of the $ is cache reads.
++					const last = costs.at(-1);
++					if (last?.usd_breakdown) div.c("sessions-cost-breakdown card flex gap-50 v-center muted", () => {
++						const b = last.usd_breakdown;
++						small(`input $${b.in.toFixed(4)}`);
++						small(`cache write $${b.cache_write.toFixed(4)}`);
++						small(`cache read $${b.cache_read.toFixed(4)} (${last.cache_read_pct ?? 0}% of $)`);
++						small(`output $${b.out.toFixed(4)}`);
++					});
+ 				});
+ 
+ 				$box.empty(() => {
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 657ef235..25bdfc3b 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -63,6 +63,15 @@ older `cost` figure:**
+   reading of what it's for — does a review pay for itself, where the dollars go — is
+   [`ai/2026-10-03/spend-tree/study.md`](/framework/ai/2026-10-03/spend-tree/).
+ 
++**Cache $ breakdown, per agent and by role/trigger (token-accounting, 2026-10-04):** a session's
++own detail page now shows input/cache-write/cache-read/output $ under "Logged cost", and the
++`cost by role`/`cost by trigger` lists have a sibling, all-time "Cache $ breakdown" list — the
++same split, grouped. This task also fixed two real accounting bugs: the cache-write price was
++25% too low for a 5-minute cache when every agent here actually runs the 1-hour rate, and a
++task's own `cost_usd` could badly undercount an agent whose Servex log went quiet after a restart
++(one real example found $7.09 shown, $17.22 actually billed). `doc/decisions.md`'s 2026-10-04
++entry has the full map, the proof, and what's still open.
++
+ ## Where the real dollars come from
+ 
+ Two SEPARATE scripts, neither live — both are run by hand and read by the page, same shape as

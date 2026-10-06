@@ -1,0 +1,38 @@
+{
+ "url": "http://monorepo.localhost/framework/ext/Doc/",
+ "widths": {
+  "1280": {
+   "empty": 0.615,
+   "widest_text": 592,
+   "widest_text_sample": "These five skip the fallback entirely. T",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.25
+  },
+  "1920": {
+   "empty": 0.733,
+   "widest_text": 630,
+   "widest_text_sample": "These five skip the fallback entirely. T",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.944
+  },
+  "2560": {
+   "empty": 0.756,
+   "widest_text": 709,
+   "widest_text_sample": "These five skip the fallback entirely. T",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.944
+  },
+  "3440": {
+   "empty": 0.804,
+   "widest_text": 709,
+   "widest_text_sample": "These five skip the fallback entirely. T",
+   "overflow_x": false,
+   "items": 72,
+   "narrow_share": 0.944
+  }
+ },
+ "errors": []
+}

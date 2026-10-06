@@ -1,0 +1,11 @@
+{"assign":{"session_id":"e5c3ad40-4953-4e8e-9097-729d18e70450","agent":"task-mastermind-local-model-hunt","tab":"local-model-hunt","group":"local-ai","request":"fix local model context overflow (Echo falls back to paid Sonnet), add deepseek fallback before Sonnet if still fails","requested_at":"2026-10-04T21:45:24-05:00","model":"claude-sonnet-5","now":"found root cause: llama-server --parallel defaults to 4 slots, splitting ctx-size across them (32768 total / 4 = 8192 per request)","steps":["find root cause","fix (--parallel 1, same VRAM)","restart Servex, verify with long real prompt","wire deepseek fallback in Echo.js if still needed","commit by path"],"step":2}}
+{"log":{"at":"2026-10-04T21:50:31-05:00","msg":"task-loop chase 1 of 2: left to heartbeat","chase":1}}
+{"log":{"at":"2026-10-04T21:50:31-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-04T22:20:31-05:00","msg":"task-loop chase 2 of 2: left to heartbeat","chase":2}}
+{"log":{"at":"2026-10-04T22:50:31-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
+{"log":{"at":"2026-10-04T23:25:37-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-05T00:53:52-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-05T13:43:42-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-05T15:14:55-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-05T16:25:40-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}
+{"log":{"at":"2026-10-05T18:43:15-05:00","heartbeat":"deliberate","msg":"task-mastermind-local-model-hunt its agent is not running: its task local-model-hunt has landed; not revived."}}

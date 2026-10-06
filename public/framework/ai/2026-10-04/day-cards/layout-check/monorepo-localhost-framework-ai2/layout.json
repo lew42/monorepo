@@ -1,0 +1,43 @@
+{
+ "url": "http://monorepo.localhost/framework/ai2/",
+ "widths": {
+  "1280": {
+   "empty": 0.406,
+   "widest_text": 3717,
+   "widest_text_sample": "Owner expanded this ask (voice, 21:09): ",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.087
+  },
+  "1920": {
+   "empty": 0.448,
+   "widest_text": 3956,
+   "widest_text_sample": "Owner expanded this ask (voice, 21:09): ",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.522
+  },
+  "2560": {
+   "empty": 0.454,
+   "widest_text": 4450,
+   "widest_text_sample": "Owner expanded this ask (voice, 21:09): ",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.522
+  },
+  "3440": {
+   "empty": 0.538,
+   "widest_text": 4450,
+   "widest_text_sample": "Owner expanded this ask (voice, 21:09): ",
+   "overflow_x": false,
+   "items": 46,
+   "narrow_share": 0.652
+  }
+ },
+ "errors": [
+  "2560: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "1920: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "3440: Failed to load resource: net::ERR_CONNECTION_REFUSED",
+  "1280: Failed to load resource: net::ERR_CONNECTION_REFUSED"
+ ]
+}

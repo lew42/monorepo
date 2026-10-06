@@ -1,0 +1,166 @@
+{
+  "at": "2026-10-05T02:01:34.401Z",
+  "results": {
+    "local/hermes-3-llama-3.1-8b": {
+      "model": "local/hermes-3-llama-3.1-8b",
+      "level_a": {
+        "correct": 5,
+        "total": 5,
+        "details": [
+          {
+            "id": "a1",
+            "pass": true,
+            "answer": "Item.prototype.set_one() emits two events when a field's value changes: \"change\" and \"delta\". The \"change\" event provides the key, new value, and old value, while the \"delta\" event provides an object with the changed key-value pair and the entire Item instance.",
+            "expected": "\"change\" and \"delta\""
+          },
+          {
+            "id": "a2",
+            "pass": true,
+            "answer": "If a field name collides with an existing property on the Item prototype, define_fields() throws an Error with the message \"field \"<name>\" collides with Item.prototype\".",
+            "expected": "Throws an Error (`field \"${name}\" collides with Item.prototype`)"
+          },
+          {
+            "id": "a3",
+            "pass": true,
+            "answer": "The exact order of the 4 cascade layers defined in `@layer` in Lew42's CSS architecture is: base, theme, site, util.",
+            "expected": "base theme site util"
+          },
+          {
+            "id": "a4",
+            "pass": true,
+            "answer": "When called multiple times with the exact same URL, the static method Store.for(url) returns the same store instance each time. It retrieves the store from the Store.instances Map, which caches the instances by URL, and returns the cached instance if found. If not found, it creates a new store, caches it, and returns it. Subsequent calls with the same URL will return the cached instance.",
+            "expected": "The same cached Store instance (singleton via Store.instances Map)"
+          },
+          {
+            "id": "a5",
+            "pass": true,
+            "answer": "According to the CLAUDE.md Traps that never throw, only the p() and h1-h6 HTML helper tags read backticks. A backtick inside css(`...`) is dangerous because it causes every page to break, likely due to the backtick being used to define a template literal which is then treated as CSS code, potentially causing syntax errors or unexpected behavior in the CSS.",
+            "expected": "Only p()/h1–h6 read backticks; one backtick inside css(`...`) kills every page."
+          }
+        ]
+      },
+      "level_b": {
+        "correct": 2,
+        "total": 3,
+        "details": [
+          {
+            "id": "b1",
+            "pass": true,
+            "answer": "Let's trace through the code step by step:\n\n1. When a new `Item` is created with `{ a: 1 }`, it initializes with one field `a` set to `1`. At this point, there have been no changes yet, so no \"change\" events have fired.\n\n2. The code then attaches a listener for the \"change\" event using `item.on()`. This listener function pushes an object `{ key, val, old }` into the `changes` array whenever a \"change\" event occurs.\n\n3. The first `item.set({ a: 1, b: 2 })` call attempts to set two fields: `a` to `1` (which is already set) and `b` to `2`. Since `a` is already set, no change event is triggered for it. However, the change for field `b` (from undefined to 2) will trigger a \"change\" event.\n\n4. The second `item.set({ b: 3 })` call attempts to set field `b` to `3`. Since `b` is already set, no change event is triggered for it.\n\nSo, in total, only one \"change\" event fires.\n\nThe recorded entries in `changes` in chronological order will be:\n- `{ key: 'b', val: 2, old: undefined }` (triggered by the first `set` call)\n\nThe final `item.data` at the end will be:\n- `{ a: 1, b: 3 }` (after the two `set` calls)",
+            "expected": "2 change events. First: key 'b', val 2, old undefined. Second: key 'b', val 3, old 2. 'a' does not fire because old === val. End data: { a: 1, b: 3 }."
+          },
+          {
+            "id": "b2",
+            "pass": true,
+            "answer": "1. When `child.set({ title: \"Hello\" })` is called, the \"change\" event is emitted on 'child'.\n\n2. The \"change\" event bubbles up from 'child' to its parent 'doc' due to the default event propagation behavior in JavaScript. Since 'doc' has attached a Store to listen for \"delta\" events, the Store will receive the \"change\" event emitted by 'child'.\n\n3. To compute the line to append to the .jsonl file, the Store follows these steps:\n   - It determines the NESTING from 'doc' down to where the change actually happened, which is 'child' in this case. The NESTING is computed based on the actual nested structure, not a path string or 'at' key.\n   - The Store then constructs the line to append by serializing the changed property and its new value. In this example, the line would be: `\"data\": {\"section\": {\"title\": \"Hello\"}}`.\n   - The line is appended to the .jsonl file, preserving the nested structure without using any path strings or 'at' keys.\n\nIn summary, when `child.set({ title: \"Hello\" })` is called, 'child' emits a \"change\" event that bubbles up to 'doc' and its attached Store. The Store computes the line to append to the .jsonl file based on the actual nested structure, without using path strings or 'at' keys, and appends the line accordingly.",
+            "expected": "1. child emits 'delta' ({ set: { title: 'Hello' } }, child). 2. delta bubbles up the parent tree to doc. 3. Store walks hops from host down to source item, constructing nested object delta line."
+          },
+          {
+            "id": "b3",
+            "pass": false,
+            "answer": "1. The error that will throw is:\n   ```\n   Error: field \"set\" collides with Item.prototype\n   ```\n   This error will throw on the field \"set\" because the field \"set\" already exists in Item.prototype. When Task extends Item and calls define_fields(), it tries to define a getter and setter for each field in Task.fields. However, the field \"set\" collides with an existing property in Item.prototype, which causes the error.\n\n2. If \"set\" is removed from Task.fields, the code will succeed without any errors. The reason is that when define_fields() iterates over the fields in Task.fields, it checks if each field name already exists in Item.prototype. If a collision is found, it throws an error. By removing \"set\" from Task.fields, there will be no collision with any existing property in Item.prototype, and the code will execute successfully.\n\nTo fix the issue and allow Task to extend Item without any errors, the developer can remove the \"set\" field from Task.fields or rename it to avoid the collision with the existing property in Item.prototype.",
+            "expected": "1. 'set' throws because Item.prototype.set is already a core method. 2. 'items' succeeds: Item has no items property or method of its own (lists are named properties a subclass gives itself)."
+          }
+        ]
+      },
+      "level_c": {
+        "pass": 5,
+        "total": 10,
+        "avg_score": 72,
+        "details": [
+          {
+            "id": "c1",
+            "pass": false,
+            "score": 60,
+            "refined": "1. The task JSONL class and the task tree class have a specific location.\n2. There is also a task class in AI/slash objects.js, which follows an object-oriented pattern.\n3. The task class files usually have capital names to make it easier to find the class when searching for it.\n4. Breaking this convention by placing the task class in objects.js seems inconsistent with the established pattern."
+          },
+          {
+            "id": "c2",
+            "pass": true,
+            "score": 76,
+            "refined": "1. The starting of servers should be a node-like managed process.\n2. The process should automatically shut itself down when the spawned agent sleeps.\n3. Figure out the best way to manage the server process.\n4. Determine if an agent that wakes back up needs to reuse its server or spawn a new one.\n5. Ensure that there are no zombie processes."
+          },
+          {
+            "id": "c3",
+            "pass": false,
+            "score": 67,
+            "refined": "1. Provide an overview of the current status: what is queued, in flight, and finished.\n2. Describe the usage statistics.\n3. Identify the major limitations, specifically mentioning if the RAM is still a limiting factor."
+          },
+          {
+            "id": "c4",
+            "pass": false,
+            "score": 69,
+            "refined": "1. We need an update on the status of open router minions.\n2. If we have sufficient RAM, we should consider using open router minions to alleviate the load on our Claude Anthropic tokens or usage windows."
+          },
+          {
+            "id": "c5",
+            "pass": true,
+            "score": 100,
+            "refined": "1. This message is coming from the VS Code sidebar.\n2. The last message was also coming from the VS Code sidebar."
+          },
+          {
+            "id": "c6",
+            "pass": true,
+            "score": 86,
+            "refined": "1. This message is being transcribed on my mobile using the remote control app.\n2. I would like to know if you are able to see the source of these messages.\n3. Specifically, I want to know if you can determine whether I am using a PC or a mobile device."
+          },
+          {
+            "id": "c7",
+            "pass": true,
+            "score": 75,
+            "refined": "1. You are our new VS-code expert.\n2. Please read the handoff document."
+          },
+          {
+            "id": "c8",
+            "pass": false,
+            "score": 41,
+            "refined": "1. Review each task to determine if it is complete.\n2. Identify any aspects of the tasks that are unclear.\n3. Ask major questions to ensure all important implications have been considered.\n4. Check for potential missed points, inconsistencies, or incorrect information."
+          },
+          {
+            "id": "c9",
+            "pass": false,
+            "score": 55,
+            "refined": "1. The last VS Code Mastermind tab was working on a prompt refinement system.\n2. The fast assistant is supposed to handle the prompt refinement in the smart assistant system.\n3. There is a link that can be used to access the prompt refinement work.\n4. It is unclear where the progress on the prompt refinement system currently stands.\n5. There might be documentation in the system about being a VS Code sidebar.\n6. The VS Code tab is a separate type of session and can potentially work with the SDK, but there may be limitations to how it is currently set up.\n7. To get the prompt refinement working, it may be necessary to hook into the system from the current tab, which was previously a different tab."
+          },
+          {
+            "id": "c10",
+            "pass": true,
+            "score": 92,
+            "refined": "1. I tried to access my dev server from my phone.\n2. I am not sure if I typed \"node server.js\" to start the server.\n3. Please check if the server is running and start it if necessary.\n4. I don't want to stand up and type the command myself."
+          }
+        ]
+      },
+      "total_cost_usd": 0,
+      "total_ms": 22681,
+      "tokens_in": 6196,
+      "tokens_out": 1768
+    }
+  },
+  "batchExperiment": {
+    "single_turn_tokens": 679,
+    "multi_turn_step_tokens": 1317,
+    "overhead_ratio": 1.94
+  },
+  "recoveryResults": {
+    "google/gemini-3.8-flash": {
+      "ok": true,
+      "fixed": true,
+      "reply": "### Why the Error Occurred\n\nIn Lew42's `Events` implementation (which extends/mixes into classes like `Item`), the method for emitting/triggering events is named **`trigger`**, not `emit` (unlike Node"
+    },
+    "deepseek/deepseek-v4.1-flash": {
+      "ok": true,
+      "fixed": false,
+      "reply": ""
+    },
+    "openai/gpt-6-luna": {
+      "ok": true,
+      "fixed": true,
+      "reply": "`emit` is available on instances of `Item`, but the value passed to `updateItem` is not one—it may be a plain object or another item-like object that has `set` but does not inherit from `Item`.\n\nCreat"
+    },
+    "qwen/qwen3.8-27b:free": {
+      "ok": true,
+      "fixed": true,
+      "reply": "## Why the Error Occurred\n\nIn Lew42, the `Events` mixin (which `Item` inherits via `Events(Object)`) exposes its event-dispatch method as **`trigger`**, not `emit`. The name `emit` is a convention fro"
+    }
+  }
+}
