@@ -99,33 +99,42 @@
 
 	.refine-json-note { color: var(--muted, currentColor); font-size: 0.85em; margin-block-start: var(--gap); }
 
-	/* The "Dropped & flagged" strip — one truncated line per row, above the
-	   ladder, so the coverage table's own worst news doesn't wait below the
-	   fold. Empty (nothing dropped, thin or flagged) draws nothing at all. */
-	/* Capped and scrollable on purpose — a run with three dozen flags would
-	   otherwise push the whole ladder off the first screen, which is exactly
-	   the problem this strip exists to fix. */
-	.refine-strip { margin-block-end: var(--gap); max-height: 11em; overflow: auto; }
+	/* The "Dropped & flagged" strip — clean badges and cards instead of a cramped 11em box */
+	.refine-strip {
+		margin-block-end: var(--gap);
+		background: color-mix(in srgb, var(--surface, currentColor) 92%, var(--warn));
+		border: 1px solid color-mix(in srgb, var(--line, currentColor) 80%, var(--warn));
+		border-radius: var(--radius, 6px);
+		padding: 0.8em 1em;
+	}
 	.refine-strip-title {
-		margin-block: 0 0.3em;
+		margin-block: 0 0.5em;
 		text-transform: uppercase;
 		font-size: 0.85em;
-		letter-spacing: 0.04em;
-		color: var(--muted, currentColor);
+		letter-spacing: 0.05em;
+		color: var(--warn);
+		font-weight: 700;
+	}
+	.refine-strip-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4em;
+		max-height: 18em;
+		overflow-y: auto;
 	}
 	.refine-strip-row {
-		display: block;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		padding: 0.15em 0.3em;
-		margin-inline: -0.3em;
+		display: flex;
+		align-items: baseline;
+		gap: 0.6em;
+		padding: 0.3em 0.5em;
 		cursor: pointer;
-		border-radius: 0.2em;
+		border-radius: 4px;
+		background: color-mix(in srgb, var(--surface, currentColor) 96%, transparent);
 	}
-	.refine-strip-row:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
-	.refine-strip-s { font-weight: 600; color: var(--muted, currentColor); }
-	.refine-strip-reason { color: var(--warn); }
+	.refine-strip-row:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+	.refine-strip-s { font-weight: 700; color: var(--warn); font-size: 0.85em; }
+	.refine-strip-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.refine-strip-reason { color: var(--muted, currentColor); font-size: 0.85em; }
 
 	/* Three columns between 640 and 1600px: Raw/Clean share one (its own mini
 	   tabs), Structured and Brief keep their own. At four full columns, the
