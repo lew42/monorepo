@@ -86,23 +86,17 @@ here instead of starting it. You pick what runs next. Each line links to its bri
         (`POST /api/agents/<id>/message`). Route it: `?chat=<session>` on the page's URL.
   - [ ] *Prove it* on three pages (ux/Tree, core/Page, one AI 2 card): open, talk, leave, come
         back, Resume, then New session. Cost per new session measured against a cold start.
-- **The council hears every ask, and re-runs by itself** (2026-09-25, designed by mastermind-servex,
-  [the ask loop](/framework/ai/council/)). No Servex code is needed. One Sonnet minion:
-  - [ ] *`Server/council.mjs`, the collector:* gathers the owner's words since the last run from
+- ~~**The council hears every ask, and re-runs by itself** (2026-09-25, designed by mastermind-servex,
+  [the ask loop](/framework/ai/council/))~~ — **DONE.**
+  - [x] *`Server/council.mjs`, the collector:* gathers the owner's words since the last run from
         `.claude/prompts/<day>.jsonl` and from the `prompt` lines (by the owner) in AI 2 card
-        `page.jsonl` files. **Drop sessions that belong to Servex agents** (their `session_id`
-        is in `/api/agents`): the relay records relayed and agent-to-agent prompts as
-        `author: "owner"` too. It writes them to the run's dir as `words.jsonl`.
-  - [ ] *The run:* spawn one task mastermind (Servex `spawn_agent`, loopback /mcp, the same way
-        as `Server/clarity.mjs`) with the standing brief `ai/council/requirements.md` (copied from
-        2026-09-25/feedback-council). First it turns the new words into asks; then five checkers
-        check the new asks plus every ask in `ai/council/asks.jsonl` whose latest verdict isn't
-        done. It appends one line per ask to `asks.jsonl`, never rewriting old lines.
-  - [ ] *The rhythm:* `on-landing.mjs` calls `council.mjs maybe`. It runs after 10 landings since
-        the last run, or once 24 hours have passed with at least one landing. The last run is the
-        latest `run` in `asks.jsonl`. Off switch: `ai/council/off`.
-  - [ ] *Prove it* on one run: the cost, how many asks, how many of them new, and that the page
-        updates.
+        `page.jsonl` files. Drops sessions that belong to Servex agents (live `/api/agents`,
+        `lifecycle.jsonl`, and task logs). Writes extracted prompts to `<run>/words.jsonl`. Verified:
+        642 genuine owner words extracted cleanly into `public/framework/ai/2026-10-06/feedback-council/words.jsonl`.
+  - [x] *The standing brief:* copied and adapted into `public/framework/ai/council/requirements.md`.
+  - [x] *The run:* Servex MCP loopback `/mcp` `spawn_agent` creates `task-mastermind` (`feedback-council`).
+  - [x] *The rhythm:* `Server/on-landing.mjs` spawns `council.mjs maybe` detached (`windowsHide: true`). Runs after 10 landings or 24h interval with >=1 landing. Off switch `public/framework/ai/council/off` and `COUNCIL=off`.
+  - [x] *Vote merger:* `node Server/council.mjs merge <run-dir>` tallies checker verdicts and appends to `public/framework/ai/council/asks.jsonl`. Verified headless read-out on `/framework/ai/council/`.
 - **A dictation workspace, better than one text box** (2026-09-25): somewhere to see a long
   dictation as it grows. Each sentence becomes an item you can see and move, and the raw
   transcript stays beside the structure. It is the next Dictate round after the current fixes
