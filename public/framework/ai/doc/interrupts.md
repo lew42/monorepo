@@ -77,3 +77,27 @@ As documented in [Pass-by-Reference Messaging](pass-by-reference.md), the user-f
 | **User sends redirection** | Waits 5–10 min behind earlier tool steps | Immediately aborts active turn via `interrupt()` |
 | **Compute / Token spend** | Burns tokens answering discarded requests | Immediately stops; zero tokens wasted on obsolete turns |
 | **Mental alignment** | Agent is 3 steps behind the user's focus | Agent remains tightly synchronized with current user intent |
+
+---
+
+## 5. Concurrency: The Prompt-Response Trap vs. Two-Tier Multitasking
+
+LLMs operate under a synchronous autoregressive loop: `prompt → response → prompt → response`.
+When a single agent tries to act as both a **conversational listener** and a **multi-task worker**:
+- The human asks to do 20 things.
+- The agent launches into 20 deep tool executions (file reads, shell commands, AST edits).
+- **The Conversational Lockout:** While the tool loop runs, the model cannot speak to the human. If the human asks a quick question, it sits queued for 5 minutes.
+
+### The Dictate Solution: Decoupling Conversational Concurrency
+This exact friction drove the design of the Servex Dictate architecture (`Servex/agents/Sessions.js`):
+1. **The Fast Listener Tier (`tools: []`):**
+   - Holds the conversational floor.
+   - Speaks within 1–2 seconds.
+   - Answers quick questions, verifies status, and acknowledges user voice turns hands-free.
+2. **The Worker Tier (Minions / Background Agents):**
+   - Spawned asynchronously via `spawn_agent` into isolated worktrees or processes.
+   - Performs the heavy 20-step execution without holding the user's chat input hostage.
+3. **Pass-by-Reference Hand-Off:**
+   - The fast assistant does not re-generate the 5-paragraph user prompt in output tokens.
+   - It stamps the prompt to disk with an immutable ID and passes `{ agent_id, msg_id }` by reference.
+   - The worker loads the task cleanly, keeping conversational turn-around instantaneous.

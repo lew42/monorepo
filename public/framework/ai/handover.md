@@ -16,8 +16,9 @@ keep it one screen.
 - **Pass-by-Reference Messaging & Queue Latency:**
   - `doc/pass-by-reference.md`: Passing `msg_id` or `(file, line)` instead of re-generating walls of text in tool arguments; 98% reduction in relay output tokens and zero transcription drift. Architecture for out-of-band priority channels to bypass FIFO queue blackout during emergencies.
   - Linked in `doc/token-efficiency.md` and `public/framework/ai/readme.md`.
-- **Agent Interrupts & Queue Preemption:**
+- **Agent Interrupts, Queue Preemption & Concurrency Decoupling:**
   - `doc/interrupts.md`: Analysis of the FIFO queue trap during human dictation/redirection. Explains the Claude Agent SDK `query.interrupt()`, Servex `interrupt_agent`, and the stop-and-switch pattern where obsolete queued prompts are folded/superseded rather than serially executed.
+  - Section 5: Decoupling Conversational Concurrency — why single-threaded prompt-response models freeze when tasked with 20 items, and how the two-tier Fast (conversational floor) + Minion (worktree background worker) architecture unblocks hands-free voice dictation via pass-by-reference task dispatch.
   - Linked in `public/framework/ai/readme.md`.
 - **Models Catalog & Context Windows Grid Fixed:**
   - `/framework/ai/system/models/` (`overview.js` `render_catalog`): Fixed `fmt_ctx` formatter to display million-token windows cleanly as `1M` and `1.05M` instead of `1000K` / `1049K`. Populated context sizes for local models (`36k` for Qwen3, `32k` for Hermes3 / Qwen2.5-Coder, `8k` for Gemma) in `models.json` (committed `993dc7a8`).
