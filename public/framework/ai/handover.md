@@ -4,6 +4,17 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
+## LATEST, 2026-10-05 10:30 pm: Antigravity Session (45d8d4c7) taking over Mastermind
+**Claude Code weekly usage reached 100% lockout (resets Wed Oct 7, 9:59 pm UTC). Work continues under Google Antigravity and Servex/OpenRouter.**
+- **The Pre-Shutdown Masterminds:**
+  - Opus Mastermind: `60d9def6-907a-4f71-adf9-110075b719eb` (10 MB; ended 14:21).
+  - Sonnet Mastermind: `e3ade6ce-fbb5-4674-922c-566ef86fabb3` (793 KB; ended 17:22, initiated OpenRouter emergency backend).
+  - Both indexed in `/framework/ai/sessions/` (`sessions.json` regenerated).
+- **Today's Live Voice Session:** [`public/ai/v-yxnts4l.jsonl`](/public/ai/v-yxnts4l.jsonl) (237 KB) — holds owner dictation, fast/smart replies, and sentence refinement data.
+- **OpenRouter Spend Status:** Live key has **$49.52 remaining** ($50.48 used). Authorized burst `+$15` active in `openrouter-burst.json`. Servex spend guard is green (`ok: true`).
+- **Local Models on Machine:** `C:\llama\llama-server.exe` with `Qwen3-8B` (tool-capable), `Hermes-3-Llama-3.1-8B` (summarization), and `qwen2.5-coder` ($0 offline tokens).
+- **System Health:** Monorepo dev server (port 3104), Servex daemon (port 8090), Whisper server (port 8178), and port 80 proxy are all running.
+
 ## LATEST, 2026-10-05 2:10 pm: for the NEW Sonnet VS Code tab (the old Opus tab 60d9def6 is winding down)
 **Claude is at 96% of the week (0.7%/h; ~5 h left; weekly reset Wed Oct 7, 9:59 pm). Minimise Claude tokens at all costs: you are the one Claude session that stays; everything else runs on OpenRouter or local.**
 - **Voice is on OpenRouter NOW:** `%LOCALAPPDATA%\lew42\servex\session-backend.txt` = `openrouter` (GPT-6 luna for the fast/smart pair; delete the file to go back to Claude). Prompt cleaning: local Qwen 2.5 coder ($0). OpenRouter budget: +$15 burst this week (`openrouter-burst.json`).
