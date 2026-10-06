@@ -27,6 +27,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 ## For a fresh session
 
 - [handover.md](handover.md): the state of the world, in one screen.
+- [doc/conversations.md](doc/conversations.md): where web dictation logs and VS Code sidebar mastermind sessions live.
 - [handoff2.md](handoff2.md): the plan from 2026-09-24, with
   [your exact words](handoff2-owner-words.md).
 - A task's folder holds `task.jsonl` (its log) and usually `requirements.md` (its brief).
