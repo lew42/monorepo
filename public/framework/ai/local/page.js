@@ -1,4 +1,4 @@
-import { Page, p, div, select, option, h2, span, a } from "/app.js";
+import { Page, p, div, select, option, h2, h3, span, a, details, summary, code, pre, strong, small } from "/app.js";
 import { page_work } from "/framework/core/Page/ai/work.js";
 import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 import { servex_url } from "/framework/dev/servex_url.js";
@@ -29,6 +29,47 @@ const REPORT_URL = "/framework/ai2/2026-10-01/local-ai/";
  * offered, with no error anywhere. */
 const CHAT_ENDPOINT = "/api/local-chat";
 
+/* METADATA & SPECS FOR INSTALLED MODELS:
+ * Measured on NVIDIA GeForce RTX 4070 SUPER (12 GB VRAM).
+ * Only one model fits on the GPU at any given time. */
+const MODEL_SPECS = {
+	"qwen3-8b": {
+		name: "Qwen3 8B (Q4_K_M)",
+		size: "5.0 GB",
+		ctx: "36,864 tokens",
+		vram: "~11.7 GB (95.4%)",
+		desc: "General reasoning & agentic tasks. Features native <think> reasoning blocks. Best local all-rounder.",
+	},
+	"hermes-3-llama-3.1-8b": {
+		name: "Hermes 3 Llama 3.1 8B (Q4_K_M)",
+		size: "4.9 GB",
+		ctx: "32,768 tokens",
+		vram: "~11.6 GB (94.4%)",
+		desc: "NousResearch function-calling fine-tune of Llama 3.1. High compliance with structured tool outputs.",
+	},
+	"qwen2.5-coder": {
+		name: "Qwen 2.5 Coder 7B (Q4_K_M)",
+		size: "4.7 GB",
+		ctx: "32,768 tokens",
+		vram: "~11.4 GB (92.8%)",
+		desc: "Code-specialized model. Strong syntax comprehension, refactoring, and code generation.",
+	},
+	"gemma-4-e4b": {
+		name: "Gemma 4 e4B",
+		size: "5.5 GB",
+		ctx: "8,192 tokens",
+		vram: "~11.8 GB (96.1%)",
+		desc: "Google Gemma 4B high-precision variant.",
+	},
+	"gemma-3-4b": {
+		name: "Gemma 3 4B",
+		size: "2.5 GB",
+		ctx: "8,192 tokens",
+		vram: "~8.2 GB (66.7%)",
+		desc: "Google Gemma 3 4B lightweight variant. Lowest VRAM footprint, leaving ample headroom.",
+	},
+};
+
 export default new Page({
 	meta: import.meta,
 	title: "Local Models",
@@ -56,7 +97,26 @@ export default new Page({
 			a("Full inventory, what's running, what's half set up").href(REPORT_URL);
 		});
 
-		let models = [], picked = null, panel, fetchFailed = false, $picker;
+		let models = [], picked = null, panel, fetchFailed = false, $picker, $specCard;
+
+		const update_specs = () => {
+			if (!$specCard) return;
+			$specCard.empty(() => {
+				const spec = MODEL_SPECS[picked];
+				if (!spec) return;
+				div.c("flow", () => {
+					p(() => {
+						strong(spec.name || picked);
+						span(" — " + spec.desc);
+					});
+					div.c("row gap", () => {
+						span.c("chip", `File: ${spec.size}`);
+						span.c("chip", `Context: ${spec.ctx}`);
+						span.c("chip", `VRAM Footprint: ${spec.vram}`);
+					});
+				});
+			});
+		};
 
 		const draw_picker = () => {
 			$picker.empty(() => {
@@ -69,9 +129,19 @@ export default new Page({
 					return;
 				}
 				picked = models.includes(picked) ? picked : models[0];
-				select(() => models.forEach(m => option(m).attr("value", m)))
-					.attr("value", picked)
-					.on("change", e => { picked = e.target.value; });
+				div.c("flow", () => {
+					div.c("row gap", () => {
+						span.c("strong", "Active Model: ");
+						select(() => models.forEach(m => option(m).attr("value", m)))
+							.attr("value", picked)
+							.on("change", e => {
+								picked = e.target.value;
+								update_specs();
+							});
+					});
+					$specCard = div.c("card pad");
+					update_specs();
+				});
 			});
 		};
 
@@ -103,6 +173,50 @@ export default new Page({
 						return false;
 					}
 				},
+			});
+		});
+
+		// HARDWARE & VRAM CONSTRAINTS
+		div.c("card pad flow", () => {
+			h3("Hardware & VRAM Budget (RTX 4070 SUPER 12 GB)");
+			p("Local models run directly on your GPU via llama-server. Under full 32k context, an 8B model uses ~11.7 GB (95.4% capacity).");
+			p(() => {
+				strong("Single Model Rule: ");
+				span("Only one local model can run at a time — parallelization locally will crash GPU memory. Servex automatically stops the loaded model after 10 minutes of inactivity to free all 12 GB VRAM.");
+			});
+			p(() => {
+				span("For larger tasks exceeding 32k context, use cloud routing: ");
+				a("Local Strategy & VRAM Tradeoffs").href("doc/strategy.md");
+				span(" · ");
+				a("Context Budget & Tool Bloat").href("doc/context-budget.md");
+			});
+		});
+
+		// CONTEXT WINDOW & PROMPT INSPECTOR
+		details.c("card pad flow", () => {
+			summary.c("strong", "Context Budget & Prompt Inspector");
+			div.c("pad flow", () => {
+				p(() => {
+					strong("Rule: Input Tokens + Output Tokens ≤ Window");
+					span(" (32k / 36k tokens). If input exceeds this, the call fails instantly with HTTP 400.");
+				});
+				p(() => {
+					strong("Zero-Tool Ingestion: ");
+					span("Servex MCP declares 68 tools (~75,000 tokens of JSON schema). This harness runs with ");
+					code("tools: []");
+					span(" to prevent instant context overflow.");
+				});
+				p(() => {
+					strong("Attention Dynamics: ");
+					span("Place behavioral rules at the ");
+					strong("TOP");
+					span(" (Primacy / KV priming), background data in the ");
+					strong("MIDDLE");
+					span(", and the specific question/format at the ");
+					strong("BOTTOM");
+					span(" (Recency / autoregressive steering). ");
+					a("Full attention mechanics doc").href("/framework/ai/doc/context-window.md");
+				});
 			});
 		});
 
