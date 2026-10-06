@@ -279,13 +279,15 @@ export default function refine(meta, { run, runs, route = "run" } = {}){
 		$strip.empty(() => {
 			if (!items.length) return; // nothing dropped, thin or flagged — say nothing rather than an empty box
 			h3.c("refine-strip-title").text("Dropped & flagged");
-			items.forEach(item => {
-				const $row = div.c("refine-strip-row", () => {
-					span.c("refine-strip-s").text("S" + item.n + " ");
-					span.c("refine-strip-text").text(trim(by_n.get(item.n) ?? "", 100) + " — ");
-					span.c("refine-strip-reason").text(item.reason);
+			div.c("refine-strip-list", () => {
+				items.forEach(item => {
+					const $row = div.c("refine-strip-row", () => {
+						span.c("refine-strip-s").text("S" + item.n + " ");
+						span.c("refine-strip-text").text(trim(by_n.get(item.n) ?? "", 100) + " — ");
+						span.c("refine-strip-reason").text(item.reason);
+					});
+					$row.on("click", () => highlight(item.cites, $row.el));
 				});
-				$row.on("click", () => highlight(item.cites, $row.el));
 			});
 		});
 	}
@@ -365,16 +367,35 @@ export function parse_cites(text){
 export function parse_structured(md){
 	const sections = [];
 	let current = null;
-	const start_default = () => { current = { title: "", bullets: [] }; sections.push(current); };
+	const start_section = (title) => { current = { title: title || "", bullets: [] }; sections.push(current); };
+
 	for (const line of (md || "").split(/\r?\n/)){
-		const h = line.match(/^##\s+(.+)$/);
-		if (h){ current = { title: h[1].trim(), bullets: [] }; sections.push(current); continue; }
+		const h = line.match(/^#{1,3}\s+(.+)$/);
+		if (h){ start_section(h[1].trim()); continue; }
 		const b = line.match(/^[-*]\s+(.+)$/);
 		if (b){
-			if (!current) start_default();
+			if (!current) start_section("Overview & Asks");
 			current.bullets.push(parse_cites(b[1]));
 		}
 	}
+
+	// If the file was a flat list with only one generic section, cluster into logical subheadings
+	if (sections.length === 1 && !sections[0].title && sections[0].bullets.length > 6){
+		const flatBullets = sections[0].bullets;
+		const clustered = [];
+		const CHUNK_SIZE = 5;
+		for (let i = 0; i < flatBullets.length; i += CHUNK_SIZE){
+			const chunk = flatBullets.slice(i, i + CHUNK_SIZE);
+			const firstCite = chunk[0].cites[0] ?? (i + 1);
+			const lastCite = chunk[chunk.length - 1].cites.slice(-1)[0] ?? (i + chunk.length);
+			clustered.push({
+				title: `Section ${Math.floor(i / CHUNK_SIZE) + 1} (S${firstCite}–S${lastCite})`,
+				bullets: chunk
+			});
+		}
+		return clustered;
+	}
+
 	return sections;
 }
 
