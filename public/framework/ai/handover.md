@@ -21,6 +21,9 @@ keep it one screen.
   - Linked in `public/framework/ai/readme.md`.
 - **Models Catalog & Context Windows Grid Fixed:**
   - `/framework/ai/system/models/` (`overview.js` `render_catalog`): Fixed `fmt_ctx` formatter to display million-token windows cleanly as `1M` and `1.05M` instead of `1000K` / `1049K`. Populated context sizes for local models (`36k` for Qwen3, `32k` for Hermes3 / Qwen2.5-Coder, `8k` for Gemma) in `models.json` (committed `993dc7a8`).
+- **Local Model Viability & VRAM Stream Established:**
+  - `local/doc/strategy.md`: Recorded Hermes 3 (fast summarizer), Gemma 4/3 (lightweight/safe multitasking), and Qwen 3 (agentic worker) viability lanes; context chunking rule (800–1,200 lines max); and usage limit comparison (Claude OAuth vs Antigravity Google quota).
+  - `public/framework/ai/local/vram.jsonl`: Systematic telemetry data stream recording VRAM snapshots via `UniversalLogger`. Verified baseline 1,676 MB (14%) when idle vs ~11,713 MB (95%) when Qwen3 is loaded.
 - **Local Models Web UI Upgraded:**
   - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
 - **The Pre-Shutdown Masterminds:**

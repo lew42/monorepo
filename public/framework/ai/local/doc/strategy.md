@@ -63,3 +63,44 @@ Modern LLMs exhibit two proven attention biases:
 - **Qwen 3 (Verified Live):** Natively supports Anthropic-style tool calling. When tested with a single `get_weather` tool, it generated internal reasoning and cleanly emitted:
 - **The Rule:** Qwen 3 can execute tools, but **only 1–3 targeted tools at a time**, never a massive 68-tool MCP bundle.
 - **The Ideal Paradigm:** Provide a single unopinionated [Universal Log Tool](../../doc/log-tool.md) (~120 tokens). It accepts arbitrary JSON payloads (metrics, parameters, insights) while the server automatically stamps ISO timestamps, elapsed duration (`delta_ms`), and author attribution without hallucination.
+
+---
+
+## 5. Hermes-3 vs. Gemma vs. Qwen 3: When is Each Viable?
+
+| Model | File Size | Context Limit | VRAM Usage | Tool Calling? | Viable Lane |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`qwen3-8b`** | 5.0 GB | 36,864 | 11.7 GB (95%) | **Yes** (Native `<think>`) | Primary agentic worker; needs single-tool logging pattern. |
+| **`hermes-3-llama-3.1-8b`** | 4.9 GB | 32,768 | 11.6 GB (94%) | No (skips in proxy) | Fast summarizer (22s turnaround); structured text synthesis. |
+| **`qwen2.5-coder`** | 4.7 GB | 32,768 | 11.4 GB (93%) | No (skips in proxy) | Code syntax refactoring, AST cleaning, one-shot prompt repair. |
+| **`gemma-4-e4b`** | 5.5 GB | 8,192 | 11.8 GB (96%) | No | High-precision classification on tiny snippets. |
+| **`gemma-3-4b`** | 2.5 GB | 8,192 | 8.2 GB (67%) | No | Safe multitasking; leaves 4 GB VRAM headroom for OS and games. |
+
+---
+
+## 6. The VRAM Snapshot Stream (`vram.jsonl`)
+
+To maintain the file system as the sole source of truth for hardware telemetry, VRAM snapshots are recorded in [`public/framework/ai/local/vram.jsonl`](../vram.jsonl) via `UniversalLogger`:
+- **Pre-Allocation Observation:** When `llama-server` boots with `--parallel 1`, it immediately allocates the full KV-cache pool for 32k/36k context. There is **no surprise VRAM spike mid-prompt**; all VRAM is reserved upfront.
+- **Servex Supervision:** `Servex/Monitor.js` already runs continuous `nvidia-smi` sampling every 5 seconds. When a model unloads after 10 minutes of idle, VRAM drops from ~11.7 GB back to the desktop baseline (~1.6 GB - 3.8 GB).
+
+---
+
+## 7. Context Capacity: Slicing vs. Whole-File Reads
+
+In a 32,768-token window:
+- **Available Prompt Budget:** ~20,000 tokens (leaving 12,000 for thinking blocks and generation).
+- **Text Capacity:** 20,000 tokens ≈ **15,000 words** ≈ **800–1,200 lines of dense code**.
+- **The Slicing Rule:** Never ingest an entire 5,000-line file into a local model. Ingesting 5,000 lines chokes context immediately.
+  - Read only the targeted class or function range (`lines 120-240`).
+  - Pass the interface signature plus the specific block under edit. This keeps file ingestion under 2,000 tokens, leaving 90% of the window for reasoning.
+
+---
+
+## 8. Usage Limit Tracking: Antigravity vs. Claude Code
+
+- **Claude Code (`claude-usage.py`):** Relies on Anthropic's OAuth endpoint (`https://api.anthropic.com/api/oauth/usage`) using `~/.claude/.credentials.json`, refreshed by `Servex/Usage.js` every 15 minutes into `public/framework/ai/usage.json`.
+- **Google Antigravity:** Operates under a separate Google token allotment outside Anthropic and OpenRouter. Antigravity does not expose a public OAuth usage API endpoint on disk.
+- **Strategy for Rate Management:**
+  1. Monitor active session transcript token growth in `transcript.jsonl`.
+  2. Offload bulk, high-volume processing to local models ($0.00) or cheap OpenRouter models (`deepseek-v4.1-flash` at $0.003/M, `qwen3.7-flash` at $0.03/M) to preserve Antigravity and Claude quotas for high-level mastermind decisions.
