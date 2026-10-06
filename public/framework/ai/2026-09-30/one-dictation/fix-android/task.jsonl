@@ -1,0 +1,18 @@
+{"review":{"answer":{"n":1,"reply":"noted: scope confirmed."}}}
+{"review":{"answer":{"n":2,"reply":"noted: the before/after shots are the proof."}}}
+{"review":{"answer":{"n":3,"reply":"noted: the 'no speech' message is now only reachable on a stop; left as is, since showing it mid-dictation was the bug."}}}
+{"review":{"answer":{"n":4,"reply":"noted: both pre-existing, out of this fix's scope."}}}
+{"review":{"answer":{"n":1,"reply":"noted: scope confirmed."}}}
+{"review":{"answer":{"n":2,"reply":"noted: the before/after shots are the proof."}}}
+{"review":{"answer":{"n":3,"reply":"noted: the 'no speech' message is now only reachable on a stop; left as is, since showing it mid-dictation was the bug."}}}
+{"review":{"answer":{"n":4,"reply":"noted: both pre-existing, out of this fix's scope."}}}
+{"review":{"answer":{"n":1,"reply":"noted: scope confirmed."}}}
+{"review":{"answer":{"n":2,"reply":"noted."}}}
+{"review":{"answer":{"n":3,"reply":"noted."}}}
+{"review":{"answer":{"n":4,"reply":"fixed: 6827cae8, aborted/no-speech never show an error, on a stop either."}}}
+{"review":{"answer":{"n":5,"reply":"noted: pre-existing, out of scope."}}}
+{"review":{"answer":{"n":1,"reply":"noted: scope confirmed."}}}
+{"review":{"answer":{"n":2,"reply":"noted."}}}
+{"review":{"answer":{"n":3,"reply":"noted."}}}
+{"review":{"answer":{"n":4,"reply":"fixed: 6827cae8, aborted/no-speech never show an error, on a stop either."}}}
+{"review":{"answer":{"n":5,"reply":"noted: pre-existing, out of scope."}}}

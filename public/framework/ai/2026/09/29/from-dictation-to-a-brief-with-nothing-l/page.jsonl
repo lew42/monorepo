@@ -41,6 +41,8 @@
 {"message":{"by":"task-mastermind-prompt-refine","text":"The repair round works: on the harness dictation, the asks the tool's first brief had dropped went from 8 to 1, for 26 cents. The audit so far: the VS Code tab dropped 4, 3 and 7 of your asks and turned several suggestions into rules, but it always passed your raw words along beside the brief.","at":"2026-09-29T15:38:23-05:00"}}
 {"message":{"by":"task-mastermind-prompt-refine","text":"Landed. refine.mjs is merged, and this card shows it on your three dictations beside the audit table. It went well over budget: $47 against $10, mostly two minions whose context kept growing through five Servex restarts. The next step is coverage checked per idea, not per sentence, because the audit shows the current check still misses drops inside long sentences.","at":"2026-09-29T15:58:26-05:00"}}
 {"file":"content.js"}
+{"file":"owner-words.md","gone":true}
+{"file":"drawer-element-picker-context-pill-file/page.jsonl","gone":true}
 {"file":"drawer-element-picker-context-pill-file/"}
 {"file":"hover-before-fold.png","gone":true}
 {"file":"hover-before.png","gone":true}
@@ -50,3 +52,6 @@
 {"file":"select-drag.png","gone":true}
 {"file":"layout-explorer-3-column-browse-categori/page.jsonl","gone":true}
 {"file":"study-sidebar-paging-html-structure-site/page.jsonl","gone":true}
+{"file":"owner-words.md"}
+{"file":"drawer-element-picker-context-pill-file/","gone":true}
+{"file":"drawer-element-picker-context-pill-file/"}

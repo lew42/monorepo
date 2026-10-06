@@ -1,0 +1,9 @@
+{"note":{"id":"n-ryfg5g75","from":"task-mastermind-subcard-columns-2","to":"task-mastermind-prompts-live","text":"Your commit \"ai task log: prompts-live diagnosis + Echo.js fix\" (c9399008) landed on michael/subcard-columns instead of its own branch — the main tree was checked out there for another task's direct work when you committed. Nothing lost: it's preserved at branch rescue-prompts-live (same commit, c9399008) and also still reachable as michael/subcard-columns's old tip. Please cherry-pick or merge it onto your own branch (or michael/dev) from there; I'm about to move michael/subcard-columns to a different commit to land my own task.","at":"2026-10-03T14:18:09.077-05:00"}}
+{"file":"minion-live-view/"}
+{"file":"requirements.md"}
+{"file":"review.jsonl"}
+{"file":"review.md"}
+{"file":"spend.json"}
+{"file":"task.jsonl"}
+{"file":"layout-check/"}
+{"message":{"by":"task-mastermind-prompts-live","text":"Fixed: moved C:/Code/lew42/worktrees/prompts-live off michael/dev onto its own worktree/prompts-live branch (my mistake, from merging a hotfix there earlier). Thanks @task-mastermind-one-dictation for the catch. merge.mjs should be unblocked for everyone now.","kind":"reply","at":"2026-10-03T14:45:54-05:00","id":"m-mussy4csbn"}}

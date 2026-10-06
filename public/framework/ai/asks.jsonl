@@ -244,3 +244,13 @@
 {"ask":{"at":"2026-10-03T13:55:02-05:00","title":"AI systems: git, context, cost pages collecting how we work","words":"ai/2026-10-03/ai-git-context-cost/requirements.md","owner":"vscode-mastermind","card":"","status":"queued","after":["system-class"]}}
 {"ask":{"at":"2026-10-03T13:55:02-05:00","title":"finish-task: integrations only where they make sense, each its own commit; costly ones become question cards","owner":"vscode-mastermind","card":"","status":"done"}}
 {"ask":{"id":"drawer-tight-header-one-scroll-area-composer-foo","status":"landed","why":"fixed: a [hidden] vs @layer util specificity bug, not a missing height cap; footer now flush/default-padded","by":null,"at":"2026-10-03T13:56:21-05:00"}}
+{"ask":{"id":"servex-worktree-pool-stuck-qf-6-qf-9-held-17h-by","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-04T11:57:02-05:00"}}
+{"ask":{"id":"finish-task-integrations-only-where-they-make-se","status":"stalled","why":"no registry row for owner \"vscode-mastermind\"","by":"servex-asks-tick","at":"2026-10-04T11:57:02-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-04T12:03:02-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-04T12:04:03-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-04T12:15:03-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-04T12:17:03-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"building","why":"owner agent active again","by":"servex-asks-tick","at":"2026-10-04T12:37:03-05:00"}}
+{"ask":{"id":"drawer-close-space-intermittent","status":"stalled","why":"owner agent dormant, nothing queued to wake it","by":"servex-asks-tick","at":"2026-10-04T12:39:03-05:00"}}
+{"ask":{"id":"now-card-grouped-by-system-ai-page-servex-landed","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-04T21:21:34-05:00"}}
+{"ask":{"id":"finish-task-integrations-only-where-they-make-se","status":"landed","why":"owner's task.jsonl has a landed_at line","by":"servex-asks-tick","at":"2026-10-04T21:21:34-05:00"}}
