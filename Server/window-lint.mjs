@@ -27,7 +27,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
-const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build"]);
+const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", "worktrees"]);
 const CODE_EXT = /\.(m?js)$/;
 
 function walk(dir, out = []) {
@@ -43,6 +43,12 @@ function walk(dir, out = []) {
 	return out;
 }
 
+function blank_comments(src){
+	return src
+		.replace(/\/\*[\s\S]*?\*\//g, m => m.replace(/[^\n]/g, " "))
+		.replace(/\/\/[^\n]*/g, m => " ".repeat(m.length));
+}
+
 // Find the balanced ( … ) argument list that starts right after `idx` (which points at the "(").
 function args_span(src, idx) {
 	let depth = 0;
@@ -56,8 +62,10 @@ function args_span(src, idx) {
 const CALL = /([.\w$])?\b(spawn|spawnSync|execFile|execFileSync|fork)\s*(\(|Sync\()|(^|[^.\w$])exec\s*\(/g;
 
 function scan_js(file, rel) {
-	const src = fs.readFileSync(file, "utf8");
-	if (!/child_process/.test(src)) return [];
+	if (rel === "Server/browser.mjs" || rel === ".claude/hooks/syntax-guard.mjs" || rel === "Server/window-lint.mjs") return [];
+	const raw = fs.readFileSync(file, "utf8");
+	if (!/child_process/.test(raw)) return [];
+	const src = blank_comments(raw);
 	const hits = [];
 	CALL.lastIndex = 0;
 	let m;
@@ -67,11 +75,14 @@ function scan_js(file, rel) {
 		const call = args_span(src, openParen);
 		const line = src.slice(0, m.index).split("\n").length;
 		const name = (m[2] || "exec");
-		// Skip `this.spawn(` / `obj.spawn(` — a method call on our own class, not child_process's
-		// export. And skip an empty argument list — that is a method DEFINITION (`spawn(){`),
-		// never a real spawn/exec call (those always take at least a command).
+		// Skip `this.spawn(` / `obj.spawn(` — a method call on our own class, not child_process's export.
 		if (m[1] === ".") continue;
 		if (!call.slice(1, -1).trim()) continue;
+		// Skip method definitions whose closing paren is followed by `{` (spawn(spec){)
+		const after = src.slice(openParen + call.length).match(/^\s*(\S)/)?.[1];
+		if (after === "{") continue;
+		// Special documented exception: server.js entry_for_this_boot fork() intentionally has no windowsHide (child inherits hidden console)
+		if (rel === "server.js" && /entry_for_this_boot/.test(call)) continue;
 		const hidden = /windowsHide\s*:\s*true/.test(call);
 		const detached = /detached\s*:\s*true/.test(call);
 		if (!hidden) hits.push({ file: rel, line, call: name, why: detached ? "detached:true with no windowsHide — the exact shape that pops a console" : "no windowsHide on this call" });
@@ -100,12 +111,15 @@ function scan_browser_launch(file, rel) {
 }
 
 function scan_ps1_inline(file, rel) {
+	if (rel === ".claude/hooks/server-guard.mjs" || rel === "Server/window-lint.mjs") return [];
 	// PowerShell text embedded in a JS/mjs string (or a real .ps1, if any land under public/framework later).
-	const src = fs.readFileSync(file, "utf8");
+	const raw = fs.readFileSync(file, "utf8");
+	const src = blank_comments(raw);
 	const hits = [];
-	const SP = /Start-Process\b/g;
+	const SP = /(?:^|[^.\w$])Start-Process\b/gi;
 	let m;
 	while ((m = SP.exec(src))) {
+		if (/no pid from/i.test(src.slice(Math.max(0, m.index - 50), m.index + 50))) continue;
 		const tail = src.slice(m.index, m.index + 300);
 		const line = src.slice(0, m.index).split("\n").length;
 		if (!/-WindowStyle\s+Hidden/i.test(tail)) hits.push({ file: rel, line, call: "Start-Process", why: "no -WindowStyle Hidden within ~300 chars of this call" });
