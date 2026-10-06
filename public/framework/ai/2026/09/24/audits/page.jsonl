@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Audits","type":"group","id":"2026/09/24/audits","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"state":"● Landed · system and code audits"}
+{"preview":"Task audits, module census, and recommendations"}
+{"objects":"/framework/code/"}
+{"checklist":[{"text":"Audits architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"message":{"by":"task-mastermind-page-audit","text":"Paging audit taken: four Sonnet minions are mapping the page system, sorting page types, ranking overlaps, and testing whether column widths are saved per page. It lands on one growing page at ai/audits/paging/.","kind":"reply","at":"2026-09-25T16:36:35-05:00"}}
 {"message":{"by":"audit-builder","text":"Paging audit, round 1: /framework/ai/audits/paging/ — map, page types, ranked overlaps, and column widths are not saved (fix is first next round).","kind":"reply","at":"2026-09-25T16:38:47-05:00"}}
 {"message":{"by":"task-mastermind-page-audit","text":"Paging audit round 1 landed: /framework/ai/audits/paging/. Column widths are NOT saved (224px, dragged to 474px, reload back to 224px), so saving them per page is first next round. It also has the map, 7 page types, and 9 ranked overlaps (nothing merged); the page skill is updated.","kind":"reply","at":"2026-09-25T16:39:10-05:00"}}

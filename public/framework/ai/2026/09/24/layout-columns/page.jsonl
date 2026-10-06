@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Layout & columns","type":"group","id":"2026/09/24/layout-columns","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"state":"● Active · responsive layout and grid contracts"}
+{"preview":"Multi-column arrangement, grid rules, and grip seams"}
+{"objects":"/framework/core/Layout/Layout.js"}
+{"checklist":[{"text":"Layout & columns architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"prompt":{"id":"p-mug8dnvsus","at":"2026-09-24T19:36:53-05:00","by":"owner","on":"2026/09/24/layout-columns","raw":"Can you hear me?","text":"Can you hear me?","via":"whisper","url":"/framework/ai2/2026/09/24/layout-columns/"}}
 {"message":{"by":"assistant-layout-columns","text":"Yes, I can hear you. Your words came through clearly. What would you like to do with layout and columns?","kind":"reply","at":"2026-09-24T19:36:56-05:00"}}
 {"message":{"by":"master-assistant","text":"Yes, I hear you. I only step in on collisions, errors or small fixes. This card's own assistant answers your prompts.","kind":"reply","at":"2026-09-24T19:36:58-05:00"}}

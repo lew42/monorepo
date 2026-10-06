@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Cards & content","type":"group","id":"2026/09/24/cards-content","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"state":"● Active · cards and content architecture"}
+{"preview":"Card vocabulary, layout standards, and content rules"}
+{"objects":"/framework/ux/Card/page.js"}
+{"checklist":[{"text":"Cards & content architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"prompt":{"id":"p-mugbdp9q2i","at":"2026-09-24T21:00:54-05:00","by":"owner","on":"2026/09/24/cards-content","raw":"Why is this card full width and some of the others are not?","text":"Why is this card full width and some of the others are not?","via":"whisper","url":"/framework/ai2/2026/09/24/cards-content/"}}
 {"file":"why-is-this-card-full-width/page.jsonl"}
 {"message":{"by":"assistant-cards-content","text":"I've passed your question to the manager, who will look at how card widths are set and report back here.","kind":"reply","at":"2026-09-24T21:01:04-05:00"}}

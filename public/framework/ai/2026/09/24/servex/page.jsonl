@@ -1,2 +1,6 @@
-{"class":"/framework/ai2/card.js","title":"Servex","type":"group","id":"2026/09/24/servex","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"class":"/framework/ai2/card.js","title":"Servex","type":"group","id":"2026/09/24/servex","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":["servex","server"]}
+{"state":"● Running · supervises dev servers and background agents"}
+{"preview":"Process supervisor, log broker, and live agent coordinator"}
+{"objects":"/Servex/"}
+{"checklist":[{"text":"Server process supervisor and proxy routing","done":true},{"text":"Background agent sessions and MCP tools","done":true},{"text":"Live log streaming over /api/stream","done":true},{"text":"Server objects walk at /api/objects","done":true}]}
 {"file":"test/page.jsonl"}

@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Pages & markdown","type":"group","id":"2026/09/24/pages-markdown","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"state":"● Active · page structure and rendering"}
+{"preview":"Core Page class, Log reader, and markdown views"}
+{"objects":"/framework/core/Page/Page.class.js"}
+{"checklist":[{"text":"Pages & markdown architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"prompt":{"id":"p-muhexfle2x","at":"2026-09-25T15:27:59-05:00","by":"owner","on":"2026/09/24/pages-markdown","raw":"Can you explain to me where we landed on all these?","text":"Can you explain to me where we landed on all these?","via":"whisper","url":"/framework/ai2/2026/09/24/pages-markdown/"}}
 {"file":"where-we-landed-on-pages-and-markdown/page.jsonl"}
 {"message":{"by":"assistant-pages-markdown","text":"I've passed your question to the manager. It will post a short summary of where each item in this group landed.","kind":"reply","at":"2026-09-25T15:28:09-05:00"}}

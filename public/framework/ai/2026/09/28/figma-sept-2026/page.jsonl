@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Figma: Sept 2026","type":"group","id":"2026/09/28/figma-sept-2026","created":"2026-09-28T13:01:01-05:00","by":"task-mastermind-figma-sept-cards","tags":["figma"]}
+{"state":"● Active · design tokens and sync"}
+{"preview":"Figma tokens, design system integration, and sync"}
+{"objects":"/framework/styles/"}
+{"checklist":[{"text":"Figma: Sept 2026 architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"file":"1-typography/page.jsonl"}
 {"file":"2-lists/page.jsonl"}
 {"file":"3-form-elements/page.jsonl"}

@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"System design","type":"group","id":"2026/09/24/system-design","created":"2026-09-24T18:18:15-05:00","by":"minion-ai2-groups","tags":[]}
+{"state":"● Active · 7 concept tiles · 4 delivered"}
+{"preview":"Architecture: Servex, agents, cards, and dispatch"}
+{"objects":"/Servex/"}
+{"checklist":[{"text":"Concept tiles routing and addresses","done":true},{"text":"Sub-cards titles and delivered counts","done":true},{"text":"Smoke links crawl verification","done":true},{"text":"Window suppression enforcement","done":true}]}
 {"file":"servex/page.jsonl"}
 {"file":"agents-and-roles/page.jsonl"}
 {"file":"tiers/page.jsonl"}

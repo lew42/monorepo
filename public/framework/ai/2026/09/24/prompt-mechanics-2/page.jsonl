@@ -1,4 +1,8 @@
 {"class":"/framework/ai2/card.js","title":"Prompt mechanics","type":"request","id":"2026/09/24/prompt-mechanics-2","created":"2026-09-24T21:06:23-05:00","by":"agent","tags":["prompts","whisper"]}
+{"state":"● Running · speech transcription and refine"}
+{"preview":"Voice dictation, Whisper streaming, and prompt cleaning"}
+{"objects":"/framework/ux/Dictate/Widget.js"}
+{"checklist":[{"text":"Dictate architecture and design","done":true},{"text":"Core implementation and module integration","done":true}]}
 {"type":"group"}
 {"prompt":{"id":"p-mugbo6eram","at":"2026-09-24T21:09:02-05:00","by":"owner","on":"2026/09/24/prompt-mechanics-2","raw":"Okay, so how hard would it be to make this chat here that's kind of like a footer and it seems to have a maximum height? Can we make that a second column on the... on the main page area.\n So like each card that has its own chat area,\n instead of being a footer at the bottom,\n it's like a right hand column.","text":"Okay, so how hard would it be to make this chat here that's kind of like a footer and it seems to have a maximum height? Can we make that a second column on the... on the main page area.\n So like each card that has its own chat area,\n instead of being a footer at the bottom,\n it's like a right hand column.","via":"whisper","url":"/framework/ai2/2026/09/24/prompt-mechanics-2/"}}
 {"file":"chat-as-right-hand-column/page.jsonl"}

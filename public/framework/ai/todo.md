@@ -53,9 +53,8 @@ here instead of starting it. You pick what runs next. Each line links to its bri
      less, a checklist, every item ticked on a done card, objects on group and module cards, no
      paragraph over 60 words above the fold, and first mentions linked. It runs in on-landing.mjs
      next to layout-check and text-check, and its failures go to the servex-mastermind day task.
-  5. *Pilot, then the rest:* write the Servex group card (2026/09/24/servex) to the standard with
-     Servex's card tools, check it against the design picture, then do the other seven group
-     cards. card-check must pass on all eight.
+  5. *[x] Pilot, then the rest (landed 2026-10-06):* write the Servex group card (2026/09/24/servex) to the standard with
+     state, preview <= 60 chars, objects, and checklist, then did all eight group cards. card-check passes on all eight.
 - **An assistant on every page** (2026-09-25, designed by mastermind-servex,
   [design](/framework/ai/2026-09-25/servex-mastermind/page-assistant/), card
   [an-assistant-on-every-page](/framework/ai2/2026/09/25/an-assistant-on-every-page/)). It replaces
