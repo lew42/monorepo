@@ -301,5 +301,14 @@
 			border-bottom-color: var(--prim);
 		}
 		.tabs.vertical > .tab-panel { padding-top: 1rem; }
+
+		/* ⚠ When `.tabs.vertical` nests inside a `.page` (every module's Docs and API
+		   tabs), the outer page already pays `--gutter-x` side padding. Above 64em the
+		   rail sits beside the panel, so the inner page pays its own gutter inside the
+		   panel. Below 64em the rail flips to a horizontal row stacked above the panel,
+		   so the inner page paying `--gutter-x` stacked 56px of side padding on a phone
+		   (todo item 159). The inner page drops its side padding here so its content
+		   aligns with the tab strip on the parent page's axis. */
+		.page .tabs.vertical > .tab-panel > .page { padding-inline: 0; --gutter-x: 0px; }
 	}
 }
