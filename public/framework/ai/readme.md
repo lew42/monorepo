@@ -14,6 +14,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 
 ## Start here
 
+- [doc/systems-overview.md](doc/systems-overview.md): full AI architecture, persistence, triggers, and MCP tool/session logging audit.
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
 - [handover.md](handover.md): the state of the world for a fresh tab or mastermind.
 - [doc/autonomy.md](doc/autonomy.md): dynamic heartbeat, unstuck protocol, node-based steps, truthful token accounting.
@@ -29,6 +30,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 ## For a fresh session
 
 - [handover.md](handover.md): the state of the world, in one screen.
+- [doc/systems-overview.md](doc/systems-overview.md): full architecture, data flow, MCP tools catalog, and logging gaps.
 - [doc/autonomy.md](doc/autonomy.md): rules for hands-free masterminds, pacing, and minion delegation.
 - [doc/conversations.md](doc/conversations.md): where web dictation logs and VS Code sidebar mastermind sessions live.
 - [handoff2.md](handoff2.md): the plan from 2026-09-24, with
