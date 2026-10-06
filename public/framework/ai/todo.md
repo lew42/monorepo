@@ -11,12 +11,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   overview redesign. Next: an audit of the main pages against the approved set, with a
   layout-check contact sheet for each, then fixing the worst.
 
-- **A nightly full crawl of the site** (2026-09-28, from mastermind-servex). Every page under
-  /framework/ (about 1,140), one width (1920): follow every same-site link, record 404s, page
-  load errors and console errors, take one screenshot, and run the padding check. About 30
-  minutes of machine time and no tokens. Only the failures go to todo.md, and a model looks
-  only at those. It runs at night through a scheduled job, not an agent. It builds on
-  smoke.mjs's link-following (task-mastermind-smoke-links).
+- ~~**A nightly full crawl of the site** (2026-09-28, from mastermind-servex)~~ — **DONE.** Implemented in `Server/crawl.mjs`: crawls every page under `/framework/` at viewport 1920 (seeds discovered routes + follows all same-site links), records HTTP 404s, page load errors, and console errors, captures 1920 screenshots into `<outDir>/shots/`, and runs `Server/padding-check.mjs` on every page. Writes `crawl.jsonl` and `summary.md`. Tested and verified live on `http://monorepo.localhost` (clean execution, screenshots captured, zero tokens used). Failures automatically append to `todo.md`. Documented in `Server/README.md`.
 - ~~**Let task masterminds message each other** (2026-09-25)~~ — **DONE.** Verified in `Servex/agents/policy.js` (`table()` lines 85–86): `f === "task-mastermind" && t === "task-mastermind"` returns `"peer"`, allowing task masterminds to message peers directly without relaying through mastermind-servex.
 - ~~**Hide every process window: one sweep** (2026-09-25)~~ — **DONE.** Verified 2026-10-06 across `Server/worktree-up.mjs`, `Server/plugins/Ask.js`, `Assistant.js`, `CardAnswer.js`, `Servex/Process.js`, `sustain.mjs`: all call sites have `windowsHide: true` in place; no process windows pop.
 - **Module agents: a short readme as the way in, a ready agent to ask, no agent grows old**
