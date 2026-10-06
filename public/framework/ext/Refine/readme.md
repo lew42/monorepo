@@ -30,6 +30,11 @@ prompt_modes({ raw, sentences, structured, fallback_text });   // see its own do
 - **`refine-` is a new CSS class prefix**, not yet in `styles/css-scopes.txt` — that file was outside this module's fence, the same as `ask-`'s precedent (see the file's own comment there). The mastermind registers it.
 - **Dropped rows are warm (`--warn`), never `--error`/`--hot`.** A dropped sentence is worth a look, not a failure — the owner's rule for the whole view.
 
+## Architectural Recommendations
+1. **Refine as a Formal Class (`class Refine extends View`):** Currently a functional factory. Transitioning to a standard class with `ext/Doc` integration gives the page proper method/property documentation and API exploration tabs.
+2. **Server-Side Grouped Outline Emission:** `Server/refine.mjs` prompt specifies `## Subheading` markers, but models occasionally drop headers under token pressure. Enforce markdown header AST parsing or synthetic topic clustering to guarantee hierarchical trees rather than flat bullet lists.
+3. **Dropped & Flagged Drawer:** Elevate the strip into a collapsable sidebar drawer with one-click sentence filter toggles.
+
 ## Try it
 [Try it](/framework/ext/Refine/try/) runs the real `clean()` step (same one Echo runs) against any
 model: every local gguf file this machine has, a few cheap OpenRouter models, and Haiku — paste
