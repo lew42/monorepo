@@ -38,6 +38,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 - How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/token-accounting.md](doc/token-accounting.md).
 - Token efficiency, batching rules, and pre-processing: [doc/token-efficiency.md](doc/token-efficiency.md).
 - Context windows, primacy/recency attention bias, and token budgets: [doc/context-window.md](doc/context-window.md).
+- Single universal log tool for constrained models & file system truth: [doc/log-tool.md](doc/log-tool.md).
 - Model evaluation, what is "truth", and avoiding circular grading: [doc/eval-truth.md](doc/eval-truth.md).
 - MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/mcp.md](doc/mcp.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its

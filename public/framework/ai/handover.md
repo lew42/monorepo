@@ -9,6 +9,10 @@ keep it one screen.
 - **Context Windows & Attention Dynamics Documented:**
   - `doc/context-window.md`: Details Primacy bias (token 0 KV priming, RoPE distance anchor), Recency bias (autoregressive next-token steering), and Lost in the Middle.
   - Linked in `public/framework/ai/readme.md` (committed `eb75fbd6`).
+- **Single Universal Log Tool for Constrained Models:**
+  - `doc/log-tool.md`: Architecture for single ~120-token unopinionated log tool replacing 75k-token MCP catalogs.
+  - `public/framework/ai/local/log-tool.js`: Reusable implementation with automatic timestamping, duration calculation (`delta_ms`), sequence counters, and caller attribution.
+  - Verified live on local RTX 4070 Super: Qwen3-8B executed `log` tool in 7.1s with native reasoning and structured JSON payload.
 - **Local Models Web UI Upgraded:**
   - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
 - **The Pre-Shutdown Masterminds:**

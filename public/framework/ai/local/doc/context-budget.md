@@ -23,16 +23,20 @@ When an agent harness connects to MCP:
 
 ---
 
-## The Safe Pattern for Local Models
+## The Safe Patterns for Local Models
 
 1. **Zero-Tool Ingestion (`tools: []`):**
    - Provide the model with all necessary data directly in the prompt text.
    - Do NOT declare MCP servers or tool schemas.
-2. **Small Focused Snippets (10k tokens or less):**
+2. **The Single Universal Log Tool (`tools: [log]`):**
+   - When the agent must mutate state or persist its findings, provide **exactly one tool: `log`** (~120 tokens schema overhead).
+   - Allows logging arbitrary unopinionated JSON data (params, insights, notes, metrics, state) with automated timestamping, latency tracking (`delta_ms`), and author attribution.
+   - See [The Single Universal Log Tool](../../doc/log-tool.md) for architecture, schema, and live test proofs.
+3. **Small Focused Snippets (10k tokens or less):**
    - Ideal for:
      - Reviewing a class hierarchy (classes, methods, signatures) and suggesting alternate namings.
      - Cleaning raw transcripts (stripping filler words, punctuation repair).
      - Summarizing a specific markdown document into bullet points.
-3. **Leave 4k to 8k Headroom for Thinking & Output:**
+4. **Leave 4k to 8k Headroom for Thinking & Output:**
    - Keep input prompts under **20k tokens**.
    - This leaves 12k tokens for the model's native internal reasoning (`<thinking>` blocks) and the final response.

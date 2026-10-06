@@ -61,5 +61,5 @@ Modern LLMs exhibit two proven attention biases:
 
 - **Qwen 2.5:** Used an older ChatML template that struggled with structured tool calls under standard OpenAI/Anthropic proxies unless custom JSON grammars were injected.
 - **Qwen 3 (Verified Live):** Natively supports Anthropic-style tool calling. When tested with a single `get_weather` tool, it generated internal reasoning and cleanly emitted:
-  `tool_use: get_weather {"location": "Dallas, TX"}` with zero format errors.
 - **The Rule:** Qwen 3 can execute tools, but **only 1–3 targeted tools at a time**, never a massive 68-tool MCP bundle.
+- **The Ideal Paradigm:** Provide a single unopinionated [Universal Log Tool](../../doc/log-tool.md) (~120 tokens). It accepts arbitrary JSON payloads (metrics, parameters, insights) while the server automatically stamps ISO timestamps, elapsed duration (`delta_ms`), and author attribution without hallucination.
