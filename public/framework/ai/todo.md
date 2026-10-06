@@ -66,7 +66,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - [x] *Baseline checkpoint:* per path, spawn once with the assistant skill plus the readme, and
         don't talk to it. Store its session id with a hash of the readme, and rebuild it when the
         hash changes or its transcript is gone (after the 30-day cleanup).
-  - [ ] *Resume and New session:* Resume continues the path's current session. New session is
+  - [x] *Resume and New session:* Resume continues the path's current session. New session is
         `spawn_agent({resume: baseline, fork: true})`, and the previous session stays listed.
         The 10-minute idle stop and wake-on-message already in Layers apply unchanged.
   - [ ] *`ask_module(path, question)`:* a one-shot fork of the same baseline, with read-only

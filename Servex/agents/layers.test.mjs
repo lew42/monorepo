@@ -362,6 +362,7 @@ check("a manager held at the spawn gate: one spawn, a queued answer, and every w
  * lifecycle numbers shrunk so one sweep crosses them. */
 const repo = path.join(dir, "repo");
 fs.mkdirSync(path.join(repo, "public/framework/ux/Dictate"), { recursive: true });
+fs.mkdirSync(path.join(repo, "public/framework/ux/Tree"), { recursive: true });
 fs.mkdirSync(path.join(repo, "public/notes"), { recursive: true });
 const pcalls = [];
 let psid = 0;
@@ -369,7 +370,8 @@ const pagents = {
 	live: new Map(),
 	spawn(spec){
 		pcalls.push({ verb: "spawn", spec });
-		const agent = { id: spec.id, model: spec.model, state: "working", session_id: spec.resume ?? `psess-${++psid}`, context: 5000, turns: 0 };
+		const session_id = (spec.resume && !spec.fork) ? spec.resume : `psess-${++psid}`;
+		const agent = { id: spec.id, model: spec.model, state: "working", session_id, context: 5000, turns: 0 };
 		pagents.live.set(spec.id, agent);
 		return agent;
 	},
@@ -706,6 +708,52 @@ check("baseline checkpoint: builds once, reuses while valid, rebuilds on hash ch
 	const b4 = P.ensure_baseline("/framework/ux/Dictate/");
 	assert.equal(pspawns().length, count_before + 3, "rebuilt when transcript gone");
 	P.session_exists = orig_exists;
+});
+
+check("resume and new session: new_session forks baseline and preserves history, resume continues session", () => {
+	const PAGE = "/framework/ux/Tree/";
+	const baseline_id = P.ensure_baseline(PAGE).session_id;
+
+	// First new session: forks from baseline
+	const a1 = P.new_session(PAGE);
+	const s1 = pspawns().at(-1).spec;
+	assert.equal(s1.resume, baseline_id);
+	assert.equal(s1.fork, true);
+	const sess1 = a1.session_id;
+
+	let list = P.sessions_of(PAGE);
+	assert.equal(list.length, 1);
+	assert.equal(list[0].session_id, sess1);
+	assert.equal(list[0].current, true);
+
+	// Second new session: forks from baseline, keeps previous session listed
+	const a2 = P.new_session(PAGE);
+	const s2 = pspawns().at(-1).spec;
+	assert.equal(s2.resume, baseline_id);
+	assert.equal(s2.fork, true);
+	const sess2 = a2.session_id;
+	assert.notEqual(sess1, sess2);
+
+	list = P.sessions_of(PAGE);
+	assert.equal(list.length, 2);
+	const entry1 = list.find(s => s.session_id === sess1);
+	const entry2 = list.find(s => s.session_id === sess2);
+	assert.equal(entry1.current, false, "previous session stays listed as non-current");
+	assert.equal(entry2.current, true, "new session is current");
+
+	// Resume current session:
+	pagents.live.get("assistant-tree").state = "stopped";
+	const resumed = P.resume_session(PAGE);
+	const s_res = pspawns().at(-1).spec;
+	assert.equal(s_res.resume, sess2);
+	assert.equal(s_res.fork, undefined, "plain resume does not fork");
+
+	// Resume previous session by id:
+	pagents.live.get("assistant-tree").state = "stopped";
+	const resumed_old = P.resume_session(PAGE, sess1);
+	const s_old = pspawns().at(-1).spec;
+	assert.equal(s_old.resume, sess1, "switched back and resumed previous session");
+	assert.equal(P.record(PAGE).assistant.session_id, sess1);
 });
 
 fs.rmSync(dir, { recursive: true, force: true });

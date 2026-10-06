@@ -83,7 +83,7 @@ export default class Layers {
 
 	defaults(){
 		return { file: STATE, repo: REPO,
-			idle_ms: env("SERVEX_ASSISTANT_IDLE_MS", env("SERVEX_CARD_IDLE_MS", 5 * MIN)),
+			idle_ms: env("SERVEX_ASSISTANT_IDLE_MS", env("SERVEX_CARD_IDLE_MS", 10 * MIN)),
 			manager_idle_ms: env("SERVEX_MANAGER_IDLE_MS", 15 * MIN),
 			max_assistants: env("SERVEX_MAX_ASSISTANTS", 4),
 			resume_max_tokens: env("SERVEX_RESUME_MAX_TOKENS", 30000),
@@ -244,6 +244,107 @@ export default class Layers {
 			return this.record(key).baseline;
 		}
 		return this.build_baseline(key);
+	}
+
+	/* List all sessions recorded for a context, newest first. */
+	sessions_of(key){
+		if (is_page(key)) key = page_path(key) ?? key;
+		const rec = this.record(key);
+		const slot = rec.assistant;
+		const list = rec.sessions ? [...rec.sessions] : [];
+		if (slot.session_id && !list.some(s => s.session_id === slot.session_id)){
+			list.push({
+				session_id: slot.session_id,
+				context: slot.context ?? null,
+				created_at: slot.created_at ?? slot.used_at ?? new Date().toISOString(),
+				used_at: slot.used_at ?? null,
+				current: true
+			});
+		}
+		for (const s of list) s.current = (s.session_id === slot.session_id);
+		return list.sort((a, b) => Date.parse(b.created_at ?? b.used_at ?? 0) - Date.parse(a.created_at ?? a.used_at ?? 0));
+	}
+
+	/* Start a brand-new session for a context: fork from baseline, keep previous session listed. */
+	new_session(key){
+		if (is_page(key)) key = page_path(key) ?? key;
+		const rec = this.record(key);
+		const slot = rec.assistant;
+
+		rec.sessions ??= [];
+		if (slot.session_id){
+			const existing = rec.sessions.find(s => s.session_id === slot.session_id);
+			if (!existing){
+				rec.sessions.push({
+					session_id: slot.session_id,
+					context: slot.context ?? null,
+					created_at: slot.created_at ?? slot.used_at ?? new Date().toISOString(),
+					used_at: slot.used_at ?? null,
+					current: false
+				});
+			} else {
+				existing.context = slot.context ?? existing.context;
+				existing.used_at = slot.used_at ?? existing.used_at;
+				existing.current = false;
+			}
+		}
+
+		if (this.live(slot.id)) this.stop(slot.id);
+		this.servex.agents.live.delete(slot.id);
+
+		const base = this.ensure_baseline(key);
+		this.make_room(slot.id);
+
+		const spec = {
+			...this.spec(key, "assistant"),
+			id: slot.id,
+			cwd: slot.cwd ?? this.repo,
+			resume: base.session_id,
+			fork: true
+		};
+		this.log_gate(slot.id, "start", "new_session:fork_baseline");
+		const agent = this.servex.agents.spawn(spec);
+		slot.session_id = agent.session_id;
+		slot.context = agent.context ?? null;
+		slot.created_at = new Date().toISOString();
+		slot.used_at = slot.created_at;
+
+		rec.sessions.push({
+			session_id: slot.session_id,
+			context: slot.context,
+			created_at: slot.created_at,
+			used_at: slot.used_at,
+			current: true
+		});
+		for (const s of rec.sessions) if (s.session_id !== slot.session_id) s.current = false;
+
+		this.save();
+		this.touch(slot.id);
+		this.sync(key);
+		return agent;
+	}
+
+	/* Continue the path's current session, or switch to and resume a specified listed session. */
+	resume_session(key, session_id){
+		if (is_page(key)) key = page_path(key) ?? key;
+		const rec = this.record(key);
+		const slot = rec.assistant;
+
+		if (session_id && session_id !== slot.session_id){
+			const target = rec.sessions?.find(s => s.session_id === session_id);
+			if (target){
+				if (this.live(slot.id)) this.stop(slot.id);
+				this.servex.agents.live.delete(slot.id);
+				slot.session_id = target.session_id;
+				slot.context = target.context;
+				target.current = true;
+				for (const s of (rec.sessions ?? [])) if (s.session_id !== target.session_id) s.current = false;
+				this.save();
+			}
+		}
+
+		if (!slot.session_id) return this.new_session(key);
+		return this.open(key, "assistant");
 	}
 
 	/* Ids are minted ONCE per context, from `base_of()`; a name already recorded
@@ -947,6 +1048,29 @@ export default class Layers {
 			try {
 				const p = page_path(req.query.page) ?? req.query.page;
 				res.json(this.ensure_baseline(p));
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
+		router.get("/api/page-sessions", cors, (req, res) => {
+			try {
+				const p = page_path(req.query.page) ?? req.query.page;
+				res.json(this.sessions_of(p));
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
+		router.options("/api/page-session/:action", cors, (req, res) => res.status(204).end());
+		router.post("/api/page-session/new", cors, async (req, res) => {
+			try {
+				const data = await body(req);
+				const p = page_path(data.page) ?? data.page;
+				const agent = this.new_session(p);
+				res.json({ ok: true, page: p, session_id: agent.session_id, id: agent.id });
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
+		router.post("/api/page-session/resume", cors, async (req, res) => {
+			try {
+				const data = await body(req);
+				const p = page_path(data.page) ?? data.page;
+				const agent = this.resume_session(p, data.session_id);
+				res.json({ ok: true, page: p, session_id: agent.session_id, id: agent.id });
 			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
 		});
 		router.options("/api/page-ai", cors, (req, res) => res.status(204).end());
