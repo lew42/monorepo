@@ -106,3 +106,8 @@ came through):**
   `width: 100%` — `flex: 1` alone left the text box sized to its placeholder,
   not the row, because `.auto`'s `field-sizing: content` (framework.css) sizes
   an `auto`-width axis to its content. `Chat.css` has the full note.
+
+## Unified composer layout and settings menu (2026-10-01)
+
+- **One box on top, one row below it**: `composer()`'s box is always a full-width column — typed/dictated buffer on top (grows up to `Chat.css`'s `max-height: 7lh` on `.chatbox-compose-input`, then scrolls), with mic, Send, ⚙ menu button and "raw" toggle in one row underneath. Used across AI 2 card composer, ✦ sheet, desktop drawer, and `ux/Dictate` Widget. `SETTINGS.paragraph_pause_ms` set to 700ms.
+- **Merged settings menu**: The ⚙ button and `⋯` button are merged into a single ⚙ button opening a full-screen panel holding dictation settings, engine status, and pause controls.

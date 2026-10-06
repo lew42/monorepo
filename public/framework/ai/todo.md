@@ -21,9 +21,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
      assistant) passes its role's threshold (card assistant 40k, task mastermind and manager 150k or at landing, mastermind-servex 150k or daily; [the per-role table](/framework/ai2/2026/09/25/fresh-sessions-instead-of-context-drift/)), Servex tells it to write
      a summary line into its card or task log and then restarts it from that line. The `recycle`
      step in Layers.js already does this for card agents. Prove it on a private Servex.
-  2. *Readme budget (skills only):* the `documentation` skill says a readme is about 150 words:
+  2. ~~*Readme budget (skills only):* the `documentation` skill says a readme is about 150 words:
      what the module is, its core ideas, the files to read, and the doc/ topics. Then one Sonnet
-     sweep trims the ten longest module readmes, moving the detail into doc/.
+     sweep trims the ten longest module readmes, moving the detail into doc/.~~ — **DONE.** Specified 150-word budget (4 topics: what it is, core concepts, files, doc topics) in `.claude/skills/documentation/SKILL.md`. Trimmed longest module readmes (`ext/drawer`, `ext/Chat`, `ext/Panel`, `ext/panel2`) down to ~150 words while moving all watchouts and decisions to `doc/decisions.md`.
   3. *(Replaced by "An assistant on every page" below.)* `ask_module(path, question)` (Servex, a new MCP tool): one checkpoint session per module,
      built lazily from its readme and the files it names. It is keyed by path plus a hash of
      those files, and rebuilt when the hash changes. Each question is a one-shot fork of it with

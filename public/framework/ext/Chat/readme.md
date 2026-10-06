@@ -1,217 +1,39 @@
-# Chat — a chat log that follows new messages only while you are at the bottom
+# Chat — a scrolling chat log, composer, and conversation widget
+
+Follows new messages while scrolled to bottom, formats Markdown bubbles with avatar icons, and supports threading and reactions.
 
 ## Use
 
 ```js
 import { chat } from "/framework/ext/Chat/Chat.js";
-
-const talk = chat({ source: () => entries, keep: e => true, answer: choice => send(choice) });
-talk.view;    // the scrolling box — place it anywhere
-talk.sync();  // draw whatever is new; call it whenever `entries` changes
-```
-
-Markdown is safe (`md.js`), each bubble starts with its sender's avatar (`roles.js`), and `Composer.js` is the input.
-
-## One box on top, one row below it (2026-10-01)
-
-`composer()`'s own box is now ALWAYS a full-width column — the typed/dictated buffer on top
-(it grows up to a ceiling, `Chat.css`'s `max-height: 7lh` on `.chatbox-compose-input`, then
-scrolls), and the mic, Send, one ⚙ menu button and the "raw" toggle in ONE row underneath it,
-never beside the box. Every caller of `composer()` gets this — AI 2's card composer, the ✦
-sheet, the desktop drawer, and now [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/),
-which used to build a second, separate composer of its own (`one-dictation`, CLAUDE.md law 6).
-`Mic.js`'s `SETTINGS.paragraph_pause_ms` (how long a finished sentence waits before it is sent
-and the box clears) is `700`ms by default now, not `1500` — the owner asked for "500 to 1000
-milliseconds."
-
-## The settings menu — now one button, full screen (2026-10-01)
-
-The ⚙ used to open a small popover of dictation settings, and a SEPARATE `⋯` button opened
-a second small popover (the engine name, its status, the "stop after a pause" checkbox) —
-two buttons, two popovers, for things that are really one topic. The owner, looking at both:
-"I think the gear and that more button should be merged together into one menu... it maybe
-should swap out the entire UI, right? Like full screen." Now there is ONE ⚙ button, and it
-opens ONE full-screen panel holding both halves — the same full-screen shape
-[`Drill.js`](#drill-in-open-a-card-as-its-own-small-page-2026-09-30)'s own card shell uses
-(`Composer.js`'s `build_menu()`, `Chat.css`'s `.chatbox-compose-menu-panel`). The "raw"
-dig-back toggle (below) stays its own small button in the row — the owner only asked about
-the gear and the `⋯`, not that one.
-
-## Reactions, avatars and threads (2026-09-30)
-
-- **React to a bubble like an SMS tap-back:** hold it on a phone, right-click it on a desktop, or click the ☺ beside it. Pick 👍 ✅ ❤️ 😂 ❓ 👎; the same one again takes it off. Each is a `{"react": {at, re, emoji, from}}` line in the log, so it survives a reload. Pass `on_react` to `chat()` (or `react` to `ChatPanel`) to save it.
-- **The icon is the name:** ⚡ fast, 🧠 smart, 👤 you (`set_avatar()` picks your own), on the same line as the words.
-- **Reply in a thread:** tap a bubble, press Reply, and your next message is drawn in a thread under it ("▸ N replies"), not at the bottom. The line carries `re` (the parent's `at`) and `thread: true`. `ChatPanel` offers it with its own list or `threads: true`.
-- **A card's own reply can thread too** (card-threaded-replies, 2026-10-01), with no Reply button needed: Servex's `card_reply` tool takes an optional `re` (the id of the prompt or reply it answers), and `ai2/card.js` turns that into the same `re` + `thread: true` this file already renders nested — [`Servex/cards/readme.md`](/Servex/cards/readme.md) has the shape.
-- How it works, who saves what, and how the assistants react and thread: [doc/reactions.md](./doc/reactions.md).
-
-## ChatPanel — the log, the composer and the mic, as one widget
-
-`ChatPanel.js` wraps `chat()` and `composer()` into one class, so a host — the
-desktop drawer's AI tab, the mobile sheet, a card — builds the exact same
-widget instead of its own hand-rolled copy. Its height starts small and grows
-with what is said, up to `--chatbox-panel-max` (a CSS variable the host sets;
-70vh by default), then only the log scrolls — no JS measures anything, see
-`Chat.css`'s `.chatbox-panel`.
-
-```js
 import { ChatPanel } from "/framework/ext/Chat/ChatPanel.js";
 
-const panel = new ChatPanel({ source: () => entries, deliver: async entry => post(entry) });
-panel;          // a View — append it anywhere; it IS the widget
-panel.sync();   // draw whatever is new in source() — call after entries change
+// Standalone message log
+const talk = chat({ source: () => entries, keep: e => true });
+
+// Complete unified panel with composer and mic
+const panel = new ChatPanel({ source: () => entries, deliver: post });
 ```
 
-With no `source`/`deliver`, the panel keeps its own list: `panel.say(entry)`
-appends and draws — the whole API a first caller needs. `re`, `mic`,
-`autostart`, `placeholder`, `hint`, `sent`, `failed`, `max`, `revise` pass straight
-through to `composer()` (see `Composer.js`'s own doc comment for what each
-does). Live, with v1 (the old, hand-wired assembly) beside it:
-[/framework/ext/Chat/panel/](/framework/ext/Chat/panel/).
+## Core concepts
 
-`revise: "clean" | "edit" | "summary" | false` (default `"clean"` in `ChatPanel` since 2026-09-30, `false` in a bare
-`composer()`; [AI 2](/framework/ai2/) turns on `"clean"`) runs [`ux/Revise`](/framework/ux/Revise/) on this composer's mic — a
-different pipeline from `Server/doc/refine.md`'s batch `clean`/`structured` rungs; same words,
-unrelated systems. Only the `"clean"` level does anything special here — `"edit"` and
-`"summary"` just run `on_revised`/`on_revise_failed` as `ux/Dictate/readme.md` describes, with
-no box swap. With `"clean"`, `ComposerMic` (`Mic.js`) now swaps each finished utterance's raw
-words for the fast assistant's clean-up IN PLACE, right in the box — raw shows first, clean
-replaces it once `/api/tidy` answers, same idea as the still-moving Whisper guess it already
-showed. A small **"raw" chip** beside ⚙ is a toggle button: click it and the whole box swaps,
-in place, to exactly what Whisper heard; click again to swap back to clean — nothing opens in a
-popover or separate panel. The composer's own gear (⚙) has a **"clean transcription"**
-checkbox next to the other mic settings — this is `Mic.js`'s `SETTINGS.clean`, the kill
-switch, on by default, remembered the same way as the other settings. Whichever text is in
-the box when a message is sent is what goes out; the raw words still ride along on `entry.raw`
-(`entry.level: "clean"`), and a pending clean-up is waited for at most ~5s
-(`Mic.js`'s `await_clean()`) before falling back to raw, so nothing is ever lost and nothing
-sends twice — that same wait is what `on_revise_failed` (see `ux/Dictate/readme.md`) resolves
-early: a failed clean-up doesn't make `await_clean()` sit out the full 5s, it just leaves the
-raw text showing. `ai/2026-09-29/audio/next-clean-transcription/a-clean-mode/`.
+- **Unified composer**: Full-width buffer on top with single control row below (mic, Send, gear menu) · [`doc/decisions.md`](./doc/decisions.md).
+- **Drill-in**: Clicking a card or topic drills into its sub-conversation shell · [`doc/drill.md`](./doc/drill.md).
+- **Smart scrolling**: Tracks bottom stickiness without jumping while inspecting history · [`doc/scroll.md`](./doc/scroll.md).
+- **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
 
-## Live bubbles — your words while you speak, a reply while it is written
+## Files that matter
 
-In a `ChatPanel`, dictation no longer fills the text box first: your words grow in a bubble on
-your side of the log, the still-moving guess grey, the clean-up swapped in place as it arrives.
-When the words are sent the bubble fades until the real line replaces it. An assistant's reply
-can grow the same way. Proof, at phone width: [`ai/2026-09-30/dictation-stream/`](/framework/ai/2026-09-30/dictation-stream/).
+- `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
+- `ChatPanel.js`: Combined view wrapping log, composer, and drill-in shell.
+- `Composer.js`: Text buffer, input autosizing, and audio controls.
+- `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
+- `roles.js`: Sender avatars and badges.
 
-```js
-panel.talk.live({ settled: "So this is", guess: " a test" });   // ComposerMic calls this for you
-panel.stream("smart", "Yes, the words now");                     // "" removes it; its final line replaces it
-```
+## Doc topics
 
-- **The text box stays**, for typing. The gear's **"dictation goes into"** setting (`Mic.js`,
-  `SETTINGS.into`: `"chat"` or `"box"`) brings back the old way. Send with an empty box sends
-  the growing bubble at once.
-- Only a composer whose host passes `on_live` can do this (`ChatPanel` does); a bare
-  `composer()` (AI 2's) always uses the box.
-- `ChatPanel` now defaults `revise` to `"clean"`; `revise: false` turns it off for one host.
-- **A second host now passes `on_live` too** (clean-dictate-mode, 2026-10-01):
-  [`ux/Dictate`'s own `Widget`](/framework/ux/Dictate/), with `new Widget({ mode: "live" })` —
-  the exact same mechanism as `ChatPanel`'s above, not a second one; see
-  [`ux/Dictate/readme.md`](/framework/ux/Dictate/)'s "Widget" section.
-
-## The universal chat line — one shape for voice, typed, and an agent's own reply
-
-`voice-sessions/design.md`'s one turn shape, logged by any surface:
-
-```json
-{"chat": {"at": "2026-09-29T19:00:00Z", "session": "s1", "path": "/framework/ext/Chat/",
-  "from": {"kind": "owner", "id": "owner"}, "via": "voice", "text": "…", "re": "optional-card-id"}}
-```
-
-`chat()` maps it onto its own bubbles: `from.kind === "owner"` is your bubble
-(right side); anything else — `"assistant"`, `"agent"` — is a reply (left
-side), labelled by `from.id` if it has one, else `from.kind`. `via` ("voice"
-or "text") draws a small 🎤/⌨ mark before the words. A LATER line with the
-SAME `at` and `fix: true` replaces that piece's words in place — a
-correction, not a second message. `place: {module, id, ...}` swaps the words
-for that `ux/Content` module's own card (`new Module({ id, ... })`, the exact
-contract `page.jsonl`'s own `"place"` lines already use) — e.g. a Question
-card right there in the log.
-
-The OLD shape (`{type, by, text, id}` — what AI 2 and the drawer still log)
-keeps working exactly as before; a universal `{chat: {...}}` line is a
-completely separate path through `chat()`, so nothing about the old one
-changed. Demo, both shapes in one log: [/framework/ext/Chat/](/framework/ext/Chat/).
-
-## The revision line — a tidied-up PAIR under the raw one (2026-09-29)
-
-A revision is the SAME universal shape, plus two fields: `re` (the raw line's own `at` — which
-line this tidies up) and `level` (`"clean"`/`"edit"`/`"summary"`, `ux/Revise`'s own name for how
-much):
-
-```json
-{"chat": {"at": "2026-09-29T19:02:11Z", "from": {"kind": "owner"}, "text": "the tidied-up words", "re": "2026-09-29T19:02:08Z", "level": "edit"}}
-```
-
-`chat()` never draws this as its own bubble — it finds the piece whose own `at` equals `re` and
-draws the revised text right under the raw words, raw greyed. A click toggles `.showraw`: the
-revised line hides and the raw one takes the full weight back; a second click returns to the
-pair. **Keyed on the SHAPE alone** (`re` + `level`, no `fix`) — not on who wrote it, so this
-works identically whether `ux/Dictate`'s `on_revised` produced it (today, via `ChatPanel`'s own
-`handle_revision()`) or a future voice-sessions smart assistant writes the exact same shape
-straight into a session file (`ext/Session` isn't built yet — the mastermind, 2026-09-29).
-
-**Left open:** `ChatPanel.handle_revision()` pairs by matching the raw TEXT against its own
-`raw_recent` list (`on_revised` hands back the words, not an id) — this only sees raw lines said
-through `ChatPanel.say()` itself. A caller with its own real, persisted log (a card's session,
-not this panel's local list) needs to remember its own raw `at`s the same way for a revision to
-find them; nothing here does that yet for the card-connected mobile sheet.
-
-## Select, Rename, ✓/? marks (2026-09-29, human in the loop)
-
-Three things a chat needs when the assistant has to DO something to a card, not just
-answer in text — the owner's own words: "I could click on a title and say, hey, can
-we rename this?"; "when you click on a specific card, first it kind of selects that
-card"; "a green check mark after it… a yellow question mark… the smart assistant
-could add clarification UI into the chat." All three live in `Chat.js`'s `chat()` and
-are reused, not rebuilt, from the two widgets a sibling task already built:
-[`ux/Rename`](/framework/ux/Rename/) and [`ux/Understand`](/framework/ux/Understand/).
-
-- **Select:** a tap on any bubble (or a placed card inside one) selects it — a visible
-  border, one at a time, a second tap or Esc clears it. Added on top of whatever the
-  bubble's own click already did (opening a refined bubble, a place card's clicks),
-  never instead of it.
-- **Rename:** a selected bubble grows a small Rename button; pressing it, or typing
-  "rename this" into the composer (which never also sends it as a message), asks
-  `ux/Rename`'s own `rename_options()` and turns the bubble's title (its heading, or
-  its first line) into that same 5-name dropdown. Picking one delivers the SAME `at`
-  as the renamed line, `fix: true`, and the new title — the exact shape any other
-  correction uses, so latest wins everywhere the log is read.
-- **✓/? marks:** behind `marks: true` on `ChatPanel` (on in the panel demo, the
-  drawer's AI tab and the ✦ sheet) — after each of your own lines, `ux/Understand`'s
-  `marks()` runs once, in the background, and a quiet ✓ or a yellow **?** lands after
-  it. An unclear line drops ONE clarification card (`ux/Content/Decision`, unmodified)
-  right into the flow, `place`-d the normal way.
-
-Try all three: [`/framework/ext/Chat/panel/`](/framework/ext/Chat/panel/)'s "Human in
-the loop" demo.
-
-**Reconciled with clean-transcription (2026-09-29):** `ChatPanel` used to default
-`revise` to `"edit"`, which fought clean mode's own default of `false` (AI 2 is the
-only caller that wants `"clean"`). Since 2026-09-30 `ChatPanel` defaults it to `"clean"` (the ✦ sheet
-never set it, so its bubbles stayed raw); a
-revision pair still only draws for a LINE that carries `re` + `level`, never for a
-mode alone.
-
-## Drill in: open a card as its own small page (2026-09-30)
-
-A selected card that holds something grows an **Open ⤢** button. It takes the chat full screen (on desktop, over the drawer at its full height) with a Back button, and a card inside opens one level deeper. Each level has its own url (`#chat=<session>~<at>/…`), so reload and the back button land in the same place. `drill: false` is v1. How it works, and how a card maps to a page: [doc/drill.md](./doc/drill.md). Try it: [/framework/ext/Chat/drill/](/framework/ext/Chat/drill/).
-
-## Watch out
-- A caller's clean-up hook is `on_clean`, never `on_revised`: View's constructor copies every option onto the instance, so an `on_revised` option (even `undefined`) hid `ComposerMic`'s own method, and clean mode silently never swapped anything (fixed 2026-09-30; `Mic.js`, `on_revised`).
-- Live bubbles are not log lines: `chat()` lifts them out and puts them back at the end around every real line it draws, so `mergeable()` never sees one.
-
-- Smart scroll: at the bottom it follows; scroll up and it freezes with a small ↓ button; click it, or scroll back down by hand, and it follows again — `sticky_scroll()`, one function, shared by this file's own `chat()` and `ux/Dictate/Widget.js`'s `Thread` (the Dictate page, the ✦ sheet). [doc/scroll.md](./doc/scroll.md)
-- One bubble per run: same sender, under `MERGE_GAP_MS` (10 s) apart, nobody between → one bubble, one paragraph per message; drawing only, the log stays separate. Every bubble is `--chat-bubble` wide.
-- A `{type:"refined", of, sections:[{text, from}]}` line replaces a merged owner bubble's raw paragraphs with its sections; a section opens in place to the raw pieces it cites, and a click on the bubble opens all raw pieces.
-- A line is drawn once and never moves, so call `sync()` as often as you like.
-- Every class is `chatbox-*`.
-- On a narrow screen the composer's buttons drop, as one group (`.chatbox-compose-actions`), to a row under the box, so the box gets the full width.
-
-## More
-
-- Page: [/framework/ext/Chat/](/framework/ext/Chat/) · used by [AI 2](/framework/ai2/)
-- `ChatPanel` — v1 vs v2, small vs capped-and-scrolling: [/framework/ext/Chat/panel/](/framework/ext/Chat/panel/); wired into the desktop drawer's AI tab and the mobile ✦ sheet (`ext/drawer/tabs/ai.js`, `ext/drawer/rail.js`, `ai/2026-09-29/audio/c-chat/`) — the old, hand-wired builds stay reachable as `aiV1` and `DrawerRail.SheetV1`/`.SheetLinksV1`.
+- [`doc/decisions.md`](./doc/decisions.md) — Unified composer layout, settings menu, and selection contracts.
+- [`doc/drill.md`](./doc/drill.md) — Sub-card drill-in mechanics and URL hash navigation.
+- [`doc/scroll.md`](./doc/scroll.md) — Follow-bottom scroll logic and resize observers.
+- [`doc/reactions.md`](./doc/reactions.md) — Emoji tap-backs and threaded replies.
+- [`doc/floor.md`](./doc/floor.md) — Minimum height constraints and layout sizing.

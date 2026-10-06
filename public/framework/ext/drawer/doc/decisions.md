@@ -285,3 +285,14 @@ default, not a made-up number), `background: var(--wash)`.
   needs `!important` for the same `.flex > * { margin: 0 }` (`@layer util`) reason as the `[hidden]`
   fix above — padding/background/border on the same selector all applied with no `!important`
   needed; only `margin` was being silently zeroed back out.
+
+## Drawer watchouts and operational traps
+
+- **Width and open/shut are two tokens.** `close()` clears `--drawer`, so a dragged width would go with it — the width lives in `--drawer-w` (one `localStorage` key) and `--drawer` reads through to it.
+- **Mount inside `.app`, never on `<body>`.** Colour-scheme, `--drawer` and Montserrat font are read there. `build()` re-parents into `.app` once `app.ready` resolves.
+- **`--drawer` and `--drawer-w` are written only by `token()`** (`drawer.js`). It writes on current `.app` and clears any copy on `<body>`. Before it, a reload with the drawer open (`?drawer=ai`) wrote them on `<body>`, `close()` cleared only `.app`, and the page stayed squeezed with the ☰ out of corner.
+- **`rem`, not `em`.** An `em` width reserves the wrong strip.
+- **`position: fixed` opts out of the push.** `.page.layout-full` reads the shared `--rail-push` token (`.app`, `drawer.css`) instead of restating the reservation.
+- **Below `26rem` the rail is the whole sheet.** That breakpoint mirrors `--rail-floor`'s default by hand.
+- **`z-index: 40`.** Over `.demo.max` (30), under the mode button (60); docks beside DevBar (`--devbar`), not under it.
+- **Below 52em, the ☰ hides itself when the page has its own `.sidebar` (`core/Sidebar`).** That panel draws a native ☰ in the same corner, avoiding double hamburger buttons.
