@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-06T01:40:58-05:00",
+  "user": "Mike Lewis",
+  "email": "mrmikelewis@gmail.com",
+  "tier": "Pro",
+  "availablePromptCredits": 500,
+  "availableFlowCredits": 100,
+  "models": {
+    "Gemini 3.8 Flash (Medium)": {
+      "modelId": "gemini-3.8-flash-medium",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Claude Opus 5.5 (Low)": {
+      "modelId": "claude-opus-5-5-low",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "Claude Sonnet 5.5 (High)": {
+      "modelId": "claude-sonnet-5-5-high",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "Gemini 3.8 Flash (Low)": {
+      "modelId": "gemini-3.8-flash-low",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.1 Pro (Low)": {
+      "modelId": "gemini-3.1-pro-low",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.7 Flash (High)": {
+      "modelId": "gemini-3.7-flash-high",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.7 Flash (Low)": {
+      "modelId": "gemini-3.7-flash-low",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.6 Flash (Medium)": {
+      "modelId": "gemini-3.6-flash-medium",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Claude Sonnet 5.5 (Low)": {
+      "modelId": "claude-sonnet-5-5-low",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "Claude Sonnet 5.5 (Medium)": {
+      "modelId": "claude-sonnet-5-5-medium",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "GPT-OSS 120B (Medium)": {
+      "modelId": "gpt-oss-120b-medium",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "Claude Opus 5.5 (High)": {
+      "modelId": "claude-opus-5-5-high",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    },
+    "Gemini 3.8 Flash (High)": {
+      "modelId": "gemini-3.8-flash-high",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.7 Flash (Medium)": {
+      "modelId": "gemini-3.7-flash-medium",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.6 Flash (High)": {
+      "modelId": "gemini-3.6-flash-high",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.6 Flash (Low)": {
+      "modelId": "gemini-3.6-flash-low",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Gemini 3.1 Pro (High)": {
+      "modelId": "gemini-pro-agent",
+      "remainingFraction": 0.0712328,
+      "resetTime": "2026-10-06T06:55:36Z"
+    },
+    "Claude Opus 5.5 (Medium)": {
+      "modelId": "claude-opus-5-5-medium",
+      "remainingFraction": null,
+      "resetTime": "2026-10-06T07:02:22Z"
+    }
+  }
+}
