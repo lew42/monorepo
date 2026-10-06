@@ -94,3 +94,14 @@ layout-check-out/
 
 # merge.mjs's own record of the last landed branch/head — machine state, not a record
 .merge-landed.json
+
+# session folders (voice turns, dictation cleanups, agent transcripts)
+public/framework/ai/20??/??/??/session-*/
+
+# test artifacts and scratch
+.claude/scratch/
+.claude/scratchpad/
+.scratch/
+.playwright-mcp/
+Temp/
+
