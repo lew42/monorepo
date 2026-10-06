@@ -71,7 +71,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
         The 10-minute idle stop and wake-on-message already in Layers apply unchanged.
   - [x] *`ask_module(path, question)`:* a one-shot fork of the same baseline, with read-only
         tools, answering in under 150 words and then stopping.
-  - [ ] *At most 30 running:* before any spawn, if 30 agents are live, stop the longest-idle page
+  - [x] *At most 30 running:* before any spawn, if 30 agents are live, stop the longest-idle page
         assistant first. Never stop a working agent or a mastermind.
   - [ ] *The chat on every page:* the dev bar gets a chat tab for the current page, plus an
         optional button a page can place. It reuses the Live card's agent conversation view

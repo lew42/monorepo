@@ -86,6 +86,7 @@ export default class Layers {
 			idle_ms: env("SERVEX_ASSISTANT_IDLE_MS", env("SERVEX_CARD_IDLE_MS", 10 * MIN)),
 			manager_idle_ms: env("SERVEX_MANAGER_IDLE_MS", 15 * MIN),
 			max_assistants: env("SERVEX_MAX_ASSISTANTS", 4),
+			max_running: env("SERVEX_MAX_RUNNING_AGENTS", env("SERVEX_MAX_RUNNING", 30)),
 			resume_max_tokens: env("SERVEX_RESUME_MAX_TOKENS", 30000),
 			resume_max_age_ms: env("SERVEX_RESUME_MAX_AGE_MS", 60 * MIN),
 			fresh_at: { assistant: env("SERVEX_ASSISTANT_FRESH_AT", 40000), manager: env("SERVEX_MANAGER_FRESH_AT", 150000) },
@@ -217,6 +218,7 @@ export default class Layers {
 			+ (base_info.kind === "card" ? this.transcript(key) : `Page ${key} — readme:\n${base_info.text}`)
 			+ "\n\n" + this.scope(key, "assistant") + " This is your baseline initialization. Do not take action until prompted.";
 		const id = `baseline-${this.base_of(key)}`;
+		this.make_room(id);
 		const spec = {
 			...this.spec(key, "assistant"),
 			id,
@@ -355,6 +357,7 @@ export default class Layers {
 		const base = this.ensure_baseline(p);
 		const prompt = `You are a read-only module expert for ${p}. Answer this question in under 150 words and then stop:\n\n${question}`;
 		const id = `ask-${this.base_of(p)}-${Math.random().toString(36).slice(2, 7)}`;
+		this.make_room(id);
 		const spec = {
 			role: "fork",
 			name: id,
@@ -687,7 +690,7 @@ export default class Layers {
 		if (slot.session_id && !this.session_exists(slot)) this.lost(key, slot);
 		const why = slot.session_id && this.stale(role, slot);
 		if (why) this.forget(key, slot, why);
-		if (role === "assistant") this.make_room(slot.id);
+		this.make_room(slot.id);
 		const how = slot.session_id ? { resume: slot.session_id } : { prompt: (prompt ?? (() => this.first(key, role)))() || this.first(key, role) };
 		const spec = { ...this.spec(key, role), id: slot.id, cwd: slot.cwd, ...how };
 		this.log_gate(slot.id, "start", how.resume ? "resume" : why ? `fresh: ${why}` : "fresh");
@@ -733,10 +736,44 @@ export default class Layers {
 		this.save();
 	}
 
-	/* THE CAP: at most `max_assistants` assistants run at once. Before one more
-	 * starts, the least recently used idle ones are stopped (session kept). One
-	 * that is mid-turn is never stopped; if all are, the cap is exceeded and logged. */
-	make_room(except){
+	is_page_assistant(a){
+		if (!a) return false;
+		if (this.is_root_assistant(a.id) || a.id === "master-assistant" || a.role === "master-assistant") return false;
+		if (this.is_mastermind(a)) return false;
+		return a.role === "page-assistant" || a.role === "card-assistant" || a.role === "assistant" || a.id?.startsWith("assistant-");
+	}
+
+	is_mastermind(a){
+		if (!a) return false;
+		return a.role === "mastermind" || a.role === "task-mastermind" || a.role === "page-mastermind" || a.role === "sub-mastermind" || a.role?.includes("mastermind") || a.id?.startsWith("mastermind") || a.id?.startsWith("task-mastermind") || a.id?.startsWith("manager-");
+	}
+
+	/* THE CAP: at most `max_running` (default 30) agents run at once across Servex.
+	 * Before any spawn, if 30 agents are live, stop the longest-idle page assistant
+	 * first. Never stop a working agent or a mastermind. Also keeps the existing
+	 * `max_assistants` limit for card assistants. */
+	make_room(except = null){
+		const max_running = this.max_running ?? 30;
+		const live_all = [...(this.servex.agents?.live?.values() ?? [])]
+			.filter(a => a && a.state !== "stopped" && a.state !== "gone" && a.id !== except);
+		const over_all = live_all.length - (max_running - 1);
+		if (over_all > 0){
+			const eligible = live_all.filter(a => {
+				if (a.state === "working" || a.state === "starting") return false;
+				if (this.is_mastermind(a)) return false;
+				return this.is_page_assistant(a);
+			});
+			const last_time = a => this.touched.get(a.id) ?? (a.last_at ? Date.parse(a.last_at) : null) ?? (a.started_at ? Date.parse(a.started_at) : 0);
+			eligible.sort((a, b) => last_time(a) - last_time(b));
+			for (const a of eligible.slice(0, over_all)){
+				this.log_gate(a.id, "lru-stop", `the cap is ${max_running} live agents: stopped longest-idle page assistant`);
+				this.stop(a.id);
+			}
+			if (eligible.length < over_all){
+				this.log_gate(except, "over-cap", `${live_all.length + 1} live agents, cap ${max_running}: remaining agents are working or masterminds`);
+			}
+		}
+
 		const running = Object.values(this.state.cards).filter(r => !this.is_root_assistant(r.assistant.id))
 			.map(r => this.live(r.assistant.id)).filter(a => a && a.id !== except);
 		const over = running.length - (this.max_assistants - 1);

@@ -100,6 +100,10 @@ export class Agents {
 		const again = spec.resume;
 		const taken = spec.id && this.live.has(spec.id) && this.live.get(spec.id).state !== "stopped";
 		const id = spec.id && !taken ? spec.id : this.name(spec);
+		/* AT MOST 30 RUNNING (An assistant on every page, 2026-09-25): before any spawn,
+		 * if 30 agents are live, stop the longest-idle page assistant first. Never stop
+		 * a working agent or a mastermind. */
+		this.enforce_live_cap(id);
 		/* A MINION NEVER GETS THE MAIN TREE (session-gate, 2026-10-01): session-smart.md used to
 		 * let a voice session spawn a `minion` straight into the repo root, with no worktree, no
 		 * smoke test, no review — it edited the live site directly (registry.json, 2026-10-01:
@@ -624,6 +628,31 @@ export class Agents {
 		const all = [...this.live.values()].filter(a => a instanceof Agents.Agent);
 		const n = s => all.filter(a => a.state === s).length;
 		return { working: this.working().length, cap: this.working_cap, idle: n("idle"), dormant: n("dormant") };
+	}
+
+	get live_cap(){ return Number(process.env.SERVEX_MAX_RUNNING_AGENTS) || 30; }
+
+	/* AT MOST 30 RUNNING (An assistant on every page, 2026-09-25): before any spawn,
+	 * if 30 agents are live, stop the longest-idle page assistant first. Never stop
+	 * a working agent or a mastermind. */
+	enforce_live_cap(except_id = null){
+		const live = [...this.live.values()].filter(a => a && a.state !== "stopped" && a.state !== "gone" && a.id !== except_id);
+		const over = live.length - (this.live_cap - 1);
+		if (over <= 0) return;
+		const eligible = live.filter(a => {
+			if (a.state === "working" || a.state === "starting") return false;
+			if (a.role === "mastermind" || a.role === "task-mastermind" || a.role === "page-mastermind" || a.role?.includes("mastermind") || a.id?.startsWith("mastermind") || a.id?.startsWith("task-mastermind") || a.id?.startsWith("manager-")) return false;
+			if (a.id === "master-assistant" || a.role === "master-assistant") return false;
+			return a.role === "page-assistant" || a.role === "card-assistant" || a.role === "assistant" || a.id?.startsWith("assistant-");
+		});
+		const last_time = a => (this.servex?.agents?.layers?.touched?.get(a.id) ?? (a.last_at ? Date.parse(a.last_at) : null) ?? (a.started_at ? Date.parse(a.started_at) : 0));
+		eligible.sort((a, b) => last_time(a) - last_time(b));
+		for (const a of eligible.slice(0, over)){
+			try {
+				this.stop(a.id, { by: "cap-30" });
+				this.store().append("servex", { type: "cap-30", id: a.id, reason: `cap is ${this.live_cap} live agents: stopped longest-idle page assistant` }).catch(() => {});
+			} catch {}
+		}
 	}
 
 	/* Every event from every agent passes through here on its way to the log.

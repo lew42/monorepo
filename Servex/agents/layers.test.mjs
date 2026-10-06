@@ -11,7 +11,7 @@ import { model } from "./tiers.js";
 process.env.SERVEX_PROMPT_QUIET_MS = "0";     // the checks below expect each prompt at once; the pause is proven by pause-proof.mjs in the servex-mastermind task
 
 let checks = 0;
-const check = (name, fn) => { fn(); checks++; };
+const check = (name, fn) => { const r = fn(); if (r?.then) return r.then(() => { checks++; }); checks++; };
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "layers-"));
 const file = path.join(dir, "layers.json");
@@ -756,7 +756,7 @@ check("resume and new session: new_session forks baseline and preserves history,
 	assert.equal(P.record(PAGE).assistant.session_id, sess1);
 });
 
-check("ask_module: one-shot fork of baseline with read-only tools, answers under 150 words", async () => {
+await check("ask_module: one-shot fork of baseline with read-only tools, answers under 150 words", async () => {
 	const PAGE = "/framework/ux/Tree/";
 	const baseline_id = P.ensure_baseline(PAGE).session_id;
 
@@ -779,5 +779,65 @@ check("ask_module: one-shot fork of baseline with read-only tools, answers under
 	assert.ok(tools.has("ask_module"), "ask_module registered as MCP tool");
 });
 
+check("at most 30 running: stops longest-idle page assistant first, never working or mastermind", () => {
+	P.max_running = 3; // test cap of 3 live agents
+	pagents.live.clear();
+	// 1. mastermind (idle)
+	pagents.live.set("mastermind-servex", { id: "mastermind-servex", role: "mastermind", state: "idle" });
+	// 2. working page assistant
+	pagents.live.set("assistant-busy", { id: "assistant-busy", role: "page-assistant", state: "working" });
+	// 3. idle page assistant (touched 10s ago - longest idle)
+	pagents.live.set("assistant-old", { id: "assistant-old", role: "page-assistant", state: "idle" });
+	P.touched.set("assistant-old", Date.now() - 10000);
+	// 4. another idle page assistant (touched 2s ago)
+	pagents.live.set("assistant-newer", { id: "assistant-newer", role: "page-assistant", state: "idle" });
+	P.touched.set("assistant-newer", Date.now() - 2000);
+
+	// Currently 4 live agents (> cap of 3). Before spawning, make_room should stop assistant-old
+	pcalls.length = 0;
+	P.make_room("next-agent");
+
+	const stopped = pcalls.filter(c => c.verb === "stop").map(c => c.id);
+	assert.ok(stopped.includes("assistant-old"), "longest-idle assistant-old was stopped");
+	assert.ok(!stopped.includes("assistant-busy"), "working assistant was not stopped");
+	assert.ok(!stopped.includes("mastermind-servex"), "mastermind was not stopped");
+
+	P.max_running = 30; // restore default
+});
+
+check("at most 30 running: never stops working agents or masterminds even when over cap", () => {
+	P.max_running = 2;
+	pagents.live.clear();
+	pagents.live.set("mastermind-1", { id: "mastermind-1", role: "mastermind", state: "idle" });
+	pagents.live.set("task-mastermind-2", { id: "task-mastermind-2", role: "task-mastermind", state: "idle" });
+	pagents.live.set("assistant-busy", { id: "assistant-busy", role: "page-assistant", state: "working" });
+
+	pcalls.length = 0;
+	P.make_room("next-agent");
+
+	const stopped = pcalls.filter(c => c.verb === "stop").map(c => c.id);
+	assert.equal(stopped.length, 0, "no working agent or mastermind was stopped");
+
+	P.max_running = 30; // restore default
+});
+
+check("at most 30 running: new_session evicts longest-idle page assistant when over cap", () => {
+	P.max_running = 2;
+	pagents.live.clear();
+	pagents.live.set("assistant-idle-1", { id: "assistant-idle-1", role: "page-assistant", state: "idle" });
+	P.touched.set("assistant-idle-1", Date.now() - 8000);
+	pagents.live.set("assistant-idle-2", { id: "assistant-idle-2", role: "page-assistant", state: "idle" });
+	P.touched.set("assistant-idle-2", Date.now() - 1000);
+
+	pcalls.length = 0;
+	P.new_session("/framework/ux/Tree/");
+
+	const stopped = pcalls.filter(c => c.verb === "stop").map(c => c.id);
+	assert.ok(stopped.includes("assistant-idle-1"), "assistant-idle-1 stopped before new_session spawn");
+
+	P.max_running = 30;
+});
+
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);
+
