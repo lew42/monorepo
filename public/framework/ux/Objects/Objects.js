@@ -36,7 +36,10 @@ export default class Objects extends Tree {
 		if (seen.has(target)) return [{ text: "circular ref", icon: "sync" }];
 		seen.add(target);
 
-		const nodes = [];
+		// If input is server objects payload ({type: "Servex", objects: {...}})
+		if (target.objects && typeof target.objects === "object" && !Array.isArray(target.objects) && typeof target.objects !== "function"){
+			return Objects.walk(target.objects, opts, depth, seen);
+		}
 
 		// If module exports custom objects()
 		if (typeof target.objects === "function"){
@@ -46,10 +49,29 @@ export default class Objects extends Tree {
 			} catch {}
 		}
 
+		const nodes = [];
+
+		// If input node has {type, count, items, state, children} descriptor format from /api/objects
 		for (const key of Object.keys(target)){
 			if (key.startsWith("_") && !opts.all) continue;
 			const val = target[key];
 			if (val === undefined || typeof val === "function") continue;
+
+			if (val && typeof val === "object" && typeof val.type === "string" && (val.count !== undefined || val.state !== undefined)){
+				const countStr = val.count !== undefined ? ` (${val.count})` : "";
+				const stateStr = val.state ? ` [${val.state}]` : "";
+				nodes.push({
+					text: `${key}: ${val.type}${countStr}${stateStr}`,
+					icon: val.type === "Array" ? "list" : (val.type === "Map" || val.type === "Set") ? "folder" : "category",
+					className: val.type !== "Object" && val.type !== "Array" && val.type !== "Map" && val.type !== "Set" ? val.type : null,
+					children: (val.items || val.children) ? () => {
+						if (Array.isArray(val.items)) return val.items.map(it => ({ text: String(it), icon: "data_object" }));
+						if (val.children) return Objects.walk(val.children, opts, depth + 1, seen);
+						return [];
+					} : undefined
+				});
+				continue;
+			}
 
 			// Map or Set
 			if (val instanceof Map || val instanceof Set){

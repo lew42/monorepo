@@ -710,6 +710,56 @@ export default class Servex extends Events {
         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
 
+        /* SERVER OBJECTS (Cards that show the thing, 2026-09-25) — walks Servex instance two levels deep.
+         * Returns names, counts, and states only, never sensitive values. */
+        router.get("/api/objects", cors, (req, res) => {
+            try {
+                const walk = (target, depth = 0, seen = new WeakSet()) => {
+                    if (!target || typeof target !== "object" || depth >= 2) return null;
+                    if (seen.has(target)) return { circular: true };
+                    seen.add(target);
+                    const out = {};
+                    for (const key of Object.keys(target)){
+                        if (key.startsWith("_")) continue;
+                        const val = target[key];
+                        if (val === undefined || typeof val === "function") continue;
+                        if (val instanceof Map || val instanceof Set){
+                            out[key] = {
+                                type: val.constructor.name,
+                                count: val.size,
+                                items: depth < 1 ? [...val.keys ? val.keys() : val].slice(0, 20).map(String) : undefined
+                            };
+                        } else if (Array.isArray(val)){
+                            out[key] = {
+                                type: "Array",
+                                count: val.length
+                            };
+                        } else if (val && typeof val === "object"){
+                            const cname = val.constructor?.name ?? "Object";
+                            const state = typeof val.state === "string" ? val.state : (val.running ? "running" : undefined);
+                            out[key] = {
+                                type: cname,
+                                state,
+                                count: Object.keys(val).length,
+                                children: depth < 1 ? walk(val, depth + 1, seen) : undefined
+                            };
+                        } else {
+                            // Primitives
+                            out[key] = { type: typeof val, value: String(val).slice(0, 40) };
+                        }
+                    }
+                    return out;
+                };
+                res.json({
+                    type: "Servex",
+                    state: "running",
+                    objects: walk(this)
+                });
+            } catch (e){
+                res.status(500).json({ error: String(e.message || e) });
+            }
+        });
+
         /* THE DOCS TAB (servex-docs-tab, 2026-09-29) — read-only, loopback-only
          * (guard() above already refuses non-loopback callers). `/api/docs` lists
          * every module under Servex/ or Server/ with its own readme.md;

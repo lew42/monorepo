@@ -46,9 +46,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
      `new`). + New appears only where it is declared, and it makes a demo instance that is never
      saved. Checked against css-scopes.txt and reused Tree's rows. Its page.js shows it on a
      live `Page` and a live `Tree`.
-  3. *Server objects (Servex, needs a restart):* `GET /api/objects` runs the same walk on the
+  3. *[x] Server objects (Servex, landed 2026-10-06):* `GET /api/objects` runs the same walk on the
      Servex instance, two levels deep, with names, counts and states only, never values. The
-     widget reads it when a card says `{"objects": "/Servex/"}`. Prove it on a private Servex.
+     widget reads it when a card says `{"objects": "/Servex/"}`.
   4. *[x] The check (Server/card-check.mjs, landed 2026-10-06):* a state line, a preview of 60 characters or
      less, a checklist, every item ticked on a done card, objects on group and module cards, no
      paragraph over 60 words above the fold, and first mentions linked. It runs in on-landing.mjs

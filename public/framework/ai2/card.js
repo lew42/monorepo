@@ -888,18 +888,30 @@ export default class Card extends Page {
 		// 4. Objects: live instances, counts, or module path
 		if (this._objects) div.c("ai2-card-objects", $box => {
 			div.c("ai2-objects-head muted").text("Objects");
-			if (typeof this._objects === "string" && !this._objects.startsWith("/")){
+			const objPath = String(this._objects);
+			if (objPath === "/Servex/" || objPath === "/Servex"){
 				import("/framework/ux/Objects/Objects.js").then(({ default: Objects }) => {
-					import(this._objects).then(mod => {
-						$box.append(() => Objects.of(mod.default ?? mod));
+					fetch("/api/objects").then(r => r.ok ? r.json() : null).then(data => {
+						if (data) $box.append(() => Objects.of(data));
+						else $box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex (offline)"));
 					}).catch(() => {
-						$box.append(() => a.c("ai2-objects-link page-link").href(this._objects).text(this._objects));
+						$box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex"));
 					});
 				}).catch(() => {
-					$box.append(() => a.c("ai2-objects-link page-link").href(this._objects).text(this._objects));
+					$box.append(() => a.c("ai2-objects-link page-link").href(objPath).text(objPath));
+				});
+			} else if (!objPath.startsWith("/")){
+				import("/framework/ux/Objects/Objects.js").then(({ default: Objects }) => {
+					import(objPath).then(mod => {
+						$box.append(() => Objects.of(mod.default ?? mod));
+					}).catch(() => {
+						$box.append(() => a.c("ai2-objects-link page-link").href(objPath).text(objPath));
+					});
+				}).catch(() => {
+					$box.append(() => a.c("ai2-objects-link page-link").href(objPath).text(objPath));
 				});
 			} else {
-				a.c("ai2-objects-link page-link").href(String(this._objects)).text(String(this._objects));
+				a.c("ai2-objects-link page-link").href(objPath).text(objPath);
 			}
 		});
 
