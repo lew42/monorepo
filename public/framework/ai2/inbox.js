@@ -210,19 +210,50 @@ export const card_stream = (slug, base = servex_base()) =>
 
 /* ── words for a preview ─────────────────────────────────────────────── */
 
-/** Markdown and link syntax out, whitespace folded — a preview is plain words. */
-export const plain = t => String(t ?? "")
-	.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-	.replace(/[*_`>#]+/g, "")
-	.replace(/\s+/g, " ").trim();
+/** Markdown and link syntax out, whitespace folded — a preview is plain words. Handles objects/arrays cleanly. */
+export const plain = t => {
+	if (t == null) return "";
+	if (typeof t === "object") {
+		if (Array.isArray(t)) return t.map(plain).filter(Boolean).join(" · ");
+		if (typeof t.text === "string") return plain(t.text);
+		if (typeof t.summary === "string") return plain(t.summary);
+		if (typeof t.title === "string") return plain(t.title);
+		if (typeof t.headline === "string") return plain(t.headline);
+		if (typeof t.outcome === "string") return plain(t.outcome);
+		if (typeof t.outcome === "object" && t.outcome !== null) return plain(t.outcome);
+		if (typeof t.msg === "string") return plain(t.msg);
+		try {
+			const str = JSON.stringify(t);
+			return str.slice(0, 120);
+		} catch {
+			return "";
+		}
+	}
+	return String(t)
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+		.replace(/[*_`>#]+/g, "")
+		.replace(/\s+/g, " ").trim();
+};
 
 /** The first sentence of some plain words. */
-export const first_sentence = t => (String(t).match(/^.*?[.!?](?=\s|$)/s)?.[0] ?? String(t)).trim();
+export const first_sentence = t => (String(plain(t)).match(/^.*?[.!?](?=\s|$)/s)?.[0] ?? String(plain(t))).trim();
 
 /** A landing's headline: its leading **bold** part when it has one, else its first sentence. */
 export const headline = t => {
-	const bold = String(t ?? "").trim().match(/^\*\*(.+?)\*\*/s);
-	return plain(bold ? bold[1] : first_sentence(plain(t)));
+	if (t == null) return "";
+	if (typeof t === "object") {
+		if (typeof t.summary === "string") return headline(t.summary);
+		if (typeof t.headline === "string") return headline(t.headline);
+		if (typeof t.title === "string") return headline(t.title);
+		if (typeof t.text === "string") return headline(t.text);
+		if (typeof t.outcome === "string") return headline(t.outcome);
+		if (typeof t.outcome === "object" && t.outcome !== null) return headline(t.outcome);
+		return plain(t);
+	}
+	const str = String(t).trim();
+	const bold = str.match(/^\*\*(.+?)\*\*/s);
+	if (bold) return plain(bold[1]);
+	return first_sentence(plain(str));
 };
 
 export function today_str(){

@@ -122,7 +122,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - **Small fixes from the feedback council** (2026-09-25, [verdicts](2026-09-25/feedback-council/)),
   each one the owner asked for and the council found unfinished:
   - Live card cold load is 1.7 to 4.6 s (the click is fast): defer the 32k-px `.ai2-rows` render. Said seven times.
-  - Landed row preview prints `[object Object]`: stringify the outcome.
+  - ~~Landed row preview prints `[object Object]`: stringify the outcome.~~ — **DONE.** `plain()` and `headline()` in `public/framework/ai2/inbox.js` now handle objects, summaries, and arrays cleanly without rendering `[object Object]`.
   - Empty AI 2 state says "Pick something on the left": land on Live; Live grid should stretch at 3440.
   - Rail rows are flush with no gap: round only the stack, or add a gap. Live's `.ai2-rows` and chat log still scroll on their own.
   - Live preview says "8 working · 2 tasks running": name what is running. Group bars are solid, not N green segments.
