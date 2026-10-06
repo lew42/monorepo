@@ -7,6 +7,7 @@ Read the readme chain at /framework/design/layout/ (root → design → layout),
 doc/rules.md, doc/caveats.md and questions.md.
 
 Overview: choose the layout first (C1–C5: room, content, outline, fill, which approved layout);
+prefer approved layouts most of the time, and check at four widths (400, 1200, 1920, 3440) before merging;
 then five sizing questions (container, size at 400/1200/1920/3440, its own layout, how many
 containers, its preview); spacing is one knob (`--pad` `--gap` `--flow`), never a constant; a
 region takes `.pad`, a framed box `.card`, a control its own `em`; screenshot at four widths

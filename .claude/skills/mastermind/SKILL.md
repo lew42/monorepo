@@ -361,9 +361,10 @@ owner's long explanations are to be summarized, item by item, with similar items
 the same parent topic — a tree, not a transcript.
 
 **Suggestions, not laws** (the owner, 2026-08-11 and again 2026-09-18: "you're turning what I said
-into a law when it's really just a suggestion"). What the owner says in a dictation is a
-suggestion unless they say otherwise; write it as one — *should*, *could*, *often*, *worth
-asking* — never as *always* / *never* / *the limit*. A hard rule is earned only by breaking
+into a law when it's really just a suggestion"). Skills are instructive, not restrictive: write
+skills and guidance as *could* / *should* / *worth asking* unless it is an established law,
+never as *always* / *never* / *must* / *have to*. What the owner says in a dictation is a
+suggestion unless they explicitly state otherwise. A hard rule is earned only by breaking
 things time and again, and the skills already carry the few that did. An agent follows a written
 law to the letter, so a law that does not always apply does damage every time it is read.
 
