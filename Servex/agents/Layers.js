@@ -347,6 +347,44 @@ export default class Layers {
 		return this.open(key, "assistant");
 	}
 
+	/* Ask a module question: a one-shot fork of the baseline checkpoint with read-only tools, answering in under 150 words and stopping. */
+	async ask_module({ path: target, question }, caller = null){
+		const p = page_path(target) ?? target;
+		if (!p) throw new Error("path is required");
+		if (!question) throw new Error("question is required");
+		const base = this.ensure_baseline(p);
+		const prompt = `You are a read-only module expert for ${p}. Answer this question in under 150 words and then stop:\n\n${question}`;
+		const id = `ask-${this.base_of(p)}-${Math.random().toString(36).slice(2, 7)}`;
+		const spec = {
+			role: "fork",
+			name: id,
+			id,
+			model: model("fast"),
+			effort: "low",
+			resume: base.session_id,
+			fork: true,
+			one_shot: true,
+			cwd: this.repo,
+			prompt,
+			sdk: { tools: ["Read", "Grep", "Glob"] },
+			fork_tools: ["Read", "Grep", "Glob"],
+			allowed_tools: ["Read", "Grep", "Glob"],
+			parent: caller ?? null
+		};
+		if (this.servex.agents.fork && typeof this.servex.agents.fork === "function" && caller){
+			return this.servex.agents.fork({
+				question: `${question} (Answer in under 150 words and stop.)`,
+				from: caller,
+				session_id: base.session_id,
+				model: model("fast"),
+				cwd: this.repo,
+				tools: ["Read", "Grep", "Glob"]
+			});
+		}
+		const agent = this.servex.agents.spawn(spec);
+		return { ok: true, id, path: p, session_id: agent.session_id, answer: agent.words ?? agent.last_text ?? "queued" };
+	}
+
 	/* Ids are minted ONCE per context, from `base_of()`; a name already recorded
 	 * for a different context takes `-2`, `-3`, and `root` belongs to `/` alone.
 	 * The parent is recorded first, so the tree always exists up to `/`. A record
@@ -1031,6 +1069,10 @@ export default class Layers {
 				this.recycling.add(caller);
 				return { ok: true, card: who.card };
 			});
+
+		tool("ask_module", "Ask a question about a module or page. A one-shot fork of its baseline checkpoint with read-only tools, answering in under 150 words and then stopping.",
+			{ path: str, question: str }, ["path", "question"],
+			async ({ path: p, question }, caller) => this.ask_module({ path: p, question }, caller));
 	}
 
 	// ── routes ───────────────────────────────────────────────────────────────
@@ -1071,6 +1113,14 @@ export default class Layers {
 				const p = page_path(data.page) ?? data.page;
 				const agent = this.resume_session(p, data.session_id);
 				res.json({ ok: true, page: p, session_id: agent.session_id, id: agent.id });
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
+		router.options("/api/ask-module", cors, (req, res) => res.status(204).end());
+		router.post("/api/ask-module", cors, async (req, res) => {
+			try {
+				const data = await body(req);
+				const out = await this.ask_module(data, null);
+				res.json(out);
 			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
 		});
 		router.options("/api/page-ai", cors, (req, res) => res.status(204).end());

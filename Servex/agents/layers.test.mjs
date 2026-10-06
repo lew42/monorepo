@@ -756,5 +756,28 @@ check("resume and new session: new_session forks baseline and preserves history,
 	assert.equal(P.record(PAGE).assistant.session_id, sess1);
 });
 
+check("ask_module: one-shot fork of baseline with read-only tools, answers under 150 words", async () => {
+	const PAGE = "/framework/ux/Tree/";
+	const baseline_id = P.ensure_baseline(PAGE).session_id;
+
+	const count_before = pspawns().length;
+	const out = await P.ask_module({ path: PAGE, question: "What does Tree render?" });
+	assert.equal(out.ok, true);
+	assert.equal(pspawns().length, count_before + 1);
+
+	const s = pspawns().at(-1).spec;
+	assert.equal(s.role, "fork");
+	assert.equal(s.resume, baseline_id);
+	assert.equal(s.fork, true);
+	assert.equal(s.one_shot, true);
+	assert.match(s.prompt, /under 150 words/);
+	assert.match(s.prompt, /What does Tree render\?/);
+	assert.deepEqual(s.fork_tools, ["Read", "Grep", "Glob"]);
+	assert.deepEqual(s.allowed_tools, ["Read", "Grep", "Glob"]);
+
+	// Tool registration check:
+	assert.ok(tools.has("ask_module"), "ask_module registered as MCP tool");
+});
+
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);

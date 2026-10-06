@@ -69,7 +69,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - [x] *Resume and New session:* Resume continues the path's current session. New session is
         `spawn_agent({resume: baseline, fork: true})`, and the previous session stays listed.
         The 10-minute idle stop and wake-on-message already in Layers apply unchanged.
-  - [ ] *`ask_module(path, question)`:* a one-shot fork of the same baseline, with read-only
+  - [x] *`ask_module(path, question)`:* a one-shot fork of the same baseline, with read-only
         tools, answering in under 150 words and then stopping.
   - [ ] *At most 30 running:* before any spawn, if 30 agents are live, stop the longest-idle page
         assistant first. Never stop a working agent or a mastermind.
