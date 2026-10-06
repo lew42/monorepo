@@ -324,8 +324,8 @@ To draw a card from anywhere, append a line to one of the logs it reads:
 - **A card's `id` is its identity for good.** A flag is attached to it, and so is every sentence
   spoken into it. An entry with no id of its own gets one from its timestamp, never its
   position in the log.
-- **A preview is never clipped** (the owner, 2026-09-24: "render the whole thing as tall as it
-  needs to be"), and never shows a slug or an id. What stops the list jumping is the pill: a
+- **A preview is written short** (the card standard, 2026-09-25: 60 characters at most,
+  never a raw log line, slug, or id). What stops the list jumping is the pill: a
   new row, or a new group order, only lands while the list is quiet.
 - **A group's `{"group": …}` line is not `assign.group`** (the older "effort"). A method called
   `group()` on a card or a task reader gets overwritten by that data — [`doc/groups.md`](./doc/groups.md).

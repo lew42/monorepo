@@ -320,15 +320,19 @@ export default class AIRail extends Inbox.Rail {
 	title_text($title, it){ if (!it.plain) mentions($title.el); }
 
 	face(it, on){
-		// THE LIVE ROW: one line of state under its name — never an agent's words.
+		// THE LIVE ROW: counts (agents, working, 5h %) per card standard
 		if (it.kind === "live"){
-			const t = it.tasks.length, w = it.agents.filter(x => x.state === "working").length;
-			const sub = [w ? `${w} working` : "none working", t ? `${t} ${t === 1 ? "task" : "tasks"} running` : ""].filter(Boolean).join(" · ");
+			const total_agents = it.agents?.length ?? 0;
+			const w = it.agents?.filter(x => x.state === "working")?.length ?? 0;
+			const five_hour = it.bars?.find(b => b.kind === "session" || b.label?.toLowerCase()?.includes("5h") || b.kind === "5h")?.percent ?? 0;
+			const sub = `${total_agents} agents · ${w} working · ${five_hour}%`;
 			this.row_head({ ...it, plain: true }, {});
 			div.c("inbox-row-foot flex v-center gap-25", () => { small.c("inbox-row-line muted").text(sub); });
 			return;
 		}
-		super.face(it, on);
+		// For folder cards or items with preview/state, ensure preview or state is preferred over raw text
+		const row_item = (it.preview || it.state) ? { ...it, sub: it.preview || it.state } : it;
+		super.face(row_item, on);
 	}
 
 	face_extra(it){

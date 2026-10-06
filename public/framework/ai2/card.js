@@ -63,7 +63,7 @@ export const TYPES = ["question", "request", "sub-question", "note", "task"];
 /* The words line 1 may carry that are METHODS here. ⚠ Line 1 goes through the
    constructor's `assign()`, which would REPLACE `type()` and `tags()` with
    data — Servex writes both on line 1 — so `assign()` below calls them instead. */
-const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item", "chat"]);
+const VERBS = new Set(["type", "tags", "status", "message", "prompt", "attach", "detach", "legacy", "cites", "item", "chat", "state", "checklist", "objects", "preview"]);
 
 /** Today's time alone; any other day with its date — `faces.js` holds it now. */
 export { when };
@@ -202,6 +202,35 @@ export default class Card extends Page {
 		this.talk?.sync();
 	}
 
+	/** One-line state ("● Running · 11 agents · 3 working"). */
+	state(st){
+		this._state = st;
+		this.talk?.sync();
+	}
+
+	/** Card checklist: array of items [{text, done, href}] or rendered list. */
+	checklist(items){
+		if (Array.isArray(items)){
+			this.checklist_items = items;
+			this.talk?.sync();
+			return;
+		}
+		// Renders requests / items if given an array of items for rendering
+		this.render_checklist(items);
+	}
+
+	/** Live object module path ("<module path>" or "/Servex/"). */
+	objects(mod){
+		this._objects = mod;
+		this.talk?.sync();
+	}
+
+	/** Preview line, 60 characters at most. */
+	preview(text){
+		this._preview = String(text ?? "").slice(0, 60);
+		this.talk?.sync();
+	}
+
 	/* CHAT AND CARD ARE ONE CONTENT MODEL (one-dictation item 9, 2026-09-30): while this card
 	 * is selected and the owner dictates in the global sidebar, the smart assistant refines
 	 * what was said and writes it straight into this card's own page.jsonl — the same line
@@ -235,6 +264,10 @@ export default class Card extends Page {
 		this.citing = [];
 		this.refined = null;
 		this.chats = [];
+		this._state = null;
+		this.checklist_items = null;
+		this._objects = null;
+		this._preview = null;
 	}
 
 	/* ── sub-cards ─────────────────────────────────────────────────────────── */
@@ -833,18 +866,38 @@ export default class Card extends Page {
 	/** The outline: what it is, where it stands, what was asked and delivered. Everything
 	 *  else — words, links, the folder — is one fold down. A request lists its own requests below. */
 	overview(f, g, items, with_contents, with_placed = true){
-		this.refinements();
-		// DASHBOARD ABOVE TOPICS (now-card-blank, 2026-10-03 — the owner: dashboard rows back
-		// "above Topics"). 6d1de830 moved Topics first; put back ahead of it, so the Now card's
-		// own written sections (the dark reference rows, "How this card was made", …) are the
-		// first thing read, same as before that change.
+		// DASHBOARD ABOVE TOPICS (now-card-blank, 2026-10-03): the Now card's own written sections
 		this.dashboard_list();
-		if (this.by_request()) this.request_outline(items);
-		else outline(this, items);
+
+		// THE CARD STANDARD (ai2/doc/card-standard.md):
+		// 1. Name + one sentence: what it is
 		const line = about_line(this, g);
 		if (line) p.c("ai2-ol-about").text(line);
+
+		// 2. State: explicit one-line state if declared
+		if (this._state) div.c("ai2-card-state", () => {
+			span.c("ai2-state-dot").text("●");
+			span.c("ai2-state-text").text(" " + this._state);
+		});
+
+		// 3. Folder: ext/files tree and source on click
+		if (this.listed?.size || this.jsonl_url) div.c("ai2-card-folder", () => {
+			this.draw_folder();
+		});
+
+		// 4. Objects: live instances, counts, or module path
+		if (this._objects) div.c("ai2-card-objects", () => {
+			div.c("ai2-objects-head muted").text("Objects");
+			a.c("ai2-objects-link page-link").href(this._objects).text(this._objects);
+		});
+
+		// 5. Checklist: explicit checklist items or outline requests
+		if (this.checklist_items?.length) this.render_checklist();
+		else if (this.by_request()) this.request_outline(items);
+		else outline(this, items);
+
 		// A card nothing was asked in yet (a topic stub, a new sub-card) says so, instead of a blank page.
-		if (!line && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
+		if (!line && !this._state && !this._objects && !items.length && !this.prompts?.length && !this.messages?.length && !this.chats?.length)
 			p.c("ai2-ol-about muted").text("Nothing has been asked here yet. Talk into this " + (this.parent instanceof Card ? "request" : "card") + " and your words land here.");
 		if (this.flag_note) small.c("ai2-flag-said muted")
 			.text("flagged" + (this.flag_note.quote ? " on “" + this.flag_note.quote + "”" : "") + " — " + (this.flag_note.note ?? ""));
@@ -855,6 +908,8 @@ export default class Card extends Page {
 		const docs = this.md_names();
 		if (docs.length) this.md_files(docs);
 
+		// 6. Words last: refinements, dictation, full text & details
+		this.refinements();
 		this.more(f, g);
 		if (with_contents) this.contents();
 	}
@@ -909,7 +964,23 @@ export default class Card extends Page {
 		});
 	}
 
-	checklist(items){
+	render_checklist(items){
+		if (Array.isArray(this.checklist_items) && this.checklist_items.length){
+			const items_list = this.checklist_items;
+			div.c("ai2-ol ai2-ol-checklist", () => {
+				div.c("ai2-ol-list", () => {
+					items_list.forEach(it => {
+						div.c("ai2-ol-row" + (it.done ? " done" : " open"), () => {
+							span.c("ai2-ol-mark").text(it.done ? "✓" : "☐");
+							if (it.href) a.c("ai2-ol-title page-link").href(it.href).text(it.text || it.title || "");
+							else span.c("ai2-ol-title").text(it.text || it.title || "");
+						});
+					});
+				});
+			});
+			return;
+		}
+		if (!items || !items.length) return;
 		const done = items.filter(i => i.done).length;
 		const show = this.req_show ??= "all";
 		div.c("ai2-ol ai2-ol-requests show-" + show, $box => {

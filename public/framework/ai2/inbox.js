@@ -647,6 +647,9 @@ export function folder_item(c){
 		icon: type_icon(c.type),
 		title: c.title || "Untitled card",   // never the slug — the owner reads names, not ids
 		text: "",
+		preview: c.preview ?? null,
+		state: c.state ?? null,
+		sub: c.preview || c.state || null,
 		tags: c.tags ?? [],
 		status: c.status,
 		links: [],

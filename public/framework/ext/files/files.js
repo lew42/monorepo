@@ -304,6 +304,9 @@ export function common_dir(paths){
  * Insertion order is declaration order, which is the order the author wants them
  * read in.
  *
+ * When paths contain ".." stepping outside the base folder, they are normalized
+ * relative to the common ancestor instead of creating nested ".." tree rows.
+ *
  * Exported (2026-09-28) so ext/Doc can group nested note names the same way, for its
  * own tree of real routed pages — additive only, `files()`'s own signature and
  * behavior are unchanged. */
@@ -311,11 +314,22 @@ export function nest(paths, cut){
 	const root = {};
 
 	paths.forEach(path => {
-		const segments = path.slice(cut).split("/");
+		let sub = path.slice(cut);
+		// If path steps outside with .., resolve relative to common parent
+		if (sub.includes("..")){
+			const parts = sub.split("/");
+			const resolved = [];
+			for (const p of parts){
+				if (p === "..") resolved.pop();
+				else if (p && p !== ".") resolved.push(p);
+			}
+			sub = resolved.join("/");
+		}
+		const segments = sub.split("/");
 		const file = segments.pop();
 		let node = root;
 
-		segments.forEach(dir => node = node[dir] ??= {});
+		segments.filter(Boolean).forEach(dir => node = node[dir] ??= {});
 
 		// A path ENDING in "/" (a bare directory marker, no file after it — e.g.
 		// core/Page's own `{"file": "Inbox/"}` line) splits to a trailing "" here.

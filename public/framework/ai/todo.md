@@ -36,11 +36,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [cards-that-show-the-thing](/framework/ai2/2026/09/25/cards-that-show-the-thing/)). Every card is
   one screen: name, one-line state, live objects, a checklist, links, detail one click down. Five
   pieces, in this order, each a Sonnet minion:
-  1. *Card vocabulary (ai2/card.js, in a worktree):* four new line kinds, each a method on `Card`:
+  1. *[x] Card vocabulary (ai2/card.js, landed 2026-10-06):* four new line kinds, each a method on `Card`:
      `{"state": "…"}`, `{"checklist": [{text, done, href}]}`, `{"objects": "<module path>"}` and
-     `{"preview": "…"}` (60 characters at most). The Overview tab shows before it tells ([the card standard](/framework/ai2/doc/card-standard.md)): the card's folder with `ext/files`, then its objects, its checklist and its state, and the words last. Each tab, file and sub-card gets its own URL; card tabs live in localStorage today, and routing is task-mastermind-page-system's, so coordinate. `ext/files` draws a `..` row for every step outside the page's folder: show the path from the common parent instead. The rail shows `preview`, or else `state`, never the latest log line. The Live
-     card's preview becomes counts (agents, working, 5h %). Update the ai2 readme's "a preview is
-     never clipped" note: previews are now written short.
+     `{"preview": "…"}` (60 characters at most). The Overview tab shows before it tells ([the card standard](/framework/ai2/doc/card-standard.md)): the card's folder with `ext/files`, then its objects, its checklist and its state, and the words last. Each tab, file and sub-card gets its own URL. `ext/files` normalizes `..` paths from common parent. The rail shows `preview` or `state`, never raw log line. Live card preview displays counts (agents, working, 5h %). ai2 readme updated.
   2. *The object widget (ux/Objects, new):* `class Objects extends Tree`. `Objects.of(x)` walks a
      live object: a property holding a class instance becomes a row (`name: Class ×n`), a Map or
      array becomes a count that opens lazily, and the class name links to its module page. A

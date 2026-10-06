@@ -29,11 +29,11 @@ export const parse_lines = text => String(text ?? "").split("\n").filter(l => l.
 /** The card's folded state, `id` being its folder id. */
 export function fold_card(id, lines){
 	const state = { id, title: "", type: "card", tags: [], status: "open", created: null, by: null,
-		messages: [], prompts: [], cites: [], attached: [], children: [], legacy: [] };
+		messages: [], prompts: [], cites: [], attached: [], children: [], legacy: [], preview: null, state: null };
 	for (const line of lines) absorb(state, line);
 	state.last = [state.created, state.messages.at(-1)?.at, state.prompts.at(-1)?.at].filter(Boolean).sort().at(-1) ?? null;
 	return state;
 }
 
 /** The short row the rail lists. */
-export const summary = s => ({ id: s.id, title: s.title, type: s.type, status: s.status, tags: s.tags, created: s.created, last: s.last });
+export const summary = s => ({ id: s.id, title: s.title, type: s.type, status: s.status, tags: s.tags, created: s.created, last: s.last, preview: s.preview, state: s.state });

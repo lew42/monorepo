@@ -273,21 +273,10 @@ export function live_row(it){
 	// No usage bars here (ai2-lead audit, 2026-09-25): the same three already sit,
 	// labelled, at the top of the rail, and three unlabelled thin bars read as nothing.
 	div.c("ai2-row-foot flex v-center gap-25", () => {
-		const workingAgents = it.agents.filter(a => a.state === "working");
-		const runningTasks = it.tasks;
-		// Council finding: name what is running, rather than bare "8 working · 2 tasks running"
-		let desc;
-		if (runningTasks.length) {
-			const taskNames = runningTasks.slice(0, 2).map(t => t.title.replace(/-/g, " ")).join(", ");
-			const extra = runningTasks.length > 2 ? ` +${runningTasks.length - 2}` : "";
-			desc = `tasks: ${taskNames}${extra}`;
-		} else if (workingAgents.length) {
-			const agentNames = workingAgents.slice(0, 2).map(a => a.title).join(", ");
-			const extra = workingAgents.length > 2 ? ` +${workingAgents.length - 2}` : "";
-			desc = `${agentNames}${extra} working`;
-		} else {
-			desc = "idle · nothing running";
-		}
+		const workingAgents = it.agents?.filter(a => a.state === "working")?.length ?? 0;
+		const totalAgents = it.agents?.length ?? 0;
+		const five_hour = it.bars?.find(b => b.kind === "session" || b.label?.toLowerCase()?.includes("5h") || b.kind === "5h")?.percent ?? 0;
+		const desc = `${totalAgents} agents · ${workingAgents} working · ${five_hour}%`;
 		small.c("ai2-row-line muted").text(desc);
 	});
 }
