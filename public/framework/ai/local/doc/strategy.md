@@ -62,6 +62,10 @@ Modern LLMs exhibit two proven attention biases:
 - **Qwen 2.5:** Used an older ChatML template that struggled with structured tool calls under standard OpenAI/Anthropic proxies unless custom JSON grammars were injected.
 - **Qwen 3 (Verified Live):** Natively supports Anthropic-style tool calling. When tested with a single `get_weather` tool, it generated internal reasoning and cleanly emitted:
 - **The Rule:** Qwen 3 can execute tools, but **only 1–3 targeted tools at a time**, never a massive 68-tool MCP bundle.
+- **The 82k Context Overflow Lesson (Verified 2026-10-06):**
+  - When Servex spawned `task-mastermind-3` with default `sub-mastermind` and `page` skills, the initial prompt ballooned to **82,101 tokens**, immediately crashing `qwen3-8b` with HTTP 400.
+  - When benchmarked with a **lean system prompt (< 200 tokens)**, `qwen3-8b` responded in **8.2 seconds** at **$0.00**, delivering sharp, structured analysis.
+  - **The Law of Local Spawns:** A local model must NEVER be spawned with multi-skill catalogs. It requires a dedicated zero-tool or single-tool (`UniversalLogTool`) harness capped under 1,500 prompt tokens.
 - **The Ideal Paradigm:** Provide a single unopinionated [Universal Log Tool](../../doc/log-tool.md) (~120 tokens). It accepts arbitrary JSON payloads (metrics, parameters, insights) while the server automatically stamps ISO timestamps, elapsed duration (`delta_ms`), and author attribution without hallucination.
 
 ---
