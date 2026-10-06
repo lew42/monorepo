@@ -4,6 +4,7 @@ import Socket from "./framework/dev/Socket/Socket.js";
 import devbar from "./framework/dev/DevBar/DevBar.js";
 import devshell from "./framework/dev/DevShell/DevShell.js";
 import push_to_talk from "./framework/ux/Dictate/push-to-talk.js";
+import { use_v1 } from "./framework/dev/DevShell/pref.js";
 import { lew42 } from "./framework/styles/layers/theme/lew42/lew42.js";
 import mode from "./framework/core/App/mode.js";
 import "./framework/ext/Classify/Classify.js";
@@ -101,6 +102,10 @@ const app = window.app = new App({
 		// `nav(path)`, read by `ext/Session` (push-to-talk, item 2: "the session follows
 		// me, context-aware"). A no-op until the mic has been pressed at least once.
 		push_to_talk.nav(page.url);
+		if (new URLSearchParams(location.search).has("chat")){
+			if (use_v1()) devbar.open_tab?.("chat");
+			else devshell.open_tab?.("chat");
+		}
 	},
 });
 
@@ -184,3 +189,6 @@ export { AITask } from "./framework/ext/AITask/AITask.js";
 // `ui.keys("Ctrl", "K")`. Three functions — the other sixteen are documented as
 // copy-paste markup and deliberately have nothing to import. See ui/readme.md.
 export { ui } from "./framework/ui/ui.js";
+
+// Page assistant chat button (optional button any page can place)
+export { chat_button } from "./framework/dev/DevBar/chat.js";

@@ -73,7 +73,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
         tools, answering in under 150 words and then stopping.
   - [x] *At most 30 running:* before any spawn, if 30 agents are live, stop the longest-idle page
         assistant first. Never stop a working agent or a mastermind.
-  - [ ] *The chat on every page:* the dev bar gets a chat tab for the current page, plus an
+  - [x] *The chat on every page:* the dev bar gets a chat tab for the current page, plus an
         optional button a page can place. It reuses the Live card's agent conversation view
         (`POST /api/agents/<id>/message`). Route it: `?chat=<session>` on the page's URL.
   - [ ] *Prove it* on three pages (ux/Tree, core/Page, one AI 2 card): open, talk, leave, come

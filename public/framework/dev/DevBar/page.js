@@ -1,4 +1,5 @@
 import devbar from "./DevBar.js";
+import { chat_button } from "./chat.js";
 import { Doc, md, code, h2, div, button, ui } from "/app.js";
 
 export default new Doc({
@@ -52,11 +53,24 @@ navigated(){ devbar.refresh(); },`, "public/app.js");
 | \`route\` | the active page's url as crumbs, and its title |
 | \`structure\` | the nested \`.page\` boxes you are inside, and what this page's children are |
 | \`ai\` | this page's threads, and a chat on whichever is open |
+| \`chat\` | this page's assistant, its baseline and past sessions (?chat=<session>) |
 | \`dev server\` | whether the live-reload socket is connected |
 | \`x-ray\` | outline every box on the page |
 | \`go\` | the five places you were going anyway |`);
 
 		md("The list is a plain array in `tools.js` — [not a registry](/framework/dev/DevBar/), on purpose. Adding one is a function and one array entry.");
+
+		h2("The `chat` tab — an assistant on every page");
+
+		code.js(`import { chat_button } from "/app.js";
+
+chat_button({ text: "Chat with this page" });`);
+
+		md("Every page on the site gets an assistant with its own baseline checkpoint. The `chat` tab carries on where you left off, lists past sessions, forks new ones, and routes via `?chat=<session>` on the page's URL.");
+
+		div.c("flex v-center gap", () => {
+			chat_button({ page: "/framework/dev/DevBar/", text: "Chat with DevBar assistant" });
+		});
 
 		h2("The `layout` tab — one screen, one button");
 

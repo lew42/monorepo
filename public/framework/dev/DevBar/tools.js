@@ -6,6 +6,8 @@ import layout from "./layout.js";
 import structure from "./structure.js";
 import says from "./says.js";
 
+import page_chat from "./chat.js";
+
 /* What the rail shows, in order, one array per tab. Each section renders itself into
    the captor. ⚠ `layout` is alone on a tab on purpose — it is the one section that
    downloads 45KB and measures the page, and a tab nobody opened does neither.
@@ -16,6 +18,7 @@ export const tabs = [
 	["page", [says, route, server, xray, structure, jump]],
 	["layout", [layout]],
 	["ai", [ask]],
+	["chat", [page_chat]],
 ];
 
 const LINKS = [

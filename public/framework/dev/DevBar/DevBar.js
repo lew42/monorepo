@@ -154,5 +154,6 @@ function toggle(on = !open()){
 }
 
 devbar.toggle = toggle;
+devbar.open_tab = function(name){ set({ tab: name }); toggle(true); };
 
 export { devbar };

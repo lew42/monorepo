@@ -542,6 +542,20 @@
 	@media (width < 34em) {
 		.dev-chat-minions { max-height: 6em; }
 	}
+
+	/* ── page assistant chat ───────────────────────────────────────────── */
+	.dev-chat-root { padding: 0.5rem; gap: 0.5rem; width: 100%; }
+	.dev-chat-ctrl { gap: 0.4rem; font-size: 0.85rem; padding-block-end: 0.4rem; border-block-end: 1px solid var(--line); }
+	.dev-chat-page-badge { font-weight: bold; color: var(--prim); font-size: 0.85rem; }
+	.dev-chat-asst-id { color: var(--ink-muted); font-size: 0.8rem; }
+	.dev-chat-select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.4rem; font-size: 0.8rem; }
+	.dev-chat-new-btn { background: var(--surface-raised); color: var(--prim); border: 1px solid var(--line); border-radius: var(--radius); padding: 0.2rem 0.5rem; cursor: pointer; font-size: 0.8rem; }
+	.dev-chat-new-btn:hover { background: var(--line); }
+	.dev-chat-btn { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.3em 0.7em; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--mono); font-size: 0.85rem; }
+	.dev-chat-btn:hover { border-color: var(--prim); color: var(--prim); }
+	.dev-chat-mount { flex: 1 1 auto; min-height: 0; }
+	.dev-chat-mount .ai2-talk { max-height: calc(100vh - 12rem); overflow-y: auto; width: 100%; }
+	.dev-chat-err { color: var(--warn); font-size: 0.85rem; }
 }
 
 /* Hiding, in the UTIL layer on purpose: these boxes wear the `.flex` word, which lives in
