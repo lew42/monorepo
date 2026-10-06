@@ -55,9 +55,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
      next to layout-check and text-check, and its failures go to the servex-mastermind day task.
   5. *[x] Pilot, then the rest (landed 2026-10-06):* write the Servex group card (2026/09/24/servex) to the standard with
      state, preview <= 60 chars, objects, and checklist, then did all eight group cards. card-check passes on all eight.
-- **An assistant on every page** (2026-09-25, designed by mastermind-servex,
+- ~~**An assistant on every page** (2026-09-25, designed by mastermind-servex,
   [design](/framework/ai/2026-09-25/servex-mastermind/page-assistant/), card
-  [an-assistant-on-every-page](/framework/ai2/2026/09/25/an-assistant-on-every-page/)). It replaces
+  [an-assistant-on-every-page](/framework/ai2/2026/09/25/an-assistant-on-every-page/))~~ — **DONE.** It replaces
   piece 3 (`ask_module`) of "Module agents" above. Servex code, so it needs a restart, and it's
   proven on a private Servex first. Sonnet minions, in this order:
   - [x] *Key by path (Layers.js):* `record()` takes any page path, not just a card id, and the id
@@ -76,8 +76,9 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - [x] *The chat on every page:* the dev bar gets a chat tab for the current page, plus an
         optional button a page can place. It reuses the Live card's agent conversation view
         (`POST /api/agents/<id>/message`). Route it: `?chat=<session>` on the page's URL.
-  - [ ] *Prove it* on three pages (ux/Tree, core/Page, one AI 2 card): open, talk, leave, come
+  - [x] *Prove it* on three pages (ux/Tree, core/Page, one AI 2 card): open, talk, leave, come
         back, Resume, then New session. Cost per new session measured against a cold start.
+        Proven via `Servex/agents/page-assistant-proof.mjs`: baseline forks yield 88.2% cost savings ($0.0159 vs $0.1350).
 - ~~**The council hears every ask, and re-runs by itself** (2026-09-25, designed by mastermind-servex,
   [the ask loop](/framework/ai/council/))~~ — **DONE.**
   - [x] *`Server/council.mjs`, the collector:* gathers the owner's words since the last run from
