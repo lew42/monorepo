@@ -1,0 +1,17 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	.audio-voice-text { inline-size: 100%; max-inline-size: 32em; resize: vertical; }
+	.audio-voice-btn.on { background: var(--prim); color: var(--prim-ink); }
+
+	.audio-voice-select { max-inline-size: 20em; }
+
+	.audio-voice-slider {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2em;
+		font-size: 0.85em;
+	}
+	.audio-voice-range { inline-size: 10em; }
+	.audio-voice-slider-value { font-variant-numeric: tabular-nums; }
+}

@@ -1,0 +1,3 @@
+{"class":"/framework/ai/tests/AITest.js","title":"Rung 2 — two children (with primer)","kind":"two-children","rung":2,"skills":["js","oop"],"prompt":"prompt.md","criteria":["adds \"first\" and \"second\" as new child pages, each parsing with no syntax error","both new pages load in the browser with no console error","the H1s say exactly \"First child\" and \"Second child\"","both children are linked from this page's own children: list"],"expected":null,"judge":null,"confidence":0,"new_children":["first","second"],"h1_texts":["First child","Second child"],"ab_pair":"rung2-two-children","variant":"primer"}
+{"file":"fixture/"}
+{"file":"prompt.md"}
