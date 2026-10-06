@@ -1,1063 +1,1063 @@
 {
-	"generated_at": "2026-10-02T04:18:02.057Z",
-	"weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
-	"kinds": [
-		{
-			"kind": "rules",
-			"label": "Rule adherence — 5 house rules (CLAUDE.md law, readme chain, tool IDs, append.mjs, the fence)",
-			"rows": [
-				{
-					"model": "openai/gpt-6-luna",
-					"effort": "low",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.012571356,
-					"xSonnet": 0.05,
-					"value": 79.55,
-					"belowBar": false
-				},
-				{
-					"model": "openai/gpt-6-luna",
-					"effort": "high",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.013536297,
-					"xSonnet": 0.05,
-					"value": 73.88,
-					"belowBar": false
-				},
-				{
-					"model": "deepseek/deepseek-v4.1-flash",
-					"effort": "low",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.028532321200000006,
-					"xSonnet": 0.07,
-					"value": 35.05,
-					"belowBar": false
-				},
-				{
-					"model": "deepseek/deepseek-v4.1-flash",
-					"effort": "high",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.029061854399999996,
-					"xSonnet": 0.07,
-					"value": 34.41,
-					"belowBar": false
-				},
-				{
-					"model": "google/gemini-3.8-flash",
-					"effort": "low",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.06689348,
-					"xSonnet": 0.38,
-					"value": 14.95,
-					"belowBar": false
-				},
-				{
-					"model": "google/gemini-3.8-flash",
-					"effort": "high",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.10138535,
-					"xSonnet": 0.38,
-					"value": 9.86,
-					"belowBar": false
-				},
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.11182874000000002,
-					"xSonnet": 0.5,
-					"value": 8.94,
-					"belowBar": false
-				},
-				{
-					"model": "google/gemini-3.1-pro-preview",
-					"effort": "low",
-					"n": 5,
-					"performance": 1,
-					"cost": 0.21294960625,
-					"xSonnet": 1.17,
-					"value": 4.7,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 1,
-				"source": "claude-best",
-				"model": "claude-haiku-4-5-20251001"
-			},
-			"best": {
-				"model": "openai/gpt-6-luna",
-				"effort": "low",
-				"value": 79.55
-			}
-		},
-		{
-			"kind": "page-blog",
-			"label": "Probe: write a blog post page from a one-line brief",
-			"rows": [
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 3,
-					"performance": 0.16666666666666666,
-					"cost": 0.32932063333333333,
-					"xSonnet": 0.5,
-					"value": 0.51,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 0.17,
-				"source": "claude-best",
-				"model": "claude-haiku-4-5-20251001"
-			},
-			"best": {
-				"model": "claude-haiku-4-5-20251001",
-				"effort": "low",
-				"value": 0.51
-			}
-		},
-		{
-			"kind": "log-line",
-			"label": "Probe: log one line to today's task",
-			"rows": [
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 3,
-					"performance": 0,
-					"cost": 0.09023363333333334,
-					"xSonnet": 0.5,
-					"value": 0,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 0,
-				"source": "claude-best",
-				"model": "claude-haiku-4-5-20251001"
-			},
-			"best": null
-		},
-		{
-			"kind": "h1-page (local provider)",
-			"label": "A local model's own attempt at the test library's h1-page floor test, run standalone",
-			"rows": [
-				{
-					"model": "local/qwen2.5-coder",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": 0,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": false
-				},
-				{
-					"model": "local/gemma-3-4b",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": 0,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": false
-				}
-			],
-			"bar": null,
-			"best": null
-		},
-		{
-			"kind": "broken-page",
-			"label": "broken-page",
-			"rows": [
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 4,
-					"performance": 0.99375,
-					"cost": 0.19900860000000004,
-					"xSonnet": 0.5,
-					"value": 4.99,
-					"belowBar": false
-				},
-				{
-					"model": "claude-opus-5-5",
-					"effort": "low",
-					"n": 4,
-					"performance": 0.99375,
-					"cost": 0.28492,
-					"xSonnet": 2,
-					"value": 3.49,
-					"belowBar": false
-				},
-				{
-					"model": "claude-sonnet-5",
-					"effort": "low",
-					"n": 4,
-					"performance": 0.96875,
-					"cost": 0.42024759999999994,
-					"xSonnet": 1,
-					"value": 2.31,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 0.87,
-				"source": "sonnet",
-				"model": "claude-sonnet-5"
-			},
-			"best": {
-				"model": "claude-haiku-4-5-20251001",
-				"effort": "low",
-				"value": 4.99
-			}
-		},
-		{
-			"kind": "quick-fix",
-			"label": "quick-fix",
-			"rows": [
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 4,
-					"performance": 1,
-					"cost": 0.16934934999999998,
-					"xSonnet": 0.5,
-					"value": 5.9,
-					"belowBar": false
-				},
-				{
-					"model": "claude-sonnet-5",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.24667260000000002,
-					"xSonnet": 1,
-					"value": 4.05,
-					"belowBar": false
-				},
-				{
-					"model": "claude-opus-5-5",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.2792098,
-					"xSonnet": 2,
-					"value": 3.58,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 0.9,
-				"source": "sonnet",
-				"model": "claude-sonnet-5"
-			},
-			"best": {
-				"model": "claude-haiku-4-5-20251001",
-				"effort": "low",
-				"value": 5.9
-			}
-		},
-		{
-			"kind": "new-page",
-			"label": "new-page",
-			"rows": [
-				{
-					"model": "claude-opus-5-5",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.32670819999999995,
-					"xSonnet": 2,
-					"value": 3.06,
-					"belowBar": false
-				},
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.3784511,
-					"xSonnet": 0.5,
-					"value": 2.64,
-					"belowBar": false
-				},
-				{
-					"model": "claude-sonnet-5",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.42047280000000004,
-					"xSonnet": 1,
-					"value": 2.38,
-					"belowBar": false
-				},
-				{
-					"model": "openai/gpt-6-sol",
-					"effort": "low",
-					"n": 2,
-					"performance": 1,
-					"cost": 0.558215,
-					"xSonnet": 1,
-					"value": 1.79,
-					"belowBar": false
-				},
-				{
-					"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 1,
-					"cost": 0,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": false
-				},
-				{
-					"model": "google/gemma-4-31b-it:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "inclusionai/ling-3.0-flash-sante:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "liquid/lfm-2.5-2.6b:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "google/gemma-4-26b-a4b-it:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "nvidia/nemotron-3.5-lightning:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "qwen/qwen3.8-27b:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "thinkingmachines/inkling-small:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				},
-				{
-					"model": "thinkingmachines/inkling:free",
-					"effort": "medium",
-					"n": 1,
-					"performance": 0,
-					"cost": null,
-					"xSonnet": null,
-					"value": null,
-					"belowBar": true
-				}
-			],
-			"bar": {
-				"value": 0.9,
-				"source": "sonnet",
-				"model": "claude-sonnet-5"
-			},
-			"best": {
-				"model": "claude-opus-5-5",
-				"effort": "low",
-				"value": 3.06
-			}
-		},
-		{
-			"kind": "planning",
-			"label": "planning",
-			"rows": [
-				{
-					"model": "claude-haiku-4-5-20251001",
-					"effort": "low",
-					"n": 2,
-					"performance": 0.36,
-					"cost": 0.23958470000000004,
-					"xSonnet": 0.5,
-					"value": 1.5,
-					"belowBar": true
-				},
-				{
-					"model": "claude-sonnet-5",
-					"effort": "low",
-					"n": 3,
-					"performance": 0.62,
-					"cost": 0.46465639999999997,
-					"xSonnet": 1,
-					"value": 1.33,
-					"belowBar": false
-				},
-				{
-					"model": "claude-opus-5-5",
-					"effort": "low",
-					"n": 3,
-					"performance": 0.65,
-					"cost": 0.6102236000000001,
-					"xSonnet": 2,
-					"value": 1.07,
-					"belowBar": false
-				},
-				{
-					"model": "fable",
-					"effort": "low",
-					"n": 3,
-					"performance": 0.6566666666666666,
-					"cost": 1.8414067500000002,
-					"xSonnet": null,
-					"value": 0.36,
-					"belowBar": false
-				}
-			],
-			"bar": {
-				"value": 0.52,
-				"source": "sonnet",
-				"model": "claude-sonnet-5"
-			},
-			"best": {
-				"model": "claude-sonnet-5",
-				"effort": "low",
-				"value": 1.33
-			}
-		}
-	],
-	"ladder": {
-		"rungs": [
-			{
-				"id": "h1-page",
-				"title": "H1 page"
-			},
-			{
-				"id": "fix-label",
-				"title": "Fix label"
-			},
-			{
-				"id": "broken-import",
-				"title": "Broken import"
-			},
-			{
-				"id": "broken-overflow",
-				"title": "Broken overflow"
-			}
-		],
-		"summary": "The cheapest model that passed all four rungs is Claude Haiku ($0.2230/run).",
-		"rows": [
-			{
-				"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "pass",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": 0,
-				"xSonnet": null
-			},
-			{
-				"model": "google/gemma-4-26b-a4b-it:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "google/gemma-4-31b-it:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "inclusionai/ling-3.0-flash-sante:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "liquid/lfm-2.5-2.6b:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "nvidia/nemotron-3.5-lightning:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "qwen/qwen3.8-27b:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "thinkingmachines/inkling-small:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "thinkingmachines/inkling:free",
-				"free": true,
-				"price_in_per_m": 0,
-				"price_out_per_m": 0,
-				"rungs": {
-					"h1-page": "fail",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": null,
-				"xSonnet": null
-			},
-			{
-				"model": "claude-haiku-4-5-20251001",
-				"free": false,
-				"price_in_per_m": 1,
-				"price_out_per_m": 5,
-				"rungs": {
-					"h1-page": "pass",
-					"fix-label": "pass",
-					"broken-import": "pass",
-					"broken-overflow": "pass"
-				},
-				"mean_cost": 0.223033,
-				"xSonnet": 0.5
-			},
-			{
-				"model": "claude-sonnet-5",
-				"free": false,
-				"price_in_per_m": 2,
-				"price_out_per_m": 10,
-				"rungs": {
-					"h1-page": "pass",
-					"fix-label": "pass",
-					"broken-import": "pass",
-					"broken-overflow": "pass"
-				},
-				"mean_cost": 0.37691,
-				"xSonnet": 1
-			},
-			{
-				"model": "openai/gpt-6-sol",
-				"free": false,
-				"price_in_per_m": 2,
-				"price_out_per_m": 10,
-				"rungs": {
-					"h1-page": "pass",
-					"fix-label": null,
-					"broken-import": null,
-					"broken-overflow": null
-				},
-				"mean_cost": 0.558215,
-				"xSonnet": 1
-			},
-			{
-				"model": "claude-opus-5-5",
-				"free": false,
-				"price_in_per_m": 4,
-				"price_out_per_m": 20,
-				"rungs": {
-					"h1-page": "pass",
-					"fix-label": "pass",
-					"broken-import": "pass",
-					"broken-overflow": "pass"
-				},
-				"mean_cost": 0.29394,
-				"xSonnet": 2
-			}
-		]
-	},
-	"catalog": [
-		{
-			"model": "anthropic/claude-haiku-4.5",
-			"label": "claude-haiku-4.5",
-			"provider": "OpenRouter",
-			"context": 200000,
-			"price_in_per_m": 1,
-			"price_out_per_m": 5,
-			"price_cache_in_per_m": 0.1,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.81,
-			"seconds": 69.5,
-			"tokens_in": 7909,
-			"tokens_out": 7301,
-			"eval_cost_usd": 0.044413999999999995,
-			"failed": false,
-			"typical_minion_usd": 1.4467,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "openai/gpt-oss-120b",
-			"label": "gpt-oss-120b",
-			"provider": "OpenRouter",
-			"context": 131072,
-			"price_in_per_m": 0.037,
-			"price_out_per_m": 0.17,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.8,
-			"seconds": 82.4,
-			"tokens_in": 7253,
-			"tokens_out": 3222,
-			"eval_cost_usd": 0.0010378179999999998,
-			"failed": false,
-			"typical_minion_usd": 0.4254,
-			"typical_minion_cache_priced": false
-		},
-		{
-			"model": "qwen/qwen3.7-flash",
-			"label": "qwen3.7-flash",
-			"provider": "OpenRouter",
-			"context": 1000000,
-			"price_in_per_m": 0.03,
-			"price_out_per_m": 0.13,
-			"price_cache_in_per_m": 0.006,
-			"docs": 1,
-			"reasoning": 0.3333333333333333,
-			"refine": 0.66,
-			"seconds": 286.2,
-			"tokens_in": 6676,
-			"tokens_out": 32518,
-			"eval_cost_usd": 0.00442762,
-			"failed": false,
-			"typical_minion_usd": 0.0761,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "z-ai/glm-5.3-flash:batch",
-			"label": "glm-5.3-flash:batch",
-			"provider": "OpenRouter",
-			"context": 1048576,
-			"price_in_per_m": 0.06,
-			"price_out_per_m": 0.2,
-			"price_cache_in_per_m": 0.012,
-			"docs": null,
-			"reasoning": null,
-			"refine": null,
-			"seconds": null,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": null,
-			"failed": true,
-			"typical_minion_usd": 0.1496,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "qwen/qwen3-235b-a22b-2507",
-			"label": "qwen3-235b-a22b-2507",
-			"provider": "OpenRouter",
-			"context": 262144,
-			"price_in_per_m": 0.0875,
-			"price_out_per_m": 0.35,
-			"price_cache_in_per_m": 0.0175,
-			"docs": 0.8,
-			"reasoning": 1,
-			"refine": 0.74,
-			"seconds": 202.5,
-			"tokens_in": 6200,
-			"tokens_out": 6859,
-			"eval_cost_usd": 0.0061201825,
-			"failed": false,
-			"typical_minion_usd": 0.2207,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "deepseek/deepseek-v4.1-flash",
-			"label": "deepseek-v4.1-flash",
-			"provider": "OpenRouter",
-			"context": 1048576,
-			"price_in_per_m": 0.003,
-			"price_out_per_m": 2.4,
-			"price_cache_in_per_m": 0.003,
-			"docs": 1,
-			"reasoning": 0.6666666666666666,
-			"refine": 0.92,
-			"seconds": 140,
-			"tokens_in": 6791,
-			"tokens_out": 16993,
-			"eval_cost_usd": 0.010054652,
-			"failed": false,
-			"typical_minion_usd": 0.1371,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "openai/gpt-6-luna",
-			"label": "gpt-6-luna",
-			"provider": "OpenRouter",
-			"context": 1050000,
-			"price_in_per_m": 0.1,
-			"price_out_per_m": 0.5,
-			"price_cache_in_per_m": 0.01,
-			"docs": 0.8,
-			"reasoning": 1,
-			"refine": 0.83,
-			"seconds": 44.8,
-			"tokens_in": 6166,
-			"tokens_out": 3102,
-			"eval_cost_usd": 0.0021676,
-			"failed": false,
-			"typical_minion_usd": 0.1447,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-			"label": "nemotron-3-ultra-550b-a55b:free",
-			"provider": "OpenRouter",
-			"context": 1000000,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 0.4,
-			"reasoning": 0.6666666666666666,
-			"refine": 0.71,
-			"seconds": 216.8,
-			"tokens_in": 4006,
-			"tokens_out": 5819,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": false
-		},
-		{
-			"model": "nvidia/nemotron-3-super-120b-a12b:free",
-			"label": "nemotron-3-super-120b-a12b:free",
-			"provider": "OpenRouter",
-			"context": 262144,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.79,
-			"seconds": 121.2,
-			"tokens_in": 6438,
-			"tokens_out": 8907,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": false
-		},
-		{
-			"model": "local/gemma-4-e4b",
-			"label": "gemma-4-e4b",
-			"provider": "local",
-			"context": null,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.76,
-			"seconds": 122.1,
-			"tokens_in": 7234,
-			"tokens_out": 12275,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": null
-		},
-		{
-			"model": "local/qwen2.5-coder",
-			"label": "qwen2.5-coder",
-			"provider": "local",
-			"context": null,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 0.8,
-			"reasoning": 1,
-			"refine": 0.83,
-			"seconds": 23.5,
-			"tokens_in": 6571,
-			"tokens_out": 1840,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": null
-		},
-		{
-			"model": "local/qwen3-8b",
-			"label": "qwen3-8b",
-			"provider": "local",
-			"context": null,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 0.6666666666666666,
-			"refine": 0.73,
-			"seconds": 178.6,
-			"tokens_in": 5586,
-			"tokens_out": 8607,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": null
-		},
-		{
-			"model": "local/hermes-3-llama-3.1-8b",
-			"label": "hermes-3-llama-3.1-8b",
-			"provider": "local",
-			"context": null,
-			"price_in_per_m": 0,
-			"price_out_per_m": 0,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 0.6666666666666666,
-			"refine": 0.72,
-			"seconds": 22.7,
-			"tokens_in": 6196,
-			"tokens_out": 1768,
-			"eval_cost_usd": 0,
-			"failed": false,
-			"typical_minion_usd": 0,
-			"typical_minion_cache_priced": null
-		},
-		{
-			"model": "openai/gpt-oss-120b",
-			"label": "gpt-oss-120b",
-			"provider": "Groq",
-			"context": 131072,
-			"price_in_per_m": 0.037,
-			"price_out_per_m": 0.17,
-			"price_cache_in_per_m": null,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.81,
-			"seconds": 11.2,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": 0.0030426000000000003,
-			"failed": false,
-			"typical_minion_usd": 0.4254,
-			"typical_minion_cache_priced": false
-		},
-		{
-			"model": "openai/gpt-oss-20b",
-			"label": "gpt-oss-20b",
-			"provider": "Groq",
-			"context": 131072,
-			"price_in_per_m": 0.018,
-			"price_out_per_m": 0.09,
-			"price_cache_in_per_m": 0.009,
-			"docs": 0.8,
-			"reasoning": 1,
-			"refine": 0.84,
-			"seconds": 8.8,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": 0.0015183000000000002,
-			"failed": false,
-			"typical_minion_usd": 0.1066,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "google/gemini-3.8-flash",
-			"label": "gemini-3.8-flash",
-			"provider": "Google AI Studio",
-			"context": 1048576,
-			"price_in_per_m": 0.75,
-			"price_out_per_m": 3.75,
-			"price_cache_in_per_m": 0.075,
-			"docs": 1,
-			"reasoning": 1,
-			"refine": 0.8,
-			"seconds": 40.7,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": 0.01594575,
-			"failed": false,
-			"typical_minion_usd": 1.085,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "claude-opus-5-5",
-			"label": "Claude Opus",
-			"provider": "Claude (direct)",
-			"context": 200000,
-			"price_in_per_m": 4,
-			"price_out_per_m": 20,
-			"price_cache_in_per_m": 0.4,
-			"docs": null,
-			"reasoning": null,
-			"refine": null,
-			"seconds": null,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": null,
-			"typical_minion_usd": 5.7868,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "claude-sonnet-5",
-			"label": "Claude Sonnet",
-			"provider": "Claude (direct)",
-			"context": 200000,
-			"price_in_per_m": 2,
-			"price_out_per_m": 10,
-			"price_cache_in_per_m": 0.2,
-			"docs": null,
-			"reasoning": null,
-			"refine": null,
-			"seconds": null,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": null,
-			"typical_minion_usd": 2.8934,
-			"typical_minion_cache_priced": true
-		},
-		{
-			"model": "claude-haiku-4-5-20251001",
-			"label": "Claude Haiku",
-			"provider": "Claude (direct)",
-			"context": 200000,
-			"price_in_per_m": 1,
-			"price_out_per_m": 5,
-			"price_cache_in_per_m": 0.1,
-			"docs": null,
-			"reasoning": null,
-			"refine": null,
-			"seconds": null,
-			"tokens_in": null,
-			"tokens_out": null,
-			"eval_cost_usd": null,
-			"typical_minion_usd": 1.4467,
-			"typical_minion_cache_priced": true
-		}
-	],
-	"catalog_generated_at": "2026-10-05T02:02:08.737Z",
-	"catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass."
+  "generated_at": "2026-10-02T04:18:02.057Z",
+  "weighting_note": "Each test is weighted by how well it separates strong models from weak ones.",
+  "kinds": [
+    {
+      "kind": "rules",
+      "label": "Rule adherence — 5 house rules (CLAUDE.md law, readme chain, tool IDs, append.mjs, the fence)",
+      "rows": [
+        {
+          "model": "openai/gpt-6-luna",
+          "effort": "low",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.012571356,
+          "xSonnet": 0.05,
+          "value": 79.55,
+          "belowBar": false
+        },
+        {
+          "model": "openai/gpt-6-luna",
+          "effort": "high",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.013536297,
+          "xSonnet": 0.05,
+          "value": 73.88,
+          "belowBar": false
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "effort": "low",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.028532321200000006,
+          "xSonnet": 0.07,
+          "value": 35.05,
+          "belowBar": false
+        },
+        {
+          "model": "deepseek/deepseek-v4.1-flash",
+          "effort": "high",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.029061854399999996,
+          "xSonnet": 0.07,
+          "value": 34.41,
+          "belowBar": false
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "effort": "low",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.06689348,
+          "xSonnet": 0.38,
+          "value": 14.95,
+          "belowBar": false
+        },
+        {
+          "model": "google/gemini-3.8-flash",
+          "effort": "high",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.10138535,
+          "xSonnet": 0.38,
+          "value": 9.86,
+          "belowBar": false
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.11182874000000002,
+          "xSonnet": 0.5,
+          "value": 8.94,
+          "belowBar": false
+        },
+        {
+          "model": "google/gemini-3.1-pro-preview",
+          "effort": "low",
+          "n": 5,
+          "performance": 1,
+          "cost": 0.21294960625,
+          "xSonnet": 1.17,
+          "value": 4.7,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 1,
+        "source": "claude-best",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "best": {
+        "model": "openai/gpt-6-luna",
+        "effort": "low",
+        "value": 79.55
+      }
+    },
+    {
+      "kind": "page-blog",
+      "label": "Probe: write a blog post page from a one-line brief",
+      "rows": [
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 3,
+          "performance": 0.16666666666666666,
+          "cost": 0.32932063333333333,
+          "xSonnet": 0.5,
+          "value": 0.51,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 0.17,
+        "source": "claude-best",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "best": {
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "low",
+        "value": 0.51
+      }
+    },
+    {
+      "kind": "log-line",
+      "label": "Probe: log one line to today's task",
+      "rows": [
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 3,
+          "performance": 0,
+          "cost": 0.09023363333333334,
+          "xSonnet": 0.5,
+          "value": 0,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 0,
+        "source": "claude-best",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "best": null
+    },
+    {
+      "kind": "h1-page (local provider)",
+      "label": "A local model's own attempt at the test library's h1-page floor test, run standalone",
+      "rows": [
+        {
+          "model": "local/qwen2.5-coder",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": 0,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": false
+        },
+        {
+          "model": "local/gemma-3-4b",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": 0,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": false
+        }
+      ],
+      "bar": null,
+      "best": null
+    },
+    {
+      "kind": "broken-page",
+      "label": "broken-page",
+      "rows": [
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 4,
+          "performance": 0.99375,
+          "cost": 0.19900860000000004,
+          "xSonnet": 0.5,
+          "value": 4.99,
+          "belowBar": false
+        },
+        {
+          "model": "claude-opus-5-5",
+          "effort": "low",
+          "n": 4,
+          "performance": 0.99375,
+          "cost": 0.28492,
+          "xSonnet": 2,
+          "value": 3.49,
+          "belowBar": false
+        },
+        {
+          "model": "claude-sonnet-5",
+          "effort": "low",
+          "n": 4,
+          "performance": 0.96875,
+          "cost": 0.42024759999999994,
+          "xSonnet": 1,
+          "value": 2.31,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 0.87,
+        "source": "sonnet",
+        "model": "claude-sonnet-5"
+      },
+      "best": {
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "low",
+        "value": 4.99
+      }
+    },
+    {
+      "kind": "quick-fix",
+      "label": "quick-fix",
+      "rows": [
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 4,
+          "performance": 1,
+          "cost": 0.16934934999999998,
+          "xSonnet": 0.5,
+          "value": 5.9,
+          "belowBar": false
+        },
+        {
+          "model": "claude-sonnet-5",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.24667260000000002,
+          "xSonnet": 1,
+          "value": 4.05,
+          "belowBar": false
+        },
+        {
+          "model": "claude-opus-5-5",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.2792098,
+          "xSonnet": 2,
+          "value": 3.58,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 0.9,
+        "source": "sonnet",
+        "model": "claude-sonnet-5"
+      },
+      "best": {
+        "model": "claude-haiku-4-5-20251001",
+        "effort": "low",
+        "value": 5.9
+      }
+    },
+    {
+      "kind": "new-page",
+      "label": "new-page",
+      "rows": [
+        {
+          "model": "claude-opus-5-5",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.32670819999999995,
+          "xSonnet": 2,
+          "value": 3.06,
+          "belowBar": false
+        },
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.3784511,
+          "xSonnet": 0.5,
+          "value": 2.64,
+          "belowBar": false
+        },
+        {
+          "model": "claude-sonnet-5",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.42047280000000004,
+          "xSonnet": 1,
+          "value": 2.38,
+          "belowBar": false
+        },
+        {
+          "model": "openai/gpt-6-sol",
+          "effort": "low",
+          "n": 2,
+          "performance": 1,
+          "cost": 0.558215,
+          "xSonnet": 1,
+          "value": 1.79,
+          "belowBar": false
+        },
+        {
+          "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 1,
+          "cost": 0,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": false
+        },
+        {
+          "model": "google/gemma-4-31b-it:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "inclusionai/ling-3.0-flash-sante:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "liquid/lfm-2.5-2.6b:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "google/gemma-4-26b-a4b-it:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "qwen/qwen3.8-27b:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "thinkingmachines/inkling-small:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        },
+        {
+          "model": "thinkingmachines/inkling:free",
+          "effort": "medium",
+          "n": 1,
+          "performance": 0,
+          "cost": null,
+          "xSonnet": null,
+          "value": null,
+          "belowBar": true
+        }
+      ],
+      "bar": {
+        "value": 0.9,
+        "source": "sonnet",
+        "model": "claude-sonnet-5"
+      },
+      "best": {
+        "model": "claude-opus-5-5",
+        "effort": "low",
+        "value": 3.06
+      }
+    },
+    {
+      "kind": "planning",
+      "label": "planning",
+      "rows": [
+        {
+          "model": "claude-haiku-4-5-20251001",
+          "effort": "low",
+          "n": 2,
+          "performance": 0.36,
+          "cost": 0.23958470000000004,
+          "xSonnet": 0.5,
+          "value": 1.5,
+          "belowBar": true
+        },
+        {
+          "model": "claude-sonnet-5",
+          "effort": "low",
+          "n": 3,
+          "performance": 0.62,
+          "cost": 0.46465639999999997,
+          "xSonnet": 1,
+          "value": 1.33,
+          "belowBar": false
+        },
+        {
+          "model": "claude-opus-5-5",
+          "effort": "low",
+          "n": 3,
+          "performance": 0.65,
+          "cost": 0.6102236000000001,
+          "xSonnet": 2,
+          "value": 1.07,
+          "belowBar": false
+        },
+        {
+          "model": "fable",
+          "effort": "low",
+          "n": 3,
+          "performance": 0.6566666666666666,
+          "cost": 1.8414067500000002,
+          "xSonnet": null,
+          "value": 0.36,
+          "belowBar": false
+        }
+      ],
+      "bar": {
+        "value": 0.52,
+        "source": "sonnet",
+        "model": "claude-sonnet-5"
+      },
+      "best": {
+        "model": "claude-sonnet-5",
+        "effort": "low",
+        "value": 1.33
+      }
+    }
+  ],
+  "ladder": {
+    "rungs": [
+      {
+        "id": "h1-page",
+        "title": "H1 page"
+      },
+      {
+        "id": "fix-label",
+        "title": "Fix label"
+      },
+      {
+        "id": "broken-import",
+        "title": "Broken import"
+      },
+      {
+        "id": "broken-overflow",
+        "title": "Broken overflow"
+      }
+    ],
+    "summary": "The cheapest model that passed all four rungs is Claude Haiku ($0.2230/run).",
+    "rows": [
+      {
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "pass",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": 0,
+        "xSonnet": null
+      },
+      {
+        "model": "google/gemma-4-26b-a4b-it:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "google/gemma-4-31b-it:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "inclusionai/ling-3.0-flash-sante:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "liquid/lfm-2.5-2.6b:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "qwen/qwen3.8-27b:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "thinkingmachines/inkling-small:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "thinkingmachines/inkling:free",
+        "free": true,
+        "price_in_per_m": 0,
+        "price_out_per_m": 0,
+        "rungs": {
+          "h1-page": "fail",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": null,
+        "xSonnet": null
+      },
+      {
+        "model": "claude-haiku-4-5-20251001",
+        "free": false,
+        "price_in_per_m": 1,
+        "price_out_per_m": 5,
+        "rungs": {
+          "h1-page": "pass",
+          "fix-label": "pass",
+          "broken-import": "pass",
+          "broken-overflow": "pass"
+        },
+        "mean_cost": 0.223033,
+        "xSonnet": 0.5
+      },
+      {
+        "model": "claude-sonnet-5",
+        "free": false,
+        "price_in_per_m": 2,
+        "price_out_per_m": 10,
+        "rungs": {
+          "h1-page": "pass",
+          "fix-label": "pass",
+          "broken-import": "pass",
+          "broken-overflow": "pass"
+        },
+        "mean_cost": 0.37691,
+        "xSonnet": 1
+      },
+      {
+        "model": "openai/gpt-6-sol",
+        "free": false,
+        "price_in_per_m": 2,
+        "price_out_per_m": 10,
+        "rungs": {
+          "h1-page": "pass",
+          "fix-label": null,
+          "broken-import": null,
+          "broken-overflow": null
+        },
+        "mean_cost": 0.558215,
+        "xSonnet": 1
+      },
+      {
+        "model": "claude-opus-5-5",
+        "free": false,
+        "price_in_per_m": 4,
+        "price_out_per_m": 20,
+        "rungs": {
+          "h1-page": "pass",
+          "fix-label": "pass",
+          "broken-import": "pass",
+          "broken-overflow": "pass"
+        },
+        "mean_cost": 0.29394,
+        "xSonnet": 2
+      }
+    ]
+  },
+  "catalog": [
+    {
+      "model": "anthropic/claude-haiku-4.5",
+      "label": "claude-haiku-4.5",
+      "provider": "OpenRouter",
+      "context": 200000,
+      "price_in_per_m": 1,
+      "price_out_per_m": 5,
+      "price_cache_in_per_m": 0.1,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.81,
+      "seconds": 69.5,
+      "tokens_in": 7909,
+      "tokens_out": 7301,
+      "eval_cost_usd": 0.044413999999999995,
+      "failed": false,
+      "typical_minion_usd": 1.4467,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "openai/gpt-oss-120b",
+      "label": "gpt-oss-120b",
+      "provider": "OpenRouter",
+      "context": 131072,
+      "price_in_per_m": 0.037,
+      "price_out_per_m": 0.17,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.8,
+      "seconds": 82.4,
+      "tokens_in": 7253,
+      "tokens_out": 3222,
+      "eval_cost_usd": 0.0010378179999999998,
+      "failed": false,
+      "typical_minion_usd": 0.4254,
+      "typical_minion_cache_priced": false
+    },
+    {
+      "model": "qwen/qwen3.7-flash",
+      "label": "qwen3.7-flash",
+      "provider": "OpenRouter",
+      "context": 1000000,
+      "price_in_per_m": 0.03,
+      "price_out_per_m": 0.13,
+      "price_cache_in_per_m": 0.006,
+      "docs": 1,
+      "reasoning": 0.3333333333333333,
+      "refine": 0.66,
+      "seconds": 286.2,
+      "tokens_in": 6676,
+      "tokens_out": 32518,
+      "eval_cost_usd": 0.00442762,
+      "failed": false,
+      "typical_minion_usd": 0.0761,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "z-ai/glm-5.3-flash:batch",
+      "label": "glm-5.3-flash:batch",
+      "provider": "OpenRouter",
+      "context": 1048576,
+      "price_in_per_m": 0.06,
+      "price_out_per_m": 0.2,
+      "price_cache_in_per_m": 0.012,
+      "docs": null,
+      "reasoning": null,
+      "refine": null,
+      "seconds": null,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": null,
+      "failed": true,
+      "typical_minion_usd": 0.1496,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "qwen/qwen3-235b-a22b-2507",
+      "label": "qwen3-235b-a22b-2507",
+      "provider": "OpenRouter",
+      "context": 262144,
+      "price_in_per_m": 0.0875,
+      "price_out_per_m": 0.35,
+      "price_cache_in_per_m": 0.0175,
+      "docs": 0.8,
+      "reasoning": 1,
+      "refine": 0.74,
+      "seconds": 202.5,
+      "tokens_in": 6200,
+      "tokens_out": 6859,
+      "eval_cost_usd": 0.0061201825,
+      "failed": false,
+      "typical_minion_usd": 0.2207,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "label": "deepseek-v4.1-flash",
+      "provider": "OpenRouter",
+      "context": 1048576,
+      "price_in_per_m": 0.003,
+      "price_out_per_m": 2.4,
+      "price_cache_in_per_m": 0.003,
+      "docs": 1,
+      "reasoning": 0.6666666666666666,
+      "refine": 0.92,
+      "seconds": 140,
+      "tokens_in": 6791,
+      "tokens_out": 16993,
+      "eval_cost_usd": 0.010054652,
+      "failed": false,
+      "typical_minion_usd": 0.1371,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "openai/gpt-6-luna",
+      "label": "gpt-6-luna",
+      "provider": "OpenRouter",
+      "context": 1050000,
+      "price_in_per_m": 0.1,
+      "price_out_per_m": 0.5,
+      "price_cache_in_per_m": 0.01,
+      "docs": 0.8,
+      "reasoning": 1,
+      "refine": 0.83,
+      "seconds": 44.8,
+      "tokens_in": 6166,
+      "tokens_out": 3102,
+      "eval_cost_usd": 0.0021676,
+      "failed": false,
+      "typical_minion_usd": 0.1447,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "label": "nemotron-3-ultra-550b-a55b:free",
+      "provider": "OpenRouter",
+      "context": 1000000,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 0.4,
+      "reasoning": 0.6666666666666666,
+      "refine": 0.71,
+      "seconds": 216.8,
+      "tokens_in": 4006,
+      "tokens_out": 5819,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": false
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "label": "nemotron-3-super-120b-a12b:free",
+      "provider": "OpenRouter",
+      "context": 262144,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.79,
+      "seconds": 121.2,
+      "tokens_in": 6438,
+      "tokens_out": 8907,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": false
+    },
+    {
+      "model": "local/gemma-4-e4b",
+      "label": "gemma-4-e4b",
+      "provider": "local",
+      "context": 8192,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.76,
+      "seconds": 122.1,
+      "tokens_in": 7234,
+      "tokens_out": 12275,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": null
+    },
+    {
+      "model": "local/qwen2.5-coder",
+      "label": "qwen2.5-coder",
+      "provider": "local",
+      "context": 32768,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 0.8,
+      "reasoning": 1,
+      "refine": 0.83,
+      "seconds": 23.5,
+      "tokens_in": 6571,
+      "tokens_out": 1840,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": null
+    },
+    {
+      "model": "local/qwen3-8b",
+      "label": "qwen3-8b",
+      "provider": "local",
+      "context": 36864,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 0.6666666666666666,
+      "refine": 0.73,
+      "seconds": 178.6,
+      "tokens_in": 5586,
+      "tokens_out": 8607,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": null
+    },
+    {
+      "model": "local/hermes-3-llama-3.1-8b",
+      "label": "hermes-3-llama-3.1-8b",
+      "provider": "local",
+      "context": 32768,
+      "price_in_per_m": 0,
+      "price_out_per_m": 0,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 0.6666666666666666,
+      "refine": 0.72,
+      "seconds": 22.7,
+      "tokens_in": 6196,
+      "tokens_out": 1768,
+      "eval_cost_usd": 0,
+      "failed": false,
+      "typical_minion_usd": 0,
+      "typical_minion_cache_priced": null
+    },
+    {
+      "model": "openai/gpt-oss-120b",
+      "label": "gpt-oss-120b",
+      "provider": "Groq",
+      "context": 131072,
+      "price_in_per_m": 0.037,
+      "price_out_per_m": 0.17,
+      "price_cache_in_per_m": null,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.81,
+      "seconds": 11.2,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": 0.0030426000000000003,
+      "failed": false,
+      "typical_minion_usd": 0.4254,
+      "typical_minion_cache_priced": false
+    },
+    {
+      "model": "openai/gpt-oss-20b",
+      "label": "gpt-oss-20b",
+      "provider": "Groq",
+      "context": 131072,
+      "price_in_per_m": 0.018,
+      "price_out_per_m": 0.09,
+      "price_cache_in_per_m": 0.009,
+      "docs": 0.8,
+      "reasoning": 1,
+      "refine": 0.84,
+      "seconds": 8.8,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": 0.0015183000000000002,
+      "failed": false,
+      "typical_minion_usd": 0.1066,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "google/gemini-3.8-flash",
+      "label": "gemini-3.8-flash",
+      "provider": "Google AI Studio",
+      "context": 1048576,
+      "price_in_per_m": 0.75,
+      "price_out_per_m": 3.75,
+      "price_cache_in_per_m": 0.075,
+      "docs": 1,
+      "reasoning": 1,
+      "refine": 0.8,
+      "seconds": 40.7,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": 0.01594575,
+      "failed": false,
+      "typical_minion_usd": 1.085,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "claude-opus-5-5",
+      "label": "Claude Opus",
+      "provider": "Claude (direct)",
+      "context": 200000,
+      "price_in_per_m": 4,
+      "price_out_per_m": 20,
+      "price_cache_in_per_m": 0.4,
+      "docs": null,
+      "reasoning": null,
+      "refine": null,
+      "seconds": null,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": null,
+      "typical_minion_usd": 5.7868,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "claude-sonnet-5",
+      "label": "Claude Sonnet",
+      "provider": "Claude (direct)",
+      "context": 200000,
+      "price_in_per_m": 2,
+      "price_out_per_m": 10,
+      "price_cache_in_per_m": 0.2,
+      "docs": null,
+      "reasoning": null,
+      "refine": null,
+      "seconds": null,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": null,
+      "typical_minion_usd": 2.8934,
+      "typical_minion_cache_priced": true
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "label": "Claude Haiku",
+      "provider": "Claude (direct)",
+      "context": 200000,
+      "price_in_per_m": 1,
+      "price_out_per_m": 5,
+      "price_cache_in_per_m": 0.1,
+      "docs": null,
+      "reasoning": null,
+      "refine": null,
+      "seconds": null,
+      "tokens_in": null,
+      "tokens_out": null,
+      "eval_cost_usd": null,
+      "typical_minion_usd": 1.4467,
+      "typical_minion_cache_priced": true
+    }
+  ],
+  "catalog_generated_at": "2026-10-05T02:02:08.737Z",
+  "catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass."
 }

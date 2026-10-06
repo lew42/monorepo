@@ -419,7 +419,12 @@ function render_models(data){
 	md("*Rows with no cost or no real run are left out of the chart and the best-value line, not shown as zero.*");
 }
 
-const fmt_ctx = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" : String(n);
+const fmt_ctx = n => {
+	if (n == null) return "—";
+	if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 2).replace(/\.00$/, "").replace(/(\.[1-9])0$/, "$1") + "M";
+	if (n >= 1000) return Math.round(n / 1000) + "K";
+	return String(n);
+};
 const fmt_ms = s => s == null ? "—" : s + "s";
 const fmt_tok = n => n == null ? "—" : n >= 1000 ? Math.round(n / 1000) + "K" : String(n);
 // Catalog prices can be a real, published $0 (a local model, self-hosted) — fmt_usd's own
