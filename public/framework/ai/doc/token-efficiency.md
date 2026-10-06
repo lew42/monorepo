@@ -30,3 +30,8 @@ Every extra turn without batching forces the API to re-process and re-bill the e
    - **Local GPU (`C:\llama` / `llama-server.exe`):** RTX 4070 Super runs `Qwen3-8B` or `Hermes-3-Llama-3.1-8B` at **\$0.00** for high-volume summarization and file filtering.
    - **Fast Cloud Minions:** Gemini 3.8 Flash or GPT-6 Luna on OpenRouter for structured tool tasks.
    - **Mastermind Executive:** Claude Sonnet / Gemini Pro / Opus solely for high-level judgment and brief drafting.
+
+5. **Pass-by-Reference Message Forwarding:**
+   - Never force a relay agent to re-generate multi-paragraph prompts or dictations verbatim in tool arguments (output tokens cost 3–5× more and generate slowly).
+   - Pass an immutable message ID or file reference (`notify_agent({ to, msg_id, file })`). Reduces relay output tokens by >98% with zero transcription drift.
+   - See [Pass-by-Reference Messaging & Queue Latency](pass-by-reference.md).

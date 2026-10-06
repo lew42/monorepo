@@ -13,6 +13,9 @@ keep it one screen.
   - `doc/log-tool.md`: Architecture for single ~120-token unopinionated log tool replacing 75k-token MCP catalogs.
   - `public/framework/ai/local/log-tool.js`: Reusable implementation with automatic timestamping, duration calculation (`delta_ms`), sequence counters, and caller attribution.
   - Verified live on local RTX 4070 Super: Qwen3-8B executed `log` tool in 7.1s with native reasoning and structured JSON payload.
+- **Pass-by-Reference Messaging & Queue Latency:**
+  - `doc/pass-by-reference.md`: Passing `msg_id` or `(file, line)` instead of re-generating walls of text in tool arguments; 98% reduction in relay output tokens and zero transcription drift. Architecture for out-of-band priority channels to bypass FIFO queue blackout during emergencies.
+  - Linked in `doc/token-efficiency.md` and `public/framework/ai/readme.md`.
 - **Local Models Web UI Upgraded:**
   - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
 - **The Pre-Shutdown Masterminds:**
