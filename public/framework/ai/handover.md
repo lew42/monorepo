@@ -4,8 +4,13 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-05 10:30 pm: Antigravity Session (45d8d4c7) taking over Mastermind
-**Claude Code weekly usage reached 100% lockout (resets Wed Oct 7, 9:59 pm UTC). Work continues under Google Antigravity and Servex/OpenRouter.**
+## LATEST, 2026-10-05 11:25 pm: Antigravity Session (45d8d4c7) taking over Mastermind
+**Claude Code weekly usage reached 100% lockout (resets Wed Oct 7, 9:59 pm UTC). Work continues under Google Antigravity, local GPU models, and Servex/OpenRouter.**
+- **Context Windows & Attention Dynamics Documented:**
+  - `doc/context-window.md`: Details Primacy bias (token 0 KV priming, RoPE distance anchor), Recency bias (autoregressive next-token steering), and Lost in the Middle.
+  - Linked in `public/framework/ai/readme.md` (committed `eb75fbd6`).
+- **Local Models Web UI Upgraded:**
+  - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
 - **The Pre-Shutdown Masterminds:**
   - Opus Mastermind: `60d9def6-907a-4f71-adf9-110075b719eb` (10 MB; ended 14:21).
   - Sonnet Mastermind: `e3ade6ce-fbb5-4674-922c-566ef86fabb3` (793 KB; ended 17:22, initiated OpenRouter emergency backend).
