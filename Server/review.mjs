@@ -721,7 +721,7 @@ async function main() {
 	// it). Every page review — `light` or `full` — gets screenshots at the widths the change
 	// actually needs (widthsFor, above) and uses the review skill; anything else keeps the plain
 	// brief-and-diff prompt, same as always. `--widths` overrides widthsFor's own pick.
-	const pages = [...new Set(files.map(pageUrlFor).filter(Boolean))];
+	const pages = [...new Set(status_.filter(x => x.status !== "D" && (!worktreeDir || fs.existsSync(path.join(worktreeDir, x.f)))).map(x => pageUrlFor(x.f)).filter(Boolean))];
 	const pageReview = pages.length > 0;
 	const shotsDir = path.join(taskDir, "shots");
 	const patches = splitPatch(diffText);

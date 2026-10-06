@@ -15,21 +15,22 @@
  * or `--main` skip it, loudly.
  *
  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
- * branch touches, from `git diff --name-only BASE...branch`, is turned into that page's own site
- * url (`pageUrlFor()` below — a card folder under `public/framework/ai/YYYY/MM/DD/…` maps to
- * `/framework/ai2/YYYY/MM/DD/…`; anything else's url is just the directory holding the page.js)
- * and handed to `smoke.mjs` alongside any paths given by hand — which now also FOLLOWS every
- * link on each page it loads, one level deep. Why: 7 concept-tile links shipped 404ing because
- * nothing had ever clicked them — not the landing screenshot, not the old smoke test (which only
- * loaded the pages an agent remembered to list). Every NEW page.js in the diff (added, not
- * modified) then gets a 1920 screenshot via `layout-check.mjs`, in `.merge-shots/` at the repo
- * root, and the file paths print at the end.
+ * branch touches that still exists on the branch (skipping deleted/moved originals), from `git diff
+ * --name-only BASE...branch`, is turned into that page's own site url (`pageUrlFor()` below — a card
+ * folder under `public/framework/ai/YYYY/MM/DD/…` maps to `/framework/ai2/YYYY/MM/DD/…`; anything
+ * else's url is just the directory holding the page.js) and handed to `smoke.mjs` alongside any
+ * paths given by hand — which now also FOLLOWS every link on each page it loads, one level deep. Why:
+ * 7 concept-tile links shipped 404ing because nothing had ever clicked them — not the landing
+ * screenshot, not the old smoke test (which only loaded the pages an agent remembered to list).
+ * Every NEW page.js in the diff (added, not modified) then gets a 1920 screenshot via `layout-check.mjs`,
+ * in `.merge-shots/` at the repo root, and the file paths print at the end.
  *   No overlap: `git merge-tree` proves the merge is clean, then `git merge --no-ff` commits it.
  *   Overlap:    a three-way merge per file (`git merge-file`: base = the merge base, ours = the main
  *               tree's working file, theirs = the branch), computed for EVERY file in memory first;
- *               one conflict and nothing is written. Working tree only (no index, no commit); the
- *               branch head is recorded in .merge-landed.json; the owner commits. (`git apply` was
- *               dropped 2026-09-25: it refused whenever an owner edit sat on a line next to a hunk.)
+ *               one conflict and nothing is written. If no prior staged files exist, it stages only
+ *               the merged files and commits via MERGE_HEAD; otherwise leaves them in the working
+ *               tree and prints a one-line summary of what it left. The branch head is recorded in
+ *               .merge-landed.json.
  *   A live log is never rewritten: every *.jsonl is read again at write time and any line appended
  *               since planning is kept (jsonl-keep.mjs, 2026-09-29: readme-chain lost its landing line).
  * Nothing is ever reset, stashed, checked out, forced or rewritten. `--main` points at another repo
@@ -187,7 +188,7 @@ function reviewGate(branch, head){
 	// A branch that touches a page needs the page-shaped report (screenshots at all four widths,
 	// every layout question answered), not just the plain brief-and-diff review.md a non-page
 	// change gets — review.mjs only writes review/report.md when it saw a page in the diff.
-	if (nameStatus.some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
+	if (nameStatus.filter(x => x.status !== "D").some(x => pageUrlFor(x.f)) && (!best.e.review.report || !fs.existsSync(path.join(best.td, best.e.review.report))))
 		return `refused: ${branch} changes a page and its review has no report (review/report.md); run: ${cmd}`;
 	return null;
 }
@@ -402,14 +403,16 @@ try {
 		const changed = lines(git(MAIN, "diff", "--name-only", "--no-renames", `${BASE}...${branch}`).stdout);
 		const status = lines(git(MAIN, "diff", "--name-status", "--no-renames", `${BASE}...${branch}`).stdout)
 			.map(l => { const [s, ...f] = l.split("\t"); return { status: s[0], f: f.join("\t") }; });
-		// every page.js/page.jsonl the branch touches, as its own url — de-duped against paths given by hand
-		const autoPages = [...new Set(changed.map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
+		const deleted = new Set(status.filter(s => s.status === "D").map(s => s.f));
+		// every page.js/page.jsonl the branch touches that still exists on the branch, as its own url — de-duped against paths given by hand
+		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...autoPages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
 		const dirty = dirtyFiles();
-		/* The three-way landing, per file, into the working tree (no commit). */
+		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
+		/* The three-way landing, per file, into the working tree. */
 		const threeWay = () => {
 			const plan = planAll(changed, branch);
 			printPlan(plan);
@@ -426,14 +429,31 @@ try {
 				let landed; try { landed = JSON.parse(fs.readFileSync(ledger, "utf8")); } catch { landed = []; }
 				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
 				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
-				console.log(`applied over uncommitted edits, not committed: the owner commits\n${changed.join("\n")}`);
+				if (!staged.length) {
+					const gitDir = path.resolve(MAIN, git(MAIN, "rev-parse", "--git-dir").stdout.trim());
+					const mergeHead = path.join(gitDir, "MERGE_HEAD");
+					const mergeMsg = path.join(gitDir, "MERGE_MSG");
+					try {
+						git(MAIN, "add", "-A", "--", ...changed);
+						fs.writeFileSync(mergeHead, head + "\n");
+						fs.writeFileSync(mergeMsg, `Merge branch '${branch}' into ${BASE}\n`);
+						const c = git(MAIN, "commit", "--no-edit");
+						if (c.status === 0) {
+							console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE}`);
+							return;
+						}
+					} catch {}
+					try { if (fs.existsSync(mergeHead)) fs.unlinkSync(mergeHead); } catch {}
+					try { if (fs.existsSync(mergeMsg)) fs.unlinkSync(mergeMsg); } catch {}
+					git(MAIN, "reset", "HEAD", "--", ...changed);
+				}
+				console.log(`left uncommitted in main tree: ${changed.join(", ")}`);
 			}
 		};
 		const overlap = changed.filter(f => dirty.has(f));
-		const staged = lines(git(MAIN, "diff", "--cached", "--name-only").stdout);   // git merge refuses any staged change, so treat it like overlap
 		// a NEW page (status "A") gets a 1920 screenshot, against the worktree's own server, before the merge touches anything
 		if (smoke.status === 0 && !skipSmoke) {
-			const newPages = [...new Set(status.filter(s => s.status === "A").map(s => pageUrlFor(s.f)).filter(Boolean))];
+			const newPages = [...new Set(status.filter(s => s.status === "A" && fs.existsSync(path.join(dir, s.f))).map(s => pageUrlFor(s.f)).filter(Boolean))];
 			const wtBase = newPages.length ? worktreeBase(dir) : null;
 			if (newPages.length && !wtBase) console.log(`${newPages.length} new page(s) but no worktree server found for ${dir} — skipping screenshots`);
 			else if (newPages.length) {
@@ -454,7 +474,7 @@ try {
 		if (quick && smoke.status === 0) {
 			const aiDir = path.join(MAIN, "public/framework/ai");
 			const taskDir = guessTaskDir(aiDir, branch) ?? path.join(aiDir, "quick-fix");
-			const pages = [...new Set(status.map(s => pageUrlFor(s.f)).filter(Boolean))];
+			const pages = [...new Set(status.filter(s => s.status !== "D" && fs.existsSync(path.join(dir, s.f))).map(s => pageUrlFor(s.f)).filter(Boolean))];
 			const diffText = git(MAIN, "diff", "--no-renames", `${BASE}...${branch}`).stdout;
 			const patches = splitPatch(diffText);
 			const withPatch = quickInfo.nameStatus.map(x => ({ ...x, patch: patches.get(x.f) || "" }));
