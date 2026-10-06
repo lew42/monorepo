@@ -155,11 +155,49 @@ export default class Layers {
 		return key.replace(/[^/]+\/$/, "");
 	}
 
+	/* The file a context's baseline reads: a card's page.jsonl; everything else reads its readme.md. */
+	baseline_file(key){
+		const norm = is_page(key) ? (page_path(key) ?? key) : key;
+		if (is_page(norm)){
+			const dir = path.join(this.repo, "public", ...norm.split("/").filter(Boolean));
+			const page_jsonl = path.join(dir, "page.jsonl");
+			if (fs.existsSync(page_jsonl)) return { file: page_jsonl, kind: "card", path: norm };
+			const readme = path.join(dir, "readme.md");
+			return { file: readme, kind: "readme", path: norm };
+		}
+		const cards = this.servex?.cards;
+		const id = cards?.canonical?.(norm) ?? norm;
+		const f = cards?.file ? cards.file(id) : path.join(this.repo, "public", "framework", "ai", ...id.split("/"), "page.jsonl");
+		return { file: f, kind: "card", path: this.path_of?.(norm) ?? `${CARDS_AT}${id}/` };
+	}
+
+	/* Read the baseline content for a context: page.jsonl for a card, readme.md for any other page. */
+	baseline_text(key){
+		const { file } = this.baseline_file(key);
+		try { return fs.readFileSync(file, "utf8"); } catch { return ""; }
+	}
+
+	/* Summary of the baseline: kind, file, length, and text. */
+	baseline(key){
+		const { file, kind, path: p } = this.baseline_file(key);
+		let text = "";
+		try { text = fs.readFileSync(file, "utf8"); } catch {}
+		return {
+			path: p,
+			kind,
+			file,
+			exists: text.length > 0,
+			length: text.length,
+			text
+		};
+	}
+
 	/* Ids are minted ONCE per context, from `base_of()`; a name already recorded
 	 * for a different context takes `-2`, `-3`, and `root` belongs to `/` alone.
 	 * The parent is recorded first, so the tree always exists up to `/`. A record
 	 * written before pages existed gains its `parent` the first time it is read. */
 	record(key){
+		if (is_page(key)) key = page_path(key) ?? key;
 		const cards = this.state.cards;
 		if (cards[key]){
 			if (cards[key].parent === undefined){ cards[key].parent = this.parent_id(key); this.save(); }
@@ -173,8 +211,11 @@ export default class Layers {
 		let n = 1, suffix = key !== "/" && base === "root" ? "-2" : "";
 		if (suffix) n = 2;
 		while (taken.has(`assistant-${base}${suffix}`) || taken.has(`manager-${base}${suffix}`)) suffix = `-${++n}`;
+		const base_info = this.baseline_file(key);
 		cards[key] = {
 			parent,
+			path: is_page(key) ? key : base_info.path,
+			kind: base_info.kind,
 			assistant: { id: key === "/" ? ROOT_ASSISTANT : `assistant-${base}${suffix}`, session_id: null, cwd: this.repo },
 			manager: { id: `manager-${base}${suffix}`, session_id: null, cwd: this.repo }
 		};

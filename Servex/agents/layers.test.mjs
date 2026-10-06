@@ -6,6 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import Layers from "./Layers.js";
+import { model } from "./tiers.js";
 
 process.env.SERVEX_PROMPT_QUIET_MS = "0";     // the checks below expect each prompt at once; the pause is proven by pause-proof.mjs in the servex-mastermind task
 
@@ -473,7 +474,7 @@ check("heard() still opens a page's own assistant directly, lean, with page_repl
 	assert.match(s.prompt, /make the mic button bigger[\s\S]*page_reply\(\{page: "\/framework\/ux\/Dictate\/"[\s\S]*Answer them\.$/);
 	assert.deepEqual(s.setting_sources, []);
 	for (const t of ["take_worktree", "return_worktree", "list_claims", "page_reply"]) assert.ok(s.allowed_tools.includes(`mcp__servex__${t}`), t);
-	assert.equal(s.model, "claude-sonnet-5");
+	assert.equal(s.model, model("fast"));
 	assert.equal(pcalls.filter(c => c.verb === "send").length, 0, "a fresh spawn is not also sent the prompt");
 });
 
@@ -646,6 +647,34 @@ check("page_ai on a card's own page is just a page path: 404 here, since this sc
 		for (const n of named) assert.ok(has.has(n), `page-assistant.md names ${n}, which no assistant has`);
 	});
 }
+
+check("key by path: record() handles any page path, normalizes slashes, adds -2 suffix on clash", () => {
+	// A clash with existing assistant-dictate:
+	const clash = P.record("/archive/Dictate/");
+	assert.equal(clash.assistant.id, "assistant-dictate-2");
+	assert.equal(clash.manager.id, "manager-dictate-2");
+
+	// Slash normalization:
+	const no_slash = P.record("/archive/Dictate");
+	assert.equal(no_slash, clash, "slash-less path normalizes to the same record");
+	assert.equal(no_slash.assistant.id, "assistant-dictate-2");
+
+	// Baseline of a card reads page.jsonl:
+	const base_card = P.baseline_file(A);
+	assert.equal(base_card.kind, "card");
+	assert.match(base_card.file.replace(/\\/g, "/"), /page\.jsonl$/);
+
+	// Baseline of a page without page.jsonl reads readme.md:
+	const base_page = P.baseline_file("/framework/ux/Dictate/");
+	assert.equal(base_page.kind, "readme");
+	assert.match(base_page.file.replace(/\\/g, "/"), /readme\.md$/);
+
+	// baseline() summary helper returns metadata:
+	const b = P.baseline("/framework/ux/Dictate/");
+	assert.equal(b.path, "/framework/ux/Dictate/");
+	assert.equal(b.kind, "readme");
+	assert.match(b.file.replace(/\\/g, "/"), /readme\.md$/);
+});
 
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);

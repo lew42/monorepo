@@ -60,7 +60,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [an-assistant-on-every-page](/framework/ai2/2026/09/25/an-assistant-on-every-page/)). It replaces
   piece 3 (`ask_module`) of "Module agents" above. Servex code, so it needs a restart, and it's
   proven on a private Servex first. Sonnet minions, in this order:
-  - [ ] *Key by path (Layers.js):* `record()` takes any page path, not just a card id, and the id
+  - [x] *Key by path (Layers.js):* `record()` takes any page path, not just a card id, and the id
         is still `assistant-<last segment>` with a `-2` suffix on a clash. A card stays a page
         whose baseline reads its `page.jsonl`; everything else reads its `readme.md`.
   - [ ] *Baseline checkpoint:* per path, spawn once with the assistant skill plus the readme, and
