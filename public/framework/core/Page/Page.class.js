@@ -55,8 +55,9 @@ export class Page extends Item {
 	// url you opened — 261 modules for every page under /framework/, measured. The
 	// caller budgets instead: Page.load(), child(), load_all_children(). doc/declaring.md.
 	constructor(...args){
-		super();
+		super(...args);
 		this.assign(...args);
+		if (!this.data || typeof this.data !== "object" || Array.isArray(this.data)) this.data = Object.create(null);
 		Page.track(this);
 		this.naming();
 		this.declare();

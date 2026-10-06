@@ -32,5 +32,8 @@ export default new Page({
 			div.c("wide", () => table(["Page", "Layout", "Linked from"],
 				rows.map(r => [() => a(r.title || r.url).href(r.url), data.layouts.find(l => l.id === r.layout)?.name ?? r.layout, `${r.links_in} pages`])));
 		}
+
+		h2("Contact sheets audit");
+		md("Visual inspection across four canonical viewports (400px, 1200px, 1920px, 3440px) with bands and ink measurements is documented in [sheets/summary.md](../sheets/summary.md).");
 	},
 });

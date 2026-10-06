@@ -7,9 +7,11 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 - **A layout system that sticks** (2026-09-25): pages use approved layouts most of the time,
   work at 3440 (several columns, or a navigation column beside a centred main column), and get
-  checked at four widths before merging. Step 1 is running: `layout-check` and the AI 2
-  overview redesign. Next: an audit of the main pages against the approved set, with a
-  layout-check contact sheet for each, then fixing the worst.
+  checked at four widths before merging. Step 1 landed (`layout-check` and AI 2 overview redesign).
+  Step 2 landed: full audit of 8 main pages (`/framework/`, `/framework/ai2/`, `/framework/core/Page/`,
+  `/framework/ux/Tree/`, `/framework/ux/Dictate/`, `/web/`, `/imagine/`, `/layouts/`) at 4 widths
+  (400, 1200, 1920, 3440) with contact sheets and `summary.md` in `public/framework/core/Page/audit/sheets/`.
+  Fixed Item/Page `data: true` clobbering bug in `Page.class.js`. Next: 3440 ultrawide multi-column / centered main adaptations.
 
 - ~~**A nightly full crawl of the site** (2026-09-28, from mastermind-servex)~~ — **DONE.** Implemented in `Server/crawl.mjs`: crawls every page under `/framework/` at viewport 1920 (seeds discovered routes + follows all same-site links), records HTTP 404s, page load errors, and console errors, captures 1920 screenshots into `<outDir>/shots/`, and runs `Server/padding-check.mjs` on every page. Writes `crawl.jsonl` and `summary.md`. Tested and verified live on `http://monorepo.localhost` (clean execution, screenshots captured, zero tokens used). Failures automatically append to `todo.md`. Documented in `Server/README.md`.
 - ~~**Let task masterminds message each other** (2026-09-25)~~ — **DONE.** Verified in `Servex/agents/policy.js` (`table()` lines 85–86): `f === "task-mastermind" && t === "task-mastermind"` returns `"peer"`, allowing task masterminds to message peers directly without relaying through mastermind-servex.
