@@ -24,15 +24,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   card-manager, and let a lead (like ai2-lead) message its members. Every such message is
   still logged to the policy log for auditing. Alternative: keep the switchboard, which is
   safer against chatter but slow. Needs a Servex restart.
-- **Hide every process window: one sweep** (2026-09-25). A rough count finds 16 files that start
-  processes without `windowsHide` on every call: Servex/Process.js, Servex/Servex.js,
-  Servex/sustain.mjs, Server/worktree-up.mjs and worktree-down.mjs, Server/plugins/Ask.js,
-  Assistant.js, CardAnswer.js, Start.js and SocketServer/Runtime.js,
-  Server/health-supervisor.mjs, DesignTool/vision/run.mjs and three proof scripts. One Sonnet
-  minion adds the flag to each call and proves `MainWindowHandle` = 0 for the long-lived
-  children (dev servers, whisper, workers). The syntax guard now flags these files whenever
-  one is edited. The Servex/ files go live at the next restart. The worktree-up popup itself
-  is task-mastermind-popups'.
+- ~~**Hide every process window: one sweep** (2026-09-25)~~ — **DONE.** Verified 2026-10-06 across `Server/worktree-up.mjs`, `Server/plugins/Ask.js`, `Assistant.js`, `CardAnswer.js`, `Servex/Process.js`, `sustain.mjs`: all call sites have `windowsHide: true` in place; no process windows pop.
 - **Module agents: a short readme as the way in, a ready agent to ask, no agent grows old**
   (2026-09-25, designed by mastermind-servex, [design](/framework/ai/2026-09-25/servex-mastermind/)).
   Three pieces, in this order:
