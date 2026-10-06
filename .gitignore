@@ -97,6 +97,10 @@ layout-check-out/
 
 # session folders (voice turns, dictation cleanups, agent transcripts)
 public/framework/ai/20??/??/??/session-*/
+public/framework/ai/v-*.jsonl
+public/framework/ai/v-*.summary.json
+public/framework/ux/Dictate/ai/v-*.jsonl
+public/framework/ux/Dictate/ai/v-*.summary.json
 
 # test artifacts and scratch
 .claude/scratch/
@@ -104,4 +108,6 @@ public/framework/ai/20??/??/??/session-*/
 .scratch/
 .playwright-mcp/
 Temp/
+scratch*.json
+
 
