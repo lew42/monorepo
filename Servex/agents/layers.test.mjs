@@ -609,6 +609,25 @@ check("past the fresh line: one checkpoint request, then recycled once that turn
 	});
 }
 
+check("manager past 150k fresh line: requested checkpoint, recycled once turn ends, restarts fresh", async () => {
+	P.ask_manager({ card: "/notes/", text: "plan architecture" });
+	const m = pagents.live.get("manager-notes");
+	assert.ok(m, "manager running");
+	m.state = "idle"; m.context = 155000; m.turns = 5;
+	P.sweep();
+	const ask = pcalls.at(-1);
+	assert.deepEqual([ask.id, ask.note.priority], ["manager-notes", "next"]);
+	assert.match(ask.text, /^Checkpoint: your context is 155000 tokens, past this role's 150000/);
+	await pcall("card_summary", { text: "CHECKPOINT: manager plan state" }, "manager-notes");
+	P.recycling.delete("manager-notes");
+	m.turns = 6; m.state = "idle";
+	P.sweep();
+	assert.equal(P.state.cards["/notes/"].manager.session_id, null, "manager recycled");
+	P.ask_manager({ card: "/notes/", text: "next plan" });
+	const s = pspawns().at(-1).spec;
+	assert.equal(s.resume, undefined, "spawned fresh without resume");
+});
+
 /* ONE-DICTATION (2026-09-30): page_ai no longer special-cases a card's own page —
  * every page_ai call now feeds the global session (proved above), and a card's
  * OWN page (`/framework/ai/<card>/`) is not one of the two real directories this

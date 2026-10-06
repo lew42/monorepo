@@ -17,10 +17,10 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - **Module agents: a short readme as the way in, a ready agent to ask, no agent grows old**
   (2026-09-25, designed by mastermind-servex, [design](/framework/ai/2026-09-25/servex-mastermind/)).
   Three pieces, in this order:
-  1. *Context rule (Servex/agents, small):* when a long-lived agent (manager, mastermind,
+  1. ~~*Context rule (Servex/agents, small):* when a long-lived agent (manager, mastermind,
      assistant) passes its role's threshold (card assistant 40k, task mastermind and manager 150k or at landing, mastermind-servex 150k or daily; [the per-role table](/framework/ai2/2026/09/25/fresh-sessions-instead-of-context-drift/)), Servex tells it to write
      a summary line into its card or task log and then restarts it from that line. The `recycle`
-     step in Layers.js already does this for card agents. Prove it on a private Servex.
+     step in Layers.js already does this for card agents. Prove it on a private Servex.~~ — **DONE.** Verified in `Servex/agents/Layers.js` (`fresh_at`: card-assistant 40k, manager 150k), `Global.js` (master-assistant daily reset, mastermind-servex holder/gate), and tested in `Servex/agents/layers.test.mjs` (55 tests passing) verifying manager at 155k gets checkpointed and recycled once the turn ends, restarting fresh from checkpoint summary.
   2. ~~*Readme budget (skills only):* the `documentation` skill says a readme is about 150 words:
      what the module is, its core ideas, the files to read, and the doc/ topics. Then one Sonnet
      sweep trims the ten longest module readmes, moving the detail into doc/.~~ — **DONE.** Specified 150-word budget (4 topics: what it is, core concepts, files, doc topics) in `.claude/skills/documentation/SKILL.md`. Trimmed longest module readmes (`ext/drawer`, `ext/Chat`, `ext/Panel`, `ext/panel2`) down to ~150 words while moving all watchouts and decisions to `doc/decisions.md`.
