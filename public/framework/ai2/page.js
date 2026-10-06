@@ -159,8 +159,11 @@ function inbox_page(root){
 		classes: "ai2-inbox-page",
 		content(){
 			div.c("inbox-empty muted", () => {
-				span("Pick something on the left.");
-				small("It opens here and stays here while the list keeps filling.");
+				span("Live overview is active.");
+				small(() => {
+					a.c("page-link").href(root.url + "live/").text("Open Live");
+					span(" · Pick a card on the left to inspect its details.");
+				});
 			});
 		},
 	});

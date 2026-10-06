@@ -164,6 +164,17 @@ export default class AIRail extends Inbox.Rail {
 
 	count_note(){ return this.prompts.ok ? null : "· the assistant is off"; }
 
+	/* Council item: empty state should land on Live, not say "Pick something on the left". */
+	empty(){
+		div.c("inbox-empty muted", () => {
+			span("Live overview is active.");
+			small(() => {
+				a.c("page-link").href(this.url + "live/").text("Open Live");
+				span(" · Pick a card on the left to inspect its details.");
+			});
+		});
+	}
+
 	/* ── the data ── */
 
 	source(){
