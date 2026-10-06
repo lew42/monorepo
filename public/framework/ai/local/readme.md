@@ -20,10 +20,8 @@ something and stops again after it's been idle a while.
   everything) — just pointed at a different `deliver` function.
 
 ## Watch out
-- **Only one model loads at a time.** This machine's GPU (an RTX 4070
-  Super, 12 GB VRAM) can't hold more than one of these at once, so picking
-  a different model from the dropdown stops the one currently running and
-  starts the new one — a few seconds' wait, same as the first message.
+- **Only one model loads at a time (strict GPU limitation).** Loading `qwen3-8b` with a 32k context uses **~7.9 GB of VRAM**, pushing the RTX 4070 Super to **~95% total utilization** (alongside Windows and apps). Never attempt to run two local models in parallel: there is zero headroom, and attempting a second spawn will trigger immediate CUDA OOM crashes or stall the Whisper server.
+- **Context window vs. Cloud models:** Local models on this machine are capped at 32k/36k context. For large tasks requiring reading dozens of repo files (100k+ to 1M tokens), do not run locally: use dirt-cheap cloud models on OpenRouter (e.g. `qwen/qwen3-8b` with 131k context at $0.11/1M, or `qwen/qwen3.5-flash` with 1M context at $0.06/1M).
 - **A model not in the dropdown yet** means its file wasn't found where
   `Servex/ext/local/provider.js`'s `MODELS` table looks — today that's
   `C:\llama\models\qwen2.5-coder.gguf`, plus a search under the LM Studio
