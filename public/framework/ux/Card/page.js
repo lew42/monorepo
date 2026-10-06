@@ -50,13 +50,29 @@ export default new Page({
 						span.c("ai2-live-name").text("minion-sidebar-fix");
 						small.c("ai2-live-line muted").text("pid 47356 · 118 MB");
 					});
+
+					h3.c("muted").text("Properties sidebar (right column)");
+					div.c("ai2-props", () => {
+						div.c("ai2-prop-row flex gap-50", () => {
+							span.c("muted").text("Status:");
+							span.c("ai2-prop-val").text("in progress");
+						});
+						div.c("ai2-prop-row flex gap-50", () => {
+							span.c("muted").text("Owner:");
+							span.c("ai2-prop-val").text("minion-sidebar-fix");
+						});
+						div.c("ai2-prop-row flex gap-50", () => {
+							span.c("muted").text("Files:");
+							span.c("ai2-prop-val").text("Card.css, page.js");
+						});
+					});
 				});
 			});
 		});
 
 		details.c("ai2-more", () => {
 			summary.c("ai2-more-head muted").text("Where each piece comes from");
-			md("The head, the outline and the grid are [`ai2/card.js`](/framework/ai2/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
+			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai2/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
 		});
 
 		md("The whole look, as CSS alone: [`Card.css`](/framework/ux/Card/Card.css).");
