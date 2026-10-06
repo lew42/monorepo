@@ -9,6 +9,7 @@ import { page_work_strip } from "/framework/core/Page/ai/work.js";
    module (new child pages) would be the graduated version of this once one
    exists for a page whose children are already this settled. */
 const CONCEPTS = [
+	{ name: "Workspace", icon: "space_dashboard", href: "workspace/", blurb: "long dictation stream: sentences become movable cards beside raw transcript" },
 	{ name: "The mic button", icon: "mic", href: "demo/", blurb: "press it, watch the state — idle → listening → transcribing" },
 	{ name: "Playground", icon: "science", href: "playground/", blurb: "raw whisper text, the fast assistant's corrections, and the live diff" },
 	{ name: "Variants", icon: "style", href: "variants/", blurb: "v1, Cards, Compact — same engine, three different looks" },
@@ -123,6 +124,7 @@ export default new Doc({
 	notes: "handover decisions silence https-lan widget chat whisper",
 
 	children: [
+		"workspace",
 		"demo",
 		demo.page("words", words, {
 			note: "The same box twice, the lower one wearing `ui-contrast ui-compact`. A **ux never ships a compact mode** — both tiers read the same framework tokens, so a [config word](/framework/ui/words/) on the section re-skins it in one pass." }),

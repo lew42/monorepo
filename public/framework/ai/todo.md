@@ -90,11 +90,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - [x] *The run:* Servex MCP loopback `/mcp` `spawn_agent` creates `task-mastermind` (`feedback-council`).
   - [x] *The rhythm:* `Server/on-landing.mjs` spawns `council.mjs maybe` detached (`windowsHide: true`). Runs after 10 landings or 24h interval with >=1 landing. Off switch `public/framework/ai/council/off` and `COUNCIL=off`.
   - [x] *Vote merger:* `node Server/council.mjs merge <run-dir>` tallies checker verdicts and appends to `public/framework/ai/council/asks.jsonl`. Verified headless read-out on `/framework/ai/council/`.
-- **A dictation workspace, better than one text box** (2026-09-25): somewhere to see a long
-  dictation as it grows. Each sentence becomes an item you can see and move, and the raw
-  transcript stays beside the structure. It is the next Dictate round after the current fixes
-  land. It should start from a fresh agent that reads the `ext/Chat` and `ux/Dictate` readmes,
-  because the current Dictate manager's context is full. Card: [Dictate](/framework/ai2/2026/09/24/prompt-mechanics-2/)
+- ~~**A dictation workspace, better than one text box** (2026-09-25)~~ — **DONE.** Implemented in `public/framework/ux/Dictate/workspace/` (`Workspace.js`, `Workspace.css`, `page.js`). Long dictation grows sentence by sentence into movable, editable cards (`dictate-sentence-item` with `ext/Draggable` grip handle and contenteditable text) while raw Whisper transcript stays synchronized side-by-side. Registered as child tab and concept tile in `public/framework/ux/Dictate/page.js`. Verified in Chromium headless: sentences cleanly split, cards render and reorder, raw transcript logs simultaneously, zero errors.
 - **Cost on AI 2 previews and detail pages, and detail pages that fill the page.** Running now
   (task-mastermind-ai2-dashboard).
 - **Recipe lab**: one task built three ways (Opus alone, Sonnet alone, five Sonnets), judged

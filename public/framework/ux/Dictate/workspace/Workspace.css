@@ -1,0 +1,70 @@
+.dictate-workspace {
+	width: 100%;
+}
+
+.dictate-workspace-toolbar {
+	background: var(--surface, #1e1e1e);
+	border: 1px solid var(--border, #333);
+	border-radius: var(--radius, 6px);
+}
+
+.dictate-workspace-grid {
+	grid-template-columns: minmax(300px, 1.2fr) minmax(280px, 0.8fr);
+	align-items: start;
+}
+
+@media (max-width: 900px) {
+	.dictate-workspace-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.dictate-workspace-col {
+	min-width: 0;
+}
+
+.dictate-sentence-list {
+	min-height: 200px;
+}
+
+.dictate-sentence-item {
+	cursor: grab;
+	background: var(--surface, #1e1e1e);
+	border: 1px solid var(--border, #333);
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dictate-sentence-item.dragging {
+	opacity: 0.6;
+	cursor: grabbing;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dictate-sentence-grip {
+	user-select: none;
+	cursor: grab;
+	padding: 0.2em 0.4em;
+	font-size: 1.1em;
+}
+
+.dictate-sentence-text {
+	outline: none;
+	cursor: text;
+}
+
+.dictate-sentence-text:focus {
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 3px;
+	padding: 0.1em 0.3em;
+}
+
+.dictate-workspace-raw {
+	max-height: 70vh;
+	overflow-y: auto;
+	background: var(--surface, #1a1a1a);
+}
+
+.dictate-raw-entry {
+	line-height: 1.4;
+	word-break: break-word;
+}
