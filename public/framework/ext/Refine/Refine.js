@@ -469,5 +469,17 @@ export function match_sentences(sentences, rawSegments){
 	return map;
 }
 
+export class RefineView extends View {
+	constructor(options = {}){
+		super();
+		this.options = options;
+		this.init();
+	}
+	init(){
+		const $view = refine(import.meta, this.options);
+		this.el = $view.el;
+	}
+}
+
 const claim = {};
-export { refine };
+export { refine, RefineView as Refine };
