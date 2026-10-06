@@ -39,12 +39,12 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   1. *[x] Card vocabulary (ai2/card.js, landed 2026-10-06):* four new line kinds, each a method on `Card`:
      `{"state": "…"}`, `{"checklist": [{text, done, href}]}`, `{"objects": "<module path>"}` and
      `{"preview": "…"}` (60 characters at most). The Overview tab shows before it tells ([the card standard](/framework/ai2/doc/card-standard.md)): the card's folder with `ext/files`, then its objects, its checklist and its state, and the words last. Each tab, file and sub-card gets its own URL. `ext/files` normalizes `..` paths from common parent. The rail shows `preview` or `state`, never raw log line. Live card preview displays counts (agents, working, 5h %). ai2 readme updated.
-  2. *The object widget (ux/Objects, new):* `class Objects extends Tree`. `Objects.of(x)` walks a
+  2. *[x] The object widget (ux/Objects, landed 2026-10-06):* `class Objects extends Tree`. `Objects.of(x)` walks a
      live object: a property holding a class instance becomes a row (`name: Class ×n`), a Map or
      array becomes a count that opens lazily, and the class name links to its module page. A
      module may export `objects()` in its page.js for rows the walk cannot see (a state dot,
      `new`). + New appears only where it is declared, and it makes a demo instance that is never
-     saved. Run new-css-class for any class name and reuse Tree's rows. Its page.js shows it on a
+     saved. Checked against css-scopes.txt and reused Tree's rows. Its page.js shows it on a
      live `Page` and a live `Tree`.
   3. *Server objects (Servex, needs a restart):* `GET /api/objects` runs the same walk on the
      Servex instance, two levels deep, with names, counts and states only, never values. The

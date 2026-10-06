@@ -886,9 +886,21 @@ export default class Card extends Page {
 		});
 
 		// 4. Objects: live instances, counts, or module path
-		if (this._objects) div.c("ai2-card-objects", () => {
+		if (this._objects) div.c("ai2-card-objects", $box => {
 			div.c("ai2-objects-head muted").text("Objects");
-			a.c("ai2-objects-link page-link").href(this._objects).text(this._objects);
+			if (typeof this._objects === "string" && !this._objects.startsWith("/")){
+				import("/framework/ux/Objects/Objects.js").then(({ default: Objects }) => {
+					import(this._objects).then(mod => {
+						$box.append(() => Objects.of(mod.default ?? mod));
+					}).catch(() => {
+						$box.append(() => a.c("ai2-objects-link page-link").href(this._objects).text(this._objects));
+					});
+				}).catch(() => {
+					$box.append(() => a.c("ai2-objects-link page-link").href(this._objects).text(this._objects));
+				});
+			} else {
+				a.c("ai2-objects-link page-link").href(String(this._objects)).text(String(this._objects));
+			}
 		});
 
 		// 5. Checklist: explicit checklist items or outline requests

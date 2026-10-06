@@ -248,3 +248,7 @@ refine-modes-
 # Detail), 2026-10-02. Reuses `refine-modes-` (above) for the Structured/Clean/Raw switch
 # itself; this prefix is only for the page's own List rows, tag chips and group headings.
 prompt-review-
+
+# public/framework/ux/Objects — live object inspector widget (2026-10-06)
+ux-objects-
+objects-

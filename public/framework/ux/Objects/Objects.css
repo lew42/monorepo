@@ -1,0 +1,56 @@
+@layer theme {
+	.ux-objects {
+		font-family: var(--font-mono, monospace);
+		font-size: 0.9em;
+	}
+
+	.ux-objects-class {
+		color: var(--prim, #0066cc);
+		text-decoration: none;
+		font-weight: 500;
+	}
+
+	.ux-objects-class:hover {
+		text-decoration: underline;
+	}
+
+	.ux-objects-count {
+		opacity: 0.7;
+		margin-inline-start: 0.3em;
+	}
+
+	.ux-objects-state {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		margin-inline-end: 0.4em;
+		background: var(--muted, #999);
+	}
+
+	.ux-objects-state.live,
+	.ux-objects-state.running {
+		background: var(--green, #28a745);
+	}
+
+	.ux-objects-new {
+		margin-inline-start: auto;
+		padding: 0.1em 0.5em;
+		font-size: 0.8em;
+		border-radius: 3px;
+		background: var(--wash, #f0f0f0);
+		border: 1px solid var(--border, #ccc);
+		cursor: pointer;
+	}
+
+	.ux-objects-new:hover {
+		background: var(--bg-hover, #e0e0e0);
+		color: var(--prim, #0066cc);
+	}
+
+	.ux-objects-demo {
+		font-style: italic;
+		opacity: 0.7;
+		font-size: 0.85em;
+	}
+}
