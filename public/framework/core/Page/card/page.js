@@ -48,8 +48,8 @@ export default new Page({
 
 		// Then the six sub-topics, as the site's own page-preview wall — the same
 		// `this.previews()` call `core/page.js` uses for its own children — sized up
-		// from the 14em default so each card reads at 1920 without crowding.
-		this.previews().style({ "--column": "22em", "--gap": "1.5em" });
+		// from the 14em default so each card reads at 1920 without crowding (24em balances 6 cards as 3+3).
+		this.previews().style({ "--column": "24em", "--gap": "1.5em" });
 
 		// Then the one paragraph, down to two sentences (was three).
 		p("A card is not a new widget — it's `.card` and `.surface`, the two classes framework.css already ships. This module is where the rules for using them live: which ground, how deep it nests, which header pattern, and that a list of cards is a list of real, routed pages, not a list of divs.");

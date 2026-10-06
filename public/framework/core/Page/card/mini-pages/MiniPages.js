@@ -57,7 +57,7 @@ export default class MiniPages extends Page {
 	content(){
 		p("Every card below is one line in this folder's own `page.jsonl` — open the file (the `ext/files` tree at the bottom of this page) and you will see it in full. Click one: its url is real, a reload lands on the same card, and there is no folder anywhere on disk for it — only this one file and the class beside it.");
 
-		div.c("grid auto gap", () => (this.cards ?? []).forEach(c =>
+		div.c("wide grid auto gap", () => (this.cards ?? []).forEach(c =>
 			a.c(`card ${c.ground || ""}`.trim(), () => {
 				h3(c.title);
 				p(c.body);
