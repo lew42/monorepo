@@ -25,7 +25,7 @@ export default class FilterChips extends Filter {
 	}
 
 	chip(item){
-		return span.c("ui-badge ui-pill h4 flex v-center gap", () => {
+		return span.c("ui-pill h4 flex v-center gap", () => {
 			span(item.label);
 			span.c("muted", "×").style("cursor", "pointer").click(() => item.clear());
 		}).style("--gap", "0.35em");

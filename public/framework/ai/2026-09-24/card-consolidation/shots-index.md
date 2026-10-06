@@ -86,3 +86,127 @@ Zero console errors recorded across all tested pages.
 | ![Course Before 390](before/framework-ux-Course-390.png) | ![Course After 390](after/framework-ux-Course-390.png) |
 
 - **Measured Change:** Rail and next-up stack cleanly; no horizontal spill. No other change.
+
+
+---
+
+# Card Consolidation — Merge 2: ui-pills Before & After
+
+Verification of Merge 2 (`ui-pills`) from [`public/framework/ux/Content/plan/plan.json`](file:///c:/Code/lew42\monorepo\public\framework\ux\Content\plan\plan.json).
+Chips & badges consolidated under `.ui-pill` (`padding: 0.15em 0.7em`):
+- `public/framework/ui/badge/badge.js` (retired dead `.ui-badge.count` padding override)
+- `public/framework/ui/badge/page.js` (updated variant list from 5 to 4: accent, dark, outline, dot)
+- `public/framework/ux/Filter/FilterChips.js` (consolidated `ui-badge ui-pill` into `ui-pill`)
+
+Measured live visual changes conform to plan specifications:
+- **Badge / pill**: First word offset preserved (10px left, 2px top), height remains 22px, uniform padding across all pill forms.
+- **Tag chip & Filter chip**: First word offset shifts by 1px (10px → 11px left edge) adhering to standard 0.7em pill padding, height remains 24px.
+- Zero console errors recorded across all 6 tested pages.
+
+---
+
+## 5. API Documentation Layout (`/framework/styles/layouts/apidoc/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Apidoc Before 1920](before/framework-styles-layouts-apidoc-1920.png) | ![Apidoc After 1920](after/framework-styles-layouts-apidoc-1920.png) |
+
+- **Measured Change:** Version pill (`v1.2.0`) retains crisp theme styling. No other change on page.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Apidoc Before 390](before/framework-styles-layouts-apidoc-390.png) | ![Apidoc After 390](after/framework-styles-layouts-apidoc-390.png) |
+
+- **Measured Change:** Mobile header wraps cleanly. No other change.
+
+---
+
+## 6. UI Overview (`/framework/ui/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![UI Before 1920](before/framework-ui-1920.png) | ![UI After 1920](after/framework-ui-1920.png) |
+
+- **Measured Change:** Component card badges and pills display consistent token rhythm. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![UI Before 390](before/framework-ui-390.png) | ![UI After 390](after/framework-ui-390.png) |
+
+- **Measured Change:** Responsive grid and preview tiles intact. No other change.
+
+---
+
+## 7. Badges (`/framework/ui/badge/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Badge Before 1920](before/framework-ui-badge-1920.png) | ![Badge After 1920](after/framework-ui-badge-1920.png) |
+
+- **Measured Change:** Dead `.count` padding rule removed; count badge uses pill's standard 0.7em padding. Four variant classes documented. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Badge Before 390](before/framework-ui-badge-390.png) | ![Badge After 390](after/framework-ui-badge-390.png) |
+
+- **Measured Change:** Mobile row wrap behaves identically. No other change.
+
+---
+
+## 8. Tags Template (`/framework/ui/tags/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Tags Before 1920](before/framework-ui-tags-1920.png) | ![Tags After 1920](after/framework-ui-tags-1920.png) |
+
+- **Measured Change:** Tag chip row and input opt-out unaffected; visual rhythm preserved. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Tags Before 390](before/framework-ui-tags-390.png) | ![Tags After 390](after/framework-ui-tags-390.png) |
+
+- **Measured Change:** Mobile input wrap intact. No other change.
+
+---
+
+## 9. Filter Chips (`/framework/ux/Filter/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Filter Before 1920](before/framework-ux-Filter-1920.png) | ![Filter After 1920](after/framework-ux-Filter-1920.png) |
+
+- **Measured Change:** Filter chips use `.ui-pill` directly without redundant `.ui-badge`. Dismiss × listener fully active. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Filter Before 390](before/framework-ux-Filter-390.png) | ![Filter After 390](after/framework-ux-Filter-390.png) |
+
+- **Measured Change:** Mobile chip flow aligns properly. No other change.
+
+---
+
+## 10. Tags Component (`/framework/ux/Tags/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![UX Tags Before 1920](before/framework-ux-Tags-1920.png) | ![UX Tags After 1920](after/framework-ux-Tags-1920.png) |
+
+- **Measured Change:** `Tags.Chip` aligns seamlessly with `ui/parts.js` `.ui-pill`. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![UX Tags Before 390](before/framework-ux-Tags-390.png) | ![UX Tags After 390](after/framework-ux-Tags-390.png) |
+
+- **Measured Change:** Mobile tag input flows identically. No other change.

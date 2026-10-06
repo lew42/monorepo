@@ -102,7 +102,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   [Brief](2026-09-24/worktree-watch/)
 - **Reorganize what's been built**: 12 ranked moves, starting with five imports that must move
   before the prune is safe. [Plan](2026-09-24/inventory/)
-- **Merge card kinds**: 75 → 36. Merge 1 (`ui-cards`: `ui/alert/`, `ui/stats/`, `ui/toolbar/`, `ux/Course/`) **DONE.** Verified with before/after screenshots at 1920/390 and 0 console errors in headless smoke test. Next: Merge 2 (`ui-pills`), Merge 3 (`link-tiles`).
+- **Merge card kinds**: 75 → 36. Merge 1 (`ui-cards`) and Merge 2 (`ui-pills`) **DONE.** Both verified with before/after screenshots at 1920/390 and 0 console errors in headless smoke test. Next: Merge 3 (`link-tiles`).
   [Plan](/framework/ux/Content/plan/) · [brief](2026-09-24/card-consolidation/merges-requirements.md) · [shots index](2026-09-24/card-consolidation/shots/index.md)
 - **Small fixes from the feedback council** (2026-09-25, [verdicts](2026-09-25/feedback-council/)),
   each one the owner asked for and the council found unfinished:

@@ -6,7 +6,6 @@ css(`@layer theme {
 	.ui-badge.accent { background: var(--prim); color: var(--surface); }
 	.ui-badge.dark { background: var(--ink); color: var(--surface); }
 	.ui-badge.outline { background: none; border: 1px solid var(--line); }
-	.ui-badge.count { padding: 0.15em 0.5em; }
 
 	.ui-badge.dot { display: inline-flex; align-items: center; gap: 0.4em; }
 	.ui-badge.dot::before {
