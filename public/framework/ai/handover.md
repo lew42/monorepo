@@ -16,6 +16,8 @@ keep it one screen.
 - **Pass-by-Reference Messaging & Queue Latency:**
   - `doc/pass-by-reference.md`: Passing `msg_id` or `(file, line)` instead of re-generating walls of text in tool arguments; 98% reduction in relay output tokens and zero transcription drift. Architecture for out-of-band priority channels to bypass FIFO queue blackout during emergencies.
   - Linked in `doc/token-efficiency.md` and `public/framework/ai/readme.md`.
+- **Models Catalog & Context Windows Grid Fixed:**
+  - `/framework/ai/system/models/` (`overview.js` `render_catalog`): Fixed `fmt_ctx` formatter to display million-token windows cleanly as `1M` and `1.05M` instead of `1000K` / `1049K`. Populated context sizes for local models (`36k` for Qwen3, `32k` for Hermes3 / Qwen2.5-Coder, `8k` for Gemma) in `models.json` (committed `993dc7a8`).
 - **Local Models Web UI Upgraded:**
   - `public/framework/ai/local/page.js`: Enhanced with Model Specs & Footprints (`Qwen3-8B`, `Hermes-3-8B`, `Qwen2.5-Coder`, `Gemma`), Hardware & VRAM constraints banner (~11.7 GB / 95.4% VRAM capacity on RTX 4070 SUPER, single-model rule, 10-min idle unload), and collapsible Context Budget & Prompt Inspector (`tools: []` zero-MCP rule, 32k hard limit) (committed `e78f9a48`).
 - **The Pre-Shutdown Masterminds:**
