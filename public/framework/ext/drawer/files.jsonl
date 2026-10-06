@@ -29,3 +29,5 @@
 {"file":"tabs.js"}
 {"file":"walkthrough/page.js"}
 {"file":"inbox.js"}
+{"file":"ai/"}
+{"file":"weight.jsonl"}

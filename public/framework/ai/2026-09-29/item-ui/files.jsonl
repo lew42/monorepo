@@ -7,3 +7,5 @@
 {"file":"requirements.md"}
 {"file":"spend.json"}
 {"file":"task.jsonl"}
+{"file":"inbox.jsonl","gone":true}
+{"file":"layout-check/","gone":true}

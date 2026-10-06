@@ -23,3 +23,7 @@
 {"file":"task.jsonl"}
 {"file":"review.jsonl"}
 {"file":"shots/"}
+{"file":"audit.jsonl"}
+{"file":"consensus.json"}
+{"file":"layout-check/"}
+{"file":"owner-check.md"}

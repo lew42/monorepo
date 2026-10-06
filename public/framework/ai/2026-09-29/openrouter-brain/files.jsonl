@@ -5,3 +5,5 @@
 {"file":"review.md"}
 {"file":"spend.json"}
 {"file":"task.jsonl"}
+{"file":"review.jsonl","gone":true}
+{"file":"review.md","gone":true}

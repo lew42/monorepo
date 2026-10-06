@@ -30,3 +30,5 @@
 {"file":"review/"}
 {"file":"review.jsonl"}
 {"file":"review.md"}
+{"file":"ai/"}
+{"file":"review/","gone":true}

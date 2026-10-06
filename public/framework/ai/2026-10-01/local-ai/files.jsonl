@@ -26,3 +26,6 @@
 {"file":"build/","gone":true}
 {"file":"build/","gone":true}
 {"file":"build/"}
+{"file":"audit.jsonl"}
+{"file":"consensus.json"}
+{"file":"spend.json"}

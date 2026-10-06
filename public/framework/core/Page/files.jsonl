@@ -53,3 +53,7 @@
 {"file":"words.js"}
 {"file":"settings/page.jsonl"}
 {"file":"settings/page.jsonl"}
+{"file":"audit/page.js"}
+{"file":"card/page.js"}
+{"file":"ext/page.jsonl"}
+{"file":"weight.jsonl"}

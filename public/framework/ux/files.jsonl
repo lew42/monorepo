@@ -36,3 +36,11 @@
 {"file":"doc/"}
 {"file":"ai/"}
 {"file":"ai/","gone":true}
+{"file":"ai/"}
+{"file":"Card/page.js"}
+{"file":"Hotkeys/page.js"}
+{"file":"Inbox/page.js"}
+{"file":"Objects/page.js"}
+{"file":"Rename/page.js"}
+{"file":"Revise/page.js"}
+{"file":"Understand/page.js"}

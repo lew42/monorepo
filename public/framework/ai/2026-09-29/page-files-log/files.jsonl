@@ -52,3 +52,13 @@
 {"file":"deleted-folders.txt"}
 {"file":"deleted-paths.txt"}
 {"file":"deleted-paths.txt"}
+{"file":"layout-check/"}
+{"file":"report.md"}
+{"file":"inbox.jsonl","gone":true}
+{"file":"main-tree-groups.js.patch","gone":true}
+{"file":"merge-union/","gone":true}
+{"file":"review.jsonl","gone":true}
+{"file":"md-1920.png","gone":true}
+{"file":"fs-1920.png","gone":true}
+{"file":"deleted-folders.txt","gone":true}
+{"file":"deleted-paths.txt","gone":true}

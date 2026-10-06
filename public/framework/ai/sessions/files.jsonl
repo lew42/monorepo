@@ -10,3 +10,8 @@
 {"file":"transcripts/"}
 {"file":"sessions.json"}
 {"file":"sessions.json"}
+{"file":"ai/"}
+{"file":"spend-tree.json"}
+{"file":"week.json"}
+{"file":"weight.jsonl"}
+{"file":"transcripts/","gone":true}

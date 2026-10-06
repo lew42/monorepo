@@ -20,3 +20,5 @@
 {"file":"layout-check/"}
 {"file":"review/"}
 {"file":"spend.json"}
+{"file":"layout-check/","gone":true}
+{"file":"review/","gone":true}
