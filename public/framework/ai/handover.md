@@ -18,7 +18,7 @@ keep it one screen.
   - Linked in `doc/token-efficiency.md` and `public/framework/ai/readme.md`.
 - **Agent Interrupts, Queue Preemption & Concurrency Decoupling:**
   - `doc/interrupts.md`: Analysis of the FIFO queue trap during human dictation/redirection. Explains the Claude Agent SDK `query.interrupt()`, Servex `interrupt_agent`, and the stop-and-switch pattern where obsolete queued prompts are folded/superseded rather than serially executed.
-  - Section 5: Decoupling Conversational Concurrency — why single-threaded prompt-response models freeze when tasked with 20 items, and how the two-tier Fast (conversational floor) + Minion (worktree background worker) architecture unblocks hands-free voice dictation via pass-by-reference task dispatch.
+  - `doc/concurrency.md`: Comprehensive breakdown of agent concurrency vs serial prompt-response loops; why the 12-step tool pipeline causes a 3–5 minute human conversational lockout; parallel tool batching dynamics; and the two-tier Dictate architecture (Fast Listener with `tools: []` + Minion background dispatch via pass-by-reference) that keeps voice chat fluid while executing complex work asynchronously.
   - Linked in `public/framework/ai/readme.md`.
 - **Models Catalog & Context Windows Grid Fixed:**
   - `/framework/ai/system/models/` (`overview.js` `render_catalog`): Fixed `fmt_ctx` formatter to display million-token windows cleanly as `1M` and `1.05M` instead of `1000K` / `1049K`. Populated context sizes for local models (`36k` for Qwen3, `32k` for Hermes3 / Qwen2.5-Coder, `8k` for Gemma) in `models.json` (committed `993dc7a8`).

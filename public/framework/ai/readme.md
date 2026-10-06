@@ -41,6 +41,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 - Single universal log tool for constrained models & file system truth: [doc/log-tool.md](doc/log-tool.md).
 - Pass-by-reference message routing & queue latency handling: [doc/pass-by-reference.md](doc/pass-by-reference.md).
 - Agent interrupts, queue preemption, and the stop-and-switch pattern: [doc/interrupts.md](doc/interrupts.md).
+- Agent concurrency, serial prompt-response loops, and the two-tier listener/minion pattern: [doc/concurrency.md](doc/concurrency.md).
 - Model evaluation, what is "truth", and avoiding circular grading: [doc/eval-truth.md](doc/eval-truth.md).
 - MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/mcp.md](doc/mcp.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
