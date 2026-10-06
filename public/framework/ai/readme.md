@@ -15,6 +15,8 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 ## Start here
 
 - [todo.md](todo.md): what's waiting, in priority order, and what only you can do.
+- [handover.md](handover.md): the state of the world for a fresh tab or mastermind.
+- [doc/autonomy.md](doc/autonomy.md): dynamic heartbeat, unstuck protocol, node-based steps, truthful token accounting.
 - [Asks](asks/): every ask you made today onward, who owns it, and whether it landed or stalled.
 - [The ask loop](council/): everything you asked, whether it was built, and what the council found. Open asks come first.
 - [AI 2](/framework/ai2/): the dashboard. Talk to the assistants, see tasks by group, and see
@@ -27,6 +29,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 ## For a fresh session
 
 - [handover.md](handover.md): the state of the world, in one screen.
+- [doc/autonomy.md](doc/autonomy.md): rules for hands-free masterminds, pacing, and minion delegation.
 - [doc/conversations.md](doc/conversations.md): where web dictation logs and VS Code sidebar mastermind sessions live.
 - [handoff2.md](handoff2.md): the plan from 2026-09-24, with
   [your exact words](handoff2-owner-words.md).
@@ -35,6 +38,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 ## Watch out
 
 - Agents put work you didn't ask for into [todo.md](todo.md) rather than starting it.
+- Dynamic heartbeats & the unstuck protocol: [doc/autonomy.md](doc/autonomy.md).
 - How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/token-accounting.md](doc/token-accounting.md).
 - Token efficiency, batching rules, and pre-processing: [doc/token-efficiency.md](doc/token-efficiency.md).
 - Context windows, primacy/recency attention bias, and token budgets: [doc/context-window.md](doc/context-window.md).

@@ -4,7 +4,23 @@ The file a fresh assistant, mastermind or minion reads before anything else. Rew
 2026-09-22 15:55 by the Servex run's mastermind. Replace the dated sections as they go stale;
 keep it one screen.
 
-## LATEST, 2026-10-05 11:25 pm: Antigravity Session (45d8d4c7) taking over Mastermind
+## LATEST, 2026-10-06 12:22 pm: Handover for New Tab / Mastermind
+**Session 45d8d4c7 winding down for compaction. All work landed directly on `michael/dev`. Background crons killed.**
+- **CRON STOPPED (task-1565):** The static 5-minute heartbeat cron was terminated. No background crons run in the chat session.
+- **Dynamic Heartbeat & Autonomy Policy Landed:**
+  - `doc/autonomy.md`: State-driven wakeups (no polling when idle, one-shot timer when tasks are in flight, sleep until reset when quota exhausted).
+  - Unstuck protocol: Mastermind acts as executive decision-maker; minions are forbidden from stopping mid-flight for trivial user questions.
+  - Truthful token accounting: Zero hallucinated tokens; ground truth from `Server/antigravity-usage.mjs` and OpenRouter `/generation`.
+- **Todo Items 153 & 158 Landed & Retired (commit `a5cc0a04`):**
+  - Item 158: `merge.mjs` skips deleted/moved `page.js` files during smoke tests, eliminating false 404 failures.
+  - Item 153: `threeWay()` landing in `merge.mjs` now auto-commits clean merges as 2-parent merge commits via `MERGE_HEAD` when no prior staged files exist, leaving unrelated working tree files untouched; prints `left uncommitted in main tree: <files>` if pre-staged.
+- **OpenRouter Spend Status:** Live key has **$49.44 remaining** ($50.56 used of $100 cap). Burst allocation ready for worker minions.
+- **Next Priorities on `todo.md`:**
+  - Item 157: `Task dir before task.jsonl` (voice-dir-404, $0 extra).
+  - Item 160: `Chat Widget: threads and reactions pass-through` (audio-consolidate).
+  - Item 155: `Dormancy loose ends` (dormant-idle).
+
+## EARLIER, 2026-10-05 11:25 pm: Antigravity Session (45d8d4c7) taking over Mastermind
 **Claude Code weekly usage reached 100% lockout (resets Wed Oct 7, 9:59 pm UTC). Work continues under Google Antigravity, local GPU models, and Servex/OpenRouter.**
 - **Context Windows & Attention Dynamics Documented:**
   - `doc/context-window.md`: Details Primacy bias (token 0 KV priming, RoPE distance anchor), Recency bias (autoregressive next-token steering), and Lost in the Middle.
