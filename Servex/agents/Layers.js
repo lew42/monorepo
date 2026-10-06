@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { model } from "./tiers.js";
 import { brief } from "./brief.js";
@@ -190,6 +191,59 @@ export default class Layers {
 			length: text.length,
 			text
 		};
+	}
+
+	/* SHA-256 hash of the baseline text for a context (readme.md for a page, page.jsonl for a card). */
+	baseline_hash(key){
+		const text = this.baseline_text(key);
+		return crypto.createHash("sha256").update(text).digest("hex");
+	}
+
+	/* Whether a context has an existing baseline whose session exists and whose hash is still current. */
+	has_valid_baseline(key){
+		const rec = this.record(key);
+		if (!rec?.baseline?.session_id) return false;
+		if (rec.baseline.hash !== this.baseline_hash(key)) return false;
+		return this.session_exists({ cwd: rec.baseline.cwd ?? this.repo, session_id: rec.baseline.session_id });
+	}
+
+	/* Build or rebuild the baseline checkpoint: spawn once with assistant skill + readme, and don't talk to it. */
+	build_baseline(key){
+		if (is_page(key)) key = page_path(key) ?? key;
+		const rec = this.record(key);
+		const hash = this.baseline_hash(key);
+		const base_info = this.baseline(key);
+		const prompt = this.where_you_are(key) + "\n\n"
+			+ (base_info.kind === "card" ? this.transcript(key) : `Page ${key} — readme:\n${base_info.text}`)
+			+ "\n\n" + this.scope(key, "assistant") + " This is your baseline initialization. Do not take action until prompted.";
+		const id = `baseline-${this.base_of(key)}`;
+		const spec = {
+			...this.spec(key, "assistant"),
+			id,
+			cwd: this.repo,
+			prompt,
+			urgent: true
+		};
+		const agent = this.servex.agents.spawn(spec);
+		const session_id = agent?.session_id ?? `sess-${id}`;
+		rec.baseline = {
+			session_id,
+			hash,
+			file: base_info.file,
+			cwd: this.repo,
+			updated_at: new Date().toISOString()
+		};
+		this.save();
+		if (agent?.id && this.live(agent.id)) this.stop(agent.id);
+		return rec.baseline;
+	}
+
+	/* Return a valid baseline checkpoint, rebuilding it when the hash changes or transcript is gone. */
+	ensure_baseline(key){
+		if (this.has_valid_baseline(key)){
+			return this.record(key).baseline;
+		}
+		return this.build_baseline(key);
 	}
 
 	/* Ids are minted ONCE per context, from `base_of()`; a name already recorded
@@ -889,6 +943,12 @@ export default class Layers {
 		};
 		router.get("/api/card-agents", cors, (req, res) => res.json(this.agents_of(req.query.card)));
 		router.get("/api/page-agents", cors, (req, res) => res.json(this.agents_of(page_path(req.query.page) ?? req.query.page)));
+		router.get("/api/page-baseline", cors, (req, res) => {
+			try {
+				const p = page_path(req.query.page) ?? req.query.page;
+				res.json(this.ensure_baseline(p));
+			} catch (e){ res.status(500).json({ ok: false, error: String(e.message || e) }); }
+		});
 		router.options("/api/page-ai", cors, (req, res) => res.status(204).end());
 		router.post("/api/page-ai", cors, async (req, res) => {
 			try {

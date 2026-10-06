@@ -676,5 +676,37 @@ check("key by path: record() handles any page path, normalizes slashes, adds -2 
 	assert.match(b.file.replace(/\\/g, "/"), /readme\.md$/);
 });
 
+check("baseline checkpoint: builds once, reuses while valid, rebuilds on hash change or missing transcript", () => {
+	const count_before = pspawns().length;
+	const b1 = P.ensure_baseline("/framework/ux/Dictate/");
+	assert.ok(b1?.session_id, "baseline has a session_id");
+	assert.ok(b1?.hash, "baseline has a hash");
+	assert.equal(pspawns().length, count_before + 1, "spawned once for baseline");
+	const last_spawn = pspawns().at(-1).spec;
+	assert.equal(last_spawn.id, "baseline-dictate");
+	assert.match(last_spawn.prompt, /baseline initialization/);
+	assert.equal(pagents.live.get("baseline-dictate")?.state, "stopped", "stopped immediately — don't talk to it");
+
+	// Reuse: calling ensure_baseline again spawns nothing:
+	const b2 = P.ensure_baseline("/framework/ux/Dictate/");
+	assert.equal(b2.session_id, b1.session_id);
+	assert.equal(pspawns().length, count_before + 1, "reused without spawning again");
+
+	// Rebuild on hash change:
+	b1.hash = "tampered-stale-hash";
+	assert.equal(P.has_valid_baseline("/framework/ux/Dictate/"), false);
+	const b3 = P.ensure_baseline("/framework/ux/Dictate/");
+	assert.equal(pspawns().length, count_before + 2, "rebuilt on hash change");
+	assert.notEqual(b3.hash, "tampered-stale-hash");
+
+	// Rebuild on missing transcript (simulating 30-day cleanup):
+	const orig_exists = P.session_exists;
+	P.session_exists = slot => slot.session_id !== b3.session_id;
+	assert.equal(P.has_valid_baseline("/framework/ux/Dictate/"), false, "invalid when transcript is gone");
+	const b4 = P.ensure_baseline("/framework/ux/Dictate/");
+	assert.equal(pspawns().length, count_before + 3, "rebuilt when transcript gone");
+	P.session_exists = orig_exists;
+});
+
 fs.rmSync(dir, { recursive: true, force: true });
 console.log(`layers: ${checks} checks passed`);

@@ -63,7 +63,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   - [x] *Key by path (Layers.js):* `record()` takes any page path, not just a card id, and the id
         is still `assistant-<last segment>` with a `-2` suffix on a clash. A card stays a page
         whose baseline reads its `page.jsonl`; everything else reads its `readme.md`.
-  - [ ] *Baseline checkpoint:* per path, spawn once with the assistant skill plus the readme, and
+  - [x] *Baseline checkpoint:* per path, spawn once with the assistant skill plus the readme, and
         don't talk to it. Store its session id with a hash of the readme, and rebuild it when the
         hash changes or its transcript is gone (after the 30-day cleanup).
   - [ ] *Resume and New session:* Resume continues the path's current session. New session is
