@@ -211,7 +211,7 @@ export class Blog extends Page {
 	//   function and every preview on the index died on `arg.split is not a function`.
 	//   The same family as `opens` shadowing `opens()` in core (doc/columns.md).
 	post_card(post){
-		return a.c("blogx-card").href(this.post_url(post)).append(() => {
+		return a.c("card blogx-card").href(this.post_url(post)).append(() => {
 			this.eyebrow(post);
 			div.c("blogx-card-title", post.title);
 			p.c("blogx-dek", post.dek);

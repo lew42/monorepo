@@ -114,7 +114,7 @@ export const statement = (eyebrow, title, note) => div.c("decks-block", () => {
 /* A CARD WALL — the kind that answers a wider region with MORE COLUMNS. `--column` is
    the only knob and a wall is the same wall at 400 and at 3440. */
 export const wall = items => div.c("decks-wall", () => items.forEach(item =>
-	(item.to ? a.c("decks-card").href(item.to) : div.c("decks-card")).ac(item.on && "decks-on").append(() => {
+	(item.to ? a.c("card decks-card").href(item.to) : div.c("card decks-card")).ac(item.on && "decks-on").append(() => {
 		if (item.k) div.c("decks-card-k", item.k);
 		div.c("decks-card-name", item.name);
 		if (item.note) div.c("decks-card-note", item.note);

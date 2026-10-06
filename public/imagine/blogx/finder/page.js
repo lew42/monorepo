@@ -63,7 +63,7 @@ const notes = new Page({
 					p.c("blogx-hero-dek", lead.dek);
 				});
 
-				div.c("blogx-wall bleed", () => rest.forEach(post => a.c("blogx-card").href(inside(post)).append(() => {
+				div.c("blogx-wall bleed", () => rest.forEach(post => a.c("card blogx-card").href(inside(post)).append(() => {
 					div.c("blogx-eyebrow", section_of(post.section).title);
 					div.c("blogx-card-title", post.title);
 					p.c("blogx-dek", post.dek);

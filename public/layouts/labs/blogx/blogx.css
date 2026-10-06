@@ -265,9 +265,6 @@
 	     which is a photo placeholder on a site that ships no photographs. */
 	.blogx-card {
 		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.35);   /* was gap 0.35em - 2026-09-05 ramps */
-		padding: 1em 1.1em 1.2em;
-		background: var(--surface);
-		box-shadow: inset -1px -1px 0 var(--line);
 		color: inherit; text-decoration: none;
 	}
 	.blogx-card:hover { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }

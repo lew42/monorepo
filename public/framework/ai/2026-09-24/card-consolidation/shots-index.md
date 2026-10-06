@@ -210,3 +210,128 @@ Measured live visual changes conform to plan specifications:
 | ![UX Tags Before 390](before/framework-ux-Tags-390.png) | ![UX Tags After 390](after/framework-ux-Tags-390.png) |
 
 - **Measured Change:** Mobile tag input flows identically. No other change.
+
+
+---
+
+# Card Consolidation — Merge 3: link-tiles Before & After
+
+Verification of Merge 3 (`link-tiles`) from [`public/framework/ux/Content/plan/plan.json`](file:///c:/Code/lew42\monorepo\public\framework\ux\Content\plan\plan.json).
+Link tiles migrated from hard-coded lab padding/borders to `a.card`:
+- `public/imagine/decks/deck.js`, `public/imagine/decks/decks.css` (retired dead padding and border on `.decks-card`)
+- `public/imagine/blogx/Blog.js`, `public/imagine/blogx/blogx.css`, `public/imagine/blogx/finder/page.js` (retired dead padding, background, and box-shadow on `.blogx-card`)
+- `public/layouts/labs/decks/deck.js`, `public/layouts/labs/decks/decks.css` (verbatim copy updated)
+- `public/layouts/labs/blogx/Blog.js`, `public/layouts/labs/blogx/blogx.css`, `public/layouts/labs/blogx/finder/page.js` (verbatim copy updated)
+
+Measured live visual changes conform to plan specifications:
+- **Decks card**: First word offset expands to `--pad-card` (15px → 19px from left edge, 18px → 21px from top), height cleanly aligns from 101px to 116px.
+- **Blog card**: First word offset expands to `--pad-card` (18px → 19px from left edge, 20px → 21px from top), height cleanly aligns from 109px to 116px; simulated box-shadow replaced by authentic `.card` hairline border and radius.
+- Zero console errors recorded across all 6 tested pages.
+
+---
+
+## 11. Imagine Blogx Front (`/imagine/blogx/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Blogx Before 1920](before/imagine-blogx-1920.png) | ![Imagine Blogx After 1920](after/imagine-blogx-1920.png) |
+
+- **Measured Change:** Blog tiles adopt uniform `.card` styling and `--pad-card` rhythm. Grid column auto-fill intact. No other change on page.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Blogx Before 390](before/imagine-blogx-390.png) | ![Imagine Blogx After 390](after/imagine-blogx-390.png) |
+
+- **Measured Change:** Mobile article wall flows cleanly. No other change.
+
+---
+
+## 12. Imagine Blogx Finder (`/imagine/blogx/finder/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Blogx Finder Before 1920](before/imagine-blogx-finder-1920.png) | ![Imagine Blogx Finder After 1920](after/imagine-blogx-finder-1920.png) |
+
+- **Measured Change:** Finder latest-posts wall wears `a.card`. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Blogx Finder Before 390](before/imagine-blogx-finder-390.png) | ![Imagine Blogx Finder After 390](after/imagine-blogx-finder-390.png) |
+
+- **Measured Change:** Mobile finder navigation behaves identically. No other change.
+
+---
+
+## 13. Imagine Decks (`/imagine/decks/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Decks Before 1920](before/imagine-decks-1920.png) | ![Imagine Decks After 1920](after/imagine-decks-1920.png) |
+
+- **Measured Change:** Deck presentation wall cards adopt `.card` padding and borders. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Imagine Decks Before 390](before/imagine-decks-390.png) | ![Imagine Decks After 390](after/imagine-decks-390.png) |
+
+- **Measured Change:** Mobile cut stacks into scrolling bands properly. No other change.
+
+---
+
+## 14. Layouts Labs Blogx (`/layouts/labs/blogx/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Blogx Before 1920](before/layouts-labs-blogx-1920.png) | ![Layouts Labs Blogx After 1920](after/layouts-labs-blogx-1920.png) |
+
+- **Measured Change:** Lab copy matches imagine/blogx exactly. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Blogx Before 390](before/layouts-labs-blogx-390.png) | ![Layouts Labs Blogx After 390](after/layouts-labs-blogx-390.png) |
+
+- **Measured Change:** Mobile responsiveness identical. No other change.
+
+---
+
+## 15. Layouts Labs Blogx Finder (`/layouts/labs/blogx/finder/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Blogx Finder Before 1920](before/layouts-labs-blogx-finder-1920.png) | ![Layouts Labs Blogx Finder After 1920](after/layouts-labs-blogx-finder-1920.png) |
+
+- **Measured Change:** Lab finder wall matches imagine/blogx/finder. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Blogx Finder Before 390](before/layouts-labs-blogx-finder-390.png) | ![Layouts Labs Blogx Finder After 390](after/layouts-labs-blogx-finder-390.png) |
+
+- **Measured Change:** Mobile layout preserved. No other change.
+
+---
+
+## 16. Layouts Labs Decks (`/layouts/labs/decks/`)
+
+### 1920px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Decks Before 1920](before/layouts-labs-decks-1920.png) | ![Layouts Labs Decks After 1920](after/layouts-labs-decks-1920.png) |
+
+- **Measured Change:** Lab decks wall cards match imagine/decks. No other change.
+
+### 390px Viewport
+| Before | After |
+| :---: | :---: |
+| ![Layouts Labs Decks Before 390](before/layouts-labs-decks-390.png) | ![Layouts Labs Decks After 390](after/layouts-labs-decks-390.png) |
+
+- **Measured Change:** Mobile bands stack seamlessly. No other change.

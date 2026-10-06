@@ -176,10 +176,7 @@
 
 	.decks-card {
 		display: flex; flex-direction: column; gap: calc(var(--gap) * 0.2);   /* was gap 0.2em - 2026-09-05 ramps */
-		padding: 0.8em 0.9em;
 		background: var(--tint);
-		border: 1px solid var(--line);
-		border-radius: var(--radius);
 		color: inherit; text-decoration: none;
 	}
 
