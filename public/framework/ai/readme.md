@@ -35,6 +35,7 @@ The rail is `AIRail` ([ai2/rail.js](/framework/ai2/rail.js)), the same one AI 2 
 
 - Agents put work you didn't ask for into [todo.md](todo.md) rather than starting it.
 - How cost is counted (per request, not per token; why agents read millions; the cache discount): [doc/token-accounting.md](doc/token-accounting.md).
+- MCP tool doors and multi-harness config locations (Claude vs. Antigravity): [doc/mcp.md](doc/mcp.md).
 - Cost: `node Server/task-cost.mjs --date <YYYY-MM-DD>`. A follow-up task that reused its
   parent's session currently shows the parent's whole total, not its own share.
 - `tasks.json` — stalled, budget vs. actual, snooze/kill/re-prioritise — is DERIVED: Servex's
