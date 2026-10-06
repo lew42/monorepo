@@ -37,6 +37,7 @@ export class Policy {
 		if(id.startsWith("master-assistant")) return "master";
 		if(SERVEX_ID.test(id)) return "servex";
 		if(id.startsWith("task-mastermind-")) return "task-mastermind";
+		if(id.startsWith("session-smart-")) return "smart"; // the voice session's smart assistant: the owner's mastermind while Claude is out (2026-10-05)
 		if(id === "dispatcher") return "system";
 		if(this.registered_external(id)) return "external";
 		return "worker";
@@ -93,7 +94,7 @@ export class Policy {
 		 * one, checked before anything else so a worker or a stranger is never
 		 * refused for it the way it would be for another internal agent. */
 		if(this.kind(to) === "external") return ok("external");
-		const f = this.kind(from);
+		const f = this.kind(from) === "smart" ? "worker" : this.kind(from); // messaging: the smart assistant stays a worker
 		/* And the reverse: a registered tab MESSAGES with the owner's own reach — the
 		 * owner is exactly who a tab is. It may not SPAWN (spawn() below): anything
 		 * that can call register_session would otherwise get "spawn anything". */
@@ -121,6 +122,7 @@ export class Policy {
 		};
 		if(f === "external") return deny(`spawn agents: an external id (a registered tab) may message anyone, but not spawn. Spawn from the tab itself with no id (as the owner), or ask mastermind-servex.`);
 		if(f === "assistant" || f === "master") return deny(`spawn agents: ${f === "master" ? "the master assistant" : "an assistant"} has its own tools for that.`);
+		if(f === "smart") return ["master-assistant", "assistant", "mastermind", "page-assistant"].includes(role) ? deny(`spawn a ${role}: the smart assistant may spawn task masterminds, managers, minions and helpers.`) : { ok: true };
 		if(f === "worker") return ["minion", "helper"].includes(role) ? { ok: true } : deny(`spawn a ${role}: a worker may spawn only a minion or a helper.`);
 		return NO_SPAWN.includes(role) ? deny(`spawn a ${role}: only mastermind-servex may.`) : { ok: true };
 	}
@@ -137,6 +139,7 @@ export class Policy {
 		{ from: "manager-X", may: "message assistant-X, mastermind-servex; spawn anything except task-mastermind, manager, mastermind, master-assistant, assistant, page-mastermind, page-assistant" },
 		{ from: "master-assistant", may: "message any assistant, mastermind-servex; spawn nothing" },
 		{ from: "task-mastermind-*", may: "message mastermind-servex(-N) and another task mastermind (its parent gets a copy); spawn like a manager" },
+		{ from: "session-smart-*", may: "spawn task-mastermind, manager, minion, helper and the rest, except assistants and mastermind" },
 		{ from: "worker", may: "spawn only minion and helper" }
 	]; }
 }

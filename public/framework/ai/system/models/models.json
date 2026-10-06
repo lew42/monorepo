@@ -909,6 +909,44 @@
 			"typical_minion_cache_priced": null
 		},
 		{
+			"model": "local/qwen3-8b",
+			"label": "qwen3-8b",
+			"provider": "local",
+			"context": null,
+			"price_in_per_m": 0,
+			"price_out_per_m": 0,
+			"price_cache_in_per_m": null,
+			"docs": 1,
+			"reasoning": 0.6666666666666666,
+			"refine": 0.73,
+			"seconds": 178.6,
+			"tokens_in": 5586,
+			"tokens_out": 8607,
+			"eval_cost_usd": 0,
+			"failed": false,
+			"typical_minion_usd": 0,
+			"typical_minion_cache_priced": null
+		},
+		{
+			"model": "local/hermes-3-llama-3.1-8b",
+			"label": "hermes-3-llama-3.1-8b",
+			"provider": "local",
+			"context": null,
+			"price_in_per_m": 0,
+			"price_out_per_m": 0,
+			"price_cache_in_per_m": null,
+			"docs": 1,
+			"reasoning": 0.6666666666666666,
+			"refine": 0.72,
+			"seconds": 22.7,
+			"tokens_in": 6196,
+			"tokens_out": 1768,
+			"eval_cost_usd": 0,
+			"failed": false,
+			"typical_minion_usd": 0,
+			"typical_minion_cache_priced": null
+		},
+		{
 			"model": "openai/gpt-oss-120b",
 			"label": "gpt-oss-120b",
 			"provider": "Groq",
@@ -1020,6 +1058,6 @@
 			"typical_minion_cache_priced": true
 		}
 	],
-	"catalog_generated_at": "2026-10-04T18:28:38.677Z",
+	"catalog_generated_at": "2026-10-05T02:02:08.737Z",
 	"catalog_note": "price_in/out/cache are OpenRouter's /api/v1/models catalog, $ per million tokens; Claude (direct) rows use Anthropic's own list prices (docs.claude.com, checked 2026-10-04) because OpenRouter's catalog serves a newer generation under the same short id. docs/reasoning/refine are pass-rates (0..1) from the new-brain eval (public/framework/ai/2026-10-03/new-brain/); a blank score means every call for that row failed, rather than scoring 0%. typical_minion_usd applies this week's median minion token mix (11.3M read, 99% cached, 43k written) to the model's own price. The Groq and Google AI Studio rows show OpenRouter's catalog price for that model id, not necessarily the exact price that pinned provider billed. A local model's context window is left blank — it needs a live query to the running llama-server, not done by this pass."
 }
