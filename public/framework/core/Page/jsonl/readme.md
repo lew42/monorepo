@@ -44,6 +44,5 @@ bookkeeping, not something anyone typed. Never `git add -A`/`commit -a` a shared
 
 ## More
 
-The code: [`Log.js`](/framework/core/Page/doc/jsonl/) (`Page extends PageLog`), beside
-`Page.class.js`. The measured concurrency numbers behind the caveats:
+The code: `Page.class.js` (`Page extends Item` directly, PageLog folded in; `Log.js` is a compat re-export). The measured concurrency numbers behind the caveats:
 [`ai/2026-09-19/model-latency/`](/framework/ai/2026-09-19/model-latency/).

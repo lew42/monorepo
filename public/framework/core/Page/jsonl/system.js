@@ -65,5 +65,5 @@ function source(page){
 	$source.style({ "white-space": "pre-wrap", "overflow-wrap": "anywhere" });
 	fetch(page.jsonl_url).then(res => res.text()).then(text => $source.text(text.trim()));
 
-	p.c("muted", "The class that reads these lines one at a time is `Log.js`, beside `Page.class.js` (`Page extends PageLog`); the loader is `PageLog.jsonl()` in that same file.");
+	p.c("muted", "The class that reads these lines one at a time is `Page.class.js` (`Page extends Item`); the loader is `Page.jsonl()` in that same file (`Log.js` is a compat re-export).");
 }

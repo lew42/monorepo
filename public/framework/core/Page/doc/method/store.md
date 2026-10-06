@@ -1,4 +1,7 @@
-Where a page keeps something between visits. `this.store()` hands back a handle over
+> **Renamed (2026-10-02):** `this.store()` was renamed to [`this.prefs()`](./prefs.md) so `page.store` could be freed for the live `page.jsonl` persistence store ([`doc/property/store.md`](../property/store.md)).
+> New code should call `this.prefs()`.
+
+Where a page keeps something between visits. `this.prefs()` (formerly `this.store()`) hands back a handle over
 `localStorage`, keyed on the page's own **url** — `lew42:/imagine/game/`.
 
 ```js

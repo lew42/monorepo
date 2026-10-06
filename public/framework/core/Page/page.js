@@ -69,12 +69,12 @@ export default new Doc({
 	// Every member, in the order a reader meets them: the tree, then rendering,
 	// then the derivation the constructor does, then the plumbing and the statics.
 	methods: "child add move previews walls preview preview_card preview_link link crumbs "
-		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden store "
+		+ "nav nav_for chain nearest topic document container activate render columns default_column warn_if_hidden prefs "
 		+ "naming declare source_children load_all_children deactivate "
 		+ "mounts_in log_label assign load missing slug",
 
 	properties: "meta title children content url name label icon card classes "
-		+ "description parent app view loading route regions depth related",
+		+ "description parent app view loading route regions depth related pages store",
 
 	// [fix-2026-09-29-2 finding 1] "loading" was never in this list, so its url fell
 	// through the page.js probe to the bare-.md fallback and 404'd. First on purpose:

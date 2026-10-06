@@ -2,7 +2,7 @@
 
 A folder can hold a `page.jsonl` instead of a `page.js`. It is a log: one JSON object per
 line, read top to bottom. The live example is [/framework/core/Page/jsonl/](/framework/core/Page/jsonl/),
-and the code is `Log.js` beside `Page.class.js` (`Page extends PageLog`).
+and the code lives in `Page.class.js` (`Page extends Item` directly, PageLog folded in; `Log.js` is a compat re-export).
 
 ```
 {"title": "Notes", "icon": "description"}       line 1 builds the page: new Page(line1)
@@ -80,8 +80,8 @@ looking at, and a change writes exactly this line. If nothing ever set it, `nav`
 weight (`core/Page/weight/`): a page whose weight is below 1 is out of nav too.
 
 `Doc.bar()` and `tabs()` both read a name's tab state AND (when the child happens to be
-already loaded — nothing is fetched to check) that child's own settings, through two Log.js
-methods, `tab_visible(name)` and `tab_order(name)`, so the two can never disagree. Live demo,
+already loaded — nothing is fetched to check) that child's own settings, through two `Page`
+methods (`Page.class.js`), `tab_visible(name)` and `tab_order(name)`, so the two can never disagree. Live demo,
 all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
 
 ## Who writes the file lines

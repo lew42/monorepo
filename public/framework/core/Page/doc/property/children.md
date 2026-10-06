@@ -49,10 +49,11 @@ The key **is** the title, and `Page.slug(key)` is the url segment — the same
 derivation `naming()` makes for a standalone page, so `HTML` lands at `…/html/`.
 A `title:` inside an object value wins over the key. Three warts:
 
-> **The property changes type.** You write a string and read back a `Map`. So
-> `this.children.length` is `undefined`, and `[...this.children.keys()]` is the
-> idiom everywhere. Two names for the two states would be worse; this is the
-> cheaper of two costs, not a free choice.
+> **The property is a Map-shaped view.** You write a string/array/object and read
+> back a `PageChildren` instance (`extends Map`). The real underlying storage is
+> `this.pages: List` (see [`doc/property/pages.md`](./pages.md)); `children` provides
+> the Map interface (`get`, `has`, `set`, `delete`, iteration) so legacy callers remain
+> completely unchanged. `[...this.children.keys()]` or `[...this.pages]` is the idiom.
 
 > **Integer-like keys jump to the front.** JS hoists `"1"`, `"2"`, `"10"` above
 > every other key and sorts them numerically, whatever order you wrote — and this
