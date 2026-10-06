@@ -17,13 +17,7 @@ here instead of starting it. You pick what runs next. Each line links to its bri
   minutes of machine time and no tokens. Only the failures go to todo.md, and a model looks
   only at those. It runs at night through a scheduled job, not an agent. It builds on
   smoke.mjs's link-following (task-mastermind-smoke-links).
-- **Let task masterminds message each other** (2026-09-25, from mastermind-servex). Today about
-  ten messages went mastermind to mastermind-servex to mastermind, because the policy lets them
-  message only mastermind-servex. Each relay cost an Opus turn and added minutes. Proposal: in
-  `Servex/agents/policy.js`, allow task-mastermind to task-mastermind and card-manager to
-  card-manager, and let a lead (like ai2-lead) message its members. Every such message is
-  still logged to the policy log for auditing. Alternative: keep the switchboard, which is
-  safer against chatter but slow. Needs a Servex restart.
+- ~~**Let task masterminds message each other** (2026-09-25)~~ — **DONE.** Verified in `Servex/agents/policy.js` (`table()` lines 85–86): `f === "task-mastermind" && t === "task-mastermind"` returns `"peer"`, allowing task masterminds to message peers directly without relaying through mastermind-servex.
 - ~~**Hide every process window: one sweep** (2026-09-25)~~ — **DONE.** Verified 2026-10-06 across `Server/worktree-up.mjs`, `Server/plugins/Ask.js`, `Assistant.js`, `CardAnswer.js`, `Servex/Process.js`, `sustain.mjs`: all call sites have `windowsHide: true` in place; no process windows pop.
 - **Module agents: a short readme as the way in, a ready agent to ask, no agent grows old**
   (2026-09-25, designed by mastermind-servex, [design](/framework/ai/2026-09-25/servex-mastermind/)).
