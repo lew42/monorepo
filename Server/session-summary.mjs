@@ -106,7 +106,22 @@ export async function build_index({ days = 30 } = {}){
 	// Spawned agents (anything the registry knows with a session) whose parent was never recorded: a defect, counted.
 	const spawned = registry.filter(r => r.session_id && ["minion", "reviewer", "clarity", "assistant", "manager"].includes(r.role));
 	const unlinked = spawned.filter(r => !r.parent && !r.forked_from && !r.resumed_from).map(r => r.id);
-	const index = { generated_at: new Date().toISOString(), days, count: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), rows };
+	// The grid's file stays small: only sessions the grid can show (sessions.json rows + every registry session) plus anything
+	// in their trees, nulls and zeros left out. The full set stays in each session's own session.jsonl.
+	const want = new Set(registry.map(r => r.session_id).filter(Boolean));
+	try { for (const r of JSON.parse(fs.readFileSync(path.join(SESSIONS_DIR, "sessions.json"), "utf8")).rows ?? []) want.add(r.session_id || r.id); } catch {}
+	for (const id of [...want]) for (let up = rows[id]?.parent; up && rows[up] && !want.has(up); up = rows[up].parent) want.add(up);
+	for (const id of Object.keys(rows)) if (rows[id].children && rows[id].tree_usd >= 0.01 && (want.has(rows[id].parent) || want.has(id))) want.add(id);
+	// Grid file: one short array per session [own $, tree $, descendants, wall ms, model, effort, flags]. Tree file: only the
+	// sessions that have a parent or children (names, roles, who is whose child) - loaded when a detail page opens.
+	const slim = {}, tree = {}, r4 = n => Math.round(n * 1e4) / 1e4;
+	for (const id of want){
+		const r = rows[id]; if (!r) continue;
+		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags];
+		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
+	}
+	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), rows: slim };
+	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
 	return { ...index, rows: undefined, new_lines };
 }

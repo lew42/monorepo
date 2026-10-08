@@ -115,3 +115,9 @@ scratch*.json
 # Servex machine state, regenerated continuously — not a record (2026-10-07, clean-tree pass)
 public/framework/ai/openrouter-usage.json
 public/framework/ai/servex-queue.json
+
+# Session class machine state (Server/session-summary.mjs writes these)
+public/framework/ai/sessions/session-index.json
+public/framework/ai/sessions/*/session.jsonl
+public/framework/ai/sessions/[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*/
+public/framework/ai/sessions/session-tree.json
