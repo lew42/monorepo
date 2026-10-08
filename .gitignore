@@ -121,3 +121,6 @@ public/framework/ai/sessions/session-index.json
 # cache.jsonl = computed numbers (rebuildable). session.jsonl = the hand-written record: TRACKED, append-only.
 public/framework/ai/sessions/*/cache.jsonl
 public/framework/ai/sessions/session-tree.json
+
+# generated layout-test screenshots (2026-10-08)
+test-layout-out/

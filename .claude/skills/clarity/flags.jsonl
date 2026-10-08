@@ -314,3 +314,6 @@
 {"at":"2026-10-08T19:41:14.527Z","target":"public/framework/ai/2026-10-08/session-class/requirements.md","verdict":"spawned","to":"clarity-session-class"}
 {"at":"2026-10-08T12:00:00.000Z","target":"public/framework/ai/2026-10-08/task-audit/requirements.md","verdict":"rewrote","what":"Step 1 was one 150-word paragraph; split into short bullet lists and a table instruction","to":"requirements.md"}
 {"at":"2026-10-08T14:41:29.526756-05:00","target":"public/framework/ai/2026-10-08/session-class/requirements.md","verdict":"rewrote","what":"Shortened title; split two over-long asks into short bullets","to":"requirements.md"}
+{"at":"2026-10-08T22:16:10.032Z","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"queued","kind":"landing"}
+{"at":"2026-10-08T22:16:12.161Z","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"spawned","to":"clarity-task-system-design"}
+{"at":"2026-10-08T17:45:00-05:00","target":"public/framework/ai/2026-10-08/task-system-design","verdict":"rewrote","what":"design.md cut 712 to ~480 words, added structure tree","to":"design.md"}
