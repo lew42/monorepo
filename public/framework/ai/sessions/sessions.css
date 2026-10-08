@@ -29,10 +29,11 @@
 	   Source/Name and State/Cost; Stop and Duration (sessions-date-homes,
 	   2026-10-03 — "show the start time, stop time, duration and cost on
 	   every row") added right after Start — same mechanism, more tokens. */
+	.sessions-filters { column-gap: 2rem; row-gap: .5rem; }
 	.sessions-grid {
 		--col-time: 8rem; --col-stop: 8rem; --col-duration: 6rem;
 		--col-source: 6rem; --col-role: 7rem; --col-name: 16rem;
-		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 5rem;
+		--col-model: 8rem; --col-state: 5.5rem; --col-ram: 4.5rem; --col-cost: 8rem;
 		display: grid;
 		grid-template-columns:
 			minmax(7rem, var(--col-time))
@@ -44,7 +45,7 @@
 			minmax(5.5rem, var(--col-model))
 			minmax(5rem, var(--col-state))
 			minmax(4rem, var(--col-ram))
-			minmax(4rem, var(--col-cost));
+			minmax(9rem, var(--col-cost));
 		column-gap: var(--gap-50);
 		/* `width: max-content` + `min-width: 100%` (review finding, 2026-10-03):
 		   without this, a block-level grid defaults to the width of its own
@@ -264,4 +265,15 @@
 	   everything else on this page, not a warning colour — a flag is a fact,
 	   not an alarm. */
 	.sessions-trace-flag { padding-inline-start: var(--gap-50); border-inline-start: 2px solid var(--line); }
+
+	/* The Session class (SessionView.js): the cost cell's lines, the defect flag, the tree, the purpose bars and the audit button. */
+	.sessions-cost-main { font-weight: 600; white-space: nowrap; }
+	.sessions-flag { color: var(--ink); border-inline-start: 2px solid var(--prim-ink); padding-inline-start: var(--gap-35); }
+	.sessions-tree-row { padding-block: var(--gap-35); border-block-end: 1px solid var(--line); }
+	.sessions-tree-usd { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+	.sessions-purpose-label { flex: 0 0 11em; }
+	.sessions-purpose-bar { flex: 1 1 6em; height: 0.6em; min-width: 0; border-radius: 0.3em; background: linear-gradient(to right, var(--prim-ink) var(--pct, 0%), var(--line) var(--pct, 0%)); }
+	.sessions-method { max-width: 70ch; }
+	.sessions-audit-btn { cursor: pointer; padding: var(--gap-35) var(--gap-50); border: 1px solid var(--line); border-radius: 0.4em; user-select: none; }
+	.sessions-audit-btn:hover { border-color: var(--prim-ink); }
 }

@@ -115,3 +115,9 @@ scratch*.json
 # Servex machine state, regenerated continuously — not a record (2026-10-07, clean-tree pass)
 public/framework/ai/openrouter-usage.json
 public/framework/ai/servex-queue.json
+
+# Session class machine state (Server/session-summary.mjs writes these)
+public/framework/ai/sessions/session-index.json
+# cache.jsonl = computed numbers (rebuildable). session.jsonl = the hand-written record: TRACKED, append-only.
+public/framework/ai/sessions/*/cache.jsonl
+public/framework/ai/sessions/session-tree.json

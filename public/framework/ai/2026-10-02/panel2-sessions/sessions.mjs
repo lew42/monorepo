@@ -97,13 +97,14 @@ function user_text(message){
 function scan_session_file(path){
 	const text = readFileSync(path, "utf8");
 	const prompts = [];
-	let started_at = null, last_activity = null, model = null, cwd = null;
+	let started_at = null, last_activity = null, model = null, cwd = null, entrypoint = null;
 	for (const line of text.split("\n")){
 		if (!line) continue;
 		let obj;
 		try { obj = JSON.parse(line); } catch { continue; }
 		if (obj.timestamp){ started_at ??= obj.timestamp; last_activity = obj.timestamp; }
 		if (obj.cwd) cwd = obj.cwd;
+		if (obj.entrypoint) entrypoint ??= obj.entrypoint;   // the file's own word: "claude-vscode", "sdk-ts", "cli"
 		// ⚠ `turnOrigin: "task_notification"` is the harness telling ITSELF a
 		// background task finished — it carries real text (so `user_text()`
 		// alone can't filter it) but nobody asked it and it proves nothing
@@ -119,7 +120,7 @@ function scan_session_file(path){
 			model = obj.attachment.identity?.modelId ?? model;
 		}
 	}
-	return { started_at, last_activity, model, cwd, prompts: prompts.slice(-MAX_PROMPTS) };
+	return { started_at, last_activity, model, cwd, entrypoint, prompts: prompts.slice(-MAX_PROMPTS) };
 }
 
 function vscode_or_cli_rows(known_ids, cutoff){
@@ -149,7 +150,13 @@ function vscode_or_cli_rows(known_ids, cutoff){
 		const idle = (Date.now() - Date.parse(info.last_activity)) >= 5 * 60 * 1000;
 		rows.push({
 			id,
-			source: last.turn_origin === "human" ? "vscode" : "cli",
+			// The file's own `entrypoint` decides (verified 2026-10-08): "claude-vscode" = VS Code tab,
+			// "sdk-ts" = SDK-spawned run, "cli" = real terminal. No entrypoint: old turnOrigin guess.
+			source: info.entrypoint === "claude-vscode" ? "vscode"
+				: /^sdk/.test(info.entrypoint ?? "") ? "sdk"
+				: info.entrypoint === "cli" ? "cli"
+				: last.turn_origin === "human" ? "vscode" : "cli",
+			entrypoint: info.entrypoint,
 			session_id: id,
 			// VS Code writes no tab title into the transcript — the cwd's own folder
 			// name is the closest real stand-in (readme.md names this limitation).

@@ -1,5 +1,7 @@
 # Session class — findings
 
+**One screen.** A `Session` class prices a Claude session from its transcript (deduped by message id, subagents included) and an independent audit proves it; the Sessions page shows it. Each session has two files: tracked `session.jsonl` (the hand-written record: tags, alerts, links, closed) and gitignored `cache.jsonl` (computed numbers). `session-index.json` carries cost, `closed` and `meta` for the table, which filters by tag, needs-attention and closed. The old 2x overcount is fixed. Unverified rates (opus-5-5, sonnet-5-5, haiku-5-5) are marked. Not built: the day-partitioned index (section 12), old-shape adapters, the table redesign (section 8). Servex needs a restart for `audit_session` and `log_session`.
+
 Outcome: `Session.js`, the Sessions page cost cell and detail view, the audit (button, route, `audit_session` tool, CLI), `Server/session-summary.mjs`. Docs: [`sessions/doc/session-class.md`](/framework/ai/sessions/doc/session-class.md).
 
 ## 1. Does the SDK account in real time, and which source is the truth?
