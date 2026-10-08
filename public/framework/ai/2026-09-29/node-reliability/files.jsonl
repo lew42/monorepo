@@ -14,3 +14,11 @@
 {"file":"revive-guard-proof.txt"}
 {"file":"smoke-uncommitted/"}
 {"file":"smoke-uncommitted-proof.txt"}
+{"file":"task.jsonl","gone":true}
+{"file":"budget-heartbeat/","gone":true}
+{"file":"checkpoint-2.md","gone":true}
+{"file":"pool-prune/","gone":true}
+{"file":"review/","gone":true}
+{"file":"review-revive-guard.md","gone":true}
+{"file":"smoke-uncommitted/","gone":true}
+{"file":"smoke-uncommitted-proof.txt","gone":true}

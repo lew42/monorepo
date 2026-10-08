@@ -7,3 +7,8 @@
 {"content":{"remove":"working"}}
 {"file":"proof/"}
 {"file":"layout-check/"}
+{"file":"requirements.md","gone":true}
+{"file":"spend.json","gone":true}
+{"file":"task.jsonl","gone":true}
+{"file":"proof/","gone":true}
+{"file":"layout-check/","gone":true}

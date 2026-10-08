@@ -23,3 +23,6 @@
 {"file":"consensus.json"}
 {"file":"layout-check/"}
 {"file":"owner-check.md"}
+{"file":"consensus.json","gone":true}
+{"file":"layout-check/","gone":true}
+{"file":"owner-check.md","gone":true}

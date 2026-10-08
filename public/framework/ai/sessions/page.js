@@ -75,6 +75,7 @@ export const SOURCE = {
 	servex: { label: "Servex", icon: "hub" },
 	vscode: { label: "VS Code", icon: "laptop_windows" },
 	cli: { label: "CLI", icon: "terminal" },
+	sdk: { label: "SDK", icon: "memory" },   // entrypoint "sdk-ts": spawned through the Agent SDK, not by hand
 	// A row synthesized purely from a date-path folder's own NAME (2026-10-03,
 	// sessions-date-homes) — `with_date_path_rows()` below, for a session that
 	// has a real `ai/<Y>/<M>/<D>/<slug>-<id8>/` page but no `sessions.json`/
@@ -175,6 +176,7 @@ export function role_of(r){
 	if (/^echo-/.test(r.id || "")) return "echo/refiner";
 	if (r.source === "vscode") return "vscode mastermind";
 	if (r.source === "cli") return "cli";
+	if (r.source === "sdk") return "sdk run";
 	return null;
 }
 
@@ -202,6 +204,7 @@ export function money_parts(usd){
 export const ROLE_LABELS = {
 	"(unknown)": { label: "(unknown)", title: "A VS Code or CLI session this page can't name a role for — nothing in the data it reads (sessions.json, GET /api/agents) says who was driving it." },
 	"cli": { label: "Terminal sessions", title: "A standalone `claude` run from a terminal — not a VS Code tab, not a Servex-spawned agent." },
+	"sdk run": { label: "SDK runs", title: "A session the Agent SDK ran (the file's entrypoint is sdk-ts) that Servex has no record of. Not a terminal, not a VS Code tab." },
 	"vscode mastermind": { label: "VS Code tabs", title: "An interactive VS Code tab — a human typing, not a spawned agent." },
 	"echo/refiner": { label: "Echo / refiner", title: "A session whose id starts \"echo-\" — the one naming convention this page can see." },
 };

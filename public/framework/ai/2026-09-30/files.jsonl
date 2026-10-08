@@ -76,3 +76,8 @@
 {"file":"selection/"}
 {"file":"ui-system/"}
 {"file":"merge-approval/","gone":true}
+{"file":"dictation-stream/"}
+{"file":"review-shots/","gone":true}
+{"file":"servex-docs/","gone":true}
+{"file":"decision-system/","gone":true}
+{"file":"padding/","gone":true}

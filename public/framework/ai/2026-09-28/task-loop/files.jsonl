@@ -21,3 +21,7 @@
 {"file":"step-loop/"}
 {"file":"taskloop-gate/"}
 {"file":"worktree-down/"}
+{"file":"heartbeat/","gone":true}
+{"file":"step-loop/","gone":true}
+{"file":"taskloop-gate/","gone":true}
+{"file":"worktree-down/","gone":true}

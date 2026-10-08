@@ -26,3 +26,5 @@
 {"file":"task.jsonl"}
 {"file":"inbox.jsonl","gone":true}
 {"file":"review/","gone":true}
+{"file":"spend.json","gone":true}
+{"file":"task.jsonl","gone":true}

@@ -8,3 +8,8 @@
 {"inbox":{"id":"n-aj7lqqg2","from":"servex-heartbeat","text":"task-mastermind-data-grid it did not answer the status check; Servex revived it and asked where it is at.","at":"2026-10-03T22:58:11.774-05:00"}}
 {"inbox":{"id":"n-cfvbihjb","from":"servex-heartbeat","text":"task-mastermind-data-grid its agent is not running; Servex revived it and asked where it is at.","at":"2026-10-03T23:51:35.118-05:00"}}
 {"file":"layout-check/"}
+{"file":"inbox.jsonl","gone":true}
+{"file":"revive-worktree/","gone":true}
+{"file":"spend.json","gone":true}
+{"file":"task.jsonl","gone":true}
+{"file":"layout-check/","gone":true}

@@ -59,3 +59,17 @@
 {"file":"spend-tree/"}
 {"file":"spend.json"}
 {"file":"worktree-servers-revive/"}
+{"file":"main-branch-guard/","gone":true}
+{"file":"node-reap-run/","gone":true}
+{"file":"openrouter-reads-cache/","gone":true}
+{"file":"pool-unstick/","gone":true}
+{"file":"ref-row-context-card/","gone":true}
+{"file":"restart-keeps-agents/","gone":true}
+{"file":"spend-gate/","gone":true}
+{"file":"merge-commits/","gone":true}
+{"file":"perf-audit/","gone":true}
+{"file":"phone-server/","gone":true}
+{"file":"review-empty-diff/","gone":true}
+{"file":"spawn-logs-ask/","gone":true}
+{"file":"spend-shape/","gone":true}
+{"file":"worktree-servers-revive/","gone":true}
