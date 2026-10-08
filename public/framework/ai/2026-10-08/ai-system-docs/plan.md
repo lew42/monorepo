@@ -23,6 +23,20 @@ Wrap inbox cards in session context cards once `minion-session-class` lands its 
 ## 6. Streaming and polling
 The dashboard Now card has no message timestamps and the Log page is not yet a real-time stream. Start only with pace comfortable (currently 5 points under): Log stream first, then Now timestamps, then Inbox.
 
+## 7. The website shows everything (the long-term fix for "I miss what landed")
+Source: [website-shows-everything-2026-10-08.md](../../doc/website-shows-everything-2026-10-08.md). Plan only; no template changes now. First candidates, in order:
+1. **Recently landed** index page, computed by script from `git log` and each `task.jsonl` (newest first, every row linked). Cheapest and most valuable; one Sonnet coder or me.
+2. **One index page per major system** from [systems-map.md](../../systems-map.md), each a wall of previews that links its readme.
+3. **Demos that show instead of describe**, starting with the System tab class cards already built.
+
+## 8. Docs-only items folded in from the task audit
+Source: [task-audit/plan.md](../task-audit/plan.md) (354 loose ends; its agent ended without landing).
+- **JSONL backlinks:** link the 39 JSONL docs with no backlink to one overview, `core/Page/doc/jsonl.md` (list in `task-audit/doc/jsonl-map.md`). Haiku, additive links only.
+- **Session-shape gaps:** old sessions lack name, tags, effort, parent link and closed state (`doc/session-shapes.md`); cost must be summed by script. Doc only; goes to `minion-session-class`, which owns sessions.
+- **Transcription conglomerate page** (Dictate, Whisper, Chat, Refine), cross-linked from the Servex docs. Haiku proposes, I commit.
+- **Missing `/framework/ai/models` page:** small Sonnet coder task; I am not building it, so it is free to take.
+- Where a system has many open items (transcription, AI), do the docs index first, pick the top three, and mark the rest superseded with a reason.
+
 ## Blockers
 - The pool cannot make a worktree for minions, so no Sonnet coder can be spawned yet; items 1 to 3 wait for it or I do them by hand with `worktree-up.mjs`.
 - No spawns made, so `spawns.jsonl` is empty by design.
