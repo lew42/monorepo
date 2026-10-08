@@ -35,15 +35,14 @@ export function cost_lines(row, index){
 	span.c("sessions-cost-main").text("Claude " + usd(row.tree_usd ?? row.usd))
 		.attr("title", kids ? `This session ${usd(row.usd)} + ${kids} descendant${kids > 1 ? "s" : ""} ${usd(row.tree_usd - row.usd)}` : "This session, counted from its own transcript");
 	if (kids) small.c("muted sessions-subtree-note", `own ${usd(row.usd)} + ${kids} child${kids > 1 ? "ren" : ""}`);
-	small.c("muted", `${runtime(row.wall_ms)} · ${row.model ?? "?"}${row.effort ? " · " + row.effort : ""}`)
-		.attr("title", "Model as the session file recorded it per message; effort from the same file");
 	if (row.flags) small.c("sessions-flag").text("⚠ " + row.flags + " flag" + (row.flags > 1 ? "s" : "")).attr("title", "Open the session to read the flags");
 }
 
 // The one-line banner above the grid: spawned agents with no recorded parent are a defect.
 export function defect_line(index){
 	if (!index?.unlinked_spawned) return;
-	small.c("sessions-flag").text(`⚠ ${index.unlinked_spawned} spawned agent${index.unlinked_spawned > 1 ? "s" : ""} with no recorded parent (not in any tree): ${(index.unlinked_sample || []).join(", ")}`);
+	small.c("muted").text(`${index.unlinked_spawned} spawned agents have no recorded parent`)
+		.attr("title", "Not in any tree, so their cost is counted on its own. Examples: " + (index.unlinked_sample || []).join(", "));
 }
 
 // ---- the detail ----------------------------------------------------------------------------------
