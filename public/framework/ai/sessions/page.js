@@ -1,4 +1,4 @@
-import { Page, div, a, span, small, p, label, input, View } from "/app.js";
+import { Page, div, a, span, small, p, label, input, button, View } from "/app.js";
 import Panel2 from "/framework/ext/panel2/Panel2.js";
 import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { grip } from "/framework/ext/grip/grip.js";
@@ -96,19 +96,17 @@ const WORKING_STATES = new Set(["working", "active"]);
 // column; the grid enforces it either way, this just keeps the drag's own
 // pill from visually overshooting it.
 export const COLUMNS = [
-	{ key: "time",     label: "Start",    min: 112 },
 	// Stop/Duration (2026-10-03, sessions-date-homes — the owner's own ask: "show
 	// the start time, stop time, duration and cost on every row"), right beside
 	// Start since all three describe the same span.
-	{ key: "stop",     label: "Stop",     min: 112 },
-	{ key: "duration", label: "Duration", min: 84 },
-	{ key: "source",   label: "Source",   min: 88 },
-	{ key: "role",     label: "Role",     min: 110 },
 	{ key: "name",     label: "Name",     min: 160 },
+	{ key: "cost",     label: "Cost",     min: 120 },
+	{ key: "updated",  label: "Updated",  min: 88 },
+	{ key: "duration", label: "Duration", min: 84 },
+	{ key: "role",     label: "Role",     min: 110 },
+	{ key: "source",   label: "Source",   min: 88 },
 	{ key: "model",    label: "Model",    min: 88 },
-	{ key: "state",    label: "State",    min: 80 },
-	{ key: "ram",      label: "RAM",      min: 64 },
-	{ key: "cost",     label: "Cost",     min: 144 },
+	{ key: "state",    label: "State",    min: 60 },
 ];
 
 // The Cost header is also a sort toggle: default (newest-activity-first) →
@@ -218,7 +216,11 @@ export function role_label(role){
 // `r.cost` figure every currently-live row still carries. Returns `null`,
 // never 0, when nothing is known — "missing sorts last" needs to tell a real
 // zero apart from "no data yet".
+// The session index (Session class numbers) is the truth for a Claude session's own cost; set once it loads.
+let IX = null;
 export function cost_value(r){
+	const ix = row_of(IX, r.session_id || r.id);
+	if (ix) return ix.usd;
 	const claude = typeof r.cost_claude_usd === "number" ? r.cost_claude_usd : null;
 	const or = typeof r.cost_openrouter_usd === "number" ? r.cost_openrouter_usd : null;
 	if (claude !== null || or !== null) return (claude ?? 0) + (or ?? 0);
@@ -298,7 +300,16 @@ export function merge(snapshot_rows, agents){
 // priced yet shouldn't look like the cheapest one. `null` (the default) does
 // nothing: the rows already arrive newest-activity-first from `merge()`.
 export function sort_by_cost(rows, direction){
-	if (!direction) return rows;
+	if (!direction){
+		// Default: cost weighted by recency (a cost halves every 3 days since last activity), so what matters now is on top.
+		const now = Date.now();
+		const score = r => {
+			const ix = row_of(IX, r.session_id || r.id);
+			const days = Math.max(0, (now - Date.parse(r.last_activity ?? 0)) / 864e5);
+			return ((ix?.tree_usd ?? ix?.usd ?? cost_value(r) ?? 0) + 0.01) * Math.pow(0.5, days / 3);
+		};
+		return rows.map(r => [score(r), r]).sort((a, b) => b[0] - a[0]).map(x => x[1]);
+	}
 	const priced = rows.filter(r => cost_value(r) !== null);
 	const unpriced = rows.filter(r => cost_value(r) === null);
 	priced.sort((a, b) => direction === "desc" ? cost_value(b) - cost_value(a) : cost_value(a) - cost_value(b));
@@ -337,38 +348,10 @@ export function row_view(r, url, page_dirs, spend, session_index){
 		// finished minutes ago would be worse than admitting it's unknown.
 		const working = WORKING_STATES.has(r.state);
 		const span_end = r.stopped_at ?? (working ? new Date().toISOString() : null);
-		div.c("sessions-cell", () => small.c("muted").text(r.started_at ? age(r.started_at) : "—").attr("title", r.started_at ?? ""));
-		div.c("sessions-cell", () => small.c("muted").text(r.stopped_at ? age(r.stopped_at) : (working ? "ongoing" : "—")).attr("title", r.stopped_at ?? ""));
-		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
-		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
-		// Plain words here too (review finding 2, 2026-10-03) — the role filter
-		// row and the "cost by role" list already call role_label(); this grid
-		// cell is "any place these words show" too, per the owner's own ask.
-		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } });
 		div.c("sessions-cell", () => div.c("sessions-name-stack", () => {
 			span.c("sessions-row-title", r.tab_title || r.id);
 			if (r.last_prompt_first_line) small.c("sessions-row-prompt muted").attr("title", r.last_prompt_first_line).text(r.last_prompt_first_line.slice(0, 80));
 		}));
-		// Plain `if` statements, not `&&` expressions: a cell callback's return
-		// value can end up rendered as a stray text node (found live — a
-		// `false` cost value from the live agent feed, not caught by `typeof
-		// … === "number"`, rendered the literal word "false" in the Cost
-		// column because the arrow function's own return value WAS `false`).
-		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
-		// A ▶ that blinks while the row is in flight, a plain quiet dot
-		// otherwise — a ✓ for "done" belongs only on the detail page
-		// (the owner's own words: this grid never shows it).
-		div.c("sessions-cell", () => {
-			if (!r.state) return;
-			const working = WORKING_STATES.has(r.state);
-			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle"))
-				.attr("title", r.state).text(working ? "▶" : "•");
-		});
-		// Blank, never a stale number, unless the sample is under 10s old —
-		// GET /api/agents carries no RAM field yet (doc/decisions.md), so this
-		// stays blank for every row today; the column and the check are both
-		// here so the moment Servex adds the field, this just lights up.
-		div.c("sessions-cell", () => { if (typeof r.ram_mb === "number" && typeof r.ram_sample_age_ms === "number" && r.ram_sample_age_ms < 10000) small.c("muted", Math.round(r.ram_mb) + "MB"); });
 		div.c("sessions-cell", () => {
 			// The Session class row (session-index.json) is the truth for a Claude session's cost: whole tree, runtime, model + effort.
 			// A row it does not know (an old session outside its window) keeps the older figures below.
@@ -397,13 +380,35 @@ export function row_view(r, url, page_dirs, spend, session_index){
 				if (subtree > own + 0.004) small.c("muted sessions-subtree-note", `$${subtree.toFixed(2)} w/ ${node.descendant_count}`);
 			}
 		});
+		div.c("sessions-cell", () => small.c("muted").text(working ? "now" : (r.last_activity ? age(r.last_activity) : "—")).attr("title", r.last_activity ?? ""));
+		div.c("sessions-cell", () => small.c("muted", dur(elapsed(r.started_at, span_end))));
+		// Plain words here too (review finding 2, 2026-10-03) — the role filter
+		// row and the "cost by role" list already call role_label(); this grid
+		// cell is "any place these words show" too, per the owner's own ask.
+		div.c("sessions-cell", () => { if (r.role) { const { label: text, title } = role_label(r.role); small.c("muted").attr("title", title).text(text); } });
+		div.c("sessions-cell", () => span.c("sessions-tag sessions-tag-" + r.source, src.label));
+		// Plain `if` statements, not `&&` expressions: a cell callback's return
+		// value can end up rendered as a stray text node (found live — a
+		// `false` cost value from the live agent feed, not caught by `typeof
+		// … === "number"`, rendered the literal word "false" in the Cost
+		// column because the arrow function's own return value WAS `false`).
+		div.c("sessions-cell", () => { if (r.model) small.c("muted", r.model); });
+		// A ▶ that blinks while the row is in flight, a plain quiet dot
+		// otherwise — a ✓ for "done" belongs only on the detail page
+		// (the owner's own words: this grid never shows it).
+		div.c("sessions-cell", () => {
+			if (!r.state) return;
+			const working = WORKING_STATES.has(r.state);
+			span.c("sessions-state-dot sessions-state-dot-" + (working ? "working" : "idle"))
+				.attr("title", r.state).text(working ? "▶" : "•");
+		});
 	});
 }
 
 // ---- filters + summary + "cost by role", all computed client-side over the
 // rows already fetched (CLAUDE.md law 7: no new endpoint). ----
 
-function claude_usd_of(r){ return typeof r.cost_claude_usd === "number" ? r.cost_claude_usd : (typeof r.cost === "number" ? r.cost : 0); }
+function claude_usd_of(r){ const ix = row_of(IX, r.session_id || r.id); if (ix) return ix.usd; return typeof r.cost_claude_usd === "number" ? r.cost_claude_usd : (typeof r.cost === "number" ? r.cost : 0); }
 function openrouter_usd_of(r){ return typeof r.cost_openrouter_usd === "number" ? r.cost_openrouter_usd : 0; }
 
 function in_date_range(r, from, to){
@@ -498,7 +503,8 @@ export default new Page({
 		// of session rows reads just as cramped there as a grid of tiles does
 		// (see dashboard/page.js's own note for the measured number).
 		const panel = new Panel2({ title: "Sessions" }).ac("wide");
-		panel.header.append(() => small.c("muted", "live — polls every 20s"));
+		this.$asof = null;
+		panel.header.append(() => { this.$asof = small.c("muted", "loading…"); });
 
 		this.cost_sort = null;      // null | "desc" | "asc" — the Cost header's own toggle
 		this.role_filter = null;    // Set<string> | null (null = "everything", until the first real data arrives)
@@ -521,7 +527,7 @@ export default new Page({
 		panel.main.append(this.$stats);
 		this.render_stats();
 
-		this.$controls = div.c("sessions-controls flow");
+		this.$controls = div.c("sessions-controls");
 		panel.main.append(this.$controls);
 
 		this.$grid = div.c("sessions-grid", $grid => {
@@ -543,12 +549,9 @@ export default new Page({
 	// `render_rows()` already uses for the grid/summary/by-role list.
 	render_stats(){
 		if (!this.$stats) return;
-		const week = this.week;
-		const claude = money_parts(week?.claude_usd);
-		const or = money_parts(week?.openrouter_usd);
-		const per_pct = money_parts(week?.usd_per_pct);
-		const pct_text = typeof week?.plan_pct_used === "number" ? week.plan_pct_used + "%" : "—";
-		const money_body = parts => () => { span(parts.whole); span.c("sessions-stat-cents", parts.cents); };
+		const usage = this.usage?.utilization;   // ai/usage.json: the plan's own meter, the one source for "how much of the week is used"
+		const pct = w => typeof w?.utilization === "number" ? Math.round(w.utilization) + "%" : "—";
+		const resets = w => w?.resets_at ? "resets " + new Date(w.resets_at).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : null;
 
 		const tile = (label_text, body, title, foot) => {
 			const $tile = div.c("surface pad flex v gap", () => {
@@ -561,20 +564,10 @@ export default new Page({
 		};
 
 		this.$stats.empty(() => {
-			tile("Claude this week", week ? money_body(claude) : "—");
-			tile("OpenRouter this week", week ? money_body(or) : "—");
-			tile("Plan used this week", pct_text);
-			// The owner's own words, 2026-10-03: "I'm not sure what '$26.65/1%' means" — the label
-			// plus a title= fixed that once, but a title only shows on hover. token-accounting
-			// (vscode-session-cost, 2026-10-04, item 3: "show its inputs") puts the two numbers this
-			// divides — the real Claude $ and the real percent-used — in plain sight underneath, so
-			// the figure never has to be taken on faith.
-			tile("Per 1% of your weekly plan", week?.usd_per_pct ? money_body(per_pct) : "—",
-				week?.usd_per_pct
-					? "How far $1 of Claude spend moves the plan's own weekly meter — the plan's week total divided by its own percent used."
-					: "Blank until this week has both a real Claude $ total and a real percent-used figure to divide it by (review finding 3, 2026-10-03).",
-				week?.usd_per_pct ? `$${claude.whole.slice(1)}${claude.cents} ÷ ${pct_text}` : null);
-			tile("Sessions shown", String(this.filtered_count));
+			tile("Plan used this week", pct(usage?.seven_day), "The plan's own weekly meter (ai/usage.json).", resets(usage?.seven_day));
+			tile("Last 5 hours", pct(usage?.five_hour), "The plan's own 5-hour meter (ai/usage.json).", resets(usage?.five_hour));
+			tile("Claude cost shown", "$" + (this.shown_usd ?? 0).toFixed(2), "Own cost of the sessions in the table below, from the session files (not from spend.json).", "from the session files");
+			tile("Sessions shown", String(this.filtered_count), null, this.date_from + " to " + this.date_to);
 		});
 	},
 
@@ -607,38 +600,6 @@ export default new Page({
 		// every row would show "(n/a)" and the filter would be one useless checkbox.
 		const triggers = [...new Set(this.last_rows.map(r => trigger_of(r, this.spend) || "(n/a)"))].sort();
 		this.$controls.empty(() => {
-			if (roles.length){
-				div.c("sessions-role-filter flex wrap gap-50", () => {
-					roles.forEach(role => {
-						const { label: text, title } = role_label(role);
-						label.c("flex gap-35 v-center h4").attr("title", title).append(() => {
-							const $box = input().attr("type", "checkbox");
-							$box.el.checked = this.role_filter.has(role);
-							$box.on("change", () => {
-								if ($box.el.checked) this.role_filter.add(role); else this.role_filter.delete(role);
-								this.render_rows();
-							});
-							span(text);
-						});
-					});
-				});
-			}
-			if (this.spend && triggers.length > 1){
-				div.c("sessions-role-filter flex wrap gap-50", () => {
-					small.c("muted", "trigger:");
-					triggers.forEach(tag => {
-						label.c("flex gap-35 v-center h4", () => {
-							const $box = input().attr("type", "checkbox");
-							$box.el.checked = this.trigger_filter.has(tag);
-							$box.on("change", () => {
-								if ($box.el.checked) this.trigger_filter.add(tag); else this.trigger_filter.delete(tag);
-								this.render_rows();
-							});
-							span(tag);
-						});
-					});
-				});
-			}
 			div.c("sessions-filters flex gap-100 v-center wrap", () => {   // one compact row: closed, attention, tag, dates
 			label.c("flex gap-35 v-center h4", () => {
 					const $box = input().attr("type", "checkbox");
@@ -673,8 +634,10 @@ export default new Page({
 			});
 			});
 			this.$summary = div.c("sessions-summary flex gap-50 v-center");
-			this.$by_role = div.c("sessions-by-role flow");
-			this.$by_trigger = div.c("sessions-by-role flow");
+			div.c("sessions-chiprow", () => {
+				this.$by_role = div.c("sessions-chips");
+				this.$by_trigger = div.c("sessions-chips");
+			});
 			this.$cache_breakdown = div.c("sessions-by-role flow");
 		});
 	},
@@ -690,10 +653,12 @@ export default new Page({
 		const to = Date.parse(this.date_to + "T23:59:59.999");
 		const meta = this.session_index?.meta ?? {};
 		const closed = this.session_index?.closed ?? {};   // lifecycle: closed sessions hide unless "show closed" is ticked (never deleted)
-		const filtered = this.last_rows.filter(r => (this.show_closed || !closed[r.session_id || r.id]) && this.role_filter.has(r.role || "(unknown)")
-			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to)
-			&& (!this.attention_only || meta[r.session_id || r.id]?.alerts)
-			&& (!this.tag_filter || meta[r.session_id || r.id]?.tags.includes(this.tag_filter)));
+		const id_of = r => r.session_id || r.id;
+		// "base" = every filter except role and trigger, so the role/trigger chips can show what each choice would add.
+		const base = this.last_rows.filter(r => (this.show_closed || !closed[id_of(r)]) && in_date_range(r, from, to)
+			&& (!this.attention_only || meta[id_of(r)]?.alerts)
+			&& (!this.tag_filter || meta[id_of(r)]?.tags.includes(this.tag_filter)));
+		const filtered = base.filter(r => this.role_filter.has(r.role || "(unknown)") && this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)"));
 		const sorted = sort_by_cost(filtered, this.cost_sort);
 
 		// Paging, not windowing: rows are variable-height (a title line plus an
@@ -718,81 +683,44 @@ export default new Page({
 			}
 		});
 
-		// ⚠ Honest, not a reconciliation (2026-10-03, sessions-tab-polish — the
-		// owner's own words: "the two Claude figures don't reconcile on
-		// screen... OpenRouter shows $0.00 in range"). This total is summed
-		// client-side from whatever `cost`/`cost_claude_usd` ALREADY SITS on
-		// the rows this page has loaded — and almost none of them carry one:
-		// `sessions.mjs` writes `cost: null` for every VS Code/CLI row (it has
-		// no per-session $ to put there), so in practice this only ever totals
-		// the live Servex rows' own running cost. No row anywhere carries a
-		// real per-session OpenRouter $ at all (checked: `sessions.json` never
-		// writes `cost_openrouter_usd`, `GET /api/agents` doesn't either) — so
-		// an "OpenRouter in range" figure here would always read $0.00, not
-		// because OpenRouter spend is zero (the ledger has real entries,
-		// doc/decisions.md) but because this filtered list structurally can't
-		// see it. Rather than show a confident, wrong zero next to the REAL
-		// OpenRouter figure one scroll up (the stat card, from
-		// `Server/week-cost.mjs`'s own ledger sum), this line only claims what
-		// it can actually compute, and says so — CLAUDE.md law 7.
-		const claude_total = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
+		// Cost comes from the session files (the index), never from spend.json or a registry that resets on restart.
+		this.shown_usd = filtered.reduce((n, r) => n + claude_usd_of(r), 0);
 		this.filtered_count = filtered.length;
 		this.render_stats();
+
 		this.$summary?.empty(() => {
-			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude logged in range`)
-				.attr("title", "Only rows that already carry a logged cost (mostly live Servex agents) are counted here — most VS Code/CLI sessions don't have one yet. OpenRouter $ isn't tracked per session at all, so it can't be summed for an arbitrary date range; the real Claude $ and OpenRouter $ for THIS WEEK are the cards above, computed straight from the transcripts and the OpenRouter ledger. ai/sessions/doc/decisions.md has the full reasoning.");
-	
 			defect_line(this.session_index);
+			a.c("sessions-show-more-link").href("#").text(this.show_cache ? "hide cache breakdown" : "cache breakdown")
+				.on("click", e => { e.preventDefault(); this.show_cache = !this.show_cache; this.render_rows(); });
 		});
 
-		this.$by_role?.empty(() => {
-			const totals = by_role_totals(filtered).filter(t => t.claude_usd);
-			if (!totals.length) return;
-			small.c("muted", "Claude $ logged by role (largest first, same caveat as above)");
-			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
-				const { label: text, title } = role_label(t.role);
-				small.c("sessions-by-role-name").attr("title", title).text(text);
-				small.c("muted", `$${t.claude_usd.toFixed(2)} · ${t.count} session${t.count === 1 ? "" : "s"}`);
-			}));
+		// One row of clickable chips: role, then trigger. Click one to show only that group; click again to show all.
+		const chips = (host, groups, filter, key_of, label_of) => host?.empty(() => {
+			const all_on = groups.every(g => filter.has(key_of(g)));
+			groups.forEach(g => {
+				const key = key_of(g), on = filter.has(key) && !all_on;
+				const { label: text, title } = label_of(g);
+				button.c("sessions-chip" + (on ? " sessions-chip-on" : ""), `${text} · $${g.claude_usd.toFixed(2)} · ${g.count}`).attr("title", title || "")
+					.on("click", () => {
+						if (on) groups.forEach(x => filter.add(key_of(x)));
+						else { filter.clear(); filter.add(key); }
+						this.render_rows();
+					});
+			});
 		});
+		// Chips list every group present in "base" so a deselected group stays visible and can be clicked back.
+		chips(this.$by_role, by_role_totals(base), this.role_filter, g => g.role, g => role_label(g.role));
+		if (this.spend && by_trigger_totals(base, this.spend).length > 1) chips(this.$by_trigger, by_trigger_totals(base, this.spend), this.trigger_filter, g => g.trigger, g => ({ label: g.trigger }));
 
-		// "Cost by trigger" (spend-tree, 2026-10-03) — the owner's own ask: "tag sessions
-		// based on their purpose... figure out the breakdown." These are each row's OWN $,
-		// same as "by role" above — never the subtree, which would double-count a parent
-		// and its children under two different totals.
-		this.$by_trigger?.empty(() => {
-			const totals = by_trigger_totals(filtered, this.spend).filter(t => t.claude_usd || t.openrouter_usd);
-			if (!totals.length) return;
-			small.c("muted", "Cost by trigger — why it was spawned (largest first)");
-			totals.forEach(t => div.c("sessions-by-role-row flex gap-50 v-center", () => {
-				small.c("sessions-by-role-name", t.trigger);
-				small.c("muted", `$${t.claude_usd.toFixed(2)} Claude · $${t.openrouter_usd.toFixed(2)} OpenRouter · ${t.count} session${t.count === 1 ? "" : "s"}`);
-			}));
-		});
-
-		// The cache $ breakdown, by role and by trigger (token-accounting, 2026-10-04) — the
-		// owner's own ask: "a breakdown... grouped by role, by trigger". Straight from
-		// `Server/spend-tree.mjs`'s own `by_role`/`by_trigger` (computed once there, never
-		// recomputed here — CLAUDE.md law 7). ALL-TIME, not date-filtered, unlike the two lists
-		// above it — spend-tree.json is a whole-history snapshot, same as the subtree note each
-		// row already shows — labelled plainly so it doesn't read as the same figure.
+		// The cache $ breakdown (all-time, from Server/spend-tree.mjs): one click down, not on level 1.
 		this.$cache_breakdown?.empty(() => {
+			if (!this.show_cache) return;
 			const by_role = (this.spend?.by_role ?? []).filter(g => g.claude_usd);
 			const by_trigger = (this.spend?.by_trigger ?? []).filter(g => g.claude_usd);
-			if (!by_role.length && !by_trigger.length) return;
-			// Each caption is its own block-level `div` (review finding, 2026-10-04: two
-			// adjacent inline `small`s with no element between them ran their text together
-			// with no space — "...cached contextby role" — since `small` has no block
-			// display of its own; a `div` always starts a new line regardless).
-			div.c("muted").text("Cache $ breakdown, all-time — share of each group's $ spent re-reading cached context")
-				.attr("title", "From Server/spend-tree.mjs's own by_role/by_trigger, every agent ever registered — not the date-filtered lists above.");
-			const row = g => div.c("sessions-by-role-row flex gap-50 v-center", () => {
-				small.c("sessions-by-role-name", g.key);
-				small.c("muted", `$${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
-					+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
-			});
-			if (by_role.length){ div.c("muted", "by role"); by_role.forEach(row); }
-			if (by_trigger.length){ div.c("muted", "by trigger"); by_trigger.forEach(row); }
+			const row = g => small.c("muted", `${g.key}: $${g.cache_read_usd.toFixed(2)} cache reads of $${g.claude_usd.toFixed(2)}`
+				+ (g.cache_read_pct != null ? ` (${g.cache_read_pct}%)` : "") + ` · ${g.count} agent${g.count === 1 ? "" : "s"}`);
+			div.c("muted").text("Cache $ breakdown, all-time — share of each group's $ spent re-reading cached context");
+			div.c("sessions-cache-cols", () => { div.c("flow", () => by_role.forEach(g => div(() => row(g)))); div.c("flow", () => by_trigger.forEach(g => div(() => row(g)))); });
 		});
 	},
 
@@ -812,6 +740,7 @@ export default new Page({
 		const draw = () => {
 			this.last_rows = with_date_path_rows(merge(this.snapshot_rows, this.last_agents), this.page_dirs);
 			this.render_rows();
+			this.$asof?.text("updated " + new Date().toLocaleTimeString());
 		};
 
 		const poll = async () => {
@@ -832,6 +761,7 @@ export default new Page({
 		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
 		load_index(this.url).then(index => {
 			this.session_index = index;
+			IX = index;
 			if (!this.last_rows.length) return;
 			this.render_rows();
 		});
@@ -871,11 +801,8 @@ export default new Page({
 		// not live yet (doc/decisions.md); degrades silently (the stat cards
 		// just show "—") on a 404, i.e. the script hasn't been run yet on this
 		// machine. Feeds the stat-card row, not a line of text — `render_stats()`.
-		get_json(this.url + "week.json").then(week => {
-			if (!week) return;
-			this.week = week;
-			this.render_stats();
-		});
+		// usage.json (the plan's own meter, kept fresh by Servex) feeds the two plan tiles; the old week.json snapshot went stale.
+		get_json(this.url + "../usage.json").then(usage => { this.usage = usage; this.render_stats(); });
 	},
 
 	deactivated(){ this.polling = false; },
