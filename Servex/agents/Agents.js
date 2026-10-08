@@ -1368,14 +1368,24 @@ Agents.Agent = class Agent {
 		return this.ceiling_cache ??= this.read_ceiling();   // read the brief once, not on every registry write
 	}
 
+	/* BUDGETS ARE ADVISORY (the owner, 2026-10-08: "I don't trust the AI to come up with a good budget ... we don't want
+	 * arbitrary limits that stop an agent a couple dollars short of finishing"). A `budget_usd` or a brief's `Budget: $N` is the
+	 * spawner's estimate, kept for the mastermind to watch; it does NOT cap the agent. What is enforced is only the runaway
+	 * backstop: SERVEX_GATE_CEILING_USD (default $100), plus the results-gated allowance in allowance_usd() ($2 for the first
+	 * result, +$3 per verified result), which stops spend that produces nothing. */
 	read_ceiling(){
+		return Number(process.env.SERVEX_GATE_CEILING_USD) || 100;
+	}
+
+	/* The spawner's estimate, for display and for the mastermind's own watching (never enforced). */
+	estimate_usd(){
 		if (Number(this.budget_usd) > 0) return Number(this.budget_usd);
 		try {
 			const brief = this.task?.brief && fs.readFileSync(path.resolve(this.task.brief), "utf8");
 			const m = brief && /Budget:\s*\$\s*(\d+(?:\.\d+)?)/.exec(brief);
 			if (m) return Number(m[1]);
 		} catch {}
-		return Number(process.env.SERVEX_GATE_CEILING_USD) || 20;
+		return null;
 	}
 
 	allowance_usd(){
@@ -1504,17 +1514,6 @@ Agents.Agent = class Agent {
 		g.due = false;
 		if (this.state === "working") this.interrupt().catch?.(() => {});
 		if (g.gated) return;   // one card per gate, however often the agent is woken past it
-		/* THE MASTERMIND'S JUDGEMENT CALL (2026-10-07): a productive agent (it has results, and made one recently), a fully priced
-		 * spend, the week on pace, no more than 2 auto-grants and never past 2x the ceiling: continue it without bothering the
-		 * owner; log it. Anything else falls through to the card below, unchanged. */
-		const recent = g.results.length > 0 && (spent - g.spent_at_result) < (Number(process.env.SERVEX_GATE_STEP_USD) || 3) * 1.5;
-		if (!unpriced && recent && (g.auto ?? 0) < 2 && allowance + 5 <= this.ceiling_usd() * 2 && Usage.on_pace()){
-			g.auto = (g.auto ?? 0) + 1;
-			this.gate_log("auto-grant", { auto: g.auto, since_result_usd: +(spent - g.spent_at_result).toFixed(4) });
-			this.grant(5);
-			try { this.send(`Servex: you are productive and the week is on pace, so the mastermind gave you $5 more — continue.`, { from: "servex", revive: true }); } catch {}
-			return;
-		}
 		g.gated = true;
 		this.gate_log("gate", { since_result_usd: +(spent - g.spent_at_result).toFixed(4), unpriced_calls: this.unpriced_calls ?? 0 });
 		const made = g.results.length ? g.results.map(r => `${r.kind}: ${r.what}`).slice(-5).join("; ") : "nothing yet";
