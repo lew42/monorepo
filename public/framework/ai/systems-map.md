@@ -8,7 +8,7 @@ One row per system: its entry readme, its size and last change (computed 2026-10
 | Servex (the always-on process, agents) | `Servex/` | [Servex/readme.md](/framework/servex/) | 388 · 10-03 | **long**; decisions in `Servex/doc/architecture.md` |
 | Servex agents (roles, spawn, sessions) | `Servex/agents/` | `Servex/agents/readme.md` | 289 · 10-04 | **long** |
 | Agent SDK (how an agent is started) | `Servex/agents/Agents.js` | `Servex/doc/sdk.md` | 50 · 10-08 | new |
-| Models (Anthropic, OpenRouter, local) | `Servex/ext/openrouter/`, `Servex/ext/local/`, `ai/system/models/` | `Servex/ext/local/readme.md` | n/a | OpenRouter has no readme, only `gaps.md` and `decisions/` |
+| Models (Anthropic, OpenRouter, local) | `Servex/ext/openrouter/`, `Servex/ext/local/`, `ai/system/models/` | `Servex/ext/openrouter/readme.md`, `Servex/ext/local/readme.md` | n/a | both exist |
 | Sessions (voice and chat) | `public/framework/ai/sessions/` | [sessions/readme.md](sessions/readme.md) | 177 · 10-08 | **long**; owned by minion-session-class |
 | Dashboard (AI 2) | `public/framework/ai2/` | `ai2/readme.md` | 387 · 10-06 | **long**; the AI readme calls it retired in places, the System tab still links it |
 | Page system | `public/framework/core/Page/` | `core/Page/readme.md` | 105 · 10-06 | about right |

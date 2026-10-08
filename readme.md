@@ -9,6 +9,19 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 - Simple `div()` view system with capturing
 - No new npm dependencies (`chokidar`, `express`, `ws` are the dev server); `npx` and globally-installed tools are fine
 
+## Systems (one line each; every link opens that system's own short readme)
+
+- **Accounting** (spend, tokens, pace): [token accounting](public/framework/ai/doc/token-accounting.md) · [usage and budgets](Servex/doc/budget.md) · [session spend](public/framework/ai/sessions/readme.md)
+- **Servex** (the always-on process that runs every agent): [Servex/readme.md](Servex/readme.md) · [how an agent is started (SDK)](Servex/doc/sdk.md) · [decisions](Servex/doc/architecture.md)
+- **Dev server** (local only, live reload): [Server/readme.md](Server/readme.md)
+- **MCP servers** (the tools agents call: `servex`, `site`): [ai/doc/mcp.md](public/framework/ai/doc/mcp.md)
+- **Models** (Anthropic, OpenRouter, local): [OpenRouter](Servex/ext/openrouter/readme.md) · [local](Servex/ext/local/readme.md) · [which is best value](public/framework/ai/system/models/)
+- **Sessions** (VS Code sidebar tabs, browser voice agents, resumable chats): [ai/sessions](public/framework/ai/sessions/readme.md) · [conversations](public/framework/ai/doc/conversations.md)
+- **Transcription** (Whisper, Dictate): [ux/Dictate](public/framework/ux/Dictate/readme.md)
+- **Page system** (pages, routing, JSONL streaming): [core/Page](public/framework/core/Page/readme.md) · [ext/JSONL](public/framework/ext/JSONL/readme.md)
+- **Skills and CLAUDE.md** (what every agent reads first): [CLAUDE.md](CLAUDE.md) · [skills](public/framework/ai/skills/)
+- **Dashboard, Log, Inbox, tasks**: [ai/readme.md](public/framework/ai/readme.md) · [all systems, with size and freshness](public/framework/ai/systems-map.md)
+
 ## Cloudflare Previews
 
 The current `main` branch is deployed at: https://monorepo.lew42.workers.dev/

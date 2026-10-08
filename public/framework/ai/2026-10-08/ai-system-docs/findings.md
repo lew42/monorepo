@@ -34,3 +34,6 @@ Dashboard overview: the Now card (messages have no timestamps; may be stale), th
 ## Note: owner
 Note: the Servex pool failed to produce a worktree (log event `pool`); I made one by hand with `Server/worktree-up.mjs`. Worth a look.
 Reused: docs-vs-code-audit (heartbeat name clash is still open), task-audit, token-accounting.
+
+## Addendum 2 done
+Root `readme.md` and `ai/readme.md` now carry a one-line-per-system index (accounting first), each linking that system's own readme. Several linked readmes are over 100 lines (Servex, Servex/agents, Dictate, ai2, sessions): shortening them is the next Haiku pass, listed in `systems-map.md`. Shots of the System page at 400, 1200, 1920 and 3440 are in `shots/`: no overflow, cards reflow 1 to 5 across.
