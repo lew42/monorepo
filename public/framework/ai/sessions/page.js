@@ -639,7 +639,13 @@ export default new Page({
 					});
 				});
 			}
-			div.c("sessions-daterange flex gap-50 v-center", () => {
+			label.c("flex gap-35 v-center h4", () => {
+					const $box = input().attr("type", "checkbox");
+					$box.el.checked = !!this.show_closed;
+					$box.on("change", () => { this.show_closed = $box.el.checked; this.render_rows(); });
+					span("show closed");
+				}).attr("title", "Sessions you marked done are hidden by default. They are never deleted.");
+				div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date");
 				$from.el.value = this.date_from;
@@ -665,7 +671,8 @@ export default new Page({
 
 		const from = Date.parse(this.date_from + "T00:00:00");
 		const to = Date.parse(this.date_to + "T23:59:59.999");
-		const filtered = this.last_rows.filter(r => this.role_filter.has(r.role || "(unknown)")
+		const closed = this.session_index?.closed ?? {};   // lifecycle: closed sessions hide unless "show closed" is ticked (never deleted)
+		const filtered = this.last_rows.filter(r => (this.show_closed || !closed[r.session_id || r.id]) && this.role_filter.has(r.role || "(unknown)")
 			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to));
 		const sorted = sort_by_cost(filtered, this.cost_sort);
 

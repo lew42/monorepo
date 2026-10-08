@@ -338,13 +338,13 @@ export default class Session {
 			if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); text = await fs.readFile(url, "utf8"); }
 			else { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return null; text = await r.text(); }
 		} catch { return null; }
-		let summary = null, audit = null;
+		let summary = null, audit = null, closed = null;
 		for (const line of text.split("\n")){
 			if (!line.trim()) continue;
-			try { const o = JSON.parse(line); if (o.summary) summary = o.summary; if (o.audit) audit = o.audit; } catch {}
+			try { const o = JSON.parse(line); if (o.summary) summary = o.summary; if (o.audit) audit = o.audit; if ("closed" in o) closed = o.closed ? o : null; } catch {}
 		}
 		if (!summary) return null;
-		const ss = new Session(id, summary); ss.s.audit = audit; return ss;
+		const ss = new Session(id, summary); ss.s.audit = audit; ss.s.closed = closed; return ss;
 	}
 
 	// Node: read what the transcripts gained since the last run (new bytes only), then save.
@@ -378,14 +378,24 @@ export default class Session {
 	async save(by = "session-summary"){
 		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id), file = new URL("session.jsonl", dir);
 		await fs.mkdir(dir, { recursive: true });
-		const at = new Date().toISOString(), s = { ...this.s }; delete s.audit;
+		const at = new Date().toISOString(), s = { ...this.s }; delete s.audit; delete s.closed;
 		let old = ""; try { old = await fs.readFile(file, "utf8"); } catch {}
 		const lines = old.split("\n").filter(l => l.trim());
 		if (lines.length > 30){      // fold: the newest audit lines survive, the stale summaries do not
-			const audits = lines.filter(l => l.startsWith('{"audit"')).slice(-10);
+			const audits = [...lines.filter(l => l.startsWith('{"audit"')).slice(-10), ...lines.filter(l => l.startsWith('{"closed"')).slice(-5)];   // closed lines survive too
 			await fs.writeFile(file, audits.join("\n") + (audits.length ? "\n" : ""));
 		}
 		await fs.appendFile(file, JSON.stringify({ summary: s, at, by }) + "\n");
+	}
+
+	// Lifecycle: the owner marks a session done ("rubber stamp"). An appended, stamped, authored line; nothing is deleted.
+	// closed:false re-opens it (a later line wins). The table hides closed sessions by default; chasing skips them.
+	static async close(id, by = "owner", closed = true){
+		const fs = await import("node:fs/promises"), dir = Session.dir_url(id);
+		await fs.mkdir(dir, { recursive: true });
+		const line = { closed, at: new Date().toISOString(), by };
+		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify(line) + "\n");
+		return line;
 	}
 
 	async save_audit(result, by = "session-summary --audit"){

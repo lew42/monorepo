@@ -108,7 +108,21 @@ export function detail_section($el, id, index, tree = {}){
 			});
 			if (d.tools.length) small.c("muted").text("Tools: " + d.tools.slice(0, 12).map(t => `${t.name} ${t.n}`).join(", "));
 			// audit
-			div.c("sessions-audit flex gap-50 v-center", () => {
+			// lifecycle: "done, rubber stamp". Appends a stamped `closed` line (nothing is deleted); the table hides it by default.
+				div.c("sessions-audit flex gap-50 v-center", () => {
+					const $st = small.c("muted");
+					let is_closed = !!index?.closed?.[id];
+					const show = () => { $st.text(is_closed ? "closed — hidden from the table unless 'show closed' is ticked" : "open"); $b.text(is_closed ? "Reopen" : "Close (done)"); };
+					const $b = span.c("sessions-audit-btn").attr("role", "button").attr("tabindex", "0")
+						.attr("title", "Mark this session done. It drops out of the default table and stops being chased. Nothing is deleted.")
+						.click(async () => {
+							const r = await get(`/ai-logs/${id}/close${is_closed ? "?undo=1" : ""}`, { method: "POST" });
+							if (r && !r.error){ is_closed = !is_closed; if (index?.closed){ if (is_closed) index.closed[id] = r.at; else delete index.closed[id]; } show(); }
+							else $st.text("could not save (the dev server route is not running)");
+						});
+					show();
+				});
+				div.c("sessions-audit flex gap-50 v-center", () => {
 				const $out = small.c("sessions-audit-result muted");
 				const last = d.audit;
 				$out.text(last ? `last audit ${last.match ? "✓ match" : "✗ mismatch"} at ${last.at}` : "never audited");

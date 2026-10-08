@@ -93,6 +93,16 @@ export default class AILogs {
         // The Session class's numbers (ai/sessions/Session.js), computed here in code, never by reading a file in a
         // model: GET /ai-logs/<uuid>/session = the cached detail (reads only new bytes), POST /ai-logs/<uuid>/audit =
         // recompute the whole raw log by the independent path, compare, record. Doc: ai/sessions/doc/session-class.md
+        // Lifecycle: POST /ai-logs/<uuid>/close (or ?undo=1 to reopen) appends a stamped `closed` line to session.jsonl.
+        this.server.router.post("/ai-logs/:id/close", async (req, res) => {
+            if (!this.guard(req, res)) return;
+            if (!UUID.test(req.params.id)) return res.status(400).end();
+            try {
+                const { Session } = await import("../../public/framework/ai/sessions/Session.js");
+                res.json(await Session.close(req.params.id, "owner", !req.query.undo));
+            } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+        });
+
         for (const [verb, name] of [["get", "session"], ["post", "audit"]]) {
             this.server.router[verb](`/ai-logs/:id/${name}`, async (req, res) => {
                 if (!this.guard(req, res)) return;

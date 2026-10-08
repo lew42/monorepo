@@ -29,3 +29,7 @@ A 12,000-message session with 90 subagent files audits in a few seconds; `--inde
 ## Known limits
 
 The tree uses the Servex registry; spawned agents with no recorded parent are counted as a defect on the page. Effort is only known where the file or the registry records it.
+
+## Lifecycle: closing a session
+
+The owner can mark a session done ("rubber stamp"). `Session.close(id, by, closed)` appends a stamped `{closed: true|false, at, by}` line to `session.jsonl`; a later line wins, so `closed:false` reopens it. Nothing is deleted. The detail view has a Close/Reopen button (`POST /ai-logs/<id>/close`, `?undo=1` to reopen), and `node Server/session-summary.mjs --close|--reopen <id> [--by name]` does the same from a script or an agent. `--index` lists closed sessions in `session-index.json` (`closed: {id: at}`); the table hides them unless "show closed" is ticked. Anything that chases or wakes sessions should skip an id listed there.
