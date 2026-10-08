@@ -992,7 +992,7 @@ export default class Sessions {
 		const backend = s.fallback?.[role] ? "openrouter" : session_backend();
 		if (backend === "openrouter") return FALLBACK_MODEL;
 		if (backend === "local") return role === "fast" ? "local/qwen2.5-coder" : FALLBACK_MODEL;
-		return role === "fast" ? "claude-sonnet-5" : Usage.pick("smart", this.repo);
+		return role === "fast" ? "claude-sonnet-5-5" : Usage.pick("smart", this.repo);
 	}
 
 	/* Held open with no prompt: each one's first turn is the owner's first line. */

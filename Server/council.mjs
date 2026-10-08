@@ -294,7 +294,7 @@ export async function runCouncil(targetDir) {
 				group: "system-design",
 				request: "Feedback council: checkers verify asks against live site, record verdicts, append to asks.jsonl",
 				requested_at: now(),
-				model: "claude-sonnet-5",
+				model: "claude-sonnet-5-5",
 				words_gathered: col.count,
 				now: "words collected, preparing checkers"
 			}
@@ -314,7 +314,7 @@ export async function runCouncil(targetDir) {
 					role: "task-mastermind",
 					name: "feedback-council",
 					prompt,
-					model: "claude-sonnet-5",
+					model: "claude-sonnet-5-5",
 					effort: "medium",
 					permission_mode: "bypassPermissions",
 					cwd: root,

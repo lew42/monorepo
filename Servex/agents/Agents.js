@@ -126,7 +126,7 @@ export class Agents {
 			spec = { ...spec, cwd: slot.path };
 			this.servex.say?.(`minion ${id} moved into pool worktree ${slot.id} — a minion never writes to the main tree`, { event: "pool", id: slot.id });
 		}
-		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5";
+		const model = spec.model ?? role_defaults(spec.role).model ?? "claude-sonnet-5-5";
 		/* THE SLASH RULE (openrouter/provider.js): a caller that only passes a
 		 * `model` with a `/` in it (an OpenRouter slug, e.g. `openai/gpt-6-luna`)
 		 * gets the openrouter provider for free — nobody has to say `provider`
@@ -843,7 +843,7 @@ Agents.Agent = class Agent {
 	defaults(){
 		return {
 			role: "agent",
-			model: "claude-sonnet-5",
+			model: "claude-sonnet-5-5",
 			provider: "anthropic",
 			effort: "high",
 			visibility: "team",

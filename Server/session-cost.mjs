@@ -50,6 +50,7 @@ const ROOT = join(here, "..");
 export const DEFAULT_MODEL = "claude-sonnet-5";
 export const PRICES = {
 	"claude-sonnet-5":  { in: 2,  out: 10 },
+	"claude-sonnet-5-5": { in: 2, out: 10 },   // ASSUMED equal to sonnet-5 (2026-10-08) - verify against Anthropic pricing
 	"claude-opus-5":    { in: 5,  out: 25 },
 	"claude-opus-5-5":  { in: 4,  out: 20 },
 	"claude-haiku-4-5": { in: 1,  out: 5  },

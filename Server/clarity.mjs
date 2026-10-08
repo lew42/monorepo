@@ -71,7 +71,7 @@ async function main(){
 		+ (pages.length ? ` Pages it changed, to look at as the owner would (host http://monorepo.localhost): ${pages.join(" ")}.` : "")
 		+ (kind === "proposal" && target.endsWith("todo.md") ? " Check only the entries changed most recently (git diff on the file)." : "");
 	const body = { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "spawn_agent", arguments: {
-		role: "clarity", name: slug, prompt, model: "claude-sonnet-5", effort: "medium",
+		role: "clarity", name: slug, prompt, model: "claude-sonnet-5-5", effort: "medium",
 		permission_mode: "bypassPermissions", cwd: root, visibility: "team"
 	} } };
 	try {

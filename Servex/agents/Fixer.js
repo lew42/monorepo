@@ -66,7 +66,7 @@ export default class Fixer {
 		this.servex.agents.live.delete(this.id);   // a STOPPED corpse would otherwise make Agents.name() mint "fixer-1-2"
 		return this.servex.agents.spawn({
 			id: this.id, role: this.role, name: "1", urgent: true,
-			model: "claude-sonnet-5", effort: "medium",   // the brief's own words — `role: "fixer"` has no roles.js row, so these would silently default to Agent.defaults()'s "high" otherwise
+			model: "claude-sonnet-5-5", effort: "medium",   // the brief's own words — `role: "fixer"` has no roles.js row, so these would silently default to Agent.defaults()'s "high" otherwise
 			system: this.brief(),
 			cwd: slot.path,
 			permission_mode: "bypassPermissions",

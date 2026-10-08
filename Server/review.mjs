@@ -439,7 +439,7 @@ async function turnsCmd(taskDir) {
 	appendJSON(reviewJsonl, { phase: { at: now(), n: 3, kind: "replies", status: "start" } });
 	let parsed = [], cost = 0;
 	try {
-		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root });
+		const spawned = await mcp("spawn_agent", { role: "reviewer", name, prompt, model: "claude-sonnet-5-5", effort: "medium", permission_mode: "bypassPermissions", cwd: root });
 		if (!spawned.id) throw new Error(spawned.raw || spawned.why || "spawn_agent did not return an id");
 		const waited = await mcp("wait_for_agent", { id: spawned.id, timeout_s: 900 }, 910000);
 		cost = waited.cost ?? 0;
@@ -761,7 +761,7 @@ async function main() {
 	// a `--model` with a `/` (an OpenRouter slug, e.g. `deepseek/deepseek-v4.1-flash`) needs
 	// nothing else here — Agents.spawn()'s slash rule (Servex/ext/openrouter/provider.js)
 	// already reads `model` and picks the openrouter provider for the spawn_agent call below
-	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5");
+	const model = modelArg || (size === "full" ? "claude-opus-5-5" : "claude-sonnet-5-5");
 	const name = path.basename(taskDir).replace(/[^a-z0-9-]+/gi, "-").slice(0, 40);
 	// A page review writes review/report.md and asks the reviewer to load the review skill;
 	// everything else keeps the plain prompt and review.md, exactly as before this task.

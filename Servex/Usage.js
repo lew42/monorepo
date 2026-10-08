@@ -38,7 +38,7 @@ export default class Usage {
 
 	/* Opus when the week is over 60% gone and weekly use is under the elapsed share (usage to spare); else Sonnet. `fast` is always Sonnet. */
 	static pick(role, repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
-		const SONNET = "claude-sonnet-5", OPUS = "claude-opus-5-5", WEEK = 7 * 24 * 3600 * 1000;
+		const SONNET = "claude-sonnet-5-5", OPUS = "claude-opus-5-5", WEEK = 7 * 24 * 3600 * 1000;
 		if (role === "fast") return SONNET;
 		try {
 			const j = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8"));

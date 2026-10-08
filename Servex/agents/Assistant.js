@@ -286,7 +286,7 @@ export default class Assistant {
 			return null;
 		}
 		const agent = this.servex.agents.spawn({
-			role: "helper", name: slug(args.title ?? "help"), model: "claude-sonnet-5", effort: "low",
+			role: "helper", name: slug(args.title ?? "help"), model: "claude-sonnet-5-5", effort: "low",
 			parent: this.id,
 			cwd: REPO, permission_mode: "bypassPermissions",
 			allowed_tools: ["Read", "Grep", "Glob", "mcp__servex__card_reply"],

@@ -54,7 +54,7 @@ import { askOnce } from "./ask-each.mjs";
 
 const MODELS = {
 	haiku: "claude-haiku-4-5-20251001",
-	sonnet: "claude-sonnet-5",
+	sonnet: "claude-sonnet-5-5",
 };
 
 // ---- one table, every rung's {model, prompt} (2026-09-29, this file's own task) --------------
@@ -127,7 +127,7 @@ function parseArgs(argv) {
 }
 
 // A short, filesystem-safe id for a model: "haiku" stays "haiku"; a raw model id like
-// "claude-sonnet-5" collapses to "claude-sonnet-5" (already safe). Used for both the
+// "claude-sonnet-5-5" collapses to "claude-sonnet-5-5" (already safe). Used for both the
 // structured-<id>.md filename and the collab member id.
 const modelKey = s => String(s).replace(/[^a-zA-Z0-9_-]+/g, "-");
 const modelIdFor = name => MODELS[name] || name; // a name not in the table is used literally
