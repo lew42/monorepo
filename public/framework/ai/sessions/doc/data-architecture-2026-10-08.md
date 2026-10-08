@@ -26,3 +26,6 @@ Tasks, questions, prompts and messages inside a session get their **own routes**
 
 ## 6. Documentation map (to build)
 The JSONL streaming system (sessions, logs, tasks, boards, the `live()` tail and its socket) needs one primary overview, probably under `core/Page`, linking every place it is used and documented, with a **backlink** to that overview from each of those places. Readmes stay plain text; user-facing pages carry the interactive, responsive material (possibly loading the readme into the page).
+
+## 7. Budgeting must run on the ledger (owner, 2026-10-08; queued)
+Budgets and the spend gate (`Servex/agents/Agents.js` `gate_check`, `allowance_usd`) must read spend from the programmatic per-message ledger (`session.jsonl`, computed from the raw session file's usage lines, deduped by message id), not from the SDK's end-of-turn total or the registry's `cost` (which resets on Servex restart) or the task `spend.json` (observed ~2x high). No AI judges spend. The budget NUMBER stays an estimate set by whoever spawns (default $20), but enforcement (80%/100% warnings, 2x hard stop) reads the ledger. Do this after the Session class lands and its audit shows a 0 gap.
