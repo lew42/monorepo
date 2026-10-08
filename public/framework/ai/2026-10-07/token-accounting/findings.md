@@ -1,0 +1,168 @@
+# Token accounting — findings (investigation, 2026-10-07)
+
+One real bug found and fixed (it was silently hiding most of the real spend). One more
+found, verified, and left for `plan.md` (too risky to hot-fix in this pass). Everything
+below is checked against real files on this machine, not assumed.
+
+## The big one, fixed: `find_transcript()` only ever found ONE project folder
+
+`Server/session-cost.mjs`'s `find_transcript(session_id)` is the function every cost
+reader in this repo (`task-cost.mjs`, `spend-tree.mjs`, the Sessions tab) calls to get an
+agent's REAL, complete cost — it's supposed to search every `~/.claude/projects/c--Code-
+lew42-*` folder, because a worktree session's transcript lives under its own, differently
+named folder. The code to do that already existed and even said so in its own comment —
+but the match was case-SENSITIVE (`startsWith("c--Code-lew42-")`, lowercase `c`), while
+the Claude CLI names a **worktree's** project folder with an **uppercase** `C`
+(`C--Code-lew42-worktrees-<slug>`). Checked live: of **145** real project folders on this
+machine, the old check let through exactly **1** — the main checkout itself, which only
+matched by luck (`c--Code-lew42-monorepo` happens to start lowercase).
+
+**Why this matters so much:** worktrees are where most real multi-file work happens (the
+sub-mastermind skill routes almost everything there by default). Every one of those
+agents' real cost was invisible to `find_transcript()`, so every reader fell back to the
+agent's own running-total log instead — and the 2026-10-04 `token-accounting` task
+already proved that fallback undercounts by 20–60%+ whenever the transcript can't be
+read (a dropped SDK `result` event, a revive, a restart). This is very likely why **the
+week ran out two days early**: a large share of real, billed spend from worktree-run
+work was never priced correctly anywhere in this repo's own ledgers.
+
+**Fixed** (`Server/session-cost.mjs`, one line, case-insensitive match). Verified before
+and after with a scan of the real registry: agents with a `session_id` but no findable
+transcript dropped from **499 of 2101** to **11 of 2101** (and those 11 are legitimately
+gone — a test placeholder id, and a couple of session pairs that likely never completed a
+turn). Script: `scratch-scan.mjs` in this dir, rerunnable.
+
+## Found, verified, NOT fixed here: an OpenRouter agent's logged "cost" is stale by one turn
+
+Every agent's "result" line (written to `agent-<id>.jsonl` on every turn, the thing
+`task-cost.mjs`/`spend-tree.mjs` sum) is built like this (`Agents.js`, `result()`):
+
+```
+if (this.provider === "openrouter") this.refresh_or_cost();   // async, NOT awaited
+else this.cost = message.total_cost_usd ?? this.cost;
+...
+this.emit({ type: "result", cost: this.cost, ... });            // reads it right away
+```
+
+`refresh_or_cost()` has to `await` a network call (OpenRouter's own billing settling) to
+learn the real price of the turn that just finished — so the very next line, which logs
+`this.cost` into the permanent record, almost always fires BEFORE that await resolves. It
+logs last turn's number, not this one's. The real number does land in `this.cost`
+eventually, but nothing re-logs it — the next turn's result line picks it up only if
+there IS a next turn. **The agent's very last turn's real cost is never captured in its
+own ledger at all.**
+
+Verified against a real OpenRouter agent (`echo-57d98556`): its 2nd turn really cost
+`$0.3124` (`openrouter.jsonl`, the real metered log), but the agent's own `result` line
+for that turn logged `cost: 0`. See `reconcile.mjs`'s run below.
+
+**Why not fixed now:** the fix is to `await` the price before emitting (or emit a second,
+corrected line once it resolves) — a real change to a hot path in `Agents.js` that every
+live agent runs through, with its own test (`openrouter-cost-blind-proof.mjs`) already
+covering adjacent behavior. That's past "a wrong rate" territory into "ask before major
+surgery" — written up as a prioritized, scoped item in `plan.md` instead.
+
+## Phase 1 — the architecture, verified
+
+**1. How Servex spawns agents / exposes tool capability.** Every Servex agent is one call
+to `query()` from `@anthropic-ai/claude-agent-sdk` (`Servex/agents/Agents.js:1, :881`) —
+the same official SDK, which runs the `claude` CLI as a child process under the hood, so
+every agent writes the exact same transcript format the CLI itself would. In-process
+tools (`spawn_agent`, `page_add`, etc.) are exposed through `createSdkMcpServer()`
+(`Servex/agents/tools.js:1, :384`) — an **in-process** MCP server, no network hop, each
+tool a plain `tool()`-wrapped function. This is why Servex-spawned agents and a VS Code
+tab's own CLI session are both just rows in `~/.claude/projects/...` — there's only one
+underlying session mechanism.
+
+**2. Session file timing; sub-agents.** The CLI (and therefore the SDK) appends to
+`~/.claude/projects/<folder>/<uuid>.jsonl` turn by turn, in near real time — this is
+*why* the Stop hook (`node Server/session-cost.mjs --append-stdin`, wired in
+`.claude/settings.json`) can price a turn seconds after it ends. A **spawned Servex
+agent** (a minion, via `spawn_agent`) is its OWN separate `query()` call with its OWN
+session id and OWN transcript file — never a sidechain inside the parent's file. The SDK
+*also* has its own in-process subagent concept (`forwardSubagentText`,
+`parent_tool_use_id` on a message, `Agents.js:931-934, :1314-1327`) — those ARE nested
+lines inside the SAME transcript (tagged `nested: true`), but Servex doesn't appear to use
+that SDK feature for real minion spawns (every minion in the registry has its own
+`session_id`); it's seen on the delta/text-block event path only. Not fully chased further
+— named as a minor open question in `plan.md`, not guessed at.
+
+**3. Where today's cost computation can be wrong.** Full map already lives in
+`ai/sessions/doc/decisions.md`'s 2026-10-04 entry (re-verified here, still accurate) —
+the short version: `session-cost.mjs` reads a session's own transcript (now fixed to find
+ALL of them, see above); `task-cost.mjs`/`spend-tree.mjs` prefer that transcript over the
+agent's own log, falling back only when no transcript is found (now much rarer). The
+**new** item this task found: the OpenRouter stale-cost race, above. **Still true, not
+re-litigated:** a minion with no recorded `parent` in the registry is invisible to
+`task-cost.mjs`'s per-task tree walk (named in decisions.md already).
+
+**4. Which spawned agents have no session file or no ledger line (measured live).**
+Of 2107 registered agents: **6** never got a `session_id` at all (one `dispatcher` that
+never spawns, and a handful of old minions — `scratch-scan.mjs`'s output), **8** have no
+`agent-<id>.jsonl` log file at all, and — after the fix above — only **11** have a
+`session_id` with no findable transcript (down from 499). None of this is hidden data
+loss at scale; it's a small, named tail now instead of half the fleet.
+
+**5. Real-time usage; would we need to wrap the SDK?** Already done, today: every
+`assistant` SDK message carries `message.usage` per turn (`Agents.js:1316`,
+`this.last_usage`), and `Agents.js` already uses it live for OpenRouter per-call pricing
+(`price()`/`meter()`) and for the live "context" figure shown on an agent's card. So the
+SDK already reports usage per message, and Servex already wraps it — the gap isn't
+"can we get real-time data", it's "does every write path actually persist the number
+before something else reads it" (exactly the stale-cost race found above).
+
+## Deliverable 2 — reconciliation, 3 real sessions (`reconcile.mjs`, rerunnable)
+
+| session | ledger says | real total says | gap |
+|---|---|---|---|
+| plain (this task's own mastermind) | $11.7096 | $4.4708 (transcript) | ledger reads **higher** — flagged below, not fully explained |
+| root + 192 minions (`task-mastermind-loose-ends`) | $49.93 (whole tree) | $107.08 (whole tree) | ledger undercounts by **54%** |
+| OpenRouter (`echo-57d98556`) | $0 | $0.3124 (real metered) | ledger misses the agent's last-priced turn entirely |
+
+**Flagged, not resolved:** session 1's direction is backwards from the other two (ledger
+HIGHER than the transcript, not lower). Worth a second look — possibly a compaction or a
+resumed session id carrying over a stale higher total — but this task's own session is
+still live while writing this, so re-running `reconcile.mjs` after this task lands (on a
+closed transcript) would be a cleaner check than guessing now. Named as an open item in
+`plan.md`, not swept under the $107 vs $49.93 headline number above.
+
+## Addition (owner, same day): realtime — using the existing stream, not a new one
+
+Checked, as asked, before writing the plan (full detail now lives at
+[`ai/sessions/doc/realtime-plan.md`](/framework/ai/sessions/doc/realtime-plan.md), linked
+from that dir's readme so it survives past this chat):
+
+**(1) How core/Page streams `page.jsonl` today.** A WebSocket, not SSE, not polling:
+`dev/Socket/Socket.js` sends `subscribe(path, offset)`; the dev server
+(`Server/plugins/SocketServer/Tail.js`) tails the file and pushes back `jsonl(path,
+lines, offset)` the moment new bytes land — byte-offset only, never a replay.
+`ext/JSONL/live.js` is the browser-side wiring; `JSONL.live()` is the one call a page
+makes to use it. Localhost only; off the dev server a page just fetches once (fine here —
+this tab is dev/localhost-only already).
+
+**(2) Does `sessions/` already reuse it?** No. Checked directly in `page.js`: every
+number on this page — `sessions.json`, `week.json`, `spend-tree.json` — comes from a
+plain one-shot `fetch()` of a snapshot a script has to be re-run by hand to refresh.
+Even the ONE live-jsonl-eligible file this page already touches, a session's own
+`page.jsonl` (the Stop hook's `{"cost":...}` lines), is read with a one-shot
+`get_jsonl()`, never `JSONL.live()`. This page has never used the fast path — it isn't a
+second stream to retire, it would be the FIRST real use of the one that exists.
+
+**(3) Can the same mechanism tail a session's cost lines, and who writes them live?**
+Yes, mechanically — it tails any `.jsonl` under `public/`, so a new `session.jsonl`
+works exactly like any other. Who writes it, and how fast, differs by kind: a Servex
+agent's `Agents.js` already sees every SDK message live, in-process (`assistant()`,
+`result()` already read `message.usage` per message for OpenRouter pricing) — it could
+append a cost line per MESSAGE, true sub-turn realtime. A VS Code tab/plain CLI run has
+no such in-process watcher; only the Stop hook sees it, once per WHOLE TURN (it re-reads
+the full transcript after the turn ends) — that's this kind's real ceiling, not a bug to
+fix. Recommendation, tradeoff, alternative, and the staged migration (`sessions.json` →
+live `session.jsonl`, Servex rows first) are all in `realtime-plan.md`.
+
+## Also noted (not this task's to fix): the quick-fix worktree pool is stuck
+
+7 stale worktrees (`qf-2`, `qf-4` through `qf-9`) sit in `C:/Code/lew42/worktrees/`,
+several holding uncommitted work from stopped agents (`git worktree list`, checked live).
+This is why this task worked directly in the main tree for its own output files instead
+of taking a pool worktree, per its own brief. Not investigated further (out of this
+task's fence) — just named here so it isn't lost.

@@ -160,6 +160,10 @@ merge.
 
 ## More
 
+- [`doc/realtime-plan.md`](./doc/realtime-plan.md) — the owner's ask (2026-10-07): this page
+  must go realtime using the site's EXISTING jsonl stream, never a second one. What that stream
+  already is, why this tab has never actually used it, and the staged plan to get a session's own
+  `session.jsonl` streaming live instead of the current stale snapshots.
 - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from

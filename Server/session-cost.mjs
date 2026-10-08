@@ -204,12 +204,28 @@ export function trace_of_transcript(path){
 // ai/sessions/doc/decisions.md's own noted open gap ("only one project's session files
 // are scanned"); this script is the right place to fix it, since it already needs to
 // open every folder to find one session id.
+//
+// ⚠ FIXED 2026-10-07 (token-accounting round 2): the comment above claimed this already
+// scanned every worktree folder, but the match was CASE-SENSITIVE (`startsWith("c--Code-
+// lew42-")`, lowercase `c`), while the Claude CLI names a worktree's own project folder
+// with an UPPERCASE `C` (`C--Code-lew42-worktrees-<slug>...`). Checked live on this
+// machine: of 145 real `*lew42*` project folders under `~/.claude/projects`, this match
+// let through exactly ONE — the main checkout itself (`c--Code-lew42-monorepo`, lowercase
+// by luck). Every worktree session (which is most multi-file work — the sub-mastermind
+// skill routes it there by default) silently found no transcript at all, so `session-
+// cost.mjs`, `task-cost.mjs` and `spend-tree.mjs` all fell back to the agent log's own
+// running total for those agents — the same number mistake 2 of the 2026-10-04 decisions
+// entry already proved undercounts by 20-60%+ whenever it can't read the transcript. This
+// is the likely cause of the week's own total reading low: a large share of real spend,
+// from worktree-run work, was never priced off the transcript at all. Fixed with a
+// case-insensitive test; no other change needed, since the file-existence check right
+// after it was already correct.
 export function find_transcript(session_id){
 	const base = join(homedir(), ".claude", "projects");
 	let dirs;
 	try { dirs = readdirSync(base, { withFileTypes: true }); } catch { return null; }
 	for (const d of dirs){
-		if (!d.isDirectory() || !d.name.startsWith("c--Code-lew42-")) continue;
+		if (!d.isDirectory() || !/^c--code-lew42-/i.test(d.name)) continue;
 		const f = join(base, d.name, session_id + ".jsonl");
 		if (existsSync(f)) return f;
 	}

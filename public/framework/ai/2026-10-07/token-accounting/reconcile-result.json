@@ -1,0 +1,32 @@
+[
+  {
+    "label": "1. Plain session",
+    "agent_id": "task-mastermind-token-accounting",
+    "session_id": "b719daae-31dd-4850-8b9f-adac8a0034a2",
+    "ledger_usd": 11.7096,
+    "transcript_usd": 4.4708,
+    "transcript_found": true,
+    "gap_usd": -7.2388
+  },
+  {
+    "label": "2. Session with sub-agents (root only)",
+    "agent_id": "task-mastermind-loose-ends",
+    "session_id": "c1880a80-ebd0-4a61-a394-0b94c2735d43",
+    "ledger_usd": 11.2894,
+    "transcript_usd": 44.266,
+    "transcript_found": true,
+    "gap_usd": 32.9766,
+    "kids": 192,
+    "kids_with_transcript": 192,
+    "kids_ledger_usd": 38.6442,
+    "kids_transcript_usd": 62.8124
+  },
+  {
+    "label": "3. OpenRouter session",
+    "agent_id": "echo-57d98556",
+    "session_id": "39329a2b-bc00-4e48-9305-25f64c9100c8",
+    "ledger_usd": 0,
+    "real_usd": 0.3124,
+    "gap_usd": 0.3124
+  }
+]
