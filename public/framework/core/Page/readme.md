@@ -100,6 +100,8 @@ Nothing crawls: a page exists once its parent's `children:` (or a `file` line, o
 
 **Navigation** — [navigation](./navigation/) (the pattern: persistent vs switching) · [`doc/navigation.md`](./doc/navigation.md) (children, menus, where links open) · [`doc/labels.md`](./doc/labels.md) (title, label, icon) · [`doc/markdown.md`](./doc/markdown.md) and [`doc/open.md`](./doc/open.md) (`.md` files as pages, and where a click opens)
 
+**A thing has a page** — [`doc/composition.md`](./doc/composition.md) (tasks and sessions hold a page by reference, not by extending it; page CRUD/move is a known gap)
+
 **Content inside a page** — icon items, sections, outlines: [ux/Content/structure](/framework/ux/Content/structure/)
 
 **Reference** — [doc](./doc/) (every method, property and topic in full, on its own tab) — [`doc/words.md`](./doc/words.md) (the six page words) · [`doc/api.md`](./doc/api.md) (every method and property) · [`doc/jsonl.md`](./doc/jsonl.md) (the log format in full) · [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) (open: directory deltas, session index, querying) · [`doc/watch-out.md`](./doc/watch-out.md) (the traps, one line each) · [`doc/more-features.md`](./doc/more-features.md) · [`doc/decisions.md`](./doc/decisions.md), [`doc/findings.md`](./doc/findings.md) (the record) · Files: `Page.class.js` (the class), `Page.css` (every `.page-*` rule), `page.js` (the palette), `tools/links.mjs` (a link-checking script, not a page)

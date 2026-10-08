@@ -160,6 +160,7 @@ merge.
 
 ## More
 
+- [`../doc/tasks.md`](../doc/tasks.md) — proposal: tasks as `core/Task` with `origin` = the creating session; session cost rolls up into its tasks
 - [`doc/data-architecture-2026-10-08.md`](./doc/data-architecture-2026-10-08.md) — the owner's open design: index files, several files per session, what session.jsonl keeps, routes, what the task audit leaves behind
 - [`doc/session-as-container-2026-10-08.md`](./doc/session-as-container-2026-10-08.md) — idea: a session as a container for a whole AI setup (roles, models, tools); open
 - [`doc/realtime-plan.md`](./doc/realtime-plan.md) — the owner's ask (2026-10-07): this page

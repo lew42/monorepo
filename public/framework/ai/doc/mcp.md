@@ -18,6 +18,18 @@ Both endpoints answer standard JSON-RPC 2.0 over HTTP POST on loopback (`127.0.0
 
 ---
 
+## In-process vs network tools (2026-10-08)
+
+Each Servex tool in [`Servex/agents/tools.js`](/Servex/agents/tools.js) is one plain definition (`name, description, inputSchema, handler`) served two ways:
+
+- **In-process (no network):** for agents Servex spawns, `server()` wraps every tool with the SDK's `tool()` and `createSdkMcpServer()`; the handler is a node function call. This is all the `servex` tools: agents (`spawn_agent`, `send_to_agent`, ...), tasks (`snooze_task`, `kill_task`, `reprioritise_task`), sessions, jobs, experts, and pages (`page_add/set/log/read`).
+- **HTTP MCP:** `Servex/MCP.js` serves the same list to outside sessions (VS Code tabs, the CLI). Needed only where the caller is not a Servex agent.
+- **Network by nature:** the `site` server (`eval`, `shot`, `claim`), because it talks to a browser.
+
+Rule: write handlers as plain functions, and never make an agent call its own host over HTTP. The planned task tools (`task_create`, `task_plan`, `task_set`, `task_move`, `task_link`, `task_read`, `task_list`) follow it: see [tasks.md](tasks.md).
+
+---
+
 ## Configuration Files and Multi-Harness Locations
 
 Different AI harnesses look for MCP servers in different files. When adding or updating an MCP server in this repo, be aware of the following targets:
