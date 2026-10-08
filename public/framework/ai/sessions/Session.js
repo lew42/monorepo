@@ -360,21 +360,39 @@ export default class Session {
 		return out;
 	}
 
-	// Browser or node: the newest saved summary for an id, or null. One small request.
-	static async load_cached(id){
-		const url = new URL("session.jsonl", Session.dir_url(id));
-		let text;
+	// Browser or node: read one of a session's small log files as text, or "" when it does not exist.
+	static async read_text(id, name){
+		const url = new URL(name, Session.dir_url(id));
 		try {
-			if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); text = await fs.readFile(url, "utf8"); }
-			else { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) return null; text = await r.text(); }
-		} catch { return null; }
-		let summary = null, audit = null, closed = null;
-		for (const line of text.split("\n")){
-			if (!line.trim()) continue;
-			try { const o = JSON.parse(line); if (o.summary) summary = o.summary; if (o.audit) audit = o.audit; if ("closed" in o) closed = o.closed ? o : null; } catch {}
+			if (url.protocol === "file:"){ const fs = await import("node:fs/promises"); return await fs.readFile(url, "utf8"); }
+			const r = await fetch(url, { cache: "no-store" }); return r.ok ? await r.text() : "";
+		} catch { return ""; }
+	}
+	static lines_of(text){ const out = []; for (const l of text.split("\n")) if (l.trim()) try { out.push(JSON.parse(l)); } catch {} return out; }
+
+	// The hand-written record (tags, notes, alerts, weight, closed, questions, links) from session.jsonl, folded to what a
+	// card needs. session.jsonl is TRACKED in git and append-only: only people and agents write to it.
+	static async record(id){
+		const r = { tags: [], alerts: 0, links: [], weight: null, closed: null, notes: 0, questions: 0 };
+		for (const o of Session.lines_of(await Session.read_text(id, "session.jsonl"))){
+			if (o.tag && !r.tags.includes(o.tag)) r.tags.push(o.tag);
+			if (o.alert) r.alerts++;
+			if (o.note) r.notes++;
+			if (o.question) r.questions++;
+			if (typeof o.weight === "number") r.weight = o.weight;
+			if (Array.isArray(o.links)) r.links = o.links;
+			if ("closed" in o) r.closed = o.closed ? o : null;
 		}
+		return r;
+	}
+
+	// The newest saved summary for an id, or null. The computed numbers live in cache.jsonl (gitignored machine state,
+	// rewritten freely); the record in session.jsonl is only ever appended to.
+	static async load_cached(id){
+		let summary = null, audit = null;
+		for (const o of Session.lines_of(await Session.read_text(id, "cache.jsonl"))){ if (o.summary) summary = o.summary; if (o.audit) audit = o.audit; }
 		if (!summary) return null;
-		const ss = new Session(id, summary); ss.s.audit = audit; ss.s.closed = closed; return ss;
+		const ss = new Session(id, summary); ss.s.audit = audit; ss.s.closed = (await Session.record(id)).closed; return ss;
 	}
 
 	// Node: read what the transcripts gained since the last run (new bytes only), then save.
@@ -404,15 +422,15 @@ export default class Session {
 		return this.update(files);
 	}
 
-	// Node: append the summary to <id>/session.jsonl (stamped), folding the file so it stays tiny.
+	// Node: append the summary to <id>/cache.jsonl (stamped), folding that cache file so it stays tiny. Never touches session.jsonl.
 	async save(by = "session-summary"){
-		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id), file = new URL("session.jsonl", dir);
+		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id), file = new URL("cache.jsonl", dir);
 		await fs.mkdir(dir, { recursive: true });
 		const at = new Date().toISOString(), s = { ...this.s }; delete s.audit; delete s.closed;
 		let old = ""; try { old = await fs.readFile(file, "utf8"); } catch {}
 		const lines = old.split("\n").filter(l => l.trim());
 		if (lines.length > 30){      // fold: the newest audit lines survive, the stale summaries do not
-			const audits = [...lines.filter(l => l.startsWith('{"audit"')).slice(-10), ...lines.filter(l => !l.startsWith('{"audit"') && !l.startsWith('{"summary"'))];   // only old summaries and old audits are dropped; every tag, note, alert, closed line stays
+			const audits = [...lines.filter(l => l.startsWith('{"audit"')).slice(-10), ...lines.filter(l => !l.startsWith('{"audit"') && !l.startsWith('{"summary"'))];   // cache.jsonl holds only summaries and audits, so this fold can never lose a record line
 			await fs.writeFile(file, audits.join("\n") + (audits.length ? "\n" : ""));
 		}
 		await fs.appendFile(file, JSON.stringify({ summary: s, at, by }) + "\n");
@@ -431,7 +449,7 @@ export default class Session {
 	async save_audit(result, by = "session-summary --audit"){
 		const fs = await import("node:fs/promises"), dir = Session.dir_url(this.id);
 		await fs.mkdir(dir, { recursive: true });
-		await fs.appendFile(new URL("session.jsonl", dir), JSON.stringify({ audit: result, at: result.at, by }) + "\n");
+		await fs.appendFile(new URL("cache.jsonl", dir), JSON.stringify({ audit: result, at: result.at, by }) + "\n");
 		this.s.audit = result;
 	}
 

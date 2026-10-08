@@ -11,7 +11,7 @@
 //   node Server/session-summary.mjs --watch [seconds]                keep the index fresh (default 20 s), changed files only
 //
 // The work is done by public/framework/ai/sessions/Session.js (same class the page uses).
-// Cache: public/framework/ai/sessions/<id>/session.jsonl (gitignored machine state). Docs: sessions/doc/session-class.md
+// Cache: public/framework/ai/sessions/<id>/cache.jsonl (gitignored machine state); the record is <id>/session.jsonl (tracked). Docs: sessions/doc/session-class.md
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -96,7 +96,7 @@ export async function build_index({ days = 30 } = {}){
 		const reg = registry.find(x => x.session_id === id);
 		const pv = r.session.preview();
 		rows[id] = { id, agent: reg?.id ?? null, role: reg?.role ?? null, parent: reg?.parent ?? null, usd: pv.usd, wall_ms: pv.wall_ms, active_ms: pv.active_ms,
-			model: pv.model, effort: pv.effort, flags: pv.flags.length, closed: r.session.s.closed?.at ?? null, first_at: r.session.s.first_at, last_at: r.session.s.last_at };
+			model: pv.model, effort: pv.effort, flags: pv.flags.length, first_at: r.session.s.first_at, last_at: r.session.s.last_at };
 	}
 	// a registry parent is an AGENT id; the tree is keyed by session id
 	const agent_to_session = new Map(registry.filter(r => r.session_id).map(r => [r.id, r.session_id]));
@@ -114,14 +114,17 @@ export async function build_index({ days = 30 } = {}){
 	for (const id of Object.keys(rows)) if (rows[id].children && rows[id].tree_usd >= 0.01 && (want.has(rows[id].parent) || want.has(id))) want.add(id);
 	// Grid file: one short array per session [own $, tree $, descendants, wall ms, model, effort, flags]. Tree file: only the
 	// sessions that have a parent or children (names, roles, who is whose child) - loaded when a detail page opens.
-	const slim = {}, tree = {}, closed = {}, r4 = n => Math.round(n * 1e4) / 1e4;
+	const slim = {}, tree = {}, closed = {}, meta = {}, r4 = n => Math.round(n * 1e4) / 1e4;
 	for (const id of want){
 		const r = rows[id]; if (!r) continue;
-		if (r.closed) closed[id] = r.closed;
+		// the hand-written record (tags, alerts, links, weight, closed) from the session's own tracked session.jsonl
+		const rec = await Session.record(id);
+		if (rec.closed) closed[id] = rec.closed.at;
+		if (rec.tags.length || rec.alerts || rec.links.length || rec.weight != null) meta[id] = { tags: rec.tags, alerts: rec.alerts, links: rec.links.slice(0, 3), weight: rec.weight };
 		slim[id] = [r4(r.usd), r4(r.tree_usd), r.children, Math.round(r.wall_ms), r.model === "unknown" ? 0 : r.model, r.effort ?? 0, r.flags];
 		if (r.parent || r.kids.length) tree[id] = { agent: r.agent ?? undefined, role: r.role ?? undefined, parent: r.parent ?? undefined, kids: r.kids.length ? r.kids : undefined };
 	}
-	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, rows: slim };
+	const index = { generated_at: new Date().toISOString(), days, columns: ["usd", "tree_usd", "children", "wall_ms", "model", "effort", "flags"], count: Object.keys(slim).length, scanned: Object.keys(rows).length, unlinked_spawned: unlinked.length, unlinked_sample: unlinked.slice(0, 5), closed, meta, rows: slim };
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-tree.json"), JSON.stringify(tree));
 	fs.writeFileSync(path.join(SESSIONS_DIR, "session-index.json"), JSON.stringify(index));
 	return { ...index, rows: undefined, new_lines };

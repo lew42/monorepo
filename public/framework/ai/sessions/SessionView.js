@@ -119,7 +119,8 @@ export function detail_section($el, id, index, tree = {}){
 							const r = await get(`/ai-logs/${id}/close${is_closed ? "?undo=1" : ""}`, { method: "POST" });
 							if (r && !r.error){ is_closed = !is_closed; if (index?.closed){ if (is_closed) index.closed[id] = r.at; else delete index.closed[id]; } show(); }
 							else $st.text("could not save (the dev server route is not running)");
-						});
+						})
+						.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); e.target.click(); } });
 					show();
 				});
 				div.c("sessions-audit flex gap-50 v-center", () => {
@@ -132,7 +133,8 @@ export function detail_section($el, id, index, tree = {}){
 						$out.text("auditing…");
 						const r = await get(`/ai-logs/${id}/audit`, { method: "POST" });
 						$out.text(audit_result(r?.audit)).attr("class", "sessions-audit-result " + (r?.audit?.match ? "sessions-audit-ok" : "sessions-flag"));
-					});
+					})
+					.on("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); e.target.click(); } });
 			});
 		});
 	});

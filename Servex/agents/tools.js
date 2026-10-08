@@ -177,6 +177,20 @@ function session_tools(agents){
 				const r = await refresh(args.session);
 				return JSON.stringify(r ? await run_audit(args.session, r.session) : { error: "no transcript found for " + args.session });
 			}),
+		tool("log_session",
+			"Append ONE stamped line to a Claude session's own record (`sessions/<id>/session.jsonl`, tracked, append-only). `line` is"
+			+ " exactly one of: {tag:'name'}, {note:'text'}, {alert:'text', level:'info|warn|urgent'}, {weight:0-10}, {closed:true|false},"
+			+ " {question:'text', options:[..]}, {links:[{path,label}]} (1 to 3 core links). Refused with the reason if the shape is wrong."
+			+ " Shapes: /framework/ai/sessions/doc/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",
+			{ session: { type: "string", description: "The Claude session id (uuid) the line is about." },
+				line: { type: "object", description: "One line in a shape from the record spec." },
+				by: { type: "string", description: "Your agent name, e.g. mastermind-task-audit." } },
+			["session", "line", "by"],
+			async args => {
+				const { default: Session } = await import("../../public/framework/ai/sessions/Session.js");
+				try { return JSON.stringify({ ok: true, line: await Session.log(args.session, args.line, args.by) }); }
+				catch (e){ return JSON.stringify({ error: String(e.message || e) }); }
+			}),
 		tool("session_line",
 			"Post a line to the owner in a voice session. With `re` alone it is a reply to that owner line. With `re` AND `level` it is"
 			+ " a REFINED version of the owner's words, drawn under the raw line: `clean` (fillers gone), `edit` (rewritten clearly),"

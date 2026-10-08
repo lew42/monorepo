@@ -1,6 +1,6 @@
 # Session record spec
 
-A session's record is one append-only file: `sessions/<session-uuid>/session.jsonl`. Each line is one JSON object. Nothing is ever edited or deleted; a later line wins. The Sessions page reads this record, so write what you know in these shapes and nothing else.
+A session's record is one append-only file: `sessions/<session-uuid>/session.jsonl`. Each line is one JSON object. Nothing is ever edited or deleted; a later line wins. The Sessions page reads this record (via `session-index.json`'s `meta` and `closed`; computed cost lives separately in the gitignored `cache.jsonl`), so write what you know in these shapes and nothing else.
 
 **Goal state:** for every session from the past few days, a clean record with name, cost, runtime, model and effort, tags, core links and alerts. Cost, runtime and model are computed by `Session.js` from the transcript, so you never write them. You write the judgment: tags, links, alerts, notes.
 
@@ -41,3 +41,7 @@ Required: the session uuid (36 characters, the Claude session id), `by`, and one
 - Never write a cost, runtime or model. If the numbers look wrong, run `node Server/session-summary.mjs <uuid> --audit` and note the mismatch.
 
 More about the class: [session-class.md](session-class.md).
+
+## Writing a line from an agent
+
+The Servex tool `log_session {session, line, by}` wraps `Session.log` (restart Servex to see it). From a script: `node Server/session-summary.mjs --log <uuid> '<json>' --by <name>`. The Sessions table filters by tag and by "needs attention" (any alert line).

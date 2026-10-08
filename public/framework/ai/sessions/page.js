@@ -645,6 +645,21 @@ export default new Page({
 					$box.on("change", () => { this.show_closed = $box.el.checked; this.render_rows(); });
 					span("show closed");
 				}).attr("title", "Sessions you marked done are hidden by default. They are never deleted.");
+				label.c("flex gap-35 v-center h4", () => {
+					const $a = input().attr("type", "checkbox");
+					$a.el.checked = !!this.attention_only;
+					$a.on("change", () => { this.attention_only = $a.el.checked; this.render_rows(); });
+					span("needs attention");
+				}).attr("title", "Only sessions with an alert in their session.jsonl record.");
+				const tags = [...new Set(Object.values(this.session_index?.meta ?? {}).flatMap(m => m.tags))].sort();
+				if (tags.length) label.c("flex gap-35 v-center h4", () => {
+					span("tag");
+					const sel = document.createElement("select");   // no select() helper in the framework
+					for (const t of ["", ...tags]){ const o = document.createElement("option"); o.value = t; o.textContent = t || "any"; sel.append(o); }
+					sel.value = this.tag_filter || "";
+					sel.addEventListener("change", () => { this.tag_filter = sel.value; this.render_rows(); });
+					div().el.append(sel);
+				});
 				div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date");
@@ -671,9 +686,12 @@ export default new Page({
 
 		const from = Date.parse(this.date_from + "T00:00:00");
 		const to = Date.parse(this.date_to + "T23:59:59.999");
+		const meta = this.session_index?.meta ?? {};
 		const closed = this.session_index?.closed ?? {};   // lifecycle: closed sessions hide unless "show closed" is ticked (never deleted)
 		const filtered = this.last_rows.filter(r => (this.show_closed || !closed[r.session_id || r.id]) && this.role_filter.has(r.role || "(unknown)")
-			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to));
+			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to)
+			&& (!this.attention_only || meta[r.session_id || r.id]?.alerts)
+			&& (!this.tag_filter || meta[r.session_id || r.id]?.tags.includes(this.tag_filter)));
 		const sorted = sort_by_cost(filtered, this.cost_sort);
 
 		// Paging, not windowing: rows are variable-height (a title line plus an

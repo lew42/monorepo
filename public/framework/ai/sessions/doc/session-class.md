@@ -11,9 +11,14 @@
 - A best-effort split of tokens by purpose. Method and error are printed beside it (`PURPOSE_METHOD`).
 - Claude and OpenRouter are never added together; this class only knows Claude.
 
-## `session.jsonl` (cache, one per session, gitignored)
+## Two files per session
 
-`sessions/<session-id>/session.jsonl`. Each line is `{summary, at, by}` (the rolling totals plus a byte cursor and a ring of the last 40 message ids) or `{audit, at, by}` (time, old totals, new totals, match, diff). More than 30 lines fold into one summary plus the latest audit.
+- `session.jsonl` is the **record**: tags, notes, alerts, weight, closed, questions, links. Tracked in git, append-only, written only by `Session.log` (see [record-spec](record-spec.md)). Never folded or rewritten.
+- `cache.jsonl` is the **computed numbers**, gitignored and rebuildable, described next.
+
+## `cache.jsonl` (one per session, gitignored)
+
+`sessions/<session-id>/cache.jsonl`. Each line is `{summary, at, by}` (the rolling totals plus a byte cursor and a ring of the last 40 message ids; the byte cursor is the real guard against double counting, the ring only covers a cursor reset) or `{audit, at, by}` (time, old totals, new totals, match, diff). More than 30 lines fold into one summary plus the latest audit.
 
 ## Loading and saving
 
@@ -32,4 +37,4 @@ The tree uses the Servex registry; spawned agents with no recorded parent are co
 
 ## Lifecycle: closing a session
 
-The owner can mark a session done ("rubber stamp"). `Session.close(id, by, closed)` appends a stamped `{closed: true|false, at, by}` line to `session.jsonl`; a later line wins, so `closed:false` reopens it. Nothing is deleted. The detail view has a Close/Reopen button (`POST /ai-logs/<id>/close`, `?undo=1` to reopen), and `node Server/session-summary.mjs --close|--reopen <id> [--by name]` does the same from a script or an agent. `--index` lists closed sessions in `session-index.json` (`closed: {id: at}`); the table hides them unless "show closed" is ticked. Anything that chases or wakes sessions should skip an id listed there.
+The owner can mark a session done ("rubber stamp"). `Session.close(id, by, closed)` appends a stamped `{closed: true|false, at, by}` line to `session.jsonl` (the record); a later line wins, so `closed:false` reopens it. Nothing is deleted. The detail view has a Close/Reopen button (`POST /ai-logs/<id>/close`, `?undo=1` to reopen), and `node Server/session-summary.mjs --close|--reopen <id> [--by name]` does the same from a script or an agent. `--index` lists closed sessions in `session-index.json` (`closed: {id: at}`); the table hides them unless "show closed" is ticked. Anything that chases or wakes sessions should skip an id listed there.
