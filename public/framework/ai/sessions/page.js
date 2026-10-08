@@ -4,6 +4,7 @@ import { age } from "/framework/core/Page/ext/Inbox/Inbox.js";
 import { grip } from "/framework/ext/grip/grip.js";
 import { load as raw_transcript_lines } from "/framework/ext/AITask/replay.js";
 import { dur, elapsed } from "/framework/ext/AITask/stats.js";
+import { load_index, load_tree, row_of, cost_lines, defect_line, detail_section } from "./SessionView.js";
 
 View.stylesheet(import.meta, "sessions.css");
 
@@ -74,6 +75,7 @@ export const SOURCE = {
 	servex: { label: "Servex", icon: "hub" },
 	vscode: { label: "VS Code", icon: "laptop_windows" },
 	cli: { label: "CLI", icon: "terminal" },
+	sdk: { label: "SDK", icon: "memory" },   // entrypoint "sdk-ts": spawned through the Agent SDK, not by hand
 	// A row synthesized purely from a date-path folder's own NAME (2026-10-03,
 	// sessions-date-homes) — `with_date_path_rows()` below, for a session that
 	// has a real `ai/<Y>/<M>/<D>/<slug>-<id8>/` page but no `sessions.json`/
@@ -106,7 +108,7 @@ export const COLUMNS = [
 	{ key: "model",    label: "Model",    min: 88 },
 	{ key: "state",    label: "State",    min: 80 },
 	{ key: "ram",      label: "RAM",      min: 64 },
-	{ key: "cost",     label: "Cost",     min: 64 },
+	{ key: "cost",     label: "Cost",     min: 144 },
 ];
 
 // The Cost header is also a sort toggle: default (newest-activity-first) →
@@ -174,6 +176,7 @@ export function role_of(r){
 	if (/^echo-/.test(r.id || "")) return "echo/refiner";
 	if (r.source === "vscode") return "vscode mastermind";
 	if (r.source === "cli") return "cli";
+	if (r.source === "sdk") return "sdk run";
 	return null;
 }
 
@@ -201,6 +204,7 @@ export function money_parts(usd){
 export const ROLE_LABELS = {
 	"(unknown)": { label: "(unknown)", title: "A VS Code or CLI session this page can't name a role for — nothing in the data it reads (sessions.json, GET /api/agents) says who was driving it." },
 	"cli": { label: "Terminal sessions", title: "A standalone `claude` run from a terminal — not a VS Code tab, not a Servex-spawned agent." },
+	"sdk run": { label: "SDK runs", title: "A session the Agent SDK ran (the file's entrypoint is sdk-ts) that Servex has no record of. Not a terminal, not a VS Code tab." },
 	"vscode mastermind": { label: "VS Code tabs", title: "An interactive VS Code tab — a human typing, not a spawned agent." },
 	"echo/refiner": { label: "Echo / refiner", title: "A session whose id starts \"echo-\" — the one naming convention this page can see." },
 };
@@ -316,7 +320,7 @@ const WORKING_STATE_ATTR = state => WORKING_STATES.has(state) ? "working" : "idl
 // this tab's own `/sessions/<id>/` view, same as before this task. Omitted
 // entirely (the Dashboard tile's own call) just means every row falls back,
 // which is harmless and correct — no session has a date-path page yet.
-export function row_view(r, url, page_dirs, spend){
+export function row_view(r, url, page_dirs, spend, session_index){
 	const src = SOURCE[r.source] ?? { label: r.source, icon: "help" };
 	const dated = page_dirs?.get((r.session_id || r.id || "").slice(0, 8));
 	const href = dated ?? (url + r.id + "/");
@@ -366,6 +370,10 @@ export function row_view(r, url, page_dirs, spend){
 		// here so the moment Servex adds the field, this just lights up.
 		div.c("sessions-cell", () => { if (typeof r.ram_mb === "number" && typeof r.ram_sample_age_ms === "number" && r.ram_sample_age_ms < 10000) small.c("muted", Math.round(r.ram_mb) + "MB"); });
 		div.c("sessions-cell", () => {
+			// The Session class row (session-index.json) is the truth for a Claude session's cost: whole tree, runtime, model + effort.
+			// A row it does not know (an old session outside its window) keeps the older figures below.
+			const ix = row_of(session_index, r.session_id || r.id);
+			if (ix){ div.c("sessions-name-stack", () => cost_lines(ix, session_index)); return; }
 			const has_split = typeof r.cost_claude_usd === "number" || typeof r.cost_openrouter_usd === "number";
 			if (has_split){
 				if (typeof r.cost_claude_usd === "number") small.c("muted", "$" + r.cost_claude_usd.toFixed(2));
@@ -631,7 +639,13 @@ export default new Page({
 					});
 				});
 			}
-			div.c("sessions-daterange flex gap-50 v-center", () => {
+			label.c("flex gap-35 v-center h4", () => {
+					const $box = input().attr("type", "checkbox");
+					$box.el.checked = !!this.show_closed;
+					$box.on("change", () => { this.show_closed = $box.el.checked; this.render_rows(); });
+					span("show closed");
+				}).attr("title", "Sessions you marked done are hidden by default. They are never deleted.");
+				div.c("sessions-daterange flex gap-50 v-center", () => {
 				small.c("muted", "from");
 				const $from = input().attr("type", "date");
 				$from.el.value = this.date_from;
@@ -657,7 +671,8 @@ export default new Page({
 
 		const from = Date.parse(this.date_from + "T00:00:00");
 		const to = Date.parse(this.date_to + "T23:59:59.999");
-		const filtered = this.last_rows.filter(r => this.role_filter.has(r.role || "(unknown)")
+		const closed = this.session_index?.closed ?? {};   // lifecycle: closed sessions hide unless "show closed" is ticked (never deleted)
+		const filtered = this.last_rows.filter(r => (this.show_closed || !closed[r.session_id || r.id]) && this.role_filter.has(r.role || "(unknown)")
 			&& this.trigger_filter.has(trigger_of(r, this.spend) || "(n/a)") && in_date_range(r, from, to));
 		const sorted = sort_by_cost(filtered, this.cost_sort);
 
@@ -673,7 +688,7 @@ export default new Page({
 		const visible = sorted.slice(0, this.shown);
 		this.$rows.empty(() => {
 			if (!sorted.length) return void p.c("muted").style({ gridColumn: "1 / -1" }).text("No sessions with an id yet.");
-			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend));
+			visible.forEach(r => row_view(r, this.url, this.page_dirs, this.spend, this.session_index));
 			if (sorted.length > visible.length){
 				div.c("sessions-show-more").style({ gridColumn: "1 / -1" }).append(() => {
 					small.c("muted").text(`Showing ${visible.length} of ${sorted.length} — `);
@@ -706,6 +721,8 @@ export default new Page({
 		this.$summary?.empty(() => {
 			small.c("muted", `${filtered.length} session${filtered.length === 1 ? "" : "s"} shown — $${claude_total.toFixed(2)} Claude logged in range`)
 				.attr("title", "Only rows that already carry a logged cost (mostly live Servex agents) are counted here — most VS Code/CLI sessions don't have one yet. OpenRouter $ isn't tracked per session at all, so it can't be summed for an arbitrary date range; the real Claude $ and OpenRouter $ for THIS WEEK are the cards above, computed straight from the transcripts and the OpenRouter ledger. ai/sessions/doc/decisions.md has the full reasoning.");
+	
+			defect_line(this.session_index);
 		});
 
 		this.$by_role?.empty(() => {
@@ -793,6 +810,12 @@ export default new Page({
 		// Fetched once per activation; redraw ONLY if real rows are already on screen, same
 		// guard the date-path index below already needs for the identical reason (it would
 		// otherwise lock render_controls()'s trigger filter to an empty Set forever).
+		load_index(this.url).then(index => {
+			this.session_index = index;
+			if (!this.last_rows.length) return;
+			this.render_rows();
+		});
+
 		load_spend_tree(this.url).then(spend => {
 			this.spend = spend;
 			if (!this.last_rows.length) return;
@@ -1244,6 +1267,7 @@ function session_page(root, id){
 			const $box = div.c("flow");
 			const $costs = div.c("flow");
 			const $spawn = div.c("flow");   // who spawned this, why, and what it spawned in turn (2026-10-03, spend-tree)
+			const $session = div.c("flow");   // the Session class: cost tree, model + effort, tokens by purpose, audit
 			const $trace = div.c("flow");   // the cost-over-time chart + "what was it doing" table, BELOW $costs (2026-10-03 brief)
 
 			// `row` first, on its own — everything else needs its `session_id`.
@@ -1256,6 +1280,7 @@ function session_page(root, id){
 			// this same lookup for the date-path reconciliation).
 			load_row(root.url, id).then(async row => {
 				const session_id = row?.session_id ?? id;
+				Promise.all([load_index(root.url), load_tree(root.url)]).then(([index, tree]) => detail_section($session, session_id, index, tree));
 				const dir_index = await session_page_dir_index();
 				const dir = session_page_dir(dir_index, session_id);
 				const [costs, trace, prompts] = await Promise.all([
@@ -1326,6 +1351,7 @@ function session_page(root, id){
 				});
 			});
 
+			$session;
 			$costs;
 			$box;
 			$spawn;

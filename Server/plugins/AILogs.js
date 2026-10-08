@@ -90,6 +90,32 @@ export default class AILogs {
             this.serve(req, res, path.join(this.dir, req.params.id, "subagents", req.params.file));
         });
 
+        // The Session class's numbers (ai/sessions/Session.js), computed here in code, never by reading a file in a
+        // model: GET /ai-logs/<uuid>/session = the cached detail (reads only new bytes), POST /ai-logs/<uuid>/audit =
+        // recompute the whole raw log by the independent path, compare, record. Doc: ai/sessions/doc/session-class.md
+        // Lifecycle: POST /ai-logs/<uuid>/close (or ?undo=1 to reopen) appends a stamped `closed` line to session.jsonl.
+        this.server.router.post("/ai-logs/:id/close", async (req, res) => {
+            if (!this.guard(req, res)) return;
+            if (!UUID.test(req.params.id)) return res.status(400).end();
+            try {
+                const { Session } = await import("../../public/framework/ai/sessions/Session.js");
+                res.json(await Session.close(req.params.id, "owner", !req.query.undo));
+            } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+        });
+
+        for (const [verb, name] of [["get", "session"], ["post", "audit"]]) {
+            this.server.router[verb](`/ai-logs/:id/${name}`, async (req, res) => {
+                if (!this.guard(req, res)) return;
+                if (!UUID.test(req.params.id)) return res.status(400).end();
+                try {
+                    const { refresh, run_audit } = await import("../session-summary.mjs");
+                    const r = await refresh(req.params.id);
+                    if (!r) return res.status(404).end();
+                    res.json(name === "audit" ? { audit: await run_audit(req.params.id, r.session), detail: r.session.detail() } : r.session.detail());
+                } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+            });
+        }
+
         // The original route: one session's own transcript — GET /ai-logs/<uuid>
         this.server.router.get("/ai-logs/:id", (req, res) => {
             if (!this.guard(req, res)) return;

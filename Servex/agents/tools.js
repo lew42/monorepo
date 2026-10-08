@@ -166,6 +166,17 @@ function session_tools(agents){
 				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
 			["session", "title", "summary"],
 			args => JSON.stringify(sessions().summarize(args))),
+		tool("audit_session",
+			"Prove a Claude session's cost: recompute EVERY total from the raw transcript by an independent code path, compare to the"
+			+ " rolling totals the Session class keeps, and record the result (time, old, new, match) in the session's session.jsonl."
+			+ " Returns `{match, diff}`: a match, or the exact $ and token difference per field. Takes a Claude session id (a uuid).",
+			{ session: { type: "string", description: "The Claude session id (uuid) to audit." } },
+			["session"],
+			async args => {
+				const { refresh, run_audit } = await import("../../Server/session-summary.mjs");
+				const r = await refresh(args.session);
+				return JSON.stringify(r ? await run_audit(args.session, r.session) : { error: "no transcript found for " + args.session });
+			}),
 		tool("session_line",
 			"Post a line to the owner in a voice session. With `re` alone it is a reply to that owner line. With `re` AND `level` it is"
 			+ " a REFINED version of the owner's words, drawn under the raw line: `clean` (fillers gone), `edit` (rewritten clearly),"
