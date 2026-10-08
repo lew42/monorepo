@@ -159,6 +159,66 @@ the full transcript after the turn ends) — that's this kind's real ceiling, no
 fix. Recommendation, tradeoff, alternative, and the staged migration (`sessions.json` →
 live `session.jsonl`, Servex rows first) are all in `realtime-plan.md`.
 
+## Addition (owner, same day): session freshness — is a long session quietly expensive?
+
+Full writeup: [`ai/sessions/doc/context-cost.md`](/framework/ai/sessions/doc/context-cost.md),
+linked from that dir's readme. Measured against a real 5,142-turn session
+(`361c4d18…`, `context-measure.mjs` in this dir, rerunnable on any session id) —
+the owner's instinct was right, and by a bigger margin than guessed:
+
+**(1) How much of a long session's $ is repeated context, not new work — measured.**
+**79.2%** of this session's whole $1,709.65 was `cache_read` (re-reading old context),
+another **13.5%** was `cache_write` (re-priming it), and genuinely fresh input was
+**$0.0003** — three hundredths of one cent, across 5,142 turns. Only **7.3%** (the
+output tokens — the model's own words) was anything resembling "new work." The
+owner's own back-of-envelope ("12 tool calls over a 100k window is ~1.2M cache-read
+tokens") undersells it if anything: $/turn grew **4x** from the session's first 10
+turns to its last 10, because the context itself kept growing even through several
+in-place `/compact` resets (context size bounced between ~50k and 1.8M tokens across
+the transcript, confirmed by direct measurement — `compact()`/`oversized()` in
+`Agents.js` already exists and fires at 200k tokens, but the session re-grows past it
+quickly and compaction summarizes in place rather than truly resetting).
+
+**(2) Does a gap actually break the cache? Measured, not assumed — yes, badly.**
+Every gap over roughly the 1-hour cache TTL shows the exact signature: `cache_read`
+collapses to a small floor (~27k-57k, likely just the system prompt + tool schemas)
+while `cache_write` jumps to the FULL context size, repriced at the cache-write rate
+(2x input, this repo's own confirmed rate). Real examples from this one session: a
+6-16 hour gap turned a turn that would have cost **$0.15-0.55** (a normal cache hit at
+that context size) into one costing **$5.82-$8.08** — 15-50x more expensive, for the
+exact same context, purely because nobody talked to it for over an hour.
+
+**(3) Where Servex already decides resume-vs-fresh — and the gap is real.**
+`Layers.js` (the card assistant/manager tier) ALREADY has exactly the rule the owner
+is describing, built 2026-09-28, in the owner's own words in the code comment:
+*"FRESH, NOT COMPACTED"*. `stale()` refuses to resume an assistant whose context is
+`>= resume_max_tokens` (30,000) OR whose last use is `>= resume_max_age_ms` (**60
+minutes — already tied to the cache TTL**), and a manager past `fresh_at.manager`
+(150,000 tokens) the same way. When stale, `ask_checkpoint()` asks the agent for ONE
+line (`card_summary`: decisions, open questions, what it was mid-task) and restarts it
+FRESH under the same id rather than resuming the bloated session. **This exact
+mechanism does not cover masterminds or task-masterminds** — those only go through
+`Agents.js`'s generic `sleep()`/`awaken()`/`compact()` path, which resumes a dormant
+agent's session regardless of how long it's been idle (no age check at all) and only
+ever compacts in-place at 200k tokens (an SDK summarization, not Layers.js's "ask for
+one checkpoint line, then truly restart fresh" pattern). A long-lived mastermind or
+manager-type agent that sleeps overnight and gets woken the next morning is
+GUARANTEED a cache-miss-priced first turn under today's code — exactly the 15-50x
+spike measured in (2).
+
+**Recommendation (decided, alternative named):** extend `Layers.js`'s existing
+`stale()`/`ask_checkpoint()` pattern to masterminds and task-masterminds in
+`Agents.js`'s own `awaken()` path, rather than inventing a second mechanism (CLAUDE.md
+law 6 — one rule for "should this agent resume or restart fresh", reused where it
+isn't wired up yet). **Alternative considered:** raise `compact_tokens` sensitivity
+or add an age check to `oversized()`/`compact()` instead — rejected as the first
+choice because `/compact` summarizes IN PLACE (same session, same growing id), while
+the owner's own words describe wanting a genuinely NEW session with a short,
+deliberately batched re-read — exactly what Layers.js already builds, not what
+`compact()` does. `context-cost.md` has the full mechanism proposal (a context-size +
+cache-read-cost column on the Sessions grid, a "consider fresh session" signal, and
+the handoff shape) for the next task to build.
+
 ## Also noted (not this task's to fix): the quick-fix worktree pool is stuck
 
 7 stale worktrees (`qf-2`, `qf-4` through `qf-9`) sit in `C:/Code/lew42/worktrees/`,

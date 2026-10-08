@@ -100,6 +100,43 @@ not a second system. Staged:
 4. **Retire the polling once (3) is trusted** — side-by-side, not a flag day.
 Not started; (1) is the small, provable first step, not a rewrite.
 
+## 8. Extend Layers.js's "fresh, not compacted" rule to masterminds — Sonnet, ~half a day, careful (it changes when a live agent restarts)
+
+Full evidence and recommendation: [`ai/sessions/doc/context-cost.md`](/framework/ai/sessions/doc/context-cost.md)
+/ findings.md's "session freshness" section. Measured: 79-93% of a long session's $ is
+repeated context (cache read + cache write), and any idle gap past the 1-hour cache
+TTL turns the next turn into a 15-50x-priced cache miss. `Layers.js` already has the
+exact mechanism (`stale()`: resume only under 30k tokens AND within 60 minutes;
+else `ask_checkpoint()` — one summary line, then a true fresh restart) for the
+assistant/manager tier; masterminds and task-masterminds go through `Agents.js`'s
+generic `awaken()` instead, which has no age check at all and only compacts
+in-place at 200k tokens. **The work:** give `Agents.js`'s dormant-agent wake path the
+same `stale()`-shaped check (reuse `Layers.js`'s function/thresholds rather than a
+second copy — CLAUDE.md law 6), and the same checkpoint-then-restart action for a
+mastermind that fails it. **Why careful, not "small":** this changes *when a real,
+possibly mid-task mastermind gets torn down and respawned* — needs its own proof
+(force an old dormant mastermind through it, confirm the checkpoint line actually
+carries what the next fresh instance needs, confirm `readme_chain`-style batched
+re-reads replace the stale context rather than the fresh agent flailing for context).
+Not a one-line fix; scoped here for the next task with the right fence and time.
+
+## 9. Sessions grid: context size + cache-$ + a "consider fresh session" signal — Sonnet, half a day, do after item 8 (or at least after its data model is settled)
+
+Owner's ask: show per-session context size and cumulative cache-read cost on the
+grid, and flag when a session has grown past the point a fresh one would be cheaper.
+Data already exists for this (`cost_of_transcript`'s `usd_breakdown.cache_read`,
+and `this.context` on a live Servex agent's own card) — this is mostly wiring + one
+threshold, not new computation:
+- Add a `context` and `cache_read_usd` cell per row (the live figure for a Servex
+  row, the transcript-computed one for a VS Code/CLI row).
+- A "consider a fresh session" badge once `context` crosses a threshold — reuse
+  `Layers.js`'s own numbers (30k/150k) as the starting default rather than inventing
+  new ones, and make it visibly the SAME number item 8 uses to actually act, so the
+  grid never shows a warning the system itself doesn't also act on.
+- The handoff shape (a short summary + batched readme reads) is exactly
+  `ask_checkpoint()`'s own `card_summary` call, already built — this item is display
+  only, not a new handoff mechanism.
+
 ## Optimization items the owner asked to be recorded (Phase 2, items 1-6)
 
 Each gets what data it needs, so whoever builds it doesn't have to re-derive this:

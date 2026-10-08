@@ -164,6 +164,11 @@ merge.
   must go realtime using the site's EXISTING jsonl stream, never a second one. What that stream
   already is, why this tab has never actually used it, and the staged plan to get a session's own
   `session.jsonl` streaming live instead of the current stale snapshots.
+- [`doc/context-cost.md`](./doc/context-cost.md) — the owner's ask (2026-10-07): is a long
+  session quietly expensive? Measured: 79-93% of a long session's $ is repeated context, and an
+  idle gap past the cache TTL prices the next turn 15-50x higher. Servex already has the right
+  "fresh, not compacted" pattern (`Layers.js`) for assistants/managers; masterminds don't have it
+  yet — the recommendation and plan to extend it.
 - [`doc/decisions.md`](./doc/decisions.md) — the full data-source decision, the `css-scopes.txt`
   reservation note, and the VS-Code-vs-CLI heuristic, checked against a real session
 - [`ext/panel2`](/framework/ext/panel2/) — the header/main chrome this tab is built from
