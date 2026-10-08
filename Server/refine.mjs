@@ -53,7 +53,7 @@ import { fileURLToPath } from "node:url";
 import { askOnce } from "./ask-each.mjs";
 
 const MODELS = {
-	haiku: "claude-haiku-4-5-20251001",
+	haiku: "claude-haiku-5-5",
 	sonnet: "claude-sonnet-5-5",
 };
 

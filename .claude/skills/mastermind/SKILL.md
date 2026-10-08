@@ -515,7 +515,7 @@ Every piece of work ends committed, and merged if it is on a branch. Work on a b
 
 ## Minions default to Haiku (the owner, 2026-10-08)
 
-Under token pressure, a minion is Haiku (`claude-haiku-4-5-20251001`, effort low) unless its job is **designing UI or writing object-oriented code**, which gets Sonnet 5.5 (`claude-sonnet-5-5`) passed explicitly. Research, searches, audits and fan-outs are Haiku: one minion per small inlined batch, kept under ~100k tokens (past that Haiku costs ~5x more per token), scripts doing the raw reading. `roles.js` now defaults the `minion` role to Haiku, so a minion that needs Sonnet must be spawned with `model` set.
+Under token pressure, a minion is Haiku (`claude-haiku-5-5`, effort low) unless its job is **designing UI or writing object-oriented code**, which gets Sonnet 5.5 (`claude-sonnet-5-5`) passed explicitly. Research, searches, audits and fan-outs are Haiku: one minion per small inlined batch, kept under ~100k tokens (past that Haiku costs ~5x more per token), scripts doing the raw reading. `roles.js` now defaults the `minion` role to Haiku, so a minion that needs Sonnet must be spawned with `model` set.
 
 ## Check usage with one command, not your own polling (the owner, 2026-10-08)
 

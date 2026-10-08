@@ -54,6 +54,7 @@ export const PRICES = {
 	"claude-opus-5":    { in: 5,  out: 25 },
 	"claude-opus-5-5":  { in: 4,  out: 20 },
 	"claude-haiku-4-5": { in: 1,  out: 5  },
+	"claude-haiku-5-5": { in: 1,  out: 5  },   // ASSUMED = haiku-4-5 (2026-10-08; the owner says it is cheaper) - verify against the pricing page
 	"claude-fable-5":   { in: 10, out: 50 },
 	"claude-fable-5-1": { in: 10, out: 50 },
 };
