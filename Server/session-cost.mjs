@@ -47,29 +47,12 @@ const ROOT = join(here, "..");
 // This table is the ONE place any script in this repo prices a token (session-cost.mjs,
 // week-cost.mjs, spend-tree.mjs all import it) — fixing it here fixes every reader at once,
 // per CLAUDE.md law 6: no second copy of a price table to go stale separately.
-export const DEFAULT_MODEL = "claude-sonnet-5";
-export const PRICES = {
-	"claude-sonnet-5":  { in: 2,  out: 10 },
-	"claude-sonnet-5-5": { in: 2, out: 10 },   // ASSUMED equal to sonnet-5 (2026-10-08) - verify against Anthropic pricing
-	"claude-opus-5":    { in: 5,  out: 25 },
-	"claude-opus-5-5":  { in: 4,  out: 20 },
-	"claude-haiku-4-5": { in: 1,  out: 5  },
-	"claude-fable-5":   { in: 10, out: 50 },
-	"claude-fable-5-1": { in: 10, out: 50 },
-};
-for (const p of Object.values(PRICES)) { p.cache_read = p.in * 0.1; p.cache_write = p.in * 2; }
+// The price table and price_for() now live in Session.js (2026-10-08, session-class): the browser
+// class and this script must never disagree on a rate. Re-exported so every old importer still works.
+import { PRICES, DEFAULT_MODEL, price_for } from "../public/framework/ai/sessions/Session.js";
+export { PRICES, DEFAULT_MODEL, price_for };
 
 const r4 = n => Math.round(n * 10000) / 10000;
-
-// An unknown model name falls back to the default's price and is listed in the
-// result's `unknown_models` — never thrown, this is an estimate, not a hard failure.
-// Exported: the one function every other script should call to price a call, instead of
-// reading PRICES directly and re-deriving the same fallback-and-report logic a second time.
-export function price_for(model, unknown_models){
-	if (PRICES[model]) return PRICES[model];
-	unknown_models?.add(model);
-	return PRICES[DEFAULT_MODEL];
-}
 
 const lines_of = file => existsSync(file)
 	? readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim())
@@ -94,21 +77,32 @@ export function cost_of_transcript(path){
 		return current;
 	};
 
-	for (const o of lines_of(path)){
+	// FIXED 2026-10-08 (session-class): the transcript writes one line per CONTENT BLOCK of an API
+	// message and repeats the whole message.usage on each, so pricing every line counted a message
+	// 2-5x. Measured against the SDK's own billed total on 25 finished agents (session-class/
+	// dedupe-truth.mjs): per-line was 2.03x the SDK, one-per-message.id was 0.998x. Count each id once.
+	const all = lines_of(path);
+	const last_line_of = new Map();
+	all.forEach((o, i) => { if (o.type === "assistant" && o.message?.usage) last_line_of.set(o.message.id || o.uuid, i); });
+	let messages = 0;
+	for (const [i, o] of all.entries()){
 		if (o.type === "user" && !o.isSidechain && o.turnOrigin !== "task_notification"){
 			group_for(o.timestamp ?? "unknown");
 			continue;
 		}
 		if (o.type !== "assistant") continue;
 		const usage = o.message?.usage;
-		if (!usage) continue;
+		if (!usage || o.message?.model === "<synthetic>") continue;
+		if (last_line_of.get(o.message.id || o.uuid) !== i) continue;   // an earlier line of a message already seen
+		messages++;
 		const g = current ?? group_for("unknown");
 		const model = o.message?.model ?? g.model ?? DEFAULT_MODEL;
 		const price = price_for(model, unknown_models);
 		const input = usage.input_tokens || 0, output = usage.output_tokens || 0;
 		const cache_read = usage.cache_read_input_tokens || 0, cache_write = usage.cache_creation_input_tokens || 0;
+		const w5 = usage.cache_creation?.ephemeral_5m_input_tokens ?? 0, w1 = usage.cache_creation ? (usage.cache_creation.ephemeral_1h_input_tokens ?? 0) : cache_write;
 		const usd_in = input * price.in / 1e6, usd_out = output * price.out / 1e6;
-		const usd_cache_read = cache_read * price.cache_read / 1e6, usd_cache_write = cache_write * price.cache_write / 1e6;
+		const usd_cache_read = cache_read * price.cache_read / 1e6, usd_cache_write = (w5 * price.cache_write_5m + w1 * price.cache_write_1h) / 1e6;
 		g.usd += usd_in + usd_out + usd_cache_read + usd_cache_write;
 		g.usd_in += usd_in; g.usd_out += usd_out; g.usd_cache_read += usd_cache_read; g.usd_cache_write += usd_cache_write;
 		g.input += input; g.output += output; g.cache_read += cache_read; g.cache_write += cache_write;
@@ -118,13 +112,16 @@ export function cost_of_transcript(path){
 	const by_prompt = groups.filter(g => g.input || g.output || g.cache_read || g.cache_write)
 		.map(g => ({ at: g.at, usd: r4(g.usd), input: g.input, output: g.output, cache_read: g.cache_read, cache_write: g.cache_write, model: g.model,
 			usd_breakdown: { in: r4(g.usd_in), out: r4(g.usd_out), cache_read: r4(g.usd_cache_read), cache_write: r4(g.usd_cache_write) } }));
-	const total_usd = r4(by_prompt.reduce((n, g) => n + g.usd, 0));
+	// Totals sum the UNROUNDED per-prompt dollars (2026-10-08): rounding each prompt to 4 decimals first
+	// dropped the tiny charge of every call and, over hundreds of prompts, drifted by about a quarter cent.
+	const live = groups.filter(g => g.input || g.output || g.cache_read || g.cache_write);
+	const total_usd = r4(live.reduce((n, g) => n + g.usd, 0));
 	// The SAME four numbers, summed across every prompt — the session's own total breakdown,
 	// plus the one figure the brief named explicitly: what share of the $ came from cache reads.
-	const usd_breakdown = by_prompt.reduce((n, g) => ({
-		in: n.in + g.usd_breakdown.in, out: n.out + g.usd_breakdown.out,
-		cache_read: n.cache_read + g.usd_breakdown.cache_read, cache_write: n.cache_write + g.usd_breakdown.cache_write,
-	}), { in: 0, out: 0, cache_read: 0, cache_write: 0 });
+	const usd_breakdown = live.reduce((n, g) => ({
+		in: n.in + g.usd_in, out: n.out + g.usd_out,
+		cache_read: n.cache_read + g.usd_cache_read, cache_write: n.cache_write + g.usd_cache_write,
+	}),{ in: 0, out: 0, cache_read: 0, cache_write: 0 });
 	for (const k of Object.keys(usd_breakdown)) usd_breakdown[k] = r4(usd_breakdown[k]);
 	const cache_read_pct = total_usd ? r4(usd_breakdown.cache_read / total_usd * 100) : 0;
 	// The raw token counts behind `usd_breakdown` — review finding, 2026-10-04: the brief asked
@@ -134,7 +131,31 @@ export function cost_of_transcript(path){
 		input: n.input + g.input, output: n.output + g.output,
 		cache_read: n.cache_read + g.cache_read, cache_write: n.cache_write + g.cache_write,
 	}), { input: 0, output: 0, cache_read: 0, cache_write: 0 });
-	return { total_usd, usd_breakdown, cache_read_pct, token_totals, by_prompt, unknown_models: [...unknown_models] };
+	return { total_usd, usd_breakdown, cache_read_pct, token_totals, by_prompt, messages, unknown_models: [...unknown_models] };
+}
+
+// A whole session = its own transcript + the in-process subagent files Claude Code keeps beside it
+// (<project>/<session-id>/subagents/agent-*.jsonl), which are NOT in the main file but are billed.
+// This is the independent total Session.audit() compares the rolling totals to.
+export function subagent_files(session_id){
+	const main = find_transcript(session_id);
+	if (!main) return [];
+	const dir = join(dirname(main), session_id, "subagents");
+	try { return readdirSync(dir).filter(f => f.endsWith(".jsonl")).map(f => ({ part: f.slice(0, -6), path: join(dir, f) })); } catch { return []; }
+}
+export function cost_of_session(session_id){
+	const main = find_transcript(session_id);
+	if (!main) return null;
+	const parts = [cost_of_transcript(main), ...subagent_files(session_id).map(f => cost_of_transcript(f.path))];
+	const out = { total_usd: 0, usd_breakdown: { in: 0, out: 0, cache_read: 0, cache_write: 0 }, token_totals: { input: 0, output: 0, cache_read: 0, cache_write: 0 }, messages: 0, subagents: parts.length - 1 };
+	for (const p of parts){
+		out.total_usd += p.total_usd; out.messages += p.messages;
+		for (const k in out.usd_breakdown) out.usd_breakdown[k] += p.usd_breakdown[k];
+		for (const k in out.token_totals) out.token_totals[k] += p.token_totals[k];
+	}
+	out.total_usd = r4(out.total_usd);
+	for (const k in out.usd_breakdown) out.usd_breakdown[k] = r4(out.usd_breakdown[k]);
+	return out;
 }
 
 // The one most useful string for a tool_use block's own `input` — ai/sessions'
