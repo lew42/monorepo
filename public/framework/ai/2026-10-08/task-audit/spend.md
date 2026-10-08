@@ -1,5 +1,9 @@
 # Task audit: spend
 
+> **Accuracy caveat: Haiku was only about 58% right (14 of 24 spot-checked verdicts).** Treat every `half-done` row as a lead to check, not a fact. The Haiku reads (26 judging batches, 1 refinement read, 9 raw-prompt reads of 2026-10-08, and the 2 sample reads) ran through the Agent tool, so they do not appear in the Sessions registry. Future minions are spawned with `spawn_agent` (claude-haiku-5-5, role minion, parent = this mastermind).
+>
+> **Budget:** the task record now shows this mastermind at about $9.19 against the $6 plan (mostly cache reads and output in one long session). No further spawns until the owner says so.
+
 Budget was $6 total. The task card shows $4.27 for the mastermind alone when this was written; the Haiku minions are on top of it.
 
 | Step | Who | Tokens | Rough $ |
